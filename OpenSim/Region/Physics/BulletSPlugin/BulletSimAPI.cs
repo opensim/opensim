@@ -35,9 +35,11 @@ namespace OpenSim.Region.Physics.BulletSPlugin {
 // Classes to allow some type checking for the API
 public struct BulletSim
 {
-    public BulletSim(uint id, IntPtr xx) { ID = id;  Ptr = xx; }
-    public IntPtr Ptr;
+    public BulletSim(uint id, BSScene bss, IntPtr xx) { ID = id; scene = bss;  Ptr = xx; }
     public uint ID;
+    // The scene is only in here so very low level routines have a handle to print debug/error messages
+    public BSScene scene;
+    public IntPtr Ptr;
 }
 
 public struct BulletBody
@@ -363,7 +365,7 @@ public static extern IntPtr GetSimHandle2(uint worldID);
 public static extern IntPtr GetBodyHandleWorldID2(uint worldID, uint id);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern IntPtr GetBodyHandle2(IntPtr sim, uint id);
+public static extern IntPtr GetBodyHandle2(IntPtr world, uint id);
 
 // ===============================================================================
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
@@ -372,40 +374,43 @@ public static extern IntPtr Initialize2(Vector3 maxPosition, IntPtr parms,
 											int maxUpdates, IntPtr updateArray);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern bool UpdateParameter2(IntPtr sim, uint localID, String parm, float value);
+public static extern bool UpdateParameter2(IntPtr world, uint localID, String parm, float value);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern void SetHeightmap2(IntPtr sim, float[] heightmap);
+public static extern void SetHeightmap2(IntPtr world, float[] heightmap);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern void Shutdown2(IntPtr sim);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern int PhysicsStep2(IntPtr sim, float timeStep, int maxSubSteps, float fixedTimeStep,
+public static extern int PhysicsStep2(IntPtr world, float timeStep, int maxSubSteps, float fixedTimeStep,
                         out int updatedEntityCount, 
                         out IntPtr updatedEntitiesPtr,
                         out int collidersCount,
                         out IntPtr collidersPtr);
 
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern bool PushUpdate2(IntPtr obj);
+
 /*
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern IntPtr CreateMesh2(IntPtr sim, int indicesCount, int* indices, int verticesCount, float* vertices );
+public static extern IntPtr CreateMesh2(IntPtr world, int indicesCount, int* indices, int verticesCount, float* vertices );
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern bool BuildHull2(IntPtr sim, IntPtr mesh);
+public static extern bool BuildHull2(IntPtr world, IntPtr mesh);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern bool ReleaseHull2(IntPtr sim, IntPtr mesh);
+public static extern bool ReleaseHull2(IntPtr world, IntPtr mesh);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern bool DestroyMesh2(IntPtr sim, IntPtr mesh);
+public static extern bool DestroyMesh2(IntPtr world, IntPtr mesh);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern IntPtr CreateObject2(IntPtr sim, ShapeData shapeData);
+public static extern IntPtr CreateObject2(IntPtr world, ShapeData shapeData);
 */
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern IntPtr CreateConstraint2(IntPtr sim, IntPtr obj1, IntPtr obj2,
+public static extern IntPtr Create6DofConstraint2(IntPtr world, IntPtr obj1, IntPtr obj2,
                     Vector3 frame1loc, Quaternion frame1rot,
                     Vector3 frame2loc, Quaternion frame2rot,
                     bool useLinearReferenceFrameA, bool disableCollisionsBetweenLinkedBodies);
@@ -429,7 +434,13 @@ public static extern bool CalculateTransforms2(IntPtr constrain);
 public static extern bool SetConstraintParam2(IntPtr constrain, ConstraintParams paramIndex, float value, ConstraintParamAxis axis);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern bool DestroyConstraint2(IntPtr sim, IntPtr constrain);
+public static extern bool DestroyConstraint2(IntPtr world, IntPtr constrain);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern Vector3 AddObjectToWorld2(IntPtr world, IntPtr obj);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern Vector3 RemoveObjectFromWorld2(IntPtr world, IntPtr obj);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern Vector3 GetPosition2(IntPtr obj);
@@ -483,6 +494,9 @@ public static extern bool SetLinearVelocity2(IntPtr obj, Vector3 val);
 public static extern bool SetInterpolation2(IntPtr obj, Vector3 lin, Vector3 ang);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern CollisionFlags GetCollisionFlags2(IntPtr obj);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern IntPtr SetCollisionFlags2(IntPtr obj, CollisionFlags flags);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
@@ -508,12 +522,6 @@ public static extern bool SetMargin2(IntPtr obj, float val);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern bool UpdateSingleAabb2(IntPtr world, IntPtr obj);
-
-[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern bool AddObjectToWorld2(IntPtr world, IntPtr obj);
-
-[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern bool RemoveObjectFromWorld2(IntPtr world, IntPtr obj);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern bool DestroyObject2(IntPtr world, uint id);

@@ -73,7 +73,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     private static readonly ILog m_log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
     private static readonly string LogHeader = "[BULLETS SCENE]";
 
-    public void DebugLog(string mm, params Object[] xx) { if (shouldDebugLog) m_log.DebugFormat(mm, xx); }
+    public void DebugLog(string mm, params Object[] xx) { if (ShouldDebugLog) m_log.DebugFormat(mm, xx); }
 
     public string BulletSimVersion = "?";
 
@@ -162,14 +162,24 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     }
 
     public delegate void TaintCallback();
-    private List<TaintCallback> _taintedObjects;
+    private struct TaintCallbackEntry
+    {
+        public String ident;
+        public TaintCallback callback;
+        public TaintCallbackEntry(string i, TaintCallback c)
+        {
+            ident = i;
+            callback = c;
+        }
+    }
+    private List<TaintCallbackEntry> _taintedObjects;
     private Object _taintLock = new Object();
 
     // A pointer to an instance if this structure is passed to the C++ code
     ConfigurationParameters[] m_params;
     GCHandle m_paramsHandle;
 
-    public bool shouldDebugLog { get; private set; }
+    public bool ShouldDebugLog { get; private set; }
 
     private BulletSimAPI.DebugLogCallback m_DebugLogCallbackHandle;
 
@@ -232,7 +242,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             BulletSimAPI.SetDebugLogCallback(m_DebugLogCallbackHandle);
         }
 
-        _taintedObjects = new List<TaintCallback>();
+        _taintedObjects = new List<TaintCallbackEntry>();
 
         mesher = meshmerizer;
         // The bounding box for the simulated world
@@ -245,7 +255,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
 
         // Initialization to support the transition to a new API which puts most of the logic
         //   into the C# code so it is easier to modify and add to.
-        m_worldSim = new BulletSim(m_worldID, BulletSimAPI.GetSimHandle2(m_worldID));
+        m_worldSim = new BulletSim(m_worldID, this, BulletSimAPI.GetSimHandle2(m_worldID));
         m_constraintCollection = new BSConstraintCollection(World);
 
         m_initialized = true;
@@ -352,6 +362,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         BSPrim bsprim = prim as BSPrim;
         if (bsprim != null)
         {
+            DetailLog("{0},RemovePrim,call", bsprim.LocalID);
             // m_log.DebugFormat("{0}: RemovePrim. id={1}/{2}", LogHeader, bsprim.Name, bsprim.LocalID);
             try
             {
@@ -376,6 +387,8 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         // m_log.DebugFormat("{0}: AddPrimShape2: {1}", LogHeader, primName);
 
         if (!m_initialized) return null;
+
+        DetailLog("{0},AddPrimShape,call", localID);
 
         BSPrim prim = new BSPrim(localID, primName, this, position, size, rotation, pbs, isPhysical);
         lock (m_prims) m_prims.Add(localID, prim);
@@ -416,12 +429,12 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         {
             numSubSteps = BulletSimAPI.PhysicsStep(m_worldID, timeStep, m_maxSubSteps, m_fixedTimeStep,
                         out updatedEntityCount, out updatedEntitiesPtr, out collidersCount, out collidersPtr);
-            DetailLog("{0},Simulate,call, substeps={1}, updates={2}, colliders={3}", "0000000000", numSubSteps, updatedEntityCount, collidersCount); 
+            DetailLog("{0},Simulate,call, substeps={1}, updates={2}, colliders={3}", DetailLogZero, numSubSteps, updatedEntityCount, collidersCount); 
         }
         catch (Exception e)
         {
             m_log.WarnFormat("{0},PhysicsStep Exception: substeps={1}, updates={2}, colliders={3}, e={4}", LogHeader, numSubSteps, updatedEntityCount, collidersCount, e);
-            DetailLog("{0},PhysicsStepException,call, substeps={1}, updates={2}, colliders={3}", "0000000000", numSubSteps, updatedEntityCount, collidersCount);
+            DetailLog("{0},PhysicsStepException,call, substeps={1}, updates={2}, colliders={3}", DetailLogZero, numSubSteps, updatedEntityCount, collidersCount);
             // updatedEntityCount = 0;
             collidersCount = 0;
         }
@@ -535,7 +548,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
 
     public override void SetTerrain(float[] heightMap) {
         m_heightMap = heightMap;
-        this.TaintedObject(delegate()
+        this.TaintedObject("BSScene.SetTerrain", delegate()
         {
             BulletSimAPI.SetHeightmap(m_worldID, m_heightMap);
         });
@@ -727,12 +740,12 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     // Calls to the PhysicsActors can't directly call into the physics engine
     // because it might be busy. We delay changes to a known time.
     // We rely on C#'s closure to save and restore the context for the delegate.
-    public void TaintedObject(TaintCallback callback)
+    public void TaintedObject(String ident, TaintCallback callback)
     {
         if (!m_initialized) return;
 
         lock (_taintLock)
-            _taintedObjects.Add(callback);
+            _taintedObjects.Add(new TaintCallbackEntry(ident, callback));
         return;
     }
 
@@ -744,22 +757,22 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         if (_taintedObjects.Count > 0)  // save allocating new list if there is nothing to process
         {
             // swizzle a new list into the list location so we can process what's there
-            List<TaintCallback> oldList;
+            List<TaintCallbackEntry> oldList;
             lock (_taintLock)
             {
                 oldList = _taintedObjects;
-                _taintedObjects = new List<TaintCallback>();
+                _taintedObjects = new List<TaintCallbackEntry>();
             }
 
-            foreach (TaintCallback callback in oldList)
+            foreach (TaintCallbackEntry tcbe in oldList)
             {
                 try
                 {
-                    callback();
+                    tcbe.callback();
                 }
                 catch (Exception e)
                 {
-                    m_log.ErrorFormat("{0}: ProcessTaints: Exception: {1}", LogHeader, e);
+                    m_log.ErrorFormat("{0}: ProcessTaints: {1}: Exception: {2}", LogHeader, tcbe.ident, e);
                 }
             }
             oldList.Clear();
@@ -767,6 +780,20 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     }
 
     #region Vehicles
+
+    public void VehicleInSceneTypeChanged(BSPrim vehic, Vehicle newType)
+    {
+        if (newType == Vehicle.TYPE_NONE)
+        {
+            RemoveVehiclePrim(vehic);
+        }
+        else
+        {
+            // make it so the scene will call us each tick to do vehicle things
+           AddVehiclePrim(vehic);
+        }
+    }
+
     // Make so the scene will call this prim for vehicle actions each tick.
     // Safe to call if prim is already in the vehicle list.
     public void AddVehiclePrim(BSPrim vehicle)
@@ -812,12 +839,12 @@ public class BSScene : PhysicsScene, IPhysicsParameters
 
     private struct ParameterDefn
     {
-        public string name;
-        public string desc;
-        public float defaultValue;
-        public ParamUser userParam;
-        public ParamGet getter;
-        public ParamSet setter;
+        public string name;         // string name of the parameter
+        public string desc;         // a short description of what the parameter means
+        public float defaultValue;  // default value if not specified anywhere else
+        public ParamUser userParam; // get the value from the configuration file
+        public ParamGet getter;     // return the current value stored for this parameter
+        public ParamSet setter;     // set the current value for this parameter
         public ParameterDefn(string n, string d, float v, ParamUser u, ParamGet g, ParamSet s)
         {
             name = n;
@@ -834,7 +861,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     // To add a new externally referencable/settable parameter, add the paramter storage
     //    location somewhere in the program and make an entry in this table with the
     //    getters and setters.
-    // To add a new variable, it is easiest to find an existing definition and copy it.
+    // It is easiest to find an existing definition and copy it.
     // Parameter values are floats. Booleans are converted to a floating value.
     // 
     // A ParameterDefn() takes the following parameters:
@@ -870,7 +897,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             (s) => { return (float)s.m_meshLOD; },
             (s,p,l,v) => { s.m_meshLOD = (int)v; } ),
         new ParameterDefn("SculptLOD", "Level of detail to render sculpties (32, 16, 8 or 4. 32=most detailed)",
-            32,
+            32f,
             (s,cf,p,v) => { s.m_sculptLOD = cf.GetInt(p, (int)v); },
             (s) => { return (float)s.m_sculptLOD; },
             (s,p,l,v) => { s.m_sculptLOD = (int)v; } ),
@@ -1106,9 +1133,9 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             (s,p,l,v) => { s.m_detailedStatsStep = (int)v; } ),
         new ParameterDefn("ShouldDebugLog", "Enables detailed DEBUG log statements",
             ConfigurationParameters.numericFalse,
-            (s,cf,p,v) => { s.shouldDebugLog = cf.GetBoolean(p, s.BoolNumeric(v)); },
-            (s) => { return s.NumericBool(s.shouldDebugLog); },
-            (s,p,l,v) => { s.shouldDebugLog = s.BoolNumeric(v); } ),
+            (s,cf,p,v) => { s.ShouldDebugLog = cf.GetBoolean(p, s.BoolNumeric(v)); },
+            (s) => { return s.NumericBool(s.ShouldDebugLog); },
+            (s,p,l,v) => { s.ShouldDebugLog = s.BoolNumeric(v); } ),
 
     };
 
@@ -1248,7 +1275,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
                 List<uint> objectIDs = lIDs;
                 string xparm = parm.ToLower();
                 float xval = val;
-                TaintedObject(delegate() {
+                TaintedObject("BSScene.UpdateParameterSet", delegate() {
                     foreach (uint lID in objectIDs)
                     {
                         BulletSimAPI.UpdateParameter(m_worldID, lID, xparm, xval);
@@ -1268,7 +1295,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         uint xlocalID = localID;
         string xparm = parm.ToLower();
         float xval = val;
-        TaintedObject(delegate() {
+        TaintedObject("BSScene.TaintedUpdateParameter", delegate() {
             BulletSimAPI.UpdateParameter(m_worldID, xlocalID, xparm, xval);
         });
     }
@@ -1294,10 +1321,12 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     #endregion Runtime settable parameters
 
     // Invoke the detailed logger and output something if it's enabled.
-    private void DetailLog(string msg, params Object[] args)
+    public void DetailLog(string msg, params Object[] args)
     {
         PhysicsLogging.Write(msg, args);
     }
+    // used to fill in the LocalID when there isn't one
+    public const string DetailLogZero = "0000000000";
 
 }
 }
