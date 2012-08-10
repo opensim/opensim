@@ -3344,5 +3344,55 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             return new LSL_Key(m_host.ParentGroup.FromPartID.ToString());
         }
+
+        public void osRezDuplicate(LSL_Vector offset, LSL_Rotation rot)
+        {
+            CheckThreatLevel(ThreatLevel.High, "osRezDuplicate");
+            m_host.AddScriptLPS(1);
+
+            Vector3 v = new Vector3((float)offset.x, (float)offset.y, (float)offset.z);
+            Quaternion r = new Quaternion(
+                (float)rot.x,
+                (float)rot.y,
+                (float)rot.z,
+                (float)rot.s
+            );
+
+            Vector3 destination = m_host.ParentGroup.AbsolutePosition + v;
+
+            if (!World.Permissions.CanRezObject(
+                m_host.ParentGroup.PrimCount,
+                m_host.OwnerID,
+                destination
+            ))
+            {
+                OSSLShoutError("Cannot duplicate object to destination, owner cannot rez objects at destination parcel.");
+
+                ScriptSleep(100);
+            }
+            else
+            {
+                SceneObjectGroup duplicate = World.SceneGraph.DuplicateObject(
+                    m_host.ParentGroup.LocalId,
+                    v,
+                    m_host.ParentGroup.RootPart.GetEffectiveObjectFlags(),
+                    m_host.OwnerID,
+                    m_host.GroupID,
+                    r
+                );
+
+                m_ScriptEngine.PostObjectEvent(m_host.LocalId, new EventParams(
+                        "object_rez", new Object[] {
+                        new LSL_String(
+                        duplicate.RootPart.UUID.ToString()) },
+                        new DetectParams[0]));
+
+                ScriptSleep(100);
+                m_ScriptEngine.PostObjectEvent(duplicate.LocalId, new EventParams(
+                        "on_rez", new Object[]{
+                        new LSL_Integer(0)},
+                        new DetectParams[0]));
+            }
+        }
     }
 }

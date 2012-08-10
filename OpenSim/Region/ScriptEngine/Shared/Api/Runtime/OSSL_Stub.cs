@@ -955,5 +955,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_OSSL_Functions.osGetRezzingObject();
         }
+
+        public void osRezDuplicate(vector offset, rotation rot)
+        {
+            m_OSSL_Functions.osRezDuplicate(offset, rot);
+        }
     }
 }

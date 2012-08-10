@@ -306,5 +306,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         /// </summary>
         /// <returns>Rezzing object key or NULL_KEY if rezzed by agent or otherwise unknown.</returns>
         LSL_Key osGetRezzingObject();
+
+        /// <summary>
+        /// Duplicates an object as if the owner duplicated it.
+        /// </summary>
+        /// <param name="offset"></param>
+        /// <param name="rot"></param>
+        void osRezDuplicate(vector offset, rotation rot);
     }
 }
