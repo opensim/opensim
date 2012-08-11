@@ -122,7 +122,7 @@ public class BSCharacter : PhysicsActor
         shapeData.Restitution = _scene.Params.avatarRestitution;
 
         // do actual create at taint time
-        _scene.TaintedObject(delegate()
+        _scene.TaintedObject("BSCharacter.create", delegate()
         {
             BulletSimAPI.CreateObject(parent_scene.WorldID, shapeData);
 
@@ -138,7 +138,7 @@ public class BSCharacter : PhysicsActor
     public void Destroy()
     {
         // DetailLog("{0},Destroy", LocalID);
-        _scene.TaintedObject(delegate()
+        _scene.TaintedObject("BSCharacter.destroy", delegate()
         {
             BulletSimAPI.DestroyObject(_scene.WorldID, _localID);
         });
@@ -169,7 +169,7 @@ public class BSCharacter : PhysicsActor
 
             ComputeAvatarVolumeAndMass();
 
-            _scene.TaintedObject(delegate()
+            _scene.TaintedObject("BSCharacter.setSize", delegate()
             {
                 BulletSimAPI.SetObjectScaleMass(_scene.WorldID, LocalID, _scale, _mass, true);
             });
@@ -205,13 +205,37 @@ public class BSCharacter : PhysicsActor
         } 
         set {
             _position = value;
-            _scene.TaintedObject(delegate()
+            PositionSanityCheck();
+
+            _scene.TaintedObject("BSCharacter.setPosition", delegate()
             {
                 DetailLog("{0},SetPosition,taint,pos={1},orient={2}", LocalID, _position, _orientation);
                 BulletSimAPI.SetObjectTranslation(_scene.WorldID, _localID, _position, _orientation);
             });
         } 
     }
+
+    // Check that the current position is sane and, if not, modify the position to make it so.
+    // Check for being below terrain and being out of bounds.
+    // Returns 'true' of the position was made sane by some action.
+    private bool PositionSanityCheck()
+    {
+        bool ret = false;
+        
+        // If below the ground, move the avatar up
+        float terrainHeight = Scene.GetTerrainHeightAtXYZ(_position);
+        if (_position.Z < terrainHeight)
+        {
+            DetailLog("{0},PositionAdjustUnderGround,call,pos={1},orient={2}", LocalID, _position, _orientation);
+            _position.Z = terrainHeight + 2.0f;
+            ret = true;
+        }
+
+        // TODO: check for out of bounds
+
+        return ret;
+    }
+
     public override float Mass { 
         get { 
             return _mass; 
@@ -222,9 +246,9 @@ public class BSCharacter : PhysicsActor
         set {
             _force = value;
             // m_log.DebugFormat("{0}: Force = {1}", LogHeader, _force);
-            Scene.TaintedObject(delegate()
+            Scene.TaintedObject("BSCharacter.SetForce", delegate()
             {
-                DetailLog("{0},setForce,taint,force={1}", LocalID, _force);
+                DetailLog("{0},BSCharacter.setForce,taint,force={1}", LocalID, _force);
                 BulletSimAPI.SetObjectForce(Scene.WorldID, LocalID, _force);
             });
         } 
@@ -249,9 +273,9 @@ public class BSCharacter : PhysicsActor
         set {
             _velocity = value;
             // m_log.DebugFormat("{0}: set velocity = {1}", LogHeader, _velocity);
-            _scene.TaintedObject(delegate()
+            _scene.TaintedObject("BSCharacter.setVelocity", delegate()
             {
-                DetailLog("{0},setVelocity,taint,vel={1}", LocalID, _velocity);
+                DetailLog("{0},BSCharacter.setVelocity,taint,vel={1}", LocalID, _velocity);
                 BulletSimAPI.SetObjectVelocity(_scene.WorldID, _localID, _velocity);
             });
         } 
@@ -275,7 +299,7 @@ public class BSCharacter : PhysicsActor
         set {
             _orientation = value;
             // m_log.DebugFormat("{0}: set orientation to {1}", LogHeader, _orientation);
-            _scene.TaintedObject(delegate()
+            _scene.TaintedObject("BSCharacter.setOrientation", delegate()
             {
                 // _position = BulletSimAPI.GetObjectPosition(_scene.WorldID, _localID);
                 BulletSimAPI.SetObjectTranslation(_scene.WorldID, _localID, _position, _orientation);
@@ -342,7 +366,7 @@ public class BSCharacter : PhysicsActor
     public override float Buoyancy { 
         get { return _buoyancy; } 
         set { _buoyancy = value; 
-            _scene.TaintedObject(delegate()
+            _scene.TaintedObject("BSCharacter.setBuoyancy", delegate()
             {
                 DetailLog("{0},setBuoyancy,taint,buoy={1}", LocalID, _buoyancy);
                 BulletSimAPI.SetObjectBuoyancy(_scene.WorldID, LocalID, _buoyancy);
@@ -389,7 +413,7 @@ public class BSCharacter : PhysicsActor
             _force.Y += force.Y;
             _force.Z += force.Z;
             // m_log.DebugFormat("{0}: AddForce. adding={1}, newForce={2}", LogHeader, force, _force);
-            _scene.TaintedObject(delegate()
+            _scene.TaintedObject("BSCharacter.AddForce", delegate()
             {
                 DetailLog("{0},setAddForce,taint,addedForce={1}", LocalID, _force);
                 BulletSimAPI.AddObjectForce2(Body.Ptr, _force);
@@ -415,7 +439,7 @@ public class BSCharacter : PhysicsActor
             // make sure first collision happens
             _nextCollisionOkTime = Util.EnvironmentTickCount() - _subscribedEventsMs;
 
-            Scene.TaintedObject(delegate()
+            Scene.TaintedObject("BSCharacter.SubscribeEvents", delegate()
             {
                 BulletSimAPI.AddToCollisionFlags2(Body.Ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
             });
@@ -425,7 +449,7 @@ public class BSCharacter : PhysicsActor
     public override void UnSubscribeEvents() { 
         _subscribedEventsMs = 0;
         // Avatars get all their collision events
-        // Scene.TaintedObject(delegate()
+        // Scene.TaintedObject("BSCharacter.UnSubscribeEvents", delegate()
         // {
         //     BulletSimAPI.RemoveFromCollisionFlags2(Body.Ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
         // });
@@ -456,43 +480,17 @@ public class BSCharacter : PhysicsActor
     // the world that things have changed.
     public void UpdateProperties(EntityProperties entprop)
     {
-        /*
-        bool changed = false;
-        // we assign to the local variables so the normal set action does not happen
-        if (_position != entprop.Position) {
-            _position = entprop.Position;
-            changed = true;
-        }
-        if (_orientation != entprop.Rotation) {
-            _orientation = entprop.Rotation;
-            changed = true;
-        }
-        if (_velocity != entprop.Velocity) {
-            _velocity = entprop.Velocity;
-            changed = true;
-        }
-        if (_acceleration != entprop.Acceleration) {
-            _acceleration = entprop.Acceleration;
-            changed = true;
-        }
-        if (_rotationalVelocity != entprop.RotationalVelocity) {
-            _rotationalVelocity = entprop.RotationalVelocity;
-            changed = true;
-        }
-        if (changed) {
-            // m_log.DebugFormat("{0}: UpdateProperties: id={1}, c={2}, pos={3}, rot={4}", LogHeader, LocalID, changed, _position, _orientation);
-            // Avatar movement is not done by generating this event. There is code in the heartbeat
-            //   loop that updates avatars.
-            // base.RequestPhysicsterseUpdate();
-        }
-        */
         _position = entprop.Position;
         _orientation = entprop.Rotation;
         _velocity = entprop.Velocity;
         _acceleration = entprop.Acceleration;
         _rotationalVelocity = entprop.RotationalVelocity;
-        // Avatars don't report theirr changes the usual way. Changes are checked for in the heartbeat loop.
+        // Avatars don't report their changes the usual way. Changes are checked for in the heartbeat loop.
         // base.RequestPhysicsterseUpdate();
+
+        DetailLog("{0},BSCharacter.UpdateProperties,call,pos={1},orient={2},vel={3},accel={4},rotVel={5}",
+                LocalID, entprop.Position, entprop.Rotation, entprop.Velocity, 
+                entprop.Acceleration, entprop.RotationalVelocity);
     }
 
     // Called by the scene when a collision with this object is reported
