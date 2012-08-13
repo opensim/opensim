@@ -4957,12 +4957,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 return 0;
             }
+
+            // Vectors & Rotations always return zero in SL, but
+            //  keys don't always return zero, it seems to be a bit complex.
+            else if (src.Data[index] is LSL_Vector ||
+                    src.Data[index] is LSL_Rotation)
+            {
+                return 0;
+            }
             try
             {
+
                 if (src.Data[index] is LSL_Integer)
-                    return (LSL_Integer) src.Data[index];
+                    return (LSL_Integer)src.Data[index];
                 else if (src.Data[index] is LSL_Float)
-                    return Convert.ToInt32(((LSL_Float) src.Data[index]).value);
+                    return Convert.ToInt32(((LSL_Float)src.Data[index]).value);
                 return new LSL_Integer(src.Data[index].ToString());
             }
             catch (FormatException)
@@ -4982,14 +4991,30 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 return 0.0;
             }
+
+            // Vectors & Rotations always return zero in SL
+            else if (src.Data[index] is LSL_Vector ||
+                    src.Data[index] is LSL_Rotation)
+            {
+                return 0;
+            }
+            // valid keys seem to get parsed as integers then converted to floats
+            else
+            {
+                UUID uuidt;
+                if (src.Data[index] is LSL_Key && UUID.TryParse(src.Data[index].ToString(), out uuidt))
+                {
+                    return Convert.ToDouble(new LSL_Integer(src.Data[index].ToString()).value);
+                }
+            }
             try
             {
                 if (src.Data[index] is LSL_Integer)
-                    return Convert.ToDouble(((LSL_Integer) src.Data[index]).value);
+                    return Convert.ToDouble(((LSL_Integer)src.Data[index]).value);
                 else if (src.Data[index] is LSL_Float)
-                    return Convert.ToDouble(((LSL_Float) src.Data[index]).value);
+                    return Convert.ToDouble(((LSL_Float)src.Data[index]).value);
                 else if (src.Data[index] is LSL_String)
-                    return Convert.ToDouble(((LSL_String) src.Data[index]).m_string);
+                    return Convert.ToDouble(((LSL_String)src.Data[index]).m_string);
                 return Convert.ToDouble(src.Data[index]);
             }
             catch (FormatException)
@@ -5012,17 +5037,30 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return src.Data[index].ToString();
         }
 
-        public LSL_String llList2Key(LSL_List src, int index)
+        public LSL_Key llList2Key(LSL_List src, int index)
         {
             m_host.AddScriptLPS(1);
             if (index < 0)
             {
                 index = src.Length + index;
             }
+
             if (index >= src.Length || index < 0)
             {
                 return "";
             }
+
+            // SL spits out an empty string for types other than key & string
+            // At the time of patching, LSL_Key is currently LSL_String,
+            // so the OR check may be a little redundant, but it's being done
+            // for completion and should LSL_Key ever be implemented 
+            // as it's own struct
+            else if (!(src.Data[index] is LSL_String ||
+                    src.Data[index] is LSL_Key))
+            {
+                return "";
+            }
+
             return src.Data[index].ToString();
         }
 
@@ -5041,6 +5079,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 return (LSL_Vector)src.Data[index];
             }
+
+            // SL spits always out ZERO_VECTOR for anything other than
+            // strings or vectors. Although keys always return ZERO_VECTOR,
+            // it is currently difficult to make the distinction between
+            // a string, a key as string and a string that by coincidence
+            // is a string, so we're going to leave that up to the
+            // LSL_Vector constructor.
+            else if (!(src.Data[index] is LSL_String ||
+                    src.Data[index] is LSL_Vector))
+            {
+                return new LSL_Vector(0, 0, 0);
+            }
             else
             {
                 return new LSL_Vector(src.Data[index].ToString());
@@ -5058,7 +5108,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 return new LSL_Rotation(0, 0, 0, 1);
             }
-            if (src.Data[index].GetType() == typeof(LSL_Rotation))
+
+            // SL spits always out ZERO_ROTATION for anything other than
+            // strings or vectors. Although keys always return ZERO_ROTATION,
+            // it is currently difficult to make the distinction between
+            // a string, a key as string and a string that by coincidence
+            // is a string, so we're going to leave that up to the
+            // LSL_Rotation constructor.
+            else if (!(src.Data[index] is LSL_String ||
+                    src.Data[index] is LSL_Rotation))
+            {
+                return new LSL_Rotation(0, 0, 0, 1);
+            }
+            else if (src.Data[index].GetType() == typeof(LSL_Rotation))
             {
                 return (LSL_Rotation)src.Data[index];
             }
