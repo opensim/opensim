@@ -2628,7 +2628,7 @@ namespace OpenSim.Region.Framework.Scenes
                     RootPrim.RemFlag(PrimFlags.TemporaryOnRez);
                     
                     if (AttachmentsModule != null)
-                        AttachmentsModule.AttachObject(sp, grp, 0, false);
+                        AttachmentsModule.AttachObject(sp, grp, 0, false, false);
                 }
                 else
                 {

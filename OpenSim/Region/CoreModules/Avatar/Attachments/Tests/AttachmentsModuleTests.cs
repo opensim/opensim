@@ -189,7 +189,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
 
             SceneObjectGroup so = SceneHelpers.AddSceneObject(scene, attName, sp.UUID);
 
-            scene.AttachmentsModule.AttachObject(sp, so, (uint)AttachmentPoint.Chest, false);
+            scene.AttachmentsModule.AttachObject(sp, so, (uint)AttachmentPoint.Chest, false, false);
 
             // Check status on scene presence
             Assert.That(sp.HasAttachments(), Is.True);
@@ -243,7 +243,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             sp2.AbsolutePosition = new Vector3(0, 0, 0);
             sp2.HandleAgentRequestSit(sp2.ControllingClient, sp2.UUID, so.UUID, Vector3.Zero);
 
-            scene.AttachmentsModule.AttachObject(sp, so, (uint)AttachmentPoint.Chest, false);
+            scene.AttachmentsModule.AttachObject(sp, so, (uint)AttachmentPoint.Chest, false, false);
 
             Assert.That(sp.HasAttachments(), Is.False);
             Assert.That(scene.GetSceneObjectGroups().Count, Is.EqualTo(1));
