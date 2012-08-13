@@ -176,7 +176,8 @@ namespace OpenSim.Services.Interfaces
             List<AvatarAttachment> attachments = appearance.GetAttachments();
             foreach (AvatarAttachment attach in attachments)
             {
-                Data["_ap_" + attach.AttachPoint] = attach.ItemID.ToString();
+                if (attach.ItemID != UUID.Zero)
+                    Data["_ap_" + attach.AttachPoint] = attach.ItemID.ToString();
             }
         }
 
