@@ -68,7 +68,7 @@ namespace OpenSim.Region.Framework.Scenes
         public ScriptControlled eventControls;
     }
 
-    public delegate void SendCourseLocationsMethod(UUID scene, ScenePresence presence, List<Vector3> coarseLocations, List<UUID> avatarUUIDs);
+    public delegate void SendCoarseLocationsMethod(UUID scene, ScenePresence presence, List<Vector3> coarseLocations, List<UUID> avatarUUIDs);
 
     public class ScenePresence : EntityBase, IScenePresence
     {
@@ -186,7 +186,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public bool SitGround { get; private set; }
 
-        private SendCourseLocationsMethod m_sendCourseLocationsMethod;
+        private SendCoarseLocationsMethod m_sendCoarseLocationsMethod;
 
         //private Vector3 m_requestedSitOffset = new Vector3();
 
@@ -695,7 +695,7 @@ namespace OpenSim.Region.Framework.Scenes
             AttachmentsSyncLock = new Object();
             AllowMovement = true;
             IsChildAgent = true;
-            m_sendCourseLocationsMethod = SendCoarseLocationsDefault;
+            m_sendCoarseLocationsMethod = SendCoarseLocationsDefault;
             Animator = new ScenePresenceAnimator(this);
             PresenceType = type;
             DrawDistance = world.DefaultDrawDistance;
@@ -2432,17 +2432,17 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SendCoarseLocations(List<Vector3> coarseLocations, List<UUID> avatarUUIDs)
         {
-            SendCourseLocationsMethod d = m_sendCourseLocationsMethod;
+            SendCoarseLocationsMethod d = m_sendCoarseLocationsMethod;
             if (d != null)
             {
                 d.Invoke(m_scene.RegionInfo.originRegionID, this, coarseLocations, avatarUUIDs);
             }
         }
 
-        public void SetSendCourseLocationMethod(SendCourseLocationsMethod d)
+        public void SetSendCoarseLocationMethod(SendCoarseLocationsMethod d)
         {
             if (d != null)
-                m_sendCourseLocationsMethod = d;
+                m_sendCoarseLocationsMethod = d;
         }
 
         public void SendCoarseLocationsDefault(UUID sceneId, ScenePresence p, List<Vector3> coarseLocations, List<UUID> avatarUUIDs)
@@ -2646,7 +2646,7 @@ namespace OpenSim.Region.Framework.Scenes
         #region Significant Movement Method
 
         /// <summary>
-        /// This checks for a significant movement and sends a courselocationchange update
+        /// This checks for a significant movement and sends a coarselocationchange update
         /// </summary>
         protected void CheckForSignificantMovement()
         {
