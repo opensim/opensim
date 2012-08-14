@@ -49,12 +49,28 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "TempAttachmentsModule")]
     public class TempAttachmentsModule : INonSharedRegionModule
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        private Scene m_scene;
+
         public void Initialise(IConfigSource configSource)
         {
         }
 
         public void AddRegion(Scene scene)
         {
+            m_scene = scene;
+
+            IScriptModuleComms comms = scene.RequestModuleInterface<IScriptModuleComms>();
+            if (comms != null)
+            {
+                comms.RegisterScriptInvocation( this, "llAttachToAvatarTemp");
+                m_log.DebugFormat("[TEMP ATTACHS]: Registered script functions");
+            }
+            else
+            {
+                m_log.ErrorFormat("[TEMP ATTACHS]: Failed to register script functions");
+            }
         }
 
         public void RemoveRegion(Scene scene)
@@ -77,6 +93,34 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
         public string Name
         {
             get { return "TempAttachmentsModule"; }
+        }
+
+        private void llAttachToAvatarTemp(UUID host, UUID script, int attachmentPoint)
+        {
+            SceneObjectPart hostPart = m_scene.GetSceneObjectPart(host);
+
+            if (hostPart == null)
+                return;
+
+            if (hostPart.ParentGroup.IsAttachment)
+                return;
+
+            IAttachmentsModule attachmentsModule = m_scene.RequestModuleInterface<IAttachmentsModule>();
+            if (attachmentsModule == null)
+                return;
+
+            TaskInventoryItem item = hostPart.Inventory.GetInventoryItem(script);
+            if (item == null)
+                return;
+
+            if ((item.PermsMask & 32) == 0) // PERMISSION_ATTACH
+                return;
+
+            ScenePresence target;
+            if (!m_scene.TryGetScenePresence(item.PermsGranter, out target))
+                return;
+            
+            attachmentsModule.AttachObject(target, hostPart.ParentGroup, (uint)attachmentPoint, false, true);
         }
     }
 }
