@@ -112,14 +112,22 @@ public class BSConstraintCollection : IDisposable
         {
             m_world.scene.DetailLog("{0},BSConstraintCollection.RemoveAndDestroyConstraint,taint,body1={1},body2={2}", BSScene.DetailLogZero, body1.ID, body2.ID);
             // remove the constraint from our collection
-            m_constraints.Remove(constrain);
-            // tell the engine that all its structures need to be freed
-            constrain.Dispose();
-            // we destroyed something
+            RemoveAndDestroyConstraint(constrain);
             ret = true;
         }
 
         return ret;
+    }
+
+    // The constraint MUST exist in the collection
+    public bool RemoveAndDestroyConstraint(BSConstraint constrain)
+    {
+        // remove the constraint from our collection
+        m_constraints.Remove(constrain);
+        // tell the engine that all its structures need to be freed
+        constrain.Dispose();
+        // we destroyed something
+        return true;
     }
 
     // Remove all constraints that reference the passed body.
