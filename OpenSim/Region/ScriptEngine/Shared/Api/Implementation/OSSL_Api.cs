@@ -2434,8 +2434,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (!npcModule.CheckPermissions(npcId, m_host.OwnerID))
                     return new LSL_Vector(0, 0, 0);
 
-                Vector3 pos = World.GetScenePresence(npcId).AbsolutePosition;
-                return new LSL_Vector(pos.X, pos.Y, pos.Z);
+                ScenePresence sp = World.GetScenePresence(npcId);
+
+                if (sp != null)
+                {
+                    Vector3 pos = sp.AbsolutePosition;
+                    return new LSL_Vector(pos.X, pos.Y, pos.Z);
+                }
             }
 
             return new LSL_Vector(0, 0, 0);
@@ -2503,9 +2508,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return new LSL_Rotation(Quaternion.Identity.X, Quaternion.Identity.Y, Quaternion.Identity.Z, Quaternion.Identity.W);
 
                 ScenePresence sp = World.GetScenePresence(npcId);
-                Quaternion rot = sp.Rotation;
 
-                return new LSL_Rotation(rot.X, rot.Y, rot.Z, rot.W);
+                if (sp != null)
+                {
+                    Quaternion rot = sp.Rotation;
+                    return new LSL_Rotation(rot.X, rot.Y, rot.Z, rot.W);
+                }
             }
 
             return new LSL_Rotation(Quaternion.Identity.X, Quaternion.Identity.Y, Quaternion.Identity.Z, Quaternion.Identity.W);
@@ -2527,7 +2535,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return;
 
                 ScenePresence sp = World.GetScenePresence(npcId);
-                sp.Rotation = LSL_Api.Rot2Quaternion(rotation);
+
+                if (sp != null)
+                    sp.Rotation = LSL_Api.Rot2Quaternion(rotation);
             }
         }
 
@@ -2689,6 +2699,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             CheckThreatLevel(ThreatLevel.High, "osNpcTouch");
             m_host.AddScriptLPS(1);
+            
             INPCModule module = World.RequestModuleInterface<INPCModule>();
             int linkNum = link_num.value;
             if (module != null || (linkNum < 0 && linkNum != ScriptBaseClass.LINK_THIS))
@@ -2696,12 +2707,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 UUID npcId;
                 if (!UUID.TryParse(npcLSL_Key, out npcId) || !module.CheckPermissions(npcId, m_host.OwnerID))
                     return;
+
                 SceneObjectPart part = null;
                 UUID objectId;
                 if (UUID.TryParse(LSL_String.ToString(object_key), out objectId))
                     part = World.GetSceneObjectPart(objectId);
+
                 if (part == null)
                     return;
+
                 if (linkNum != ScriptBaseClass.LINK_THIS)
                 {
                     if (linkNum == 0 || linkNum == ScriptBaseClass.LINK_ROOT)
@@ -2716,6 +2730,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             return;
                     }
                 }
+
                 module.Touch(npcId, part.UUID);
             }
         }
