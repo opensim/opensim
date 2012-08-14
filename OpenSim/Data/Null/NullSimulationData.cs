@@ -156,5 +156,18 @@ namespace OpenSim.Data.Null
         {
             return new UUID[0];
         }
+
+        public void SaveExtra(UUID regionID, string name, string value)
+        {
+        }
+
+        public void RemoveExtra(UUID regionID, string name)
+        {
+        }
+
+        public Dictionary<string, string> GetExtra(UUID regionID)
+        {
+            return null;
+        }
     }
 }

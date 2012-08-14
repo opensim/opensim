@@ -2094,5 +2094,18 @@ namespace OpenSim.Data.MySQL
                 }
             }
         }
+
+        public void SaveExtra(UUID regionID, string name, string val)
+        {
+        }
+
+        public void RemoveExtra(UUID regionID, string name)
+        {
+        }
+
+        public Dictionary<string, string> GetExtra(UUID regionID)
+        {
+            return null;
+        }
     }
 }

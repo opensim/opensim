@@ -177,6 +177,8 @@ namespace OpenSim.Region.Framework.Scenes
         protected ICapabilitiesModule m_capsModule;
         protected IGroupsModule m_groupsModule;
 
+        private Dictionary<string, string> m_extraSettings;
+
         /// <summary>
         /// Current scene frame number
         /// </summary>
@@ -658,6 +660,8 @@ namespace OpenSim.Region.Framework.Scenes
             // FIXME: It shouldn't be up to the database plugins to create this data - we should do it when a new
             // region is set up and avoid these gyrations.
             RegionSettings rs = simDataService.LoadRegionSettings(RegionInfo.RegionID);
+            m_extraSettings = simDataService.GetExtra(RegionInfo.RegionID);
+
             bool updatedTerrainTextures = false;
             if (rs.TerrainTexture1 == UUID.Zero)
             {
