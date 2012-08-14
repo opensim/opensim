@@ -179,9 +179,9 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                     ScenePresence sp;
                     scene.TryGetScenePresence(agentID, out sp);
 
-                    m_log.DebugFormat(
-                        "[NPC MODULE]: Moving {0} to {1} in {2}, noFly {3}, landAtTarget {4}",
-                        sp.Name, pos, scene.RegionInfo.RegionName, noFly, landAtTarget);
+//                    m_log.DebugFormat(
+//                        "[NPC MODULE]: Moving {0} to {1} in {2}, noFly {3}, landAtTarget {4}",
+//                        sp.Name, pos, scene.RegionInfo.RegionName, noFly, landAtTarget);
 
                     sp.MoveToTarget(pos, noFly, landAtTarget);
                     sp.SetAlwaysRun = running;
