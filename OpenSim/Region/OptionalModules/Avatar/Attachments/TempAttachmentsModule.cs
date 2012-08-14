@@ -59,6 +59,14 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
 
         public void AddRegion(Scene scene)
         {
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+        }
+
+        public void RegionLoaded(Scene scene)
+        {
             m_scene = scene;
 
             IScriptModuleComms comms = scene.RequestModuleInterface<IScriptModuleComms>();
@@ -71,14 +79,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
             {
                 m_log.ErrorFormat("[TEMP ATTACHS]: Failed to register script functions");
             }
-        }
-
-        public void RemoveRegion(Scene scene)
-        {
-        }
-
-        public void RegionLoaded(Scene scene)
-        {
         }
 
         public void Close()
