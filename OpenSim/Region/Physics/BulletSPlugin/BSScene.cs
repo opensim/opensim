@@ -595,12 +595,6 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         // make sure no stepping happens while we're deleting stuff
         m_initialized = false;
 
-        if (m_constraintCollection != null)
-        {
-            m_constraintCollection.Dispose();
-            m_constraintCollection = null;
-        }
-
         foreach (KeyValuePair<uint, BSCharacter> kvp in m_avatars)
         {
             kvp.Value.Destroy();
@@ -612,6 +606,13 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             kvp.Value.Destroy();
         }
         m_prims.Clear();
+
+        // Now that the prims are all cleaned up, there should be no constraints left
+        if (m_constraintCollection != null)
+        {
+            m_constraintCollection.Dispose();
+            m_constraintCollection = null;
+        }
 
         // Anything left in the unmanaged code should be cleaned out
         BulletSimAPI.Shutdown(WorldID);
