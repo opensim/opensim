@@ -59,6 +59,14 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
 
         public void AddRegion(Scene scene)
         {
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+        }
+
+        public void RegionLoaded(Scene scene)
+        {
             m_scene = scene;
 
             IScriptModuleComms comms = scene.RequestModuleInterface<IScriptModuleComms>();
@@ -71,14 +79,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
             {
                 m_log.ErrorFormat("[TEMP ATTACHS]: Failed to register script functions");
             }
-        }
-
-        public void RemoveRegion(Scene scene)
-        {
-        }
-
-        public void RegionLoaded(Scene scene)
-        {
         }
 
         public void Close()
@@ -120,6 +120,34 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
             if (!m_scene.TryGetScenePresence(item.PermsGranter, out target))
                 return;
             
+            if (target.UUID != hostPart.ParentGroup.OwnerID)
+            {
+                uint effectivePerms = hostPart.ParentGroup.GetEffectivePermissions();
+
+                if ((effectivePerms & (uint)PermissionMask.Transfer) == 0)
+                    return;
+
+                hostPart.ParentGroup.SetOwnerId(target.UUID);
+                hostPart.ParentGroup.SetRootPartOwner(hostPart.ParentGroup.RootPart, target.UUID, target.ControllingClient.ActiveGroupId);
+
+                if (m_scene.Permissions.PropagatePermissions())
+                {
+                    foreach (SceneObjectPart child in hostPart.ParentGroup.Parts)
+                    {
+                        child.Inventory.ChangeInventoryOwner(target.UUID);
+                        child.TriggerScriptChangedEvent(Changed.OWNER);
+                        child.ApplyNextOwnerPermissions();
+                    }
+                }
+
+                hostPart.ParentGroup.RootPart.ObjectSaleType = 0;
+                hostPart.ParentGroup.RootPart.SalePrice = 10;
+
+                hostPart.ParentGroup.HasGroupChanged = true;
+                hostPart.ParentGroup.RootPart.SendPropertiesToClient(target.ControllingClient);
+                hostPart.ParentGroup.RootPart.ScheduleFullUpdate();
+            }
+
             attachmentsModule.AttachObject(target, hostPart.ParentGroup, (uint)attachmentPoint, false, true, true);
         }
     }
