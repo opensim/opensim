@@ -284,7 +284,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             sp.ClearAttachments();
         }
         
-        public bool AttachObject(IScenePresence sp, SceneObjectGroup group, uint attachmentPt, bool silent, bool useAttachData)
+        public bool AttachObject(IScenePresence sp, SceneObjectGroup group, uint attachmentPt, bool silent, bool useAttachData, bool temp)
         {
             lock (sp.AttachmentsSyncLock)
             {
@@ -361,7 +361,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 group.AbsolutePosition = attachPos;
 
                 if (sp.PresenceType != PresenceType.Npc)
-                    UpdateUserInventoryWithAttachment(sp, group, attachmentPt);
+                    UpdateUserInventoryWithAttachment(sp, group, attachmentPt, temp);
     
                 AttachToAgent(sp, group, attachmentPt, attachPos, silent);
             }
@@ -369,7 +369,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             return true;
         }
 
-        private void UpdateUserInventoryWithAttachment(IScenePresence sp, SceneObjectGroup group, uint attachmentPt)
+        private void UpdateUserInventoryWithAttachment(IScenePresence sp, SceneObjectGroup group, uint attachmentPt, bool temp)
         {
             // Remove any previous attachments
             List<SceneObjectGroup> attachments = sp.GetAttachments(attachmentPt);
@@ -379,18 +379,22 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             {
                 if (attachments[0].FromItemID != UUID.Zero)
                     DetachSingleAttachmentToInvInternal(sp, attachments[0]);
-                else
-                    m_log.WarnFormat(
-                        "[ATTACHMENTS MODULE]: When detaching existing attachment {0} {1} at point {2} to make way for {3} {4} for {5}, couldn't find the associated item ID to adjust inventory attachment record!",
-                        attachments[0].Name, attachments[0].LocalId, attachmentPt, group.Name, group.LocalId, sp.Name);
+            // Error logging commented because UUID.Zero now means temp attachment
+//                else
+//                    m_log.WarnFormat(
+//                        "[ATTACHMENTS MODULE]: When detaching existing attachment {0} {1} at point {2} to make way for {3} {4} for {5}, couldn't find the associated item ID to adjust inventory attachment record!",
+//                        attachments[0].Name, attachments[0].LocalId, attachmentPt, group.Name, group.LocalId, sp.Name);
             }
 
             // Add the new attachment to inventory if we don't already have it.
-            UUID newAttachmentItemID = group.FromItemID;
-            if (newAttachmentItemID == UUID.Zero)
-                newAttachmentItemID = AddSceneObjectAsNewAttachmentInInv(sp, group).ID;
+            if (!temp)
+            {
+                UUID newAttachmentItemID = group.FromItemID;
+                if (newAttachmentItemID == UUID.Zero)
+                    newAttachmentItemID = AddSceneObjectAsNewAttachmentInInv(sp, group).ID;
 
-            ShowAttachInUserInventory(sp, attachmentPt, newAttachmentItemID, group);
+                ShowAttachInUserInventory(sp, attachmentPt, newAttachmentItemID, group);
+            }
         }
 
         public ISceneEntity RezSingleAttachmentFromInventory(IScenePresence sp, UUID itemID, uint AttachmentPt)
@@ -474,6 +478,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             UUID inventoryID = so.FromItemID;
 
+            // As per Linden spec, drop is disabled for temp attachs
+            if (inventoryID == UUID.Zero)
+                return;
+
 //            m_log.DebugFormat(
 //                "[ATTACHMENTS MODULE]: In DetachSingleAttachmentToGround(), object is {0} {1}, associated item is {2}",
 //                so.Name, so.LocalId, inventoryID);
@@ -484,7 +492,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     so.PrimCount, sp.UUID, sp.AbsolutePosition))
                     return;
 
-                bool changed = sp.Appearance.DetachAttachment(inventoryID);
+                bool changed = false;
+                if (inventoryID != UUID.Zero)
+                    changed = sp.Appearance.DetachAttachment(inventoryID);
                 if (changed && m_scene.AvatarFactory != null)
                     m_scene.AvatarFactory.QueueAppearanceSave(sp.UUID);
 
@@ -516,6 +526,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
         public void DetachSingleAttachmentToInv(IScenePresence sp, SceneObjectGroup so)
         {
+            // As per Linden spec, detach (take) is disabled for temp attachs
+            if (so.FromItemID == UUID.Zero)
+                return;
+
             lock (sp.AttachmentsSyncLock)
             {
                 // Save avatar attachment information
@@ -589,6 +603,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         /// <param name="saveAllScripted"></param>
         private void UpdateKnownItem(IScenePresence sp, SceneObjectGroup grp, string scriptedState)
         {
+            if (grp.FromItemID == UUID.Zero)
+            {
+                // We can't save temp attachments
+                grp.HasGroupChanged = false;
+                return;
+            }
+
             // Saving attachments for NPCs messes them up for the real owner!
             INPCModule module = m_scene.RequestModuleInterface<INPCModule>();
             if (module != null)
@@ -845,7 +866,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     // This will throw if the attachment fails
                     try
                     {
-                        AttachObject(sp, objatt, attachmentPt, false, false);
+                        AttachObject(sp, objatt, attachmentPt, false, false, false);
                     }
                     catch (Exception e)
                     {
@@ -1005,7 +1026,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 AttachmentPt &= 0x7f;
 
                 // Calls attach with a Zero position
-                if (AttachObject(sp, part.ParentGroup, AttachmentPt, false, true))
+                if (AttachObject(sp, part.ParentGroup, AttachmentPt, false, true, false))
                 {
 //                    m_log.Debug(
 //                        "[ATTACHMENTS MODULE]: Saving avatar attachment. AgentID: " + remoteClient.AgentId
