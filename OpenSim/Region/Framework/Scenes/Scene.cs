@@ -842,12 +842,19 @@ namespace OpenSim.Region.Framework.Scenes
                     m_update_presences        = startupConfig.GetInt(   "UpdateAgentsEveryNFrames",          m_update_presences);
                     m_update_terrain          = startupConfig.GetInt(   "UpdateTerrainEveryNFrames",         m_update_terrain);
                     m_update_temp_cleaning    = startupConfig.GetInt(   "UpdateTempCleaningEveryNFrames",    m_update_temp_cleaning);
-                    SendPeriodicAppearanceUpdates = startupConfig.GetBoolean("SendPeriodicAppearanceUpdates", SendPeriodicAppearanceUpdates);
                 }
             }
             catch (Exception e)
             {
                 m_log.Error("[SCENE]: Failed to load StartupConfig: " + e.ToString());
+            }
+
+            // FIXME: Ultimately this should be in a module.
+            IConfig appearanceConfig = m_config.Configs["Appearance"];
+            if (appearanceConfig != null)
+            {
+                SendPeriodicAppearanceUpdates
+                    = appearanceConfig.GetBoolean("ResendAppearanceUpdates", SendPeriodicAppearanceUpdates);
             }
 
             #endregion Region Config
@@ -2748,7 +2755,7 @@ namespace OpenSim.Region.Framework.Scenes
                     RootPrim.RemFlag(PrimFlags.TemporaryOnRez);
                     
                     if (AttachmentsModule != null)
-                        AttachmentsModule.AttachObject(sp, grp, 0, false, false);
+                        AttachmentsModule.AttachObject(sp, grp, 0, false, false, false);
                 }
                 else
                 {

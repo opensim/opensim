@@ -66,11 +66,11 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             scene.RegisterModuleInterface<IAvatarFactoryModule>(this);
             scene.EventManager.OnNewClient += SubscribeToClientEvents;
 
-            IConfig sconfig = config.Configs["Startup"];
-            if (sconfig != null)
+            IConfig appearanceConfig = config.Configs["Appearance"];
+            if (appearanceConfig != null)
             {
-                m_savetime = Convert.ToInt32(sconfig.GetString("DelayBeforeAppearanceSave",Convert.ToString(m_savetime)));
-                m_sendtime = Convert.ToInt32(sconfig.GetString("DelayBeforeAppearanceSend",Convert.ToString(m_sendtime)));
+                m_savetime = Convert.ToInt32(appearanceConfig.GetString("DelayBeforeAppearanceSave",Convert.ToString(m_savetime)));
+                m_sendtime = Convert.ToInt32(appearanceConfig.GetString("DelayBeforeAppearanceSend",Convert.ToString(m_sendtime)));
                 // m_log.InfoFormat("[AVFACTORY] configured for {0} save and {1} send",m_savetime,m_sendtime);
             }
 
