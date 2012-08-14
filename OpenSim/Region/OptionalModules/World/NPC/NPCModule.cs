@@ -177,16 +177,17 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                 if (m_avatars.ContainsKey(agentID))
                 {
                     ScenePresence sp;
-                    scene.TryGetScenePresence(agentID, out sp);
+                    if (scene.TryGetScenePresence(agentID, out sp))
+                    {
+                        m_log.DebugFormat(
+                            "[NPC MODULE]: Moving {0} to {1} in {2}, noFly {3}, landAtTarget {4}",
+                            sp.Name, pos, scene.RegionInfo.RegionName, noFly, landAtTarget);
 
-                    m_log.DebugFormat(
-                        "[NPC MODULE]: Moving {0} to {1} in {2}, noFly {3}, landAtTarget {4}",
-                        sp.Name, pos, scene.RegionInfo.RegionName, noFly, landAtTarget);
-
-                    sp.MoveToTarget(pos, noFly, landAtTarget);
-                    sp.SetAlwaysRun = running;
-
-                    return true;
+                        sp.MoveToTarget(pos, noFly, landAtTarget);
+                        sp.SetAlwaysRun = running;
+    
+                        return true;
+                    }
                 }
             }
 
@@ -200,12 +201,13 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                 if (m_avatars.ContainsKey(agentID))
                 {
                     ScenePresence sp;
-                    scene.TryGetScenePresence(agentID, out sp);
+                    if (scene.TryGetScenePresence(agentID, out sp))
+                    {
+                        sp.Velocity = Vector3.Zero;
+                        sp.ResetMoveToTarget();
 
-                    sp.Velocity = Vector3.Zero;
-                    sp.ResetMoveToTarget();
-
-                    return true;
+                        return true;
+                    }
                 }
             }
 
@@ -223,9 +225,6 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             {
                 if (m_avatars.ContainsKey(agentID))
                 {
-                    ScenePresence sp;
-                    scene.TryGetScenePresence(agentID, out sp);
-
                     m_avatars[agentID].Say(channel, text);
 
                     return true;
@@ -241,9 +240,6 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             {
                 if (m_avatars.ContainsKey(agentID))
                 {
-                    ScenePresence sp;
-                    scene.TryGetScenePresence(agentID, out sp);
-
                     m_avatars[agentID].Shout(channel, text);
 
                     return true;
@@ -260,11 +256,13 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                 if (m_avatars.ContainsKey(agentID))
                 {
                     ScenePresence sp;
-                    scene.TryGetScenePresence(agentID, out sp);
-                    sp.HandleAgentRequestSit(m_avatars[agentID], agentID, partID, Vector3.Zero);
-//                    sp.HandleAgentSit(m_avatars[agentID], agentID);
-
-                    return true;
+                    if (scene.TryGetScenePresence(agentID, out sp))
+                    {
+                        sp.HandleAgentRequestSit(m_avatars[agentID], agentID, partID, Vector3.Zero);
+    //                    sp.HandleAgentSit(m_avatars[agentID], agentID);
+    
+                        return true;
+                    }
                 }
             }
 
@@ -277,9 +275,6 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             {
                 if (m_avatars.ContainsKey(agentID))
                 {
-                    ScenePresence sp;
-                    scene.TryGetScenePresence(agentID, out sp);
-
                     m_avatars[agentID].Whisper(channel, text);
 
                     return true;
@@ -296,10 +291,12 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                 if (m_avatars.ContainsKey(agentID))
                 {
                     ScenePresence sp;
-                    scene.TryGetScenePresence(agentID, out sp);
-                    sp.StandUp();
+                    if (scene.TryGetScenePresence(agentID, out sp))
+                    {
+                        sp.StandUp();
 
-                    return true;
+                        return true;
+                    }
                 }
             }
 
@@ -312,6 +309,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             {
                 if (m_avatars.ContainsKey(agentID))
                     return m_avatars[agentID].Touch(objectID);
+
                 return false;
             }
         }
@@ -322,9 +320,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             {
                 NPCAvatar av;
                 if (m_avatars.TryGetValue(agentID, out av))
-                {
                     return av.OwnerID;
-                }
             }
 
             return UUID.Zero;
