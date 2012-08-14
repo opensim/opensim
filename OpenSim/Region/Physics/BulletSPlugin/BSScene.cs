@@ -413,7 +413,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         // prevent simulation until we've been initialized
         if (!m_initialized) return 10.0f;
 
-        long simulateStartTime = Util.EnvironmentTickCount();
+        int simulateStartTime = Util.EnvironmentTickCount();
 
         // update the prim states while we know the physics engine is not busy
         ProcessTaints();
@@ -511,8 +511,13 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         // long simulateTotalTime = Util.EnvironmentTickCountSubtract(simulateStartTime);
         // return (timeStep * (float)simulateTotalTime);
 
-        // TODO: FIX THIS: fps calculation wrong. This calculation always returns about 1 in normal operation.
-        return timeStep / (numSubSteps * m_fixedTimeStep) * 1000f;
+        // TODO: FIX THIS: fps calculation possibly wrong.
+        // This calculation says 1/timeStep is the ideal frame rate. Any time added to
+        //    that by the physics simulation gives a slower frame rate.
+        long totalSimulationTime = Util.EnvironmentTickCountSubtract(simulateStartTime);
+        if (totalSimulationTime >= timeStep)
+            return 0;
+        return 1f / (timeStep + totalSimulationTime);
     }
 
     // Something has collided
