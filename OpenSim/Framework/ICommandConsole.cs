@@ -74,8 +74,12 @@ namespace OpenSim.Framework
         XmlElement GetXml(XmlDocument doc);
     }
 
+    public delegate void OnOutputDelegate(string message);
+
     public interface ICommandConsole : IConsole
     {
+        event OnOutputDelegate OnOutput;
+
         ICommands Commands { get; }
 
         /// <summary>

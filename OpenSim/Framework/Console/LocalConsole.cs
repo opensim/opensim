@@ -319,6 +319,8 @@ namespace OpenSim.Framework.Console
 
         public override void Output(string text, string level)
         {
+            FireOnOutput(text);
+
             lock (m_commandLine)
             {
                 if (m_cursorYPosition == -1)
