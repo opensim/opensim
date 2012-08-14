@@ -124,9 +124,9 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             NPCAvatar npcAvatar = new NPCAvatar(firstname, lastname, position, owner, senseAsAgent, scene);
             npcAvatar.CircuitCode = (uint)Util.RandomClass.Next(0, int.MaxValue);
 
-            m_log.DebugFormat(
-                "[NPC MODULE]: Creating NPC {0} {1} {2}, owner={3}, senseAsAgent={4} at {5} in {6}",
-                firstname, lastname, npcAvatar.AgentId, owner, senseAsAgent, position, scene.RegionInfo.RegionName);
+//            m_log.DebugFormat(
+//                "[NPC MODULE]: Creating NPC {0} {1} {2}, owner={3}, senseAsAgent={4} at {5} in {6}",
+//                firstname, lastname, npcAvatar.AgentId, owner, senseAsAgent, position, scene.RegionInfo.RegionName);
 
             AgentCircuitData acd = new AgentCircuitData();
             acd.AgentID = npcAvatar.AgentId;
@@ -157,7 +157,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                     {
                         sp.CompleteMovement(npcAvatar, false);
                         m_avatars.Add(npcAvatar.AgentId, npcAvatar);
-                        m_log.DebugFormat("[NPC MODULE]: Created NPC {0} {1}", npcAvatar.AgentId, sp.Name);
+//                        m_log.DebugFormat("[NPC MODULE]: Created NPC {0} {1}", npcAvatar.AgentId, sp.Name);
                     }
                 }
                 ev.Set();
@@ -179,9 +179,9 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                     ScenePresence sp;
                     if (scene.TryGetScenePresence(agentID, out sp))
                     {
-                        m_log.DebugFormat(
-                            "[NPC MODULE]: Moving {0} to {1} in {2}, noFly {3}, landAtTarget {4}",
-                            sp.Name, pos, scene.RegionInfo.RegionName, noFly, landAtTarget);
+//                        m_log.DebugFormat(
+//                            "[NPC MODULE]: Moving {0} to {1} in {2}, noFly {3}, landAtTarget {4}",
+//                            sp.Name, pos, scene.RegionInfo.RegionName, noFly, landAtTarget);
 
                         sp.MoveToTarget(pos, noFly, landAtTarget);
                         sp.SetAlwaysRun = running;
