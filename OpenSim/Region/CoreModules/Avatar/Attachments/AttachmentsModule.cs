@@ -410,6 +410,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             UUID inventoryID = so.FromItemID;
 
+            // As per Linden spec, drop is disabled for temp attachs
+            if (inventoryID == UUID.Zero)
+                return;
+
 //            m_log.DebugFormat(
 //                "[ATTACHMENTS MODULE]: In DetachSingleAttachmentToGround(), object is {0} {1}, associated item is {2}",
 //                so.Name, so.LocalId, inventoryID);
@@ -454,6 +458,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
         public void DetachSingleAttachmentToInv(IScenePresence sp, SceneObjectGroup so)
         {
+            // As per Linden spec, detach (take) is disabled for temp attachs
+            if (so.FromItemID == UUID.Zero)
+                return;
+
             lock (sp.AttachmentsSyncLock)
             {
                 // Save avatar attachment information
