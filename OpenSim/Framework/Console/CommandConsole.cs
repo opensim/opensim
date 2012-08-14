@@ -678,6 +678,8 @@ namespace OpenSim.Framework.Console
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        public event OnOutputDelegate OnOutput;
+
         public ICommands Commands { get; private set; }
 
         public CommandConsole(string defaultPrompt) : base(defaultPrompt)
@@ -695,6 +697,13 @@ namespace OpenSim.Framework.Console
 
             foreach (string s in help)
                 Output(s);
+        }
+
+        protected void FireOnOutput(string text)
+        {
+            OnOutputDelegate onOutput = OnOutput;
+            if (onOutput != null)
+                onOutput(text);
         }
 
         /// <summary>
