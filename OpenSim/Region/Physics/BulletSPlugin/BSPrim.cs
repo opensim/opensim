@@ -497,6 +497,9 @@ public sealed class BSPrim : PhysicsActor
 
         BulletSimAPI.SetObjectProperties(_scene.WorldID, LocalID, IsStatic, IsSolid, SubscribedEvents(), mass);
 
+        // recompute any linkset parameters
+        _linkset.Refresh(this);
+
         CollisionFlags cf = BulletSimAPI.GetCollisionFlags2(Body.Ptr);
         DetailLog("{0},BSPrim.SetObjectDynamic,taint,static={1},solid={2},mass={3}, cf={4}", LocalID, IsStatic, IsSolid, mass, cf);
     }
@@ -1095,28 +1098,21 @@ public sealed class BSPrim : PhysicsActor
         // if the hull hasn't changed, don't rebuild it
         if (newHullKey == _hullKey) return;
 
-        DetailLog("{0},BSPrim.CreateGeomHull,create,key={1}", LocalID, _meshKey);
+        DetailLog("{0},BSPrim.CreateGeomHull,create,oldKey={1},newKey={2}", LocalID, _hullKey, newHullKey);
         
         // Since we're recreating new, get rid of any previously generated shape
         if (_hullKey != 0)
         {
             // m_log.DebugFormat("{0}: CreateGeom: deleting old hull. Key={1}", LogHeader, _hullKey);
-            DetailLog("{0},BSPrim.CreateGeomHull,deleteOldHull,key={1}", LocalID, _meshKey);
+            DetailLog("{0},BSPrim.CreateGeomHull,deleteOldHull,key={1}", LocalID, _hullKey);
             BulletSimAPI.DestroyHull(_scene.WorldID, _hullKey);
             _hullKey = 0;
-            _hulls.Clear();
-            DetailLog("{0},BSPrim.CreateGeomHull,deleteOldMesh,key={1}", LocalID, _meshKey);
-            BulletSimAPI.DestroyMesh(_scene.WorldID, _meshKey);
-            _mesh = null;   // the mesh cannot match either
-            _meshKey = 0;
         }
 
         _hullKey = newHullKey;
-        if (_meshKey != _hullKey)
-        {
-            // if the underlying mesh has changed, rebuild it
-            CreateGeomMesh();
-        }
+
+        // Make sure the underlying mesh exists and is correct
+        CreateGeomMesh();
 
         int[] indices = _mesh.getIndexListAsInt();
         List<OMV.Vector3> vertices = _mesh.getVertexList();
@@ -1142,7 +1138,7 @@ public sealed class BSPrim : PhysicsActor
         // create the hull into the _hulls variable
         convexBuilder.process(dcomp);
 
-        // Convert the vertices and indices for passing to unmanaged
+        // Convert the vertices and indices for passing to unmanaged.
         // The hull information is passed as a large floating point array. 
         // The format is:
         //  convHulls[0] = number of hulls
@@ -1355,7 +1351,7 @@ public sealed class BSPrim : PhysicsActor
     }
 
     // I've collided with something
-    CollisionEventUpdate collisionCollection = null;
+    CollisionEventUpdate collisionCollection;
     public void Collide(uint collidingWith, ActorTypes type, OMV.Vector3 contactPoint, OMV.Vector3 contactNormal, float pentrationDepth)
     {
         // m_log.DebugFormat("{0}: Collide: ms={1}, id={2}, with={3}", LogHeader, _subscribedEventsMs, LocalID, collidingWith);
@@ -1366,6 +1362,8 @@ public sealed class BSPrim : PhysicsActor
         {
             _collidingGroundStep = _scene.SimulationStep;
         }
+
+        // DetailLog("{0},BSPrim.Collison,call,with={1}", LocalID, collidingWith);
 
         // if someone is subscribed to collision events....
         if (_subscribedEventsMs != 0) {
@@ -1387,7 +1385,9 @@ public sealed class BSPrim : PhysicsActor
         if (collisionCollection != null && collisionCollection.Count > 0)
         {
             base.SendCollisionUpdate(collisionCollection);
-            collisionCollection.Clear();
+            // The collisionCollection structure is passed around in the simulator.
+            // Make sure we don't have a handle to that one and that a new one is used next time.
+            collisionCollection = null;
         }
     }
 
