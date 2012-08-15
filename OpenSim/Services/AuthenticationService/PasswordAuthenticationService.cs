@@ -64,6 +64,15 @@ namespace OpenSim.Services.AuthenticationService
 
         public string Authenticate(UUID principalID, string password, int lifetime)
         {
+            UUID realID;
+
+            return Authenticate(principalID, password, lifetime, out realID);
+        }
+
+        public string Authenticate(UUID principalID, string password, int lifetime, out UUID realID)
+        {
+            realID = UUID.Zero;
+
             m_log.DebugFormat("[AUTH SERVICE]: Authenticating for {0}, user account service present: {1}", principalID, m_UserAccountService != null);
             AuthenticationData data = m_Database.Get(principalID);
             UserAccount user = null;
@@ -127,6 +136,7 @@ namespace OpenSim.Services.AuthenticationService
                 if (data.Data["passwordHash"].ToString() == hashed)
                 {
                     m_log.DebugFormat("[PASS AUTH]: {0} {1} impersonating {2}, proceeding with login", a.FirstName, a.LastName, principalID);
+                    realID = a.PrincipalID;
                     return GetToken(principalID, lifetime);
                 }
 //                else
