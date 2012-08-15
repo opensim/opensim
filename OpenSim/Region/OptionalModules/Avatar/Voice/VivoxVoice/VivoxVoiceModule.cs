@@ -469,8 +469,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
                 avatarName = avatar.Name;
 
                 m_log.DebugFormat("[VivoxVoice][PROVISIONVOICE]: scene = {0}, agentID = {1}", scene, agentID);
-                m_log.DebugFormat("[VivoxVoice][PROVISIONVOICE]: request: {0}, path: {1}, param: {2}",
-                                  request, path, param);
+//                    m_log.DebugFormat("[VivoxVoice][PROVISIONVOICE]: request: {0}, path: {1}, param: {2}",
+//                                      request, path, param);
 
                 XmlElement    resp;
                 bool          retry = false;
@@ -577,7 +577,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
 
                 string r = LLSDHelpers.SerialiseLLSDReply(voiceAccountResponse);
 
-                m_log.DebugFormat("[VivoxVoice][PROVISIONVOICE]: avatar \"{0}\": {1}", avatarName, r);
+//                    m_log.DebugFormat("[VivoxVoice][PROVISIONVOICE]: avatar \"{0}\": {1}", avatarName, r);
 
                 return r;
             }
@@ -625,8 +625,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
                 // voice channel
                 LandData land = scene.GetLandData(avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y);
 
-                m_log.DebugFormat("[VivoxVoice][PARCELVOICE]: region \"{0}\": Parcel \"{1}\" ({2}): avatar \"{3}\": request: {4}, path: {5}, param: {6}",
-                                  scene.RegionInfo.RegionName, land.Name, land.LocalID, avatarName, request, path, param);
+//                    m_log.DebugFormat("[VivoxVoice][PARCELVOICE]: region \"{0}\": Parcel \"{1}\" ({2}): avatar \"{3}\": request: {4}, path: {5}, param: {6}",
+//                                      scene.RegionInfo.RegionName, land.Name, land.LocalID, avatarName, request, path, param);
                 // m_log.DebugFormat("[VivoxVoice][PARCELVOICE]: avatar \"{0}\": location: {1} {2} {3}",
                 //                   avatarName, avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y, avatar.AbsolutePosition.Z);
 
@@ -656,8 +656,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
                 parcelVoiceInfo = new LLSDParcelVoiceInfoResponse(scene.RegionInfo.RegionName, land.LocalID, creds);
                 string r = LLSDHelpers.SerialiseLLSDReply(parcelVoiceInfo);
 
-                m_log.DebugFormat("[VivoxVoice][PARCELVOICE]: region \"{0}\": Parcel \"{1}\" ({2}): avatar \"{3}\": {4}", 
-                                  scene.RegionInfo.RegionName, land.Name, land.LocalID, avatarName, r);
+//                    m_log.DebugFormat("[VivoxVoice][PARCELVOICE]: region \"{0}\": Parcel \"{1}\" ({2}): avatar \"{3}\": {4}", 
+//                                      scene.RegionInfo.RegionName, land.Name, land.LocalID, avatarName, r);
                 return r;
             }
             catch (Exception e)
@@ -684,11 +684,11 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
         public string ChatSessionRequest(Scene scene, string request, string path, string param,
                                          UUID agentID, Caps caps)
         {
-            ScenePresence avatar = scene.GetScenePresence(agentID);
-            string        avatarName = avatar.Name;
+//            ScenePresence avatar = scene.GetScenePresence(agentID);
+//            string        avatarName = avatar.Name;
 
-            m_log.DebugFormat("[VivoxVoice][CHATSESSION]: avatar \"{0}\": request: {1}, path: {2}, param: {3}",
-                              avatarName, request, path, param);
+//            m_log.DebugFormat("[VivoxVoice][CHATSESSION]: avatar \"{0}\": request: {1}, path: {2}, param: {3}",
+//                              avatarName, request, path, param);
             return "<llsd>true</llsd>";
         }
 
@@ -1119,7 +1119,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
             try
             {
                 // Otherwise prepare the request
-                m_log.DebugFormat("[VivoxVoice] Sending request <{0}>", requrl);
+//                m_log.DebugFormat("[VivoxVoice] Sending request <{0}>", requrl);
 
                 HttpWebRequest  req = (HttpWebRequest)WebRequest.Create(requrl);
                 HttpWebResponse rsp = null;
