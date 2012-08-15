@@ -338,34 +338,39 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public List<SceneObjectPart> GetLinkParts(int linkType)
         {
+            return GetLinkParts(m_host, linkType);
+        }
+
+        private List<SceneObjectPart> GetLinkParts(SceneObjectPart part, int linkType)
+        {
             List<SceneObjectPart> ret = new List<SceneObjectPart>();
-            if (m_host == null || m_host.ParentGroup == null || m_host.ParentGroup.IsDeleted)
+            if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
                 return ret;
-            ret.Add(m_host);
+            ret.Add(part);
 
             switch (linkType)
             {
             case ScriptBaseClass.LINK_SET:
-                return new List<SceneObjectPart>(m_host.ParentGroup.Parts);
+                return new List<SceneObjectPart>(part.ParentGroup.Parts);
 
             case ScriptBaseClass.LINK_ROOT:
                 ret = new List<SceneObjectPart>();
-                ret.Add(m_host.ParentGroup.RootPart);
+                ret.Add(part.ParentGroup.RootPart);
                 return ret;
 
             case ScriptBaseClass.LINK_ALL_OTHERS:
-                ret = new List<SceneObjectPart>(m_host.ParentGroup.Parts);
+                ret = new List<SceneObjectPart>(part.ParentGroup.Parts);
 
-                if (ret.Contains(m_host))
-                    ret.Remove(m_host);
+                if (ret.Contains(part))
+                    ret.Remove(part);
 
                 return ret;
 
             case ScriptBaseClass.LINK_ALL_CHILDREN:
-                ret = new List<SceneObjectPart>(m_host.ParentGroup.Parts);
+                ret = new List<SceneObjectPart>(part.ParentGroup.Parts);
 
-                if (ret.Contains(m_host.ParentGroup.RootPart))
-                    ret.Remove(m_host.ParentGroup.RootPart);
+                if (ret.Contains(part.ParentGroup.RootPart))
+                    ret.Remove(part.ParentGroup.RootPart);
                 return ret;
 
             case ScriptBaseClass.LINK_THIS:
@@ -375,7 +380,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (linkType < 0)
                     return new List<SceneObjectPart>();
 
-                SceneObjectPart target = m_host.ParentGroup.GetLinkNumPart(linkType);
+                SceneObjectPart target = part.ParentGroup.GetLinkNumPart(linkType);
                 if (target == null)
                     return new List<SceneObjectPart>();
                 ret = new List<SceneObjectPart>();
@@ -7750,7 +7755,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llSetPrimitiveParams(LSL_List rules)
         {
             m_host.AddScriptLPS(1);
-            SetPrimParams(m_host, rules);
+
+            setLinkPrimParams(ScriptBaseClass.LINK_THIS, rules);
 
             ScriptSleep(200);
         }
@@ -7764,25 +7770,36 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         private void setLinkPrimParams(int linknumber, LSL_List rules)
         {
-            List<SceneObjectPart> parts = GetLinkParts(linknumber);
+            List<object> parts = new List<object>();
+            List<SceneObjectPart> prims = GetLinkParts(linknumber);
             List<ScenePresence> avatars = GetLinkAvatars(linknumber);
-            if (parts.Count>0)
+            foreach (SceneObjectPart p in prims)
+                parts.Add(p);
+            foreach (ScenePresence p in avatars)
+                parts.Add(p);
+
+            LSL_List remaining = null;
+
+            if (parts.Count > 0)
             {
-                try
+                foreach (SceneObjectPart part in parts)
+                    remaining = SetPrimParams(part, rules);
+
+                while(remaining != null && remaining.Length > 2)
                 {
-                    parts[0].ParentGroup.areUpdatesSuspended = true;
+                    linknumber = remaining.GetLSLIntegerItem(0);
+                    rules = remaining.GetSublist(1,-1);
+                    parts.Clear();
+                    prims = GetLinkParts(linknumber);
+                    avatars = GetLinkAvatars(linknumber);
+                    foreach (SceneObjectPart p in prims)
+                        parts.Add(p);
+                    foreach (ScenePresence p in avatars)
+                        parts.Add(p);
+
                     foreach (SceneObjectPart part in parts)
-                        SetPrimParams(part, rules);
+                        remaining = SetPrimParams(part, rules);
                 }
-                finally
-                {
-                    parts[0].ParentGroup.areUpdatesSuspended = false;
-                }
-            }
-            if (avatars.Count > 0)
-            {
-                foreach (ScenePresence avatar in avatars)
-                    SetPrimParams(avatar, rules);
             }
         }
 
@@ -7845,7 +7862,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return new Vector3((float)x, (float)y, (float)z);
         }
 
-        protected void SetPrimParams(ScenePresence av, LSL_List rules)
+        protected LSL_List SetPrimParams(ScenePresence av, LSL_List rules)
         {
             //This is a special version of SetPrimParams to deal with avatars which are sat on the linkset.
 
@@ -7868,7 +7885,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         case (int)ScriptBaseClass.PRIM_POS_LOCAL:
                             {
                                 if (remain < 1)
-                                    return;
+                                    return null;
 
                                 LSL_Vector v;
                                 v = rules.GetVector3Item(idx++);
@@ -7902,7 +7919,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         case (int)ScriptBaseClass.PRIM_ROTATION:
                             {
                                 if (remain < 1)
-                                    return;
+                                    return null;
 
                                 LSL_Rotation r;
                                 r = rules.GetQuaternionItem(idx++);
@@ -7933,7 +7950,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         case (int)ScriptBaseClass.PRIM_NAME:
                         case (int)ScriptBaseClass.PRIM_DESC:
                             if (remain < 1)
-                                return;
+                                return null;
                             idx++;
                             break;
 
@@ -7941,13 +7958,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         case (int)ScriptBaseClass.PRIM_FULLBRIGHT:
                         case (int)ScriptBaseClass.PRIM_TEXGEN:
                             if (remain < 2)
-                                return;
+                                return null;
                             idx += 2;
                             break;
 
                         case (int)ScriptBaseClass.PRIM_TYPE:
                             if (remain < 3)
-                                return;
+                                return null;
                             code = (int)rules.GetLSLIntegerItem(idx++);
                             remain = rules.Length - idx;
                             switch (code)
@@ -7956,13 +7973,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 case (int)ScriptBaseClass.PRIM_TYPE_CYLINDER:
                                 case (int)ScriptBaseClass.PRIM_TYPE_PRISM:
                                     if (remain < 6)
-                                        return;
+                                        return null;
                                     idx += 6;
                                     break;
 
                                 case (int)ScriptBaseClass.PRIM_TYPE_SPHERE:
                                     if (remain < 5)
-                                        return;
+                                        return null;
                                     idx += 5;
                                     break;
 
@@ -7970,13 +7987,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 case (int)ScriptBaseClass.PRIM_TYPE_TUBE:
                                 case (int)ScriptBaseClass.PRIM_TYPE_RING:
                                     if (remain < 11)
-                                        return;
+                                        return null;
                                     idx += 11;
                                     break;
 
                                 case (int)ScriptBaseClass.PRIM_TYPE_SCULPT:
                                     if (remain < 2)
-                                        return;
+                                        return null;
                                     idx += 2;
                                     break;
                             }
@@ -7987,7 +8004,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         case (int)ScriptBaseClass.PRIM_BUMP_SHINY:
                         case (int)ScriptBaseClass.PRIM_OMEGA:
                             if (remain < 3)
-                                return;
+                                return null;
                             idx += 3;
                             break;
 
@@ -7995,33 +8012,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         case (int)ScriptBaseClass.PRIM_POINT_LIGHT:
                         case (int)ScriptBaseClass.PRIM_PHYSICS_MATERIAL:
                             if (remain < 5)
-                                return;
+                                return null;
                             idx += 5;
                             break;
 
                         case (int)ScriptBaseClass.PRIM_FLEXIBLE:
                             if (remain < 7)
-                                return;
+                                return null;
 
                             idx += 7;
                             break;
 
                         case (int)ScriptBaseClass.PRIM_LINK_TARGET:
                             if (remain < 3) // setting to 3 on the basis that parsing any usage of PRIM_LINK_TARGET that has nothing following it is pointless.
-                                return;
+                                return null;
 
-                            if (positionChanged)
-                            {
-                                positionChanged = false;
-                                av.OffsetPosition = finalPos;
-//                                av.SendAvatarDataToAllAgents();
-                                av.SendTerseUpdateToAllClients();
-                            }
-
-                            LSL_Integer new_linknumber = rules.GetLSLIntegerItem(idx++);
-                            LSL_List new_rules = rules.GetSublist(idx, -1);
-                            setLinkPrimParams((int)new_linknumber, new_rules);
-                            return;
+                            return rules.GetSublist(idx, -1);
                     }
                 }
             }
@@ -8036,12 +8042,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     positionChanged = false;
                 }
             }
+            return null;
         }
 
-        protected void SetPrimParams(SceneObjectPart part, LSL_List rules)
+        protected LSL_List SetPrimParams(SceneObjectPart part, LSL_List rules)
         {
             if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
-                return;
+                return null;
 
             int idx = 0;
 
@@ -8066,7 +8073,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         case (int)ScriptBaseClass.PRIM_POSITION:
                         case (int)ScriptBaseClass.PRIM_POS_LOCAL:
                             if (remain < 1)
-                                return;
+                                return null;
 
                             v=rules.GetVector3Item(idx++);
                             currentPosition = GetSetPosTarget(part, v, currentPosition);
@@ -8075,7 +8082,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             break;
                         case (int)ScriptBaseClass.PRIM_SIZE:
                             if (remain < 1)
-                                return;
+                                return null;
 
                             v=rules.GetVector3Item(idx++);
                             SetScale(part, v);
@@ -8083,7 +8090,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             break;
                         case (int)ScriptBaseClass.PRIM_ROTATION:
                             if (remain < 1)
-                                return;
+                                return null;
 
                             LSL_Rotation q = rules.GetQuaternionItem(idx++);
                             SceneObjectPart rootPart = parentgrp.RootPart;
@@ -8104,7 +8111,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                         case (int)ScriptBaseClass.PRIM_TYPE:
                             if (remain < 3)
-                                return;
+                                return null;
 
                             code = (int)rules.GetLSLIntegerItem(idx++);
 
@@ -8123,7 +8130,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             {
                                 case (int)ScriptBaseClass.PRIM_TYPE_BOX:
                                     if (remain < 6)
-                                        return;
+                                        return null;
 
                                     face = (int)rules.GetLSLIntegerItem(idx++);
                                     v = rules.GetVector3Item(idx++); // cut
@@ -8138,7 +8145,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                                 case (int)ScriptBaseClass.PRIM_TYPE_CYLINDER:
                                     if (remain < 6)
-                                        return;
+                                        return null;
 
                                     face = (int)rules.GetLSLIntegerItem(idx++); // holeshape
                                     v = rules.GetVector3Item(idx++); // cut
@@ -8152,7 +8159,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                                 case (int)ScriptBaseClass.PRIM_TYPE_PRISM:
                                     if (remain < 6)
-                                        return;
+                                        return null;
 
                                     face = (int)rules.GetLSLIntegerItem(idx++); // holeshape
                                     v = rules.GetVector3Item(idx++); //cut
@@ -8166,7 +8173,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                                 case (int)ScriptBaseClass.PRIM_TYPE_SPHERE:
                                     if (remain < 5)
-                                        return;
+                                        return null;
 
                                     face = (int)rules.GetLSLIntegerItem(idx++); // holeshape
                                     v = rules.GetVector3Item(idx++); // cut
@@ -8179,7 +8186,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                                 case (int)ScriptBaseClass.PRIM_TYPE_TORUS:
                                     if (remain < 11)
-                                        return;
+                                        return null;
 
                                     face = (int)rules.GetLSLIntegerItem(idx++); // holeshape
                                     v = rules.GetVector3Item(idx++); //cut
@@ -8198,7 +8205,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                                 case (int)ScriptBaseClass.PRIM_TYPE_TUBE:
                                     if (remain < 11)
-                                        return;
+                                        return null;
 
                                     face = (int)rules.GetLSLIntegerItem(idx++); // holeshape
                                     v = rules.GetVector3Item(idx++); //cut
@@ -8217,7 +8224,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                                 case (int)ScriptBaseClass.PRIM_TYPE_RING:
                                     if (remain < 11)
-                                        return;
+                                        return null;
 
                                     face = (int)rules.GetLSLIntegerItem(idx++); // holeshape
                                     v = rules.GetVector3Item(idx++); //cut
@@ -8236,7 +8243,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                                 case (int)ScriptBaseClass.PRIM_TYPE_SCULPT:
                                     if (remain < 2)
-                                        return;
+                                        return null;
 
                                     string map = rules.Data[idx++].ToString();
                                     face = (int)rules.GetLSLIntegerItem(idx++); // type
@@ -8248,7 +8255,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                         case (int)ScriptBaseClass.PRIM_TEXTURE:
                             if (remain < 5)
-                                return;
+                                return null;
 
                             face=(int)rules.GetLSLIntegerItem(idx++);
                             string tex=rules.Data[idx++].ToString();
@@ -8265,7 +8272,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                         case (int)ScriptBaseClass.PRIM_COLOR:
                             if (remain < 3)
-                                return;
+                                return null;
 
                             face=(int)rules.GetLSLIntegerItem(idx++);
                             LSL_Vector color=rules.GetVector3Item(idx++);
@@ -8278,7 +8285,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                         case (int)ScriptBaseClass.PRIM_FLEXIBLE:
                             if (remain < 7)
-                                return;
+                                return null;
 
                             bool flexi = rules.GetLSLIntegerItem(idx++);
                             int softness = rules.GetLSLIntegerItem(idx++);
@@ -8294,7 +8301,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                         case (int)ScriptBaseClass.PRIM_POINT_LIGHT:
                             if (remain < 5)
-                                return;
+                                return null;
                             bool light = rules.GetLSLIntegerItem(idx++);
                             LSL_Vector lightcolor = rules.GetVector3Item(idx++);
                             float intensity = (float)rules.GetLSLFloatItem(idx++);
@@ -8307,7 +8314,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                         case (int)ScriptBaseClass.PRIM_GLOW:
                             if (remain < 2)
-                                return;
+                                return null;
                             face = rules.GetLSLIntegerItem(idx++);
                             float glow = (float)rules.GetLSLFloatItem(idx++);
 
@@ -8317,7 +8324,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                         case (int)ScriptBaseClass.PRIM_BUMP_SHINY:
                             if (remain < 3)
-                                return;
+                                return null;
                             face = (int)rules.GetLSLIntegerItem(idx++);
                             int shiny = (int)rules.GetLSLIntegerItem(idx++);
                             Bumpiness bump = (Bumpiness)(int)rules.GetLSLIntegerItem(idx++);
@@ -8328,7 +8335,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                          case (int)ScriptBaseClass.PRIM_FULLBRIGHT:
                              if (remain < 2)
-                                 return;
+                                 return null;
                              face = rules.GetLSLIntegerItem(idx++);
                              bool st = rules.GetLSLIntegerItem(idx++);
                              SetFullBright(part, face , st);
@@ -8336,17 +8343,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                          case (int)ScriptBaseClass.PRIM_MATERIAL:
                              if (remain < 1)
-                                 return;
+                                 return null;
                              int mat = rules.GetLSLIntegerItem(idx++);
                              if (mat < 0 || mat > 7)
-                                 return;
+                                 return null;
 
                              part.Material = Convert.ToByte(mat);
                              break;
 
                          case (int)ScriptBaseClass.PRIM_PHANTOM:
                              if (remain < 1)
-                                 return;
+                                 return null;
 
                              string ph = rules.Data[idx++].ToString();
                              parentgrp.ScriptSetPhantomStatus(ph.Equals("1"));
@@ -8355,7 +8362,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                          case (int)ScriptBaseClass.PRIM_PHYSICS:
                             if (remain < 1)
-                                 return;
+                                 return null;
                              string phy = rules.Data[idx++].ToString();
                              bool physics;
 
@@ -8369,7 +8376,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                         case (int)ScriptBaseClass.PRIM_PHYSICS_SHAPE_TYPE:
                             if (remain < 1)
-                                return;
+                                return null;
 
                             int shape_type = rules.GetLSLIntegerItem(idx++);
 
@@ -8385,7 +8392,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                         case (int)ScriptBaseClass.PRIM_PHYSICS_MATERIAL:
                             if (remain < 5)
-                                return;
+                                return null;
 
                             int material_bits = rules.GetLSLIntegerItem(idx++);
                             float material_density = (float)rules.GetLSLFloatItem(idx++);
@@ -8399,7 +8406,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                         case (int)ScriptBaseClass.PRIM_TEMP_ON_REZ:
                             if (remain < 1)
-                                return;
+                                return null;
                             string temp = rules.Data[idx++].ToString();
 
                             parentgrp.ScriptSetTemporaryStatus(temp.Equals("1"));
@@ -8408,7 +8415,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                         case (int)ScriptBaseClass.PRIM_TEXGEN:
                             if (remain < 2)
-                                return;
+                                return null;
                                 //face,type
                             face = rules.GetLSLIntegerItem(idx++);
                             int style = rules.GetLSLIntegerItem(idx++);
@@ -8416,7 +8423,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             break;
                         case (int)ScriptBaseClass.PRIM_TEXT:
                             if (remain < 3)
-                                return;
+                                return null;
                             string primText = rules.GetLSLStringItem(idx++);
                             LSL_Vector primTextColor = rules.GetVector3Item(idx++);
                             LSL_Float primTextAlpha = rules.GetLSLFloatItem(idx++);
@@ -8428,26 +8435,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             break;
                         case (int)ScriptBaseClass.PRIM_NAME:
                             if (remain < 1)
-                                return;
+                                return null;
                             string primName = rules.GetLSLStringItem(idx++);
                             part.Name = primName;
                             break;
                         case (int)ScriptBaseClass.PRIM_DESC:
                             if (remain < 1)
-                                return;
+                                return null;
                             string primDesc = rules.GetLSLStringItem(idx++);
                             part.Description = primDesc;
                             break;
                         case (int)ScriptBaseClass.PRIM_ROT_LOCAL:
                             if (remain < 1)
-                                return;
-
+                                return null;
                             LSL_Rotation lr = rules.GetQuaternionItem(idx++);
                             SetRot(part, Rot2Quaternion(lr));
                             break;
                         case (int)ScriptBaseClass.PRIM_OMEGA:
                             if (remain < 3)
-                                return;
+                                return null;
                             LSL_Vector axis = rules.GetVector3Item(idx++);
                             LSL_Float spinrate = rules.GetLSLFloatItem(idx++);
                             LSL_Float gain = rules.GetLSLFloatItem(idx++);
@@ -8456,35 +8462,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                         case (int)ScriptBaseClass.PRIM_LINK_TARGET:
                             if (remain < 3) // setting to 3 on the basis that parsing any usage of PRIM_LINK_TARGET that has nothing following it is pointless.
-                                return;
+                                return null;
 
-                            // do a pending position change before jumping to other part/avatar
-                            if (positionChanged)
-                            {
-                                positionChanged = false;
-                                if (parentgrp == null)
-                                    return;
-
-                                if (parentgrp.RootPart == part)
-                                {
-
-                                    Util.FireAndForget(delegate(object x)
-                                    {
-                                        parentgrp.UpdateGroupPosition(new Vector3((float)currentPosition.x, (float)currentPosition.y, (float)currentPosition.z));
-                                    });
-                                }
-                                else
-                                {
-                                    part.OffsetPosition = new Vector3((float)currentPosition.x, (float)currentPosition.y, (float)currentPosition.z);
-                                    parentgrp.HasGroupChanged = true;
-                                    parentgrp.ScheduleGroupForTerseUpdate();
-                                }
-                            }
-
-                            LSL_Integer new_linknumber = rules.GetLSLIntegerItem(idx++);
-                            LSL_List new_rules = rules.GetSublist(idx, -1);
-                            setLinkPrimParams((int)new_linknumber, new_rules);
-                            return;
+                            return rules.GetSublist(idx, -1);
                     }
                 }
             }
@@ -8508,6 +8488,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     }
                 }
             }
+            return null;
         }
 
         public LSL_String llStringToBase64(string str)
@@ -12143,7 +12124,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (obj.OwnerID != m_host.OwnerID)
                 return;
 
-            SetPrimParams(obj, rules);
+            LSL_List remaining = SetPrimParams(obj, rules);
+
+            while (remaining != null && remaining.Length > 2)
+            {
+                LSL_Integer newLink = remaining.GetLSLIntegerItem(0);
+                LSL_List newrules = remaining.GetSublist(1, -1);
+                foreach(SceneObjectPart part in GetLinkParts(obj, newLink)){
+                    remaining = SetPrimParams(part, newrules);
+                }
+            }
         }
 
         public LSL_List GetLinkPrimitiveParamsEx(LSL_Key prim, LSL_List rules)
