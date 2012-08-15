@@ -362,7 +362,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         BSPrim bsprim = prim as BSPrim;
         if (bsprim != null)
         {
-            DetailLog("{0},RemovePrim,call", bsprim.LocalID);
+            // DetailLog("{0},RemovePrim,call", bsprim.LocalID);
             // m_log.DebugFormat("{0}: RemovePrim. id={1}/{2}", LogHeader, bsprim.Name, bsprim.LocalID);
             try
             {
@@ -388,7 +388,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
 
         if (!m_initialized) return null;
 
-        DetailLog("{0},AddPrimShape,call", localID);
+        // DetailLog("{0},AddPrimShape,call", localID);
 
         BSPrim prim = new BSPrim(localID, primName, this, position, size, rotation, pbs, isPhysical);
         lock (m_prims) m_prims.Add(localID, prim);
@@ -429,12 +429,12 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         {
             numSubSteps = BulletSimAPI.PhysicsStep(m_worldID, timeStep, m_maxSubSteps, m_fixedTimeStep,
                         out updatedEntityCount, out updatedEntitiesPtr, out collidersCount, out collidersPtr);
-            DetailLog("{0},Simulate,call, substeps={1}, updates={2}, colliders={3}", DetailLogZero, numSubSteps, updatedEntityCount, collidersCount); 
+            // DetailLog("{0},Simulate,call, substeps={1}, updates={2}, colliders={3}", DetailLogZero, numSubSteps, updatedEntityCount, collidersCount); 
         }
         catch (Exception e)
         {
             m_log.WarnFormat("{0},PhysicsStep Exception: substeps={1}, updates={2}, colliders={3}, e={4}", LogHeader, numSubSteps, updatedEntityCount, collidersCount, e);
-            DetailLog("{0},PhysicsStepException,call, substeps={1}, updates={2}, colliders={3}", DetailLogZero, numSubSteps, updatedEntityCount, collidersCount);
+            // DetailLog("{0},PhysicsStepException,call, substeps={1}, updates={2}, colliders={3}", DetailLogZero, numSubSteps, updatedEntityCount, collidersCount);
             // updatedEntityCount = 0;
             collidersCount = 0;
         }

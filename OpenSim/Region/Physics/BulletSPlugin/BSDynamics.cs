@@ -613,7 +613,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             MoveAngular(pTimestep);
             LimitRotation(pTimestep);
 
-            DetailLog("{0},Dynamics,done,pos={1},force={2},velocity={3},angvel={4}", 
+            DetailLog("{0},BSDynamics.Step,done,pos={1},force={2},velocity={3},angvel={4}", 
                     m_prim.LocalID, m_prim.Position, m_prim.Force, m_prim.Velocity, m_prim.RotationalVelocity);
         }// end Step
 

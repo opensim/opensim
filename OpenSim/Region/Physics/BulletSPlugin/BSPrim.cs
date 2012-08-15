@@ -163,13 +163,13 @@ public sealed class BSPrim : PhysicsActor
         // m_log.DebugFormat("{0}: Destroy, id={1}", LogHeader, LocalID);
 
         // Undo any links between me and any other object
-        BSPrim parentBefore = _linkset.Root;
+        BSPrim parentBefore = _linkset.LinksetRoot;
         int childrenBefore = _linkset.NumberOfChildren;
 
         _linkset = _linkset.RemoveMeFromLinkset(this);
 
         DetailLog("{0},BSPrim.Destroy,call,parentBefore={1},childrenBefore={2},parentAfter={3},childrenAfter={4}",
-            LocalID, parentBefore.LocalID, childrenBefore, _linkset.Root.LocalID, _linkset.NumberOfChildren);
+            LocalID, parentBefore.LocalID, childrenBefore, _linkset.LinksetRoot.LocalID, _linkset.NumberOfChildren);
 
         // Undo any vehicle properties
         this.VehicleType = (int)Vehicle.TYPE_NONE;
@@ -233,13 +233,13 @@ public sealed class BSPrim : PhysicsActor
         if (parent != null)
         {
             DebugLog("{0}: link {1}/{2} to {3}", LogHeader, _avName, _localID, parent.LocalID);
-            BSPrim parentBefore = _linkset.Root;
+            BSPrim parentBefore = _linkset.LinksetRoot;
             int childrenBefore = _linkset.NumberOfChildren;
 
             _linkset = parent.Linkset.AddMeToLinkset(this);
 
             DetailLog("{0},BSPrim.link,call,parentBefore={1}, childrenBefore=={2}, parentAfter={3}, childrenAfter={4}", 
-                LocalID, parentBefore.LocalID, childrenBefore, _linkset.Root.LocalID, _linkset.NumberOfChildren);
+                LocalID, parentBefore.LocalID, childrenBefore, _linkset.LinksetRoot.LocalID, _linkset.NumberOfChildren);
         }
         return; 
     }
@@ -249,15 +249,15 @@ public sealed class BSPrim : PhysicsActor
         // TODO: decide if this parent checking needs to happen at taint time
         // Race condition here: if link() and delink() in same simulation tick, the delink will not happen
         DebugLog("{0}: delink {1}/{2}. Parent={3}", LogHeader, _avName, _localID, 
-                            _linkset.Root._avName+"/"+_linkset.Root.LocalID.ToString());
+                            _linkset.LinksetRoot._avName+"/"+_linkset.LinksetRoot.LocalID.ToString());
 
-        BSPrim parentBefore = _linkset.Root;
+        BSPrim parentBefore = _linkset.LinksetRoot;
         int childrenBefore = _linkset.NumberOfChildren;
         
         _linkset = _linkset.RemoveMeFromLinkset(this);
 
         DetailLog("{0},BSPrim.delink,parentBefore={1},childrenBefore={2},parentAfter={3},childrenAfter={4}, ", 
-            LocalID, parentBefore.LocalID, childrenBefore, _linkset.Root.LocalID, _linkset.NumberOfChildren);
+            LocalID, parentBefore.LocalID, childrenBefore, _linkset.LinksetRoot.LocalID, _linkset.NumberOfChildren);
         return; 
     }
 
@@ -280,7 +280,7 @@ public sealed class BSPrim : PhysicsActor
 
     public override void LockAngularMotion(OMV.Vector3 axis)
     { 
-        DetailLog("{0},BSPrim.LockAngularMotion,call,axis={1}", LocalID, axis);
+        // DetailLog("{0},BSPrim.LockAngularMotion,call,axis={1}", LocalID, axis);
         return;
     }
 
@@ -299,7 +299,7 @@ public sealed class BSPrim : PhysicsActor
             // TODO: what does it mean to set the position of a child prim?? Rebuild the constraint?
             _scene.TaintedObject("BSPrim.setPosition", delegate()
             {
-                DetailLog("{0},BSPrim.SetPosition,taint,pos={1},orient={2}", LocalID, _position, _orientation);
+                // DetailLog("{0},BSPrim.SetPosition,taint,pos={1},orient={2}", LocalID, _position, _orientation);
                 BulletSimAPI.SetObjectTranslation(_scene.WorldID, _localID, _position, _orientation);
             });
         } 
@@ -336,7 +336,7 @@ public sealed class BSPrim : PhysicsActor
             _force = value;
             _scene.TaintedObject("BSPrim.setForce", delegate()
             {
-                DetailLog("{0},BSPrim.setForce,taint,force={1}", LocalID, _force);
+                // DetailLog("{0},BSPrim.setForce,taint,force={1}", LocalID, _force);
                 // BulletSimAPI.SetObjectForce(_scene.WorldID, _localID, _force);
                 BulletSimAPI.SetObjectForce2(Body.Ptr, _force);
             });
@@ -414,7 +414,7 @@ public sealed class BSPrim : PhysicsActor
             _velocity = value;
             _scene.TaintedObject("BSPrim.setVelocity", delegate()
             {
-                DetailLog("{0},BSPrim.SetVelocity,taint,vel={1}", LocalID, _velocity);
+                // DetailLog("{0},BSPrim.SetVelocity,taint,vel={1}", LocalID, _velocity);
                 BulletSimAPI.SetObjectVelocity(_scene.WorldID, LocalID, _velocity);
             });
         } 
@@ -422,7 +422,7 @@ public sealed class BSPrim : PhysicsActor
     public override OMV.Vector3 Torque { 
         get { return _torque; } 
         set { _torque = value; 
-            DetailLog("{0},BSPrim.SetTorque,call,torque={1}", LocalID, _torque);
+            // DetailLog("{0},BSPrim.SetTorque,call,torque={1}", LocalID, _torque);
         } 
     }
     public override float CollisionScore { 
@@ -449,7 +449,7 @@ public sealed class BSPrim : PhysicsActor
             _scene.TaintedObject("BSPrim.setOrientation", delegate()
             {
                 // _position = BulletSimAPI.GetObjectPosition(_scene.WorldID, _localID);
-                DetailLog("{0},BSPrim.setOrientation,taint,pos={1},orient={2}", LocalID, _position, _orientation);
+                // DetailLog("{0},BSPrim.setOrientation,taint,pos={1},orient={2}", LocalID, _position, _orientation);
                 BulletSimAPI.SetObjectTranslation(_scene.WorldID, _localID, _position, _orientation);
             });
         } 
@@ -501,7 +501,7 @@ public sealed class BSPrim : PhysicsActor
         _linkset.Refresh(this);
 
         CollisionFlags cf = BulletSimAPI.GetCollisionFlags2(Body.Ptr);
-        DetailLog("{0},BSPrim.SetObjectDynamic,taint,static={1},solid={2},mass={3}, cf={4}", LocalID, IsStatic, IsSolid, mass, cf);
+        // DetailLog("{0},BSPrim.SetObjectDynamic,taint,static={1},solid={2},mass={3}, cf={4}", LocalID, IsStatic, IsSolid, mass, cf);
     }
 
     // prims don't fly
@@ -558,7 +558,7 @@ public sealed class BSPrim : PhysicsActor
             // m_log.DebugFormat("{0}: RotationalVelocity={1}", LogHeader, _rotationalVelocity);
             _scene.TaintedObject("BSPrim.setRotationalVelocity", delegate()
             {
-                DetailLog("{0},BSPrim.SetRotationalVel,taint,rotvel={1}", LocalID, _rotationalVelocity);
+                // DetailLog("{0},BSPrim.SetRotationalVel,taint,rotvel={1}", LocalID, _rotationalVelocity);
                 BulletSimAPI.SetObjectAngularVelocity(_scene.WorldID, LocalID, _rotationalVelocity);
             });
         } 
@@ -575,7 +575,7 @@ public sealed class BSPrim : PhysicsActor
             _buoyancy = value;
             _scene.TaintedObject("BSPrim.setBuoyancy", delegate()
             {
-                DetailLog("{0},BSPrim.SetBuoyancy,taint,buoy={1}", LocalID, _buoyancy);
+                // DetailLog("{0},BSPrim.SetBuoyancy,taint,buoy={1}", LocalID, _buoyancy);
                 BulletSimAPI.SetObjectBuoyancy(_scene.WorldID, _localID, _buoyancy);
             });
         } 
@@ -638,17 +638,17 @@ public sealed class BSPrim : PhysicsActor
                 }
                 m_accumulatedForces.Clear();
             }
-            DetailLog("{0},BSPrim.AddObjectForce,taint,force={1}", LocalID, _force);
+            // DetailLog("{0},BSPrim.AddObjectForce,taint,force={1}", LocalID, _force);
             BulletSimAPI.AddObjectForce2(Body.Ptr, fSum);
         });
     }
 
     public override void AddAngularForce(OMV.Vector3 force, bool pushforce) { 
-        DetailLog("{0},BSPrim.AddAngularForce,call,angForce={1},push={2}", LocalID, force, pushforce);
+        // DetailLog("{0},BSPrim.AddAngularForce,call,angForce={1},push={2}", LocalID, force, pushforce);
         // m_log.DebugFormat("{0}: AddAngularForce. f={1}, push={2}", LogHeader, force, pushforce);
     }
     public override void SetMomentum(OMV.Vector3 momentum) { 
-        DetailLog("{0},BSPrim.SetMomentum,call,mom={1}", LocalID, momentum);
+        // DetailLog("{0},BSPrim.SetMomentum,call,mom={1}", LocalID, momentum);
     }
     public override void SubscribeEvents(int ms) { 
         _subscribedEventsMs = ms;
@@ -992,7 +992,7 @@ public sealed class BSPrim : PhysicsActor
                     // m_log.DebugFormat("{0}: CreateGeom: Defaulting to sphere of size {1}", LogHeader, _size);
                     if (forceRebuild || (_shapeType != ShapeData.PhysicsShapeType.SHAPE_SPHERE))
                     {
-                        DetailLog("{0},BSPrim.CreateGeom,sphere (force={1}", LocalID, forceRebuild);
+                        // DetailLog("{0},BSPrim.CreateGeom,sphere (force={1}", LocalID, forceRebuild);
                         _shapeType = ShapeData.PhysicsShapeType.SHAPE_SPHERE;
                         // Bullet native objects are scaled by the Bullet engine so pass the size in
                         _scale = _size;
@@ -1006,7 +1006,7 @@ public sealed class BSPrim : PhysicsActor
                 // m_log.DebugFormat("{0}: CreateGeom: Defaulting to box. lid={1}, type={2}, size={3}", LogHeader, LocalID, _shapeType, _size);
                 if (forceRebuild || (_shapeType != ShapeData.PhysicsShapeType.SHAPE_BOX))
                 {
-                    DetailLog("{0},BSPrim.CreateGeom,box (force={1})", LocalID, forceRebuild);
+                    // DetailLog("{0},BSPrim.CreateGeom,box (force={1})", LocalID, forceRebuild);
                     _shapeType = ShapeData.PhysicsShapeType.SHAPE_BOX;
                     _scale = _size;
                     // TODO: do we need to check for and destroy a mesh or hull that might have been left from before?
@@ -1049,12 +1049,12 @@ public sealed class BSPrim : PhysicsActor
         // if this new shape is the same as last time, don't recreate the mesh
         if (_meshKey == newMeshKey) return;
 
-        DetailLog("{0},BSPrim.CreateGeomMesh,create,key={1}", LocalID, newMeshKey);
+        // DetailLog("{0},BSPrim.CreateGeomMesh,create,key={1}", LocalID, newMeshKey);
         // Since we're recreating new, get rid of any previously generated shape
         if (_meshKey != 0)
         {
             // m_log.DebugFormat("{0}: CreateGeom: deleting old mesh. lID={1}, Key={2}", LogHeader, _localID, _meshKey);
-            DetailLog("{0},BSPrim.CreateGeomMesh,deleteOld,key={1}", LocalID, _meshKey);
+            // DetailLog("{0},BSPrim.CreateGeomMesh,deleteOld,key={1}", LocalID, _meshKey);
             BulletSimAPI.DestroyMesh(_scene.WorldID, _meshKey);
             _mesh = null;
             _meshKey = 0;
@@ -1084,7 +1084,7 @@ public sealed class BSPrim : PhysicsActor
         _shapeType = ShapeData.PhysicsShapeType.SHAPE_MESH;
         // meshes are already scaled by the meshmerizer
         _scale = new OMV.Vector3(1f, 1f, 1f);
-        DetailLog("{0},BSPrim.CreateGeomMesh,done", LocalID);
+        // DetailLog("{0},BSPrim.CreateGeomMesh,done", LocalID);
         return;
     }
 
@@ -1098,13 +1098,13 @@ public sealed class BSPrim : PhysicsActor
         // if the hull hasn't changed, don't rebuild it
         if (newHullKey == _hullKey) return;
 
-        DetailLog("{0},BSPrim.CreateGeomHull,create,oldKey={1},newKey={2}", LocalID, _hullKey, newHullKey);
+        // DetailLog("{0},BSPrim.CreateGeomHull,create,oldKey={1},newKey={2}", LocalID, _hullKey, newHullKey);
         
         // Since we're recreating new, get rid of any previously generated shape
         if (_hullKey != 0)
         {
             // m_log.DebugFormat("{0}: CreateGeom: deleting old hull. Key={1}", LogHeader, _hullKey);
-            DetailLog("{0},BSPrim.CreateGeomHull,deleteOldHull,key={1}", LocalID, _hullKey);
+            // DetailLog("{0},BSPrim.CreateGeomHull,deleteOldHull,key={1}", LocalID, _hullKey);
             BulletSimAPI.DestroyHull(_scene.WorldID, _hullKey);
             _hullKey = 0;
         }
@@ -1198,7 +1198,7 @@ public sealed class BSPrim : PhysicsActor
         _shapeType = ShapeData.PhysicsShapeType.SHAPE_HULL;
         // meshes are already scaled by the meshmerizer
         _scale = new OMV.Vector3(1f, 1f, 1f);
-        DetailLog("{0},BSPrim.CreateGeomHull,done", LocalID);
+        // DetailLog("{0},BSPrim.CreateGeomHull,done", LocalID);
         return;
     }
 
@@ -1336,11 +1336,12 @@ public sealed class BSPrim : PhysicsActor
 
             // m_log.DebugFormat("{0}: RequestTerseUpdate. id={1}, ch={2}, pos={3}, rot={4}, vel={5}, acc={6}, rvel={7}", 
             //         LogHeader, LocalID, changed, _position, _orientation, _velocity, _acceleration, _rotationalVelocity);
-            DetailLog("{0},BSPrim.UpdateProperties,call,pos={1},orient={2},vel={3},accel={4},rotVel={5}",
-                    LocalID, _position, _orientation, _velocity, _acceleration, _rotationalVelocity);
+            // DetailLog("{0},BSPrim.UpdateProperties,call,pos={1},orient={2},vel={3},accel={4},rotVel={5}",
+            //         LocalID, _position, _orientation, _velocity, _acceleration, _rotationalVelocity);
 
             base.RequestPhysicsterseUpdate();
         }
+            /*
         else
         {
             // For debugging, we also report the movement of children
@@ -1348,6 +1349,7 @@ public sealed class BSPrim : PhysicsActor
                     LocalID, entprop.Position, entprop.Rotation, entprop.Velocity, 
                     entprop.Acceleration, entprop.RotationalVelocity);
         }
+             */
     }
 
     // I've collided with something

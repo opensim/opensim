@@ -97,7 +97,13 @@ public abstract class BSConstraint : IDisposable
             ret = CalculateTransforms();
             if (ret)
             {
+                // m_world.scene.PhysicsLogging.Write("{0},BSConstraint.RecomputeConstraintVariables,taint,enabling,A={1},B={2}",
+                //                 BSScene.DetailLogZero, Body1.ID, Body2.ID);
                 BulletSimAPI.SetConstraintEnable2(m_constraint.Ptr, m_world.scene.NumericBool(true));
+            }
+            else
+            {
+                m_world.scene.Logger.ErrorFormat("[BULLETSIM CONSTRAINT] CalculateTransforms failed. A={0}, B={1}", Body1.ID, Body2.ID);
             }
         }
         return ret;

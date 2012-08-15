@@ -488,9 +488,11 @@ public class BSCharacter : PhysicsActor
         // Avatars don't report their changes the usual way. Changes are checked for in the heartbeat loop.
         // base.RequestPhysicsterseUpdate();
 
+        /*
         DetailLog("{0},BSCharacter.UpdateProperties,call,pos={1},orient={2},vel={3},accel={4},rotVel={5}",
                 LocalID, entprop.Position, entprop.Rotation, entprop.Velocity, 
                 entprop.Acceleration, entprop.RotationalVelocity);
+         */
     }
 
     // Called by the scene when a collision with this object is reported
