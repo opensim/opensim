@@ -7782,8 +7782,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (parts.Count > 0)
             {
-                foreach (SceneObjectPart part in parts)
-                    remaining = SetPrimParams(part, rules);
+                foreach (object part in parts)
+                {
+                    if (part is SceneObjectPart)
+                        remaining = SetPrimParams((SceneObjectPart)part, rules);
+                    else
+                        remaining = SetPrimParams((ScenePresence)part, rules);
+                }
 
                 while((object)remaining != null && remaining.Length > 2)
                 {
@@ -7797,8 +7802,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     foreach (ScenePresence p in avatars)
                         parts.Add(p);
 
-                    foreach (SceneObjectPart part in parts)
-                        remaining = SetPrimParams(part, rules);
+                    foreach (object part in parts)
+                    {
+                        if (part is SceneObjectPart)
+                            remaining = SetPrimParams((SceneObjectPart)part, rules);
+                        else
+                            remaining = SetPrimParams((ScenePresence)part, rules);
+                    }
                 }
             }
         }
