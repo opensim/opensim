@@ -3424,53 +3424,61 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             m_host.AddScriptLPS(1);
 
+            int implicitPerms = 0;
+
             if (m_host.ParentGroup.IsAttachment && (UUID)agent == m_host.ParentGroup.AttachedAvatar)
             {
                 // When attached, certain permissions are implicit if requested from owner
-                int implicitPerms = ScriptBaseClass.PERMISSION_TAKE_CONTROLS |
+                implicitPerms = ScriptBaseClass.PERMISSION_TAKE_CONTROLS |
                         ScriptBaseClass.PERMISSION_TRIGGER_ANIMATION |
                         ScriptBaseClass.PERMISSION_CONTROL_CAMERA |
                         ScriptBaseClass.PERMISSION_ATTACH;
-
-                if ((perm & (~implicitPerms)) == 0) // Requested only implicit perms
+            }
+            else
+            {
+                bool sitting = false;
+                if (m_host.SitTargetAvatar == agentID)
                 {
-                    lock (m_host.TaskInventory)
+                    sitting = true;
+                }
+                else
+                {
+                    foreach (SceneObjectPart p in m_host.ParentGroup.Parts)
                     {
-                        m_host.TaskInventory[m_item.ItemID].PermsGranter = agentID;
-                        m_host.TaskInventory[m_item.ItemID].PermsMask = perm;
+                        if (p.SitTargetAvatar == agentID)
+                            sitting = true;
                     }
+                }
 
-                    m_ScriptEngine.PostScriptEvent(m_item.ItemID, new EventParams(
-                            "run_time_permissions", new Object[] {
-                            new LSL_Integer(perm) },
-                            new DetectParams[0]));
-
-                    return;
+                if (sitting)
+                {
+                    // When agent is sitting, certain permissions are implicit if requested from sitting agent
+                    implicitPerms = ScriptBaseClass.PERMISSION_TRIGGER_ANIMATION |
+                        ScriptBaseClass.PERMISSION_CONTROL_CAMERA |
+                        ScriptBaseClass.PERMISSION_TRACK_CAMERA |
+                        ScriptBaseClass.PERMISSION_TAKE_CONTROLS;
+                }
+                else
+                {
+                    if (World.GetExtraSetting("auto_grant_attach_perms") == "true")
+                        implicitPerms = ScriptBaseClass.PERMISSION_ATTACH;
                 }
             }
-            else if (m_host.SitTargetAvatar == agentID) // Sitting avatar
+
+            if ((perm & (~implicitPerms)) == 0) // Requested only implicit perms
             {
-                // When agent is sitting, certain permissions are implicit if requested from sitting agent
-                int implicitPerms = ScriptBaseClass.PERMISSION_TRIGGER_ANIMATION |
-                    ScriptBaseClass.PERMISSION_CONTROL_CAMERA |
-                    ScriptBaseClass.PERMISSION_TRACK_CAMERA |
-                    ScriptBaseClass.PERMISSION_TAKE_CONTROLS;
-
-                if ((perm & (~implicitPerms)) == 0) // Requested only implicit perms
+                lock (m_host.TaskInventory)
                 {
-                    lock (m_host.TaskInventory)
-                    {
-                        m_host.TaskInventory[m_item.ItemID].PermsGranter = agentID;
-                        m_host.TaskInventory[m_item.ItemID].PermsMask = perm;
-                    }
-
-                    m_ScriptEngine.PostScriptEvent(m_item.ItemID, new EventParams(
-                            "run_time_permissions", new Object[] {
-                            new LSL_Integer(perm) },
-                            new DetectParams[0]));
-
-                    return;
+                    m_host.TaskInventory[m_item.ItemID].PermsGranter = agentID;
+                    m_host.TaskInventory[m_item.ItemID].PermsMask = perm;
                 }
+
+                m_ScriptEngine.PostScriptEvent(m_item.ItemID, new EventParams(
+                        "run_time_permissions", new Object[] {
+                        new LSL_Integer(perm) },
+                        new DetectParams[0]));
+
+                return;
             }
 
             ScenePresence presence = World.GetScenePresence(agentID);

@@ -43,15 +43,13 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.OptionalModules.Avatar.Attachments
 {
-    /// <summary>
-    /// A module that just holds commands for inspecting avatar appearance.
-    /// </summary>
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "TempAttachmentsModule")]
     public class TempAttachmentsModule : INonSharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private Scene m_scene;
+        private IRegionConsole m_console;
 
         public void Initialise(IConfigSource configSource)
         {
@@ -74,6 +72,12 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
             {
                 comms.RegisterScriptInvocation( this, "llAttachToAvatarTemp");
                 m_log.DebugFormat("[TEMP ATTACHS]: Registered script functions");
+                m_console = scene.RequestModuleInterface<IRegionConsole>();
+
+                if (m_console != null)
+                {
+                    m_console.AddCommand("TempATtachModule", false, "set auto_grant_attach_perms", "set auto_grant_attach_perms true|false", "Allow objects owned by the region owner os estate managers to obtain attach permissions without asking the user", SetAutoGrantAttachPerms);
+                }
             }
             else
             {
@@ -93,6 +97,37 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
         public string Name
         {
             get { return "TempAttachmentsModule"; }
+        }
+
+        private void SendConsoleOutput(UUID agentID, string text)
+        {
+            if (m_console == null)
+                return;
+
+            m_console.SendConsoleOutput(agentID, text);
+        }
+
+        private void SetAutoGrantAttachPerms(string module, string[] parms)
+        {
+            UUID agentID = new UUID(parms[parms.Length - 1]);
+            Array.Resize(ref parms, parms.Length - 1);
+
+            if (parms.Length != 3)
+            {
+                SendConsoleOutput(agentID, "Command parameter error");
+                return;
+            }
+
+            string val = parms[2];
+            if (val != "true" && val != "false")
+            {
+                SendConsoleOutput(agentID, "Command parameter error");
+                return;
+            }
+             
+            m_scene.StoreExtraSetting("auto_grant_attach_perms", val);
+
+            SendConsoleOutput(agentID, String.Format("auto_grant_attach_perms set to {0}", val));
         }
 
         private void llAttachToAvatarTemp(UUID host, UUID script, int attachmentPoint)
