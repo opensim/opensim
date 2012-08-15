@@ -213,6 +213,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// </remarks>
         public event NewScript OnNewScript;
 
+        public delegate void ExtraSettingChangedDelegate(Scene scene, string name, string value);
+        public event ExtraSettingChangedDelegate OnExtraSettingChanged;
+
         public virtual void TriggerNewScript(UUID clientID, SceneObjectPart part, UUID itemID)
         {
             NewScript handlerNewScript = OnNewScript;
@@ -2591,5 +2594,25 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        public void TriggerExtraSettingChanged(Scene scene, string name, string val)
+        {
+            ExtraSettingChangedDelegate handler = OnExtraSettingChanged;
+
+            if (handler != null)
+            {
+                foreach (ExtraSettingChangedDelegate d in handler.GetInvocationList())
+                {
+                    try
+                    {
+                        d(scene, name, val);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat("[EVENT MANAGER]: Delegate for ExtraSettingChanged failed - continuing {0} - {1}",
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }
+        }
     }
 }
