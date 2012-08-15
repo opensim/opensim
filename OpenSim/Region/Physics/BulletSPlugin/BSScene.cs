@@ -78,10 +78,16 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     public string BulletSimVersion = "?";
 
     private Dictionary<uint, BSCharacter> m_avatars = new Dictionary<uint, BSCharacter>();
+    public Dictionary<uint, BSCharacter> Characters { get { return m_avatars; } }
+
     private Dictionary<uint, BSPrim> m_prims = new Dictionary<uint, BSPrim>();
+    public Dictionary<uint, BSPrim> Prims { get { return m_prims; } }
+
     private HashSet<BSCharacter> m_avatarsWithCollisions = new HashSet<BSCharacter>();
     private HashSet<BSPrim> m_primsWithCollisions = new HashSet<BSPrim>();
+
     private List<BSPrim> m_vehicles = new List<BSPrim>();
+
     private float[] m_heightMap;
     private float m_waterLevel;
     private uint m_worldID;
@@ -429,13 +435,13 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         {
             numSubSteps = BulletSimAPI.PhysicsStep(m_worldID, timeStep, m_maxSubSteps, m_fixedTimeStep,
                         out updatedEntityCount, out updatedEntitiesPtr, out collidersCount, out collidersPtr);
-            // DetailLog("{0},Simulate,call, substeps={1}, updates={2}, colliders={3}", DetailLogZero, numSubSteps, updatedEntityCount, collidersCount); 
+            DetailLog("{0},Simulate,call, substeps={1}, updates={2}, colliders={3}", DetailLogZero, numSubSteps, updatedEntityCount, collidersCount); 
         }
         catch (Exception e)
         {
             m_log.WarnFormat("{0},PhysicsStep Exception: substeps={1}, updates={2}, colliders={3}, e={4}", LogHeader, numSubSteps, updatedEntityCount, collidersCount, e);
             // DetailLog("{0},PhysicsStepException,call, substeps={1}, updates={2}, colliders={3}", DetailLogZero, numSubSteps, updatedEntityCount, collidersCount);
-            // updatedEntityCount = 0;
+            updatedEntityCount = 0;
             collidersCount = 0;
         }
 
@@ -533,6 +539,8 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             type = ActorTypes.Ground;
         else if (m_avatars.ContainsKey(collidingWith))
             type = ActorTypes.Agent;
+
+        DetailLog("{0},BSScene.SendCollision,collide,id={1},with={2}", DetailLogZero, localID, collidingWith);
 
         BSPrim prim;
         if (m_prims.TryGetValue(localID, out prim)) {
