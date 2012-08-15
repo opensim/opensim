@@ -5854,5 +5854,44 @@ Environment.Exit(1);
 
             callback(asset);
         }
+
+        public string GetExtraSetting(string name)
+        {
+            string val;
+
+            if (!m_extraSettings.TryGetValue(name, out val))
+                return String.Empty;
+
+            return val;
+        }
+
+        public void StoreExtraSetting(string name, string val)
+        {
+            string oldVal;
+
+            if (m_extraSettings.TryGetValue(name, out oldVal))
+            {
+                if (oldVal == val)
+                    return;
+            }
+
+            m_extraSettings[name] = val;
+
+            m_SimulationDataService.SaveExtra(RegionInfo.RegionID, name, val);
+
+            m_eventManager.TriggerExtraSettingChanged(this, name, val);
+        }
+
+        public void RemoveExtraSetting(string name)
+        {
+            if (!m_extraSettings.ContainsKey(name))
+                return;
+
+            m_extraSettings.Remove(name);
+
+            m_SimulationDataService.RemoveExtra(RegionInfo.RegionID, name);
+
+            m_eventManager.TriggerExtraSettingChanged(this, name, String.Empty);
+        }
     }
 }
