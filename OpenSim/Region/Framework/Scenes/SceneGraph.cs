@@ -1793,7 +1793,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             try
             {
-                parentGroup.AreUpdatesSuspended = true;
 
                 List<SceneObjectGroup> childGroups = new List<SceneObjectGroup>();
 
@@ -1850,7 +1849,6 @@ namespace OpenSim.Region.Framework.Scenes
                         SceneObjectGroupsByLocalPartID[part.LocalId] = parentGroup;
                 }
 
-                parentGroup.AreUpdatesSuspended = false;
                 parentGroup.HasGroupChanged = true;
                 parentGroup.ProcessBackup(m_parentScene.SimulationDataService, true);
                 parentGroup.ScheduleGroupForFullUpdate();
@@ -1896,7 +1894,6 @@ namespace OpenSim.Region.Framework.Scenes
                             SceneObjectGroup group = part.ParentGroup;
                             if (!affectedGroups.Contains(group))
                             {
-                                group.AreUpdatesSuspended = true;
                                 affectedGroups.Add(group);
                             }
                         }
@@ -1922,7 +1919,6 @@ namespace OpenSim.Region.Framework.Scenes
                     // However, editing linked parts and unlinking may be different
                     //
                     SceneObjectGroup group = root.ParentGroup;
-                    group.AreUpdatesSuspended = true;
                     
                     List<SceneObjectPart> newSet = new List<SceneObjectPart>(group.Parts);
                     int numChildren = newSet.Count;
@@ -1945,7 +1941,6 @@ namespace OpenSim.Region.Framework.Scenes
                             group.DelinkFromGroup(p, sendEventsToRemainder);
                             if (numChildren > 2)
                             {
-                                p.ParentGroup.AreUpdatesSuspended = true;
                             }
                             else
                             {
@@ -1980,7 +1975,6 @@ namespace OpenSim.Region.Framework.Scenes
                             foreach (SceneObjectPart newChild in newSet)
                                 newChild.ClearUpdateSchedule();
 
-                        newRoot.ParentGroup.AreUpdatesSuspended = true;
                         LinkObjects(newRoot, newSet);
                         if (!affectedGroups.Contains(newRoot.ParentGroup))
                             affectedGroups.Add(newRoot.ParentGroup);
@@ -1998,7 +1992,6 @@ namespace OpenSim.Region.Framework.Scenes
                     m_parentScene.SimulationDataService.RemoveObject(g.UUID, m_parentScene.RegionInfo.RegionID);
                     g.TriggerScriptChangedEvent(Changed.LINK);
                     g.HasGroupChanged = true; // Persist
-                    g.AreUpdatesSuspended = false;
                     g.ScheduleGroupForFullUpdate();
                 }
             }

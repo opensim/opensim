@@ -1775,13 +1775,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 try
                 {
-                    parts[0].ParentGroup.AreUpdatesSuspended = true;
                     foreach (SceneObjectPart part in parts)
                         SetAlpha(part, alpha, face);
                 }
                 finally
                 {
-                    parts[0].ParentGroup.AreUpdatesSuspended = false;
                 }
             }
         }
@@ -1962,13 +1960,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 try
                 {
-                    parts[0].ParentGroup.AreUpdatesSuspended = true;
                     foreach (SceneObjectPart part in parts)
                         SetTexture(part, texture, face);
                 }
                 finally
                 {
-                    parts[0].ParentGroup.AreUpdatesSuspended = false;
                 }
             }
             ScriptSleep(200);
@@ -3931,13 +3927,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 try
                 {
-                    parts[0].ParentGroup.AreUpdatesSuspended = true;
                     foreach (SceneObjectPart part in parts)
                         part.SetFaceColor(new Vector3((float)color.x, (float)color.y, (float)color.z), face);
                 }
                 finally
                 {
-                    parts[0].ParentGroup.AreUpdatesSuspended = false;
                 }
             }
         }
@@ -4055,7 +4049,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     try
                     {
-                        parts[0].ParentGroup.AreUpdatesSuspended = true;
                         foreach (SceneObjectPart part in parts)
                         {
                             parentPrim.DelinkFromGroup(part.LocalId, true);
@@ -4063,7 +4056,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     }
                     finally
                     {
-                        parts[0].ParentGroup.AreUpdatesSuspended = false;
                     }
                 }
 
@@ -4078,7 +4070,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     try
                     {
-                        parts[0].ParentGroup.AreUpdatesSuspended = true;
                         foreach (SceneObjectPart part in parts)
                         {
                             part.ClearUpdateSchedule();
@@ -4087,7 +4078,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     }
                     finally
                     {
-                        parts[0].ParentGroup.AreUpdatesSuspended = false;
                     }                    
                     
                     
@@ -6302,7 +6292,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 try
                 {
-                    parts[0].ParentGroup.AreUpdatesSuspended = true;
                     foreach (var part in parts)
                     {
                         SetTextureAnim(part, mode, face, sizex, sizey, start, length, rate);
@@ -6310,7 +6299,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
                 finally
                 {
-                    parts[0].ParentGroup.AreUpdatesSuspended = false;
                 }
             }
         }
