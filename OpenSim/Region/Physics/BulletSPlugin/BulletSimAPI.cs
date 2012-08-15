@@ -416,6 +416,27 @@ public static extern IntPtr Create6DofConstraint2(IntPtr world, IntPtr obj1, Int
                     bool useLinearReferenceFrameA, bool disableCollisionsBetweenLinkedBodies);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern IntPtr Create6DofConstraintToPoint2(IntPtr world, IntPtr obj1, IntPtr obj2,
+                    Vector3 joinPoint,
+                    bool useLinearReferenceFrameA, bool disableCollisionsBetweenLinkedBodies);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern IntPtr CreateHingeConstraint2(IntPtr world, IntPtr obj1, IntPtr obj2,
+                    Vector3 pivotinA, Vector3 pivotinB,
+                    Vector3 axisInA, Vector3 axisInB,
+                    bool useLinearReferenceFrameA, bool disableCollisionsBetweenLinkedBodies);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern void SetConstraintEnable2(IntPtr constrain, float numericTrueFalse);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern void SetConstraintNumSolverIterations2(IntPtr constrain, float iterations);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern bool SetFrames2(IntPtr constrain, 
+                Vector3 frameA, Quaternion frameArot, Vector3 frameB, Quaternion frameBrot);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern bool SetLinearLimits2(IntPtr constrain, Vector3 low, Vector3 hi);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
@@ -426,6 +447,9 @@ public static extern bool UseFrameOffset2(IntPtr constrain, float enable);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern bool TranslationalLimitMotor2(IntPtr constrain, float enable, float targetVel, float maxMotorForce);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern bool SetBreakingImpulseThreshold2(IntPtr constrain, float threshold);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern bool CalculateTransforms2(IntPtr constrain);
@@ -516,6 +540,9 @@ public static extern bool SetGravity2(IntPtr obj, Vector3 val);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern IntPtr ClearForces2(IntPtr obj);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern IntPtr ClearAllForces2(IntPtr obj);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern bool SetMargin2(IntPtr obj, float val);

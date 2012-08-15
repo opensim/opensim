@@ -305,8 +305,13 @@ namespace OpenSim
             m_httpServerPort = m_networkServersInfo.HttpListenerPort;
             SceneManager.OnRestartSim += handleRestartRegion;
 
-            // Only start the memory watchdog once all regions are ready
-            SceneManager.OnRegionsReadyStatusChange += sm => MemoryWatchdog.Enabled = sm.AllRegionsReady;
+            // Only enable the watchdogs when all regions are ready.  Otherwise we get false positives when cpu is
+            // heavily used during initial startup.
+            //
+            // FIXME: It's also possible that region ready status should be flipped during an OAR load since this
+            // also makes heavy use of the CPU.
+            SceneManager.OnRegionsReadyStatusChange
+                += sm => { MemoryWatchdog.Enabled = sm.AllRegionsReady; Watchdog.Enabled = sm.AllRegionsReady; };
         }
 
         /// <summary>

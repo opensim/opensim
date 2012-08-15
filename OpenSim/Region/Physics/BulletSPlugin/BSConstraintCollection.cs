@@ -56,21 +56,25 @@ public class BSConstraintCollection : IDisposable
 
     public void Clear()
     {
-        foreach (BSConstraint cons in m_constraints)
+        lock (m_constraints)
         {
-            cons.Dispose();
+            foreach (BSConstraint cons in m_constraints)
+            {
+                cons.Dispose();
+            }
+            m_constraints.Clear();
         }
-        m_constraints.Clear();
     }
 
     public bool AddConstraint(BSConstraint cons)
     {
-        // There is only one constraint between any bodies. Remove any old just to make sure.
-        RemoveAndDestroyConstraint(cons.Body1, cons.Body2);
+        lock (m_constraints)
+        {
+            // There is only one constraint between any bodies. Remove any old just to make sure.
+            RemoveAndDestroyConstraint(cons.Body1, cons.Body2);
 
-        m_world.scene.DetailLog("{0},BSConstraintCollection.AddConstraint,call,body1={1},body2={2}", BSScene.DetailLogZero, cons.Body1.ID, cons.Body2.ID);
-
-        m_constraints.Add(cons);
+            m_constraints.Add(cons);
+        }
 
         return true;
     }
@@ -84,16 +88,19 @@ public class BSConstraintCollection : IDisposable
 
         uint lookingID1 = body1.ID;
         uint lookingID2 = body2.ID;
-        ForEachConstraint(delegate(BSConstraint constrain)
+        lock (m_constraints)
         {
-            if ((constrain.Body1.ID == lookingID1 && constrain.Body2.ID == lookingID2)
-                || (constrain.Body1.ID == lookingID2 && constrain.Body2.ID == lookingID1))
+            foreach (BSConstraint constrain in m_constraints)
             {
-                foundConstraint = constrain;
-                found = true;
+                if ((constrain.Body1.ID == lookingID1 && constrain.Body2.ID == lookingID2)
+                    || (constrain.Body1.ID == lookingID2 && constrain.Body2.ID == lookingID1))
+                {
+                    foundConstraint = constrain;
+                    found = true;
+                    break;
+                }
             }
-            return found;
-        });
+        }
         returnConstraint = foundConstraint;
         return found;
     }
@@ -103,23 +110,33 @@ public class BSConstraintCollection : IDisposable
     // Return 'true' if a constraint was found and destroyed.
     public bool RemoveAndDestroyConstraint(BulletBody body1, BulletBody body2)
     {
-        // return BulletSimAPI.RemoveConstraint(m_world.ID, obj1.ID, obj2.ID);
-
         bool ret = false;
-        BSConstraint constrain;
-
-        if (this.TryGetConstraint(body1, body2, out constrain))
+        lock (m_constraints)
         {
-            m_world.scene.DetailLog("{0},BSConstraintCollection.RemoveAndDestroyConstraint,taint,body1={1},body2={2}", BSScene.DetailLogZero, body1.ID, body2.ID);
-            // remove the constraint from our collection
-            m_constraints.Remove(constrain);
-            // tell the engine that all its structures need to be freed
-            constrain.Dispose();
-            // we destroyed something
-            ret = true;
+            BSConstraint constrain;
+            if (this.TryGetConstraint(body1, body2, out constrain))
+            {
+                // remove the constraint from our collection
+                RemoveAndDestroyConstraint(constrain);
+                ret = true;
+            }
         }
 
         return ret;
+    }
+
+    // The constraint MUST exist in the collection
+    public bool RemoveAndDestroyConstraint(BSConstraint constrain)
+    {
+        lock (m_constraints)
+        {
+            // remove the constraint from our collection
+            m_constraints.Remove(constrain);
+        }
+        // tell the engine that all its structures need to be freed
+        constrain.Dispose();
+        // we destroyed something
+        return true;
     }
 
     // Remove all constraints that reference the passed body.
@@ -130,16 +147,15 @@ public class BSConstraintCollection : IDisposable
 
         List<BSConstraint> toRemove = new List<BSConstraint>();
         uint lookingID = body1.ID;
-        ForEachConstraint(delegate(BSConstraint constrain)
-        {
-            if (constrain.Body1.ID == lookingID || constrain.Body2.ID == lookingID)
-            {
-                toRemove.Add(constrain);
-            }
-            return false;
-        });
         lock (m_constraints)
         {
+            foreach (BSConstraint constrain in m_constraints)
+            {
+                if (constrain.Body1.ID == lookingID || constrain.Body2.ID == lookingID)
+                {
+                    toRemove.Add(constrain);
+                }
+            }
             foreach (BSConstraint constrain in toRemove)
             {
                 m_constraints.Remove(constrain);
@@ -151,28 +167,16 @@ public class BSConstraintCollection : IDisposable
 
     public bool RecalculateAllConstraints()
     {
-        ForEachConstraint(delegate(BSConstraint constrain)
-        {
-            constrain.CalculateTransforms();
-            return false;
-        });
-        return true;
-    }
-
-    // Lock the constraint list and loop through it.
-    // The constraint action returns 'true' if it wants the loop aborted.
-    private void ForEachConstraint(ConstraintAction action)
-    {
+        bool ret = false;
         lock (m_constraints)
         {
             foreach (BSConstraint constrain in m_constraints)
             {
-                if (action(constrain))
-                    break;
+                constrain.CalculateTransforms();
+                ret = true;
             }
         }
+        return ret;
     }
-
-
 }
 }

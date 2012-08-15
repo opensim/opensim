@@ -37,7 +37,8 @@ public class BS6DofConstraint : BSConstraint
     // Create a btGeneric6DofConstraint
     public BS6DofConstraint(BulletSim world, BulletBody obj1, BulletBody obj2,
                     Vector3 frame1, Quaternion frame1rot,
-                    Vector3 frame2, Quaternion frame2rot )
+                    Vector3 frame2, Quaternion frame2rot,
+                    bool useLinearReferenceFrameA, bool disableCollisionsBetweenLinkedBodies)
     {
         m_world = world;
         m_body1 = obj1;
@@ -46,16 +47,45 @@ public class BS6DofConstraint : BSConstraint
                             BulletSimAPI.Create6DofConstraint2(m_world.Ptr, m_body1.Ptr, m_body2.Ptr,
                                 frame1, frame1rot,
                                 frame2, frame2rot,
-                                true /*useLinearReferenceFrameA*/, true /*disableCollisionsBetweenLinkedBodies*/));
+                                useLinearReferenceFrameA, disableCollisionsBetweenLinkedBodies));
         m_enabled = true;
+    }
+
+    public BS6DofConstraint(BulletSim world, BulletBody obj1, BulletBody obj2,
+                    Vector3 joinPoint,
+                    bool useLinearReferenceFrameA, bool disableCollisionsBetweenLinkedBodies)
+    {
+        m_world = world;
+        m_body1 = obj1;
+        m_body2 = obj2;
+        m_constraint = new BulletConstraint(
+                            BulletSimAPI.Create6DofConstraintToPoint2(m_world.Ptr, m_body1.Ptr, m_body2.Ptr,
+                                joinPoint,
+                                useLinearReferenceFrameA, disableCollisionsBetweenLinkedBodies));
+        m_enabled = true;
+    }
+
+    public bool SetFrames(Vector3 frameA, Quaternion frameArot, Vector3 frameB, Quaternion frameBrot)
+    {
+        bool ret = false;
+        if (m_enabled)
+        {
+            BulletSimAPI.SetFrames2(m_constraint.Ptr, frameA, frameArot, frameB, frameBrot);
+            ret = true;
+        }
+        return ret;
     }
 
     public bool SetCFMAndERP(float cfm, float erp)
     {
-        bool ret = true;
-        BulletSimAPI.SetConstraintParam2(m_constraint.Ptr, ConstraintParams.BT_CONSTRAINT_STOP_CFM, cfm, ConstraintParamAxis.AXIS_ALL);
-        BulletSimAPI.SetConstraintParam2(m_constraint.Ptr, ConstraintParams.BT_CONSTRAINT_STOP_ERP, erp, ConstraintParamAxis.AXIS_ALL);
-        BulletSimAPI.SetConstraintParam2(m_constraint.Ptr, ConstraintParams.BT_CONSTRAINT_CFM, cfm, ConstraintParamAxis.AXIS_ALL);
+        bool ret = false;
+        if (m_enabled)
+        {
+            BulletSimAPI.SetConstraintParam2(m_constraint.Ptr, ConstraintParams.BT_CONSTRAINT_STOP_CFM, cfm, ConstraintParamAxis.AXIS_ALL);
+            BulletSimAPI.SetConstraintParam2(m_constraint.Ptr, ConstraintParams.BT_CONSTRAINT_STOP_ERP, erp, ConstraintParamAxis.AXIS_ALL);
+            BulletSimAPI.SetConstraintParam2(m_constraint.Ptr, ConstraintParams.BT_CONSTRAINT_CFM, cfm, ConstraintParamAxis.AXIS_ALL);
+            ret = true;
+        }
         return ret;
     }
 
@@ -74,6 +104,14 @@ public class BS6DofConstraint : BSConstraint
         float onOff = enable ? ConfigurationParameters.numericTrue : ConfigurationParameters.numericFalse;
         if (m_enabled)
             ret = BulletSimAPI.TranslationalLimitMotor2(m_constraint.Ptr, onOff, targetVelocity, maxMotorForce);
+        return ret;
+    }
+
+    public bool SetBreakingImpulseThreshold(float threshold)
+    {
+        bool ret = false;
+        if (m_enabled)
+            ret = BulletSimAPI.SetBreakingImpulseThreshold2(m_constraint.Ptr, threshold);
         return ret;
     }
 }
