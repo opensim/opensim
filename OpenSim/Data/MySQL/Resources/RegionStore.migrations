@@ -895,3 +895,10 @@ CREATE TABLE `regionenvironment` (
 
 COMMIT;
 
+:VERSION 45
+
+BEGIN;
+
+CREATE TABLE `regionextra` (`RegionID` char(36) not null, `Name` varchar(32) not null, `value` text, primary key(`RegionID`, `Name`));
+
+COMMIT;

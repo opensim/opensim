@@ -127,6 +127,12 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="regionUUID">the region UUID</param>
         void RemoveRegionEnvironmentSettings(UUID regionUUID);
 
+        void SaveExtra(UUID regionID, string name, string val);
+
+        void RemoveExtra(UUID regionID, string name);
+
+        Dictionary<string, string> GetExtra(UUID regionID);
+
         void Shutdown();
     }
 }
