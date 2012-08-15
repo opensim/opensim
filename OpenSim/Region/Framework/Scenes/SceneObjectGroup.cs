@@ -116,7 +116,7 @@ namespace OpenSim.Region.Framework.Scenes
         private bool m_suspendUpdates;
         private List<ScenePresence> m_linkedAvatars = new List<ScenePresence>();
 
-        public bool areUpdatesSuspended
+        public bool AreUpdatesSuspended
         {
             get
             {
