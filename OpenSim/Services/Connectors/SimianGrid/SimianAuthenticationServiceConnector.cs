@@ -104,6 +104,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public string Authenticate(UUID principalID, string password, int lifetime, out UUID realID)
         {
+            realID = UUID.Zero;
             return Authenticate(principalID, password, lifetime);
         }
 
