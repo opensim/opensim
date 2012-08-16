@@ -7668,7 +7668,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             break;
                         case (int)ScriptBaseClass.PRIM_SLICE:
                             if (remain < 1)
-                                return;
+                                return null;
                             LSL_Vector slice = rules.GetVector3Item(idx++);
                             part.UpdateSlice((float)slice.x, (float)slice.y);
                             break;
