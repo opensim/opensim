@@ -362,7 +362,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         BSPrim bsprim = prim as BSPrim;
         if (bsprim != null)
         {
-            DetailLog("{0},RemovePrim,call", bsprim.LocalID);
+            // DetailLog("{0},RemovePrim,call", bsprim.LocalID);
             // m_log.DebugFormat("{0}: RemovePrim. id={1}/{2}", LogHeader, bsprim.Name, bsprim.LocalID);
             try
             {
@@ -388,7 +388,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
 
         if (!m_initialized) return null;
 
-        DetailLog("{0},AddPrimShape,call", localID);
+        // DetailLog("{0},AddPrimShape,call", localID);
 
         BSPrim prim = new BSPrim(localID, primName, this, position, size, rotation, pbs, isPhysical);
         lock (m_prims) m_prims.Add(localID, prim);
@@ -413,7 +413,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         // prevent simulation until we've been initialized
         if (!m_initialized) return 10.0f;
 
-        long simulateStartTime = Util.EnvironmentTickCount();
+        int simulateStartTime = Util.EnvironmentTickCount();
 
         // update the prim states while we know the physics engine is not busy
         ProcessTaints();
@@ -429,12 +429,12 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         {
             numSubSteps = BulletSimAPI.PhysicsStep(m_worldID, timeStep, m_maxSubSteps, m_fixedTimeStep,
                         out updatedEntityCount, out updatedEntitiesPtr, out collidersCount, out collidersPtr);
-            DetailLog("{0},Simulate,call, substeps={1}, updates={2}, colliders={3}", DetailLogZero, numSubSteps, updatedEntityCount, collidersCount); 
+            // DetailLog("{0},Simulate,call, substeps={1}, updates={2}, colliders={3}", DetailLogZero, numSubSteps, updatedEntityCount, collidersCount); 
         }
         catch (Exception e)
         {
             m_log.WarnFormat("{0},PhysicsStep Exception: substeps={1}, updates={2}, colliders={3}, e={4}", LogHeader, numSubSteps, updatedEntityCount, collidersCount, e);
-            DetailLog("{0},PhysicsStepException,call, substeps={1}, updates={2}, colliders={3}", DetailLogZero, numSubSteps, updatedEntityCount, collidersCount);
+            // DetailLog("{0},PhysicsStepException,call, substeps={1}, updates={2}, colliders={3}", DetailLogZero, numSubSteps, updatedEntityCount, collidersCount);
             // updatedEntityCount = 0;
             collidersCount = 0;
         }
@@ -511,8 +511,13 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         // long simulateTotalTime = Util.EnvironmentTickCountSubtract(simulateStartTime);
         // return (timeStep * (float)simulateTotalTime);
 
-        // TODO: FIX THIS: fps calculation wrong. This calculation always returns about 1 in normal operation.
-        return timeStep / (numSubSteps * m_fixedTimeStep) * 1000f;
+        // TODO: FIX THIS: fps calculation possibly wrong.
+        // This calculation says 1/timeStep is the ideal frame rate. Any time added to
+        //    that by the physics simulation gives a slower frame rate.
+        long totalSimulationTime = Util.EnvironmentTickCountSubtract(simulateStartTime);
+        if (totalSimulationTime >= timeStep)
+            return 0;
+        return 1f / (timeStep + totalSimulationTime);
     }
 
     // Something has collided
@@ -590,12 +595,6 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         // make sure no stepping happens while we're deleting stuff
         m_initialized = false;
 
-        if (m_constraintCollection != null)
-        {
-            m_constraintCollection.Dispose();
-            m_constraintCollection = null;
-        }
-
         foreach (KeyValuePair<uint, BSCharacter> kvp in m_avatars)
         {
             kvp.Value.Destroy();
@@ -607,6 +606,13 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             kvp.Value.Destroy();
         }
         m_prims.Clear();
+
+        // Now that the prims are all cleaned up, there should be no constraints left
+        if (m_constraintCollection != null)
+        {
+            m_constraintCollection.Dispose();
+            m_constraintCollection = null;
+        }
 
         // Anything left in the unmanaged code should be cleaned out
         BulletSimAPI.Shutdown(WorldID);

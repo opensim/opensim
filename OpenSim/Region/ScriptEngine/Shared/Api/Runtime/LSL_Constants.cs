@@ -226,6 +226,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int ATTACH_BELLY = 28;
         public const int ATTACH_RPEC = 29;
         public const int ATTACH_LPEC = 30;
+        public const int ATTACH_LEFT_PEC = 29; // Same value as ATTACH_RPEC, see https://jira.secondlife.com/browse/SVC-580
+        public const int ATTACH_RIGHT_PEC = 30; // Same value as ATTACH_LPEC, see https://jira.secondlife.com/browse/SVC-580
         public const int ATTACH_HUD_CENTER_2 = 31;
         public const int ATTACH_HUD_TOP_RIGHT = 32;
         public const int ATTACH_HUD_TOP_CENTER = 33;

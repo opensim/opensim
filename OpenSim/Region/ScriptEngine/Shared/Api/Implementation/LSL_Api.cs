@@ -12124,7 +12124,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             LSL_List remaining = SetPrimParams(obj, rules);
 
-            while (remaining != null && remaining.Length > 2)
+            while ((object)remaining != null && remaining.Length > 2)
             {
                 LSL_Integer newLink = remaining.GetLSLIntegerItem(0);
                 LSL_List newrules = remaining.GetSublist(1, -1);

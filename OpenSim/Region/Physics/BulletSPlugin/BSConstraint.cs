@@ -80,8 +80,31 @@ public abstract class BSConstraint : IDisposable
         bool ret = false;
         if (m_enabled)
         {
+            // Recompute the internal transforms
             BulletSimAPI.CalculateTransforms2(m_constraint.Ptr);
             ret = true;
+        }
+        return ret;
+    }
+
+    // Reset this constraint making sure it has all its internal structures
+    //    recomputed and is enabled and ready to go.
+    public virtual bool RecomputeConstraintVariables(float mass)
+    {
+        bool ret = false;
+        if (m_enabled)
+        {
+            ret = CalculateTransforms();
+            if (ret)
+            {
+                // m_world.scene.PhysicsLogging.Write("{0},BSConstraint.RecomputeConstraintVariables,taint,enabling,A={1},B={2}",
+                //                 BSScene.DetailLogZero, Body1.ID, Body2.ID);
+                BulletSimAPI.SetConstraintEnable2(m_constraint.Ptr, m_world.scene.NumericBool(true));
+            }
+            else
+            {
+                m_world.scene.Logger.ErrorFormat("[BULLETSIM CONSTRAINT] CalculateTransforms failed. A={0}, B={1}", Body1.ID, Body2.ID);
+            }
         }
         return ret;
     }
