@@ -1753,6 +1753,7 @@
       <Reference name="OpenSim.Region.CoreModules"/>
       <Reference name="OpenSim.Region.ClientStack.LindenUDP"/>
       <Reference name="OpenSim.Region.Framework"/>
+      <Reference name="OpenSim.Region.Framework.Interfaces"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>
       <Reference name="OpenSim.Server.Base"/>
       <Reference name="OpenSim.Server.Handlers"/>
@@ -3123,6 +3124,7 @@
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Framework.Servers.HttpServer"/>
       <Reference name="OpenSim.Region.Framework"/>
+      <Reference name="OpenSim.Region.Framework.Interfaces"/>
       <Reference name="OpenSim.Region.CoreModules"/>
       <Reference name="OpenSim.Region.OptionalModules"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>
