@@ -100,6 +100,7 @@ namespace OpenSim.Framework.Console
                 m_LineNumber++;
                 m_Scrollback.Add(String.Format("{0}", m_LineNumber)+":"+level+":"+text);
             }
+            FireOnOutput(text.Trim());
             System.Console.WriteLine(text.Trim());
         }
 

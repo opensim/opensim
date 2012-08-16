@@ -177,6 +177,8 @@ namespace OpenSim.Region.Framework.Scenes
         protected ICapabilitiesModule m_capsModule;
         protected IGroupsModule m_groupsModule;
 
+        private Dictionary<string, string> m_extraSettings;
+
         /// <summary>
         /// Current scene frame number
         /// </summary>
@@ -658,6 +660,8 @@ namespace OpenSim.Region.Framework.Scenes
             // FIXME: It shouldn't be up to the database plugins to create this data - we should do it when a new
             // region is set up and avoid these gyrations.
             RegionSettings rs = simDataService.LoadRegionSettings(RegionInfo.RegionID);
+            m_extraSettings = simDataService.GetExtra(RegionInfo.RegionID);
+
             bool updatedTerrainTextures = false;
             if (rs.TerrainTexture1 == UUID.Zero)
             {
@@ -842,12 +846,19 @@ namespace OpenSim.Region.Framework.Scenes
                     m_update_presences        = startupConfig.GetInt(   "UpdateAgentsEveryNFrames",          m_update_presences);
                     m_update_terrain          = startupConfig.GetInt(   "UpdateTerrainEveryNFrames",         m_update_terrain);
                     m_update_temp_cleaning    = startupConfig.GetInt(   "UpdateTempCleaningEveryNFrames",    m_update_temp_cleaning);
-                    SendPeriodicAppearanceUpdates = startupConfig.GetBoolean("SendPeriodicAppearanceUpdates", SendPeriodicAppearanceUpdates);
                 }
             }
             catch (Exception e)
             {
                 m_log.Error("[SCENE]: Failed to load StartupConfig: " + e.ToString());
+            }
+
+            // FIXME: Ultimately this should be in a module.
+            IConfig appearanceConfig = m_config.Configs["Appearance"];
+            if (appearanceConfig != null)
+            {
+                SendPeriodicAppearanceUpdates
+                    = appearanceConfig.GetBoolean("ResendAppearanceUpdates", SendPeriodicAppearanceUpdates);
             }
 
             #endregion Region Config
@@ -2748,7 +2759,7 @@ namespace OpenSim.Region.Framework.Scenes
                     RootPrim.RemFlag(PrimFlags.TemporaryOnRez);
                     
                     if (AttachmentsModule != null)
-                        AttachmentsModule.AttachObject(sp, grp, 0, false, false);
+                        AttachmentsModule.AttachObject(sp, grp, 0, false, false, false);
                 }
                 else
                 {
@@ -5842,6 +5853,45 @@ Environment.Exit(1);
             AssetReceivedDelegate callback = (AssetReceivedDelegate)sender;
 
             callback(asset);
+        }
+
+        public string GetExtraSetting(string name)
+        {
+            string val;
+
+            if (!m_extraSettings.TryGetValue(name, out val))
+                return String.Empty;
+
+            return val;
+        }
+
+        public void StoreExtraSetting(string name, string val)
+        {
+            string oldVal;
+
+            if (m_extraSettings.TryGetValue(name, out oldVal))
+            {
+                if (oldVal == val)
+                    return;
+            }
+
+            m_extraSettings[name] = val;
+
+            m_SimulationDataService.SaveExtra(RegionInfo.RegionID, name, val);
+
+            m_eventManager.TriggerExtraSettingChanged(this, name, val);
+        }
+
+        public void RemoveExtraSetting(string name)
+        {
+            if (!m_extraSettings.ContainsKey(name))
+                return;
+
+            m_extraSettings.Remove(name);
+
+            m_SimulationDataService.RemoveExtra(RegionInfo.RegionID, name);
+
+            m_eventManager.TriggerExtraSettingChanged(this, name, String.Empty);
         }
     }
 }

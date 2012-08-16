@@ -32,35 +32,26 @@ using OpenMetaverse;
 namespace OpenSim.Region.Physics.BulletSPlugin
 {
 
-public class BSConstraint : IDisposable
+public abstract class BSConstraint : IDisposable
 {
-    private BulletSim m_world;
-    private BulletBody m_body1;
-    private BulletBody m_body2;
-    private BulletConstraint m_constraint;
-    private bool m_enabled = false;
+    protected BulletSim m_world;
+    protected BulletBody m_body1;
+    protected BulletBody m_body2;
+    protected BulletConstraint m_constraint;
+    protected bool m_enabled = false;
 
-    public BSConstraint(BulletSim world, BulletBody obj1, BulletBody obj2,
-                    Vector3 frame1, Quaternion frame1rot,
-                    Vector3 frame2, Quaternion frame2rot
-        )
+    public BSConstraint()
     {
-        m_world = world;
-        m_body1 = obj1;
-        m_body2 = obj2;
-        m_constraint = new BulletConstraint(BulletSimAPI.CreateConstraint2(m_world.Ptr, m_body1.Ptr, m_body2.Ptr,
-                            frame1, frame1rot,
-                            frame2, frame2rot,
-                            true /*useLinearReferenceFrameA*/, true /*disableCollisionsBetweenLinkedBodies*/));
-        m_enabled = true;
     }
 
-    public void Dispose()
+    public virtual void Dispose()
     {
         if (m_enabled)
         {
             // BulletSimAPI.RemoveConstraint(m_world.ID, m_body1.ID, m_body2.ID);
-            BulletSimAPI.DestroyConstraint2(m_world.Ptr, m_constraint.Ptr);
+            bool success = BulletSimAPI.DestroyConstraint2(m_world.Ptr, m_constraint.Ptr);
+            m_world.scene.DetailLog("{0},BSConstraint.Dispose,taint,body1={1},body2={2},success={3}", BSScene.DetailLogZero, m_body1.ID, m_body2.ID, success);
+            m_constraint.Ptr = System.IntPtr.Zero;
             m_enabled = false;
         }
     }
@@ -68,7 +59,7 @@ public class BSConstraint : IDisposable
     public BulletBody Body1 { get { return m_body1; } }
     public BulletBody Body2 { get { return m_body2; } }
 
-    public bool SetLinearLimits(Vector3 low, Vector3 high)
+    public virtual bool SetLinearLimits(Vector3 low, Vector3 high)
     {
         bool ret = false;
         if (m_enabled)
@@ -76,7 +67,7 @@ public class BSConstraint : IDisposable
         return ret;
     }
 
-    public bool SetAngularLimits(Vector3 low, Vector3 high)
+    public virtual bool SetAngularLimits(Vector3 low, Vector3 high)
     {
         bool ret = false;
         if (m_enabled)
@@ -84,40 +75,36 @@ public class BSConstraint : IDisposable
         return ret;
     }
 
-    public bool SetCFMAndERP(float cfm, float erp)
-    {
-        bool ret = true;
-        BulletSimAPI.SetConstraintParam2(m_constraint.Ptr, ConstraintParams.BT_CONSTRAINT_STOP_CFM, cfm, ConstraintParamAxis.AXIS_ALL);
-        BulletSimAPI.SetConstraintParam2(m_constraint.Ptr, ConstraintParams.BT_CONSTRAINT_STOP_ERP, erp, ConstraintParamAxis.AXIS_ALL);
-        BulletSimAPI.SetConstraintParam2(m_constraint.Ptr, ConstraintParams.BT_CONSTRAINT_CFM, cfm, ConstraintParamAxis.AXIS_ALL);
-        return ret;
-    }
-
-    public bool UseFrameOffset(bool useOffset)
-    {
-        bool ret = false;
-        float onOff = useOffset ? ConfigurationParameters.numericTrue : ConfigurationParameters.numericFalse;
-        if (m_enabled)
-            ret = BulletSimAPI.UseFrameOffset2(m_constraint.Ptr, onOff);
-        return ret;
-    }
-
-    public bool TranslationalLimitMotor(bool enable, float targetVelocity, float maxMotorForce)
-    {
-        bool ret = false;
-        float onOff = enable ? ConfigurationParameters.numericTrue : ConfigurationParameters.numericFalse;
-        if (m_enabled)
-            ret = BulletSimAPI.TranslationalLimitMotor2(m_constraint.Ptr, onOff, targetVelocity, maxMotorForce);
-        return ret;
-    }
-
-    public bool CalculateTransforms()
+    public virtual bool CalculateTransforms()
     {
         bool ret = false;
         if (m_enabled)
         {
+            // Recompute the internal transforms
             BulletSimAPI.CalculateTransforms2(m_constraint.Ptr);
             ret = true;
+        }
+        return ret;
+    }
+
+    // Reset this constraint making sure it has all its internal structures
+    //    recomputed and is enabled and ready to go.
+    public virtual bool RecomputeConstraintVariables(float mass)
+    {
+        bool ret = false;
+        if (m_enabled)
+        {
+            ret = CalculateTransforms();
+            if (ret)
+            {
+                // m_world.scene.PhysicsLogging.Write("{0},BSConstraint.RecomputeConstraintVariables,taint,enabling,A={1},B={2}",
+                //                 BSScene.DetailLogZero, Body1.ID, Body2.ID);
+                BulletSimAPI.SetConstraintEnable2(m_constraint.Ptr, m_world.scene.NumericBool(true));
+            }
+            else
+            {
+                m_world.scene.Logger.ErrorFormat("[BULLETSIM CONSTRAINT] CalculateTransforms failed. A={0}, B={1}", Body1.ID, Body2.ID);
+            }
         }
         return ret;
     }

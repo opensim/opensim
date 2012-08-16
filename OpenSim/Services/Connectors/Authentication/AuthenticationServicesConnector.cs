@@ -81,6 +81,13 @@ namespace OpenSim.Services.Connectors
             m_ServerURI = serviceURI;
         }
 
+        public string Authenticate(UUID principalID, string password, int lifetime, out UUID realID)
+        {
+            realID = UUID.Zero;
+
+            return Authenticate(principalID, password, lifetime);
+        }
+
         public string Authenticate(UUID principalID, string password, int lifetime)
         {
             Dictionary<string, object> sendData = new Dictionary<string, object>();

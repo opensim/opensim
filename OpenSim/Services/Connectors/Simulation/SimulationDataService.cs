@@ -168,5 +168,20 @@ namespace OpenSim.Services.Connectors
         {
             return m_database.GetObjectIDs(regionID);
         }
+
+        public void SaveExtra(UUID regionID, string name, string val)
+        {
+            m_database.SaveExtra(regionID, name, val);
+        }
+
+        public void RemoveExtra(UUID regionID, string name)
+        {
+            m_database.RemoveExtra(regionID, name);
+        }
+
+        public Dictionary<string, string> GetExtra(UUID regionID)
+        {
+            return m_database.GetExtra(regionID);
+        }
     }
 }

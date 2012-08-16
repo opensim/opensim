@@ -97,6 +97,32 @@ namespace OpenSim.Framework.Monitoring
         /// /summary>
         public static event Action<ThreadWatchdogInfo> OnWatchdogTimeout;
 
+        /// <summary>
+        /// Is this watchdog active?
+        /// </summary>
+        public static bool Enabled
+        {
+            get { return m_enabled; }
+            set
+            {
+//                m_log.DebugFormat("[MEMORY WATCHDOG]: Setting MemoryWatchdog.Enabled to {0}", value);
+
+                if (value == m_enabled)
+                    return;
+
+                m_enabled = value;
+
+                if (m_enabled)
+                {
+                    // Set now so we don't get alerted on the first run
+                    LastWatchdogThreadTick = Environment.TickCount & Int32.MaxValue;
+                }
+
+                m_watchdogTimer.Enabled = m_enabled;
+            }
+        }
+        private static bool m_enabled;
+
         private static readonly ILog m_log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         private static Dictionary<int, ThreadWatchdogInfo> m_threads;
         private static System.Timers.Timer m_watchdogTimer;
@@ -115,11 +141,6 @@ namespace OpenSim.Framework.Monitoring
             m_watchdogTimer = new System.Timers.Timer(WATCHDOG_INTERVAL_MS);
             m_watchdogTimer.AutoReset = false;
             m_watchdogTimer.Elapsed += WatchdogTimerElapsed;
-
-            // Set now so we don't get alerted on the first run
-            LastWatchdogThreadTick = Environment.TickCount & Int32.MaxValue;
-
-            m_watchdogTimer.Start();
         }
 
         /// <summary>

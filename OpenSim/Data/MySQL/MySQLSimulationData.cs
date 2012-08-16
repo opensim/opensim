@@ -2094,5 +2094,74 @@ namespace OpenSim.Data.MySQL
                 }
             }
         }
+
+        public void SaveExtra(UUID regionID, string name, string val)
+        {
+            lock (m_dbLock)
+            {
+                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+                {
+                    dbcon.Open();
+
+                    using (MySqlCommand cmd = dbcon.CreateCommand())
+                    {
+                        cmd.CommandText = "replace into regionextra values (?RegionID, ?Name, ?value)";
+                        cmd.Parameters.AddWithValue("?RegionID", regionID.ToString());
+                        cmd.Parameters.AddWithValue("?Name", name);
+                        cmd.Parameters.AddWithValue("?value", val);
+
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+            }
+        }
+
+        public void RemoveExtra(UUID regionID, string name)
+        {
+            lock (m_dbLock)
+            {
+                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+                {
+                    dbcon.Open();
+
+                    using (MySqlCommand cmd = dbcon.CreateCommand())
+                    {
+                        cmd.CommandText = "delete from regionextra where RegionID=?RegionID and Name=?Name";
+                        cmd.Parameters.AddWithValue("?RegionID", regionID.ToString());
+                        cmd.Parameters.AddWithValue("?Name", name);
+
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+            }
+        }
+
+        public Dictionary<string, string> GetExtra(UUID regionID)
+        {
+            Dictionary<string, string> ret = new Dictionary<string, string>();
+
+            lock (m_dbLock)
+            {
+                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+                {
+                    dbcon.Open();
+
+                    using (MySqlCommand cmd = dbcon.CreateCommand())
+                    {
+                        cmd.CommandText = "select * from regionextra where RegionID=?RegionID";
+                        cmd.Parameters.AddWithValue("?RegionID", regionID.ToString());
+                        using (IDataReader r = cmd.ExecuteReader())
+                        {
+                            while (r.Read())
+                            {
+                                ret[r["Name"].ToString()] = r["value"].ToString();
+                            }
+                        }
+                    }
+                }
+            }
+
+            return ret;
+        }
     }
 }

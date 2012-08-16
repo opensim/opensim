@@ -60,6 +60,13 @@ namespace OpenSim.Services.AuthenticationService
         {
         }
 
+        public string Authenticate(UUID principalID, string password, int lifetime, out UUID realID)
+        {
+            realID = UUID.Zero;
+
+            return Authenticate(principalID, password, lifetime);
+        }
+
         public string Authenticate(UUID principalID, string password, int lifetime)
         {
             if (new UUID(password) == UUID.Zero)

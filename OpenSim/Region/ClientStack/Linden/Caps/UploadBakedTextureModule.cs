@@ -66,9 +66,9 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public void Initialise(IConfigSource source)
         {
-            IConfig sconfig = source.Configs["Startup"];
-            if (sconfig != null)
-                m_persistBakedTextures = sconfig.GetBoolean("PersistBakedTextures", m_persistBakedTextures);
+            IConfig appearanceConfig = source.Configs["Appearance"];
+            if (appearanceConfig != null)
+                m_persistBakedTextures = appearanceConfig.GetBoolean("PersistBakedTextures", m_persistBakedTextures);
         }
 
         public void AddRegion(Scene s)

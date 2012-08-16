@@ -40,6 +40,8 @@ namespace OpenSim.Framework.Console
     /// </summary>
     public class MockConsole : ICommandConsole
     {
+        public event OnOutputDelegate OnOutput;
+
         private MockCommands m_commands = new MockCommands();
 
         public ICommands Commands { get { return m_commands; } }
