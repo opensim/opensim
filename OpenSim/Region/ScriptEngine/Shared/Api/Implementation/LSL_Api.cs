@@ -7674,6 +7674,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     }
                 }
             }
+            catch (InvalidCastException e)
+            {
+                ShoutError(e.Message);
+            }
             finally
             {
                 if (positionChanged)
