@@ -64,6 +64,7 @@ namespace OpenSim.Services.AuthenticationService
         {
             AuthenticationData data = m_Database.Get(principalID);
             string result = String.Empty;
+            realID = UUID.Zero;
             if (data != null && data.Data != null)
             {
                 if (data.Data.ContainsKey("webLoginKey"))
@@ -85,7 +86,7 @@ namespace OpenSim.Services.AuthenticationService
                     }
                 }
 
-                realID = UUID.Zero;
+              
 
                 if (result == string.Empty)
                 {
@@ -96,6 +97,8 @@ namespace OpenSim.Services.AuthenticationService
             {
                 m_log.DebugFormat("[AUTH SERVICE]: PrincipalID {0} or its data not found", principalID);
             }
+            
+            
             return result;
         }
     }

@@ -65,7 +65,6 @@ namespace OpenSim.Services.AuthenticationService
         public string Authenticate(UUID principalID, string password, int lifetime)
         {
             UUID realID;
-
             return Authenticate(principalID, password, lifetime, out realID);
         }
 
