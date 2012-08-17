@@ -2896,6 +2896,55 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
+        /// Set the color & alpha of prim faces
+        /// </summary>
+        /// <param name="face"></param>
+        /// <param name="color"></param>
+        /// <param name="alpha"></param>
+        public void SetFaceColorAlpha(int face, Vector3 color, double alpha)
+        {
+            // The only way to get a deep copy/ If we don't do this, we can
+            // never detect color changes further down.
+            Byte[] buf = Shape.Textures.GetBytes();
+            Primitive.TextureEntry tex = new Primitive.TextureEntry(buf, 0, buf.Length);
+            Color4 texcolor;
+            if (face >= 0 && face < GetNumberOfSides())
+            {
+                texcolor = tex.CreateFace((uint)face).RGBA;
+                texcolor.R = Util.Clip((float)color.X, 0.0f, 1.0f);
+                texcolor.G = Util.Clip((float)color.Y, 0.0f, 1.0f);
+                texcolor.B = Util.Clip((float)color.Z, 0.0f, 1.0f);
+                texcolor.A = Util.Clip((float)alpha, 0.0f, 1.0f);
+                tex.FaceTextures[face].RGBA = texcolor;
+                UpdateTextureEntry(tex.GetBytes());
+                return;
+            }
+            else if (face == ALL_SIDES)
+            {
+                for (uint i = 0; i < GetNumberOfSides(); i++)
+                {
+                    if (tex.FaceTextures[i] != null)
+                    {
+                        texcolor = tex.FaceTextures[i].RGBA;
+                        texcolor.R = Util.Clip((float)color.X, 0.0f, 1.0f);
+                        texcolor.G = Util.Clip((float)color.Y, 0.0f, 1.0f);
+                        texcolor.B = Util.Clip((float)color.Z, 0.0f, 1.0f);
+                        texcolor.A = Util.Clip((float)alpha, 0.0f, 1.0f);
+                        tex.FaceTextures[i].RGBA = texcolor;
+                    }
+                    texcolor = tex.DefaultTexture.RGBA;
+                    texcolor.R = Util.Clip((float)color.X, 0.0f, 1.0f);
+                    texcolor.G = Util.Clip((float)color.Y, 0.0f, 1.0f);
+                    texcolor.B = Util.Clip((float)color.Z, 0.0f, 1.0f);
+                    texcolor.A = Util.Clip((float)alpha, 0.0f, 1.0f);
+                    tex.DefaultTexture.RGBA = texcolor;
+                }
+                UpdateTextureEntry(tex.GetBytes());
+                return;
+            }
+        }
+
+        /// <summary>
         /// Get the number of sides that this part has.
         /// </summary>
         /// <returns></returns>
