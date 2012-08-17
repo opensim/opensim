@@ -4019,9 +4019,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llSetText(string text, LSL_Vector color, double alpha)
         {
             m_host.AddScriptLPS(1);
-            Vector3 av3 = new Vector3(Util.Clip((float)color.x, 0.0f, 1.0f),
-                                      Util.Clip((float)color.y, 0.0f, 1.0f),
-                                      Util.Clip((float)color.z, 0.0f, 1.0f));
+            Vector3 av3 = Util.Clip(new Vector3((float)color.x, (float)color.y, 
+                (float)color.z), 0.0f, 1.0f);
             m_host.SetText(text.Length > 254 ? text.Remove(254) : text, av3, Util.Clip((float)alpha, 0.0f, 1.0f));
             //m_host.ParentGroup.HasGroupChanged = true;
             //m_host.ParentGroup.ScheduleGroupForFullUpdate();
@@ -7635,9 +7634,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             string primText = rules.GetLSLStringItem(idx++);
                             LSL_Vector primTextColor = rules.GetVector3Item(idx++);
                             LSL_Float primTextAlpha = rules.GetLSLFloatItem(idx++);
-                            Vector3 av3 = new Vector3(Util.Clip((float)primTextColor.x, 0.0f, 1.0f),
-                                          Util.Clip((float)primTextColor.y, 0.0f, 1.0f),
-                                          Util.Clip((float)primTextColor.z, 0.0f, 1.0f));
+                            Vector3 av3 = Util.Clip(new Vector3((float)primTextColor.x,
+                                (float)primTextColor.y, 
+                                (float)primTextColor.z), 0.0f, 1.0f);
                             part.SetText(primText, av3, Util.Clip((float)primTextAlpha, 0.0f, 1.0f));
 
                             break;
