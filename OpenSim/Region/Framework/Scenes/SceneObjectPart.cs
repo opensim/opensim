@@ -2858,7 +2858,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void SetFaceColor(Vector3 color, int face)
         {
             // The only way to get a deep copy/ If we don't do this, we can
-            // mever detect color changes further down.
+            // never detect color changes further down.
             Byte[] buf = Shape.Textures.GetBytes();
             Primitive.TextureEntry tex = new Primitive.TextureEntry(buf, 0, buf.Length);
             Color4 texcolor;
