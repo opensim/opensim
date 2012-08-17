@@ -265,7 +265,7 @@ public class BSLinkset
             BSPrim childx = child;
             m_physicsScene.TaintedObject("AddChildToLinkset", delegate()
             {
-                // DetailLog("{0},AddChildToLinkset,taint,child={1}", m_linksetRoot.LocalID, child.LocalID);
+                DetailLog("{0},AddChildToLinkset,taint,child={1}", m_linksetRoot.LocalID, child.LocalID);
                 PhysicallyLinkAChildToRoot(rootx, childx);     // build the physical binding between me and the child
             });
         }
@@ -293,7 +293,7 @@ public class BSLinkset
             BSPrim childx = child;
             m_physicsScene.TaintedObject("RemoveChildFromLinkset", delegate()
             {
-                // DetailLog("{0},RemoveChildFromLinkset,taint,child={1}", m_linksetRoot.LocalID, child.LocalID);
+                DetailLog("{0},RemoveChildFromLinkset,taint,child={1}", m_linksetRoot.LocalID, child.LocalID);
 
                 PhysicallyUnlinkAChildFromRoot(rootx, childx);
             });
@@ -332,10 +332,10 @@ public class BSLinkset
                         true,
                         true
                         );
-        /* NOTE: attempt to build constraint with full frame computation, etc.
+        /* NOTE: below is an attempt to build constraint with full frame computation, etc.
          *     Using the midpoint is easier since it lets the Bullet code use the transforms
          *     of the objects.
-         * Code left here as an example.
+         * Code left as a warning to future programmers.
         // ==================================================================================
         // relative position normalized to the root prim
         OMV.Quaternion invThisOrientation = OMV.Quaternion.Inverse(rootPrim.Orientation);

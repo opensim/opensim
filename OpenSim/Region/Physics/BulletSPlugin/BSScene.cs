@@ -73,6 +73,9 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     private static readonly ILog m_log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
     private static readonly string LogHeader = "[BULLETS SCENE]";
 
+    // The name of the region we're working for.
+    public string RegionName { get; private set; }
+
     public string BulletSimVersion = "?";
 
     private Dictionary<uint, BSCharacter> m_avatars = new Dictionary<uint, BSCharacter>();
@@ -196,6 +199,8 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     public BSScene(string identifier)
     {
         m_initialized = false;
+        // we are passed the name of the region we're working for.
+        RegionName = identifier;
     }
 
     public override void Initialise(IMesher meshmerizer, IConfigSource config)
@@ -281,10 +286,13 @@ public class BSScene : PhysicsScene, IPhysicsParameters
                 // Very detailed logging for physics debugging
                 m_physicsLoggingEnabled = pConfig.GetBoolean("PhysicsLoggingEnabled", false);
                 m_physicsLoggingDir = pConfig.GetString("PhysicsLoggingDir", ".");
-                m_physicsLoggingPrefix = pConfig.GetString("PhysicsLoggingPrefix", "physics-");
+                m_physicsLoggingPrefix = pConfig.GetString("PhysicsLoggingPrefix", "physics-%REGIONNAME%-");
                 m_physicsLoggingFileMinutes = pConfig.GetInt("PhysicsLoggingFileMinutes", 5);
                 // Very detailed logging for vehicle debugging
                 m_vehicleLoggingEnabled = pConfig.GetBoolean("VehicleLoggingEnabled", false);
+
+                // Do any replacements in the parameters
+                m_physicsLoggingPrefix = m_physicsLoggingPrefix.Replace("%REGIONNAME%", RegionName);
             }
         }
     }
@@ -362,7 +370,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         BSPrim bsprim = prim as BSPrim;
         if (bsprim != null)
         {
-            // DetailLog("{0},RemovePrim,call", bsprim.LocalID);
+            DetailLog("{0},RemovePrim,call", bsprim.LocalID);
             // m_log.DebugFormat("{0}: RemovePrim. id={1}/{2}", LogHeader, bsprim.Name, bsprim.LocalID);
             try
             {
@@ -388,7 +396,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
 
         if (!m_initialized) return null;
 
-        // DetailLog("{0},AddPrimShape,call", localID);
+        DetailLog("{0},AddPrimShape,call", localID);
 
         BSPrim prim = new BSPrim(localID, primName, this, position, size, rotation, pbs, isPhysical);
         lock (m_prims) m_prims.Add(localID, prim);
@@ -534,7 +542,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         else if (m_avatars.ContainsKey(collidingWith))
             type = ActorTypes.Agent;
 
-        DetailLog("{0},BSScene.SendCollision,collide,id={1},with={2}", DetailLogZero, localID, collidingWith);
+        // DetailLog("{0},BSScene.SendCollision,collide,id={1},with={2}", DetailLogZero, localID, collidingWith);
 
         BSPrim prim;
         if (m_prims.TryGetValue(localID, out prim)) {
