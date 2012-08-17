@@ -42,8 +42,6 @@ public sealed class BSPrim : PhysicsActor
     private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
     private static readonly string LogHeader = "[BULLETS PRIM]";
 
-    private void DebugLog(string mm, params Object[] xx) { if (_scene.ShouldDebugLog) m_log.DebugFormat(mm, xx); }
-
     private IMesh _mesh;
     private PrimitiveBaseShape _pbs;
     private ShapeData.PhysicsShapeType _shapeType;
@@ -232,7 +230,6 @@ public sealed class BSPrim : PhysicsActor
         BSPrim parent = obj as BSPrim;
         if (parent != null)
         {
-            DebugLog("{0}: link {1}/{2} to {3}", LogHeader, _avName, _localID, parent.LocalID);
             BSPrim parentBefore = _linkset.LinksetRoot;
             int childrenBefore = _linkset.NumberOfChildren;
 
@@ -248,8 +245,6 @@ public sealed class BSPrim : PhysicsActor
     public override void delink() {
         // TODO: decide if this parent checking needs to happen at taint time
         // Race condition here: if link() and delink() in same simulation tick, the delink will not happen
-        DebugLog("{0}: delink {1}/{2}. Parent={3}", LogHeader, _avName, _localID, 
-                            _linkset.LinksetRoot._avName+"/"+_linkset.LinksetRoot.LocalID.ToString());
 
         BSPrim parentBefore = _linkset.LinksetRoot;
         int childrenBefore = _linkset.NumberOfChildren;
@@ -1042,7 +1037,14 @@ public sealed class BSPrim : PhysicsActor
     // No locking here because this is done when we know physics is not simulating
     private void CreateGeomMesh()
     {
-        float lod = _pbs.SculptEntry ? _scene.SculptLOD : _scene.MeshLOD;
+        // level of detail based on size and type of the object
+        float lod = _scene.MeshLOD;
+        if (_pbs.SculptEntry) 
+            lod = _scene.SculptLOD;
+        float maxAxis = Math.Max(_size.X, Math.Max(_size.Y, _size.Z));
+        if (maxAxis > _scene.MeshMegaPrimThreshold) 
+            lod = _scene.MeshMegaPrimLOD;
+
         ulong newMeshKey = (ulong)_pbs.GetMeshKey(_size, lod);
         // m_log.DebugFormat("{0}: CreateGeomMesh: lID={1}, oldKey={2}, newKey={3}", LogHeader, _localID, _meshKey, newMeshKey);
 
