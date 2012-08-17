@@ -1353,6 +1353,7 @@ public sealed class BSPrim : PhysicsActor
     }
 
     // I've collided with something
+    // Called at taint time from within the Step() function
     CollisionEventUpdate collisionCollection;
     public void Collide(uint collidingWith, ActorTypes type, OMV.Vector3 contactPoint, OMV.Vector3 contactNormal, float pentrationDepth)
     {
@@ -1366,6 +1367,15 @@ public sealed class BSPrim : PhysicsActor
         }
 
         // DetailLog("{0},BSPrim.Collison,call,with={1}", LocalID, collidingWith);
+        BSPrim collidingWithPrim;
+        if (_scene.Prims.TryGetValue(collidingWith, out collidingWithPrim))
+        {
+            // prims in the same linkset cannot collide with each other
+            if (this.Linkset.LinksetID == collidingWithPrim.Linkset.LinksetID)
+            {
+                return;
+            }
+        }
 
         // if someone is subscribed to collision events....
         if (_subscribedEventsMs != 0) {

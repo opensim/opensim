@@ -42,6 +42,9 @@ public class BSLinkset
     private BSScene m_physicsScene;
     public BSScene PhysicsScene { get { return m_physicsScene; } }
 
+    static int m_nextLinksetID = 1;
+    public int LinksetID { get; private set; }
+
     // The children under the root in this linkset
     private List<BSPrim> m_children;
 
@@ -74,6 +77,10 @@ public class BSLinkset
     public BSLinkset(BSScene scene, BSPrim parent)
     {
         // A simple linkset of one (no children)
+        LinksetID = m_nextLinksetID++;
+        // We create LOTS of linksets.
+        if (m_nextLinksetID < 0) 
+            m_nextLinksetID = 1;
         m_physicsScene = scene;
         m_linksetRoot = parent;
         m_children = new List<BSPrim>();
