@@ -481,11 +481,8 @@ public sealed class BSPrim : PhysicsActor
     // No locking here because only called when it is safe
     private void SetObjectDynamic()
     {
-        // RA: remove this for the moment.
-        // The problem is that dynamic objects are hulls so if we are becoming physical
-        //    the shape has to be checked and possibly built.
-        //    Maybe a VerifyCorrectPhysicalShape() routine?
-        // RecreateGeomAndObject();
+        // If it's becoming dynamic, it will need hullness
+        VerifyCorrectPhysicalShape();
 
         // Bullet wants static objects to have a mass of zero
         float mass = IsStatic ? 0f : _mass;
@@ -1214,6 +1211,27 @@ public sealed class BSPrim : PhysicsActor
         return;
     }
 
+    private void VerifyCorrectPhysicalShape()
+    {
+        if (IsStatic)
+        {
+            // if static, we don't need a hull so, if there is one, rebuild without it
+            if (_hullKey != 0)
+            {
+                RecreateGeomAndObject();
+            }
+        }
+        else
+        {
+            // if not static, it will need a hull to efficiently collide with things
+            if (_hullKey == 0)
+            {
+                RecreateGeomAndObject();
+            }
+
+        }
+    }
+
     // Create an object in Bullet if it has not already been created
     // No locking here because this is done when the physics engine is not simulating
     // Returns 'true' if an object was actually created.
@@ -1338,10 +1356,8 @@ public sealed class BSPrim : PhysicsActor
             _acceleration = entprop.Acceleration;
             _rotationalVelocity = entprop.RotationalVelocity;
 
-            // m_log.DebugFormat("{0}: RequestTerseUpdate. id={1}, ch={2}, pos={3}, rot={4}, vel={5}, acc={6}, rvel={7}", 
-            //         LogHeader, LocalID, changed, _position, _orientation, _velocity, _acceleration, _rotationalVelocity);
-            // DetailLog("{0},BSPrim.UpdateProperties,call,pos={1},orient={2},vel={3},accel={4},rotVel={5}",
-            //         LocalID, _position, _orientation, _velocity, _acceleration, _rotationalVelocity);
+            DetailLog("{0},BSPrim.UpdateProperties,call,pos={1},orient={2},vel={3},accel={4},rotVel={5}",
+                    LocalID, _position, _orientation, _velocity, _acceleration, _rotationalVelocity);
 
             base.RequestPhysicsterseUpdate();
         }
