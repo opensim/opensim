@@ -141,8 +141,8 @@ public sealed class BSPrim : PhysicsActor
         _friction = _scene.Params.defaultFriction;  // TODO: compute based on object material
         _density = _scene.Params.defaultDensity;    // TODO: compute based on object material
         _restitution = _scene.Params.defaultRestitution;
-        _linkset = new BSLinkset(_scene, this);     // a linkset of one
-        _vehicle = new BSDynamics(this);            // add vehicleness
+        _linkset = new BSLinkset(Scene, this);     // a linkset of one
+        _vehicle = new BSDynamics(Scene, this);            // add vehicleness
         _mass = CalculateMass();
         // do the actual object creation at taint time
         DetailLog("{0},BSPrim.constructor,call", LocalID);
@@ -354,7 +354,7 @@ public sealed class BSPrim : PhysicsActor
             {
                 // Done at taint time so we're sure the physics engine is not using the variables
                 // Vehicle code changes the parameters for this vehicle type.
-                _vehicle.ProcessTypeChange(type);
+                _vehicle.ProcessTypeChange(type, Scene.LastSimulatedTimestep);
                 // Tell the scene about the vehicle so it will get processing each frame.
                 _scene.VehicleInSceneTypeChanged(this, type);
             });
