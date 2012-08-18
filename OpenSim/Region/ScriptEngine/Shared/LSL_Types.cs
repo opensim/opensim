@@ -31,6 +31,11 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 using OpenSim.Framework;
 
+using OpenMetaverse;
+using OMV_Vector3 = OpenMetaverse.Vector3;
+using OMV_Vector3d = OpenMetaverse.Vector3d;
+using OMV_Quaternion = OpenMetaverse.Quaternion;
+
 namespace OpenSim.Region.ScriptEngine.Shared
 {
     [Serializable]
@@ -52,6 +57,20 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 x = (float)vector.x;
                 y = (float)vector.y;
                 z = (float)vector.z;
+            }
+
+            public Vector3(OMV_Vector3 vector)
+            {
+                x = vector.X;
+                y = vector.Y;
+                z = vector.Z;
+            }
+
+            public Vector3(OMV_Vector3d vector)
+            {
+                x = vector.X;
+                y = vector.Y;
+                z = vector.Z;
             }
 
             public Vector3(double X, double Y, double Z)
@@ -107,6 +126,26 @@ namespace OpenSim.Region.ScriptEngine.Shared
             public static implicit operator list(Vector3 vec)
             {
                 return new list(new object[] { vec });
+            }
+
+            public static implicit operator OMV_Vector3(Vector3 vec)
+            {
+                return new OMV_Vector3((float)vec.x, (float)vec.y, (float)vec.z);
+            }
+
+            public static implicit operator Vector3(OMV_Vector3 vec)
+            {
+                return new Vector3(vec);
+            }
+
+            public static implicit operator OMV_Vector3d(Vector3 vec)
+            {
+                return new OMV_Vector3d(vec.x, vec.y, vec.z);
+            }
+
+            public static implicit operator Vector3(OMV_Vector3d vec)
+            {
+                return new Vector3(vec);
             }
 
             public static bool operator ==(Vector3 lhs, Vector3 rhs)

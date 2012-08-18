@@ -343,8 +343,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 if (type == typeof(OpenMetaverse.Vector3))
                 {
-                    LSL_Vector vect = (LSL_Vector)lslparm;
-                    return new OpenMetaverse.Vector3((float)vect.x,(float)vect.y,(float)vect.z);
+                    return (OpenMetaverse.Vector3)((LSL_Vector)lslparm);
                 }
             }
 
@@ -372,8 +371,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         }
                         else if (plist[i] is LSL_Vector)
                         {
-                            LSL_Vector vect = (LSL_Vector)plist[i];
-                            result[i] = new OpenMetaverse.Vector3((float)vect.x,(float)vect.y,(float)vect.z);
+                            result[i] = (OpenMetaverse.Vector3)(
+                                (LSL_Vector)plist[i]);
                         }
                         else
                             MODError("unknown LSL list element type");

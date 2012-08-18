@@ -1097,9 +1097,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Float llGround(LSL_Vector offset)
         {
             m_host.AddScriptLPS(1);
-            Vector3 pos = m_host.GetWorldPosition() + new Vector3((float)offset.x,
-                                                                  (float)offset.y,
-                                                                  (float)offset.z);
+            Vector3 pos = m_host.GetWorldPosition() + (Vector3)offset;
 
             //Get the slope normal.  This gives us the equation of the plane tangent to the slope.
             LSL_Vector vsn = llGroundNormal(offset);
@@ -1387,7 +1385,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (face == ScriptBaseClass.ALL_SIDES)
                 face = SceneObjectPart.ALL_SIDES;
 
-            m_host.SetFaceColor(new Vector3((float)color.x, (float)color.y, (float)color.z), face);
+            m_host.SetFaceColor(color, face);
         }
 
         public void SetTexGen(SceneObjectPart part, int face,int style)
@@ -1974,7 +1972,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             bool sameParcel = here.GlobalID == there.GlobalID;
 
-            if (!sameParcel && !World.Permissions.CanRezObject(m_host.ParentGroup.PrimCount, m_host.ParentGroup.OwnerID, new Vector3((float)pos.x, (float)pos.y, (float)pos.z)))
+            if (!sameParcel && !World.Permissions.CanRezObject(
+                m_host.ParentGroup.PrimCount, m_host.ParentGroup.OwnerID, pos))
             {
                 return 0;
             }
@@ -2034,13 +2033,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if ((targetPos.z < ground) && disable_underground_movement && m_host.ParentGroup.AttachmentPoint == 0)
                     targetPos.z = ground;
                 SceneObjectGroup parent = part.ParentGroup;
-                LSL_Vector real_vec = !adjust ? targetPos : SetPosAdjust(currentPos, targetPos);
-                parent.UpdateGroupPosition(new Vector3((float)real_vec.x, (float)real_vec.y, (float)real_vec.z));
+                parent.UpdateGroupPosition(!adjust ? targetPos :
+                    SetPosAdjust(currentPos, targetPos));
             }
             else
             {
-                LSL_Vector rel_vec = !adjust ? targetPos : SetPosAdjust(currentPos, targetPos);
-                part.OffsetPosition = new Vector3((float)rel_vec.x, (float)rel_vec.y, (float)rel_vec.z);
+                part.OffsetPosition = !adjust ? targetPos : SetPosAdjust(
+                    currentPos, targetPos);
                 SceneObjectGroup parent = part.ParentGroup;
                 parent.HasGroupChanged = true;
                 parent.ScheduleGroupForTerseUpdate();
@@ -2084,7 +2083,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
 //            m_log.DebugFormat("[LSL API]: Returning {0} in GetPartLocalPos()", pos);
 
-            return new LSL_Vector(pos.X, pos.Y, pos.Z);
+            return new LSL_Vector(pos);
         }
 
         public void llSetRot(LSL_Rotation rot)
@@ -2198,7 +2197,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (local != 0)
                     force *= llGetRot();
 
-                m_host.ParentGroup.RootPart.SetForce(new Vector3((float)force.x, (float)force.y, (float)force.z));
+                m_host.ParentGroup.RootPart.SetForce(force);
             }
         }
 
@@ -2210,10 +2209,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (!m_host.ParentGroup.IsDeleted)
             {
-                Vector3 tmpForce = m_host.ParentGroup.RootPart.GetForce();
-                force.x = tmpForce.X;
-                force.y = tmpForce.Y;
-                force.z = tmpForce.Z;
+                force = m_host.ParentGroup.RootPart.GetForce();
             }
 
             return force;
@@ -2222,8 +2218,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Integer llTarget(LSL_Vector position, double range)
         {
             m_host.AddScriptLPS(1);
-            return m_host.ParentGroup.registerTargetWaypoint(
-                new Vector3((float)position.x, (float)position.y, (float)position.z), (float)range);
+            return m_host.ParentGroup.registerTargetWaypoint(position,
+                (float)range);
         }
 
         public void llTargetRemove(int number)
@@ -2248,7 +2244,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llMoveToTarget(LSL_Vector target, double tau)
         {
             m_host.AddScriptLPS(1);
-            m_host.MoveToTarget(new Vector3((float)target.x, (float)target.y, (float)target.z), (float)tau);
+            m_host.MoveToTarget(target, (float)tau);
         }
 
         public void llStopMoveToTarget()
@@ -2261,7 +2257,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             //No energy force yet
-            Vector3 v = new Vector3((float)force.x, (float)force.y, (float)force.z);
+            Vector3 v = force;
             if (v.Length() > 20000.0f)
             {
                 v.Normalize();
@@ -2273,13 +2269,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llApplyRotationalImpulse(LSL_Vector force, int local)
         {
             m_host.AddScriptLPS(1);
-            m_host.ApplyAngularImpulse(new Vector3((float)force.x, (float)force.y, (float)force.z), local != 0);
+            m_host.ApplyAngularImpulse(force, local != 0);
         }
 
         public void llSetTorque(LSL_Vector torque, int local)
         {
             m_host.AddScriptLPS(1);
-            m_host.SetAngularImpulse(new Vector3((float)torque.x, (float)torque.y, (float)torque.z), local != 0);
+            m_host.SetAngularImpulse(torque, local != 0);
         }
 
         public LSL_Vector llGetTorque()
@@ -2830,13 +2826,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return;
                 }
 
-                Vector3 llpos = new Vector3((float)pos.x, (float)pos.y, (float)pos.z);
-                Vector3 llvel = new Vector3((float)vel.x, (float)vel.y, (float)vel.z);
-
                 // need the magnitude later
                 // float velmag = (float)Util.GetMagnitude(llvel);
 
-                SceneObjectGroup new_group = World.RezObject(m_host, item, llpos, Rot2Quaternion(rot), llvel, param);
+                SceneObjectGroup new_group = World.RezObject(m_host, item, pos, Rot2Quaternion(rot), vel, param);
 
                 // If either of these are null, then there was an unknown error.
                 if (new_group == null)
@@ -2857,10 +2850,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 PhysicsActor pa = new_group.RootPart.PhysActor;
 
-                if (pa != null && pa.IsPhysical && llvel != Vector3.Zero)
+                if (pa != null && pa.IsPhysical && (Vector3)vel != Vector3.Zero)
                 {
                     //Recoil.
-                    llApplyImpulse(new LSL_Vector(llvel.X * groupmass, llvel.Y * groupmass, llvel.Z * groupmass), 0);
+                    llApplyImpulse(vel * groupmass, 0);
                 }
                 // Variable script delay? (see (http://wiki.secondlife.com/wiki/LSL_Delay)
             });
@@ -3381,7 +3374,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         protected void TargetOmega(SceneObjectPart part, LSL_Vector axis, double spinrate, double gain)
         {
-            part.UpdateAngularVelocity(new Vector3((float)(axis.x * spinrate), (float)(axis.y * spinrate), (float)(axis.z * spinrate)));
+            part.UpdateAngularVelocity(axis * spinrate);
          }
 
         public LSL_Integer llGetStartParameter()
@@ -3588,7 +3581,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             List<SceneObjectPart> parts = GetLinkParts(linknumber);
 
             foreach (SceneObjectPart part in parts)
-                part.SetFaceColor(new Vector3((float)color.x, (float)color.y, (float)color.z), face);
+                part.SetFaceColor(color, face);
         }
 
         public void llCreateLink(string target, int parent)
@@ -4019,8 +4012,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llSetText(string text, LSL_Vector color, double alpha)
         {
             m_host.AddScriptLPS(1);
-            Vector3 av3 = Util.Clip(new Vector3((float)color.x, (float)color.y, 
-                (float)color.z), 0.0f, 1.0f);
+            Vector3 av3 = Util.Clip(color, 0.0f, 1.0f);
             m_host.SetText(text.Length > 254 ? text.Remove(254) : text, av3, Util.Clip((float)alpha, 0.0f, 1.0f));
             //m_host.ParentGroup.HasGroupChanged = true;
             //m_host.ParentGroup.ScheduleGroupForFullUpdate();
@@ -4217,13 +4209,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             ScriptSleep(5000);
         }
 
-        public void llTeleportAgent(string agent, string destination, LSL_Vector pos, LSL_Vector lookAt)
+        public void llTeleportAgent(string agent, string destination, LSL_Vector targetPos, LSL_Vector targetLookAt)
         {
             m_host.AddScriptLPS(1);
             UUID agentId = new UUID();
-
-            Vector3 targetPos = new Vector3((float)pos.x, (float)pos.y, (float)pos.z);
-            Vector3 targetLookAt = new Vector3((float)lookAt.x, (float)lookAt.y, (float)lookAt.z);
 
             if (UUID.TryParse(agent, out agentId))
             {
@@ -4253,15 +4242,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
-        public void llTeleportAgentGlobalCoords(string agent, LSL_Vector global_coords, LSL_Vector pos, LSL_Vector lookAt)
+        public void llTeleportAgentGlobalCoords(string agent, LSL_Vector global_coords, LSL_Vector targetPos, LSL_Vector targetLookAt)
         {
             m_host.AddScriptLPS(1);
             UUID agentId = new UUID();
 
             ulong regionHandle = Utils.UIntsToLong((uint)global_coords.x, (uint)global_coords.y);
 
-            Vector3 targetPos = new Vector3((float)pos.x, (float)pos.y, (float)pos.z);
-            Vector3 targetLookAt = new Vector3((float)lookAt.x, (float)lookAt.y, (float)lookAt.z);
             if (UUID.TryParse(agent, out agentId))
             {
                 ScenePresence presence = World.GetScenePresence(agentId);
@@ -4545,7 +4532,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     distance_attenuation = 1f / normalized_units;
                 }
 
-                Vector3 applied_linear_impulse = new Vector3((float)impulse.x, (float)impulse.y, (float)impulse.z);
+                Vector3 applied_linear_impulse = impulse;
                 {
                     float impulse_length = applied_linear_impulse.Length();
 
@@ -6044,9 +6031,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             //Plug the x,y coordinates of the slope normal into the equation of the plane to get
             //the height of that point on the plane.  The resulting vector gives the slope.
-            Vector3 vsl = new Vector3();
-            vsl.X = (float)vsn.x;
-            vsl.Y = (float)vsn.y;
+            Vector3 vsl = vsn;
             vsl.Z = (float)(((vsn.x * vsn.x) + (vsn.y * vsn.y)) / (-1 * vsn.z));
             vsl.Normalize();
             //Normalization might be overkill here
@@ -6057,9 +6042,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Vector llGroundNormal(LSL_Vector offset)
         {
             m_host.AddScriptLPS(1);
-            Vector3 pos = m_host.GetWorldPosition() + new Vector3((float)offset.x,
-                                                                (float)offset.y,
-                                                                (float)offset.z);
+            Vector3 pos = m_host.GetWorldPosition() + (Vector3)offset;
             // Clamp to valid position
             if (pos.X < 0)
                 pos.X = 0;
@@ -6512,8 +6495,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (!m_host.ParentGroup.IsDeleted)
             {
-                m_host.ParentGroup.RootPart.SetVehicleVectorParam(param,
-                    new Vector3((float)vec.x, (float)vec.y, (float)vec.z));
+                m_host.ParentGroup.RootPart.SetVehicleVectorParam(param, vec);
             }
         }
 
@@ -6555,7 +6537,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (rot.s == 0 && rot.x == 0 && rot.y == 0 && rot.z == 0)
                 rot.z = 1; // ZERO_ROTATION = 0,0,0,1
 
-            part.SitTargetPosition = new Vector3((float)offset.x, (float)offset.y, (float)offset.z);
+            part.SitTargetPosition = offset;
             part.SitTargetOrientation = Rot2Quaternion(rot);
             part.ParentGroup.HasGroupChanged = true;
         }
@@ -6659,13 +6641,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llSetCameraEyeOffset(LSL_Vector offset)
         {
             m_host.AddScriptLPS(1);
-            m_host.SetCameraEyeOffset(new Vector3((float)offset.x, (float)offset.y, (float)offset.z));
+            m_host.SetCameraEyeOffset(offset);
         }
 
         public void llSetCameraAtOffset(LSL_Vector offset)
         {
             m_host.AddScriptLPS(1);
-            m_host.SetCameraAtOffset(new Vector3((float)offset.x, (float)offset.y, (float)offset.z));
+            m_host.SetCameraAtOffset(offset);
         }
 
         public LSL_String llDumpList2String(LSL_List src, string seperator)
@@ -6687,7 +6669,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Integer llScriptDanger(LSL_Vector pos)
         {
             m_host.AddScriptLPS(1);
-            bool result = World.ScriptDanger(m_host.LocalId, new Vector3((float)pos.x, (float)pos.y, (float)pos.z));
+            bool result = World.ScriptDanger(m_host.LocalId, pos);
             if (result)
             {
                 return 1;
@@ -7515,7 +7497,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             LSL_Vector color=rules.GetVector3Item(idx++);
                             double alpha=(double)rules.GetLSLFloatItem(idx++);
 
-                            part.SetFaceColor(new Vector3((float)color.x, (float)color.y, (float)color.z), face);
+                            part.SetFaceColor(color, face);
                             SetAlpha(part, alpha, face);
 
                             break;
@@ -7634,9 +7616,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             string primText = rules.GetLSLStringItem(idx++);
                             LSL_Vector primTextColor = rules.GetVector3Item(idx++);
                             LSL_Float primTextAlpha = rules.GetLSLFloatItem(idx++);
-                            Vector3 av3 = Util.Clip(new Vector3((float)primTextColor.x,
-                                (float)primTextColor.y, 
-                                (float)primTextColor.z), 0.0f, 1.0f);
+                            Vector3 av3 = Util.Clip(primTextColor, 0.0f, 1.0f);
                             part.SetText(primText, av3, Util.Clip((float)primTextAlpha, 0.0f, 1.0f));
 
                             break;
@@ -7691,11 +7671,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if (part.ParentGroup.RootPart == part)
                     {
                         SceneObjectGroup parent = part.ParentGroup;
-                        parent.UpdateGroupPosition(new Vector3((float)currentPosition.x, (float)currentPosition.y, (float)currentPosition.z));
+                        parent.UpdateGroupPosition(currentPosition);
                     }
                     else
                     {
-                        part.OffsetPosition = new Vector3((float)currentPosition.x, (float)currentPosition.y, (float)currentPosition.z);
+                        part.OffsetPosition = currentPosition;
                         SceneObjectGroup parent = part.ParentGroup;
                         parent.HasGroupChanged = true;
                         parent.ScheduleGroupForTerseUpdate();
@@ -7932,8 +7912,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (part != null)
             {
                 Vector3 halfSize = part.Scale / 2.0f;
-                LSL_Vector lower = new LSL_Vector(halfSize.X * -1.0f, halfSize.Y * -1.0f, halfSize.Z * -1.0f);
-                LSL_Vector upper = new LSL_Vector(halfSize.X, halfSize.Y, halfSize.Z);
+                LSL_Vector lower = (new LSL_Vector(halfSize)) * -1.0f;
+                LSL_Vector upper = new LSL_Vector(halfSize);
                 result.Add(lower);
                 result.Add(upper);
                 return result;
@@ -9943,9 +9923,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             ScenePresence avatar = World.GetScenePresence(detectedParams.Key);
             if (avatar != null)
             {
-                avatar.ControllingClient.SendScriptTeleportRequest(m_host.Name, simname,
-                                                                   new Vector3((float)pos.x, (float)pos.y, (float)pos.z),
-                                                                   new Vector3((float)lookAt.x, (float)lookAt.y, (float)lookAt.z));
+                avatar.ControllingClient.SendScriptTeleportRequest(m_host.Name,
+                    simname, pos, lookAt);
             }
             ScriptSleep(1000);
         }
@@ -11143,8 +11122,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             m_host.AddScriptLPS(1);
 
-            Vector3 rayStart = new Vector3((float)start.x, (float)start.y, (float)start.z);
-            Vector3 rayEnd = new Vector3((float)end.x, (float)end.y, (float)end.z);
+            Vector3 rayStart = start;
+            Vector3 rayEnd = end;
             Vector3 dir = rayEnd - rayStart;
 
             float dist = Vector3.Mag(dir);
