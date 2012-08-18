@@ -417,7 +417,12 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public static implicit operator OMV_Quaternion(Quaternion rot)
             {
-                return new OMV_Quaternion((float)rot.x, (float)rot.y, (float)rot.z, (float)rot.s);
+                // LSL quaternions can normalize to 0, normal Quaternions can't.
+                if (rot.s == 0 && rot.x == 0 && rot.y == 0 && rot.z == 0)
+                    rot.z = 1; // ZERO_ROTATION = 0,0,0,1
+                OMV_Quaternion omvrot = new OMV_Quaternion((float)rot.x, (float)rot.y, (float)rot.z, (float)rot.s);
+                omvrot.Normalize();
+                return omvrot;
             }
 
             public static implicit operator Quaternion(OMV_Quaternion rot)

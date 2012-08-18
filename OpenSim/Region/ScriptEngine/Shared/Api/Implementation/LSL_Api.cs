@@ -330,14 +330,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return key;
         }
 
-        // convert a LSL_Rotation to a Quaternion
-        public static Quaternion Rot2Quaternion(LSL_Rotation r)
-        {
-            Quaternion q = new Quaternion((float)r.x, (float)r.y, (float)r.z, (float)r.s);
-            q.Normalize();
-            return q;
-        }
-
         //These are the implementations of the various ll-functions used by the LSL scripts.
         public LSL_Float llSin(double f)
         {
@@ -6532,12 +6524,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         protected void SitTarget(SceneObjectPart part, LSL_Vector offset, LSL_Rotation rot)
         {
-            // LSL quaternions can normalize to 0, normal Quaternions can't.
-            if (rot.s == 0 && rot.x == 0 && rot.y == 0 && rot.z == 0)
-                rot.z = 1; // ZERO_ROTATION = 0,0,0,1
-
             part.SitTargetPosition = offset;
-            part.SitTargetOrientation = Rot2Quaternion(rot);
+            part.SitTargetOrientation = rot;
             part.ParentGroup.HasGroupChanged = true;
         }
 
