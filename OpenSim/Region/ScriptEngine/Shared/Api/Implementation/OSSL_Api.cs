@@ -2565,7 +2565,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 ScenePresence sp = World.GetScenePresence(npcId);
 
                 if (sp != null)
-                    sp.Rotation = LSL_Api.Rot2Quaternion(rotation);
+                    sp.Rotation = rotation;
             }
         }
 

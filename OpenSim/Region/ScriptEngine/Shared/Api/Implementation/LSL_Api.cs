@@ -426,14 +426,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return key;
         }
 
-        // convert a LSL_Rotation to a Quaternion
-        public static Quaternion Rot2Quaternion(LSL_Rotation r)
-        {
-            Quaternion q = new Quaternion((float)r.x, (float)r.y, (float)r.z, (float)r.s);
-            q.Normalize();
-            return q;
-        }
-
         //These are the implementations of the various ll-functions used by the LSL scripts.
         public LSL_Float llSin(double f)
         {
@@ -2331,7 +2323,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 // using it would cause attachments and HUDs to rotate
                 // to the wrong positions.
                 
-                SetRot(m_host, Rot2Quaternion(rot));
+                SetRot(m_host, rot);
             }
             else
             {
@@ -2341,7 +2333,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     rootPart = m_host.ParentGroup.RootPart;
                     if (rootPart != null)
-                        SetRot(m_host, rootPart.RotationOffset * Rot2Quaternion(rot));
+                        SetRot(m_host, rootPart.RotationOffset * (Quaternion)rot);
                 }
             }
 
@@ -2351,8 +2343,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llSetLocalRot(LSL_Rotation rot)
         {
             m_host.AddScriptLPS(1);
-
-            SetRot(m_host, Rot2Quaternion(rot));
+            SetRot(m_host, rot);
             ScriptSleep(200);
         }
 
@@ -2498,8 +2489,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Integer llRotTarget(LSL_Rotation rot, double error)
         {
             m_host.AddScriptLPS(1);
-            return m_host.ParentGroup.registerRotTargetWaypoint(
-                new Quaternion((float)rot.x, (float)rot.y, (float)rot.z, (float)rot.s), (float)error);
+            return m_host.ParentGroup.registerRotTargetWaypoint(rot, (float)error);
         }
 
         public void llRotTargetRemove(int number)
@@ -3111,7 +3101,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 // need the magnitude later
                 // float velmag = (float)Util.GetMagnitude(llvel);
 
-                SceneObjectGroup new_group = World.RezObject(m_host, item, pos, Rot2Quaternion(rot), vel, param);
+                SceneObjectGroup new_group = World.RezObject(m_host, item, pos, rot, vel, param);
 
                 // If either of these are null, then there was an unknown error.
                 if (new_group == null)
@@ -3193,7 +3183,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return;
                 }
 
-                m_host.StartLookAt(Rot2Quaternion(r3 * r2 * r1), (float)strength, (float)damping);
+                m_host.StartLookAt((Quaternion)(r3 * r2 * r1), (float)strength, (float)damping);
             }
         }
 
@@ -3619,7 +3609,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else
             {
-                m_host.RotLookAt(Rot2Quaternion(target), (float)strength, (float)damping);
+                m_host.RotLookAt(target, (float)strength, (float)damping);
             }
         }
 
@@ -6970,7 +6960,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (!m_host.ParentGroup.IsDeleted)
             {
-                m_host.ParentGroup.RootPart.SetVehicleRotationParam(param, Rot2Quaternion(rot));
+                m_host.ParentGroup.RootPart.SetVehicleRotationParam(param, rot);
             }
         }
 
@@ -7001,7 +6991,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 rot.s = 1; // ZERO_ROTATION = 0,0,0,1
 
             part.SitTargetPosition = offset;
-            part.SitTargetOrientation = Rot2Quaternion(rot);
+            part.SitTargetOrientation = rot;
             part.ParentGroup.HasGroupChanged = true;
         }
 
@@ -8066,13 +8056,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             if (rootPart == part)
                             {
                                 // special case: If we are root, rotate complete SOG to new rotation
-                                SetRot(part, Rot2Quaternion(q));
+                                SetRot(part, q);
                             }
                             else
                             {
                                 // we are a child. The rotation values will be set to the one of root modified by rot, as in SL. Don't ask.
                                 // sounds like sl bug that we need to replicate
-                                SetRot(part, rootPart.RotationOffset * Rot2Quaternion(q));
+                                SetRot(part, rootPart.RotationOffset * (Quaternion)q);
                             }
 
                             break;
@@ -8414,8 +8404,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         case (int)ScriptBaseClass.PRIM_ROT_LOCAL:
                             if (remain < 1)
                                 return null;
-                            LSL_Rotation lr = rules.GetQuaternionItem(idx++);
-                            SetRot(part, Rot2Quaternion(lr));
+                            SetRot(part, rules.GetQuaternionItem(idx++));
                             break;
                         case (int)ScriptBaseClass.PRIM_OMEGA:
                             if (remain < 3)
@@ -11878,13 +11867,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     else
                                         rot = obj.GetWorldRotation();
 
-                                    LSL_Rotation objrot = new LSL_Rotation(rot.X, rot.Y, rot.Z, rot.W);
+                                    LSL_Rotation objrot = new LSL_Rotation(rot);
                                     ret.Add(objrot);
                                 }
                                 break;
                             case ScriptBaseClass.OBJECT_VELOCITY:
-                                Vector3 ovel = obj.Velocity;
-                                ret.Add(new LSL_Vector(ovel.X, ovel.Y, ovel.Z));
+                                ret.Add(new LSL_Vector(obj.Velocity));
                                 break;
                             case ScriptBaseClass.OBJECT_OWNER:
                                 ret.Add(new LSL_String(obj.OwnerID.ToString()));

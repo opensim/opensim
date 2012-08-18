@@ -352,7 +352,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                 q = avatar.Rotation;
             }
 
-            LSL_Types.Quaternion r = new LSL_Types.Quaternion(q.X, q.Y, q.Z, q.W);
+            LSL_Types.Quaternion r = new LSL_Types.Quaternion(q);
             LSL_Types.Vector3 forward_dir = (new LSL_Types.Vector3(1, 0, 0) * r);
             double mag_fwd = LSL_Types.Vector3.Mag(forward_dir);
 
@@ -482,7 +482,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                 q = avatar.Rotation;
             }
 
-            LSL_Types.Quaternion r = new LSL_Types.Quaternion(q.X, q.Y, q.Z, q.W);
+            LSL_Types.Quaternion r = new LSL_Types.Quaternion(q);
             LSL_Types.Vector3 forward_dir = (new LSL_Types.Vector3(1, 0, 0) * r);
             double mag_fwd = LSL_Types.Vector3.Mag(forward_dir);
             bool attached = (SensePoint.ParentGroup.AttachmentPoint != 0);
