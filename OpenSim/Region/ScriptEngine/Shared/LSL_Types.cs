@@ -361,6 +361,14 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     s = 1;
             }
 
+            public Quaternion(OMV_Quaternion rot)
+            {
+                x = rot.X;
+                y = rot.Y;
+                z = rot.Z;
+                s = rot.W;
+            }
+
             #endregion
 
             #region Overriders
@@ -405,6 +413,16 @@ namespace OpenSim.Region.ScriptEngine.Shared
             public static implicit operator list(Quaternion r)
             {
                 return new list(new object[] { r });
+            }
+
+            public static implicit operator OMV_Quaternion(Quaternion rot)
+            {
+                return new OMV_Quaternion((float)rot.x, (float)rot.y, (float)rot.z, (float)rot.s);
+            }
+
+            public static implicit operator Quaternion(OMV_Quaternion rot)
+            {
+                return new Quaternion(rot);
             }
 
             public static bool operator ==(Quaternion lhs, Quaternion rhs)
