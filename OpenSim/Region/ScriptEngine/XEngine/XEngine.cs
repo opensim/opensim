@@ -1053,10 +1053,12 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 return false;
             }
 
-            UUID assetID = item.AssetID;
+            m_log.DebugFormat(
+                "[XEngine] Loading script {0}.{1}, item UUID {2}, prim UUID {3} @ {4}.{5}",
+                part.ParentGroup.RootPart.Name, item.Name, itemID, part.UUID,
+                part.ParentGroup.RootPart.AbsolutePosition, part.ParentGroup.Scene.RegionInfo.RegionName);
 
-            //m_log.DebugFormat("[XEngine] Compiling script {0} ({1} on object {2})",
-            //        item.Name, itemID.ToString(), part.ParentGroup.RootPart.Name);
+            UUID assetID = item.AssetID;
 
             ScenePresence presence = m_Scene.GetScenePresence(item.OwnerID);
 
@@ -1235,10 +1237,10 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                                               item.Name, startParam, postOnRez,
                                               stateSource, m_MaxScriptQueue);
 
-                m_log.DebugFormat(
-                        "[XEngine] Loaded script {0}.{1}, script UUID {2}, prim UUID {3} @ {4}.{5}",
-                        part.ParentGroup.RootPart.Name, item.Name, assetID, part.UUID, 
-                        part.ParentGroup.RootPart.AbsolutePosition, part.ParentGroup.Scene.RegionInfo.RegionName);
+//                m_log.DebugFormat(
+//                        "[XEngine] Loaded script {0}.{1}, script UUID {2}, prim UUID {3} @ {4}.{5}",
+//                        part.ParentGroup.RootPart.Name, item.Name, assetID, part.UUID, 
+//                        part.ParentGroup.RootPart.AbsolutePosition, part.ParentGroup.Scene.RegionInfo.RegionName);
 
                 if (presence != null)
                 {

@@ -862,6 +862,12 @@ namespace OpenSim.Framework
             return Math.Min(Math.Max(x, min), max);
         }
 
+        public static Vector3 Clip(Vector3 vec, float min, float max)
+        {
+            return new Vector3(Clip(vec.X, min, max), Clip(vec.Y, min, max),
+                Clip(vec.Z, min, max));
+        }
+
         /// <summary>
         /// Convert an UUID to a raw uuid string.  Right now this is a string without hyphens.
         /// </summary>

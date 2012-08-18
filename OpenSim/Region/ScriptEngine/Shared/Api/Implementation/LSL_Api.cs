@@ -1492,31 +1492,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (part == null || part.ParentGroup.IsDeleted)
                 return;
 
-            if (scale.x < 0.01)
-                scale.x = 0.01;
-            if (scale.y < 0.01)
-                scale.y = 0.01;
-            if (scale.z < 0.01)
-                scale.z = 0.01;
-
+            // First we need to check whether or not we need to clamp the size of a physics-enabled prim
             PhysicsActor pa = part.ParentGroup.RootPart.PhysActor;
-
             if (pa != null && pa.IsPhysical)
             {
-                if (scale.x > World.m_maxPhys)
-                    scale.x = World.m_maxPhys;
-                if (scale.y > World.m_maxPhys)
-                    scale.y = World.m_maxPhys;
-                if (scale.z > World.m_maxPhys)
-                    scale.z = World.m_maxPhys;
+                scale.x = Math.Max(World.m_minPhys, Math.Min(World.m_maxPhys, scale.x));
+                scale.y = Math.Max(World.m_minPhys, Math.Min(World.m_maxPhys, scale.y));
+                scale.z = Math.Max(World.m_minPhys, Math.Min(World.m_maxPhys, scale.z));
             }
 
-            if (scale.x > World.m_maxNonphys)
-                scale.x = World.m_maxNonphys;
-            if (scale.y > World.m_maxNonphys)
-                scale.y = World.m_maxNonphys;
-            if (scale.z > World.m_maxNonphys)
-                scale.z = World.m_maxNonphys;
+            // Next we clamp the scale to the non-physical min/max
+            scale.x = Math.Max(World.m_minNonphys, Math.Min(World.m_maxNonphys, scale.x));
+            scale.y = Math.Max(World.m_minNonphys, Math.Min(World.m_maxNonphys, scale.y));
+            scale.z = Math.Max(World.m_minNonphys, Math.Min(World.m_maxNonphys, scale.z));
 
             Vector3 tmp = part.Scale;
             tmp.X = (float)scale.x;
@@ -4398,9 +4386,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llSetText(string text, LSL_Vector color, double alpha)
         {
             m_host.AddScriptLPS(1);
-            Vector3 av3 = new Vector3(Util.Clip((float)color.x, 0.0f, 1.0f),
-                                      Util.Clip((float)color.y, 0.0f, 1.0f),
-                                      Util.Clip((float)color.z, 0.0f, 1.0f));
+            Vector3 av3 = Util.Clip(new Vector3((float)color.x, (float)color.y, 
+                (float)color.z), 0.0f, 1.0f);
             m_host.SetText(text.Length > 254 ? text.Remove(254) : text, av3, Util.Clip((float)alpha, 0.0f, 1.0f));
             //m_host.ParentGroup.HasGroupChanged = true;
             //m_host.ParentGroup.ScheduleGroupForFullUpdate();
@@ -8425,9 +8412,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             string primText = rules.GetLSLStringItem(idx++);
                             LSL_Vector primTextColor = rules.GetVector3Item(idx++);
                             LSL_Float primTextAlpha = rules.GetLSLFloatItem(idx++);
-                            Vector3 av3 = new Vector3(Util.Clip((float)primTextColor.x, 0.0f, 1.0f),
-                                          Util.Clip((float)primTextColor.y, 0.0f, 1.0f),
-                                          Util.Clip((float)primTextColor.z, 0.0f, 1.0f));
+                            Vector3 av3 = Util.Clip(new Vector3((float)primTextColor.x,
+                                (float)primTextColor.y, 
+                                (float)primTextColor.z), 0.0f, 1.0f);
                             part.SetText(primText, av3, Util.Clip((float)primTextAlpha, 0.0f, 1.0f));
 
                             break;
@@ -8457,7 +8444,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             LSL_Float gain = rules.GetLSLFloatItem(idx++);
                             TargetOmega(part, axis, (double)spinrate, (double)gain);
                             break;
-
+                        case (int)ScriptBaseClass.PRIM_SLICE:
+                            if (remain < 1)
+                                return null;
+                            LSL_Vector slice = rules.GetVector3Item(idx++);
+                            part.UpdateSlice((float)slice.x, (float)slice.y);
+                            break;
                         case (int)ScriptBaseClass.PRIM_LINK_TARGET:
                             if (remain < 3) // setting to 3 on the basis that parsing any usage of PRIM_LINK_TARGET that has nothing following it is pointless.
                                 return null;
@@ -8465,6 +8457,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             return rules.GetSublist(idx, -1);
                     }
                 }
+            }
+            catch (InvalidCastException e)
+            {
+                ShoutError(e.Message);
             }
             finally
             {
@@ -9563,7 +9559,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     case (int)ScriptBaseClass.PRIM_POS_LOCAL:
                         res.Add(new LSL_Vector(GetPartLocalPos(part)));
                         break;
-
                     case (int)ScriptBaseClass.PRIM_LINK_TARGET:
                         if (remain < 3) // setting to 3 on the basis that parsing any usage of PRIM_LINK_TARGET that has nothing following it is pointless.
                             return res;
@@ -9572,6 +9567,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         LSL_List tres = llGetLinkPrimitiveParams((int)new_linknumber, new_rules);
                         res += tres;
                         return res;                       
+                    case (int)ScriptBaseClass.PRIM_SLICE:
+                        PrimType prim_type = part.GetPrimType();
+                        bool useProfileBeginEnd = (prim_type == PrimType.SPHERE || prim_type == PrimType.TORUS || prim_type == PrimType.TUBE || prim_type == PrimType.RING);
+                        res.Add(new LSL_Vector(
+                            (useProfileBeginEnd ? part.Shape.ProfileBegin : part.Shape.PathBegin) / 50000.0,
+                            1 - (useProfileBeginEnd ? part.Shape.ProfileEnd : part.Shape.PathEnd) / 50000.0,
+                            0
+                        ));
+                        break;
                 }
             }
             return res;

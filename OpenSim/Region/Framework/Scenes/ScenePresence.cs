@@ -1527,17 +1527,22 @@ namespace OpenSim.Region.Framework.Scenes
                 bool DCFlagKeyPressed = false;
                 Vector3 agent_control_v3 = Vector3.Zero;
 
-                bool oldflying = Flying;
+                bool newFlying = actor.Flying;
 
                 if (ForceFly)
-                    actor.Flying = true;
+                    newFlying = true;
                 else if (FlyDisabled)
-                    actor.Flying = false;
+                    newFlying = false;
                 else
-                    actor.Flying = ((flags & AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0);
+                    newFlying = ((flags & AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0);
 
-                if (actor.Flying != oldflying)
+                if (actor.Flying != newFlying)
+                {
+                    // Note: ScenePresence.Flying is actually fetched from the physical actor
+                    //     so setting PhysActor.Flying here also sets the ScenePresence's value.
+                    actor.Flying = newFlying;
                     update_movementflag = true;
+                }
 
                 if (ParentID == 0)
                 {

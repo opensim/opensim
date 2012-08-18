@@ -562,12 +562,23 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 else if (m_data[itemIndex] is LSL_Types.LSLString)
                     return new LSLInteger(m_data[itemIndex].ToString());
                 else
-                    throw new InvalidCastException();
+                    throw new InvalidCastException(string.Format(
+                        "{0} expected but {1} given",
+                        typeof(LSL_Types.LSLInteger).Name,
+                        m_data[itemIndex] != null ?
+                        m_data[itemIndex].GetType().Name : "null"));
             }
 
             public LSL_Types.Vector3 GetVector3Item(int itemIndex)
             {
-              return (LSL_Types.Vector3)m_data[itemIndex];
+                if(m_data[itemIndex] is LSL_Types.Vector3)
+                    return (LSL_Types.Vector3)m_data[itemIndex];
+                else
+                    throw new InvalidCastException(string.Format(
+                        "{0} expected but {1} given",
+                        typeof(LSL_Types.Vector3).Name,
+                        m_data[itemIndex] != null ?
+                        m_data[itemIndex].GetType().Name : "null"));
             }
 
             public LSL_Types.Quaternion GetQuaternionItem(int itemIndex)

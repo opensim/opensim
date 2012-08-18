@@ -103,8 +103,26 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public bool CollidablePrims { get; private set; }
 
+        /// <summary>
+        /// Minimum value of the size of a non-physical prim in each axis
+        /// </summary>
+        public float m_minNonphys = 0.01f;
+
+        /// <summary>
+        /// Maximum value of the size of a non-physical prim in each axis
+        /// </summary>
         public float m_maxNonphys = 256;
+
+        /// <summary>
+        /// Minimum value of the size of a physical prim in each axis
+        /// </summary>
+        public float m_minPhys = 0.01f;
+
+        /// <summary>
+        /// Maximum value of the size of a physical prim in each axis
+        /// </summary>
         public float m_maxPhys = 10;
+
         public bool m_clampPrimSize;
         public bool m_trustBinaries;
         public bool m_allowScriptCrossings;
@@ -746,10 +764,22 @@ namespace OpenSim.Region.Framework.Scenes
                     PhysicalPrims = startupConfig.GetBoolean("physical_prim", true);
                     CollidablePrims = startupConfig.GetBoolean("collidable_prim", true);
 
+                    m_minNonphys = startupConfig.GetFloat("NonphysicalPrimMin", m_minNonphys);
+                    if (RegionInfo.NonphysPrimMin > 0)
+                    {
+                        m_minNonphys = RegionInfo.NonphysPrimMin;
+                    }
+
                     m_maxNonphys = startupConfig.GetFloat("NonphysicalPrimMax", m_maxNonphys);
                     if (RegionInfo.NonphysPrimMax > 0)
                     {
                         m_maxNonphys = RegionInfo.NonphysPrimMax;
+                    }
+
+                    m_minPhys = startupConfig.GetFloat("PhysicalPrimMin", m_minPhys);
+                    if (RegionInfo.PhysPrimMin > 0)
+                    {
+                        m_minPhys = RegionInfo.PhysPrimMin;
                     }
 
                     m_maxPhys = startupConfig.GetFloat("PhysicalPrimMax", m_maxPhys);
