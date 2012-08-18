@@ -87,9 +87,17 @@
     ;; from the selected region_info_source.
     ; allow_regionless = false
 
+    ;# {NonPhysicalPrimMin} {} {Minimum size of nonphysical prims?} {} 0.01
+    ;; Minimum size for non-physical prims.  Affects resizing of existing prims.  This can be overriden in the region config file (as NonphysicalPrimMin!).
+    ; NonphysicalPrimMin = 0.01
+
     ;# {NonPhysicalPrimMax} {} {Maximum size of nonphysical prims?} {} 256
     ;; Maximum size for non-physical prims.  Affects resizing of existing prims.  This can be overriden in the region config file (as NonphysicalPrimMax!).
     ; NonphysicalPrimMax = 256
+
+    ;# {PhysicalPrimMin} {} {Minimum size of physical prims?} {} 10
+    ;; Maximum size where a prim can be physical.  Affects resizing of existing prims.  This can be overriden in the region config file.
+    ; PhysicalPrimMin = 0.01
 
     ;# {PhysicalPrimMax} {} {Maximum size of physical prims?} {} 10
     ;; Maximum size where a prim can be physical.  Affects resizing of existing prims.  This can be overriden in the region config file.
@@ -675,7 +683,9 @@
     ;; Maximum number of events to queue for a script (excluding timers)
     ; MaxScriptEventQueue = 300
 
-    ;; Stack size per thread created
+    ;; Stack size per script engine thread in bytes.
+    ;; If you are experiencing StackOverflowExceptions you may want to increase this (e.g. double it).
+    ;; The trade-off may be increased memory usage by the script engine.
     ; ThreadStackSize = 262144
 
     ;# {DeleteScriptsOnStartup} {} {Delete previously compiled script DLLs on startup?} (true false) true

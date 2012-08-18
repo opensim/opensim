@@ -124,10 +124,14 @@ public class BSCharacter : PhysicsActor
         // do actual create at taint time
         _scene.TaintedObject("BSCharacter.create", delegate()
         {
+            DetailLog("{0},BSCharacter.create", _localID);
             BulletSimAPI.CreateObject(parent_scene.WorldID, shapeData);
 
+            // Set the buoyancy for flying. This will be refactored when all the settings happen in C#
+            BulletSimAPI.SetObjectBuoyancy(_scene.WorldID, LocalID, _buoyancy);
+
             m_body = new BulletBody(LocalID, BulletSimAPI.GetBodyHandle2(_scene.World.Ptr, LocalID));
-            // avatars get all collisions no matter what
+            // avatars get all collisions no matter what (makes walking on ground and such work)
             BulletSimAPI.AddToCollisionFlags2(Body.Ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
         });
             
@@ -137,7 +141,7 @@ public class BSCharacter : PhysicsActor
     // called when this character is being destroyed and the resources should be released
     public void Destroy()
     {
-        // DetailLog("{0},BSCharacter.Destroy", LocalID);
+        DetailLog("{0},BSCharacter.Destroy", LocalID);
         _scene.TaintedObject("BSCharacter.destroy", delegate()
         {
             BulletSimAPI.DestroyObject(_scene.WorldID, _localID);
@@ -319,14 +323,13 @@ public class BSCharacter : PhysicsActor
     public override bool Flying { 
         get { return _flying; } 
         set {
-            if (_flying != value)
-            {
-                _flying = value;
-                // simulate flying by changing the effect of gravity
-                this.Buoyancy = ComputeBuoyancyFromFlying(_flying);
-            }
+            _flying = value;
+            // simulate flying by changing the effect of gravity
+            this.Buoyancy = ComputeBuoyancyFromFlying(_flying);
         } 
     }
+    // Flying is implimented by changing the avatar's buoyancy.
+    // Would this be done better with a vehicle type?
     private float ComputeBuoyancyFromFlying(bool ifFlying) {
         return ifFlying ? 1f : 0f;
     }
@@ -488,11 +491,9 @@ public class BSCharacter : PhysicsActor
         // Avatars don't report their changes the usual way. Changes are checked for in the heartbeat loop.
         // base.RequestPhysicsterseUpdate();
 
-        /*
         DetailLog("{0},BSCharacter.UpdateProperties,call,pos={1},orient={2},vel={3},accel={4},rotVel={5}",
                 LocalID, entprop.Position, entprop.Rotation, entprop.Velocity, 
                 entprop.Acceleration, entprop.RotationalVelocity);
-         */
     }
 
     // Called by the scene when a collision with this object is reported

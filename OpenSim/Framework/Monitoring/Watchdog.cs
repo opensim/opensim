@@ -89,6 +89,17 @@ namespace OpenSim.Framework.Monitoring
                 FirstTick = Environment.TickCount & Int32.MaxValue;
                 LastTick = FirstTick;
             }
+
+            public ThreadWatchdogInfo(ThreadWatchdogInfo previousTwi)
+            {
+                Thread = previousTwi.Thread;
+                FirstTick = previousTwi.FirstTick;
+                LastTick = previousTwi.LastTick;
+                Timeout = previousTwi.Timeout;
+                IsTimedOut = previousTwi.IsTimedOut;
+                AlarmIfTimeout = previousTwi.AlarmIfTimeout;
+                AlarmMethod = previousTwi.AlarmMethod;
+            }
         }
 
         /// <summary>
@@ -335,7 +346,9 @@ namespace OpenSim.Framework.Monitoring
                                 if (callbackInfos == null)
                                     callbackInfos = new List<ThreadWatchdogInfo>();
 
-                                callbackInfos.Add(threadInfo);
+                                // Send a copy of the watchdog info to prevent race conditions where the watchdog
+                                // thread updates the monitoring info after an alarm has been sent out.
+                                callbackInfos.Add(new ThreadWatchdogInfo(threadInfo));
                             }
                         }
                     }

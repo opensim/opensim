@@ -42,6 +42,9 @@ public class BSLinkset
     private BSScene m_physicsScene;
     public BSScene PhysicsScene { get { return m_physicsScene; } }
 
+    static int m_nextLinksetID = 1;
+    public int LinksetID { get; private set; }
+
     // The children under the root in this linkset
     private List<BSPrim> m_children;
 
@@ -74,6 +77,10 @@ public class BSLinkset
     public BSLinkset(BSScene scene, BSPrim parent)
     {
         // A simple linkset of one (no children)
+        LinksetID = m_nextLinksetID++;
+        // We create LOTS of linksets.
+        if (m_nextLinksetID < 0) 
+            m_nextLinksetID = 1;
         m_physicsScene = scene;
         m_linksetRoot = parent;
         m_children = new List<BSPrim>();
@@ -258,8 +265,7 @@ public class BSLinkset
             BSPrim childx = child;
             m_physicsScene.TaintedObject("AddChildToLinkset", delegate()
             {
-                // DebugLog("{0}: AddChildToLinkset: adding child {1} to {2}", LogHeader, child.LocalID, m_linksetRoot.LocalID);
-                // DetailLog("{0},AddChildToLinkset,taint,child={1}", m_linksetRoot.LocalID, child.LocalID);
+                DetailLog("{0},AddChildToLinkset,taint,child={1}", m_linksetRoot.LocalID, child.LocalID);
                 PhysicallyLinkAChildToRoot(rootx, childx);     // build the physical binding between me and the child
             });
         }
@@ -287,8 +293,7 @@ public class BSLinkset
             BSPrim childx = child;
             m_physicsScene.TaintedObject("RemoveChildFromLinkset", delegate()
             {
-                // DebugLog("{0}: RemoveChildFromLinkset: Removing constraint to {1}", LogHeader, child.LocalID);
-                // DetailLog("{0},RemoveChildFromLinkset,taint,child={1}", m_linksetRoot.LocalID, child.LocalID);
+                DetailLog("{0},RemoveChildFromLinkset,taint,child={1}", m_linksetRoot.LocalID, child.LocalID);
 
                 PhysicallyUnlinkAChildFromRoot(rootx, childx);
             });
@@ -319,7 +324,6 @@ public class BSLinkset
 
         // create a constraint that allows no freedom of movement between the two objects
         // http://bulletphysics.org/Bullet/phpBB3/viewtopic.php?t=4818
-        // DebugLog("{0}: CreateLinkset: Adding a constraint between root prim {1} and child prim {2}", LogHeader, LocalID, childPrim.LocalID);
         DetailLog("{0},PhysicallyLinkAChildToRoot,taint,root={1},child={2},rLoc={3},cLoc={4},midLoc={5}", 
             rootPrim.LocalID, rootPrim.LocalID, childPrim.LocalID, rootPrim.Position, childPrim.Position, midPoint);
         BS6DofConstraint constrain = new BS6DofConstraint(
@@ -328,10 +332,10 @@ public class BSLinkset
                         true,
                         true
                         );
-        /* NOTE: attempt to build constraint with full frame computation, etc.
+        /* NOTE: below is an attempt to build constraint with full frame computation, etc.
          *     Using the midpoint is easier since it lets the Bullet code use the transforms
          *     of the objects.
-         * Code left here as an example.
+         * Code left as a warning to future programmers.
         // ==================================================================================
         // relative position normalized to the root prim
         OMV.Quaternion invThisOrientation = OMV.Quaternion.Inverse(rootPrim.Orientation);
@@ -343,7 +347,6 @@ public class BSLinkset
 
         // create a constraint that allows no freedom of movement between the two objects
         // http://bulletphysics.org/Bullet/phpBB3/viewtopic.php?t=4818
-        // DebugLog("{0}: CreateLinkset: Adding a constraint between root prim {1} and child prim {2}", LogHeader, LocalID, childPrim.LocalID);
         DetailLog("{0},PhysicallyLinkAChildToRoot,taint,root={1},child={2}", rootPrim.LocalID, rootPrim.LocalID, childPrim.LocalID);
         BS6DofConstraint constrain = new BS6DofConstraint(
                         PhysicsScene.World, rootPrim.Body, childPrim.Body,
@@ -382,8 +385,6 @@ public class BSLinkset
     // Called at taint time!
     private void PhysicallyUnlinkAChildFromRoot(BSPrim rootPrim, BSPrim childPrim)
     {
-        // DebugLog("{0}: PhysicallyUnlinkAChildFromRoot: RemoveConstraint between root prim {1} and child prim {2}", 
-        //             LogHeader, rootPrim.LocalID, childPrim.LocalID);
         DetailLog("{0},PhysicallyUnlinkAChildFromRoot,taint,root={1},child={2}", rootPrim.LocalID, rootPrim.LocalID, childPrim.LocalID);
 
         // Find the constraint for this link and get rid of it from the overall collection and from my list
@@ -397,17 +398,9 @@ public class BSLinkset
     // Called at taint time!
     private void PhysicallyUnlinkAllChildrenFromRoot(BSPrim rootPrim)
     {
-        // DebugLog("{0}: PhysicallyUnlinkAllChildren:", LogHeader);
         DetailLog("{0},PhysicallyUnlinkAllChildren,taint", rootPrim.LocalID);
 
         m_physicsScene.Constraints.RemoveAndDestroyConstraint(rootPrim.Body);
-    }
-
-    // Invoke the detailed logger and output something if it's enabled.
-    private void DebugLog(string msg, params Object[] args)
-    {
-        if (m_physicsScene.ShouldDebugLog)
-            m_physicsScene.Logger.DebugFormat(msg, args);
     }
 
     // Invoke the detailed logger and output something if it's enabled.
