@@ -2231,8 +2231,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Integer llRotTarget(LSL_Rotation rot, double error)
         {
             m_host.AddScriptLPS(1);
-            return m_host.ParentGroup.registerRotTargetWaypoint(
-                new Quaternion((float)rot.x, (float)rot.y, (float)rot.z, (float)rot.s), (float)error);
+            return m_host.ParentGroup.registerRotTargetWaypoint(rot, (float)error);
         }
 
         public void llRotTargetRemove(int number)
@@ -10531,7 +10530,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     else
                                         rot = obj.GetWorldRotation();
 
-                                    LSL_Rotation objrot = new LSL_Rotation(rot.X, rot.Y, rot.Z, rot.W);
+                                    LSL_Rotation objrot = new LSL_Rotation(rot);
                                     ret.Add(objrot);
                                 }
                                 break;

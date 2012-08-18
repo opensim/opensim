@@ -333,8 +333,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 if (type == typeof(OpenMetaverse.Quaternion))
                 {
-                    LSL_Rotation rot = (LSL_Rotation)lslparm;
-                    return new OpenMetaverse.Quaternion((float)rot.x,(float)rot.y,(float)rot.z,(float)rot.s);
+                    return (OpenMetaverse.Quaternion)((LSL_Rotation)lslparm);
                 }
             }
 
@@ -366,8 +365,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             result[i] = new UUID((LSL_Key)plist[i]);
                         else if (plist[i] is LSL_Rotation)
                         {
-                            LSL_Rotation rot = (LSL_Rotation)plist[i];
-                            result[i] = new OpenMetaverse.Quaternion((float)rot.x,(float)rot.y,(float)rot.z,(float)rot.s);
+                            result[i] = (OpenMetaverse.Quaternion)(
+                                (LSL_Rotation)plist[i]);
                         }
                         else if (plist[i] is LSL_Vector)
                         {
