@@ -391,8 +391,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             myScriptEngine.PostObjectEvent(localID, new EventParams(
                     "at_rot_target", new object[] {
                     new LSL_Types.LSLInteger(handle),
-                    new LSL_Types.Quaternion(targetrot.X,targetrot.Y,targetrot.Z,targetrot.W),
-                    new LSL_Types.Quaternion(atrot.X,atrot.Y,atrot.Z,atrot.W) },
+                    new LSL_Types.Quaternion(targetrot),
+                    new LSL_Types.Quaternion(atrot) },
                     new DetectParams[0]));
         }
 
