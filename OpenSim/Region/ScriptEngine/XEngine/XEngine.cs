@@ -1556,7 +1556,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 else if (p[i] is string)
                     lsl_p[i] = new LSL_Types.LSLString((string)p[i]);
                 else if (p[i] is Vector3)
-                    lsl_p[i] = new LSL_Types.Vector3(((Vector3)p[i]).X, ((Vector3)p[i]).Y, ((Vector3)p[i]).Z);
+                    lsl_p[i] = new LSL_Types.Vector3((Vector3)p[i]);
                 else if (p[i] is Quaternion)
                     lsl_p[i] = new LSL_Types.Quaternion(((Quaternion)p[i]).X, ((Quaternion)p[i]).Y, ((Quaternion)p[i]).Z, ((Quaternion)p[i]).W);
                 else if (p[i] is float)
@@ -1582,7 +1582,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 else if (p[i] is string)
                     lsl_p[i] = new LSL_Types.LSLString((string)p[i]);
                 else if (p[i] is Vector3)
-                    lsl_p[i] = new LSL_Types.Vector3(((Vector3)p[i]).X, ((Vector3)p[i]).Y, ((Vector3)p[i]).Z);
+                    lsl_p[i] = new LSL_Types.Vector3((Vector3)p[i]);
                 else if (p[i] is Quaternion)
                     lsl_p[i] = new LSL_Types.Quaternion(((Quaternion)p[i]).X, ((Quaternion)p[i]).Y, ((Quaternion)p[i]).Z, ((Quaternion)p[i]).W);
                 else if (p[i] is float)

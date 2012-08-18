@@ -429,9 +429,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                             try
                             {
                                 Vector3 diff = toRegionPos - fromRegionPos;
-                                LSL_Types.Vector3 obj_dir = new LSL_Types.Vector3(diff.X, diff.Y, diff.Z);
-                                double dot = LSL_Types.Vector3.Dot(forward_dir, obj_dir);
-                                double mag_obj = LSL_Types.Vector3.Mag(obj_dir);
+                                double dot = LSL_Types.Vector3.Dot(forward_dir, diff);
+                                double mag_obj = LSL_Types.Vector3.Mag(diff);
                                 ang_obj = Math.Acos(dot / (mag_fwd * mag_obj));
                             }
                             catch
@@ -564,8 +563,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                         double ang_obj = 0;
                         try
                         {
-                            Vector3 diff = toRegionPos - fromRegionPos;
-                            LSL_Types.Vector3 obj_dir = new LSL_Types.Vector3(diff.X, diff.Y, diff.Z);
+                            LSL_Types.Vector3 obj_dir = new LSL_Types.Vector3(
+                                toRegionPos - fromRegionPos);
                             double dot = LSL_Types.Vector3.Dot(forward_dir, obj_dir);
                             double mag_obj = LSL_Types.Vector3.Mag(obj_dir);
                             ang_obj = Math.Acos(dot / (mag_fwd * mag_obj));
