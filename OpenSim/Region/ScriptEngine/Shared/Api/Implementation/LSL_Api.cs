@@ -2094,7 +2094,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (m_host.ParentID == 0)
             {
                 // special case: If we are root, rotate complete SOG to new rotation
-                SetRot(m_host, Rot2Quaternion(rot));
+                SetRot(m_host, rot);
             }
             else
             {
@@ -2102,7 +2102,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 SceneObjectPart rootPart = m_host.ParentGroup.RootPart;
                 if (rootPart != null) // better safe than sorry
                 {
-                    SetRot(m_host, rootPart.RotationOffset * Rot2Quaternion(rot));
+                    SetRot(m_host, rootPart.RotationOffset * (Quaternion)rot);
                 }
             }
 
@@ -2112,7 +2112,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llSetLocalRot(LSL_Rotation rot)
         {
             m_host.AddScriptLPS(1);
-            SetRot(m_host, Rot2Quaternion(rot));
+            SetRot(m_host, rot);
             ScriptSleep(200);
         }
 
@@ -2828,7 +2828,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 // need the magnitude later
                 // float velmag = (float)Util.GetMagnitude(llvel);
 
-                SceneObjectGroup new_group = World.RezObject(m_host, item, pos, Rot2Quaternion(rot), vel, param);
+                SceneObjectGroup new_group = World.RezObject(m_host, item, pos, rot, vel, param);
 
                 // If either of these are null, then there was an unknown error.
                 if (new_group == null)
@@ -2897,7 +2897,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else
             {
-                m_host.StartLookAt(Rot2Quaternion(rot), (float)strength, (float)damping);
+                m_host.StartLookAt(rot, (float)strength, (float)damping);
             }
         }
 
@@ -3292,7 +3292,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else
             {
-                m_host.RotLookAt(Rot2Quaternion(target), (float)strength, (float)damping);
+                m_host.RotLookAt(target, (float)strength, (float)damping);
             }
         }
 
@@ -6506,7 +6506,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (!m_host.ParentGroup.IsDeleted)
             {
-                m_host.ParentGroup.RootPart.SetVehicleRotationParam(param, Rot2Quaternion(rot));
+                m_host.ParentGroup.RootPart.SetVehicleRotationParam(param, rot);
             }
         }
 
@@ -7316,13 +7316,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             if (part.ParentID == 0)
                             {
                                 // special case: If we are root, rotate complete SOG to new rotation
-                                SetRot(part, Rot2Quaternion(q));
+                                SetRot(part, q);
                             }
                             else
                             {
                                 // we are a child. The rotation values will be set to the one of root modified by rot, as in SL. Don't ask.
                                 SceneObjectPart rootPart = part.ParentGroup.RootPart;
-                                SetRot(part, rootPart.RotationOffset * Rot2Quaternion(q));
+                                SetRot(part, rootPart.RotationOffset * (Quaternion)q);
                             }
 
                             break;
@@ -7634,8 +7634,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         case (int)ScriptBaseClass.PRIM_ROT_LOCAL:
                             if (remain < 1)
                                 return null;
-                            LSL_Rotation lr = rules.GetQuaternionItem(idx++);
-                            SetRot(part, Rot2Quaternion(lr));
+                            SetRot(part, rules.GetQuaternionItem(idx++));
                             break;
                         case (int)ScriptBaseClass.PRIM_OMEGA:
                             if (remain < 3)
