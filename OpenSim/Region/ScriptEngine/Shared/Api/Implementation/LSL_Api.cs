@@ -2038,8 +2038,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else
             {
-                part.OffsetPosition = !adjust ? targetPos : SetPosAdjust(
-                    currentPos, targetPos);
+                part.OffsetPosition = !adjust ? targetPos :
+                    SetPosAdjust(currentPos, targetPos);
                 SceneObjectGroup parent = part.ParentGroup;
                 parent.HasGroupChanged = true;
                 parent.ScheduleGroupForTerseUpdate();
