@@ -10536,7 +10536,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 }
                                 break;
                             case ScriptBaseClass.OBJECT_VELOCITY:
-                                ret.Add(new LSL_Vector(obj.Velocity.X, obj.Velocity.Y, obj.Velocity.Z));
+                                ret.Add(new LSL_Vector(obj.Velocity));
                                 break;
                             case ScriptBaseClass.OBJECT_OWNER:
                                 ret.Add(new LSL_String(obj.OwnerID.ToString()));
