@@ -7484,7 +7484,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             LSL_Vector color=rules.GetVector3Item(idx++);
                             double alpha=(double)rules.GetLSLFloatItem(idx++);
 
-                            part.SetFaceColorAlpha(face, new Vector3((float)color.x, (float)color.y, (float)color.z), alpha);
+                            part.SetFaceColorAlpha(face, color, alpha);
 
                             break;
 
