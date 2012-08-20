@@ -2851,62 +2851,16 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Set the color of prim faces
-        /// </summary>
-        /// <param name="color"></param>
-        /// <param name="face"></param>
-        public void SetFaceColor(Vector3 color, int face)
-        {
-            Vector3 clippedColor = Util.Clip(color, 0.0f, 1.0f);
-
-            // The only way to get a deep copy/ If we don't do this, we can
-            // never detect color changes further down.
-            Byte[] buf = Shape.Textures.GetBytes();
-            Primitive.TextureEntry tex = new Primitive.TextureEntry(buf, 0, buf.Length);
-            Color4 texcolor;
-            if (face >= 0 && face < GetNumberOfSides())
-            {
-                texcolor = tex.CreateFace((uint)face).RGBA;
-                texcolor.R = clippedColor.X;
-                texcolor.G = clippedColor.Y;
-                texcolor.B = clippedColor.Z;
-                tex.FaceTextures[face].RGBA = texcolor;
-                UpdateTextureEntry(tex.GetBytes());
-                return;
-            }
-            else if (face == ALL_SIDES)
-            {
-                for (uint i = 0; i < GetNumberOfSides(); i++)
-                {
-                    if (tex.FaceTextures[i] != null)
-                    {
-                        texcolor = tex.FaceTextures[i].RGBA;
-                        texcolor.R = clippedColor.X;
-                        texcolor.G = clippedColor.Y;
-                        texcolor.B = clippedColor.Z;
-                        tex.FaceTextures[i].RGBA = texcolor;
-                    }
-                    texcolor = tex.DefaultTexture.RGBA;
-                    texcolor.R = clippedColor.X;
-                    texcolor.G = clippedColor.Y;
-                    texcolor.B = clippedColor.Z;
-                    tex.DefaultTexture.RGBA = texcolor;
-                }
-                UpdateTextureEntry(tex.GetBytes());
-                return;
-            }
-        }
-
-        /// <summary>
         /// Set the color & alpha of prim faces
         /// </summary>
         /// <param name="face"></param>
         /// <param name="color"></param>
         /// <param name="alpha"></param>
-        public void SetFaceColorAlpha(int face, Vector3 color, double alpha)
+        public void SetFaceColorAlpha(int face, Vector3 color, double ?alpha)
         {
             Vector3 clippedColor = Util.Clip(color, 0.0f, 1.0f);
-            float clippedAlpha = Util.Clip((float)alpha, 0.0f, 1.0f);
+            float clippedAlpha = alpha.HasValue ?
+                Util.Clip((float)alpha.Value, 0.0f, 1.0f) : 0;
 
             // The only way to get a deep copy/ If we don't do this, we can
             // never detect color changes further down.
@@ -2919,7 +2873,10 @@ namespace OpenSim.Region.Framework.Scenes
                 texcolor.R = clippedColor.X;
                 texcolor.G = clippedColor.Y;
                 texcolor.B = clippedColor.Z;
-                texcolor.A = clippedAlpha;
+                if (alpha.HasValue)
+                {
+                    texcolor.A = clippedAlpha;
+                }
                 tex.FaceTextures[face].RGBA = texcolor;
                 UpdateTextureEntry(tex.GetBytes());
                 return;
@@ -2934,14 +2891,20 @@ namespace OpenSim.Region.Framework.Scenes
                         texcolor.R = clippedColor.X;
                         texcolor.G = clippedColor.Y;
                         texcolor.B = clippedColor.Z;
-                        texcolor.A = clippedAlpha;
+                        if (alpha.HasValue)
+                        {
+                            texcolor.A = clippedAlpha;
+                        }
                         tex.FaceTextures[i].RGBA = texcolor;
                     }
                     texcolor = tex.DefaultTexture.RGBA;
                     texcolor.R = clippedColor.X;
                     texcolor.G = clippedColor.Y;
                     texcolor.B = clippedColor.Z;
-                    texcolor.A = clippedAlpha;
+                    if (alpha.HasValue)
+                    {
+                        texcolor.A = clippedAlpha;
+                    }
                     tex.DefaultTexture.RGBA = texcolor;
                 }
                 UpdateTextureEntry(tex.GetBytes());

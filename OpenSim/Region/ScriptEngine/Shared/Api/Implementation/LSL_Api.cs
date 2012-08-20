@@ -1377,7 +1377,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (face == ScriptBaseClass.ALL_SIDES)
                 face = SceneObjectPart.ALL_SIDES;
 
-            m_host.SetFaceColor(color, face);
+            m_host.SetFaceColorAlpha(face, color, null);
         }
 
         public void SetTexGen(SceneObjectPart part, int face,int style)
@@ -3572,7 +3572,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             List<SceneObjectPart> parts = GetLinkParts(linknumber);
 
             foreach (SceneObjectPart part in parts)
-                part.SetFaceColor(color, face);
+                part.SetFaceColorAlpha(face, color, null);
         }
 
         public void llCreateLink(string target, int parent)
