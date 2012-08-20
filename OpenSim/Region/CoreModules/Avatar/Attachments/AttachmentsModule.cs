@@ -458,10 +458,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
         public void DetachSingleAttachmentToInv(IScenePresence sp, SceneObjectGroup so)
         {
-            // As per Linden spec, detach (take) is disabled for temp attachs
-            if (so.FromItemID == UUID.Zero)
-                return;
-
             lock (sp.AttachmentsSyncLock)
             {
                 // Save avatar attachment information
@@ -976,7 +972,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             ScenePresence sp = m_scene.GetScenePresence(remoteClient.AgentId);
             SceneObjectGroup group = m_scene.GetGroupByPrim(objectLocalID);
 
-            if (sp != null && group != null)
+            if (sp != null && group != null && group.FromItemID != UUID.Zero)
                 DetachSingleAttachmentToInv(sp, group);
         }
 
@@ -994,7 +990,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
     
                     foreach (SceneObjectGroup group in attachments)
                     {
-                        if (group.FromItemID == itemID)
+                        if (group.FromItemID == itemID && group.FromItemID != UUID.Zero)
                         {
                             DetachSingleAttachmentToInv(sp, group);
                             return;
