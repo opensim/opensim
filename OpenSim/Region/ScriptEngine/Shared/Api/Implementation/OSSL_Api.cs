@@ -2877,7 +2877,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 avatar.SpeedModifier = (float)SpeedModifier;
         }
         
-        public void osKickAvatar(string FirstName,string SurName,string alert)
+        public void osKickAvatar(string FirstName, string SurName, string alert)
         {
             CheckThreatLevel(ThreatLevel.Severe, "osKickAvatar");
             m_host.AddScriptLPS(1);
@@ -2891,7 +2891,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         sp.ControllingClient.Kick(alert);
 
                     // ...and close on our side
-                    sp.Scene.IncomingCloseAgent(sp.UUID);
+                    sp.Scene.IncomingCloseAgent(sp.UUID, false);
                 }
             });
         }

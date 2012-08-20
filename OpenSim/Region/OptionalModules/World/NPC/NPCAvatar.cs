@@ -901,6 +901,11 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 
         public void Close()
         {
+            Close(false);
+        }
+
+        public void Close(bool force)
+        {
             // Remove ourselves from the scene
             m_scene.RemoveClient(AgentId, false);
         }

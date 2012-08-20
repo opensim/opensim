@@ -934,6 +934,11 @@ namespace OpenSim.Tests.Common.Mock
 
         public void Close()
         {
+            Close(false);
+        }
+
+        public void Close(bool force)
+        {
             // Fire the callback for this connection closing
             // This is necesary to get the presence detector to notice that a client has logged out.
             if (OnConnectionClosed != null)
