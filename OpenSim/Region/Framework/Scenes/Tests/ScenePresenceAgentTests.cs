@@ -141,7 +141,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             TestScene scene = new SceneHelpers().SetupScene();
             ScenePresence sp = SceneHelpers.AddScenePresence(scene, TestHelpers.ParseTail(0x1));
 
-            scene.IncomingCloseAgent(sp.UUID);
+            scene.IncomingCloseAgent(sp.UUID, false);
 
             Assert.That(scene.GetScenePresence(sp.UUID), Is.Null);
             Assert.That(scene.AuthenticateHandler.GetAgentCircuitData(sp.UUID), Is.Null);

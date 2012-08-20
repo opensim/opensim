@@ -886,6 +886,11 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
         public void Close()
         {
+            Close(false);
+        }
+
+        public void Close(bool force)
+        {
             Disconnect();
         }
 
