@@ -3600,9 +3600,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (attachmentsModule != null && sp != null)
             {
-                Vector3 omvPos = new Vector3((float)pos.x, (float)pos.y, (float)pos.z);
-                Quaternion omvRot = LSL_Api.Rot2Quaternion(rot);
-                attachmentsModule.DetachSingleAttachmentToGround(sp, m_host.ParentGroup.LocalId, omvPos, omvRot);
+                attachmentsModule.DetachSingleAttachmentToGround(sp, m_host.ParentGroup.LocalId, pos, rot);
             }
         }
 
