@@ -420,6 +420,7 @@ namespace OpenSim
             {
                 RunCommandScript(m_shutdownCommandsFile);
             }
+            
             base.ShutdownSpecific();
         }
 
