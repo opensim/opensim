@@ -97,6 +97,13 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             }
         }
 
+        /// <summary>
+        /// Used to cache lookups for valid groups.
+        /// </summary>
+        private IDictionary<UUID, bool> m_validGroupUuids = new Dictionary<UUID, bool>();
+
+        private IGroupsModule m_groupsModule;
+
         public ArchiveReadRequest(Scene scene, string loadPath, bool merge, bool skipAssets, Guid requestId)
         {
             m_scene = scene;
@@ -120,6 +127,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
             // Zero can never be a valid user id
             m_validUserUuids[UUID.Zero] = false;
+
+            m_groupsModule = m_scene.RequestModuleInterface<IGroupsModule>();
         }
 
         public ArchiveReadRequest(Scene scene, Stream loadStream, bool merge, bool skipAssets, Guid requestId)
@@ -132,6 +141,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
             // Zero can never be a valid user id
             m_validUserUuids[UUID.Zero] = false;
+
+            m_groupsModule = m_scene.RequestModuleInterface<IGroupsModule>();
         }
 
         /// <summary>
@@ -302,6 +313,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     if (!ResolveUserUuid(part.LastOwnerID))
                         part.LastOwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
 
+                    if (!ResolveGroupUuid(part.GroupID))
+                        part.GroupID = UUID.Zero;
+
                     // And zap any troublesome sit target information
 //                    part.SitTargetOrientation = new Quaternion(0, 0, 0, 1);
 //                    part.SitTargetPosition    = new Vector3(0, 0, 0);
@@ -318,13 +332,18 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                             {
                                 kvp.Value.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
                             }
+
                             if (kvp.Value.CreatorData == null || kvp.Value.CreatorData == string.Empty)
                             {
                                 if (!ResolveUserUuid(kvp.Value.CreatorID))
                                     kvp.Value.CreatorID = m_scene.RegionInfo.EstateSettings.EstateOwner;
                             }
+
                             if (UserManager != null)
                                 UserManager.AddUser(kvp.Value.CreatorID, kvp.Value.CreatorData);
+
+                            if (!ResolveGroupUuid(kvp.Value.GroupID))
+                                kvp.Value.GroupID = UUID.Zero;
                         }
                     }
                 }
@@ -364,9 +383,27 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             foreach (string serialisedParcel in serialisedParcels)
             {
                 LandData parcel = LandDataSerializer.Deserialize(serialisedParcel);
+                
+                // Validate User and Group UUID's
+
                 if (!ResolveUserUuid(parcel.OwnerID))
                     parcel.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
-                
+
+                if (!ResolveGroupUuid(parcel.GroupID))
+                {
+                    parcel.GroupID = UUID.Zero;
+                    parcel.IsGroupOwned = false;
+                }
+
+                List<LandAccessEntry> accessList = new List<LandAccessEntry>();
+                foreach (LandAccessEntry entry in parcel.ParcelAccessList)
+                {
+                    if (ResolveUserUuid(entry.AgentID))
+                        accessList.Add(entry);
+                    // else, drop this access rule
+                }
+                parcel.ParcelAccessList = accessList;
+
 //                m_log.DebugFormat(
 //                    "[ARCHIVER]: Adding parcel {0}, local id {1}, area {2}", 
 //                    parcel.Name, parcel.LocalID, parcel.Area);
@@ -401,6 +438,30 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         }
 
         /// <summary>
+        /// Look up the given group id to check whether it's one that is valid for this grid.
+        /// </summary>
+        /// <param name="uuid"></param>
+        /// <returns></returns>
+        private bool ResolveGroupUuid(UUID uuid)
+        {
+            if (uuid == UUID.Zero)
+                return true;    // this means the object has no group
+
+            if (!m_validGroupUuids.ContainsKey(uuid))
+            {
+                bool exists;
+                
+                if (m_groupsModule == null)
+                    exists = false;
+                else
+                    exists = (m_groupsModule.GetGroupRecord(uuid) != null);
+
+                m_validGroupUuids.Add(uuid, exists);
+            }
+
+            return m_validGroupUuids[uuid];
+        }
+
         /// Load an asset
         /// </summary>
         /// <param name="assetFilename"></param>
