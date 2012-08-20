@@ -26,6 +26,7 @@
 bin/Debug/*.dll
 bin/*.dll.mdb
 bin/*.db
+bin/*.db-journal
 bin/addin-db-*
 bin/*.dll
 bin/OpenSim.vshost.exe.config
