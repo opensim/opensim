@@ -1341,11 +1341,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 scale.y = Math.Max(World.m_minPhys, Math.Min(World.m_maxPhys, scale.y));
                 scale.z = Math.Max(World.m_minPhys, Math.Min(World.m_maxPhys, scale.z));
             }
-
-            // Next we clamp the scale to the non-physical min/max
-            scale.x = Math.Max(World.m_minNonphys, Math.Min(World.m_maxNonphys, scale.x));
-            scale.y = Math.Max(World.m_minNonphys, Math.Min(World.m_maxNonphys, scale.y));
-            scale.z = Math.Max(World.m_minNonphys, Math.Min(World.m_maxNonphys, scale.z));
+            else
+            {
+                // If not physical, then we clamp the scale to the non-physical min/max
+                scale.x = Math.Max(World.m_minNonphys, Math.Min(World.m_maxNonphys, scale.x));
+                scale.y = Math.Max(World.m_minNonphys, Math.Min(World.m_maxNonphys, scale.y));
+                scale.z = Math.Max(World.m_minNonphys, Math.Min(World.m_maxNonphys, scale.z));
+            }
 
             Vector3 tmp = part.Scale;
             tmp.X = (float)scale.x;
