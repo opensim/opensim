@@ -85,13 +85,15 @@ namespace OpenSim.Region.CoreModules.World.Sound
                         dis = 0;
                 }
 
+                float thisSpGain;
+
                 // Scale by distance
                 if (radius == 0)
-                    gain = (float)((double)gain * ((100.0 - dis) / 100.0));
+                    thisSpGain = (float)((double)gain * ((100.0 - dis) / 100.0));
                 else
-                    gain = (float)((double)gain * ((radius - dis) / radius));
+                    thisSpGain = (float)((double)gain * ((radius - dis) / radius));
 
-                sp.ControllingClient.SendPlayAttachedSound(soundID, objectID, ownerID, (float)gain, flags);
+                sp.ControllingClient.SendPlayAttachedSound(soundID, objectID, ownerID, thisSpGain, flags);
             });
         }
         
