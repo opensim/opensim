@@ -3306,6 +3306,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="SetVolumeDetect"></param>
         public void UpdatePrimFlags(uint localID, bool UsePhysics, bool SetTemporary, bool SetPhantom, bool SetVolumeDetect)
         {
+            HasGroupChanged = true;
+
             SceneObjectPart selectionPart = GetPart(localID);
 
             if (SetTemporary && Scene != null)

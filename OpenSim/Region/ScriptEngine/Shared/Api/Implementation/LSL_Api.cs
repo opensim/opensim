@@ -6055,6 +6055,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 flags |= ScriptBaseClass.AGENT_AWAY;
             }
 
+            UUID busy = new UUID("efcf670c-2d18-8128-973a-034ebc806b67");
+            UUID[] anims = agent.Animator.GetAnimationArray();
+            if (Array.Exists<UUID>(anims, a => { return a == busy; }))
+            {
+                flags |= ScriptBaseClass.AGENT_BUSY;
+            }
+
             // seems to get unset, even if in mouselook, when avatar is sitting on a prim???
             if ((agent.AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_MOUSELOOK) != 0)
             {

@@ -2050,7 +2050,7 @@ namespace OpenSim.Region.Framework.Scenes
                         if (Permissions.CanReturnObjects(
                                         null,
                                         remoteClient.AgentId,
-                                        deleteGroups))
+                                        new List<SceneObjectGroup>() {grp}))
                         {
                             permissionToTake = true;
                             permissionToDelete = true;

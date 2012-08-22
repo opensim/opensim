@@ -233,7 +233,7 @@ namespace OpenSim.Region.Framework.Scenes
         private int m_update_presences = 1; // Update scene presence movements
         private int m_update_events = 1;
         private int m_update_backup = 200;
-        private int m_update_terrain = 50;
+        private int m_update_terrain = 1000;
         private int m_update_land = 10;
         private int m_update_coarse_locations = 50;
 
