@@ -308,35 +308,43 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
 
             try
             {
-                if (alpha == 256)
-                    bitmap = new Bitmap(width, height, PixelFormat.Format32bppRgb);
-                else
-                    bitmap = new Bitmap(width, height, PixelFormat.Format32bppArgb);
-
-                graph = Graphics.FromImage(bitmap);
-    
-                // this is really just to save people filling the 
-                // background color in their scripts, only do when fully opaque
-                if (alpha >= 255)
+                // XXX: In testing, it appears that if multiple threads dispose of separate GDI+ objects simultaneously,
+                // the native malloc heap can become corrupted, possibly due to a double free().  This may be due to
+                // bugs in the underlying libcairo used by mono's libgdiplus.dll on Linux/OSX.  These problems were
+                // seen with both libcario 1.10.2-6.1ubuntu3 and 1.8.10-2ubuntu1.  They go away if disposal is perfomed
+                // under lock.
+                lock (this)
                 {
-                    using (SolidBrush bgFillBrush = new SolidBrush(bgColor))
-                    {
-                        graph.FillRectangle(bgFillBrush, 0, 0, width, height);
-                    }
-                }
+                    if (alpha == 256)
+                        bitmap = new Bitmap(width, height, PixelFormat.Format32bppRgb);
+                    else
+                        bitmap = new Bitmap(width, height, PixelFormat.Format32bppArgb);
     
-                for (int w = 0; w < bitmap.Width; w++)
-                {
-                    if (alpha <= 255) 
+                    graph = Graphics.FromImage(bitmap);
+        
+                    // this is really just to save people filling the 
+                    // background color in their scripts, only do when fully opaque
+                    if (alpha >= 255)
                     {
-                        for (int h = 0; h < bitmap.Height; h++)
+                        using (SolidBrush bgFillBrush = new SolidBrush(bgColor))
                         {
-                            bitmap.SetPixel(w, h, Color.FromArgb(alpha, bitmap.GetPixel(w, h)));
+                            graph.FillRectangle(bgFillBrush, 0, 0, width, height);
                         }
                     }
+        
+                    for (int w = 0; w < bitmap.Width; w++)
+                    {
+                        if (alpha <= 255) 
+                        {
+                            for (int h = 0; h < bitmap.Height; h++)
+                            {
+                                bitmap.SetPixel(w, h, Color.FromArgb(alpha, bitmap.GetPixel(w, h)));
+                            }
+                        }
+                    }
+        
+                    GDIDraw(data, graph, altDataDelim);
                 }
-    
-                GDIDraw(data, graph, altDataDelim);
     
                 byte[] imageJ2000 = new byte[0];
     
@@ -355,11 +363,19 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
             }
             finally
             {
-                if (graph != null)
-                    graph.Dispose();
-
-                if (bitmap != null)
-                    bitmap.Dispose();
+                // XXX: In testing, it appears that if multiple threads dispose of separate GDI+ objects simultaneously,
+                // the native malloc heap can become corrupted, possibly due to a double free().  This may be due to
+                // bugs in the underlying libcairo used by mono's libgdiplus.dll on Linux/OSX.  These problems were
+                // seen with both libcario 1.10.2-6.1ubuntu3 and 1.8.10-2ubuntu1.  They go away if disposal is perfomed
+                // under lock.
+                lock (this)
+                {
+                    if (graph != null)
+                        graph.Dispose();
+    
+                    if (bitmap != null)
+                        bitmap.Dispose();
+                }
             }
         }
         

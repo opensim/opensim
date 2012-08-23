@@ -1046,8 +1046,21 @@ namespace OpenSim.Framework
 
         void InPacket(object NewPack);
         void ProcessInPacket(Packet NewPack);
+
+        /// <summary>
+        /// Close this client
+        /// </summary>
         void Close();
-        void Close(bool sendStop);
+
+        /// <summary>
+        /// Close this client
+        /// </summary>
+        /// <param name='force'>
+        /// If true, attempts the close without checking active status.  You do not want to try this except as a last
+        /// ditch attempt where Active == false but the ScenePresence still exists.
+        /// </param>
+        void Close(bool sendStop, bool force);
+
         void Kick(string message);
         
         /// <summary>

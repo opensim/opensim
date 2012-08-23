@@ -94,7 +94,7 @@ namespace OpenSim.Region.ClientStack.Linden.Tests
             UUID spId = TestHelpers.ParseTail(0x1);
 
             SceneHelpers.AddScenePresence(m_scene, spId);
-            m_scene.IncomingCloseAgent(spId);
+            m_scene.IncomingCloseAgent(spId, false);
 
             // TODO: Add more assertions for the other aspects of event queues
             Assert.That(MainServer.Instance.GetPollServiceHandlerKeys().Count, Is.EqualTo(0));

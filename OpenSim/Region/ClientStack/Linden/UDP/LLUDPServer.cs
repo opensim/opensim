@@ -1515,7 +1515,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (!client.IsLoggingOut)
             {
                 client.IsLoggingOut = true;
-                client.Close(false);
+                client.Close(false, false);
             }
         }
     }

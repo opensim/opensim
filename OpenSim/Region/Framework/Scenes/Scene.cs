@@ -4340,15 +4340,18 @@ namespace OpenSim.Region.Framework.Scenes
         /// Tell a single agent to disconnect from the region.
         /// </summary>
         /// <param name="agentID"></param>
-        /// <param name="childOnly"></param>
-        public bool IncomingCloseAgent(UUID agentID, bool childOnly)
+        /// <param name="force">
+        /// Force the agent to close even if it might be in the middle of some other operation.  You do not want to
+        /// force unless you are absolutely sure that the agent is dead and a normal close is not working.
+        /// </param>
+        public bool IncomingCloseAgent(UUID agentID, bool force)
         {
             //m_log.DebugFormat("[SCENE]: Processing incoming close agent for {0}", agentID);
 
             ScenePresence presence = m_sceneGraph.GetScenePresence(agentID);
             if (presence != null)
             {
-                presence.ControllingClient.Close();
+                presence.ControllingClient.Close(true, force);
                 return true;
             }
 
