@@ -258,6 +258,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         int osGetSimulatorMemory();
         void osKickAvatar(string FirstName,string SurName,string alert);
         void osSetSpeed(string UUID, LSL_Float SpeedModifier);
+        LSL_Float osGetHealth(string avatar);
         void osCauseHealing(string avatar, double healing);
         void osCauseDamage(string avatar, double damage);
         LSL_List osGetPrimitiveParams(LSL_Key prim, LSL_List rules);
@@ -305,5 +306,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         /// </summary>
         /// <returns>Rezzing object key or NULL_KEY if rezzed by agent or otherwise unknown.</returns>
         LSL_Key osGetRezzingObject();
+
+        /// <summary>
+        /// Duplicates an object as if the owner duplicated it.
+        /// </summary>
+        /// <param name="offset"></param>
+        /// <param name="rot"></param>
+        void osRezDuplicate(vector offset, rotation rot);
     }
 }
