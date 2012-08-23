@@ -656,7 +656,19 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 if (m_Assemblies.ContainsKey(instance.AssetID))
                 {
                     string assembly = m_Assemblies[instance.AssetID];
-                    instance.SaveState(assembly);
+
+                    try
+                    {
+                        instance.SaveState(assembly);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.Error(
+                            string.Format(
+                                "[XEngine]: Failed final state save for script {0}.{1}, item UUID {2}, prim UUID {3} in {4}.  Exception ",
+                                instance.PrimName, instance.ScriptName, instance.ItemID, instance.ObjectID, World.Name)
+                            , e);
+                    }
                 }
 
                 // Clear the event queue and abort the instance thread
@@ -778,7 +790,18 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     assembly = m_Assemblies[i.AssetID];
                 
 
-                i.SaveState(assembly);
+                try
+                {
+                    i.SaveState(assembly);
+                }
+                catch (Exception e)
+                {
+                    m_log.Error(
+                        string.Format(
+                            "[XEngine]: Failed to save state of script {0}.{1}, item UUID {2}, prim UUID {3} in {4}.  Exception ",
+                            i.PrimName, i.ScriptName, i.ItemID, i.ObjectID, World.Name)
+                        , e);
+                }
             }
 
             instances.Clear();
