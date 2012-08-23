@@ -587,19 +587,29 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             }
         }
         
-        protected void ReceivedAllAssets(
-            ICollection<UUID> assetsFoundUuids, ICollection<UUID> assetsNotFoundUuids)
+        protected void ReceivedAllAssets(ICollection<UUID> assetsFoundUuids, ICollection<UUID> assetsNotFoundUuids, bool timedOut)
         {
-            foreach (UUID uuid in assetsNotFoundUuids)
+            string errorMessage;
+            
+            if (timedOut)
             {
-                m_log.DebugFormat("[ARCHIVER]: Could not find asset {0}", uuid);
+                errorMessage = "Loading assets timed out";
             }
+            else
+            {
+                foreach (UUID uuid in assetsNotFoundUuids)
+                {
+                    m_log.DebugFormat("[ARCHIVER]: Could not find asset {0}", uuid);
+                }
 
-            //            m_log.InfoFormat(
-            //                "[ARCHIVER]: Received {0} of {1} assets requested",
-            //                assetsFoundUuids.Count, assetsFoundUuids.Count + assetsNotFoundUuids.Count);
+                //            m_log.InfoFormat(
+                //                "[ARCHIVER]: Received {0} of {1} assets requested",
+                //                assetsFoundUuids.Count, assetsFoundUuids.Count + assetsNotFoundUuids.Count);
 
-            CloseArchive(String.Empty);
+                errorMessage = String.Empty;
+            }
+            
+            CloseArchive(errorMessage);
         }
         
         /// <summary>

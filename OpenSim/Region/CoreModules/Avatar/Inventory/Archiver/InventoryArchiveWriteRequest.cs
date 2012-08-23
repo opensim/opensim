@@ -124,7 +124,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             SaveAssets = true;
         }
 
-        protected void ReceivedAllAssets(ICollection<UUID> assetsFoundUuids, ICollection<UUID> assetsNotFoundUuids)
+        protected void ReceivedAllAssets(ICollection<UUID> assetsFoundUuids, ICollection<UUID> assetsNotFoundUuids, bool timedOut)
         {
             Exception reportedException = null;
             bool succeeded = true;
@@ -141,6 +141,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             finally
             {
                 m_saveStream.Close();
+            }
+
+            if (timedOut)
+            {
+                succeeded = false;
+                reportedException = new Exception("Loading assets timed out");
             }
 
             m_module.TriggerInventoryArchiveSaved(
@@ -350,7 +356,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 {
                     m_log.DebugFormat("[INVENTORY ARCHIVER]: Not saving assets since --noassets was specified");
 
-                    ReceivedAllAssets(new List<UUID>(), new List<UUID>());
+                    ReceivedAllAssets(new List<UUID>(), new List<UUID>(), false);
                 }
             }
             catch (Exception)
