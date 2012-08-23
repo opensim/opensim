@@ -1943,6 +1943,9 @@ namespace OpenSim.Region.Framework.Scenes
                 deleteIDs.Add(localID);
                 deleteGroups.Add(grp);
 
+                // If child prims have invalid perms, fix them
+                grp.AdjustChildPrimPermissions();
+
                 if (remoteClient == null)
                 {
                     // Autoreturn has a null client. Nothing else does. So
