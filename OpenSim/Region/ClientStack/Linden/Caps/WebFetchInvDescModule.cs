@@ -148,7 +148,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public void HttpRequestHandler(UUID requestID, Hashtable request)
         {
-            m_log.DebugFormat("[FETCH2]: Received request {0}", requestID);
+//            m_log.DebugFormat("[FETCH2]: Received request {0}", requestID);
             m_requests[requestID] = request;
         }
 
@@ -201,7 +201,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     return response;
                 }
 
-                m_log.DebugFormat("[FETCH2]: Processed request {0}", requestID);
+//                m_log.DebugFormat("[FETCH2]: Processed request {0}", requestID);
 
                 string reply = m_webFetchHandler.FetchInventoryDescendentsRequest(requestHash["body"].ToString(), String.Empty, String.Empty, null, null);
 
