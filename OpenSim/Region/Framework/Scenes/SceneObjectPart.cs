@@ -3890,6 +3890,27 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        public void ClonePermissions(SceneObjectPart source)
+        {
+            bool update = false;
+
+            if (BaseMask != source.BaseMask ||
+                OwnerMask != source.OwnerMask ||
+                GroupMask != source.GroupMask ||
+                EveryoneMask != source.EveryoneMask ||
+                NextOwnerMask != source.NextOwnerMask)
+                update = true;
+
+            BaseMask = source.BaseMask;
+            OwnerMask = source.OwnerMask;
+            GroupMask = source.GroupMask;
+            EveryoneMask = source.EveryoneMask;
+            NextOwnerMask = source.NextOwnerMask;
+
+            if (update)
+                SendFullUpdateToAllClients();
+        }
+
         public bool IsHingeJoint()
         {
             // For now, we use the NINJA naming scheme for identifying joints.

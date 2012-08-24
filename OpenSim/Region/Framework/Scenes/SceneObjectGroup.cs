@@ -2131,6 +2131,9 @@ namespace OpenSim.Region.Framework.Scenes
             // Can't do this yet since backup still makes use of the root part without any synchronization
 //            objectGroup.m_rootPart = null;
 
+            // If linking prims with different permissions, fix them
+            AdjustChildPrimPermissions();
+
             AttachToBackup();
 
             // Here's the deal, this is ABSOLUTELY CRITICAL so the physics scene gets the update about the 
@@ -2622,12 +2625,21 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        public void AdjustChildPrimPermissions()
+        {
+            ForEachPart(part =>
+            {
+                if (part != RootPart)
+                    part.ClonePermissions(RootPart);
+            });
+        }
+
         public void UpdatePermissions(UUID AgentID, byte field, uint localID,
                 uint mask, byte addRemTF)
         {
-            SceneObjectPart[] parts = m_parts.GetArray();
-            for (int i = 0; i < parts.Length; i++)
-                parts[i].UpdatePermissions(AgentID, field, localID, mask, addRemTF);
+            RootPart.UpdatePermissions(AgentID, field, localID, mask, addRemTF);
+
+            AdjustChildPrimPermissions();
 
             HasGroupChanged = true;
 
