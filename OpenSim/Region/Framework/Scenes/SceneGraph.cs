@@ -300,7 +300,7 @@ namespace OpenSim.Region.Framework.Scenes
         public bool AddNewSceneObject(
             SceneObjectGroup sceneObject, bool attachToBackup, Vector3? pos, Quaternion? rot, Vector3 vel)
         {
-            AddNewSceneObject(sceneObject, true, false);
+            AddNewSceneObject(sceneObject, attachToBackup, false);
 
             if (pos != null)
                 sceneObject.AbsolutePosition = (Vector3)pos;
