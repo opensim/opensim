@@ -7910,7 +7910,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_List llGetPrimitiveParams(LSL_List rules)
         {
             m_host.AddScriptLPS(1);
-            return GetPrimParams(m_host, rules);
+
+            LSL_List result = new LSL_List();
+
+            GetPrimParams(m_host, rules, ref result);
+
+            return result;
         }
 
         public LSL_List llGetLinkPrimitiveParams(int linknumber, LSL_List rules)
@@ -7923,16 +7928,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             foreach (SceneObjectPart part in parts)
             {
-                LSL_List partRes = GetPrimParams(part, rules);
-                res += partRes;
+                GetPrimParams(part, rules, ref res);
             }
 
             return res;
         }
 
-        public LSL_List GetPrimParams(SceneObjectPart part, LSL_List rules)
+        public void GetPrimParams(SceneObjectPart part, LSL_List rules, ref LSL_List res)
         {
-            LSL_List res = new LSL_List();
             int idx=0;
             while (idx < rules.Length)
             {
@@ -8077,7 +8080,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case (int)ScriptBaseClass.PRIM_TEXTURE:
                         if (remain < 1)
-                            return res;
+                            return;
 
                         int face = (int)rules.GetLSLIntegerItem(idx++);
                         Primitive.TextureEntry tex = part.Shape.Textures;
@@ -8117,7 +8120,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case (int)ScriptBaseClass.PRIM_COLOR:
                         if (remain < 1)
-                            return res;
+                            return;
 
                         face=(int)rules.GetLSLIntegerItem(idx++);
 
@@ -8146,7 +8149,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case (int)ScriptBaseClass.PRIM_BUMP_SHINY:
                         if (remain < 1)
-                            return res;
+                            return;
 
                         face=(int)rules.GetLSLIntegerItem(idx++);
 
@@ -8177,7 +8180,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case (int)ScriptBaseClass.PRIM_FULLBRIGHT:
                         if (remain < 1)
-                            return res;
+                            return;
 
                         face=(int)rules.GetLSLIntegerItem(idx++);
 
@@ -8219,7 +8222,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case (int)ScriptBaseClass.PRIM_TEXGEN:
                         if (remain < 1)
-                            return res;
+                            return;
 
                         face=(int)rules.GetLSLIntegerItem(idx++);
 
@@ -8260,7 +8263,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case (int)ScriptBaseClass.PRIM_GLOW:
                         if (remain < 1)
-                            return res;
+                            return;
 
                         face=(int)rules.GetLSLIntegerItem(idx++);
 
@@ -8314,7 +8317,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         break;
                 }
             }
-            return res;
         }
 
         public LSL_List llGetPrimMediaParams(int face, LSL_List rules)
@@ -10755,13 +10757,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_List GetPrimitiveParamsEx(LSL_Key prim, LSL_List rules)
         {
             SceneObjectPart obj = World.GetSceneObjectPart(new UUID(prim));
-            if (obj == null)
-                return new LSL_List();
 
-            if (obj.OwnerID != m_host.OwnerID)
-                return new LSL_List();
+            LSL_List result = new LSL_List();
 
-            return GetPrimParams(obj, rules);
+            if (obj != null && obj.OwnerID != m_host.OwnerID)
+            {
+                GetPrimParams(obj, rules, ref result);
+            }
+
+            return result;
         }
 
         public void print(string str)
