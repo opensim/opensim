@@ -468,7 +468,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (!InventoryService.AddFolder(folder))
             {
                 m_log.WarnFormat(
-                     "[AGENT INVENTORY]: Failed to move create folder for user {0} {1}",
+                     "[AGENT INVENTORY]: Failed to create folder for user {0} {1}",
                      remoteClient.Name, remoteClient.AgentId);
             }
         }
