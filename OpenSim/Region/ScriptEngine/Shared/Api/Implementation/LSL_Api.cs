@@ -5170,17 +5170,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
 
             string ret = String.Empty;
-            int    x   = 0;
 
             m_host.AddScriptLPS(1);
 
             if (src.Data.Length > 0)
             {
-                ret = src.Data[x++].ToString();
-                for (; x < src.Data.Length; x++)
-                {
-                    ret += ", "+src.Data[x].ToString();
-                }
+                ret = string.Join(", ", 
+                        (new List<object>(src.Data)).ConvertAll<string>(o => 
+                        {
+                            return o.ToString();
+                        }).ToArray());
             }
 
             return ret;
