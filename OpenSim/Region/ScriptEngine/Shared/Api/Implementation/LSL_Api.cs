@@ -7785,10 +7785,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         remaining = SetPrimParams((ScenePresence)part, rules);
                 }
 
-                while((object)remaining != null && remaining.Length > 2)
+                while ((object)remaining != null && remaining.Length > 2)
                 {
                     linknumber = remaining.GetLSLIntegerItem(0);
-                    rules = remaining.GetSublist(1,-1);
+                    rules = remaining.GetSublist(1, -1);
                     parts.Clear();
                     prims = GetLinkParts(linknumber);
                     avatars = GetLinkAvatars(linknumber);
@@ -7797,6 +7797,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     foreach (ScenePresence p in avatars)
                         parts.Add(p);
 
+                    remaining = null;
                     foreach (object part in parts)
                     {
                         if (part is SceneObjectPart)
