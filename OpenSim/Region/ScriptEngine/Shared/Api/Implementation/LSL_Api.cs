@@ -5828,7 +5828,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             List<SceneObjectPart> parts = GetLinkParts(linknumber);
 
-            foreach (var part in parts)
+            foreach (SceneObjectPart part in parts)
             {
                 SetTextureAnim(part, mode, face, sizex, sizey, start, length, rate);
             }
@@ -6190,7 +6190,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             List<SceneObjectPart> parts = GetLinkParts(linknumber);
 
-            foreach (var part in parts)
+            foreach (SceneObjectPart part in parts)
             {
                 SetParticleSystem(part, rules);
             }
@@ -7921,7 +7921,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             LSL_List res = new LSL_List();
 
-            foreach (var part in parts)
+            foreach (SceneObjectPart part in parts)
             {
                 LSL_List partRes = GetPrimParams(part, rules);
                 res += partRes;
