@@ -2257,11 +2257,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.High, "osGetLinkPrimitiveParams");
             m_host.AddScriptLPS(1);
             InitLSL();
+            // One needs to cast m_LSL_Api because we're using functions not
+            // on the ILSL_Api interface.
+            LSL_Api LSL_Api = (LSL_Api)m_LSL_Api;
             LSL_List retVal = new LSL_List();
-            List<SceneObjectPart> parts = ((LSL_Api)m_LSL_Api).GetLinkParts(linknumber);
+            List<SceneObjectPart> parts = LSL_Api.GetLinkParts(linknumber);
             foreach (SceneObjectPart part in parts)
             {
-                ((LSL_Api)m_LSL_Api).GetPrimParams(part, rules, ref retVal);
+                LSL_Api.GetPrimParams(part, rules, ref retVal);
             }
             return retVal;
         }
