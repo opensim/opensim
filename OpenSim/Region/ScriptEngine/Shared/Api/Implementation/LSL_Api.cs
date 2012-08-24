@@ -7238,10 +7238,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             foreach (SceneObjectPart part in parts)
                 remaining = SetPrimParams(part, rules);
 
-            while(remaining != null && remaining.Length > 2)
+            while (remaining != null && remaining.Length > 2)
             {
                 linknumber = remaining.GetLSLIntegerItem(0);
-                rules = remaining.GetSublist(1,-1);
+                rules = remaining.GetSublist(1, -1);
                 parts = GetLinkParts(linknumber);
 
                 foreach (SceneObjectPart part in parts)
