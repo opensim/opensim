@@ -78,14 +78,12 @@ public class BSScene : PhysicsScene, IPhysicsParameters
 
     public string BulletSimVersion = "?";
 
-    private Dictionary<uint, BSCharacter> m_avatars = new Dictionary<uint, BSCharacter>();
-    public Dictionary<uint, BSCharacter> Characters { get { return m_avatars; } }
+    public Dictionary<uint, BSPhysObject> PhysObjects = new Dictionary<uint, BSPhysObject>();
 
-    private Dictionary<uint, BSPrim> m_prims = new Dictionary<uint, BSPrim>();
-    public Dictionary<uint, BSPrim> Prims { get { return m_prims; } }
-
+    private HashSet<BSPhysObject> m_objectsWithCollisions = new HashSet<BSPhysObject>();
+    // Following is a kludge and can  be removed when avatar animation updating is
+    //    moved to a better place.
     private HashSet<BSCharacter> m_avatarsWithCollisions = new HashSet<BSCharacter>();
-    private HashSet<BSPrim> m_primsWithCollisions = new HashSet<BSPrim>();
 
     private List<BSPrim> m_vehicles = new List<BSPrim>();
 
@@ -235,7 +233,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         // BulletSimVersion = BulletSimAPI.GetVersion();
         // m_log.WarnFormat("{0}: BulletSim.dll version='{1}'", LogHeader, BulletSimVersion);
 
-        // if Debug, enable logging from the unmanaged code
+        // If Debug logging level, enable logging from the unmanaged code
         if (m_log.IsDebugEnabled || PhysicsLogging.Enabled)
         {
             m_log.DebugFormat("{0}: Initialize: Setting debug callback for unmanaged code", LogHeader);
@@ -243,13 +241,14 @@ public class BSScene : PhysicsScene, IPhysicsParameters
                 m_DebugLogCallbackHandle = new BulletSimAPI.DebugLogCallback(BulletLoggerPhysLog);
             else
                 m_DebugLogCallbackHandle = new BulletSimAPI.DebugLogCallback(BulletLogger);
-            // the handle is saved in a variable to make sure it doesn't get freed after this call
+            // The handle is saved in a variable to make sure it doesn't get freed after this call
             BulletSimAPI.SetDebugLogCallback(m_DebugLogCallbackHandle);
         }
 
         _taintedObjects = new List<TaintCallbackEntry>();
 
         mesher = meshmerizer;
+
         // The bounding box for the simulated world
         Vector3 worldExtent = new Vector3(Constants.RegionSize, Constants.RegionSize, 8192f);
 
@@ -337,7 +336,11 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         if (!m_initialized) return null;
 
         BSCharacter actor = new BSCharacter(localID, avName, this, position, size, isFlying);
-        lock (m_avatars) m_avatars.Add(localID, actor);
+        lock (PhysObjects) PhysObjects.Add(localID, actor);
+
+        // Remove kludge someday
+        lock (m_avatarsWithCollisions) m_avatarsWithCollisions.Add(actor);
+
         return actor;
     }
 
@@ -352,7 +355,9 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         {
             try
             {
-                lock (m_avatars) m_avatars.Remove(actor.LocalID);
+                lock (PhysObjects) PhysObjects.Remove(actor.LocalID);
+                // Remove kludge someday
+                lock (m_avatarsWithCollisions) m_avatarsWithCollisions.Remove(bsactor);
             }
             catch (Exception e)
             {
@@ -374,7 +379,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             // m_log.DebugFormat("{0}: RemovePrim. id={1}/{2}", LogHeader, bsprim.Name, bsprim.LocalID);
             try
             {
-                lock (m_prims) m_prims.Remove(bsprim.LocalID);
+                lock (PhysObjects) PhysObjects.Remove(bsprim.LocalID);
             }
             catch (Exception e)
             {
@@ -399,7 +404,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         DetailLog("{0},AddPrimShape,call", localID);
 
         BSPrim prim = new BSPrim(localID, primName, this, position, size, rotation, pbs, isPhysical);
-        lock (m_prims) m_prims.Add(localID, prim);
+        lock (PhysObjects) PhysObjects.Add(localID, prim);
         return prim;
     }
 
@@ -470,19 +475,16 @@ public class BSScene : PhysicsScene, IPhysicsParameters
 
         // The above SendCollision's batch up the collisions on the objects.
         //      Now push the collisions into the simulator.
-        foreach (BSPrim bsp in m_primsWithCollisions)
+        foreach (BSPhysObject bsp in m_objectsWithCollisions)
             bsp.SendCollisions();
-        m_primsWithCollisions.Clear();
+        m_objectsWithCollisions.Clear();
 
         // This is a kludge to get avatar movement updated. 
-        //   Don't send collisions only if there were collisions -- send everytime.
         //   ODE sends collisions even if there are none and this is used to update
         //   avatar animations and stuff.
-        // foreach (BSCharacter bsc in m_avatarsWithCollisions)
-        //     bsc.SendCollisions();
-        foreach (KeyValuePair<uint, BSCharacter> kvp in m_avatars)
-            kvp.Value.SendCollisions();
-        m_avatarsWithCollisions.Clear();
+        foreach (BSPhysObject bpo in m_avatarsWithCollisions)
+            bpo.SendCollisions();
+        // m_avatarsWithCollisions.Clear();
 
         // If any of the objects had updated properties, tell the object it has been changed by the physics engine
         if (updatedEntityCount > 0)
@@ -490,16 +492,10 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             for (int ii = 0; ii < updatedEntityCount; ii++)
             {
                 EntityProperties entprop = m_updateArray[ii];
-                BSPrim prim;
-                if (m_prims.TryGetValue(entprop.ID, out prim))
+                BSPhysObject pobj;
+                if (PhysObjects.TryGetValue(entprop.ID, out pobj))
                 {
-                    prim.UpdateProperties(entprop);
-                    continue;
-                }
-                BSCharacter actor;
-                if (m_avatars.TryGetValue(entprop.ID, out actor))
-                {
-                    actor.UpdateProperties(entprop);
+                    pobj.UpdateProperties(entprop);
                     continue;
                 }
             }
@@ -529,33 +525,36 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     }
 
     // Something has collided
-    private void SendCollision(uint localID, uint collidingWith, Vector3 collidePoint, Vector3 collideNormal, float penitration)
+    private void SendCollision(uint localID, uint collidingWith, Vector3 collidePoint, Vector3 collideNormal, float penetration)
     {
         if (localID == TERRAIN_ID || localID == GROUNDPLANE_ID)
         {
             return;         // don't send collisions to the terrain
         }
 
+        BSPhysObject collider = PhysObjects[localID];
+        // TODO: as of this code, terrain was not in the physical object list.
+        //    When BSTerrain is created and it will be in the list, we can remove
+        //    the possibility that it's not there and just fetch the collidee.
+        BSPhysObject collidee = null;
+
         ActorTypes type = ActorTypes.Prim;
         if (collidingWith == TERRAIN_ID || collidingWith == GROUNDPLANE_ID)
+        {
             type = ActorTypes.Ground;
-        else if (m_avatars.ContainsKey(collidingWith))
-            type = ActorTypes.Agent;
+        }
+        else
+        {
+            collidee = PhysObjects[collidingWith];
+            if (collidee is BSCharacter)
+                type = ActorTypes.Agent;
+        }
 
         // DetailLog("{0},BSScene.SendCollision,collide,id={1},with={2}", DetailLogZero, localID, collidingWith);
 
-        BSPrim prim;
-        if (m_prims.TryGetValue(localID, out prim)) {
-            prim.Collide(collidingWith, type, collidePoint, collideNormal, penitration);
-            m_primsWithCollisions.Add(prim);
-            return;
-        }
-        BSCharacter actor;
-        if (m_avatars.TryGetValue(localID, out actor)) {
-            actor.Collide(collidingWith, type, collidePoint, collideNormal, penitration);
-            m_avatarsWithCollisions.Add(actor);
-            return;
-        }
+        collider.Collide(collidingWith, collidee, type, collidePoint, collideNormal, penetration);
+        m_objectsWithCollisions.Add(collider);
+
         return;
     }
 
@@ -605,17 +604,11 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         // make sure no stepping happens while we're deleting stuff
         m_initialized = false;
 
-        foreach (KeyValuePair<uint, BSCharacter> kvp in m_avatars)
+        foreach (KeyValuePair<uint, BSPhysObject> kvp in PhysObjects)
         {
             kvp.Value.Destroy();
         }
-        m_avatars.Clear();
-
-        foreach (KeyValuePair<uint, BSPrim> kvp in m_prims)
-        {
-            kvp.Value.Destroy();
-        }
-        m_prims.Clear();
+        PhysObjects.Clear();
 
         // Now that the prims are all cleaned up, there should be no constraints left
         if (m_constraintCollection != null)
@@ -996,42 +989,42 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             0f,
             (s,cf,p,v) => { s.m_params[0].linearDamping = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].linearDamping; },
-            (s,p,l,v) => { s.UpdateParameterPrims(ref s.m_params[0].linearDamping, p, l, v); } ),
+            (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].linearDamping, p, l, v); } ),
         new ParameterDefn("AngularDamping", "Factor to damp angular movement per second (0.0 - 1.0)",
             0f,
             (s,cf,p,v) => { s.m_params[0].angularDamping = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].angularDamping; },
-            (s,p,l,v) => { s.UpdateParameterPrims(ref s.m_params[0].angularDamping, p, l, v); } ),
+            (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].angularDamping, p, l, v); } ),
         new ParameterDefn("DeactivationTime", "Seconds before considering an object potentially static",
             0.2f,
             (s,cf,p,v) => { s.m_params[0].deactivationTime = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].deactivationTime; },
-            (s,p,l,v) => { s.UpdateParameterPrims(ref s.m_params[0].deactivationTime, p, l, v); } ),
+            (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].deactivationTime, p, l, v); } ),
         new ParameterDefn("LinearSleepingThreshold", "Seconds to measure linear movement before considering static",
             0.8f,
             (s,cf,p,v) => { s.m_params[0].linearSleepingThreshold = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].linearSleepingThreshold; },
-            (s,p,l,v) => { s.UpdateParameterPrims(ref s.m_params[0].linearSleepingThreshold, p, l, v); } ),
+            (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].linearSleepingThreshold, p, l, v); } ),
         new ParameterDefn("AngularSleepingThreshold", "Seconds to measure angular movement before considering static",
             1.0f,
             (s,cf,p,v) => { s.m_params[0].angularSleepingThreshold = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].angularSleepingThreshold; },
-            (s,p,l,v) => { s.UpdateParameterPrims(ref s.m_params[0].angularSleepingThreshold, p, l, v); } ),
+            (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].angularSleepingThreshold, p, l, v); } ),
         new ParameterDefn("CcdMotionThreshold", "Continuious collision detection threshold (0 means no CCD)" ,
             0f,     // set to zero to disable
             (s,cf,p,v) => { s.m_params[0].ccdMotionThreshold = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].ccdMotionThreshold; },
-            (s,p,l,v) => { s.UpdateParameterPrims(ref s.m_params[0].ccdMotionThreshold, p, l, v); } ),
+            (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].ccdMotionThreshold, p, l, v); } ),
         new ParameterDefn("CcdSweptSphereRadius", "Continuious collision detection test radius" ,
             0f,
             (s,cf,p,v) => { s.m_params[0].ccdSweptSphereRadius = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].ccdSweptSphereRadius; },
-            (s,p,l,v) => { s.UpdateParameterPrims(ref s.m_params[0].ccdSweptSphereRadius, p, l, v); } ),
+            (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].ccdSweptSphereRadius, p, l, v); } ),
         new ParameterDefn("ContactProcessingThreshold", "Distance between contacts before doing collision check" ,
             0.1f,
             (s,cf,p,v) => { s.m_params[0].contactProcessingThreshold = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].contactProcessingThreshold; },
-            (s,p,l,v) => { s.UpdateParameterPrims(ref s.m_params[0].contactProcessingThreshold, p, l, v); } ),
+            (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].contactProcessingThreshold, p, l, v); } ),
 
         new ParameterDefn("TerrainFriction", "Factor to reduce movement against terrain surface" ,
             0.5f,
@@ -1052,32 +1045,32 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             0.5f,
             (s,cf,p,v) => { s.m_params[0].avatarFriction = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].avatarFriction; },
-            (s,p,l,v) => { s.UpdateParameterAvatars(ref s.m_params[0].avatarFriction, p, l, v); } ),
+            (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].avatarFriction, p, l, v); } ),
         new ParameterDefn("AvatarDensity", "Density of an avatar. Changed on avatar recreation.",
             60f,
             (s,cf,p,v) => { s.m_params[0].avatarDensity = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].avatarDensity; },
-            (s,p,l,v) => { s.UpdateParameterAvatars(ref s.m_params[0].avatarDensity, p, l, v); } ),
+            (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].avatarDensity, p, l, v); } ),
         new ParameterDefn("AvatarRestitution", "Bouncyness. Changed on avatar recreation.",
             0f,
             (s,cf,p,v) => { s.m_params[0].avatarRestitution = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].avatarRestitution; },
-            (s,p,l,v) => { s.UpdateParameterAvatars(ref s.m_params[0].avatarRestitution, p, l, v); } ),
+            (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].avatarRestitution, p, l, v); } ),
         new ParameterDefn("AvatarCapsuleRadius", "Radius of space around an avatar",
             0.37f,
             (s,cf,p,v) => { s.m_params[0].avatarCapsuleRadius = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].avatarCapsuleRadius; },
-            (s,p,l,v) => { s.UpdateParameterAvatars(ref s.m_params[0].avatarCapsuleRadius, p, l, v); } ),
+            (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].avatarCapsuleRadius, p, l, v); } ),
         new ParameterDefn("AvatarCapsuleHeight", "Default height of space around avatar",
             1.5f,
             (s,cf,p,v) => { s.m_params[0].avatarCapsuleHeight = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].avatarCapsuleHeight; },
-            (s,p,l,v) => { s.UpdateParameterAvatars(ref s.m_params[0].avatarCapsuleHeight, p, l, v); } ),
+            (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].avatarCapsuleHeight, p, l, v); } ),
 	    new ParameterDefn("AvatarContactProcessingThreshold", "Distance from capsule to check for collisions",
             0.1f,
             (s,cf,p,v) => { s.m_params[0].avatarContactProcessingThreshold = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].avatarContactProcessingThreshold; },
-            (s,p,l,v) => { s.UpdateParameterAvatars(ref s.m_params[0].avatarContactProcessingThreshold, p, l, v); } ),
+            (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].avatarContactProcessingThreshold, p, l, v); } ),
 
 
 	    new ParameterDefn("MaxPersistantManifoldPoolSize", "Number of manifolds pooled (0 means default of 4096)",
@@ -1264,18 +1257,10 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     }
 
     // check to see if we are updating a parameter for a particular or all of the prims
-    protected void UpdateParameterPrims(ref float loc, string parm, uint localID, float val)
+    protected void UpdateParameterObject(ref float loc, string parm, uint localID, float val)
     {
         List<uint> operateOn;
-        lock (m_prims) operateOn = new List<uint>(m_prims.Keys);
-        UpdateParameterSet(operateOn, ref loc, parm, localID, val);
-    }
-
-    // check to see if we are updating a parameter for a particular or all of the avatars
-    protected void UpdateParameterAvatars(ref float loc, string parm, uint localID, float val)
-    {
-        List<uint> operateOn;
-        lock (m_avatars) operateOn = new List<uint>(m_avatars.Keys);
+        lock (PhysObjects) operateOn = new List<uint>(PhysObjects.Keys);
         UpdateParameterSet(operateOn, ref loc, parm, localID, val);
     }
 

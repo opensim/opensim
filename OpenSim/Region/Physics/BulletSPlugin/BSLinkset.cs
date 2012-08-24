@@ -36,8 +36,8 @@ public class BSLinkset
 {
     private static string LogHeader = "[BULLETSIM LINKSET]";
 
-    private BSPrim m_linksetRoot;
-    public BSPrim LinksetRoot { get { return m_linksetRoot; } }
+    private BSPhysObject m_linksetRoot;
+    public BSPhysObject LinksetRoot { get { return m_linksetRoot; } }
 
     private BSScene m_physicsScene;
     public BSScene PhysicsScene { get { return m_physicsScene; } }
@@ -46,7 +46,7 @@ public class BSLinkset
     public int LinksetID { get; private set; }
 
     // The children under the root in this linkset
-    private List<BSPrim> m_children;
+    private List<BSPhysObject> m_children;
 
     // We lock the diddling of linkset classes to prevent any badness.
     // This locks the modification of the instances of this class. Changes
@@ -74,7 +74,7 @@ public class BSLinkset
         get { return ComputeLinksetGeometricCenter(); }
     }
 
-    public BSLinkset(BSScene scene, BSPrim parent)
+    public BSLinkset(BSScene scene, BSPhysObject parent)
     {
         // A simple linkset of one (no children)
         LinksetID = m_nextLinksetID++;
@@ -83,14 +83,14 @@ public class BSLinkset
             m_nextLinksetID = 1;
         m_physicsScene = scene;
         m_linksetRoot = parent;
-        m_children = new List<BSPrim>();
+        m_children = new List<BSPhysObject>();
         m_mass = parent.MassRaw;
     }
 
     // Link to a linkset where the child knows the parent.
     // Parent changing should not happen so do some sanity checking.
     // We return the parent's linkset so the child can track its membership.
-    public BSLinkset AddMeToLinkset(BSPrim child)
+    public BSLinkset AddMeToLinkset(BSPhysObject child)
     {
         lock (m_linksetActivityLock)
         {
@@ -102,7 +102,7 @@ public class BSLinkset
     // Remove a child from a linkset.
     // Returns a new linkset for the child which is a linkset of one (just the
     //    orphened child).
-    public BSLinkset RemoveMeFromLinkset(BSPrim child)
+    public BSLinkset RemoveMeFromLinkset(BSPhysObject child)
     {
         lock (m_linksetActivityLock)
         {
@@ -129,7 +129,7 @@ public class BSLinkset
     }
 
     // Return 'true' if the passed object is the root object of this linkset
-    public bool IsRoot(BSPrim requestor)
+    public bool IsRoot(BSPhysObject requestor)
     {
         return (requestor.LocalID == m_linksetRoot.LocalID);
     }
@@ -140,12 +140,12 @@ public class BSLinkset
     public bool HasAnyChildren { get { return (m_children.Count > 0); } }
 
     // Return 'true' if this child is in this linkset
-    public bool HasChild(BSPrim child)
+    public bool HasChild(BSPhysObject child)
     {
         bool ret = false;
         lock (m_linksetActivityLock)
         {
-            foreach (BSPrim bp in m_children)
+            foreach (BSPhysObject bp in m_children)
             {
                 if (child.LocalID == bp.LocalID)
                 {
@@ -160,7 +160,7 @@ public class BSLinkset
     private float ComputeLinksetMass()
     {
         float mass = m_linksetRoot.MassRaw;
-        foreach (BSPrim bp in m_children)
+        foreach (BSPhysObject bp in m_children)
         {
             mass += bp.MassRaw;
         }
@@ -174,7 +174,7 @@ public class BSLinkset
 
         lock (m_linksetActivityLock)
         {
-            foreach (BSPrim bp in m_children)
+            foreach (BSPhysObject bp in m_children)
             {
                 com += bp.Position * bp.MassRaw;
                 totalMass += bp.MassRaw;
@@ -192,7 +192,7 @@ public class BSLinkset
 
         lock (m_linksetActivityLock)
         {
-            foreach (BSPrim bp in m_children)
+            foreach (BSPhysObject bp in m_children)
             {
                 com += bp.Position * bp.MassRaw;
             }
@@ -204,7 +204,7 @@ public class BSLinkset
 
     // When physical properties are changed the linkset needs to recalculate
     //   its internal properties.
-    public void Refresh(BSPrim requestor)
+    public void Refresh(BSPhysObject requestor)
     {
         // If there are no children, there aren't any constraints to recompute
         if (!HasAnyChildren)
@@ -230,7 +230,7 @@ public class BSLinkset
         float linksetMass = LinksetMass;
         lock (m_linksetActivityLock)
         {
-            foreach (BSPrim child in m_children)
+            foreach (BSPhysObject child in m_children)
             {
                 BSConstraint constrain;
                 if (m_physicsScene.Constraints.TryGetConstraint(LinksetRoot.Body, child.Body, out constrain))
@@ -255,14 +255,14 @@ public class BSLinkset
 
     // I am the root of a linkset and a new child is being added
     // Called while LinkActivity is locked.
-    private void AddChildToLinkset(BSPrim child)
+    private void AddChildToLinkset(BSPhysObject child)
     {
         if (!HasChild(child))
         {
             m_children.Add(child);
 
-            BSPrim rootx = LinksetRoot; // capture the root as of now
-            BSPrim childx = child;
+            BSPhysObject rootx = LinksetRoot; // capture the root as of now
+            BSPhysObject childx = child;
             m_physicsScene.TaintedObject("AddChildToLinkset", delegate()
             {
                 DetailLog("{0},AddChildToLinkset,taint,child={1}", m_linksetRoot.LocalID, child.LocalID);
@@ -277,7 +277,7 @@ public class BSLinkset
     //    it's still connected to the linkset.
     // Normal OpenSimulator operation will never do this because other SceneObjectPart information
     //    has to be updated also (like pointer to prim's parent).
-    private void RemoveChildFromOtherLinkset(BSPrim pchild)
+    private void RemoveChildFromOtherLinkset(BSPhysObject pchild)
     {
         pchild.Linkset = new BSLinkset(m_physicsScene, pchild);
         RemoveChildFromLinkset(pchild);
@@ -285,12 +285,12 @@ public class BSLinkset
 
     // I am the root of a linkset and one of my children is being removed.
     // Safe to call even if the child is not really in my linkset.
-    private void RemoveChildFromLinkset(BSPrim child)
+    private void RemoveChildFromLinkset(BSPhysObject child)
     {
         if (m_children.Remove(child))
         {
-            BSPrim rootx = LinksetRoot; // capture the root as of now
-            BSPrim childx = child;
+            BSPhysObject rootx = LinksetRoot; // capture the root as of now
+            BSPhysObject childx = child;
             m_physicsScene.TaintedObject("RemoveChildFromLinkset", delegate()
             {
                 DetailLog("{0},RemoveChildFromLinkset,taint,child={1}", m_linksetRoot.LocalID, child.LocalID);
@@ -310,7 +310,7 @@ public class BSLinkset
 
     // Create a constraint between me (root of linkset) and the passed prim (the child).
     // Called at taint time!
-    private void PhysicallyLinkAChildToRoot(BSPrim rootPrim, BSPrim childPrim)
+    private void PhysicallyLinkAChildToRoot(BSPhysObject rootPrim, BSPhysObject childPrim)
     {
         // Zero motion for children so they don't interpolate
         childPrim.ZeroMotion();
@@ -383,7 +383,7 @@ public class BSLinkset
 
     // Remove linkage between myself and a particular child
     // Called at taint time!
-    private void PhysicallyUnlinkAChildFromRoot(BSPrim rootPrim, BSPrim childPrim)
+    private void PhysicallyUnlinkAChildFromRoot(BSPhysObject rootPrim, BSPhysObject childPrim)
     {
         DetailLog("{0},PhysicallyUnlinkAChildFromRoot,taint,root={1},child={2}", rootPrim.LocalID, rootPrim.LocalID, childPrim.LocalID);
 
@@ -396,7 +396,7 @@ public class BSLinkset
 
     // Remove linkage between myself and any possible children I might have
     // Called at taint time!
-    private void PhysicallyUnlinkAllChildrenFromRoot(BSPrim rootPrim)
+    private void PhysicallyUnlinkAllChildrenFromRoot(BSPhysObject rootPrim)
     {
         DetailLog("{0},PhysicallyUnlinkAllChildren,taint", rootPrim.LocalID);
 

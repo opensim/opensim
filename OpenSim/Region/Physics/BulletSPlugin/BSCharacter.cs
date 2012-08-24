@@ -34,7 +34,7 @@ using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.Physics.BulletSPlugin
 {
-public class BSCharacter : PhysicsActor
+public class BSCharacter : BSPhysObject
 {
     private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
     private static readonly string LogHeader = "[BULLETS CHAR]";
@@ -74,11 +74,8 @@ public class BSCharacter : PhysicsActor
     private bool _kinematic;
     private float _buoyancy;
 
-    private BulletBody m_body;
-    public BulletBody Body { 
-        get { return m_body; }
-        set { m_body = value; }
-    }
+    public override BulletBody Body { get; set; }
+    public override BSLinkset Linkset { get; set; }
 
     private int _subscribedEventsMs = 0;
     private int _nextCollisionOkTime = 0;
@@ -108,6 +105,8 @@ public class BSCharacter : PhysicsActor
         _density = _scene.Params.avatarDensity;
         ComputeAvatarVolumeAndMass();   // set _avatarVolume and _mass based on capsule size, _density and _scale
 
+        Linkset = new BSLinkset(_scene, this);
+
         ShapeData shapeData = new ShapeData();
         shapeData.ID = _localID;
         shapeData.Type = ShapeData.PhysicsShapeType.SHAPE_AVATAR;
@@ -130,7 +129,7 @@ public class BSCharacter : PhysicsActor
             // Set the buoyancy for flying. This will be refactored when all the settings happen in C#
             BulletSimAPI.SetObjectBuoyancy(_scene.WorldID, LocalID, _buoyancy);
 
-            m_body = new BulletBody(LocalID, BulletSimAPI.GetBodyHandle2(_scene.World.Ptr, LocalID));
+            Body = new BulletBody(LocalID, BulletSimAPI.GetBodyHandle2(_scene.World.Ptr, LocalID));
             // avatars get all collisions no matter what (makes walking on ground and such work)
             BulletSimAPI.AddToCollisionFlags2(Body.Ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
         });
@@ -139,7 +138,7 @@ public class BSCharacter : PhysicsActor
     }
 
     // called when this character is being destroyed and the resources should be released
-    public void Destroy()
+    public override void Destroy()
     {
         DetailLog("{0},BSCharacter.Destroy", LocalID);
         _scene.TaintedObject("BSCharacter.destroy", delegate()
@@ -245,6 +244,10 @@ public class BSCharacter : PhysicsActor
             return _mass; 
         } 
     }
+
+    // used when we only want this prim's mass and not the linkset thing
+    public override float MassRaw { get {return _mass; } }
+
     public override Vector3 Force { 
         get { return _force; } 
         set {
@@ -448,6 +451,12 @@ public class BSCharacter : PhysicsActor
             });
         }
     }
+
+    public override void ZeroMotion()
+    {
+        return;
+    }
+
     // Stop collision events
     public override void UnSubscribeEvents() { 
         _subscribedEventsMs = 0;
@@ -481,7 +490,7 @@ public class BSCharacter : PhysicsActor
 
     // The physics engine says that properties have updated. Update same and inform
     // the world that things have changed.
-    public void UpdateProperties(EntityProperties entprop)
+    public override void UpdateProperties(EntityProperties entprop)
     {
         _position = entprop.Position;
         _orientation = entprop.Rotation;
@@ -500,7 +509,7 @@ public class BSCharacter : PhysicsActor
     // The collision, if it should be reported to the character, is placed in a collection
     //   that will later be sent to the simulator when SendCollisions() is called.
     CollisionEventUpdate collisionCollection = null;
-    public void Collide(uint collidingWith, ActorTypes type, Vector3 contactPoint, Vector3 contactNormal, float pentrationDepth)
+    public override void Collide(uint collidingWith, BSPhysObject collidee, ActorTypes type, Vector3 contactPoint, Vector3 contactNormal, float pentrationDepth)
     {
         // m_log.DebugFormat("{0}: Collide: ms={1}, id={2}, with={3}", LogHeader, _subscribedEventsMs, LocalID, collidingWith);
 
@@ -525,7 +534,7 @@ public class BSCharacter : PhysicsActor
         }
     }
 
-    public void SendCollisions()
+    public override void SendCollisions()
     {
         /*
         if (collisionCollection != null && collisionCollection.Count > 0)
