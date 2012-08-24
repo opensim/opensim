@@ -425,6 +425,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
               void print(string str);
 
               void SetPrimitiveParamsEx(LSL_Key prim, LSL_List rules);
-          LSL_List GetLinkPrimitiveParamsEx(LSL_Key prim, LSL_List rules);
+          LSL_List GetPrimitiveParamsEx(LSL_Key prim, LSL_List rules);
     }
 }
