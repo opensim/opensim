@@ -5169,20 +5169,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_String llList2CSV(LSL_List src)
         {
 
-            string ret = String.Empty;
 
             m_host.AddScriptLPS(1);
 
-            if (src.Data.Length > 0)
-            {
-                ret = string.Join(", ", 
-                        (new List<object>(src.Data)).ConvertAll<string>(o => 
-                        {
-                            return o.ToString();
-                        }).ToArray());
-            }
-
-            return ret;
+            return string.Join(", ", 
+                    (new List<object>(src.Data)).ConvertAll<string>(o => 
+                    {
+                        return o.ToString();
+                    }).ToArray());
         }
 
         /// <summary>
