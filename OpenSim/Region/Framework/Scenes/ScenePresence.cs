@@ -974,7 +974,9 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (wasChild && HasAttachments())
                 {
-                    m_log.DebugFormat("[SCENE PRESENCE]: Restarting scripts in attachments...");
+                    m_log.DebugFormat(
+                        "[SCENE PRESENCE]: Restarting scripts in attachments for {0} in {1}", Name, Scene.Name);
+                    
                     // Resume scripts
                     Util.FireAndForget(delegate(object x) {
                         foreach (SceneObjectGroup sog in m_attachments)

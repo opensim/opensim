@@ -5571,25 +5571,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// separated list. There is a space after
         /// each comma.
         /// </summary>
-
         public LSL_String llList2CSV(LSL_List src)
         {
-
-            string ret = String.Empty;
-            int    x   = 0;
-
             m_host.AddScriptLPS(1);
 
-            if (src.Data.Length > 0)
-            {
-                ret = src.Data[x++].ToString();
-                for (; x < src.Data.Length; x++)
-                {
-                    ret += ", "+src.Data[x].ToString();
-                }
-            }
-
-            return ret;
+            return string.Join(", ", 
+                    (new List<object>(src.Data)).ConvertAll<string>(o => 
+                    {
+                        return o.ToString();
+                    }).ToArray());
         }
 
         /// <summary>
