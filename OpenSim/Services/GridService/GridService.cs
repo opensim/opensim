@@ -137,9 +137,14 @@ namespace OpenSim.Services.GridService
             if (regionInfos.RegionID == UUID.Zero)
                 return "Invalid RegionID - cannot be zero UUID";
 
-            // This needs better sanity testing. What if regionInfo is registering in
-            // overlapping coords?
             RegionData region = m_Database.Get(regionInfos.RegionLocX, regionInfos.RegionLocY, scopeID);
+            if ((region != null) && (region.RegionID != regionInfos.RegionID))
+            {
+                m_log.WarnFormat("[GRID SERVICE]: Region {0} tried to register in coordinates {1}, {2} which are already in use in scope {3}.", 
+                    regionInfos.RegionID, regionInfos.RegionLocX, regionInfos.RegionLocY, scopeID);
+                return "Region overlaps another region";
+            }
+
             if (region != null)
             {
                 // There is a preexisting record
@@ -176,32 +181,7 @@ namespace OpenSim.Services.GridService
                 }
             }
 
-            if ((region != null) && (region.RegionID != regionInfos.RegionID))
-            {
-                m_log.WarnFormat("[GRID SERVICE]: Region {0} tried to register in coordinates {1}, {2} which are already in use in scope {3}.", 
-                    regionInfos.RegionID, regionInfos.RegionLocX, regionInfos.RegionLocY, scopeID);
-                return "Region overlaps another region";
-            }
-
-            if ((region != null) && (region.RegionID == regionInfos.RegionID) && 
-                ((region.posX != regionInfos.RegionLocX) || (region.posY != regionInfos.RegionLocY)))
-            {
-                if ((Convert.ToInt32(region.Data["flags"]) & (int)OpenSim.Data.RegionFlags.NoMove) != 0)
-                    return "Can't move this region";
-
-                // Region reregistering in other coordinates. Delete the old entry
-                m_log.DebugFormat("[GRID SERVICE]: Region {0} ({1}) was previously registered at {2}-{3}. Deleting old entry.",
-                    regionInfos.RegionName, regionInfos.RegionID, regionInfos.RegionLocX, regionInfos.RegionLocY);
-
-                try
-                {
-                    m_Database.Delete(regionInfos.RegionID);
-                }
-                catch (Exception e)
-                {
-                    m_log.DebugFormat("[GRID SERVICE]: Database exception: {0}", e);
-                }
-            }
+            // If we get here, the destination is clear. Now for the real check.
 
             if (!m_AllowDuplicateNames)
             {
@@ -220,6 +200,31 @@ namespace OpenSim.Services.GridService
                 }
             }
 
+            // If there is an old record for us, delete it if it is elsewhere.
+            region = m_Database.Get(regionInfos.RegionID, scopeID);
+            if ((region != null) && (region.RegionID == regionInfos.RegionID) && 
+                ((region.posX != regionInfos.RegionLocX) || (region.posY != regionInfos.RegionLocY)))
+            {
+                if ((Convert.ToInt32(region.Data["flags"]) & (int)OpenSim.Data.RegionFlags.NoMove) != 0)
+                    return "Can't move this region";
+
+                if ((Convert.ToInt32(region.Data["flags"]) & (int)OpenSim.Data.RegionFlags.LockedOut) != 0)
+                    return "Region locked out";
+
+                // Region reregistering in other coordinates. Delete the old entry
+                m_log.DebugFormat("[GRID SERVICE]: Region {0} ({1}) was previously registered at {2}-{3}. Deleting old entry.",
+                    regionInfos.RegionName, regionInfos.RegionID, regionInfos.RegionLocX, regionInfos.RegionLocY);
+
+                try
+                {
+                    m_Database.Delete(regionInfos.RegionID);
+                }
+                catch (Exception e)
+                {
+                    m_log.DebugFormat("[GRID SERVICE]: Database exception: {0}", e);
+                }
+            }
+
             // Everything is ok, let's register
             RegionData rdata = RegionInfo2RegionData(regionInfos);
             rdata.ScopeID = scopeID;
@@ -227,8 +232,6 @@ namespace OpenSim.Services.GridService
             if (region != null)
             {
                 int oldFlags = Convert.ToInt32(region.Data["flags"]);
-                if ((oldFlags & (int)OpenSim.Data.RegionFlags.LockedOut) != 0)
-                    return "Region locked out";
 
                 oldFlags &= ~(int)OpenSim.Data.RegionFlags.Reservation;
 
