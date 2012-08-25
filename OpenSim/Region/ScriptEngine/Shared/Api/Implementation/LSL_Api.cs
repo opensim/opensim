@@ -12818,7 +12818,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llCollisionSprite(string impact_sprite)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llCollisionSprite");
+            // Viewer 2.0 broke this and it's likely LL has no intention
+            // of fixing it. Therefore, letting this be a NOP seems appropriate.
         }
 
         public void llGodLikeRezObject(string inventory, LSL_Vector pos)
