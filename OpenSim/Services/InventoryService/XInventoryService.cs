@@ -229,10 +229,28 @@ namespace OpenSim.Services.InventoryService
         public virtual InventoryFolderBase GetFolderForType(UUID principalID, AssetType type)
         {
 //            m_log.DebugFormat("[XINVENTORY SERVICE]: Getting folder type {0} for user {1}", type, principalID);
+
+            InventoryFolderBase rootFolder = GetRootFolder(principalID);
+
+            if (rootFolder == null)
+            {
+                m_log.WarnFormat(
+                    "[XINVENTORY]: Found no root folder for {0} in GetFolderForType() when looking for {1}",
+                    principalID, type);
+
+                return null;
+            }
+            
+            return GetSystemFolderForType(rootFolder, type);
+        }
+
+        private InventoryFolderBase GetSystemFolderForType(InventoryFolderBase rootFolder, AssetType type)
+        {
+//            m_log.DebugFormat("[XINVENTORY SERVICE]: Getting folder type {0} for user {1}", type, principalID);
             
             XInventoryFolder[] folders = m_Database.GetFolders(
-                    new string[] { "agentID", "type"},
-                    new string[] { principalID.ToString(), ((int)type).ToString() });
+                    new string[] { "agentID", "parentFolderID", "type"},
+                    new string[] { rootFolder.Owner.ToString(), rootFolder.ID.ToString(), ((int)type).ToString() });
 
             if (folders.Length == 0)
             {
@@ -308,22 +326,38 @@ namespace OpenSim.Services.InventoryService
             if (check != null)
                 return false;
 
-            if (folder.Type == (short)AssetType.Folder
-                || folder.Type == (short)AssetType.Unknown
-                || folder.Type == (short)AssetType.OutfitFolder
-                || GetFolderForType(folder.Owner, (AssetType)(folder.Type)) == null)
+            if (folder.Type != (short)AssetType.Folder || folder.Type != (short)AssetType.Unknown)
             {
-                XInventoryFolder xFolder = ConvertFromOpenSim(folder);
-                return m_Database.StoreFolder(xFolder);
-            }
-            else
-            {
-                m_log.WarnFormat(
-                    "[XINVENTORY]: Folder of type {0} already exists when tried to add {1} to {2} for {3}",
-                    folder.Type, folder.Name, folder.ParentID, folder.Owner);
+                InventoryFolderBase rootFolder = GetRootFolder(folder.Owner);
+
+                if (rootFolder == null)
+                {
+                    m_log.WarnFormat(
+                        "[XINVENTORY]: Found no root folder for {0} in AddFolder() when looking for {1}",
+                        folder.Owner, folder.Type);
+
+                    return false;
+                }
+
+                // Check we're not trying to add this as a system folder.
+                if (folder.ParentID == rootFolder.ID)
+                {
+                    InventoryFolderBase existingSystemFolder
+                        = GetSystemFolderForType(rootFolder, (AssetType)folder.Type);
+
+                    if (existingSystemFolder != null)
+                    {
+                        m_log.WarnFormat(
+                            "[XINVENTORY]: System folder of type {0} already exists when tried to add {1} to {2} for {3}",
+                            folder.Type, folder.Name, folder.ParentID, folder.Owner);
+    
+                        return false;
+                    }
+                }
             }
 
-            return false;
+            XInventoryFolder xFolder = ConvertFromOpenSim(folder);
+            return m_Database.StoreFolder(xFolder);
         }
 
         public virtual bool UpdateFolder(InventoryFolderBase folder)
