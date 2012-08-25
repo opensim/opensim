@@ -2261,7 +2261,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             List<SceneObjectPart> parts = ((LSL_Api)m_LSL_Api).GetLinkParts(linknumber);
             foreach (SceneObjectPart part in parts)
             {
-                retVal += ((LSL_Api)m_LSL_Api).GetPrimParams(part, rules);
+                ((LSL_Api)m_LSL_Api).GetPrimParams(part, rules, ref retVal);
             }
             return retVal;
         }

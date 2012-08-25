@@ -8636,7 +8636,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_List llGetPrimitiveParams(LSL_List rules)
         {
             m_host.AddScriptLPS(1);
-            return GetPrimParams(m_host, rules);
+
+            LSL_List result = new LSL_List();
+
+            GetPrimParams(m_host, rules, ref result);
+
+            return result;
         }
 
         public LSL_List llGetLinkPrimitiveParams(int linknumber, LSL_List rules)
@@ -8655,24 +8660,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 foreach (var part in parts)
                 {
-                    LSL_List partRes = GetPrimParams(part, rules);
-                    res += partRes;
+                    GetPrimParams(part, rules, ref res);
                 }
             }
             if (avatars.Count > 0)
             {
                 foreach (ScenePresence avatar in avatars)
                 {
-                    LSL_List avaRes = GetPrimParams(avatar, rules);
-                    res += avaRes;
+                    GetPrimParams(avatar, rules, ref res);
                 }
+                // TODO: FINISH MERGE
             }
             return res;
         }
 
-        public LSL_List GetPrimParams(SceneObjectPart part, LSL_List rules)
+        public void GetPrimParams(SceneObjectPart part, LSL_List rules, ref LSL_List res)
         {
-            LSL_List res = new LSL_List();
             int idx=0;
             while (idx < rules.Length)
             {
@@ -8810,7 +8813,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case (int)ScriptBaseClass.PRIM_TEXTURE:
                         if (remain < 1)
-                            return res;
+                            return;
 
                         int face = (int)rules.GetLSLIntegerItem(idx++);
                         Primitive.TextureEntry tex = part.Shape.Textures;
@@ -8850,7 +8853,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case (int)ScriptBaseClass.PRIM_COLOR:
                         if (remain < 1)
-                            return res;
+                            return;
 
                         face=(int)rules.GetLSLIntegerItem(idx++);
 
@@ -8879,7 +8882,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case (int)ScriptBaseClass.PRIM_BUMP_SHINY:
                         if (remain < 1)
-                            return res;
+                            return;
                         face = (int)rules.GetLSLIntegerItem(idx++);
 
                         tex = part.Shape.Textures;
@@ -8935,7 +8938,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case (int)ScriptBaseClass.PRIM_FULLBRIGHT:
                         if (remain < 1)
-                            return res;
+                            return;
                         face = (int)rules.GetLSLIntegerItem(idx++);
 
                         tex = part.Shape.Textures;
@@ -8989,7 +8992,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     case (int)ScriptBaseClass.PRIM_TEXGEN:
                         // (PRIM_TEXGEN_DEFAULT, PRIM_TEXGEN_PLANAR)
                         if (remain < 1)
-                            return res;
+                            return;
                         face = (int)rules.GetLSLIntegerItem(idx++);
 
                         tex = part.Shape.Textures;
@@ -9037,7 +9040,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case (int)ScriptBaseClass.PRIM_GLOW:
                         if (remain < 1)
-                            return res;
+                            return;
                         face = (int)rules.GetLSLIntegerItem(idx++);
 
                         tex = part.Shape.Textures;
@@ -9083,12 +9086,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         break;
                     case (int)ScriptBaseClass.PRIM_LINK_TARGET:
                         if (remain < 3) // setting to 3 on the basis that parsing any usage of PRIM_LINK_TARGET that has nothing following it is pointless.
-                            return res;
+                            return;
                         LSL_Integer new_linknumber = rules.GetLSLIntegerItem(idx++);
                         LSL_List new_rules = rules.GetSublist(idx, -1);
                         LSL_List tres = llGetLinkPrimitiveParams((int)new_linknumber, new_rules);
                         res += tres;
-                        return res;                       
+                        return;
                     case (int)ScriptBaseClass.PRIM_SLICE:
                         PrimType prim_type = part.GetPrimType();
                         bool useProfileBeginEnd = (prim_type == PrimType.SPHERE || prim_type == PrimType.TORUS || prim_type == PrimType.TUBE || prim_type == PrimType.RING);
@@ -9100,7 +9103,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         break;
                 }
             }
-            return res;
         }
 
         public LSL_List llGetPrimMediaParams(int face, LSL_List rules)
@@ -11661,13 +11663,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_List GetPrimitiveParamsEx(LSL_Key prim, LSL_List rules)
         {
             SceneObjectPart obj = World.GetSceneObjectPart(new UUID(prim));
-            if (obj == null)
-                return new LSL_List();
 
-            if (obj.OwnerID != m_host.OwnerID)
-                return new LSL_List();
+            LSL_List result = new LSL_List();
 
-            return GetPrimParams(obj, rules);
+            if (obj != null && obj.OwnerID != m_host.OwnerID)
+            {
+                GetPrimParams(obj, rules, ref result);
+            }
+
+            return result;
         }
 
         public LSL_Integer llGetLinkNumberOfSides(LSL_Integer link)
@@ -12604,110 +12608,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
             }
         }
-    }
-
-    public class NotecardCache
-    {
-        protected class Notecard
-        {
-            public string[] text;
-            public DateTime lastRef;
-        }
-
-        protected static Dictionary<UUID, Notecard> m_Notecards =
-            new Dictionary<UUID, Notecard>();
-
-        public static void Cache(UUID assetID, string text)
-        {
-            CacheCheck();
-
-            lock (m_Notecards)
-            {
-                if (m_Notecards.ContainsKey(assetID))
-                    return;
-
-                Notecard nc = new Notecard();
-                nc.lastRef = DateTime.Now;
-                nc.text = SLUtil.ParseNotecardToList(text).ToArray();
-                m_Notecards[assetID] = nc;
-            }
-        }
-
-        public static bool IsCached(UUID assetID)
-        {
-            lock (m_Notecards)
-            {
-                return m_Notecards.ContainsKey(assetID);
-            }
-        }
-
-        public static int GetLines(UUID assetID)
-        {
-            if (!IsCached(assetID))
-                return -1;
-
-            lock (m_Notecards)
-            {
-                m_Notecards[assetID].lastRef = DateTime.Now;
-                return m_Notecards[assetID].text.Length;
-            }
-        }
-
-        /// <summary>
-        /// Get a notecard line.
-        /// </summary>
-        /// <param name="assetID"></param>
-        /// <param name="line">Lines start at index 0</param>
-        /// <returns></returns>
-        public static string GetLine(UUID assetID, int lineNumber)
-        {
-            if (lineNumber < 0)
-                return "";
-
-            string data;
-
-            if (!IsCached(assetID))
-                return "";
-
-            lock (m_Notecards)
-            {
-                m_Notecards[assetID].lastRef = DateTime.Now;
-
-                if (lineNumber >= m_Notecards[assetID].text.Length)
-                    return "\n\n\n";
-
-                data = m_Notecards[assetID].text[lineNumber];
-
-                return data;
-            }
-        }
-
-        /// <summary>
-        /// Get a notecard line.
-        /// </summary>
-        /// <param name="assetID"></param>
-        /// <param name="line">Lines start at index 0</param>
-        /// <param name="maxLength">Maximum length of the returned line.  Longer lines will be truncated</para>
-        /// <returns></returns>
-        public static string GetLine(UUID assetID, int lineNumber, int maxLength)
-        {
-            string line = GetLine(assetID, lineNumber);
-
-            if (line.Length > maxLength)
-                line = line.Substring(0, maxLength);
-
-            return line;
-        }
-
-        public static void CacheCheck()
-        {
-            foreach (UUID key in new List<UUID>(m_Notecards.Keys))
-            {
-                Notecard nc = m_Notecards[key];
-                if (nc.lastRef.AddSeconds(30) < DateTime.Now)
-                    m_Notecards.Remove(key);
-            }
-        }
 
         protected LSL_List SetPrimParams(ScenePresence av, LSL_List rules)
         {
@@ -12892,12 +12792,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return null;
         }
 
-        public LSL_List GetPrimParams(ScenePresence avatar, LSL_List rules)
+        public void GetPrimParams(ScenePresence avatar, LSL_List rules, ref LSL_List res)
         {
             // avatars case
             // replies as SL wiki
 
-            LSL_List res = new LSL_List();
 //            SceneObjectPart sitPart = avatar.ParentPart; // most likelly it will be needed
             SceneObjectPart sitPart = World.GetSceneObjectPart(avatar.ParentID); // maybe better do this expensive search for it in case it's gone??
 
@@ -12965,7 +12864,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case (int)ScriptBaseClass.PRIM_TEXTURE:
                         if (remain < 1)
-                            return res;
+                            return;
 
                         int face = (int)rules.GetLSLIntegerItem(idx++);
                         if (face == ScriptBaseClass.ALL_SIDES)
@@ -12992,7 +12891,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case (int)ScriptBaseClass.PRIM_COLOR:
                         if (remain < 1)
-                            return res;
+                            return;
 
                         face = (int)rules.GetLSLIntegerItem(idx++);
 
@@ -13013,7 +12912,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case (int)ScriptBaseClass.PRIM_BUMP_SHINY:
                         if (remain < 1)
-                            return res;
+                            return;
                         face = (int)rules.GetLSLIntegerItem(idx++);
 
                         if (face == ScriptBaseClass.ALL_SIDES)
@@ -13033,7 +12932,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case (int)ScriptBaseClass.PRIM_FULLBRIGHT:
                         if (remain < 1)
-                            return res;
+                            return;
                         face = (int)rules.GetLSLIntegerItem(idx++);
 
                         if (face == ScriptBaseClass.ALL_SIDES)
@@ -13062,7 +12961,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     case (int)ScriptBaseClass.PRIM_TEXGEN:
                         // (PRIM_TEXGEN_DEFAULT, PRIM_TEXGEN_PLANAR)
                         if (remain < 1)
-                            return res;
+                            return;
                         face = (int)rules.GetLSLIntegerItem(idx++);
 
                         if (face == ScriptBaseClass.ALL_SIDES)
@@ -13088,7 +12987,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case (int)ScriptBaseClass.PRIM_GLOW:
                         if (remain < 1)
-                            return res;
+                            return;
                         face = (int)rules.GetLSLIntegerItem(idx++);
 
                         if (face == ScriptBaseClass.ALL_SIDES)
@@ -13142,15 +13041,118 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case (int)ScriptBaseClass.PRIM_LINK_TARGET:
                         if (remain < 3) // setting to 3 on the basis that parsing any usage of PRIM_LINK_TARGET that has nothing following it is pointless.
-                            return res;
+                            return;
                         LSL_Integer new_linknumber = rules.GetLSLIntegerItem(idx++);
                         LSL_List new_rules = rules.GetSublist(idx, -1);
 
                         res += llGetLinkPrimitiveParams((int)new_linknumber, new_rules);
-                        return res;
+                        return;
                 }
             }
-            return res;
+        }
+    }
+
+    public class NotecardCache
+    {
+        protected class Notecard
+        {
+            public string[] text;
+            public DateTime lastRef;
+        }
+
+        protected static Dictionary<UUID, Notecard> m_Notecards =
+            new Dictionary<UUID, Notecard>();
+
+        public static void Cache(UUID assetID, string text)
+        {
+            CacheCheck();
+
+            lock (m_Notecards)
+            {
+                if (m_Notecards.ContainsKey(assetID))
+                    return;
+
+                Notecard nc = new Notecard();
+                nc.lastRef = DateTime.Now;
+                nc.text = SLUtil.ParseNotecardToList(text).ToArray();
+                m_Notecards[assetID] = nc;
+            }
+        }
+
+        public static bool IsCached(UUID assetID)
+        {
+            lock (m_Notecards)
+            {
+                return m_Notecards.ContainsKey(assetID);
+            }
+        }
+
+        public static int GetLines(UUID assetID)
+        {
+            if (!IsCached(assetID))
+                return -1;
+
+            lock (m_Notecards)
+            {
+                m_Notecards[assetID].lastRef = DateTime.Now;
+                return m_Notecards[assetID].text.Length;
+            }
+        }
+
+        /// <summary>
+        /// Get a notecard line.
+        /// </summary>
+        /// <param name="assetID"></param>
+        /// <param name="line">Lines start at index 0</param>
+        /// <returns></returns>
+        public static string GetLine(UUID assetID, int lineNumber)
+        {
+            if (lineNumber < 0)
+                return "";
+
+            string data;
+
+            if (!IsCached(assetID))
+                return "";
+
+            lock (m_Notecards)
+            {
+                m_Notecards[assetID].lastRef = DateTime.Now;
+
+                if (lineNumber >= m_Notecards[assetID].text.Length)
+                    return "\n\n\n";
+
+                data = m_Notecards[assetID].text[lineNumber];
+
+                return data;
+            }
+        }
+
+        /// <summary>
+        /// Get a notecard line.
+        /// </summary>
+        /// <param name="assetID"></param>
+        /// <param name="line">Lines start at index 0</param>
+        /// <param name="maxLength">Maximum length of the returned line.  Longer lines will be truncated</para>
+        /// <returns></returns>
+        public static string GetLine(UUID assetID, int lineNumber, int maxLength)
+        {
+            string line = GetLine(assetID, lineNumber);
+
+            if (line.Length > maxLength)
+                line = line.Substring(0, maxLength);
+
+            return line;
+        }
+
+        public static void CacheCheck()
+        {
+            foreach (UUID key in new List<UUID>(m_Notecards.Keys))
+            {
+                Notecard nc = m_Notecards[key];
+                if (nc.lastRef.AddSeconds(30) < DateTime.Now)
+                    m_Notecards.Remove(key);
+            }
         }
     }
 }
