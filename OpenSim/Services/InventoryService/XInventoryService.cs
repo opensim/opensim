@@ -311,6 +311,7 @@ namespace OpenSim.Services.InventoryService
             if (folder.Type == (short)AssetType.Folder
                 || folder.Type == (short)AssetType.Unknown
                 || folder.Type == (short)AssetType.OutfitFolder
+                || folder.Type == (short)AssetType.CallingCard
                 || GetFolderForType(folder.Owner, (AssetType)(folder.Type)) == null)
             {
                 XInventoryFolder xFolder = ConvertFromOpenSim(folder);
