@@ -27,12 +27,15 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Reflection;
+using System.Threading;
 using log4net;
 using Nini.Config;
 using Mono.Addins;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -48,67 +51,49 @@ namespace OpenSim.Region.ClientStack.Linden
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
     public class WebFetchInvDescModule : INonSharedRegionModule
     {
-//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private Scene m_scene;
 
         private IInventoryService m_InventoryService;
         private ILibraryService m_LibraryService;
 
-        private bool m_Enabled;
-
-        private string m_fetchInventoryDescendents2Url;
-        private string m_webFetchInventoryDescendentsUrl;
-
         private WebFetchInvDescHandler m_webFetchHandler;
+
+        private ManualResetEvent m_ev = new ManualResetEvent(true);
+        private object m_lock = new object();
+
+        private Dictionary<UUID, string> m_capsDict = new Dictionary<UUID, string>();
+        private Dictionary<UUID, Hashtable> m_requests = new Dictionary<UUID, Hashtable>();
 
         #region ISharedRegionModule Members
 
         public void Initialise(IConfigSource source)
         {
-            IConfig config = source.Configs["ClientStack.LindenCaps"];
-            if (config == null)
-                return;
-
-            m_fetchInventoryDescendents2Url = config.GetString("Cap_FetchInventoryDescendents2", string.Empty);
-            m_webFetchInventoryDescendentsUrl = config.GetString("Cap_WebFetchInventoryDescendents", string.Empty);
-
-            if (m_fetchInventoryDescendents2Url != string.Empty || m_webFetchInventoryDescendentsUrl != string.Empty)
-            {
-                m_Enabled = true;
-            }
         }
 
         public void AddRegion(Scene s)
         {
-            if (!m_Enabled)
-                return;
-
             m_scene = s;
         }
 
         public void RemoveRegion(Scene s)
         {
-            if (!m_Enabled)
-                return;
-
             m_scene.EventManager.OnRegisterCaps -= RegisterCaps;
+            m_scene.EventManager.OnDeregisterCaps -= DeregisterCaps;
             m_scene = null;
         }
 
         public void RegionLoaded(Scene s)
         {
-            if (!m_Enabled)
-                return;
-
             m_InventoryService = m_scene.InventoryService;
             m_LibraryService = m_scene.LibraryService;
 
             // We'll reuse the same handler for all requests.
-            if (m_fetchInventoryDescendents2Url == "localhost" || m_webFetchInventoryDescendentsUrl == "localhost")
-                m_webFetchHandler = new WebFetchInvDescHandler(m_InventoryService, m_LibraryService);
+            m_webFetchHandler = new WebFetchInvDescHandler(m_InventoryService, m_LibraryService);
 
             m_scene.EventManager.OnRegisterCaps += RegisterCaps;
+            m_scene.EventManager.OnDeregisterCaps += DeregisterCaps;
         }
 
         public void PostInitialise()
@@ -128,41 +113,110 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private void RegisterCaps(UUID agentID, Caps caps)
         {
-            if (m_webFetchInventoryDescendentsUrl != "")
-                RegisterFetchCap(agentID, caps, "WebFetchInventoryDescendents", m_webFetchInventoryDescendentsUrl);
+            string capUrl = "/CAPS/" + UUID.Random() + "/";
 
-            if (m_fetchInventoryDescendents2Url != "")
-                RegisterFetchCap(agentID, caps, "FetchInventoryDescendents2", m_fetchInventoryDescendents2Url);
+            // Register this as a poll service
+            PollServiceEventArgs args = new PollServiceEventArgs(HttpRequestHandler, HasEvents, GetEvents, NoEvents, agentID, 300000);
+            args.Type = PollServiceEventArgs.EventType.Inventory;
+            MainServer.Instance.AddPollServiceHTTPHandler(capUrl, args);
+
+            string hostName = m_scene.RegionInfo.ExternalHostName;
+            uint port = (MainServer.Instance == null) ? 0 : MainServer.Instance.Port;
+            string protocol = "http";
+            
+            if (MainServer.Instance.UseSSL)
+            {
+                hostName = MainServer.Instance.SSLCommonName;
+                port = MainServer.Instance.SSLPort;
+                protocol = "https";
+            }
+            caps.RegisterHandler("FetchInventoryDescendents2", String.Format("{0}://{1}:{2}{3}", protocol, hostName, port, capUrl));
+
+            m_capsDict[agentID] = capUrl;
         }
 
-        private void RegisterFetchCap(UUID agentID, Caps caps, string capName, string url)
+        private void DeregisterCaps(UUID agentID, Caps caps)
         {
             string capUrl;
 
-            if (url == "localhost")
+            if (m_capsDict.TryGetValue(agentID, out capUrl))
             {
-                capUrl = "/CAPS/" + UUID.Random();
-
-                IRequestHandler reqHandler
-                    = new RestStreamHandler(
-                        "POST",
-                        capUrl,
-                        m_webFetchHandler.FetchInventoryDescendentsRequest,
-                        "FetchInventoryDescendents2",
-                        agentID.ToString());
-
-                caps.RegisterHandler(capName, reqHandler);
+                MainServer.Instance.RemoveHTTPHandler("", capUrl);
+                m_capsDict.Remove(agentID);
             }
-            else
+        }
+
+        public void HttpRequestHandler(UUID requestID, Hashtable request)
+        {
+//            m_log.DebugFormat("[FETCH2]: Received request {0}", requestID);
+            m_requests[requestID] = request;
+        }
+
+        private bool HasEvents(UUID requestID, UUID sessionID)
+        {
+            lock (m_lock)
             {
-                capUrl = url;
+                if (m_ev.WaitOne(0))
+                {
+                    m_ev.Reset();
+                    return true;
+                }
+                return false;
+            }
+        }
 
-                caps.RegisterHandler(capName, capUrl);
+        private Hashtable NoEvents(UUID requestID, UUID sessionID)
+        {
+            m_requests.Remove(requestID);
+
+            Hashtable response = new Hashtable();
+
+            response["int_response_code"] = 500;
+            response["str_response_string"] = "Script timeout";
+            response["content_type"] = "text/plain";
+            response["keepalive"] = false;
+            response["reusecontext"] = false;
+
+            return response;
+        }
+
+        private Hashtable GetEvents(UUID requestID, UUID sessionID, string request)
+        {
+            Hashtable response = new Hashtable();
+
+            response["int_response_code"] = 500;
+            response["str_response_string"] = "Internal error";
+            response["content_type"] = "text/plain";
+            response["keepalive"] = false;
+            response["reusecontext"] = false;
+
+            try
+            {
+                Hashtable requestHash;
+                if (!m_requests.TryGetValue(requestID, out requestHash))
+                {
+                    lock (m_lock)
+                        m_ev.Set();
+                    response["str_response_string"] = "Invalid request";
+                    return response;
+                }
+
+//                m_log.DebugFormat("[FETCH2]: Processed request {0}", requestID);
+
+                string reply = m_webFetchHandler.FetchInventoryDescendentsRequest(requestHash["body"].ToString(), String.Empty, String.Empty, null, null);
+
+                m_requests.Remove(requestID);
+
+                response["int_response_code"] = 200;
+                response["str_response_string"] = reply;
+            }
+            finally
+            {
+                lock (m_lock)
+                    m_ev.Set();
             }
 
-//            m_log.DebugFormat(
-//                "[WEB FETCH INV DESC MODULE]: Registered capability {0} at {1} in region {2} for {3}",
-//                capName, capUrl, m_scene.RegionInfo.RegionName, agentID);
+            return response;
         }
     }
 }

@@ -51,7 +51,8 @@ namespace OpenSim.Framework.Servers.HttpServer
         public enum EventType : int
         {
             Normal = 0,
-            LslHttp = 1
+            LslHttp = 1,
+            Inventory = 2
         }
 
         public PollServiceEventArgs(
