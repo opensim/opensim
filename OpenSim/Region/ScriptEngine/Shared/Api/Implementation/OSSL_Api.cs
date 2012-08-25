@@ -2261,10 +2261,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // on the ILSL_Api interface.
             LSL_Api LSL_Api = (LSL_Api)m_LSL_Api;
             LSL_List retVal = new LSL_List();
+            LSL_List remaining = null;
             List<SceneObjectPart> parts = LSL_Api.GetLinkParts(linknumber);
             foreach (SceneObjectPart part in parts)
             {
-                LSL_Api.GetPrimParams(part, rules, ref retVal);
+                remaining = LSL_Api.GetPrimParams(part, rules, ref retVal);
+            }
+
+            while (remaining != null && remaining.Length > 2)
+            {
+                linknumber = remaining.GetLSLIntegerItem(0);
+                rules = remaining.GetSublist(1, -1);
+                parts = LSL_Api.GetLinkParts(linknumber);
+
+                foreach (SceneObjectPart part in parts)
+                    remaining = LSL_Api.GetPrimParams(part, rules, ref retVal);
             }
             return retVal;
         }

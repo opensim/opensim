@@ -8639,7 +8639,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             LSL_List result = new LSL_List();
 
-            GetPrimParams(m_host, rules, ref result);
+            LSL_List remaining = GetPrimParams(m_host, rules, ref result);
+
+            while (remaining != null && remaining.Length > 2)
+            {
+                int linknumber = remaining.GetLSLIntegerItem(0);
+                rules = remaining.GetSublist(1, -1);
+                List<SceneObjectPart> parts = GetLinkParts(linknumber);
+
+                foreach (SceneObjectPart part in parts)
+                    remaining = GetPrimParams(part, rules, ref result);
+            }
 
             return result;
         }
@@ -8651,30 +8661,38 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // acording to SL wiki this must indicate a single link number or link_root or link_this.
             // keep other options as before
 
-            List<SceneObjectPart> parts = GetLinkParts(linknumber);
-            List<ScenePresence> avatars = GetLinkAvatars(linknumber);
-
+            List<SceneObjectPart> parts;
+            List<ScenePresence> avatars;
+            
             LSL_List res = new LSL_List();
+            LSL_List remaining = null;
 
-            if (parts.Count > 0)
+            while (rules.Length > 0)
             {
-                foreach (var part in parts)
+                parts = GetLinkParts(linknumber);
+                avatars = GetLinkAvatars(linknumber);
+
+                remaining = null;
+                foreach (SceneObjectPart part in parts)
                 {
-                    GetPrimParams(part, rules, ref res);
+                    remaining = GetPrimParams(part, rules, ref res);
                 }
-            }
-            if (avatars.Count > 0)
-            {
                 foreach (ScenePresence avatar in avatars)
                 {
-                    GetPrimParams(avatar, rules, ref res);
+                    remaining = GetPrimParams(avatar, rules, ref res);
                 }
-                // TODO: FINISH MERGE
+
+                if (remaining != null && remaining.Length > 0)
+                {
+                    linknumber = remaining.GetLSLIntegerItem(0);
+                    rules = remaining.GetSublist(1, -1);
+                }
             }
+
             return res;
         }
 
-        public void GetPrimParams(SceneObjectPart part, LSL_List rules, ref LSL_List res)
+        public LSL_List GetPrimParams(SceneObjectPart part, LSL_List rules, ref LSL_List res)
         {
             int idx=0;
             while (idx < rules.Length)
@@ -8813,7 +8831,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case (int)ScriptBaseClass.PRIM_TEXTURE:
                         if (remain < 1)
-                            return;
+                            return null;
 
                         int face = (int)rules.GetLSLIntegerItem(idx++);
                         Primitive.TextureEntry tex = part.Shape.Textures;
@@ -8853,7 +8871,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case (int)ScriptBaseClass.PRIM_COLOR:
                         if (remain < 1)
-                            return;
+                            return null;
 
                         face=(int)rules.GetLSLIntegerItem(idx++);
 
@@ -8882,7 +8900,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case (int)ScriptBaseClass.PRIM_BUMP_SHINY:
                         if (remain < 1)
-                            return;
+                            return null;
+
                         face = (int)rules.GetLSLIntegerItem(idx++);
 
                         tex = part.Shape.Textures;
@@ -8938,7 +8957,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case (int)ScriptBaseClass.PRIM_FULLBRIGHT:
                         if (remain < 1)
-                            return;
+                            return null;
+
                         face = (int)rules.GetLSLIntegerItem(idx++);
 
                         tex = part.Shape.Textures;
@@ -8992,7 +9012,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     case (int)ScriptBaseClass.PRIM_TEXGEN:
                         // (PRIM_TEXGEN_DEFAULT, PRIM_TEXGEN_PLANAR)
                         if (remain < 1)
-                            return;
+                            return null;
+
                         face = (int)rules.GetLSLIntegerItem(idx++);
 
                         tex = part.Shape.Textures;
@@ -9040,7 +9061,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case (int)ScriptBaseClass.PRIM_GLOW:
                         if (remain < 1)
-                            return;
+                            return null;
+
                         face = (int)rules.GetLSLIntegerItem(idx++);
 
                         tex = part.Shape.Textures;
@@ -9084,14 +9106,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     case (int)ScriptBaseClass.PRIM_POS_LOCAL:
                         res.Add(new LSL_Vector(GetPartLocalPos(part)));
                         break;
-                    case (int)ScriptBaseClass.PRIM_LINK_TARGET:
-                        if (remain < 3) // setting to 3 on the basis that parsing any usage of PRIM_LINK_TARGET that has nothing following it is pointless.
-                            return;
-                        LSL_Integer new_linknumber = rules.GetLSLIntegerItem(idx++);
-                        LSL_List new_rules = rules.GetSublist(idx, -1);
-                        LSL_List tres = llGetLinkPrimitiveParams((int)new_linknumber, new_rules);
-                        res += tres;
-                        return;
                     case (int)ScriptBaseClass.PRIM_SLICE:
                         PrimType prim_type = part.GetPrimType();
                         bool useProfileBeginEnd = (prim_type == PrimType.SPHERE || prim_type == PrimType.TORUS || prim_type == PrimType.TUBE || prim_type == PrimType.RING);
@@ -9101,8 +9115,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             0
                         ));
                         break;
+                    case (int)ScriptBaseClass.PRIM_LINK_TARGET:
+                        if(remain < 3)
+                            return null;
+
+                        return rules.GetSublist(idx, -1);
                 }
             }
+
+            return null;
         }
 
         public LSL_List llGetPrimMediaParams(int face, LSL_List rules)
@@ -11668,7 +11689,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (obj != null && obj.OwnerID != m_host.OwnerID)
             {
-                GetPrimParams(obj, rules, ref result);
+                LSL_List remaining = GetPrimParams(obj, rules, ref result);
+
+                while (remaining != null && remaining.Length > 2)
+                {
+                    int linknumber = remaining.GetLSLIntegerItem(0);
+                    rules = remaining.GetSublist(1, -1);
+                    List<SceneObjectPart> parts = GetLinkParts(linknumber);
+
+                    foreach (SceneObjectPart part in parts)
+                        remaining = GetPrimParams(part, rules, ref result);
+                }
             }
 
             return result;
@@ -12792,7 +12823,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return null;
         }
 
-        public void GetPrimParams(ScenePresence avatar, LSL_List rules, ref LSL_List res)
+        public LSL_List GetPrimParams(ScenePresence avatar, LSL_List rules, ref LSL_List res)
         {
             // avatars case
             // replies as SL wiki
@@ -12864,7 +12895,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case (int)ScriptBaseClass.PRIM_TEXTURE:
                         if (remain < 1)
-                            return;
+                            return null;
 
                         int face = (int)rules.GetLSLIntegerItem(idx++);
                         if (face == ScriptBaseClass.ALL_SIDES)
@@ -12891,7 +12922,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case (int)ScriptBaseClass.PRIM_COLOR:
                         if (remain < 1)
-                            return;
+                            return null;
 
                         face = (int)rules.GetLSLIntegerItem(idx++);
 
@@ -12912,7 +12943,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case (int)ScriptBaseClass.PRIM_BUMP_SHINY:
                         if (remain < 1)
-                            return;
+                            return null;
                         face = (int)rules.GetLSLIntegerItem(idx++);
 
                         if (face == ScriptBaseClass.ALL_SIDES)
@@ -12932,7 +12963,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case (int)ScriptBaseClass.PRIM_FULLBRIGHT:
                         if (remain < 1)
-                            return;
+                            return null;
                         face = (int)rules.GetLSLIntegerItem(idx++);
 
                         if (face == ScriptBaseClass.ALL_SIDES)
@@ -12961,7 +12992,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     case (int)ScriptBaseClass.PRIM_TEXGEN:
                         // (PRIM_TEXGEN_DEFAULT, PRIM_TEXGEN_PLANAR)
                         if (remain < 1)
-                            return;
+                            return null;
                         face = (int)rules.GetLSLIntegerItem(idx++);
 
                         if (face == ScriptBaseClass.ALL_SIDES)
@@ -12987,7 +13018,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case (int)ScriptBaseClass.PRIM_GLOW:
                         if (remain < 1)
-                            return;
+                            return null;
                         face = (int)rules.GetLSLIntegerItem(idx++);
 
                         if (face == ScriptBaseClass.ALL_SIDES)
@@ -13041,14 +13072,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case (int)ScriptBaseClass.PRIM_LINK_TARGET:
                         if (remain < 3) // setting to 3 on the basis that parsing any usage of PRIM_LINK_TARGET that has nothing following it is pointless.
-                            return;
-                        LSL_Integer new_linknumber = rules.GetLSLIntegerItem(idx++);
-                        LSL_List new_rules = rules.GetSublist(idx, -1);
+                            return null;
 
-                        res += llGetLinkPrimitiveParams((int)new_linknumber, new_rules);
-                        return;
+                        return rules.GetSublist(idx, -1);
                 }
             }
+
+            return null;
         }
     }
 
