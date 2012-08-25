@@ -430,7 +430,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
               void llSetPhysicsMaterial(int material_bits, float material_gravity_modifier, float material_restitution, float material_friction, float material_density);
 
               void SetPrimitiveParamsEx(LSL_Key prim, LSL_List rules);
-          LSL_List GetLinkPrimitiveParamsEx(LSL_Key prim, LSL_List rules);
               void llSetKeyframedMotion(LSL_List frames, LSL_List options);
+          LSL_List GetPrimitiveParamsEx(LSL_Key prim, LSL_List rules);
     }
 }

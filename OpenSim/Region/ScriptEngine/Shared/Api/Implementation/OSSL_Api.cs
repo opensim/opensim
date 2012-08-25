@@ -2261,7 +2261,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             List<SceneObjectPart> parts = ((LSL_Api)m_LSL_Api).GetLinkParts(linknumber);
             foreach (SceneObjectPart part in parts)
             {
-                retVal += ((LSL_Api)m_LSL_Api).GetLinkPrimitiveParams(part, rules);
+                retVal += ((LSL_Api)m_LSL_Api).GetPrimParams(part, rules);
             }
             return retVal;
         }
@@ -3013,7 +3013,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             InitLSL();
             
-            return m_LSL_Api.GetLinkPrimitiveParamsEx(prim, rules);
+            return m_LSL_Api.GetPrimitiveParamsEx(prim, rules);
         }
 
         public void osSetPrimitiveParams(LSL_Key prim, LSL_List rules)

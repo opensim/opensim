@@ -3737,7 +3737,7 @@ namespace OpenSim.Region.Framework.Scenes
                     "[SCENE]: Existing root scene presence detected for {0} {1} in {2} when connecting.  Removing existing presence.",
                     sp.Name, sp.UUID, RegionInfo.RegionName);
 
-                sp.ControllingClient.Close(true);
+                sp.ControllingClient.Close(true, true);
                 sp = null;
             }
 

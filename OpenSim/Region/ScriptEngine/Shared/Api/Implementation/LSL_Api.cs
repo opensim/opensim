@@ -8821,7 +8821,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_List llGetPrimitiveParams(LSL_List rules)
         {
             m_host.AddScriptLPS(1);
-            return GetLinkPrimitiveParams(m_host, rules);
+            return GetPrimParams(m_host, rules);
         }
 
         public LSL_List llGetLinkPrimitiveParams(int linknumber, LSL_List rules)
@@ -8840,7 +8840,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 foreach (var part in parts)
                 {
-                    LSL_List partRes = GetLinkPrimitiveParams(part, rules);
+                    LSL_List partRes = GetPrimParams(part, rules);
                     res += partRes;
                 }
             }
@@ -8848,14 +8848,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 foreach (ScenePresence avatar in avatars)
                 {
-                    LSL_List avaRes = GetLinkPrimitiveParams(avatar, rules);
+                    LSL_List avaRes = GetPrimParams(avatar, rules);
                     res += avaRes;
                 }
             }
             return res;
         }
 
-        public LSL_List GetLinkPrimitiveParams(ScenePresence avatar, LSL_List rules)
+        public LSL_List GetPrimParams(ScenePresence avatar, LSL_List rules)
         {
             // avatars case
             // replies as SL wiki
@@ -9116,7 +9116,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return res;
         }
 
-        public LSL_List GetLinkPrimitiveParams(SceneObjectPart part, LSL_List rules)
+        public LSL_List GetPrimParams(SceneObjectPart part, LSL_List rules)
         {
             LSL_List res = new LSL_List();
             int idx=0;
@@ -12104,7 +12104,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
-        public LSL_List GetLinkPrimitiveParamsEx(LSL_Key prim, LSL_List rules)
+        public LSL_List GetPrimitiveParamsEx(LSL_Key prim, LSL_List rules)
         {
             SceneObjectPart obj = World.GetSceneObjectPart(new UUID(prim));
             if (obj == null)
@@ -12113,7 +12113,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (obj.OwnerID != m_host.OwnerID)
                 return new LSL_List();
 
-            return GetLinkPrimitiveParams(obj, rules);
+            return GetPrimParams(obj, rules);
         }
 
         public LSL_Integer llGetLinkNumberOfSides(LSL_Integer link)
