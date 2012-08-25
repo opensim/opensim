@@ -1983,6 +1983,9 @@ namespace OpenSim.Region.Framework.Scenes
 
                 SceneObjectGroup grp = part.ParentGroup;
 
+                // If child prims have invalid perms, fix them
+                grp.AdjustChildPrimPermissions();
+
                 if (remoteClient == null)
                 {
                     // Autoreturn has a null client. Nothing else does. So
@@ -2050,7 +2053,7 @@ namespace OpenSim.Region.Framework.Scenes
                         if (Permissions.CanReturnObjects(
                                         null,
                                         remoteClient.AgentId,
-                                        deleteGroups))
+                                        new List<SceneObjectGroup>() {grp}))
                         {
                             permissionToTake = true;
                             permissionToDelete = true;

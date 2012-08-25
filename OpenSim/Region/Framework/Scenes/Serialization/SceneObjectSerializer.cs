@@ -386,6 +386,8 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             m_SOPXmlProcessors.Add("Friction", ProcessFriction);
             m_SOPXmlProcessors.Add("Bounce", ProcessBounce);
             m_SOPXmlProcessors.Add("GravityModifier", ProcessGravityModifier);
+            m_SOPXmlProcessors.Add("CameraEyeOffset", ProcessCameraEyeOffset);
+            m_SOPXmlProcessors.Add("CameraAtOffset", ProcessCameraAtOffset);
 
             #endregion
 
@@ -637,6 +639,16 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         private static void ProcessGravityModifier(SceneObjectPart obj, XmlTextReader reader)
         {
             obj.GravityModifier = reader.ReadElementContentAsFloat("GravityModifier", String.Empty);
+        }
+
+        private static void ProcessCameraEyeOffset(SceneObjectPart obj, XmlTextReader reader)
+        {
+            obj.SetCameraEyeOffset(Util.ReadVector(reader, "CameraEyeOffset"));
+        }
+
+        private static void ProcessCameraAtOffset(SceneObjectPart obj, XmlTextReader reader)
+        {
+            obj.SetCameraAtOffset(Util.ReadVector(reader, "CameraAtOffset"));
         }
 
         private static void ProcessVehicle(SceneObjectPart obj, XmlTextReader reader)
@@ -1355,6 +1367,8 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 writer.WriteElementString("Bounce", sop.Bounciness.ToString().ToLower());
             if (sop.GravityModifier != 1.0f)
                 writer.WriteElementString("GravityModifier", sop.GravityModifier.ToString().ToLower());
+            WriteVector(writer, "CameraEyeOffset", sop.GetCameraEyeOffset());
+            WriteVector(writer, "CameraAtOffset", sop.GetCameraAtOffset());
 
             writer.WriteEndElement();
         }
