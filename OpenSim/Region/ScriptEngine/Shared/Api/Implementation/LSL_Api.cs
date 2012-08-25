@@ -6252,18 +6252,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
 
             List<SceneObjectPart> parts = GetLinkParts(linknumber);
-            if (parts.Count > 0)
+
+            try
             {
-                try
+                foreach (SceneObjectPart part in parts)
                 {
-                    foreach (var part in parts)
-                    {
-                        SetTextureAnim(part, mode, face, sizex, sizey, start, length, rate);
-                    }
+                    SetTextureAnim(part, mode, face, sizex, sizey, start, length, rate);
                 }
-                finally
-                {
-                }
+            }
+            finally
+            {
             }
         }
 
@@ -6658,7 +6656,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             List<SceneObjectPart> parts = GetLinkParts(linknumber);
 
-            foreach (var part in parts)
+            foreach (SceneObjectPart part in parts)
             {
                 SetParticleSystem(part, rules);
             }
