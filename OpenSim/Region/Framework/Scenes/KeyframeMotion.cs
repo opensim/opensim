@@ -38,8 +38,8 @@ namespace OpenSim.Region.Framework.Scenes
         [Flags]
         public enum DataFormat : int
         {
-            Translation = 1,
-            Rotation = 2
+            Translation = 2,
+            Rotation = 1
         }
 
         [Serializable]
