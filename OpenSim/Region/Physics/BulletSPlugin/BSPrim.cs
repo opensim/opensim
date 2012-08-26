@@ -377,7 +377,7 @@ public sealed class BSPrim : BSPhysObject
 
     // Called each simulation step to advance vehicle characteristics.
     // Called from Scene when doing simulation step so we're in taint processing time.
-    public void StepVehicle(float timeStep)
+    public override void StepVehicle(float timeStep)
     {
         if (IsPhysical)
             _vehicle.Step(timeStep);

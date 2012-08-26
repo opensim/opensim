@@ -51,6 +51,8 @@ public abstract class BSPhysObject : PhysicsActor
     public abstract BulletBody Body { get; set; }
     public abstract void ZeroMotion();
 
+    public virtual void StepVehicle(float timeStep) { }
+
     public abstract void UpdateProperties(EntityProperties entprop);
 
     public abstract void Destroy();

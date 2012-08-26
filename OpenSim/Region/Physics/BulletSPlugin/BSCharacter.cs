@@ -226,16 +226,37 @@ public class BSCharacter : BSPhysObject
         bool ret = false;
         
         // If below the ground, move the avatar up
-        float terrainHeight = Scene.GetTerrainHeightAtXYZ(_position);
-        if (_position.Z < terrainHeight)
+        float terrainHeight = Scene.TerrainManager.GetTerrainHeightAtXYZ(_position);
+        if (Position.Z < terrainHeight)
         {
-            DetailLog("{0},BSCharacter.PositionAdjustUnderGround,call,pos={1},orient={2}", LocalID, _position, _orientation);
-            _position.Z = terrainHeight + 2.0f;
+            DetailLog("{0},BSCharacter.PositionAdjustUnderGround,call,pos={1},terrain={2}", LocalID, _position, terrainHeight);
+            Vector3 newPos = _position;
+            newPos.Z = terrainHeight + 2.0f;
+            _position = newPos;
             ret = true;
         }
 
         // TODO: check for out of bounds
+        return ret;
+    }
 
+    // A version of the sanity check that also makes sure a new position value is
+    //    pushed back to the physics engine. This routine would be used by anyone
+    //    who is not already pushing the value.
+    private bool PositionSanityCheck2()
+    {
+        bool ret = false;
+        if (PositionSanityCheck())
+        {
+            // The new position value must be pushed into the physics engine but we can't
+            //    just assign to "Position" because of potential call loops.
+            _scene.TaintedObject("BSCharacter.PositionSanityCheck", delegate()
+            {
+                DetailLog("{0},BSCharacter.PositionSanityCheck,taint,pos={1},orient={2}", LocalID, _position, _orientation);
+                BulletSimAPI.SetObjectTranslation(_scene.WorldID, _localID, _position, _orientation);
+            });
+            ret = true;
+        }
         return ret;
     }
 
@@ -500,9 +521,13 @@ public class BSCharacter : BSPhysObject
         // Avatars don't report their changes the usual way. Changes are checked for in the heartbeat loop.
         // base.RequestPhysicsterseUpdate();
 
-        DetailLog("{0},BSCharacter.UpdateProperties,call,pos={1},orient={2},vel={3},accel={4},rotVel={5}",
+        // Do some sanity checking for the avatar. Make sure it's above ground and inbounds.
+        PositionSanityCheck2();
+
+        float heightHere = Scene.TerrainManager.GetTerrainHeightAtXYZ(_position);   // just for debug
+        DetailLog("{0},BSCharacter.UpdateProperties,call,pos={1},orient={2},vel={3},accel={4},rotVel={5},terrain={6}",
                 LocalID, entprop.Position, entprop.Rotation, entprop.Velocity, 
-                entprop.Acceleration, entprop.RotationalVelocity);
+                entprop.Acceleration, entprop.RotationalVelocity, heightHere);
     }
 
     // Called by the scene when a collision with this object is reported
