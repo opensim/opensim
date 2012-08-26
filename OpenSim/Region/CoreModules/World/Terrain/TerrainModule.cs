@@ -414,6 +414,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         private void LoadPlugins()
         {
             m_plugineffects = new Dictionary<string, ITerrainEffect>();
+            LoadPlugins(Assembly.GetCallingAssembly());
             string plugineffectsPath = "Terrain";
             
             // Load the files in the Terrain/ dir
@@ -427,6 +428,16 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 try
                 {
                     Assembly library = Assembly.LoadFrom(file);
+                    LoadPlugins(library);
+                }
+                catch (BadImageFormatException)
+                {
+                }
+            }
+        }
+
+        private void LoadPlugins(Assembly library)
+        {
                     foreach (Type pluginType in library.GetTypes())
                     {
                         try
@@ -453,11 +464,6 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                         {
                         }
                     }
-                }
-                catch (BadImageFormatException)
-                {
-                }
-            }
         }
 
         public void InstallPlugin(string pluginName, ITerrainEffect effect)
