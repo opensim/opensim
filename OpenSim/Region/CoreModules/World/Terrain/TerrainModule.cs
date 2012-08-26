@@ -1176,7 +1176,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain
 
         private void InterfaceRunPluginEffect(Object[] args)
         {
-            if ((string) args[0] == "list")
+            string firstArg = (string)args[0];
+            if (firstArg == "list")
             {
                 m_log.Info("List of loaded plugins");
                 foreach (KeyValuePair<string, ITerrainEffect> kvp in m_plugineffects)
@@ -1185,14 +1186,14 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 }
                 return;
             }
-            if ((string) args[0] == "reload")
+            if (firstArg == "reload")
             {
                 LoadPlugins();
                 return;
             }
-            if (m_plugineffects.ContainsKey((string) args[0]))
+            if (m_plugineffects.ContainsKey(firstArg))
             {
-                m_plugineffects[(string) args[0]].RunEffect(m_channel);
+                m_plugineffects[firstArg].RunEffect(m_channel);
                 CheckForTerrainUpdates();
             }
             else
