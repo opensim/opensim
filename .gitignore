@@ -30,6 +30,10 @@ bin/*.db-journal
 bin/addin-db-*
 bin/*.dll
 bin/OpenSim.vshost.exe.config
+bin/OpenSim.32BitLaunch.vshost.exe.config
+bin/OpenSim.32BitLaunch.log
+UpgradeLog.XML
+_UpgradeReport_Files/
 bin/ScriptEngines/*-*-*-*-*
 bin/ScriptEngines/*.dll
 bin/ScriptEngines/*/*.dll
