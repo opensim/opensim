@@ -108,5 +108,36 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender.Tests
 
             Assert.That(firstDynamicTextureID, Is.Not.EqualTo(so.RootPart.Shape.Textures.GetFace(0).TextureID));
         }
+
+        [Test]
+        public void TestRepeatDrawContainingImage()
+        {
+            TestHelpers.InMethod();
+
+            string dtText
+                = "PenColour BLACK; MoveTo 40,220; FontSize 32; Text Hello World; Image http://localhost/shouldnotexist.png";
+
+            SceneObjectGroup so = SceneHelpers.AddSceneObject(m_scene);
+
+            m_dtm.AddDynamicTextureData(
+                m_scene.RegionInfo.RegionID,
+                so.UUID,
+                m_vrm.GetContentType(),
+                dtText,
+                "",
+                0);
+
+            UUID firstDynamicTextureID = so.RootPart.Shape.Textures.GetFace(0).TextureID;
+
+            m_dtm.AddDynamicTextureData(
+                m_scene.RegionInfo.RegionID,
+                so.UUID,
+                m_vrm.GetContentType(),
+                dtText,
+                "",
+                0);
+
+            Assert.That(firstDynamicTextureID, Is.Not.EqualTo(so.RootPart.Shape.Textures.GetFace(0).TextureID));
+        }
     }
 }
