@@ -47,7 +47,6 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private string m_name = "VectorRenderModule";
         private Scene m_scene;
         private IDynamicTextureManager m_textureManager;
         private Graphics m_graph;
@@ -61,12 +60,12 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
 
         public string GetContentType()
         {
-            return ("vector");
+            return "vector";
         }
 
         public string GetName()
         {
-            return m_name;
+            return Name;
         }
 
         public bool SupportsAsynchronous()
@@ -152,7 +151,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
 
         public string Name
         {
-            get { return m_name; }
+            get { return "VectorRenderModule"; }
         }
 
         public bool IsSharedModule
