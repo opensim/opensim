@@ -438,32 +438,32 @@ namespace OpenSim.Region.CoreModules.World.Terrain
 
         private void LoadPlugins(Assembly library)
         {
-                    foreach (Type pluginType in library.GetTypes())
+            foreach (Type pluginType in library.GetTypes())
+            {
+                try
+                {
+                    if (pluginType.IsAbstract || pluginType.IsNotPublic)
+                        continue;
+
+                    string typeName = pluginType.Name;
+
+                    if (pluginType.GetInterface("ITerrainEffect", false) != null)
                     {
-                        try
-                        {
-                            if (pluginType.IsAbstract || pluginType.IsNotPublic)
-                                continue;
+                        ITerrainEffect terEffect = (ITerrainEffect)Activator.CreateInstance(library.GetType(pluginType.ToString()));
 
-                            string typeName = pluginType.Name;
-
-                            if (pluginType.GetInterface("ITerrainEffect", false) != null)
-                            {
-                                ITerrainEffect terEffect = (ITerrainEffect) Activator.CreateInstance(library.GetType(pluginType.ToString()));
-
-                                InstallPlugin(typeName, terEffect);
-                            }
-                            else if (pluginType.GetInterface("ITerrainLoader", false) != null)
-                            {
-                                ITerrainLoader terLoader = (ITerrainLoader) Activator.CreateInstance(library.GetType(pluginType.ToString()));
-                                m_loaders[terLoader.FileExtension] = terLoader;
-                                m_log.Info("L ... " + typeName);
-                            }
-                        }
-                        catch (AmbiguousMatchException)
-                        {
-                        }
+                        InstallPlugin(typeName, terEffect);
                     }
+                    else if (pluginType.GetInterface("ITerrainLoader", false) != null)
+                    {
+                        ITerrainLoader terLoader = (ITerrainLoader)Activator.CreateInstance(library.GetType(pluginType.ToString()));
+                        m_loaders[terLoader.FileExtension] = terLoader;
+                        m_log.Info("L ... " + typeName);
+                    }
+                }
+                catch (AmbiguousMatchException)
+                {
+                }
+            }
         }
 
         public void InstallPlugin(string pluginName, ITerrainEffect effect)
