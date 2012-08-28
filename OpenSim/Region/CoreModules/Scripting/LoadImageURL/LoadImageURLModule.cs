@@ -72,7 +72,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
             return null;
         }
 
-        public byte[] ConvertStream(Stream data, string extraParams)
+        public byte[] ConvertData(string bodyData, string extraParams)
         {
             return null;
         }

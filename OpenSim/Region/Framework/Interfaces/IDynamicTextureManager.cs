@@ -114,7 +114,7 @@ namespace OpenSim.Region.Framework.Interfaces
         string GetContentType();
         bool SupportsAsynchronous();
         byte[] ConvertUrl(string url, string extraParams);
-        byte[] ConvertStream(Stream data, string extraParams);
+        byte[] ConvertData(string bodyData, string extraParams);
         bool AsyncConvertUrl(UUID id, string url, string extraParams);
         bool AsyncConvertData(UUID id, string bodyData, string extraParams);
         void GetDrawStringSize(string text, string fontName, int fontSize, 

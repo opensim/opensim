@@ -78,9 +78,9 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
             return null;
         }
 
-        public byte[] ConvertStream(Stream data, string extraParams)
+        public byte[] ConvertData(string bodyData, string extraParams)
         {
-            return null;
+            return Draw(bodyData, extraParams);
         }
 
         public bool AsyncConvertUrl(UUID id, string url, string extraParams)
@@ -90,7 +90,8 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
 
         public bool AsyncConvertData(UUID id, string bodyData, string extraParams)
         {
-            Draw(bodyData, id, extraParams);
+            // XXX: This isn't actually being done asynchronously!
+            m_textureManager.ReturnData(id, ConvertData(bodyData, extraParams));
             return true;
         }
 
@@ -161,7 +162,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
 
         #endregion
 
-        private void Draw(string data, UUID id, string extraParams)
+        private byte[] Draw(string data, string extraParams)
         {
             // We need to cater for old scripts that didnt use extraParams neatly, they use either an integer size which represents both width and height, or setalpha
             // we will now support multiple comma seperated params in the form  width:256,height:512,alpha:255
@@ -358,7 +359,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                         e.Message, e.StackTrace);
                 }
 
-                m_textureManager.ReturnData(id, imageJ2000);
+                return imageJ2000;
             }
             finally
             {
