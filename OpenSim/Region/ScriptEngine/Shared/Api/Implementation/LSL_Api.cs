@@ -7234,9 +7234,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             List<SceneObjectPart> parts = GetLinkParts(linknumber);
 
             LSL_List remaining = null;
+            uint rulesParsed = 0;
 
             foreach (SceneObjectPart part in parts)
-                remaining = SetPrimParams(part, rules, originFunc);
+                remaining = SetPrimParams(part, rules, originFunc, ref rulesParsed);
 
             while (remaining != null && remaining.Length > 2)
             {
@@ -7245,11 +7246,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 parts = GetLinkParts(linknumber);
 
                 foreach (SceneObjectPart part in parts)
-                    remaining = SetPrimParams(part, rules, originFunc);
+                    remaining = SetPrimParams(part, rules, originFunc, ref rulesParsed);
             }
         }
 
-        protected LSL_List SetPrimParams(SceneObjectPart part, LSL_List rules, string originFunc)
+        protected LSL_List SetPrimParams(SceneObjectPart part, LSL_List rules, string originFunc, ref uint rulesParsed)
         {
             int idx = 0;
             int idxStart = 0;
@@ -7261,6 +7262,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 while (idx < rules.Length)
                 {
+                    ++rulesParsed;
                     int code = rules.GetLSLIntegerItem(idx++);
 
                     int remain = rules.Length - idx;
@@ -7643,7 +7645,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 ShoutError(string.Format(
                         "{0} error running rule #{1}: arg #{2} ",
-                        originFunc, "unknown", idx - idxStart) + e.Message);
+                        originFunc, rulesParsed, idx - idxStart) + e.Message);
             }
             finally
             {
@@ -10774,14 +10776,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (obj.OwnerID != m_host.OwnerID)
                 return;
 
-            LSL_List remaining = SetPrimParams(obj, rules, originFunc);
+            uint rulesParsed = 0;
+            LSL_List remaining = SetPrimParams(obj, rules, originFunc, ref rulesParsed);
 
             while ((object)remaining != null && remaining.Length > 2)
             {
                 LSL_Integer newLink = remaining.GetLSLIntegerItem(0);
                 LSL_List newrules = remaining.GetSublist(1, -1);
                 foreach(SceneObjectPart part in GetLinkParts(obj, newLink)){
-                    remaining = SetPrimParams(part, newrules, originFunc);
+                    remaining = SetPrimParams(part, newrules, originFunc, ref rulesParsed);
                 }
             }
         }
