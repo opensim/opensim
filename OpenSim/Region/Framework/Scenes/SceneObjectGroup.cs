@@ -3025,7 +3025,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="objectGroup"></param>
         public virtual void DetachFromBackup()
         {
-            m_scene.SceneGraph.FireDetachFromBackup(this);
+            if (m_scene != null)
+                m_scene.SceneGraph.FireDetachFromBackup(this);
             if (m_isBackedUp && Scene != null)
                 m_scene.EventManager.OnBackup -= ProcessBackup;
             
