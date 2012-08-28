@@ -30,6 +30,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Net;
 using Nini.Config;
 using OpenMetaverse;
@@ -73,6 +74,12 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
             return true;
         }
 
+//        public bool AlwaysIdenticalConversion(string bodyData, string extraParams)
+//        {
+//            string[] lines = GetLines(bodyData);
+//            return lines.Any((str, r) => str.StartsWith("Image"));
+//        }
+
         public byte[] ConvertUrl(string url, string extraParams)
         {
             return null;
@@ -80,7 +87,13 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
 
         public byte[] ConvertData(string bodyData, string extraParams)
         {
-            return Draw(bodyData, extraParams);
+            bool reuseable;
+            return Draw(bodyData, extraParams, out reuseable);
+        }
+
+        private byte[] ConvertData(string bodyData, string extraParams, out bool reuseable)
+        {
+            return Draw(bodyData, extraParams, out reuseable);
         }
 
         public bool AsyncConvertUrl(UUID id, string url, string extraParams)
@@ -91,7 +104,11 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
         public bool AsyncConvertData(UUID id, string bodyData, string extraParams)
         {
             // XXX: This isn't actually being done asynchronously!
-            m_textureManager.ReturnData(id, ConvertData(bodyData, extraParams));
+            bool reuseable;
+            byte[] data = ConvertData(bodyData, extraParams, out reuseable);
+
+            m_textureManager.ReturnData(id, data, reuseable);
+
             return true;
         }
 
@@ -162,7 +179,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
 
         #endregion
 
-        private byte[] Draw(string data, string extraParams)
+        private byte[] Draw(string data, string extraParams, out bool reuseable)
         {
             // We need to cater for old scripts that didnt use extraParams neatly, they use either an integer size which represents both width and height, or setalpha
             // we will now support multiple comma seperated params in the form  width:256,height:512,alpha:255
@@ -343,7 +360,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                         }
                     }
         
-                    GDIDraw(data, graph, altDataDelim);
+                    GDIDraw(data, graph, altDataDelim, out reuseable);
                 }
     
                 byte[] imageJ2000 = new byte[0];
@@ -434,8 +451,21 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
         }
 */
 
-        private void GDIDraw(string data, Graphics graph, char dataDelim)
+        /// <summary>
+        /// Split input data into discrete command lines.
+        /// </summary>
+        /// <returns></returns>
+        /// <param name='data'></param>
+        /// <param name='dataDelim'></param>
+        private string[] GetLines(string data, char dataDelim)
         {
+            char[] lineDelimiter = { dataDelim };
+            return data.Split(lineDelimiter);
+        }
+
+        private void GDIDraw(string data, Graphics graph, char dataDelim, out bool reuseable)
+        {
+            reuseable = true;
             Point startPoint = new Point(0, 0);
             Point endPoint = new Point(0, 0);
             Pen drawPen = null;
@@ -450,11 +480,9 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                 myFont = new Font(fontName, fontSize);
                 myBrush = new SolidBrush(Color.Black);
 
-                char[] lineDelimiter = {dataDelim};
                 char[] partsDelimiter = {','};
-                string[] lines = data.Split(lineDelimiter);
 
-                foreach (string line in lines)
+                foreach (string line in GetLines(data, dataDelim))
                 {
                     string nextLine = line.Trim();
                     //replace with switch, or even better, do some proper parsing
@@ -485,6 +513,10 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                     }
                     else if (nextLine.StartsWith("Image"))
                     {
+                        // We cannot reuse any generated texture involving fetching an image via HTTP since that image
+                        // can change.
+                        reuseable = false;
+
                         float x = 0;
                         float y = 0;
                         GetParams(partsDelimiter, ref nextLine, 5, ref x, ref y);

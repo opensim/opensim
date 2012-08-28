@@ -51,12 +51,15 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender.Tests
         DynamicTextureModule m_dtm;
         VectorRenderModule m_vrm;
 
-        [SetUp]
-        public void SetUp()
+        private void SetupScene(bool reuseTextures)
         {
             m_scene = new SceneHelpers().SetupScene();
+
             m_dtm = new DynamicTextureModule();
+            m_dtm.ReuseTextures = reuseTextures;
+
             m_vrm = new VectorRenderModule();
+
             SceneHelpers.SetupSceneModules(m_scene, m_dtm, m_vrm);
         }
 
@@ -65,6 +68,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender.Tests
         {
             TestHelpers.InMethod();
 
+            SetupScene(false);
             SceneObjectGroup so = SceneHelpers.AddSceneObject(m_scene);
             UUID originalTextureID = so.RootPart.Shape.Textures.GetFace(0).TextureID;
 
@@ -86,6 +90,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender.Tests
 
             string dtText = "PenColour BLACK; MoveTo 40,220; FontSize 32; Text Hello World;";
 
+            SetupScene(false);
             SceneObjectGroup so = SceneHelpers.AddSceneObject(m_scene);
 
             m_dtm.AddDynamicTextureData(
@@ -116,6 +121,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender.Tests
 
             string dtText = "PenColour BLACK; MoveTo 40,220; FontSize 32; Text Hello World;";
 
+            SetupScene(false);
             SceneObjectGroup so = SceneHelpers.AddSceneObject(m_scene);
 
             m_dtm.AddDynamicTextureData(
@@ -147,6 +153,121 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender.Tests
             string dtText
                 = "PenColour BLACK; MoveTo 40,220; FontSize 32; Text Hello World; Image http://localhost/shouldnotexist.png";
 
+            SetupScene(false);
+            SceneObjectGroup so = SceneHelpers.AddSceneObject(m_scene);
+
+            m_dtm.AddDynamicTextureData(
+                m_scene.RegionInfo.RegionID,
+                so.UUID,
+                m_vrm.GetContentType(),
+                dtText,
+                "",
+                0);
+
+            UUID firstDynamicTextureID = so.RootPart.Shape.Textures.GetFace(0).TextureID;
+
+            m_dtm.AddDynamicTextureData(
+                m_scene.RegionInfo.RegionID,
+                so.UUID,
+                m_vrm.GetContentType(),
+                dtText,
+                "",
+                0);
+
+            Assert.That(firstDynamicTextureID, Is.Not.EqualTo(so.RootPart.Shape.Textures.GetFace(0).TextureID));
+        }
+
+        [Test]
+        public void TestDrawReusingTexture()
+        {
+            TestHelpers.InMethod();
+
+            SetupScene(true);
+            SceneObjectGroup so = SceneHelpers.AddSceneObject(m_scene);
+            UUID originalTextureID = so.RootPart.Shape.Textures.GetFace(0).TextureID;
+
+            m_dtm.AddDynamicTextureData(
+                m_scene.RegionInfo.RegionID,
+                so.UUID,
+                m_vrm.GetContentType(),
+                "PenColour BLACK; MoveTo 40,220; FontSize 32; Text Hello World;",
+                "",
+                0);
+
+            Assert.That(originalTextureID, Is.Not.EqualTo(so.RootPart.Shape.Textures.GetFace(0).TextureID));
+        }
+
+        [Test]
+        public void TestRepeatSameDrawReusingTexture()
+        {
+            TestHelpers.InMethod();
+
+            string dtText = "PenColour BLACK; MoveTo 40,220; FontSize 32; Text Hello World;";
+
+            SetupScene(true);
+            SceneObjectGroup so = SceneHelpers.AddSceneObject(m_scene);
+
+            m_dtm.AddDynamicTextureData(
+                m_scene.RegionInfo.RegionID,
+                so.UUID,
+                m_vrm.GetContentType(),
+                dtText,
+                "",
+                0);
+
+            UUID firstDynamicTextureID = so.RootPart.Shape.Textures.GetFace(0).TextureID;
+
+            m_dtm.AddDynamicTextureData(
+                m_scene.RegionInfo.RegionID,
+                so.UUID,
+                m_vrm.GetContentType(),
+                dtText,
+                "",
+                0);
+
+            Assert.That(firstDynamicTextureID, Is.EqualTo(so.RootPart.Shape.Textures.GetFace(0).TextureID));
+        }
+
+        [Test]
+        public void TestRepeatSameDrawDifferentExtraParamsReusingTexture()
+        {
+            TestHelpers.InMethod();
+
+            string dtText = "PenColour BLACK; MoveTo 40,220; FontSize 32; Text Hello World;";
+
+            SetupScene(true);
+            SceneObjectGroup so = SceneHelpers.AddSceneObject(m_scene);
+
+            m_dtm.AddDynamicTextureData(
+                m_scene.RegionInfo.RegionID,
+                so.UUID,
+                m_vrm.GetContentType(),
+                dtText,
+                "",
+                0);
+
+            UUID firstDynamicTextureID = so.RootPart.Shape.Textures.GetFace(0).TextureID;
+
+            m_dtm.AddDynamicTextureData(
+                m_scene.RegionInfo.RegionID,
+                so.UUID,
+                m_vrm.GetContentType(),
+                dtText,
+                "alpha:250",
+                0);
+
+            Assert.That(firstDynamicTextureID, Is.Not.EqualTo(so.RootPart.Shape.Textures.GetFace(0).TextureID));
+        }
+
+        [Test]
+        public void TestRepeatSameDrawContainingImageReusingTexture()
+        {
+            TestHelpers.InMethod();
+
+            string dtText
+                = "PenColour BLACK; MoveTo 40,220; FontSize 32; Text Hello World; Image http://localhost/shouldnotexist.png";
+
+            SetupScene(true);
             SceneObjectGroup so = SceneHelpers.AddSceneObject(m_scene);
 
             m_dtm.AddDynamicTextureData(
