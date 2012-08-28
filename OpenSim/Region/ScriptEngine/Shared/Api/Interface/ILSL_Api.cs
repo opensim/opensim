@@ -424,7 +424,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_String llXorBase64StringsCorrect(string str1, string str2);
               void print(string str);
 
-              void SetPrimitiveParamsEx(LSL_Key prim, LSL_List rules);
+              void SetPrimitiveParamsEx(LSL_Key prim, LSL_List rules, string originFunc);
           LSL_List GetPrimitiveParamsEx(LSL_Key prim, LSL_List rules);
     }
 }
