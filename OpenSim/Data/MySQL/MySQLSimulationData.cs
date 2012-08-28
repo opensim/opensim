@@ -1698,7 +1698,7 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("MediaURL", prim.MediaUrl);
 
             if (prim.KeyframeMotion != null)
-                cmd.Parameters.AddWithValue("KeyframeMotion", prim.KeyframeMotion.Serialize());
+                cmd.Parameters.AddWithValue("KeyframeMotion", prim.KeyframeMotion.Serialize(true));
             else
                 cmd.Parameters.AddWithValue("KeyframeMotion", new Byte[0]);
 
