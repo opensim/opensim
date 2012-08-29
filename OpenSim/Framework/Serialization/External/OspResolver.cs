@@ -65,9 +65,14 @@ namespace OpenSim.Framework.Serialization
 
             UserAccount account = userService.GetUserAccount(UUID.Zero, userId);
             if (account != null)
+            {
                 return MakeOspa(account.FirstName, account.LastName);
+            }
 //            else
+//            {
 //                m_log.WarnFormat("[OSP RESOLVER]: No user account for {0}", userId);
+//                System.Console.WriteLine("[OSP RESOLVER]: No user account for {0}", userId);
+//            }
 
             return null;
         }
@@ -79,10 +84,13 @@ namespace OpenSim.Framework.Serialization
         /// <returns></returns>
         public static string MakeOspa(string firstName, string lastName)
         {
-//            m_log.DebugFormat("[OSP RESOLVER]: Making OSPA for {0} {1}", firstName, lastName);
+            string ospa
+                = OSPA_PREFIX + OSPA_NAME_KEY + OSPA_PAIR_SEPARATOR + firstName + OSPA_NAME_VALUE_SEPARATOR + lastName;
+
+//            m_log.DebugFormat("[OSP RESOLVER]: Made OSPA {0} for {1} {2}", ospa, firstName, lastName);
+//            System.Console.WriteLine("[OSP RESOLVER]: Made OSPA {0} for {1} {2}", ospa, firstName, lastName);
             
-            return 
-                OSPA_PREFIX + OSPA_NAME_KEY + OSPA_PAIR_SEPARATOR + firstName + OSPA_NAME_VALUE_SEPARATOR + lastName;
+            return ospa;
         }
         
         /// <summary>

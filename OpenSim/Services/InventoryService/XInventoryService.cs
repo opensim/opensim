@@ -94,6 +94,7 @@ namespace OpenSim.Services.InventoryService
 
             m_Database = LoadPlugin<IXInventoryData>(dllName,
                     new Object[] {connString, String.Empty});
+
             if (m_Database == null)
                 throw new Exception("Could not find a storage interface in the given module");
         }
@@ -326,7 +327,7 @@ namespace OpenSim.Services.InventoryService
             if (check != null)
                 return false;
 
-            if (folder.Type != (short)AssetType.Folder || folder.Type != (short)AssetType.Unknown)
+            if (folder.Type != (short)AssetType.Folder && folder.Type != (short)AssetType.Unknown)
             {
                 InventoryFolderBase rootFolder = GetRootFolder(folder.Owner);
 

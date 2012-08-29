@@ -199,7 +199,9 @@ namespace OpenSim.Tests.Common
             string[] components = path.Split(new string[] { PATH_DELIMITER }, 2, StringSplitOptions.None);
 
             InventoryFolderBase newFolder 
-                = new InventoryFolderBase(UUID.Random(), components[0], parentFolder.Owner, parentFolder.ID);
+                = new InventoryFolderBase(
+                    UUID.Random(), components[0], parentFolder.Owner, (short)AssetType.Unknown, parentFolder.ID, 0);
+            
             inventoryService.AddFolder(newFolder);
 
             if (components.Length > 1)
