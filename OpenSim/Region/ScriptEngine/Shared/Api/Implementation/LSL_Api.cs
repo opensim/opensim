@@ -7701,7 +7701,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            setLinkPrimParams(ScriptBaseClass.LINK_THIS, rules);
+            setLinkPrimParams(ScriptBaseClass.LINK_THIS, rules, "llSetPrimitiveParams");
 
             ScriptSleep(200);
         }
@@ -7710,10 +7710,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            setLinkPrimParams(linknumber, rules);
+            setLinkPrimParams(linknumber, rules, "llSetLinkPrimitiveParamsFast");
+
+            ScriptSleep(200);
         }
 
-        private void setLinkPrimParams(int linknumber, LSL_List rules)
+        private void setLinkPrimParams(int linknumber, LSL_List rules, string originFunc)
         {
             List<object> parts = new List<object>();
             List<SceneObjectPart> prims = GetLinkParts(linknumber);
@@ -7724,15 +7726,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 parts.Add(p);
 
             LSL_List remaining = null;
+            uint rulesParsed = 0;
 
             if (parts.Count > 0)
             {
                 foreach (object part in parts)
                 {
                     if (part is SceneObjectPart)
-                        remaining = SetPrimParams((SceneObjectPart)part, rules);
+                        remaining = SetPrimParams((SceneObjectPart)part, rules, originFunc, ref rulesParsed);
                     else
-                        remaining = SetPrimParams((ScenePresence)part, rules);
+                        remaining = SetPrimParams((ScenePresence)part, rules, originFunc, ref rulesParsed);
                 }
 
                 while ((object)remaining != null && remaining.Length > 2)
@@ -7750,9 +7753,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     foreach (object part in parts)
                     {
                         if (part is SceneObjectPart)
-                            remaining = SetPrimParams((SceneObjectPart)part, rules);
+                            remaining = SetPrimParams((SceneObjectPart)part, rules, originFunc, ref rulesParsed);
                         else
-                            remaining = SetPrimParams((ScenePresence)part, rules);
+                            remaining = SetPrimParams((ScenePresence)part, rules, originFunc, ref rulesParsed);
                     }
                 }
             }
@@ -7790,6 +7793,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llSetLinkPrimitiveParams(int linknumber, LSL_List rules)
         {
+            setLinkPrimParams(linknumber, rules, "llSetLinkPrimitiveParams");
             llSetLinkPrimitiveParamsFast(linknumber, rules);
             ScriptSleep(200);
         }
@@ -7817,12 +7821,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return new Vector3((float)x, (float)y, (float)z);
         }
 
-        protected LSL_List SetPrimParams(SceneObjectPart part, LSL_List rules)
+        protected LSL_List SetPrimParams(SceneObjectPart part, LSL_List rules, string originFunc, ref uint rulesParsed)
         {
             if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
                 return null;
 
             int idx = 0;
+            int idxStart = 0;
 
             SceneObjectGroup parentgrp = part.ParentGroup;
 
@@ -7833,9 +7838,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 while (idx < rules.Length)
                 {
+                    ++rulesParsed;
                     int code = rules.GetLSLIntegerItem(idx++);
 
                     int remain = rules.Length - idx;
+                    idxStart = idx;
 
                     int face;
                     LSL_Vector v;
@@ -8243,7 +8250,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             catch (InvalidCastException e)
             {
-                ShoutError(e.Message);
+                ShoutError(string.Format(
+                        "{0} error running rule #{1}: arg #{2} ",
+                        originFunc, rulesParsed, idx - idxStart) + e.Message);
             }
             finally
             {
@@ -11660,7 +11669,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return tid.ToString();
         }
 
-        public void SetPrimitiveParamsEx(LSL_Key prim, LSL_List rules)
+        public void SetPrimitiveParamsEx(LSL_Key prim, LSL_List rules, string originFunc)
         {
             SceneObjectPart obj = World.GetSceneObjectPart(new UUID(prim));
             if (obj == null)
@@ -11669,14 +11678,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (obj.OwnerID != m_host.OwnerID)
                 return;
 
-            LSL_List remaining = SetPrimParams(obj, rules);
+            uint rulesParsed = 0;
+            LSL_List remaining = SetPrimParams(obj, rules, originFunc, ref rulesParsed);
 
             while ((object)remaining != null && remaining.Length > 2)
             {
                 LSL_Integer newLink = remaining.GetLSLIntegerItem(0);
                 LSL_List newrules = remaining.GetSublist(1, -1);
                 foreach(SceneObjectPart part in GetLinkParts(obj, newLink)){
-                    remaining = SetPrimParams(part, newrules);
+                    remaining = SetPrimParams(part, newrules, originFunc, ref rulesParsed);
                 }
             }
         }
@@ -12640,11 +12650,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
-        protected LSL_List SetPrimParams(ScenePresence av, LSL_List rules)
+        protected LSL_List SetPrimParams(ScenePresence av, LSL_List rules, string originFunc, ref uint rulesParsed)
         {
             //This is a special version of SetPrimParams to deal with avatars which are sat on the linkset.
 
             int idx = 0;
+            int idxStart = 0;
 
             bool positionChanged = false;
             Vector3 finalPos = Vector3.Zero;
@@ -12653,9 +12664,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 while (idx < rules.Length)
                 {
+                    ++rulesParsed;
                     int code = rules.GetLSLIntegerItem(idx++);
 
                     int remain = rules.Length - idx;
+                    idxStart = idx;
 
                     switch (code)
                     {
@@ -12809,7 +12822,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     }
                 }
             }
-
+            catch (InvalidCastException e)
+            {
+                ShoutError(string.Format(
+                        "{0} error running rule #{1}: arg #{2} ",
+                        originFunc, rulesParsed, idx - idxStart) + e.Message);
+            }
             finally
             {
                 if (positionChanged)

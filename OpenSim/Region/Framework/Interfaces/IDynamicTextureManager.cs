@@ -33,7 +33,7 @@ namespace OpenSim.Region.Framework.Interfaces
     public interface IDynamicTextureManager
     {
         void RegisterRender(string handleType, IDynamicTextureRender render);
-        void ReturnData(UUID id, byte[] data);
+        void ReturnData(UUID id, byte[] data, bool isReuseable);
 
         UUID AddDynamicTextureURL(UUID simID, UUID primID, string contentType, string url, string extraParams,
                                     int updateTimer);
@@ -113,8 +113,20 @@ namespace OpenSim.Region.Framework.Interfaces
         string GetName();
         string GetContentType();
         bool SupportsAsynchronous();
+
+//        /// <summary>
+//        /// Return true if converting the input body and extra params data will always result in the same byte[] array
+//        /// </summary>
+//        /// <remarks>
+//        /// This method allows the caller to use a previously generated asset if it has one.
+//        /// </remarks>
+//        /// <returns></returns>
+//        /// <param name='bodyData'></param>
+//        /// <param name='extraParams'></param>
+//        bool AlwaysIdenticalConversion(string bodyData, string extraParams);
+
         byte[] ConvertUrl(string url, string extraParams);
-        byte[] ConvertStream(Stream data, string extraParams);
+        byte[] ConvertData(string bodyData, string extraParams);
         bool AsyncConvertUrl(UUID id, string url, string extraParams);
         bool AsyncConvertData(UUID id, string bodyData, string extraParams);
         void GetDrawStringSize(string text, string fontName, int fontSize, 

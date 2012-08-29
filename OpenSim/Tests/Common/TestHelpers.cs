@@ -95,6 +95,7 @@ namespace OpenSim.Tests.Common
         public static void EnableLogging()
         {
             log4net.Config.XmlConfigurator.Configure(EnableLoggingConfigStream);
+            EnableLoggingConfigStream.Position = 0;
         }
 
         /// <summary>

@@ -40,16 +40,75 @@ using LSL_Key = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
 
 namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 {
+    /// <summary>
+    /// To permit region owners to enable the extended scripting functionality
+    /// of OSSL, without allowing malicious scripts to access potentially
+    /// troublesome functions, each OSSL function is assigned a threat level,
+    /// and access to the functions is granted or denied based on a default
+    /// threshold set in OpenSim.ini (which can be overridden for individual
+    /// functions on a case-by-case basis)
+    /// </summary>
     public enum ThreatLevel
     {
+        // Not documented, presumably means permanently disabled ?
         NoAccess = -1,
+
+        /// <summary>
+        /// Function is no threat at all. It doesn't constitute a threat to 
+        /// either users or the system and has no known side effects.
+        /// </summary>
         None = 0,
+
+        /// <summary>
+        /// Abuse of this command can cause a nuisance to the region operator,
+        /// such as log message spew.
+        /// </summary>
         Nuisance = 1,
+
+        /// <summary>
+        /// Extreme levels of abuse of this function can cause impaired 
+        /// functioning of the region, or very gullible users can be tricked
+        /// into experiencing harmless effects.
+        /// </summary>
         VeryLow = 2,
+
+        /// <summary>
+        /// Intentional abuse can cause crashes or malfunction under certain
+        /// circumstances, which can be easily rectified; or certain users can
+        /// be tricked into certain situations in an avoidable manner.
+        /// </summary>
         Low = 3,
+
+        /// <summary>
+        /// Intentional abuse can cause denial of service and crashes with
+        /// potential of data or state loss; or trusting users can be tricked 
+        /// into embarrassing or uncomfortable situations.
+        /// </summary>
         Moderate = 4,
+
+        /// <summary>
+        /// Casual abuse can cause impaired functionality or temporary denial
+        /// of service conditions. Intentional abuse can easily cause crashes
+        /// with potential data loss, or can be used to trick experienced and
+        /// cautious users into unwanted situations, or changes global data
+        /// permanently and without undo ability.
+        /// </summary>
         High = 5,
+
+        /// <summary>
+        /// Even normal use may, depending on the number of instances, or
+        /// frequency of use, result in severe service impairment or crash
+        /// with loss of data, or can be used to cause unwanted or harmful
+        /// effects on users without giving the user a means to avoid it.
+        /// </summary>
         VeryHigh = 6,
+
+        /// <summary>
+        /// Even casual use is a danger to region stability, or function allows
+        /// console or OS command execution, or function allows taking money
+        /// without consent, or allows deletion or modification of user data,
+        /// or allows the compromise of sensitive data by design.
+        /// </summary>
         Severe = 7
     };
 

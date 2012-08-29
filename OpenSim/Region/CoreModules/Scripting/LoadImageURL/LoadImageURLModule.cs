@@ -67,12 +67,18 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
             return true;
         }
 
+//        public bool AlwaysIdenticalConversion(string bodyData, string extraParams)
+//        {
+//            // We don't support conversion of body data.
+//            return false;
+//        }
+
         public byte[] ConvertUrl(string url, string extraParams)
         {
             return null;
         }
 
-        public byte[] ConvertStream(Stream data, string extraParams)
+        public byte[] ConvertData(string bodyData, string extraParams)
         {
             return null;
         }
@@ -236,9 +242,11 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
                     stream.Close();
                 }
             }
+
             m_log.DebugFormat("[LOADIMAGEURLMODULE] Returning {0} bytes of image data for request {1}",
                                        imageJ2000.Length, state.RequestID);
-            m_textureManager.ReturnData(state.RequestID, imageJ2000);
+
+            m_textureManager.ReturnData(state.RequestID, imageJ2000, false);
         }
 
         #region Nested type: RequestState
