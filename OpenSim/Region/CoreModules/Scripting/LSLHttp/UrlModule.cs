@@ -84,6 +84,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
         public string body;
         public int responseCode;
         public string responseBody;
+        public string responseType = "text/plain";
         //public ManualResetEvent ev;
         public bool requestDone;
         public int startTime;
@@ -302,6 +303,22 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
             }
         }
         
+        public void HttpContentType(UUID request, string type)
+        {
+            lock (m_UrlMap)
+            {
+                if (m_RequestMap.ContainsKey(request))
+                {
+                    UrlData urlData = m_RequestMap[request];
+                    urlData.requests[request].responseType = type;
+                }
+                else
+                {
+                    m_log.Info("[HttpRequestHandler] There is no http-in request with id " + request.ToString());
+                }
+            }
+        }
+        
         public void HttpResponse(UUID request, int status, string body)
         {
             lock (m_UrlMap)
@@ -504,7 +521,8 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                 //put response
                 response["int_response_code"] = requestData.responseCode;
                 response["str_response_string"] = requestData.responseBody;
-                response["content_type"] = "text/plain";
+                response["content_type"] = requestData.responseType;
+                // response["content_type"] = "text/plain";
                 response["keepalive"] = false;
                 response["reusecontext"] = false;
 

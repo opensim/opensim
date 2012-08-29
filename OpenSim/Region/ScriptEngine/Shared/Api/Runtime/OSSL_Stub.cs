@@ -955,5 +955,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_OSSL_Functions.osGetRezzingObject();
         }
+
+        public void osSetContentType(LSL_Key id, string type)
+        {
+            m_OSSL_Functions.osSetContentType(id,type);
+        }
     }
 }
