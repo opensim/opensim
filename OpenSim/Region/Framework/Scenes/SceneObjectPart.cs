@@ -2110,6 +2110,9 @@ namespace OpenSim.Region.Framework.Scenes
             Array.Copy(Shape.ExtraParams, extraP, extraP.Length);
             dupe.Shape.ExtraParams = extraP;
 
+            if (KeyframeMotion != null)
+                dupe.KeyframeMotion = KeyframeMotion.Copy(null);
+
             if (userExposed)
             {
                 if (dupe.m_shape.SculptEntry && dupe.m_shape.SculptTexture != UUID.Zero)
