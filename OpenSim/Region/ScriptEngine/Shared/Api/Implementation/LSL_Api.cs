@@ -12964,7 +12964,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (frames.Data.Length > 0) // We are getting a new motion
             {
                 if (group.RootPart.KeyframeMotion != null)
-                    group.RootPart.KeyframeMotion.Stop();
+                    group.RootPart.KeyframeMotion.Delete();
                 group.RootPart.KeyframeMotion = null;
 
                 int idx = 0;

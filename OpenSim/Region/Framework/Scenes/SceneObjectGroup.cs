@@ -509,6 +509,9 @@ namespace OpenSim.Region.Framework.Scenes
                         Vector3 newpos = Vector3.Zero;
                         OpenSim.Services.Interfaces.GridRegion destination = null;
 
+                        if (m_rootPart.KeyframeMotion != null)
+                            m_rootPart.KeyframeMotion.StartCrossingCheck();
+
                         bool canCross = true;
                         foreach (ScenePresence av in m_linkedAvatars)
                         {
@@ -551,7 +554,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 av.ParentID = 0;
                             }
 
-//                            m_linkedAvatars.Clear();
+                            //                            m_linkedAvatars.Clear();
                             m_scene.CrossPrimGroupIntoNewRegion(val, this, true);
 
                             // Normalize
@@ -599,11 +602,16 @@ namespace OpenSim.Region.Framework.Scenes
                             avsToCross.Clear();
 
                         }
-                        else if (RootPart.PhysActor != null)
+                        else
                         {
-                            RootPart.PhysActor.CrossingFailure();
-                        }
+                            if (m_rootPart.KeyframeMotion != null)
+                                m_rootPart.KeyframeMotion.CrossingFailure();
 
+                            if (RootPart.PhysActor != null)
+                            {
+                                RootPart.PhysActor.CrossingFailure();
+                            }
+                        }
                         Vector3 oldp = AbsolutePosition;
                         val.X = Util.Clamp<float>(oldp.X, 0.5f, (float)Constants.RegionSize - 0.5f);
                         val.Y = Util.Clamp<float>(oldp.Y, 0.5f, (float)Constants.RegionSize - 0.5f);
@@ -2059,7 +2067,7 @@ namespace OpenSim.Region.Framework.Scenes
                             if (part.KeyframeMotion != null)
                             {
                                 part.KeyframeMotion = KeyframeMotion.FromData(backup_group, part.KeyframeMotion.Serialize());
-                                part.KeyframeMotion.UpdateSceneObject(this);
+//                                part.KeyframeMotion.UpdateSceneObject(this);
                             }
                         });
 
@@ -3025,7 +3033,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="objectGroup"></param>
         public virtual void DetachFromBackup()
         {
-            m_scene.SceneGraph.FireDetachFromBackup(this);
+            if (m_scene != null)
+                m_scene.SceneGraph.FireDetachFromBackup(this);
             if (m_isBackedUp && Scene != null)
                 m_scene.EventManager.OnBackup -= ProcessBackup;
             
@@ -4407,6 +4416,15 @@ namespace OpenSim.Region.Framework.Scenes
         public virtual ISceneObject CloneForNewScene()
         {
             SceneObjectGroup sog = Copy(false);
+            sog.ForEachPart(delegate(SceneObjectPart part)
+            {
+                if (part.KeyframeMotion != null)
+                {
+                    part.KeyframeMotion = KeyframeMotion.FromData(sog, part.KeyframeMotion.Serialize());
+                    // this is called later
+//                        part.KeyframeMotion.UpdateSceneObject(this);
+                }
+            });
             sog.IsDeleted = false;
             return sog;
         }
