@@ -112,20 +112,23 @@ namespace OpenSim.Region.Framework.Scenes
         public bool Selected
         {
             set
-            {                  
-                if (!value)
+            {
+                if (m_group != null)
                 {
-                    // Once we're let go, recompute positions
-                    if (m_selected)
-                        UpdateSceneObject(m_group);
-                }
-                else
-                {
-                    // Save selection position in case we get moved
-                    if (!m_selected)
+                    if (!value)
                     {
-                        StopTimer();
-                        m_serializedPosition = m_group.AbsolutePosition;
+                        // Once we're let go, recompute positions
+                        if (m_selected)
+                            UpdateSceneObject(m_group);
+                    }
+                    else
+                    {
+                        // Save selection position in case we get moved
+                        if (!m_selected)
+                        {
+                            StopTimer();
+                            m_serializedPosition = m_group.AbsolutePosition;
+                        }
                     }
                 }
                 m_isCrossing = false;
@@ -199,6 +202,9 @@ namespace OpenSim.Region.Framework.Scenes
                 m_waitingCrossing = false;
                 StopTimer();
 
+                if (grp == null)
+                    return;
+
                 m_group = grp;
                 Vector3 grppos = grp.AbsolutePosition;
                 Vector3 offset = grppos - m_serializedPosition;
@@ -228,14 +234,16 @@ namespace OpenSim.Region.Framework.Scenes
             m_mode = mode;
             m_data = data;
 
-            m_onTimerLock = new object();
-
             m_group = grp;
             if (grp != null)
             {
                 m_basePosition = grp.AbsolutePosition;
                 m_baseRotation = grp.GroupRotation;
             }
+
+            m_onTimerLock = new object();
+            m_timerStopped = true;
+            m_inOnTimer = false;
             m_isCrossing = false;
             m_waitingCrossing = false;
         }
@@ -249,18 +257,23 @@ namespace OpenSim.Region.Framework.Scenes
         {
             StopTimer();
 
-            KeyframeMotion newmotion = new KeyframeMotion(newgrp, m_mode, m_data);
+            KeyframeMotion newmotion = new KeyframeMotion(null, m_mode, m_data);
 
-            if (newgrp != null && newgrp.IsSelected)
-                newmotion.m_selected = true;
+            newmotion.m_group = newgrp;
 
             if (m_keyframes != null)
+            {
+                newmotion.m_keyframes = new Keyframe[m_keyframes.Length];
                 m_keyframes.CopyTo(newmotion.m_keyframes, 0);
+            }
 
             newmotion.m_frames = new List<Keyframe>(m_frames);
+
+            newmotion.m_basePosition = m_basePosition;
+            newmotion.m_baseRotation = m_baseRotation;
+
             newmotion.m_currentFrame = m_currentFrame;
 
-            newmotion.m_nextPosition = m_nextPosition;
             if (m_selected)
                 newmotion.m_serializedPosition = m_serializedPosition;
             else
@@ -272,12 +285,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             newmotion.m_iterations = m_iterations;
-
-            newmotion.m_onTimerLock = new object();
-            newmotion.m_timerStopped = false;
-            newmotion.m_inOnTimer = false;
-            newmotion.m_isCrossing = false;
-            newmotion.m_waitingCrossing = false;
+            newmotion.m_running = m_running;
 
             if (m_running && !m_waitingCrossing)
                 StartTimer();
@@ -299,7 +307,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             m_isCrossing = false;
             m_waitingCrossing = false;
-            if (m_keyframes.Length > 0)
+            if (m_keyframes != null && m_group != null && m_keyframes.Length > 0)
             {
                 if (m_timer == null)
                 {

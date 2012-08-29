@@ -2062,6 +2062,7 @@ namespace OpenSim.Region.Framework.Scenes
                         HasGroupChangedDueToDelink = false;
 
                         m_scene.EventManager.TriggerOnSceneObjectPreSave(backup_group, this);
+/*
                         backup_group.ForEachPart(delegate(SceneObjectPart part) 
                         { 
                             if (part.KeyframeMotion != null)
@@ -2070,7 +2071,7 @@ namespace OpenSim.Region.Framework.Scenes
 //                                part.KeyframeMotion.UpdateSceneObject(this);
                             }
                         });
-
+*/
                         datastore.StoreObject(backup_group, m_scene.RegionInfo.RegionID);
 
                         backup_group.ForEachPart(delegate(SceneObjectPart part) 
@@ -4416,15 +4417,6 @@ namespace OpenSim.Region.Framework.Scenes
         public virtual ISceneObject CloneForNewScene()
         {
             SceneObjectGroup sog = Copy(false);
-            sog.ForEachPart(delegate(SceneObjectPart part)
-            {
-                if (part.KeyframeMotion != null)
-                {
-                    part.KeyframeMotion = KeyframeMotion.FromData(sog, part.KeyframeMotion.Serialize());
-                    // this is called later
-//                        part.KeyframeMotion.UpdateSceneObject(this);
-                }
-            });
             sog.IsDeleted = false;
             return sog;
         }
