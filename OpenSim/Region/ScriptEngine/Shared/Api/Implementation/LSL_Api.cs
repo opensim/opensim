@@ -5475,7 +5475,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // for completion and should LSL_Key ever be implemented 
             // as it's own struct
             else if (!(src.Data[index] is LSL_String ||
-                    src.Data[index] is LSL_Key))
+                    src.Data[index] is LSL_Key ||
+                    src.Data[index] is String))
             {
                 return "";
             }
