@@ -769,7 +769,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_groupPosition = value;
                 PhysicsActor actor = PhysActor;
-                if (actor != null)
+                if (actor != null && ParentGroup.Scene.PhysicsScene != null)
                 {
                     try
                     {
@@ -3408,6 +3408,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void SendTerseUpdateToAllClients()
         {
+            if (ParentGroup == null || ParentGroup.Scene == null)
+                return;
+
             ParentGroup.Scene.ForEachClient(delegate(IClientAPI client)
             {
                 SendTerseUpdateToClient(client);

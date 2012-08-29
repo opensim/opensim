@@ -53,17 +53,42 @@ namespace OpenSim.Region.Framework.Scenes
             public Vector3 AngularVelocity;
         };
 
+        private Vector3 m_serializedPosition;
         private Vector3 m_basePosition;
         private Quaternion m_baseRotation;
-        private Vector3 m_serializedPosition;
 
         private Keyframe m_currentFrame;
+
         private List<Keyframe> m_frames = new List<Keyframe>();
 
         private Keyframe[] m_keyframes;
 
         [NonSerialized()]
-        protected Timer m_timer = new Timer();
+        protected Timer m_timer = null;
+
+        // timer lock
+        [NonSerialized()]
+        private object m_onTimerLock;
+
+        // timer overrun detect
+        // prevents overlap or timer events threads frozen on the lock
+        [NonSerialized()]
+        private bool m_inOnTimer;
+
+        // skip timer events.
+        //timer.stop doesn't assure there aren't event threads still being fired
+        [NonSerialized()]
+        private bool m_timerStopped;
+
+        [NonSerialized()]
+        private bool m_isCrossing;
+
+        [NonSerialized()]
+        private bool m_waitingCrossing;
+
+        // retry position for cross fail
+        [NonSerialized()]
+        private Vector3 m_nextPosition;
 
         [NonSerialized()]
         private SceneObjectGroup m_group;
@@ -87,8 +112,8 @@ namespace OpenSim.Region.Framework.Scenes
         public bool Selected
         {
             set
-            {
-                if (value)
+            {                  
+                if (!value)
                 {
                     // Once we're let go, recompute positions
                     if (m_selected)
@@ -98,44 +123,104 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     // Save selection position in case we get moved
                     if (!m_selected)
+                    {
+                        StopTimer();
                         m_serializedPosition = m_group.AbsolutePosition;
+                    }
                 }
-                m_selected = value; }
+                m_isCrossing = false;
+                m_waitingCrossing = false;
+                m_selected = value;
+            }
         }
+
+        private void StartTimer()
+        {
+            if (m_timer == null)
+                return;
+            m_timerStopped = false;
+            m_timer.Start();
+        }
+
+        private void StopTimer()
+        {
+            if (m_timer == null || m_timerStopped)
+                return;
+            m_timerStopped = true;
+            m_timer.Stop();
+        }
+
+        private void RemoveTimer()
+        {
+            if (m_timer == null)
+                return;
+            m_timerStopped = true;
+            m_timer.Stop();
+            m_timer.Elapsed -= OnTimer;
+            m_timer = null;
+        }
+
 
         public static KeyframeMotion FromData(SceneObjectGroup grp, Byte[] data)
         {
-            MemoryStream ms = new MemoryStream(data);
+            KeyframeMotion newMotion = null;
 
-            BinaryFormatter fmt = new BinaryFormatter();
+            try
+            {
+                MemoryStream ms = new MemoryStream(data);
+                BinaryFormatter fmt = new BinaryFormatter();
 
-            KeyframeMotion newMotion = (KeyframeMotion)fmt.Deserialize(ms);
+                newMotion = (KeyframeMotion)fmt.Deserialize(ms);
 
-            // This will be started when position is updated
-            newMotion.m_timer = new Timer();
-            newMotion.m_timer.Interval = (int)timerInterval;
-            newMotion.m_timer.AutoReset = true;
-            newMotion.m_timer.Elapsed += newMotion.OnTimer;
+                newMotion.m_group = grp;
+
+                if (grp != null && grp.IsSelected)
+                    newMotion.m_selected = true;
+
+                newMotion.m_onTimerLock = new object();
+                newMotion.m_timerStopped = false;
+                newMotion.m_inOnTimer = false;
+                newMotion.m_isCrossing = false;
+                newMotion.m_waitingCrossing = false;
+            }
+            catch
+            {
+                newMotion = null;
+            }
 
             return newMotion;
         }
 
         public void UpdateSceneObject(SceneObjectGroup grp)
         {
-            m_group = grp;
-            Vector3 offset = grp.AbsolutePosition - m_serializedPosition;
-
-            m_basePosition += offset;
-            m_currentFrame.Position += offset;
-            for (int i = 0 ; i < m_frames.Count ; i++)
+//            lock (m_onTimerLock)
             {
-                Keyframe k = m_frames[i];
-                k.Position += offset;
-                m_frames[i] = k;
-            }
+                m_isCrossing = false;
+                m_waitingCrossing = false;
+                StopTimer();
 
-            if (m_running)
-                Start();
+                m_group = grp;
+                Vector3 grppos = grp.AbsolutePosition;
+                Vector3 offset = grppos - m_serializedPosition;
+                // avoid doing it more than once
+                // current this will happen draging a prim to other region
+                m_serializedPosition = grppos;
+
+                m_basePosition += offset;
+                m_currentFrame.Position += offset;
+
+                m_nextPosition += offset;
+
+                for (int i = 0; i < m_frames.Count; i++)
+                {
+                    Keyframe k = m_frames[i];
+                    k.Position += offset;
+                    m_frames[i]=k;
+                }
+
+                if (m_running)
+                    Start();
+            }
         }
 
         public KeyframeMotion(SceneObjectGroup grp, PlayMode mode, DataFormat data)
@@ -143,13 +228,16 @@ namespace OpenSim.Region.Framework.Scenes
             m_mode = mode;
             m_data = data;
 
-            m_group = grp;
-            m_basePosition = grp.AbsolutePosition;
-            m_baseRotation = grp.GroupRotation;
+            m_onTimerLock = new object();
 
-            m_timer.Interval = (int)timerInterval;
-            m_timer.AutoReset = true;
-            m_timer.Elapsed += OnTimer;
+            m_group = grp;
+            if (grp != null)
+            {
+                m_basePosition = grp.AbsolutePosition;
+                m_baseRotation = grp.GroupRotation;
+            }
+            m_isCrossing = false;
+            m_waitingCrossing = false;
         }
 
         public void SetKeyframes(Keyframe[] frames)
@@ -157,19 +245,93 @@ namespace OpenSim.Region.Framework.Scenes
             m_keyframes = frames;
         }
 
+        public KeyframeMotion Copy(SceneObjectGroup newgrp)
+        {
+            StopTimer();
+
+            KeyframeMotion newmotion = new KeyframeMotion(newgrp, m_mode, m_data);
+
+            if (newgrp != null && newgrp.IsSelected)
+                newmotion.m_selected = true;
+
+            if (m_keyframes != null)
+                m_keyframes.CopyTo(newmotion.m_keyframes, 0);
+
+            newmotion.m_frames = new List<Keyframe>(m_frames);
+            newmotion.m_currentFrame = m_currentFrame;
+
+            newmotion.m_nextPosition = m_nextPosition;
+            if (m_selected)
+                newmotion.m_serializedPosition = m_serializedPosition;
+            else
+            {
+                if (m_group != null)
+                    newmotion.m_serializedPosition = m_group.AbsolutePosition;
+                else
+                    newmotion.m_serializedPosition = m_serializedPosition;
+            }
+
+            newmotion.m_iterations = m_iterations;
+
+            newmotion.m_onTimerLock = new object();
+            newmotion.m_timerStopped = false;
+            newmotion.m_inOnTimer = false;
+            newmotion.m_isCrossing = false;
+            newmotion.m_waitingCrossing = false;
+
+            if (m_running && !m_waitingCrossing)
+                StartTimer();
+
+            return newmotion;
+        }
+
+        public void Delete()
+        {
+            m_running = false;
+            RemoveTimer();
+            m_isCrossing = false;
+            m_waitingCrossing = false;
+            m_frames.Clear();
+            m_keyframes = null;
+        }
+
         public void Start()
         {
+            m_isCrossing = false;
+            m_waitingCrossing = false;
             if (m_keyframes.Length > 0)
-                m_timer.Start();
-            m_running = true;
+            {
+                if (m_timer == null)
+                {
+                    m_timer = new Timer();
+                    m_timer.Interval = timerInterval;
+                    m_timer.AutoReset = true;
+                    m_timer.Elapsed += OnTimer;
+                }
+                else
+                {
+                    StopTimer();
+                    m_timer.Interval = timerInterval;
+                }
+
+                m_inOnTimer = false;
+                StartTimer();
+                m_running = true;
+            }
+            else
+            {
+                m_running = false;
+                RemoveTimer();
+            }
         }
 
         public void Stop()
         {
-            // Failed object creation
-            if (m_timer == null)
-                return;
-            m_timer.Stop();
+            m_running = false;
+            m_isCrossing = false;
+            m_waitingCrossing = false;
+
+            RemoveTimer();
 
             m_basePosition = m_group.AbsolutePosition;
             m_baseRotation = m_group.GroupRotation;
@@ -179,17 +341,16 @@ namespace OpenSim.Region.Framework.Scenes
             m_group.SendGroupRootTerseUpdate();
 
             m_frames.Clear();
-            m_running = false;
         }
 
         public void Pause()
         {
+            m_running = false;
+            RemoveTimer();
+
             m_group.RootPart.Velocity = Vector3.Zero;
             m_group.RootPart.UpdateAngularVelocity(Vector3.Zero);
             m_group.SendGroupRootTerseUpdate();
-
-            m_timer.Stop();
-            m_running = false;
         }
 
         private void GetNextList()
@@ -222,9 +383,16 @@ namespace OpenSim.Region.Framework.Scenes
                     Keyframe k = m_keyframes[i];
 
                     if (k.Position.HasValue)
-                        k.Position = (k.Position * direction) + pos;
+                    {
+                        k.Position = (k.Position * direction);
+//                        k.Velocity = (Vector3)k.Position / (k.TimeMS / 1000.0f);
+                        k.Position += pos;
+                    }
                     else
+                    {
                         k.Position = pos;
+//                        k.Velocity = Vector3.Zero;
+                    }
 
                     k.StartRotation = rot;
                     if (k.Rotation.HasValue)
@@ -237,6 +405,8 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         k.Rotation = rot;
                     }
+
+/* ang vel not in use for now
 
                     float angle = 0;
 
@@ -267,6 +437,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
 
                     k.AngularVelocity = (new Vector3(0, 0, 1) * (Quaternion)k.Rotation) * (angle / (k.TimeMS / 1000));
+ */
                     k.TimeTotal = k.TimeMS;
 
                     m_frames.Add(k);
@@ -284,139 +455,232 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected void OnTimer(object sender, ElapsedEventArgs e)
         {
-            if (m_frames.Count == 0)
+            if (m_timerStopped) // trap events still in air even after a timer.stop
+                return;
+
+            if (m_inOnTimer) // don't let overruns to happen
             {
-                GetNextList();
-
-                if (m_frames.Count == 0)
-                {
-                    Stop();
-                    return;
-                }
-
-                m_currentFrame = m_frames[0];
-            }
-
-            if (m_selected)
-            {
-                if (m_group.RootPart.Velocity != Vector3.Zero)
-                {
-                    m_group.RootPart.Velocity = Vector3.Zero;
-                    m_group.SendGroupRootTerseUpdate();
-                }
+                m_log.Warn("[KeyFrame]: timer overrun");
                 return;
             }
 
-            // Do the frame processing
-            double steps = (double)m_currentFrame.TimeMS / timerInterval;
-            float complete = ((float)m_currentFrame.TimeTotal - (float)m_currentFrame.TimeMS) / (float)m_currentFrame.TimeTotal;
+            if (m_group == null)
+                return;
 
-            if (steps <= 1.0)
+            lock (m_onTimerLock)
             {
-                m_currentFrame.TimeMS = 0;
 
-                m_group.AbsolutePosition = (Vector3)m_currentFrame.Position;
-                m_group.UpdateGroupRotationR((Quaternion)m_currentFrame.Rotation);
-            }
-            else
-            {
-                Vector3 v = (Vector3)m_currentFrame.Position - m_group.AbsolutePosition;
-                Vector3 motionThisFrame = v / (float)steps;
-                v = v * 1000 / m_currentFrame.TimeMS;
+                m_inOnTimer = true;
 
                 bool update = false;
 
-                if (Vector3.Mag(motionThisFrame) >= 0.05f)
+                try
                 {
-                    m_group.AbsolutePosition += motionThisFrame;
-                    m_group.RootPart.Velocity = v;
-                    update = true;
-                }
-
-                if ((Quaternion)m_currentFrame.Rotation != m_group.GroupRotation)
-                {
-                    Quaternion current = m_group.GroupRotation;
-
-                    Quaternion step = Quaternion.Slerp(m_currentFrame.StartRotation, (Quaternion)m_currentFrame.Rotation, complete);
-
-                    float angle = 0;
-
-                    float aa = current.X * current.X + current.Y * current.Y + current.Z * current.Z + current.W * current.W;
-                    float bb = step.X * step.X + step.Y * step.Y + step.Z * step.Z + step.W * step.W;
-                    float aa_bb = aa * bb;
-
-                    if (aa_bb == 0)
+                    if (m_selected)
                     {
-                        angle = 0;
+                        if (m_group.RootPart.Velocity != Vector3.Zero)
+                        {
+                            m_group.RootPart.Velocity = Vector3.Zero;
+                            m_group.SendGroupRootTerseUpdate();
+                        }
+                        m_inOnTimer = false;
+                        return;
+                    }
+
+                    if (m_isCrossing)
+                    {
+                        // if crossing and timer running then cross failed
+                        // wait some time then
+                        // retry to set the position that evtually caused the outbound
+                        // if still outside region this will call startCrossing below
+                        m_isCrossing = false;
+                        m_group.AbsolutePosition = m_nextPosition;
+                        if (!m_isCrossing)
+                        {
+                            StopTimer();
+                            m_timer.Interval = timerInterval;
+                            StartTimer();
+                        }
+                        m_inOnTimer = false;
+                        return;
+                    }
+
+                    if (m_frames.Count == 0)
+                    {
+                        GetNextList();
+
+                        if (m_frames.Count == 0)
+                        {
+                            Stop();
+                            m_inOnTimer = false;
+                            return;
+                        }
+
+                        m_currentFrame = m_frames[0];
+                        m_currentFrame.TimeMS += (int)timerInterval;
+
+                        //force a update on a keyframe transition
+                        update = true;
+                    }
+
+                    m_currentFrame.TimeMS -= (int)timerInterval;
+
+                    // Do the frame processing
+                    double steps = (double)m_currentFrame.TimeMS / timerInterval;
+
+                    if (steps <= 0.0)
+                    {
+                        m_group.RootPart.Velocity = Vector3.Zero;
+                        m_group.RootPart.UpdateAngularVelocity(Vector3.Zero);
+
+                        m_nextPosition = (Vector3)m_currentFrame.Position;
+                        m_group.AbsolutePosition = m_nextPosition;
+
+                        m_group.UpdateGroupRotationR((Quaternion)m_currentFrame.Rotation);
+
+                        m_frames.RemoveAt(0);
+                        if (m_frames.Count > 0)
+                            m_currentFrame = m_frames[0];
+
+                        update = true;
                     }
                     else
                     {
-                        float ab = current.X * step.X +
-                                   current.Y * step.Y +
-                                   current.Z * step.Z +
-                                   current.W * step.W;
-                        float q = (ab * ab) / aa_bb;
+                        float complete = ((float)m_currentFrame.TimeTotal - (float)m_currentFrame.TimeMS) / (float)m_currentFrame.TimeTotal;
 
-                        if (q > 1.0f)
+                        Vector3 v = (Vector3)m_currentFrame.Position - m_group.AbsolutePosition;
+                        Vector3 motionThisFrame = v / (float)steps;
+                        v = v * 1000 / m_currentFrame.TimeMS;
+
+                        if (Vector3.Mag(motionThisFrame) >= 0.05f)
                         {
-                            angle = 0;
+                            //                        m_group.AbsolutePosition += motionThisFrame;
+                            m_nextPosition = m_group.AbsolutePosition + motionThisFrame;
+                            m_group.AbsolutePosition = m_nextPosition;
+
+                            m_group.RootPart.Velocity = v;
+                            update = true;
                         }
-                        else
+
+                        if ((Quaternion)m_currentFrame.Rotation != m_group.GroupRotation)
                         {
-                            angle = (float)Math.Acos(2 * q - 1);
+                            Quaternion current = m_group.GroupRotation;
+
+                            Quaternion step = Quaternion.Slerp(m_currentFrame.StartRotation, (Quaternion)m_currentFrame.Rotation, complete);
+/* use simpler change detection
+ * float angle = 0;
+
+                            float aa = current.X * current.X + current.Y * current.Y + current.Z * current.Z + current.W * current.W;
+                            float bb = step.X * step.X + step.Y * step.Y + step.Z * step.Z + step.W * step.W;
+                            float aa_bb = aa * bb;
+
+                            if (aa_bb == 0)
+                            {
+                                angle = 0;
+                            }
+                            else
+                            {
+                                float ab = current.X * step.X +
+                                           current.Y * step.Y +
+                                           current.Z * step.Z +
+                                           current.W * step.W;
+                                float q = (ab * ab) / aa_bb;
+
+                                if (q > 1.0f)
+                                {
+                                    angle = 0;
+                                }
+                                else
+                                {
+                                    angle = (float)Math.Acos(2 * q - 1);
+                                }
+                            }
+
+                            if (angle > 0.01f)
+ */
+                            if(Math.Abs(step.X - current.X) > 0.001f 
+                                || Math.Abs(step.Y - current.Y) > 0.001f 
+                                || Math.Abs(step.Z - current.Z) > 0.001f)
+                                // assuming w is a dependente var
+
+                            {
+                                m_group.UpdateGroupRotationR(step);
+                                //m_group.RootPart.UpdateAngularVelocity(m_currentFrame.AngularVelocity / 2);
+                                update = true;
+                            }
                         }
                     }
 
-                    if (angle > 0.01f)
-                    {
-                        m_group.UpdateGroupRotationR(step);
-                        //m_group.RootPart.UpdateAngularVelocity(m_currentFrame.AngularVelocity / 2);
-                        update = true;
-                    }
+                    if (update)
+                        m_group.SendGroupRootTerseUpdate();
+
+                }
+                catch ( Exception ex)
+                {
+                    // still happening sometimes
+                    // lets try to see where
+                    m_log.Warn("[KeyFrame]: timer overrun" + ex.Message);
                 }
 
-                if (update)
-                    m_group.SendGroupRootTerseUpdate();
-            }
-
-            m_currentFrame.TimeMS -= (int)timerInterval;
-
-            if (m_currentFrame.TimeMS <= 0)
-            {
-                m_group.RootPart.Velocity = Vector3.Zero;
-                m_group.RootPart.UpdateAngularVelocity(Vector3.Zero);
-                m_group.SendGroupRootTerseUpdate();
-
-                m_frames.RemoveAt(0);
-                if (m_frames.Count > 0)
-                    m_currentFrame = m_frames[0];
+                finally
+                {
+                    // make sure we do not let this frozen
+                    m_inOnTimer = false;
+                }
             }
         }
 
         public Byte[] Serialize()
         {
+            StopTimer();
             MemoryStream ms = new MemoryStream();
-            m_timer.Stop();
 
             BinaryFormatter fmt = new BinaryFormatter();
             SceneObjectGroup tmp = m_group;
             m_group = null;
-            m_serializedPosition = tmp.AbsolutePosition;
+            if (!m_selected && tmp != null)
+                m_serializedPosition = tmp.AbsolutePosition;
             fmt.Serialize(ms, this);
             m_group = tmp;
+            if (m_running && !m_waitingCrossing)
+                StartTimer();
+
             return ms.ToArray();
+        }
+
+        public void StartCrossingCheck()
+        {
+            // timer will be restart by crossingFailure
+            // or never since crossing worked and this 
+            // should be deleted
+            StopTimer();
+           
+            m_isCrossing = true;
+            m_waitingCrossing = true;
+
+// to remove / retune to smoth crossings
+            if (m_group.RootPart.Velocity != Vector3.Zero)
+            {
+                m_group.RootPart.Velocity = Vector3.Zero;
+                m_group.SendGroupRootTerseUpdate();
+            }
         }
 
         public void CrossingFailure()
         {
-            // The serialization has stopped the timer, so let's wait a moment
-            // then retry the crossing. We'll get back here if it fails.
-            Util.FireAndForget(delegate (object x)
+            m_waitingCrossing = false;
+
+            if (m_group != null)
             {
-                Thread.Sleep(60000);
-                if (m_running)
-                    m_timer.Start();
-            });
+                m_group.RootPart.Velocity = Vector3.Zero;
+                m_group.SendGroupRootTerseUpdate();
+
+                if (m_running && m_timer != null)
+                {
+                    m_timer.Interval = 60000;
+                    StartTimer();
+                }
+            }
         }
     }
 }
