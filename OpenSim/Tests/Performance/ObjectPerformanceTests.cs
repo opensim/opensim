@@ -36,10 +36,10 @@ using OpenSim.Region.Framework.Scenes;
 using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Mock;
 
-namespace OpenSim.Tests.Torture
+namespace OpenSim.Tests.Performance
 {
     /// <summary>
-    /// Object torture tests
+    /// Object performance tests
     /// </summary>
     /// <remarks>
     /// Don't rely on the numbers given by these tests - they will vary a lot depending on what is already cached,
@@ -47,7 +47,7 @@ namespace OpenSim.Tests.Torture
     /// earlier tests.
     /// </remarks>
     [TestFixture]
-    public class ObjectTortureTests
+    public class ObjectPerformanceTests
     {
         [TearDown]
         public void TearDown()

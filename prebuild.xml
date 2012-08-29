@@ -3290,7 +3290,7 @@
       </Files>
     </Project>
 
-    <Project frameworkVersion="v3_5" name="OpenSim.Tests.Torture" path="OpenSim/Tests/Torture" type="Library">
+    <Project frameworkVersion="v3_5" name="OpenSim.Tests.Performance" path="OpenSim/Tests/Performance" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../bin/</OutputPath>
