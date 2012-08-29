@@ -365,5 +365,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         /// </summary>
         /// <returns>Rezzing object key or NULL_KEY if rezzed by agent or otherwise unknown.</returns>
         LSL_Key osGetRezzingObject();
+
+        /// <summary>
+        /// Sets the response type for an HTTP request/response
+        /// </summary>
+        /// <returns></returns>
+        void osSetContentType(LSL_Key id, string type);
     }
 }
