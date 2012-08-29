@@ -1478,8 +1478,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             Packet packet = incomingPacket.Packet;
             LLClientView client = incomingPacket.Client;
 
-            if (client.IsActive)
-            {
+//            if (client.IsActive)
+//            {
                 m_currentIncomingClient = client;
 
                 try
@@ -1506,13 +1506,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     m_currentIncomingClient = null;
                 }
-            }
-            else
-            {
-                m_log.DebugFormat(
-                    "[LLUDPSERVER]: Dropped incoming {0} for dead client {1} in {2}",
-                    packet.Type, client.Name, m_scene.RegionInfo.RegionName);
-            }
+//            }
+//            else
+//            {
+//                m_log.DebugFormat(
+//                    "[LLUDPSERVER]: Dropped incoming {0} for dead client {1} in {2}",
+//                    packet.Type, client.Name, m_scene.RegionInfo.RegionName);
+//            }
         }
 
         protected void LogoutHandler(IClientAPI client)
