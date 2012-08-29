@@ -1606,10 +1606,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 else
                     res = m_lowQueue.Dequeue();
 
-                if (m_highQueue.Count == 0 || m_lowQueue.Count == 0)
+                if (m_highQueue.Count == 0 && m_lowQueue.Count == 0)
                     return true;
 
-                m_s.Release();
+                try
+                {
+                    m_s.Release();
+                }
+                catch
+                {
+                }
 
                 return true;
             }
