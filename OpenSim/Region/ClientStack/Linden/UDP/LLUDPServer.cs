@@ -927,6 +927,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 packetInbox.EnqueueHigh(new IncomingPacket((LLClientView)client, packet));
             else
                 packetInbox.EnqueueLow(new IncomingPacket((LLClientView)client, packet));
+//            packetInbox.Enqueue(new IncomingPacket((LLClientView)client, packet));
         }
 
         #region BinaryStats
