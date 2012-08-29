@@ -1241,7 +1241,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
             if (sog.RootPart.KeyframeMotion != null)
             {
-                Byte[] data = sog.RootPart.KeyframeMotion.Serialize(true);               
+                Byte[] data = sog.RootPart.KeyframeMotion.Serialize();               
 
                 writer.WriteStartElement(String.Empty, "KeyframeMotion", String.Empty);
                 writer.WriteBase64(data, 0, data.Length);

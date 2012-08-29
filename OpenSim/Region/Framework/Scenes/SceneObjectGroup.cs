@@ -2066,7 +2066,7 @@ namespace OpenSim.Region.Framework.Scenes
                         { 
                             if (part.KeyframeMotion != null)
                             {
-                                part.KeyframeMotion = KeyframeMotion.FromData(backup_group, part.KeyframeMotion.Serialize(false));
+                                part.KeyframeMotion = KeyframeMotion.FromData(backup_group, part.KeyframeMotion.Serialize());
 //                                part.KeyframeMotion.UpdateSceneObject(this);
                             }
                         });
@@ -4419,7 +4419,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (part.KeyframeMotion != null)
                 {
-                    part.KeyframeMotion = KeyframeMotion.FromData(sog, part.KeyframeMotion.Serialize(true));
+                    part.KeyframeMotion = KeyframeMotion.FromData(sog, part.KeyframeMotion.Serialize());
                     // this is called later
 //                        part.KeyframeMotion.UpdateSceneObject(this);
                 }
