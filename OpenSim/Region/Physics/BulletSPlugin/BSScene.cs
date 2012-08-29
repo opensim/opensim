@@ -232,15 +232,15 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         }
 
         // If Debug logging level, enable logging from the unmanaged code
+        m_DebugLogCallbackHandle = null;
         if (m_log.IsDebugEnabled || PhysicsLogging.Enabled)
         {
             m_log.DebugFormat("{0}: Initialize: Setting debug callback for unmanaged code", LogHeader);
             if (PhysicsLogging.Enabled)
+                // The handle is saved in a variable to make sure it doesn't get freed after this call
                 m_DebugLogCallbackHandle = new BulletSimAPI.DebugLogCallback(BulletLoggerPhysLog);
             else
                 m_DebugLogCallbackHandle = new BulletSimAPI.DebugLogCallback(BulletLogger);
-            // The handle is saved in a variable to make sure it doesn't get freed after this call
-            BulletSimAPI.SetDebugLogCallback(m_DebugLogCallbackHandle);
         }
 
         // Get the version of the DLL
@@ -257,7 +257,8 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         // m_log.DebugFormat("{0}: Initialize: Calling BulletSimAPI.Initialize.", LogHeader);
         WorldID = BulletSimAPI.Initialize(worldExtent, m_paramsHandle.AddrOfPinnedObject(),
                                         m_maxCollisionsPerFrame, m_collisionArrayPinnedHandle.AddrOfPinnedObject(),
-                                        m_maxUpdatesPerFrame, m_updateArrayPinnedHandle.AddrOfPinnedObject());
+                                        m_maxUpdatesPerFrame, m_updateArrayPinnedHandle.AddrOfPinnedObject(),
+                                        m_DebugLogCallbackHandle);
 
         // Initialization to support the transition to a new API which puts most of the logic
         //   into the C# code so it is easier to modify and add to.
@@ -265,8 +266,6 @@ public class BSScene : PhysicsScene, IPhysicsParameters
 
         Constraints = new BSConstraintCollection(World);
 
-        // Note: choose one of the  two following lines
-        // BulletSimAPI.CreateInitialGroundPlaneAndTerrain(WorldID);
         TerrainManager = new BSTerrainManager(this);
         TerrainManager.CreateInitialGroundPlaneAndTerrain();
 
@@ -378,7 +377,9 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         BSCharacter actor = new BSCharacter(localID, avName, this, position, size, isFlying);
         lock (PhysObjects) PhysObjects.Add(localID, actor);
 
-        // Remove kludge someday
+        // TODO: Remove kludge someday.
+        // We must generate a collision for avatars whether they collide or not.
+        // This is required by OpenSim to update avatar animations, etc.
         lock (m_avatarsWithCollisions) m_avatarsWithCollisions.Add(actor);
 
         return actor;

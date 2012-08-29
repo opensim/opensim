@@ -38,10 +38,16 @@ namespace OpenSim.Region.Physics.BulletSPlugin {
 // The physics engine controller class created at initialization
 public struct BulletSim
 {
-    public BulletSim(uint id, BSScene bss, IntPtr xx) { ID = id; scene = bss;  Ptr = xx; }
-    public uint ID;
+    public BulletSim(uint worldId, BSScene bss, IntPtr xx) { worldID = worldId; scene = bss;  Ptr = xx; }
+    public uint worldID;
     // The scene is only in here so very low level routines have a handle to print debug/error messages
     public BSScene scene;
+    public IntPtr Ptr;
+}
+
+public struct BulletShape
+{
+    public BulletShape(IntPtr xx) { Ptr = xx; }
     public IntPtr Ptr;
 }
 
@@ -66,18 +72,22 @@ public struct BulletConstraint
 //      than making copies.
 public class BulletHeightMapInfo
 {
-    public BulletHeightMapInfo(IntPtr xx, float[] hm) { 
+    public BulletHeightMapInfo(uint id, float[] hm, IntPtr xx) {
+        ID = id;
         Ptr = xx;
         heightMap = hm;
         terrainRegionBase = new Vector2(0f, 0f);
-        maxRegionExtent = new Vector3(100f, 100f, 25f);
+        minCoords = new Vector3(100f, 100f, 25f);
+        maxCoords = new Vector3(101f, 101f, 26f);
         minZ = maxZ = 0f;
         sizeX = sizeY = 256f;
     }
+    public uint ID;
     public IntPtr Ptr;
     public float[] heightMap;
     public Vector2 terrainRegionBase;
-    public Vector3 maxRegionExtent;
+    public Vector3 minCoords;
+    public Vector3 maxCoords;
     public float sizeX, sizeY;
     public float minZ, maxZ;
 }
@@ -248,6 +258,10 @@ public enum ConstraintParamAxis : int
 // ===============================================================================
 static class BulletSimAPI {
 
+// Link back to the managed code for outputting log messages
+[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+public delegate void DebugLogCallback([MarshalAs(UnmanagedType.LPStr)]string msg);
+
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 [return: MarshalAs(UnmanagedType.LPStr)]
 public static extern string GetVersion();
@@ -255,7 +269,8 @@ public static extern string GetVersion();
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern uint Initialize(Vector3 maxPosition, IntPtr parms, 
                         int maxCollisions, IntPtr collisionArray, 
-                        int maxUpdates, IntPtr updateArray);
+                        int maxUpdates, IntPtr updateArray,
+                        DebugLogCallback logRoutine);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern void CreateInitialGroundPlaneAndTerrain(uint worldID);
@@ -372,8 +387,6 @@ public static extern Vector3 RecoverFromPenetration(uint worldID, uint id);
 public static extern void DumpBulletStatistics();
 
 // Log a debug message
-[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-public delegate void DebugLogCallback([MarshalAs(UnmanagedType.LPStr)]string msg);
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern void SetDebugLogCallback(DebugLogCallback callback);
 
@@ -407,7 +420,7 @@ public static extern IntPtr Initialize2(Vector3 maxPosition, IntPtr parms,
 public static extern bool UpdateParameter2(IntPtr world, uint localID, String parm, float value);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern void SetHeightmap2(IntPtr world, float[] heightmap);
+public static extern void SetHeightMap2(IntPtr world, float[] heightmap);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern void Shutdown2(IntPtr sim);
@@ -442,25 +455,31 @@ public static extern IntPtr BuildNativeShape2(IntPtr world,
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern bool DeleteCollisionShape2(IntPtr world, IntPtr shape);
 
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern IntPtr CreateBodyFromShape2(IntPtr sim, IntPtr shape, Vector3 pos, Quaternion rot);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern IntPtr CreateBodyWithDefaultMotionState2(IntPtr shape, Vector3 pos, Quaternion rot);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern bool ReplaceBodyShape2(IntPtr sim, IntPtr obj, IntPtr shape);
 // =====================================================================================
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern IntPtr CreateGroundPlaneBody2(uint id, float height, float collisionMargin);
+public static extern IntPtr CreateHeightMapInfo2(uint id, Vector3 minCoords, Vector3 maxCoords, 
+        [MarshalAs(UnmanagedType.LPArray)] float[] heightMap, float collisionMargin);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern IntPtr CreateTerrainBody2(uint id, 
-                    IntPtr heightMapInfo,
-                    float collisionMargin);
+public static extern IntPtr FillHeightMapInfo2(IntPtr mapInfo, uint id, Vector3 minCoords, Vector3 maxCoords, 
+        [MarshalAs(UnmanagedType.LPArray)] float[] heightMap, float collisionMargin);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern IntPtr CreateHeightmap2(Vector3 minCoords, Vector3 maxCoords, 
-        [MarshalAs(UnmanagedType.LPArray)] float[] heightMap);
+public static extern bool ReleaseHeightMapInfo2(IntPtr heightMapInfo);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern bool ReleaseHeightmapInfo2(IntPtr heightMapInfo);
+public static extern IntPtr CreateGroundPlaneShape2(uint id, float height, float collisionMargin);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern void UpdateHeightMap2(IntPtr world, IntPtr heightMapInfo, 
-            [MarshalAs(UnmanagedType.LPArray)] float[] heightMap);
+public static extern IntPtr CreateTerrainShape2(IntPtr mapInfo);
 
 // =====================================================================================
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]

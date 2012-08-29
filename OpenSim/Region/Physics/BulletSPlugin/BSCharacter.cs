@@ -39,8 +39,7 @@ public class BSCharacter : BSPhysObject
     private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
     private static readonly string LogHeader = "[BULLETS CHAR]";
 
-    private BSScene _scene;
-    public BSScene Scene { get { return _scene; } }
+    public BSScene Scene { get; private set; }
     private String _avName;
     // private bool _stopped;
     private Vector3 _size;
@@ -92,7 +91,7 @@ public class BSCharacter : BSPhysObject
     {
         _localID = localID;
         _avName = avName;
-        _scene = parent_scene;
+        Scene = parent_scene;
         _position = pos;
         _size = size;
         _flying = isFlying;
@@ -101,11 +100,11 @@ public class BSCharacter : BSPhysObject
         _buoyancy = ComputeBuoyancyFromFlying(isFlying);
         // The dimensions of the avatar capsule are kept in the scale.
         // Physics creates a unit capsule which is scaled by the physics engine.
-        _scale = new Vector3(_scene.Params.avatarCapsuleRadius, _scene.Params.avatarCapsuleRadius, size.Z);
-        _density = _scene.Params.avatarDensity;
+        _scale = new Vector3(Scene.Params.avatarCapsuleRadius, Scene.Params.avatarCapsuleRadius, size.Z);
+        _density = Scene.Params.avatarDensity;
         ComputeAvatarVolumeAndMass();   // set _avatarVolume and _mass based on capsule size, _density and _scale
 
-        Linkset = new BSLinkset(_scene, this);
+        Linkset = new BSLinkset(Scene, this);
 
         ShapeData shapeData = new ShapeData();
         shapeData.ID = _localID;
@@ -117,19 +116,19 @@ public class BSCharacter : BSPhysObject
         shapeData.Mass = _mass;
         shapeData.Buoyancy = _buoyancy;
         shapeData.Static = ShapeData.numericFalse;
-        shapeData.Friction = _scene.Params.avatarFriction;
-        shapeData.Restitution = _scene.Params.avatarRestitution;
+        shapeData.Friction = Scene.Params.avatarFriction;
+        shapeData.Restitution = Scene.Params.avatarRestitution;
 
         // do actual create at taint time
-        _scene.TaintedObject("BSCharacter.create", delegate()
+        Scene.TaintedObject("BSCharacter.create", delegate()
         {
             DetailLog("{0},BSCharacter.create", _localID);
-            BulletSimAPI.CreateObject(parent_scene.WorldID, shapeData);
+            BulletSimAPI.CreateObject(Scene.WorldID, shapeData);
 
             // Set the buoyancy for flying. This will be refactored when all the settings happen in C#
-            BulletSimAPI.SetObjectBuoyancy(_scene.WorldID, LocalID, _buoyancy);
+            BulletSimAPI.SetObjectBuoyancy(Scene.WorldID, LocalID, _buoyancy);
 
-            Body = new BulletBody(LocalID, BulletSimAPI.GetBodyHandle2(_scene.World.Ptr, LocalID));
+            Body = new BulletBody(LocalID, BulletSimAPI.GetBodyHandle2(Scene.World.Ptr, LocalID));
             // avatars get all collisions no matter what (makes walking on ground and such work)
             BulletSimAPI.AddToCollisionFlags2(Body.Ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
         });
@@ -141,9 +140,9 @@ public class BSCharacter : BSPhysObject
     public override void Destroy()
     {
         DetailLog("{0},BSCharacter.Destroy", LocalID);
-        _scene.TaintedObject("BSCharacter.destroy", delegate()
+        Scene.TaintedObject("BSCharacter.destroy", delegate()
         {
-            BulletSimAPI.DestroyObject(_scene.WorldID, _localID);
+            BulletSimAPI.DestroyObject(Scene.WorldID, _localID);
         });
     }
 
@@ -172,9 +171,9 @@ public class BSCharacter : BSPhysObject
 
             ComputeAvatarVolumeAndMass();
 
-            _scene.TaintedObject("BSCharacter.setSize", delegate()
+            Scene.TaintedObject("BSCharacter.setSize", delegate()
             {
-                BulletSimAPI.SetObjectScaleMass(_scene.WorldID, LocalID, _scale, _mass, true);
+                BulletSimAPI.SetObjectScaleMass(Scene.WorldID, LocalID, _scale, _mass, true);
             });
 
         } 
@@ -203,17 +202,17 @@ public class BSCharacter : BSPhysObject
 
     public override Vector3 Position { 
         get {
-            // _position = BulletSimAPI.GetObjectPosition(_scene.WorldID, _localID);
+            // _position = BulletSimAPI.GetObjectPosition(Scene.WorldID, _localID);
             return _position; 
         } 
         set {
             _position = value;
             PositionSanityCheck();
 
-            _scene.TaintedObject("BSCharacter.setPosition", delegate()
+            Scene.TaintedObject("BSCharacter.setPosition", delegate()
             {
                 DetailLog("{0},BSCharacter.SetPosition,taint,pos={1},orient={2}", LocalID, _position, _orientation);
-                BulletSimAPI.SetObjectTranslation(_scene.WorldID, _localID, _position, _orientation);
+                BulletSimAPI.SetObjectTranslation(Scene.WorldID, _localID, _position, _orientation);
             });
         } 
     }
@@ -230,9 +229,7 @@ public class BSCharacter : BSPhysObject
         if (Position.Z < terrainHeight)
         {
             DetailLog("{0},BSCharacter.PositionAdjustUnderGround,call,pos={1},terrain={2}", LocalID, _position, terrainHeight);
-            Vector3 newPos = _position;
-            newPos.Z = terrainHeight + 2.0f;
-            _position = newPos;
+            _position.Z = terrainHeight + 2.0f;
             ret = true;
         }
 
@@ -250,10 +247,10 @@ public class BSCharacter : BSPhysObject
         {
             // The new position value must be pushed into the physics engine but we can't
             //    just assign to "Position" because of potential call loops.
-            _scene.TaintedObject("BSCharacter.PositionSanityCheck", delegate()
+            Scene.TaintedObject("BSCharacter.PositionSanityCheck", delegate()
             {
                 DetailLog("{0},BSCharacter.PositionSanityCheck,taint,pos={1},orient={2}", LocalID, _position, _orientation);
-                BulletSimAPI.SetObjectTranslation(_scene.WorldID, _localID, _position, _orientation);
+                BulletSimAPI.SetObjectTranslation(Scene.WorldID, _localID, _position, _orientation);
             });
             ret = true;
         }
@@ -301,10 +298,10 @@ public class BSCharacter : BSPhysObject
         set {
             _velocity = value;
             // m_log.DebugFormat("{0}: set velocity = {1}", LogHeader, _velocity);
-            _scene.TaintedObject("BSCharacter.setVelocity", delegate()
+            Scene.TaintedObject("BSCharacter.setVelocity", delegate()
             {
                 DetailLog("{0},BSCharacter.setVelocity,taint,vel={1}", LocalID, _velocity);
-                BulletSimAPI.SetObjectVelocity(_scene.WorldID, _localID, _velocity);
+                BulletSimAPI.SetObjectVelocity(Scene.WorldID, _localID, _velocity);
             });
         } 
     }
@@ -327,10 +324,10 @@ public class BSCharacter : BSPhysObject
         set {
             _orientation = value;
             // m_log.DebugFormat("{0}: set orientation to {1}", LogHeader, _orientation);
-            _scene.TaintedObject("BSCharacter.setOrientation", delegate()
+            Scene.TaintedObject("BSCharacter.setOrientation", delegate()
             {
-                // _position = BulletSimAPI.GetObjectPosition(_scene.WorldID, _localID);
-                BulletSimAPI.SetObjectTranslation(_scene.WorldID, _localID, _position, _orientation);
+                // _position = BulletSimAPI.GetObjectPosition(Scene.WorldID, _localID);
+                BulletSimAPI.SetObjectTranslation(Scene.WorldID, _localID, _position, _orientation);
             });
         } 
     }
@@ -367,11 +364,11 @@ public class BSCharacter : BSPhysObject
         set { _throttleUpdates = value; } 
     }
     public override bool IsColliding {
-        get { return (_collidingStep == _scene.SimulationStep); } 
+        get { return (_collidingStep == Scene.SimulationStep); } 
         set { _isColliding = value; } 
     }
     public override bool CollidingGround {
-        get { return (_collidingGroundStep == _scene.SimulationStep); } 
+        get { return (_collidingGroundStep == Scene.SimulationStep); } 
         set { _collidingGround = value; } 
     }
     public override bool CollidingObj { 
@@ -393,10 +390,10 @@ public class BSCharacter : BSPhysObject
     public override float Buoyancy { 
         get { return _buoyancy; } 
         set { _buoyancy = value; 
-            _scene.TaintedObject("BSCharacter.setBuoyancy", delegate()
+            Scene.TaintedObject("BSCharacter.setBuoyancy", delegate()
             {
                 DetailLog("{0},BSCharacter.setBuoyancy,taint,buoy={1}", LocalID, _buoyancy);
-                BulletSimAPI.SetObjectBuoyancy(_scene.WorldID, LocalID, _buoyancy);
+                BulletSimAPI.SetObjectBuoyancy(Scene.WorldID, LocalID, _buoyancy);
             });
         } 
     }
@@ -440,7 +437,7 @@ public class BSCharacter : BSPhysObject
             _force.Y += force.Y;
             _force.Z += force.Z;
             // m_log.DebugFormat("{0}: AddForce. adding={1}, newForce={2}", LogHeader, force, _force);
-            _scene.TaintedObject("BSCharacter.AddForce", delegate()
+            Scene.TaintedObject("BSCharacter.AddForce", delegate()
             {
                 DetailLog("{0},BSCharacter.setAddForce,taint,addedForce={1}", LocalID, _force);
                 BulletSimAPI.AddObjectForce2(Body.Ptr, _force);
@@ -524,10 +521,9 @@ public class BSCharacter : BSPhysObject
         // Do some sanity checking for the avatar. Make sure it's above ground and inbounds.
         PositionSanityCheck2();
 
-        float heightHere = Scene.TerrainManager.GetTerrainHeightAtXYZ(_position);   // just for debug
+        float heightHere = Scene.TerrainManager.GetTerrainHeightAtXYZ(_position);   // only for debug
         DetailLog("{0},BSCharacter.UpdateProperties,call,pos={1},orient={2},vel={3},accel={4},rotVel={5},terrain={6}",
-                LocalID, entprop.Position, entprop.Rotation, entprop.Velocity, 
-                entprop.Acceleration, entprop.RotationalVelocity, heightHere);
+                LocalID, _position, _orientation, _velocity, _acceleration, _rotationalVelocity, heightHere);
     }
 
     // Called by the scene when a collision with this object is reported
@@ -539,16 +535,16 @@ public class BSCharacter : BSPhysObject
         // m_log.DebugFormat("{0}: Collide: ms={1}, id={2}, with={3}", LogHeader, _subscribedEventsMs, LocalID, collidingWith);
 
         // The following makes IsColliding() and IsCollidingGround() work
-        _collidingStep = _scene.SimulationStep;
+        _collidingStep = Scene.SimulationStep;
         if (collidingWith == BSScene.TERRAIN_ID || collidingWith == BSScene.GROUNDPLANE_ID)
         {
-            _collidingGroundStep = _scene.SimulationStep;
+            _collidingGroundStep = Scene.SimulationStep;
         }
         // DetailLog("{0},BSCharacter.Collison,call,with={1}", LocalID, collidingWith);
 
         // throttle collisions to the rate specified in the subscription
         if (_subscribedEventsMs != 0) {
-            int nowTime = _scene.SimulationNowTime;
+            int nowTime = Scene.SimulationNowTime;
             if (nowTime >= _nextCollisionOkTime) {
                 _nextCollisionOkTime = nowTime + _subscribedEventsMs;
 

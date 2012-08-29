@@ -44,14 +44,32 @@ public class BSTerrainManager
 {
     static string LogHeader = "[BULLETSIM TERRAIN MANAGER]";
 
+    // These height values are fractional so the odd values will be
+    //     noticable when debugging.
+    public const float HEIGHT_INITIALIZATION = 24.987f;
+    public const float HEIGHT_INITIAL_LASTHEIGHT = 24.876f;
+    public const float HEIGHT_GETHEIGHT_RET = 24.765f;
+
+    // If the min and max height are equal, we reduce the min by this
+    //    amount to make sure that a bounding box is built for the terrain.
+    public const float HEIGHT_EQUAL_FUDGE = 0.2f;
+
+    public const float TERRAIN_COLLISION_MARGIN = 0.2f;
+
+    // The scene that I am part of
     BSScene m_physicsScene;
 
+    // The ground plane created to keep thing from falling to infinity.
     private BulletBody m_groundPlane;
     
     // If doing mega-regions, if we're region zero we will be managing multiple
     //    region terrains since region zero does the physics for the whole mega-region.
     private Dictionary<Vector2, BulletBody> m_terrains;
     private Dictionary<Vector2, BulletHeightMapInfo> m_heightMaps;
+
+    // True of the terrain has been modified.
+    // Used to force recalculation of terrain height after terrain has been modified
+    private bool m_terrainModified;
 
     // If we are doing mega-regions, terrains are added from TERRAIN_ID to m_terrainCount.
     // This is incremented before assigning to new region so it is the last ID allocated.
@@ -69,6 +87,7 @@ public class BSTerrainManager
         m_physicsScene = physicsScene;
         m_terrains = new Dictionary<Vector2,BulletBody>();
         m_heightMaps = new Dictionary<Vector2,BulletHeightMapInfo>();
+        m_terrainModified = false;
     }
 
     // Create the initial instance of terrain and the underlying ground plane.
@@ -80,17 +99,18 @@ public class BSTerrainManager
     public void CreateInitialGroundPlaneAndTerrain()
     {
         // The ground plane is here to catch things that are trying to drop to negative infinity
+        BulletShape groundPlaneShape = new BulletShape(BulletSimAPI.CreateGroundPlaneShape2(BSScene.GROUNDPLANE_ID, 1f, TERRAIN_COLLISION_MARGIN));
         m_groundPlane = new BulletBody(BSScene.GROUNDPLANE_ID, 
-                        BulletSimAPI.CreateGroundPlaneBody2(BSScene.GROUNDPLANE_ID, 1f, 0.4f));
+                        BulletSimAPI.CreateBodyWithDefaultMotionState2(groundPlaneShape.Ptr, Vector3.Zero, Quaternion.Identity));
         BulletSimAPI.AddObjectToWorld2(m_physicsScene.World.Ptr, m_groundPlane.Ptr);
 
-        Vector3 minTerrainCoords = new Vector3(0f, 0f, 24f);
-        Vector3 maxTerrainCoords = new Vector3(Constants.RegionSize, Constants.RegionSize, 25f);
+        Vector3 minTerrainCoords = new Vector3(0f, 0f, HEIGHT_INITIALIZATION - HEIGHT_EQUAL_FUDGE);
+        Vector3 maxTerrainCoords = new Vector3(Constants.RegionSize, Constants.RegionSize, HEIGHT_INITIALIZATION);
         int totalHeights = (int)maxTerrainCoords.X * (int)maxTerrainCoords.Y;
         float[] initialMap = new float[totalHeights];
         for (int ii = 0; ii < totalHeights; ii++)
         {
-            initialMap[ii] = 25f;
+            initialMap[ii] = HEIGHT_INITIALIZATION;
         }
         CreateNewTerrainSegment(BSScene.TERRAIN_ID, initialMap, minTerrainCoords, maxTerrainCoords);
     }
@@ -108,7 +128,7 @@ public class BSTerrainManager
             if (BulletSimAPI.RemoveObjectFromWorld2(m_physicsScene.World.Ptr, kvp.Value.Ptr))
             {
                 BulletSimAPI.DestroyObject2(m_physicsScene.World.Ptr, kvp.Value.Ptr);
-                BulletSimAPI.ReleaseHeightmapInfo2(m_heightMaps[kvp.Key].Ptr);
+                BulletSimAPI.ReleaseHeightMapInfo2(m_heightMaps[kvp.Key].Ptr);
             }
         }
         m_terrains.Clear();
@@ -128,30 +148,41 @@ public class BSTerrainManager
         int hSize = heightMap.Length;
         for (int ii = 0; ii < hSize; ii++)
         {
-            minZ = heightMap[ii] < minZ ? heightMap[ii] : minZ;
-            maxZ = heightMap[ii] > maxZ ? heightMap[ii] : maxZ;
+            float height = heightMap[ii];
+            if (height < minZ) minZ = height;
+            if (height > maxZ) maxZ = height;
         }
+        // If the terrain is flat, make a difference so we get a bounding box
+        if (minZ == maxZ) 
+            minZ -= HEIGHT_EQUAL_FUDGE;
+
         minCoords.Z = minZ;
         maxCoords.Z = maxZ;
-        // If the terrain is flat, make a difference so we get a good bounding box
-        if (minZ == maxZ) 
-            minZ -= 0.2f;
         Vector2 terrainRegionBase = new Vector2(minCoords.X, minCoords.Y);
 
         // Create the heightmap data structure in the unmanaged space
-        BulletHeightMapInfo mapInfo = new BulletHeightMapInfo(
-                            BulletSimAPI.CreateHeightmap2(minCoords, maxCoords, heightMap), heightMap);
+        BulletHeightMapInfo mapInfo = new BulletHeightMapInfo(id, heightMap,
+                            BulletSimAPI.CreateHeightMapInfo2(id, minCoords, maxCoords, heightMap, TERRAIN_COLLISION_MARGIN));
         mapInfo.terrainRegionBase = terrainRegionBase;
-        mapInfo.maxRegionExtent = maxCoords;
+        mapInfo.minCoords = minCoords;
+        mapInfo.maxCoords = maxCoords;
         mapInfo.minZ = minZ;
         mapInfo.maxZ = maxZ;
         mapInfo.sizeX = maxCoords.X - minCoords.X;
         mapInfo.sizeY = maxCoords.Y - minCoords.Y;
 
+        Vector3 centerPos;
+        centerPos.X = minCoords.X + (mapInfo.sizeX / 2f);
+        centerPos.Y = minCoords.Y + (mapInfo.sizeY / 2f);
+        centerPos.Z = minZ + (maxZ - minZ) / 2f;
+
         DetailLog("{0},BSScene.CreateNewTerrainSegment,call,minZ={1},maxZ={2},hMapPtr={3},minC={4},maxC={5}",
                     BSScene.DetailLogZero, minZ, maxZ, mapInfo.Ptr, minCoords, maxCoords);
-        // Create the terrain body from that heightmap
-        BulletBody terrainBody = new BulletBody(id, BulletSimAPI.CreateTerrainBody2(id, mapInfo.Ptr, 0.01f));
+        // Create the terrain shape from the mapInfo
+        BulletShape terrainShape = new BulletShape(BulletSimAPI.CreateTerrainShape2(mapInfo.Ptr));
+
+        BulletBody terrainBody = new BulletBody(id, BulletSimAPI.CreateBodyWithDefaultMotionState2(terrainShape.Ptr,
+                       centerPos, Quaternion.Identity)); 
 
         BulletSimAPI.SetFriction2(terrainBody.Ptr, m_physicsScene.Params.terrainFriction);
         BulletSimAPI.SetHitFraction2(terrainBody.Ptr, m_physicsScene.Params.terrainHitFraction);
@@ -163,11 +194,12 @@ public class BSTerrainManager
         BulletSimAPI.AddObjectToWorld2(m_physicsScene.World.Ptr, terrainBody.Ptr);
         BulletSimAPI.UpdateSingleAabb2(m_physicsScene.World.Ptr, terrainBody.Ptr);
 
-
         // Add the created terrain to the management set. If we are doing mega-regions,
         //    the terrains of our children will be added.
         m_terrains.Add(terrainRegionBase, terrainBody);
         m_heightMaps.Add(terrainRegionBase, mapInfo);
+
+        m_terrainModified = true;
     }
 
     public void SetTerrain(float[] heightMap) {
@@ -191,34 +223,57 @@ public class BSTerrainManager
     {
         float minZ = float.MaxValue;
         float maxZ = float.MinValue;
+        Vector2 terrainRegionBase = new Vector2(tOffset.X, tOffset.Y);
 
-        // Copy heightMap local and compute some statistics.
-        // Not really sure if we need to do this deep copy but, given
-        //    the magic that happens to make the closure for taint
-        //    below, I don't want there to be any problem with sharing
-        //    locations of there are multiple calls to this routine
-        //    within one tick.
         int heightMapSize = heightMap.Length;
-        float[] localHeightMap = new float[heightMapSize];
         for (int ii = 0; ii < heightMapSize; ii++)
         {
             float height = heightMap[ii];
             if (height < minZ) minZ = height;
             if (height > maxZ) maxZ = height;
-            localHeightMap[ii] = height;
         }
 
-        Vector2 terrainRegionBase = new Vector2(tOffset.X, tOffset.Y);
+        // The shape of the terrain is from its base to its extents.
+        Vector3 minCoords, maxCoords;
+        minCoords = tOffset;
+        minCoords.Z = minZ;
+        maxCoords = tOffset;
+        maxCoords.X += Constants.RegionSize;
+        maxCoords.Y += Constants.RegionSize;
+        maxCoords.Z = maxZ;
+
+        BulletBody terrainBody;
         BulletHeightMapInfo mapInfo;
         if (m_heightMaps.TryGetValue(terrainRegionBase, out mapInfo))
         {
+            terrainBody = m_terrains[terrainRegionBase];
+            // Copy heightMap local and compute some statistics.
+            for (int ii = 0; ii < heightMapSize; ii++)
+            {
+                mapInfo.heightMap[ii] = heightMap[ii];
+            }
+
             // If this is terrain we know about, it's easy to update
-            mapInfo.heightMap = localHeightMap;
             m_physicsScene.TaintedObject("BSScene.SetTerrain:UpdateExisting", delegate()
             {
                 DetailLog("{0},SetTerrain:UpdateExisting,baseX={1},baseY={2},minZ={3},maxZ={4}", 
                                     BSScene.DetailLogZero, tOffset.X, tOffset.Y, minZ, maxZ);
-                BulletSimAPI.UpdateHeightMap2(m_physicsScene.World.Ptr, mapInfo.Ptr, mapInfo.heightMap);
+                // Fill the existing height map info with the new location and size information
+                BulletSimAPI.FillHeightMapInfo2(mapInfo.Ptr, mapInfo.ID, minCoords, maxCoords, mapInfo.heightMap, TERRAIN_COLLISION_MARGIN);
+
+                // Create a terrain shape based on the new info
+                BulletShape terrainShape = new BulletShape(BulletSimAPI.CreateTerrainShape2(mapInfo.Ptr));
+
+                // Swap the shape in the terrain body (this also deletes the old shape)
+                bool success = BulletSimAPI.ReplaceBodyShape2(m_physicsScene.World.Ptr, terrainBody.Ptr, terrainShape.Ptr);
+
+                if (!success)
+                {
+                    DetailLog("{0},SetTerrain:UpdateExisting,Failed", BSScene.DetailLogZero);
+                    m_physicsScene.Logger.ErrorFormat("{0} Failed updating terrain heightmap. Region={1}",
+                                    LogHeader, m_physicsScene.RegionName);
+                    
+                }
             });
         }
         else
@@ -226,11 +281,6 @@ public class BSTerrainManager
             // Our mega-prim child is giving us a new terrain to add to the phys world
             uint newTerrainID = ++m_terrainCount;
 
-            Vector3 minCoords = tOffset;
-            minCoords.Z = minZ;
-            Vector3 maxCoords = new Vector3(tOffset.X + Constants.RegionSize,
-                                    tOffset.Y + Constants.RegionSize,
-                                    maxZ);
             m_physicsScene.TaintedObject("BSScene.SetTerrain:NewTerrain", delegate()
             {
                 DetailLog("{0},SetTerrain:NewTerrain,baseX={1},baseY={2}", BSScene.DetailLogZero, tOffset.X, tOffset.Y);
@@ -240,9 +290,9 @@ public class BSTerrainManager
     }
 
     // Someday we will have complex terrain with caves and tunnels
-    // For the moment, it's flat and convex
     public float GetTerrainHeightAtXYZ(Vector3 loc)
     {
+        // For the moment, it's flat and convex
         return GetTerrainHeightAtXY(loc.X, loc.Y);
     }
 
@@ -252,9 +302,19 @@ public class BSTerrainManager
     //    the same size and that is the default.
     // Once the heightMapInfo is found, we have all the information to
     //    compute the offset into the array.
+    private float lastHeightTX = 999999f;
+    private float lastHeightTY = 999999f;
+    private float lastHeight = HEIGHT_INITIAL_LASTHEIGHT;
     public float GetTerrainHeightAtXY(float tX, float tY)
     {
-        float ret = 30f;
+        // You'd be surprized at the number of times this routine is called
+        //    with the same parameters as last time.
+        if (!m_terrainModified && lastHeightTX == tX && lastHeightTY == tY)
+            return lastHeight;
+
+        lastHeightTX = tX;
+        lastHeightTY = tY;
+        float ret = HEIGHT_GETHEIGHT_RET;
 
         int offsetX = ((int)(tX / (int)Constants.RegionSize)) * (int)Constants.RegionSize;
         int offsetY = ((int)(tY / (int)Constants.RegionSize)) * (int)Constants.RegionSize;
@@ -265,15 +325,20 @@ public class BSTerrainManager
         {
             float regionX = tX - offsetX;
             float regionY = tY - offsetY;
-            regionX = regionX > mapInfo.sizeX ? 0 : regionX;
-            regionY = regionY > mapInfo.sizeY ? 0 : regionY;
-            ret = mapInfo.heightMap[(int)(regionX * mapInfo.sizeX + regionY)];
+            if (regionX > mapInfo.sizeX) regionX = 0;
+            if (regionY > mapInfo.sizeY) regionY = 0;
+            int mapIndex = (int)regionY * (int)mapInfo.sizeY + (int)regionX;
+            ret = mapInfo.heightMap[mapIndex];
+            m_terrainModified = false;
+            DetailLog("{0},BSTerrainManager.GetTerrainHeightAtXY,bX={1},baseY={2},szX={3},szY={4},regX={5},regY={6},index={7},ht={8}",
+                    BSScene.DetailLogZero, offsetX, offsetY, mapInfo.sizeX, mapInfo.sizeY, regionX, regionY, mapIndex, ret);
         }
         else
         {
             m_physicsScene.Logger.ErrorFormat("{0} GetTerrainHeightAtXY: terrain not found: x={1}, y={2}",
                 LogHeader, tX, tY);
         }
+        lastHeight = ret;
         return ret;
     }
 
