@@ -231,7 +231,8 @@ namespace OpenSim.Framework.Servers.HttpServer
         {
             if (m_running)
             {
-                if (req.PollServiceArgs.Type == PollServiceEventArgs.EventType.LslHttp)
+                if (req.PollServiceArgs.Type == PollServiceEventArgs.EventType.LslHttp ||
+                    req.PollServiceArgs.Type == PollServiceEventArgs.EventType.Inventory)
                 {
                     m_requests.Enqueue(req);
                 }

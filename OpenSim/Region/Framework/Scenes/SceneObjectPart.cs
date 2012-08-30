@@ -769,7 +769,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_groupPosition = value;
                 PhysicsActor actor = PhysActor;
-                if (actor != null)
+                if (actor != null && ParentGroup.Scene.PhysicsScene != null)
                 {
                     try
                     {
@@ -2110,6 +2110,9 @@ namespace OpenSim.Region.Framework.Scenes
             Array.Copy(Shape.ExtraParams, extraP, extraP.Length);
             dupe.Shape.ExtraParams = extraP;
 
+            if (KeyframeMotion != null)
+                dupe.KeyframeMotion = KeyframeMotion.Copy(null);
+
             if (userExposed)
             {
                 if (dupe.m_shape.SculptEntry && dupe.m_shape.SculptTexture != UUID.Zero)
@@ -3407,6 +3410,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void SendTerseUpdateToAllClients()
         {
+            if (ParentGroup == null || ParentGroup.Scene == null)
+                return;
+
             ParentGroup.Scene.ForEachClient(delegate(IClientAPI client)
             {
                 SendTerseUpdateToClient(client);

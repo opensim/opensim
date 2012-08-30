@@ -1855,6 +1855,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if (grp.RootPart.PhysActor != null)
                 grp.RootPart.PhysActor.CrossingFailure();
 
+            if (grp.RootPart.KeyframeMotion != null)
+                grp.RootPart.KeyframeMotion.CrossingFailure();
+
             grp.ScheduleGroupForFullUpdate();
         }
 
@@ -1910,8 +1913,11 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                             grp, e);
                     }
                 }
+/*
+ * done on caller ( not in attachments crossing for now)
                 else
                 {
+
                     if (!grp.IsDeleted)
                     {
                         PhysicsActor pa = grp.RootPart.PhysActor;
@@ -1920,15 +1926,17 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                             pa.CrossingFailure();
                             if (grp.RootPart.KeyframeMotion != null)
                             {
-                                grp.RootPart.Velocity = Vector3.Zero;
+                                // moved to KeyframeMotion.CrossingFailure
+//                                grp.RootPart.Velocity = Vector3.Zero;
                                 grp.RootPart.KeyframeMotion.CrossingFailure();
-                                grp.SendGroupRootTerseUpdate();
+//                                grp.SendGroupRootTerseUpdate();
                             }
                         }
                     }
 
                     m_log.ErrorFormat("[ENTITY TRANSFER MODULE]: Prim crossing failed for {0}", grp);
                 }
+ */
             }
             else
             {

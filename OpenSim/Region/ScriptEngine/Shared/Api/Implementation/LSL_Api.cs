@@ -5442,7 +5442,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // for completion and should LSL_Key ever be implemented 
             // as it's own struct
             else if (!(src.Data[index] is LSL_String ||
-                    src.Data[index] is LSL_Key))
+                    src.Data[index] is LSL_Key ||
+                    src.Data[index] is String))
             {
                 return "";
             }
@@ -7750,6 +7751,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     foreach (ScenePresence p in avatars)
                         parts.Add(p);
 
+                    remaining = null;
                     foreach (object part in parts)
                     {
                         if (part is SceneObjectPart)
@@ -12379,7 +12381,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llCollisionSprite(string impact_sprite)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llCollisionSprite");
+            // Viewer 2.0 broke this and it's likely LL has no intention
+            // of fixing it. Therefore, letting this be a NOP seems appropriate.
         }
 
         public void llGodLikeRezObject(string inventory, LSL_Vector pos)
@@ -12524,7 +12527,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (frames.Data.Length > 0) // We are getting a new motion
             {
                 if (group.RootPart.KeyframeMotion != null)
-                    group.RootPart.KeyframeMotion.Stop();
+                    group.RootPart.KeyframeMotion.Delete();
                 group.RootPart.KeyframeMotion = null;
 
                 int idx = 0;
