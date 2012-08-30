@@ -283,6 +283,10 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
 
         public void Initialise(Scene scene, IConfigSource config)
         {
+            IConfig texturesConfig = config.Configs["Textures"];
+            if (texturesConfig != null)
+                ReuseTextures = texturesConfig.GetBoolean("ReuseDynamicTextures", false);
+
             if (!RegisteredScenes.ContainsKey(scene.RegionInfo.RegionID))
             {
                 RegisteredScenes.Add(scene.RegionInfo.RegionID, scene);
@@ -292,7 +296,6 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
 
         public void PostInitialise()
         {
-//            ReuseTextures = true;
             if (ReuseTextures)
             {
                 m_reuseableDynamicTextures = new Cache(CacheMedium.Memory, CacheStrategy.Conservative);
