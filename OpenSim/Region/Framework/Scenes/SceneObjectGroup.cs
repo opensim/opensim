@@ -2159,6 +2159,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             dupe.CopyRootPart(m_rootPart, OwnerID, GroupID, userExposed);
             dupe.m_rootPart.LinkNum = m_rootPart.LinkNum;
+            
 
             if (userExposed)
                 dupe.m_rootPart.TrimPermissions();
@@ -2209,6 +2210,9 @@ namespace OpenSim.Region.Framework.Scenes
                 if (userExposed)
                     newPart.ApplyPhysics((uint)newPart.Flags,newPart.VolumeDetectActive,true);
 //                }
+                // copy keyframemotion
+                if (part.KeyframeMotion != null)
+                    newPart.KeyframeMotion = part.KeyframeMotion.Copy(dupe);
             }
 
             if (userExposed)
