@@ -272,8 +272,6 @@ namespace OpenSim.Region.Framework.Scenes
             newmotion.m_basePosition = m_basePosition;
             newmotion.m_baseRotation = m_baseRotation;
 
-            newmotion.m_currentFrame = m_currentFrame;
-
             if (m_selected)
                 newmotion.m_serializedPosition = m_serializedPosition;
             else
@@ -283,6 +281,8 @@ namespace OpenSim.Region.Framework.Scenes
                 else
                     newmotion.m_serializedPosition = m_serializedPosition;
             }
+
+            newmotion.m_currentFrame = m_currentFrame;
 
             newmotion.m_iterations = m_iterations;
             newmotion.m_running = m_running;
