@@ -163,7 +163,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.ScriptModuleComms
 
         public void RegisterScriptInvocation(object target, MethodInfo mi)
         {
-            m_log.DebugFormat("[MODULE COMMANDS] Register method {0} from type {1}", mi.Name, target.GetType().Name);
+            m_log.DebugFormat("[MODULE COMMANDS] Register method {0} from type {1}", mi.Name, (target is Type) ? ((Type)target).Name : target.GetType().Name);
 
             Type delegateType;
             List<Type> typeArgs = mi.GetParameters()
