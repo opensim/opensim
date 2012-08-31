@@ -166,7 +166,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.ScriptModuleComms
             m_log.DebugFormat("[MODULE COMMANDS] Register method {0} from type {1}", mi.Name, target.GetType().Name);
 
             Type delegateType;
-            var typeArgs = mi.GetParameters()
+            List<Type> typeArgs = mi.GetParameters()
                     .Select(p => p.ParameterType)
                     .ToList();
 
