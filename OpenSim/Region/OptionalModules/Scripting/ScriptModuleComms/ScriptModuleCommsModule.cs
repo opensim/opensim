@@ -130,13 +130,25 @@ namespace OpenSim.Region.OptionalModules.Scripting.ScriptModuleComms
             m_scriptModule.PostScriptEvent(script, "link_message", args);
         }
 
+        private static MethodInfo GetMethodInfoFromType(Type target, string meth, bool searchInstanceMethods)
+        {
+            BindingFlags getMethodFlags =
+                    BindingFlags.NonPublic | BindingFlags.Public;
+
+            if (searchInstanceMethods)
+                getMethodFlags |= BindingFlags.Instance;
+            else
+                getMethodFlags |= BindingFlags.Static;
+
+            return target.GetMethod(meth, getMethodFlags);
+        }
+
         public void RegisterScriptInvocation(object target, string meth)
         {
-            MethodInfo mi = target.GetType().GetMethod(meth,
-                    BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+            MethodInfo mi = GetMethodInfoFromType(target.GetType(), meth, true);
             if (mi == null)
             {
-                m_log.WarnFormat("[MODULE COMMANDS] Failed to register method {0}",meth);
+                m_log.WarnFormat("[MODULE COMMANDS] Failed to register method {0}", meth);
                 return;
             }
 
@@ -154,33 +166,49 @@ namespace OpenSim.Region.OptionalModules.Scripting.ScriptModuleComms
             m_log.DebugFormat("[MODULE COMMANDS] Register method {0} from type {1}", mi.Name, target.GetType().Name);
 
             Type delegateType;
-            var typeArgs = mi.GetParameters()
+            List<Type> typeArgs = mi.GetParameters()
                     .Select(p => p.ParameterType)
                     .ToList();
 
             if (mi.ReturnType == typeof(void))
             {
-                    delegateType = Expression.GetActionType(typeArgs.ToArray());
+                delegateType = Expression.GetActionType(typeArgs.ToArray());
             }
             else
             {
-                    typeArgs.Add(mi.ReturnType);
-                    delegateType = Expression.GetFuncType(typeArgs.ToArray());
+                typeArgs.Add(mi.ReturnType);
+                delegateType = Expression.GetFuncType(typeArgs.ToArray());
             }
 
-            Delegate fcall = Delegate.CreateDelegate(delegateType, target, mi);
+            Delegate fcall;
+            if (!(target is Type))
+                fcall = Delegate.CreateDelegate(delegateType, target, mi);
+            else
+                fcall = Delegate.CreateDelegate(delegateType, (Type)target, mi.Name);
 
             lock (m_scriptInvocation)
             {
-                ParameterInfo[] parameters = fcall.Method.GetParameters ();
+                ParameterInfo[] parameters = fcall.Method.GetParameters();
                 if (parameters.Length < 2) // Must have two UUID params
                     return;
 
                 // Hide the first two parameters
                 Type[] parmTypes = new Type[parameters.Length - 2];
-                for (int i = 2 ; i < parameters.Length ; i++)
+                for (int i = 2; i < parameters.Length; i++)
                     parmTypes[i - 2] = parameters[i].ParameterType;
                 m_scriptInvocation[fcall.Method.Name] = new ScriptInvocationData(fcall.Method.Name, fcall, parmTypes, fcall.Method.ReturnType);
+            }
+        }
+
+        public void RegisterScriptInvocation(Type target, string[] methods)
+        {
+            foreach (string method in methods)
+            {
+                MethodInfo mi = GetMethodInfoFromType(target, method, false);
+                if (mi == null)
+                    m_log.WarnFormat("[MODULE COMMANDS] Failed to register method {0}", method);
+                else
+                    RegisterScriptInvocation(target, mi);
             }
         }
         

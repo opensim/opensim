@@ -46,9 +46,38 @@ namespace OpenSim.Region.Framework.Interfaces
         /// </summary>
         event ScriptCommand OnScriptCommand;
 
+        /// <summary>
+        /// Register an instance method as a script call by method name
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="method"></param>
         void RegisterScriptInvocation(object target, string method);
+
+        /// <summary>
+        /// Register a static or instance method as a script call by method info
+        /// </summary>
+        /// <param name="target">If target is a Type object, will assume method is static.</param>
+        /// <param name="method"></param>
         void RegisterScriptInvocation(object target, MethodInfo method);
+
+        /// <summary>
+        /// Register one or more instance methods as script calls by method name
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="methods"></param>
         void RegisterScriptInvocation(object target, string[] methods);
+
+        /// <summary>
+        /// Register one or more static methods as script calls by method name
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="methods"></param>
+        void RegisterScriptInvocation(Type target, string[] methods);
+
+        /// <summary>
+        /// Returns an array of all registered script calls
+        /// </summary>
+        /// <returns></returns>
         Delegate[] GetScriptInvocationList();
 
         Delegate LookupScriptInvocation(string fname);
