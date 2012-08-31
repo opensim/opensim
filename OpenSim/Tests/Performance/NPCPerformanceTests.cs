@@ -47,10 +47,10 @@ using OpenSim.Services.AvatarService;
 using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Mock;
 
-namespace OpenSim.Tests.Torture
+namespace OpenSim.Tests.Performance
 {
     /// <summary>
-    /// NPC torture tests
+    /// NPC performance tests
     /// </summary>
     /// <remarks>
     /// Don't rely on the numbers given by these tests - they will vary a lot depending on what is already cached,
@@ -58,7 +58,7 @@ namespace OpenSim.Tests.Torture
     /// earlier tests.
     /// </remarks>
     [TestFixture]
-    public class NPCTortureTests
+    public class NPCPerformanceTests
     {
         private TestScene scene;
         private AvatarFactoryModule afm;

@@ -141,12 +141,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         internal bool m_debuggerSafe = false;
         internal Dictionary<string, FunctionPerms > m_FunctionPerms = new Dictionary<string, FunctionPerms >();
 
+        protected IUrlModule m_UrlModule = null;
+
         public void Initialize(IScriptEngine ScriptEngine, SceneObjectPart host, TaskInventoryItem item)
         {
             m_ScriptEngine = ScriptEngine;
             m_host = host;
             m_item = item;
             m_debuggerSafe = m_ScriptEngine.Config.GetBoolean("DebuggerSafe", false);
+
+            m_UrlModule = m_ScriptEngine.World.RequestModuleInterface<IUrlModule>();
 
             if (m_ScriptEngine.Config.GetBoolean("AllowOSFunctions", false))
                 m_OSFunctionsEnabled = true;
@@ -3405,6 +3409,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
 
             return new LSL_Key(m_host.ParentGroup.FromPartID.ToString());
+        }
+ 
+        /// <summary>
+        /// Sets the response type for an HTTP request/response
+        /// </summary>
+        /// <returns></returns>
+        public void osSetContentType(LSL_Key id, string type)
+        {
+            CheckThreatLevel(ThreatLevel.High,"osSetResponseType");
+            if (m_UrlModule != null)
+                m_UrlModule.HttpContentType(new UUID(id),type);
         }
     }
 }

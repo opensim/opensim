@@ -186,63 +186,79 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
         public UUID AddDynamicTextureData(UUID simID, UUID primID, string contentType, string data,
                                           string extraParams, int updateTimer, bool SetBlending, int disp, byte AlphaValue, int face)
         {
-            if (RenderPlugins.ContainsKey(contentType))
+            if (!RenderPlugins.ContainsKey(contentType))
+                return UUID.Zero;
+
+            Scene scene;
+            RegisteredScenes.TryGetValue(simID, out scene);
+
+            if (scene == null)
+                return UUID.Zero;
+
+            SceneObjectPart part = scene.GetSceneObjectPart(primID);
+
+            if (part == null)
+                return UUID.Zero;
+
+            // If we want to reuse dynamic textures then we have to ignore any request from the caller to expire
+            // them.
+            if (ReuseTextures)
+                disp = disp & ~DISP_EXPIRE;
+
+            DynamicTextureUpdater updater = new DynamicTextureUpdater();
+            updater.SimUUID = simID;
+            updater.PrimID = primID;
+            updater.ContentType = contentType;
+            updater.BodyData = data;
+            updater.UpdateTimer = updateTimer;
+            updater.UpdaterID = UUID.Random();
+            updater.Params = extraParams;
+            updater.BlendWithOldTexture = SetBlending;
+            updater.FrontAlpha = AlphaValue;
+            updater.Face = face;
+            updater.Url = "Local image";
+            updater.Disp = disp;
+
+            object objReusableTextureUUID = null;
+
+            if (ReuseTextures && !updater.BlendWithOldTexture)
             {
-                // If we want to reuse dynamic textures then we have to ignore any request from the caller to expire
-                // them.
-                if (ReuseTextures)
-                    disp = disp & ~DISP_EXPIRE;
+                string reuseableTextureKey = GenerateReusableTextureKey(data, extraParams);
+                objReusableTextureUUID = m_reuseableDynamicTextures.Get(reuseableTextureKey);
 
-                DynamicTextureUpdater updater = new DynamicTextureUpdater();
-                updater.SimUUID = simID;
-                updater.PrimID = primID;
-                updater.ContentType = contentType;
-                updater.BodyData = data;
-                updater.UpdateTimer = updateTimer;
-                updater.UpdaterID = UUID.Random();
-                updater.Params = extraParams;
-                updater.BlendWithOldTexture = SetBlending;
-                updater.FrontAlpha = AlphaValue;
-                updater.Face = face;
-                updater.Url = "Local image";
-                updater.Disp = disp;
-
-                object reusableTextureUUID = null;
-
-                if (ReuseTextures)
-                    reusableTextureUUID
-                        = m_reuseableDynamicTextures.Get(GenerateReusableTextureKey(data, extraParams));
-
-                // We cannot reuse a dynamic texture if the data is going to be blended with something already there.
-                if (reusableTextureUUID == null || updater.BlendWithOldTexture)
+                if (objReusableTextureUUID != null)
                 {
-                    lock (Updaters)
+                    // If something else has removed this temporary asset from the cache, detect and invalidate
+                    // our cached uuid.
+                    if (scene.AssetService.GetMetadata(objReusableTextureUUID.ToString()) == null)
                     {
-                        if (!Updaters.ContainsKey(updater.UpdaterID))
-                        {
-                            Updaters.Add(updater.UpdaterID, updater);
-                        }
-                    }
-
-                    RenderPlugins[contentType].AsyncConvertData(updater.UpdaterID, data, extraParams);
-                }
-                else
-                {
-                    // No need to add to updaters as the texture is always the same.  Not that this functionality
-                    // apppears to be implemented anyway.
-                    if (RegisteredScenes.ContainsKey(updater.SimUUID))
-                    {
-                        SceneObjectPart part = RegisteredScenes[updater.SimUUID].GetSceneObjectPart(updater.PrimID);
-
-                        if (part != null)
-                            updater.UpdatePart(part, (UUID)reusableTextureUUID);
+                        m_reuseableDynamicTextures.Invalidate(reuseableTextureKey);
+                        objReusableTextureUUID = null;
                     }
                 }
-
-                return updater.UpdaterID;
             }
-            
-            return UUID.Zero;
+
+            // We cannot reuse a dynamic texture if the data is going to be blended with something already there.
+            if (objReusableTextureUUID == null)
+            {
+                lock (Updaters)
+                {
+                    if (!Updaters.ContainsKey(updater.UpdaterID))
+                    {
+                        Updaters.Add(updater.UpdaterID, updater);
+                    }
+                }
+
+                RenderPlugins[contentType].AsyncConvertData(updater.UpdaterID, data, extraParams);
+            }
+            else
+            {
+                // No need to add to updaters as the texture is always the same.  Not that this functionality
+                // apppears to be implemented anyway.
+                updater.UpdatePart(part, (UUID)objReusableTextureUUID);
+            }
+
+            return updater.UpdaterID;
         }
 
         private string GenerateReusableTextureKey(string data, string extraParams)
@@ -267,6 +283,10 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
 
         public void Initialise(Scene scene, IConfigSource config)
         {
+            IConfig texturesConfig = config.Configs["Textures"];
+            if (texturesConfig != null)
+                ReuseTextures = texturesConfig.GetBoolean("ReuseDynamicTextures", false);
+
             if (!RegisteredScenes.ContainsKey(scene.RegionInfo.RegionID))
             {
                 RegisteredScenes.Add(scene.RegionInfo.RegionID, scene);
@@ -276,7 +296,6 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
 
         public void PostInitialise()
         {
-//            ReuseTextures = true;
             if (ReuseTextures)
             {
                 m_reuseableDynamicTextures = new Cache(CacheMedium.Memory, CacheStrategy.Conservative);

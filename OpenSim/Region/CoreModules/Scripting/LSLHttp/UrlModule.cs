@@ -58,6 +58,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
         public string body;
         public int responseCode;
         public string responseBody;
+        public string responseType = "text/plain";
         //public ManualResetEvent ev;
         public bool requestDone;
         public int startTime;
@@ -267,6 +268,22 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
 
                 RemoveUrl(data);
                 m_UrlMap.Remove(url);
+            }
+        }
+        
+        public void HttpContentType(UUID request, string type)
+        {
+            lock (m_UrlMap)
+            {
+                if (m_RequestMap.ContainsKey(request))
+                {
+                    UrlData urlData = m_RequestMap[request];
+                    urlData.requests[request].responseType = type;
+                }
+                else
+                {
+                    m_log.Info("[HttpRequestHandler] There is no http-in request with id " + request.ToString());
+                }
             }
         }
         

@@ -10903,31 +10903,30 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Float llListStatistics(int operation, LSL_List src)
         {
             m_host.AddScriptLPS(1);
-            LSL_List nums = LSL_List.ToDoubleList(src);
             switch (operation)
             {
                 case ScriptBaseClass.LIST_STAT_RANGE:
-                    return nums.Range();
+                    return src.Range();
                 case ScriptBaseClass.LIST_STAT_MIN:
-                    return nums.Min();
+                    return src.Min();
                 case ScriptBaseClass.LIST_STAT_MAX:
-                    return nums.Max();
+                    return src.Max();
                 case ScriptBaseClass.LIST_STAT_MEAN:
-                    return nums.Mean();
+                    return src.Mean();
                 case ScriptBaseClass.LIST_STAT_MEDIAN:
-                    return nums.Median();
+                    return LSL_List.ToDoubleList(src).Median();
                 case ScriptBaseClass.LIST_STAT_NUM_COUNT:
-                    return nums.NumericLength();
+                    return src.NumericLength();
                 case ScriptBaseClass.LIST_STAT_STD_DEV:
-                    return nums.StdDev();
+                    return src.StdDev();
                 case ScriptBaseClass.LIST_STAT_SUM:
-                    return nums.Sum();
+                    return src.Sum();
                 case ScriptBaseClass.LIST_STAT_SUM_SQUARES:
-                    return nums.SumSqrs();
+                    return src.SumSqrs();
                 case ScriptBaseClass.LIST_STAT_GEOMETRIC_MEAN:
-                    return nums.GeometricMean();
+                    return src.GeometricMean();
                 case ScriptBaseClass.LIST_STAT_HARMONIC_MEAN:
-                    return nums.HarmonicMean();
+                    return src.HarmonicMean();
                 default:
                     return 0.0;
             }

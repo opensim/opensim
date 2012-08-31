@@ -4525,7 +4525,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         returnblock[j] = new EstateOwnerMessagePacket.ParamListBlock();
                     }
-                    j = 0;
+                    j = 0; 
 
                     returnblock[j].Parameter = Utils.StringToBytes(estateID.ToString()); j++;
                     returnblock[j].Parameter = Utils.StringToBytes(((int)Constants.EstateAccessCodex.EstateBans).ToString()); j++;

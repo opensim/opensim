@@ -42,10 +42,10 @@ using OpenSim.Region.ScriptEngine.XEngine;
 using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Mock;
 
-namespace OpenSim.Tests.Torture
+namespace OpenSim.Tests.Performance
 {
     /// <summary>
-    /// Script torture tests
+    /// Script performance tests
     /// </summary>
     /// <remarks>
     /// Don't rely on the numbers given by these tests - they will vary a lot depending on what is already cached,
@@ -53,7 +53,7 @@ namespace OpenSim.Tests.Torture
     /// earlier tests.
     /// </remarks>
     [TestFixture]
-    public class ScriptTortureTests
+    public class ScriptPerformanceTests
     {
         private TestScene m_scene;
         private XEngine m_xEngine;
