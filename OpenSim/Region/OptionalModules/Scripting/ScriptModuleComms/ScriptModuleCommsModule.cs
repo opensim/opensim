@@ -132,10 +132,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.ScriptModuleComms
 
         private static MethodInfo GetMethodInfoFromType(Type target, string meth)
         {
-            MethodInfo mi = target.GetMethod(meth,
+            return target.GetMethod(meth,
                     BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
-
-            return mi;
         }
 
         public void RegisterScriptInvocation(object target, string meth)
