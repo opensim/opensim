@@ -94,6 +94,7 @@ public sealed class BSPrim : BSPhysObject
     private int _nextCollisionOkTime = 0;
     long _collidingStep;
     long _collidingGroundStep;
+    CollisionFlags m_currentCollisionFlags = 0;
 
     public override BulletBody Body { get; set; }
 
@@ -143,6 +144,7 @@ public sealed class BSPrim : BSPhysObject
             // At the moment, we're still letting BulletSim manage the creation and destruction
             //    of the object. Someday we'll move that into the C# code.
             Body = new BulletBody(LocalID, BulletSimAPI.GetBodyHandle2(_scene.World.Ptr, LocalID));
+            m_currentCollisionFlags = BulletSimAPI.GetCollisionFlags2(Body.Ptr);
         });
     }
 
@@ -483,8 +485,7 @@ public sealed class BSPrim : BSPhysObject
         // recompute any linkset parameters
         Linkset.Refresh(this);
 
-        CollisionFlags cf = BulletSimAPI.GetCollisionFlags2(Body.Ptr);
-        DetailLog("{0},BSPrim.SetObjectDynamic,taint,static={1},solid={2},mass={3}, cf={4}", LocalID, IsStatic, IsSolid, mass, cf);
+        DetailLog("{0},BSPrim.SetObjectDynamic,taint,static={1},solid={2},mass={3}, cf={4}", LocalID, IsStatic, IsSolid, mass, m_currentCollisionFlags);
     }
 
     // prims don't fly
@@ -644,7 +645,7 @@ public sealed class BSPrim : BSPhysObject
 
             Scene.TaintedObject("BSPrim.SubscribeEvents", delegate()
             {
-                BulletSimAPI.AddToCollisionFlags2(Body.Ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
+                m_currentCollisionFlags = BulletSimAPI.AddToCollisionFlags2(Body.Ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
             });
         }
     }
@@ -652,7 +653,7 @@ public sealed class BSPrim : BSPhysObject
         _subscribedEventsMs = 0;
         Scene.TaintedObject("BSPrim.UnSubscribeEvents", delegate()
         {
-            BulletSimAPI.RemoveFromCollisionFlags2(Body.Ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
+            m_currentCollisionFlags = BulletSimAPI.RemoveFromCollisionFlags2(Body.Ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
         });
     }
     public override bool SubscribedEvents() { 

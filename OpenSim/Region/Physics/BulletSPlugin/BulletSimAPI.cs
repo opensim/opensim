@@ -461,10 +461,20 @@ public static extern bool DeleteCollisionShape2(IntPtr world, IntPtr shape);
 public static extern IntPtr CreateBodyFromShape2(IntPtr sim, IntPtr shape, Vector3 pos, Quaternion rot);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern IntPtr CreateBodyFromShapeAndInfo2(IntPtr sim, IntPtr shape, IntPtr constructionInfo);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern IntPtr CreateBodyWithDefaultMotionState2(IntPtr shape, Vector3 pos, Quaternion rot);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern bool SetBodyShape2(IntPtr sim, IntPtr obj, IntPtr shape);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern IntPtr AllocateBodyInfo2(IntPtr obj);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern void ReleaseBodyInfo2(IntPtr obj);
+
 // =====================================================================================
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern IntPtr CreateHeightMapInfo2(IntPtr sim, uint id, Vector3 minCoords, Vector3 maxCoords, 
@@ -604,13 +614,13 @@ public static extern bool SetInterpolation2(IntPtr obj, Vector3 lin, Vector3 ang
 public static extern CollisionFlags GetCollisionFlags2(IntPtr obj);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern IntPtr SetCollisionFlags2(IntPtr obj, CollisionFlags flags);
+public static extern CollisionFlags SetCollisionFlags2(IntPtr obj, CollisionFlags flags);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern IntPtr AddToCollisionFlags2(IntPtr obj, CollisionFlags flags);
+public static extern CollisionFlags AddToCollisionFlags2(IntPtr obj, CollisionFlags flags);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern IntPtr RemoveFromCollisionFlags2(IntPtr obj, CollisionFlags flags);
+public static extern CollisionFlags RemoveFromCollisionFlags2(IntPtr obj, CollisionFlags flags);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern bool SetMassProps2(IntPtr obj, float mass, Vector3 inertia);
