@@ -180,7 +180,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.ScriptModuleComms
                     delegateType = Expression.GetFuncType(typeArgs.ToArray());
             }
 
-            Delegate fcall = Delegate.CreateDelegate(delegateType, target, mi);
+            Delegate fcall;
+                fcall = Delegate.CreateDelegate(delegateType, target, mi);
 
             lock (m_scriptInvocation)
             {
