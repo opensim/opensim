@@ -172,12 +172,12 @@ namespace OpenSim.Region.OptionalModules.Scripting.ScriptModuleComms
 
             if (mi.ReturnType == typeof(void))
             {
-                    delegateType = Expression.GetActionType(typeArgs.ToArray());
+                delegateType = Expression.GetActionType(typeArgs.ToArray());
             }
             else
             {
-                    typeArgs.Add(mi.ReturnType);
-                    delegateType = Expression.GetFuncType(typeArgs.ToArray());
+                typeArgs.Add(mi.ReturnType);
+                delegateType = Expression.GetFuncType(typeArgs.ToArray());
             }
 
             Delegate fcall;
@@ -188,13 +188,13 @@ namespace OpenSim.Region.OptionalModules.Scripting.ScriptModuleComms
 
             lock (m_scriptInvocation)
             {
-                ParameterInfo[] parameters = fcall.Method.GetParameters ();
+                ParameterInfo[] parameters = fcall.Method.GetParameters();
                 if (parameters.Length < 2) // Must have two UUID params
                     return;
 
                 // Hide the first two parameters
                 Type[] parmTypes = new Type[parameters.Length - 2];
-                for (int i = 2 ; i < parameters.Length ; i++)
+                for (int i = 2; i < parameters.Length; i++)
                     parmTypes[i - 2] = parameters[i].ParameterType;
                 m_scriptInvocation[fcall.Method.Name] = new ScriptInvocationData(fcall.Method.Name, fcall, parmTypes, fcall.Method.ReturnType);
             }
