@@ -247,7 +247,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return GetLinkParts(m_host, linkType);
         }
 
-        private List<SceneObjectPart> GetLinkParts(SceneObjectPart part, int linkType)
+        public static List<SceneObjectPart> GetLinkParts(SceneObjectPart part, int linkType)
         {
             List<SceneObjectPart> ret = new List<SceneObjectPart>();
             ret.Add(part);
