@@ -148,7 +148,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.ScriptModuleComms
             MethodInfo mi = GetMethodInfoFromType(target.GetType(), meth, true);
             if (mi == null)
             {
-                m_log.WarnFormat("[MODULE COMMANDS] Failed to register method {0}",meth);
+                m_log.WarnFormat("[MODULE COMMANDS] Failed to register method {0}", meth);
                 return;
             }
 
