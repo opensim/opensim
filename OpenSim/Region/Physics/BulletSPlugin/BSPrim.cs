@@ -114,6 +114,7 @@ public sealed class BSPrim : BSPhysObject
         // m_log.DebugFormat("{0}: BSPrim creation of {1}, id={2}", LogHeader, primName, localID);
         _localID = localID;
         _avName = primName;
+        _physicsActorType = (int)ActorTypes.Prim;
         _scene = parent_scene;
         _position = pos;
         _size = size;
@@ -444,8 +445,7 @@ public sealed class BSPrim : BSPhysObject
     }
     public override int PhysicsActorType { 
         get { return _physicsActorType; } 
-        set { _physicsActorType = value; 
-        } 
+        set { _physicsActorType = value; } 
     }
     public override bool IsPhysical { 
         get { return _isPhysical; } 

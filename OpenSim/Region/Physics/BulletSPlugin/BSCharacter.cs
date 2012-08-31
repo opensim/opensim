@@ -92,6 +92,7 @@ public class BSCharacter : BSPhysObject
         _localID = localID;
         _avName = avName;
         Scene = parent_scene;
+        _physicsActorType = (int)ActorTypes.Agent;
         _position = pos;
         _size = size;
         _flying = isFlying;
