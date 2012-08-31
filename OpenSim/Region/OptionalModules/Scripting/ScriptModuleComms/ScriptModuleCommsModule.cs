@@ -181,7 +181,10 @@ namespace OpenSim.Region.OptionalModules.Scripting.ScriptModuleComms
             }
 
             Delegate fcall;
+            if (!(target is Type))
                 fcall = Delegate.CreateDelegate(delegateType, target, mi);
+            else
+                fcall = Delegate.CreateDelegate(delegateType, (Type)target, mi.Name);
 
             lock (m_scriptInvocation)
             {
@@ -194,6 +197,18 @@ namespace OpenSim.Region.OptionalModules.Scripting.ScriptModuleComms
                 for (int i = 2 ; i < parameters.Length ; i++)
                     parmTypes[i - 2] = parameters[i].ParameterType;
                 m_scriptInvocation[fcall.Method.Name] = new ScriptInvocationData(fcall.Method.Name, fcall, parmTypes, fcall.Method.ReturnType);
+            }
+        }
+
+        public void RegisterScriptInvocation(Type target, string[] methods)
+        {
+            foreach (string method in methods)
+            {
+                MethodInfo mi = GetMethodInfoFromType(target, method, false);
+                if (mi == null)
+                    m_log.WarnFormat("[MODULE COMMANDS] Failed to register method {0}", method);
+                else
+                    RegisterScriptInvocation(target, mi);
             }
         }
         
