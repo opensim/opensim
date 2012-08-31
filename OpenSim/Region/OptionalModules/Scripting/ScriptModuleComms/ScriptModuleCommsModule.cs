@@ -130,17 +130,23 @@ namespace OpenSim.Region.OptionalModules.Scripting.ScriptModuleComms
             m_scriptModule.PostScriptEvent(script, "link_message", args);
         }
 
-        private static MethodInfo GetMethodInfoFromType(Type target, string meth)
+        private static MethodInfo GetMethodInfoFromType(Type target, string meth, bool searchInstanceMethods)
         {
             BindingFlags getMethodFlags =
-                    BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance;
+                    BindingFlags.NonPublic | BindingFlags.Public;
+
+            if (searchInstanceMethods)
+                getMethodFlags |= BindingFlags.Instance;
+            else
+                getMethodFlags |= BindingFlags.Static;
+
             return target.GetMethod(meth,
                     getMethodFlags);
         }
 
         public void RegisterScriptInvocation(object target, string meth)
         {
-            MethodInfo mi = GetMethodInfoFromType(target.GetType(), meth);
+            MethodInfo mi = GetMethodInfoFromType(target.GetType(), meth, true);
             if (mi == null)
             {
                 m_log.WarnFormat("[MODULE COMMANDS] Failed to register method {0}",meth);
