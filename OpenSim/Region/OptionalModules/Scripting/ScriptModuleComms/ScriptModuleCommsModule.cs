@@ -140,8 +140,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.ScriptModuleComms
             else
                 getMethodFlags |= BindingFlags.Static;
 
-            return target.GetMethod(meth,
-                    getMethodFlags);
+            return target.GetMethod(meth, getMethodFlags);
         }
 
         public void RegisterScriptInvocation(object target, string meth)
