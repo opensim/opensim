@@ -90,6 +90,8 @@ public class BulletHeightMapInfo
     public Vector3 maxCoords;
     public float sizeX, sizeY;
     public float minZ, maxZ;
+    public BulletShape terrainShape;
+    public BulletBody terrainBody;
 }
 
 // ===============================================================================
@@ -462,14 +464,14 @@ public static extern IntPtr CreateBodyFromShape2(IntPtr sim, IntPtr shape, Vecto
 public static extern IntPtr CreateBodyWithDefaultMotionState2(IntPtr shape, Vector3 pos, Quaternion rot);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern bool ReplaceBodyShape2(IntPtr sim, IntPtr obj, IntPtr shape);
+public static extern bool SetBodyShape2(IntPtr sim, IntPtr obj, IntPtr shape);
 // =====================================================================================
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern IntPtr CreateHeightMapInfo2(uint id, Vector3 minCoords, Vector3 maxCoords, 
+public static extern IntPtr CreateHeightMapInfo2(IntPtr sim, uint id, Vector3 minCoords, Vector3 maxCoords, 
         [MarshalAs(UnmanagedType.LPArray)] float[] heightMap, float collisionMargin);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern IntPtr FillHeightMapInfo2(IntPtr mapInfo, uint id, Vector3 minCoords, Vector3 maxCoords, 
+public static extern IntPtr FillHeightMapInfo2(IntPtr sim, IntPtr mapInfo, uint id, Vector3 minCoords, Vector3 maxCoords, 
         [MarshalAs(UnmanagedType.LPArray)] float[] heightMap, float collisionMargin);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
