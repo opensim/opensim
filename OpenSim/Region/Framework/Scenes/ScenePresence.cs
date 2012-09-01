@@ -3421,14 +3421,14 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (attachmentPoint >= 0)
             {
-            lock (m_attachments)
-            {
-                foreach (SceneObjectGroup so in m_attachments)
+                lock (m_attachments)
                 {
-                    if (attachmentPoint == so.AttachmentPoint)
-                        attachments.Add(so);
+                    foreach (SceneObjectGroup so in m_attachments)
+                    {
+                        if (attachmentPoint == so.AttachmentPoint)
+                            attachments.Add(so);
+                    }
                 }
-            }
             }
             
             return attachments;
