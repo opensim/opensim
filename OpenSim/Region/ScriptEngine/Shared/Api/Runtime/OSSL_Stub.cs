@@ -289,7 +289,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osAvatarStopAnimation(avatar, animation);
         }
 
-        // Avatar functions
+        #region Attachment commands
 
         public void osForceAttachToAvatar(int attachmentPoint)
         {

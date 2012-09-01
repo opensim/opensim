@@ -157,7 +157,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         void osAvatarPlayAnimation(string avatar, string animation);
         void osAvatarStopAnimation(string avatar, string animation);
 
-        // Attachment commands
+        #region Attachment commands
 
         /// <summary>
         /// Attach the object containing this script to the avatar that owns it without asking for PERMISSION_ATTACH

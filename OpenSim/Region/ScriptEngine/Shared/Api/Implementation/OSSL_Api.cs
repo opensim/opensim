@@ -3229,6 +3229,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
+        #region Attachment commands
+
         public void osForceAttachToAvatar(int attachmentPoint)
         {
             CheckThreatLevel(ThreatLevel.High, "osForceAttachToAvatar");
