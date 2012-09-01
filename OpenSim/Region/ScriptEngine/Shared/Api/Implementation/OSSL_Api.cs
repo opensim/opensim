@@ -1673,6 +1673,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
             }
 
+            MessageObject(objUUID, message);
+        }
+
+        private void MessageObject(UUID objUUID, string message)
+        {
             object[] resobj = new object[] { new LSL_Types.LSLString(m_host.UUID.ToString()), new LSL_Types.LSLString(message) };
 
             SceneObjectPart sceneOP = World.GetSceneObjectPart(objUUID);
