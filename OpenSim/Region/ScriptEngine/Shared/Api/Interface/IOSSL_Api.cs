@@ -192,6 +192,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         /// <remarks>Nothing happens if the object is not attached.</remarks>
         void osForceDetachFromAvatar();
 
+        /// <summary>
+        /// Returns a strided list of the specified attachment points and the number of attachments on those points.
+        /// </summary>
+        /// <param name="avatar">avatar UUID</param>
+        /// <param name="attachmentPoints">list of ATTACH_* constants</param>
+        /// <returns></returns>
+        LSL_List osGetNumberOfAttachments(LSL_Key avatar, LSL_List attachmentPoints);
+
+        #endregion
+
         //texture draw functions
         string osMovePen(string drawList, int x, int y);
         string osDrawLine(string drawList, int startX, int startY, int endX, int endY);

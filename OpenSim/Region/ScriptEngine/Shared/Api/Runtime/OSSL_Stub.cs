@@ -311,6 +311,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osForceDetachFromAvatar();
         }
 
+        public LSL_List osGetNumberOfAttachments(LSL_Key avatar, LSL_List attachmentPoints)
+        {
+            return m_OSSL_Functions.osGetNumberOfAttachments(avatar, attachmentPoints);
+        }
+
+        #endregion
+
         // Texture Draw functions
 
         public string osMovePen(string drawList, int x, int y)

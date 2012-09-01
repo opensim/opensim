@@ -3313,6 +3313,44 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             ((LSL_Api)m_LSL_Api).DetachFromAvatar();
         }
 
+        public LSL_List osGetNumberOfAttachments(LSL_Key avatar, LSL_List attachmentPoints)
+        {
+            CheckThreatLevel(ThreatLevel.Moderate, "osGetNumberOfAttachments");
+
+            m_host.AddScriptLPS(1);
+
+            UUID targetUUID;
+            ScenePresence target;
+            LSL_List resp = new LSL_List();
+
+            if (attachmentPoints.Length >= 1 && UUID.TryParse(avatar.ToString(), out targetUUID) && World.TryGetScenePresence(targetUUID, out target))
+            {
+                foreach (object point in attachmentPoints.Data)
+                {
+                    LSL_Integer ipoint = new LSL_Integer(
+                        (point is LSL_Integer || point is int || point is uint) ?
+                            (int)point :
+                            0
+                    );
+                    resp.Add(ipoint);
+                    if (ipoint == 0)
+                    {
+                        // indicates zero attachments
+                        resp.Add(new LSL_Integer(0));
+                    }
+                    else
+                    {
+                        // gets the number of attachments on the attachment point
+                        resp.Add(new LSL_Integer(target.GetAttachments((uint)ipoint).Count));
+                    }
+                }
+            }
+
+            return resp;
+        }
+
+        #endregion
+
         /// <summary>
         /// Checks if thing is a UUID.
         /// </summary>
