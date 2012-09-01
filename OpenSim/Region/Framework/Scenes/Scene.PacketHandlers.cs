@@ -422,6 +422,20 @@ namespace OpenSim.Region.Framework.Scenes
             );
         }
         
+        private class DescendentsRequestData
+        {
+            public IClientAPI RemoteClient;
+            public UUID FolderID;
+            public UUID OwnerID;
+            public bool FetchFolders;
+            public bool FetchItems;
+            public int SortOrder;
+        }
+
+        private Queue<DescendentsRequestData> m_descendentsRequestQueue = new Queue<DescendentsRequestData>();
+        private Object m_descendentsRequestLock = new Object();
+        private bool m_descendentsRequestProcessing = false;
+
         /// <summary>
         /// Tell the client about the various child items and folders contained in the requested folder.
         /// </summary>
@@ -458,17 +472,38 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            // We're going to send the reply async, because there may be
-            // an enormous quantity of packets -- basically the entire inventory!
-            // We don't want to block the client thread while all that is happening.
-            SendInventoryDelegate d = SendInventoryAsync;
-            d.BeginInvoke(remoteClient, folderID, ownerID, fetchFolders, fetchItems, sortOrder, SendInventoryComplete, d);
+            lock (m_descendentsRequestLock)
+            {
+                if (!m_descendentsRequestProcessing)
+                {
+                    m_descendentsRequestProcessing = true;
+
+                    // We're going to send the reply async, because there may be
+                    // an enormous quantity of packets -- basically the entire inventory!
+                    // We don't want to block the client thread while all that is happening.
+                    SendInventoryDelegate d = SendInventoryAsync;
+                    d.BeginInvoke(remoteClient, folderID, ownerID, fetchFolders, fetchItems, sortOrder, SendInventoryComplete, d);
+
+                    return;
+                }
+
+                DescendentsRequestData req = new DescendentsRequestData();
+                req.RemoteClient = remoteClient;
+                req.FolderID = folderID;
+                req.OwnerID = ownerID;
+                req.FetchFolders = fetchFolders;
+                req.FetchItems = fetchItems;
+                req.SortOrder = sortOrder;
+
+                m_descendentsRequestQueue.Enqueue(req);
+            }
         }
 
         delegate void SendInventoryDelegate(IClientAPI remoteClient, UUID folderID, UUID ownerID, bool fetchFolders, bool fetchItems, int sortOrder);
 
         void SendInventoryAsync(IClientAPI remoteClient, UUID folderID, UUID ownerID, bool fetchFolders, bool fetchItems, int sortOrder)
         {
+            Thread.Sleep(20);
             SendInventoryUpdate(remoteClient, new InventoryFolderBase(folderID), fetchFolders, fetchItems);
         }
 
@@ -476,6 +511,21 @@ namespace OpenSim.Region.Framework.Scenes
         {
             SendInventoryDelegate d = (SendInventoryDelegate)iar.AsyncState;
             d.EndInvoke(iar);
+
+            lock (m_descendentsRequestLock)
+            {
+                if (m_descendentsRequestQueue.Count > 0)
+                {
+                    DescendentsRequestData req = m_descendentsRequestQueue.Dequeue();
+
+                    d = SendInventoryAsync;
+                    d.BeginInvoke(req.RemoteClient, req.FolderID, req.OwnerID, req.FetchFolders, req.FetchItems, req.SortOrder, SendInventoryComplete, d);
+
+                    return;
+                }
+
+                m_descendentsRequestProcessing = false;
+            }
         }
         
         /// <summary>
