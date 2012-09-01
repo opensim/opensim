@@ -200,6 +200,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         /// <returns></returns>
         LSL_List osGetNumberOfAttachments(LSL_Key avatar, LSL_List attachmentPoints);
 
+        /// <summary>
+        /// Sends a specified message to the specified avatar's attachments on
+        ///     the specified attachment points.
+        /// </summary>
+        /// <remarks>
+        /// Behaves as osMessageObject(), without the sending script needing to know the attachment keys in advance.
+        /// </remarks>
+        /// <param name="avatar">avatar UUID</param>
+        /// <param name="message">message string</param>
+        /// <param name="attachmentPoints">list of ATTACH_* constants, or -1 for all attachments. If -1 is specified and OS_ATTACH_MSG_INVERT_POINTS is present in flags, no action is taken.</param>
+        /// <param name="flags">flags further constraining the attachments to deliver the message to.</param>
+        void osMessageAttachments(LSL_Key avatar, string message, LSL_List attachmentPoints, int flags);
+
         #endregion
 
         //texture draw functions

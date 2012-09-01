@@ -316,6 +316,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osGetNumberOfAttachments(avatar, attachmentPoints);
         }
 
+        public void osMessageAttachments(LSL_Key avatar, string message, LSL_List attachmentPoints, int flags)
+        {
+            m_OSSL_Functions.osMessageAttachments(avatar, message, attachmentPoints, flags);
+        }
+
         #endregion
 
         // Texture Draw functions
