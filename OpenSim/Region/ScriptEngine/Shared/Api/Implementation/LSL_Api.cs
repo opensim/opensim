@@ -2083,7 +2083,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llSetRot(LSL_Rotation rot)
         {
             m_host.AddScriptLPS(1);
-                SetRot(m_host, rot);
+            SetRot(m_host, rot);
             ScriptSleep(200);
         }
 
@@ -7280,7 +7280,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             if (remain < 1)
                                 return null;
 
-                                SetRot(part, rules.GetQuaternionItem(idx++));
+                            SetRot(part, rules.GetQuaternionItem(idx++));
 
                             break;
 
