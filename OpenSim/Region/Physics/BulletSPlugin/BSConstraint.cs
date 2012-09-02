@@ -48,11 +48,10 @@ public abstract class BSConstraint : IDisposable
     {
         if (m_enabled)
         {
-            // BulletSimAPI.RemoveConstraint(m_world.ID, m_body1.ID, m_body2.ID);
+            m_enabled = false;
             bool success = BulletSimAPI.DestroyConstraint2(m_world.Ptr, m_constraint.Ptr);
             m_world.scene.DetailLog("{0},BSConstraint.Dispose,taint,body1={1},body2={2},success={3}", BSScene.DetailLogZero, m_body1.ID, m_body2.ID, success);
             m_constraint.Ptr = System.IntPtr.Zero;
-            m_enabled = false;
         }
     }
 

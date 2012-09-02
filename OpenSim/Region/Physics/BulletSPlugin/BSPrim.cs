@@ -37,7 +37,7 @@ using OpenSim.Region.Physics.ConvexDecompositionDotNet;
 namespace OpenSim.Region.Physics.BulletSPlugin
 {
     [Serializable]
-public sealed class BSPrim : PhysicsActor
+public sealed class BSPrim : BSPhysObject
 {
     private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
     private static readonly string LogHeader = "[BULLETS PRIM]";
@@ -88,23 +88,14 @@ public sealed class BSPrim : PhysicsActor
     private float _buoyancy;
 
     // Membership in a linkset is controlled by this class.
-    private BSLinkset _linkset;
-    public BSLinkset Linkset
-    {
-        get { return _linkset; }
-        set { _linkset = value; }
-    }
+    public override BSLinkset Linkset { get; set; }
 
     private int _subscribedEventsMs = 0;
     private int _nextCollisionOkTime = 0;
     long _collidingStep;
     long _collidingGroundStep;
 
-    private BulletBody m_body;
-    public BulletBody Body { 
-        get { return m_body; }
-        set { m_body = value; }
-    }
+    public override BulletBody Body { get; set; }
 
     private BSDynamics _vehicle;
 
@@ -139,7 +130,7 @@ public sealed class BSPrim : PhysicsActor
         _friction = _scene.Params.defaultFriction;  // TODO: compute based on object material
         _density = _scene.Params.defaultDensity;    // TODO: compute based on object material
         _restitution = _scene.Params.defaultRestitution;
-        _linkset = new BSLinkset(Scene, this);     // a linkset of one
+        Linkset = new BSLinkset(Scene, this);     // a linkset of one
         _vehicle = new BSDynamics(Scene, this);            // add vehicleness
         _mass = CalculateMass();
         // do the actual object creation at taint time
@@ -151,23 +142,23 @@ public sealed class BSPrim : PhysicsActor
             // Get the pointer to the physical body for this object.
             // At the moment, we're still letting BulletSim manage the creation and destruction
             //    of the object. Someday we'll move that into the C# code.
-            m_body = new BulletBody(LocalID, BulletSimAPI.GetBodyHandle2(_scene.World.Ptr, LocalID));
+            Body = new BulletBody(LocalID, BulletSimAPI.GetBodyHandle2(_scene.World.Ptr, LocalID));
         });
     }
 
     // called when this prim is being destroyed and we should free all the resources
-    public void Destroy()
+    public override void Destroy()
     {
         // m_log.DebugFormat("{0}: Destroy, id={1}", LogHeader, LocalID);
 
         // Undo any links between me and any other object
-        BSPrim parentBefore = _linkset.LinksetRoot;
-        int childrenBefore = _linkset.NumberOfChildren;
+        BSPhysObject parentBefore = Linkset.LinksetRoot;
+        int childrenBefore = Linkset.NumberOfChildren;
 
-        _linkset = _linkset.RemoveMeFromLinkset(this);
+        Linkset = Linkset.RemoveMeFromLinkset(this);
 
         DetailLog("{0},BSPrim.Destroy,call,parentBefore={1},childrenBefore={2},parentAfter={3},childrenAfter={4}",
-            LocalID, parentBefore.LocalID, childrenBefore, _linkset.LinksetRoot.LocalID, _linkset.NumberOfChildren);
+            LocalID, parentBefore.LocalID, childrenBefore, Linkset.LinksetRoot.LocalID, Linkset.NumberOfChildren);
 
         // Undo any vehicle properties
         this.VehicleType = (int)Vehicle.TYPE_NONE;
@@ -230,13 +221,13 @@ public sealed class BSPrim : PhysicsActor
         BSPrim parent = obj as BSPrim;
         if (parent != null)
         {
-            BSPrim parentBefore = _linkset.LinksetRoot;
-            int childrenBefore = _linkset.NumberOfChildren;
+            BSPhysObject parentBefore = Linkset.LinksetRoot;
+            int childrenBefore = Linkset.NumberOfChildren;
 
-            _linkset = parent.Linkset.AddMeToLinkset(this);
+            Linkset = parent.Linkset.AddMeToLinkset(this);
 
             DetailLog("{0},BSPrim.link,call,parentBefore={1}, childrenBefore=={2}, parentAfter={3}, childrenAfter={4}", 
-                LocalID, parentBefore.LocalID, childrenBefore, _linkset.LinksetRoot.LocalID, _linkset.NumberOfChildren);
+                LocalID, parentBefore.LocalID, childrenBefore, Linkset.LinksetRoot.LocalID, Linkset.NumberOfChildren);
         }
         return; 
     }
@@ -246,13 +237,13 @@ public sealed class BSPrim : PhysicsActor
         // TODO: decide if this parent checking needs to happen at taint time
         // Race condition here: if link() and delink() in same simulation tick, the delink will not happen
 
-        BSPrim parentBefore = _linkset.LinksetRoot;
-        int childrenBefore = _linkset.NumberOfChildren;
+        BSPhysObject parentBefore = Linkset.LinksetRoot;
+        int childrenBefore = Linkset.NumberOfChildren;
         
-        _linkset = _linkset.RemoveMeFromLinkset(this);
+        Linkset = Linkset.RemoveMeFromLinkset(this);
 
         DetailLog("{0},BSPrim.delink,parentBefore={1},childrenBefore={2},parentAfter={3},childrenAfter={4}, ", 
-            LocalID, parentBefore.LocalID, childrenBefore, _linkset.LinksetRoot.LocalID, _linkset.NumberOfChildren);
+            LocalID, parentBefore.LocalID, childrenBefore, Linkset.LinksetRoot.LocalID, Linkset.NumberOfChildren);
         return; 
     }
 
@@ -260,7 +251,7 @@ public sealed class BSPrim : PhysicsActor
     // Do it to the properties so the values get set in the physics engine.
     // Push the setting of the values to the viewer.
     // Called at taint time!
-    public void ZeroMotion()
+    public override void ZeroMotion()
     {
         _velocity = OMV.Vector3.Zero;
         _acceleration = OMV.Vector3.Zero;
@@ -281,7 +272,7 @@ public sealed class BSPrim : PhysicsActor
 
     public override OMV.Vector3 Position { 
         get { 
-            if (!_linkset.IsRoot(this))
+            if (!Linkset.IsRoot(this))
                 // child prims move around based on their parent. Need to get the latest location
                 _position = BulletSimAPI.GetObjectPosition(_scene.WorldID, _localID);
 
@@ -306,23 +297,23 @@ public sealed class BSPrim : PhysicsActor
     { 
         get
         {
-            return _linkset.LinksetMass;
+            return Linkset.LinksetMass;
         }
     }
 
     // used when we only want this prim's mass and not the linkset thing
-    public float MassRaw { get { return _mass; } }
+    public override float MassRaw { get { return _mass; }  }
 
     // Is this used?
     public override OMV.Vector3 CenterOfMass
     {
-        get { return _linkset.CenterOfMass; }
+        get { return Linkset.CenterOfMass; }
     }
 
     // Is this used?
     public override OMV.Vector3 GeometricCenter
     {
-        get { return _linkset.GeometricCenter; }
+        get { return Linkset.GeometricCenter; }
     }
 
     public override OMV.Vector3 Force { 
@@ -386,7 +377,7 @@ public sealed class BSPrim : PhysicsActor
 
     // Called each simulation step to advance vehicle characteristics.
     // Called from Scene when doing simulation step so we're in taint processing time.
-    public void StepVehicle(float timeStep)
+    public override void StepVehicle(float timeStep)
     {
         if (IsPhysical)
             _vehicle.Step(timeStep);
@@ -431,7 +422,7 @@ public sealed class BSPrim : PhysicsActor
     }
     public override OMV.Quaternion Orientation { 
         get {
-            if (!_linkset.IsRoot(this))
+            if (!Linkset.IsRoot(this))
             {
                 // Children move around because tied to parent. Get a fresh value.
                 _orientation = BulletSimAPI.GetObjectOrientation(_scene.WorldID, LocalID);
@@ -490,7 +481,7 @@ public sealed class BSPrim : PhysicsActor
         BulletSimAPI.SetObjectProperties(_scene.WorldID, LocalID, IsStatic, IsSolid, SubscribedEvents(), mass);
 
         // recompute any linkset parameters
-        _linkset.Refresh(this);
+        Linkset.Refresh(this);
 
         CollisionFlags cf = BulletSimAPI.GetCollisionFlags2(Body.Ptr);
         DetailLog("{0},BSPrim.SetObjectDynamic,taint,static={1},solid={2},mass={3}, cf={4}", LocalID, IsStatic, IsSolid, mass, cf);
@@ -1299,7 +1290,7 @@ public sealed class BSPrim : PhysicsActor
     const float ACCELERATION_TOLERANCE = 0.01f;
     const float ROTATIONAL_VELOCITY_TOLERANCE = 0.01f;
 
-    public void UpdateProperties(EntityProperties entprop)
+    public override void UpdateProperties(EntityProperties entprop)
     {
         /*
         UpdatedProperties changed = 0;
@@ -1347,7 +1338,7 @@ public sealed class BSPrim : PhysicsActor
         // Don't check for damping here -- it's done in BulletSim and SceneObjectPart.
 
         // Updates only for individual prims and for the root object of a linkset.
-        if (_linkset.IsRoot(this))
+        if (Linkset.IsRoot(this))
         {
             // Assign to the local variables so the normal set action does not happen
             _position = entprop.Position;
@@ -1375,7 +1366,7 @@ public sealed class BSPrim : PhysicsActor
     // I've collided with something
     // Called at taint time from within the Step() function
     CollisionEventUpdate collisionCollection;
-    public void Collide(uint collidingWith, ActorTypes type, OMV.Vector3 contactPoint, OMV.Vector3 contactNormal, float pentrationDepth)
+    public override void Collide(uint collidingWith, BSPhysObject collidee, ActorTypes type, OMV.Vector3 contactPoint, OMV.Vector3 contactNormal, float pentrationDepth)
     {
         // m_log.DebugFormat("{0}: Collide: ms={1}, id={2}, with={3}", LogHeader, _subscribedEventsMs, LocalID, collidingWith);
 
@@ -1387,18 +1378,15 @@ public sealed class BSPrim : PhysicsActor
         }
 
         // DetailLog("{0},BSPrim.Collison,call,with={1}", LocalID, collidingWith);
-        BSPrim collidingWithPrim;
-        if (_scene.Prims.TryGetValue(collidingWith, out collidingWithPrim))
+
+        // prims in the same linkset cannot collide with each other
+        if (collidee != null && (this.Linkset.LinksetID == collidee.Linkset.LinksetID))
         {
-            // prims in the same linkset cannot collide with each other
-            if (this.Linkset.LinksetID == collidingWithPrim.Linkset.LinksetID)
-            {
-                return;
-            }
+            return;
         }
 
-        // if someone is subscribed to collision events....
-        if (_subscribedEventsMs != 0) {
+        // if someone has subscribed for collision events....
+        if (SubscribedEvents()) {
             // throttle the collisions to the number of milliseconds specified in the subscription
             int nowTime = _scene.SimulationNowTime;
             if (nowTime >= _nextCollisionOkTime) {
@@ -1412,7 +1400,7 @@ public sealed class BSPrim : PhysicsActor
     }
 
     // The scene is telling us it's time to pass our collected collisions into the simulator
-    public void SendCollisions()
+    public override void SendCollisions()
     {
         if (collisionCollection != null && collisionCollection.Count > 0)
         {

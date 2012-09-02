@@ -465,6 +465,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             }
         }//end SetDefaultsForType
 
+        // One step of the vehicle properties for the next 'pTimestep' seconds.
         internal void Step(float pTimestep)
         {
             if (m_type == Vehicle.TYPE_NONE) return;
@@ -592,9 +593,9 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             }
 
             // If below the terrain, move us above the ground a little.
-            if (pos.Z < m_prim.Scene.GetTerrainHeightAtXYZ(pos))
+            if (pos.Z < m_prim.Scene.TerrainManager.GetTerrainHeightAtXYZ(pos))
             {
-                pos.Z = m_prim.Scene.GetTerrainHeightAtXYZ(pos) + 2;
+                pos.Z = m_prim.Scene.TerrainManager.GetTerrainHeightAtXYZ(pos) + 2;
                 m_prim.Position = pos;
                 VDetailLog("{0},MoveLinear,terrainHeight,pos={1}", m_prim.LocalID, pos);
             }
@@ -609,7 +610,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 }
                 if ((m_flags & VehicleFlag.HOVER_TERRAIN_ONLY) != 0)
                 {
-                    m_VhoverTargetHeight = m_prim.Scene.GetTerrainHeightAtXY(pos.X, pos.Y) + m_VhoverHeight;
+                    m_VhoverTargetHeight = m_prim.Scene.TerrainManager.GetTerrainHeightAtXY(pos.X, pos.Y) + m_VhoverHeight;
                 }
                 if ((m_flags & VehicleFlag.HOVER_GLOBAL_HEIGHT) != 0)
                 {
@@ -673,7 +674,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 {
                     grav.Z = (float)(grav.Z * 1.125);
                 }
-                float terraintemp = m_prim.Scene.GetTerrainHeightAtXYZ(pos);
+                float terraintemp = m_prim.Scene.TerrainManager.GetTerrainHeightAtXYZ(pos);
                 float postemp = (pos.Z - terraintemp);
                 if (postemp > 2.5f)
                 {
