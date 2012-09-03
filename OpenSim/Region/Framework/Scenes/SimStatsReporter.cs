@@ -438,23 +438,26 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 // Extra statistics that aren't currently sent to clients
-                lock (m_lastReportedExtraSimStats)
+                if (m_scene.PhysicsScene != null)
                 {
-                    m_lastReportedExtraSimStats[LastReportedObjectUpdateStatName] = m_objectUpdates / m_statsUpdateFactor;
-
-                    Dictionary<string, float> physicsStats = m_scene.PhysicsScene.GetStats();
-    
-                    if (physicsStats != null)
+                    lock (m_lastReportedExtraSimStats)
                     {
-                        foreach (KeyValuePair<string, float> tuple in physicsStats)
+                        m_lastReportedExtraSimStats[LastReportedObjectUpdateStatName] = m_objectUpdates / m_statsUpdateFactor;
+
+                        Dictionary<string, float> physicsStats = m_scene.PhysicsScene.GetStats();
+        
+                        if (physicsStats != null)
                         {
-                            // FIXME: An extremely dirty hack to divide MS stats per frame rather than per second
-                            // Need to change things so that stats source can indicate whether they are per second or
-                            // per frame.
-                            if (tuple.Key.EndsWith("MS"))
-                                m_lastReportedExtraSimStats[tuple.Key] = tuple.Value * perframe;
-                            else
-                                m_lastReportedExtraSimStats[tuple.Key] = tuple.Value / m_statsUpdateFactor;
+                            foreach (KeyValuePair<string, float> tuple in physicsStats)
+                            {
+                                // FIXME: An extremely dirty hack to divide MS stats per frame rather than per second
+                                // Need to change things so that stats source can indicate whether they are per second or
+                                // per frame.
+                                if (tuple.Key.EndsWith("MS"))
+                                    m_lastReportedExtraSimStats[tuple.Key] = tuple.Value * perframe;
+                                else
+                                    m_lastReportedExtraSimStats[tuple.Key] = tuple.Value / m_statsUpdateFactor;
+                            }
                         }
                     }
                 }
