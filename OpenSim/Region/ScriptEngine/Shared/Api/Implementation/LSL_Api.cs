@@ -2314,31 +2314,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llSetRot(LSL_Rotation rot)
         {
             m_host.AddScriptLPS(1);
-
-            // try to let this work as in SL...
-            if (m_host.LinkNum < 2)
-            {
-                // Special case: If we are root, rotate complete SOG to new
-                // rotation.
-                // We are root if the link number is 0 (single prim) or 1
-                // (root prim). ParentID may be nonzero in attachments and
-                // using it would cause attachments and HUDs to rotate
-                // to the wrong positions.
-                
-                SetRot(m_host, rot);
-            }
-            else
-            {
-                // we are a child. The rotation values will be set to the one of root modified by rot, as in SL. Don't ask.
-                SceneObjectPart rootPart;
-                if (m_host.ParentGroup != null) // better safe than sorry
-                {
-                    rootPart = m_host.ParentGroup.RootPart;
-                    if (rootPart != null)
-                        SetRot(m_host, rootPart.RotationOffset * (Quaternion)rot);
-                }
-            }
-
+            SetRot(m_host, rot);
             ScriptSleep(200);
         }
 
@@ -7870,23 +7846,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                             break;
                         case (int)ScriptBaseClass.PRIM_ROTATION:
+                        case (int)ScriptBaseClass.PRIM_ROT_LOCAL:
                             if (remain < 1)
                                 return null;
 
-                            LSL_Rotation q = rules.GetQuaternionItem(idx++);
-                            SceneObjectPart rootPart = parentgrp.RootPart;
-                            // try to let this work as in SL...
-                            if (rootPart == part)
-                            {
-                                // special case: If we are root, rotate complete SOG to new rotation
-                                SetRot(part, q);
-                            }
-                            else
-                            {
-                                // we are a child. The rotation values will be set to the one of root modified by rot, as in SL. Don't ask.
-                                // sounds like sl bug that we need to replicate
-                                SetRot(part, rootPart.RotationOffset * (Quaternion)q);
-                            }
+                            SetRot(part, rules.GetQuaternionItem(idx++));
 
                             break;
 
@@ -8222,11 +8186,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 return null;
                             string primDesc = rules.GetLSLStringItem(idx++);
                             part.Description = primDesc;
-                            break;
-                        case (int)ScriptBaseClass.PRIM_ROT_LOCAL:
-                            if (remain < 1)
-                                return null;
-                            SetRot(part, rules.GetQuaternionItem(idx++));
                             break;
                         case (int)ScriptBaseClass.PRIM_OMEGA:
                             if (remain < 3)
