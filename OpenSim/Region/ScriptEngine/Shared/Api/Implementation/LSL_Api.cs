@@ -2314,7 +2314,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llSetRot(LSL_Rotation rot)
         {
             m_host.AddScriptLPS(1);
+
+            // try to let this work as in SL...
+            if (m_host.ParentID == 0)
+            {
+                // special case: If we are root, rotate complete SOG to new rotation
                 SetRot(m_host, rot);
+            }
+            else
+            {
+                // we are a child. The rotation values will be set to the one of root modified by rot, as in SL. Don't ask.
+                SceneObjectPart rootPart = m_host.ParentGroup.RootPart;
+                if (rootPart != null) // better safe than sorry
+                {
+                    SetRot(m_host, rootPart.RotationOffset * (Quaternion)rot);
+                }
+            }
+
             ScriptSleep(200);
         }
 
@@ -7846,12 +7862,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                             break;
                         case (int)ScriptBaseClass.PRIM_ROTATION:
-                        case (int)ScriptBaseClass.PRIM_ROT_LOCAL:
                             if (remain < 1)
                                 return null;
 
                             LSL_Rotation q = rules.GetQuaternionItem(idx++);
+                            // try to let this work as in SL...
+                            if (part.ParentID == 0)
+                            {
+                                // special case: If we are root, rotate complete SOG to new rotation
                                 SetRot(part, q);
+                            }
+                            else
+                            {
+                                // we are a child. The rotation values will be set to the one of root modified by rot, as in SL. Don't ask.
+                                SceneObjectPart rootPart = part.ParentGroup.RootPart;
+                                SetRot(part, rootPart.RotationOffset * (Quaternion)q);
+                            }
 
                             break;
 
@@ -8187,6 +8213,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 return null;
                             string primDesc = rules.GetLSLStringItem(idx++);
                             part.Description = primDesc;
+                            break;
+                        case (int)ScriptBaseClass.PRIM_ROT_LOCAL:
+                            if (remain < 1)
+                                return null;
+                            SetRot(part, rules.GetQuaternionItem(idx++));
                             break;
                         case (int)ScriptBaseClass.PRIM_OMEGA:
                             if (remain < 3)
