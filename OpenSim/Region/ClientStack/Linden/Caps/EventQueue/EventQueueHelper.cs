@@ -151,6 +151,10 @@ namespace OpenSim.Region.ClientStack.Linden
             ulong regionHandle, byte simAccess, IPEndPoint regionExternalEndPoint,
             uint locationID, uint flags, string capsURL, UUID agentID)
         {
+            ulong tpflags = 1L << 4; // AgentManager.TeleportFlags.ViaLocation
+            if((flags & (uint)TeleportFlags.IsFlying) != 0)
+                tpflags |= 1 << 13; // IsFLying;
+
             OSDMap info = new OSDMap();
             info.Add("AgentID", OSD.FromUUID(agentID));
             info.Add("LocationID", OSD.FromInteger(4)); // TODO what is this?
@@ -159,7 +163,8 @@ namespace OpenSim.Region.ClientStack.Linden
             info.Add("SimAccess", OSD.FromInteger(simAccess));
             info.Add("SimIP", OSD.FromBinary(regionExternalEndPoint.Address.GetAddressBytes()));
             info.Add("SimPort", OSD.FromInteger(regionExternalEndPoint.Port));
-            info.Add("TeleportFlags", OSD.FromULong(1L << 4)); // AgentManager.TeleportFlags.ViaLocation
+//            info.Add("TeleportFlags", OSD.FromULong(1L << 4)); // AgentManager.TeleportFlags.ViaLocation
+            info.Add("TeleportFlags", OSD.FromULong(tpflags));
 
             OSDArray infoArr = new OSDArray();
             infoArr.Add(info);
