@@ -808,7 +808,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             handshake.RegionInfo3.ProductName = Util.StringToBytes256(regionInfo.RegionType);
             handshake.RegionInfo3.ProductSKU = Utils.EmptyBytes;
 
-            OutPacket(handshake, ThrottleOutPacketType.Task);
+//            OutPacket(handshake, ThrottleOutPacketType.Task);
+            // use same as MoveAgentIntoRegion (both should be task )
+            OutPacket(handshake, ThrottleOutPacketType.Unknown);
         }
 
         public void MoveAgentIntoRegion(RegionInfo regInfo, Vector3 pos, Vector3 look)

@@ -151,6 +151,12 @@ namespace OpenSim.Region.ClientStack.Linden
             ulong regionHandle, byte simAccess, IPEndPoint regionExternalEndPoint,
             uint locationID, uint flags, string capsURL, UUID agentID)
         {
+            // not sure why flags get overwritten here
+            if ((flags & (uint)TeleportFlags.IsFlying) != 0)
+                flags = (uint)TeleportFlags.ViaLocation | (uint)TeleportFlags.IsFlying;
+            else
+                flags = (uint)TeleportFlags.ViaLocation;
+
             OSDMap info = new OSDMap();
             info.Add("AgentID", OSD.FromUUID(agentID));
             info.Add("LocationID", OSD.FromInteger(4)); // TODO what is this?
@@ -159,7 +165,8 @@ namespace OpenSim.Region.ClientStack.Linden
             info.Add("SimAccess", OSD.FromInteger(simAccess));
             info.Add("SimIP", OSD.FromBinary(regionExternalEndPoint.Address.GetAddressBytes()));
             info.Add("SimPort", OSD.FromInteger(regionExternalEndPoint.Port));
-            info.Add("TeleportFlags", OSD.FromULong(1L << 4)); // AgentManager.TeleportFlags.ViaLocation
+//            info.Add("TeleportFlags", OSD.FromULong(1L << 4)); // AgentManager.TeleportFlags.ViaLocation
+            info.Add("TeleportFlags", OSD.FromUInteger(flags));
 
             OSDArray infoArr = new OSDArray();
             infoArr.Add(info);
