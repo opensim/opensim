@@ -1264,7 +1264,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             Vector3 look = Velocity;
 
-            if ((look.X == 0) && (look.Y == 0) && (look.Z == 0))
+            //            if ((look.X == 0) && (look.Y == 0) && (look.Z == 0))
+            if ((Math.Abs(look.X) < 0.1) && (Math.Abs(look.Y) < 0.1) && (Math.Abs(look.Z) < 0.1))
             {
                 look = new Vector3(0.99f, 0.042f, 0);
             }
