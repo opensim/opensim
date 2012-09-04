@@ -581,7 +581,7 @@ namespace OpenSim.Region.Framework.Scenes
                                         av.IsInTransit = true;
 
                                         CrossAgentToNewRegionDelegate d = entityTransfer.CrossAgentToNewRegionAsync;
-                                        d.BeginInvoke(av, val, x, y, destination, av.Flying, version, CrossAgentToNewRegionCompleted, d);
+                                        d.BeginInvoke(av, val, destination, av.Flying, version, CrossAgentToNewRegionCompleted, d);
                                     }
                                     else
                                         m_log.DebugFormat("[SCENE OBJECT]: Crossing avatar alreasy in transit {0} to {1}", av.Name, val);
