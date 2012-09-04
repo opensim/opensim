@@ -264,6 +264,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 position.Z = newPosZ;
             }
 
+            if (sp.Flying)
+                teleportFlags |= (uint)TeleportFlags.IsFlying;
+
             m_entityTransferStateMachine.UpdateInTransit(sp.UUID, AgentTransferState.Transferring);
 
             sp.ControllingClient.SendTeleportStart(teleportFlags);
@@ -470,6 +473,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // both regions
             if (sp.ParentID != (uint)0)
                 sp.StandUp();
+
+            else if (sp.Flying)
+                teleportFlags |= (uint)TeleportFlags.IsFlying;
 
             sp.ControllingClient.SendTeleportStart(teleportFlags);
 
