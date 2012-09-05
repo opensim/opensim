@@ -42,7 +42,7 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
 {
     public class DynamicTextureModule : IRegionModule, IDynamicTextureManager
     {
-        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private const int ALL_SIDES = -1;
 
@@ -249,10 +249,18 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
                     }
                 }
 
+//                m_log.DebugFormat(
+//                    "[DYNAMIC TEXTURE MODULE]: Requesting generation of new dynamic texture for {0} in {1}",
+//                    part.Name, part.ParentGroup.Scene.Name);
+
                 RenderPlugins[contentType].AsyncConvertData(updater.UpdaterID, data, extraParams);
             }
             else
             {
+//                m_log.DebugFormat(
+//                    "[DYNAMIC TEXTURE MODULE]: Reusing cached texture {0} for {1} in {2}",
+//                    objReusableTextureUUID, part.Name, part.ParentGroup.Scene.Name);
+
                 // No need to add to updaters as the texture is always the same.  Not that this functionality
                 // apppears to be implemented anyway.
                 updater.UpdatePart(part, (UUID)objReusableTextureUUID);
@@ -448,8 +456,10 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
                 IJ2KDecoder cacheLayerDecode = scene.RequestModuleInterface<IJ2KDecoder>();
                 if (cacheLayerDecode != null)
                 {
-                    cacheLayerDecode.Decode(asset.FullID, asset.Data);
-                    cacheLayerDecode = null;
+                    if (!cacheLayerDecode.Decode(asset.FullID, asset.Data))
+                        m_log.WarnFormat(
+                            "[DYNAMIC TEXTURE MODULE]: Decoding of dynamically generated asset {0} for {1} in {2} failed",
+                            asset.ID, part.Name, part.ParentGroup.Scene.Name);
                 }
 
                 UUID oldID = UpdatePart(part, asset.FullID);

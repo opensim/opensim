@@ -163,7 +163,7 @@ namespace OpenSim.Capabilities.Handlers
 
                 if (texture == null)
                 {
-                    //m_log.DebugFormat("[GETTEXTURE]: texture was not in the cache");
+//                    m_log.DebugFormat("[GETTEXTURE]: texture was not in the cache");
 
                     // Fetch locally or remotely. Misses return a 404
                     texture = m_assetService.Get(textureID.ToString());
@@ -197,7 +197,7 @@ namespace OpenSim.Capabilities.Handlers
                }
                else // it was on the cache
                {
-                   //m_log.DebugFormat("[GETTEXTURE]: texture was in the cache");
+//                   m_log.DebugFormat("[GETTEXTURE]: texture was in the cache");
                    WriteTextureData(httpRequest, httpResponse, texture, format);
                    return true;
                }
@@ -219,12 +219,30 @@ namespace OpenSim.Capabilities.Handlers
                 int start, end;
                 if (TryParseRange(range, out start, out end))
                 {
-
                     // Before clamping start make sure we can satisfy it in order to avoid
                     // sending back the last byte instead of an error status
                     if (start >= texture.Data.Length)
                     {
-                        response.StatusCode = (int)System.Net.HttpStatusCode.RequestedRangeNotSatisfiable;
+                        m_log.DebugFormat(
+                            "[GETTEXTURE]: Client requested range for texture {0} starting at {1} but texture has end of {2}",
+                            texture.ID, start, texture.Data.Length);
+
+                        // Stricly speaking, as per http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html, we should be sending back
+                        // Requested Range Not Satisfiable (416) here.  However, it appears that at least recent implementations
+                        // of the Linden Lab viewer (3.2.1 and 3.3.4 and probably earlier), a viewer that has previously
+                        // received a very small texture  may attempt to fetch bytes from the server past the
+                        // range of data that it received originally.  Whether this happens appears to depend on whether
+                        // the viewer's estimation of how large a request it needs to make for certain discard levels
+                        // (http://wiki.secondlife.com/wiki/Image_System#Discard_Level_and_Mip_Mapping), chiefly discard
+                        // level 2.  If this estimate is greater than the total texture size, returning a RequestedRangeNotSatisfiable
+                        // here will cause the viewer to treat the texture as bad and never display the full resolution
+                        // However, if we return PartialContent (or OK) instead, the viewer will display that resolution.
+
+//                        response.StatusCode = (int)System.Net.HttpStatusCode.RequestedRangeNotSatisfiable;
+//                        response.AddHeader("Content-Range", String.Format("bytes */{0}", texture.Data.Length));
+//                        response.StatusCode = (int)System.Net.HttpStatusCode.OK;
+                        response.StatusCode = (int)System.Net.HttpStatusCode.PartialContent;
+                        response.ContentType = texture.Metadata.ContentType;
                     }
                     else
                     {
@@ -232,12 +250,18 @@ namespace OpenSim.Capabilities.Handlers
                         start = Utils.Clamp(start, 0, end);
                         int len = end - start + 1;
 
-                        //m_log.Debug("Serving " + start + " to " + end + " of " + texture.Data.Length + " bytes for texture " + texture.ID);
+//                        m_log.Debug("Serving " + start + " to " + end + " of " + texture.Data.Length + " bytes for texture " + texture.ID);
 
                         // Always return PartialContent, even if the range covered the entire data length
                         // We were accidentally sending back 404 before in this situation
                         // https://issues.apache.org/bugzilla/show_bug.cgi?id=51878 supports sending 206 even if the
                         // entire range is requested, and viewer 3.2.2 (and very probably earlier) seems fine with this.
+                        //
+                        // We also do not want to send back OK even if the whole range was satisfiable since this causes
+                        // HTTP textures on at least Imprudence 1.4.0-beta2 to never display the final texture quality.
+//                        if (end > maxEnd)
+//                            response.StatusCode = (int)System.Net.HttpStatusCode.OK;
+//                        else
                         response.StatusCode = (int)System.Net.HttpStatusCode.PartialContent;
 
                         response.ContentLength = len;
