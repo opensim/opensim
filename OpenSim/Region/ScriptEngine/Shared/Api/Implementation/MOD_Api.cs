@@ -310,7 +310,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // ---------- Integer ----------
             else if (lslparm is LSL_Integer)
             {
-                if (type == typeof(int))
+                if (type == typeof(int) || type == typeof(float))
                     return (int)(LSL_Integer)lslparm;
             }
 
