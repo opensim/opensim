@@ -129,7 +129,7 @@ namespace OpenSim.Services.Connectors
             string ret = serverUri.Uri.AbsoluteUri;
             if (ret.EndsWith("/"))
                 ret = ret.Substring(0, ret.Length - 1);
-            return serverUri.Uri.AbsoluteUri;
+            return ret;
         }
 
         protected void retryCheck(object source, ElapsedEventArgs e)
