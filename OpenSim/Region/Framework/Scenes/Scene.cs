@@ -4334,6 +4334,16 @@ namespace OpenSim.Region.Framework.Scenes
             return LandChannel.GetLandObject(x, y).LandData;
         }
 
+        /// <summary>
+        /// Get LandData by position.
+        /// </summary>
+        /// <param name="pos"></param>
+        /// <returns></returns>
+        public LandData GetLandData(Vector3 pos)
+        {
+            return GetLandData(pos.X, pos.Y);
+        }
+
         public LandData GetLandData(uint x, uint y)
         {
             m_log.DebugFormat("[SCENE]: returning land for {0},{1}", x, y);
