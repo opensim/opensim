@@ -12,7 +12,7 @@ If it breaks, you get to keep *both* pieces.
 
 # Compiling OpenSim
 
-Please see BUILDING.txt if you downloaded a source distribution and 
+Please see BUILDING.md if you downloaded a source distribution and 
 need to build OpenSim before running it.
 
 # Running OpenSim on Windows
