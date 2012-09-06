@@ -4613,6 +4613,18 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
+        /// Attempt to get a prim via its UUID
+        /// </summary>
+        /// <param name="fullID"></param>
+        /// <param name="sop"></param>
+        /// <returns></returns>
+        public bool TryGetSceneObjectPart(UUID fullID, out SceneObjectPart sop)
+        {
+            sop = GetSceneObjectPart(fullID);
+            return sop != null;
+        }
+
+        /// <summary>
         /// Get a scene object group that contains the prim with the given local id
         /// </summary>
         /// <param name="localID"></param>
