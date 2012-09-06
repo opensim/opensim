@@ -46,6 +46,11 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
 {
     public class VectorRenderModule : IRegionModule, IDynamicTextureRender
     {
+        // These fields exist for testing purposes, please do not remove.
+//        private static bool s_flipper;
+//        private static byte[] s_asset1Data;
+//        private static byte[] s_asset2Data;
+
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private Scene m_scene;
@@ -161,6 +166,13 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
             {
                 m_textureManager.RegisterRender(GetContentType(), this);
             }
+
+                // This code exists for testing purposes, please do not remove.
+//            s_asset1Data = m_scene.AssetService.Get("00000000-0000-1111-9999-000000000001").Data;
+//            s_asset1Data = m_scene.AssetService.Get("9f4acf0d-1841-4e15-bdb8-3a12efc9dd8f").Data;
+
+            // Terrain dirt - smallest bin/assets file (6004 bytes)
+//            s_asset2Data = m_scene.AssetService.Get("b8d3965a-ad78-bf43-699b-bff8eca6c975").Data;
         }
 
         public void Close()
@@ -364,6 +376,14 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                 }
     
                 byte[] imageJ2000 = new byte[0];
+
+                // This code exists for testing purposes, please do not remove.
+//                if (s_flipper)
+//                    imageJ2000 = s_asset1Data;
+//                else
+//                    imageJ2000 = s_asset2Data;
+//
+//                s_flipper = !s_flipper;
     
                 try
                 {
