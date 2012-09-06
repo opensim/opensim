@@ -126,6 +126,9 @@ namespace OpenSim.Services.Connectors
 
             // m_log.DebugFormat("[ASSET]: Using {0} for host name for prefix {1}", host, prefix);
 
+            string ret = serverUri.Uri.AbsoluteUri;
+            if (ret.EndsWith("/"))
+                ret = ret.Substring(0, ret.Length - 1);
             return serverUri.Uri.AbsoluteUri;
         }
 
@@ -181,7 +184,7 @@ namespace OpenSim.Services.Connectors
 
         public AssetBase Get(string id)
         {
-            string uri = Path.Combine(MapServer(id), Path.Combine("assets", id));
+            string uri = MapServer(id) + "/assets/" + id;
 
             AssetBase asset = null;
             if (m_Cache != null)
@@ -218,7 +221,7 @@ namespace OpenSim.Services.Connectors
                     return fullAsset.Metadata;
             }
 
-            string uri = Path.Combine(MapServer(id), Path.Combine("assets", id));
+            string uri = MapServer(id) + "/assets/" + id + "/metadata";
 
             AssetMetadata asset = SynchronousRestObjectRequester.
                     MakeRequest<int, AssetMetadata>("GET", uri, 0);
@@ -260,7 +263,7 @@ namespace OpenSim.Services.Connectors
 
         public bool Get(string id, Object sender, AssetRetrieved handler)
         {
-            string uri = Path.Combine(MapServer(id), Path.Combine("assets", id));
+            string uri = MapServer(id) + "/assets/" + id;
 
             AssetBase asset = null;
             if (m_Cache != null)
@@ -379,9 +382,7 @@ namespace OpenSim.Services.Connectors
                 return asset.ID;
             }
 
-            string uri = Path.Combine(MapServer(asset.FullID.ToString()), "/assets/");
-            if (!uri.EndsWith("/"))
-                uri += "/";
+            string uri = MapServer(asset.FullID.ToString()) + "/assets/";
 
             string newID = string.Empty;
             try
@@ -458,7 +459,7 @@ namespace OpenSim.Services.Connectors
             }
             asset.Data = data;
 
-            string uri = Path.Combine(MapServer(id), Path.Combine("assets", id));
+            string uri = MapServer(id) + "/assets/" + id;
 
             if (SynchronousRestObjectRequester.
                     MakeRequest<AssetBase, bool>("POST", uri, asset))
@@ -473,7 +474,7 @@ namespace OpenSim.Services.Connectors
 
         public bool Delete(string id)
         {
-            string uri = Path.Combine(MapServer(id), Path.Combine("assets", id));
+            string uri = MapServer(id) + "/assets/" + id;
 
             if (SynchronousRestObjectRequester.
                     MakeRequest<int, bool>("DELETE", uri, 0))
