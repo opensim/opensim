@@ -1,4 +1,4 @@
-=== Building on Windows ===
+# Building on Windows
 
 Steps:
  * runprebuild.bat
@@ -7,7 +7,7 @@ Steps:
  * copy OpenSim.ini.example to OpenSim.ini and other appropriate files in bin/config-include
  * run OpenSim.exe
 
-=== Building on Linux ===
+# Building on Linux
 
 Prereqs:
  * Mono >= 2.4.3
@@ -25,13 +25,13 @@ From the distribution type:
  * copy OpenSim.ini.example to OpenSim.ini and other appropriate files in bin/config-include
  * run mono OpenSim.exe
 
-=== Using Monodevelop ===
+# Using Monodevelop
 
 From the distribution type:
  * ./runprebuild.sh
  * type monodevelop OpenSim.sln
 
-=== References ===
+# References
  
 Helpful resources:
 * http://opensimulator.org/wiki/Build_Instructions
