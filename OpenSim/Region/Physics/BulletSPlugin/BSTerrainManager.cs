@@ -408,8 +408,8 @@ public class BSTerrainManager
             int mapIndex = (int)regionY * (int)mapInfo.sizeY + (int)regionX;
             ret = mapInfo.heightMap[mapIndex];
             m_terrainModified = false;
-            DetailLog("{0},BSTerrainManager.GetTerrainHeightAtXY,bX={1},baseY={2},szX={3},szY={4},regX={5},regY={6},index={7},ht={8}",
-                    BSScene.DetailLogZero, offsetX, offsetY, mapInfo.sizeX, mapInfo.sizeY, regionX, regionY, mapIndex, ret);
+            // DetailLog("{0},BSTerrainManager.GetTerrainHeightAtXY,bX={1},baseY={2},szX={3},szY={4},regX={5},regY={6},index={7},ht={8}",
+            //         BSScene.DetailLogZero, offsetX, offsetY, mapInfo.sizeX, mapInfo.sizeY, regionX, regionY, mapIndex, ret);
         }
         else
         {

@@ -245,8 +245,8 @@ public class BSLinkset
                     //    their constraints have not been created yet.
                     // Caused by the fact that m_children is built at run time but building constraints
                     //    happens at taint time.
-                    // m_physicsScene.Logger.ErrorFormat("[BULLETSIM LINKSET] RecomputeLinksetConstraintVariables: constraint not found for root={0}, child={1}",
-                    //                                 m_linksetRoot.Body.ID, child.Body.ID);
+                    // m_physicsScene.Logger.ErrorFormat("{0} RecomputeLinksetConstraintVariables: constraint not found for root={1}, child={2}",
+                    //                                 LogHeader, m_linksetRoot.Body.ID, child.Body.ID);
                 }
             }
         }

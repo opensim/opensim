@@ -472,6 +472,10 @@ public sealed class BSPrim : BSPhysObject
 
     // Make gravity work if the object is physical and not selected
     // No locking here because only called when it is safe
+        // There are three flags we're interested in:
+        //     IsStatic: Object does not move, otherwise the object has mass and moves
+        //     isSolid: other objects bounce off of this object
+        //     collisionEvents: whether this object returns collision events
     private void SetObjectDynamic()
     {
         // If it's becoming dynamic, it will need hullness
@@ -481,6 +485,7 @@ public sealed class BSPrim : BSPhysObject
         float mass = IsStatic ? 0f : _mass;
 
         BulletSimAPI.SetObjectProperties(_scene.WorldID, LocalID, IsStatic, IsSolid, SubscribedEvents(), mass);
+        m_currentCollisionFlags = BulletSimAPI.GetCollisionFlags2(Body.Ptr);
 
         // recompute any linkset parameters
         Linkset.Refresh(this);
