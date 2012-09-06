@@ -181,8 +181,7 @@ namespace OpenSim.Services.Connectors
 
         public AssetBase Get(string id)
         {
-//            string uri = MapServer(id) + "/assets/" + id;
-            string uri = MapServer(id) + "assets/" + id;
+            string uri = MapServer(id) + "/assets/" + id;
 
             AssetBase asset = null;
             if (m_Cache != null)
@@ -219,8 +218,7 @@ namespace OpenSim.Services.Connectors
                     return fullAsset.Metadata;
             }
 
-//            string uri = MapServer(id) + "/assets/" + id + "/metadata";
-            string uri = MapServer(id) + "assets/" + id + "/metadata";
+            string uri = MapServer(id) + "/assets/" + id + "/metadata";
 
             AssetMetadata asset = SynchronousRestObjectRequester.
                     MakeRequest<int, AssetMetadata>("GET", uri, 0);
@@ -262,8 +260,7 @@ namespace OpenSim.Services.Connectors
 
         public bool Get(string id, Object sender, AssetRetrieved handler)
         {
-//            string uri = MapServer(id) + "/assets/" + id;
-            string uri = MapServer(id) + "assets/" + id;
+            string uri = MapServer(id) + "/assets/" + id;
 
             AssetBase asset = null;
             if (m_Cache != null)
@@ -382,9 +379,7 @@ namespace OpenSim.Services.Connectors
                 return asset.ID;
             }
 
-//            string uri = MapServer(asset.FullID.ToString()) + "/assets/";
-
-            string uri = MapServer(asset.FullID.ToString()) + "assets/";
+            string uri = MapServer(asset.FullID.ToString()) + "/assets/";
 
             string newID = string.Empty;
             try
@@ -461,8 +456,7 @@ namespace OpenSim.Services.Connectors
             }
             asset.Data = data;
 
-//            string uri = MapServer(id) + "/assets/" + id;
-            string uri = MapServer(id) + "assets/" + id;
+            string uri = MapServer(id) + "/assets/" + id;
 
             if (SynchronousRestObjectRequester.
                     MakeRequest<AssetBase, bool>("POST", uri, asset))
@@ -477,8 +471,7 @@ namespace OpenSim.Services.Connectors
 
         public bool Delete(string id)
         {
-//            string uri = MapServer(id) + "/assets/" + id;
-            string uri = MapServer(id) + "assets/" + id;
+            string uri = MapServer(id) + "/assets/" + id;
 
             if (SynchronousRestObjectRequester.
                     MakeRequest<int, bool>("DELETE", uri, 0))
