@@ -88,9 +88,7 @@ one you set up using the "create user" command.
 
 In the very likely event of bugs biting you (err, your OpenSim) we
 encourage you to see whether the problem has already been reported on
-the OpenSim mantis system. You can find the OpenSim mantis system at
-
-    http://opensimulator.org/mantis/main_page.php
+the [OpenSim mantis system](http://opensimulator.org/mantis/main_page.php).
 
 If your bug has already been reported, you might want to add to the
 bug description and supply additional information.
