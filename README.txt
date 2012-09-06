@@ -1,7 +1,7 @@
 Welcome to OpenSim!
 
 ==================
-==== OVERVIEW ====
+==== Overview ====
 ==================
 
 OpenSim is a BSD Licensed Open Source project to develop a functioning
