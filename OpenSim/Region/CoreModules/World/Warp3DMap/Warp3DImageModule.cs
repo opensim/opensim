@@ -208,6 +208,9 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                     bitmap = ImageUtils.ResizeImage(origBitmap, viewport.Width, viewport.Height);
             }
 
+            GC.Collect();
+            m_log.Debug("[WARP 3D IMAGE MODULE]: GC.Collect()");
+
             return bitmap;
         }
 
