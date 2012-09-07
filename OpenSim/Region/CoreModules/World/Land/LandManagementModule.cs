@@ -401,30 +401,51 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public void SendLandUpdate(ScenePresence avatar, bool force)
         {
+
+            /* stop sendind same data twice
+                        ILandObject over = GetLandObject((int)Math.Min(((int)Constants.RegionSize - 1), Math.Max(0, Math.Round(avatar.AbsolutePosition.X))),
+                                                         (int)Math.Min(((int)Constants.RegionSize - 1), Math.Max(0, Math.Round(avatar.AbsolutePosition.Y))));
+
+                        if (over != null)
+                        {
+
+                            if (force)
+                            {
+                                if (!avatar.IsChildAgent)
+                                {
+                                    over.SendLandUpdateToClient(avatar.ControllingClient);
+                                    m_scene.EventManager.TriggerAvatarEnteringNewParcel(avatar, over.LandData.LocalID,
+                                                                                        m_scene.RegionInfo.RegionID);
+                                }
+                            }
+
+                            if (avatar.currentParcelUUID != over.LandData.GlobalID)
+                            {
+                                if (!avatar.IsChildAgent)
+                                {
+                                    over.SendLandUpdateToClient(avatar.ControllingClient);
+                                    avatar.currentParcelUUID = over.LandData.GlobalID;
+                                    m_scene.EventManager.TriggerAvatarEnteringNewParcel(avatar, over.LandData.LocalID,
+                                                                                        m_scene.RegionInfo.RegionID);
+                                }
+                            }
+             */
+            if (avatar.IsChildAgent)
+                return;
+
             ILandObject over = GetLandObject((int)Math.Min(((int)Constants.RegionSize - 1), Math.Max(0, Math.Round(avatar.AbsolutePosition.X))),
-                                             (int)Math.Min(((int)Constants.RegionSize - 1), Math.Max(0, Math.Round(avatar.AbsolutePosition.Y))));
+                                                         (int)Math.Min(((int)Constants.RegionSize - 1), Math.Max(0, Math.Round(avatar.AbsolutePosition.Y))));
 
             if (over != null)
             {
-                if (force)
+                bool NotsameID = (avatar.currentParcelUUID != over.LandData.GlobalID);
+                if (force || NotsameID)
                 {
-                    if (!avatar.IsChildAgent)
-                    {
-                        over.SendLandUpdateToClient(avatar.ControllingClient);
-                        m_scene.EventManager.TriggerAvatarEnteringNewParcel(avatar, over.LandData.LocalID,
-                                                                            m_scene.RegionInfo.RegionID);
-                    }
-                }
-
-                if (avatar.currentParcelUUID != over.LandData.GlobalID)
-                {
-                    if (!avatar.IsChildAgent)
-                    {
-                        over.SendLandUpdateToClient(avatar.ControllingClient);
+                    over.SendLandUpdateToClient(avatar.ControllingClient);
+                    if (NotsameID)
                         avatar.currentParcelUUID = over.LandData.GlobalID;
-                        m_scene.EventManager.TriggerAvatarEnteringNewParcel(avatar, over.LandData.LocalID,
-                                                                            m_scene.RegionInfo.RegionID);
-                    }
+                    m_scene.EventManager.TriggerAvatarEnteringNewParcel(avatar, over.LandData.LocalID,
+                                                                        m_scene.RegionInfo.RegionID);
                 }
             }
         }
