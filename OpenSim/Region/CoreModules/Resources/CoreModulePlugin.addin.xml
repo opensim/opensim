@@ -34,6 +34,7 @@
         <RegionModule id="LureModule" type="OpenSim.Region.CoreModules.Avatar.Lure.LureModule" />
         <RegionModule id="InventoryTransferModule" type="OpenSim.Region.CoreModules.Avatar.Inventory.Transfer.InventoryTransferModule" />
         <RegionModule id="CoreAssetCache" type="OpenSim.Region.CoreModules.Asset.CoreAssetCache" />
+        <RegionModule id="FlotsamAssetCache" type="OpenSim.Region.CoreModules.Asset.FlotsamAssetCache" />
         <RegionModule id="GlynnTuckerAssetCache" type="OpenSim.Region.CoreModules.Asset.GlynnTuckerAssetCache" />
         <RegionModule id="CenomeMemoryAssetCache" type="OpenSim.Region.CoreModules.Asset.CenomeMemoryAssetCache"/>
         <RegionModule id="LibraryModule" type="OpenSim.Region.CoreModules.Framework.Library.LibraryModule"/>
