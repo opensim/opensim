@@ -233,7 +233,7 @@ public class BSLinkset
             foreach (BSPhysObject child in m_children)
             {
                 BSConstraint constrain;
-                if (m_physicsScene.Constraints.TryGetConstraint(LinksetRoot.Body, child.Body, out constrain))
+                if (m_physicsScene.Constraints.TryGetConstraint(LinksetRoot.BSBody, child.BSBody, out constrain))
                 {
                     // DetailLog("{0},BSLinkset.RecomputeLinksetConstraintVariables,taint,child={1},mass={2},A={3},B={4}", 
                     //         LinksetRoot.LocalID, child.LocalID, linksetMass, constrain.Body1.ID, constrain.Body2.ID);
@@ -245,8 +245,8 @@ public class BSLinkset
                     //    their constraints have not been created yet.
                     // Caused by the fact that m_children is built at run time but building constraints
                     //    happens at taint time.
-                    // m_physicsScene.Logger.ErrorFormat("[BULLETSIM LINKSET] RecomputeLinksetConstraintVariables: constraint not found for root={0}, child={1}",
-                    //                                 m_linksetRoot.Body.ID, child.Body.ID);
+                    // m_physicsScene.Logger.ErrorFormat("{0} RecomputeLinksetConstraintVariables: constraint not found for root={1}, child={2}",
+                    //                                 LogHeader, m_linksetRoot.Body.ID, child.Body.ID);
                 }
             }
         }
@@ -327,7 +327,7 @@ public class BSLinkset
         DetailLog("{0},PhysicallyLinkAChildToRoot,taint,root={1},child={2},rLoc={3},cLoc={4},midLoc={5}", 
             rootPrim.LocalID, rootPrim.LocalID, childPrim.LocalID, rootPrim.Position, childPrim.Position, midPoint);
         BS6DofConstraint constrain = new BS6DofConstraint(
-                        m_physicsScene.World, rootPrim.Body, childPrim.Body,
+                        m_physicsScene.World, rootPrim.BSBody, childPrim.BSBody,
                         midPoint,
                         true,
                         true
@@ -388,10 +388,10 @@ public class BSLinkset
         DetailLog("{0},PhysicallyUnlinkAChildFromRoot,taint,root={1},child={2}", rootPrim.LocalID, rootPrim.LocalID, childPrim.LocalID);
 
         // Find the constraint for this link and get rid of it from the overall collection and from my list
-        m_physicsScene.Constraints.RemoveAndDestroyConstraint(rootPrim.Body, childPrim.Body);
+        m_physicsScene.Constraints.RemoveAndDestroyConstraint(rootPrim.BSBody, childPrim.BSBody);
 
         // Make the child refresh its location
-        BulletSimAPI.PushUpdate2(childPrim.Body.Ptr);
+        BulletSimAPI.PushUpdate2(childPrim.BSBody.Ptr);
     }
 
     // Remove linkage between myself and any possible children I might have
@@ -400,7 +400,7 @@ public class BSLinkset
     {
         DetailLog("{0},PhysicallyUnlinkAllChildren,taint", rootPrim.LocalID);
 
-        m_physicsScene.Constraints.RemoveAndDestroyConstraint(rootPrim.Body);
+        m_physicsScene.Constraints.RemoveAndDestroyConstraint(rootPrim.BSBody);
     }
 
     // Invoke the detailed logger and output something if it's enabled.

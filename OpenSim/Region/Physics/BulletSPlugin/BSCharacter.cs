@@ -73,7 +73,8 @@ public class BSCharacter : BSPhysObject
     private bool _kinematic;
     private float _buoyancy;
 
-    public override BulletBody Body { get; set; }
+    public override BulletBody BSBody { get; set; }
+    public override BulletShape BSShape { get; set; }
     public override BSLinkset Linkset { get; set; }
 
     private int _subscribedEventsMs = 0;
@@ -92,6 +93,7 @@ public class BSCharacter : BSPhysObject
         _localID = localID;
         _avName = avName;
         Scene = parent_scene;
+        _physicsActorType = (int)ActorTypes.Agent;
         _position = pos;
         _size = size;
         _flying = isFlying;
@@ -128,9 +130,9 @@ public class BSCharacter : BSPhysObject
             // Set the buoyancy for flying. This will be refactored when all the settings happen in C#
             BulletSimAPI.SetObjectBuoyancy(Scene.WorldID, LocalID, _buoyancy);
 
-            Body = new BulletBody(LocalID, BulletSimAPI.GetBodyHandle2(Scene.World.Ptr, LocalID));
+            BSBody = new BulletBody(LocalID, BulletSimAPI.GetBodyHandle2(Scene.World.Ptr, LocalID));
             // avatars get all collisions no matter what (makes walking on ground and such work)
-            BulletSimAPI.AddToCollisionFlags2(Body.Ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
+            BulletSimAPI.AddToCollisionFlags2(BSBody.Ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
         });
             
         return;
@@ -440,7 +442,7 @@ public class BSCharacter : BSPhysObject
             Scene.TaintedObject("BSCharacter.AddForce", delegate()
             {
                 DetailLog("{0},BSCharacter.setAddForce,taint,addedForce={1}", LocalID, _force);
-                BulletSimAPI.AddObjectForce2(Body.Ptr, _force);
+                BulletSimAPI.SetObjectForce2(BSBody.Ptr, _force);
             });
         }
         else
@@ -465,7 +467,7 @@ public class BSCharacter : BSPhysObject
 
             Scene.TaintedObject("BSCharacter.SubscribeEvents", delegate()
             {
-                BulletSimAPI.AddToCollisionFlags2(Body.Ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
+                BulletSimAPI.AddToCollisionFlags2(BSBody.Ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
             });
         }
     }
