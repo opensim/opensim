@@ -403,8 +403,8 @@ public class BSTerrainManager
         {
             float regionX = tX - offsetX;
             float regionY = tY - offsetY;
-            if (regionX > mapInfo.sizeX) regionX = 0;
-            if (regionY > mapInfo.sizeY) regionY = 0;
+            if (regionX >= mapInfo.sizeX || regionX < 0f) regionX = 0;
+            if (regionY >= mapInfo.sizeY || regionY < 0f) regionY = 0;
             int mapIndex = (int)regionY * (int)mapInfo.sizeY + (int)regionX;
             ret = mapInfo.heightMap[mapIndex];
             m_terrainModified = false;
