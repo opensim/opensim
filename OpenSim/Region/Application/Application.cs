@@ -27,6 +27,7 @@
 
 using System;
 using System.IO;
+using System.Net;
 using System.Reflection;
 using log4net;
 using log4net.Config;
@@ -73,6 +74,7 @@ namespace OpenSim
             AppDomain.CurrentDomain.UnhandledException +=
                 new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
 
+            ServicePointManager.DefaultConnectionLimit = 50;
 
             // Add the arguments supplied when running the application to the configuration
             ArgvConfigSource configSource = new ArgvConfigSource(args);
