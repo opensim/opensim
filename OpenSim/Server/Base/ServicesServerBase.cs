@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Threading;
@@ -71,10 +72,17 @@ namespace OpenSim.Server.Base
         //
         private string m_pidFile = String.Empty;
 
+        /// <summary>
+        /// Time at which this server was started
+        /// </summary>
+        protected DateTime m_startuptime;
+
         // Handle all the automagical stuff
         //
         public ServicesServerBase(string prompt, string[] args)
         {
+            m_startuptime = DateTime.Now;
+
             // Save raw arguments
             //
             m_Arguments = args;
@@ -250,6 +258,10 @@ namespace OpenSim.Server.Base
                                           "command-script <script>",
                                           "Run a command script from file", HandleScript);
 
+            MainConsole.Instance.Commands.AddCommand("General", false, "show uptime",
+                        "show uptime",
+                        "Show server uptime", HandleShow);
+
 
             // Allow derived classes to perform initialization that
             // needs to be done after the console has opened
@@ -344,6 +356,35 @@ namespace OpenSim.Server.Base
             catch (Exception)
             {
             }
+        }
+
+        public virtual void HandleShow(string module, string[] cmd)
+        {
+            List<string> args = new List<string>(cmd);
+
+            args.RemoveAt(0);
+
+            string[] showParams = args.ToArray();
+
+            switch (showParams[0])
+            {
+                case "uptime":
+                    MainConsole.Instance.Output(GetUptimeReport());
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Return a report about the uptime of this server
+        /// </summary>
+        /// <returns></returns>
+        protected string GetUptimeReport()
+        {
+            StringBuilder sb = new StringBuilder(String.Format("Time now is {0}\n", DateTime.Now));
+            sb.Append(String.Format("Server has been running since {0}, {1}\n", m_startuptime.DayOfWeek, m_startuptime));
+            sb.Append(String.Format("That is an elapsed time of {0}\n", DateTime.Now - m_startuptime));
+
+            return sb.ToString();
         }
     }
 }

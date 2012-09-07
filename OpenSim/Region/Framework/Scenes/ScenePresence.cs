@@ -3631,13 +3631,16 @@ namespace OpenSim.Region.Framework.Scenes
         public List<SceneObjectGroup> GetAttachments(uint attachmentPoint)
         {
             List<SceneObjectGroup> attachments = new List<SceneObjectGroup>();
-            
-            lock (m_attachments)
+
+            if (attachmentPoint >= 0)
             {
-                foreach (SceneObjectGroup so in m_attachments)
+                lock (m_attachments)
                 {
-                    if (attachmentPoint == so.AttachmentPoint)
-                        attachments.Add(so);
+                    foreach (SceneObjectGroup so in m_attachments)
+                    {
+                        if (attachmentPoint == so.AttachmentPoint)
+                            attachments.Add(so);
+                    }
                 }
             }
             

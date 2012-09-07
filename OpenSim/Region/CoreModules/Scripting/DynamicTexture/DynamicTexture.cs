@@ -25,51 +25,37 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-namespace OpenSim
+using System;
+using System.Drawing;
+using OpenSim.Region.Framework.Interfaces;
+
+namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
 {
-    public class VersionInfo
+    public class DynamicTexture : IDynamicTexture
     {
-        private const string VERSION_NUMBER = "0.7.5CM";
-        private const Flavour VERSION_FLAVOUR = Flavour.Dev;
+        public string InputCommands { get; private set; }
+        public Uri InputUri { get; private set; }
+        public string InputParams { get; private set; }
+        public byte[] Data { get; private set; }
+        public Size Size { get; private set; }
+        public bool IsReuseable { get; private set; }
 
-        public enum Flavour
-        { 
-            Unknown,
-            Dev,
-            RC1,
-            RC2,
-            Release,
-            Post_Fixes,
-            Extended
-        }
-
-        public static string Version
+        public DynamicTexture(string inputCommands, string inputParams, byte[] data, Size size, bool isReuseable)
         {
-            get { return GetVersionString(VERSION_NUMBER, VERSION_FLAVOUR); }
+            InputCommands = inputCommands;
+            InputParams = inputParams;
+            Data = data;
+            Size = size;
+            IsReuseable = isReuseable;
         }
 
-        public static string GetVersionString(string versionNumber, Flavour flavour)
+        public DynamicTexture(Uri inputUri, string inputParams, byte[] data, Size size, bool isReuseable)
         {
-            string versionString = "Careminster " + versionNumber + " " + flavour;
-            return versionString.PadRight(VERSIONINFO_VERSION_LENGTH);
+            InputUri = inputUri;
+            InputParams = inputParams;
+            Data = data;
+            Size = size;
+            IsReuseable = isReuseable;
         }
-
-        public const int VERSIONINFO_VERSION_LENGTH = 27;
-        
-        /// <value>
-        /// This is the external interface version.  It is separate from the OpenSimulator project version.
-        /// 
-        /// This version number should be 
-        /// increased by 1 every time a code change makes the previous OpenSimulator revision incompatible
-        /// with the new revision.  This will usually be due to interregion or grid facing interface changes.
-        /// 
-        /// Changes which are compatible with an older revision (e.g. older revisions experience degraded functionality
-        /// but not outright failure) do not need a version number increment.
-        /// 
-        /// Having this version number allows the grid service to reject connections from regions running a version
-        /// of the code that is too old. 
-        ///
-        /// </value>
-        public readonly static int MajorInterfaceVersion = 7;
     }
 }

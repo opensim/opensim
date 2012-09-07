@@ -1682,6 +1682,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
             }
 
+            MessageObject(objUUID, message);
+        }
+
+        private void MessageObject(UUID objUUID, string message)
+        {
             object[] resobj = new object[] { new LSL_Types.LSLString(m_host.UUID.ToString()), new LSL_Types.LSLString(message) };
 
             SceneObjectPart sceneOP = World.GetSceneObjectPart(objUUID);
@@ -3272,6 +3277,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
+        #region Attachment commands
+
         public void osForceAttachToAvatar(int attachmentPoint)
         {
             CheckThreatLevel(ThreatLevel.High, "osForceAttachToAvatar");
@@ -3360,6 +3367,175 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             InitLSL();
             ((LSL_Api)m_LSL_Api).DetachFromAvatar();
         }
+
+        public LSL_List osGetNumberOfAttachments(LSL_Key avatar, LSL_List attachmentPoints)
+        {
+            CheckThreatLevel(ThreatLevel.Moderate, "osGetNumberOfAttachments");
+
+            m_host.AddScriptLPS(1);
+
+            UUID targetUUID;
+            ScenePresence target;
+            LSL_List resp = new LSL_List();
+
+            if (attachmentPoints.Length >= 1 && UUID.TryParse(avatar.ToString(), out targetUUID) && World.TryGetScenePresence(targetUUID, out target))
+            {
+                foreach (object point in attachmentPoints.Data)
+                {
+                    LSL_Integer ipoint = new LSL_Integer(
+                        (point is LSL_Integer || point is int || point is uint) ?
+                            (int)point :
+                            0
+                    );
+                    resp.Add(ipoint);
+                    if (ipoint == 0)
+                    {
+                        // indicates zero attachments
+                        resp.Add(new LSL_Integer(0));
+                    }
+                    else
+                    {
+                        // gets the number of attachments on the attachment point
+                        resp.Add(new LSL_Integer(target.GetAttachments((uint)ipoint).Count));
+                    }
+                }
+            }
+
+            return resp;
+        }
+
+        public void osMessageAttachments(LSL_Key avatar, string message, LSL_List attachmentPoints, int options)
+        {
+            CheckThreatLevel(ThreatLevel.Moderate, "osMessageAttachments");
+            m_host.AddScriptLPS(1);
+
+            UUID targetUUID;
+            ScenePresence target;
+
+            if (attachmentPoints.Length >= 1 && UUID.TryParse(avatar.ToString(), out targetUUID) && World.TryGetScenePresence(targetUUID, out target))
+            {
+                List<int> aps = new List<int>();
+                foreach (object point in attachmentPoints.Data)
+                {
+                    int ipoint;
+                    if (int.TryParse(point.ToString(), out ipoint))
+                    {
+                        aps.Add(ipoint);
+                    }
+                }
+
+                List<SceneObjectGroup> attachments = new List<SceneObjectGroup>();
+
+                bool msgAll = aps.Contains(ScriptBaseClass.OS_ATTACH_MSG_ALL);
+                bool invertPoints = (options & ScriptBaseClass.OS_ATTACH_MSG_INVERT_POINTS) != 0;
+
+                if (msgAll && invertPoints)
+                {
+                    return;
+                }
+                else if (msgAll || invertPoints)
+                {
+                    attachments = target.GetAttachments();
+                }
+                else
+                {
+                    foreach (int point in aps)
+                    {
+                        if (point > 0)
+                        {
+                            attachments.AddRange(target.GetAttachments((uint)point));
+                        }
+                    }
+                }
+
+                // if we have no attachments at this point, exit now
+                if (attachments.Count == 0)
+                {
+                    return;
+                }
+
+                List<SceneObjectGroup> ignoreThese = new List<SceneObjectGroup>();
+
+                if (invertPoints)
+                {
+                    foreach (SceneObjectGroup attachment in attachments)
+                    {
+                        if (aps.Contains((int)attachment.AttachmentPoint))
+                        {
+                            ignoreThese.Add(attachment);
+                        }
+                    }
+                }
+
+                foreach (SceneObjectGroup attachment in ignoreThese)
+                {
+                    attachments.Remove(attachment);
+                }
+                ignoreThese.Clear();
+
+                // if inverting removed all attachments to check, exit now
+                if (attachments.Count < 1)
+                {
+                    return;
+                }
+
+                if ((options & ScriptBaseClass.OS_ATTACH_MSG_OBJECT_CREATOR) != 0)
+                {
+                    foreach (SceneObjectGroup attachment in attachments)
+                    {
+                        if (attachment.RootPart.CreatorID != m_host.CreatorID)
+                        {
+                            ignoreThese.Add(attachment);
+                        }
+                    }
+
+                    foreach (SceneObjectGroup attachment in ignoreThese)
+                    {
+                        attachments.Remove(attachment);
+                    }
+                    ignoreThese.Clear();
+
+                    // if filtering by same object creator removed all
+                    //  attachments to check, exit now
+                    if (attachments.Count == 0)
+                    {
+                        return;
+                    }
+                }
+
+                if ((options & ScriptBaseClass.OS_ATTACH_MSG_SCRIPT_CREATOR) != 0)
+                {
+                    foreach (SceneObjectGroup attachment in attachments)
+                    {
+                        if (attachment.RootPart.CreatorID != m_item.CreatorID)
+                        {
+                            ignoreThese.Add(attachment);
+                        }
+                    }
+
+                    foreach (SceneObjectGroup attachment in ignoreThese)
+                    {
+                        attachments.Remove(attachment);
+                    }
+                    ignoreThese.Clear();
+
+                    // if filtering by object creator must match originating
+                    //  script creator removed all attachments to check,
+                    //  exit now
+                    if (attachments.Count == 0)
+                    {
+                        return;
+                    }
+                }
+
+                foreach (SceneObjectGroup attachment in attachments)
+                {
+                    MessageObject(attachment.RootPart.UUID, message);
+                }
+            }
+        }
+
+        #endregion
 
         /// <summary>
         /// Checks if thing is a UUID.

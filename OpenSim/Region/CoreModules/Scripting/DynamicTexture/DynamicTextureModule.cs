@@ -42,7 +42,7 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
 {
     public class DynamicTextureModule : IRegionModule, IDynamicTextureManager
     {
-        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private const int ALL_SIDES = -1;
 
@@ -53,6 +53,17 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
         /// If true then where possible dynamic textures are reused.
         /// </summary>
         public bool ReuseTextures { get; set; }
+
+        /// <summary>
+        /// If false, then textures which have a low data size are not reused when ReuseTextures = true.
+        /// </summary>
+        /// <remarks>
+        /// LL viewers 3.3.4 and before appear to not fully render textures pulled from the viewer cache if those
+        /// textures have a relatively high pixel surface but a small data size.  Typically, this appears to happen
+        /// if the data size is smaller than the viewer's discard level 2 size estimate.  So if this is setting is
+        /// false, textures smaller than the calculation in IsSizeReuseable are always regenerated rather than reused
+        /// to work around this problem.</remarks>
+        public bool ReuseLowDataTextures { get; set; }
 
         private Dictionary<UUID, Scene> RegisteredScenes = new Dictionary<UUID, Scene>();
 
@@ -83,18 +94,17 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
         /// <summary>
         /// Called by code which actually renders the dynamic texture to supply texture data.
         /// </summary>
-        /// <param name="id"></param>
-        /// <param name="data"></param>
-        /// <param name="isReuseable">True if the data generated can be reused for subsequent identical requests</param>
-        public void ReturnData(UUID id, byte[] data, bool isReuseable)
+        /// <param name="updaterId"></param>
+        /// <param name="texture"></param>
+        public void ReturnData(UUID updaterId, IDynamicTexture texture)
         {
             DynamicTextureUpdater updater = null;
 
             lock (Updaters)
             {
-                if (Updaters.ContainsKey(id))
+                if (Updaters.ContainsKey(updaterId))
                 {
-                    updater = Updaters[id];
+                    updater = Updaters[updaterId];
                 }
             }
 
@@ -103,11 +113,16 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
                 if (RegisteredScenes.ContainsKey(updater.SimUUID))
                 {
                     Scene scene = RegisteredScenes[updater.SimUUID];
-                    UUID newTextureID = updater.DataReceived(data, scene);
+                    UUID newTextureID = updater.DataReceived(texture.Data, scene);
 
-                    if (ReuseTextures && isReuseable && !updater.BlendWithOldTexture)
+                    if (ReuseTextures
+                        && !updater.BlendWithOldTexture
+                        && texture.IsReuseable
+                        && (ReuseLowDataTextures || IsDataSizeReuseable(texture)))
+                    {
                         m_reuseableDynamicTextures.Store(
-                            GenerateReusableTextureKey(updater.BodyData, updater.Params), newTextureID);
+                            GenerateReusableTextureKey(texture.InputCommands, texture.InputParams), newTextureID);
+                    }
                 }
             }
 
@@ -121,6 +136,27 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Determines whether the texture is reuseable based on its data size.
+        /// </summary>
+        /// <remarks>
+        /// This is a workaround for a viewer bug where very small data size textures relative to their pixel size
+        /// are not redisplayed properly when pulled from cache.  The calculation here is based on the typical discard
+        /// level of 2, a 'rate' of 0.125 and 4 components (which makes for a factor of 0.5).
+        /// </remarks>
+        /// <returns></returns>
+        private bool IsDataSizeReuseable(IDynamicTexture texture)
+        {
+//            Console.WriteLine("{0} {1}", texture.Size.Width, texture.Size.Height);
+            int discardLevel2DataThreshold = (int)Math.Ceiling((texture.Size.Width >> 2) * (texture.Size.Height >> 2) * 0.5);
+
+//            m_log.DebugFormat(
+//                "[DYNAMIC TEXTURE MODULE]: Discard level 2 threshold {0}, texture data length {1}",
+//                discardLevel2DataThreshold, texture.Data.Length);
+
+            return discardLevel2DataThreshold < texture.Data.Length;
         }
 
         public UUID AddDynamicTextureURL(UUID simID, UUID primID, string contentType, string url,
@@ -249,10 +285,18 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
                     }
                 }
 
+//                m_log.DebugFormat(
+//                    "[DYNAMIC TEXTURE MODULE]: Requesting generation of new dynamic texture for {0} in {1}",
+//                    part.Name, part.ParentGroup.Scene.Name);
+
                 RenderPlugins[contentType].AsyncConvertData(updater.UpdaterID, data, extraParams);
             }
             else
             {
+//                m_log.DebugFormat(
+//                    "[DYNAMIC TEXTURE MODULE]: Reusing cached texture {0} for {1} in {2}",
+//                    objReusableTextureUUID, part.Name, part.ParentGroup.Scene.Name);
+
                 // No need to add to updaters as the texture is always the same.  Not that this functionality
                 // apppears to be implemented anyway.
                 updater.UpdatePart(part, (UUID)objReusableTextureUUID);
@@ -285,7 +329,10 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
         {
             IConfig texturesConfig = config.Configs["Textures"];
             if (texturesConfig != null)
+            {
                 ReuseTextures = texturesConfig.GetBoolean("ReuseDynamicTextures", false);
+                ReuseLowDataTextures = texturesConfig.GetBoolean("ReuseDynamicLowDataTextures", false);
+            }
 
             if (!RegisteredScenes.ContainsKey(scene.RegionInfo.RegionID))
             {
@@ -448,8 +495,10 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
                 IJ2KDecoder cacheLayerDecode = scene.RequestModuleInterface<IJ2KDecoder>();
                 if (cacheLayerDecode != null)
                 {
-                    cacheLayerDecode.Decode(asset.FullID, asset.Data);
-                    cacheLayerDecode = null;
+                    if (!cacheLayerDecode.Decode(asset.FullID, asset.Data))
+                        m_log.WarnFormat(
+                            "[DYNAMIC TEXTURE MODULE]: Decoding of dynamically generated asset {0} for {1} in {2} failed",
+                            asset.ID, part.Name, part.ParentGroup.Scene.Name);
                 }
 
                 UUID oldID = UpdatePart(part, asset.FullID);

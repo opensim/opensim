@@ -4811,6 +4811,18 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
+        /// Attempt to get the SOG via its UUID
+        /// </summary>
+        /// <param name="fullID"></param>
+        /// <param name="sog"></param>
+        /// <returns></returns>
+        public bool TryGetSceneObjectGroup(UUID fullID, out SceneObjectGroup sog)
+        {
+            sog = GetSceneObjectGroup(fullID);
+            return sog != null;
+        }
+
+        /// <summary>
         /// Get a prim by name from the scene (will return the first
         /// found, if there are more than one prim with the same name)
         /// </summary>
@@ -4839,6 +4851,18 @@ namespace OpenSim.Region.Framework.Scenes
         public SceneObjectPart GetSceneObjectPart(UUID fullID)
         {
             return m_sceneGraph.GetSceneObjectPart(fullID);
+        }
+
+        /// <summary>
+        /// Attempt to get a prim via its UUID
+        /// </summary>
+        /// <param name="fullID"></param>
+        /// <param name="sop"></param>
+        /// <returns></returns>
+        public bool TryGetSceneObjectPart(UUID fullID, out SceneObjectPart sop)
+        {
+            sop = GetSceneObjectPart(fullID);
+            return sop != null;
         }
 
         /// <summary>

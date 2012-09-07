@@ -92,6 +92,7 @@ what it is today.
 * Flyte Xevious
 * Garmin Kawaguichi
 * Gryc Ueusp
+* Hiro Lecker
 * Imaze Rhiano
 * Intimidated
 * Jeremy Bongio (IBM)

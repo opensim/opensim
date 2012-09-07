@@ -35,6 +35,7 @@ using System.Net;
 using Nini.Config;
 using OpenMetaverse;
 using OpenMetaverse.Imaging;
+using OpenSim.Region.CoreModules.Scripting.DynamicTexture;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using log4net;
@@ -46,6 +47,11 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
 {
     public class VectorRenderModule : IRegionModule, IDynamicTextureRender
     {
+        // These fields exist for testing purposes, please do not remove.
+//        private static bool s_flipper;
+//        private static byte[] s_asset1Data;
+//        private static byte[] s_asset2Data;
+
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private Scene m_scene;
@@ -80,20 +86,14 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
 //            return lines.Any((str, r) => str.StartsWith("Image"));
 //        }
 
-        public byte[] ConvertUrl(string url, string extraParams)
+        public IDynamicTexture ConvertUrl(string url, string extraParams)
         {
             return null;
         }
 
-        public byte[] ConvertData(string bodyData, string extraParams)
+        public IDynamicTexture ConvertData(string bodyData, string extraParams)
         {
-            bool reuseable;
-            return Draw(bodyData, extraParams, out reuseable);
-        }
-
-        private byte[] ConvertData(string bodyData, string extraParams, out bool reuseable)
-        {
-            return Draw(bodyData, extraParams, out reuseable);
+            return Draw(bodyData, extraParams);
         }
 
         public bool AsyncConvertUrl(UUID id, string url, string extraParams)
@@ -104,10 +104,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
         public bool AsyncConvertData(UUID id, string bodyData, string extraParams)
         {
             // XXX: This isn't actually being done asynchronously!
-            bool reuseable;
-            byte[] data = ConvertData(bodyData, extraParams, out reuseable);
-
-            m_textureManager.ReturnData(id, data, reuseable);
+            m_textureManager.ReturnData(id, ConvertData(bodyData, extraParams));
 
             return true;
         }
@@ -161,6 +158,13 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
             {
                 m_textureManager.RegisterRender(GetContentType(), this);
             }
+
+                // This code exists for testing purposes, please do not remove.
+//            s_asset1Data = m_scene.AssetService.Get("00000000-0000-1111-9999-000000000001").Data;
+//            s_asset1Data = m_scene.AssetService.Get("9f4acf0d-1841-4e15-bdb8-3a12efc9dd8f").Data;
+
+            // Terrain dirt - smallest bin/assets file (6004 bytes)
+//            s_asset2Data = m_scene.AssetService.Get("b8d3965a-ad78-bf43-699b-bff8eca6c975").Data;
         }
 
         public void Close()
@@ -179,7 +183,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
 
         #endregion
 
-        private byte[] Draw(string data, string extraParams, out bool reuseable)
+        private IDynamicTexture Draw(string data, string extraParams)
         {
             // We need to cater for old scripts that didnt use extraParams neatly, they use either an integer size which represents both width and height, or setalpha
             // we will now support multiple comma seperated params in the form  width:256,height:512,alpha:255
@@ -322,6 +326,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
 
             Bitmap bitmap = null;
             Graphics graph = null;
+            bool reuseable = false;
 
             try
             {
@@ -364,6 +369,14 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                 }
     
                 byte[] imageJ2000 = new byte[0];
+
+                // This code exists for testing purposes, please do not remove.
+//                if (s_flipper)
+//                    imageJ2000 = s_asset1Data;
+//                else
+//                    imageJ2000 = s_asset2Data;
+//
+//                s_flipper = !s_flipper;
     
                 try
                 {
@@ -376,7 +389,8 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                         e.Message, e.StackTrace);
                 }
 
-                return imageJ2000;
+                return new OpenSim.Region.CoreModules.Scripting.DynamicTexture.DynamicTexture(
+                    data, extraParams, imageJ2000, new Size(width, height), reuseable);
             }
             finally
             {

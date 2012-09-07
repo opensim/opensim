@@ -157,7 +157,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         void osAvatarPlayAnimation(string avatar, string animation);
         void osAvatarStopAnimation(string avatar, string animation);
 
-        // Attachment commands
+        #region Attachment commands
 
         /// <summary>
         /// Attach the object containing this script to the avatar that owns it without asking for PERMISSION_ATTACH
@@ -191,6 +191,29 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         /// </summary>
         /// <remarks>Nothing happens if the object is not attached.</remarks>
         void osForceDetachFromAvatar();
+
+        /// <summary>
+        /// Returns a strided list of the specified attachment points and the number of attachments on those points.
+        /// </summary>
+        /// <param name="avatar">avatar UUID</param>
+        /// <param name="attachmentPoints">list of ATTACH_* constants</param>
+        /// <returns></returns>
+        LSL_List osGetNumberOfAttachments(LSL_Key avatar, LSL_List attachmentPoints);
+
+        /// <summary>
+        /// Sends a specified message to the specified avatar's attachments on
+        ///     the specified attachment points.
+        /// </summary>
+        /// <remarks>
+        /// Behaves as osMessageObject(), without the sending script needing to know the attachment keys in advance.
+        /// </remarks>
+        /// <param name="avatar">avatar UUID</param>
+        /// <param name="message">message string</param>
+        /// <param name="attachmentPoints">list of ATTACH_* constants, or -1 for all attachments. If -1 is specified and OS_ATTACH_MSG_INVERT_POINTS is present in flags, no action is taken.</param>
+        /// <param name="flags">flags further constraining the attachments to deliver the message to.</param>
+        void osMessageAttachments(LSL_Key avatar, string message, LSL_List attachmentPoints, int flags);
+
+        #endregion
 
         //texture draw functions
         string osMovePen(string drawList, int x, int y);

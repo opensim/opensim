@@ -289,7 +289,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osAvatarStopAnimation(avatar, animation);
         }
 
-        // Avatar functions
+        #region Attachment commands
 
         public void osForceAttachToAvatar(int attachmentPoint)
         {
@@ -310,6 +310,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             m_OSSL_Functions.osForceDetachFromAvatar();
         }
+
+        public LSL_List osGetNumberOfAttachments(LSL_Key avatar, LSL_List attachmentPoints)
+        {
+            return m_OSSL_Functions.osGetNumberOfAttachments(avatar, attachmentPoints);
+        }
+
+        public void osMessageAttachments(LSL_Key avatar, string message, LSL_List attachmentPoints, int flags)
+        {
+            m_OSSL_Functions.osMessageAttachments(avatar, message, attachmentPoints, flags);
+        }
+
+        #endregion
 
         // Texture Draw functions
 

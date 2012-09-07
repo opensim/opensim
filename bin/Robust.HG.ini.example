@@ -104,6 +104,12 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     ; Region_Welcome_Area = "DefaultRegion, FallbackRegion"
     ; (replace spaces with underscore)
 
+	;; Allow Hyperlinks to be created at the console
+    HypergridLinker = true
+
+	Gatekeeper = "http://127.0.0.1:8002"
+
+
 ; * This is the configuration for the freeswitch server in grid mode
 [FreeswitchService]
     LocalServiceModule = "OpenSim.Services.FreeswitchService.dll:FreeswitchService"

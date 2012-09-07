@@ -51,7 +51,7 @@ using RegionSettings = OpenSim.Framework.RegionSettings;
 namespace OpenSim.Region.CoreModules.World.Archiver.Tests
 {
     [TestFixture]
-    public class ArchiverTests
+    public class ArchiverTests : OpenSimTestCase
     {
         private Guid m_lastRequestId;
         private string m_lastErrorMessage;
