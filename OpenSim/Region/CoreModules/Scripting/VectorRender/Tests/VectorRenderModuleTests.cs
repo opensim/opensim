@@ -57,6 +57,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender.Tests
 
             m_dtm = new DynamicTextureModule();
             m_dtm.ReuseTextures = reuseTextures;
+//            m_dtm.ReuseLowDataTextures = reuseTextures;
 
             m_vrm = new VectorRenderModule();
 
@@ -201,6 +202,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender.Tests
         public void TestRepeatSameDrawReusingTexture()
         {
             TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
 
             string dtText = "PenColour BLACK; MoveTo 40,220; FontSize 32; Text Hello World;";
 
@@ -226,6 +228,46 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender.Tests
                 0);
 
             Assert.That(firstDynamicTextureID, Is.EqualTo(so.RootPart.Shape.Textures.GetFace(0).TextureID));
+        }
+
+        /// <summary>
+        /// Test a low data dynamically generated texture such that it is treated as a low data texture that causes
+        /// problems for current viewers.
+        /// </summary>
+        /// <remarks>
+        /// As we do not set DynamicTextureModule.ReuseLowDataTextures = true in this test, it should not reuse the
+        /// texture
+        /// </remarks>
+        [Test]
+        public void TestRepeatSameDrawLowDataTexture()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            string dtText = "PenColour BLACK; MoveTo 40,220; FontSize 32; Text Hello World;";
+
+            SetupScene(true);
+            SceneObjectGroup so = SceneHelpers.AddSceneObject(m_scene);
+
+            m_dtm.AddDynamicTextureData(
+                m_scene.RegionInfo.RegionID,
+                so.UUID,
+                m_vrm.GetContentType(),
+                dtText,
+                "1024",
+                0);
+
+            UUID firstDynamicTextureID = so.RootPart.Shape.Textures.GetFace(0).TextureID;
+
+            m_dtm.AddDynamicTextureData(
+                m_scene.RegionInfo.RegionID,
+                so.UUID,
+                m_vrm.GetContentType(),
+                dtText,
+                "1024",
+                0);
+
+            Assert.That(firstDynamicTextureID, Is.Not.EqualTo(so.RootPart.Shape.Textures.GetFace(0).TextureID));
         }
 
         [Test]

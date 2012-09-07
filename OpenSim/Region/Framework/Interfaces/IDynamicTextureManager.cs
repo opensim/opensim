@@ -25,6 +25,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
+using System.Drawing;
 using System.IO;
 using OpenMetaverse;
 
@@ -33,7 +35,14 @@ namespace OpenSim.Region.Framework.Interfaces
     public interface IDynamicTextureManager
     {
         void RegisterRender(string handleType, IDynamicTextureRender render);
-        void ReturnData(UUID id, byte[] data, bool isReuseable);
+
+        /// <summary>
+        /// Used by IDynamicTextureRender implementations to return renders
+        /// </summary>
+        /// <param name='id'></param>
+        /// <param name='data'></param>
+        /// <param name='isReuseable'></param>
+        void ReturnData(UUID id, IDynamicTexture texture);
 
         UUID AddDynamicTextureURL(UUID simID, UUID primID, string contentType, string url, string extraParams,
                                     int updateTimer);
@@ -125,11 +134,53 @@ namespace OpenSim.Region.Framework.Interfaces
 //        /// <param name='extraParams'></param>
 //        bool AlwaysIdenticalConversion(string bodyData, string extraParams);
 
-        byte[] ConvertUrl(string url, string extraParams);
-        byte[] ConvertData(string bodyData, string extraParams);
+        IDynamicTexture ConvertUrl(string url, string extraParams);
+        IDynamicTexture ConvertData(string bodyData, string extraParams);
+
         bool AsyncConvertUrl(UUID id, string url, string extraParams);
         bool AsyncConvertData(UUID id, string bodyData, string extraParams);
+
         void GetDrawStringSize(string text, string fontName, int fontSize, 
                                out double xSize, out double ySize);
+    }
+
+    public interface IDynamicTexture
+    {
+        /// <summary>
+        /// Input commands used to generate this data.
+        /// </summary>
+        /// <remarks>
+        /// Null if input commands were not used.
+        /// </remarks>
+        string InputCommands { get; }
+
+        /// <summary>
+        /// Uri used to generate this data.
+        /// </summary>
+        /// <remarks>
+        /// Null if a uri was not used.
+        /// </remarks>
+        Uri InputUri { get; }
+
+        /// <summary>
+        /// Extra input params used to generate this data.
+        /// </summary>
+        string InputParams { get; }
+
+        /// <summary>
+        /// Texture data.
+        /// </summary>
+        byte[] Data { get; }
+
+        /// <summary>
+        /// Size of texture.
+        /// </summary>
+        Size Size { get; }
+
+        /// <summary>
+        /// Signal whether the texture is reuseable (i.e. whether the same input data will always generate the same
+        /// texture).
+        /// </summary>
+        bool IsReuseable { get; }
     }
 }
