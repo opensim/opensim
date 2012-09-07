@@ -170,7 +170,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             m_log.InfoFormat(
                 "[ARCHIVER]: Writing archive for region {0} to {1}", Scene.RegionInfo.RegionName, savePath);
             
-            new ArchiveWriteRequestPreparation(Scene, savePath, requestId).ArchiveRegion(options);
+            new ArchiveWriteRequest(Scene, savePath, requestId).ArchiveRegion(options);
         }
 
         public void ArchiveRegion(Stream saveStream)
@@ -185,7 +185,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
         public void ArchiveRegion(Stream saveStream, Guid requestId, Dictionary<string, object> options)
         {
-            new ArchiveWriteRequestPreparation(Scene, saveStream, requestId).ArchiveRegion(options);
+            new ArchiveWriteRequest(Scene, saveStream, requestId).ArchiveRegion(options);
         }
 
         public void DearchiveRegion(string loadPath)

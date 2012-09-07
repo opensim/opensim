@@ -311,7 +311,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
 
             tar.WriteFile(
                 ArchiveConstants.CONTROL_FILE_PATH,
-                new ArchiveWriteRequestPreparation(m_scene, (Stream)null, Guid.Empty).CreateControlFile(new ArchiveScenesGroup()));
+                new ArchiveWriteRequest(m_scene, (Stream)null, Guid.Empty).CreateControlFile(new ArchiveScenesGroup()));
 
             SceneObjectGroup sog1 = SceneHelpers.CreateSceneObject(1, ownerId, "obj1-", 0x11);
             SceneObjectPart sop2
@@ -369,7 +369,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
 
             tar.WriteFile(
                 ArchiveConstants.CONTROL_FILE_PATH,
-                new ArchiveWriteRequestPreparation(m_scene, (Stream)null, Guid.Empty).CreateControlFile(new ArchiveScenesGroup()));
+                new ArchiveWriteRequest(m_scene, (Stream)null, Guid.Empty).CreateControlFile(new ArchiveScenesGroup()));
             SceneObjectPart part1 = CreateSceneObjectPart1();
 
             part1.SitTargetOrientation = new Quaternion(0.2f, 0.3f, 0.4f, 0.5f);
@@ -559,7 +559,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             tar.WriteDir(ArchiveConstants.TERRAINS_PATH);
             tar.WriteFile(
                 ArchiveConstants.CONTROL_FILE_PATH,
-                new ArchiveWriteRequestPreparation(m_scene, (Stream)null, Guid.Empty).CreateControlFile(new ArchiveScenesGroup()));
+                new ArchiveWriteRequest(m_scene, (Stream)null, Guid.Empty).CreateControlFile(new ArchiveScenesGroup()));
 
             RegionSettings rs = new RegionSettings();
             rs.AgentLimit = 17;

@@ -50,7 +50,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
     /// <summary>
     /// Prepare to write out an archive.
     /// </summary>
-    public class ArchiveWriteRequestPreparation
+    public class ArchiveWriteRequest
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -95,7 +95,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// <exception cref="System.IO.IOException">
         /// If there was a problem opening a stream for the file specified by the savePath
         /// </exception>
-        public ArchiveWriteRequestPreparation(Scene scene, string savePath, Guid requestId) : this(scene, requestId)
+        public ArchiveWriteRequest(Scene scene, string savePath, Guid requestId) : this(scene, requestId)
         {
             try
             {
@@ -116,12 +116,12 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// <param name="scene">The root scene to archive</param>
         /// <param name="saveStream">The stream to which to save data.</param>
         /// <param name="requestId">The id associated with this request</param>
-        public ArchiveWriteRequestPreparation(Scene scene, Stream saveStream, Guid requestId) : this(scene, requestId)
+        public ArchiveWriteRequest(Scene scene, Stream saveStream, Guid requestId) : this(scene, requestId)
         {
             m_saveStream = saveStream;
         }
 
-        protected ArchiveWriteRequestPreparation(Scene scene, Guid requestId)
+        protected ArchiveWriteRequest(Scene scene, Guid requestId)
         {
             m_rootScene = scene;
             m_requestId = requestId;
