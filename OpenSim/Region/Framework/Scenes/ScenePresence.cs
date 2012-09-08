@@ -1315,13 +1315,15 @@ namespace OpenSim.Region.Framework.Scenes
             // Create child agents in neighbouring regions
             if (openChildAgents && !IsChildAgent)
             {
+
                 IEntityTransferModule m_agentTransfer = m_scene.RequestModuleInterface<IEntityTransferModule>();
                 if (m_agentTransfer != null)
-                    Util.FireAndForget(delegate { m_agentTransfer.EnableChildAgents(this); });
+                    m_agentTransfer.EnableChildAgents(this);
 
                 IFriendsModule friendsModule = m_scene.RequestModuleInterface<IFriendsModule>();
                 if (friendsModule != null)
                     friendsModule.SendFriendsOnlineIfNeeded(ControllingClient);
+
             }
 
 //            m_log.DebugFormat(
