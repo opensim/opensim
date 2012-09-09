@@ -60,7 +60,6 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private WebFetchInvDescHandler m_webFetchHandler;
 
-//        private ManualResetEvent m_ev = new ManualResetEvent(true);
         private object m_lock = new object();
 
         private Dictionary<UUID, string> m_capsDict = new Dictionary<UUID, string>();
@@ -162,14 +161,6 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             lock (m_lock)
             {
-/*
-                if (m_ev.WaitOne(0))
-                {
-                    m_ev.Reset();
-                    return true;
-                }
-                return false;
- */
                 return !m_busy;
             }
         }
@@ -215,7 +206,6 @@ namespace OpenSim.Region.ClientStack.Linden
                     if (!m_requests.TryGetValue(requestID, out requestHash))
                     {
                         m_busy = false;
-                        //                        m_ev.Set();
                         response["str_response_string"] = "Invalid request";
                         return response;
                     }
@@ -233,7 +223,6 @@ namespace OpenSim.Region.ClientStack.Linden
             finally
             {
                 lock (m_lock)
-//                    m_ev.Set();
                     m_busy = false;
             }
 
