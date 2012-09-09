@@ -49,8 +49,12 @@ using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
 
 
-namespace OpenSim.Region.CoreModules.Asset
+[assembly: Addin("FlotsamAssetCache", "1.1")]
+[assembly: AddinDependency("OpenSim", "0.5")]
+
+namespace Flotsam.RegionModules.AssetCache
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
     public class FlotsamAssetCache : ISharedRegionModule, IImprovedAssetCache, IAssetService
     {
         private static readonly ILog m_log =
