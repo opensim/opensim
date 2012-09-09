@@ -52,7 +52,7 @@ using OpenSim.Services.Interfaces;
 [assembly: Addin("FlotsamAssetCache", "1.1")]
 [assembly: AddinDependency("OpenSim", "0.5")]
 
-namespace Flotsam.RegionModules.AssetCache
+namespace OpenSim.Region.CoreModules.Asset
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
     public class FlotsamAssetCache : ISharedRegionModule, IImprovedAssetCache, IAssetService
