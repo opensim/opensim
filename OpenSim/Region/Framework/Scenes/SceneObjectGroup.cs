@@ -2738,6 +2738,24 @@ namespace OpenSim.Region.Framework.Scenes
             if (objectGroup == this)
                 return;
 
+            // If the configured linkset capacity is greater than zero,
+            // and the new linkset would have a prim count higher than this
+            // value, do not link it.
+            if (m_scene.m_linksetCapacity > 0 &&
+                    (PrimCount + objectGroup.PrimCount) >
+                    m_scene.m_linksetCapacity)
+            {
+                m_log.DebugFormat(
+                        "[SCENE OBJECT GROUP]: Cannot link group with root" +
+                        " part {0}, {1} ({2} prims) to group with root part" +
+                        " {3}, {4} ({5} prims) because the new linkset" +
+                        " would exceed the configured maximum of {6}",
+                        objectGroup.RootPart.Name, objectGroup.RootPart.UUID,
+                        objectGroup.PrimCount, RootPart.Name, RootPart.UUID,
+                        PrimCount, m_scene.m_linksetCapacity);
+                return;
+            }
+
             // 'linkPart' == the root of the group being linked into this group
             SceneObjectPart linkPart = objectGroup.m_rootPart;
 

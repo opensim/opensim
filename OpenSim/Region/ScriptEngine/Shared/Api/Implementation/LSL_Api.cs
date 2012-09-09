@@ -2182,7 +2182,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     pos.x > (Constants.RegionSize + 10) || // return FALSE if more than 10 meters into a east-adjacent region.
                     pos.y < -10.0 || // return FALSE if more than 10 meters into a south-adjacent region.
                     pos.y > (Constants.RegionSize + 10) || // return FALSE if more than 10 meters into a north-adjacent region.
-                    pos.z > 4096 // return FALSE if altitude than 4096m
+                    pos.z > Constants.RegionHeight // return FALSE if altitude than 4096m
                 )
             )
             {
@@ -2193,8 +2193,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // this could possibly be done in the above else-if block, but we're doing the check here to keep the code easier to read.
 
             Vector3 objectPos = m_host.ParentGroup.RootPart.AbsolutePosition;
-            LandData here = World.GetLandData((float)objectPos.X, (float)objectPos.Y);
-            LandData there = World.GetLandData((float)pos.x, (float)pos.y);
+            LandData here = World.GetLandData(objectPos);
+            LandData there = World.GetLandData(pos);
 
             // we're only checking prim limits if it's moving to a different parcel under the assumption that if the object got onto the parcel without exceeding the prim limits.
 
@@ -10525,20 +10525,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     switch ((ParcelMediaCommandEnum) Convert.ToInt32(aList.Data[i].ToString()))
                     {
                         case ParcelMediaCommandEnum.Url:
-                            list.Add(new LSL_String(World.GetLandData(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).MediaURL));
+                            list.Add(new LSL_String(World.GetLandData(m_host.AbsolutePosition).MediaURL));
                             break;
                         case ParcelMediaCommandEnum.Desc:
-                            list.Add(new LSL_String(World.GetLandData(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).Description));
+                            list.Add(new LSL_String(World.GetLandData(m_host.AbsolutePosition).Description));
                             break;
                         case ParcelMediaCommandEnum.Texture:
-                            list.Add(new LSL_String(World.GetLandData(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).MediaID.ToString()));
+                            list.Add(new LSL_String(World.GetLandData(m_host.AbsolutePosition).MediaID.ToString()));
                             break;
                         case ParcelMediaCommandEnum.Type:
-                            list.Add(new LSL_String(World.GetLandData(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).MediaType));
+                            list.Add(new LSL_String(World.GetLandData(m_host.AbsolutePosition).MediaType));
                             break;
                         case ParcelMediaCommandEnum.Size:
-                            list.Add(new LSL_String(World.GetLandData(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).MediaWidth));
-                            list.Add(new LSL_String(World.GetLandData(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).MediaHeight));
+                            list.Add(new LSL_String(World.GetLandData(m_host.AbsolutePosition).MediaWidth));
+                            list.Add(new LSL_String(World.GetLandData(m_host.AbsolutePosition).MediaHeight));
                             break;
                         default:
                             ParcelMediaCommandEnum mediaCommandEnum = ParcelMediaCommandEnum.Url;
@@ -11275,7 +11275,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_List llGetParcelDetails(LSL_Vector pos, LSL_List param)
         {
             m_host.AddScriptLPS(1);
-            LandData land = World.GetLandData((float)pos.x, (float)pos.y);
+            LandData land = World.GetLandData(pos);
             if (land == null)
             {
                 return new LSL_List(0);

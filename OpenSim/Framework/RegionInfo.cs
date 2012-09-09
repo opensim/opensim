@@ -128,6 +128,7 @@ namespace OpenSim.Framework
         private int m_physPrimMax = 0;
         private bool m_clampPrimSize = false;
         private int m_objectCapacity = 0;
+        private int m_linksetCapacity = 0;
         private int m_agentCapacity = 0;
         private string m_regionType = String.Empty;
         private RegionLightShareData m_windlight = new RegionLightShareData();
@@ -317,6 +318,11 @@ namespace OpenSim.Framework
         public int ObjectCapacity
         {
             get { return m_objectCapacity; }
+        }
+
+        public int LinksetCapacity
+        {
+            get { return m_linksetCapacity; }
         }
 
         public int AgentCapacity
@@ -656,6 +662,9 @@ namespace OpenSim.Framework
             
             m_objectCapacity = config.GetInt("MaxPrims", 15000);
             allKeys.Remove("MaxPrims");
+
+            m_linksetCapacity = config.GetInt("LinksetPrims", 0);
+            allKeys.Remove("LinksetPrims");
             
             #endregion
 
@@ -713,6 +722,9 @@ namespace OpenSim.Framework
 
             if (m_objectCapacity != 0)
                 config.Set("MaxPrims", m_objectCapacity);
+
+            if (m_linksetCapacity != 0)
+                config.Set("LinksetPrims", m_linksetCapacity);
 
             if (m_agentCapacity != 0)
                 config.Set("MaxAgents", m_agentCapacity);
@@ -808,6 +820,9 @@ namespace OpenSim.Framework
 
             configMember.addConfigurationOption("object_capacity", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
                                                 "Max objects this sim will hold", m_objectCapacity.ToString(), true);
+
+            configMember.addConfigurationOption("linkset_capacity", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
+                                                "Max prims an object will hold", m_linksetCapacity.ToString(), true);
 
             configMember.addConfigurationOption("agent_capacity", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
                                                 "Max avatars this sim will hold", m_agentCapacity.ToString(), true);
@@ -929,6 +944,9 @@ namespace OpenSim.Framework
                     break;
                 case "object_capacity":
                     m_objectCapacity = (int)configuration_result;
+                    break;
+                case "linkset_capacity":
+                    m_linksetCapacity = (int)configuration_result;
                     break;
                 case "agent_capacity":
                     m_agentCapacity = (int)configuration_result;

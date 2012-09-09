@@ -2989,7 +2989,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             ScenePresence presence = World.GetScenePresence(avatarId); 
             if (presence != null)
             {
-                LandData land = World.GetLandData((float)pos.X, (float)pos.Y);
+                LandData land = World.GetLandData(pos);
                 if ((land.Flags & (uint)ParcelFlags.AllowDamage) == (uint)ParcelFlags.AllowDamage)
                 {
                     float health = presence.Health;

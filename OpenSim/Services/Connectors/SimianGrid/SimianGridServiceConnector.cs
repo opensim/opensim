@@ -112,7 +112,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
 //                m_log.Warn("Registering region " + regionInfo.RegionName + " (" + regionInfo.RegionID + ") that we are not tracking");
 
             Vector3d minPosition = new Vector3d(regionInfo.RegionLocX, regionInfo.RegionLocY, 0.0);
-            Vector3d maxPosition = minPosition + new Vector3d(Constants.RegionSize, Constants.RegionSize, 4096.0);
+            Vector3d maxPosition = minPosition + new Vector3d(Constants.RegionSize, Constants.RegionSize, Constants.RegionHeight);
 
             OSDMap extraData = new OSDMap
             {
@@ -297,7 +297,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             List<GridRegion> foundRegions = new List<GridRegion>();
 
             Vector3d minPosition = new Vector3d(xmin, ymin, 0.0);
-            Vector3d maxPosition = new Vector3d(xmax, ymax, 4096.0);
+            Vector3d maxPosition = new Vector3d(xmax, ymax, Constants.RegionHeight);
 
             NameValueCollection requestArgs = new NameValueCollection
             {

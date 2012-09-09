@@ -1,8 +1,6 @@
 Welcome to OpenSim!
 
-==================
-==== OVERVIEW ====
-==================
+# Overview
 
 OpenSim is a BSD Licensed Open Source project to develop a functioning
 virtual worlds server platform capable of supporting multiple clients
@@ -12,16 +10,12 @@ C#, and can run under Mono or the Microsoft .NET runtimes.
 This is considered an alpha release.  Some stuff works, a lot doesn't.
 If it breaks, you get to keep *both* pieces.
 
-=========================
-=== Compiling OpenSim ===
-=========================
+# Compiling OpenSim
 
-Please see BUILDING.txt if you downloaded a source distribution and 
+Please see BUILDING.md if you downloaded a source distribution and 
 need to build OpenSim before running it.
 
-==================================
-=== Running OpenSim on Windows ===
-==================================
+# Running OpenSim on Windows
 
 We recommend that you run OpenSim from a command prompt on Windows in order
 to capture any errors.
@@ -33,9 +27,7 @@ To run OpenSim from a command prompt
 
 Now see the "Configuring OpenSim" section
 
-================================
-=== Running OpenSim on Linux ===
-================================
+# Running OpenSim on Linux
 
 You will need Mono >= 2.4.3 to run OpenSim.  On some Linux distributions you
 may need to install additional packages.  See http://opensimulator.org/wiki/Dependencies
@@ -48,14 +40,12 @@ To run OpenSim, from the unpacked distribution type:
 
 Now see the "Configuring OpenSim" section
 
-===========================
-=== Configuring OpenSim ===
-===========================
+# Configuring OpenSim
 
 When OpenSim starts for the first time, you will be prompted with a
 series of questions that look something like:
 
-[09-17 03:54:40] DEFAULT REGION CONFIG: Simulator Name [OpenSim Test]:
+	[09-17 03:54:40] DEFAULT REGION CONFIG: Simulator Name [OpenSim Test]:
 
 For all the options except simulator name, you can safely hit enter to accept
 the default if you want to connect using a client on the same machine or over
@@ -72,7 +62,7 @@ in-world.  You can also use these details to perform your first login.
 
 Once you are presented with a prompt that looks like:
 
-  Region (My region name) #
+	Region (My region name) #
 
 You have successfully started OpenSim.
 
@@ -83,9 +73,7 @@ Helpful resources:
  * http://opensimulator.org/wiki/Configuration
  * http://opensimulator.org/wiki/Configuring_Regions
 
-==================================
-=== Connecting to your OpenSim ===
-==================================
+# Connecting to your OpenSim
 
 By default your sim will be available for login on port 9000.  You can login by
 adding -loginuri http://127.0.0.1:9000 to the command that starts Second Life
@@ -96,15 +84,11 @@ http://192.168.1.2:9000)
 To login, use the avatar details that you gave for your estate ownership or the
 one you set up using the "create user" command.
 
-===================
-=== Bug reports ===
-===================
+# Bug reports
 
 In the very likely event of bugs biting you (err, your OpenSim) we
 encourage you to see whether the problem has already been reported on
-the OpenSim mantis system. You can find the OpenSim mantis system at
-
-    http://opensimulator.org/mantis/main_page.php
+the [OpenSim mantis system](http://opensimulator.org/mantis/main_page.php).
 
 If your bug has already been reported, you might want to add to the
 bug description and supply additional information.
@@ -119,9 +103,7 @@ mantis"). Useful information to include:
 
        mono --debug OpenSim.exe
 
-===================================
-=== More Information on OpenSim ===
-===================================
+# More Information on OpenSim
 
 More extensive information on building, running, and configuring
 OpenSim, as well as how to report bugs, and participate in the OpenSim
