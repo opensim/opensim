@@ -60,11 +60,12 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private WebFetchInvDescHandler m_webFetchHandler;
 
-        private ManualResetEvent m_ev = new ManualResetEvent(true);
+//        private ManualResetEvent m_ev = new ManualResetEvent(true);
         private object m_lock = new object();
 
         private Dictionary<UUID, string> m_capsDict = new Dictionary<UUID, string>();
         private Dictionary<UUID, Hashtable> m_requests = new Dictionary<UUID, Hashtable>();
+        bool m_busy = false;
 
         #region ISharedRegionModule Members
 
@@ -116,7 +117,9 @@ namespace OpenSim.Region.ClientStack.Linden
             string capUrl = "/CAPS/" + UUID.Random() + "/";
 
             // Register this as a poll service
+            // absurd large timeout to tune later to make a bit less than viewer
             PollServiceEventArgs args = new PollServiceEventArgs(HttpRequestHandler, HasEvents, GetEvents, NoEvents, agentID, 300000);
+            
             args.Type = PollServiceEventArgs.EventType.Inventory;
             MainServer.Instance.AddPollServiceHTTPHandler(capUrl, args);
 
@@ -133,6 +136,8 @@ namespace OpenSim.Region.ClientStack.Linden
             caps.RegisterHandler("FetchInventoryDescendents2", String.Format("{0}://{1}:{2}{3}", protocol, hostName, port, capUrl));
 
             m_capsDict[agentID] = capUrl;
+
+            m_busy = false;
         }
 
         private void DeregisterCaps(UUID agentID, Caps caps)
@@ -149,25 +154,30 @@ namespace OpenSim.Region.ClientStack.Linden
         public void HttpRequestHandler(UUID requestID, Hashtable request)
         {
 //            m_log.DebugFormat("[FETCH2]: Received request {0}", requestID);
-            m_requests[requestID] = request;
+            lock(m_lock)
+                m_requests[requestID] = request;
         }
 
         private bool HasEvents(UUID requestID, UUID sessionID)
         {
             lock (m_lock)
             {
+/*
                 if (m_ev.WaitOne(0))
                 {
                     m_ev.Reset();
                     return true;
                 }
                 return false;
+ */
+                return !m_busy;
             }
         }
 
         private Hashtable NoEvents(UUID requestID, UUID sessionID)
         {
-            m_requests.Remove(requestID);
+            lock(m_lock)
+                m_requests.Remove(requestID);
 
             Hashtable response = new Hashtable();
 
@@ -177,11 +187,17 @@ namespace OpenSim.Region.ClientStack.Linden
             response["keepalive"] = false;
             response["reusecontext"] = false;
 
+            lock (m_lock)
+                m_busy = false;
+
             return response;
         }
 
         private Hashtable GetEvents(UUID requestID, UUID sessionID, string request)
         {
+            lock (m_lock)
+                m_busy = true;
+
             Hashtable response = new Hashtable();
 
             response["int_response_code"] = 500;
@@ -192,20 +208,24 @@ namespace OpenSim.Region.ClientStack.Linden
 
             try
             {
+
                 Hashtable requestHash;
-                if (!m_requests.TryGetValue(requestID, out requestHash))
+                lock (m_lock)
                 {
-                    lock (m_lock)
-                        m_ev.Set();
-                    response["str_response_string"] = "Invalid request";
-                    return response;
+                    if (!m_requests.TryGetValue(requestID, out requestHash))
+                    {
+                        m_busy = false;
+                        //                        m_ev.Set();
+                        response["str_response_string"] = "Invalid request";
+                        return response;
+                    }
+                    m_requests.Remove(requestID);
                 }
 
 //                m_log.DebugFormat("[FETCH2]: Processed request {0}", requestID);
 
                 string reply = m_webFetchHandler.FetchInventoryDescendentsRequest(requestHash["body"].ToString(), String.Empty, String.Empty, null, null);
-
-                m_requests.Remove(requestID);
+               
 
                 response["int_response_code"] = 200;
                 response["str_response_string"] = reply;
@@ -213,7 +233,8 @@ namespace OpenSim.Region.ClientStack.Linden
             finally
             {
                 lock (m_lock)
-                    m_ev.Set();
+//                    m_ev.Set();
+                    m_busy = false;
             }
 
             return response;
