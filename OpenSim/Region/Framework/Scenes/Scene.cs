@@ -2931,9 +2931,11 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 EventManager.TriggerOnClientLogin(client);
                 // Send initial parcel data
+/* this is done on TriggerOnNewClient by landmanegement respective event handler
                 Vector3 pos = sp.AbsolutePosition;
                 ILandObject land = LandChannel.GetLandObject(pos.X, pos.Y);
                 land.SendLandUpdateToClient(client);
+*/
             }
 
             return sp;

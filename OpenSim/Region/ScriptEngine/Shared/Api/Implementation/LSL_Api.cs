@@ -3386,7 +3386,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llInstantMessage(string user, string message)
         {
             UUID result;
-            if (!UUID.TryParse(user, out result))
+            if (!UUID.TryParse(user, out result) || result == UUID.Zero)
             {
                 ShoutError("An invalid key  was passed to llInstantMessage");
                 ScriptSleep(2000);

@@ -189,9 +189,9 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                 args.Type = PollServiceEventArgs.EventType.LslHttp;
                 m_HttpServer.AddPollServiceHTTPHandler(uri, args);
 
-                m_log.DebugFormat(
-                    "[URL MODULE]: Set up incoming request url {0} for {1} in {2} {3}",
-                    uri, itemID, host.Name, host.LocalId);
+//                m_log.DebugFormat(
+//                    "[URL MODULE]: Set up incoming request url {0} for {1} in {2} {3}",
+//                    uri, itemID, host.Name, host.LocalId);
 
                 engine.PostScriptEvent(itemID, "http_request", new Object[] { urlcode.ToString(), "URL_REQUEST_GRANTED", url });
             }
@@ -235,9 +235,9 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                 args.Type = PollServiceEventArgs.EventType.LslHttp;
                 m_HttpsServer.AddPollServiceHTTPHandler(uri, args);
 
-                m_log.DebugFormat(
-                    "[URL MODULE]: Set up incoming secure request url {0} for {1} in {2} {3}",
-                    uri, itemID, host.Name, host.LocalId);
+//                m_log.DebugFormat(
+//                    "[URL MODULE]: Set up incoming secure request url {0} for {1} in {2} {3}",
+//                    uri, itemID, host.Name, host.LocalId);
 
                 engine.PostScriptEvent(itemID, "http_request", new Object[] { urlcode.ToString(), "URL_REQUEST_GRANTED", url });
             }

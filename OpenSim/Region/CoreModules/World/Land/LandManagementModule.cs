@@ -86,7 +86,10 @@ namespace OpenSim.Region.CoreModules.World.Land
         /// <value>
         /// Land objects keyed by local id
         /// </value>
-        private readonly Dictionary<int, ILandObject> m_landList = new Dictionary<int, ILandObject>();
+//        private readonly Dictionary<int, ILandObject> m_landList = new Dictionary<int, ILandObject>();
+
+        //ubit: removed the readonly so i can move it around
+        private Dictionary<int, ILandObject> m_landList = new Dictionary<int, ILandObject>();
 
         private int m_lastLandLocalID = LandChannel.START_LAND_LOCAL_ID - 1;
 
@@ -242,15 +245,19 @@ namespace OpenSim.Region.CoreModules.World.Land
         {
             LandData newData = data.Copy();
             newData.LocalID = local_id;
+            ILandObject landobj = null;        
 
             lock (m_landList)
             {
                 if (m_landList.ContainsKey(local_id))
                 {
                     m_landList[local_id].LandData = newData;
-                    m_scene.EventManager.TriggerLandObjectUpdated((uint)local_id, m_landList[local_id]);
+                    landobj = m_landList[local_id];
+//                    m_scene.EventManager.TriggerLandObjectUpdated((uint)local_id, m_landList[local_id]);
                 }
             }
+            if(landobj != null)
+                m_scene.EventManager.TriggerLandObjectUpdated((uint)local_id, landobj);
         }
 
         public bool AllowedForcefulBans
@@ -280,14 +287,14 @@ namespace OpenSim.Region.CoreModules.World.Land
         protected ILandObject CreateDefaultParcel()
         {
             m_log.DebugFormat(
-                "[LAND MANAGEMENT MODULE]: Creating default parcel for region {0}", m_scene.RegionInfo.RegionName);
-            
-            ILandObject fullSimParcel = new LandObject(UUID.Zero, false, m_scene);                                                
+                    "[LAND MANAGEMENT MODULE]: Creating default parcel for region {0}", m_scene.RegionInfo.RegionName);
+
+            ILandObject fullSimParcel = new LandObject(UUID.Zero, false, m_scene);
             fullSimParcel.SetLandBitmap(fullSimParcel.GetSquareLandBitmap(0, 0, (int)Constants.RegionSize, (int)Constants.RegionSize));
             fullSimParcel.LandData.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
             fullSimParcel.LandData.ClaimDate = Util.UnixTimeSinceEpoch();
-            
-            return AddLandObject(fullSimParcel);            
+
+            return AddLandObject(fullSimParcel);
         }
 
         public List<ILandObject> AllParcels()
@@ -394,30 +401,51 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public void SendLandUpdate(ScenePresence avatar, bool force)
         {
+
+            /* stop sendind same data twice
+                        ILandObject over = GetLandObject((int)Math.Min(((int)Constants.RegionSize - 1), Math.Max(0, Math.Round(avatar.AbsolutePosition.X))),
+                                                         (int)Math.Min(((int)Constants.RegionSize - 1), Math.Max(0, Math.Round(avatar.AbsolutePosition.Y))));
+
+                        if (over != null)
+                        {
+
+                            if (force)
+                            {
+                                if (!avatar.IsChildAgent)
+                                {
+                                    over.SendLandUpdateToClient(avatar.ControllingClient);
+                                    m_scene.EventManager.TriggerAvatarEnteringNewParcel(avatar, over.LandData.LocalID,
+                                                                                        m_scene.RegionInfo.RegionID);
+                                }
+                            }
+
+                            if (avatar.currentParcelUUID != over.LandData.GlobalID)
+                            {
+                                if (!avatar.IsChildAgent)
+                                {
+                                    over.SendLandUpdateToClient(avatar.ControllingClient);
+                                    avatar.currentParcelUUID = over.LandData.GlobalID;
+                                    m_scene.EventManager.TriggerAvatarEnteringNewParcel(avatar, over.LandData.LocalID,
+                                                                                        m_scene.RegionInfo.RegionID);
+                                }
+                            }
+             */
+            if (avatar.IsChildAgent)
+                return;
+
             ILandObject over = GetLandObject((int)Math.Min(((int)Constants.RegionSize - 1), Math.Max(0, Math.Round(avatar.AbsolutePosition.X))),
-                                             (int)Math.Min(((int)Constants.RegionSize - 1), Math.Max(0, Math.Round(avatar.AbsolutePosition.Y))));
+                                                         (int)Math.Min(((int)Constants.RegionSize - 1), Math.Max(0, Math.Round(avatar.AbsolutePosition.Y))));
 
             if (over != null)
             {
-                if (force)
+                bool NotsameID = (avatar.currentParcelUUID != over.LandData.GlobalID);
+                if (force || NotsameID)
                 {
-                    if (!avatar.IsChildAgent)
-                    {
-                        over.SendLandUpdateToClient(avatar.ControllingClient);
-                        m_scene.EventManager.TriggerAvatarEnteringNewParcel(avatar, over.LandData.LocalID,
-                                                                            m_scene.RegionInfo.RegionID);
-                    }
-                }
-
-                if (avatar.currentParcelUUID != over.LandData.GlobalID)
-                {
-                    if (!avatar.IsChildAgent)
-                    {
-                        over.SendLandUpdateToClient(avatar.ControllingClient);
+                    over.SendLandUpdateToClient(avatar.ControllingClient);
+                    if (NotsameID)
                         avatar.currentParcelUUID = over.LandData.GlobalID;
-                        m_scene.EventManager.TriggerAvatarEnteringNewParcel(avatar, over.LandData.LocalID,
-                                                                            m_scene.RegionInfo.RegionID);
-                    }
+                    m_scene.EventManager.TriggerAvatarEnteringNewParcel(avatar, over.LandData.LocalID,
+                                                                        m_scene.RegionInfo.RegionID);
                 }
             }
         }
@@ -617,21 +645,28 @@ namespace OpenSim.Region.CoreModules.World.Land
         /// </summary>        
         public void Clear(bool setupDefaultParcel)
         {
+            Dictionary<int, ILandObject> landworkList;
+            // move to work pointer since we are deleting it all
             lock (m_landList)
             {
-                foreach (ILandObject lo in m_landList.Values)
-                {
-                    //m_scene.SimulationDataService.RemoveLandObject(lo.LandData.GlobalID);
-                    m_scene.EventManager.TriggerLandObjectRemoved(lo.LandData.GlobalID);
-                }
-
-                m_landList.Clear();
-
-                ResetSimLandObjects();
-
-                if (setupDefaultParcel)
-                    CreateDefaultParcel();
+                landworkList = m_landList;
+                m_landList = new Dictionary<int, ILandObject>();
             }
+
+            // this 2 methods have locks (now)
+            ResetSimLandObjects();
+
+            if (setupDefaultParcel)
+                CreateDefaultParcel();
+
+            // fire outside events unlocked
+            foreach (ILandObject lo in landworkList.Values)
+            {
+                //m_scene.SimulationDataService.RemoveLandObject(lo.LandData.GlobalID);
+                m_scene.EventManager.TriggerLandObjectRemoved(lo.LandData.GlobalID);
+            }
+            landworkList.Clear();
+
         }
 
         private void performFinalLandJoin(ILandObject master, ILandObject slave)
@@ -1324,20 +1359,30 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public void EventManagerOnIncomingLandDataFromStorage(List<LandData> data)
         {
+            Dictionary<int, ILandObject> landworkList;
+            // move to work pointer since we are deleting it all
             lock (m_landList)
             {
-                //Remove all the land objects in the sim and then process our new data
-                foreach (int n in m_landList.Keys)
-                {
-                    m_scene.EventManager.TriggerLandObjectRemoved(m_landList[n].LandData.GlobalID);
-                }
+                landworkList = m_landList;
+                m_landList = new Dictionary<int, ILandObject>();
+            }
+
+            //Remove all the land objects in the sim and then process our new data
+            foreach (int n in landworkList.Keys)
+            {
+                m_scene.EventManager.TriggerLandObjectRemoved(landworkList[n].LandData.GlobalID);
+            }
+            landworkList.Clear();
+
+            lock (m_landList)
+            {
                 m_landIDList.Initialize();
                 m_landList.Clear();
+            }
 
-                for (int i = 0; i < data.Count; i++)
-                {
-                    IncomingLandObjectFromStorage(data[i]);
-                }
+            for (int i = 0; i < data.Count; i++)
+            {
+                IncomingLandObjectFromStorage(data[i]);
             }
         }
 
@@ -1366,7 +1411,8 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public void EventManagerOnNoLandDataFromStorage()
         {
-            lock (m_landList)
+            // called methods already have locks
+//            lock (m_landList)
             {
                 ResetSimLandObjects();
                 CreateDefaultParcel();

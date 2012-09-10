@@ -2110,8 +2110,8 @@ namespace OpenSim.Region.Framework.Scenes
             Array.Copy(Shape.ExtraParams, extraP, extraP.Length);
             dupe.Shape.ExtraParams = extraP;
 
-            if (KeyframeMotion != null)
-                dupe.KeyframeMotion = KeyframeMotion.Copy(null);
+            // safeguard  actual copy is done in sog.copy
+            dupe.KeyframeMotion = null;
 
             if (userExposed)
             {

@@ -126,7 +126,10 @@ namespace OpenSim.Services.Connectors
 
             // m_log.DebugFormat("[ASSET]: Using {0} for host name for prefix {1}", host, prefix);
 
-            return serverUri.Uri.AbsoluteUri;
+            string ret = serverUri.Uri.AbsoluteUri;
+            if (ret.EndsWith("/"))
+                ret = ret.Substring(0, ret.Length - 1);
+            return ret;
         }
 
         protected void retryCheck(object source, ElapsedEventArgs e)

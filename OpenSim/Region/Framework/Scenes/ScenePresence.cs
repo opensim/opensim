@@ -1266,7 +1266,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             Vector3 look = Velocity;
 
-            if ((look.X == 0) && (look.Y == 0) && (look.Z == 0))
+            //            if ((look.X == 0) && (look.Y == 0) && (look.Z == 0))
+            if ((Math.Abs(look.X) < 0.1) && (Math.Abs(look.Y) < 0.1) && (Math.Abs(look.Z) < 0.1))
             {
                 look = new Vector3(0.99f, 0.042f, 0);
             }
@@ -1316,13 +1317,15 @@ namespace OpenSim.Region.Framework.Scenes
             // Create child agents in neighbouring regions
             if (openChildAgents && !IsChildAgent)
             {
+
                 IEntityTransferModule m_agentTransfer = m_scene.RequestModuleInterface<IEntityTransferModule>();
                 if (m_agentTransfer != null)
-                    Util.FireAndForget(delegate { m_agentTransfer.EnableChildAgents(this); });
+                    m_agentTransfer.EnableChildAgents(this);
 
                 IFriendsModule friendsModule = m_scene.RequestModuleInterface<IFriendsModule>();
                 if (friendsModule != null)
                     friendsModule.SendFriendsOnlineIfNeeded(ControllingClient);
+
             }
 
 //            m_log.DebugFormat(
@@ -3438,7 +3441,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="e"></param>
         public void PhysicsCollisionUpdate(EventArgs e)
         {
-            if (IsChildAgent)
+            if (IsChildAgent || Animator == null)
                 return;
             
             //if ((Math.Abs(Velocity.X) > 0.1e-9f) || (Math.Abs(Velocity.Y) > 0.1e-9f))

@@ -395,17 +395,18 @@ namespace OpenSim.Services.Connectors.Simulation
         private bool CloseAgent(GridRegion destination, UUID id, bool ChildOnly)
         {
 //            m_log.DebugFormat("[REMOTE SIMULATION CONNECTOR]: CloseAgent start");
+            Util.FireAndForget(x => {
+                string uri = destination.ServerURI + AgentPath() + id + "/" + destination.RegionID.ToString() + "/";
 
-            string uri = destination.ServerURI + AgentPath() + id + "/" + destination.RegionID.ToString() + "/";
-
-            try
-            {
-                WebUtil.ServiceOSDRequest(uri, null, "DELETE", 10000, false);
-            }
-            catch (Exception e)
-            {
-                m_log.WarnFormat("[REMOTE SIMULATION CONNECTOR] CloseAgent failed with exception; {0}",e.ToString());
-            }
+                try
+                {
+                    WebUtil.ServiceOSDRequest(uri, null, "DELETE", 10000, false);
+                }
+                catch (Exception e)
+                {
+                    m_log.WarnFormat("[REMOTE SIMULATION CONNECTOR] CloseAgent failed with exception; {0}",e.ToString());
+                }
+            });
 
             return true;
         }

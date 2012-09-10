@@ -137,6 +137,9 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         {
             UUID toAgentID = new UUID(im.toAgentID);
 
+            if (toAgentID == UUID.Zero)
+                return;
+
             // Try root avatar only first
             foreach (Scene scene in m_Scenes)
             {
