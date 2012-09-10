@@ -1618,7 +1618,8 @@ namespace OpenSim.Framework.Servers.HttpServer
                 m_httpListener2.Start(64);
 
                 // Long Poll Service Manager with 3 worker threads a 25 second timeout for no events
-                m_PollServiceManager = new PollServiceRequestManager(this, 3, 25000);
+//                m_PollServiceManager = new PollServiceRequestManager(this, 3, 25000);
+                m_PollServiceManager = new PollServiceRequestManager(this, 4, 25000);
                 HTTPDRunning = true;
 
                 //HttpListenerContext context;
