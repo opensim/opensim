@@ -463,7 +463,26 @@ namespace OpenSim.Region.ClientStack.Linden
                     if (mm != null)
                     {
                         // XPTO: The cost should be calculated about here
-                        cost = (uint)mm.UploadCharge;
+
+                        if (llsdRequest.asset_type == "mesh")
+                        {
+                            if (llsdRequest.asset_resources == null)
+                            {
+                                client.SendAgentAlertMessage("Unable to upload asset. missing information.", false);
+
+                                LLSDAssetUploadResponse errorResponse = new LLSDAssetUploadResponse();
+                                errorResponse.uploader = "";
+                                errorResponse.state = "error";
+                                return errorResponse;
+                            }
+
+                            uint textures_cost = (uint)llsdRequest.asset_resources.texture_list.Array.Count;
+                            textures_cost *= (uint)mm.UploadCharge;
+
+                            cost = textures_cost;
+                        }
+                        else
+                            cost = (uint)mm.UploadCharge;
 
                         if (!mm.UploadCovered(client.AgentId, (int)cost))
                         {
@@ -486,9 +505,14 @@ namespace OpenSim.Region.ClientStack.Linden
             UUID parentFolder = llsdRequest.folder_id;
             string uploaderPath = Util.RandomClass.Next(5000, 8000).ToString("0000");
 
+            uint uploadCost = cost;
+            // don't charge for meshs until we done them
+            if (llsdRequest.asset_type == "mesh")
+                uploadCost = 0;
+
             AssetUploaderWithCost uploader =
                 new AssetUploaderWithCost(assetName, assetDes, newAsset, newInvItem, parentFolder, llsdRequest.inventory_type,
-                        llsdRequest.asset_type, capsBase + uploaderPath, m_HostCapsObj.HttpListener, m_dumpAssetsToFile, cost);
+                        llsdRequest.asset_type, capsBase + uploaderPath, m_HostCapsObj.HttpListener, m_dumpAssetsToFile, uploadCost);
 
             m_HostCapsObj.HttpListener.AddStreamHandler(
                 new BinaryStreamHandler(
@@ -506,11 +530,31 @@ namespace OpenSim.Region.ClientStack.Linden
             string uploaderURL = protocol + m_HostCapsObj.HostName + ":" + m_HostCapsObj.Port.ToString() + capsBase +
                                  uploaderPath;
 
+
             LLSDAssetUploadResponse uploadResponse = new LLSDAssetUploadResponse();
             uploadResponse.uploader = uploaderURL;
             uploadResponse.state = "upload";
+            uploadResponse.upload_price = (int)cost;
+
+            // use fake values for now
+            if (llsdRequest.asset_type == "mesh")
+            {
+                uploadResponse.data = new LLSDAssetUploadResponseData();
+                uploadResponse.data.model_streaming_cost = 1.0;
+                uploadResponse.data.simulation_cost = 1.5;
+
+                uploadResponse.data.physics_cost = 2.0;
+                uploadResponse.data.resource_cost = 3.0;
+                uploadResponse.data.upload_price_breakdown.mesh_instance = 1;
+                uploadResponse.data.upload_price_breakdown.mesh_physics = 2;
+                uploadResponse.data.upload_price_breakdown.mesh_streaming = 3;
+                uploadResponse.data.upload_price_breakdown.texture = 5;
+                uploadResponse.data.upload_price_breakdown.model = 4;
+            }
+
             uploader.OnUpLoad += UploadCompleteHandler;
             return uploadResponse;
+
         }
 
         /// <summary>
