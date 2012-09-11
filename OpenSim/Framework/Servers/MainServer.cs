@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Net;
+using System.Text;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
@@ -105,6 +106,11 @@ namespace OpenSim.Framework.Servers
         public static void RegisterHttpConsoleCommands(ICommandConsole console)
         {
             console.Commands.AddCommand(
+                "Comms", false, "show http-handlers",
+                "show http-handlers",
+                "Show all registered http handlers", HandleShowHttpHandlersCommand);
+
+            console.Commands.AddCommand(
                 "Debug", false, "debug http", "debug http [<level>]",
                 "Turn on inbound non-poll http request debugging.",
                   "If level <= 0, then no extra logging is done.\n"
@@ -140,6 +146,51 @@ namespace OpenSim.Framework.Servers
             {
                 MainConsole.Instance.Output("Usage: debug http 0..3");
             }
+        }
+
+        private static void HandleShowHttpHandlersCommand(string module, string[] args)
+        {
+            if (args.Length != 2)
+            {
+                MainConsole.Instance.Output("Usage: show http-handlers");
+                return;
+            }
+
+            StringBuilder handlers = new StringBuilder();
+
+            lock (m_Servers)
+            {
+                foreach (BaseHttpServer httpServer in m_Servers.Values)
+                {
+                    handlers.AppendFormat(
+                        "Registered HTTP Handlers for server at {0}:{1}\n", httpServer.ListenIPAddress, httpServer.Port);
+        
+                    handlers.AppendFormat("* XMLRPC:\n");
+                    foreach (String s in httpServer.GetXmlRpcHandlerKeys())
+                        handlers.AppendFormat("\t{0}\n", s);
+        
+                    handlers.AppendFormat("* HTTP:\n");
+                    List<String> poll = httpServer.GetPollServiceHandlerKeys();
+                    foreach (String s in httpServer.GetHTTPHandlerKeys())
+                        handlers.AppendFormat("\t{0} {1}\n", s, (poll.Contains(s) ? "(poll service)" : string.Empty));
+        
+                    handlers.AppendFormat("* Agent:\n");
+                    foreach (String s in httpServer.GetAgentHandlerKeys())
+                        handlers.AppendFormat("\t{0}\n", s);
+        
+                    handlers.AppendFormat("* LLSD:\n");
+                    foreach (String s in httpServer.GetLLSDHandlerKeys())
+                        handlers.AppendFormat("\t{0}\n", s);
+        
+                    handlers.AppendFormat("* StreamHandlers ({0}):\n", httpServer.GetStreamHandlerKeys().Count);
+                    foreach (String s in httpServer.GetStreamHandlerKeys())
+                        handlers.AppendFormat("\t{0}\n", s);
+
+                    handlers.Append("\n");
+                }
+            }
+
+            MainConsole.Instance.Output(handlers.ToString());
         }
 
         /// <summary>

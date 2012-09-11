@@ -332,10 +332,6 @@ namespace OpenSim
                                           "show circuits",
                                           "Show agent circuit data", HandleShow);
 
-            m_console.Commands.AddCommand("Comms", false, "show http-handlers",
-                                          "show http-handlers",
-                                          "Show all registered http handlers", HandleShow);
-
             m_console.Commands.AddCommand("Comms", false, "show pending-objects",
                                           "show pending-objects",
                                           "Show # of objects on the pending queues of all scene viewers", HandleShow);
@@ -1011,33 +1007,6 @@ namespace OpenSim
 
                 case "circuits":
                     HandleShowCircuits();
-                    break;
-
-                case "http-handlers":
-                    System.Text.StringBuilder handlers = new System.Text.StringBuilder("Registered HTTP Handlers:\n");
-
-                    handlers.AppendFormat("* XMLRPC:\n");
-                    foreach (String s in HttpServer.GetXmlRpcHandlerKeys())
-                        handlers.AppendFormat("\t{0}\n", s);
-
-                    handlers.AppendFormat("* HTTP:\n");
-                    List<String> poll = HttpServer.GetPollServiceHandlerKeys();
-                    foreach (String s in HttpServer.GetHTTPHandlerKeys())
-                        handlers.AppendFormat("\t{0} {1}\n", s, (poll.Contains(s) ? "(poll service)" : string.Empty));
-
-                    handlers.AppendFormat("* Agent:\n");
-                    foreach (String s in HttpServer.GetAgentHandlerKeys())
-                        handlers.AppendFormat("\t{0}\n", s);
-
-                    handlers.AppendFormat("* LLSD:\n");
-                    foreach (String s in HttpServer.GetLLSDHandlerKeys())
-                        handlers.AppendFormat("\t{0}\n", s);
-
-                    handlers.AppendFormat("* StreamHandlers ({0}):\n", HttpServer.GetStreamHandlerKeys().Count);
-                    foreach (String s in HttpServer.GetStreamHandlerKeys())
-                        handlers.AppendFormat("\t{0}\n", s);
-
-                    MainConsole.Instance.Output(handlers.ToString());
                     break;
 
                 case "modules":
