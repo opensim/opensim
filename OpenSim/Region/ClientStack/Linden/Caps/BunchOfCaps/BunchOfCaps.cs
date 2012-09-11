@@ -431,6 +431,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
             if (llsdRequest.asset_type == "texture" ||
                 llsdRequest.asset_type == "animation" ||
+                llsdRequest.asset_type == "mesh" ||
                 llsdRequest.asset_type == "sound")
             {
                 ScenePresence avatar = null;
