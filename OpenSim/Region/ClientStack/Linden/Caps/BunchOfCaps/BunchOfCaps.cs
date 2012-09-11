@@ -482,7 +482,9 @@ namespace OpenSim.Region.ClientStack.Linden
                             cost = textures_cost;
                         }
                         else
+                        {
                             cost = (uint)mm.UploadCharge;
+                        }
 
                         if (!mm.UploadCovered(client.AgentId, (int)cost))
                         {
@@ -505,14 +507,9 @@ namespace OpenSim.Region.ClientStack.Linden
             UUID parentFolder = llsdRequest.folder_id;
             string uploaderPath = Util.RandomClass.Next(5000, 8000).ToString("0000");
 
-            uint uploadCost = cost;
-            // don't charge for meshs until we done them
-            if (llsdRequest.asset_type == "mesh")
-                uploadCost = 0;
-
             AssetUploaderWithCost uploader =
                 new AssetUploaderWithCost(assetName, assetDes, newAsset, newInvItem, parentFolder, llsdRequest.inventory_type,
-                        llsdRequest.asset_type, capsBase + uploaderPath, m_HostCapsObj.HttpListener, m_dumpAssetsToFile, uploadCost);
+                        llsdRequest.asset_type, capsBase + uploaderPath, m_HostCapsObj.HttpListener, m_dumpAssetsToFile, cost);
 
             m_HostCapsObj.HttpListener.AddStreamHandler(
                 new BinaryStreamHandler(
