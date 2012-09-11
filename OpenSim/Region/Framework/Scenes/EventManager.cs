@@ -47,6 +47,14 @@ namespace OpenSim.Region.Framework.Scenes
         
         public delegate void OnFrameDelegate();
 
+        /// <summary>
+        /// Triggered on each sim frame.
+        /// </summary>
+        /// <remarks>
+        /// This gets triggered in <see cref="OpenSim.Region.Framework.Scenes.Scene.Update"/>
+        /// Core uses it for things like Sun, Wind & Clouds
+        /// The MRM module also uses it.
+        /// </remarks>
         public event OnFrameDelegate OnFrame;
 
         public delegate void ClientMovement(ScenePresence client);
