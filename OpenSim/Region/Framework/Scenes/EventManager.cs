@@ -132,6 +132,13 @@ namespace OpenSim.Region.Framework.Scenes
 
         public delegate void OnNewPresenceDelegate(ScenePresence presence);
 
+        /// <summary>
+        /// Triggered when a new presence is added to the scene
+        /// </summary>
+        /// <remarks>
+        /// Triggered in <see cref="OpenSim.Region.Framework.Scenes.Scene.AddNewClient"/> which is used by both
+        /// <see cref="OpenSim.Framework.PresenceType.User">users</see> and <see cref="OpenSim.Framework.PresenceType.Npc">NPCs</see>
+        /// </remarks>
         public event OnNewPresenceDelegate OnNewPresence;
 
         public delegate void OnRemovePresenceDelegate(UUID agentId);
