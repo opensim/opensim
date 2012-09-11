@@ -47,26 +47,71 @@ namespace OpenSim.Region.Framework.Scenes
         
         public delegate void OnFrameDelegate();
 
+        /// <summary>
+        /// Triggered on each sim frame.
+        /// </summary>
+        /// <remarks>
+        /// This gets triggered in <see cref="OpenSim.Region.Framework.Scenes.Scene.Update"/>
+        /// Core uses it for things like Sun, Wind & Clouds
+        /// The MRM module also uses it.
+        /// </remarks>
         public event OnFrameDelegate OnFrame;
 
         public delegate void ClientMovement(ScenePresence client);
 
+        /// <summary>
+        /// Trigerred when an agent moves.
+        /// </summary>
+        /// <remarks>
+        /// This gets triggered in <see cref="OpenSim.Region.Framework.Scenes.ScenePresence.HandleAgentUpdate"/>
+        /// prior to <see cref="OpenSim.Region.Framework.Scenes.ScenePresence.TriggerScenePresenceUpdated"/>
+        /// </remarks>
         public event ClientMovement OnClientMovement;
 
         public delegate void OnTerrainTaintedDelegate();
 
+        /// <summary>
+        /// Triggered if the terrain has been edited
+        /// </summary>
+        /// <remarks>
+        /// This gets triggered in <see cref="OpenSim.Region.CoreModules.World.Terrain.CheckForTerrainUpdates"/>
+        /// after it determines that an update has been made.
+        /// </remarks>
         public event OnTerrainTaintedDelegate OnTerrainTainted;
 
         public delegate void OnTerrainTickDelegate();
 
+        /// <summary>
+        /// Triggered if the terrain has been edited
+        /// </summary>
+        /// <remarks>
+        /// This gets triggered in <see cref="OpenSim.Region.Framework.Scenes.Scene.UpdateTerrain"/>
+        /// but is used by core solely to update the physics engine.
+        /// </remarks>
         public event OnTerrainTickDelegate OnTerrainTick;
 
         public delegate void OnBackupDelegate(ISimulationDataService datastore, bool forceBackup);
 
+        /// <summary>
+        /// Triggered when a region is backed up/persisted to storage
+        /// </summary>
+        /// <remarks>
+        /// This gets triggered in <see cref="OpenSim.Region.Framework.Scenes.Scene.Backup"/>
+        /// and is fired before the persistence occurs.
+        /// </remarks>
         public event OnBackupDelegate OnBackup;
 
         public delegate void OnClientConnectCoreDelegate(IClientCore client);
 
+        /// <summary>
+        /// Triggered when a new client connects to the scene.
+        /// </summary>
+        /// <remarks>
+        /// This gets triggered in <see cref="TriggerOnNewClient"/>,
+        /// which checks if an instance of <see cref="OpenSim.Framework.IClientAPI"/>
+        /// also implements <see cref="OpenSim.Framework.Client.IClientCore"/> and as such,
+        /// is not triggered by <see cref="OpenSim.Region.OptionalModules.World.NPC">NPCs</see>.
+        /// </remarks>
         public event OnClientConnectCoreDelegate OnClientConnect;
 
         public delegate void OnNewClientDelegate(IClientAPI client);
@@ -87,10 +132,24 @@ namespace OpenSim.Region.Framework.Scenes
 
         public delegate void OnNewPresenceDelegate(ScenePresence presence);
 
+        /// <summary>
+        /// Triggered when a new presence is added to the scene
+        /// </summary>
+        /// <remarks>
+        /// Triggered in <see cref="OpenSim.Region.Framework.Scenes.Scene.AddNewClient"/> which is used by both
+        /// <see cref="OpenSim.Framework.PresenceType.User">users</see> and <see cref="OpenSim.Framework.PresenceType.Npc">NPCs</see>
+        /// </remarks>
         public event OnNewPresenceDelegate OnNewPresence;
 
         public delegate void OnRemovePresenceDelegate(UUID agentId);
 
+        /// <summary>
+        /// Triggered when a presence is removed from the scene
+        /// </summary>
+        /// <remarks>
+        /// Triggered in <see cref="OpenSim.Region.Framework.Scenes.Scene.AddNewClient"/> which is used by both
+        /// <see cref="OpenSim.Framework.PresenceType.User">users</see> and <see cref="OpenSim.Framework.PresenceType.Npc">NPCs</see>
+        /// </remarks>
         public event OnRemovePresenceDelegate OnRemovePresence;
 
         public delegate void OnParcelPrimCountUpdateDelegate();
@@ -481,6 +540,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="copy"></param>
         /// <param name="original"></param>
         /// <param name="userExposed">True if the duplicate will immediately be in the scene, false otherwise</param>
+        /// <remarks>
+        /// Triggered in <see cref="OpenSim.Region.Framework.Scenes.SceneObjectPart.Copy"/>
+        /// </remarks>
         public event SceneObjectPartCopyDelegate OnSceneObjectPartCopy;
         public delegate void SceneObjectPartCopyDelegate(SceneObjectPart copy, SceneObjectPart original, bool userExposed);
 
