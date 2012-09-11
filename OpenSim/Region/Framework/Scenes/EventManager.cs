@@ -70,6 +70,13 @@ namespace OpenSim.Region.Framework.Scenes
 
         public delegate void OnTerrainTaintedDelegate();
 
+        /// <summary>
+        /// Triggered if the terrain has been edited
+        /// </summary>
+        /// <remarks>
+        /// This gets triggered in <see cref="OpenSim.Region.CoreModules.World.Terrain.CheckForTerrainUpdates"/>
+        /// after it determines that an update has been made.
+        /// </remarks>
         public event OnTerrainTaintedDelegate OnTerrainTainted;
 
         public delegate void OnTerrainTickDelegate();
