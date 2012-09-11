@@ -127,6 +127,37 @@ namespace OpenSim.Region.ClientStack.Linden
 
         #endregion
 
+        private delegate void UploadWithCostCompleteDelegate(string assetName,
+                string assetDescription, UUID assetID, UUID inventoryItem,
+                UUID parentFolder, byte[] data, string inventoryType,
+                string assetType, uint cost);
+
+        private class AssetUploaderWithCost : AssetUploader
+        {
+            private uint m_cost;
+
+            public event UploadWithCostCompleteDelegate OnUpLoad;
+
+            public AssetUploaderWithCost(string assetName, string description, UUID assetID,
+                    UUID inventoryItem, UUID parentFolderID, string invType, string assetType,
+                    string path, IHttpServer httpServer, bool dumpAssetsToFile, uint cost) :
+                    base(assetName, description, assetID, inventoryItem, parentFolderID,
+                            invType, assetType, path, httpServer, dumpAssetsToFile)
+            {
+                m_cost = cost;
+
+                base.OnUpLoad += UploadCompleteHandler;
+            }
+
+            private void UploadCompleteHandler(string assetName, string assetDescription, UUID assetID,
+                    UUID inventoryItem, UUID parentFolder, byte[] data, string inventoryType,
+                    string assetType)
+            {
+                OnUpLoad(assetName, assetDescription, assetID, inventoryItem, parentFolder,
+                        data, inventoryType, assetType, m_cost);
+            }
+        }
+
         public LLSDNewFileAngentInventoryVariablePriceReplyResponse NewAgentInventoryRequest(LLSDAssetUploadRequest llsdRequest, UUID agentID)
         {
             //TODO:  The Mesh uploader uploads many types of content. If you're going to implement a Money based limit
@@ -137,6 +168,8 @@ namespace OpenSim.Region.ClientStack.Linden
            //     llsdRequest.asset_type == "sound")
            // {
                 // check user level
+
+            uint cost = 0;
 
             ScenePresence avatar = null;
             IClientAPI client = null;
@@ -163,7 +196,10 @@ namespace OpenSim.Region.ClientStack.Linden
 
             if (mm != null)
             {
-                if (!mm.UploadCovered(agentID, mm.UploadCharge))
+                // XPTO: Calculate cost here
+                cost = (uint)mm.UploadCharge;
+
+                if (!mm.UploadCovered(agentID, (int)cost))
                 {
                     if (client != null)
                         client.SendAgentAlertMessage("Unable to upload asset. Insufficient funds.", false);
@@ -185,9 +221,9 @@ namespace OpenSim.Region.ClientStack.Linden
             UUID parentFolder = llsdRequest.folder_id;
             string uploaderPath = Util.RandomClass.Next(5000, 8000).ToString("0000") + "/";
 
-            AssetUploader uploader =
-                new AssetUploader(assetName, assetDes, newAsset, newInvItem, parentFolder, llsdRequest.inventory_type,
-                                  llsdRequest.asset_type, capsBase + uploaderPath, MainServer.Instance, m_dumpAssetsToFile);
+            AssetUploaderWithCost uploader =
+                new AssetUploaderWithCost(assetName, assetDes, newAsset, newInvItem, parentFolder, llsdRequest.inventory_type,
+                                  llsdRequest.asset_type, capsBase + uploaderPath, MainServer.Instance, m_dumpAssetsToFile, cost);
 
             MainServer.Instance.AddStreamHandler(
                 new BinaryStreamHandler(
@@ -218,11 +254,11 @@ namespace OpenSim.Region.ClientStack.Linden
                 delegate(
                 string passetName, string passetDescription, UUID passetID,
                 UUID pinventoryItem, UUID pparentFolder, byte[] pdata, string pinventoryType,
-                string passetType)
+                string passetType, uint cost)
                {
                    UploadCompleteHandler(passetName, passetDescription,  passetID,
                                           pinventoryItem, pparentFolder, pdata,  pinventoryType,
-                                          passetType,agentID);
+                                          passetType,agentID, cost);
                };
 
             return uploadResponse;
@@ -230,7 +266,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public void UploadCompleteHandler(string assetName, string assetDescription, UUID assetID,
                                           UUID inventoryItem, UUID parentFolder, byte[] data, string inventoryType,
-                                          string assetType,UUID AgentID)
+                                          string assetType,UUID AgentID, uint cost)
         {
 //            m_log.DebugFormat(
 //                "[NEW FILE AGENT INVENTORY VARIABLE PRICE MODULE]: Upload complete for {0}", inventoryItem);
@@ -290,7 +326,7 @@ namespace OpenSim.Region.ClientStack.Linden
             item.EveryOnePermissions = 0;
             item.NextPermissions = (uint)PermissionMask.All;
             item.CreationDate = Util.UnixTimeSinceEpoch();
-            m_scene.AddInventoryItem(item);
+            m_scene.AddUploadedInventoryItem(AgentID, item, cost);
         }
     }
 }

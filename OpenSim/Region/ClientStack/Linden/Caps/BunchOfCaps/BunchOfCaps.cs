@@ -417,7 +417,6 @@ namespace OpenSim.Region.ClientStack.Linden
             }
         }
 
-
         /// <summary>
         ///
         /// </summary>
