@@ -92,6 +92,13 @@ namespace OpenSim.Region.Framework.Scenes
 
         public delegate void OnBackupDelegate(ISimulationDataService datastore, bool forceBackup);
 
+        /// <summary>
+        /// Triggered when a region is backed up/persisted to storage
+        /// </summary>
+        /// <remarks>
+        /// This gets triggered in <see cref="OpenSim.Region.Framework.Scenes.Scene.Backup"/>
+        /// and is fired before the persistence occurs.
+        /// </remarks>
         public event OnBackupDelegate OnBackup;
 
         public delegate void OnClientConnectCoreDelegate(IClientCore client);
