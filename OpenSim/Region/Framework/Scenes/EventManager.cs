@@ -81,6 +81,13 @@ namespace OpenSim.Region.Framework.Scenes
 
         public delegate void OnTerrainTickDelegate();
 
+        /// <summary>
+        /// Triggered if the terrain has been edited
+        /// </summary>
+        /// <remarks>
+        /// This gets triggered in <see cref="OpenSim.Region.Framework.Scenes.Scene.UpdateTerrain"/>
+        /// but is used by core solely to update the physics engine.
+        /// </remarks>
         public event OnTerrainTickDelegate OnTerrainTick;
 
         public delegate void OnBackupDelegate(ISimulationDataService datastore, bool forceBackup);
