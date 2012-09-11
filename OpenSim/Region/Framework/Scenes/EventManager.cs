@@ -59,6 +59,13 @@ namespace OpenSim.Region.Framework.Scenes
 
         public delegate void ClientMovement(ScenePresence client);
 
+        /// <summary>
+        /// Trigerred when an agent moves.
+        /// </summary>
+        /// <remarks>
+        /// This gets triggered in <see cref="OpenSim.Region.Framework.Scenes.ScenePresence.HandleAgentUpdate"/>
+        /// prior to <see cref="OpenSim.Region.Framework.Scenes.ScenePresence.TriggerScenePresenceUpdated"/>
+        /// </remarks>
         public event ClientMovement OnClientMovement;
 
         public delegate void OnTerrainTaintedDelegate();
