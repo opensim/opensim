@@ -651,8 +651,29 @@ namespace OpenSim.Region.Framework.Scenes
 
         public delegate void LandBuy(Object sender, LandBuyArgs e);
 
+        /// <summary>
+        /// Triggered when an attempt to transfer grid currency occurs
+        /// </summary>
+        /// <remarks>
+        /// Triggered in <see cref="OpenSim.Region.Framework.Scenes.Scene.ProcessMoneyTransferRequest"/>
+        /// via <see cref="OpenSim.Region.Framework.Scenes.Scene.SubscribeToClientGridEvents"/>
+        /// via <see cref="OpenSim.Region.Framework.Scenes.Scene.SubscribeToClientEvents"/>
+        /// via <see cref="OpenSim.Region.Framework.Scenes.Scene.AddNewClient"/>
+        /// </remarks>
         public event MoneyTransferEvent OnMoneyTransfer;
+
+        /// <summary>
+        /// Triggered after after <see cref="OnValidateLandBuy"/>
+        /// </summary>
         public event LandBuy OnLandBuy;
+
+        /// <summary>
+        /// Triggered to allow or prevent a real estate transaction
+        /// </summary>
+        /// <remarks>
+        /// Triggered in <see cref="OpenSim.Region.Framework.Scenes.Scene.ProcessParcelBuy"/>
+        /// <seealso cref="OpenSim.Region.OptionalModules.World.MoneyModule.SampleMoneyModule.ValidateLandBuy"/>
+        /// </remarks>
         public event LandBuy OnValidateLandBuy;
 
         public void TriggerOnAttach(uint localID, UUID itemID, UUID avatarID)
