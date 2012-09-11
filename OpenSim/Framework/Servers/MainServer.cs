@@ -111,6 +111,8 @@ namespace OpenSim.Framework.Servers
                 + "If level >= 1, then short warnings are logged when receiving bad input data.\n"
                 + "If level >= 2, then long warnings are logged when receiving bad input data.\n"
                 + "If level >= 3, then short notices about all incoming non-poll HTTP requests are logged.\n"
+                + "If level >= 4, then a sample from the beginning of the incoming data is logged.\n"
+                + "If level >= 5, then the entire incoming data is logged.\n"
                 + "If no level is specified then the current level is returned.",
                 HandleDebugHttpCommand);
         }
