@@ -540,6 +540,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="copy"></param>
         /// <param name="original"></param>
         /// <param name="userExposed">True if the duplicate will immediately be in the scene, false otherwise</param>
+        /// <remarks>
+        /// Triggered in <see cref="OpenSim.Region.Framework.Scenes.SceneObjectPart.Copy"/>
+        /// </remarks>
         public event SceneObjectPartCopyDelegate OnSceneObjectPartCopy;
         public delegate void SceneObjectPartCopyDelegate(SceneObjectPart copy, SceneObjectPart original, bool userExposed);
 
