@@ -103,6 +103,15 @@ namespace OpenSim.Region.Framework.Scenes
 
         public delegate void OnClientConnectCoreDelegate(IClientCore client);
 
+        /// <summary>
+        /// Triggered when a new client connects to the scene.
+        /// </summary>
+        /// <remarks>
+        /// This gets triggered in <see cref="TriggerOnNewClient"/>,
+        /// which checks if an instance of <see cref="OpenSim.Framework.IClientAPI"/>
+        /// also implements <see cref="OpenSim.Framework.Client.IClientCore"/> and as such,
+        /// is not triggered by <see cref="OpenSim.Region.OptionalModules.World.NPC">NPCs</see>.
+        /// </remarks>
         public event OnClientConnectCoreDelegate OnClientConnect;
 
         public delegate void OnNewClientDelegate(IClientAPI client);
