@@ -482,9 +482,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 Util.FireAndForget(
                     delegate
                     {
-                        m_log.DebugFormat(
-                            "[FRIENDS MODULE]: Notifying {0} friends of {1} of online status {2}",
-                            friendList.Count, agentID, online);
+//                        m_log.DebugFormat(
+//                            "[FRIENDS MODULE]: Notifying {0} friends of {1} of online status {2}",
+//                            friendList.Count, agentID, online);
 
                         // Notify about this user status
                         StatusNotify(friendList, agentID, online);
