@@ -144,7 +144,7 @@ namespace OpenSim.Framework.Servers
             }
             else
             {
-                MainConsole.Instance.Output("Usage: debug http 0..3");
+                MainConsole.Instance.Output("Usage: debug http 0..5");
             }
         }
 
