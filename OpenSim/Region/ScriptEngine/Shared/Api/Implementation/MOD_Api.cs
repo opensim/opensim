@@ -254,7 +254,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             
             object[] convertedParms = new object[parms.Length];
             for (int i = 0; i < parms.Length; i++)
-                convertedParms[i] = ConvertFromLSL(parms[i],signature[i]);
+                convertedParms[i] = ConvertFromLSL(parms[i],signature[i], fname);
 
             // now call the function, the contract with the function is that it will always return
             // non-null but don't trust it completely
@@ -294,7 +294,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         /// <summary>
         /// </summary>
-        protected object ConvertFromLSL(object lslparm, Type type)
+        protected object ConvertFromLSL(object lslparm, Type type, string fname)
         {
             // ---------- String ----------
             if (lslparm is LSL_String)
@@ -374,14 +374,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 (LSL_Vector)plist[i]);
                         }
                         else
-                            MODError("unknown LSL list element type");
+                            MODError(String.Format("{0}: unknown LSL list element type", fname));
                     }
 
                     return result;
                 }
             }
             
-            MODError(String.Format("parameter type mismatch; expecting {0}",type.Name));
+            MODError(String.Format("{1}: parameter type mismatch; expecting {0}",type.Name, fname));
             return null;
         }
 
