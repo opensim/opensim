@@ -1093,6 +1093,9 @@ namespace OpenSim.Region.ClientStack.Linden
 
     public class AssetUploader
     {
+        private static readonly ILog m_log =
+            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         public event UpLoadedAsset OnUpLoad;
         private UpLoadedAsset handlerUpLoad = null;
 
