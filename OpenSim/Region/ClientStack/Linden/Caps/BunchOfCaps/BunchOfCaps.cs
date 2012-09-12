@@ -1149,6 +1149,7 @@ namespace OpenSim.Region.ClientStack.Linden
             res = LLSDHelpers.SerialiseLLSDReply(uploadComplete);
 
             httpListener.RemoveStreamHandler("POST", uploaderPath);
+            m_timeoutTimer.Stop();
 
             // TODO: probably make this a better set of extensions here
             string extension = ".jp2";
@@ -1172,6 +1173,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private void TimedOut(object sender, ElapsedEventArgs args)
         {
+            m_log.InfoFormat("[CAPS]: Removing URL and handler for timed out mesh upload");
             httpListener.RemoveStreamHandler("POST", uploaderPath);
         }
 
