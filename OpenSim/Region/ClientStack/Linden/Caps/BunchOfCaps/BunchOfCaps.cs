@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Timers;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -1106,6 +1107,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private string m_invType = String.Empty;
         private string m_assetType = String.Empty;
+        private Timer m_timeoutTimer = new Timer();
 
         public AssetUploader(string assetName, string description, UUID assetID, UUID inventoryItem,
                                 UUID parentFolderID, string invType, string assetType, string path,
@@ -1121,6 +1123,11 @@ namespace OpenSim.Region.ClientStack.Linden
             m_assetType = assetType;
             m_invType = invType;
             m_dumpAssetsToFile = dumpAssetsToFile;
+
+            m_timeoutTimer.Elapsed += TimedOut;
+            m_timeoutTimer.Interval = 120000;
+            m_timeoutTimer.AutoReset = false;
+            m_timeoutTimer.Start();
         }
 
         /// <summary>
@@ -1161,6 +1168,11 @@ namespace OpenSim.Region.ClientStack.Linden
             }
 
             return res;
+        }
+
+        private void TimedOut(object sender, ElapsedEventArgs args)
+        {
+            httpListener.RemoveStreamHandler("POST", uploaderPath);
         }
 
         ///Left this in and commented in case there are unforseen issues
