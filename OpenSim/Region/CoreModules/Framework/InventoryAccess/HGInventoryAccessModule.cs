@@ -308,6 +308,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         protected override InventoryItemBase GetItem(UUID agentID, UUID itemID)
         {
             InventoryItemBase item = base.GetItem(agentID, itemID);
+            if (item == null)
+                return null;
 
             string userAssetServer = string.Empty;
             if (IsForeignUser(agentID, out userAssetServer))
