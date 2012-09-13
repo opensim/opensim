@@ -717,6 +717,13 @@ namespace OpenSim.Framework
         public static void MakeRequest<TRequest, TResponse>(string verb,
                 string requestUrl, TRequest obj, Action<TResponse> action)
         {
+            MakeRequest<TRequest, TResponse>(verb, requestUrl, obj, action, 0);
+        }
+
+        public static void MakeRequest<TRequest, TResponse>(string verb,
+                string requestUrl, TRequest obj, Action<TResponse> action,
+                int maxConnections)
+        {
             int reqnum = WebUtil.RequestNumber++;
 
             if (WebUtil.DebugLevel >= 3)
@@ -730,6 +737,10 @@ namespace OpenSim.Framework
             Type type = typeof(TRequest);
 
             WebRequest request = WebRequest.Create(requestUrl);
+            HttpWebRequest ht = (HttpWebRequest)request;
+            if (maxConnections > 0 && ht.ServicePoint.ConnectionLimit < maxConnections)
+                ht.ServicePoint.ConnectionLimit = maxConnections;
+
             WebResponse response = null;
             TResponse deserial = default(TResponse);
             XmlSerializer deserializer = new XmlSerializer(typeof(TResponse));
@@ -1036,6 +1047,16 @@ namespace OpenSim.Framework
         /// the request.  You'll want to make sure you deal with this as they're not uncommon</exception>
         public static TResponse MakeRequest<TRequest, TResponse>(string verb, string requestUrl, TRequest obj)
         {
+            return MakeRequest<TRequest, TResponse>(verb, requestUrl, obj, 0);
+        }
+
+        public static TResponse MakeRequest<TRequest, TResponse>(string verb, string requestUrl, TRequest obj, int pTimeout)
+        {
+            return MakeRequest<TRequest, TResponse>(verb, requestUrl, obj, pTimeout, 0);
+        }
+
+        public static TResponse MakeRequest<TRequest, TResponse>(string verb, string requestUrl, TRequest obj, int pTimeout, int maxConnections)
+        {
             int reqnum = WebUtil.RequestNumber++;
 
             if (WebUtil.DebugLevel >= 3)
@@ -1050,6 +1071,10 @@ namespace OpenSim.Framework
             TResponse deserial = default(TResponse);
 
             WebRequest request = WebRequest.Create(requestUrl);
+            HttpWebRequest ht = (HttpWebRequest)request;
+            if (maxConnections > 0 && ht.ServicePoint.ConnectionLimit < maxConnections)
+                ht.ServicePoint.ConnectionLimit = maxConnections;
+
             request.Method = verb;
             MemoryStream buffer = null;
 
