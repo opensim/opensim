@@ -545,14 +545,31 @@ public sealed class BSPrim : BSPhysObject
         {
             // Not a Bullet static object
             m_currentCollisionFlags = BulletSimAPI.RemoveFromCollisionFlags2(BSBody.Ptr, CollisionFlags.CF_STATIC_OBJECT);
+
+            // Set various physical properties so internal things will get computed correctly as they are set
+            BulletSimAPI.SetFriction2(BSBody.Ptr, Scene.Params.defaultFriction);
+            BulletSimAPI.SetRestitution2(BSBody.Ptr, Scene.Params.defaultRestitution);
+            // per http://www.bulletphysics.org/Bullet/phpBB3/viewtopic.php?t=3382
+            BulletSimAPI.SetInterpolationLinearVelocity2(BSBody.Ptr, OMV.Vector3.Zero);
+            BulletSimAPI.SetInterpolationAngularVelocity2(BSBody.Ptr, OMV.Vector3.Zero);
+            BulletSimAPI.SetInterpolationVelocity2(BSBody.Ptr, OMV.Vector3.Zero, OMV.Vector3.Zero);
+
             // A dynamic object has mass
             IntPtr collisionShapePtr = BulletSimAPI.GetCollisionShape2(BSBody.Ptr);
             OMV.Vector3 inertia = BulletSimAPI.CalculateLocalInertia2(collisionShapePtr, Linkset.LinksetMass);
             BulletSimAPI.SetMassProps2(BSBody.Ptr, _mass, inertia);
             // Inertia is based on our new mass
             BulletSimAPI.UpdateInertiaTensor2(BSBody.Ptr);
+
+            // Various values for simulation limits
+            BulletSimAPI.SetDamping2(BSBody.Ptr, Scene.Params.linearDamping, Scene.Params.angularDamping);
+            BulletSimAPI.SetDeactivationTime2(BSBody.Ptr, Scene.Params.deactivationTime);
+            BulletSimAPI.SetSleepingThresholds2(BSBody.Ptr, Scene.Params.linearSleepingThreshold, Scene.Params.angularSleepingThreshold);
+            BulletSimAPI.SetContactProcessingThreshold2(BSBody.Ptr, Scene.Params.contactProcessingThreshold);
+
             // There can be special things needed for implementing linksets
             Linkset.MakeDynamic(this);
+
             // Force activation of the object so Bullet will act on it.
             BulletSimAPI.Activate2(BSBody.Ptr, true);
         }
@@ -1475,16 +1492,15 @@ public sealed class BSPrim : BSPhysObject
     // I've collided with something
     // Called at taint time from within the Step() function
     CollisionEventUpdate collisionCollection;
-    public override bool Collide(uint collidingWith, BSPhysObject collidee, ActorTypes type, OMV.Vector3 contactPoint, OMV.Vector3 contactNormal, float pentrationDepth)
+    public override bool Collide(uint collidingWith, BSPhysObject collidee, OMV.Vector3 contactPoint, OMV.Vector3 contactNormal, float pentrationDepth)
     {
-        // m_log.DebugFormat("{0}: Collide: ms={1}, id={2}, with={3}", LogHeader, _subscribedEventsMs, LocalID, collidingWith);
         bool ret = false;
 
         // The following lines make IsColliding() and IsCollidingGround() work
-        _collidingStep = _scene.SimulationStep;
-        if (collidingWith == BSScene.TERRAIN_ID || collidingWith == BSScene.GROUNDPLANE_ID)
+        _collidingStep = Scene.SimulationStep;
+        if (collidingWith <= Scene.TerrainManager.HighestTerrainID)
         {
-            _collidingGroundStep = _scene.SimulationStep;
+            _collidingGroundStep = Scene.SimulationStep;
         }
 
         // DetailLog("{0},BSPrim.Collison,call,with={1}", LocalID, collidingWith);
@@ -1498,7 +1514,7 @@ public sealed class BSPrim : BSPhysObject
         // if someone has subscribed for collision events....
         if (SubscribedEvents()) {
             // throttle the collisions to the number of milliseconds specified in the subscription
-            int nowTime = _scene.SimulationNowTime;
+            int nowTime = Scene.SimulationNowTime;
             if (nowTime >= _nextCollisionOkTime) {
                 _nextCollisionOkTime = nowTime + _subscribedEventsMs;
 

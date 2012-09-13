@@ -583,27 +583,21 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             return;         // don't send collisions to the terrain
         }
 
-        BSPhysObject collider = PhysObjects[localID];
-        // TODO: as of this code, terrain was not in the physical object list.
-        //    When BSTerrain is created and it will be in the list, we can remove
-        //    the possibility that it's not there and just fetch the collidee.
-        BSPhysObject collidee = null;
+        BSPhysObject collider;
+        if (!PhysObjects.TryGetValue(localID, out collider))
+        {
+            // If the object that is colliding cannot be found, just ignore the collision.
+            return;
+        }
 
-        ActorTypes type = ActorTypes.Prim;
-        if (collidingWith <= TerrainManager.HighestTerrainID)
-        {
-            type = ActorTypes.Ground;
-        }
-        else
-        {
-            collidee = PhysObjects[collidingWith];
-            if (collidee is BSCharacter)
-                type = ActorTypes.Agent;
-        }
+        // The terrain is not in the physical object list so 'collidee'
+        //    can be null when Collide() is called.
+        BSPhysObject collidee = null;
+        PhysObjects.TryGetValue(collidingWith, out collidee);
 
         // DetailLog("{0},BSScene.SendCollision,collide,id={1},with={2}", DetailLogZero, localID, collidingWith);
 
-        if (collider.Collide(collidingWith, collidee, type, collidePoint, collideNormal, penetration))
+        if (collider.Collide(collidingWith, collidee, collidePoint, collideNormal, penetration))
         {
             // If a collision was posted, remember to send it to the simulator
             m_objectsWithCollisions.Add(collider);

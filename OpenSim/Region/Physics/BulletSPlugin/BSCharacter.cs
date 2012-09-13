@@ -529,22 +529,20 @@ public class BSCharacter : BSPhysObject
     // The collision, if it should be reported to the character, is placed in a collection
     //   that will later be sent to the simulator when SendCollisions() is called.
     CollisionEventUpdate collisionCollection = null;
-    public override bool Collide(uint collidingWith, BSPhysObject collidee, ActorTypes type, Vector3 contactPoint, Vector3 contactNormal, float pentrationDepth)
+    public override bool Collide(uint collidingWith, BSPhysObject collidee, Vector3 contactPoint, Vector3 contactNormal, float pentrationDepth)
     {
-        // m_log.DebugFormat("{0}: Collide: ms={1}, id={2}, with={3}", LogHeader, _subscribedEventsMs, LocalID, collidingWith);
-
         bool ret = false;
 
         // The following makes IsColliding() and IsCollidingGround() work
         _collidingStep = Scene.SimulationStep;
-        if (collidingWith == BSScene.TERRAIN_ID || collidingWith == BSScene.GROUNDPLANE_ID)
+        if (collidingWith <= Scene.TerrainManager.HighestTerrainID)
         {
             _collidingGroundStep = Scene.SimulationStep;
         }
         // DetailLog("{0},BSCharacter.Collison,call,with={1}", LocalID, collidingWith);
 
         // throttle collisions to the rate specified in the subscription
-        if (_subscribedEventsMs != 0) {
+        if (SubscribedEvents()) {
             int nowTime = Scene.SimulationNowTime;
             if (nowTime >= _nextCollisionOkTime) {
                 _nextCollisionOkTime = nowTime + _subscribedEventsMs;
