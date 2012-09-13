@@ -56,7 +56,6 @@ using OpenMetaverse;
 // Do attachments need to be handled separately? Need collision events. Do not collide with VolumeDetect
 // Implement LockAngularMotion
 // Decide if clearing forces is the right thing to do when setting position (BulletSim::SetObjectTranslation)
-// Does NeedsMeshing() really need to exclude all the different shapes?
 // Remove mesh and Hull stuff. Use mesh passed to bullet and use convexdecom from bullet.
 // Add PID movement operations. What does ScenePresence.MoveToTarget do?
 // Check terrain size. 128 or 127?
@@ -665,121 +664,6 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     }
 
     public override bool IsThreaded { get { return false;  } }
-
-    /// <summary>
-    /// Routine to figure out if we need to mesh this prim with our mesher
-    /// </summary>
-    /// <param name="pbs"></param>
-    /// <returns>true if the prim needs meshing</returns>
-    public bool NeedsMeshing(PrimitiveBaseShape pbs)
-    {
-        // most of this is redundant now as the mesher will return null if it cant mesh a prim
-        // but we still need to check for sculptie meshing being enabled so this is the most
-        // convenient place to do it for now...
-
-        // int iPropertiesNotSupportedDefault = 0;
-
-        if (pbs.SculptEntry && !ShouldMeshSculptedPrim)
-        {
-            // Render sculpties as boxes
-            return false;
-        }
-
-        // if it's a standard box or sphere with no cuts, hollows, twist or top shear, return false since Bullet 
-        // can use an internal representation for the prim
-        if (!ShouldForceSimplePrimMeshing)
-        {
-            if ((pbs.ProfileShape == ProfileShape.Square && pbs.PathCurve == (byte)Extrusion.Straight)
-                || (pbs.ProfileShape == ProfileShape.HalfCircle && pbs.PathCurve == (byte)Extrusion.Curve1
-                        && pbs.Scale.X == pbs.Scale.Y && pbs.Scale.Y == pbs.Scale.Z))
-            {
-
-                if (pbs.ProfileBegin == 0 && pbs.ProfileEnd == 0
-                    && pbs.ProfileHollow == 0
-                    && pbs.PathTwist == 0 && pbs.PathTwistBegin == 0
-                    && pbs.PathBegin == 0 && pbs.PathEnd == 0
-                    && pbs.PathTaperX == 0 && pbs.PathTaperY == 0
-                    && pbs.PathScaleX == 100 && pbs.PathScaleY == 100
-                    && pbs.PathShearX == 0 && pbs.PathShearY == 0)
-                {
-                    return false;
-                }
-            }
-        }
-
-        /*  TODO: verify that the mesher will now do all these shapes
-        if (pbs.ProfileHollow != 0)
-            iPropertiesNotSupportedDefault++;
-
-        if ((pbs.PathBegin != 0) || pbs.PathEnd != 0)
-            iPropertiesNotSupportedDefault++;
-
-        if ((pbs.PathTwistBegin != 0) || (pbs.PathTwist != 0))
-            iPropertiesNotSupportedDefault++; 
-
-        if ((pbs.ProfileBegin != 0) || pbs.ProfileEnd != 0)
-            iPropertiesNotSupportedDefault++;
-
-        if ((pbs.PathScaleX != 100) || (pbs.PathScaleY != 100))
-            iPropertiesNotSupportedDefault++;
-
-        if ((pbs.PathShearX != 0) || (pbs.PathShearY != 0))
-            iPropertiesNotSupportedDefault++;
-
-        if (pbs.ProfileShape == ProfileShape.Circle && pbs.PathCurve == (byte)Extrusion.Straight)
-            iPropertiesNotSupportedDefault++;
-
-        if (pbs.ProfileShape == ProfileShape.HalfCircle && pbs.PathCurve == (byte)Extrusion.Curve1 && (pbs.Scale.X != pbs.Scale.Y || pbs.Scale.Y != pbs.Scale.Z || pbs.Scale.Z != pbs.Scale.X))
-            iPropertiesNotSupportedDefault++;
-
-        if (pbs.ProfileShape == ProfileShape.HalfCircle && pbs.PathCurve == (byte) Extrusion.Curve1)
-            iPropertiesNotSupportedDefault++;
-
-        // test for torus
-        if ((pbs.ProfileCurve & 0x07) == (byte)ProfileShape.Square)
-        {
-            if (pbs.PathCurve == (byte)Extrusion.Curve1)
-            {
-                iPropertiesNotSupportedDefault++;
-            }
-        }
-        else if ((pbs.ProfileCurve & 0x07) == (byte)ProfileShape.Circle)
-        {
-            if (pbs.PathCurve == (byte)Extrusion.Straight)
-            {
-                iPropertiesNotSupportedDefault++;
-            }
-            // ProfileCurve seems to combine hole shape and profile curve so we need to only compare against the lower 3 bits
-            else if (pbs.PathCurve == (byte)Extrusion.Curve1)
-            {
-                iPropertiesNotSupportedDefault++;
-            }
-        }
-        else if ((pbs.ProfileCurve & 0x07) == (byte)ProfileShape.HalfCircle)
-        {
-            if (pbs.PathCurve == (byte)Extrusion.Curve1 || pbs.PathCurve == (byte)Extrusion.Curve2)
-            {
-                iPropertiesNotSupportedDefault++;
-            }
-        }
-        else if ((pbs.ProfileCurve & 0x07) == (byte)ProfileShape.EquilateralTriangle)
-        {
-            if (pbs.PathCurve == (byte)Extrusion.Straight)
-            {
-                iPropertiesNotSupportedDefault++;
-            }
-            else if (pbs.PathCurve == (byte)Extrusion.Curve1)
-            {
-                iPropertiesNotSupportedDefault++;
-            }
-        }
-        if (iPropertiesNotSupportedDefault == 0)
-        {
-            return false;
-        }
-         */
-        return true; 
-    }
 
     // Calls to the PhysicsActors can't directly call into the physics engine
     // because it might be busy. We delay changes to a known time.
