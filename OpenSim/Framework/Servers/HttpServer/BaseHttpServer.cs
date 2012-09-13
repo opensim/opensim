@@ -687,7 +687,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                     const int sampleLength = 80;
                     char[] sampleChars = new char[sampleLength];
                     reader.Read(sampleChars, 0, sampleLength);
-                    output = string.Format("[BASE HTTP SERVER]: {0}...", sampleChars);
+                    output = string.Format("[BASE HTTP SERVER]: {0}...", new string(sampleChars).Replace("\n", @"\n"));
                 }
                 else
                 {
