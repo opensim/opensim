@@ -204,11 +204,14 @@ public class BSLinkset
 
     // The object is going dynamic (physical). Do any setup necessary
     //     for a dynamic linkset.
+    // Only the state of the passed object can be modified. The rest of the linkset
+    //     has not yet been fully constructed.
     // Return 'true' if any properties updated on the passed object.
     // Called at taint-time!
     public bool MakeDynamic(BSPhysObject child)
     {
-        return false;
+        bool ret = false;
+        return ret;
     }
 
     // The object is going static (non-physical). Do any setup necessary
@@ -217,6 +220,7 @@ public class BSLinkset
     // Called at taint-time!
     public bool MakeStatic(BSPhysObject child)
     {
+        // What is done for each object in BSPrim is what we want.
         return false;
     }
 
@@ -269,15 +273,24 @@ public class BSLinkset
                 }
             }
 
-            // If the whole linkset is not here, doesn't make sense to recompute the root prim now.
+            // If the whole linkset is not here, doesn't make sense to recompute linkset wide values
             if (!somethingMissing)
             {
+                // If this is a multiple object linkset, set everybody's center of mass to the set's center of mass
+                OMV.Vector3 centerOfMass = ComputeLinksetCenterOfMass();
+                BulletSimAPI.SetCenterOfMassByPosRot2(LinksetRoot.BSBody.Ptr, centerOfMass, OMV.Quaternion.Identity);
+                foreach (BSPhysObject child in m_children)
+                {
+                    BulletSimAPI.SetCenterOfMassByPosRot2(child.BSBody.Ptr, centerOfMass, OMV.Quaternion.Identity);
+                }
+                /*
                 // The root prim takes on the weight of the whole linkset
                 OMV.Vector3 inertia = BulletSimAPI.CalculateLocalInertia2(LinksetRoot.BSShape.Ptr, linksetMass);
                 BulletSimAPI.SetMassProps2(LinksetRoot.BSBody.Ptr, linksetMass, inertia);
                 OMV.Vector3 centerOfMass = ComputeLinksetCenterOfMass();
                 BulletSimAPI.SetCenterOfMassByPosRot2(LinksetRoot.BSBody.Ptr, centerOfMass, OMV.Quaternion.Identity);
                 BulletSimAPI.UpdateInertiaTensor2(LinksetRoot.BSBody.Ptr);
+                 */
             }
         }
         return;
