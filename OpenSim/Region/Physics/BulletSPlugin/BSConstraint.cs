@@ -74,6 +74,17 @@ public abstract class BSConstraint : IDisposable
         return ret;
     }
 
+    public virtual bool SetSolverIterations(float cnt)
+    {
+        bool ret = false;
+        if (m_enabled)
+        {
+            BulletSimAPI.SetConstraintNumSolverIterations2(m_constraint.Ptr, cnt);
+            ret = true;
+        }
+        return ret;
+    }
+
     public virtual bool CalculateTransforms()
     {
         bool ret = false;
@@ -96,12 +107,9 @@ public abstract class BSConstraint : IDisposable
             ret = CalculateTransforms();
             if (ret)
             {
-                // m_world.scene.PhysicsLogging.Write("{0},BSConstraint.RecomputeConstraintVariables,taint,enabling,A={1},B={2}",
-                //                 BSScene.DetailLogZero, Body1.ID, Body2.ID);
-
                 // Setting an object's mass to zero (making it static like when it's selected)
                 //     automatically disables the constraints.
-                // If enabled, be sure to set the constraint itself to enabled.
+                // If the link is enabled, be sure to set the constraint itself to enabled.
                 BulletSimAPI.SetConstraintEnable2(m_constraint.Ptr, m_world.scene.NumericBool(true));
             }
             else

@@ -79,7 +79,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     private HashSet<BSPhysObject> m_objectsWithCollisions = new HashSet<BSPhysObject>();
     // Following is a kludge and can  be removed when avatar animation updating is
     //    moved to a better place.
-    private HashSet<BSCharacter> m_avatarsWithCollisions = new HashSet<BSCharacter>();
+    private HashSet<BSPhysObject> m_avatarsWithCollisions = new HashSet<BSPhysObject>();
 
     // List of all the objects that have vehicle properties and should be called
     //    to update each physics step.
@@ -132,8 +132,8 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     private EntityProperties[] m_updateArray;
     private GCHandle m_updateArrayPinnedHandle;
 
-    private bool _meshSculptedPrim = true;         // cause scuplted prims to get meshed
-    private bool _forceSimplePrimMeshing = false;   // if a cube or sphere, let Bullet do internal shapes
+    public bool ShouldMeshSculptedPrim { get; private set; }   // cause scuplted prims to get meshed
+    public bool ShouldForceSimplePrimMeshing { get; private set; }   // if a cube or sphere, let Bullet do internal shapes
 
     public float PID_D { get; private set; }    // derivative
     public float PID_P { get; private set; }    // proportional
@@ -153,6 +153,11 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     {
         get { return new Vector3(0f, 0f, Params.gravity); }
     }
+    // Just the Z value of the gravity
+    public float DefaultGravityZ
+    {
+        get { return Params.gravity; }
+    }
 
     public float MaximumObjectMass { get; private set; }
 
@@ -171,8 +176,8 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             callback = c;
         }
     }
+    private Object _taintLock = new Object();   // lock for using the next object
     private List<TaintCallbackEntry> _taintedObjects;
-    private Object _taintLock = new Object();
 
     // A pointer to an instance if this structure is passed to the C++ code
     // Used to pass basic configuration values to the unmanaged code.
@@ -478,6 +483,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
 
         // Some of the prims operate with special vehicle properties
         ProcessVehicles(timeStep);
+        numTaints += _taintedObjects.Count;
         ProcessTaints();    // the vehicles might have added taints
 
         // step the physical world one interval
@@ -506,6 +512,12 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         // Get a value for 'now' so all the collision and update routines don't have to get their own
         SimulationNowTime = Util.EnvironmentTickCount();
 
+        // This is a kludge to get avatar movement updates. 
+        //   ODE sends collisions for avatars even if there are have been no collisions. This updates
+        //   avatar animations and stuff.
+        // If you fix avatar animation updates, remove this overhead and let collisions happen.
+        m_objectsWithCollisions = new HashSet<BSPhysObject>(m_avatarsWithCollisions);
+
         // If there were collisions, process them by sending the event to the prim.
         // Collisions must be processed before updates.
         if (collidersCount > 0)
@@ -527,13 +539,6 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             bsp.SendCollisions();
         m_objectsWithCollisions.Clear();
 
-        // This is a kludge to get avatar movement updated. 
-        //   ODE sends collisions even if there are none and this is used to update
-        //   avatar animations and stuff.
-        foreach (BSPhysObject bpo in m_avatarsWithCollisions)
-            bpo.SendCollisions();
-        // m_avatarsWithCollisions.Clear();
-
         // If any of the objects had updated properties, tell the object it has been changed by the physics engine
         if (updatedEntityCount > 0)
         {
@@ -544,7 +549,6 @@ public class BSScene : PhysicsScene, IPhysicsParameters
                 if (PhysObjects.TryGetValue(entprop.ID, out pobj))
                 {
                     pobj.UpdateProperties(entprop);
-                    continue;
                 }
             }
         }
@@ -600,8 +604,11 @@ public class BSScene : PhysicsScene, IPhysicsParameters
 
         // DetailLog("{0},BSScene.SendCollision,collide,id={1},with={2}", DetailLogZero, localID, collidingWith);
 
-        collider.Collide(collidingWith, collidee, type, collidePoint, collideNormal, penetration);
-        m_objectsWithCollisions.Add(collider);
+        if (collider.Collide(collidingWith, collidee, type, collidePoint, collideNormal, penetration))
+        {
+            // If a collision was posted, remember to send it to the simulator
+            m_objectsWithCollisions.Add(collider);
+        }
 
         return;
     }
@@ -619,9 +626,9 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     public override void SetWaterLevel(float baseheight) 
     {
         m_waterLevel = baseheight;
-        // TODO: pass to physics engine so things will float?
     }
-    public float GetWaterLevel()
+    // Someday....
+    public float GetWaterLevelAtXYZ(Vector3 loc)
     {
         return m_waterLevel;
     }
@@ -672,7 +679,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
 
         // int iPropertiesNotSupportedDefault = 0;
 
-        if (pbs.SculptEntry && !_meshSculptedPrim)
+        if (pbs.SculptEntry && !ShouldMeshSculptedPrim)
         {
             // Render sculpties as boxes
             return false;
@@ -680,7 +687,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
 
         // if it's a standard box or sphere with no cuts, hollows, twist or top shear, return false since Bullet 
         // can use an internal representation for the prim
-        if (!_forceSimplePrimMeshing)
+        if (!ShouldForceSimplePrimMeshing)
         {
             if ((pbs.ProfileShape == ProfileShape.Square && pbs.PathCurve == (byte)Extrusion.Straight)
                 || (pbs.ProfileShape == ProfileShape.HalfCircle && pbs.PathCurve == (byte)Extrusion.Curve1
@@ -782,7 +789,10 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         if (!m_initialized) return;
 
         lock (_taintLock)
+        {
             _taintedObjects.Add(new TaintCallbackEntry(ident, callback));
+        }
+
         return;
     }
 
@@ -919,14 +929,14 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     {
         new ParameterDefn("MeshSculptedPrim", "Whether to create meshes for sculpties",
             ConfigurationParameters.numericTrue,
-            (s,cf,p,v) => { s._meshSculptedPrim = cf.GetBoolean(p, s.BoolNumeric(v)); },
-            (s) => { return s.NumericBool(s._meshSculptedPrim); },
-            (s,p,l,v) => { s._meshSculptedPrim = s.BoolNumeric(v); } ),
+            (s,cf,p,v) => { s.ShouldMeshSculptedPrim = cf.GetBoolean(p, s.BoolNumeric(v)); },
+            (s) => { return s.NumericBool(s.ShouldMeshSculptedPrim); },
+            (s,p,l,v) => { s.ShouldMeshSculptedPrim = s.BoolNumeric(v); } ),
         new ParameterDefn("ForceSimplePrimMeshing", "If true, only use primitive meshes for objects",
             ConfigurationParameters.numericFalse,
-            (s,cf,p,v) => { s._forceSimplePrimMeshing = cf.GetBoolean(p, s.BoolNumeric(v)); },
-            (s) => { return s.NumericBool(s._forceSimplePrimMeshing); },
-            (s,p,l,v) => { s._forceSimplePrimMeshing = s.BoolNumeric(v); } ),
+            (s,cf,p,v) => { s.ShouldForceSimplePrimMeshing = cf.GetBoolean(p, s.BoolNumeric(v)); },
+            (s) => { return s.NumericBool(s.ShouldForceSimplePrimMeshing); },
+            (s,p,l,v) => { s.ShouldForceSimplePrimMeshing = s.BoolNumeric(v); } ),
 
         new ParameterDefn("MeshLevelOfDetail", "Level of detail to render meshes (32, 16, 8 or 4. 32=most detailed)",
             8f,
@@ -1162,8 +1172,8 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             (s,cf,p,v) => { s.m_params[0].linkConstraintTransMotorMaxForce = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].linkConstraintTransMotorMaxForce; },
             (s,p,l,v) => { s.m_params[0].linkConstraintTransMotorMaxForce = v; } ),
-	    new ParameterDefn("LinkConstraintCFM", "Amount constraint can be violated. 0=none, 1=all. Default=0",
-            0.0f,
+	    new ParameterDefn("LinkConstraintCFM", "Amount constraint can be violated. 0=no violation, 1=infinite. Default=0.1",
+            0.1f,
             (s,cf,p,v) => { s.m_params[0].linkConstraintCFM = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].linkConstraintCFM; },
             (s,p,l,v) => { s.m_params[0].linkConstraintCFM = v; } ),
@@ -1172,6 +1182,11 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             (s,cf,p,v) => { s.m_params[0].linkConstraintERP = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].linkConstraintERP; },
             (s,p,l,v) => { s.m_params[0].linkConstraintERP = v; } ),
+	    new ParameterDefn("LinkConstraintSolverIterations", "Number of solver iterations when computing constraint. (0 = Bullet default)",
+            40,
+            (s,cf,p,v) => { s.m_params[0].linkConstraintSolverIterations = cf.GetFloat(p, v); },
+            (s) => { return s.m_params[0].linkConstraintSolverIterations; },
+            (s,p,l,v) => { s.m_params[0].linkConstraintSolverIterations = v; } ),
 
         new ParameterDefn("DetailedStats", "Frames between outputting detailed phys stats. (0 is off)",
             0f,
