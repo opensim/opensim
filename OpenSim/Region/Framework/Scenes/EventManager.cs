@@ -154,10 +154,32 @@ namespace OpenSim.Region.Framework.Scenes
 
         public delegate void OnParcelPrimCountUpdateDelegate();
 
+        /// <summary>
+        /// Triggered whenever the prim count may have been altered, or prior
+        /// to an action that requires the current prim count to be accurate.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerParcelPrimCountUpdate"/> in
+        /// <see cref="OpenSim.OpenSimBase.CreateRegion"/>,
+        /// <see cref="OpenSim.Region.CoreModules.World.Land.LandManagementModule.EventManagerOnRequestParcelPrimCountUpdate"/>,
+        /// <see cref="OpenSim.Region.CoreModules.World.Land.LandManagementModule.ClientOnParcelObjectOwnerRequest"/>,
+        /// <see cref="OpenSim.Region.CoreModules.World.Land.LandObject.GetPrimsFree"/>,
+        /// <see cref="OpenSim.Region.CoreModules.World.Land.LandObject.UpdateLandSold"/>,
+        /// <see cref="OpenSim.Region.CoreModules.World.Land.LandObject.DeedToGroup"/>,
+        /// <see cref="OpenSim.Region.CoreModules.World.Land.LandObject.SendLandUpdateToClient"/>
+        /// </remarks>
         public event OnParcelPrimCountUpdateDelegate OnParcelPrimCountUpdate;
 
         public delegate void OnParcelPrimCountAddDelegate(SceneObjectGroup obj);
 
+        /// <summary>
+        /// Triggered in response to <see cref="OnParcelPrimCountUpdate"/> for
+        /// objects that actually contribute to parcel prim count.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerParcelPrimCountAdd"/> in
+        /// <see cref="OpenSim.Region.CoreModules.World.Land.LandManagementModule.EventManagerOnParcelPrimCountUpdate"/>
+        /// </remarks>
         public event OnParcelPrimCountAddDelegate OnParcelPrimCountAdd;
 
         public delegate void OnPluginConsoleDelegate(string[] args);
@@ -178,6 +200,14 @@ namespace OpenSim.Region.Framework.Scenes
 
         public event OnSetRootAgentSceneDelegate OnSetRootAgentScene;
 
+        /// <summary>
+        /// Triggered after parcel properties have been updated.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerOnParcelPropertiesUpdateRequest"/> in
+        /// <see cref="OpenSim.Region.CoreModules.World.Land.LandManagementModule.ClientOnParcelPropertiesUpdateRequest"/>,
+        /// <see cref="OpenSim.Region.CoreModules.World.Land.LandManagementModule.ProcessPropertiesUpdate"/>
+        /// </remarks>
         public event ParcelPropertiesUpdateRequest OnParcelPropertiesUpdateRequest;
 
         /// <summary>
@@ -428,6 +458,20 @@ namespace OpenSim.Region.Framework.Scenes
         public event RequestParcelPrimCountUpdate OnRequestParcelPrimCountUpdate;
 
         public delegate void ParcelPrimCountTainted();
+
+        /// <summary>
+        /// Triggered when the parcel prim count has been altered.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerParcelPrimCountTainted"/> in
+        /// <see cref="OpenSim.Region.CoreModules.Avatar.Attachments.AttachmentsModule.DetachSingleAttachmentToGround"/>,
+        /// <see cref="OpenSim.Region.CoreModules.Avatar.Attachments.AttachmentsModule.AttachToAgent"/>,
+        /// <see cref="Scene.DeleteSceneObject"/>,
+        /// <see cref="Scene.SelectPrim"/>,
+        /// <see cref="Scene.DeselectPrim"/>,
+        /// <see cref="SceneObjectGroup.UpdatePrimFlags"/>,
+        /// <see cref="SceneObjectGroup.AbsolutePosition"/>
+        /// </remarks>
         public event ParcelPrimCountTainted OnParcelPrimCountTainted;
         public event GetScriptRunning OnGetScriptRunning;
 
