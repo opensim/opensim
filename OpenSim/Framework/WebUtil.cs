@@ -695,6 +695,13 @@ namespace OpenSim.Framework
         public static void MakeRequest<TRequest, TResponse>(string verb,
                 string requestUrl, TRequest obj, Action<TResponse> action)
         {
+            MakeRequest<TRequest, TResponse>(verb, requestUrl, obj, action, 0);
+        }
+
+        public static void MakeRequest<TRequest, TResponse>(string verb,
+                string requestUrl, TRequest obj, Action<TResponse> action,
+                int maxConnections)
+        {
             int reqnum = WebUtil.RequestNumber++;
             // m_log.DebugFormat("[WEB UTIL]: <{0}> start osd request for {1}, method {2}",reqnum,url,method);
 
@@ -706,6 +713,10 @@ namespace OpenSim.Framework
             Type type = typeof(TRequest);
 
             WebRequest request = WebRequest.Create(requestUrl);
+            HttpWebRequest ht = (HttpWebRequest)request;
+            if (maxConnections > 0 && ht.ServicePoint.ConnectionLimit < maxConnections)
+                ht.ServicePoint.ConnectionLimit = maxConnections;
+
             WebResponse response = null;
             TResponse deserial = default(TResponse);
             XmlSerializer deserializer = new XmlSerializer(typeof(TResponse));
@@ -1003,6 +1014,11 @@ namespace OpenSim.Framework
 
         public static TResponse MakeRequest<TRequest, TResponse>(string verb, string requestUrl, TRequest obj, int pTimeout)
         {
+            return MakeRequest<TRequest, TResponse>(verb, requestUrl, obj, pTimeout, 0);
+        }
+
+        public static TResponse MakeRequest<TRequest, TResponse>(string verb, string requestUrl, TRequest obj, int pTimeout, int maxConnections)
+        {
             int reqnum = WebUtil.RequestNumber++;
             // m_log.DebugFormat("[WEB UTIL]: <{0}> start osd request for {1}, method {2}",reqnum,url,method);
 
@@ -1013,6 +1029,10 @@ namespace OpenSim.Framework
             TResponse deserial = default(TResponse);
 
             WebRequest request = WebRequest.Create(requestUrl);
+            HttpWebRequest ht = (HttpWebRequest)request;
+            if (maxConnections > 0 && ht.ServicePoint.ConnectionLimit < maxConnections)
+                ht.ServicePoint.ConnectionLimit = maxConnections;
+
             request.Method = verb;
             if (pTimeout != 0)
                 request.Timeout = pTimeout * 1000;
