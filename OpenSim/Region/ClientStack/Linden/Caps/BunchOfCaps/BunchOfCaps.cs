@@ -467,6 +467,8 @@ namespace OpenSim.Region.ClientStack.Linden
 
                         if (llsdRequest.asset_type == "mesh")
                         {
+                            cost += 20; // Constant for now to test showing a price
+
                             if (llsdRequest.asset_resources == null)
                             {
                                 client.SendAgentAlertMessage("Unable to upload asset. missing information.", false);
@@ -480,7 +482,7 @@ namespace OpenSim.Region.ClientStack.Linden
                             uint textures_cost = (uint)llsdRequest.asset_resources.texture_list.Array.Count;
                             textures_cost *= (uint)mm.UploadCharge;
 
-                            cost = textures_cost;
+                            cost += textures_cost;
                         }
                         else
                         {
