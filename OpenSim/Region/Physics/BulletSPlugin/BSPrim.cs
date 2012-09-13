@@ -530,10 +530,14 @@ public sealed class BSPrim : BSPhysObject
             m_currentCollisionFlags = BulletSimAPI.AddToCollisionFlags2(BSBody.Ptr, CollisionFlags.CF_STATIC_OBJECT);
             // Stop all movement
             BulletSimAPI.ClearAllForces2(BSBody.Ptr);
+            // Center of mass is at the center of the object
+            BulletSimAPI.SetCenterOfMassByPosRot2(Linkset.LinksetRoot.BSBody.Ptr, _position, _orientation);
             // Mass is zero which disables a bunch of physics stuff in Bullet
             BulletSimAPI.SetMassProps2(BSBody.Ptr, 0f, OMV.Vector3.Zero);
             // There is no inertia in a static object
             BulletSimAPI.UpdateInertiaTensor2(BSBody.Ptr);
+            // There can be special things needed for implementing linksets
+            Linkset.MakeStatic(this);
             // The activation state is 'sleeping' so Bullet will not try to act on it
             BulletSimAPI.ForceActivationState2(BSBody.Ptr, ActivationState.ISLAND_SLEEPING);
         }
@@ -543,10 +547,12 @@ public sealed class BSPrim : BSPhysObject
             m_currentCollisionFlags = BulletSimAPI.RemoveFromCollisionFlags2(BSBody.Ptr, CollisionFlags.CF_STATIC_OBJECT);
             // A dynamic object has mass
             IntPtr collisionShapePtr = BulletSimAPI.GetCollisionShape2(BSBody.Ptr);
-            OMV.Vector3 inertia = BulletSimAPI.CalculateLocalInertia2(collisionShapePtr, _mass);
+            OMV.Vector3 inertia = BulletSimAPI.CalculateLocalInertia2(collisionShapePtr, Linkset.LinksetMass);
             BulletSimAPI.SetMassProps2(BSBody.Ptr, _mass, inertia);
             // Inertia is based on our new mass
             BulletSimAPI.UpdateInertiaTensor2(BSBody.Ptr);
+            // There can be special things needed for implementing linksets
+            Linkset.MakeDynamic(this);
             // Force activation of the object so Bullet will act on it.
             BulletSimAPI.Activate2(BSBody.Ptr, true);
         }
@@ -1055,11 +1061,12 @@ public sealed class BSPrim : BSPhysObject
     }// end CalculateMass
     #endregion Mass Calculation
 
-    // Create the geometry information in Bullet for later use
-    // The objects needs a hull if it's physical otherwise a mesh is enough
-    // No locking here because this is done when we know physics is not simulating
-    // if 'forceRebuild' is true, the geometry is rebuilt. Otherwise a previously built version is used
-    // Returns 'true' if the geometry was rebuilt
+    // Create the geometry information in Bullet for later use.
+    // The objects needs a hull if it's physical otherwise a mesh is enough.
+    // No locking here because this is done when we know physics is not simulating.
+    // if 'forceRebuild' is true, the geometry is rebuilt. Otherwise a previously built version is used.
+    // Returns 'true' if the geometry was rebuilt.
+    // Called at taint-time!
     private bool CreateGeom(bool forceRebuild)
     {
         bool ret = false;
@@ -1128,6 +1135,7 @@ public sealed class BSPrim : BSPhysObject
 
     // No locking here because this is done when we know physics is not simulating
     // Returns 'true' of a mesh was actually rebuild (we could also have one of these specs).
+    // Called at taint-time!
     private bool CreateGeomMesh()
     {
         // level of detail based on size and type of the object

@@ -202,6 +202,24 @@ public class BSLinkset
         return com;
     }
 
+    // The object is going dynamic (physical). Do any setup necessary
+    //     for a dynamic linkset.
+    // Return 'true' if any properties updated on the passed object.
+    // Called at taint-time!
+    public bool MakeDynamic(BSPhysObject child)
+    {
+        return false;
+    }
+
+    // The object is going static (non-physical). Do any setup necessary
+    //     for a static linkset.
+    // Return 'true' if any properties updated on the passed object.
+    // Called at taint-time!
+    public bool MakeStatic(BSPhysObject child)
+    {
+        return false;
+    }
+
     // When physical properties are changed the linkset needs to recalculate
     //   its internal properties.
     public void Refresh(BSPhysObject requestor)
@@ -255,13 +273,11 @@ public class BSLinkset
             if (!somethingMissing)
             {
                 // The root prim takes on the weight of the whole linkset
-                /*
                 OMV.Vector3 inertia = BulletSimAPI.CalculateLocalInertia2(LinksetRoot.BSShape.Ptr, linksetMass);
                 BulletSimAPI.SetMassProps2(LinksetRoot.BSBody.Ptr, linksetMass, inertia);
                 OMV.Vector3 centerOfMass = ComputeLinksetCenterOfMass();
                 BulletSimAPI.SetCenterOfMassByPosRot2(LinksetRoot.BSBody.Ptr, centerOfMass, OMV.Quaternion.Identity);
                 BulletSimAPI.UpdateInertiaTensor2(LinksetRoot.BSBody.Ptr);
-                 */
             }
         }
         return;
