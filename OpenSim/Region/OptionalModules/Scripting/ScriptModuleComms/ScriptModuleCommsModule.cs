@@ -211,6 +211,23 @@ namespace OpenSim.Region.OptionalModules.Scripting.ScriptModuleComms
                     RegisterScriptInvocation(target, mi);
             }
         }
+
+        public void RegisterScriptInvocations(IRegionModuleBase target)
+        {
+            foreach(MethodInfo method in target.GetType().GetMethods(
+                    BindingFlags.Public | BindingFlags.Instance |
+                    BindingFlags.Static))
+            {
+                if(method.GetCustomAttributes(
+                        typeof(ScriptInvocationAttribute), true).Any())
+                {
+                    if(method.IsStatic)
+                        RegisterScriptInvocation(target.GetType(), method);
+                    else
+                        RegisterScriptInvocation(target, method);
+                }
+            }
+        }
         
         public Delegate[] GetScriptInvocationList()
         {
@@ -310,6 +327,20 @@ namespace OpenSim.Region.OptionalModules.Scripting.ScriptModuleComms
             lock (m_constants)
             {
                 m_constants.Add(cname,value);
+            }
+        }
+
+        public void RegisterConstants(IRegionModuleBase target)
+        {
+            foreach (FieldInfo field in target.GetType().GetFields(
+                    BindingFlags.Public | BindingFlags.Static |
+                    BindingFlags.Instance))
+            {
+                if (field.GetCustomAttributes(
+                        typeof(ScriptConstantAttribute), true).Any())
+                {
+                    RegisterConstant(field.Name, field.GetValue(target));
+                }
             }
         }
 

@@ -75,6 +75,14 @@ namespace OpenSim.Region.Framework.Interfaces
         void RegisterScriptInvocation(Type target, string[] methods);
 
         /// <summary>
+        /// Automatically register script invocations by checking for methods
+        /// with <see cref="ScriptInvocationAttribute"/>. Should only check
+        /// public methods.
+        /// </summary>
+        /// <param name="target"></param>
+        void RegisterScriptInvocations(IRegionModuleBase target);
+
+        /// <summary>
         /// Returns an array of all registered script calls
         /// </summary>
         /// <returns></returns>
@@ -98,9 +106,24 @@ namespace OpenSim.Region.Framework.Interfaces
 
         /// For constants
         void RegisterConstant(string cname, object value);
+
+        /// <summary>
+        /// Automatically register all constants on a region module by
+        /// checking for fields with <see cref="ScriptConstantAttribute"/>.
+        /// </summary>
+        /// <param name="target"></param>
+        void RegisterConstants(IRegionModuleBase target);
         object LookupModConstant(string cname);
 
         // For use ONLY by the script API
         void RaiseEvent(UUID script, string id, string module, string command, string key);
     }
+
+    [AttributeUsage(AttributeTargets.Method)]
+    public class ScriptInvocationAttribute : Attribute
+    { }
+
+    [AttributeUsage(AttributeTargets.Field)]
+    public class ScriptConstantAttribute : Attribute
+    { }
 }
