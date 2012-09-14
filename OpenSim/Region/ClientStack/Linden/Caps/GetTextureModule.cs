@@ -27,18 +27,13 @@
 
 using System;
 using System.Collections;
-using System.Collections.Specialized;
-using System.Drawing;
-using System.Drawing.Imaging;
+using System.Collections.Generic;
 using System.Reflection;
-using System.IO;
-using System.Web;
+using System.Threading;
 using log4net;
 using Nini.Config;
 using Mono.Addins;
 using OpenMetaverse;
-using OpenMetaverse.StructuredData;
-using OpenMetaverse.Imaging;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
@@ -47,64 +42,73 @@ using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
 using Caps = OpenSim.Framework.Capabilities.Caps;
 using OpenSim.Capabilities.Handlers;
+using OpenSim.Framework.Monitoring;
 
 namespace OpenSim.Region.ClientStack.Linden
 {
 
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    /// <summary>
+    /// This module implements both WebFetchTextureDescendents and FetchTextureDescendents2 capabilities.
+    /// </summary>
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "GetTextureModule")]
     public class GetTextureModule : INonSharedRegionModule
     {
-//        private static readonly ILog m_log =
-//            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         private Scene m_scene;
-        private IAssetService m_assetService;
 
-        private bool m_Enabled = false;
+        private static GetTextureHandler m_getTextureHandler;
 
-        // TODO: Change this to a config option
-        const string REDIRECT_URL = null;
+        private IAssetService m_assetService = null;
 
-        private string m_URL;
+        private Dictionary<UUID, string> m_capsDict = new Dictionary<UUID, string>();
+        private static Thread[] m_workerThreads = null;
+
+        private static OpenMetaverse.BlockingQueue<PollServiceTextureEventArgs> m_queue =
+                new OpenMetaverse.BlockingQueue<PollServiceTextureEventArgs>();
 
         #region ISharedRegionModule Members
 
         public void Initialise(IConfigSource source)
         {
-            IConfig config = source.Configs["ClientStack.LindenCaps"];
-            if (config == null)
-                return;
-
-            m_URL = config.GetString("Cap_GetTexture", string.Empty);
-            // Cap doesn't exist
-            if (m_URL != string.Empty)
-                m_Enabled = true;
         }
 
         public void AddRegion(Scene s)
         {
-            if (!m_Enabled)
-                return;
-
             m_scene = s;
+            m_assetService = s.AssetService;
         }
 
         public void RemoveRegion(Scene s)
         {
-            if (!m_Enabled)
-                return;
-
             m_scene.EventManager.OnRegisterCaps -= RegisterCaps;
+            m_scene.EventManager.OnDeregisterCaps -= DeregisterCaps;
             m_scene = null;
         }
 
         public void RegionLoaded(Scene s)
         {
-            if (!m_Enabled)
-                return;
+            // We'll reuse the same handler for all requests.
+            m_getTextureHandler = new GetTextureHandler(m_assetService);
 
-            m_assetService = m_scene.RequestModuleInterface<IAssetService>();
             m_scene.EventManager.OnRegisterCaps += RegisterCaps;
+            m_scene.EventManager.OnDeregisterCaps += DeregisterCaps;
+
+            if (m_workerThreads == null)
+            {
+                m_workerThreads = new Thread[4];
+
+                for (uint i = 0; i < 4; i++)
+                {
+                    m_workerThreads[i] = Watchdog.StartThread(DoTextureRequests,
+                            String.Format("TextureWorkerThread{0}", i),
+                            ThreadPriority.Normal,
+                            false,
+                            true,
+                            null,
+                            int.MaxValue);
+                }
+            }
         }
 
         public void PostInitialise()
@@ -122,24 +126,155 @@ namespace OpenSim.Region.ClientStack.Linden
 
         #endregion
 
-        public void RegisterCaps(UUID agentID, Caps caps)
+        ~GetTextureModule()
         {
-            UUID capID = UUID.Random();
+            foreach (Thread t in m_workerThreads)
+                t.Abort();
+        }
 
-            //caps.RegisterHandler("GetTexture", new StreamHandler("GET", "/CAPS/" + capID, ProcessGetTexture));
-            if (m_URL == "localhost")
+        private class PollServiceTextureEventArgs : PollServiceEventArgs
+        {
+            private List<Hashtable> requests =
+                    new List<Hashtable>();
+            private Dictionary<UUID, Hashtable> responses =
+                    new Dictionary<UUID, Hashtable>();
+
+            private Scene m_scene;
+
+            public PollServiceTextureEventArgs(UUID pId, Scene scene) :
+                    base(null, null, null, null, pId, 30000)
             {
-//                m_log.DebugFormat("[GETTEXTURE]: /CAPS/{0} in region {1}", capID, m_scene.RegionInfo.RegionName);
-                caps.RegisterHandler(
-                    "GetTexture",
-                    new GetTextureHandler("/CAPS/" + capID + "/", m_assetService, "GetTexture", agentID.ToString()));
+                m_scene = scene;
+
+                HasEvents = (x, y) => { return this.responses.ContainsKey(x); };
+                GetEvents = (x, y, s) =>
+                {
+                    try
+                    {
+                        return this.responses[x];
+                    }
+                    finally
+                    {
+                        responses.Remove(x);
+                    }
+                };
+
+                Request = (x, y) =>
+                {
+                    y["RequestID"] = x.ToString();
+                    lock (this.requests)
+                        this.requests.Add(y);
+
+                    m_queue.Enqueue(this);
+                };
+
+                NoEvents = (x, y) =>
+                {
+                    lock (this.requests)
+                    {
+                        Hashtable request = requests.Find(id => id["RequestID"].ToString() == x.ToString());
+                        requests.Remove(request);
+                    }
+
+                    Hashtable response = new Hashtable();
+
+                    response["int_response_code"] = 500;
+                    response["str_response_string"] = "Script timeout";
+                    response["content_type"] = "text/plain";
+                    response["keepalive"] = false;
+                    response["reusecontext"] = false;
+
+                    return response;
+                };
             }
-            else
+
+            public void Process()
             {
-//                m_log.DebugFormat("[GETTEXTURE]: {0} in region {1}", m_URL, m_scene.RegionInfo.RegionName);
-                caps.RegisterHandler("GetTexture", m_URL);
+                Hashtable response;
+                Hashtable request = null;
+
+                try
+                {
+                    lock (this.requests)
+                    {
+                        request = requests[0];
+                        requests.RemoveAt(0);
+                    }
+                }
+                catch
+                {
+                    return;
+                }
+
+                UUID requestID = new UUID(request["RequestID"].ToString());
+
+                // If the avatar is gone, don't bother to get the texture
+                if (m_scene.GetScenePresence(Id) == null)
+                {
+                    response = new Hashtable();
+
+                    response["int_response_code"] = 500;
+                    response["str_response_string"] = "Script timeout";
+                    response["content_type"] = "text/plain";
+                    response["keepalive"] = false;
+                    response["reusecontext"] = false;
+
+                    responses[requestID] = response;
+                    return;
+                }
+
+                response = m_getTextureHandler.Handle(request);
+
+                responses[requestID] = response; 
             }
         }
 
+        private void RegisterCaps(UUID agentID, Caps caps)
+        {
+            string capUrl = "/CAPS/" + UUID.Random() + "/";
+
+            // Register this as a poll service
+            // absurd large timeout to tune later to make a bit less than viewer
+            PollServiceTextureEventArgs args = new PollServiceTextureEventArgs(agentID, m_scene);
+            
+            args.Type = PollServiceEventArgs.EventType.Texture;
+            MainServer.Instance.AddPollServiceHTTPHandler(capUrl, args);
+
+            string hostName = m_scene.RegionInfo.ExternalHostName;
+            uint port = (MainServer.Instance == null) ? 0 : MainServer.Instance.Port;
+            string protocol = "http";
+            
+            if (MainServer.Instance.UseSSL)
+            {
+                hostName = MainServer.Instance.SSLCommonName;
+                port = MainServer.Instance.SSLPort;
+                protocol = "https";
+            }
+            caps.RegisterHandler("GetTexture", String.Format("{0}://{1}:{2}{3}", protocol, hostName, port, capUrl));
+
+            m_capsDict[agentID] = capUrl;
+        }
+
+        private void DeregisterCaps(UUID agentID, Caps caps)
+        {
+            string capUrl;
+
+            if (m_capsDict.TryGetValue(agentID, out capUrl))
+            {
+                MainServer.Instance.RemoveHTTPHandler("", capUrl);
+                m_capsDict.Remove(agentID);
+            }
+        }
+
+        private void DoTextureRequests()
+        {
+            while (true)
+            {
+                PollServiceTextureEventArgs args = m_queue.Dequeue();
+
+                args.Process();
+            }
+        }
     }
+
 }
