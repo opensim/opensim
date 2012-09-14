@@ -1471,6 +1471,8 @@ namespace OpenSim.Framework.Servers.HttpServer
                     else
                         responseString = (string)responsedata["str_response_string"];
                     contentType = (string)responsedata["content_type"];
+                    if (responseString == null)
+                        responseString = String.Empty;
                 }
                 catch
                 {
