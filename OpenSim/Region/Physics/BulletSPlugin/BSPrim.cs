@@ -346,7 +346,7 @@ public sealed class BSPrim : BSPhysObject
             {
                 // Done at taint time so we're sure the physics engine is not using the variables
                 // Vehicle code changes the parameters for this vehicle type.
-                _vehicle.ProcessTypeChange(type, Scene.LastSimulatedTimestep);
+                _vehicle.ProcessTypeChange(type);
                 // Tell the scene about the vehicle so it will get processing each frame.
                 _scene.VehicleInSceneTypeChanged(this, type);
             });
@@ -356,14 +356,14 @@ public sealed class BSPrim : BSPhysObject
     {
         _scene.TaintedObject("BSPrim.VehicleFloatParam", delegate()
         {
-            _vehicle.ProcessFloatVehicleParam((Vehicle)param, value, _scene.LastSimulatedTimestep);
+            _vehicle.ProcessFloatVehicleParam((Vehicle)param, value);
         });
     }
     public override void VehicleVectorParam(int param, OMV.Vector3 value) 
     {
         _scene.TaintedObject("BSPrim.VehicleVectorParam", delegate()
         {
-            _vehicle.ProcessVectorVehicleParam((Vehicle)param, value, _scene.LastSimulatedTimestep);
+            _vehicle.ProcessVectorVehicleParam((Vehicle)param, value);
         });
     }
     public override void VehicleRotationParam(int param, OMV.Quaternion rotation) 

@@ -131,7 +131,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             m_type = Vehicle.TYPE_NONE;
         }
 
-        internal void ProcessFloatVehicleParam(Vehicle pParam, float pValue, float timestep)
+        internal void ProcessFloatVehicleParam(Vehicle pParam, float pValue)
         {
             VDetailLog("{0},ProcessFloatVehicleParam,param={1},val={2}", m_prim.LocalID, pParam, pValue);
             switch (pParam)
@@ -230,7 +230,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             }
         }//end ProcessFloatVehicleParam
 
-        internal void ProcessVectorVehicleParam(Vehicle pParam, Vector3 pValue, float timestep)
+        internal void ProcessVectorVehicleParam(Vehicle pParam, Vector3 pValue)
         {
             VDetailLog("{0},ProcessVectorVehicleParam,param={1},val={2}", m_prim.LocalID, pParam, pValue);
             switch (pParam)
@@ -299,7 +299,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             }
         }//end ProcessVehicleFlags
 
-        internal void ProcessTypeChange(Vehicle pType, float stepSize)
+        internal void ProcessTypeChange(Vehicle pType)
         {
             VDetailLog("{0},ProcessTypeChange,type={1}", m_prim.LocalID, pType);
             // Set Defaults For Type
@@ -537,9 +537,6 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             // Add the various forces into m_dir which will be our new direction vector (velocity)
 
             // add Gravity and Buoyancy
-            // KF: So far I have found no good method to combine a script-requested
-            // .Z velocity and gravity. Therefore only 0g will used script-requested
-            // .Z velocity. >0g (m_VehicleBuoyancy < 1) will used modified gravity only.
             // There is some gravity, make a gravity force vector that is applied after object velocity.
             // m_VehicleBuoyancy: -1=2g; 0=1g; 1=0g;
             Vector3 grav = m_prim.Scene.DefaultGravity * (m_prim.Mass * (1f - m_VehicleBuoyancy));
