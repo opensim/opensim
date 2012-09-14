@@ -110,11 +110,6 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     private long m_simulationStep = 0;
     public long SimulationStep { get { return m_simulationStep; } }
 
-    // The length of the last timestep we were asked to simulate.
-    // This is used by the vehicle code. Since the vehicle code is called
-    //    once per simulation step, its constants need to be scaled by this.
-    public float LastSimulatedTimestep { get; private set; }
-
     // A value of the time now so all the collision and update routines do not have to get their own
     // Set to 'now' just before all the prims and actors are called for collisions and updates
     public int SimulationNowTime { get; private set; }
@@ -469,12 +464,8 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         int collidersCount = 0;
         IntPtr collidersPtr;
 
-        LastSimulatedTimestep = timeStep;
-
         // prevent simulation until we've been initialized
-        if (!m_initialized) return 10.0f;
-
-        int simulateStartTime = Util.EnvironmentTickCount();
+        if (!m_initialized) return 5.0f;
 
         // update the prim states while we know the physics engine is not busy
         int numTaints = _taintedObjects.Count;
@@ -514,7 +505,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         // This is a kludge to get avatar movement updates. 
         //   ODE sends collisions for avatars even if there are have been no collisions. This updates
         //   avatar animations and stuff.
-        // If you fix avatar animation updates, remove this overhead and let collisions happen.
+        // If you fix avatar animation updates, remove this overhead and let normal collision processing happen.
         m_objectsWithCollisions = new HashSet<BSPhysObject>(m_avatarsWithCollisions);
 
         // If there were collisions, process them by sending the event to the prim.
@@ -561,18 +552,10 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             }
         }
 
-        // this is a waste since the outside routine also calcuates the physics simulation
-        //   period. TODO: There should be a way of computing physics frames from simulator computation.
-        // long simulateTotalTime = Util.EnvironmentTickCountSubtract(simulateStartTime);
-        // return (timeStep * (float)simulateTotalTime);
-
-        // TODO: FIX THIS: fps calculation possibly wrong.
-        // This calculation says 1/timeStep is the ideal frame rate. Any time added to
-        //    that by the physics simulation gives a slower frame rate.
-        long totalSimulationTime = Util.EnvironmentTickCountSubtract(simulateStartTime);
-        if (totalSimulationTime >= timeStep)
-            return 0;
-        return 1f / (timeStep + totalSimulationTime);
+        // The physics engine returns the number of milliseconds it simulated this call.
+        // These are summed and normalized to one second and divided by 1000 to give the reported physics FPS.
+        // Since Bullet normally does 5 or 6 substeps, this will normally sum to about 60 FPS.
+        return numSubSteps * m_fixedTimeStep;
     }
 
     // Something has collided
