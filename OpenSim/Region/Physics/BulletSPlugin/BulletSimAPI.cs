@@ -558,9 +558,6 @@ public static extern void DestroyObject2(IntPtr sim, IntPtr obj);
 // =====================================================================================
 // Terrain creation and helper routines
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern void DumpMapInfo(IntPtr sim, IntPtr manInfo);
-
-[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern IntPtr CreateHeightMapInfo2(IntPtr sim, uint id, Vector3 minCoords, Vector3 maxCoords, 
         [MarshalAs(UnmanagedType.LPArray)] float[] heightMap, float collisionMargin);
 
@@ -1022,6 +1019,12 @@ public static extern void SetCollisionFilterMask(IntPtr shape, uint filter, uint
 
 // =====================================================================================
 // Debugging
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern void DumpRigidBody2(IntPtr sim, IntPtr collisionObject);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern void DumpMapInfo2(IntPtr sim, IntPtr manInfo);
+
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern void DumpPhysicsStatistics2(IntPtr sim);
 
