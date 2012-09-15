@@ -715,9 +715,28 @@ namespace OpenSim.Region.Framework.Scenes
         public event PrimsLoaded OnPrimsLoaded;
 
         public delegate void TeleportStart(IClientAPI client, GridRegion destination, GridRegion finalDestination, uint teleportFlags, bool gridLogout);
+
+        /// <summary>
+        /// Triggered when a teleport starts
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerTeleportStart"/>
+        /// in <see cref="OpenSim.Region.CoreModules.Framework.EntityTransfer.EntityTransferModule.CreateAgent"/>
+        /// and <see cref="OpenSim.Region.CoreModules.Framework.EntityTransfer.HGEntityTransferModule.CreateAgent"/>
+        /// via <see cref="OpenSim.Region.CoreModules.Framework.EntityTransfer.EntityTransferModule.DoTeleport"/>
+        /// </remarks>
         public event TeleportStart OnTeleportStart;
 
         public delegate void TeleportFail(IClientAPI client, bool gridLogout);
+
+        /// <summary>
+        /// Trigered when a teleport fails.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerTeleportFail"/>
+        /// in <see cref="OpenSim.Region.CoreModules.Framework.EntityTransfer.EntityTransferModule.Fail"/>
+        /// via <see cref="OpenSim.Region.CoreModules.Framework.EntityTransfer.EntityTransferModule.DoTeleport"/>
+        /// </remarks>
         public event TeleportFail OnTeleportFail;
 
         public class MoneyTransferArgs : EventArgs
