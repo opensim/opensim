@@ -1476,12 +1476,14 @@ public sealed class BSPrim : BSPhysObject
             DetailLog("{0},BSPrim.UpdateProperties,call,pos={1},orient={2},vel={3},accel={4},rotVel={5}",
                     LocalID, _position, _orientation, _velocity, _acceleration, _rotationalVelocity);
 
+            // BulletSimAPI.DumpRigidBody2(Scene.World.Ptr, BSBody.Ptr);
+
             base.RequestPhysicsterseUpdate();
         }
             /*
         else
         {
-            // For debugging, we also report the movement of children
+            // For debugging, we can also report the movement of children
             DetailLog("{0},BSPrim.UpdateProperties,child,pos={1},orient={2},vel={3},accel={4},rotVel={5}",
                     LocalID, entprop.Position, entprop.Rotation, entprop.Velocity, 
                     entprop.Acceleration, entprop.RotationalVelocity);
