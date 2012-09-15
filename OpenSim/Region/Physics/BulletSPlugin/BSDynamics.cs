@@ -475,7 +475,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 frcount = 0;
 
             MoveLinear(pTimestep);
-            // MoveAngular(pTimestep);
+            MoveAngular(pTimestep);
             LimitRotation(pTimestep);
 
             // remember the position so next step we can limit absolute movement effects
