@@ -41,7 +41,7 @@ public abstract class BSPhysObject : PhysicsActor
 {
     public abstract BSLinkset Linkset { get; set; }
 
-    public abstract void Collide(uint collidingWith, BSPhysObject collidee, ActorTypes type,
+    public abstract bool Collide(uint collidingWith, BSPhysObject collidee,
             OMV.Vector3 contactPoint, OMV.Vector3 contactNormal, float pentrationDepth);
     public abstract void SendCollisions();
 

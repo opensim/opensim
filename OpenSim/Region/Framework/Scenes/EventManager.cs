@@ -531,7 +531,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// the scripts may not have started yet
         /// Message is non empty string if there were problems loading the oar file
         /// </summary>
-        public delegate void OarFileLoaded(Guid guid, string message);
+        public delegate void OarFileLoaded(Guid guid, List<UUID> loadedScenes, string message);
         public event OarFileLoaded OnOarFileLoaded;
         
         /// <summary>
@@ -2195,7 +2195,7 @@ namespace OpenSim.Region.Framework.Scenes
             return 6;
         }
 
-        public void TriggerOarFileLoaded(Guid requestId, string message)
+        public void TriggerOarFileLoaded(Guid requestId, List<UUID> loadedScenes, string message)
         {
             OarFileLoaded handlerOarFileLoaded = OnOarFileLoaded;
             if (handlerOarFileLoaded != null)
@@ -2204,7 +2204,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     try
                     {
-                        d(requestId, message);
+                        d(requestId, loadedScenes, message);
                     }
                     catch (Exception e)
                     {

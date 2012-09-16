@@ -154,27 +154,31 @@ public class BSTerrainManager
 
     // The simulator wants to set a new heightmap for the terrain.
     public void SetTerrain(float[] heightMap) {
-        if (m_worldOffset != Vector3.Zero && m_parentScene != null)
+        float[] localHeightMap = heightMap;
+        m_physicsScene.TaintedObject("TerrainManager.SetTerrain", delegate()
         {
-            // If a child of a mega-region, we shouldn't have any terrain allocated for us
-            ReleaseGroundPlaneAndTerrain();   
-            // If doing the mega-prim stuff and we are the child of the zero region,
-            //    the terrain is added to our parent
-            if (m_parentScene is BSScene)
+            if (m_worldOffset != Vector3.Zero && m_parentScene != null)
             {
-                DetailLog("{0},SetTerrain.ToParent,offset={1},worldMax={2}", 
-                                BSScene.DetailLogZero, m_worldOffset, m_worldMax);
-                ((BSScene)m_parentScene).TerrainManager.UpdateOrCreateTerrain(BSScene.CHILDTERRAIN_ID,
-                                heightMap, m_worldOffset, m_worldOffset+DefaultRegionSize, false);
+                // If a child of a mega-region, we shouldn't have any terrain allocated for us
+                ReleaseGroundPlaneAndTerrain();
+                // If doing the mega-prim stuff and we are the child of the zero region,
+                //    the terrain is added to our parent
+                if (m_parentScene is BSScene)
+                {
+                    DetailLog("{0},SetTerrain.ToParent,offset={1},worldMax={2}",
+                                    BSScene.DetailLogZero, m_worldOffset, m_worldMax);
+                    ((BSScene)m_parentScene).TerrainManager.UpdateOrCreateTerrain(BSScene.CHILDTERRAIN_ID,
+                                    localHeightMap, m_worldOffset, m_worldOffset + DefaultRegionSize, true);
+                }
             }
-        }
-        else
-        {
-            // If not doing the mega-prim thing, just change the terrain
-            DetailLog("{0},SetTerrain.Existing", BSScene.DetailLogZero);
+            else
+            {
+                // If not doing the mega-prim thing, just change the terrain
+                DetailLog("{0},SetTerrain.Existing", BSScene.DetailLogZero);
 
-            UpdateOrCreateTerrain(BSScene.TERRAIN_ID, heightMap, m_worldOffset, m_worldOffset+DefaultRegionSize, false);
-        }
+                UpdateOrCreateTerrain(BSScene.TERRAIN_ID, localHeightMap, m_worldOffset, m_worldOffset + DefaultRegionSize, true);
+            }
+        });
     }
 
     // If called with no mapInfo for the terrain, this will create a new mapInfo and terrain
@@ -319,6 +323,8 @@ public class BSTerrainManager
 
                 // Make sure the new shape is processed.
                 BulletSimAPI.Activate2(mapInfo.terrainBody.Ptr, true);
+
+                m_terrainModified = true;
             };
 
             // There is the option to do the changes now (we're already in 'taint time'), or
@@ -357,6 +363,8 @@ public class BSTerrainManager
                 m_heightMaps.Add(terrainRegionBase, mapInfo);
                 // Build the terrain
                 UpdateOrCreateTerrain(newTerrainID, heightMap, minCoords, maxCoords, true);
+
+                m_terrainModified = true;
             };
 
             // If already in taint-time, just call Bullet. Otherwise queue the operations for the safe time.
@@ -383,7 +391,7 @@ public class BSTerrainManager
     private float lastHeightTX = 999999f;
     private float lastHeightTY = 999999f;
     private float lastHeight = HEIGHT_INITIAL_LASTHEIGHT;
-    public float GetTerrainHeightAtXY(float tX, float tY)
+    private float GetTerrainHeightAtXY(float tX, float tY)
     {
         // You'd be surprized at the number of times this routine is called
         //    with the same parameters as last time.
@@ -403,11 +411,18 @@ public class BSTerrainManager
         {
             float regionX = tX - offsetX;
             float regionY = tY - offsetY;
-            if (regionX >= mapInfo.sizeX || regionX < 0f) regionX = 0;
-            if (regionY >= mapInfo.sizeY || regionY < 0f) regionY = 0;
             int mapIndex = (int)regionY * (int)mapInfo.sizeY + (int)regionX;
-            ret = mapInfo.heightMap[mapIndex];
-            m_terrainModified = false;
+            try
+            {
+                ret = mapInfo.heightMap[mapIndex];
+            }
+            catch
+            {
+                // Sometimes they give us wonky values of X and Y. Give a warning and return something.
+                m_physicsScene.Logger.WarnFormat("{0} Bad request for terrain height. terrainBase={1}, x={2}, y={3}",
+                                    LogHeader, terrainBaseXY, regionX, regionY);
+                ret = HEIGHT_GETHEIGHT_RET;
+            }
             // DetailLog("{0},BSTerrainManager.GetTerrainHeightAtXY,bX={1},baseY={2},szX={3},szY={4},regX={5},regY={6},index={7},ht={8}",
             //         BSScene.DetailLogZero, offsetX, offsetY, mapInfo.sizeX, mapInfo.sizeY, regionX, regionY, mapIndex, ret);
         }
@@ -416,6 +431,7 @@ public class BSTerrainManager
             m_physicsScene.Logger.ErrorFormat("{0} GetTerrainHeightAtXY: terrain not found: region={1}, x={2}, y={3}",
                     LogHeader, m_physicsScene.RegionName, tX, tY);
         }
+        m_terrainModified = false;
         lastHeight = ret;
         return ret;
     }

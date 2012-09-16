@@ -54,10 +54,3 @@
 
     ; Warning level for cache directory size
     ;CacheWarnAt = 30000
-
-    ; Perform a deep scan of all assets within all regions, looking for all assets
-    ; present or referenced.  Mark all assets found that are already present in the
-    ; cache, and request all assets that are found that are not already cached (this
-    ; will cause those assets to be cached)
-    ;
-    DeepScanBeforePurge = true

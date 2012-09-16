@@ -146,6 +146,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             ops.Add("noassets", delegate(string v) { options["noassets"] = v != null; });
             ops.Add("publish", v => options["wipe-owners"] = v != null);
             ops.Add("perm=", delegate(string v) { options["checkPermissions"] = v; });
+            ops.Add("all", delegate(string v) { options["all"] = v != null; });
 
             List<string> mainParams = ops.Parse(cmdparams);
 
@@ -169,7 +170,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             m_log.InfoFormat(
                 "[ARCHIVER]: Writing archive for region {0} to {1}", Scene.RegionInfo.RegionName, savePath);
             
-            new ArchiveWriteRequestPreparation(this, savePath, requestId).ArchiveRegion(options);
+            new ArchiveWriteRequest(Scene, savePath, requestId).ArchiveRegion(options);
         }
 
         public void ArchiveRegion(Stream saveStream)
@@ -184,7 +185,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
         public void ArchiveRegion(Stream saveStream, Guid requestId, Dictionary<string, object> options)
         {
-            new ArchiveWriteRequestPreparation(this, saveStream, requestId).ArchiveRegion(options);
+            new ArchiveWriteRequest(Scene, saveStream, requestId).ArchiveRegion(options);
         }
 
         public void DearchiveRegion(string loadPath)
