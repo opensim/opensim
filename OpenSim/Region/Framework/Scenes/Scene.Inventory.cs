@@ -101,12 +101,12 @@ namespace OpenSim.Region.Framework.Scenes
                 engine.StartProcessing();
         }
 
-        public void AddUploadedInventoryItem(UUID agentID, InventoryItemBase item)
+        public void AddUploadedInventoryItem(UUID agentID, InventoryItemBase item, uint cost)
         {
             IMoneyModule money = RequestModuleInterface<IMoneyModule>();
             if (money != null)
             {
-                money.ApplyUploadCharge(agentID, money.UploadCharge, "Asset upload");
+                money.ApplyUploadCharge(agentID, (int)cost, "Asset upload");
             }
 
             AddInventoryItem(item);

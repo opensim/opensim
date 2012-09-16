@@ -632,7 +632,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 // Every month or so this will wrap and give bad numbers, not really a problem
                 // since its just for reporting
                 int tickdiff = requestEndTick - requestStartTick;
-                if (tickdiff > 3000)
+                if (tickdiff > 3000 && requestHandler.Name != "GetTexture")
                 {
                     m_log.InfoFormat(
                         "[BASE HTTP SERVER]: Slow handling of {0} {1} {2} {3} from {4} took {5}ms",
@@ -1493,7 +1493,8 @@ namespace OpenSim.Framework.Servers.HttpServer
         internal byte[] DoHTTPGruntWork(Hashtable responsedata, OSHttpResponse response)
         {
             int responsecode;
-            string responseString;
+            string responseString = String.Empty;
+            byte[] responseData = null;
             string contentType;
 
             if (responsedata == null)
@@ -1509,7 +1510,10 @@ namespace OpenSim.Framework.Servers.HttpServer
                 {
                     //m_log.Info("[BASE HTTP SERVER]: Doing HTTP Grunt work with response");
                     responsecode = (int)responsedata["int_response_code"];
-                    responseString = (string)responsedata["str_response_string"];
+                    if (responsedata["bin_response_data"] != null)
+                        responseData = (byte[])responsedata["bin_response_data"];
+                    else
+                        responseString = (string)responsedata["str_response_string"];
                     contentType = (string)responsedata["content_type"];
                 }
                 catch
@@ -1564,25 +1568,40 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             response.AddHeader("Content-Type", contentType);
 
+            if (responsedata.ContainsKey("headers"))
+            {
+                Hashtable headerdata = (Hashtable)responsedata["headers"];
+
+                foreach (string header in headerdata.Keys)
+                    response.AddHeader(header, (string)headerdata[header]);
+            }
+
             byte[] buffer;
 
-            if (!(contentType.Contains("image")
-                || contentType.Contains("x-shockwave-flash")
-                || contentType.Contains("application/x-oar")
-                || contentType.Contains("application/vnd.ll.mesh")))
+            if (responseData != null)
             {
-                // Text
-                buffer = Encoding.UTF8.GetBytes(responseString);
+                buffer = responseData;
             }
             else
             {
-                // Binary!
-                buffer = Convert.FromBase64String(responseString);
-            }
+                if (!(contentType.Contains("image")
+                    || contentType.Contains("x-shockwave-flash")
+                    || contentType.Contains("application/x-oar")
+                    || contentType.Contains("application/vnd.ll.mesh")))
+                {
+                    // Text
+                    buffer = Encoding.UTF8.GetBytes(responseString);
+                }
+                else
+                {
+                    // Binary!
+                    buffer = Convert.FromBase64String(responseString);
+                }
 
-            response.SendChunked = false;
-            response.ContentLength64 = buffer.Length;
-            response.ContentEncoding = Encoding.UTF8;
+                response.SendChunked = false;
+                response.ContentLength64 = buffer.Length;
+                response.ContentEncoding = Encoding.UTF8;
+            }
 
             return buffer;
         }

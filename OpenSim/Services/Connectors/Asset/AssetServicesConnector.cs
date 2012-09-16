@@ -193,7 +193,7 @@ namespace OpenSim.Services.Connectors
             if (asset == null || asset.Data == null || asset.Data.Length == 0)
             {
                 asset = SynchronousRestObjectRequester.
-                        MakeRequest<int, AssetBase>("GET", uri, 0);
+                        MakeRequest<int, AssetBase>("GET", uri, 0, 30);
 
                 if (m_Cache != null)
                     m_Cache.Cache(asset);
@@ -321,7 +321,7 @@ namespace OpenSim.Services.Connectors
                                 h.Invoke(a);
                             if (handlers != null)
                                 handlers.Clear();
-                        });
+                        }, 30);
                     
                     success = true;
                 }

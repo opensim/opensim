@@ -52,7 +52,8 @@ namespace OpenSim.Framework.Servers.HttpServer
         {
             Normal = 0,
             LslHttp = 1,
-            Inventory = 2
+            Inventory = 2,
+            Texture = 3
         }
 
         public PollServiceEventArgs(
