@@ -706,27 +706,27 @@ namespace OpenSim.Framework
 
             config.Set("ExternalHostName", m_externalHostName);
 
-            if (m_nonphysPrimMin != 0)
+            if (m_nonphysPrimMin > 0)
                 config.Set("NonphysicalPrimMax", m_nonphysPrimMin);
 
-            if (m_nonphysPrimMax != 0)
+            if (m_nonphysPrimMax > 0)
                 config.Set("NonphysicalPrimMax", m_nonphysPrimMax);
 
-            if (m_physPrimMin != 0)
+            if (m_physPrimMin > 0)
                 config.Set("PhysicalPrimMax", m_physPrimMin);
             
-            if (m_physPrimMax != 0)
+            if (m_physPrimMax > 0)
                 config.Set("PhysicalPrimMax", m_physPrimMax);
                         
             config.Set("ClampPrimSize", m_clampPrimSize.ToString());
 
-            if (m_objectCapacity != 0)
+            if (m_objectCapacity > 0)
                 config.Set("MaxPrims", m_objectCapacity);
 
-            if (m_linksetCapacity != 0)
+            if (m_linksetCapacity > 0)
                 config.Set("LinksetPrims", m_linksetCapacity);
 
-            if (m_agentCapacity != 0)
+            if (m_agentCapacity > 0)
                 config.Set("MaxAgents", m_agentCapacity);
 
             if (ScopeID != UUID.Zero)

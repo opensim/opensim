@@ -292,7 +292,7 @@ namespace OpenSim
 
             m_console.Commands.AddCommand("Archiving", false, "save oar",
                                           //"save oar [-v|--version=<N>] [-p|--profile=<url>] [<OAR path>]",
-                                          "save oar [-h|--home=<url>] [--noassets] [--publish] [--perm=<permissions>] [<OAR path>]",
+                                          "save oar [-h|--home=<url>] [--noassets] [--publish] [--perm=<permissions>] [--all] [<OAR path>]",
                                           "Save a region's data to an OAR archive.",
 //                                          "-v|--version=<N> generates scene objects as per older versions of the serialization (e.g. -v=0)" + Environment.NewLine
                                           "-h|--home=<url> adds the url of the profile service to the saved user information.\n"
@@ -302,6 +302,7 @@ namespace OpenSim
                                           + "   this is useful if you're making oars generally available that might be reloaded to the same grid from which you published\n"
                                           + "--perm=<permissions> stops objects with insufficient permissions from being saved to the OAR.\n"
                                           + "   <permissions> can contain one or more of these characters: \"C\" = Copy, \"T\" = Transfer\n"
+                                          + "--all saves all the regions in the simulator, instead of just the current region.\n"
                                           + "The OAR path must be a filesystem path."
                                           + " If this is not given then the oar is saved to region.oar in the current directory.",
                                           SaveOar);
@@ -331,10 +332,6 @@ namespace OpenSim
             m_console.Commands.AddCommand("Comms", false, "show circuits",
                                           "show circuits",
                                           "Show agent circuit data", HandleShow);
-
-            m_console.Commands.AddCommand("Comms", false, "show http-handlers",
-                                          "show http-handlers",
-                                          "Show all registered http handlers", HandleShow);
 
             m_console.Commands.AddCommand("Comms", false, "show pending-objects",
                                           "show pending-objects",
@@ -1011,33 +1008,6 @@ namespace OpenSim
 
                 case "circuits":
                     HandleShowCircuits();
-                    break;
-
-                case "http-handlers":
-                    System.Text.StringBuilder handlers = new System.Text.StringBuilder("Registered HTTP Handlers:\n");
-
-                    handlers.AppendFormat("* XMLRPC:\n");
-                    foreach (String s in HttpServer.GetXmlRpcHandlerKeys())
-                        handlers.AppendFormat("\t{0}\n", s);
-
-                    handlers.AppendFormat("* HTTP:\n");
-                    List<String> poll = HttpServer.GetPollServiceHandlerKeys();
-                    foreach (String s in HttpServer.GetHTTPHandlerKeys())
-                        handlers.AppendFormat("\t{0} {1}\n", s, (poll.Contains(s) ? "(poll service)" : string.Empty));
-
-                    handlers.AppendFormat("* Agent:\n");
-                    foreach (String s in HttpServer.GetAgentHandlerKeys())
-                        handlers.AppendFormat("\t{0}\n", s);
-
-                    handlers.AppendFormat("* LLSD:\n");
-                    foreach (String s in HttpServer.GetLLSDHandlerKeys())
-                        handlers.AppendFormat("\t{0}\n", s);
-
-                    handlers.AppendFormat("* StreamHandlers ({0}):\n", HttpServer.GetStreamHandlerKeys().Count);
-                    foreach (String s in HttpServer.GetStreamHandlerKeys())
-                        handlers.AppendFormat("\t{0}\n", s);
-
-                    MainConsole.Instance.Output(handlers.ToString());
                     break;
 
                 case "modules":

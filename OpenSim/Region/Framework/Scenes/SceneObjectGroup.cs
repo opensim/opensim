@@ -2750,13 +2750,14 @@ namespace OpenSim.Region.Framework.Scenes
                     m_scene.m_linksetCapacity)
             {
                 m_log.DebugFormat(
-                        "[SCENE OBJECT GROUP]: Cannot link group with root" +
-                        " part {0}, {1} ({2} prims) to group with root part" +
-                        " {3}, {4} ({5} prims) because the new linkset" +
-                        " would exceed the configured maximum of {6}",
-                        objectGroup.RootPart.Name, objectGroup.RootPart.UUID,
-                        objectGroup.PrimCount, RootPart.Name, RootPart.UUID,
-                        PrimCount, m_scene.m_linksetCapacity);
+                    "[SCENE OBJECT GROUP]: Cannot link group with root" +
+                    " part {0}, {1} ({2} prims) to group with root part" +
+                    " {3}, {4} ({5} prims) because the new linkset" +
+                    " would exceed the configured maximum of {6}",
+                    objectGroup.RootPart.Name, objectGroup.RootPart.UUID,
+                    objectGroup.PrimCount, RootPart.Name, RootPart.UUID,
+                    PrimCount, m_scene.m_linksetCapacity);
+
                 return;
             }
 

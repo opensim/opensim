@@ -449,9 +449,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 if (TryGetStreamHandler(handlerKey, out requestHandler))
                 {
                     if (DebugLevel >= 3)
-                        m_log.DebugFormat(
-                            "[BASE HTTP SERVER]: Found stream handler for {0} {1} {2} {3}",
-                            request.HttpMethod, request.Url.PathAndQuery, requestHandler.Name, requestHandler.Description);
+                        LogIncomingToStreamHandler(request, requestHandler);
 
                     response.ContentType = requestHandler.ContentType; // Lets do this defaulting before in case handler has varying content type.
 
@@ -563,9 +561,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                             if (DoWeHaveALLSDHandler(request.RawUrl))
                             {
                                 if (DebugLevel >= 3)
-                                    m_log.DebugFormat(
-                                        "[BASE HTTP SERVER]: Found a {0} content type handler for {1} {2}",
-                                        request.ContentType, request.HttpMethod, request.Url.PathAndQuery);
+                                    LogIncomingToContentTypeHandler(request);
     
                                 buffer = HandleLLSDRequests(request, response);
                             }
@@ -573,18 +569,14 @@ namespace OpenSim.Framework.Servers.HttpServer
                             else if (DoWeHaveAHTTPHandler(request.RawUrl))
                             {
                                 if (DebugLevel >= 3)
-                                    m_log.DebugFormat(
-                                        "[BASE HTTP SERVER]: Found a {0} content type handler for {1} {2}",
-                                        request.ContentType, request.HttpMethod, request.Url.PathAndQuery);
+                                    LogIncomingToContentTypeHandler(request);
     
                                 buffer = HandleHTTPRequest(request, response);
                             }
                             else
                             {
                                 if (DebugLevel >= 3)
-                                    m_log.DebugFormat(
-                                        "[BASE HTTP SERVER]: Assuming a generic XMLRPC request for {0} {1}",
-                                        request.HttpMethod, request.Url.PathAndQuery);
+                                    LogIncomingToXmlRpcHandler(request);
     
                                 // generic login request.
                                 buffer = HandleXmlRpcRequests(request, response);
@@ -651,6 +643,58 @@ namespace OpenSim.Framework.Servers.HttpServer
                         request.RemoteIPEndPoint.ToString(),
                         tickdiff);
                 }
+            }
+        }
+
+        private void LogIncomingToStreamHandler(OSHttpRequest request, IRequestHandler requestHandler)
+        {
+            m_log.DebugFormat(
+                "[BASE HTTP SERVER]: Found stream handler for {0} {1} {2} {3}",
+                request.HttpMethod, request.Url.PathAndQuery, requestHandler.Name, requestHandler.Description);
+
+            if (DebugLevel >= 4)
+                LogIncomingInDetail(request);
+        }
+
+        private void LogIncomingToContentTypeHandler(OSHttpRequest request)
+        {
+            m_log.DebugFormat(
+                "[BASE HTTP SERVER]: Found a {0} content type handler for {1} {2}",
+                request.ContentType, request.HttpMethod, request.Url.PathAndQuery);
+
+            if (DebugLevel >= 4)
+                LogIncomingInDetail(request);
+        }
+
+        private void LogIncomingToXmlRpcHandler(OSHttpRequest request)
+        {
+            m_log.DebugFormat(
+                "[BASE HTTP SERVER]: Assuming a generic XMLRPC request for {0} {1}",
+                request.HttpMethod, request.Url.PathAndQuery);
+
+            if (DebugLevel >= 4)
+                LogIncomingInDetail(request);
+        }
+
+        private void LogIncomingInDetail(OSHttpRequest request)
+        {
+            using (StreamReader reader = new StreamReader(Util.Copy(request.InputStream), Encoding.UTF8))
+            {
+                string output;
+
+                if (DebugLevel == 4)
+                {
+                    const int sampleLength = 80;
+                    char[] sampleChars = new char[sampleLength];
+                    reader.Read(sampleChars, 0, sampleLength);
+                    output = string.Format("[BASE HTTP SERVER]: {0}...", new string(sampleChars).Replace("\n", @"\n"));
+                }
+                else
+                {
+                    output = string.Format("[BASE HTTP SERVER]: {0}", reader.ReadToEnd());
+                }
+
+                m_log.Debug(output);
             }
         }
 

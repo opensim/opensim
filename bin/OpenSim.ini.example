@@ -108,10 +108,10 @@
     ;; This can be overriden in the region config file.
     ; ClampPrimSize = false
 	
-	;# {LinksetPrims} {} {Max prims an object will hold?} {} 0
-	;; Maximum number of prims allowable in a linkset. Affects creating new linksets. Ignored if less than or equal to zero.
-	;; This can be overriden in the region config file.
-	; LinksetPrims = 0
+    ;# {LinksetPrims} {} {Max prims an object will hold?} {} 0
+    ;; Maximum number of prims allowable in a linkset. Affects creating new linksets. Ignored if less than or equal to zero.
+    ;; This can be overriden in the region config file.
+    ; LinksetPrims = 0
 
     ;# {AllowScriptCrossing} {} {Allow scripts to cross into this region} {true false} true
     ;; Allow scripts to keep running when they cross region boundaries, rather than being restarted.  State is reloaded on the destination region.

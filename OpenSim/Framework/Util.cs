@@ -1019,6 +1019,38 @@ namespace OpenSim.Framework
             }
         }
 
+        /// <summary>
+        /// Copy data from one stream to another, leaving the read position of both streams at the beginning.
+        /// </summary>
+        /// <param name='inputStream'>
+        /// Input stream.  Must be seekable.
+        /// </param>
+        /// <exception cref='ArgumentException'>
+        /// Thrown if the input stream is not seekable.
+        /// </exception>
+        public static Stream Copy(Stream inputStream)
+        {
+            if (!inputStream.CanSeek)
+                throw new ArgumentException("Util.Copy(Stream inputStream) must receive an inputStream that can seek");
+
+            const int readSize = 256;
+            byte[] buffer = new byte[readSize];
+            MemoryStream ms = new MemoryStream();
+        
+            int count = inputStream.Read(buffer, 0, readSize);
+
+            while (count > 0)
+            {
+                ms.Write(buffer, 0, count);
+                count = inputStream.Read(buffer, 0, readSize);
+            }
+
+            ms.Position = 0;
+            inputStream.Position = 0;
+
+            return ms;
+        }
+
         public static XmlRpcResponse XmlRpcCommand(string url, string methodName, params object[] args)
         {
             return SendXmlRpcCommand(url, methodName, args);

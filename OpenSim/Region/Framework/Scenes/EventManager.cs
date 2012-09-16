@@ -47,30 +47,75 @@ namespace OpenSim.Region.Framework.Scenes
         
         public delegate void OnFrameDelegate();
 
+        /// <summary>
+        /// Triggered on each sim frame.
+        /// </summary>
+        /// <remarks>
+        /// This gets triggered in <see cref="OpenSim.Region.Framework.Scenes.Scene.Update"/>
+        /// Core uses it for things like Sun, Wind & Clouds
+        /// The MRM module also uses it.
+        /// </remarks>
         public event OnFrameDelegate OnFrame;
 
         public delegate void ClientMovement(ScenePresence client);
 
+        /// <summary>
+        /// Trigerred when an agent moves.
+        /// </summary>
+        /// <remarks>
+        /// This gets triggered in <see cref="OpenSim.Region.Framework.Scenes.ScenePresence.HandleAgentUpdate"/>
+        /// prior to <see cref="OpenSim.Region.Framework.Scenes.ScenePresence.TriggerScenePresenceUpdated"/>
+        /// </remarks>
         public event ClientMovement OnClientMovement;
 
         public delegate void OnTerrainTaintedDelegate();
 
+        /// <summary>
+        /// Triggered if the terrain has been edited
+        /// </summary>
+        /// <remarks>
+        /// This gets triggered in <see cref="OpenSim.Region.CoreModules.World.Terrain.CheckForTerrainUpdates"/>
+        /// after it determines that an update has been made.
+        /// </remarks>
         public event OnTerrainTaintedDelegate OnTerrainTainted;
 
         public delegate void OnTerrainTickDelegate();
 
-        public delegate void OnTerrainUpdateDelegate();
-
+        /// <summary>
+        /// Triggered if the terrain has been edited
+        /// </summary>
+        /// <remarks>
+        /// This gets triggered in <see cref="OpenSim.Region.Framework.Scenes.Scene.UpdateTerrain"/>
+        /// but is used by core solely to update the physics engine.
+        /// </remarks>
         public event OnTerrainTickDelegate OnTerrainTick;
+
+        public delegate void OnTerrainUpdateDelegate();
 
         public event OnTerrainUpdateDelegate OnTerrainUpdate;
 
         public delegate void OnBackupDelegate(ISimulationDataService datastore, bool forceBackup);
 
+        /// <summary>
+        /// Triggered when a region is backed up/persisted to storage
+        /// </summary>
+        /// <remarks>
+        /// This gets triggered in <see cref="OpenSim.Region.Framework.Scenes.Scene.Backup"/>
+        /// and is fired before the persistence occurs.
+        /// </remarks>
         public event OnBackupDelegate OnBackup;
 
         public delegate void OnClientConnectCoreDelegate(IClientCore client);
 
+        /// <summary>
+        /// Triggered when a new client connects to the scene.
+        /// </summary>
+        /// <remarks>
+        /// This gets triggered in <see cref="TriggerOnNewClient"/>,
+        /// which checks if an instance of <see cref="OpenSim.Framework.IClientAPI"/>
+        /// also implements <see cref="OpenSim.Framework.Client.IClientCore"/> and as such,
+        /// is not triggered by <see cref="OpenSim.Region.OptionalModules.World.NPC">NPCs</see>.
+        /// </remarks>
         public event OnClientConnectCoreDelegate OnClientConnect;
 
         public delegate void OnNewClientDelegate(IClientAPI client);
@@ -91,18 +136,54 @@ namespace OpenSim.Region.Framework.Scenes
 
         public delegate void OnNewPresenceDelegate(ScenePresence presence);
 
+        /// <summary>
+        /// Triggered when a new presence is added to the scene
+        /// </summary>
+        /// <remarks>
+        /// Triggered in <see cref="OpenSim.Region.Framework.Scenes.Scene.AddNewClient"/> which is used by both
+        /// <see cref="OpenSim.Framework.PresenceType.User">users</see> and <see cref="OpenSim.Framework.PresenceType.Npc">NPCs</see>
+        /// </remarks>
         public event OnNewPresenceDelegate OnNewPresence;
 
         public delegate void OnRemovePresenceDelegate(UUID agentId);
 
+        /// <summary>
+        /// Triggered when a presence is removed from the scene
+        /// </summary>
+        /// <remarks>
+        /// Triggered in <see cref="OpenSim.Region.Framework.Scenes.Scene.AddNewClient"/> which is used by both
+        /// <see cref="OpenSim.Framework.PresenceType.User">users</see> and <see cref="OpenSim.Framework.PresenceType.Npc">NPCs</see>
+        /// </remarks>
         public event OnRemovePresenceDelegate OnRemovePresence;
 
         public delegate void OnParcelPrimCountUpdateDelegate();
 
+        /// <summary>
+        /// Triggered whenever the prim count may have been altered, or prior
+        /// to an action that requires the current prim count to be accurate.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerParcelPrimCountUpdate"/> in
+        /// <see cref="OpenSim.OpenSimBase.CreateRegion"/>,
+        /// <see cref="OpenSim.Region.CoreModules.World.Land.LandManagementModule.EventManagerOnRequestParcelPrimCountUpdate"/>,
+        /// <see cref="OpenSim.Region.CoreModules.World.Land.LandManagementModule.ClientOnParcelObjectOwnerRequest"/>,
+        /// <see cref="OpenSim.Region.CoreModules.World.Land.LandObject.GetPrimsFree"/>,
+        /// <see cref="OpenSim.Region.CoreModules.World.Land.LandObject.UpdateLandSold"/>,
+        /// <see cref="OpenSim.Region.CoreModules.World.Land.LandObject.DeedToGroup"/>,
+        /// <see cref="OpenSim.Region.CoreModules.World.Land.LandObject.SendLandUpdateToClient"/>
+        /// </remarks>
         public event OnParcelPrimCountUpdateDelegate OnParcelPrimCountUpdate;
 
         public delegate void OnParcelPrimCountAddDelegate(SceneObjectGroup obj);
 
+        /// <summary>
+        /// Triggered in response to <see cref="OnParcelPrimCountUpdate"/> for
+        /// objects that actually contribute to parcel prim count.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerParcelPrimCountAdd"/> in
+        /// <see cref="OpenSim.Region.CoreModules.World.Land.LandManagementModule.EventManagerOnParcelPrimCountUpdate"/>
+        /// </remarks>
         public event OnParcelPrimCountAddDelegate OnParcelPrimCountAdd;
 
         public delegate void OnPluginConsoleDelegate(string[] args);
@@ -123,6 +204,14 @@ namespace OpenSim.Region.Framework.Scenes
 
         public event OnSetRootAgentSceneDelegate OnSetRootAgentScene;
 
+        /// <summary>
+        /// Triggered after parcel properties have been updated.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerOnParcelPropertiesUpdateRequest"/> in
+        /// <see cref="OpenSim.Region.CoreModules.World.Land.LandManagementModule.ClientOnParcelPropertiesUpdateRequest"/>,
+        /// <see cref="OpenSim.Region.CoreModules.World.Land.LandManagementModule.ProcessPropertiesUpdate"/>
+        /// </remarks>
         public event ParcelPropertiesUpdateRequest OnParcelPropertiesUpdateRequest;
 
         /// <summary>
@@ -373,6 +462,20 @@ namespace OpenSim.Region.Framework.Scenes
         public event RequestParcelPrimCountUpdate OnRequestParcelPrimCountUpdate;
 
         public delegate void ParcelPrimCountTainted();
+
+        /// <summary>
+        /// Triggered when the parcel prim count has been altered.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerParcelPrimCountTainted"/> in
+        /// <see cref="OpenSim.Region.CoreModules.Avatar.Attachments.AttachmentsModule.DetachSingleAttachmentToGround"/>,
+        /// <see cref="OpenSim.Region.CoreModules.Avatar.Attachments.AttachmentsModule.AttachToAgent"/>,
+        /// <see cref="Scene.DeleteSceneObject"/>,
+        /// <see cref="Scene.SelectPrim"/>,
+        /// <see cref="Scene.DeselectPrim"/>,
+        /// <see cref="SceneObjectGroup.UpdatePrimFlags"/>,
+        /// <see cref="SceneObjectGroup.AbsolutePosition"/>
+        /// </remarks>
         public event ParcelPrimCountTainted OnParcelPrimCountTainted;
         public event GetScriptRunning OnGetScriptRunning;
 
@@ -432,7 +535,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// the scripts may not have started yet
         /// Message is non empty string if there were problems loading the oar file
         /// </summary>
-        public delegate void OarFileLoaded(Guid guid, string message);
+        public delegate void OarFileLoaded(Guid guid, List<UUID> loadedScenes, string message);
         public event OarFileLoaded OnOarFileLoaded;
         
         /// <summary>
@@ -485,6 +588,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="copy"></param>
         /// <param name="original"></param>
         /// <param name="userExposed">True if the duplicate will immediately be in the scene, false otherwise</param>
+        /// <remarks>
+        /// Triggered in <see cref="OpenSim.Region.Framework.Scenes.SceneObjectPart.Copy"/>
+        /// </remarks>
         public event SceneObjectPartCopyDelegate OnSceneObjectPartCopy;
         public delegate void SceneObjectPartCopyDelegate(SceneObjectPart copy, SceneObjectPart original, bool userExposed);
 
@@ -593,8 +699,29 @@ namespace OpenSim.Region.Framework.Scenes
 
         public delegate void LandBuy(Object sender, LandBuyArgs e);
 
+        /// <summary>
+        /// Triggered when an attempt to transfer grid currency occurs
+        /// </summary>
+        /// <remarks>
+        /// Triggered in <see cref="OpenSim.Region.Framework.Scenes.Scene.ProcessMoneyTransferRequest"/>
+        /// via <see cref="OpenSim.Region.Framework.Scenes.Scene.SubscribeToClientGridEvents"/>
+        /// via <see cref="OpenSim.Region.Framework.Scenes.Scene.SubscribeToClientEvents"/>
+        /// via <see cref="OpenSim.Region.Framework.Scenes.Scene.AddNewClient"/>
+        /// </remarks>
         public event MoneyTransferEvent OnMoneyTransfer;
+
+        /// <summary>
+        /// Triggered after after <see cref="OnValidateLandBuy"/>
+        /// </summary>
         public event LandBuy OnLandBuy;
+
+        /// <summary>
+        /// Triggered to allow or prevent a real estate transaction
+        /// </summary>
+        /// <remarks>
+        /// Triggered in <see cref="OpenSim.Region.Framework.Scenes.Scene.ProcessParcelBuy"/>
+        /// <seealso cref="OpenSim.Region.OptionalModules.World.MoneyModule.SampleMoneyModule.ValidateLandBuy"/>
+        /// </remarks>
         public event LandBuy OnValidateLandBuy;
 
         public void TriggerOnAttach(uint localID, UUID itemID, UUID avatarID)
@@ -2093,7 +2220,7 @@ namespace OpenSim.Region.Framework.Scenes
             return 6;
         }
 
-        public void TriggerOarFileLoaded(Guid requestId, string message)
+        public void TriggerOarFileLoaded(Guid requestId, List<UUID> loadedScenes, string message)
         {
             OarFileLoaded handlerOarFileLoaded = OnOarFileLoaded;
             if (handlerOarFileLoaded != null)
@@ -2102,7 +2229,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     try
                     {
-                        d(requestId, message);
+                        d(requestId, loadedScenes, message);
                     }
                     catch (Exception e)
                     {

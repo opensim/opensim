@@ -46,6 +46,12 @@ namespace OpenSim.Region.CoreModules.World.Archiver
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        /// <summary>
+        /// Method called when all the necessary assets for an archive request have been received.
+        /// </summary>
+        public delegate void AssetsRequestCallback(
+            ICollection<UUID> assetsFoundUuids, ICollection<UUID> assetsNotFoundUuids);
+
         enum RequestState
         {
             Initial,

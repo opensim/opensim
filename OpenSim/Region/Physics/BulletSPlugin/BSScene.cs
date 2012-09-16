@@ -56,7 +56,6 @@ using OpenMetaverse;
 // Do attachments need to be handled separately? Need collision events. Do not collide with VolumeDetect
 // Implement LockAngularMotion
 // Decide if clearing forces is the right thing to do when setting position (BulletSim::SetObjectTranslation)
-// Does NeedsMeshing() really need to exclude all the different shapes?
 // Remove mesh and Hull stuff. Use mesh passed to bullet and use convexdecom from bullet.
 // Add PID movement operations. What does ScenePresence.MoveToTarget do?
 // Check terrain size. 128 or 127?
@@ -79,7 +78,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     private HashSet<BSPhysObject> m_objectsWithCollisions = new HashSet<BSPhysObject>();
     // Following is a kludge and can  be removed when avatar animation updating is
     //    moved to a better place.
-    private HashSet<BSCharacter> m_avatarsWithCollisions = new HashSet<BSCharacter>();
+    private HashSet<BSPhysObject> m_avatarsWithCollisions = new HashSet<BSPhysObject>();
 
     // List of all the objects that have vehicle properties and should be called
     //    to update each physics step.
@@ -111,11 +110,6 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     private long m_simulationStep = 0;
     public long SimulationStep { get { return m_simulationStep; } }
 
-    // The length of the last timestep we were asked to simulate.
-    // This is used by the vehicle code. Since the vehicle code is called
-    //    once per simulation step, its constants need to be scaled by this.
-    public float LastSimulatedTimestep { get; private set; }
-
     // A value of the time now so all the collision and update routines do not have to get their own
     // Set to 'now' just before all the prims and actors are called for collisions and updates
     public int SimulationNowTime { get; private set; }
@@ -132,8 +126,8 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     private EntityProperties[] m_updateArray;
     private GCHandle m_updateArrayPinnedHandle;
 
-    private bool _meshSculptedPrim = true;         // cause scuplted prims to get meshed
-    private bool _forceSimplePrimMeshing = false;   // if a cube or sphere, let Bullet do internal shapes
+    public bool ShouldMeshSculptedPrim { get; private set; }   // cause scuplted prims to get meshed
+    public bool ShouldForceSimplePrimMeshing { get; private set; }   // if a cube or sphere, let Bullet do internal shapes
 
     public float PID_D { get; private set; }    // derivative
     public float PID_P { get; private set; }    // proportional
@@ -153,6 +147,11 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     {
         get { return new Vector3(0f, 0f, Params.gravity); }
     }
+    // Just the Z value of the gravity
+    public float DefaultGravityZ
+    {
+        get { return Params.gravity; }
+    }
 
     public float MaximumObjectMass { get; private set; }
 
@@ -171,8 +170,8 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             callback = c;
         }
     }
+    private Object _taintLock = new Object();   // lock for using the next object
     private List<TaintCallbackEntry> _taintedObjects;
-    private Object _taintLock = new Object();
 
     // A pointer to an instance if this structure is passed to the C++ code
     // Used to pass basic configuration values to the unmanaged code.
@@ -465,12 +464,8 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         int collidersCount = 0;
         IntPtr collidersPtr;
 
-        LastSimulatedTimestep = timeStep;
-
         // prevent simulation until we've been initialized
-        if (!m_initialized) return 10.0f;
-
-        int simulateStartTime = Util.EnvironmentTickCount();
+        if (!m_initialized) return 5.0f;
 
         // update the prim states while we know the physics engine is not busy
         int numTaints = _taintedObjects.Count;
@@ -478,6 +473,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
 
         // Some of the prims operate with special vehicle properties
         ProcessVehicles(timeStep);
+        numTaints += _taintedObjects.Count;
         ProcessTaints();    // the vehicles might have added taints
 
         // step the physical world one interval
@@ -506,6 +502,12 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         // Get a value for 'now' so all the collision and update routines don't have to get their own
         SimulationNowTime = Util.EnvironmentTickCount();
 
+        // This is a kludge to get avatar movement updates. 
+        //   ODE sends collisions for avatars even if there are have been no collisions. This updates
+        //   avatar animations and stuff.
+        // If you fix avatar animation updates, remove this overhead and let normal collision processing happen.
+        m_objectsWithCollisions = new HashSet<BSPhysObject>(m_avatarsWithCollisions);
+
         // If there were collisions, process them by sending the event to the prim.
         // Collisions must be processed before updates.
         if (collidersCount > 0)
@@ -527,13 +529,6 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             bsp.SendCollisions();
         m_objectsWithCollisions.Clear();
 
-        // This is a kludge to get avatar movement updated. 
-        //   ODE sends collisions even if there are none and this is used to update
-        //   avatar animations and stuff.
-        foreach (BSPhysObject bpo in m_avatarsWithCollisions)
-            bpo.SendCollisions();
-        // m_avatarsWithCollisions.Clear();
-
         // If any of the objects had updated properties, tell the object it has been changed by the physics engine
         if (updatedEntityCount > 0)
         {
@@ -544,7 +539,6 @@ public class BSScene : PhysicsScene, IPhysicsParameters
                 if (PhysObjects.TryGetValue(entprop.ID, out pobj))
                 {
                     pobj.UpdateProperties(entprop);
-                    continue;
                 }
             }
         }
@@ -558,18 +552,10 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             }
         }
 
-        // this is a waste since the outside routine also calcuates the physics simulation
-        //   period. TODO: There should be a way of computing physics frames from simulator computation.
-        // long simulateTotalTime = Util.EnvironmentTickCountSubtract(simulateStartTime);
-        // return (timeStep * (float)simulateTotalTime);
-
-        // TODO: FIX THIS: fps calculation possibly wrong.
-        // This calculation says 1/timeStep is the ideal frame rate. Any time added to
-        //    that by the physics simulation gives a slower frame rate.
-        long totalSimulationTime = Util.EnvironmentTickCountSubtract(simulateStartTime);
-        if (totalSimulationTime >= timeStep)
-            return 0;
-        return 1f / (timeStep + totalSimulationTime);
+        // The physics engine returns the number of milliseconds it simulated this call.
+        // These are summed and normalized to one second and divided by 1000 to give the reported physics FPS.
+        // Since Bullet normally does 5 or 6 substeps, this will normally sum to about 60 FPS.
+        return numSubSteps * m_fixedTimeStep;
     }
 
     // Something has collided
@@ -580,28 +566,25 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             return;         // don't send collisions to the terrain
         }
 
-        BSPhysObject collider = PhysObjects[localID];
-        // TODO: as of this code, terrain was not in the physical object list.
-        //    When BSTerrain is created and it will be in the list, we can remove
-        //    the possibility that it's not there and just fetch the collidee.
-        BSPhysObject collidee = null;
+        BSPhysObject collider;
+        if (!PhysObjects.TryGetValue(localID, out collider))
+        {
+            // If the object that is colliding cannot be found, just ignore the collision.
+            return;
+        }
 
-        ActorTypes type = ActorTypes.Prim;
-        if (collidingWith <= TerrainManager.HighestTerrainID)
-        {
-            type = ActorTypes.Ground;
-        }
-        else
-        {
-            collidee = PhysObjects[collidingWith];
-            if (collidee is BSCharacter)
-                type = ActorTypes.Agent;
-        }
+        // The terrain is not in the physical object list so 'collidee'
+        //    can be null when Collide() is called.
+        BSPhysObject collidee = null;
+        PhysObjects.TryGetValue(collidingWith, out collidee);
 
         // DetailLog("{0},BSScene.SendCollision,collide,id={1},with={2}", DetailLogZero, localID, collidingWith);
 
-        collider.Collide(collidingWith, collidee, type, collidePoint, collideNormal, penetration);
-        m_objectsWithCollisions.Add(collider);
+        if (collider.Collide(collidingWith, collidee, collidePoint, collideNormal, penetration))
+        {
+            // If a collision was posted, remember to send it to the simulator
+            m_objectsWithCollisions.Add(collider);
+        }
 
         return;
     }
@@ -619,9 +602,9 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     public override void SetWaterLevel(float baseheight) 
     {
         m_waterLevel = baseheight;
-        // TODO: pass to physics engine so things will float?
     }
-    public float GetWaterLevel()
+    // Someday....
+    public float GetWaterLevelAtXYZ(Vector3 loc)
     {
         return m_waterLevel;
     }
@@ -659,121 +642,6 @@ public class BSScene : PhysicsScene, IPhysicsParameters
 
     public override bool IsThreaded { get { return false;  } }
 
-    /// <summary>
-    /// Routine to figure out if we need to mesh this prim with our mesher
-    /// </summary>
-    /// <param name="pbs"></param>
-    /// <returns>true if the prim needs meshing</returns>
-    public bool NeedsMeshing(PrimitiveBaseShape pbs)
-    {
-        // most of this is redundant now as the mesher will return null if it cant mesh a prim
-        // but we still need to check for sculptie meshing being enabled so this is the most
-        // convenient place to do it for now...
-
-        // int iPropertiesNotSupportedDefault = 0;
-
-        if (pbs.SculptEntry && !_meshSculptedPrim)
-        {
-            // Render sculpties as boxes
-            return false;
-        }
-
-        // if it's a standard box or sphere with no cuts, hollows, twist or top shear, return false since Bullet 
-        // can use an internal representation for the prim
-        if (!_forceSimplePrimMeshing)
-        {
-            if ((pbs.ProfileShape == ProfileShape.Square && pbs.PathCurve == (byte)Extrusion.Straight)
-                || (pbs.ProfileShape == ProfileShape.HalfCircle && pbs.PathCurve == (byte)Extrusion.Curve1
-                        && pbs.Scale.X == pbs.Scale.Y && pbs.Scale.Y == pbs.Scale.Z))
-            {
-
-                if (pbs.ProfileBegin == 0 && pbs.ProfileEnd == 0
-                    && pbs.ProfileHollow == 0
-                    && pbs.PathTwist == 0 && pbs.PathTwistBegin == 0
-                    && pbs.PathBegin == 0 && pbs.PathEnd == 0
-                    && pbs.PathTaperX == 0 && pbs.PathTaperY == 0
-                    && pbs.PathScaleX == 100 && pbs.PathScaleY == 100
-                    && pbs.PathShearX == 0 && pbs.PathShearY == 0)
-                {
-                    return false;
-                }
-            }
-        }
-
-        /*  TODO: verify that the mesher will now do all these shapes
-        if (pbs.ProfileHollow != 0)
-            iPropertiesNotSupportedDefault++;
-
-        if ((pbs.PathBegin != 0) || pbs.PathEnd != 0)
-            iPropertiesNotSupportedDefault++;
-
-        if ((pbs.PathTwistBegin != 0) || (pbs.PathTwist != 0))
-            iPropertiesNotSupportedDefault++; 
-
-        if ((pbs.ProfileBegin != 0) || pbs.ProfileEnd != 0)
-            iPropertiesNotSupportedDefault++;
-
-        if ((pbs.PathScaleX != 100) || (pbs.PathScaleY != 100))
-            iPropertiesNotSupportedDefault++;
-
-        if ((pbs.PathShearX != 0) || (pbs.PathShearY != 0))
-            iPropertiesNotSupportedDefault++;
-
-        if (pbs.ProfileShape == ProfileShape.Circle && pbs.PathCurve == (byte)Extrusion.Straight)
-            iPropertiesNotSupportedDefault++;
-
-        if (pbs.ProfileShape == ProfileShape.HalfCircle && pbs.PathCurve == (byte)Extrusion.Curve1 && (pbs.Scale.X != pbs.Scale.Y || pbs.Scale.Y != pbs.Scale.Z || pbs.Scale.Z != pbs.Scale.X))
-            iPropertiesNotSupportedDefault++;
-
-        if (pbs.ProfileShape == ProfileShape.HalfCircle && pbs.PathCurve == (byte) Extrusion.Curve1)
-            iPropertiesNotSupportedDefault++;
-
-        // test for torus
-        if ((pbs.ProfileCurve & 0x07) == (byte)ProfileShape.Square)
-        {
-            if (pbs.PathCurve == (byte)Extrusion.Curve1)
-            {
-                iPropertiesNotSupportedDefault++;
-            }
-        }
-        else if ((pbs.ProfileCurve & 0x07) == (byte)ProfileShape.Circle)
-        {
-            if (pbs.PathCurve == (byte)Extrusion.Straight)
-            {
-                iPropertiesNotSupportedDefault++;
-            }
-            // ProfileCurve seems to combine hole shape and profile curve so we need to only compare against the lower 3 bits
-            else if (pbs.PathCurve == (byte)Extrusion.Curve1)
-            {
-                iPropertiesNotSupportedDefault++;
-            }
-        }
-        else if ((pbs.ProfileCurve & 0x07) == (byte)ProfileShape.HalfCircle)
-        {
-            if (pbs.PathCurve == (byte)Extrusion.Curve1 || pbs.PathCurve == (byte)Extrusion.Curve2)
-            {
-                iPropertiesNotSupportedDefault++;
-            }
-        }
-        else if ((pbs.ProfileCurve & 0x07) == (byte)ProfileShape.EquilateralTriangle)
-        {
-            if (pbs.PathCurve == (byte)Extrusion.Straight)
-            {
-                iPropertiesNotSupportedDefault++;
-            }
-            else if (pbs.PathCurve == (byte)Extrusion.Curve1)
-            {
-                iPropertiesNotSupportedDefault++;
-            }
-        }
-        if (iPropertiesNotSupportedDefault == 0)
-        {
-            return false;
-        }
-         */
-        return true; 
-    }
-
     // Calls to the PhysicsActors can't directly call into the physics engine
     // because it might be busy. We delay changes to a known time.
     // We rely on C#'s closure to save and restore the context for the delegate.
@@ -782,7 +650,10 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         if (!m_initialized) return;
 
         lock (_taintLock)
+        {
             _taintedObjects.Add(new TaintCallbackEntry(ident, callback));
+        }
+
         return;
     }
 
@@ -919,14 +790,14 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     {
         new ParameterDefn("MeshSculptedPrim", "Whether to create meshes for sculpties",
             ConfigurationParameters.numericTrue,
-            (s,cf,p,v) => { s._meshSculptedPrim = cf.GetBoolean(p, s.BoolNumeric(v)); },
-            (s) => { return s.NumericBool(s._meshSculptedPrim); },
-            (s,p,l,v) => { s._meshSculptedPrim = s.BoolNumeric(v); } ),
+            (s,cf,p,v) => { s.ShouldMeshSculptedPrim = cf.GetBoolean(p, s.BoolNumeric(v)); },
+            (s) => { return s.NumericBool(s.ShouldMeshSculptedPrim); },
+            (s,p,l,v) => { s.ShouldMeshSculptedPrim = s.BoolNumeric(v); } ),
         new ParameterDefn("ForceSimplePrimMeshing", "If true, only use primitive meshes for objects",
             ConfigurationParameters.numericFalse,
-            (s,cf,p,v) => { s._forceSimplePrimMeshing = cf.GetBoolean(p, s.BoolNumeric(v)); },
-            (s) => { return s.NumericBool(s._forceSimplePrimMeshing); },
-            (s,p,l,v) => { s._forceSimplePrimMeshing = s.BoolNumeric(v); } ),
+            (s,cf,p,v) => { s.ShouldForceSimplePrimMeshing = cf.GetBoolean(p, s.BoolNumeric(v)); },
+            (s) => { return s.NumericBool(s.ShouldForceSimplePrimMeshing); },
+            (s,p,l,v) => { s.ShouldForceSimplePrimMeshing = s.BoolNumeric(v); } ),
 
         new ParameterDefn("MeshLevelOfDetail", "Level of detail to render meshes (32, 16, 8 or 4. 32=most detailed)",
             8f,
@@ -1162,8 +1033,8 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             (s,cf,p,v) => { s.m_params[0].linkConstraintTransMotorMaxForce = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].linkConstraintTransMotorMaxForce; },
             (s,p,l,v) => { s.m_params[0].linkConstraintTransMotorMaxForce = v; } ),
-	    new ParameterDefn("LinkConstraintCFM", "Amount constraint can be violated. 0=none, 1=all. Default=0",
-            0.0f,
+	    new ParameterDefn("LinkConstraintCFM", "Amount constraint can be violated. 0=no violation, 1=infinite. Default=0.1",
+            0.1f,
             (s,cf,p,v) => { s.m_params[0].linkConstraintCFM = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].linkConstraintCFM; },
             (s,p,l,v) => { s.m_params[0].linkConstraintCFM = v; } ),
@@ -1172,6 +1043,11 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             (s,cf,p,v) => { s.m_params[0].linkConstraintERP = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].linkConstraintERP; },
             (s,p,l,v) => { s.m_params[0].linkConstraintERP = v; } ),
+	    new ParameterDefn("LinkConstraintSolverIterations", "Number of solver iterations when computing constraint. (0 = Bullet default)",
+            40,
+            (s,cf,p,v) => { s.m_params[0].linkConstraintSolverIterations = cf.GetFloat(p, v); },
+            (s) => { return s.m_params[0].linkConstraintSolverIterations; },
+            (s,p,l,v) => { s.m_params[0].linkConstraintSolverIterations = v; } ),
 
         new ParameterDefn("DetailedStats", "Frames between outputting detailed phys stats. (0 is off)",
             0f,

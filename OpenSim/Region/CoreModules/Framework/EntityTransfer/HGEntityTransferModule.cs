@@ -54,6 +54,47 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         private GatekeeperServiceConnector m_GatekeeperConnector;
 
+        protected bool m_RestrictAppearanceAbroad;
+        protected string m_AccountName;
+        protected AvatarAppearance m_ExportedAppearance;
+
+        protected AvatarAppearance ExportedAppearance
+        {
+            get
+            {
+                if (m_ExportedAppearance != null)
+                    return m_ExportedAppearance;
+
+                string[] parts = m_AccountName.Split();
+                if (parts.Length != 2)
+                {
+                    m_log.WarnFormat("[HG ENTITY TRANSFER MODULE]: Wrong user account name format {0}. Specify 'First Last'", m_AccountName);
+                    return null;
+                }
+                UserAccount account = Scene.UserAccountService.GetUserAccount(UUID.Zero, parts[0], parts[1]);
+                if (account == null)
+                {
+                    m_log.WarnFormat("[HG ENTITY TRANSFER MODULE]: Unknown account {0}", m_AccountName);
+                    return null;
+                }
+                m_ExportedAppearance = Scene.AvatarService.GetAppearance(account.PrincipalID);
+                if (m_ExportedAppearance != null)
+                    m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Successfully retrieved appearance for {0}", m_AccountName);
+
+                foreach (AvatarAttachment att in m_ExportedAppearance.GetAttachments())
+                {
+                    InventoryItemBase item = new InventoryItemBase(att.ItemID, account.PrincipalID);
+                    item = Scene.InventoryService.GetItem(item);
+                    if (item != null)
+                        m_ExportedAppearance.SetAttachment(att.AttachPoint, att.ItemID, item.AssetID);
+                    else
+                        m_log.WarnFormat("[HG ENTITY TRANSFER MODULE]: Unable to retrieve item {0} from inventory", att.ItemID);
+                }
+                return m_ExportedAppearance;
+            }
+        }
+        
+
         #region ISharedRegionModule
 
         public override string Name
@@ -72,7 +113,17 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 {
                     IConfig transferConfig = source.Configs["EntityTransfer"];
                     if (transferConfig != null)
+                    {
                         m_levelHGTeleport = transferConfig.GetInt("LevelHGTeleport", 0);
+
+                        m_RestrictAppearanceAbroad = transferConfig.GetBoolean("RestrictAppearanceAbroad", false);
+                        if (m_RestrictAppearanceAbroad)
+                        {
+                            m_AccountName = transferConfig.GetString("AccountForAppearance", string.Empty);
+                            if (m_AccountName == string.Empty)
+                                m_log.WarnFormat("[HG ENTITY TRANSFER MODULE]: RestrictAppearanceAbroad is on, but no account has been given for avatar appearance!");
+                        }
+                    }
 
                     InitialiseCommon(source);
                     m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: {0} enabled.", Name);
@@ -199,6 +250,109 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         {
             TeleportHome(id, client);
         }
+
+        protected override bool ValidateGenericConditions(ScenePresence sp, GridRegion reg, GridRegion finalDestination, uint teleportFlags, out string reason)
+        {
+            reason = "Please wear your grid's allowed appearance before teleporting to another grid";
+            if (!m_RestrictAppearanceAbroad)
+                return true;
+
+            // The rest is only needed for controlling appearance
+
+            int flags = Scene.GridService.GetRegionFlags(Scene.RegionInfo.ScopeID, reg.RegionID);
+            if (flags == -1 /* no region in DB */ || (flags & (int)OpenSim.Data.RegionFlags.Hyperlink) != 0)
+            {
+                // this user is going to another grid
+                if (Scene.UserManagementModule.IsLocalGridUser(sp.UUID))
+                {
+                    m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: RestrictAppearanceAbroad is ON. Checking generic appearance");
+
+                    // Check wearables
+                    for (int i = 0; i < AvatarWearable.MAX_WEARABLES; i++)
+                    {
+                        for (int j = 0; j < sp.Appearance.Wearables[i].Count; j++)
+                        {
+                            if (sp.Appearance.Wearables[i] == null)
+                                continue;
+
+                            if (ExportedAppearance.Wearables[i] == null) 
+                            {
+                               m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Wearable not allowed to go outside {0}", i);
+                               return false;
+                            }
+
+                            if (sp.Appearance.Wearables[i][j].AssetID != ExportedAppearance.Wearables[i][j].AssetID)
+                            {
+                                m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Wearable not allowed to go outside {0}", i);
+                                return false;
+                            }
+                        }
+                    }
+
+                    // Check attachments
+
+                    foreach (AvatarAttachment att in sp.Appearance.GetAttachments())
+                    {
+                        bool found = false;
+                        foreach (AvatarAttachment att2 in ExportedAppearance.GetAttachments())
+                        {
+                            if (att2.AssetID == att.AssetID)
+                            {
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found)
+                        {
+                            m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Attachment not allowed to go outside {0}", att.AttachPoint);
+                            return false;
+                        }
+                    }
+                }
+            }
+
+            reason = string.Empty;
+            return true;
+        }
+
+
+        //protected override bool UpdateAgent(GridRegion reg, GridRegion finalDestination, AgentData agentData, ScenePresence sp)
+        //{
+        //    int flags = Scene.GridService.GetRegionFlags(Scene.RegionInfo.ScopeID, reg.RegionID);
+        //    if (flags == -1 /* no region in DB */ || (flags & (int)OpenSim.Data.RegionFlags.Hyperlink) != 0)
+        //    {
+        //        // this user is going to another grid
+        //        if (m_RestrictAppearanceAbroad && Scene.UserManagementModule.IsLocalGridUser(agentData.AgentID))
+        //        {
+        //            // We need to strip the agent off its appearance
+        //            m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: RestrictAppearanceAbroad is ON. Sending generic appearance");
+
+        //            // Delete existing npc attachments
+        //            Scene.AttachmentsModule.DeleteAttachmentsFromScene(sp, false);
+
+        //            // XXX: We can't just use IAvatarFactoryModule.SetAppearance() yet since it doesn't transfer attachments
+        //            AvatarAppearance newAppearance = new AvatarAppearance(ExportedAppearance, true);
+        //            sp.Appearance = newAppearance;
+
+        //            // Rez needed npc attachments
+        //            Scene.AttachmentsModule.RezAttachments(sp);
+
+                   
+        //            IAvatarFactoryModule module = Scene.RequestModuleInterface<IAvatarFactoryModule>();
+        //            //module.SendAppearance(sp.UUID);
+        //            module.RequestRebake(sp, false);
+
+        //            Scene.AttachmentsModule.CopyAttachments(sp, agentData);
+        //            agentData.Appearance = sp.Appearance;
+        //        }
+        //    }
+
+        //    foreach (AvatarAttachment a in agentData.Appearance.GetAttachments())
+        //        m_log.DebugFormat("[XXX]: {0}-{1}", a.ItemID, a.AssetID);
+
+
+        //    return base.UpdateAgent(reg, finalDestination, agentData, sp);
+        //}
 
         public override bool TeleportHome(UUID id, IClientAPI client)
         {

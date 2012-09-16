@@ -56,10 +56,12 @@ namespace OpenSim.Services.HypergridService
 
         private string m_HomeURL;
         private IUserAccountService m_UserAccountService;
+        private IAvatarService m_AvatarService;
 
 //        private UserAccountCache m_Cache;
 
         private ExpiringCache<UUID, List<XInventoryFolder>> m_SuitcaseTrees = new ExpiringCache<UUID, List<XInventoryFolder>>();
+        private ExpiringCache<UUID, AvatarAppearance> m_Appearances = new ExpiringCache<UUID, AvatarAppearance>();
 
         public HGSuitcaseInventoryService(IConfigSource config, string configName)
             : base(config, configName)
@@ -77,7 +79,6 @@ namespace OpenSim.Services.HypergridService
             IConfig invConfig = config.Configs[m_ConfigName];
             if (invConfig != null)
             {
-                // realm = authConfig.GetString("Realm", realm);
                 string userAccountsDll = invConfig.GetString("UserAccountsService", string.Empty);
                 if (userAccountsDll == string.Empty)
                     throw new Exception("Please specify UserAccountsService in HGInventoryService configuration");
@@ -87,8 +88,14 @@ namespace OpenSim.Services.HypergridService
                 if (m_UserAccountService == null)
                     throw new Exception(String.Format("Unable to create UserAccountService from {0}", userAccountsDll));
 
-                // legacy configuration [obsolete]
-                m_HomeURL = invConfig.GetString("ProfileServerURI", string.Empty);
+                string avatarDll = invConfig.GetString("AvatarService", string.Empty);
+                if (avatarDll == string.Empty)
+                    throw new Exception("Please specify AvatarService in HGInventoryService configuration");
+
+                m_AvatarService = ServerUtils.LoadPlugin<IAvatarService>(avatarDll, args);
+                if (m_AvatarService == null)
+                    throw new Exception(String.Format("Unable to create m_AvatarService from {0}", avatarDll));
+
                 // Preferred
                 m_HomeURL = invConfig.GetString("HomeURI", m_HomeURL);
 
@@ -394,7 +401,7 @@ namespace OpenSim.Services.HypergridService
                 return null;
             }
 
-            if (!IsWithinSuitcaseTree(it.Owner, it.Folder))
+            if (!IsWithinSuitcaseTree(it.Owner, it.Folder) && !IsPartOfAppearance(it.Owner, it.ID))
             {
                 m_log.DebugFormat("[HG SUITCASE INVENTORY SERVICE]: Item {0} (folder {1}) is not within Suitcase",
                     it.Name, it.Folder);
@@ -549,6 +556,52 @@ namespace OpenSim.Services.HypergridService
             else return true;
         }
         #endregion
+
+        #region Avatar Appearance
+
+        private AvatarAppearance GetAppearance(UUID principalID)
+        {
+            AvatarAppearance a = null;
+            if (m_Appearances.TryGetValue(principalID, out a))
+                return a;
+
+            a = m_AvatarService.GetAppearance(principalID);
+            m_Appearances.AddOrUpdate(principalID, a, 5 * 60); // 5minutes
+            return a;
+        }
+
+        private bool IsPartOfAppearance(UUID principalID, UUID itemID)
+        {
+            AvatarAppearance a = GetAppearance(principalID);
+
+            if (a == null)
+                return false;
+
+            // Check wearables (body parts and clothes)
+            for (int i = 0; i < a.Wearables.Length; i++)
+            {
+                for (int j = 0; j < a.Wearables[i].Count; j++)
+                {
+                    if (a.Wearables[i][j].ItemID == itemID)
+                    {
+                        m_log.DebugFormat("[HG SUITCASE INVENTORY SERVICE]: item {0} is a wearable", itemID); 
+                        return true;
+                    }
+                }
+            }
+
+            // Check attachments
+            if (a.GetAttachmentForItem(itemID) != null)
+            {
+                m_log.DebugFormat("[HG SUITCASE INVENTORY SERVICE]: item {0} is an attachment", itemID); 
+                return true;
+            }
+
+            return false;
+        }
+
+        #endregion
+
     }
 
 }

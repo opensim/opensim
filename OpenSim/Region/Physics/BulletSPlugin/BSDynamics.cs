@@ -80,7 +80,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         // Linear properties
         private Vector3 m_linearMotorDirection = Vector3.Zero;          // velocity requested by LSL, decayed by time
         private Vector3 m_linearMotorDirectionLASTSET = Vector3.Zero;   // velocity requested by LSL
-        private Vector3 m_dir = Vector3.Zero;                           // velocity applied to body
+        private Vector3 m_newVelocity = Vector3.Zero;                   // velocity computed to be applied to body
         private Vector3 m_linearFrictionTimescale = Vector3.Zero;
         private float m_linearMotorDecayTimescale = 0;
         private float m_linearMotorTimescale = 0;
@@ -131,7 +131,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             m_type = Vehicle.TYPE_NONE;
         }
 
-        internal void ProcessFloatVehicleParam(Vehicle pParam, float pValue, float timestep)
+        internal void ProcessFloatVehicleParam(Vehicle pParam, float pValue)
         {
             VDetailLog("{0},ProcessFloatVehicleParam,param={1},val={2}", m_prim.LocalID, pParam, pValue);
             switch (pParam)
@@ -230,7 +230,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             }
         }//end ProcessFloatVehicleParam
 
-        internal void ProcessVectorVehicleParam(Vehicle pParam, Vector3 pValue, float timestep)
+        internal void ProcessVectorVehicleParam(Vehicle pParam, Vector3 pValue)
         {
             VDetailLog("{0},ProcessVectorVehicleParam,param={1},val={2}", m_prim.LocalID, pParam, pValue);
             switch (pParam)
@@ -299,7 +299,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             }
         }//end ProcessVehicleFlags
 
-        internal void ProcessTypeChange(Vehicle pType, float stepSize)
+        internal void ProcessTypeChange(Vehicle pType)
         {
             VDetailLog("{0},ProcessTypeChange,type={1}", m_prim.LocalID, pType);
             // Set Defaults For Type
@@ -478,29 +478,30 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             MoveAngular(pTimestep);
             LimitRotation(pTimestep);
 
+            // remember the position so next step we can limit absolute movement effects
+            m_lastPositionVector = m_prim.Position;
+
             VDetailLog("{0},BSDynamics.Step,done,pos={1},force={2},velocity={3},angvel={4}", 
                     m_prim.LocalID, m_prim.Position, m_prim.Force, m_prim.Velocity, m_prim.RotationalVelocity);
         }// end Step
 
         private void MoveLinear(float pTimestep)
         {
-            // requested m_linearMotorDirection is significant
-            // if (!m_linearMotorDirection.ApproxEquals(Vector3.Zero, 0.01f))
-            if (m_linearMotorDirection.LengthSquared() > 0.0001f)
+            // m_linearMotorDirection is the direction we are moving relative to the vehicle coordinates
+            // m_lastLinearVelocityVector is the speed we are moving in that direction
+            if (m_linearMotorDirection.LengthSquared() > 0.001f)
             {
                 Vector3 origDir = m_linearMotorDirection;
                 Vector3 origVel = m_lastLinearVelocityVector;
 
                 // add drive to body
-                // Vector3 addAmount = m_linearMotorDirection/(m_linearMotorTimescale/pTimestep);
-                Vector3 addAmount = m_linearMotorDirection/(m_linearMotorTimescale);
-                // lastLinearVelocityVector is the current body velocity vector?
+                // Vector3 addAmount = m_linearMotorDirection/(m_linearMotorTimescale / pTimestep);
+                Vector3 addAmount = (m_linearMotorDirection - m_lastLinearVelocityVector)/(m_linearMotorTimescale / pTimestep);
+                // lastLinearVelocityVector is the current body velocity vector
                 // RA: Not sure what the *10 is for. A correction for pTimestep?
                 // m_lastLinearVelocityVector += (addAmount*10);  
                 m_lastLinearVelocityVector += addAmount;  
 
-                // This will work temporarily, but we really need to compare speed on an axis
-                // KF: Limit body velocity to applied velocity?
                 // Limit the velocity vector to less than the last set linear motor direction
                 if (Math.Abs(m_lastLinearVelocityVector.X) > Math.Abs(m_linearMotorDirectionLASTSET.X))
                     m_lastLinearVelocityVector.X = m_linearMotorDirectionLASTSET.X;
@@ -509,53 +510,108 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 if (Math.Abs(m_lastLinearVelocityVector.Z) > Math.Abs(m_linearMotorDirectionLASTSET.Z))
                     m_lastLinearVelocityVector.Z = m_linearMotorDirectionLASTSET.Z;
 
-                // decay applied velocity
-                Vector3 decayfraction = ((Vector3.One/(m_linearMotorDecayTimescale/pTimestep)));
-                m_linearMotorDirection -= m_linearMotorDirection * decayfraction * 0.5f;
-
                 /*
-                Vector3 addAmount = (m_linearMotorDirection - m_lastLinearVelocityVector)/m_linearMotorTimescale;
-                m_lastLinearVelocityVector += addAmount;
-
-                float decayfraction = (1.0f - 1.0f / m_linearMotorDecayTimescale);
-                m_linearMotorDirection *= decayfraction;
-
+                // decay applied velocity
+                Vector3 decayfraction = Vector3.One/(m_linearMotorDecayTimescale / pTimestep);
+                // (RA: do not know where the 0.5f comes from)
+                m_linearMotorDirection -= m_linearMotorDirection * decayfraction * 0.5f;
                  */
+                float keepfraction = 1.0f - (1.0f / (m_linearMotorDecayTimescale / pTimestep));
+                m_linearMotorDirection *= keepfraction;
 
-                VDetailLog("{0},MoveLinear,nonZero,origdir={1},origvel={2},add={3},decay={4},dir={5},vel={6}",
-                    m_prim.LocalID, origDir, origVel, addAmount, decayfraction, m_linearMotorDirection, m_lastLinearVelocityVector);
+                VDetailLog("{0},MoveLinear,nonZero,origdir={1},origvel={2},add={3},notDecay={4},dir={5},vel={6}",
+                    m_prim.LocalID, origDir, origVel, addAmount, keepfraction, m_linearMotorDirection, m_lastLinearVelocityVector);
             }
             else
             {
-                // if what remains of applied is small, zero it.
-                // if (m_lastLinearVelocityVector.ApproxEquals(Vector3.Zero, 0.01f))
-                //     m_lastLinearVelocityVector = Vector3.Zero;
+                // if what remains of direction is very small, zero it.
                 m_linearMotorDirection = Vector3.Zero;
                 m_lastLinearVelocityVector = Vector3.Zero;
+                VDetailLog("{0},MoveLinear,zeroed", m_prim.LocalID);
             }
 
             // convert requested object velocity to object relative vector
             Quaternion rotq = m_prim.Orientation;
-            m_dir = m_lastLinearVelocityVector * rotq;
+            m_newVelocity = m_lastLinearVelocityVector * rotq;
 
             // Add the various forces into m_dir which will be our new direction vector (velocity)
 
             // add Gravity and Buoyancy
-            // KF: So far I have found no good method to combine a script-requested
-            // .Z velocity and gravity. Therefore only 0g will used script-requested
-            // .Z velocity. >0g (m_VehicleBuoyancy < 1) will used modified gravity only.
-            Vector3 grav = Vector3.Zero;
             // There is some gravity, make a gravity force vector that is applied after object velocity.
             // m_VehicleBuoyancy: -1=2g; 0=1g; 1=0g;
-            grav.Z = m_prim.Scene.DefaultGravity.Z * m_prim.Mass * (1f - m_VehicleBuoyancy);
+            Vector3 grav = m_prim.Scene.DefaultGravity * (m_prim.Mass * (1f - m_VehicleBuoyancy));
+
+            /*
+             * RA: Not sure why one would do this
             // Preserve the current Z velocity
             Vector3 vel_now = m_prim.Velocity;
             m_dir.Z = vel_now.Z;        // Preserve the accumulated falling velocity
+             */
 
             Vector3 pos = m_prim.Position;
-            Vector3 posChange = pos;
 //            Vector3 accel = new Vector3(-(m_dir.X - m_lastLinearVelocityVector.X / 0.1f), -(m_dir.Y - m_lastLinearVelocityVector.Y / 0.1f), m_dir.Z - m_lastLinearVelocityVector.Z / 0.1f);
-            double Zchange = Math.Abs(posChange.Z);
+
+            // If below the terrain, move us above the ground a little.
+            float terrainHeight = m_prim.Scene.TerrainManager.GetTerrainHeightAtXYZ(pos);
+            // Taking the rotated size doesn't work here because m_prim.Size is the size of the root prim and not the linkset.
+            //     Need to add a m_prim.LinkSet.Size similar to m_prim.LinkSet.Mass.
+            // Vector3 rotatedSize = m_prim.Size * m_prim.Orientation;
+            // if (rotatedSize.Z < terrainHeight)
+            if (pos.Z < terrainHeight)
+            {
+                pos.Z = terrainHeight + 2;
+                m_prim.Position = pos;
+                VDetailLog("{0},MoveLinear,terrainHeight,terrainHeight={1},pos={2}", m_prim.LocalID, terrainHeight, pos);
+            }
+
+            // Check if hovering
+            if ((m_flags & (VehicleFlag.HOVER_WATER_ONLY | VehicleFlag.HOVER_TERRAIN_ONLY | VehicleFlag.HOVER_GLOBAL_HEIGHT)) != 0)
+            {
+                // We should hover, get the target height
+                if ((m_flags & VehicleFlag.HOVER_WATER_ONLY) != 0)
+                {
+                    m_VhoverTargetHeight = m_prim.Scene.GetWaterLevelAtXYZ(pos) + m_VhoverHeight;
+                }
+                if ((m_flags & VehicleFlag.HOVER_TERRAIN_ONLY) != 0)
+                {
+                    m_VhoverTargetHeight = terrainHeight + m_VhoverHeight;
+                }
+                if ((m_flags & VehicleFlag.HOVER_GLOBAL_HEIGHT) != 0)
+                {
+                    m_VhoverTargetHeight = m_VhoverHeight;
+                }
+
+                if ((m_flags & VehicleFlag.HOVER_UP_ONLY) != 0)
+                {
+                    // If body is aready heigher, use its height as target height
+                    if (pos.Z > m_VhoverTargetHeight) m_VhoverTargetHeight = pos.Z;
+                }
+                if ((m_flags & VehicleFlag.LOCK_HOVER_HEIGHT) != 0)
+                {
+                    if ((pos.Z - m_VhoverTargetHeight) > .2 || (pos.Z - m_VhoverTargetHeight) < -.2)
+                    {
+                        m_prim.Position = pos;
+                    }
+                }
+                else
+                {
+                    float herr0 = pos.Z - m_VhoverTargetHeight;
+                    // Replace Vertical speed with correction figure if significant
+                    if (Math.Abs(herr0) > 0.01f)
+                    {
+                        m_newVelocity.Z = -((herr0 * pTimestep * 50.0f) / m_VhoverTimescale);
+                        //KF: m_VhoverEfficiency is not yet implemented
+                    }
+                    else
+                    {
+                        m_newVelocity.Z = 0f;
+                    }
+                }
+
+                VDetailLog("{0},MoveLinear,hover,pos={1},dir={2},height={3},target={4}", m_prim.LocalID, pos, m_newVelocity, m_VhoverHeight, m_VhoverTargetHeight);
+            }
+
+            Vector3 posChange = pos - m_lastPositionVector;
             if (m_BlockingEndPoint != Vector3.Zero)
             {
                 bool changed = false;
@@ -592,125 +648,43 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 }
             }
 
-            // If below the terrain, move us above the ground a little.
-            if (pos.Z < m_prim.Scene.TerrainManager.GetTerrainHeightAtXYZ(pos))
-            {
-                pos.Z = m_prim.Scene.TerrainManager.GetTerrainHeightAtXYZ(pos) + 2;
-                m_prim.Position = pos;
-                VDetailLog("{0},MoveLinear,terrainHeight,pos={1}", m_prim.LocalID, pos);
-            }
-
-            // Check if hovering
-            if ((m_flags & (VehicleFlag.HOVER_WATER_ONLY | VehicleFlag.HOVER_TERRAIN_ONLY | VehicleFlag.HOVER_GLOBAL_HEIGHT)) != 0)
-            {
-                // We should hover, get the target height
-                if ((m_flags & VehicleFlag.HOVER_WATER_ONLY) != 0)
-                {
-                    m_VhoverTargetHeight = m_prim.Scene.GetWaterLevel() + m_VhoverHeight;
-                }
-                if ((m_flags & VehicleFlag.HOVER_TERRAIN_ONLY) != 0)
-                {
-                    m_VhoverTargetHeight = m_prim.Scene.TerrainManager.GetTerrainHeightAtXY(pos.X, pos.Y) + m_VhoverHeight;
-                }
-                if ((m_flags & VehicleFlag.HOVER_GLOBAL_HEIGHT) != 0)
-                {
-                    m_VhoverTargetHeight = m_VhoverHeight;
-                }
-
-                if ((m_flags & VehicleFlag.HOVER_UP_ONLY) != 0)
-                {
-                    // If body is aready heigher, use its height as target height
-                    if (pos.Z > m_VhoverTargetHeight) m_VhoverTargetHeight = pos.Z;
-                }
-                if ((m_flags & VehicleFlag.LOCK_HOVER_HEIGHT) != 0)
-                {
-                    if ((pos.Z - m_VhoverTargetHeight) > .2 || (pos.Z - m_VhoverTargetHeight) < -.2)
-                    {
-                        m_prim.Position = pos;
-                    }
-                }
-                else
-                {
-                    float herr0 = pos.Z - m_VhoverTargetHeight;
-                    // Replace Vertical speed with correction figure if significant
-                    if (Math.Abs(herr0) > 0.01f)
-                    {
-                        m_dir.Z = -((herr0 * pTimestep * 50.0f) / m_VhoverTimescale);
-                        //KF: m_VhoverEfficiency is not yet implemented
-                    }
-                    else
-                    {
-                        m_dir.Z = 0f;
-                    }
-                }
-
-                VDetailLog("{0},MoveLinear,hover,pos={1},dir={2},height={3},target={4}", m_prim.LocalID, pos, m_dir, m_VhoverHeight, m_VhoverTargetHeight);
-
-//                m_VhoverEfficiency = 0f;    // 0=boucy, 1=Crit.damped
-//                m_VhoverTimescale = 0f;        // time to acheive height
-//                pTimestep  is time since last frame,in secs
-            }
-
+            float Zchange = Math.Abs(posChange.Z);
             if ((m_flags & (VehicleFlag.LIMIT_MOTOR_UP)) != 0)
             {
-                //Start Experimental Values
                 if (Zchange > .3)
-                {
                     grav.Z = (float)(grav.Z * 3);
-                }
                 if (Zchange > .15)
-                {
                     grav.Z = (float)(grav.Z * 2);
-                }
                 if (Zchange > .75)
-                {
                     grav.Z = (float)(grav.Z * 1.5);
-                }
                 if (Zchange > .05)
-                {
                     grav.Z = (float)(grav.Z * 1.25);
-                }
                 if (Zchange > .025)
-                {
                     grav.Z = (float)(grav.Z * 1.125);
-                }
-                float terraintemp = m_prim.Scene.TerrainManager.GetTerrainHeightAtXYZ(pos);
-                float postemp = (pos.Z - terraintemp);
+                float postemp = (pos.Z - terrainHeight);
                 if (postemp > 2.5f)
-                {
                     grav.Z = (float)(grav.Z * 1.037125);
-                }
                 VDetailLog("{0},MoveLinear,limitMotorUp,grav={1}", m_prim.LocalID, grav);
-                //End Experimental Values
             }
             if ((m_flags & (VehicleFlag.NO_X)) != 0)
-            {
-                m_dir.X = 0;
-            }
+                m_newVelocity.X = 0;
             if ((m_flags & (VehicleFlag.NO_Y)) != 0)
-            {
-                m_dir.Y = 0;
-            }
+                m_newVelocity.Y = 0;
             if ((m_flags & (VehicleFlag.NO_Z)) != 0)
-            {
-                m_dir.Z = 0;
-            }
-
-            m_lastPositionVector = m_prim.Position;
+                m_newVelocity.Z = 0;
 
             // Apply velocity
-            m_prim.Velocity = m_dir;
+            m_prim.Velocity = m_newVelocity;
             // apply gravity force
             // Why is this set here? The physics engine already does gravity.
             // m_prim.AddForce(grav, false);
-            // m_prim.Force = grav;
 
             // Apply friction
-            Vector3 decayamount = Vector3.One / (m_linearFrictionTimescale / pTimestep);
-            m_lastLinearVelocityVector -= m_lastLinearVelocityVector * decayamount;
+            Vector3 keepFraction = Vector3.One - (Vector3.One / (m_linearFrictionTimescale / pTimestep));
+            m_lastLinearVelocityVector *= keepFraction;
 
-            VDetailLog("{0},MoveLinear,done,pos={1},vel={2},force={3},decay={4}", 
-                        m_prim.LocalID, m_lastPositionVector, m_dir, grav, decayamount);
+            VDetailLog("{0},MoveLinear,done,lmDir={1},lmVel={2},newVel={3},grav={4},1Mdecay={5}", 
+                    m_prim.LocalID, m_linearMotorDirection, m_lastLinearVelocityVector, m_newVelocity, grav, keepFraction);
 
         } // end MoveLinear()
 
@@ -735,17 +709,18 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 // There are m_angularMotorApply steps.
                 Vector3 origAngularVelocity = m_angularMotorVelocity;
                 // ramp up to new value
-                //   current velocity  +=                         error                            /    (time to get there / step interval)
-                //                               requested speed            -  last motor speed
+                //   current velocity    +=                         error                          /    (  time to get there   / step interval)
+                //                               requested speed       -       last motor speed
                 m_angularMotorVelocity.X += (m_angularMotorDirection.X - m_angularMotorVelocity.X) /  (m_angularMotorTimescale / pTimestep);
                 m_angularMotorVelocity.Y += (m_angularMotorDirection.Y - m_angularMotorVelocity.Y) /  (m_angularMotorTimescale / pTimestep);
                 m_angularMotorVelocity.Z += (m_angularMotorDirection.Z - m_angularMotorVelocity.Z) /  (m_angularMotorTimescale / pTimestep);
 
-                VDetailLog("{0},MoveAngular,angularMotorApply,apply={1},origvel={2},dir={3},vel={4}", 
-                        m_prim.LocalID,m_angularMotorApply,origAngularVelocity, m_angularMotorDirection, m_angularMotorVelocity);
+                VDetailLog("{0},MoveAngular,angularMotorApply,apply={1},angTScale={2},timeStep={3},origvel={4},dir={5},vel={6}", 
+                        m_prim.LocalID, m_angularMotorApply, m_angularMotorTimescale, pTimestep, origAngularVelocity, m_angularMotorDirection, m_angularMotorVelocity);
 
-                m_angularMotorApply--;        // This is done so that if script request rate is less than phys frame rate the expected
-                                            // velocity may still be acheived.
+                // This is done so that if script request rate is less than phys frame rate the expected
+                //    velocity may still be acheived.
+                m_angularMotorApply--;
             }
             else
             {
@@ -760,7 +735,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             Vector3 vertattr = Vector3.Zero;
             if (m_verticalAttractionTimescale < 300)
             {
-                float VAservo = 0.2f / (m_verticalAttractionTimescale * pTimestep);
+                float VAservo = 0.2f / (m_verticalAttractionTimescale / pTimestep);
                 // get present body rotation
                 Quaternion rotq = m_prim.Orientation;
                 // make a vector pointing up
@@ -863,16 +838,12 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 m_rot.Y = 0;
                 changed = true;
             }
-            if ((m_flags & VehicleFlag.LOCK_ROTATION) != 0)
-            {
-                m_rot.X = 0;
-                m_rot.Y = 0;
-                changed = true;
-            }
             if (changed)
+            {
                 m_prim.Orientation = m_rot;
+                VDetailLog("{0},LimitRotation,done,orig={1},new={2}", m_prim.LocalID, rotq, m_rot);
+            }
 
-            VDetailLog("{0},LimitRotation,done,changed={1},orig={2},new={3}", m_prim.LocalID, changed, rotq, m_rot);
         }
 
         // Invoke the detailed logger and output something if it's enabled.

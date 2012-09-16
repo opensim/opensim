@@ -131,8 +131,6 @@ public class BSCharacter : BSPhysObject
             BulletSimAPI.SetObjectBuoyancy(Scene.WorldID, LocalID, _buoyancy);
 
             BSBody = new BulletBody(LocalID, BulletSimAPI.GetBodyHandle2(Scene.World.Ptr, LocalID));
-            // avatars get all collisions no matter what (makes walking on ground and such work)
-            BulletSimAPI.AddToCollisionFlags2(BSBody.Ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
         });
             
         return;
@@ -480,11 +478,10 @@ public class BSCharacter : BSPhysObject
     // Stop collision events
     public override void UnSubscribeEvents() { 
         _subscribedEventsMs = 0;
-        // Avatars get all their collision events
-        // Scene.TaintedObject("BSCharacter.UnSubscribeEvents", delegate()
-        // {
-        //     BulletSimAPI.RemoveFromCollisionFlags2(Body.Ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
-        // });
+        Scene.TaintedObject("BSCharacter.UnSubscribeEvents", delegate()
+        {
+            BulletSimAPI.RemoveFromCollisionFlags2(BSBody.Ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
+        });
     }
     // Return 'true' if someone has subscribed to events
     public override bool SubscribedEvents() {
@@ -532,20 +529,20 @@ public class BSCharacter : BSPhysObject
     // The collision, if it should be reported to the character, is placed in a collection
     //   that will later be sent to the simulator when SendCollisions() is called.
     CollisionEventUpdate collisionCollection = null;
-    public override void Collide(uint collidingWith, BSPhysObject collidee, ActorTypes type, Vector3 contactPoint, Vector3 contactNormal, float pentrationDepth)
+    public override bool Collide(uint collidingWith, BSPhysObject collidee, Vector3 contactPoint, Vector3 contactNormal, float pentrationDepth)
     {
-        // m_log.DebugFormat("{0}: Collide: ms={1}, id={2}, with={3}", LogHeader, _subscribedEventsMs, LocalID, collidingWith);
+        bool ret = false;
 
         // The following makes IsColliding() and IsCollidingGround() work
         _collidingStep = Scene.SimulationStep;
-        if (collidingWith == BSScene.TERRAIN_ID || collidingWith == BSScene.GROUNDPLANE_ID)
+        if (collidingWith <= Scene.TerrainManager.HighestTerrainID)
         {
             _collidingGroundStep = Scene.SimulationStep;
         }
         // DetailLog("{0},BSCharacter.Collison,call,with={1}", LocalID, collidingWith);
 
         // throttle collisions to the rate specified in the subscription
-        if (_subscribedEventsMs != 0) {
+        if (SubscribedEvents()) {
             int nowTime = Scene.SimulationNowTime;
             if (nowTime >= _nextCollisionOkTime) {
                 _nextCollisionOkTime = nowTime + _subscribedEventsMs;
@@ -553,8 +550,10 @@ public class BSCharacter : BSPhysObject
                 if (collisionCollection == null)
                     collisionCollection = new CollisionEventUpdate();
                 collisionCollection.AddCollider(collidingWith, new ContactPoint(contactPoint, contactNormal, pentrationDepth));
+                ret = true;
             }
         }
+        return ret;
     }
 
     public override void SendCollisions()
