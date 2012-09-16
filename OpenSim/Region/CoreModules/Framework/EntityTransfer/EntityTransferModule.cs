@@ -323,6 +323,14 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     return;
                 }
 
+                // Validate assorted conditions
+                string reason = string.Empty;
+                if (!ValidateGenericConditions(sp, reg, finalDestination, teleportFlags, out reason))
+                {
+                    sp.ControllingClient.SendTeleportFailed(reason);
+                    return;
+                }
+
                 //
                 // This is it
                 //
@@ -352,6 +360,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 blocks.Add(block);
                 sp.ControllingClient.SendMapBlock(blocks, 0);
             }
+        }
+
+        // Nothing to validate here
+        protected virtual bool ValidateGenericConditions(ScenePresence sp, GridRegion reg, GridRegion finalDestination, uint teleportFlags, out string reason)
+        {
+            reason = String.Empty;
+            return true;
         }
 
         /// <summary>
@@ -568,7 +583,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             //sp.ControllingClient.SendTeleportProgress(teleportFlags, "Updating agent...");
 
-            if (!UpdateAgent(reg, finalDestination, agent))
+            if (!UpdateAgent(reg, finalDestination, agent, sp))
             {
                 // Region doesn't take it
                 m_log.WarnFormat(
@@ -695,7 +710,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             return success;
         }
 
-        protected virtual bool UpdateAgent(GridRegion reg, GridRegion finalDestination, AgentData agent)
+        protected virtual bool UpdateAgent(GridRegion reg, GridRegion finalDestination, AgentData agent, ScenePresence sp)
         {
             return Scene.SimulationService.UpdateAgent(finalDestination, agent);
         }

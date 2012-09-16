@@ -573,6 +573,7 @@ namespace OpenSim.Services.HypergridService
         private bool IsPartOfAppearance(UUID principalID, UUID itemID)
         {
             AvatarAppearance a = GetAppearance(principalID);
+
             if (a == null)
                 return false;
 
