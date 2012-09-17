@@ -27,9 +27,6 @@ namespace OpenSim.Region.ClientStack.Linden
     {
         float ModelMinCost = 5.0f; // try to favor small meshs versus sculpts
 
-        // scale prices relative to basic cost
-        const float ModelCostScale = 1.0f;
-
         const float primCreationCost = 0.01f;  // 256 prims cost extra 2.56
 
         // weigthed size to money convertion
@@ -70,7 +67,7 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             totalcost = 0;
             error = string.Empty;
-
+            
             if (resources == null ||
                 resources.instance_list == null ||
                 resources.instance_list.Array.Count == 0)
@@ -184,7 +181,8 @@ namespace OpenSim.Region.ClientStack.Linden
             if (meshsfee < ModelMinCost)
                 meshsfee = ModelMinCost;
 
-            meshsfee *= ModelCostScale;
+            // scale cost with basic cost changes relative to 10
+            meshsfee *= (float)basicCost / 10.0f;
             meshsfee += 0.5f; // rounding
 
             totalcost += (int)meshsfee;
