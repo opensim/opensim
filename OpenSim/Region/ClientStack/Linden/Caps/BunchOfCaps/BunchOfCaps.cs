@@ -462,35 +462,35 @@ namespace OpenSim.Region.ClientStack.Linden
                 {
                     IMoneyModule mm = m_Scene.RequestModuleInterface<IMoneyModule>();
 
+                    int baseCost = 0;
+                    if (mm != null)
+                        baseCost = mm.UploadCharge;
+
+                    if (llsdRequest.asset_type == "mesh")
+                    {
+                        string error;
+                        int modelcost;
+                        ModelCost mc = new ModelCost();
+
+                        if (!mc.MeshModelCost(llsdRequest.asset_resources, baseCost, out modelcost,
+                            meshcostdata, out error))
+                        {
+                            client.SendAgentAlertMessage(error, false);
+
+                            LLSDAssetUploadResponse errorResponse = new LLSDAssetUploadResponse();
+                            errorResponse.uploader = "";
+                            errorResponse.state = "error";
+                            return errorResponse;
+                        }
+                        cost = (uint)modelcost;
+                    }
+                    else
+                    {
+                        cost = (uint)baseCost;
+                    }
+
                     if (mm != null)
                     {
-                        // XPTO: The cost should be calculated about here
-
-                        if (llsdRequest.asset_type == "mesh")
-                        {
-                            string error;
-                            int modelcost;
-                            ModelCost mc = new ModelCost();
-
-                            if (!mc.MeshModelCost(llsdRequest.asset_resources, mm.UploadCharge, out modelcost,
-                                meshcostdata, out error))
-                            {
-
-                                client.SendAgentAlertMessage(error, false);
-
-                                LLSDAssetUploadResponse errorResponse = new LLSDAssetUploadResponse();
-                                errorResponse.uploader = "";
-                                errorResponse.state = "error";
-                                return errorResponse;
-                            }
-
-                            cost = (uint)modelcost;
-                        }
-                        else
-                        {
-                            cost = (uint)mm.UploadCharge;
-                        }
-
                         if (!mm.UploadCovered(client.AgentId, (int)cost))
                         {
                             client.SendAgentAlertMessage("Unable to upload asset. Insufficient funds.", false);
