@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Timers;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -466,6 +467,8 @@ namespace OpenSim.Region.ClientStack.Linden
 
                         if (llsdRequest.asset_type == "mesh")
                         {
+                            cost += 20; // Constant for now to test showing a price
+
                             if (llsdRequest.asset_resources == null)
                             {
                                 client.SendAgentAlertMessage("Unable to upload asset. missing information.", false);
@@ -479,7 +482,7 @@ namespace OpenSim.Region.ClientStack.Linden
                             uint textures_cost = (uint)llsdRequest.asset_resources.texture_list.Array.Count;
                             textures_cost *= (uint)mm.UploadCharge;
 
-                            cost = textures_cost;
+                            cost += textures_cost;
                         }
                         else
                         {
@@ -1092,6 +1095,9 @@ namespace OpenSim.Region.ClientStack.Linden
 
     public class AssetUploader
     {
+        private static readonly ILog m_log =
+            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         public event UpLoadedAsset OnUpLoad;
         private UpLoadedAsset handlerUpLoad = null;
 
@@ -1106,6 +1112,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private string m_invType = String.Empty;
         private string m_assetType = String.Empty;
+        private Timer m_timeoutTimer = new Timer();
 
         public AssetUploader(string assetName, string description, UUID assetID, UUID inventoryItem,
                                 UUID parentFolderID, string invType, string assetType, string path,
@@ -1121,6 +1128,11 @@ namespace OpenSim.Region.ClientStack.Linden
             m_assetType = assetType;
             m_invType = invType;
             m_dumpAssetsToFile = dumpAssetsToFile;
+
+            m_timeoutTimer.Elapsed += TimedOut;
+            m_timeoutTimer.Interval = 120000;
+            m_timeoutTimer.AutoReset = false;
+            m_timeoutTimer.Start();
         }
 
         /// <summary>
@@ -1142,6 +1154,7 @@ namespace OpenSim.Region.ClientStack.Linden
             res = LLSDHelpers.SerialiseLLSDReply(uploadComplete);
 
             httpListener.RemoveStreamHandler("POST", uploaderPath);
+            m_timeoutTimer.Stop();
 
             // TODO: probably make this a better set of extensions here
             string extension = ".jp2";
@@ -1161,6 +1174,12 @@ namespace OpenSim.Region.ClientStack.Linden
             }
 
             return res;
+        }
+
+        private void TimedOut(object sender, ElapsedEventArgs args)
+        {
+            m_log.InfoFormat("[CAPS]: Removing URL and handler for timed out mesh upload");
+            httpListener.RemoveStreamHandler("POST", uploaderPath);
         }
 
         ///Left this in and commented in case there are unforseen issues

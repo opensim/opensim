@@ -27,6 +27,7 @@
 
 using log4net;
 using System;
+using System.Threading;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -50,7 +51,7 @@ namespace OpenSim.Services.Connectors
         private IImprovedAssetCache m_Cache = null;
         private int m_retryCounter;
         private Dictionary<int, List<AssetBase>> m_retryQueue = new Dictionary<int, List<AssetBase>>();
-        private Timer m_retryTimer;
+        private System.Timers.Timer m_retryTimer;
         private delegate void AssetRetrievedEx(AssetBase asset);
 
         // Keeps track of concurrent requests for the same asset, so that it's only loaded once.
@@ -60,6 +61,8 @@ namespace OpenSim.Services.Connectors
         private Dictionary<string, List<AssetRetrievedEx>> m_AssetHandlers = new Dictionary<string, List<AssetRetrievedEx>>();
 
         private Dictionary<string, string> m_UriMap = new Dictionary<string, string>();
+
+        private Thread[] m_fetchThreads;
 
         public AssetServicesConnector()
         {
@@ -96,7 +99,7 @@ namespace OpenSim.Services.Connectors
             }
 
 
-            m_retryTimer = new Timer();
+            m_retryTimer = new System.Timers.Timer();
             m_retryTimer.Elapsed += new ElapsedEventHandler(retryCheck);
             m_retryTimer.Interval = 60000;
 
@@ -111,6 +114,14 @@ namespace OpenSim.Services.Connectors
 
                 m_UriMap[prefix] = groupHost;
                 //m_log.DebugFormat("[ASSET]: Using {0} for prefix {1}", groupHost, prefix);
+            }
+
+            m_fetchThreads = new Thread[2];
+
+            for (int i = 0 ; i < 2 ; i++)
+            {
+                m_fetchThreads[i] = new Thread(AssetRequestProcessor);
+                m_fetchThreads[i].Start();
             }
         }
 
@@ -193,7 +204,7 @@ namespace OpenSim.Services.Connectors
             if (asset == null || asset.Data == null || asset.Data.Length == 0)
             {
                 asset = SynchronousRestObjectRequester.
-                        MakeRequest<int, AssetBase>("GET", uri, 0);
+                        MakeRequest<int, AssetBase>("GET", uri, 0, 30);
 
                 if (m_Cache != null)
                     m_Cache.Cache(asset);
@@ -261,6 +272,66 @@ namespace OpenSim.Services.Connectors
             return null;
         }
 
+        private class QueuedAssetRequest
+        {
+            public string uri;
+            public string id;
+        }
+
+        private OpenMetaverse.BlockingQueue<QueuedAssetRequest> m_requestQueue =
+                new OpenMetaverse.BlockingQueue<QueuedAssetRequest>();
+
+        private void AssetRequestProcessor()
+        {
+            QueuedAssetRequest r;
+
+            while (true)
+            {
+                r = m_requestQueue.Dequeue();
+
+                string uri = r.uri;
+                string id = r.id;
+
+                bool success = false;
+                try
+                {
+                    AsynchronousRestObjectRequester.MakeRequest<int, AssetBase>("GET", uri, 0,
+                        delegate(AssetBase a)
+                        {
+                            if (m_Cache != null)
+                                m_Cache.Cache(a);
+
+                            List<AssetRetrievedEx> handlers;
+                            lock (m_AssetHandlers)
+                            {
+                                handlers = m_AssetHandlers[id];
+                                m_AssetHandlers.Remove(id);
+                            }
+                            foreach (AssetRetrievedEx h in handlers)
+                                h.Invoke(a);
+                            if (handlers != null)
+                                handlers.Clear();
+                        }, 30);
+                    
+                    success = true;
+                }
+                finally
+                {
+                    if (!success)
+                    {
+                        List<AssetRetrievedEx> handlers;
+                        lock (m_AssetHandlers)
+                        {
+                            handlers = m_AssetHandlers[id];
+                            m_AssetHandlers.Remove(id);
+                        }
+                        if (handlers != null)
+                        handlers.Clear();
+                    }
+                }
+            }
+        }
+
         public bool Get(string id, Object sender, AssetRetrieved handler)
         {
             string uri = MapServer(id) + "/assets/" + id;
@@ -293,52 +364,11 @@ namespace OpenSim.Services.Connectors
                     m_AssetHandlers.Add(id, handlers);
                 }
 
-                bool success = false;
-                try
-                {
-                    AsynchronousRestObjectRequester.MakeRequest<int, AssetBase>("GET", uri, 0,
-                        delegate(AssetBase a)
-                        {
-                            if (m_Cache != null)
-                                m_Cache.Cache(a);
-/*
-                            AssetRetrievedEx handlers;
-                            lock (m_AssetHandlers)
-                            {
-                                handlers = m_AssetHandlers[id];
-                                m_AssetHandlers.Remove(id);
-                            }
+                QueuedAssetRequest request = new QueuedAssetRequest();
+                request.id = id;
+                request.uri = uri;
 
-                            handlers.Invoke(a);
-*/
-                            List<AssetRetrievedEx> handlers;
-                            lock (m_AssetHandlers)
-                            {
-                                handlers = m_AssetHandlers[id];
-                                m_AssetHandlers.Remove(id);
-                            }
-                            foreach (AssetRetrievedEx h in handlers)
-                                h.Invoke(a);
-                            if (handlers != null)
-                                handlers.Clear();
-                        });
-                    
-                    success = true;
-                }
-                finally
-                {
-                    if (!success)
-                    {
-                        List<AssetRetrievedEx> handlers;
-                        lock (m_AssetHandlers)
-                        {
-                            handlers = m_AssetHandlers[id];
-                            m_AssetHandlers.Remove(id);
-                        }
-                        if (handlers != null)
-                        handlers.Clear();
-                    }
-                }
+                m_requestQueue.Enqueue(request);
             }
             else
             {

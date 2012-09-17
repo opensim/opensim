@@ -443,7 +443,15 @@ namespace OpenSim.Server.Handlers.Simulation
         // subclasses can override this
         protected virtual bool CreateAgent(GridRegion destination, AgentCircuitData aCircuit, uint teleportFlags, out string reason)
         {
-            return m_SimulationService.CreateAgent(destination, aCircuit, teleportFlags, out reason);
+            reason = String.Empty;
+            
+            Util.FireAndForget(x =>
+            {
+                string r;
+                m_SimulationService.CreateAgent(destination, aCircuit, teleportFlags, out r);
+            });
+
+            return true;
         }
     }
 

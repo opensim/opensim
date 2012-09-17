@@ -39,6 +39,7 @@ using OpenSim.Region.Framework.Scenes;
 using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Mock;
 
+/*
 namespace OpenSim.Capabilities.Handlers.GetTexture.Tests
 {
     [TestFixture]
@@ -61,3 +62,4 @@ namespace OpenSim.Capabilities.Handlers.GetTexture.Tests
         }
     }
 }
+*/
