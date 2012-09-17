@@ -5527,6 +5527,9 @@ namespace OpenSim.Region.Framework.Scenes
 
         public string GetExtraSetting(string name)
         {
+            if (m_extraSettings == null)
+                return String.Empty;
+
             string val;
 
             if (!m_extraSettings.TryGetValue(name, out val))
