@@ -489,6 +489,7 @@ namespace OpenSim.Region.ClientStack.Linden
                         cost = (uint)baseCost;
                     }
 
+                    // check funds
                     if (mm != null)
                     {
                         if (!mm.UploadCovered(client.AgentId, (int)cost))
@@ -564,6 +565,21 @@ namespace OpenSim.Region.ClientStack.Linden
 
             sbyte assType = 0;
             sbyte inType = 0;
+
+            IClientAPI client = null;
+
+            IMoneyModule mm = m_Scene.RequestModuleInterface<IMoneyModule>();
+            if (mm != null)
+            {
+                // make sure client still has enougth credit
+                if (!mm.UploadCovered(m_HostCapsObj.AgentID, (int)cost))
+                {
+                    m_Scene.TryGetClient(m_HostCapsObj.AgentID, out client);
+                    if (client != null)
+                        client.SendAgentAlertMessage("Unable to upload asset. Insufficient funds.", false);
+                    return;
+                }
+            }
 
             if (inventoryType == "sound")
             {
