@@ -31,6 +31,15 @@ using OpenMetaverse;
 namespace OpenSim.Framework.Capabilities
 {
     [OSDMap]
+    public class LLSDAssetResource
+    {
+        public OSDArray instance_list = new OSDArray();
+        public OSDArray texture_list = new OSDArray();
+        public OSDArray mesh_list = new OSDArray();
+        public string metric = String.Empty;
+    }
+
+    [OSDMap]
     public class LLSDAssetUploadRequest
     {
         public string asset_type = String.Empty;
@@ -38,7 +47,7 @@ namespace OpenSim.Framework.Capabilities
         public UUID folder_id = UUID.Zero;
         public string inventory_type = String.Empty;
         public string name = String.Empty;
-
+        public LLSDAssetResource asset_resources = new LLSDAssetResource();
         public LLSDAssetUploadRequest()
         {
         }

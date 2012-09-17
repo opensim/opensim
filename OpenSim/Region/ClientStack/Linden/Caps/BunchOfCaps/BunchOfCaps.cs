@@ -60,7 +60,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
     public delegate void UpdateTaskScript(UUID itemID, UUID primID, bool isScriptRunning, byte[] data, ref ArrayList errors);
 
-    public delegate void NewInventoryItem(UUID userID, InventoryItemBase item);
+    public delegate void NewInventoryItem(UUID userID, InventoryItemBase item, uint cost);
 
     public delegate void NewAsset(AssetBase asset);
 
@@ -386,6 +386,37 @@ namespace OpenSim.Region.ClientStack.Linden
             return UUID.Zero;
         }
 
+        private delegate void UploadWithCostCompleteDelegate(string assetName,
+                string assetDescription, UUID assetID, UUID inventoryItem,
+                UUID parentFolder, byte[] data, string inventoryType,
+                string assetType, uint cost);
+
+        private class AssetUploaderWithCost : AssetUploader
+        {
+            private uint m_cost;
+
+            public event UploadWithCostCompleteDelegate OnUpLoad;
+
+            public AssetUploaderWithCost(string assetName, string description, UUID assetID,
+                    UUID inventoryItem, UUID parentFolderID, string invType, string assetType,
+                    string path, IHttpServer httpServer, bool dumpAssetsToFile, uint cost) :
+                    base(assetName, description, assetID, inventoryItem, parentFolderID,
+                            invType, assetType, path, httpServer, dumpAssetsToFile)
+            {
+                m_cost = cost;
+
+                base.OnUpLoad += UploadCompleteHandler;
+            }
+
+            private void UploadCompleteHandler(string assetName, string assetDescription, UUID assetID,
+                    UUID inventoryItem, UUID parentFolder, byte[] data, string inventoryType,
+                    string assetType)
+            {
+                OnUpLoad(assetName, assetDescription, assetID, inventoryItem, parentFolder,
+                        data, inventoryType, assetType, m_cost);
+            }
+        }
+
         /// <summary>
         ///
         /// </summary>
@@ -396,8 +427,11 @@ namespace OpenSim.Region.ClientStack.Linden
             //m_log.Debug("[CAPS]: NewAgentInventoryRequest Request is: " + llsdRequest.ToString());
             //m_log.Debug("asset upload request via CAPS" + llsdRequest.inventory_type + " , " + llsdRequest.asset_type);
 
+            uint cost = 0;
+
             if (llsdRequest.asset_type == "texture" ||
                 llsdRequest.asset_type == "animation" ||
+                llsdRequest.asset_type == "mesh" ||
                 llsdRequest.asset_type == "sound")
             {
                 ScenePresence avatar = null;
@@ -428,7 +462,31 @@ namespace OpenSim.Region.ClientStack.Linden
 
                     if (mm != null)
                     {
-                        if (!mm.UploadCovered(client.AgentId, mm.UploadCharge))
+                        // XPTO: The cost should be calculated about here
+
+                        if (llsdRequest.asset_type == "mesh")
+                        {
+                            if (llsdRequest.asset_resources == null)
+                            {
+                                client.SendAgentAlertMessage("Unable to upload asset. missing information.", false);
+
+                                LLSDAssetUploadResponse errorResponse = new LLSDAssetUploadResponse();
+                                errorResponse.uploader = "";
+                                errorResponse.state = "error";
+                                return errorResponse;
+                            }
+
+                            uint textures_cost = (uint)llsdRequest.asset_resources.texture_list.Array.Count;
+                            textures_cost *= (uint)mm.UploadCharge;
+
+                            cost = textures_cost;
+                        }
+                        else
+                        {
+                            cost = (uint)mm.UploadCharge;
+                        }
+
+                        if (!mm.UploadCovered(client.AgentId, (int)cost))
                         {
                             client.SendAgentAlertMessage("Unable to upload asset. Insufficient funds.", false);
 
@@ -449,9 +507,9 @@ namespace OpenSim.Region.ClientStack.Linden
             UUID parentFolder = llsdRequest.folder_id;
             string uploaderPath = Util.RandomClass.Next(5000, 8000).ToString("0000");
 
-            AssetUploader uploader =
-                new AssetUploader(assetName, assetDes, newAsset, newInvItem, parentFolder, llsdRequest.inventory_type,
-                                  llsdRequest.asset_type, capsBase + uploaderPath, m_HostCapsObj.HttpListener, m_dumpAssetsToFile);
+            AssetUploaderWithCost uploader =
+                new AssetUploaderWithCost(assetName, assetDes, newAsset, newInvItem, parentFolder, llsdRequest.inventory_type,
+                        llsdRequest.asset_type, capsBase + uploaderPath, m_HostCapsObj.HttpListener, m_dumpAssetsToFile, cost);
 
             m_HostCapsObj.HttpListener.AddStreamHandler(
                 new BinaryStreamHandler(
@@ -469,11 +527,31 @@ namespace OpenSim.Region.ClientStack.Linden
             string uploaderURL = protocol + m_HostCapsObj.HostName + ":" + m_HostCapsObj.Port.ToString() + capsBase +
                                  uploaderPath;
 
+
             LLSDAssetUploadResponse uploadResponse = new LLSDAssetUploadResponse();
             uploadResponse.uploader = uploaderURL;
             uploadResponse.state = "upload";
+            uploadResponse.upload_price = (int)cost;
+
+            // use fake values for now
+            if (llsdRequest.asset_type == "mesh")
+            {
+                uploadResponse.data = new LLSDAssetUploadResponseData();
+                uploadResponse.data.model_streaming_cost = 1.0;
+                uploadResponse.data.simulation_cost = 1.5;
+
+                uploadResponse.data.physics_cost = 2.0;
+                uploadResponse.data.resource_cost = 3.0;
+                uploadResponse.data.upload_price_breakdown.mesh_instance = 1;
+                uploadResponse.data.upload_price_breakdown.mesh_physics = 2;
+                uploadResponse.data.upload_price_breakdown.mesh_streaming = 3;
+                uploadResponse.data.upload_price_breakdown.texture = 5;
+                uploadResponse.data.upload_price_breakdown.model = 4;
+            }
+
             uploader.OnUpLoad += UploadCompleteHandler;
             return uploadResponse;
+
         }
 
         /// <summary>
@@ -484,7 +562,7 @@ namespace OpenSim.Region.ClientStack.Linden
         /// <param name="data"></param>
         public void UploadCompleteHandler(string assetName, string assetDescription, UUID assetID,
                                           UUID inventoryItem, UUID parentFolder, byte[] data, string inventoryType,
-                                          string assetType)
+                                          string assetType, uint cost)
         {
             m_log.DebugFormat(
                 "[BUNCH OF CAPS]: Uploaded asset {0} for inventory item {1}, inv type {2}, asset type {3}",
@@ -703,7 +781,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
             if (AddNewInventoryItem != null)
             {
-                AddNewInventoryItem(m_HostCapsObj.AgentID, item);
+                AddNewInventoryItem(m_HostCapsObj.AgentID, item, cost);
             }
         }
 
