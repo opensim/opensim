@@ -617,6 +617,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 OSDArray texture_list = (OSDArray)request["texture_list"];
                 SceneObjectGroup grp = null;
 
+                // create and store texture assets
                 List<UUID> textures = new List<UUID>();
                 for (int i = 0; i < texture_list.Count; i++)
                 {
@@ -624,14 +625,28 @@ namespace OpenSim.Region.ClientStack.Linden
                     textureAsset.Data = texture_list[i].AsBinary();
                     m_assetService.Store(textureAsset);
                     textures.Add(textureAsset.FullID);
+                    textureAsset = null;
                 }
 
+                // create and store meshs assets
+                List<UUID> meshAssets = new List<UUID>();
                 for (int i = 0; i < mesh_list.Count; i++)
+                {
+                    AssetBase meshAsset = new AssetBase(UUID.Random(), assetName, (sbyte)AssetType.Mesh, "");
+                    meshAsset.Data = mesh_list[i].AsBinary();
+                    m_assetService.Store(meshAsset);
+                    meshAssets.Add(meshAsset.FullID);
+                    meshAsset = null;
+                }
+
+                // build prims from instances
+                for (int i = 0; i < instance_list.Count; i++)
                 {
                     PrimitiveBaseShape pbs = PrimitiveBaseShape.CreateBox();
 
                     Primitive.TextureEntry textureEntry
                         = new Primitive.TextureEntry(Primitive.TextureEntry.WHITE_TEXTURE);
+
                     OSDMap inner_instance_list = (OSDMap)instance_list[i];
 
                     OSDArray face_list = (OSDArray)inner_instance_list["face_list"];
@@ -676,14 +691,14 @@ namespace OpenSim.Region.ClientStack.Linden
 
                     pbs.TextureEntry = textureEntry.GetBytes();
 
-                    AssetBase meshAsset = new AssetBase(UUID.Random(), assetName, (sbyte)AssetType.Mesh, "");
-                    meshAsset.Data = mesh_list[i].AsBinary();
-                    m_assetService.Store(meshAsset);
-
-                    pbs.SculptEntry = true;
-                    pbs.SculptTexture = meshAsset.FullID;
-                    pbs.SculptType = (byte)SculptType.Mesh;
-                    pbs.SculptData = meshAsset.Data;
+                    int meshindx = inner_instance_list["mesh"].AsInteger();
+                    if (meshAssets.Count > meshindx)
+                    {
+                        pbs.SculptEntry = true;
+                        pbs.SculptType = (byte)SculptType.Mesh;
+                        pbs.SculptTexture = meshAssets[meshindx]; // actual asset UUID after meshs suport introduction
+                        // data will be requested from asset on rez (i hope)
+                    }
 
                     Vector3 position = inner_instance_list["position"].AsVector3();
                     Vector3 scale = inner_instance_list["scale"].AsVector3();
