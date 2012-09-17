@@ -75,6 +75,14 @@ namespace OpenSim.Region.Framework.Interfaces
         void RegisterScriptInvocation(Type target, string[] methods);
 
         /// <summary>
+        /// Automatically register script invocations by checking for methods
+        /// with <see cref="ScriptInvocationAttribute"/>. Should only check
+        /// public methods.
+        /// </summary>
+        /// <param name="target"></param>
+        void RegisterScriptInvocations(IRegionModuleBase target);
+
+        /// <summary>
         /// Returns an array of all registered script calls
         /// </summary>
         /// <returns></returns>
@@ -96,11 +104,43 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="key"></param>
         void DispatchReply(UUID scriptId, int code, string text, string key);
 
-        /// For constants
+        /// <summary>
+        /// Operation to for a region module to register a constant to be used
+        /// by the script engine
+        /// </summary>
+        /// <param name="cname">
+        /// The name of the constant. LSL convention is for constant names to
+        /// be uppercase.
+        /// </param>
+        /// <param name="value">
+        /// The value of the constant. Should be of a type that can be
+        /// converted to one of <see cref="OpenSim.Region.ScriptEngine.Shared.LSL_Types"/>
+        /// </param>
         void RegisterConstant(string cname, object value);
+
+        /// <summary>
+        /// Automatically register all constants on a region module by
+        /// checking for fields with <see cref="ScriptConstantAttribute"/>.
+        /// </summary>
+        /// <param name="target"></param>
+        void RegisterConstants(IRegionModuleBase target);
+
+        /// <summary>
+        /// Operation to check for a registered constant
+        /// </summary>
+        /// <param name="cname">Name of constant</param>
+        /// <returns>Value of constant or null if none found.</returns>
         object LookupModConstant(string cname);
 
         // For use ONLY by the script API
         void RaiseEvent(UUID script, string id, string module, string command, string key);
     }
+
+    [AttributeUsage(AttributeTargets.Method)]
+    public class ScriptInvocationAttribute : Attribute
+    { }
+
+    [AttributeUsage(AttributeTargets.Field)]
+    public class ScriptConstantAttribute : Attribute
+    { }
 }
