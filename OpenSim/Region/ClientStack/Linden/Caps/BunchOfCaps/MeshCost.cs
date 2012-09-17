@@ -42,10 +42,6 @@ namespace OpenSim.Region.ClientStack.Linden
         const float physMeshSizeWth = 6f; // counts  7x
         const float physHullSizeWth = 8f; // counts  9x
         
-        // price compression to promote complex meshs
-        const float feeCompressionBase = 50.0f; // transition from linear to log cost
-        const float feeCompressionScale = 250.0f; // 10000 scales to 1000
-
         // stream cost size factors 
         const float highLodFactor = 17.36f;
         const float midLodFactor = 277.78f;
@@ -373,17 +369,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
             // bytes to money
             sfee *= bytecost;
-
-            // fee compression
-            if (sfee > feeCompressionBase)
-            {
-                sfee -= feeCompressionBase;
-                sfee = feeCompressionScale * (float)Math.Log10((double)sfee);
-                sfee += feeCompressionBase;
-            }
-
-
-            
+           
             cost.costFee = sfee;
             return true;
         }
