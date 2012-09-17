@@ -56,41 +56,54 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         protected bool m_RestrictAppearanceAbroad;
         protected string m_AccountName;
-        protected AvatarAppearance m_ExportedAppearance;
+        protected List<AvatarAppearance> m_ExportedAppearances;
+        protected List<AvatarAttachment> m_Attachs;
 
-        protected AvatarAppearance ExportedAppearance
+        protected List<AvatarAppearance> ExportedAppearance
         {
             get
             {
-                if (m_ExportedAppearance != null)
-                    return m_ExportedAppearance;
+                if (m_ExportedAppearances != null)
+                    return m_ExportedAppearances;
 
-                string[] parts = m_AccountName.Split();
-                if (parts.Length != 2)
-                {
-                    m_log.WarnFormat("[HG ENTITY TRANSFER MODULE]: Wrong user account name format {0}. Specify 'First Last'", m_AccountName);
-                    return null;
-                }
-                UserAccount account = Scene.UserAccountService.GetUserAccount(UUID.Zero, parts[0], parts[1]);
-                if (account == null)
-                {
-                    m_log.WarnFormat("[HG ENTITY TRANSFER MODULE]: Unknown account {0}", m_AccountName);
-                    return null;
-                }
-                m_ExportedAppearance = Scene.AvatarService.GetAppearance(account.PrincipalID);
-                if (m_ExportedAppearance != null)
-                    m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Successfully retrieved appearance for {0}", m_AccountName);
+                m_ExportedAppearances = new List<AvatarAppearance>();
+                m_Attachs = new List<AvatarAttachment>();
 
-                foreach (AvatarAttachment att in m_ExportedAppearance.GetAttachments())
+                string[] names = m_AccountName.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+                foreach (string name in names)
                 {
-                    InventoryItemBase item = new InventoryItemBase(att.ItemID, account.PrincipalID);
-                    item = Scene.InventoryService.GetItem(item);
-                    if (item != null)
-                        m_ExportedAppearance.SetAttachment(att.AttachPoint, att.ItemID, item.AssetID);
-                    else
-                        m_log.WarnFormat("[HG ENTITY TRANSFER MODULE]: Unable to retrieve item {0} from inventory", att.ItemID);
+                    string[] parts = name.Trim().Split();
+                    if (parts.Length != 2)
+                    {
+                        m_log.WarnFormat("[HG ENTITY TRANSFER MODULE]: Wrong user account name format {0}. Specify 'First Last'", name);
+                        return null;
+                    }
+                    UserAccount account = Scene.UserAccountService.GetUserAccount(UUID.Zero, parts[0], parts[1]);
+                    if (account == null)
+                    {
+                        m_log.WarnFormat("[HG ENTITY TRANSFER MODULE]: Unknown account {0}", m_AccountName);
+                        return null;
+                    }
+                    AvatarAppearance a = Scene.AvatarService.GetAppearance(account.PrincipalID);
+                    if (a != null)
+                        m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Successfully retrieved appearance for {0}", name);
+
+                    foreach (AvatarAttachment att in a.GetAttachments())
+                    {
+                        InventoryItemBase item = new InventoryItemBase(att.ItemID, account.PrincipalID);
+                        item = Scene.InventoryService.GetItem(item);
+                        if (item != null)
+                            a.SetAttachment(att.AttachPoint, att.ItemID, item.AssetID);
+                        else
+                            m_log.WarnFormat("[HG ENTITY TRANSFER MODULE]: Unable to retrieve item {0} from inventory {1}", att.ItemID, name);
+                    }
+
+                    m_ExportedAppearances.Add(a);
+                    m_Attachs.AddRange(a.GetAttachments());
                 }
-                return m_ExportedAppearance;
+
+                return m_ExportedAppearances;
             }
         }
         
@@ -275,13 +288,29 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                             if (sp.Appearance.Wearables[i] == null)
                                 continue;
 
-                            if (ExportedAppearance.Wearables[i] == null) 
+                            bool found = false;
+                            foreach (AvatarAppearance a in ExportedAppearance)
+                                if (a.Wearables[i] != null)
+                                {
+                                    found = true;
+                                    break;
+                                }
+
+                            if (!found) 
                             {
                                m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Wearable not allowed to go outside {0}", i);
                                return false;
                             }
 
-                            if (sp.Appearance.Wearables[i][j].AssetID != ExportedAppearance.Wearables[i][j].AssetID)
+                            found = false;
+                            foreach (AvatarAppearance a in ExportedAppearance)
+                                if (sp.Appearance.Wearables[i][j].AssetID == a.Wearables[i][j].AssetID)
+                                {
+                                    found = true;
+                                    break;
+                                }
+
+                            if (!found)
                             {
                                 m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Wearable not allowed to go outside {0}", i);
                                 return false;
@@ -290,11 +319,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     }
 
                     // Check attachments
-
                     foreach (AvatarAttachment att in sp.Appearance.GetAttachments())
                     {
                         bool found = false;
-                        foreach (AvatarAttachment att2 in ExportedAppearance.GetAttachments())
+                        foreach (AvatarAttachment att2 in m_Attachs)
                         {
                             if (att2.AssetID == att.AssetID)
                             {
