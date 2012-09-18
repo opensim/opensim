@@ -25,40 +25,67 @@ namespace OpenSim.Region.ClientStack.Linden
 {
     public class ModelCost
     {
-        float ModelMinCost = 5.0f; // try to favor small meshs versus sculpts
+        // upload fee tunning paramenters
+        // fees are normalized to 1.0
+        // this parameters scale them to basic cost ( so 1.0 translates to 10 )
 
-        const float primCreationCost = 0.01f;  // 256 prims cost extra 2.56
+        public float ModelMeshCostFactor = 1.0f; // scale total cost relative to basic (excluding textures)
+        public float ModelTextureCostFactor = 0.25f; //(2.5c$) scale textures fee to basic.
+                                                     //   promote integration in a model
+                                                     // since they will not show up in inventory                                                                                                       
+        public float ModelMinCostFactor = 0.5f; // minimum total model free excluding textures
 
-        // weigthed size to money convertion
-        const float bytecost = 1e-4f;
+        // itens costs in normalized values
+        // ie will be multiplied by basicCost and factors above
+        const float primCreationCost = 0.002f;  // extra cost for each prim creation overhead
+        // weigthed size to normalized cost
+        const float bytecost = 1e-5f;
 
-        // for mesh upload fees based on compressed data sizes
-        // not using streaming physics and server costs as SL apparently does ??
-        
+        // mesh upload fees based on compressed data sizes
+        // several data sections are counted more that once
+        // to promote user optimization
+        // following parameters control how many extra times they are added
+        // to global size.
+        // LOD meshs
         const float medSizeWth = 1f; // 2x
         const float lowSizeWth = 1.5f; // 2.5x
         const float lowestSizeWth = 2f; // 3x
-        // favor potencial optimized meshs versus automatic decomposition
+        // favor potencially physical optimized meshs versus automatic decomposition
         const float physMeshSizeWth = 6f; // counts  7x
-        const float physHullSizeWth = 8f; // counts  9x
-        
+        const float physHullSizeWth = 8f; // counts  9x      
+
         // stream cost area factors 
+        // more or less like SL
         const float highLodFactor = 17.36f;
         const float midLodFactor = 277.78f;
         const float lowLodFactor = 1111.11f;
 
+        // physics cost is below, identical to SL, assuming shape type convex
+        // server cost is below identical to SL assuming non scripted non physical object
+
+        // internal
         const int bytesPerCoord = 6; // 3 coords, 2 bytes per each
 
+        // storage for a single mesh asset cost parameters       
         private class ameshCostParam
         {
+            // LOD sizes for size dependent streaming cost
             public int highLODSize;
             public int medLODSize;
             public int lowLODSize;
             public int lowestLODSize;
+            // normalized fee based on compressed data sizes
             public float costFee;
+            // physics cost
             public float physicsCost;
         }
 
+        // calculates a mesh model costs
+        // returns false on error, with a reason on parameter error
+        // resources input LLSD request
+        // basicCost input region assets upload cost
+        // totalcost returns model total upload fee
+        // meshcostdata returns detailed costs for viewer 
         public bool MeshModelCost(LLSDAssetResource resources, int basicCost, out int totalcost, LLSDAssetUploadResponseData meshcostdata, out string error)
         {
             totalcost = 0;
@@ -87,11 +114,12 @@ namespace OpenSim.Region.ClientStack.Linden
             // textures cost
             if (resources.texture_list != null && resources.texture_list.Array.Count > 0)
             {
-                int textures_cost = resources.texture_list.Array.Count;
-                textures_cost *= basicCost;
+                float textures_cost = (float)(resources.texture_list.Array.Count * basicCost);
+                textures_cost *= ModelTextureCostFactor;
 
-                meshcostdata.upload_price_breakdown.texture = textures_cost;
-                totalcost += textures_cost;
+                itmp = (int)(textures_cost + 0.5f); // round
+                meshcostdata.upload_price_breakdown.texture = itmp;
+                totalcost += itmp;
             }
 
             // meshs assets cost
@@ -176,12 +204,16 @@ namespace OpenSim.Region.ClientStack.Linden
             if (meshcostdata.resource_cost < meshcostdata.simulation_cost)
                 meshcostdata.resource_cost = meshcostdata.simulation_cost;
 
+            // scale cost
+            // at this point a cost of 1.0 whould mean basic cost
+            meshsfee *= ModelMeshCostFactor;
 
-            if (meshsfee < ModelMinCost)
-                meshsfee = ModelMinCost;
+            if (meshsfee < ModelMinCostFactor)
+                meshsfee = ModelMinCostFactor;
 
-            // scale cost with basic cost changes relative to 10
-            meshsfee *= (float)basicCost / 10.0f;
+            // actually scale it to basic cost
+            meshsfee *= (float)basicCost;
+
             meshsfee += 0.5f; // rounding
 
             totalcost += (int)meshsfee;
@@ -192,6 +224,7 @@ namespace OpenSim.Region.ClientStack.Linden
             return true;
         }
 
+        // single mesh asset cost
         private bool MeshCost(byte[] data, ameshCostParam cost, out string error)
         {
             cost.highLODSize = 0;
@@ -377,6 +410,7 @@ namespace OpenSim.Region.ClientStack.Linden
             return true;
         }
 
+        // parses a LOD or physics mesh component
         private bool submesh(byte[] data, int offset, int size, out int ntriangles)
         {
             ntriangles = 0;
@@ -443,6 +477,7 @@ namespace OpenSim.Region.ClientStack.Linden
             return true;
         }
 
+        // parses convex hulls component
         private bool hulls(byte[] data, int offset, int size, out int nvertices, out int nhulls)
         {
             nvertices = 0;
@@ -512,6 +547,7 @@ namespace OpenSim.Region.ClientStack.Linden
             return true;
         }
 
+        // returns streaming cost from on mesh LODs sizes in curCost and square of prim size length 
         private float streamingCost(ameshCostParam curCost, float sqdiam)
         {
             // compute efective areas
@@ -571,7 +607,6 @@ namespace OpenSim.Region.ClientStack.Linden
                 h = 16;
 
             // compute cost weighted by relative effective areas
-
             float cost = (float)lst * mlst + (float)l * ml + (float)m * mm + (float)h * mh;
             cost /= ma;
 
