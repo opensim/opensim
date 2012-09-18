@@ -643,11 +643,11 @@ namespace OpenSim.Framework
 
             #region Prim stuff
 
-            m_nonphysPrimMin = config.GetFloat("NonphysicalPrimMin", 0);
-            allKeys.Remove("NonphysicalPrimMin");
+            m_nonphysPrimMin = config.GetFloat("NonPhysicalPrimMin", 0);
+            allKeys.Remove("NonPhysicalPrimMin");
 
-            m_nonphysPrimMax = config.GetInt("NonphysicalPrimMax", 0);
-            allKeys.Remove("NonphysicalPrimMax");
+            m_nonphysPrimMax = config.GetInt("NonPhysicalPrimMax", 0);
+            allKeys.Remove("NonPhysicalPrimMax");
 
             m_physPrimMin = config.GetFloat("PhysicalPrimMin", 0);
             allKeys.Remove("PhysicalPrimMin");
