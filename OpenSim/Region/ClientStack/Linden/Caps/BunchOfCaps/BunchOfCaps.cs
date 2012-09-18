@@ -116,6 +116,8 @@ namespace OpenSim.Region.ClientStack.Linden
         private bool m_dumpAssetsToFile = false;
         private string m_regionName;
         private int m_levelUpload = 0;
+        private bool m_addNewTextures = false;
+        private bool m_addNewMeshes = false;
 
         public BunchOfCaps(Scene scene, Caps caps)
         {
@@ -627,7 +629,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     textures.Add(textureAsset.FullID);
 
                     // save it to inventory
-                    if (AddNewInventoryItem != null)
+                    if (m_addNewTextures && AddNewInventoryItem != null)
                     {
                         string name = assetName;
                         if (name.Length > 25)
@@ -673,7 +675,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     meshAssets.Add(meshAsset.FullID);
 
                     // save it to inventory
-                    if (AddNewInventoryItem != null)
+                    if (m_addNewMeshes && AddNewInventoryItem != null)
                     {
                         string name = assetName;
                         if (name.Length > 25)
