@@ -49,9 +49,6 @@ public sealed class BSPrim : BSPhysObject
     private ulong _hullKey;
     private List<ConvexResult> _hulls;
 
-    private String _avName;
-    private uint _localID = 0;
-
     // _size is what the user passed. _scale is what we pass to the physics engine with the mesh.
     // Often _scale is unity because the meshmerizer will apply _size when creating the mesh.
     private OMV.Vector3 _size;  // the multiplier for each mesh dimension as passed by the user
@@ -99,9 +96,7 @@ public sealed class BSPrim : BSPhysObject
                        OMV.Quaternion rotation, PrimitiveBaseShape pbs, bool pisPhysical)
     {
         // m_log.DebugFormat("{0}: BSPrim creation of {1}, id={2}", LogHeader, primName, localID);
-        base.BaseInitialize(parent_scene);
-        _localID = localID;
-        _avName = primName;
+        base.BaseInitialize(parent_scene, localID, primName);
         _physicsActorType = (int)ActorTypes.Prim;
         _position = pos;
         _size = size;
@@ -187,10 +182,6 @@ public sealed class BSPrim : BSPhysObject
             });
         } 
     }
-    public override uint LocalID { 
-        set { _localID = value; }
-        get { return _localID; }
-    }
     public override bool Grabbed { 
         set { _grabbed = value; 
         } 
@@ -267,7 +258,7 @@ public sealed class BSPrim : BSPhysObject
                 _position = BulletSimAPI.GetPosition2(BSBody.Ptr);
 
             // don't do the GetObjectPosition for root elements because this function is called a zillion times
-            // _position = BulletSimAPI.GetObjectPosition(Scene.WorldID, _localID);
+            // _position = BulletSimAPI.GetObjectPosition(Scene.WorldID, LocalID);
             return _position; 
         } 
         set {
@@ -425,7 +416,7 @@ public sealed class BSPrim : BSPhysObject
             // TODO: what does it mean if a child in a linkset changes its orientation? Rebuild the constraint?
             PhysicsScene.TaintedObject("BSPrim.setOrientation", delegate()
             {
-                // _position = BulletSimAPI.GetObjectPosition(Scene.WorldID, _localID);
+                // _position = BulletSimAPI.GetObjectPosition(Scene.WorldID, LocalID);
                 DetailLog("{0},BSPrim.setOrientation,taint,pos={1},orient={2}", LocalID, _position, _orientation);
                 BulletSimAPI.SetTranslation2(BSBody.Ptr, _position, _orientation);
             });
@@ -666,7 +657,7 @@ public sealed class BSPrim : BSPhysObject
                 // Buoyancy is faked by changing the gravity applied to the object
                 float grav = PhysicsScene.Params.gravity * (1f - _buoyancy);
                 BulletSimAPI.SetGravity2(BSBody.Ptr, new OMV.Vector3(0f, 0f, grav));
-                // BulletSimAPI.SetObjectBuoyancy(Scene.WorldID, _localID, _buoyancy);
+                // BulletSimAPI.SetObjectBuoyancy(Scene.WorldID, LocalID, _buoyancy);
             });
         } 
     }
@@ -1127,7 +1118,7 @@ public sealed class BSPrim : BSPhysObject
             lod = PhysicsScene.MeshMegaPrimLOD;
 
         ulong newMeshKey = (ulong)_pbs.GetMeshKey(_size, lod);
-        // m_log.DebugFormat("{0}: CreateGeomMesh: lID={1}, oldKey={2}, newKey={3}", LogHeader, _localID, _meshKey, newMeshKey);
+        // m_log.DebugFormat("{0}: CreateGeomMesh: lID={1}, oldKey={2}, newKey={3}", LogHeader, LocalID, _meshKey, newMeshKey);
 
         // if this new shape is the same as last time, don't recreate the mesh
         if (_meshKey == newMeshKey) return false;
@@ -1136,7 +1127,7 @@ public sealed class BSPrim : BSPhysObject
         // Since we're recreating new, get rid of any previously generated shape
         if (_meshKey != 0)
         {
-            // m_log.DebugFormat("{0}: CreateGeom: deleting old mesh. lID={1}, Key={2}", LogHeader, _localID, _meshKey);
+            // m_log.DebugFormat("{0}: CreateGeom: deleting old mesh. lID={1}, Key={2}", LogHeader, LocalID, _meshKey);
             DetailLog("{0},BSPrim.CreateGeomMesh,deleteOld,key={1}", LocalID, _meshKey);
             BulletSimAPI.DestroyMesh(PhysicsScene.WorldID, _meshKey);
             _mesh = null;
@@ -1145,7 +1136,7 @@ public sealed class BSPrim : BSPhysObject
 
         _meshKey = newMeshKey;
         // always pass false for physicalness as this creates some sort of bounding box which we don't need
-        _mesh = PhysicsScene.mesher.CreateMesh(_avName, _pbs, _size, lod, false);
+        _mesh = PhysicsScene.mesher.CreateMesh(PhysObjectName, _pbs, _size, lod, false);
 
         int[] indices = _mesh.getIndexListAsInt();
         List<OMV.Vector3> vertices = _mesh.getVertexList();
@@ -1160,7 +1151,7 @@ public sealed class BSPrim : BSPhysObject
         }
 
         // m_log.DebugFormat("{0}: CreateGeomMesh: calling CreateMesh. lid={1}, key={2}, indices={3}, vertices={4}", 
-        //                  LogHeader, _localID, _meshKey, indices.Length, vertices.Count);
+        //                  LogHeader, LocalID, _meshKey, indices.Length, vertices.Count);
         BulletSimAPI.CreateMesh(PhysicsScene.WorldID, _meshKey, indices.GetLength(0), indices, 
                                                         vertices.Count, verticesAsFloats);
 
@@ -1176,7 +1167,7 @@ public sealed class BSPrim : BSPhysObject
     {
         float lod = _pbs.SculptEntry ? PhysicsScene.SculptLOD : PhysicsScene.MeshLOD;
         ulong newHullKey = (ulong)_pbs.GetMeshKey(_size, lod);
-        // m_log.DebugFormat("{0}: CreateGeomHull: lID={1}, oldKey={2}, newKey={3}", LogHeader, _localID, _hullKey, newHullKey);
+        // m_log.DebugFormat("{0}: CreateGeomHull: lID={1}, oldKey={2}, newKey={3}", LogHeader, LocalID, _hullKey, newHullKey);
 
         // if the hull hasn't changed, don't rebuild it
         if (newHullKey == _hullKey) return false;
@@ -1276,7 +1267,7 @@ public sealed class BSPrim : BSPhysObject
         }
 
         // create the hull definition in Bullet
-        // m_log.DebugFormat("{0}: CreateGeom: calling CreateHull. lid={1}, key={2}, hulls={3}", LogHeader, _localID, _hullKey, hullCount);
+        // m_log.DebugFormat("{0}: CreateGeom: calling CreateHull. lid={1}, key={2}, hulls={3}", LogHeader, LocalID, _hullKey, hullCount);
         BulletSimAPI.CreateHull(PhysicsScene.WorldID, _hullKey, hullCount, convHulls);
         _shapeType = ShapeData.PhysicsShapeType.SHAPE_HULL;
         // meshes are already scaled by the meshmerizer
@@ -1316,7 +1307,7 @@ public sealed class BSPrim : BSPhysObject
         // the mesh or hull must have already been created in Bullet
         ShapeData shape;
         FillShapeInfo(out shape);
-        // m_log.DebugFormat("{0}: CreateObject: lID={1}, shape={2}", LogHeader, _localID, shape.Type);
+        // m_log.DebugFormat("{0}: CreateObject: lID={1}, shape={2}", LogHeader, LocalID, shape.Type);
         bool ret = BulletSimAPI.CreateObject(PhysicsScene.WorldID, shape);
 
         // the CreateObject() may have recreated the rigid body. Make sure we have the latest address.
@@ -1329,7 +1320,7 @@ public sealed class BSPrim : BSPhysObject
     // Copy prim's info into the BulletSim shape description structure
     public void FillShapeInfo(out ShapeData shape)
     {
-        shape.ID = _localID;
+        shape.ID = LocalID;
         shape.Type = _shapeType;
         shape.Position = _position;
         shape.Rotation = _orientation;
@@ -1350,7 +1341,7 @@ public sealed class BSPrim : BSPhysObject
     // No locking here because this is done when the physics engine is not simulating
     private void CreateGeomAndObject(bool forceRebuild)
     {
-        // m_log.DebugFormat("{0}: CreateGeomAndObject. lID={1}, force={2}", LogHeader, _localID, forceRebuild);
+        // m_log.DebugFormat("{0}: CreateGeomAndObject. lID={1}, force={2}", LogHeader, LocalID, forceRebuild);
         // Create the geometry that will make up the object
         if (CreateGeom(forceRebuild))
         {
@@ -1452,11 +1443,6 @@ public sealed class BSPrim : BSPhysObject
                     entprop.Acceleration, entprop.RotationalVelocity);
         }
              */
-    }
-    // Invoke the detailed logger and output something if it's enabled.
-    private void DetailLog(string msg, params Object[] args)
-    {
-        PhysicsScene.PhysicsLogging.Write(msg, args);
     }
 }
 }

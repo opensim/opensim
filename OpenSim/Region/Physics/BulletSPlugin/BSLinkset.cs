@@ -77,7 +77,7 @@ public class BSLinkset
         // A simple linkset of one (no children)
         LinksetID = m_nextLinksetID++;
         // We create LOTS of linksets.
-        if (m_nextLinksetID < 0) 
+        if (m_nextLinksetID <= 0) 
             m_nextLinksetID = 1;
         PhysicsScene = scene;
         LinksetRoot = parent;
@@ -157,21 +157,26 @@ public class BSLinkset
 
     private float ComputeLinksetMass()
     {
-        float mass = LinksetRoot.MassRaw;
-        foreach (BSPhysObject bp in m_children)
+        float mass;
+        lock (m_linksetActivityLock)
         {
-            mass += bp.MassRaw;
+            mass = LinksetRoot.MassRaw;
+            foreach (BSPhysObject bp in m_children)
+            {
+                mass += bp.MassRaw;
+            }
         }
         return mass;
     }
 
     private OMV.Vector3 ComputeLinksetCenterOfMass()
     {
-        OMV.Vector3 com = LinksetRoot.Position * LinksetRoot.MassRaw;
-        float totalMass = LinksetRoot.MassRaw;
-
+        OMV.Vector3 com;
         lock (m_linksetActivityLock)
         {
+            com = LinksetRoot.Position * LinksetRoot.MassRaw;
+            float totalMass = LinksetRoot.MassRaw;
+
             foreach (BSPhysObject bp in m_children)
             {
                 com += bp.Position * bp.MassRaw;
@@ -186,10 +191,11 @@ public class BSLinkset
 
     private OMV.Vector3 ComputeLinksetGeometricCenter()
     {
-        OMV.Vector3 com = LinksetRoot.Position;
-
+        OMV.Vector3 com;
         lock (m_linksetActivityLock)
         {
+            com = LinksetRoot.Position;
+
             foreach (BSPhysObject bp in m_children)
             {
                 com += bp.Position * bp.MassRaw;
@@ -208,8 +214,8 @@ public class BSLinkset
     // Called at taint-time!
     public bool MakeDynamic(BSPhysObject child)
     {
-        bool ret = false;
-        return ret;
+        // What is done for each object in BSPrim is what we want.
+        return false;
     }
 
     // The object is going static (non-physical). Do any setup necessary

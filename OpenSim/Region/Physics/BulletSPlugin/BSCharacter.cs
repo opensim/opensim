@@ -39,18 +39,16 @@ public class BSCharacter : BSPhysObject
     private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
     private static readonly string LogHeader = "[BULLETS CHAR]";
 
-    private String _avName;
     // private bool _stopped;
     private OMV.Vector3 _size;
     private OMV.Vector3 _scale;
     private PrimitiveBaseShape _pbs;
-    private uint _localID = 0;
     private bool _grabbed;
     private bool _selected;
     private OMV.Vector3 _position;
     private float _mass;
-    public float _density;
-    public float _avatarVolume;
+    private float _avatarDensity;
+    private float _avatarVolume;
     private OMV.Vector3 _force;
     private OMV.Vector3 _velocity;
     private OMV.Vector3 _torque;
@@ -63,17 +61,11 @@ public class BSCharacter : BSPhysObject
     private bool _setAlwaysRun;
     private bool _throttleUpdates;
     private bool _isColliding;
-    private long _collidingStep;
-    private bool _collidingGround;
-    private long _collidingGroundStep;
     private bool _collidingObj;
     private bool _floatOnWater;
     private OMV.Vector3 _rotationalVelocity;
     private bool _kinematic;
     private float _buoyancy;
-
-    private int _subscribedEventsMs = 0;
-    private int _nextCollisionOkTime = 0;
 
     private OMV.Vector3 _PIDTarget;
     private bool _usePID;
@@ -85,9 +77,7 @@ public class BSCharacter : BSPhysObject
 
     public BSCharacter(uint localID, String avName, BSScene parent_scene, OMV.Vector3 pos, OMV.Vector3 size, bool isFlying)
     {
-        base.BaseInitialize(parent_scene);
-        _localID = localID;
-        _avName = avName;
+        base.BaseInitialize(parent_scene, localID, avName);
         _physicsActorType = (int)ActorTypes.Agent;
         _position = pos;
         _size = size;
@@ -95,14 +85,15 @@ public class BSCharacter : BSPhysObject
         _orientation = OMV.Quaternion.Identity;
         _velocity = OMV.Vector3.Zero;
         _buoyancy = ComputeBuoyancyFromFlying(isFlying);
+
         // The dimensions of the avatar capsule are kept in the scale.
         // Physics creates a unit capsule which is scaled by the physics engine.
-        _scale = new OMV.Vector3(PhysicsScene.Params.avatarCapsuleRadius, PhysicsScene.Params.avatarCapsuleRadius, size.Z);
-        _density = PhysicsScene.Params.avatarDensity;
+        ComputeAvatarScale(_size);
+        _avatarDensity = PhysicsScene.Params.avatarDensity;
         ComputeAvatarVolumeAndMass();   // set _avatarVolume and _mass based on capsule size, _density and _scale
 
         ShapeData shapeData = new ShapeData();
-        shapeData.ID = _localID;
+        shapeData.ID = LocalID;
         shapeData.Type = ShapeData.PhysicsShapeType.SHAPE_AVATAR;
         shapeData.Position = _position;
         shapeData.Rotation = _orientation;
@@ -117,7 +108,7 @@ public class BSCharacter : BSPhysObject
         // do actual create at taint time
         PhysicsScene.TaintedObject("BSCharacter.create", delegate()
         {
-            DetailLog("{0},BSCharacter.create", _localID);
+            DetailLog("{0},BSCharacter.create,taint", LocalID);
             BulletSimAPI.CreateObject(PhysicsScene.WorldID, shapeData);
 
             // Set the buoyancy for flying. This will be refactored when all the settings happen in C#
@@ -135,7 +126,7 @@ public class BSCharacter : BSPhysObject
         DetailLog("{0},BSCharacter.Destroy", LocalID);
         PhysicsScene.TaintedObject("BSCharacter.destroy", delegate()
         {
-            BulletSimAPI.DestroyObject(PhysicsScene.WorldID, _localID);
+            BulletSimAPI.DestroyObject(PhysicsScene.WorldID, LocalID);
         });
     }
 
@@ -158,7 +149,7 @@ public class BSCharacter : BSPhysObject
             // When an avatar's size is set, only the height is changed
             //    and that really only depends on the radius.
             _size = value;
-            _scale.Z = (_size.Z * 1.15f) - (_scale.X + _scale.Y);
+            ComputeAvatarScale(_size);
 
             // TODO: something has to be done with the avatar's vertical position
 
@@ -174,11 +165,6 @@ public class BSCharacter : BSPhysObject
     public override PrimitiveBaseShape Shape { 
         set { _pbs = value; 
         } 
-    }
-    public override uint LocalID { 
-        set { _localID = value; 
-        }
-        get { return _localID; }
     }
     public override bool Grabbed { 
         set { _grabbed = value; 
@@ -223,7 +209,7 @@ public class BSCharacter : BSPhysObject
             PhysicsScene.TaintedObject("BSCharacter.setPosition", delegate()
             {
                 DetailLog("{0},BSCharacter.SetPosition,taint,pos={1},orient={2}", LocalID, _position, _orientation);
-                BulletSimAPI.SetObjectTranslation(PhysicsScene.WorldID, _localID, _position, _orientation);
+                BulletSimAPI.SetObjectTranslation(PhysicsScene.WorldID, LocalID, _position, _orientation);
             });
         } 
     }
@@ -261,7 +247,7 @@ public class BSCharacter : BSPhysObject
             PhysicsScene.TaintedObject("BSCharacter.PositionSanityCheck", delegate()
             {
                 DetailLog("{0},BSCharacter.PositionSanityCheck,taint,pos={1},orient={2}", LocalID, _position, _orientation);
-                BulletSimAPI.SetObjectTranslation(PhysicsScene.WorldID, _localID, _position, _orientation);
+                BulletSimAPI.SetObjectTranslation(PhysicsScene.WorldID, LocalID, _position, _orientation);
             });
             ret = true;
         }
@@ -312,7 +298,7 @@ public class BSCharacter : BSPhysObject
             PhysicsScene.TaintedObject("BSCharacter.setVelocity", delegate()
             {
                 DetailLog("{0},BSCharacter.setVelocity,taint,vel={1}", LocalID, _velocity);
-                BulletSimAPI.SetObjectVelocity(PhysicsScene.WorldID, _localID, _velocity);
+                BulletSimAPI.SetObjectVelocity(PhysicsScene.WorldID, LocalID, _velocity);
             });
         } 
     }
@@ -338,7 +324,7 @@ public class BSCharacter : BSPhysObject
             PhysicsScene.TaintedObject("BSCharacter.setOrientation", delegate()
             {
                 // _position = BulletSimAPI.GetObjectPosition(Scene.WorldID, _localID);
-                BulletSimAPI.SetObjectTranslation(PhysicsScene.WorldID, _localID, _position, _orientation);
+                BulletSimAPI.SetObjectTranslation(PhysicsScene.WorldID, LocalID, _position, _orientation);
             });
         } 
     }
@@ -375,12 +361,12 @@ public class BSCharacter : BSPhysObject
         set { _throttleUpdates = value; } 
     }
     public override bool IsColliding {
-        get { return (_collidingStep == PhysicsScene.SimulationStep); } 
+        get { return (CollidingStep == PhysicsScene.SimulationStep); } 
         set { _isColliding = value; } 
     }
     public override bool CollidingGround {
-        get { return (_collidingGroundStep == PhysicsScene.SimulationStep); } 
-        set { _collidingGround = value; } 
+        get { return (CollidingGroundStep == PhysicsScene.SimulationStep); } 
+        set { CollidingGround = value; } 
     }
     public override bool CollidingObj { 
         get { return _collidingObj; } 
@@ -466,6 +452,16 @@ public class BSCharacter : BSPhysObject
     public override void SetMomentum(OMV.Vector3 momentum) { 
     }
 
+    private void ComputeAvatarScale(OMV.Vector3 size)
+    {
+        _scale.X = PhysicsScene.Params.avatarCapsuleRadius;
+        _scale.Y = PhysicsScene.Params.avatarCapsuleRadius;
+
+        // The 1.15 came from ODE but it seems to cause the avatar to float off the ground
+        // _scale.Z = (_size.Z * 1.15f) - (_scale.X + _scale.Y);
+        _scale.Z = (_size.Z) - (_scale.X + _scale.Y);
+    }
+
     // set _avatarVolume and _mass based on capsule size, _density and _scale
     private void ComputeAvatarVolumeAndMass()
     {
@@ -480,7 +476,7 @@ public class BSCharacter : BSPhysObject
                         * Math.Min(_scale.X, _scale.Y)
                         * _scale.Y  // plus the volume of the capsule end caps
                         );
-        _mass = _density * _avatarVolume;
+        _mass = _avatarDensity * _avatarVolume;
     }
 
     // The physics engine says that properties have updated. Update same and inform
@@ -501,12 +497,6 @@ public class BSCharacter : BSPhysObject
         float heightHere = PhysicsScene.TerrainManager.GetTerrainHeightAtXYZ(_position);   // only for debug
         DetailLog("{0},BSCharacter.UpdateProperties,call,pos={1},orient={2},vel={3},accel={4},rotVel={5},terrain={6}",
                 LocalID, _position, _orientation, _velocity, _acceleration, _rotationalVelocity, heightHere);
-    }
-
-    // Invoke the detailed logger and output something if it's enabled.
-    private void DetailLog(string msg, params Object[] args)
-    {
-        PhysicsScene.PhysicsLogging.Write(msg, args);
     }
 }
 }

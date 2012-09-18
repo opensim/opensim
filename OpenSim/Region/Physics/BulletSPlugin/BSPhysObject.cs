@@ -39,9 +39,12 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 // unless the difference is significant.
 public abstract class BSPhysObject : PhysicsActor
 {
-    protected void BaseInitialize(BSScene parentScene)
+    protected void BaseInitialize(BSScene parentScene, uint localID, string name)
     {
         PhysicsScene = parentScene;
+        LocalID = localID;
+        PhysObjectName = name;
+
         Linkset = new BSLinkset(PhysicsScene, this);
 
         CollisionCollection = new CollisionEventUpdate();
@@ -51,6 +54,8 @@ public abstract class BSPhysObject : PhysicsActor
     }
 
     public BSScene PhysicsScene { get; protected set; }
+    // public override uint LocalID { get; set; } // Use the LocalID definition in PhysicsActor
+    public string PhysObjectName { get; protected set; }
 
     public BSLinkset Linkset { get; set; }
 
@@ -111,13 +116,13 @@ public abstract class BSPhysObject : PhysicsActor
             return ret;
         }
 
-        PhysicsScene.PhysicsLogging.Write("{0},BSPhysObject.Collison,call,with={1}", LocalID, collidingWith);
+        DetailLog("{0},BSPhysObject.Collison,call,with={1}", LocalID, collidingWith);
 
         // if someone has subscribed for collision events....
         if (SubscribedEvents()) {
             CollisionCollection.AddCollider(collidingWith, new ContactPoint(contactPoint, contactNormal, pentrationDepth));
-            PhysicsScene.PhysicsLogging.Write("{0},BSPhysObject.Collison.AddCollider,call,with={1},point={2},normal={3},depth={4},next={5}", 
-                    LocalID, collidingWith, contactPoint, contactNormal, pentrationDepth, NextCollisionOkTime.ToString("yyyyMMddHHmmssfff"));
+            DetailLog("{0},BSPhysObject.Collison.AddCollider,call,with={1},point={2},normal={3},depth={4}",
+                            LocalID, collidingWith, contactPoint, contactNormal, pentrationDepth);
             ret = true;
         }
         return ret;
@@ -127,6 +132,8 @@ public abstract class BSPhysObject : PhysicsActor
     // Also handles removal of this from the collection of objects with collisions if
     //      there are no collisions from this object. Mechanism is create one last
     //      collision event to make collision_end work.
+    // Called at taint time from within the Step() function thus no locking problems
+    //      with CollisionCollection and ObjectsWithNoMoreCollisions.
     public virtual void SendCollisions()
     {
         // throttle the collisions to the number of milliseconds specified in the subscription
@@ -140,10 +147,11 @@ public abstract class BSPhysObject : PhysicsActor
             if (CollisionCollection.Count == 0)
                 PhysicsScene.ObjectsWithNoMoreCollisions.Add(this);
 
+            DetailLog("{0},SendCollisions.SendCollisionUpdate,call,numCollisions={1}", LocalID, CollisionCollection.Count);
             base.SendCollisionUpdate(CollisionCollection);
 
             // The collisionCollection structure is passed around in the simulator.
-            // Make sure we don't have a handle to that one and that a new one is used next time.
+            // Make sure we don't have a handle to that one and that a new one is used for next time.
             CollisionCollection = new CollisionEventUpdate();
         }
     }
@@ -156,8 +164,7 @@ public abstract class BSPhysObject : PhysicsActor
         {
             // make sure first collision happens
             NextCollisionOkTime = Util.EnvironmentTickCountSubtract(SubscribedEventsMs);
-            PhysicsScene.PhysicsLogging.Write("{0},SubscribeEvents,call,ms={1},nextOKTime={2}", 
-                    LocalID, SubscribedEventsMs, NextCollisionOkTime.ToString("yyyyMMddHHmmssfff"));
+            DetailLog("{0},SubscribeEvents,call,ms={1}", LocalID, SubscribedEventsMs);
 
             PhysicsScene.TaintedObject("BSPhysObject.SubscribeEvents", delegate()
             {
@@ -172,7 +179,7 @@ public abstract class BSPhysObject : PhysicsActor
     }
     public override void UnSubscribeEvents() { 
         SubscribedEventsMs = 0;
-        PhysicsScene.PhysicsLogging.Write("{0},UnSubscribeEvents,call", LocalID);
+        DetailLog("{0},UnSubscribeEvents,call", LocalID);
         PhysicsScene.TaintedObject("BSPhysObject.UnSubscribeEvents", delegate()
         {
             CurrentCollisionFlags = BulletSimAPI.RemoveFromCollisionFlags2(BSBody.Ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
@@ -184,5 +191,11 @@ public abstract class BSPhysObject : PhysicsActor
     }
 
     #endregion // Collisions
+
+    // High performance detailed logging routine used by the physical objects.
+    protected void DetailLog(string msg, params Object[] args)
+    {
+        PhysicsScene.PhysicsLogging.Write(msg, args);
+    }
 }
 }
