@@ -149,13 +149,16 @@ namespace OpenSim.Region.ClientStack.Linden
                 HasEvents = (x, y) => { return this.responses.ContainsKey(x); };
                 GetEvents = (x, y, s) =>
                 {
-                    try
+                    lock (responses)
                     {
-                        return this.responses[x];
-                    }
-                    finally
-                    {
-                        responses.Remove(x);
+                        try
+                        {
+                            return this.responses[x];
+                        }
+                        finally
+                        {
+                            responses.Remove(x);
+                        }
                     }
                 };
 
@@ -218,14 +221,14 @@ namespace OpenSim.Region.ClientStack.Linden
                     response["content_type"] = "text/plain";
                     response["keepalive"] = false;
                     response["reusecontext"] = false;
-
-                    responses[requestID] = response;
+                    lock (responses)
+                        responses[requestID] = response;
                     return;
                 }
 
                 response = m_getTextureHandler.Handle(request);
-
-                responses[requestID] = response; 
+                lock (responses)
+                    responses[requestID] = response; 
             }
         }
 

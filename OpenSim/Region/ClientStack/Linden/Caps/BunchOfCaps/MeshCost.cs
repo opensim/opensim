@@ -42,7 +42,7 @@ namespace OpenSim.Region.ClientStack.Linden
         const float physMeshSizeWth = 6f; // counts  7x
         const float physHullSizeWth = 8f; // counts  9x
         
-        // stream cost size factors 
+        // stream cost area factors 
         const float highLodFactor = 17.36f;
         const float midLodFactor = 277.78f;
         const float lowLodFactor = 1111.11f;
@@ -94,13 +94,12 @@ namespace OpenSim.Region.ClientStack.Linden
                 totalcost += textures_cost;
             }
 
-            float meshsfee = 0;
-
             // meshs assets cost
-
+            float meshsfee = 0;
             int numberMeshs = 0;
+            bool haveMeshs = false;
             List<ameshCostParam> meshsCosts = new List<ameshCostParam>();
-            // a model could have no mesh actually
+
             if (resources.mesh_list != null && resources.mesh_list.Array.Count > 0)
             {
                 numberMeshs = resources.mesh_list.Array.Count;
@@ -117,6 +116,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     meshsCosts.Add(curCost);
                     meshsfee += curCost.costFee;
                 }
+                haveMeshs = true;
             }
 
             // instances (prims) cost
@@ -126,44 +126,43 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 Hashtable inst = (Hashtable)resources.instance_list.Array[i];
 
-                // streamming cost
-                // assume all instances have a mesh
-                // but in general they can have normal prims
-                // but for now that seems not suported
-                // when they do, we will need to inspect pbs information 
-                // and have cost funtions for all prims types
-                // don't check for shape type none, since 
-                // that could be used to upload meshs with low cost
-                // changing later inworld
-
-                ArrayList ascale = (ArrayList)inst["scale"];
-                Vector3 scale;
-                double tmp;
-                tmp = (double)ascale[0];
-                scale.X = (float)tmp;
-                tmp = (double)ascale[1];
-                scale.Y = (float)tmp;
-                tmp = (double)ascale[2];
-                scale.Z = (float)tmp;
-
-                float sqdiam = scale.LengthSquared();
-
-                mesh = (int)inst["mesh"];
-
-                if(mesh >= numberMeshs)
+                if (haveMeshs && inst.ContainsKey("mesh"))
                 {
-                    error = "Unable to upload mesh model. incoerent information.";
-                    return false;
+                    mesh = (int)inst["mesh"];
+
+                    if (mesh >= numberMeshs)
+                    {
+                        error = "Unable to upload mesh model. incoerent information.";
+                        return false;
+                    }
+
+                    // streamming cost
+                    ArrayList ascale = (ArrayList)inst["scale"];
+                    Vector3 scale;
+                    double tmp;
+                    tmp = (double)ascale[0];
+                    scale.X = (float)tmp;
+                    tmp = (double)ascale[1];
+                    scale.Y = (float)tmp;
+                    tmp = (double)ascale[2];
+                    scale.Z = (float)tmp;
+
+                    float sqdiam = scale.LengthSquared();
+
+                    ameshCostParam curCost = meshsCosts[mesh];
+                    float mesh_streaming = streamingCost(curCost, sqdiam);
+
+                    meshcostdata.model_streaming_cost += mesh_streaming;
+                    meshcostdata.physics_cost += curCost.physicsCost;
+                }
+                else // instance as no mesh ??
+                {
+                    // to do later if needed
+                    meshcostdata.model_streaming_cost += 0.5f;
+                    meshcostdata.physics_cost += 1.0f;
                 }
 
-                ameshCostParam curCost = meshsCosts[mesh];
-                float mesh_streaming = streamingCost(curCost, sqdiam);
-
-                meshcostdata.model_streaming_cost += mesh_streaming;
-
-                meshcostdata.physics_cost += curCost.physicsCost;
-
-                // unscripted and static prim server cost
+                // assume unscripted and static prim server cost
                 meshcostdata.simulation_cost += 0.5f;
                 // charge for prims creation
                 meshsfee += primCreationCost;
@@ -173,6 +172,10 @@ namespace OpenSim.Region.ClientStack.Linden
                 meshcostdata.resource_cost = meshcostdata.model_streaming_cost;
             else
                 meshcostdata.resource_cost = meshcostdata.physics_cost;
+
+            if (meshcostdata.resource_cost < meshcostdata.simulation_cost)
+                meshcostdata.resource_cost = meshcostdata.simulation_cost;
+
 
             if (meshsfee < ModelMinCost)
                 meshsfee = ModelMinCost;
