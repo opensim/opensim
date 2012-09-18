@@ -106,7 +106,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Minimum value of the size of a non-physical prim in each axis
         /// </summary>
-        public float m_minNonphys = 0.01f;
+        public float m_minNonphys = 0.001f;
 
         /// <summary>
         /// Maximum value of the size of a non-physical prim in each axis
@@ -116,7 +116,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Minimum value of the size of a physical prim in each axis
         /// </summary>
-        public float m_minPhys = 0.001f;
+        public float m_minPhys = 0.01f;
 
         /// <summary>
         /// Maximum value of the size of a physical prim in each axis
