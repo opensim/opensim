@@ -36,11 +36,9 @@ public class BSLinkset
 {
     private static string LogHeader = "[BULLETSIM LINKSET]";
 
-    private BSPhysObject m_linksetRoot;
-    public BSPhysObject LinksetRoot { get { return m_linksetRoot; } }
+    public BSPhysObject LinksetRoot { get; protected set; }
 
-    private BSScene m_physicsScene;
-    public BSScene PhysicsScene { get { return m_physicsScene; } }
+    public BSScene PhysicsScene { get; private set; }
 
     static int m_nextLinksetID = 1;
     public int LinksetID { get; private set; }
@@ -81,8 +79,8 @@ public class BSLinkset
         // We create LOTS of linksets.
         if (m_nextLinksetID < 0) 
             m_nextLinksetID = 1;
-        m_physicsScene = scene;
-        m_linksetRoot = parent;
+        PhysicsScene = scene;
+        LinksetRoot = parent;
         m_children = new List<BSPhysObject>();
         m_mass = parent.MassRaw;
     }
@@ -131,7 +129,7 @@ public class BSLinkset
     // Return 'true' if the passed object is the root object of this linkset
     public bool IsRoot(BSPhysObject requestor)
     {
-        return (requestor.LocalID == m_linksetRoot.LocalID);
+        return (requestor.LocalID == LinksetRoot.LocalID);
     }
 
     public int NumberOfChildren { get { return m_children.Count; } }
@@ -159,7 +157,7 @@ public class BSLinkset
 
     private float ComputeLinksetMass()
     {
-        float mass = m_linksetRoot.MassRaw;
+        float mass = LinksetRoot.MassRaw;
         foreach (BSPhysObject bp in m_children)
         {
             mass += bp.MassRaw;
@@ -169,8 +167,8 @@ public class BSLinkset
 
     private OMV.Vector3 ComputeLinksetCenterOfMass()
     {
-        OMV.Vector3 com = m_linksetRoot.Position * m_linksetRoot.MassRaw;
-        float totalMass = m_linksetRoot.MassRaw;
+        OMV.Vector3 com = LinksetRoot.Position * LinksetRoot.MassRaw;
+        float totalMass = LinksetRoot.MassRaw;
 
         lock (m_linksetActivityLock)
         {
@@ -188,7 +186,7 @@ public class BSLinkset
 
     private OMV.Vector3 ComputeLinksetGeometricCenter()
     {
-        OMV.Vector3 com = m_linksetRoot.Position;
+        OMV.Vector3 com = LinksetRoot.Position;
 
         lock (m_linksetActivityLock)
         {
@@ -256,7 +254,7 @@ public class BSLinkset
             foreach (BSPhysObject child in m_children)
             {
                 BSConstraint constrain;
-                if (m_physicsScene.Constraints.TryGetConstraint(LinksetRoot.BSBody, child.BSBody, out constrain))
+                if (PhysicsScene.Constraints.TryGetConstraint(LinksetRoot.BSBody, child.BSBody, out constrain))
                 {
                     // DetailLog("{0},BSLinkset.RecomputeLinksetConstraintVariables,taint,child={1},mass={2},A={3},B={4}", 
                     //         LinksetRoot.LocalID, child.LocalID, linksetMass, constrain.Body1.ID, constrain.Body2.ID);
@@ -306,9 +304,9 @@ public class BSLinkset
 
             BSPhysObject rootx = LinksetRoot; // capture the root as of now
             BSPhysObject childx = child;
-            m_physicsScene.TaintedObject("AddChildToLinkset", delegate()
+            PhysicsScene.TaintedObject("AddChildToLinkset", delegate()
             {
-                DetailLog("{0},AddChildToLinkset,taint,child={1}", m_linksetRoot.LocalID, child.LocalID);
+                DetailLog("{0},AddChildToLinkset,taint,child={1}", LinksetRoot.LocalID, child.LocalID);
                 PhysicallyLinkAChildToRoot(rootx, childx);     // build the physical binding between me and the child
             });
         }
@@ -322,7 +320,7 @@ public class BSLinkset
     //    has to be updated also (like pointer to prim's parent).
     private void RemoveChildFromOtherLinkset(BSPhysObject pchild)
     {
-        pchild.Linkset = new BSLinkset(m_physicsScene, pchild);
+        pchild.Linkset = new BSLinkset(PhysicsScene, pchild);
         RemoveChildFromLinkset(pchild);
     }
 
@@ -334,9 +332,9 @@ public class BSLinkset
         {
             BSPhysObject rootx = LinksetRoot; // capture the root as of now
             BSPhysObject childx = child;
-            m_physicsScene.TaintedObject("RemoveChildFromLinkset", delegate()
+            PhysicsScene.TaintedObject("RemoveChildFromLinkset", delegate()
             {
-                DetailLog("{0},RemoveChildFromLinkset,taint,child={1}", m_linksetRoot.LocalID, child.LocalID);
+                DetailLog("{0},RemoveChildFromLinkset,taint,child={1}", LinksetRoot.LocalID, child.LocalID);
 
                 PhysicallyUnlinkAChildFromRoot(rootx, childx);
                 RecomputeLinksetConstraintVariables();
@@ -370,7 +368,7 @@ public class BSLinkset
         DetailLog("{0},PhysicallyLinkAChildToRoot,taint,root={1},child={2},rLoc={3},cLoc={4},midLoc={5}", 
             rootPrim.LocalID, rootPrim.LocalID, childPrim.LocalID, rootPrim.Position, childPrim.Position, midPoint);
         BS6DofConstraint constrain = new BS6DofConstraint(
-                        m_physicsScene.World, rootPrim.BSBody, childPrim.BSBody,
+                        PhysicsScene.World, rootPrim.BSBody, childPrim.BSBody,
                         midPoint,
                         true,
                         true
@@ -408,7 +406,7 @@ public class BSLinkset
         // ==================================================================================
         */
 
-        m_physicsScene.Constraints.AddConstraint(constrain);
+        PhysicsScene.Constraints.AddConstraint(constrain);
 
         // zero linear and angular limits makes the objects unable to move in relation to each other
         constrain.SetLinearLimits(OMV.Vector3.Zero, OMV.Vector3.Zero);
@@ -435,7 +433,7 @@ public class BSLinkset
         DetailLog("{0},PhysicallyUnlinkAChildFromRoot,taint,root={1},child={2}", rootPrim.LocalID, rootPrim.LocalID, childPrim.LocalID);
 
         // Find the constraint for this link and get rid of it from the overall collection and from my list
-        m_physicsScene.Constraints.RemoveAndDestroyConstraint(rootPrim.BSBody, childPrim.BSBody);
+        PhysicsScene.Constraints.RemoveAndDestroyConstraint(rootPrim.BSBody, childPrim.BSBody);
 
         // Make the child refresh its location
         BulletSimAPI.PushUpdate2(childPrim.BSBody.Ptr);
@@ -447,13 +445,13 @@ public class BSLinkset
     {
         DetailLog("{0},PhysicallyUnlinkAllChildren,taint", rootPrim.LocalID);
 
-        m_physicsScene.Constraints.RemoveAndDestroyConstraint(rootPrim.BSBody);
+        PhysicsScene.Constraints.RemoveAndDestroyConstraint(rootPrim.BSBody);
     }
 
     // Invoke the detailed logger and output something if it's enabled.
     private void DetailLog(string msg, params Object[] args)
     {
-        m_physicsScene.PhysicsLogging.Write(msg, args);
+        PhysicsScene.PhysicsLogging.Write(msg, args);
     }
 
 }

@@ -249,7 +249,16 @@ public enum CollisionFlags : uint
     BS_PHYSICAL_OBJECT               = 1 << 13,
     BS_TERRAIN_OBJECT                = 1 << 14,
     BS_NONE                          = 0,
-    BS_ALL                           = 0xFFFFFFFF
+    BS_ALL                           = 0xFFFFFFFF,
+
+    // These are the collision flags switched depending on physical state.
+    // The other flags are used for other things and should not be fooled with.
+    BS_ACTIVE = CF_STATIC_OBJECT
+                | CF_KINEMATIC_OBJECT
+                | CF_NO_CONTACT_RESPONSE
+                | BS_VOLUME_DETECT_OBJECT
+                | BS_PHANTOM_OBJECT
+                | BS_PHYSICAL_OBJECT,
 };
 
 // Values for collisions groups and masks
@@ -269,52 +278,6 @@ public enum CollisionFilterGroups : uint
     RaycastFilter           = 1 << 12,
     SolidFilter             = 1 << 13,
 };
-
-    // For each type, we first clear and then set the collision flags
-public enum ClearCollisionFlag : uint
-{
-    Terrain = CollisionFlags.BS_ALL,
-    Phantom = CollisionFlags.BS_ALL,
-    VolumeDetect = CollisionFlags.BS_ALL,
-    PhysicalObject = CollisionFlags.BS_ALL,
-    StaticObject = CollisionFlags.BS_ALL
-}
-
-public enum SetCollisionFlag : uint
-{
-    Terrain = CollisionFlags.CF_STATIC_OBJECT
-        | CollisionFlags.BS_TERRAIN_OBJECT,
-    Phantom = CollisionFlags.CF_STATIC_OBJECT
-        | CollisionFlags.BS_PHANTOM_OBJECT
-        | CollisionFlags.CF_NO_CONTACT_RESPONSE,
-    VolumeDetect = CollisionFlags.CF_STATIC_OBJECT
-        | CollisionFlags.BS_VOLUME_DETECT_OBJECT
-        | CollisionFlags.CF_NO_CONTACT_RESPONSE,
-    PhysicalObject = CollisionFlags.BS_PHYSICAL_OBJECT,
-    StaticObject = CollisionFlags.CF_STATIC_OBJECT,
-}
-
-// Collision filters used for different types of objects
-public enum SetCollisionFilter : uint
-{
-    Terrain = CollisionFilterGroups.AllFilter,
-    Phantom = CollisionFilterGroups.GroundPlaneFilter
-        | CollisionFilterGroups.TerrainFilter,
-    VolumeDetect = CollisionFilterGroups.AllFilter,
-    PhysicalObject = CollisionFilterGroups.AllFilter,
-    StaticObject = CollisionFilterGroups.AllFilter,
-}
-
-// Collision masks used for different types of objects
-public enum SetCollisionMask : uint
-{
-    Terrain = CollisionFilterGroups.AllFilter,
-    Phantom = CollisionFilterGroups.GroundPlaneFilter
-        | CollisionFilterGroups.TerrainFilter,
-    VolumeDetect = CollisionFilterGroups.AllFilter,
-    PhysicalObject = CollisionFilterGroups.AllFilter,
-    StaticObject = CollisionFilterGroups.AllFilter
-}
 
 // CFM controls the 'hardness' of the constraint. 0=fixed, 0..1=violatable. Default=0
 // ERP controls amount of correction per tick. Usable range=0.1..0.8. Default=0.2.

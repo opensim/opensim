@@ -75,10 +75,11 @@ public class BSScene : PhysicsScene, IPhysicsParameters
 
     public Dictionary<uint, BSPhysObject> PhysObjects = new Dictionary<uint, BSPhysObject>();
 
-    private HashSet<BSPhysObject> m_objectsWithCollisions = new HashSet<BSPhysObject>();
-    // Following is a kludge and can  be removed when avatar animation updating is
-    //    moved to a better place.
-    private HashSet<BSPhysObject> m_avatarsWithCollisions = new HashSet<BSPhysObject>();
+    public HashSet<BSPhysObject> ObjectsWithCollisions = new HashSet<BSPhysObject>();
+    public HashSet<BSPhysObject> ObjectsWithNoMoreCollisions = new HashSet<BSPhysObject>();
+    // Keep track of all the avatars so we can send them a collision event
+    //    every tick so OpenSim will update its animation.
+    private HashSet<BSPhysObject> m_avatars = new HashSet<BSPhysObject>();
 
     // List of all the objects that have vehicle properties and should be called
     //    to update each physics step.
@@ -379,7 +380,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         // TODO: Remove kludge someday.
         // We must generate a collision for avatars whether they collide or not.
         // This is required by OpenSim to update avatar animations, etc.
-        lock (m_avatarsWithCollisions) m_avatarsWithCollisions.Add(actor);
+        lock (m_avatars) m_avatars.Add(actor);
 
         return actor;
     }
@@ -397,7 +398,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             {
                 lock (PhysObjects) PhysObjects.Remove(actor.LocalID);
                 // Remove kludge someday
-                lock (m_avatarsWithCollisions) m_avatarsWithCollisions.Remove(bsactor);
+                lock (m_avatars) m_avatars.Remove(bsactor);
             }
             catch (Exception e)
             {
@@ -464,6 +465,9 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         int collidersCount = 0;
         IntPtr collidersPtr;
 
+        int beforeTime = 0;
+        int simTime = 0;
+
         // prevent simulation until we've been initialized
         if (!m_initialized) return 5.0f;
 
@@ -481,10 +485,14 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         int numSubSteps = 0;
         try
         {
+            if (PhysicsLogging.Enabled) beforeTime = Util.EnvironmentTickCount();
+
             numSubSteps = BulletSimAPI.PhysicsStep(WorldID, timeStep, m_maxSubSteps, m_fixedTimeStep,
                         out updatedEntityCount, out updatedEntitiesPtr, out collidersCount, out collidersPtr);
-            DetailLog("{0},Simulate,call, nTaints= {1}, substeps={2}, updates={3}, colliders={4}", 
-                        DetailLogZero, numTaints, numSubSteps, updatedEntityCount, collidersCount); 
+
+            if (PhysicsLogging.Enabled) simTime = Util.EnvironmentTickCountSubtract(beforeTime);
+            DetailLog("{0},Simulate,call, nTaints={1}, simTime={2}, substeps={3}, updates={4}, colliders={5}", 
+                        DetailLogZero, numTaints, simTime, numSubSteps, updatedEntityCount, collidersCount); 
         }
         catch (Exception e)
         {
@@ -502,12 +510,6 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         // Get a value for 'now' so all the collision and update routines don't have to get their own
         SimulationNowTime = Util.EnvironmentTickCount();
 
-        // This is a kludge to get avatar movement updates. 
-        //   ODE sends collisions for avatars even if there are have been no collisions. This updates
-        //   avatar animations and stuff.
-        // If you fix avatar animation updates, remove this overhead and let normal collision processing happen.
-        m_objectsWithCollisions = new HashSet<BSPhysObject>(m_avatarsWithCollisions);
-
         // If there were collisions, process them by sending the event to the prim.
         // Collisions must be processed before updates.
         if (collidersCount > 0)
@@ -523,11 +525,31 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             }
         }
 
+        // This is a kludge to get avatar movement updates. 
+        //   ODE sends collisions for avatars even if there are have been no collisions. This updates
+        //   avatar animations and stuff.
+        // If you fix avatar animation updates, remove this overhead and let normal collision processing happen.
+        foreach (BSPhysObject bsp in m_avatars)
+            bsp.SendCollisions();
+
         // The above SendCollision's batch up the collisions on the objects.
         //      Now push the collisions into the simulator.
-        foreach (BSPhysObject bsp in m_objectsWithCollisions)
-            bsp.SendCollisions();
-        m_objectsWithCollisions.Clear();
+        // If the object is done colliding, it will add itself to the ObjectsWithNoMoreCollisions list.
+        if (ObjectsWithCollisions.Count > 0)
+        {
+            foreach (BSPhysObject bsp in ObjectsWithCollisions)
+                if (!m_avatars.Contains(bsp))   // don't call avatars twice
+                    bsp.SendCollisions();
+        }
+
+        // Objects that are done colliding are removed from the ObjectsWithCollisions list.
+        // This can't be done by SendCollisions because it is inside an iteration of ObjectWithCollisions.
+        if (ObjectsWithNoMoreCollisions.Count > 0)
+        {
+            foreach (BSPhysObject po in ObjectsWithNoMoreCollisions)
+                ObjectsWithCollisions.Remove(po);
+            ObjectsWithNoMoreCollisions.Clear();
+        }
 
         // If any of the objects had updated properties, tell the object it has been changed by the physics engine
         if (updatedEntityCount > 0)
@@ -555,7 +577,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         // The physics engine returns the number of milliseconds it simulated this call.
         // These are summed and normalized to one second and divided by 1000 to give the reported physics FPS.
         // Since Bullet normally does 5 or 6 substeps, this will normally sum to about 60 FPS.
-        return numSubSteps * m_fixedTimeStep;
+        return numSubSteps * m_fixedTimeStep * 1000;
     }
 
     // Something has collided
@@ -583,7 +605,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         if (collider.Collide(collidingWith, collidee, collidePoint, collideNormal, penetration))
         {
             // If a collision was posted, remember to send it to the simulator
-            m_objectsWithCollisions.Add(collider);
+            ObjectsWithCollisions.Add(collider);
         }
 
         return;

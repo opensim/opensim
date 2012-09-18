@@ -539,7 +539,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             // add Gravity and Buoyancy
             // There is some gravity, make a gravity force vector that is applied after object velocity.
             // m_VehicleBuoyancy: -1=2g; 0=1g; 1=0g;
-            Vector3 grav = m_prim.Scene.DefaultGravity * (m_prim.Mass * (1f - m_VehicleBuoyancy));
+            Vector3 grav = m_prim.PhysicsScene.DefaultGravity * (m_prim.Mass * (1f - m_VehicleBuoyancy));
 
             /*
              * RA: Not sure why one would do this
@@ -552,7 +552,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 //            Vector3 accel = new Vector3(-(m_dir.X - m_lastLinearVelocityVector.X / 0.1f), -(m_dir.Y - m_lastLinearVelocityVector.Y / 0.1f), m_dir.Z - m_lastLinearVelocityVector.Z / 0.1f);
 
             // If below the terrain, move us above the ground a little.
-            float terrainHeight = m_prim.Scene.TerrainManager.GetTerrainHeightAtXYZ(pos);
+            float terrainHeight = m_prim.PhysicsScene.TerrainManager.GetTerrainHeightAtXYZ(pos);
             // Taking the rotated size doesn't work here because m_prim.Size is the size of the root prim and not the linkset.
             //     Need to add a m_prim.LinkSet.Size similar to m_prim.LinkSet.Mass.
             // Vector3 rotatedSize = m_prim.Size * m_prim.Orientation;
@@ -570,7 +570,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 // We should hover, get the target height
                 if ((m_flags & VehicleFlag.HOVER_WATER_ONLY) != 0)
                 {
-                    m_VhoverTargetHeight = m_prim.Scene.GetWaterLevelAtXYZ(pos) + m_VhoverHeight;
+                    m_VhoverTargetHeight = m_prim.PhysicsScene.GetWaterLevelAtXYZ(pos) + m_VhoverHeight;
                 }
                 if ((m_flags & VehicleFlag.HOVER_TERRAIN_ONLY) != 0)
                 {
@@ -849,8 +849,8 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         // Invoke the detailed logger and output something if it's enabled.
         private void VDetailLog(string msg, params Object[] args)
         {
-            if (m_prim.Scene.VehicleLoggingEnabled)
-                m_prim.Scene.PhysicsLogging.Write(msg, args);
+            if (m_prim.PhysicsScene.VehicleLoggingEnabled)
+                m_prim.PhysicsScene.PhysicsLogging.Write(msg, args);
         }
     }
 }
