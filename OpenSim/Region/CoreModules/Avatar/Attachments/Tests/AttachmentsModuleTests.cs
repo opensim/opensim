@@ -62,7 +62,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
     public class AttachmentsModuleTests : OpenSimTestCase
     {
         private AutoResetEvent m_chatEvent = new AutoResetEvent(false);
-        private OSChatMessage m_osChatMessageReceived;
+//        private OSChatMessage m_osChatMessageReceived;
 
         [TestFixtureSetUp]
         public void FixtureInit()
@@ -83,7 +83,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
         {
 //            Console.WriteLine("Got chat [{0}]", oscm.Message);
 
-            m_osChatMessageReceived = oscm;
+//            m_osChatMessageReceived = oscm;
             m_chatEvent.Set();
         }
 
