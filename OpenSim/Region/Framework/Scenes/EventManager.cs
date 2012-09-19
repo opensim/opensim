@@ -184,6 +184,22 @@ namespace OpenSim.Region.Framework.Scenes
 
         public delegate void OnPluginConsoleDelegate(string[] args);
 
+        /// <summary>
+        /// Triggered after <see cref="OpenSim.IApplicationPlugin.PostInitialise"/>
+        /// has been called for all <see cref="OpenSim.IApplicationPlugin"/>
+        /// loaded via <see cref="OpenSim.OpenSimBase.LoadPlugins"/>.
+        /// Handlers for this event are typically used to parse the arguments
+        /// from <see cref="OnPluginConsoleDelegate"/> in order to process or
+        /// filter the arguments and pass them onto <see cref="OpenSim.Region.CoreModules.Framework.InterfaceCommander.Commander.ProcessConsoleCommand"/>
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerOnPluginConsole"/> in
+        /// <see cref="Scene.SendCommandToPlugins"/> via
+        /// <see cref="SceneManager.SendCommandToPluginModules"/> via
+        /// <see cref="OpenSim.OpenSimBase.HandleCommanderCommand"/> via
+        /// <see cref="OpenSim.OpenSimBase.AddPluginCommands"/> via
+        /// <see cref="OpenSim.OpenSimBase.StartupSpecific"/>
+        /// </remarks>
         public event OnPluginConsoleDelegate OnPluginConsole;
 
         /// <summary>
