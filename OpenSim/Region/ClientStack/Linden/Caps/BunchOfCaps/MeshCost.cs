@@ -73,7 +73,7 @@ namespace OpenSim.Region.ClientStack.Linden
         const int bytesPerCoord = 6; // 3 coords, 2 bytes per each
 
         // control prims dimensions
-        public float PrimScaleMin = 0.01f;
+        public float PrimScaleMin = 0.001f;
         public float NonPhysicalPrimScaleMax = 256f;
         public float PhysicalPrimScaleMax = 10f;
         public int ObjectLinkedPartsMax = 512;
@@ -171,6 +171,7 @@ namespace OpenSim.Region.ClientStack.Linden
             
 
             int mesh;
+            int skipedSmall = 0;
             for (int i = 0; i < numberInstances; i++)
             {
                 Hashtable inst = (Hashtable)resources.instance_list.Array[i];
@@ -187,8 +188,10 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 if (scale.X < PrimScaleMin || scale.Y < PrimScaleMin || scale.Z < PrimScaleMin)
                 {
-                    error = " upload fail: Model contains parts with a dimension lower than 0.01. Please adjust scaling";
-                    return false;
+//                    error = " upload fail: Model contains parts with a dimension lower than 0.001. Please adjust scaling";
+//                    return false;
+                    skipedSmall++;
+                    continue;
                 }
 
                 if (scale.X > NonPhysicalPrimScaleMax || scale.Y > NonPhysicalPrimScaleMax || scale.Z > NonPhysicalPrimScaleMax)
@@ -229,7 +232,13 @@ namespace OpenSim.Region.ClientStack.Linden
                 // charge for prims creation
                 meshsfee += primCreationCost;
             }
-            
+
+            if (skipedSmall >0 && skipedSmall > numberInstances / 2)
+            {
+                error = "Upload failed: Model contains too much prims smaller than minimum size to ignore";
+                return false;
+            }
+
             if (meshcostdata.physics_cost <= meshcostdata.model_streaming_cost)
                 meshcostdata.resource_cost = meshcostdata.model_streaming_cost;
             else

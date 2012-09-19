@@ -117,6 +117,17 @@ namespace OpenSim.Region.ClientStack.Linden
         private bool m_dumpAssetsToFile = false;
         private string m_regionName;
         private int m_levelUpload = 0;
+        private float m_PrimScaleMin = 0.001f;
+
+        private enum FileAgentInventoryState : int
+        {
+            idle = 0,
+            processRequest = 1,
+            waitUpload = 2,
+            processUpload = 3
+        }
+        private FileAgentInventoryState m_FileAgentInventoryState = FileAgentInventoryState.idle;
+        
 //        private bool m_addNewTextures = false;
 //        private bool m_addNewMeshes = false;
 
@@ -132,6 +143,7 @@ namespace OpenSim.Region.ClientStack.Linden
             m_ModelCost.PhysicalPrimScaleMax = m_Scene.m_maxPhys;
 //            m_ModelCost.PrimScaleMin = ??
 //            m_ModelCost.ObjectLinkedPartsMax = ??
+//            m_PrimScaleMin = ??
 
             IConfigSource config = m_Scene.Config;
             if (config != null)
@@ -158,6 +170,8 @@ namespace OpenSim.Region.ClientStack.Linden
             ItemUpdatedCall = m_Scene.CapsUpdateInventoryItemAsset;
             TaskScriptUpdatedCall = m_Scene.CapsUpdateTaskInventoryScriptAsset;
             GetClient = m_Scene.SceneGraph.GetControllingClient;
+
+            m_FileAgentInventoryState = FileAgentInventoryState.idle;
         }
 
         /// <summary>
@@ -224,9 +238,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 IRequestHandler getObjectCostHandler = new RestStreamHandler("POST", capsBase + m_getObjectCostPath, GetObjectCost);
                 m_HostCapsObj.RegisterHandler("GetObjectCost", getObjectCostHandler);
                 IRequestHandler ResourceCostSelectedHandler = new RestStreamHandler("POST", capsBase + m_ResourceCostSelectedPath, ResourceCostSelected);
-                m_HostCapsObj.RegisterHandler("ResourceCostSelected", ResourceCostSelectedHandler);
-           
-
+                m_HostCapsObj.RegisterHandler("ResourceCostSelected", ResourceCostSelectedHandler);       
 
                 m_HostCapsObj.RegisterHandler(
                     "CopyInventoryFromNotecard",
@@ -439,6 +451,35 @@ namespace OpenSim.Region.ClientStack.Linden
             //m_log.Debug("[CAPS]: NewAgentInventoryRequest Request is: " + llsdRequest.ToString());
             //m_log.Debug("asset upload request via CAPS" + llsdRequest.inventory_type + " , " + llsdRequest.asset_type);
 
+            // start by getting the client
+            IClientAPI client = null;
+            m_Scene.TryGetClient(m_HostCapsObj.AgentID, out client);
+
+            // check current state so we only have one service at a time
+            lock (m_ModelCost)
+            {
+                switch (m_FileAgentInventoryState)
+                {
+                    case FileAgentInventoryState.processRequest:
+                    case FileAgentInventoryState.processUpload:
+                        if (client != null)
+                            client.SendAgentAlertMessage("Unable to upload asset. Processing previus request", false);
+                        LLSDAssetUploadResponse errorResponse = new LLSDAssetUploadResponse();
+                        errorResponse.uploader = "";
+                        errorResponse.state = "error";
+                        return errorResponse;
+                        break;
+                    case FileAgentInventoryState.waitUpload:
+                        // todo stop current uploader server
+                        break;
+                    case FileAgentInventoryState.idle:
+                    default:
+                        break;
+                }
+
+                m_FileAgentInventoryState = FileAgentInventoryState.processRequest;
+            }
+
             uint cost = 0;
             LLSDAssetUploadResponseData meshcostdata = new LLSDAssetUploadResponseData();
 
@@ -447,15 +488,12 @@ namespace OpenSim.Region.ClientStack.Linden
                 llsdRequest.asset_type == "mesh" ||
                 llsdRequest.asset_type == "sound")
             {
-                ScenePresence avatar = null;
-                IClientAPI client = null;
+                ScenePresence avatar = null;              
                 m_Scene.TryGetScenePresence(m_HostCapsObj.AgentID, out avatar);
 
                 // check user level
                 if (avatar != null)
                 {
-                    client = avatar.ControllingClient;
-
                     if (avatar.UserLevel < m_levelUpload)
                     {
                         if (client != null)
@@ -464,6 +502,8 @@ namespace OpenSim.Region.ClientStack.Linden
                         LLSDAssetUploadResponse errorResponse = new LLSDAssetUploadResponse();
                         errorResponse.uploader = "";
                         errorResponse.state = "error";
+                        lock (m_ModelCost)
+                            m_FileAgentInventoryState = FileAgentInventoryState.idle;
                         return errorResponse;
                     }
                 }
@@ -490,6 +530,8 @@ namespace OpenSim.Region.ClientStack.Linden
                             LLSDAssetUploadResponse errorResponse = new LLSDAssetUploadResponse();
                             errorResponse.uploader = "";
                             errorResponse.state = "error";
+                            lock (m_ModelCost)
+                                m_FileAgentInventoryState = FileAgentInventoryState.idle;
                             return errorResponse;
                         }
                         cost = (uint)modelcost;
@@ -509,6 +551,8 @@ namespace OpenSim.Region.ClientStack.Linden
                             LLSDAssetUploadResponse errorResponse = new LLSDAssetUploadResponse();
                             errorResponse.uploader = "";
                             errorResponse.state = "error";
+                            lock (m_ModelCost)
+                                m_FileAgentInventoryState = FileAgentInventoryState.idle;
                             return errorResponse;
                         }
                     }
@@ -555,8 +599,11 @@ namespace OpenSim.Region.ClientStack.Linden
             }
 
             uploader.OnUpLoad += UploadCompleteHandler;
-            return uploadResponse;
 
+            lock (m_ModelCost)
+                m_FileAgentInventoryState = FileAgentInventoryState.waitUpload;
+
+            return uploadResponse;
         }
 
         /// <summary>
@@ -569,6 +616,9 @@ namespace OpenSim.Region.ClientStack.Linden
                                           UUID inventoryItem, UUID parentFolder, byte[] data, string inventoryType,
                                           string assetType, uint cost)
         {
+            lock (m_ModelCost)
+                m_FileAgentInventoryState = FileAgentInventoryState.processUpload;
+
             m_log.DebugFormat(
                 "[BUNCH OF CAPS]: Uploaded asset {0} for inventory item {1}, inv type {2}, asset type {3}",
                 assetID, inventoryItem, inventoryType, assetType);
@@ -730,12 +780,19 @@ namespace OpenSim.Region.ClientStack.Linden
                     // build prims from instances
                     for (int i = 0; i < instance_list.Count; i++)
                     {
+                        OSDMap inner_instance_list = (OSDMap)instance_list[i];
+
+                        // skip prims that are 2 small
+                        Vector3 scale = inner_instance_list["scale"].AsVector3();
+                        
+                        if (scale.X < m_PrimScaleMin || scale.Y < m_PrimScaleMin || scale.Z < m_PrimScaleMin)
+                            continue;
+
                         PrimitiveBaseShape pbs = PrimitiveBaseShape.CreateBox();
 
                         Primitive.TextureEntry textureEntry
                             = new Primitive.TextureEntry(Primitive.TextureEntry.WHITE_TEXTURE);
 
-                        OSDMap inner_instance_list = (OSDMap)instance_list[i];
 
                         OSDArray face_list = (OSDArray)inner_instance_list["face_list"];
                         for (uint face = 0; face < face_list.Count; face++)
@@ -789,7 +846,6 @@ namespace OpenSim.Region.ClientStack.Linden
                         }
 
                         Vector3 position = inner_instance_list["position"].AsVector3();
-                        Vector3 scale = inner_instance_list["scale"].AsVector3();
                         Quaternion rotation = inner_instance_list["rotation"].AsQuaternion();
 
 // no longer used - begin ------------------------
@@ -903,6 +959,8 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 AddNewInventoryItem(m_HostCapsObj.AgentID, item, cost);
             }
+            lock (m_ModelCost)
+                m_FileAgentInventoryState = FileAgentInventoryState.idle;
         }
 
         /// <summary>
@@ -1270,8 +1328,8 @@ namespace OpenSim.Region.ClientStack.Linden
 
             res = LLSDHelpers.SerialiseLLSDReply(uploadComplete);
 
-            httpListener.RemoveStreamHandler("POST", uploaderPath);
             m_timeoutTimer.Stop();
+            httpListener.RemoveStreamHandler("POST", uploaderPath);
 
             // TODO: probably make this a better set of extensions here
             string extension = ".jp2";
@@ -1289,7 +1347,6 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 handlerUpLoad(m_assetName, m_assetDes, newAssetID, inv, parentFolder, data, m_invType, m_assetType);
             }
-
             return res;
         }
 
