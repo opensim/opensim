@@ -73,8 +73,10 @@ public class BSScene : PhysicsScene, IPhysicsParameters
 
     public string BulletSimVersion = "?";
 
-    public Dictionary<uint, BSPhysObject> PhysObjects = new Dictionary<uint, BSPhysObject>();
+    public Dictionary<uint, BSPhysObject> PhysObjects;
+    public BSShapeCollection Shapes;
 
+    // Keeping track of the objects with collisions so we can report begin and end of a collision
     public HashSet<BSPhysObject> ObjectsWithCollisions = new HashSet<BSPhysObject>();
     public HashSet<BSPhysObject> ObjectsWithNoMoreCollisions = new HashSet<BSPhysObject>();
     // Keep track of all the avatars so we can send them a collision event
@@ -203,6 +205,11 @@ public class BSScene : PhysicsScene, IPhysicsParameters
 
     public override void Initialise(IMesher meshmerizer, IConfigSource config)
     {
+        mesher = meshmerizer;
+        _taintedObjects = new List<TaintCallbackEntry>();
+        PhysObjects = new Dictionary<uint, BSPhysObject>();
+        Shapes = new BSShapeCollection(this);
+
         // Allocate pinned memory to pass parameters.
         m_params = new ConfigurationParameters[1];
         m_paramsHandle = GCHandle.Alloc(m_params, GCHandleType.Pinned);
@@ -216,12 +223,9 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         m_updateArray = new EntityProperties[m_maxUpdatesPerFrame];
         m_updateArrayPinnedHandle = GCHandle.Alloc(m_updateArray, GCHandleType.Pinned);
 
-        mesher = meshmerizer;
-        _taintedObjects = new List<TaintCallbackEntry>();
-
         // Enable very detailed logging.
         // By creating an empty logger when not logging, the log message invocation code
-        // can be left in and every call doesn't have to check for null.
+        //     can be left in and every call doesn't have to check for null.
         if (m_physicsLoggingEnabled)
         {
             PhysicsLogging = new Logging.LogWriter(m_physicsLoggingDir, m_physicsLoggingPrefix, m_physicsLoggingFileMinutes);
@@ -252,7 +256,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         //    a child in a mega-region.
         // Turns out that Bullet really doesn't care about the extents of the simulated
         //    area. It tracks active objects no matter where they are.
-        Vector3 worldExtent = new Vector3(Constants.RegionSize, Constants.RegionSize, 8192f);
+        Vector3 worldExtent = new Vector3(Constants.RegionSize, Constants.RegionSize, Constants.RegionHeight);
 
         // m_log.DebugFormat("{0}: Initialize: Calling BulletSimAPI.Initialize.", LogHeader);
         WorldID = BulletSimAPI.Initialize(worldExtent, m_paramsHandle.AddrOfPinnedObject(),

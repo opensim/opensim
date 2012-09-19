@@ -474,11 +474,12 @@ public sealed class BSPrim : BSPhysObject
          */
         BulletSimAPI.RemoveObjectFromWorld2(PhysicsScene.World.Ptr, BSBody.Ptr);
 
+        // Make solid or not (do things bounce off or pass through this object)
+        // This is done first because it can change the collisionObject type.
+        MakeSolid(IsSolid);
+
         // Set up the object physicalness (does gravity and collisions move this object)
         MakeDynamic(IsStatic);
-
-        // Make solid or not (do things bounce off or pass through this object)
-        MakeSolid(IsSolid);
 
         // Arrange for collisions events if the simulator wants them
         EnableCollisions(SubscribedEvents());
@@ -554,17 +555,51 @@ public sealed class BSPrim : BSPhysObject
     }
 
     // "Making solid" means that other object will not pass through this object.
+    // To make transparent, we create a Bullet ghost object.
+    // Note: This expects to be called from the UpdatePhysicalParameters() routine as
+    //     the functions after this one set up the state of a possibly newly created collision body.
     private void MakeSolid(bool makeSolid)
     {
+        CollisionObjectTypes bodyType = (CollisionObjectTypes)BulletSimAPI.GetBodyType2(BSBody.Ptr);
+        /*
         if (makeSolid)
         {
-            // Easy in Bullet -- just remove the object flag that controls collision response
-            CurrentCollisionFlags = BulletSimAPI.RemoveFromCollisionFlags2(BSBody.Ptr, CollisionFlags.CF_NO_CONTACT_RESPONSE);
+            if ((bodyType & CollisionObjectTypes.CO_RIGID_BODY) == 0)
+            {
+                // Solid things are made out of rigid bodies. Remove this old body from the world
+                //    and use this shape in a new rigid body.
+                BulletBody oldBody = BSBody;
+                BulletSimAPI.RemoveObjectFromWorld2(PhysicsScene.World.Ptr, BSBody.Ptr);
+                BSShape = new BulletShape(BulletSimAPI.GetCollisionShape2(BSBody.Ptr));
+                BSBody = new BulletBody(LocalID, BulletSimAPI.CreateBodyFromShape2(PhysicsScene.World.Ptr, BSShape.Ptr, _position, _orientation));
+                BulletSimAPI.DestroyObject2(PhysicsScene.World.Ptr, oldBody.Ptr);
+                BulletSimAPI.AddObjectToWorld2(PhysicsScene.World.Ptr, BSBody.Ptr);
+            }
         }
         else
         {
-            CurrentCollisionFlags = BulletSimAPI.AddToCollisionFlags2(BSBody.Ptr, CollisionFlags.CF_NO_CONTACT_RESPONSE);
+            if ((bodyType & CollisionObjectTypes.CO_GHOST_OBJECT) == 0)
+            {
+                // Non-solid things are made out of ghost objects. Remove this old body from the world
+                //    and use this shape in a new rigid body.
+                BulletBody oldBody = BSBody;
+                BulletSimAPI.RemoveObjectFromWorld2(PhysicsScene.World.Ptr, BSBody.Ptr);
+                BSShape = new BulletShape(BulletSimAPI.GetCollisionShape2(BSBody.Ptr));
+                BSBody = new BulletBody(LocalID, 
+                        BulletSimAPI.CreateGhostFromShape2(PhysicsScene.World.Ptr, BSShape.Ptr, _position, _orientation));
+                if (BSBody.Ptr == IntPtr.Zero)
+                {
+                    m_log.ErrorFormat("{0} BSPrim.MakeSolid: failed creation of ghost object. LocalID=[1}", LogHeader, LocalID);
+                    BSBody = oldBody;
+                }
+                else
+                {
+                    BulletSimAPI.DestroyObject2(PhysicsScene.World.Ptr, oldBody.Ptr);
+                    BulletSimAPI.AddObjectToWorld2(PhysicsScene.World.Ptr, BSBody.Ptr);
+                }
+            }
         }
+         */
     }
 
     // Turn on or off the flag controlling whether collision events are returned to the simulator.
