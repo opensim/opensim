@@ -214,6 +214,18 @@ namespace OpenSim.Region.Framework.Scenes
 
         public delegate void OnSetRootAgentSceneDelegate(UUID agentID, Scene scene);
 
+        /// <summary>
+        /// Triggered before the grunt work for adding a root agent to a
+        /// scene has been performed (resuming attachment scripts, physics,
+        /// animations etc.)
+        /// </summary>
+        /// <remarks>
+        /// Triggered before <see cref="OnMakeRootAgent"/>
+        /// by <see cref="TriggerSetRootAgentScene"/>
+        /// in <see cref="ScenePresence.MakeRootAgent"/>
+        /// via <see cref="Scene.AgentCrossing"/>
+        /// and <see cref="ScenePresence.CompleteMovement"/>
+        /// </remarks>
         public event OnSetRootAgentSceneDelegate OnSetRootAgentScene;
 
         /// <summary>
@@ -429,15 +441,36 @@ namespace OpenSim.Region.Framework.Scenes
         public event ScriptColliding OnScriptLandColliderEnd;
 
         public delegate void OnMakeChildAgentDelegate(ScenePresence presence);
+
+        /// <summary>
+        /// Triggered when an agent has been made a child agent of a scene.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerOnMakeChildAgent"/>
+        /// in <see cref="ScenePresence.MakeChildAgent"/>
+        /// via <see cref="OpenSim.Region.CoreModules.Framework.EntityTransfer.EntityTransferModule.CrossAgentToNewRegionAsync"/>,
+        /// <see cref="OpenSim.Region.CoreModules.Framework.EntityTransfer.EntityTransferModule.DoTeleport"/>,
+        /// <see cref="OpenSim.Region.CoreModules.InterGrid.KillAUser.ShutdownNoLogout"/>
+        /// </remarks>
         public event OnMakeChildAgentDelegate OnMakeChildAgent;
 
         public delegate void OnSaveNewWindlightProfileDelegate();
         public delegate void OnSendNewWindlightProfileTargetedDelegate(RegionLightShareData wl, UUID user);
 
         /// <summary>
+        /// Triggered after the grunt work for adding a root agent to a
+        /// scene has been performed (resuming attachment scripts, physics,
+        /// animations etc.)
+        /// </summary>
+        /// <remarks>
         /// This event is on the critical path for transferring an avatar from one region to another.  Try and do
         /// as little work on this event as possible, or do work asynchronously.
-        /// </summary>
+        /// Triggered after <see cref="OnSetRootAgentScene"/>
+        /// by <see cref="TriggerOnMakeRootAgent"/>
+        /// in <see cref="ScenePresence.MakeRootAgent"/>
+        /// via <see cref="Scene.AgentCrossing"/>
+        /// and <see cref="ScenePresence.CompleteMovement"/>
+        /// </remarks>
         public event Action<ScenePresence> OnMakeRootAgent;
         
         public event OnSendNewWindlightProfileTargetedDelegate OnSendNewWindlightProfileTargeted;
