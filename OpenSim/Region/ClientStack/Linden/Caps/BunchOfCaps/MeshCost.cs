@@ -23,8 +23,14 @@ using OSDMap = OpenMetaverse.StructuredData.OSDMap;
 
 namespace OpenSim.Region.ClientStack.Linden
 {
+    public struct ModelPrimLimits
+    {
+        
+    }
+
     public class ModelCost
     {
+
         // upload fee tunning paramenters
         // fees are normalized to 1.0
         // this parameters scale them to basic cost ( so 1.0 translates to 10 )
@@ -66,6 +72,12 @@ namespace OpenSim.Region.ClientStack.Linden
         // internal
         const int bytesPerCoord = 6; // 3 coords, 2 bytes per each
 
+        // control prims dimensions
+        public float PrimScaleMin = 0.01f;
+        public float NonPhysicalPrimScaleMax = 256f;
+        public float PhysicalPrimScaleMax = 10f;
+        public int ObjectLinkedPartsMax = 512;
+
         // storage for a single mesh asset cost parameters       
         private class ameshCostParam
         {
@@ -98,7 +110,15 @@ namespace OpenSim.Region.ClientStack.Linden
                 error = "Unable to upload mesh model. missing information.";
                 return false;
             }
-            
+
+            int numberInstances = resources.instance_list.Array.Count;
+
+            if( numberInstances > ObjectLinkedPartsMax )
+            {
+                error = "upload failed: Model whould have two many linked prims";
+                return false;
+            }
+
             meshcostdata.model_streaming_cost = 0.0;
             meshcostdata.simulation_cost = 0.0;
             meshcostdata.physics_cost = 0.0;
@@ -148,11 +168,34 @@ namespace OpenSim.Region.ClientStack.Linden
             }
 
             // instances (prims) cost
-            int numberInstances = resources.instance_list.Array.Count;
+            
+
             int mesh;
             for (int i = 0; i < numberInstances; i++)
             {
                 Hashtable inst = (Hashtable)resources.instance_list.Array[i];
+
+                ArrayList ascale = (ArrayList)inst["scale"];
+                Vector3 scale;
+                double tmp;
+                tmp = (double)ascale[0];
+                scale.X = (float)tmp;
+                tmp = (double)ascale[1];
+                scale.Y = (float)tmp;
+                tmp = (double)ascale[2];
+                scale.Z = (float)tmp;
+
+                if (scale.X < PrimScaleMin || scale.Y < PrimScaleMin || scale.Z < PrimScaleMin)
+                {
+                    error = " upload fail: Model contains parts with a dimension lower than 0.01. Please adjust scaling";
+                    return false;
+                }
+
+                if (scale.X > NonPhysicalPrimScaleMax || scale.Y > NonPhysicalPrimScaleMax || scale.Z > NonPhysicalPrimScaleMax)
+                {
+                    error = "upload fail: Model contains parts larger than maximum allowed. Please adjust scaling";
+                    return false;
+                }
 
                 if (haveMeshs && inst.ContainsKey("mesh"))
                 {
@@ -165,15 +208,6 @@ namespace OpenSim.Region.ClientStack.Linden
                     }
 
                     // streamming cost
-                    ArrayList ascale = (ArrayList)inst["scale"];
-                    Vector3 scale;
-                    double tmp;
-                    tmp = (double)ascale[0];
-                    scale.X = (float)tmp;
-                    tmp = (double)ascale[1];
-                    scale.Y = (float)tmp;
-                    tmp = (double)ascale[2];
-                    scale.Z = (float)tmp;
 
                     float sqdiam = scale.LengthSquared();
 

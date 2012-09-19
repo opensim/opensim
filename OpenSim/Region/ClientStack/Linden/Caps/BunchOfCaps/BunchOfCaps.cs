@@ -87,6 +87,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private Scene m_Scene;
         private Caps m_HostCapsObj;
+        private ModelCost m_ModelCost;
 
         private static readonly string m_requestPath = "0000/";
         // private static readonly string m_mapLayerPath = "0001/";
@@ -123,6 +124,15 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             m_Scene = scene;
             m_HostCapsObj = caps;
+
+            // create a model upload cost provider
+            m_ModelCost = new ModelCost();
+            // tell it about scene object limits
+            m_ModelCost.NonPhysicalPrimScaleMax = m_Scene.m_maxNonphys;
+            m_ModelCost.PhysicalPrimScaleMax = m_Scene.m_maxPhys;
+//            m_ModelCost.PrimScaleMin = ??
+//            m_ModelCost.ObjectLinkedPartsMax = ??
+
             IConfigSource config = m_Scene.Config;
             if (config != null)
             {
@@ -193,7 +203,6 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             try
             {
-                // I don't think this one works...
                 m_HostCapsObj.RegisterHandler(
                     "NewFileAgentInventory",
                     new LLSDStreamhandler<LLSDAssetUploadRequest, LLSDAssetUploadResponse>(
@@ -472,9 +481,8 @@ namespace OpenSim.Region.ClientStack.Linden
                     {
                         string error;
                         int modelcost;
-                        ModelCost mc = new ModelCost();
 
-                        if (!mc.MeshModelCost(llsdRequest.asset_resources, baseCost, out modelcost,
+                        if (!m_ModelCost.MeshModelCost(llsdRequest.asset_resources, baseCost, out modelcost,
                             meshcostdata, out error))
                         {
                             client.SendAgentAlertMessage(error, false);
