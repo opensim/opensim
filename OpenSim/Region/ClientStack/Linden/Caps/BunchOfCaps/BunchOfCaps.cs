@@ -87,6 +87,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private Scene m_Scene;
         private Caps m_HostCapsObj;
+        private ModelCost m_ModelCost;
 
         private static readonly string m_requestPath = "0000/";
         // private static readonly string m_mapLayerPath = "0001/";
@@ -116,13 +117,22 @@ namespace OpenSim.Region.ClientStack.Linden
         private bool m_dumpAssetsToFile = false;
         private string m_regionName;
         private int m_levelUpload = 0;
-        private bool m_addNewTextures = false;
-        private bool m_addNewMeshes = false;
+//        private bool m_addNewTextures = false;
+//        private bool m_addNewMeshes = false;
 
         public BunchOfCaps(Scene scene, Caps caps)
         {
             m_Scene = scene;
             m_HostCapsObj = caps;
+
+            // create a model upload cost provider
+            m_ModelCost = new ModelCost();
+            // tell it about scene object limits
+            m_ModelCost.NonPhysicalPrimScaleMax = m_Scene.m_maxNonphys;
+            m_ModelCost.PhysicalPrimScaleMax = m_Scene.m_maxPhys;
+//            m_ModelCost.PrimScaleMin = ??
+//            m_ModelCost.ObjectLinkedPartsMax = ??
+
             IConfigSource config = m_Scene.Config;
             if (config != null)
             {
@@ -193,7 +203,6 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             try
             {
-                // I don't think this one works...
                 m_HostCapsObj.RegisterHandler(
                     "NewFileAgentInventory",
                     new LLSDStreamhandler<LLSDAssetUploadRequest, LLSDAssetUploadResponse>(
@@ -472,9 +481,8 @@ namespace OpenSim.Region.ClientStack.Linden
                     {
                         string error;
                         int modelcost;
-                        ModelCost mc = new ModelCost();
 
-                        if (!mc.MeshModelCost(llsdRequest.asset_resources, baseCost, out modelcost,
+                        if (!m_ModelCost.MeshModelCost(llsdRequest.asset_resources, baseCost, out modelcost,
                             meshcostdata, out error))
                         {
                             client.SendAgentAlertMessage(error, false);
@@ -608,172 +616,181 @@ namespace OpenSim.Region.ClientStack.Linden
             }
             else if (inventoryType == "object")
             {
-                inType = (sbyte)InventoryType.Object;
-                assType = (sbyte)AssetType.Object;
-
-                List<Vector3> positions = new List<Vector3>();
-                List<Quaternion> rotations = new List<Quaternion>();
-                OSDMap request = (OSDMap)OSDParser.DeserializeLLSDXml(data);
-                OSDArray instance_list = (OSDArray)request["instance_list"];
-                OSDArray mesh_list = (OSDArray)request["mesh_list"];
-                OSDArray texture_list = (OSDArray)request["texture_list"];
-                SceneObjectGroup grp = null;
-
-                // create and store texture assets
-                List<UUID> textures = new List<UUID>();
-                for (int i = 0; i < texture_list.Count; i++)
+                if (assetType == "mesh") // this code for now is for mesh models uploads only
                 {
-                    AssetBase textureAsset = new AssetBase(UUID.Random(), assetName, (sbyte)AssetType.Texture, "");
-                    textureAsset.Data = texture_list[i].AsBinary();
-                    m_assetService.Store(textureAsset);
-                    textures.Add(textureAsset.FullID);
+                    inType = (sbyte)InventoryType.Object;
+                    assType = (sbyte)AssetType.Object;
 
-                    // save it to inventory
-                    if (m_addNewTextures && AddNewInventoryItem != null)
+                    List<Vector3> positions = new List<Vector3>();
+                    List<Quaternion> rotations = new List<Quaternion>();
+                    OSDMap request = (OSDMap)OSDParser.DeserializeLLSDXml(data);
+                    OSDArray instance_list = (OSDArray)request["instance_list"];
+                    OSDArray mesh_list = (OSDArray)request["mesh_list"];
+                    OSDArray texture_list = (OSDArray)request["texture_list"];
+                    SceneObjectGroup grp = null;
+
+                    // create and store texture assets
+                    List<UUID> textures = new List<UUID>();
+                    for (int i = 0; i < texture_list.Count; i++)
                     {
-                        string name = assetName;
-                        if (name.Length > 25)
-                            name = name.Substring(0, 24);
-                        name += "_Texture#" + i.ToString();
-                        InventoryItemBase texitem = new InventoryItemBase();
-                        texitem.Owner = m_HostCapsObj.AgentID;
-                        texitem.CreatorId = m_HostCapsObj.AgentID.ToString();
-                        texitem.CreatorData = String.Empty;
-                        texitem.ID = UUID.Random();
-                        texitem.AssetID = textureAsset.FullID;
-                        texitem.Description = "mesh model texture";
-                        texitem.Name = name;
-                        texitem.AssetType = (int)AssetType.Texture;
-                        texitem.InvType = (int)InventoryType.Texture;
-                        texitem.Folder = UUID.Zero; // send to default
+                        AssetBase textureAsset = new AssetBase(UUID.Random(), assetName, (sbyte)AssetType.Texture, "");
+                        textureAsset.Data = texture_list[i].AsBinary();
+                        m_assetService.Store(textureAsset);
+                        textures.Add(textureAsset.FullID);
+                        /*
+                          don't do this
+                          replace it by optionaly making model textures cost less than if individually uploaded
+                          since they can't be used for other purpuses
+ 
+                                            // save it to inventory
+                                            if (m_addNewTextures && AddNewInventoryItem != null)
+                                            {
+                                                string name = assetName;
+                                                if (name.Length > 25)
+                                                    name = name.Substring(0, 24);
+                                                name += "_Texture#" + i.ToString();
+                                                InventoryItemBase texitem = new InventoryItemBase();
+                                                texitem.Owner = m_HostCapsObj.AgentID;
+                                                texitem.CreatorId = m_HostCapsObj.AgentID.ToString();
+                                                texitem.CreatorData = String.Empty;
+                                                texitem.ID = UUID.Random();
+                                                texitem.AssetID = textureAsset.FullID;
+                                                texitem.Description = "mesh model texture";
+                                                texitem.Name = name;
+                                                texitem.AssetType = (int)AssetType.Texture;
+                                                texitem.InvType = (int)InventoryType.Texture;
+                                                texitem.Folder = UUID.Zero; // send to default
 
-                        // If we set PermissionMask.All then when we rez the item the next permissions will replace the current
-                        // (owner) permissions.  This becomes a problem if next permissions are changed.
-                        texitem.CurrentPermissions
-                            = (uint)(PermissionMask.Move | PermissionMask.Copy | PermissionMask.Modify | PermissionMask.Transfer);
+                                                // If we set PermissionMask.All then when we rez the item the next permissions will replace the current
+                                                // (owner) permissions.  This becomes a problem if next permissions are changed.
+                                                texitem.CurrentPermissions
+                                                    = (uint)(PermissionMask.Move | PermissionMask.Copy | PermissionMask.Modify | PermissionMask.Transfer);
 
-                        texitem.BasePermissions = (uint)PermissionMask.All;
-                        texitem.EveryOnePermissions = 0;
-                        texitem.NextPermissions = (uint)PermissionMask.All;
-                        texitem.CreationDate = Util.UnixTimeSinceEpoch();
+                                                texitem.BasePermissions = (uint)PermissionMask.All;
+                                                texitem.EveryOnePermissions = 0;
+                                                texitem.NextPermissions = (uint)PermissionMask.All;
+                                                texitem.CreationDate = Util.UnixTimeSinceEpoch();
 
-                        AddNewInventoryItem(m_HostCapsObj.AgentID, texitem, 0);
-                        texitem = null;
+                                                AddNewInventoryItem(m_HostCapsObj.AgentID, texitem, 0);
+                                                texitem = null;
+                                            }
+                        */
+                        textureAsset = null;
                     }
 
-                    textureAsset = null;
-                    
-                }
-
-                // create and store meshs assets
-                List<UUID> meshAssets = new List<UUID>();
-                for (int i = 0; i < mesh_list.Count; i++)
-                {
-                    AssetBase meshAsset = new AssetBase(UUID.Random(), assetName, (sbyte)AssetType.Mesh, "");
-                    meshAsset.Data = mesh_list[i].AsBinary();
-                    m_assetService.Store(meshAsset);
-                    meshAssets.Add(meshAsset.FullID);
-
-                    // save it to inventory
-                    if (m_addNewMeshes && AddNewInventoryItem != null)
+                    // create and store meshs assets
+                    List<UUID> meshAssets = new List<UUID>();
+                    for (int i = 0; i < mesh_list.Count; i++)
                     {
-                        string name = assetName;
-                        if (name.Length > 25)
-                            name = name.Substring(0, 24);
-                        name += "_Mesh#" + i.ToString();
-                        InventoryItemBase meshitem = new InventoryItemBase();
-                        meshitem.Owner = m_HostCapsObj.AgentID;
-                        meshitem.CreatorId = m_HostCapsObj.AgentID.ToString();
-                        meshitem.CreatorData = String.Empty;
-                        meshitem.ID = UUID.Random();
-                        meshitem.AssetID = meshAsset.FullID;
-                        meshitem.Description = "mesh ";
-                        meshitem.Name = name;
-                        meshitem.AssetType = (int)AssetType.Mesh;
-                        meshitem.InvType = (int)InventoryType.Mesh;
-                        meshitem.Folder = UUID.Zero; // send to default
+                        AssetBase meshAsset = new AssetBase(UUID.Random(), assetName, (sbyte)AssetType.Mesh, "");
+                        meshAsset.Data = mesh_list[i].AsBinary();
+                        m_assetService.Store(meshAsset);
+                        meshAssets.Add(meshAsset.FullID);
 
-                        // If we set PermissionMask.All then when we rez the item the next permissions will replace the current
-                        // (owner) permissions.  This becomes a problem if next permissions are changed.
-                        meshitem.CurrentPermissions
-                            = (uint)(PermissionMask.Move | PermissionMask.Copy | PermissionMask.Modify | PermissionMask.Transfer);
+                        /* this was a test, funny and showed viewers deal with mesh inventory itens
+                         * nut also same reason as for textures
+                         * let integrated in a model cost eventually less than hipotetical independent meshs assets
+                         * that will be in inventory
+                                            // save it to inventory
+                                            if (m_addNewMeshes && AddNewInventoryItem != null)
+                                            {
+                                                string name = assetName;
+                                                if (name.Length > 25)
+                                                    name = name.Substring(0, 24);
+                                                name += "_Mesh#" + i.ToString();
+                                                InventoryItemBase meshitem = new InventoryItemBase();
+                                                meshitem.Owner = m_HostCapsObj.AgentID;
+                                                meshitem.CreatorId = m_HostCapsObj.AgentID.ToString();
+                                                meshitem.CreatorData = String.Empty;
+                                                meshitem.ID = UUID.Random();
+                                                meshitem.AssetID = meshAsset.FullID;
+                                                meshitem.Description = "mesh ";
+                                                meshitem.Name = name;
+                                                meshitem.AssetType = (int)AssetType.Mesh;
+                                                meshitem.InvType = (int)InventoryType.Mesh;
+                                                meshitem.Folder = UUID.Zero; // send to default
 
-                        meshitem.BasePermissions = (uint)PermissionMask.All;
-                        meshitem.EveryOnePermissions = 0;
-                        meshitem.NextPermissions = (uint)PermissionMask.All;
-                        meshitem.CreationDate = Util.UnixTimeSinceEpoch();
+                                                // If we set PermissionMask.All then when we rez the item the next permissions will replace the current
+                                                // (owner) permissions.  This becomes a problem if next permissions are changed.
+                                                meshitem.CurrentPermissions
+                                                    = (uint)(PermissionMask.Move | PermissionMask.Copy | PermissionMask.Modify | PermissionMask.Transfer);
 
-                        AddNewInventoryItem(m_HostCapsObj.AgentID, meshitem, 0);
-                        meshitem = null;
+                                                meshitem.BasePermissions = (uint)PermissionMask.All;
+                                                meshitem.EveryOnePermissions = 0;
+                                                meshitem.NextPermissions = (uint)PermissionMask.All;
+                                                meshitem.CreationDate = Util.UnixTimeSinceEpoch();
+
+                                                AddNewInventoryItem(m_HostCapsObj.AgentID, meshitem, 0);
+                                                meshitem = null;
+                                            }
+                        */
+                        meshAsset = null;
                     }
 
-                    meshAsset = null;
-                }
-
-                // build prims from instances
-                for (int i = 0; i < instance_list.Count; i++)
-                {
-                    PrimitiveBaseShape pbs = PrimitiveBaseShape.CreateBox();
-
-                    Primitive.TextureEntry textureEntry
-                        = new Primitive.TextureEntry(Primitive.TextureEntry.WHITE_TEXTURE);
-
-                    OSDMap inner_instance_list = (OSDMap)instance_list[i];
-
-                    OSDArray face_list = (OSDArray)inner_instance_list["face_list"];
-                    for (uint face = 0; face < face_list.Count; face++)
+                    // build prims from instances
+                    for (int i = 0; i < instance_list.Count; i++)
                     {
-                        OSDMap faceMap = (OSDMap)face_list[(int)face];
-                        Primitive.TextureEntryFace f = pbs.Textures.CreateFace(face);
-                        if(faceMap.ContainsKey("fullbright"))
-                            f.Fullbright = faceMap["fullbright"].AsBoolean();
-                        if (faceMap.ContainsKey ("diffuse_color"))
-                            f.RGBA = faceMap["diffuse_color"].AsColor4();
+                        PrimitiveBaseShape pbs = PrimitiveBaseShape.CreateBox();
 
-                        int textureNum = faceMap["image"].AsInteger();
-                        float imagerot = faceMap["imagerot"].AsInteger();
-                        float offsets = (float)faceMap["offsets"].AsReal();
-                        float offsett = (float)faceMap["offsett"].AsReal();
-                        float scales = (float)faceMap["scales"].AsReal();
-                        float scalet = (float)faceMap["scalet"].AsReal();
+                        Primitive.TextureEntry textureEntry
+                            = new Primitive.TextureEntry(Primitive.TextureEntry.WHITE_TEXTURE);
 
-                        if(imagerot != 0)
-                            f.Rotation = imagerot;
+                        OSDMap inner_instance_list = (OSDMap)instance_list[i];
 
-                        if(offsets != 0)
-                            f.OffsetU = offsets;
+                        OSDArray face_list = (OSDArray)inner_instance_list["face_list"];
+                        for (uint face = 0; face < face_list.Count; face++)
+                        {
+                            OSDMap faceMap = (OSDMap)face_list[(int)face];
+                            Primitive.TextureEntryFace f = pbs.Textures.CreateFace(face);
+                            if (faceMap.ContainsKey("fullbright"))
+                                f.Fullbright = faceMap["fullbright"].AsBoolean();
+                            if (faceMap.ContainsKey("diffuse_color"))
+                                f.RGBA = faceMap["diffuse_color"].AsColor4();
 
-                        if (offsett != 0)
-                            f.OffsetV = offsett;
+                            int textureNum = faceMap["image"].AsInteger();
+                            float imagerot = faceMap["imagerot"].AsInteger();
+                            float offsets = (float)faceMap["offsets"].AsReal();
+                            float offsett = (float)faceMap["offsett"].AsReal();
+                            float scales = (float)faceMap["scales"].AsReal();
+                            float scalet = (float)faceMap["scalet"].AsReal();
 
-                        if (scales != 0)
-                            f.RepeatU = scales;
+                            if (imagerot != 0)
+                                f.Rotation = imagerot;
 
-                        if (scalet != 0)
-                            f.RepeatV = scalet;
+                            if (offsets != 0)
+                                f.OffsetU = offsets;
 
-                        if (textures.Count > textureNum)
-                            f.TextureID = textures[textureNum];
-                        else
-                            f.TextureID = Primitive.TextureEntry.WHITE_TEXTURE;
+                            if (offsett != 0)
+                                f.OffsetV = offsett;
 
-                        textureEntry.FaceTextures[face] = f;
-                    }
+                            if (scales != 0)
+                                f.RepeatU = scales;
 
-                    pbs.TextureEntry = textureEntry.GetBytes();
+                            if (scalet != 0)
+                                f.RepeatV = scalet;
 
-                    int meshindx = inner_instance_list["mesh"].AsInteger();
-                    if (meshAssets.Count > meshindx)
-                    {
-                        pbs.SculptEntry = true;
-                        pbs.SculptType = (byte)SculptType.Mesh;
-                        pbs.SculptTexture = meshAssets[meshindx]; // actual asset UUID after meshs suport introduction
-                        // data will be requested from asset on rez (i hope)
-                    }
+                            if (textures.Count > textureNum)
+                                f.TextureID = textures[textureNum];
+                            else
+                                f.TextureID = Primitive.TextureEntry.WHITE_TEXTURE;
 
-                    Vector3 position = inner_instance_list["position"].AsVector3();
-                    Vector3 scale = inner_instance_list["scale"].AsVector3();
-                    Quaternion rotation = inner_instance_list["rotation"].AsQuaternion();
+                            textureEntry.FaceTextures[face] = f;
+                        }
+
+                        pbs.TextureEntry = textureEntry.GetBytes();
+
+                        int meshindx = inner_instance_list["mesh"].AsInteger();
+                        if (meshAssets.Count > meshindx)
+                        {
+                            pbs.SculptEntry = true;
+                            pbs.SculptType = (byte)SculptType.Mesh;
+                            pbs.SculptTexture = meshAssets[meshindx]; // actual asset UUID after meshs suport introduction
+                            // data will be requested from asset on rez (i hope)
+                        }
+
+                        Vector3 position = inner_instance_list["position"].AsVector3();
+                        Vector3 scale = inner_instance_list["scale"].AsVector3();
+                        Quaternion rotation = inner_instance_list["rotation"].AsQuaternion();
 
 // no longer used - begin ------------------------
 //                    int physicsShapeType = inner_instance_list["physics_shape_type"].AsInteger();
@@ -793,23 +810,23 @@ namespace OpenSim.Region.ClientStack.Linden
 //                    int owner_mask = permissions["owner_mask"].AsInteger();
 // no longer used - end ------------------------
 
-		      UUID owner_id = m_HostCapsObj.AgentID;
+                        UUID owner_id = m_HostCapsObj.AgentID;
 
-                    SceneObjectPart prim
-                        = new SceneObjectPart(owner_id, pbs, position, Quaternion.Identity, Vector3.Zero);
+                        SceneObjectPart prim
+                            = new SceneObjectPart(owner_id, pbs, position, Quaternion.Identity, Vector3.Zero);
 
-                    prim.Scale = scale;
-                    prim.OffsetPosition = position;
-                    rotations.Add(rotation);
-                    positions.Add(position);
-                    prim.UUID = UUID.Random();
-                    prim.CreatorID = owner_id;
-                    prim.OwnerID = owner_id;
-                    prim.GroupID = UUID.Zero;
-                    prim.LastOwnerID = prim.OwnerID;
-                    prim.CreationDate = Util.UnixTimeSinceEpoch();
-                    prim.Name = assetName;
-                    prim.Description = "";
+                        prim.Scale = scale;
+                        prim.OffsetPosition = position;
+                        rotations.Add(rotation);
+                        positions.Add(position);
+                        prim.UUID = UUID.Random();
+                        prim.CreatorID = owner_id;
+                        prim.OwnerID = owner_id;
+                        prim.GroupID = UUID.Zero;
+                        prim.LastOwnerID = prim.OwnerID;
+                        prim.CreationDate = Util.UnixTimeSinceEpoch();
+                        prim.Name = assetName;
+                        prim.Description = "";
 
 //                    prim.BaseMask = (uint)base_mask;
 //                    prim.EveryoneMask = (uint)everyone_mask;
@@ -817,32 +834,39 @@ namespace OpenSim.Region.ClientStack.Linden
 //                    prim.NextOwnerMask = (uint)next_owner_mask;
 //                    prim.OwnerMask = (uint)owner_mask;
 
-                    if (grp == null)
-                        grp = new SceneObjectGroup(prim);
-                    else
-                        grp.AddPart(prim);
+                        if (grp == null)
+                            grp = new SceneObjectGroup(prim);
+                        else
+                            grp.AddPart(prim);
+                    }
+
+                    // Fix first link number
+                    if (grp.Parts.Length > 1)
+                        grp.RootPart.LinkNum++;
+
+                    Vector3 rootPos = positions[0];
+                    grp.AbsolutePosition = rootPos;
+                    for (int i = 0; i < positions.Count; i++)
+                    {
+                        Vector3 offset = positions[i] - rootPos;
+                        grp.Parts[i].OffsetPosition = offset;
+                    }
+
+                    for (int i = 0; i < rotations.Count; i++)
+                    {
+                        if (i != 0)
+                            grp.Parts[i].RotationOffset = rotations[i];
+                    }
+
+                    grp.UpdateGroupRotationR(rotations[0]);
+                    data = ASCIIEncoding.ASCII.GetBytes(SceneObjectSerializer.ToOriginalXmlFormat(grp));
                 }
 
-                // Fix first link number
-                if (grp.Parts.Length > 1)
-                    grp.RootPart.LinkNum++;
-
-                Vector3 rootPos = positions[0];
-                grp.AbsolutePosition = rootPos;
-                for (int i = 0; i < positions.Count; i++)
+                else // not a mesh model
                 {
-                    Vector3 offset = positions[i] - rootPos;
-                    grp.Parts[i].OffsetPosition = offset;
+                    m_log.ErrorFormat("[CAPS Asset Upload] got unsuported assetType for object upload");
+                    return;
                 }
-
-                for (int i = 0; i < rotations.Count; i++)
-                {
-                    if (i != 0)
-                        grp.Parts[i].RotationOffset = rotations[i];
-                }
-
-                grp.UpdateGroupRotationR(rotations[0]);
-                data = ASCIIEncoding.ASCII.GetBytes(SceneObjectSerializer.ToOriginalXmlFormat(grp));
             }
 
             AssetBase asset;
