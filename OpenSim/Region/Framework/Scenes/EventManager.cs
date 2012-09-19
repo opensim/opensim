@@ -238,12 +238,34 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Fired when an object is touched/grabbed.
         /// </summary>
+        /// <remarks>
         /// The originalID is the local ID of the part that was actually touched.  The localID itself is always that of
         /// the root part.
+        /// Triggerd in response to <see cref="OpenSim.Framework.IClientAPI.OnGrabObject"/>
+        /// via <see cref="TriggerObjectGrab"/>
+        /// in <see cref="Scene.ProcessObjectGrab"/>
+        /// </remarks>
         public event ObjectGrabDelegate OnObjectGrab;
         public delegate void ObjectGrabDelegate(uint localID, uint originalID, Vector3 offsetPos, IClientAPI remoteClient, SurfaceTouchEventArgs surfaceArgs);
         
+        /// <summary>
+        /// Triggered when an object is being touched/grabbed continuously.
+        /// </summary>
+        /// <remarks>
+        /// Triggered in response to <see cref="OpenSim.Framework.IClientAPI.OnGrabUpdate"/>
+        /// via <see cref="TriggerObjectGrabbing"/>
+        /// in <see cref="Scene.ProcessObjectGrabUpdate"/>
+        /// </remarks>
         public event ObjectGrabDelegate OnObjectGrabbing;
+
+        /// <summary>
+        /// Triggered when an object stops being touched/grabbed.
+        /// </summary>
+        /// <remarks>
+        /// Triggered in response to <see cref="OpenSim.Framework.IClientAPI.OnDeGrabObject"/>
+        /// via <see cref="TriggerObjectDeGrab"/>
+        /// in <see cref="Scene.ProcessObjectDeGrab"/>
+        /// </remarks>
         public event ObjectDeGrabDelegate OnObjectDeGrab;
         public event ScriptResetDelegate OnScriptReset;
 
@@ -453,12 +475,27 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Triggered when an object is added to the scene.
         /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerObjectAddedToScene"/>
+        /// in <see cref="Scene.AddNewSceneObject"/>,
+        /// <see cref="Scene.DuplicateObject"/>,
+        /// <see cref="Scene.doObjectDuplicateOnRay"/>
+        /// </remarks>
         public event Action<SceneObjectGroup> OnObjectAddedToScene;
+
+        /// <summary>
+        /// Delegate for <see cref="OnObjectBeingRemovedFromScene"/>
+        /// </summary>
+        /// <param name="obj">The object being removed from the scene</param>
+        public delegate void ObjectBeingRemovedFromScene(SceneObjectGroup obj);
 
         /// <summary>
         /// Triggered when an object is removed from the scene.
         /// </summary>
-        public delegate void ObjectBeingRemovedFromScene(SceneObjectGroup obj);
+        /// <remarks>
+        /// Triggered by <see cref="TriggerObjectBeingRemovedFromScene"/>
+        /// in <see cref="Scene.DeleteSceneObject"/>
+        /// </remarks>
         public event ObjectBeingRemovedFromScene OnObjectBeingRemovedFromScene;
 
         public delegate void NoticeNoLandDataFromStorage();
