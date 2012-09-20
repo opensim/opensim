@@ -62,6 +62,15 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// </value>
         public int DebugLevel { get; set; }
 
+        /// <summary>
+        /// Request number for diagnostic purposes.
+        /// </summary>
+        /// <remarks>
+        /// This is an internal number.  In some debug situations an external number may also be supplied in the
+        /// opensim-request-id header but we are not currently logging this.
+        /// </remarks>
+        public int RequestNumber { get; private set; }
+
         private volatile int NotSocketErrors = 0;
         public volatile bool HTTPDRunning = false;
 
@@ -302,6 +311,8 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         private void OnRequest(object source, RequestEventArgs args)
         {
+            RequestNumber++;
+
             try
             {
                 IHttpClientContext context = (IHttpClientContext)source;
@@ -411,7 +422,6 @@ namespace OpenSim.Framework.Servers.HttpServer
             string requestMethod = request.HttpMethod;
             string uriString = request.RawUrl;
 
-//            string reqnum = "unknown";
             int requestStartTick = Environment.TickCount;
 
             // Will be adjusted later on.
@@ -535,8 +545,8 @@ namespace OpenSim.Framework.Servers.HttpServer
     
                             if (DebugLevel >= 3)
                                 m_log.DebugFormat(
-                                    "[BASE HTTP SERVER]: HTTP IN {0} content type handler {1} {2} from {3}",
-                                    request.ContentType, request.HttpMethod, request.Url.PathAndQuery, request.RemoteIPEndPoint);
+                                    "[BASE HTTP SERVER]: HTTP IN {0} :{1} {2} content type handler {3} {4} from {5}",
+                                    RequestNumber, Port, request.ContentType, request.HttpMethod, request.Url.PathAndQuery, request.RemoteIPEndPoint);
     
                             buffer = HandleHTTPRequest(request, response);
                             break;
@@ -547,8 +557,8 @@ namespace OpenSim.Framework.Servers.HttpServer
     
                             if (DebugLevel >= 3)
                                 m_log.DebugFormat(
-                                    "[BASE HTTP SERVER]: HTTP IN {0} content type handler {1} {2} from {3}",
-                                    request.ContentType, request.HttpMethod, request.Url.PathAndQuery, request.RemoteIPEndPoint);
+                                    "[BASE HTTP SERVER]: HTTP IN {0} :{1} {2} content type handler {3} {4} from {5}",
+                                    RequestNumber, Port, request.ContentType, request.HttpMethod, request.Url.PathAndQuery, request.RemoteIPEndPoint);
     
                             buffer = HandleLLSDRequests(request, response);
                             break;
@@ -641,7 +651,8 @@ namespace OpenSim.Framework.Servers.HttpServer
                 if (tickdiff > 3000)
                 {
                     m_log.InfoFormat(
-                        "[BASE HTTP SERVER]: Slow handling of {0} {1} {2} {3} from {4} took {5}ms",
+                        "[BASE HTTP SERVER]: Slow handling of {0} {1} {2} {3} {4} from {5} took {6}ms",
+                        RequestNumber,
                         requestMethod,
                         uriString,
                         requestHandler != null ? requestHandler.Name : "",
@@ -652,12 +663,9 @@ namespace OpenSim.Framework.Servers.HttpServer
                 else if (DebugLevel >= 4)
                 {
                     m_log.DebugFormat(
-                        "[BASE HTTP SERVER]: HTTP IN {0} {1} {2} {3} from {4} took {5}ms",
-                        requestMethod,
-                        uriString,
-                        requestHandler != null ? requestHandler.Name : "",
-                        requestHandler != null ? requestHandler.Description : "",
-                        request.RemoteIPEndPoint,
+                        "[BASE HTTP SERVER]: HTTP IN {0} :{1} took {2}ms",
+                        RequestNumber,
+                        Port,
                         tickdiff);
                 }
             }
@@ -666,8 +674,14 @@ namespace OpenSim.Framework.Servers.HttpServer
         private void LogIncomingToStreamHandler(OSHttpRequest request, IRequestHandler requestHandler)
         {
             m_log.DebugFormat(
-                "[BASE HTTP SERVER]: HTTP IN stream handler {0} {1} {2} {3} from {4}",
-                request.HttpMethod, request.Url.PathAndQuery, requestHandler.Name, requestHandler.Description, request.RemoteIPEndPoint);
+                "[BASE HTTP SERVER]: HTTP IN {0} :{1} stream handler {2} {3} {4} {5} from {6}",
+                RequestNumber,
+                Port,
+                request.HttpMethod,
+                request.Url.PathAndQuery,
+                requestHandler.Name,
+                requestHandler.Description,
+                request.RemoteIPEndPoint);
 
             if (DebugLevel >= 5)
                 LogIncomingInDetail(request);
@@ -676,8 +690,13 @@ namespace OpenSim.Framework.Servers.HttpServer
         private void LogIncomingToContentTypeHandler(OSHttpRequest request)
         {
             m_log.DebugFormat(
-                "[BASE HTTP SERVER]: HTTP IN {0} content type handler {1} {2} from {3}",
-                request.ContentType, request.HttpMethod, request.Url.PathAndQuery, request.RemoteIPEndPoint);
+                "[BASE HTTP SERVER]: HTTP IN {0} :{1} {2} content type handler {3} {4} from {5}",
+                RequestNumber,
+                Port,
+                request.ContentType,
+                request.HttpMethod,
+                request.Url.PathAndQuery,
+                request.RemoteIPEndPoint);
 
             if (DebugLevel >= 5)
                 LogIncomingInDetail(request);
@@ -686,8 +705,12 @@ namespace OpenSim.Framework.Servers.HttpServer
         private void LogIncomingToXmlRpcHandler(OSHttpRequest request)
         {
             m_log.DebugFormat(
-                "[BASE HTTP SERVER]: HTTP IN assumed generic XMLRPC request {0} {1} from {2}",
-                request.HttpMethod, request.Url.PathAndQuery, request.RemoteIPEndPoint);
+                "[BASE HTTP SERVER]: HTTP IN {0} :{1} assumed generic XMLRPC request {2} {3} from {4}",
+                RequestNumber,
+                Port,
+                request.HttpMethod,
+                request.Url.PathAndQuery,
+                request.RemoteIPEndPoint);
 
             if (DebugLevel >= 5)
                 LogIncomingInDetail(request);

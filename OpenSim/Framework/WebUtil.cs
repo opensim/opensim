@@ -64,7 +64,7 @@ namespace OpenSim.Framework
         /// <summary>
         /// Request number for diagnostic purposes.
         /// </summary>
-        public static int RequestNumber = 0;
+        public static int RequestNumber { get; internal set; }
 
         /// <summary>
         /// this is the header field used to communicate the local request id
