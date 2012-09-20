@@ -250,6 +250,10 @@ namespace OpenSim.Framework
                         strBuffer != null
                             ? (strBuffer.Length > MaxRequestDiagLength ? strBuffer.Remove(MaxRequestDiagLength) : strBuffer)
                             : "");
+                else if (DebugLevel >= 4)
+                    m_log.DebugFormat(
+                        "[WEB UTIL]: HTTP OUT {0} took {1}ms, {2}ms writing",
+                        reqnum, tickdiff, tickdata);
             }
            
             m_log.DebugFormat(
@@ -405,6 +409,10 @@ namespace OpenSim.Framework
                         queryString != null
                             ? (queryString.Length > MaxRequestDiagLength) ? queryString.Remove(MaxRequestDiagLength) : queryString
                             : "");
+                else if (DebugLevel >= 4)
+                    m_log.DebugFormat(
+                        "[WEB UTIL]: HTTP OUT {0} took {1}ms, {2}ms writing",
+                        reqnum, tickdiff, tickdata);
             }
 
             m_log.WarnFormat("[SERVICE FORM]: <{0}> form request to {1} failed: {2}", reqnum, url, errorMessage);
@@ -879,6 +887,12 @@ namespace OpenSim.Framework
                     tickdata,
                     originalRequest);
             }
+            else if (WebUtil.DebugLevel >= 4)
+            {
+                m_log.DebugFormat(
+                    "[WEB UTIL]: HTTP OUT {0} took {1}ms, {2}ms writing",
+                    reqnum, tickdiff, tickdata);
+            }
         }
     }
 
@@ -995,6 +1009,10 @@ namespace OpenSim.Framework
                     tickdiff,
                     tickdata,
                     obj.Length > WebUtil.MaxRequestDiagLength ? obj.Remove(WebUtil.MaxRequestDiagLength) : obj);
+            else if (WebUtil.DebugLevel >= 4)
+                m_log.DebugFormat(
+                    "[WEB UTIL]: HTTP OUT {0} took {1}ms, {2}ms writing",
+                    reqnum, tickdiff, tickdata);
 
             return respstring;
         }
@@ -1143,6 +1161,12 @@ namespace OpenSim.Framework
                     tickdiff,
                     tickdata,
                     originalRequest);
+            }
+            else if (WebUtil.DebugLevel >= 4)
+            {
+                m_log.DebugFormat(
+                    "[WEB UTIL]: HTTP OUT {0} took {1}ms, {2}ms writing",
+                    reqnum, tickdiff, tickdata);
             }
 
             return deserial;

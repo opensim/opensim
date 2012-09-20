@@ -51,8 +51,9 @@ namespace OpenSim.Framework.Servers
         /// If DebugLevel >= 1 then short warnings are logged when receiving bad input data.
         /// If DebugLevel >= 2 then long warnings are logged when receiving bad input data.
         /// If DebugLevel >= 3 then short notices about all incoming non-poll HTTP requests are logged.
-        /// If DebugLevel >= 4 then the start of the body of incoming non-poll HTTP requests will be logged.
-        /// If DebugLevel >= 5 then the entire body of incoming non-poll HTTP requests will be logged.
+        /// If DebugLevel >= 4 then the time taken to fulfill the request is logged.
+        /// If DebugLevel >= 5 then the start of the body of incoming non-poll HTTP requests will be logged.
+        /// If DebugLevel >= 6 then the entire body of incoming non-poll HTTP requests will be logged.
         /// </remarks>
         public static int DebugLevel
         {
@@ -115,15 +116,17 @@ namespace OpenSim.Framework.Servers
                 "Debug", false, "debug http", "debug http <in|out|all> [<level>]",
                 "Turn on http request logging.",
                 "If in or all and\n"
-                    + "  level <= 0, then no extra logging is done.\n"
-                    + "  level >= 1, then short warnings are logged when receiving bad input data.\n"
-                    + "  level >= 2, then long warnings are logged when receiving bad input data.\n"
-                    + "  level >= 3, then short notices about all incoming non-poll HTTP requests are logged.\n"
-                    + "  level >= 4, then a sample from the beginning of the incoming data is logged.\n"
-                    + "  level >= 5, then the entire incoming data is logged.\n"
+                    + "  level <= 0 then no extra logging is done.\n"
+                    + "  level >= 1 then short warnings are logged when receiving bad input data.\n"
+                    + "  level >= 2 then long warnings are logged when receiving bad input data.\n"
+                    + "  level >= 3 then short notices about all incoming non-poll HTTP requests are logged.\n"
+                    + "  level >= 4 then the time taken to fulfill the request is logged.\n"
+                    + "  level >= 5 then a sample from the beginning of the incoming data is logged.\n"
+                    + "  level >= 6 then the entire incoming data is logged.\n"
                     + "  no level is specified then the current level is returned.\n\n"
                     + "If out or all and\n"
-                    + "  level >= 3. then short notices about all outgoing requests going through WebUtil are logged.\n",
+                    + "  level >= 3 then short notices about all outgoing requests going through WebUtil are logged.\n"
+                    + "  level >= 4 then the time taken to fulfill the request is logged.\n",
                 HandleDebugHttpCommand);
         }
 
@@ -135,7 +138,7 @@ namespace OpenSim.Framework.Servers
         {
             if (cmdparams.Length < 3)
             {
-                MainConsole.Instance.Output("Usage: debug http <in|out|all> 0..5");
+                MainConsole.Instance.Output("Usage: debug http <in|out|all> 0..6");
                 return;
             }
 
@@ -145,12 +148,23 @@ namespace OpenSim.Framework.Servers
 
             string subCommand = cmdparams[2];
 
-            if (subCommand == "in")
+            if (subCommand.ToLower() == "in")
+            {
                 inReqs = true;
-            else if (subCommand == "out")
+            }
+            else if (subCommand.ToLower() == "out")
+            {
                 outReqs = true;
-            else
+            }
+            else if (subCommand.ToLower() == "all")
+            {
                 allReqs = true;
+            }
+            else
+            {
+                MainConsole.Instance.Output("You must specify in, out or all");
+                return;
+            }
 
             if (cmdparams.Length >= 4)
             {
@@ -172,22 +186,22 @@ namespace OpenSim.Framework.Servers
                 if (allReqs || inReqs)
                 {
                     MainServer.DebugLevel = newDebug;
-                    MainConsole.Instance.OutputFormat("In debug level set to {0}", newDebug);
+                    MainConsole.Instance.OutputFormat("IN debug level set to {0}", newDebug);
                 }
 
                 if (allReqs || outReqs)
                 {
                     WebUtil.DebugLevel = newDebug;
-                    MainConsole.Instance.OutputFormat("Out debug level set to {0}", newDebug);
+                    MainConsole.Instance.OutputFormat("OUT debug level set to {0}", newDebug);
                 }
             }
             else
             {
                 if (allReqs || inReqs)
-                    MainConsole.Instance.OutputFormat("Current in debug level is {0}", MainServer.DebugLevel);
+                    MainConsole.Instance.OutputFormat("Current IN debug level is {0}", MainServer.DebugLevel);
 
                 if (allReqs || outReqs)
-                    MainConsole.Instance.OutputFormat("Current out debug level is {0}", WebUtil.DebugLevel);
+                    MainConsole.Instance.OutputFormat("Current OUT debug level is {0}", WebUtil.DebugLevel);
             }
         }
 
