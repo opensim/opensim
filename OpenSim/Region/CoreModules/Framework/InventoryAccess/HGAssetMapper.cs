@@ -93,6 +93,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 if (!url.EndsWith("/") && !url.EndsWith("="))
                     url = url + "/";
 
+                bool success = true;
                 // See long comment in AssetCache.AddAsset
                 if (!asset.Temporary || asset.Local)
                 {
@@ -103,14 +104,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     // not having a global naming infrastructure
                     AssetBase asset1 = new AssetBase(asset.FullID, asset.Name, asset.Type, asset.Metadata.CreatorID);
                     Copy(asset, asset1);
-                    try
-                    {
-                        asset1.ID = url + asset.ID;
-                    }
-                    catch
-                    {
-                        m_log.Warn("[HG ASSET MAPPER]: Oops.");
-                    }
+                    asset1.ID = url + asset.ID;
 
                     AdjustIdentifiers(asset1.Metadata);
                     if (asset1.Metadata.Type == (sbyte)AssetType.Object)
@@ -118,11 +112,17 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     else
                         asset1.Data = asset.Data;
 
-                    m_scene.AssetService.Store(asset1);
-                    m_log.DebugFormat("[HG ASSET MAPPER]: Posted copy of asset {0} from local asset server to {1}", asset1.ID, url);
+                    string id = m_scene.AssetService.Store(asset1);
+                    if (id == UUID.Zero.ToString())
+                    {
+                        m_log.DebugFormat("[HG ASSET MAPPER]: Asset server {0} did not accept {1}", url, asset.ID);
+                        success = false;
+                    }
+                    else
+                        m_log.DebugFormat("[HG ASSET MAPPER]: Posted copy of asset {0} from local asset server to {1}", asset1.ID, url);
                 }
-                return true;
-           }
+                return success;
+            }
             else
                 m_log.Warn("[HG ASSET MAPPER]: Tried to post asset to remote server, but asset not in local cache.");
 
@@ -259,17 +259,21 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 Dictionary<UUID, AssetType> ids = new Dictionary<UUID, AssetType>();
                 HGUuidGatherer uuidGatherer = new HGUuidGatherer(this, m_scene.AssetService, string.Empty);
                 uuidGatherer.GatherAssetUuids(asset.FullID, (AssetType)asset.Type, ids);
+                bool success = false;
                 foreach (UUID uuid in ids.Keys)
                 {
                     asset = m_scene.AssetService.Get(uuid.ToString());
                     if (asset == null)
                         m_log.DebugFormat("[HG ASSET MAPPER]: Could not find asset {0}", uuid);
                     else
-                        PostAsset(userAssetURL, asset);
+                        success = PostAsset(userAssetURL, asset);
                 }
 
-                 // maybe all pieces got there...
-                m_log.DebugFormat("[HG ASSET MAPPER]: Successfully posted item {0} to asset server {1}", assetID, userAssetURL);
+                // maybe all pieces got there...
+                if (!success)
+                    m_log.DebugFormat("[HG ASSET MAPPER]: Problems posting item {0} to asset server {1}", assetID, userAssetURL);
+                else
+                    m_log.DebugFormat("[HG ASSET MAPPER]: Successfully posted item {0} to asset server {1}", assetID, userAssetURL);
 
             }
             else

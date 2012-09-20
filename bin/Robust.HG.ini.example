@@ -437,6 +437,16 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     UserAccountsService = "OpenSim.Services.UserAccountService.dll:UserAccountService"
     HomeURI = "http://127.0.0.1:8002"
 
+	;; The asset types that other grids can get from / post to this service.
+	;; Valid values are all the asset types in OpenMetaverse.AssetType, namely:
+	;; Unknown, Texture, Sound, CallingCard, Landmark, Clothing, Object, Notecard, LSLText, LSLBytecode, TextureTGA, Bodypart, SoundWAV, ImageTGA, ImageJPEG, Animation, Gesture, Mesh 
+	;;
+	;; Leave blank or commented if you don't want to apply any restrictions.
+	;; A more strict, but still reasonable, policy may be to disallow the exchange 
+	;; of scripts, like so:
+    ; DisallowGET ="LSLText"
+    ; DisallowPOST ="LSLBytecode"
+
 [HGFriendsService]
 	LocalServiceModule = "OpenSim.Services.HypergridService.dll:HGFriendsService"
 	UserAgentService = "OpenSim.Services.HypergridService.dll:UserAgentService"

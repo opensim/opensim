@@ -58,6 +58,9 @@ namespace OpenSim.Services.HypergridService
 
         private UserAccountCache m_Cache;
 
+        private bool[] m_DisallowGET, m_DisallowPOST;
+        private string[] m_AssetTypeNames;
+
         public HGAssetService(IConfigSource config, string configName) : base(config, configName)
         {
             m_log.Debug("[HGAsset Service]: Starting");
@@ -80,6 +83,34 @@ namespace OpenSim.Services.HypergridService
             m_HomeURL = assetConfig.GetString("HomeURI", m_HomeURL);
 
             m_Cache = UserAccountCache.CreateUserAccountCache(m_UserAccountService);
+
+            // Permissions
+            Type enumType = typeof(AssetType);
+            m_AssetTypeNames = Enum.GetNames(enumType);
+            for (int i = 0; i < m_AssetTypeNames.Length; i++)
+                m_AssetTypeNames[i] = m_AssetTypeNames[i].ToLower();
+            int n = Enum.GetValues(enumType).Length;
+            m_DisallowGET = new bool[n];
+            m_DisallowPOST = new bool[n];
+
+            LoadPermsFromConfig(assetConfig, "DisallowGET", m_DisallowGET);
+            LoadPermsFromConfig(assetConfig, "DisallowPOST", m_DisallowPOST);
+
+        }
+
+        private void LoadPermsFromConfig(IConfig assetConfig, string variable, bool[] bitArray)
+        {
+            string perms = assetConfig.GetString(variable, String.Empty);
+            string[] parts = perms.Split(new char[] {','}, StringSplitOptions.RemoveEmptyEntries);
+            foreach (string s in parts)
+            {
+                int index = Array.IndexOf(m_AssetTypeNames, s.Trim().ToLower());
+                if (index >= 0)
+                    bitArray[index] = true;
+                else
+                    m_log.WarnFormat("[HGAsset Service]: Invalid AssetType {0}", s);
+            }
+
         }
 
         #region IAssetService overrides
@@ -88,6 +119,9 @@ namespace OpenSim.Services.HypergridService
             AssetBase asset = base.Get(id);
 
             if (asset == null)
+                return null;
+
+            if (!AllowedGet(asset.Type))
                 return null;
 
             if (asset.Metadata.Type == (sbyte)AssetType.Object)
@@ -112,15 +146,26 @@ namespace OpenSim.Services.HypergridService
 
         public override byte[] GetData(string id)
         {
-            byte[] data = base.GetData(id);
+            AssetBase asset = Get(id);
 
-            if (data == null)
+            if (asset == null)
                 return null;
 
-            return AdjustIdentifiers(data);
+            if (!AllowedGet(asset.Type))
+                return null;
+
+            return asset.Data;
         }
 
         //public virtual bool Get(string id, Object sender, AssetRetrieved handler)
+
+        public override string Store(AssetBase asset)
+        {
+            if (!AllowedPost(asset.Type))
+                return UUID.Zero.ToString();
+
+            return base.Store(asset);
+        }
 
         public override bool Delete(string id)
         {
@@ -129,6 +174,34 @@ namespace OpenSim.Services.HypergridService
         }
 
         #endregion 
+
+        protected bool AllowedGet(sbyte type)
+        {
+            string assetTypeName = ((AssetType)type).ToString();
+
+            int index = Array.IndexOf(m_AssetTypeNames, assetTypeName.ToLower());
+            if (index >= 0 && m_DisallowGET[index])
+            {
+                m_log.DebugFormat("[HGAsset Service]: GET denied: service does not allow export of AssetType {0}", assetTypeName);
+                return false;
+            }
+
+            return true;
+        }
+
+        protected bool AllowedPost(sbyte type)
+        {
+            string assetTypeName = ((AssetType)type).ToString();
+
+            int index = Array.IndexOf(m_AssetTypeNames, assetTypeName.ToLower());
+            if (index >= 0 && m_DisallowPOST[index])
+            {
+                m_log.DebugFormat("[HGAsset Service]: POST denied: service does not allow import of AssetType {0}", assetTypeName);
+                return false;
+            }
+
+            return true;
+        }
 
         protected void AdjustIdentifiers(AssetMetadata meta)
         {
