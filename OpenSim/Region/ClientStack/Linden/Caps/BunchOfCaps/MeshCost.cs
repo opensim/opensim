@@ -40,7 +40,7 @@ namespace OpenSim.Region.ClientStack.Linden
         //public float ModelMeshCostFactor = 1.0f; // scale total cost relative to basic (excluding textures)
         //public float ModelMinCostFactor = 0.5f; // minimum total model free excluding textures
 
-        //public float ModelTextureCostFactor = 1.00f; // keep full price because texture price
+        public float ModelTextureCostFactor = 1.00f; // keep full price because texture price
                                                      // is based on it's storage needs not on usability
 
         // itens costs in normalized values
