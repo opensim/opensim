@@ -96,7 +96,7 @@ public sealed class BSPrim : BSPhysObject
                        OMV.Quaternion rotation, PrimitiveBaseShape pbs, bool pisPhysical)
     {
         // m_log.DebugFormat("{0}: BSPrim creation of {1}, id={2}", LogHeader, primName, localID);
-        base.BaseInitialize(parent_scene, localID, primName);
+        base.BaseInitialize(parent_scene, localID, primName, "BSPrim");
         _physicsActorType = (int)ActorTypes.Prim;
         _position = pos;
         _size = size;
@@ -115,17 +115,17 @@ public sealed class BSPrim : BSPhysObject
         _restitution = PhysicsScene.Params.defaultRestitution;
         _vehicle = new BSDynamics(PhysicsScene, this);            // add vehicleness
         _mass = CalculateMass();
+
+        // No body or shape yet
+        BSBody = new BulletBody(LocalID, IntPtr.Zero);
+        BSShape = new BulletShape(IntPtr.Zero);
+
         DetailLog("{0},BSPrim.constructor,call", LocalID);
         // do the actual object creation at taint time
         PhysicsScene.TaintedObject("BSPrim.create", delegate()
         {
             CreateGeomAndObject(true);
 
-            // Get the pointer to the physical body for this object.
-            // At the moment, we're still letting BulletSim manage the creation and destruction
-            //    of the object. Someday we'll move that into the C# code.
-            BSBody = new BulletBody(LocalID, BulletSimAPI.GetBodyHandle2(PhysicsScene.World.Ptr, LocalID));
-            BSShape = new BulletShape(BulletSimAPI.GetCollisionShape2(BSBody.Ptr));
             CurrentCollisionFlags = BulletSimAPI.GetCollisionFlags2(BSBody.Ptr);
         });
     }
@@ -168,9 +168,16 @@ public sealed class BSPrim : BSPhysObject
                 // Since _size changed, the mesh needs to be rebuilt. If rebuilt, all the correct
                 //   scale and margins are set.
                 CreateGeomAndObject(true);
-                DetailLog("{0}: BSPrim.setSize: size={1}, scale={2}, mass={3}, physical={4}", LocalID, _size, _scale, _mass, IsPhysical);
+                DetailLog("{0},BSPrim.setSize,size={1},scale={2},mass={3},physical={4}", LocalID, _size, _scale, _mass, IsPhysical);
             });
         } 
+    }
+    // Scale is what we set in the physics engine. It is different than 'size' in that
+    //     'size' can be encorporated into the mesh. In that case, the scale is <1,1,1>.
+    public OMV.Vector3 Scale
+    {
+        get { return _scale; }
+        set { _scale = value; }
     }
     public override PrimitiveBaseShape Shape { 
         set {
@@ -178,7 +185,7 @@ public sealed class BSPrim : BSPhysObject
             PhysicsScene.TaintedObject("BSPrim.setShape", delegate()
             {
                 _mass = CalculateMass();   // changing the shape changes the mass
-                CreateGeomAndObject(false);
+                CreateGeomAndObject(true);
             });
         } 
     }
@@ -191,7 +198,7 @@ public sealed class BSPrim : BSPhysObject
             _isSelected = value;
             PhysicsScene.TaintedObject("BSPrim.setSelected", delegate()
             {
-                SetObjectDynamic();
+                SetObjectDynamic(false);
             });
         } 
     }
@@ -371,7 +378,7 @@ public sealed class BSPrim : BSPhysObject
         PhysicsScene.TaintedObject("BSPrim.SetVolumeDetect", delegate()
         {
             DetailLog("{0},setVolumeDetect,taint,volDetect={1}", LocalID, _isVolumeDetect);
-            SetObjectDynamic();
+            SetObjectDynamic(true);
         });
         return; 
     }
@@ -433,7 +440,7 @@ public sealed class BSPrim : BSPhysObject
             PhysicsScene.TaintedObject("BSPrim.setIsPhysical", delegate()
             {
                 DetailLog("{0},setIsPhysical,taint,isPhys={1}", LocalID, _isPhysical);
-                SetObjectDynamic();
+                SetObjectDynamic(true);
             });
         } 
     }
@@ -445,7 +452,7 @@ public sealed class BSPrim : BSPhysObject
     }
 
     // An object is solid if it's not phantom and if it's not doing VolumeDetect
-    private bool IsSolid
+    public bool IsSolid
     {
         get { return !IsPhantom && !_isVolumeDetect; }
     }
@@ -457,21 +464,23 @@ public sealed class BSPrim : BSPhysObject
     //     isSolid: other objects bounce off of this object
     //     isVolumeDetect: other objects pass through but can generate collisions
     //     collisionEvents: whether this object returns collision events
-    private void SetObjectDynamic()
+    private void SetObjectDynamic(bool forceRebuild)
     {
+#if CSHARP_BODY_MANAGEMENT
+        // Recreate the physical object if necessary
+        CreateGeomAndObject(forceRebuild);
+#else
         // If it's becoming dynamic, it will need hullness
         VerifyCorrectPhysicalShape();
         UpdatePhysicalParameters();
+#endif  // CSHARP_BODY_MANAGEMENT
     }
 
     private void UpdatePhysicalParameters()
     {
-        /*
-        // Bullet wants static objects to have a mass of zero
-        float mass = IsStatic ? 0f : _mass;
+        DetailLog("{0},BSPrim.UpdatePhysicalParameters,entry,body={1},shape={2}", LocalID, BSBody, BSShape);
 
-        BulletSimAPI.SetObjectProperties(Scene.WorldID, LocalID, IsStatic, IsSolid, SubscribedEvents(), mass);
-         */
+        // Mangling all the physical properties requires the object to be out of the physical world
         BulletSimAPI.RemoveObjectFromWorld2(PhysicsScene.World.Ptr, BSBody.Ptr);
 
         // Make solid or not (do things bounce off or pass through this object)
@@ -517,8 +526,8 @@ public sealed class BSPrim : BSPhysObject
             // There can be special things needed for implementing linksets
             Linkset.MakeStatic(this);
             // The activation state is 'sleeping' so Bullet will not try to act on it
-            // BulletSimAPI.ForceActivationState2(BSBody.Ptr, ActivationState.ISLAND_SLEEPING);
-            BulletSimAPI.ForceActivationState2(BSBody.Ptr, ActivationState.DISABLE_SIMULATION);
+            BulletSimAPI.ForceActivationState2(BSBody.Ptr, ActivationState.ISLAND_SLEEPING);
+            // BulletSimAPI.ForceActivationState2(BSBody.Ptr, ActivationState.DISABLE_SIMULATION);
         }
         else
         {
@@ -560,8 +569,8 @@ public sealed class BSPrim : BSPhysObject
     //     the functions after this one set up the state of a possibly newly created collision body.
     private void MakeSolid(bool makeSolid)
     {
+#if !CSHARP_BODY_MANAGEMENT
         CollisionObjectTypes bodyType = (CollisionObjectTypes)BulletSimAPI.GetBodyType2(BSBody.Ptr);
-        /*
         if (makeSolid)
         {
             if ((bodyType & CollisionObjectTypes.CO_RIGID_BODY) == 0)
@@ -569,11 +578,16 @@ public sealed class BSPrim : BSPhysObject
                 // Solid things are made out of rigid bodies. Remove this old body from the world
                 //    and use this shape in a new rigid body.
                 BulletBody oldBody = BSBody;
-                BulletSimAPI.RemoveObjectFromWorld2(PhysicsScene.World.Ptr, BSBody.Ptr);
-                BSShape = new BulletShape(BulletSimAPI.GetCollisionShape2(BSBody.Ptr));
+                // Zero out the pointer to the shape in the old body so the shape will not get freed
+                BSShape.Ptr = BulletSimAPI.GetCollisionShape2(oldBody.Ptr);
+                BulletSimAPI.SetCollisionShape2(PhysicsScene.World.Ptr, oldBody.Ptr, IntPtr.Zero);
+                // Get rid of the old body and remove it from BulletSim's object list
+                BulletSimAPI.DestroyObject(PhysicsScene.WorldID, LocalID);
+
+                // Create the new body with the shape
                 BSBody = new BulletBody(LocalID, BulletSimAPI.CreateBodyFromShape2(PhysicsScene.World.Ptr, BSShape.Ptr, _position, _orientation));
-                BulletSimAPI.DestroyObject2(PhysicsScene.World.Ptr, oldBody.Ptr);
-                BulletSimAPI.AddObjectToWorld2(PhysicsScene.World.Ptr, BSBody.Ptr);
+                BulletSimAPI.RemoveFromCollisionFlags2(BSBody.Ptr, CollisionFlags.CF_NO_CONTACT_RESPONSE);
+                DetailLog("{0},BSPrim.MakeSolid:rigidBody,body={1},shape={2}", LocalID, BSBody, BSShape);
             }
         }
         else
@@ -583,23 +597,20 @@ public sealed class BSPrim : BSPhysObject
                 // Non-solid things are made out of ghost objects. Remove this old body from the world
                 //    and use this shape in a new rigid body.
                 BulletBody oldBody = BSBody;
-                BulletSimAPI.RemoveObjectFromWorld2(PhysicsScene.World.Ptr, BSBody.Ptr);
-                BSShape = new BulletShape(BulletSimAPI.GetCollisionShape2(BSBody.Ptr));
+
+                // Zero out the pointer to the shape in the old body so the shape will not get freed
+                BSShape.Ptr = BulletSimAPI.GetCollisionShape2(oldBody.Ptr);
+                BulletSimAPI.SetCollisionShape2(PhysicsScene.World.Ptr, oldBody.Ptr, IntPtr.Zero);
+                // Get rid of the old body and remove it from BulletSim's object list
+                BulletSimAPI.DestroyObject(PhysicsScene.WorldID, LocalID);
+
                 BSBody = new BulletBody(LocalID, 
                         BulletSimAPI.CreateGhostFromShape2(PhysicsScene.World.Ptr, BSShape.Ptr, _position, _orientation));
-                if (BSBody.Ptr == IntPtr.Zero)
-                {
-                    m_log.ErrorFormat("{0} BSPrim.MakeSolid: failed creation of ghost object. LocalID=[1}", LogHeader, LocalID);
-                    BSBody = oldBody;
-                }
-                else
-                {
-                    BulletSimAPI.DestroyObject2(PhysicsScene.World.Ptr, oldBody.Ptr);
-                    BulletSimAPI.AddObjectToWorld2(PhysicsScene.World.Ptr, BSBody.Ptr);
-                }
+                CurrentCollisionFlags = BulletSimAPI.AddToCollisionFlags2(BSBody.Ptr, CollisionFlags.CF_NO_CONTACT_RESPONSE);
+                DetailLog("{0},BSPrim.MakeGhostBody,body={1},shape={2}", LocalID, BSBody, BSShape);
             }
         }
-         */
+#endif
     }
 
     // Turn on or off the flag controlling whether collision events are returned to the simulator.
@@ -1067,6 +1078,7 @@ public sealed class BSPrim : BSPhysObject
     }// end CalculateMass
     #endregion Mass Calculation
 
+#if !CSHARP_BODY_MANAGEMENT
     // Create the geometry information in Bullet for later use.
     // The objects needs a hull if it's physical otherwise a mesh is enough.
     // No locking here because this is done when we know physics is not simulating.
@@ -1095,6 +1107,7 @@ public sealed class BSPrim : BSPhysObject
                 {
                     DetailLog("{0},BSPrim.CreateGeom,sphere (force={1}", LocalID, forceRebuild);
                     _shapeType = ShapeData.PhysicsShapeType.SHAPE_SPHERE;
+                    _meshKey = (ulong)ShapeData.FixedShapeKey.KEY_SPHERE;
                     // Bullet native objects are scaled by the Bullet engine so pass the size in
                     _scale = _size;
                     // TODO: do we need to check for and destroy a mesh or hull that might have been left from before?
@@ -1109,6 +1122,7 @@ public sealed class BSPrim : BSPhysObject
                 {
                     DetailLog("{0},BSPrim.CreateGeom,box (force={1})", LocalID, forceRebuild);
                     _shapeType = ShapeData.PhysicsShapeType.SHAPE_BOX;
+                    _meshKey = (ulong)ShapeData.FixedShapeKey.KEY_BOX;
                     _scale = _size;
                     // TODO: do we need to check for and destroy a mesh or hull that might have been left from before?
                     ret = true;
@@ -1136,6 +1150,7 @@ public sealed class BSPrim : BSPhysObject
                 }
             }
         }
+
         return ret;
     }
 
@@ -1345,12 +1360,9 @@ public sealed class BSPrim : BSPhysObject
         // m_log.DebugFormat("{0}: CreateObject: lID={1}, shape={2}", LogHeader, LocalID, shape.Type);
         bool ret = BulletSimAPI.CreateObject(PhysicsScene.WorldID, shape);
 
-        // the CreateObject() may have recreated the rigid body. Make sure we have the latest address.
-        BSBody = new BulletBody(LocalID, BulletSimAPI.GetBodyHandle2(PhysicsScene.World.Ptr, LocalID));
-        BSShape = new BulletShape(BulletSimAPI.GetCollisionShape2(BSBody.Ptr));
-
         return ret;
     }
+#endif  // !CSHARP_BODY_MANAGEMENT
 
     // Copy prim's info into the BulletSim shape description structure
     public void FillShapeInfo(out ShapeData shape)
@@ -1369,22 +1381,45 @@ public sealed class BSPrim : BSPhysObject
         shape.Restitution = _restitution;
         shape.Collidable = (!IsPhantom) ? ShapeData.numericTrue : ShapeData.numericFalse;
         shape.Static = _isPhysical ? ShapeData.numericFalse : ShapeData.numericTrue;
+        shape.Solid = IsSolid ? ShapeData.numericFalse : ShapeData.numericTrue;
+        shape.Size = _size;
     }
-
     // Rebuild the geometry and object.
     // This is called when the shape changes so we need to recreate the mesh/hull.
     // No locking here because this is done when the physics engine is not simulating
     private void CreateGeomAndObject(bool forceRebuild)
     {
+#if CSHARP_BODY_MANAGEMENT
+        ShapeData shapeData;
+        FillShapeInfo(out shapeData);
+
+        // Create the correct physical representation for this type of object.
+        // Updates BSBody and BSShape with the new information.
+        if (PhysicsScene.Shapes.GetBodyAndShape(forceRebuild, PhysicsScene.World, this, shapeData, _pbs))
+        {
+            // Make sure the properties are set on the new object
+            UpdatePhysicalParameters();
+        }
+#else
         // m_log.DebugFormat("{0}: CreateGeomAndObject. lID={1}, force={2}", LogHeader, LocalID, forceRebuild);
         // Create the geometry that will make up the object
         if (CreateGeom(forceRebuild))
         {
             // Create the object and place it into the world
             CreateObject();
+
+            // the CreateObject() may have recreated the rigid body. Make sure we have the latest address.
+            BSBody = new BulletBody(LocalID, BulletSimAPI.GetBodyHandle2(PhysicsScene.World.Ptr, LocalID));
+            BSShape = new BulletShape(BulletSimAPI.GetCollisionShape2(BSBody.Ptr), _shapeType);
+            BSShape.shapeKey = _meshKey;
+            DetailLog("{0},BSPrim.CreateGeomAndObject,body={1},shape={2}", LocalID, BSBody, BSShape);
+
             // Make sure the properties are set on the new object
             UpdatePhysicalParameters();
         }
+
+
+#endif // CSHARP_BODY_MANAGEMENT
         return;
     }
 

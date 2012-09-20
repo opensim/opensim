@@ -40,7 +40,9 @@ public struct BulletSim
 {
     public BulletSim(uint worldId, BSScene bss, IntPtr xx)
     {
-        worldID = worldId; scene = bss;  Ptr = xx;
+        worldID = worldId; 
+        scene = bss;  
+        Ptr = xx;
     }
     public uint worldID;
     // The scene is only in here so very low level routines have a handle to print debug/error messages
@@ -58,6 +60,16 @@ public struct BulletBody
     }
     public IntPtr Ptr;
     public uint ID;
+    public override string ToString()
+    {
+        StringBuilder buff = new StringBuilder();
+        buff.Append("<id=");
+        buff.Append(ID.ToString());
+        buff.Append(",p=");
+        buff.Append(Ptr.ToString("X"));
+        buff.Append(">");
+        return buff.ToString();
+    }
 }
 
 public struct BulletShape
@@ -66,17 +78,29 @@ public struct BulletShape
     {
         Ptr = xx;
         type=ShapeData.PhysicsShapeType.SHAPE_UNKNOWN;
-        hashKey = 0;
+        shapeKey = 0;
     }
     public BulletShape(IntPtr xx, ShapeData.PhysicsShapeType typ)
     {
         Ptr = xx;
         type = typ;
-        hashKey = 0;
+        shapeKey = 0;
     }
     public IntPtr Ptr;
     public ShapeData.PhysicsShapeType type;
-    public ulong hashKey;
+    public ulong shapeKey;
+    public override string ToString()
+    {
+        StringBuilder buff = new StringBuilder();
+        buff.Append("<p=");
+        buff.Append(Ptr.ToString("X"));
+        buff.Append(",s=");
+        buff.Append(type.ToString());
+        buff.Append(",k=");
+        buff.Append(shapeKey.ToString("X"));
+        buff.Append(">");
+        return buff.ToString();
+    }
 }
 
 // An allocated Bullet btConstraint
@@ -155,10 +179,21 @@ public struct ShapeData
     public float Restitution;
     public float Collidable;    // true of things bump into this
     public float Static;        // true if a static object. Otherwise gravity, etc.
+    public float Solid;         // true if object cannot be passed through
+    public Vector3 Size;
 
     // note that bools are passed as floats since bool size changes by language and architecture
     public const float numericTrue = 1f;
     public const float numericFalse = 0f;
+
+    // The native shapes have predefined shape hash keys
+    public enum FixedShapeKey : ulong
+    {
+        KEY_BOX         = 1,
+        KEY_SPHERE      = 2,
+        KEY_CONE        = 3,
+        KEY_CYLINDER    = 4,
+    }
 }
 [StructLayout(LayoutKind.Sequential)]
 public struct SweepHit

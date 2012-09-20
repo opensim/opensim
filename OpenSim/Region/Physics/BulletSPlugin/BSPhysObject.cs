@@ -39,11 +39,12 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 // unless the difference is significant.
 public abstract class BSPhysObject : PhysicsActor
 {
-    protected void BaseInitialize(BSScene parentScene, uint localID, string name)
+    protected void BaseInitialize(BSScene parentScene, uint localID, string name, string typeName)
     {
         PhysicsScene = parentScene;
         LocalID = localID;
         PhysObjectName = name;
+        TypeName = typeName;
 
         Linkset = new BSLinkset(PhysicsScene, this);
 
@@ -56,6 +57,7 @@ public abstract class BSPhysObject : PhysicsActor
     public BSScene PhysicsScene { get; protected set; }
     // public override uint LocalID { get; set; } // Use the LocalID definition in PhysicsActor
     public string PhysObjectName { get; protected set; }
+    public string TypeName { get; protected set; }
 
     public BSLinkset Linkset { get; set; }
 
@@ -63,9 +65,9 @@ public abstract class BSPhysObject : PhysicsActor
     public abstract float MassRaw { get; }
 
     // Reference to the physical body (btCollisionObject) of this object
-    public BulletBody BSBody { get; protected set; }
+    public BulletBody BSBody;
     // Reference to the physical shape (btCollisionShape) of this object
-    public BulletShape BSShape { get; protected set; }
+    public BulletShape BSShape;
 
     // Stop all physical motion.
     public abstract void ZeroMotion();
@@ -116,13 +118,11 @@ public abstract class BSPhysObject : PhysicsActor
             return ret;
         }
 
-        DetailLog("{0},BSPhysObject.Collison,call,with={1}", LocalID, collidingWith);
-
         // if someone has subscribed for collision events....
         if (SubscribedEvents()) {
             CollisionCollection.AddCollider(collidingWith, new ContactPoint(contactPoint, contactNormal, pentrationDepth));
-            DetailLog("{0},BSPhysObject.Collison.AddCollider,call,with={1},point={2},normal={3},depth={4}",
-                            LocalID, collidingWith, contactPoint, contactNormal, pentrationDepth);
+            // DetailLog("{0},{1}.Collison.AddCollider,call,with={2},point={3},normal={4},depth={5}",
+            //                 LocalID, TypeName, collidingWith, contactPoint, contactNormal, pentrationDepth);
             ret = true;
         }
         return ret;
@@ -147,7 +147,7 @@ public abstract class BSPhysObject : PhysicsActor
             if (CollisionCollection.Count == 0)
                 PhysicsScene.ObjectsWithNoMoreCollisions.Add(this);
 
-            DetailLog("{0},SendCollisions.SendCollisionUpdate,call,numCollisions={1}", LocalID, CollisionCollection.Count);
+            // DetailLog("{0},{1}.SendCollisionUpdate,call,numCollisions={2}", LocalID, TypeName, CollisionCollection.Count);
             base.SendCollisionUpdate(CollisionCollection);
 
             // The collisionCollection structure is passed around in the simulator.
@@ -164,9 +164,8 @@ public abstract class BSPhysObject : PhysicsActor
         {
             // make sure first collision happens
             NextCollisionOkTime = Util.EnvironmentTickCountSubtract(SubscribedEventsMs);
-            DetailLog("{0},SubscribeEvents,call,ms={1}", LocalID, SubscribedEventsMs);
 
-            PhysicsScene.TaintedObject("BSPhysObject.SubscribeEvents", delegate()
+            PhysicsScene.TaintedObject(TypeName+".SubscribeEvents", delegate()
             {
                 CurrentCollisionFlags = BulletSimAPI.AddToCollisionFlags2(BSBody.Ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
             });
@@ -179,8 +178,7 @@ public abstract class BSPhysObject : PhysicsActor
     }
     public override void UnSubscribeEvents() { 
         SubscribedEventsMs = 0;
-        DetailLog("{0},UnSubscribeEvents,call", LocalID);
-        PhysicsScene.TaintedObject("BSPhysObject.UnSubscribeEvents", delegate()
+        PhysicsScene.TaintedObject(TypeName+".UnSubscribeEvents", delegate()
         {
             CurrentCollisionFlags = BulletSimAPI.RemoveFromCollisionFlags2(BSBody.Ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
         });

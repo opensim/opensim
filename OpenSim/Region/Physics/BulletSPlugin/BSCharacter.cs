@@ -77,7 +77,7 @@ public class BSCharacter : BSPhysObject
 
     public BSCharacter(uint localID, String avName, BSScene parent_scene, OMV.Vector3 pos, OMV.Vector3 size, bool isFlying)
     {
-        base.BaseInitialize(parent_scene, localID, avName);
+        base.BaseInitialize(parent_scene, localID, avName, "BSCharacter");
         _physicsActorType = (int)ActorTypes.Agent;
         _position = pos;
         _size = size;
