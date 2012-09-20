@@ -529,7 +529,7 @@ namespace OpenSim.Framework.Servers.HttpServer
     
                             if (DebugLevel >= 3)
                                 m_log.DebugFormat(
-                                    "[BASE HTTP SERVER]: Found a {0} content type handler for {1} {2}",
+                                    "[BASE HTTP SERVER]: HTTP IN {0} content type handler {1} {2}",
                                     request.ContentType, request.HttpMethod, request.Url.PathAndQuery);
     
                             buffer = HandleHTTPRequest(request, response);
@@ -541,7 +541,7 @@ namespace OpenSim.Framework.Servers.HttpServer
     
                             if (DebugLevel >= 3)
                                 m_log.DebugFormat(
-                                    "[BASE HTTP SERVER]: Found a {0} content type handler for {1} {2}",
+                                    "[BASE HTTP SERVER]: HTTP IN {0} content type handler {1} {2}",
                                     request.ContentType, request.HttpMethod, request.Url.PathAndQuery);
     
                             buffer = HandleLLSDRequests(request, response);
@@ -649,7 +649,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         private void LogIncomingToStreamHandler(OSHttpRequest request, IRequestHandler requestHandler)
         {
             m_log.DebugFormat(
-                "[BASE HTTP SERVER]: Found stream handler for {0} {1} {2} {3}",
+                "[BASE HTTP SERVER]: HTTP IN stream handler {0} {1} {2} {3}",
                 request.HttpMethod, request.Url.PathAndQuery, requestHandler.Name, requestHandler.Description);
 
             if (DebugLevel >= 4)
@@ -659,7 +659,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         private void LogIncomingToContentTypeHandler(OSHttpRequest request)
         {
             m_log.DebugFormat(
-                "[BASE HTTP SERVER]: Found a {0} content type handler for {1} {2}",
+                "[BASE HTTP SERVER]: HTTP IN {0} content type handler {1} {2}",
                 request.ContentType, request.HttpMethod, request.Url.PathAndQuery);
 
             if (DebugLevel >= 4)
@@ -669,7 +669,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         private void LogIncomingToXmlRpcHandler(OSHttpRequest request)
         {
             m_log.DebugFormat(
-                "[BASE HTTP SERVER]: Assuming a generic XMLRPC request for {0} {1}",
+                "[BASE HTTP SERVER]: HTTP IN assumed generic XMLRPC request {0} {1}",
                 request.HttpMethod, request.Url.PathAndQuery);
 
             if (DebugLevel >= 4)
