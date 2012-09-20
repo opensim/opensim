@@ -312,14 +312,16 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 // Now that everything is setup we can proceed to
                 // add THIS agent to the HTTP server's handler list
 
-                if (!AddAgentHandler(Rest.Name,this))
-                {
-                    Rest.Log.ErrorFormat("{0} Unable to activate handler interface", MsgId);
-                    foreach (IRest handler in handlers)
-                    {
-                        handler.Close();
-                    }
-                }
+                // FIXME: If this code is ever to be re-enabled (most of it is disabled already) then this will
+                // have to be handled through the AddHttpHandler interface.
+//                if (!AddAgentHandler(Rest.Name,this))
+//                {
+//                    Rest.Log.ErrorFormat("{0} Unable to activate handler interface", MsgId);
+//                    foreach (IRest handler in handlers)
+//                    {
+//                        handler.Close();
+//                    }
+//                }
 
             }
             catch (Exception e)
@@ -342,11 +344,13 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         {
             Rest.Log.InfoFormat("{0} Plugin is terminating", MsgId);
 
-            try
-            {
-                RemoveAgentHandler(Rest.Name, this);
-            }
-            catch (KeyNotFoundException){}
+            // FIXME: If this code is ever to be re-enabled (most of it is disabled already) then this will
+            // have to be handled through the AddHttpHandler interface.
+//            try
+//            {
+//                RemoveAgentHandler(Rest.Name, this);
+//            }
+//            catch (KeyNotFoundException){}
 
             foreach (IRest handler in handlers)
             {

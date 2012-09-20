@@ -82,7 +82,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         protected Dictionary<string, LLSDMethod> m_llsdHandlers         = new Dictionary<string, LLSDMethod>();
         protected Dictionary<string, IRequestHandler> m_streamHandlers  = new Dictionary<string, IRequestHandler>();
         protected Dictionary<string, GenericHTTPMethod> m_HTTPHandlers  = new Dictionary<string, GenericHTTPMethod>();
-        protected Dictionary<string, IHttpAgentHandler> m_agentHandlers = new Dictionary<string, IHttpAgentHandler>();
+//        protected Dictionary<string, IHttpAgentHandler> m_agentHandlers = new Dictionary<string, IHttpAgentHandler>();
         protected Dictionary<string, PollServiceEventArgs> m_pollHandlers =
             new Dictionary<string, PollServiceEventArgs>();
 
@@ -260,29 +260,29 @@ namespace OpenSim.Framework.Servers.HttpServer
                 return new List<string>(m_pollHandlers.Keys);
         }
 
-        // Note that the agent string is provided simply to differentiate
-        // the handlers - it is NOT required to be an actual agent header
-        // value.
-        public bool AddAgentHandler(string agent, IHttpAgentHandler handler)
-        {
-            lock (m_agentHandlers)
-            {
-                if (!m_agentHandlers.ContainsKey(agent))
-                {
-                    m_agentHandlers.Add(agent, handler);
-                    return true;
-                }
-            }
-
-            //must already have a handler for that path so return false
-            return false;
-        }
-
-        public List<string> GetAgentHandlerKeys()
-        {
-            lock (m_agentHandlers)
-                return new List<string>(m_agentHandlers.Keys);
-        }
+//        // Note that the agent string is provided simply to differentiate
+//        // the handlers - it is NOT required to be an actual agent header
+//        // value.
+//        public bool AddAgentHandler(string agent, IHttpAgentHandler handler)
+//        {
+//            lock (m_agentHandlers)
+//            {
+//                if (!m_agentHandlers.ContainsKey(agent))
+//                {
+//                    m_agentHandlers.Add(agent, handler);
+//                    return true;
+//                }
+//            }
+//
+//            //must already have a handler for that path so return false
+//            return false;
+//        }
+//
+//        public List<string> GetAgentHandlerKeys()
+//        {
+//            lock (m_agentHandlers)
+//                return new List<string>(m_agentHandlers.Keys);
+//        }
 
         public bool AddLLSDHandler(string path, LLSDMethod handler)
         {
@@ -438,22 +438,22 @@ namespace OpenSim.Framework.Servers.HttpServer
 
                 Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US", true);
 
-                //  This is the REST agent interface. We require an agent to properly identify
-                //  itself. If the REST handler recognizes the prefix it will attempt to
-                //  satisfy the request. If it is not recognizable, and no damage has occurred
-                //  the request can be passed through to the other handlers. This is a low
-                //  probability event; if a request is matched it is normally expected to be
-                //  handled
-                IHttpAgentHandler agentHandler;
-
-                if (TryGetAgentHandler(request, response, out agentHandler))
-                {
-                    if (HandleAgentRequest(agentHandler, request, response))
-                    {
-                        requestEndTick = Environment.TickCount;
-                        return;
-                    }
-                }
+//                //  This is the REST agent interface. We require an agent to properly identify
+//                //  itself. If the REST handler recognizes the prefix it will attempt to
+//                //  satisfy the request. If it is not recognizable, and no damage has occurred
+//                //  the request can be passed through to the other handlers. This is a low
+//                //  probability event; if a request is matched it is normally expected to be
+//                //  handled
+//                IHttpAgentHandler agentHandler;
+//
+//                if (TryGetAgentHandler(request, response, out agentHandler))
+//                {
+//                    if (HandleAgentRequest(agentHandler, request, response))
+//                    {
+//                        requestEndTick = Environment.TickCount;
+//                        return;
+//                    }
+//                }
 
                 //response.KeepAlive = true;
                 response.SendChunked = false;
@@ -830,24 +830,24 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
         }
 
-        private bool TryGetAgentHandler(OSHttpRequest request, OSHttpResponse response, out IHttpAgentHandler agentHandler)
-        {
-            agentHandler = null;
-            
-            lock (m_agentHandlers)
-            {
-                foreach (IHttpAgentHandler handler in m_agentHandlers.Values)
-                {
-                    if (handler.Match(request, response))
-                    {
-                        agentHandler = handler;
-                        return true;
-                    }
-                }
-            }
-
-            return false;
-        }
+//        private bool TryGetAgentHandler(OSHttpRequest request, OSHttpResponse response, out IHttpAgentHandler agentHandler)
+//        {
+//            agentHandler = null;
+//            
+//            lock (m_agentHandlers)
+//            {
+//                foreach (IHttpAgentHandler handler in m_agentHandlers.Values)
+//                {
+//                    if (handler.Match(request, response))
+//                    {
+//                        agentHandler = handler;
+//                        return true;
+//                    }
+//                }
+//            }
+//
+//            return false;
+//        }
 
         /// <summary>
         /// Try all the registered xmlrpc handlers when an xmlrpc request is received.
@@ -1772,21 +1772,21 @@ namespace OpenSim.Framework.Servers.HttpServer
                 m_pollHandlers.Remove(path);
         }
 
-        public bool RemoveAgentHandler(string agent, IHttpAgentHandler handler)
-        {
-            lock (m_agentHandlers)
-            {
-                IHttpAgentHandler foundHandler;
-
-                if (m_agentHandlers.TryGetValue(agent, out foundHandler) && foundHandler == handler)
-                {
-                    m_agentHandlers.Remove(agent);
-                    return true;
-                }
-            }
-
-            return false;
-        }
+//        public bool RemoveAgentHandler(string agent, IHttpAgentHandler handler)
+//        {
+//            lock (m_agentHandlers)
+//            {
+//                IHttpAgentHandler foundHandler;
+//
+//                if (m_agentHandlers.TryGetValue(agent, out foundHandler) && foundHandler == handler)
+//                {
+//                    m_agentHandlers.Remove(agent);
+//                    return true;
+//                }
+//            }
+//
+//            return false;
+//        }
 
         public void RemoveXmlRPCHandler(string method)
         {

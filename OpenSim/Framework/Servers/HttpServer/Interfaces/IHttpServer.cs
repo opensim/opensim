@@ -41,10 +41,10 @@ namespace OpenSim.Framework.Servers.HttpServer
         uint Port { get; }
         bool UseSSL { get; }
 
-        // Note that the agent string is provided simply to differentiate
-        // the handlers - it is NOT required to be an actual agent header
-        // value.
-        bool AddAgentHandler(string agent, IHttpAgentHandler handler);
+//        // Note that the agent string is provided simply to differentiate
+//        // the handlers - it is NOT required to be an actual agent header
+//        // value.
+//        bool AddAgentHandler(string agent, IHttpAgentHandler handler);
         
         /// <summary>
         /// Add a handler for an HTTP request.
@@ -106,13 +106,13 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         bool SetDefaultLLSDHandler(DefaultLLSDMethod handler);
 
-        /// <summary>
-        /// Remove the agent if it is registered.
-        /// </summary>
-        /// <param name="agent"></param>
-        /// <param name="handler"></param>
-        /// <returns></returns>
-        bool RemoveAgentHandler(string agent, IHttpAgentHandler handler);
+//        /// <summary>
+//        /// Remove the agent if it is registered.
+//        /// </summary>
+//        /// <param name="agent"></param>
+//        /// <param name="handler"></param>
+//        /// <returns></returns>
+//        bool RemoveAgentHandler(string agent, IHttpAgentHandler handler);
         
         /// <summary>
         /// Remove an HTTP handler

@@ -231,9 +231,9 @@ namespace OpenSim.Framework.Servers
                     foreach (String s in httpServer.GetHTTPHandlerKeys())
                         handlers.AppendFormat("\t{0} {1}\n", s, (poll.Contains(s) ? "(poll service)" : string.Empty));
         
-                    handlers.AppendFormat("* Agent:\n");
-                    foreach (String s in httpServer.GetAgentHandlerKeys())
-                        handlers.AppendFormat("\t{0}\n", s);
+//                    handlers.AppendFormat("* Agent:\n");
+//                    foreach (String s in httpServer.GetAgentHandlerKeys())
+//                        handlers.AppendFormat("\t{0}\n", s);
         
                     handlers.AppendFormat("* LLSD:\n");
                     foreach (String s in httpServer.GetLLSDHandlerKeys())
