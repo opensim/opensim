@@ -53,15 +53,17 @@
 [HGAssetService]
     HomeURI = "http://127.0.0.1:9000"
 
-    ;; The asset types that other grids can get from / post to this service.
+    ;; The asset types that this service can export to / import from other grids.
+	;; Comma separated.
 	;; Valid values are all the asset types in OpenMetaverse.AssetType, namely:
-	;; Unknown, Texture, Sound, CallingCard, Landmark, Clothing, Object, Notecard, LSLText, LSLBytecode, TextureTGA, Bodypart, SoundWAV, ImageTGA, ImageJPEG, Animation, Gesture, Mesh 
+	;; Unknown, Texture, Sound, CallingCard, Landmark, Clothing, Object, Notecard, LSLText, 
+	;; LSLBytecode, TextureTGA, Bodypart, SoundWAV, ImageTGA, ImageJPEG, Animation, Gesture, Mesh 
 	;;
 	;; Leave blank or commented if you don't want to apply any restrictions.
 	;; A more strict, but still reasonable, policy may be to disallow the exchange 
 	;; of scripts, like so:
-    ; DisallowGET ="LSLText"
-    ; DisallowPOST ="LSLBytecode"
+    ; DisallowExport ="LSLText"
+    ; DisallowImport ="LSLBytecode"
 
 
 [HGInventoryAccessModule]
