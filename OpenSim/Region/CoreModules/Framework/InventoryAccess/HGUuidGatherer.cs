@@ -40,7 +40,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         protected string m_assetServerURL;
         protected HGAssetMapper m_assetMapper;
 
-        public HGUuidGatherer(HGAssetMapper assMap, IAssetService assetCache, string assetServerURL) : base(assetCache)
+        public HGUuidGatherer(HGAssetMapper assMap, IAssetService assetService, string assetServerURL) : base(assetService)
         {
             m_assetMapper = assMap;
             m_assetServerURL = assetServerURL;
@@ -49,7 +49,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         protected override AssetBase GetAsset(UUID uuid)
         {
             if (string.Empty == m_assetServerURL)
-                return m_assetCache.Get(uuid.ToString());
+                return base.GetAsset(uuid);
             else
                 return m_assetMapper.FetchAsset(m_assetServerURL, uuid);
         }
