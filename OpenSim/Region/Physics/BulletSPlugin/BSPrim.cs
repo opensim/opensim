@@ -1091,7 +1091,14 @@ public sealed class BSPrim : BSPhysObject
         bool haveShape = false;
 
         // If the prim attributes are simple, this could be a simple Bullet native shape
-        if ((_pbs.SculptEntry && !PhysicsScene.ShouldMeshSculptedPrim)
+        if (
+            // if the basic shape is a cube or a sphere...
+            ((_pbs.ProfileShape == ProfileShape.Square && _pbs.PathCurve == (byte)Extrusion.Straight)
+            || (_pbs.ProfileShape == ProfileShape.HalfCircle && _pbs.PathCurve == (byte)Extrusion.Curve1
+                    /* && _pbs.Scale.X == _pbs.Scale.Y && _pbs.Scale.Y == _pbs.Scale.Z */ ))
+            // ... and we are not doing sculpty meshes...
+            &&  (_pbs.SculptEntry && !PhysicsScene.ShouldMeshSculptedPrim)
+                // ... or this is a 'simple' shape...
                 || (_pbs.ProfileBegin == 0 && _pbs.ProfileEnd == 0
                     && _pbs.ProfileHollow == 0
                     && _pbs.PathTwist == 0 && _pbs.PathTwistBegin == 0
@@ -1099,6 +1106,7 @@ public sealed class BSPrim : BSPhysObject
                     && _pbs.PathTaperX == 0 && _pbs.PathTaperY == 0
                     && _pbs.PathScaleX == 100 && _pbs.PathScaleY == 100
                     && _pbs.PathShearX == 0 && _pbs.PathShearY == 0) )
+            // ... then this might be representable as a native Bullet collision shape
         {
             if (_pbs.ProfileShape == ProfileShape.HalfCircle && _pbs.PathCurve == (byte)Extrusion.Curve1)
             {
