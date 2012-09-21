@@ -131,7 +131,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
                         m_LocalAssetServiceURI = m_LocalAssetServiceURI.Trim('/');
 
                     IConfig hgConfig = source.Configs["HGAssetService"];
-                    m_AssetPerms = new AssetPermissions(hgConfig);
+                    m_AssetPerms = new AssetPermissions(hgConfig); // it's ok if arg is null
 
                     m_Enabled = true;
                     m_log.Info("[HG ASSET CONNECTOR]: HG asset broker enabled");
