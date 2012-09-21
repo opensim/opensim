@@ -53,7 +53,7 @@
 [HGAssetService]
     HomeURI = "http://127.0.0.1:9000"
 
-    ;; The asset types that this service can export to / import from other grids.
+    ;; The asset types that this grid can export to / import from other grids.
 	;; Comma separated.
 	;; Valid values are all the asset types in OpenMetaverse.AssetType, namely:
 	;; Unknown, Texture, Sound, CallingCard, Landmark, Clothing, Object, Notecard, LSLText, 

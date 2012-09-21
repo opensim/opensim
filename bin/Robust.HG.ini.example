@@ -437,7 +437,7 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     UserAccountsService = "OpenSim.Services.UserAccountService.dll:UserAccountService"
     HomeURI = "http://127.0.0.1:8002"
 
-    ;; The asset types that this service can export to / import from other grids.
+    ;; The asset types that this grid can export to / import from other grids.
 	;; Comma separated.
 	;; Valid values are all the asset types in OpenMetaverse.AssetType, namely:
 	;; Unknown, Texture, Sound, CallingCard, Landmark, Clothing, Object, Notecard, LSLText, 
