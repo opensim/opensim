@@ -137,7 +137,7 @@ namespace OpenSim.Services.HypergridService
         public override string Store(AssetBase asset)
         {
             if (!m_AssetPerms.AllowedImport(asset.Type))
-                return UUID.Zero.ToString();
+                return string.Empty;
 
             return base.Store(asset);
         }
