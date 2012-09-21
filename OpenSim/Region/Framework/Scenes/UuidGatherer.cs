@@ -52,11 +52,8 @@ namespace OpenSim.Region.Framework.Scenes
     public class UuidGatherer
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
-        /// <summary>
-        /// Asset cache used for gathering assets
-        /// </summary>
-        protected IAssetService m_assetCache;
+
+        protected IAssetService m_assetService;
 
 //        /// <summary>
 //        /// Used as a temporary store of an asset which represents an object.  This can be a null if no appropriate
@@ -71,7 +68,7 @@ namespace OpenSim.Region.Framework.Scenes
                 
         public UuidGatherer(IAssetService assetCache)
         {
-            m_assetCache = assetCache;
+            m_assetService = assetCache;
         }
                 
         /// <summary>
@@ -216,7 +213,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns></returns>
         protected virtual AssetBase GetAsset(UUID uuid)
         {
-            return m_assetCache.Get(uuid.ToString());
+            return m_assetService.Get(uuid.ToString());
 
             // XXX: Switching to do this synchronously where the call was async before but we always waited for it
             // to complete anyway!
