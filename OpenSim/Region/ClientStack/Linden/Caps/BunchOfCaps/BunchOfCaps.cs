@@ -118,6 +118,7 @@ namespace OpenSim.Region.ClientStack.Linden
         private string m_regionName;
         private int m_levelUpload = 0;
         private float m_PrimScaleMin = 0.001f;
+        private bool m_enableFreeTestModelUpload = false;
 
         private enum FileAgentInventoryState : int
         {
@@ -142,6 +143,11 @@ namespace OpenSim.Region.ClientStack.Linden
 //            m_ModelCost.ObjectLinkedPartsMax = ??
 //            m_PrimScaleMin = ??
 
+            float modelTextureUploadFactor = m_ModelCost.ModelTextureCostFactor;
+            float modelUploadFactor = m_ModelCost.ModelMeshCostFactor;
+            float modelMinUploadCostFactor = m_ModelCost.ModelMinCostFactor;
+
+
             IConfigSource config = m_Scene.Config;
             if (config != null)
             {
@@ -156,6 +162,20 @@ namespace OpenSim.Region.ClientStack.Linden
                 {
                     m_persistBakedTextures = appearanceConfig.GetBoolean("PersistBakedTextures", m_persistBakedTextures);
                 }
+                // economy for model upload
+                IConfig EconomyConfig = config.Configs["Economy"];
+                if (EconomyConfig != null)
+                {
+                    modelUploadFactor = EconomyConfig.GetFloat("MeshModelUploadCostFactor", modelUploadFactor);
+                    modelTextureUploadFactor = EconomyConfig.GetFloat("MeshModelUploadTextureCostFactor", modelTextureUploadFactor);
+                    modelMinUploadCostFactor = EconomyConfig.GetFloat("MeshModelMinCostFactor", modelMinUploadCostFactor);
+                    m_enableFreeTestModelUpload = EconomyConfig.GetBoolean("MeshModelUploadAllowFreeTest", false);
+
+                    m_ModelCost.ModelMeshCostFactor = modelUploadFactor;
+                    m_ModelCost.ModelTextureCostFactor = modelTextureUploadFactor;
+                    m_ModelCost.ModelMinCostFactor = modelMinUploadCostFactor;
+                }
+
             }
 
             m_assetService = m_Scene.AssetService;
@@ -912,6 +932,7 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 AddNewInventoryItem(m_HostCapsObj.AgentID, item, cost);
             }
+
             lock (m_ModelCost)
                 m_FileAgentInventoryState = FileAgentInventoryState.idle;
         }
