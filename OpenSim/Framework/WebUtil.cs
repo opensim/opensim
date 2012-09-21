@@ -241,7 +241,7 @@ namespace OpenSim.Framework
                 int tickdiff = Util.EnvironmentTickCountSubtract(tickstart);
                 if (tickdiff > LongCallTime)
                     m_log.InfoFormat(
-                        "[OSD REQUEST]: Slow request to <{0}> {1} {2} took {3}ms, {4}ms writing, {5}",
+                        "[WEB UTIL]: Slow ServiceOSD request {0} {1} {2} took {3}ms, {4}ms writing, {5}",
                         reqnum,
                         method,
                         url,
@@ -257,7 +257,7 @@ namespace OpenSim.Framework
             }
            
             m_log.DebugFormat(
-                "[WEB UTIL]: <{0}> osd request for {1}, method {2} FAILED: {3}", reqnum, url, method, errorMessage);
+                "[WEB UTIL]: ServiceOSD request {0} {1} {2} FAILED: {3}", reqnum, url, method, errorMessage);
 
             return ErrorResponseMap(errorMessage);
         }
@@ -400,7 +400,7 @@ namespace OpenSim.Framework
                 int tickdiff = Util.EnvironmentTickCountSubtract(tickstart);
                 if (tickdiff > LongCallTime)
                     m_log.InfoFormat(
-                        "[SERVICE FORM]: Slow request to <{0}> {1} {2} took {3}ms, {4}ms writing, {5}",
+                        "[WEB UTIL]: Slow ServiceForm request {0} {1} {2} took {3}ms, {4}ms writing, {5}",
                         reqnum,
                         method,
                         url,
@@ -415,7 +415,7 @@ namespace OpenSim.Framework
                         reqnum, tickdiff, tickdata);
             }
 
-            m_log.WarnFormat("[SERVICE FORM]: <{0}> form request to {1} failed: {2}", reqnum, url, errorMessage);
+            m_log.WarnFormat("[WEB UTIL]: ServiceForm request {0} {1} {2} failed: {2}", reqnum, method, url, errorMessage);
 
             return ErrorResponseMap(errorMessage);
         }
@@ -879,7 +879,7 @@ namespace OpenSim.Framework
                 }
 
                 m_log.InfoFormat(
-                    "[ASYNC REQUEST]: Slow request to <{0}> {1} {2} took {3}ms, {4}ms writing, {5}",
+                    "[ASYNC REQUEST]: Slow request {0} {1} {2} took {3}ms, {4}ms writing, {5}",
                     reqnum,
                     verb,
                     requestUrl,
@@ -1002,7 +1002,7 @@ namespace OpenSim.Framework
             int tickdiff = Util.EnvironmentTickCountSubtract(tickstart);
             if (tickdiff > WebUtil.LongCallTime)
                 m_log.InfoFormat(
-                    "[FORMS]: Slow request to <{0}> {1} {2} took {3}ms, {4}ms writing, {5}",
+                    "[FORMS]: Slow request {0} {1} {2} took {3}ms, {4}ms writing, {5}",
                     reqnum,
                     verb,
                     requestUrl,
@@ -1154,7 +1154,7 @@ namespace OpenSim.Framework
                 }
 
                 m_log.InfoFormat(
-                    "[SynchronousRestObjectRequester]: Slow request to <{0}> {1} {2} took {3}ms, {4}ms writing, {5}",
+                    "[SynchronousRestObjectRequester]: Slow request {0} {1} {2} took {3}ms, {4}ms writing, {5}",
                     reqnum,
                     verb,
                     requestUrl,
