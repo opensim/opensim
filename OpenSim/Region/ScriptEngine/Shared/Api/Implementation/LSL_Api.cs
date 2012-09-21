@@ -5465,27 +5465,36 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// Returns the index of the first occurrence of test
         /// in src.
         /// </summary>
-
+        /// <param name="src">Source list</param>
+        /// <param name="test">List to search for</param>
+        /// <returns>
+        /// The index number of the point in src where test was found if it was found.
+        /// Otherwise returns -1
+        /// </returns>
         public LSL_Integer llListFindList(LSL_List src, LSL_List test)
         {
-
             int index  = -1;
             int length = src.Length - test.Length + 1;
 
             m_host.AddScriptLPS(1);
 
             // If either list is empty, do not match
-
             if (src.Length != 0 && test.Length != 0)
             {
                 for (int i = 0; i < length; i++)
                 {
-                    if (src.Data[i].Equals(test.Data[0]))
+                    // Why this piece of insanity?  This is because most script constants are C# value types (e.g. int)
+                    // rather than wrapped LSL types.  Such a script constant does not have int.Equal(LSL_Integer) code
+                    // and so the comparison fails even if the LSL_Integer conceptually has the same value.
+                    // Therefore, here we test Equals on both the source and destination objects.
+                    // However, a future better approach may be use LSL struct script constants (e.g. LSL_Integer(1)).
+                    if (src.Data[i].Equals(test.Data[0]) || test.Data[0].Equals(src.Data[i]))
                     {
                         int j;
                         for (j = 1; j < test.Length; j++)
-                            if (!src.Data[i+j].Equals(test.Data[j]))
+                            if (!(src.Data[i+j].Equals(test.Data[j]) || test.Data[j].Equals(src.Data[i+j])))
                                 break;
+
                         if (j == test.Length)
                         {
                             index = i;
@@ -5496,19 +5505,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             return index;
-
         }
 
         public LSL_String llGetObjectName()
         {
             m_host.AddScriptLPS(1);
-            return m_host.Name!=null?m_host.Name:String.Empty;
+            return m_host.Name !=null ? m_host.Name : String.Empty;
         }
 
         public void llSetObjectName(string name)
         {
             m_host.AddScriptLPS(1);
-            m_host.Name = name!=null?name:String.Empty;
+            m_host.Name = name != null ? name : String.Empty;
         }
 
         public LSL_String llGetDate()
