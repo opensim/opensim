@@ -71,6 +71,21 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
         #region Internal functions
 
+        public AssetMetadata FetchMetadata(string url, UUID assetID)
+        {
+            if (!url.EndsWith("/") && !url.EndsWith("="))
+                url = url + "/";
+
+            AssetMetadata meta = m_scene.AssetService.GetMetadata(url + assetID.ToString());
+
+            if (meta != null)
+                m_log.DebugFormat("[HG ASSET MAPPER]: Fetched metadata for asset {0} of type {1} from {2} ", assetID, meta.Type, url);
+            else
+                m_log.DebugFormat("[HG ASSET MAPPER]: Unable to fetched metadata for asset {0} from {1} ", assetID, url);
+
+            return meta;
+        }
+
         public AssetBase FetchAsset(string url, UUID assetID)
         {
             if (!url.EndsWith("/") && !url.EndsWith("="))
@@ -222,28 +237,19 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
         public void Get(UUID assetID, UUID ownerID, string userAssetURL)
         {
-            // Get the item from the remote asset server onto the local AssetCache
-            // and place an entry in m_assetMap
+            // Get the item from the remote asset server onto the local AssetService
 
-            m_log.Debug("[HG ASSET MAPPER]: Fetching object " + assetID + " from asset server " + userAssetURL);
-            AssetBase asset = FetchAsset(userAssetURL, assetID); 
+            AssetMetadata meta = FetchMetadata(userAssetURL, assetID);
+            if (meta == null)
+                return;
 
-            if (asset != null)
-            {
-                // OK, now fetch the inside.
-                Dictionary<UUID, AssetType> ids = new Dictionary<UUID, AssetType>();
-                HGUuidGatherer uuidGatherer = new HGUuidGatherer(this, m_scene.AssetService, userAssetURL);
-                uuidGatherer.GatherAssetUuids(asset.FullID, (AssetType)asset.Type, ids);
-                if (ids.ContainsKey(assetID))
-                    ids.Remove(assetID);
-                foreach (UUID uuid in ids.Keys)
-                    FetchAsset(userAssetURL, uuid);
+            // The act of gathering UUIDs downloads the assets from the remote server
+            Dictionary<UUID, AssetType> ids = new Dictionary<UUID, AssetType>();
+            HGUuidGatherer uuidGatherer = new HGUuidGatherer(this, m_scene.AssetService, userAssetURL);
+            uuidGatherer.GatherAssetUuids(assetID, (AssetType)meta.Type, ids);
 
-                m_log.DebugFormat("[HG ASSET MAPPER]: Successfully fetched asset {0} from asset server {1}", asset.ID, userAssetURL);
+            m_log.DebugFormat("[HG ASSET MAPPER]: Successfully fetched asset {0} from asset server {1}", assetID, userAssetURL);
 
-            }
-            else
-                m_log.Warn("[HG ASSET MAPPER]: Could not fetch asset from remote asset server " + userAssetURL);
         }
 
 

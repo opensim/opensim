@@ -35,6 +35,9 @@ namespace OpenSim.Framework
 
         private void LoadPermsFromConfig(IConfig assetConfig, string variable, bool[] bitArray)
         {
+            if (assetConfig == null)
+                return;
+
             string perms = assetConfig.GetString(variable, String.Empty);
             string[] parts = perms.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
             foreach (string s in parts)
