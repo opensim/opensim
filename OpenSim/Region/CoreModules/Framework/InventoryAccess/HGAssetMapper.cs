@@ -86,21 +86,6 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             return meta;
         }
 
-        public AssetBase FetchAsset(string url, UUID assetID)
-        {
-            if (!url.EndsWith("/") && !url.EndsWith("="))
-                url = url + "/";
-
-            AssetBase asset = m_scene.AssetService.Get(url + assetID.ToString());
-
-            if (asset != null)
-            {
-                m_log.DebugFormat("[HG ASSET MAPPER]: Copied asset {0} from {1} to local asset server. ", asset.ID, url);
-                return asset;
-            }
-            return null;
-        }
-
         public bool PostAsset(string url, AssetBase asset)
         {
             if (asset != null)
@@ -245,7 +230,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
             // The act of gathering UUIDs downloads the assets from the remote server
             Dictionary<UUID, AssetType> ids = new Dictionary<UUID, AssetType>();
-            HGUuidGatherer uuidGatherer = new HGUuidGatherer(this, m_scene.AssetService, userAssetURL);
+            HGUuidGatherer uuidGatherer = new HGUuidGatherer(m_scene.AssetService, userAssetURL);
             uuidGatherer.GatherAssetUuids(assetID, (AssetType)meta.Type, ids);
 
             m_log.DebugFormat("[HG ASSET MAPPER]: Successfully fetched asset {0} from asset server {1}", assetID, userAssetURL);
@@ -263,7 +248,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             if (asset != null)
             {
                 Dictionary<UUID, AssetType> ids = new Dictionary<UUID, AssetType>();
-                HGUuidGatherer uuidGatherer = new HGUuidGatherer(this, m_scene.AssetService, string.Empty);
+                HGUuidGatherer uuidGatherer = new HGUuidGatherer(m_scene.AssetService, string.Empty);
                 uuidGatherer.GatherAssetUuids(asset.FullID, (AssetType)asset.Type, ids);
                 bool success = false;
                 foreach (UUID uuid in ids.Keys)
