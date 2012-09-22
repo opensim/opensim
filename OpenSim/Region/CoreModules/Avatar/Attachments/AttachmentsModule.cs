@@ -859,6 +859,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             InventoryItemBase item = new InventoryItemBase(itemID, sp.UUID);
             item = m_scene.InventoryService.GetItem(item);
+            if (item == null)
+                return;
+
             bool changed = sp.Appearance.SetAttachment((int)AttachmentPt, itemID, item.AssetID);
             if (changed && m_scene.AvatarFactory != null)
             {
