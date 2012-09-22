@@ -279,6 +279,16 @@ namespace OpenSim.Region.Framework.Scenes
         /// in <see cref="Scene.ProcessObjectDeGrab"/>
         /// </remarks>
         public event ObjectDeGrabDelegate OnObjectDeGrab;
+
+        /// <summary>
+        /// Triggered when a script resets.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerScriptReset"/>
+        /// in <see cref="Scene.ProcessScriptReset"/>
+        /// via <see cref="OpenSim.Framework.IClientAPI.OnScriptReset"/>
+        /// via <see cref="OpenSim.Region.ClientStack.LindenUDP.LLClientView.HandleScriptReset"/>
+        /// </remarks>
         public event ScriptResetDelegate OnScriptReset;
 
         public event OnPermissionErrorDelegate OnPermissionError;
@@ -288,17 +298,50 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <remarks>
         /// Occurs after OnNewScript.
+        /// Triggered by <see cref="TriggerRezScript"/>
+        /// in <see cref="SceneObjectPartInventory.CreateScriptInstance"/>
         /// </remarks>
         public event NewRezScript OnRezScript;
         public delegate void NewRezScript(uint localID, UUID itemID, string script, int startParam, bool postOnRez, string engine, int stateSource);
 
         public delegate void RemoveScript(uint localID, UUID itemID);
+
+        /// <summary>
+        /// Triggered when a script is removed from an object.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerRemoveScript"/>
+        /// in <see cref="Scene.RemoveTaskInventory"/>,
+        /// <see cref="Scene.CreateAgentInventoryItemFromTask"/>,
+        /// <see cref="SceneObjectPartInventory.RemoveScriptInstance"/>,
+        /// <see cref="SceneObjectPartInventory.RemoveInventoryItem"/>
+        /// </remarks>
         public event RemoveScript OnRemoveScript;
 
         public delegate void StartScript(uint localID, UUID itemID);
+
+        /// <summary>
+        /// Triggered when a script starts.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerStartScript"/>
+        /// in <see cref="Scene.SetScriptRunning"/>
+        /// via <see cref="OpenSim.Framework.IClientAPI.OnSetScriptRunning"/>,
+        /// via <see cref="OpenSim.Region.ClientStack.LindenUDP.HandleSetScriptRunning"/>
+        /// </remarks>
         public event StartScript OnStartScript;
 
         public delegate void StopScript(uint localID, UUID itemID);
+
+        /// <summary>
+        /// Triggered when a script stops.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerStopScript"/>,
+        /// in <see cref="SceneObjectPartInventory.CreateScriptInstance"/>,
+        /// <see cref="SceneObjectPartInventory.StopScriptInstance"/>,
+        /// <see cref="Scene.SetScriptRunning"/>
+        /// </remarks>
         public event StopScript OnStopScript;
 
         public delegate bool SceneGroupMoved(UUID groupID, Vector3 delta);
@@ -349,6 +392,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <remarks>
         /// Occurs before OnRezScript
+        /// Triggered by <see cref="TriggerNewScript"/>
+        /// in <see cref="Scene.RezScriptFromAgentInventory"/>,
+        /// <see cref="Scene.RezNewScript"/>
         /// </remarks>
         public event NewScript OnNewScript;
 
@@ -383,6 +429,12 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <remarks>
         /// Triggered after the scene receives a client's upload of an updated script and has stored it in an asset.
+        /// Triggered by <see cref="TriggerUpdateScript"/>
+        /// in <see cref="Scene.CapsUpdateTaskInventoryScriptAsset"/>
+        /// via <see cref="Scene.CapsUpdateTaskInventoryScriptAsset"/>
+        /// via <see cref="OpenSim.Region.ClientStack.Linden.BunchOfCaps.TaskScriptUpdated"/>
+        /// via <see cref="OpenSim.Region.ClientStack.Linden.TaskInventoryScriptUpdater.OnUpLoad"/>
+        /// via <see cref="OpenSim.Region.ClientStack.Linden.TaskInventoryScriptUpdater.uploaderCaps"/>
         /// </remarks>
         public event UpdateScript OnUpdateScript;
         
