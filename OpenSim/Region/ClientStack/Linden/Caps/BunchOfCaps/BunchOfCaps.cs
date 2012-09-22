@@ -55,7 +55,7 @@ namespace OpenSim.Region.ClientStack.Linden
 {
     public delegate void UpLoadedAsset(
         string assetName, string description, UUID assetID, UUID inventoryItem, UUID parentFolder,
-        byte[] data, string inventoryType, string assetType, int cost);
+        byte[] data, string inventoryType, string assetType, int cost, ref string error);
 
     public delegate UUID UpdateItem(UUID itemID, byte[] data);
 
@@ -455,11 +455,14 @@ namespace OpenSim.Region.ClientStack.Linden
                 {
                     case FileAgentInventoryState.processRequest:
                     case FileAgentInventoryState.processUpload:
-                        if (client != null)
-                            client.SendAgentAlertMessage("Unable to upload asset. Processing previus request", false);
+                        LLSDAssetUploadError resperror = new LLSDAssetUploadError();
+                        resperror.message = "Uploader busy processing previus request";
+                        resperror.identifier = UUID.Zero;
+
                         LLSDAssetUploadResponse errorResponse = new LLSDAssetUploadResponse();
                         errorResponse.uploader = "";
                         errorResponse.state = "error";
+                        errorResponse.error = resperror;
                         return errorResponse;
                         break;
                     case FileAgentInventoryState.waitUpload:
@@ -489,12 +492,15 @@ namespace OpenSim.Region.ClientStack.Linden
                 {
                     if (avatar.UserLevel < m_levelUpload)
                     {
-                        if (client != null)
-                            client.SendAgentAlertMessage("Unable to upload asset. Insufficient permissions.", false);
+                        LLSDAssetUploadError resperror = new LLSDAssetUploadError();
+                        resperror.message = "Insufficient permissions to upload";
+                        resperror.identifier = UUID.Zero;
+
 
                         LLSDAssetUploadResponse errorResponse = new LLSDAssetUploadResponse();
                         errorResponse.uploader = "";
                         errorResponse.state = "error";
+                        errorResponse.error = resperror;
                         lock (m_ModelCost)
                             m_FileAgentInventoryState = FileAgentInventoryState.idle;
                         return errorResponse;
@@ -518,11 +524,15 @@ namespace OpenSim.Region.ClientStack.Linden
                         if (!m_ModelCost.MeshModelCost(llsdRequest.asset_resources, baseCost, out modelcost,
                             meshcostdata, out error))
                         {
-                            client.SendAgentAlertMessage(error, false);
+                            LLSDAssetUploadError resperror = new LLSDAssetUploadError();
+                            resperror.message = error;
+                            resperror.identifier = UUID.Zero;
 
                             LLSDAssetUploadResponse errorResponse = new LLSDAssetUploadResponse();
                             errorResponse.uploader = "";
                             errorResponse.state = "error";
+                            errorResponse.error = resperror;
+
                             lock (m_ModelCost)
                                 m_FileAgentInventoryState = FileAgentInventoryState.idle;
                             return errorResponse;
@@ -539,11 +549,14 @@ namespace OpenSim.Region.ClientStack.Linden
                     {
                         if (!mm.UploadCovered(client.AgentId, (int)cost))
                         {
-                            client.SendAgentAlertMessage("Unable to upload asset. Insufficient funds.", false);
+                            LLSDAssetUploadError resperror = new LLSDAssetUploadError();
+                            resperror.message = "Insuficient funds";
+                            resperror.identifier = UUID.Zero;
 
                             LLSDAssetUploadResponse errorResponse = new LLSDAssetUploadResponse();
                             errorResponse.uploader = "";
                             errorResponse.state = "error";
+                            errorResponse.error = resperror;
                             lock (m_ModelCost)
                                 m_FileAgentInventoryState = FileAgentInventoryState.idle;
                             return errorResponse;
@@ -607,8 +620,9 @@ namespace OpenSim.Region.ClientStack.Linden
         /// <param name="data"></param>
         public void UploadCompleteHandler(string assetName, string assetDescription, UUID assetID,
                                           UUID inventoryItem, UUID parentFolder, byte[] data, string inventoryType,
-                                          string assetType, int cost)
+                                          string assetType, int cost, ref string error)
         {
+
             lock (m_ModelCost)
                 m_FileAgentInventoryState = FileAgentInventoryState.processUpload;
 
@@ -619,17 +633,13 @@ namespace OpenSim.Region.ClientStack.Linden
             sbyte assType = 0;
             sbyte inType = 0;
 
-            IClientAPI client = null;
-
             IMoneyModule mm = m_Scene.RequestModuleInterface<IMoneyModule>();
             if (mm != null)
             {
                 // make sure client still has enougth credit
                 if (!mm.UploadCovered(m_HostCapsObj.AgentID, (int)cost))
                 {
-                    m_Scene.TryGetClient(m_HostCapsObj.AgentID, out client);
-                    if (client != null)
-                        client.SendAgentAlertMessage("Unable to upload asset. Insufficient funds.", false);
+                    error = "Insufficient funds.";
                     return;
                 }
             }
@@ -668,6 +678,25 @@ namespace OpenSim.Region.ClientStack.Linden
                     List<Vector3> positions = new List<Vector3>();
                     List<Quaternion> rotations = new List<Quaternion>();
                     OSDMap request = (OSDMap)OSDParser.DeserializeLLSDXml(data);
+
+                    // compare and get updated information
+
+                    bool mismatchError = true;
+
+                    while (mismatchError)
+                    {
+                        mismatchError = false;
+                    }
+
+                    if (mismatchError)
+                    {
+                        error = "Upload and fee estimation information don't match";
+                        lock (m_ModelCost)
+                            m_FileAgentInventoryState = FileAgentInventoryState.idle;
+
+                        return;
+                    }
+
                     OSDArray instance_list = (OSDArray)request["instance_list"];
                     OSDArray mesh_list = (OSDArray)request["mesh_list"];
                     OSDArray texture_list = (OSDArray)request["texture_list"];
@@ -1240,7 +1269,8 @@ namespace OpenSim.Region.ClientStack.Linden
         private string m_invType = String.Empty;
         private string m_assetType = String.Empty;
         private int m_cost;
-
+        private string m_error = String.Empty;
+        
         private Timer m_timeoutTimer = new Timer();
 
 
@@ -1278,12 +1308,13 @@ namespace OpenSim.Region.ClientStack.Linden
             UUID inv = inventoryItemID;
             string res = String.Empty;
             LLSDAssetUploadComplete uploadComplete = new LLSDAssetUploadComplete();
+/*
             uploadComplete.new_asset = newAssetID.ToString();
             uploadComplete.new_inventory_item = inv;
             uploadComplete.state = "complete";
 
             res = LLSDHelpers.SerialiseLLSDReply(uploadComplete);
-
+*/
             m_timeoutTimer.Stop();
             httpListener.RemoveStreamHandler("POST", uploaderPath);
 
@@ -1301,8 +1332,25 @@ namespace OpenSim.Region.ClientStack.Linden
             handlerUpLoad = OnUpLoad;
             if (handlerUpLoad != null)
             {
-                handlerUpLoad(m_assetName, m_assetDes, newAssetID, inv, parentFolder, data, m_invType, m_assetType,m_cost);
+                handlerUpLoad(m_assetName, m_assetDes, newAssetID, inv, parentFolder, data, m_invType, m_assetType,m_cost, ref m_error);
             }
+            if(m_error == String.Empty)
+            {
+                uploadComplete.new_asset = newAssetID.ToString();
+                uploadComplete.new_inventory_item = inv;
+                uploadComplete.state = "complete";
+            }
+            else
+            {
+                LLSDAssetUploadError resperror = new LLSDAssetUploadError();
+                resperror.message = m_error;
+                resperror.identifier = inv;
+
+                uploadComplete.error = resperror;
+                uploadComplete.state = "failed";
+            }
+
+            res = LLSDHelpers.SerialiseLLSDReply(uploadComplete);
             return res;
         }
 
