@@ -366,4 +366,40 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
     }
+
+    public class HGUuidGatherer : UuidGatherer
+    {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        protected string m_assetServerURL;
+
+        public HGUuidGatherer(IAssetService assetService, string assetServerURL)
+            : base(assetService)
+        {
+            m_assetServerURL = assetServerURL;
+        }
+
+        protected override AssetBase GetAsset(UUID uuid)
+        {
+            if (string.Empty == m_assetServerURL)
+                return base.GetAsset(uuid);
+            else
+                return FetchAsset(m_assetServerURL, uuid);
+        }
+
+        public AssetBase FetchAsset(string url, UUID assetID)
+        {
+            if (!url.EndsWith("/") && !url.EndsWith("="))
+                url = url + "/";
+
+            AssetBase asset = m_assetService.Get(url + assetID.ToString());
+
+            if (asset != null)
+            {
+                m_log.DebugFormat("[HGUUIDGatherer]: Copied asset {0} from {1} to local asset server. ", asset.ID, url);
+                return asset;
+            }
+            return null;
+        }
+    }
 }
