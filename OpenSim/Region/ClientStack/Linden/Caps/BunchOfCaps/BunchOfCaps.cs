@@ -54,8 +54,8 @@ using OSDMap = OpenMetaverse.StructuredData.OSDMap;
 namespace OpenSim.Region.ClientStack.Linden
 {
     public delegate void UpLoadedAsset(
-    string assetName, string description, UUID assetID, UUID inventoryItem, UUID parentFolder,
-    byte[] data, string inventoryType, string assetType);
+        string assetName, string description, UUID assetID, UUID inventoryItem, UUID parentFolder,
+        byte[] data, string inventoryType, string assetType, int cost);
 
     public delegate UUID UpdateItem(UUID itemID, byte[] data);
 
@@ -119,6 +119,7 @@ namespace OpenSim.Region.ClientStack.Linden
         private int m_levelUpload = 0;
         private float m_PrimScaleMin = 0.001f;
         private bool m_enableFreeTestModelUpload = false;
+        private bool m_enableModelUploadTextureToInventory = false;
 
         private enum FileAgentInventoryState : int
         {
@@ -147,7 +148,6 @@ namespace OpenSim.Region.ClientStack.Linden
             float modelUploadFactor = m_ModelCost.ModelMeshCostFactor;
             float modelMinUploadCostFactor = m_ModelCost.ModelMinCostFactor;
 
-
             IConfigSource config = m_Scene.Config;
             if (config != null)
             {
@@ -170,12 +170,12 @@ namespace OpenSim.Region.ClientStack.Linden
                     modelTextureUploadFactor = EconomyConfig.GetFloat("MeshModelUploadTextureCostFactor", modelTextureUploadFactor);
                     modelMinUploadCostFactor = EconomyConfig.GetFloat("MeshModelMinCostFactor", modelMinUploadCostFactor);
                     m_enableFreeTestModelUpload = EconomyConfig.GetBoolean("MeshModelUploadAllowFreeTest", false);
+                    m_enableModelUploadTextureToInventory = EconomyConfig.GetBoolean("MeshModelAllowTextureToInventory", false);
 
                     m_ModelCost.ModelMeshCostFactor = modelUploadFactor;
                     m_ModelCost.ModelTextureCostFactor = modelTextureUploadFactor;
                     m_ModelCost.ModelMinCostFactor = modelMinUploadCostFactor;
                 }
-
             }
 
             m_assetService = m_Scene.AssetService;
@@ -426,37 +426,13 @@ namespace OpenSim.Region.ClientStack.Linden
 
             return UUID.Zero;
         }
-
-        private delegate void UploadWithCostCompleteDelegate(string assetName,
-                string assetDescription, UUID assetID, UUID inventoryItem,
-                UUID parentFolder, byte[] data, string inventoryType,
-                string assetType, uint cost);
-
-        private class AssetUploaderWithCost : AssetUploader
+/*
+        private class AssetUploaderExtraParameters
         {
-            private uint m_cost;
+            public int total_cost;
+            public UUID textureFolder = UUID.Zero;
+*/
 
-            public event UploadWithCostCompleteDelegate OnUpLoad;
-
-            public AssetUploaderWithCost(string assetName, string description, UUID assetID,
-                    UUID inventoryItem, UUID parentFolderID, string invType, string assetType,
-                    string path, IHttpServer httpServer, bool dumpAssetsToFile, uint cost) :
-                    base(assetName, description, assetID, inventoryItem, parentFolderID,
-                            invType, assetType, path, httpServer, dumpAssetsToFile)
-            {
-                m_cost = cost;
-
-                base.OnUpLoad += UploadCompleteHandler;
-            }
-
-            private void UploadCompleteHandler(string assetName, string assetDescription, UUID assetID,
-                    UUID inventoryItem, UUID parentFolder, byte[] data, string inventoryType,
-                    string assetType)
-            {
-                OnUpLoad(assetName, assetDescription, assetID, inventoryItem, parentFolder,
-                        data, inventoryType, assetType, m_cost);
-            }
-        }
 
         /// <summary>
         ///
@@ -497,7 +473,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_FileAgentInventoryState = FileAgentInventoryState.processRequest;
             }
 
-            uint cost = 0;
+            int cost = 0;
             LLSDAssetUploadResponseData meshcostdata = new LLSDAssetUploadResponseData();
 
             if (llsdRequest.asset_type == "texture" ||
@@ -551,11 +527,11 @@ namespace OpenSim.Region.ClientStack.Linden
                                 m_FileAgentInventoryState = FileAgentInventoryState.idle;
                             return errorResponse;
                         }
-                        cost = (uint)modelcost;
+                        cost = modelcost;
                     }
                     else
                     {
-                        cost = (uint)baseCost;
+                        cost = baseCost;
                     }
 
                     // check funds
@@ -584,8 +560,8 @@ namespace OpenSim.Region.ClientStack.Linden
             UUID parentFolder = llsdRequest.folder_id;
             string uploaderPath = Util.RandomClass.Next(5000, 8000).ToString("0000");
 
-            AssetUploaderWithCost uploader =
-                new AssetUploaderWithCost(assetName, assetDes, newAsset, newInvItem, parentFolder, llsdRequest.inventory_type,
+            AssetUploader uploader =
+                new AssetUploader(assetName, assetDes, newAsset, newInvItem, parentFolder, llsdRequest.inventory_type,
                         llsdRequest.asset_type, capsBase + uploaderPath, m_HostCapsObj.HttpListener, m_dumpAssetsToFile, cost);
 
             m_HostCapsObj.HttpListener.AddStreamHandler(
@@ -631,7 +607,7 @@ namespace OpenSim.Region.ClientStack.Linden
         /// <param name="data"></param>
         public void UploadCompleteHandler(string assetName, string assetDescription, UUID assetID,
                                           UUID inventoryItem, UUID parentFolder, byte[] data, string inventoryType,
-                                          string assetType, uint cost)
+                                          string assetType, int cost)
         {
             lock (m_ModelCost)
                 m_FileAgentInventoryState = FileAgentInventoryState.processUpload;
@@ -920,6 +896,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
             // If we set PermissionMask.All then when we rez the item the next permissions will replace the current
             // (owner) permissions.  This becomes a problem if next permissions are changed.
+
             item.CurrentPermissions
                 = (uint)(PermissionMask.Move | PermissionMask.Copy | PermissionMask.Modify | PermissionMask.Transfer);
 
@@ -930,7 +907,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
             if (AddNewInventoryItem != null)
             {
-                AddNewInventoryItem(m_HostCapsObj.AgentID, item, cost);
+                AddNewInventoryItem(m_HostCapsObj.AgentID, item,(uint) cost);
             }
 
             lock (m_ModelCost)
@@ -1247,6 +1224,7 @@ namespace OpenSim.Region.ClientStack.Linden
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+
         public event UpLoadedAsset OnUpLoad;
         private UpLoadedAsset handlerUpLoad = null;
 
@@ -1261,11 +1239,14 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private string m_invType = String.Empty;
         private string m_assetType = String.Empty;
+        private int m_cost;
+
         private Timer m_timeoutTimer = new Timer();
+
 
         public AssetUploader(string assetName, string description, UUID assetID, UUID inventoryItem,
                                 UUID parentFolderID, string invType, string assetType, string path,
-                                IHttpServer httpServer, bool dumpAssetsToFile)
+                                IHttpServer httpServer, bool dumpAssetsToFile, int totalCost)
         {
             m_assetName = assetName;
             m_assetDes = description;
@@ -1277,6 +1258,7 @@ namespace OpenSim.Region.ClientStack.Linden
             m_assetType = assetType;
             m_invType = invType;
             m_dumpAssetsToFile = dumpAssetsToFile;
+            m_cost = totalCost;
 
             m_timeoutTimer.Elapsed += TimedOut;
             m_timeoutTimer.Interval = 120000;
@@ -1319,7 +1301,7 @@ namespace OpenSim.Region.ClientStack.Linden
             handlerUpLoad = OnUpLoad;
             if (handlerUpLoad != null)
             {
-                handlerUpLoad(m_assetName, m_assetDes, newAssetID, inv, parentFolder, data, m_invType, m_assetType);
+                handlerUpLoad(m_assetName, m_assetDes, newAssetID, inv, parentFolder, data, m_invType, m_assetType,m_cost);
             }
             return res;
         }
