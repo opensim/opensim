@@ -105,7 +105,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 resources.instance_list == null ||
                 resources.instance_list.Array.Count == 0)
             {
-                error = "Unable to upload mesh model. missing information.";
+                error = "missing model information.";
                 return false;
             }
 
@@ -113,7 +113,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
             if( numberInstances > ObjectLinkedPartsMax )
             {
-                error = "upload failed: Model whould have two many linked prims";
+                error = "Model whould have more than " + ObjectLinkedPartsMax.ToString() + " linked prims";
                 return false;
             }
 
@@ -186,15 +186,13 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 if (scale.X < PrimScaleMin || scale.Y < PrimScaleMin || scale.Z < PrimScaleMin)
                 {
-//                    error = " upload fail: Model contains parts with a dimension lower than 0.001. Please adjust scaling";
-//                    return false;
                     skipedSmall++;
                     continue;
                 }
 
                 if (scale.X > NonPhysicalPrimScaleMax || scale.Y > NonPhysicalPrimScaleMax || scale.Z > NonPhysicalPrimScaleMax)
                 {
-                    error = "upload fail: Model contains parts larger than maximum allowed. Please adjust scaling";
+                    error = "Model contains parts with sides larger than " + NonPhysicalPrimScaleMax.ToString() + "m. Please ajust scale";
                     return false;
                 }
 
@@ -204,7 +202,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
                     if (mesh >= numberMeshs)
                     {
-                        error = "Unable to upload mesh model. incoerent information.";
+                        error = "Incoerent model information.";
                         return false;
                     }
 
@@ -233,7 +231,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
             if (skipedSmall >0 && skipedSmall > numberInstances / 2)
             {
-                error = "Upload failed: Model contains too much prims smaller than minimum size to ignore";
+                error = "Model contains too many prims smaller than " + PrimScaleMin.ToString() + "m";
                 return false;
             }
 
@@ -279,14 +277,14 @@ namespace OpenSim.Region.ClientStack.Linden
 
             if (data == null || data.Length == 0)
             {
-                error = "Unable to upload mesh model. missing information.";
+                error = "Missing model information.";
                 return false;
             }
 
             OSD meshOsd = null;
             int start = 0;
 
-            error = "Unable to upload mesh model. Invalid data";
+            error = "Invalid model data";
 
             using (MemoryStream ms = new MemoryStream(data))
             {
@@ -334,13 +332,13 @@ namespace OpenSim.Region.ClientStack.Linden
 
             if (submesh_offset < 0 || hulls_size == 0)
             {
-                error = "Unable to upload mesh model. missing physics_convex block";
+                error = "Missing physics_convex block";
                 return false;
             }
 
             if (!hulls(data, submesh_offset, hulls_size, out phys_hullsvertices, out phys_nhulls))
             {
-                error = "Unable to upload mesh model. bad physics_convex block";
+                error = "Bad physics_convex block";
                 return false;
             }
 
@@ -360,7 +358,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
             if (submesh_offset < 0 || highlod_size <= 0)
             {
-                error = "Unable to upload mesh model. missing high_lod";
+                error = "Missing high_lod block";
                 return false;
             }
 
@@ -418,7 +416,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
                     if (!submesh(data, submesh_offset, physmesh_size, out phys_ntriangles))
                     {
-                        error = "Unable to upload mesh model. parsing error";
+                        error = "Model data parsing error";
                         return false;
                     }
                 }
