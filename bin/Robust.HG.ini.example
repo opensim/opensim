@@ -396,6 +396,18 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     ;AllowedClients = ""
     ;DeniedClients = ""
 
+    ;; Are foreign visitors allowed?
+    ;ForeignAgentsAllowed = true
+    ;;
+    ;; If ForeignAgentsAllowed is true, make exceptions using AllowExcept.
+    ;; Leave blank or commented for no exceptions.
+    ; AllowExcept = "http://griefer.com:8002, http://enemy.com:8002"
+    ;;
+    ;; If ForeignAgentsAllowed is false, make exceptions using DisallowExcept
+    ;; Leave blank or commented for no exceptions.
+    ; DisallowExcept = "http://myfriendgrid.com:8002, http://myboss.com:8002"
+
+
 [UserAgentService]
     LocalServiceModule = "OpenSim.Services.HypergridService.dll:UserAgentService"
     ;; for the service
