@@ -31,14 +31,12 @@ namespace OpenSim.Region.ClientStack.Linden
     public class ModelCost
     {
 
-        // upload fee tunning paramenters
+        // upload fee defaults
         // fees are normalized to 1.0
         // this parameters scale them to basic cost ( so 1.0 translates to 10 )
 
         public float ModelMeshCostFactor = 1.0f; // scale total cost relative to basic (excluding textures)
-        public float ModelTextureCostFactor = 0.25f; //(2.5c$) scale textures fee to basic.
-                                                     //   promote integration in a model
-                                                     // since they will not show up in inventory                                                                                                       
+        public float ModelTextureCostFactor = 1.0f; // scale textures fee to basic.
         public float ModelMinCostFactor = 0.5f; // minimum total model free excluding textures
 
         // itens costs in normalized values
