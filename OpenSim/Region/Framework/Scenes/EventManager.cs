@@ -345,15 +345,58 @@ namespace OpenSim.Region.Framework.Scenes
         public event StopScript OnStopScript;
 
         public delegate bool SceneGroupMoved(UUID groupID, Vector3 delta);
+
+        /// <summary>
+        /// Triggered when an object is moved.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerGroupMove"/>
+        /// in <see cref="SceneObjectGroup.UpdateGroupPosition"/>,
+        /// <see cref="SceneObjectGroup.GrabMovement"/>
+        /// </remarks>
         public event SceneGroupMoved OnSceneGroupMove;
 
         public delegate void SceneGroupGrabed(UUID groupID, Vector3 offset, UUID userID);
+
+        /// <summary>
+        /// Triggered when an object is grabbed.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerGroupGrab"/>
+        /// in <see cref="SceneObjectGroup.OnGrabGroup"/>
+        /// via <see cref="SceneObjectGroup.ObjectGrabHandler"/>
+        /// via <see cref="Scene.ProcessObjectGrab"/>
+        /// via <see cref="OpenSim.Framework.IClientAPI.OnGrabObject"/>
+        /// via <see cref="OpenSim.Region.ClientStack.LindenUDP.LLClientView.HandleObjectGrab"/>
+        /// </remarks>
         public event SceneGroupGrabed OnSceneGroupGrab;
 
         public delegate bool SceneGroupSpinStarted(UUID groupID);
+
+        /// <summary>
+        /// Triggered when an object starts to spin.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerGroupSpinStart"/>
+        /// in <see cref="SceneObjectGroup.SpinStart"/>
+        /// via <see cref="SceneGraph.SpinStart"/>
+        /// via <see cref="OpenSim.Framework.IClientAPI.OnSpinStart"/>
+        /// via <see cref="OpenSim.Region.ClientStack.LindenUDP.LLClientView.HandleObjectSpinStart"/>
+        /// </remarks>
         public event SceneGroupSpinStarted OnSceneGroupSpinStart;
 
         public delegate bool SceneGroupSpun(UUID groupID, Quaternion rotation);
+
+        /// <summary>
+        /// Triggered when an object is being spun.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerGroupSpin"/>
+        /// in <see cref="SceneObjectGroup.SpinMovement"/>
+        /// via <see cref="SceneGraph.SpinObject"/>
+        /// via <see cref="OpenSim.Framework.IClientAPI.OnSpinUpdate"/>
+        /// via <see cref="OpenSim.Region.ClientStack.LindenUDP.LLClientView.HandleObjectSpinUpdate"/>
+        /// </remarks>
         public event SceneGroupSpun OnSceneGroupSpin;
 
         public delegate void LandObjectAdded(ILandObject newParcel);
