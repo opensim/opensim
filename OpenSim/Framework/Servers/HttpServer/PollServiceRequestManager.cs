@@ -33,6 +33,7 @@ using log4net;
 using HttpServer;
 using OpenSim.Framework;
 using OpenSim.Framework.Monitoring;
+using Amib.Threading;
 
 
 /*
@@ -184,6 +185,8 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         private bool m_running = true;
         private int slowCount = 0;
+
+        private SmartThreadPool m_threadPool = new SmartThreadPool(20000, 12, 2);
 
 //        private int m_timeout = 1000;   //  increase timeout 250; now use the event one
 
@@ -353,17 +356,45 @@ namespace OpenSim.Framework.Servers.HttpServer
                                 continue;
                             }
 
-                            try
+                            // "Normal" means the viewer evebt queue. We need to push these out fast.
+                            // Process them inline. The rest go to the thread pool.
+                            if (req.PollServiceArgs.Type == PollServiceEventArgs.EventType.Normal)
                             {
-                                Hashtable responsedata = req.PollServiceArgs.GetEvents(req.RequestID, req.PollServiceArgs.Id, str.ReadToEnd());
-                                DoHTTPGruntWork(m_server, req, responsedata);
+                                try
+                                {
+                                    Hashtable responsedata = req.PollServiceArgs.GetEvents(req.RequestID, req.PollServiceArgs.Id, str.ReadToEnd());
+                                    DoHTTPGruntWork(m_server, req, responsedata);
+                                }
+                                catch (ObjectDisposedException) // Browser aborted before we could read body, server closed the stream
+                                {
+                                    // Ignore it, no need to reply
+                                }
+                                finally
+                                {
+                                    str.Close();
+                                }
                             }
-                            catch (ObjectDisposedException) // Browser aborted before we could read body, server closed the stream
+                            else
                             {
-                                // Ignore it, no need to reply
-                            }
+                                m_threadPool.QueueWorkItem(x =>
+                                {
+                                    try
+                                    {
+                                        Hashtable responsedata = req.PollServiceArgs.GetEvents(req.RequestID, req.PollServiceArgs.Id, str.ReadToEnd());
+                                        DoHTTPGruntWork(m_server, req, responsedata);
+                                    }
+                                    catch (ObjectDisposedException) // Browser aborted before we could read body, server closed the stream
+                                    {
+                                        // Ignore it, no need to reply
+                                    }
+                                    finally
+                                    {
+                                        str.Close();
+                                    }
 
-                            str.Close();
+                                    return null;
+                                }, null);
+                            }
 
                         }
                         else

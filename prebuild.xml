@@ -162,6 +162,7 @@
       <Reference name="XMLRPC" path="../../../../bin/"/>
       <Reference name="log4net" path="../../../../bin/"/>
       <Reference name="HttpServer_OpenSim" path="../../../../bin/"/>
+      <Reference name="SmartThreadPool"/>
 
       <Files>
         <Match pattern="*.cs" recurse="true">
