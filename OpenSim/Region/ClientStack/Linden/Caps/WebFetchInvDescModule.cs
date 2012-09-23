@@ -144,31 +144,34 @@ namespace OpenSim.Region.ClientStack.Linden
             public PollServiceInventoryEventArgs(UUID pId) :
                     base(null, null, null, null, pId, 30000)
             {
-                HasEvents = (x, y) => { return this.responses.ContainsKey(x); };
+                HasEvents = (x, y) => { lock (responses) return responses.ContainsKey(x); };
                 GetEvents = (x, y, s) =>
                 {
-                    try
+                    lock (responses)
                     {
-                        return this.responses[x];
-                    }
-                    finally
-                    {
-                        responses.Remove(x);
+                        try
+                        {
+                            return responses[x];
+                        }
+                        finally
+                        {
+                            responses.Remove(x);
+                        }
                     }
                 };
 
                 Request = (x, y) =>
                 {
                     y["RequestID"] = x.ToString();
-                    lock (this.requests)
-                        this.requests.Add(y);
+                    lock (requests)
+                        requests.Add(y);
 
                     m_queue.Enqueue(this);
                 };
 
                 NoEvents = (x, y) =>
                 {
-                    lock (this.requests)
+                    lock (requests)
                     {
                         Hashtable request = requests.Find(id => id["RequestID"].ToString() == x.ToString());
                         requests.Remove(request);
@@ -192,7 +195,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 try
                 {
-                    lock (this.requests)
+                    lock (requests)
                     {
                         request = requests[0];
                         requests.RemoveAt(0);
@@ -214,7 +217,8 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 response["str_response_string"] = m_webFetchHandler.FetchInventoryDescendentsRequest(request["body"].ToString(), String.Empty, String.Empty, null, null);
 
-                responses[requestID] = response; 
+                lock (responses)
+                    responses[requestID] = response; 
             }
         }
 
