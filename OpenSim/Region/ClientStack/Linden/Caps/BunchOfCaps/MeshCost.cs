@@ -96,7 +96,8 @@ namespace OpenSim.Region.ClientStack.Linden
         // basicCost input region assets upload cost
         // totalcost returns model total upload fee
         // meshcostdata returns detailed costs for viewer 
-        public bool MeshModelCost(LLSDAssetResource resources, int basicCost, out int totalcost, LLSDAssetUploadResponseData meshcostdata, out string error)
+        public bool MeshModelCost(LLSDAssetResource resources, int basicCost, out int totalcost, 
+            LLSDAssetUploadResponseData meshcostdata, out string error, ref string warning)
         {
             totalcost = 0;
             error = string.Empty;
@@ -229,10 +230,18 @@ namespace OpenSim.Region.ClientStack.Linden
                 meshsfee += primCreationCost;
             }
 
-            if (skipedSmall >0 && skipedSmall > numberInstances / 2)
+            if (skipedSmall > 0)
             {
-                error = "Model contains too many prims smaller than " + PrimScaleMin.ToString() + "m";
-                return false;
+                if (skipedSmall > numberInstances / 2)
+                {
+                    error = "Model contains too many prims smaller than " + PrimScaleMin.ToString() +
+                        "m minimum allowed size. Please check scalling";
+                    return false;
+                }
+                else
+                    warning += skipedSmall.ToString() + " of the requested " +numberInstances.ToString() +
+                        " model prims will not upload because they are smaller than " + PrimScaleMin.ToString() +
+                        "m minimum allowed size. Please check scalling ";
             }
 
             if (meshcostdata.physics_cost <= meshcostdata.model_streaming_cost)
@@ -403,9 +412,14 @@ namespace OpenSim.Region.ClientStack.Linden
 
             submesh_offset = -1;
 
-            if (map.ContainsKey("physics_mesh"))
-            {
+            tmpmap = null;
+            if(map.ContainsKey("physics_mesh"))
                 tmpmap = (OSDMap)map["physics_mesh"];
+            else if (map.ContainsKey("physics_shape")) // old naming
+                tmpmap = (OSDMap)map["physics_shape"];
+
+            if(tmpmap != null)
+            {
                 if (tmpmap.ContainsKey("offset"))
                     submesh_offset = tmpmap["offset"].AsInteger() + start;
                 if (tmpmap.ContainsKey("size"))
