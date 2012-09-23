@@ -31,7 +31,7 @@ namespace OpenSim.Region.ClientStack.Linden
     public class ModelCost
     {
 
-        // upload fee tunning paramenters
+        // upload fee defaults
         // fees are normalized to 1.0
         // this parameters scale them to basic cost ( so 1.0 translates to 10 )
 
@@ -42,7 +42,6 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public float ModelTextureCostFactor = 1.00f; // keep full price because texture price
                                                      // is based on it's storage needs not on usability
-
         // itens costs in normalized values
         // ie will be multiplied by basicCost and factors above
         const float primCreationCost = 0.002f;  // extra cost for each prim creation overhead
@@ -100,7 +99,8 @@ namespace OpenSim.Region.ClientStack.Linden
         // basicCost input region assets upload cost
         // totalcost returns model total upload fee
         // meshcostdata returns detailed costs for viewer 
-        public bool MeshModelCost(LLSDAssetResource resources, int basicCost, out int totalcost, LLSDAssetUploadResponseData meshcostdata, out string error)
+        public bool MeshModelCost(LLSDAssetResource resources, int basicCost, out int totalcost, 
+            LLSDAssetUploadResponseData meshcostdata, out string error, ref string warning)
         {
             totalcost = 0;
             error = string.Empty;
@@ -109,7 +109,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 resources.instance_list == null ||
                 resources.instance_list.Array.Count == 0)
             {
-                error = "Unable to upload mesh model. missing information.";
+                error = "missing model information.";
                 return false;
             }
 
@@ -117,7 +117,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
             if( numberInstances > ObjectLinkedPartsMax )
             {
-                error = "upload failed: Model whould have two many linked prims";
+                error = "Model whould have more than " + ObjectLinkedPartsMax.ToString() + " linked prims";
                 return false;
             }
 
@@ -190,15 +190,13 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 if (scale.X < PrimScaleMin || scale.Y < PrimScaleMin || scale.Z < PrimScaleMin)
                 {
-//                    error = " upload fail: Model contains parts with a dimension lower than 0.001. Please adjust scaling";
-//                    return false;
                     skipedSmall++;
                     continue;
                 }
 
                 if (scale.X > NonPhysicalPrimScaleMax || scale.Y > NonPhysicalPrimScaleMax || scale.Z > NonPhysicalPrimScaleMax)
                 {
-                    error = "upload fail: Model contains parts larger than maximum allowed. Please adjust scaling";
+                    error = "Model contains parts with sides larger than " + NonPhysicalPrimScaleMax.ToString() + "m. Please ajust scale";
                     return false;
                 }
 
@@ -208,7 +206,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
                     if (mesh >= numberMeshs)
                     {
-                        error = "Unable to upload mesh model. incoerent information.";
+                        error = "Incoerent model information.";
                         return false;
                     }
 
@@ -235,10 +233,18 @@ namespace OpenSim.Region.ClientStack.Linden
                 meshsfee += primCreationCost;
             }
 
-            if (skipedSmall >0 && skipedSmall > numberInstances / 2)
+            if (skipedSmall > 0)
             {
-                error = "Upload failed: Model contains too much prims smaller than minimum size to ignore";
-                return false;
+                if (skipedSmall > numberInstances / 2)
+                {
+                    error = "Model contains too many prims smaller than " + PrimScaleMin.ToString() +
+                        "m minimum allowed size. Please check scalling";
+                    return false;
+                }
+                else
+                    warning += skipedSmall.ToString() + " of the requested " +numberInstances.ToString() +
+                        " model prims will not upload because they are smaller than " + PrimScaleMin.ToString() +
+                        "m minimum allowed size. Please check scalling ";
             }
 
             if (meshcostdata.physics_cost <= meshcostdata.model_streaming_cost)
@@ -283,14 +289,14 @@ namespace OpenSim.Region.ClientStack.Linden
 
             if (data == null || data.Length == 0)
             {
-                error = "Unable to upload mesh model. missing information.";
+                error = "Missing model information.";
                 return false;
             }
 
             OSD meshOsd = null;
             int start = 0;
 
-            error = "Unable to upload mesh model. Invalid data";
+            error = "Invalid model data";
 
             using (MemoryStream ms = new MemoryStream(data))
             {
@@ -338,13 +344,13 @@ namespace OpenSim.Region.ClientStack.Linden
 
             if (submesh_offset < 0 || hulls_size == 0)
             {
-                error = "Unable to upload mesh model. missing physics_convex block";
+                error = "Missing physics_convex block";
                 return false;
             }
 
             if (!hulls(data, submesh_offset, hulls_size, out phys_hullsvertices, out phys_nhulls))
             {
-                error = "Unable to upload mesh model. bad physics_convex block";
+                error = "Bad physics_convex block";
                 return false;
             }
 
@@ -364,7 +370,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
             if (submesh_offset < 0 || highlod_size <= 0)
             {
-                error = "Unable to upload mesh model. missing high_lod";
+                error = "Missing high_lod block";
                 return false;
             }
 
@@ -409,9 +415,14 @@ namespace OpenSim.Region.ClientStack.Linden
 
             submesh_offset = -1;
 
-            if (map.ContainsKey("physics_mesh"))
-            {
+            tmpmap = null;
+            if(map.ContainsKey("physics_mesh"))
                 tmpmap = (OSDMap)map["physics_mesh"];
+            else if (map.ContainsKey("physics_shape")) // old naming
+                tmpmap = (OSDMap)map["physics_shape"];
+
+            if(tmpmap != null)
+            {
                 if (tmpmap.ContainsKey("offset"))
                     submesh_offset = tmpmap["offset"].AsInteger() + start;
                 if (tmpmap.ContainsKey("size"))
@@ -422,7 +433,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
                     if (!submesh(data, submesh_offset, physmesh_size, out phys_ntriangles))
                     {
-                        error = "Unable to upload mesh model. parsing error";
+                        error = "Model data parsing error";
                         return false;
                     }
                 }
