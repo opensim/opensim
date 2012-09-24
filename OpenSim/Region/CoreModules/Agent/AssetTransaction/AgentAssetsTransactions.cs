@@ -146,7 +146,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             }
         }
 
-        public void RequestCreateInventoryItem(IClientAPI remoteClient,
+        public bool RequestCreateInventoryItem(IClientAPI remoteClient,
                 UUID transactionID, UUID folderID, uint callbackID,
                 string description, string name, sbyte invType,
                sbyte type, byte wearableType, uint nextOwnerMask)
@@ -160,14 +160,16 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             }
 
             if (uploader != null)
+            {
                 uploader.RequestCreateInventoryItem(
                     remoteClient, transactionID, folderID,
                     callbackID, description, name, invType, type,
                     wearableType, nextOwnerMask);
-            else
-                m_log.ErrorFormat(
-                    "[AGENT ASSET TRANSACTIONS]: Could not find uploader with transaction ID {0} when handling request to create inventory item {1} from {2}",
-                    transactionID, name, remoteClient.Name);
+
+                return true;
+            }
+            
+            return false;
         }
 
         /// <summary>
