@@ -282,10 +282,10 @@ public class BSLinkset
             {
                 // If this is a multiple object linkset, set everybody's center of mass to the set's center of mass
                 OMV.Vector3 centerOfMass = ComputeLinksetCenterOfMass();
-                BulletSimAPI.SetCenterOfMassByPosRot2(LinksetRoot.BSBody.Ptr, centerOfMass, OMV.Quaternion.Identity);
+                BulletSimAPI.SetCenterOfMassByPosRot2(LinksetRoot.BSBody.ptr, centerOfMass, OMV.Quaternion.Identity);
                 foreach (BSPhysObject child in m_children)
                 {
-                    BulletSimAPI.SetCenterOfMassByPosRot2(child.BSBody.Ptr, centerOfMass, OMV.Quaternion.Identity);
+                    BulletSimAPI.SetCenterOfMassByPosRot2(child.BSBody.ptr, centerOfMass, OMV.Quaternion.Identity);
                 }
                 /*
                 // The root prim takes on the weight of the whole linkset
@@ -442,7 +442,7 @@ public class BSLinkset
         PhysicsScene.Constraints.RemoveAndDestroyConstraint(rootPrim.BSBody, childPrim.BSBody);
 
         // Make the child refresh its location
-        BulletSimAPI.PushUpdate2(childPrim.BSBody.Ptr);
+        BulletSimAPI.PushUpdate2(childPrim.BSBody.ptr);
     }
 
     // Remove linkage between myself and any possible children I might have

@@ -40,14 +40,14 @@ public struct BulletSim
 {
     public BulletSim(uint worldId, BSScene bss, IntPtr xx)
     {
+        ptr = xx;
         worldID = worldId; 
         scene = bss;  
-        Ptr = xx;
     }
+    public IntPtr ptr;
     public uint worldID;
     // The scene is only in here so very low level routines have a handle to print debug/error messages
     public BSScene scene;
-    public IntPtr Ptr;
 }
 
 // An allocated Bullet btRigidBody
@@ -56,9 +56,9 @@ public struct BulletBody
     public BulletBody(uint id, IntPtr xx)
     {
         ID = id;
-        Ptr = xx;
+        ptr = xx;
     }
-    public IntPtr Ptr;
+    public IntPtr ptr;
     public uint ID;
     public override string ToString()
     {
@@ -66,7 +66,7 @@ public struct BulletBody
         buff.Append("<id=");
         buff.Append(ID.ToString());
         buff.Append(",p=");
-        buff.Append(Ptr.ToString("X"));
+        buff.Append(ptr.ToString("X"));
         buff.Append(">");
         return buff.ToString();
     }
@@ -76,28 +76,39 @@ public struct BulletShape
 {
     public BulletShape(IntPtr xx)
     {
-        Ptr = xx;
+        ptr = xx;
         type=ShapeData.PhysicsShapeType.SHAPE_UNKNOWN;
         shapeKey = 0;
+        isNativeShape = false;
+        meshPtr = IntPtr.Zero;
     }
     public BulletShape(IntPtr xx, ShapeData.PhysicsShapeType typ)
     {
-        Ptr = xx;
+        ptr = xx;
         type = typ;
         shapeKey = 0;
+        isNativeShape = false;
+        meshPtr = IntPtr.Zero;
     }
-    public IntPtr Ptr;
+    public IntPtr ptr;
     public ShapeData.PhysicsShapeType type;
     public ulong shapeKey;
+    public bool isNativeShape;
+    // Hulls have an underlying mesh. A pointer to it is hidden here.
+    public IntPtr meshPtr;
     public override string ToString()
     {
         StringBuilder buff = new StringBuilder();
         buff.Append("<p=");
-        buff.Append(Ptr.ToString("X"));
+        buff.Append(ptr.ToString("X"));
         buff.Append(",s=");
         buff.Append(type.ToString());
         buff.Append(",k=");
         buff.Append(shapeKey.ToString("X"));
+        buff.Append(",n=");
+        buff.Append(isNativeShape.ToString());
+        buff.Append(",m=");
+        buff.Append(meshPtr.ToString("X"));
         buff.Append(">");
         return buff.ToString();
     }
@@ -314,10 +325,10 @@ public enum CollisionFlags : uint
     CF_DISABLE_SPU_COLLISION_PROCESS = 1 << 6,
     // Following used by BulletSim to control collisions
     BS_SUBSCRIBE_COLLISION_EVENTS    = 1 << 10,
-    BS_VOLUME_DETECT_OBJECT          = 1 << 11,
-    BS_PHANTOM_OBJECT                = 1 << 12,
-    BS_PHYSICAL_OBJECT               = 1 << 13,
-    BS_TERRAIN_OBJECT                = 1 << 14,
+    // BS_VOLUME_DETECT_OBJECT          = 1 << 11,
+    // BS_PHANTOM_OBJECT                = 1 << 12,
+    // BS_PHYSICAL_OBJECT               = 1 << 13,
+    // BS_TERRAIN_OBJECT                = 1 << 14,
     BS_NONE                          = 0,
     BS_ALL                           = 0xFFFFFFFF,
 
@@ -326,9 +337,9 @@ public enum CollisionFlags : uint
     BS_ACTIVE = CF_STATIC_OBJECT
                 | CF_KINEMATIC_OBJECT
                 | CF_NO_CONTACT_RESPONSE
-                | BS_VOLUME_DETECT_OBJECT
-                | BS_PHANTOM_OBJECT
-                | BS_PHYSICAL_OBJECT,
+    //            | BS_VOLUME_DETECT_OBJECT
+    //            | BS_PHANTOM_OBJECT
+    //            | BS_PHYSICAL_OBJECT,
 };
 
 // Values for collisions groups and masks
@@ -552,8 +563,7 @@ public static extern IntPtr CreateHullShape2(IntPtr world,
 public static extern IntPtr BuildHullShape2(IntPtr world, IntPtr meshShape);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern IntPtr BuildNativeShape2(IntPtr world,
-                float shapeType, float collisionMargin, Vector3 scale);
+public static extern IntPtr BuildNativeShape2(IntPtr world, ShapeData shapeData);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern bool IsNativeShape2(IntPtr shape);
@@ -566,6 +576,9 @@ public static extern void AddChildToCompoundShape2(IntPtr cShape, IntPtr addShap
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern void RemoveChildFromCompoundShape2(IntPtr cShape, IntPtr removeShape);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern IntPtr DuplicateCollisionShape2(IntPtr sim, IntPtr srcShape, uint id);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern IntPtr CreateBodyFromShapeAndInfo2(IntPtr sim, IntPtr shape, IntPtr constructionInfo);

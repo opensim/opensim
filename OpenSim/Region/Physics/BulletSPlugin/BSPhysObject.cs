@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -121,8 +121,8 @@ public abstract class BSPhysObject : PhysicsActor
         // if someone has subscribed for collision events....
         if (SubscribedEvents()) {
             CollisionCollection.AddCollider(collidingWith, new ContactPoint(contactPoint, contactNormal, pentrationDepth));
-            // DetailLog("{0},{1}.Collison.AddCollider,call,with={2},point={3},normal={4},depth={5}",
-            //                 LocalID, TypeName, collidingWith, contactPoint, contactNormal, pentrationDepth);
+            DetailLog("{0},{1}.Collison.AddCollider,call,with={2},point={3},normal={4},depth={5}",
+                            LocalID, TypeName, collidingWith, contactPoint, contactNormal, pentrationDepth);
             ret = true;
         }
         return ret;
@@ -147,7 +147,7 @@ public abstract class BSPhysObject : PhysicsActor
             if (CollisionCollection.Count == 0)
                 PhysicsScene.ObjectsWithNoMoreCollisions.Add(this);
 
-            // DetailLog("{0},{1}.SendCollisionUpdate,call,numCollisions={2}", LocalID, TypeName, CollisionCollection.Count);
+            DetailLog("{0},{1}.SendCollisionUpdate,call,numCollisions={2}", LocalID, TypeName, CollisionCollection.Count);
             base.SendCollisionUpdate(CollisionCollection);
 
             // The collisionCollection structure is passed around in the simulator.
@@ -158,7 +158,8 @@ public abstract class BSPhysObject : PhysicsActor
 
     // Subscribe for collision events.
     // Parameter is the millisecond rate the caller wishes collision events to occur.
-    public override void SubscribeEvents(int ms) { 
+    public override void SubscribeEvents(int ms) {
+        DetailLog("{0},BSScene.SubscribeEvents,subscribing,ms={1}", BSScene.DetailLogZero, ms);
         SubscribedEventsMs = ms;
         if (ms > 0)
         {
@@ -167,7 +168,7 @@ public abstract class BSPhysObject : PhysicsActor
 
             PhysicsScene.TaintedObject(TypeName+".SubscribeEvents", delegate()
             {
-                CurrentCollisionFlags = BulletSimAPI.AddToCollisionFlags2(BSBody.Ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
+                CurrentCollisionFlags = BulletSimAPI.AddToCollisionFlags2(BSBody.ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
             });
         }
         else
@@ -177,10 +178,11 @@ public abstract class BSPhysObject : PhysicsActor
         }
     }
     public override void UnSubscribeEvents() { 
+        DetailLog("{0},BSScene.UnSubscribeEvents,unsubscribing", BSScene.DetailLogZero);
         SubscribedEventsMs = 0;
         PhysicsScene.TaintedObject(TypeName+".UnSubscribeEvents", delegate()
         {
-            CurrentCollisionFlags = BulletSimAPI.RemoveFromCollisionFlags2(BSBody.Ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
+            CurrentCollisionFlags = BulletSimAPI.RemoveFromCollisionFlags2(BSBody.ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
         });
     }
     // Return 'true' if the simulator wants collision events

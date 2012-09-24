@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -43,7 +43,7 @@ class BSHingeConstraint : BSConstraint
         m_body1 = obj1;
         m_body2 = obj2;
         m_constraint = new BulletConstraint(
-                            BulletSimAPI.CreateHingeConstraint2(m_world.Ptr, m_body1.Ptr, m_body2.Ptr,
+                            BulletSimAPI.CreateHingeConstraint2(m_world.ptr, m_body1.ptr, m_body2.ptr,
                                 pivotInA, pivotInB,
                                 axisInA, axisInB,
                                 useLinearReferenceFrameA, disableCollisionsBetweenLinkedBodies));

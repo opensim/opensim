@@ -589,6 +589,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     {
         if (localID <= TerrainManager.HighestTerrainID)
         {
+            DetailLog("{0},BSScene.SendCollision,collideWithTerrain,id={1},with={2}", DetailLogZero, localID, collidingWith);
             return;         // don't send collisions to the terrain
         }
 
@@ -596,6 +597,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         if (!PhysObjects.TryGetValue(localID, out collider))
         {
             // If the object that is colliding cannot be found, just ignore the collision.
+            DetailLog("{0},BSScene.SendCollision,colliderNotInObjectList,id={1},with={2}", DetailLogZero, localID, collidingWith);
             return;
         }
 
@@ -604,7 +606,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         BSPhysObject collidee = null;
         PhysObjects.TryGetValue(collidingWith, out collidee);
 
-        // DetailLog("{0},BSScene.SendCollision,collide,id={1},with={2}", DetailLogZero, localID, collidingWith);
+        DetailLog("{0},BSScene.SendCollision,collide,id={1},with={2}", DetailLogZero, localID, collidingWith);
 
         if (collider.Collide(collidingWith, collidee, collidePoint, collideNormal, penetration))
         {

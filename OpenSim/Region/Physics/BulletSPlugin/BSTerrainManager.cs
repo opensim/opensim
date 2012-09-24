@@ -111,8 +111,8 @@ public class BSTerrainManager
                     BulletSimAPI.CreateGroundPlaneShape2(BSScene.GROUNDPLANE_ID, 1f, TERRAIN_COLLISION_MARGIN),
                     ShapeData.PhysicsShapeType.SHAPE_GROUNDPLANE);
         m_groundPlane = new BulletBody(BSScene.GROUNDPLANE_ID, 
-                        BulletSimAPI.CreateBodyWithDefaultMotionState2(groundPlaneShape.Ptr, Vector3.Zero, Quaternion.Identity));
-        BulletSimAPI.AddObjectToWorld2(PhysicsScene.World.Ptr, m_groundPlane.Ptr);
+                        BulletSimAPI.CreateBodyWithDefaultMotionState2(groundPlaneShape.ptr, Vector3.Zero, Quaternion.Identity));
+        BulletSimAPI.AddObjectToWorld2(PhysicsScene.World.ptr, m_groundPlane.ptr);
 
         Vector3 minTerrainCoords = new Vector3(0f, 0f, HEIGHT_INITIALIZATION - HEIGHT_EQUAL_FUDGE);
         Vector3 maxTerrainCoords = new Vector3(DefaultRegionSize.X, DefaultRegionSize.Y, HEIGHT_INITIALIZATION);
@@ -128,13 +128,13 @@ public class BSTerrainManager
     // Release all the terrain structures we might have allocated
     public void ReleaseGroundPlaneAndTerrain()
     {
-        if (m_groundPlane.Ptr != IntPtr.Zero)
+        if (m_groundPlane.ptr != IntPtr.Zero)
         {
-            if (BulletSimAPI.RemoveObjectFromWorld2(PhysicsScene.World.Ptr, m_groundPlane.Ptr))
+            if (BulletSimAPI.RemoveObjectFromWorld2(PhysicsScene.World.ptr, m_groundPlane.ptr))
             {
-                BulletSimAPI.DestroyObject2(PhysicsScene.World.Ptr, m_groundPlane.Ptr);
+                BulletSimAPI.DestroyObject2(PhysicsScene.World.ptr, m_groundPlane.ptr);
             }
-            m_groundPlane.Ptr = IntPtr.Zero;
+            m_groundPlane.ptr = IntPtr.Zero;
         }
 
         ReleaseTerrain();
@@ -145,9 +145,9 @@ public class BSTerrainManager
     {
         foreach (KeyValuePair<Vector2, BulletHeightMapInfo> kvp in m_heightMaps)
         {
-            if (BulletSimAPI.RemoveObjectFromWorld2(PhysicsScene.World.Ptr, kvp.Value.terrainBody.Ptr))
+            if (BulletSimAPI.RemoveObjectFromWorld2(PhysicsScene.World.ptr, kvp.Value.terrainBody.ptr))
             {
-                BulletSimAPI.DestroyObject2(PhysicsScene.World.Ptr, kvp.Value.terrainBody.Ptr);
+                BulletSimAPI.DestroyObject2(PhysicsScene.World.ptr, kvp.Value.terrainBody.ptr);
                 BulletSimAPI.ReleaseHeightMapInfo2(kvp.Value.Ptr);
             }
         }
@@ -248,17 +248,17 @@ public class BSTerrainManager
                     return;
                 }
 
-                if (mapInfo.terrainBody.Ptr != IntPtr.Zero)
+                if (mapInfo.terrainBody.ptr != IntPtr.Zero)
                 {
                     // Updating an existing terrain.
                     DetailLog("{0},UpdateOrCreateTerrain:UpdateExisting,taint,terrainBase={1},minC={2}, maxC={3}, szX={4}, szY={5}", 
                                     BSScene.DetailLogZero, terrainRegionBase, mapInfo.minCoords, mapInfo.maxCoords, mapInfo.sizeX, mapInfo.sizeY);
 
                     // Remove from the dynamics world because we're going to mangle this object
-                    BulletSimAPI.RemoveObjectFromWorld2(PhysicsScene.World.Ptr, mapInfo.terrainBody.Ptr);
+                    BulletSimAPI.RemoveObjectFromWorld2(PhysicsScene.World.ptr, mapInfo.terrainBody.ptr);
 
                     // Get rid of the old terrain
-                    BulletSimAPI.DestroyObject2(PhysicsScene.World.Ptr, mapInfo.terrainBody.Ptr);
+                    BulletSimAPI.DestroyObject2(PhysicsScene.World.ptr, mapInfo.terrainBody.ptr);
                     BulletSimAPI.ReleaseHeightMapInfo2(mapInfo.Ptr);
                     mapInfo.Ptr = IntPtr.Zero;
 
@@ -289,7 +289,7 @@ public class BSTerrainManager
                                     BSScene.DetailLogZero, mapInfo.minCoords.X, mapInfo.minCoords.Y, minZ, maxZ);
 
                     mapInfo.ID = id;
-                    mapInfo.Ptr = BulletSimAPI.CreateHeightMapInfo2(PhysicsScene.World.Ptr, mapInfo.ID,
+                    mapInfo.Ptr = BulletSimAPI.CreateHeightMapInfo2(PhysicsScene.World.ptr, mapInfo.ID,
                         mapInfo.minCoords, mapInfo.maxCoords, mapInfo.heightMap, TERRAIN_COLLISION_MARGIN);
 
                     // The terrain object initial position is at the center of the object
@@ -303,7 +303,7 @@ public class BSTerrainManager
                                 ShapeData.PhysicsShapeType.SHAPE_TERRAIN);
 
                     mapInfo.terrainBody = new BulletBody(mapInfo.ID, 
-                            BulletSimAPI.CreateBodyWithDefaultMotionState2(mapInfo.terrainShape.Ptr, 
+                            BulletSimAPI.CreateBodyWithDefaultMotionState2(mapInfo.terrainShape.ptr, 
                                             centerPos, Quaternion.Identity)); 
                 }
 
@@ -311,22 +311,22 @@ public class BSTerrainManager
                 m_heightMaps[terrainRegionBase] = mapInfo;
 
                 // Set current terrain attributes
-                BulletSimAPI.SetFriction2(mapInfo.terrainBody.Ptr, PhysicsScene.Params.terrainFriction);
-                BulletSimAPI.SetHitFraction2(mapInfo.terrainBody.Ptr, PhysicsScene.Params.terrainHitFraction);
-                BulletSimAPI.SetRestitution2(mapInfo.terrainBody.Ptr, PhysicsScene.Params.terrainRestitution);
-                BulletSimAPI.SetCollisionFlags2(mapInfo.terrainBody.Ptr, CollisionFlags.CF_STATIC_OBJECT);
+                BulletSimAPI.SetFriction2(mapInfo.terrainBody.ptr, PhysicsScene.Params.terrainFriction);
+                BulletSimAPI.SetHitFraction2(mapInfo.terrainBody.ptr, PhysicsScene.Params.terrainHitFraction);
+                BulletSimAPI.SetRestitution2(mapInfo.terrainBody.ptr, PhysicsScene.Params.terrainRestitution);
+                BulletSimAPI.SetCollisionFlags2(mapInfo.terrainBody.ptr, CollisionFlags.CF_STATIC_OBJECT);
 
-                BulletSimAPI.SetMassProps2(mapInfo.terrainBody.Ptr, 0f, Vector3.Zero);
-                BulletSimAPI.UpdateInertiaTensor2(mapInfo.terrainBody.Ptr);
+                BulletSimAPI.SetMassProps2(mapInfo.terrainBody.ptr, 0f, Vector3.Zero);
+                BulletSimAPI.UpdateInertiaTensor2(mapInfo.terrainBody.ptr);
 
                 // Return the new terrain to the world of physical objects
-                BulletSimAPI.AddObjectToWorld2(PhysicsScene.World.Ptr, mapInfo.terrainBody.Ptr);
+                BulletSimAPI.AddObjectToWorld2(PhysicsScene.World.ptr, mapInfo.terrainBody.ptr);
 
                 // redo its bounding box now that it is in the world
-                BulletSimAPI.UpdateSingleAabb2(PhysicsScene.World.Ptr, mapInfo.terrainBody.Ptr);
+                BulletSimAPI.UpdateSingleAabb2(PhysicsScene.World.ptr, mapInfo.terrainBody.ptr);
 
                 // Make sure the new shape is processed.
-                BulletSimAPI.Activate2(mapInfo.terrainBody.Ptr, true);
+                BulletSimAPI.Activate2(mapInfo.terrainBody.ptr, true);
 
                 m_terrainModified = true;
             };
@@ -361,7 +361,7 @@ public class BSTerrainManager
                 DetailLog("{0},UpdateOrCreateTerrain:NewTerrain,taint,baseX={1},baseY={2}", BSScene.DetailLogZero, minCoords.X, minCoords.Y);
                 // Create a new mapInfo that will be filled with the new info
                 mapInfo = new BulletHeightMapInfo(id, heightMapX,
-                        BulletSimAPI.CreateHeightMapInfo2(PhysicsScene.World.Ptr, newTerrainID, 
+                        BulletSimAPI.CreateHeightMapInfo2(PhysicsScene.World.ptr, newTerrainID, 
                                     minCoordsX, maxCoordsX, heightMapX, TERRAIN_COLLISION_MARGIN));
                 // Put the unfilled heightmap info into the collection of same
                 m_heightMaps.Add(terrainRegionBase, mapInfo);

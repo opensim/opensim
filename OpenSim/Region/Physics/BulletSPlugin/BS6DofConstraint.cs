@@ -44,7 +44,7 @@ public class BS6DofConstraint : BSConstraint
         m_body1 = obj1;
         m_body2 = obj2;
         m_constraint = new BulletConstraint(
-                            BulletSimAPI.Create6DofConstraint2(m_world.Ptr, m_body1.Ptr, m_body2.Ptr,
+                            BulletSimAPI.Create6DofConstraint2(m_world.ptr, m_body1.ptr, m_body2.ptr,
                                 frame1, frame1rot,
                                 frame2, frame2rot,
                                 useLinearReferenceFrameA, disableCollisionsBetweenLinkedBodies));
@@ -59,7 +59,7 @@ public class BS6DofConstraint : BSConstraint
         m_body1 = obj1;
         m_body2 = obj2;
         m_constraint = new BulletConstraint(
-                            BulletSimAPI.Create6DofConstraintToPoint2(m_world.Ptr, m_body1.Ptr, m_body2.Ptr,
+                            BulletSimAPI.Create6DofConstraintToPoint2(m_world.ptr, m_body1.ptr, m_body2.ptr,
                                 joinPoint,
                                 useLinearReferenceFrameA, disableCollisionsBetweenLinkedBodies));
         m_enabled = true;

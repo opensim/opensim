@@ -114,7 +114,7 @@ public class BSCharacter : BSPhysObject
             // Set the buoyancy for flying. This will be refactored when all the settings happen in C#
             BulletSimAPI.SetObjectBuoyancy(PhysicsScene.WorldID, LocalID, _buoyancy);
 
-            BSBody = new BulletBody(LocalID, BulletSimAPI.GetBodyHandle2(PhysicsScene.World.Ptr, LocalID));
+            BSBody = new BulletBody(LocalID, BulletSimAPI.GetBodyHandle2(PhysicsScene.World.ptr, LocalID));
         });
             
         return;
@@ -189,10 +189,10 @@ public class BSCharacter : BSPhysObject
         _rotationalVelocity = OMV.Vector3.Zero;
 
         // Zero some other properties directly into the physics engine
-        BulletSimAPI.SetLinearVelocity2(BSBody.Ptr, OMV.Vector3.Zero);
-        BulletSimAPI.SetAngularVelocity2(BSBody.Ptr, OMV.Vector3.Zero);
-        BulletSimAPI.SetInterpolationVelocity2(BSBody.Ptr, OMV.Vector3.Zero, OMV.Vector3.Zero);
-        BulletSimAPI.ClearForces2(BSBody.Ptr);
+        BulletSimAPI.SetLinearVelocity2(BSBody.ptr, OMV.Vector3.Zero);
+        BulletSimAPI.SetAngularVelocity2(BSBody.ptr, OMV.Vector3.Zero);
+        BulletSimAPI.SetInterpolationVelocity2(BSBody.ptr, OMV.Vector3.Zero, OMV.Vector3.Zero);
+        BulletSimAPI.ClearForces2(BSBody.ptr);
     }
 
     public override void LockAngularMotion(OMV.Vector3 axis) { return; }
@@ -437,7 +437,7 @@ public class BSCharacter : BSPhysObject
             PhysicsScene.TaintedObject("BSCharacter.AddForce", delegate()
             {
                 DetailLog("{0},BSCharacter.setAddForce,taint,addedForce={1}", LocalID, _force);
-                BulletSimAPI.SetObjectForce2(BSBody.Ptr, _force);
+                BulletSimAPI.SetObjectForce2(BSBody.ptr, _force);
             });
         }
         else
