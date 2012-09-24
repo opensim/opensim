@@ -118,11 +118,19 @@ namespace OpenSim.Region.ClientStack.Linden
         private IAssetService m_assetService;
         private bool m_dumpAssetsToFile = false;
         private string m_regionName;
+
         private int m_levelUpload = 0;
-        private float m_PrimScaleMin = 0.001f;
-        private bool m_enableFreeTestUpload = false;
-        private bool m_enableModelUploadTextureToInventory = false;
+
+        private bool m_enableFreeTestUpload = false; // allows "TEST-" prefix hack
+        private bool m_ForceFreeTestUpload = false; // forces all uploads to be test
+
+        private bool m_enableModelUploadTextureToInventory = false; // place uploaded textures also in inventory
+                                                                    // may not be visible till relog
+        
+        private bool m_RestrictFreeTestUploadPerms = false; // reduces also the permitions. Needs a creator defined!!
         private UUID m_testAssetsCreatorID = UUID.Zero;
+
+        private float m_PrimScaleMin = 0.001f;
 
         private enum FileAgentInventoryState : int
         {
@@ -143,16 +151,16 @@ namespace OpenSim.Region.ClientStack.Linden
             // tell it about scene object limits
             m_ModelCost.NonPhysicalPrimScaleMax = m_Scene.m_maxNonphys;
             m_ModelCost.PhysicalPrimScaleMax = m_Scene.m_maxPhys;
-//            m_ModelCost.PrimScaleMin = ??
+            
 //            m_ModelCost.ObjectLinkedPartsMax = ??
-//            m_PrimScaleMin = ??
+//            m_ModelCost.PrimScaleMin = ??
 
+            m_PrimScaleMin = m_ModelCost.PrimScaleMin;
             float modelTextureUploadFactor = m_ModelCost.ModelTextureCostFactor;
             float modelUploadFactor = m_ModelCost.ModelMeshCostFactor;
             float modelMinUploadCostFactor = m_ModelCost.ModelMinCostFactor;
-
-            // can be UUID.zero. This is me at OSG, should be a valid grid ID, is case a bad config
-            UUID.TryParse("58e06f33-ea8c-4ff6-9af5-420606926118", out m_testAssetsCreatorID);
+            float modelPrimCreationCost = m_ModelCost.primCreationCost;
+            float modelMeshByteCost = m_ModelCost.bytecost;
 
             IConfigSource config = m_Scene.Config;
             if (config != null)
@@ -175,10 +183,16 @@ namespace OpenSim.Region.ClientStack.Linden
                     modelUploadFactor = EconomyConfig.GetFloat("MeshModelUploadCostFactor", modelUploadFactor);
                     modelTextureUploadFactor = EconomyConfig.GetFloat("MeshModelUploadTextureCostFactor", modelTextureUploadFactor);
                     modelMinUploadCostFactor = EconomyConfig.GetFloat("MeshModelMinCostFactor", modelMinUploadCostFactor);
-                    m_enableModelUploadTextureToInventory = EconomyConfig.GetBoolean("MeshModelAllowTextureToInventory", false);
+                    // next 2 are normalized so final cost is afected by modelUploadFactor above and normal cost
+                    modelPrimCreationCost = EconomyConfig.GetFloat("ModelPrimCreationCost", modelPrimCreationCost);
+                    modelMeshByteCost = EconomyConfig.GetFloat("ModelMeshByteCost", modelMeshByteCost);
 
-                    m_enableFreeTestUpload = EconomyConfig.GetBoolean("AllowFreeTestUpload", false);
-                    string testcreator = EconomyConfig.GetString("TestAssetsCreatorID", m_testAssetsCreatorID.ToString());
+                    m_enableModelUploadTextureToInventory = EconomyConfig.GetBoolean("MeshModelAllowTextureToInventory", m_enableModelUploadTextureToInventory);
+
+                    m_RestrictFreeTestUploadPerms = EconomyConfig.GetBoolean("m_RestrictFreeTestUploadPerms", m_RestrictFreeTestUploadPerms);
+                    m_enableFreeTestUpload = EconomyConfig.GetBoolean("AllowFreeTestUpload", m_enableFreeTestUpload);
+                    m_ForceFreeTestUpload = EconomyConfig.GetBoolean("ForceFreeTestUpload", m_ForceFreeTestUpload);
+                    string testcreator = EconomyConfig.GetString("TestAssetsCreatorID", "");
                     if (testcreator != "")
                     {
                         UUID id;
@@ -190,6 +204,8 @@ namespace OpenSim.Region.ClientStack.Linden
                     m_ModelCost.ModelMeshCostFactor = modelUploadFactor;
                     m_ModelCost.ModelTextureCostFactor = modelTextureUploadFactor;
                     m_ModelCost.ModelMinCostFactor = modelMinUploadCostFactor;
+                    m_ModelCost.primCreationCost = modelPrimCreationCost;
+                    m_ModelCost.bytecost = modelMeshByteCost;
                 }
             }
 
@@ -490,6 +506,8 @@ namespace OpenSim.Region.ClientStack.Linden
             int nreqinstances = 0;
             bool IsAtestUpload = false;
 
+            string assetName = llsdRequest.name;
+
             LLSDAssetUploadResponseData meshcostdata = new LLSDAssetUploadResponseData();
 
             if (llsdRequest.asset_type == "texture" ||
@@ -497,7 +515,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 llsdRequest.asset_type == "mesh" ||
                 llsdRequest.asset_type == "sound")
             {
-                ScenePresence avatar = null;              
+                ScenePresence avatar = null;
                 m_Scene.TryGetScenePresence(m_HostCapsObj.AgentID, out avatar);
 
                 // check user level
@@ -519,7 +537,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     }
                 }
 
-                // check funds
+                // check test upload and funds
                 if (client != null)
                 {
                     IMoneyModule mm = m_Scene.RequestModuleInterface<IMoneyModule>();
@@ -558,41 +576,53 @@ namespace OpenSim.Region.ClientStack.Linden
                         cost = baseCost;
                     }
 
-                    if (m_enableFreeTestUpload && cost > 0 && mm != null)
+                    if (cost > 0 && mm != null)
                     {
-                        string str = llsdRequest.name;
-                        if (str.Length > 5 && str.StartsWith("TEST-"))
+                        // check for test upload
+
+                        if (m_ForceFreeTestUpload) // all are test
                         {
-                            warning += "Upload will have no cost, but for personal test purposes only. Other uses are forbiden";
+                            if (!(assetName.Length > 5 && assetName.StartsWith("TEST-"))) // has normal name lets change it
+                                assetName = "TEST-" + assetName;
+
                             IsAtestUpload = true;
+                        }
+
+                        else if (m_enableFreeTestUpload) // only if prefixed with "TEST-"
+                        {
+
+                            IsAtestUpload = (assetName.Length > 5 && assetName.StartsWith("TEST-"));
+                        }
+
+
+                        if(IsAtestUpload) // let user know, still showing cost estimation
+                            warning += "Upload will have no cost, for personal test purposes only. Other uses are forbiden. Items may not work on another region";
+
+                        // check funds
+                        else
+                        {
+                            if (!mm.UploadCovered(client.AgentId, (int)cost))
+                            {
+                                LLSDAssetUploadError resperror = new LLSDAssetUploadError();
+                                resperror.message = "Insuficient funds";
+                                resperror.identifier = UUID.Zero;
+
+                                LLSDAssetUploadResponse errorResponse = new LLSDAssetUploadResponse();
+                                errorResponse.uploader = "";
+                                errorResponse.state = "error";
+                                errorResponse.error = resperror;
+                                lock (m_ModelCost)
+                                    m_FileAgentInventoryState = FileAgentInventoryState.idle;
+                                return errorResponse;
+                            }
                         }
                     }
 
                     if (client != null && warning != String.Empty)
                         client.SendAgentAlertMessage(warning, true);
-
-                    // check funds
-                    if (!IsAtestUpload && mm != null && cost >0)
-                    {
-                        if (!mm.UploadCovered(client.AgentId, (int)cost))
-                        {
-                            LLSDAssetUploadError resperror = new LLSDAssetUploadError();
-                            resperror.message = "Insuficient funds";
-                            resperror.identifier = UUID.Zero;
-
-                            LLSDAssetUploadResponse errorResponse = new LLSDAssetUploadResponse();
-                            errorResponse.uploader = "";
-                            errorResponse.state = "error";
-                            errorResponse.error = resperror;
-                            lock (m_ModelCost)
-                                m_FileAgentInventoryState = FileAgentInventoryState.idle;
-                            return errorResponse;
-                        }
-                    }
                 }
             }
-
-            string assetName = llsdRequest.name;
+            
             string assetDes = llsdRequest.description;
             string capsBase = "/CAPS/" + m_HostCapsObj.CapsObjectPath;
             UUID newAsset = UUID.Random();
@@ -607,7 +637,7 @@ namespace OpenSim.Region.ClientStack.Linden
             AssetUploader uploader =
                 new AssetUploader(assetName, assetDes, newAsset, newInvItem, parentFolder, llsdRequest.inventory_type,
                         llsdRequest.asset_type, capsBase + uploaderPath, m_HostCapsObj.HttpListener, m_dumpAssetsToFile, cost,
-                        texturesFolder, nreqtextures, nreqmeshs, nreqinstances,IsAtestUpload);
+                        texturesFolder, nreqtextures, nreqmeshs, nreqinstances, IsAtestUpload);
 
             m_HostCapsObj.HttpListener.AddStreamHandler(
                 new BinaryStreamHandler(
@@ -667,12 +697,16 @@ namespace OpenSim.Region.ClientStack.Linden
             sbyte assType = 0;
             sbyte inType = 0;
 
+            IClientAPI client = null;
+
             UUID owner_id = m_HostCapsObj.AgentID;
             UUID creatorID;
 
             bool istest = IsAtestUpload && m_enableFreeTestUpload && (cost > 0);
 
-            if (istest)
+            bool restrictPerms = m_RestrictFreeTestUploadPerms && istest;
+
+            if (istest && m_testAssetsCreatorID != UUID.Zero)
                 creatorID = m_testAssetsCreatorID;
             else
                 creatorID = owner_id;
@@ -755,10 +789,19 @@ namespace OpenSim.Region.ClientStack.Linden
 
                     List<UUID> textures = new List<UUID>();
 
+                   
+                    if (doTextInv)
+                        m_Scene.TryGetClient(m_HostCapsObj.AgentID, out client);
+
+                    if(client == null) // don't put textures in inventory if there is no client
+                        doTextInv = false;
+
                     for (int i = 0; i < texture_list.Count; i++)
                     {
                         AssetBase textureAsset = new AssetBase(UUID.Random(), assetName, (sbyte)AssetType.Texture, creatorIDstr);
                         textureAsset.Data = texture_list[i].AsBinary();
+                        if (istest)
+                            textureAsset.Local = true;
                         m_assetService.Store(textureAsset);
                         textures.Add(textureAsset.FullID);
 
@@ -788,9 +831,8 @@ namespace OpenSim.Region.ClientStack.Linden
                             texitem.NextPermissions = (uint)PermissionMask.All;
                             texitem.CreationDate = Util.UnixTimeSinceEpoch();
 
-                            AddNewInventoryItem(m_HostCapsObj.AgentID, texitem, 0);
+                            m_Scene.AddInventoryItem(client, texitem);
                             texitem = null;
-                            // this aren't showing up in viewer until relog :(
                         }
                     }
 
@@ -800,6 +842,8 @@ namespace OpenSim.Region.ClientStack.Linden
                     {
                         AssetBase meshAsset = new AssetBase(UUID.Random(), assetName, (sbyte)AssetType.Mesh, creatorIDstr);
                         meshAsset.Data = mesh_list[i].AsBinary();
+                        if (istest)
+                            meshAsset.Local = true;
                         m_assetService.Store(meshAsset);
                         meshAssets.Add(meshAsset.FullID);
                     }
@@ -908,14 +952,12 @@ namespace OpenSim.Region.ClientStack.Linden
 //                    UUID owner_id = permissions["owner_id"].AsUUID();
 //                    int owner_mask = permissions["owner_mask"].AsInteger();
 // no longer used - end ------------------------
-
-                        
+                       
 
                         SceneObjectPart prim
                             = new SceneObjectPart(owner_id, pbs, position, Quaternion.Identity, Vector3.Zero);
 
                         prim.Scale = scale;
-//                        prim.OffsetPosition = position;
                         rotations.Add(rotation);
                         positions.Add(position);
                         prim.UUID = UUID.Random();
@@ -930,18 +972,20 @@ namespace OpenSim.Region.ClientStack.Linden
                         else
                             prim.Name = assetName + "#" + i.ToString();
 
-                        if (istest)
+                        if (restrictPerms)
                         {
                             prim.BaseMask = (uint)(PermissionMask.Move | PermissionMask.Modify);
                             prim.EveryoneMask = 0;
                             prim.GroupMask = 0;
                             prim.NextOwnerMask = 0;
                             prim.OwnerMask = (uint)(PermissionMask.Move | PermissionMask.Modify);
-
-                            prim.Description = "For personal testing only. Other uses are forbiden";
                         }
+
+                        if(istest)
+                            prim.Description = "For personal testing only. Other uses are forbiden";
                         else
                             prim.Description = "";
+
                         prim.Material = material;
                         prim.PhysicsShapeType = physicsShapeType;
 
@@ -1007,6 +1051,8 @@ namespace OpenSim.Region.ClientStack.Linden
             AssetBase asset;
             asset = new AssetBase(assetID, assetName, assType, creatorIDstr);
             asset.Data = data;
+            if (istest)
+                asset.Local = true;
             if (AddNewAsset != null)
                 AddNewAsset(asset);
             else if (m_assetService != null)
@@ -1019,7 +1065,10 @@ namespace OpenSim.Region.ClientStack.Linden
             item.ID = inventoryItem;
             item.AssetID = asset.FullID;
             if (istest)
+            {
                 item.Description = "For personal testing only. Other uses are forbiden";
+                item.Flags = (uint) (InventoryItemFlags.SharedSingleReference);
+            }
             else
                 item.Description = assetDescription;
             item.Name = assetName;
@@ -1030,7 +1079,7 @@ namespace OpenSim.Region.ClientStack.Linden
             // If we set PermissionMask.All then when we rez the item the next permissions will replace the current
             // (owner) permissions.  This becomes a problem if next permissions are changed.
 
-            if (istest)
+            if (restrictPerms)
             {
                 item.CurrentPermissions
                     = (uint)(PermissionMask.Move | PermissionMask.Modify);
@@ -1051,16 +1100,18 @@ namespace OpenSim.Region.ClientStack.Linden
 
             item.CreationDate = Util.UnixTimeSinceEpoch();
 
-            IClientAPI client = null;
             m_Scene.TryGetClient(m_HostCapsObj.AgentID, out client);
 
             if (AddNewInventoryItem != null)
             {
                 if (istest)
                 {
+                    m_Scene.AddInventoryItem(client, item);
+/*
                     AddNewInventoryItem(m_HostCapsObj.AgentID, item, 0);
                     if (client != null)
-                        client.SendAgentAlertMessage("Upload complete with no cost for personal testing purposes only. Other uses are forbiden", true);
+                        client.SendAgentAlertMessage("Upload will have no cost, for personal test purposes only. Other uses are forbiden. Items may not work on a another region" , true);
+ */
                 }
                 else
                 {
@@ -1487,22 +1538,34 @@ namespace OpenSim.Region.ClientStack.Linden
                 handlerUpLoad(m_assetName, m_assetDes, newAssetID, inv, parentFolder, data, m_invType, m_assetType,
                     m_cost, m_texturesFolder, m_nreqtextures, m_nreqmeshs, m_nreqinstances, m_IsAtestUpload, ref m_error);
             }
-            if(m_error == String.Empty)
-            {
-                uploadComplete.new_asset = newAssetID.ToString();
-                uploadComplete.new_inventory_item = inv;
-//                if (m_texturesFolder != UUID.Zero)
-//                    uploadComplete.new_texture_folder_id = m_texturesFolder;
-                uploadComplete.state = "complete";
-            }
-            else
+            if (m_IsAtestUpload)
             {
                 LLSDAssetUploadError resperror = new LLSDAssetUploadError();
-                resperror.message = m_error;
+                resperror.message = "Upload SUCESSEFULL for testing purposes only. Other uses are forbiden. Item may not work on other region";
                 resperror.identifier = inv;
 
                 uploadComplete.error = resperror;
-                uploadComplete.state = "failed";
+                uploadComplete.state = "Upload4Testing";
+            }
+            else
+            {
+                if (m_error == String.Empty)
+                {
+                    uploadComplete.new_asset = newAssetID.ToString();
+                    uploadComplete.new_inventory_item = inv;
+                    //                if (m_texturesFolder != UUID.Zero)
+                    //                    uploadComplete.new_texture_folder_id = m_texturesFolder;
+                    uploadComplete.state = "complete";
+                }
+                else
+                {
+                    LLSDAssetUploadError resperror = new LLSDAssetUploadError();
+                    resperror.message = m_error;
+                    resperror.identifier = inv;
+
+                    uploadComplete.error = resperror;
+                    uploadComplete.state = "failed";
+                }
             }
 
             res = LLSDHelpers.SerialiseLLSDReply(uploadComplete);
