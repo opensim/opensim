@@ -636,11 +636,11 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
             catch (IOException e)
             {
-                m_log.Error(String.Format("[BASE HTTP SERVER]: HandleRequest() threw {0} ", e.Message), e);
+                m_log.Error(String.Format("[BASE HTTP SERVER]: HandleRequest() threw {0} ", e.StackTrace), e);
             }
             catch (Exception e)
             {
-                m_log.Error(String.Format("[BASE HTTP SERVER]: HandleRequest() threw {0} ", e.Message), e);
+                m_log.Error(String.Format("[BASE HTTP SERVER]: HandleRequest() threw {0} ", e.StackTrace), e);
                 SendHTML500(response);
             }
             finally

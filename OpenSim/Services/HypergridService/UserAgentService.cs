@@ -77,6 +77,10 @@ namespace OpenSim.Services.HypergridService
 
         protected static bool m_BypassClientVerification;
 
+        private static Dictionary<int, bool> m_ForeignTripsAllowed = new Dictionary<int, bool>();
+        private static Dictionary<int, List<string>> m_TripsAllowedExceptions = new Dictionary<int, List<string>>();
+        private static Dictionary<int, List<string>> m_TripsDisallowedExceptions = new Dictionary<int, List<string>>();
+
         public UserAgentService(IConfigSource config) : this(config, null)
         {
         }
@@ -121,6 +125,12 @@ namespace OpenSim.Services.HypergridService
                 m_PresenceService = ServerUtils.LoadPlugin<IPresenceService>(presenceService, args);
                 m_UserAccountService = ServerUtils.LoadPlugin<IUserAccountService>(userAccountService, args);
 
+                m_LevelOutsideContacts = serverConfig.GetInt("LevelOutsideContacts", 0);
+
+                LoadTripPermissionsFromConfig(serverConfig, "ForeignTripsAllowed");
+                LoadDomainExceptionsFromConfig(serverConfig, "AllowExcept", m_TripsAllowedExceptions);
+                LoadDomainExceptionsFromConfig(serverConfig, "DisallowExcept", m_TripsDisallowedExceptions);
+
                 m_GridName = serverConfig.GetString("ExternalName", string.Empty);
                 if (m_GridName == string.Empty)
                 {
@@ -130,9 +140,42 @@ namespace OpenSim.Services.HypergridService
                 if (!m_GridName.EndsWith("/"))
                     m_GridName = m_GridName + "/";
 
-                m_LevelOutsideContacts = serverConfig.GetInt("LevelOutsideContacts", 0);
             }
         }
+
+        protected void LoadTripPermissionsFromConfig(IConfig config, string variable)
+        {
+            foreach (string keyName in config.GetKeys())
+            {
+                if (keyName.StartsWith(variable + "_Level_"))
+                {
+                    int level = 0;
+                    if (Int32.TryParse(keyName.Replace(variable + "_Level_", ""), out level))
+                        m_ForeignTripsAllowed.Add(level, config.GetBoolean(keyName, true));
+                }
+            }
+        }
+
+        protected void LoadDomainExceptionsFromConfig(IConfig config, string variable, Dictionary<int, List<string>> exceptions)
+        {
+            foreach (string keyName in config.GetKeys())
+            {
+                if (keyName.StartsWith(variable + "_Level_"))
+                {
+                    int level = 0;
+                    if (Int32.TryParse(keyName.Replace(variable + "_Level_", ""), out level) && !exceptions.ContainsKey(level))
+                    {
+                        exceptions.Add(level, new List<string>());
+                        string value = config.GetString(keyName, string.Empty);
+                        string[] parts = value.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+                        foreach (string s in parts)
+                            exceptions[level].Add(s.Trim());
+                    }
+                }
+            }
+        }
+
 
         public GridRegion GetHomeRegion(UUID userID, out Vector3 position, out Vector3 lookAt)
         {
@@ -166,12 +209,38 @@ namespace OpenSim.Services.HypergridService
             m_log.DebugFormat("[USER AGENT SERVICE]: Request to login user {0} {1} (@{2}) to grid {3}", 
                 agentCircuit.firstname, agentCircuit.lastname, ((clientIP == null) ? "stored IP" : clientIP.Address.ToString()), gatekeeper.ServerURI);
 
-            if (m_UserAccountService.GetUserAccount(UUID.Zero, agentCircuit.AgentID) == null)
+            string gridName = gatekeeper.ServerURI;
+
+            UserAccount account = m_UserAccountService.GetUserAccount(UUID.Zero, agentCircuit.AgentID);
+            if (account == null)
             {
                 m_log.WarnFormat("[USER AGENT SERVICE]: Someone attempted to lauch a foreign user from here {0} {1}", agentCircuit.firstname, agentCircuit.lastname);
                 reason = "Forbidden to launch your agents from here";
                 return false;
             }
+
+            // Is this user allowed to go there?
+            if (m_GridName != gridName)
+            {
+                if (m_ForeignTripsAllowed.ContainsKey(account.UserLevel))
+                {
+                    bool allowed = m_ForeignTripsAllowed[account.UserLevel];
+
+                    if (m_ForeignTripsAllowed[account.UserLevel] && IsException(gridName, account.UserLevel, m_TripsAllowedExceptions))
+                        allowed = false;
+
+                    if (!m_ForeignTripsAllowed[account.UserLevel] && IsException(gridName, account.UserLevel, m_TripsDisallowedExceptions))
+                        allowed = true;
+
+                    if (!allowed)
+                    {
+                        reason = "Your world does not allow you to visit the destination";
+                        m_log.InfoFormat("[USER AGENT SERVICE]: Agents not permitted to visit {0}. Refusing service.", gridName);
+                        return false;
+                    }
+                }
+            }
+
 
             // Take the IP address + port of the gatekeeper (reg) plus the info of finalDestination
             GridRegion region = new GridRegion(gatekeeper);
@@ -189,7 +258,6 @@ namespace OpenSim.Services.HypergridService
             
             bool success = false;
             string myExternalIP = string.Empty;
-            string gridName = gatekeeper.ServerURI;
 
             m_log.DebugFormat("[USER AGENT SERVICE]: this grid: {0}, desired grid: {1}", m_GridName, gridName);
 
@@ -588,6 +656,35 @@ namespace OpenSim.Services.HypergridService
             else
                 return UUID.Zero;
         }
+
+        #region Misc
+
+        private bool IsException(string dest, int level, Dictionary<int, List<string>> exceptions)
+        {
+            if (!exceptions.ContainsKey(level))
+                return false;
+
+            bool exception = false;
+            if (exceptions[level].Count > 0) // we have exceptions
+            {
+                string destination = dest;
+                if (!destination.EndsWith("/"))
+                    destination += "/";
+
+                if (exceptions[level].Find(delegate(string s)
+                {
+                    if (!s.EndsWith("/"))
+                        s += "/";
+                    return s == destination;
+                }) != null)
+                    exception = true;
+            }
+
+            return exception;
+        }
+
+        #endregion
+
     }
 
     class TravelingAgentInfo

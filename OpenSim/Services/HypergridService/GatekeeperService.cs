@@ -58,9 +58,11 @@ namespace OpenSim.Services.HypergridService
         private static IUserAgentService m_UserAgentService;
         private static ISimulationService m_SimulationService;
 
-        protected string m_AllowedClients = string.Empty;
-        protected string m_DeniedClients = string.Empty;
+        private static string m_AllowedClients = string.Empty;
+        private static string m_DeniedClients = string.Empty;
         private static bool m_ForeignAgentsAllowed = true;
+        private static List<string> m_ForeignsAllowedExceptions = new List<string>();
+        private static List<string> m_ForeignsDisallowedExceptions = new List<string>();
 
         private static UUID m_ScopeID;
         private static bool m_AllowTeleportsToAnyRegion;
@@ -113,6 +115,9 @@ namespace OpenSim.Services.HypergridService
                 m_DeniedClients = serverConfig.GetString("DeniedClients", string.Empty);
                 m_ForeignAgentsAllowed = serverConfig.GetBoolean("ForeignAgentsAllowed", true);
 
+                LoadDomainExceptionsFromConfig(serverConfig, "AllowExcept", m_ForeignsAllowedExceptions);
+                LoadDomainExceptionsFromConfig(serverConfig, "DisallowExcept", m_ForeignsDisallowedExceptions);
+
                 if (m_GridService == null || m_PresenceService == null || m_SimulationService == null)
                     throw new Exception("Unable to load a required plugin, Gatekeeper Service cannot function.");
 
@@ -123,6 +128,15 @@ namespace OpenSim.Services.HypergridService
         public GatekeeperService(IConfigSource config)
             : this(config, null)
         {
+        }
+
+        protected void LoadDomainExceptionsFromConfig(IConfig config, string variable, List<string> exceptions)
+        {
+            string value = config.GetString(variable, string.Empty);
+            string[] parts = value.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (string s in parts)
+                exceptions.Add(s.Trim());
         }
 
         public bool LinkRegion(string regionName, out UUID regionID, out ulong regionHandle, out string externalName, out string imageURL, out string reason)
@@ -260,14 +274,25 @@ namespace OpenSim.Services.HypergridService
             m_log.DebugFormat("[GATEKEEPER SERVICE]: User is ok");
 
             //
-            // Foreign agents allowed
+            // Foreign agents allowed? Exceptions?
             //
-            if (account == null && !m_ForeignAgentsAllowed)
+            if (account == null) 
             {
-                reason = "Unauthorized";
-                m_log.InfoFormat("[GATEKEEPER SERVICE]: Foreign agents are not permitted {0} {1}. Refusing service.",
-                    aCircuit.firstname, aCircuit.lastname);
-                return false;
+                bool allowed = m_ForeignAgentsAllowed;
+
+                if (m_ForeignAgentsAllowed && IsException(aCircuit, m_ForeignsAllowedExceptions))
+                        allowed = false;
+
+                if (!m_ForeignAgentsAllowed && IsException(aCircuit, m_ForeignsDisallowedExceptions))
+                    allowed = true;
+
+                if (!allowed)
+                {
+                    reason = "Destination does not allow visitors from your world";
+                    m_log.InfoFormat("[GATEKEEPER SERVICE]: Foreign agents are not permitted {0} {1} @ {2}. Refusing service.",
+                        aCircuit.firstname, aCircuit.lastname, aCircuit.ServiceURLs["HomeURI"]);
+                    return false;
+                }
             }
 
             // May want to authorize
@@ -393,6 +418,27 @@ namespace OpenSim.Services.HypergridService
 
         #region Misc
 
+        private bool IsException(AgentCircuitData aCircuit, List<string> exceptions)
+        {
+            bool exception = false;
+            if (exceptions.Count > 0) // we have exceptions
+            {
+                // Retrieve the visitor's origin
+                string userURL = aCircuit.ServiceURLs["HomeURI"].ToString();
+                if (!userURL.EndsWith("/"))
+                    userURL += "/";
+
+                if (exceptions.Find(delegate(string s)
+                {
+                    if (!s.EndsWith("/"))
+                        s += "/";
+                    return s == userURL;
+                }) != null)
+                    exception = true;
+            }
+
+            return exception;
+        }
 
         #endregion
     }
