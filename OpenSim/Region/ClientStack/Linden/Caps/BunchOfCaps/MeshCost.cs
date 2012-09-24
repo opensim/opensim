@@ -35,10 +35,13 @@ namespace OpenSim.Region.ClientStack.Linden
         // fees are normalized to 1.0
         // this parameters scale them to basic cost ( so 1.0 translates to 10 )
 
-        public float ModelMeshCostFactor = 1.0f; // scale total cost relative to basic (excluding textures)
-        public float ModelTextureCostFactor = 1.0f; // scale textures fee to basic.
-        public float ModelMinCostFactor = 0.5f; // minimum total model free excluding textures
+        public float ModelMeshCostFactor = 0f; //Free
+        public float ModelMinCostFactor = 0f; // Free
+        //public float ModelMeshCostFactor = 1.0f; // scale total cost relative to basic (excluding textures)
+        //public float ModelMinCostFactor = 0.5f; // minimum total model free excluding textures
 
+        public float ModelTextureCostFactor = 1.00f; // keep full price because texture price
+                                                     // is based on it's storage needs not on usability
         // itens costs in normalized values
         // ie will be multiplied by basicCost and factors above
         const float primCreationCost = 0.002f;  // extra cost for each prim creation overhead

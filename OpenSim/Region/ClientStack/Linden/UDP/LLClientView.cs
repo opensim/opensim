@@ -2067,8 +2067,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(bulkUpdate, ThrottleOutPacketType.Asset);
         }
 
-        /// <see>IClientAPI.SendInventoryItemCreateUpdate(InventoryItemBase)</see>
         public void SendInventoryItemCreateUpdate(InventoryItemBase Item, uint callbackId)
+        {
+            SendInventoryItemCreateUpdate(Item, UUID.Zero, callbackId);
+        }
+
+        /// <see>IClientAPI.SendInventoryItemCreateUpdate(InventoryItemBase)</see>
+        public void SendInventoryItemCreateUpdate(InventoryItemBase Item, UUID transactionID, uint callbackId)
         {
             const uint FULL_MASK_PERMISSIONS = (uint)PermissionMask.All;
 
@@ -2079,6 +2084,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // TODO: don't create new blocks if recycling an old packet
             InventoryReply.AgentData.AgentID = AgentId;
             InventoryReply.AgentData.SimApproved = true;
+            InventoryReply.AgentData.TransactionID = transactionID;
             InventoryReply.InventoryData = new UpdateCreateInventoryItemPacket.InventoryDataBlock[1];
             InventoryReply.InventoryData[0] = new UpdateCreateInventoryItemPacket.InventoryDataBlock();
             InventoryReply.InventoryData[0].ItemID = Item.ID;

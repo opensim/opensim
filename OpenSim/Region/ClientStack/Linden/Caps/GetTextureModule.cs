@@ -146,14 +146,14 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 m_scene = scene;
 
-                HasEvents = (x, y) => { return this.responses.ContainsKey(x); };
+                HasEvents = (x, y) => { lock (responses) return responses.ContainsKey(x); };
                 GetEvents = (x, y, s) =>
                 {
                     lock (responses)
                     {
                         try
                         {
-                            return this.responses[x];
+                            return responses[x];
                         }
                         finally
                         {
@@ -165,15 +165,15 @@ namespace OpenSim.Region.ClientStack.Linden
                 Request = (x, y) =>
                 {
                     y["RequestID"] = x.ToString();
-                    lock (this.requests)
-                        this.requests.Add(y);
+                    lock (requests)
+                        requests.Add(y);
 
                     m_queue.Enqueue(this);
                 };
 
                 NoEvents = (x, y) =>
                 {
-                    lock (this.requests)
+                    lock (requests)
                     {
                         Hashtable request = requests.Find(id => id["RequestID"].ToString() == x.ToString());
                         requests.Remove(request);
@@ -198,7 +198,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 try
                 {
-                    lock (this.requests)
+                    lock (requests)
                     {
                         request = requests[0];
                         requests.RemoveAt(0);
@@ -221,8 +221,10 @@ namespace OpenSim.Region.ClientStack.Linden
                     response["content_type"] = "text/plain";
                     response["keepalive"] = false;
                     response["reusecontext"] = false;
+
                     lock (responses)
                         responses[requestID] = response;
+
                     return;
                 }
 
