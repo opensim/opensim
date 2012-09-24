@@ -33,6 +33,7 @@
     </Configuration>
 
     <!-- Core OpenSim Projects -->
+	
 <!--
         <Project frameworkVersion="v3_5" name="OpenSim.Model" path="OpenSim/Model" type="Library">
           <Configuration name="Debug">
