@@ -1100,7 +1100,12 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
         public void SendInventoryItemCreateUpdate(InventoryItemBase Item, uint callbackId)
         {
-            
+
+        }
+
+        public void SendInventoryItemCreateUpdate(InventoryItemBase Item, UUID transactionID, uint callbackId)
+        {
+
         }
 
         public void SendRemoveInventoryItem(UUID itemID)
