@@ -137,6 +137,26 @@
     ;; uncomment the next line. You may want to do this on sims that have licensed content.
     ; OutboundPermission = False
 
+[HGAssetService]
+    ;
+    ; === HG ONLY ===
+    ; Change this to your server 
+    ; accessible from other grids
+    ;
+    HomeURI = "http://mygridserver.com:8002"
+
+    ;; The asset types that this grid can export to / import from other grids.
+	;; Comma separated.
+	;; Valid values are all the asset types in OpenMetaverse.AssetType, namely:
+	;; Unknown, Texture, Sound, CallingCard, Landmark, Clothing, Object, Notecard, LSLText, 
+	;; LSLBytecode, TextureTGA, Bodypart, SoundWAV, ImageTGA, ImageJPEG, Animation, Gesture, Mesh 
+	;;
+	;; Leave blank or commented if you don't want to apply any restrictions.
+	;; A more strict, but still reasonable, policy may be to disallow the exchange 
+	;; of scripts, like so:
+    ; DisallowExport ="LSLText"
+    ; DisallowImport ="LSLBytecode"
+
 [HGFriendsModule]
     ; User level required to be able to send friendship invitations to foreign users
     ;LevelHGFriends = 0;

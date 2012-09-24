@@ -297,7 +297,9 @@ namespace OpenSim.ApplicationPlugins.Rest
         {
             if (!IsEnabled) return false;
             _agents.Add(agentName, handler);
-            return _httpd.AddAgentHandler(agentName, handler);
+//            return _httpd.AddAgentHandler(agentName, handler);
+            
+            return false;
         }
 
         /// <summary>
@@ -316,7 +318,7 @@ namespace OpenSim.ApplicationPlugins.Rest
             if (_agents[agentName] == handler)
             {
                 _agents.Remove(agentName);
-                return _httpd.RemoveAgentHandler(agentName, handler);
+//                return _httpd.RemoveAgentHandler(agentName, handler);
             }
             return false;
         }
@@ -358,10 +360,10 @@ namespace OpenSim.ApplicationPlugins.Rest
                 _httpd.RemoveStreamHandler(h.HttpMethod, h.Path);
             }
             _handlers = null;
-            foreach (KeyValuePair<string, IHttpAgentHandler> h in _agents)
-            {
-                _httpd.RemoveAgentHandler(h.Key, h.Value);
-            }
+//            foreach (KeyValuePair<string, IHttpAgentHandler> h in _agents)
+//            {
+//                _httpd.RemoveAgentHandler(h.Key, h.Value);
+//            }
             _agents = null;
         }
 

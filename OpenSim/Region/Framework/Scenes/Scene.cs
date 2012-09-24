@@ -106,7 +106,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Minimum value of the size of a non-physical prim in each axis
         /// </summary>
-        public float m_minNonphys = 0.01f;
+        public float m_minNonphys = 0.001f;
 
         /// <summary>
         /// Maximum value of the size of a non-physical prim in each axis
@@ -769,13 +769,13 @@ namespace OpenSim.Region.Framework.Scenes
                     PhysicalPrims = startupConfig.GetBoolean("physical_prim", true);
                     CollidablePrims = startupConfig.GetBoolean("collidable_prim", true);
 
-                    m_minNonphys = startupConfig.GetFloat("NonphysicalPrimMin", m_minNonphys);
+                    m_minNonphys = startupConfig.GetFloat("NonPhysicalPrimMin", m_minNonphys);
                     if (RegionInfo.NonphysPrimMin > 0)
                     {
                         m_minNonphys = RegionInfo.NonphysPrimMin;
                     }
 
-                    m_maxNonphys = startupConfig.GetFloat("NonphysicalPrimMax", m_maxNonphys);
+                    m_maxNonphys = startupConfig.GetFloat("NonPhysicalPrimMax", m_maxNonphys);
                     if (RegionInfo.NonphysPrimMax > 0)
                     {
                         m_maxNonphys = RegionInfo.NonphysPrimMax;
@@ -895,6 +895,8 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             // FIXME: Ultimately this should be in a module.
+            SendPeriodicAppearanceUpdates = true;
+            
             IConfig appearanceConfig = m_config.Configs["Appearance"];
             if (appearanceConfig != null)
             {

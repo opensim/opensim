@@ -87,13 +87,13 @@
     ;; from the selected region_info_source.
     ; allow_regionless = false
 
-    ;# {NonPhysicalPrimMin} {} {Minimum size of nonphysical prims?} {} 0.01
-    ;; Minimum size for non-physical prims.  Affects resizing of existing prims.  This can be overriden in the region config file (as NonphysicalPrimMin!).
-    ; NonphysicalPrimMin = 0.01
+    ;# {NonPhysicalPrimMin} {} {Minimum size of nonphysical prims?} {} 0.001
+    ;; Minimum size for non-physical prims.  Affects resizing of existing prims.  This can be overriden in the region config file (as NonPhysicalPrimMin!).
+    ; NonPhysicalPrimMin = 0.001
 
     ;# {NonPhysicalPrimMax} {} {Maximum size of nonphysical prims?} {} 256
-    ;; Maximum size for non-physical prims.  Affects resizing of existing prims.  This can be overriden in the region config file (as NonphysicalPrimMax!).
-    ; NonphysicalPrimMax = 256
+    ;; Maximum size for non-physical prims.  Affects resizing of existing prims.  This can be overriden in the region config file (as NonPhysicalPrimMax!).
+    ; NonPhysicalPrimMax = 256
 
     ;# {PhysicalPrimMin} {} {Minimum size of physical prims?} {} 10
     ;; Maximum size where a prim can be physical.  Affects resizing of existing prims.  This can be overriden in the region config file.

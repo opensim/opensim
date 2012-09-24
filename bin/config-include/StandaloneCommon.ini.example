@@ -53,6 +53,19 @@
 [HGAssetService]
     HomeURI = "http://127.0.0.1:9000"
 
+    ;; The asset types that this grid can export to / import from other grids.
+	;; Comma separated.
+	;; Valid values are all the asset types in OpenMetaverse.AssetType, namely:
+	;; Unknown, Texture, Sound, CallingCard, Landmark, Clothing, Object, Notecard, LSLText, 
+	;; LSLBytecode, TextureTGA, Bodypart, SoundWAV, ImageTGA, ImageJPEG, Animation, Gesture, Mesh 
+	;;
+	;; Leave blank or commented if you don't want to apply any restrictions.
+	;; A more strict, but still reasonable, policy may be to disallow the exchange 
+	;; of scripts, like so:
+    ; DisallowExport ="LSLText"
+    ; DisallowImport ="LSLBytecode"
+
+
 [HGInventoryAccessModule]
     HomeURI = "http://127.0.0.1:9000"
 	Gatekeeper = "http://127.0.0.1:9000"
@@ -151,8 +164,17 @@
     ;AllowedClients = ""
     ;DeniedClients = ""
 
-    ;; Are foreign visitors allowed
+    ;; Are foreign visitors allowed?
     ;ForeignAgentsAllowed = true
+    ;;
+    ;; If ForeignAgentsAllowed is true, make exceptions using AllowExcept.
+    ;; Leave blank or commented for no exceptions.
+    ; AllowExcept = "http://griefer.com:8002, http://enemy.com:8002"
+    ;;
+    ;; If ForeignAgentsAllowed is false, make exceptions using DisallowExcept
+    ;; Leave blank or commented for no exceptions.
+    ; DisallowExcept = "http://myfriendgrid.com:8002, http://myboss.com:8002"
+
 
 [FreeswitchService]
     ;; If FreeSWITCH is not being used then you don't need to set any of these parameters
@@ -258,5 +280,22 @@
 	; Region_Test_1 = "DisallowForeigners"
 
 [UserAgentService]
-    ; User level required to be contacted from other grids
+    ;; User level required to be contacted from other grids
     ;LevelOutsideContacts = 0
+
+    ;; Restrictions on destinations of local users.
+    ;; Are local users allowed to visit other grids?
+    ;; What user level? Use variables of this forrm:
+    ;; ForeignTripsAllowed_Level_<UserLevel> = true | false
+	;; (the default is true)
+    ;; For example:
+    ; ForeignTripsAllowed_Level_0 = false
+    ; ForeignTripsAllowed_Level_200 = true ; true is default, no need to say it
+    ;;
+    ;; If ForeignTripsAllowed is false, make exceptions using DisallowExcept
+    ;; Leave blank or commented for no exceptions.
+    ; DisallowExcept_Level_0 = "http://myothergrid.com:8002, http://boss.com:8002"
+	;;
+    ;; If ForeignTripsAllowed is true, make exceptions using AllowExcept.
+    ;; Leave blank or commented for no exceptions.
+    ; AllowExcept_Level_200 = "http://griefer.com:8002, http://enemy.com:8002"

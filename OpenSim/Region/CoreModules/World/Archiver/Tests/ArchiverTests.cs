@@ -65,8 +65,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
         protected TaskInventoryItem m_soundItem;
         
         [SetUp]
-        public void SetUp()
+        public override void SetUp()
         {
+            base.SetUp();
+
+            // FIXME: Do something about this - relying on statics in unit tests causes trouble sooner or later
             new SceneManager();
 
             m_archiverModule = new ArchiverModule();
