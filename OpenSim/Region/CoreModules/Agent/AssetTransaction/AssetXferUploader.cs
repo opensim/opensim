@@ -113,6 +113,8 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         public AssetXferUploader(
             AgentAssetTransactions transactions, Scene scene, UUID transactionID, bool dumpAssetToFile)
         {
+            m_asset = new AssetBase();
+
             m_transactions = transactions;
             m_transactionID = transactionID;
             m_Scene = scene;
@@ -197,9 +199,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
 
             ourClient = remoteClient;
 
-            m_asset = new AssetBase() { FullID = assetID };
-            m_asset.Name = "blank";
-            m_asset.Description = "empty";
+            m_asset.FullID = assetID;
             m_asset.Type = type;
             m_asset.CreatorID = remoteClient.AgentId.ToString();
             m_asset.Data = data;
@@ -241,22 +241,15 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
 
                 if (m_createItem)
                 {
-                    DoCreateItem(m_createItemCallback);
+                    CompleteCreateItem(m_createItemCallback);
                 }
                 else if (m_updateItem)
                 {
-                    StoreAssetForItemUpdate(m_updateItemData);
-    
-                    // Remove ourselves from the list of transactions if completion was delayed until the transaction
-                    // was complete.
-                    // TODO: Should probably do the same for create item.
-                    m_transactions.RemoveXferUploader(m_transactionID);
+                    CompleteItemUpdate(m_updateItemData);
                 }
                 else if (m_updateTaskItem)
                 {
-                    StoreAssetForTaskItemUpdate(m_updateTaskItemData);
-
-                    m_transactions.RemoveXferUploader(m_transactionID);
+                    CompleteTaskItemUpdate(m_updateTaskItemData);
                 }
 //                else if (m_storeLocal)
 //                {
@@ -314,7 +307,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             {
                 if (m_uploadState == UploadState.Complete)
                 {
-                    DoCreateItem(callbackID);
+                    CompleteCreateItem(callbackID);
                 }
                 else
                 {
@@ -341,7 +334,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
 
                 if (m_uploadState == UploadState.Complete)
                 {
-                    StoreAssetForItemUpdate(item);
+                    CompleteItemUpdate(item);
                 }
                 else
                 {
@@ -367,7 +360,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
 
                 if (m_uploadState == UploadState.Complete)
                 {
-                    StoreAssetForTaskItemUpdate(taskItem);
+                    CompleteTaskItemUpdate(taskItem);
                 }
                 else
                 {
@@ -381,29 +374,33 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         /// Store the asset for the given item when it has been uploaded.
         /// </summary>
         /// <param name="item"></param>
-        private void StoreAssetForItemUpdate(InventoryItemBase item)
+        private void CompleteItemUpdate(InventoryItemBase item)
         {
 //            m_log.DebugFormat(
 //                "[ASSET XFER UPLOADER]: Storing asset {0} for earlier item update for {1} for {2}",
 //                m_asset.FullID, item.Name, ourClient.Name);
 
             m_Scene.AssetService.Store(m_asset);
+
+            m_transactions.RemoveXferUploader(m_transactionID);
         }
 
         /// <summary>
         /// Store the asset for the given task item when it has been uploaded.
         /// </summary>
         /// <param name="taskItem"></param>
-        private void StoreAssetForTaskItemUpdate(TaskInventoryItem taskItem)
+        private void CompleteTaskItemUpdate(TaskInventoryItem taskItem)
         {
 //            m_log.DebugFormat(
 //                "[ASSET XFER UPLOADER]: Storing asset {0} for earlier task item update for {1} for {2}",
 //                m_asset.FullID, taskItem.Name, ourClient.Name);
 
             m_Scene.AssetService.Store(m_asset);
+
+            m_transactions.RemoveXferUploader(m_transactionID);
         }
 
-        private void DoCreateItem(uint callbackID)
+        private void CompleteCreateItem(uint callbackID)
         {
             ValidateAssets();
             m_Scene.AssetService.Store(m_asset);
@@ -433,6 +430,8 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                 ourClient.SendInventoryItemCreateUpdate(item, callbackID);
             else
                 ourClient.SendAlertMessage("Unable to create inventory item");
+
+            m_transactions.RemoveXferUploader(m_transactionID);
         }
 
         private void ValidateAssets()
