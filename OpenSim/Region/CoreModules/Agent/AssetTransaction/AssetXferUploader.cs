@@ -88,16 +88,33 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         private bool m_storeLocal;
         private uint nextPerm = 0;
         private IClientAPI ourClient;
-        private UUID TransactionID = UUID.Zero;
+
+        private UUID m_transactionID;
+
         private sbyte type = 0;
         private byte wearableType = 0;
         private byte[] m_oldData = null;
         public ulong XferID;
         private Scene m_Scene;
 
-        public AssetXferUploader(AgentAssetTransactions transactions, Scene scene, bool dumpAssetToFile)
+        /// <summary>
+        /// AssetXferUploader constructor
+        /// </summary>
+        /// <param name='transactions'>/param>
+        /// <param name='scene'></param>
+        /// <param name='transactionID'></param>
+        /// <param name='dumpAssetToFile'>
+        /// If true then when the asset is uploaded it is dumped to a file with the format
+        /// String.Format("{6}_{7}_{0:d2}{1:d2}{2:d2}_{3:d2}{4:d2}{5:d2}.dat",
+        ///   now.Year, now.Month, now.Day, now.Hour, now.Minute,
+        ///   now.Second, m_asset.Name, m_asset.Type);
+        /// for debugging purposes.
+        /// </param>
+        public AssetXferUploader(
+            AgentAssetTransactions transactions, Scene scene, UUID transactionID, bool dumpAssetToFile)
         {
             m_transactions = transactions;
+            m_transactionID = transactionID;
             m_Scene = scene;
             m_dumpAssetToFile = dumpAssetToFile;
         }
@@ -189,7 +206,6 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             m_asset.Local = storeLocal;
             m_asset.Temporary = tempFile;
 
-            TransactionID = transaction;
             m_storeLocal = storeLocal;
 
             if (m_asset.Data.Length > 2)
@@ -234,13 +250,13 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                     // Remove ourselves from the list of transactions if completion was delayed until the transaction
                     // was complete.
                     // TODO: Should probably do the same for create item.
-                    m_transactions.RemoveXferUploader(TransactionID);
+                    m_transactions.RemoveXferUploader(m_transactionID);
                 }
                 else if (m_updateTaskItem)
                 {
                     StoreAssetForTaskItemUpdate(m_updateTaskItemData);
 
-                    m_transactions.RemoveXferUploader(TransactionID);
+                    m_transactions.RemoveXferUploader(m_transactionID);
                 }
                 else if (m_storeLocal)
                 {
@@ -250,7 +266,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
 
             m_log.DebugFormat(
                 "[ASSET XFER UPLOADER]: Uploaded asset {0} for transaction {1}",
-                m_asset.FullID, TransactionID);
+                m_asset.FullID, m_transactionID);
 
             if (m_dumpAssetToFile)
             {
@@ -278,40 +294,37 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         }
 
         public void RequestCreateInventoryItem(IClientAPI remoteClient,
-                UUID transactionID, UUID folderID, uint callbackID,
+                UUID folderID, uint callbackID,
                 string description, string name, sbyte invType,
                 sbyte type, byte wearableType, uint nextOwnerMask)
         {
-            if (TransactionID == transactionID)
-            {
-                InventFolder = folderID;
-                m_name = name;
-                m_description = description;
-                this.type = type;
-                this.invType = invType;
-                this.wearableType = wearableType;
-                nextPerm = nextOwnerMask;
-                m_asset.Name = name;
-                m_asset.Description = description;
-                m_asset.Type = type;
+            InventFolder = folderID;
+            m_name = name;
+            m_description = description;
+            this.type = type;
+            this.invType = invType;
+            this.wearableType = wearableType;
+            nextPerm = nextOwnerMask;
+            m_asset.Name = name;
+            m_asset.Description = description;
+            m_asset.Type = type;
 
-                // We must lock to avoid a race with a separate thread uploading the asset.
-                lock (this)
+            // We must lock to avoid a race with a separate thread uploading the asset.
+            lock (this)
+            {
+                if (m_uploadState == UploadState.Complete)
                 {
-                    if (m_uploadState == UploadState.Complete)
-                    {
-                        DoCreateItem(callbackID);
-                    }
-                    else
-                    {
-                        m_createItem = true; //set flag so the inventory item is created when upload is complete
-                        m_createItemCallback = callbackID;
-                    }
+                    DoCreateItem(callbackID);
+                }
+                else
+                {
+                    m_createItem = true; //set flag so the inventory item is created when upload is complete
+                    m_createItemCallback = callbackID;
                 }
             }
         }
 
-        public void RequestUpdateInventoryItem(IClientAPI remoteClient, UUID transactionID, InventoryItemBase item)
+        public void RequestUpdateInventoryItem(IClientAPI remoteClient, InventoryItemBase item)
         {
             // We must lock to avoid a race with a separate thread uploading the asset.
             lock (this)
@@ -342,7 +355,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             }
         }
 
-        public void RequestUpdateTaskInventoryItem(IClientAPI remoteClient, UUID transactionID, TaskInventoryItem taskItem)
+        public void RequestUpdateTaskInventoryItem(IClientAPI remoteClient, TaskInventoryItem taskItem)
         {
             // We must lock to avoid a race with a separate thread uploading the asset.
             lock (this)
