@@ -155,56 +155,13 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                 description, name, invType, type, wearableType, nextOwnerMask);
         }
 
-        /// <summary>
-        /// Get an uploaded asset. If the data is successfully retrieved,
-        /// the transaction will be removed.
-        /// </summary>
-        /// <param name="transactionID"></param>
-        /// <returns>The asset if the upload has completed, null if it has not.</returns>
-        private AssetBase GetTransactionAsset(UUID transactionID)
-        {
-            lock (XferUploaders)
-            {
-                if (XferUploaders.ContainsKey(transactionID))
-                {
-                    AssetXferUploader uploader = XferUploaders[transactionID];
-                    AssetBase asset = uploader.GetAssetData();
-                    RemoveXferUploader(transactionID);
-
-                    return asset;
-                }
-            }
-
-            return null;
-        }
-
         public void RequestUpdateTaskInventoryItem(IClientAPI remoteClient,
                 SceneObjectPart part, UUID transactionID,
                 TaskInventoryItem item)
         {
-            AssetBase asset = GetTransactionAsset(transactionID);
+            AssetXferUploader uploader = RequestXferUploader(transactionID);
 
-            // Only legacy viewers use this, and they prefer CAPS, which
-            // we have, so this really never runs.
-            // Allow it, but only for "safe" types.
-            if ((InventoryType)item.InvType != InventoryType.Notecard &&
-                (InventoryType)item.InvType != InventoryType.LSL)
-                return;
-
-            if (asset != null)
-            {
-//                    m_log.DebugFormat(
-//                        "[AGENT ASSETS TRANSACTIONS]: Updating item {0} in {1} for transaction {2}", 
-//                        item.Name, part.Name, transactionID);
-                
-                asset.FullID = UUID.Random();
-                asset.Name = item.Name;
-                asset.Description = item.Description;
-                asset.Type = (sbyte)item.Type;
-                item.AssetID = asset.FullID;
-
-                m_Scene.AssetService.Store(asset);
-            }
+            uploader.RequestUpdateTaskInventoryItem(remoteClient, transactionID, item);
         }
 
         public void RequestUpdateInventoryItem(IClientAPI remoteClient,

@@ -73,10 +73,14 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         private UUID InventFolder = UUID.Zero;
         private sbyte invType = 0;
 
-        private bool m_createItem = false;
-        private uint m_createItemCallback = 0;
-        private bool m_updateItem = false;
+        private bool m_createItem;
+        private uint m_createItemCallback;
+
+        private bool m_updateItem;
         private InventoryItemBase m_updateItemData;
+
+        private bool m_updateTaskItem;
+        private TaskInventoryItem m_updateTaskItemData;
 
         private string m_description = String.Empty;
         private bool m_dumpAssetToFile;
@@ -232,6 +236,12 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                     // TODO: Should probably do the same for create item.
                     m_transactions.RemoveXferUploader(TransactionID);
                 }
+                else if (m_updateTaskItem)
+                {
+                    StoreAssetForTaskItemUpdate(m_updateTaskItemData);
+
+                    m_transactions.RemoveXferUploader(TransactionID);
+                }
                 else if (m_storeLocal)
                 {
                     m_Scene.AssetService.Store(m_asset);
@@ -332,8 +342,30 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             }
         }
 
+        public void RequestUpdateTaskInventoryItem(IClientAPI remoteClient, UUID transactionID, TaskInventoryItem taskItem)
+        {
+            // We must lock to avoid a race with a separate thread uploading the asset.
+            lock (this)
+            {
+                m_asset.Name = taskItem.Name;
+                m_asset.Description = taskItem.Description;
+                m_asset.Type = (sbyte)taskItem.Type;
+                taskItem.AssetID = m_asset.FullID;
+
+                if (m_uploadState == UploadState.Complete)
+                {
+                    StoreAssetForTaskItemUpdate(taskItem);
+                }
+                else
+                {
+                    m_updateTaskItem = true;
+                    m_updateTaskItemData = taskItem;
+                }
+            }
+        }
+
         /// <summary>
-        /// Store the asset for the given item.
+        /// Store the asset for the given item when it has been uploaded.
         /// </summary>
         /// <param name="item"></param>
         private void StoreAssetForItemUpdate(InventoryItemBase item)
@@ -341,6 +373,19 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
 //            m_log.DebugFormat(
 //                "[ASSET XFER UPLOADER]: Storing asset {0} for earlier item update for {1} for {2}",
 //                m_asset.FullID, item.Name, ourClient.Name);
+
+            m_Scene.AssetService.Store(m_asset);
+        }
+
+        /// <summary>
+        /// Store the asset for the given task item when it has been uploaded.
+        /// </summary>
+        /// <param name="taskItem"></param>
+        private void StoreAssetForTaskItemUpdate(TaskInventoryItem taskItem)
+        {
+//            m_log.DebugFormat(
+//                "[ASSET XFER UPLOADER]: Storing asset {0} for earlier task item update for {1} for {2}",
+//                m_asset.FullID, taskItem.Name, ourClient.Name);
 
             m_Scene.AssetService.Store(m_asset);
         }
