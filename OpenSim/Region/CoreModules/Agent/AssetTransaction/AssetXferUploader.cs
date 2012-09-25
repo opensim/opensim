@@ -77,7 +77,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         private string m_description = String.Empty;
         private bool m_dumpAssetToFile;
         private string m_name = String.Empty;
-        private bool m_storeLocal;
+//        private bool m_storeLocal;
         private uint nextPerm = 0;
         private IClientAPI ourClient;
 
@@ -197,7 +197,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             m_asset.Local = storeLocal;
             m_asset.Temporary = tempFile;
 
-            m_storeLocal = storeLocal;
+//            m_storeLocal = storeLocal;
 
             if (m_asset.Data.Length > 2)
             {
@@ -249,10 +249,10 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
 
                     m_transactions.RemoveXferUploader(m_transactionID);
                 }
-                else if (m_storeLocal)
-                {
-                    m_Scene.AssetService.Store(m_asset);
-                }
+//                else if (m_storeLocal)
+//                {
+//                    m_Scene.AssetService.Store(m_asset);
+//                }
             }
 
             m_log.DebugFormat(
