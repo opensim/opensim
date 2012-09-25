@@ -596,7 +596,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
 
                         if(IsAtestUpload) // let user know, still showing cost estimation
-                            warning += "Upload will have no cost, for personal test purposes only. Other uses are forbiden. Items may not work on another region";
+                            warning += "Upload will have no cost, for testing purposes only. Other uses are prohibited. Items will not work after 48 hours or on other regions";
 
                         // check funds
                         else
@@ -982,7 +982,7 @@ namespace OpenSim.Region.ClientStack.Linden
                         }
 
                         if(istest)
-                            prim.Description = "For personal testing only. Other uses are forbiden";
+                            prim.Description = "For testing only. Other uses are prohibited";
                         else
                             prim.Description = "";
 
@@ -1066,7 +1066,7 @@ namespace OpenSim.Region.ClientStack.Linden
             item.AssetID = asset.FullID;
             if (istest)
             {
-                item.Description = "For personal testing only. Other uses are forbiden";
+                item.Description = "For testing only. Other uses are prohibited";
                 item.Flags = (uint) (InventoryItemFlags.SharedSingleReference);
             }
             else
@@ -1541,7 +1541,7 @@ namespace OpenSim.Region.ClientStack.Linden
             if (m_IsAtestUpload)
             {
                 LLSDAssetUploadError resperror = new LLSDAssetUploadError();
-                resperror.message = "Upload SUCESSEFULL for testing purposes only. Other uses are forbiden. Item may not work on other region";
+                resperror.message = "Upload SUCESSEFULL for testing purposes only. Other uses are prohibited. Item will not work after 48 hours or on other regions";
                 resperror.identifier = inv;
 
                 uploadComplete.error = resperror;

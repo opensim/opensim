@@ -53,6 +53,14 @@ namespace OpenSim.Region.ClientStack.Linden
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "GetTextureModule")]
     public class GetTextureModule : INonSharedRegionModule
     {
+
+        struct aPollRequest
+        {
+            public PollServiceTextureEventArgs thepoll;
+            public UUID reqID;
+            public Hashtable request;
+        }
+
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private Scene m_scene;
@@ -64,8 +72,8 @@ namespace OpenSim.Region.ClientStack.Linden
         private Dictionary<UUID, string> m_capsDict = new Dictionary<UUID, string>();
         private static Thread[] m_workerThreads = null;
 
-        private static OpenMetaverse.BlockingQueue<PollServiceTextureEventArgs> m_queue =
-                new OpenMetaverse.BlockingQueue<PollServiceTextureEventArgs>();
+        private static OpenMetaverse.BlockingQueue<aPollRequest> m_queue =
+                new OpenMetaverse.BlockingQueue<aPollRequest>();
 
         #region ISharedRegionModule Members
 
@@ -104,7 +112,7 @@ namespace OpenSim.Region.ClientStack.Linden
                             String.Format("TextureWorkerThread{0}", i),
                             ThreadPriority.Normal,
                             false,
-                            true,
+                            false,
                             null,
                             int.MaxValue);
                 }
@@ -129,7 +137,8 @@ namespace OpenSim.Region.ClientStack.Linden
         ~GetTextureModule()
         {
             foreach (Thread t in m_workerThreads)
-                t.Abort();
+                Watchdog.AbortThread(t.ManagedThreadId);
+
         }
 
         private class PollServiceTextureEventArgs : PollServiceEventArgs
@@ -142,7 +151,12 @@ namespace OpenSim.Region.ClientStack.Linden
             private Scene m_scene;
 
             public PollServiceTextureEventArgs(UUID pId, Scene scene) :
-                    base(null, null, null, null, pId, 30000)
+                    base(null, null, null, null, pId, int.MaxValue)
+                // this should never timeout
+                // each request must be processed and return a response
+                // noevents can possible be use for nice shutdown, but not sure now
+                // the execution will provide a proper response even if it fails
+                
             {
                 m_scene = scene;
 
@@ -164,21 +178,24 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 Request = (x, y) =>
                 {
-                    y["RequestID"] = x.ToString();
-                    lock (requests)
-                        requests.Add(y);
+                    aPollRequest reqinfo = new aPollRequest();
+                    reqinfo.thepoll = this;
+                    reqinfo.reqID = x;
+                    reqinfo.request = y;
 
-                    m_queue.Enqueue(this);
+                    m_queue.Enqueue(reqinfo);
                 };
 
+                // this should never happen except possible on shutdown
                 NoEvents = (x, y) =>
                 {
+/*
                     lock (requests)
                     {
                         Hashtable request = requests.Find(id => id["RequestID"].ToString() == x.ToString());
                         requests.Remove(request);
                     }
-
+*/
                     Hashtable response = new Hashtable();
 
                     response["int_response_code"] = 500;
@@ -191,27 +208,14 @@ namespace OpenSim.Region.ClientStack.Linden
                 };
             }
 
-            public void Process()
+            public void Process(aPollRequest requestinfo)
             {
                 Hashtable response;
-                Hashtable request = null;
 
-                try
-                {
-                    lock (requests)
-                    {
-                        request = requests[0];
-                        requests.RemoveAt(0);
-                    }
-                }
-                catch
-                {
-                    return;
-                }
-
-                UUID requestID = new UUID(request["RequestID"].ToString());
+                UUID requestID = requestinfo.reqID;
 
                 // If the avatar is gone, don't bother to get the texture
+               
                 if (m_scene.GetScenePresence(Id) == null)
                 {
                     response = new Hashtable();
@@ -228,7 +232,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     return;
                 }
 
-                response = m_getTextureHandler.Handle(request);
+                response = m_getTextureHandler.Handle(requestinfo.request);
                 lock (responses)
                     responses[requestID] = response; 
             }
@@ -275,11 +279,10 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             while (true)
             {
-                PollServiceTextureEventArgs args = m_queue.Dequeue();
+                aPollRequest poolreq = m_queue.Dequeue();
 
-                args.Process();
+                poolreq.thepoll.Process(poolreq);
             }
         }
     }
-
 }
