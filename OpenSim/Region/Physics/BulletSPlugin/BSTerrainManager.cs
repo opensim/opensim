@@ -111,8 +111,12 @@ public class BSTerrainManager
                     BulletSimAPI.CreateGroundPlaneShape2(BSScene.GROUNDPLANE_ID, 1f, TERRAIN_COLLISION_MARGIN),
                     ShapeData.PhysicsShapeType.SHAPE_GROUNDPLANE);
         m_groundPlane = new BulletBody(BSScene.GROUNDPLANE_ID, 
-                        BulletSimAPI.CreateBodyWithDefaultMotionState2(groundPlaneShape.ptr, Vector3.Zero, Quaternion.Identity));
+                        BulletSimAPI.CreateBodyWithDefaultMotionState2(groundPlaneShape.ptr, BSScene.GROUNDPLANE_ID, 
+                                                            Vector3.Zero, Quaternion.Identity));
         BulletSimAPI.AddObjectToWorld2(PhysicsScene.World.ptr, m_groundPlane.ptr);
+        // Everything collides with the ground plane.
+        BulletSimAPI.SetCollisionFilterMask2(m_groundPlane.ptr,
+                        (uint)CollisionFilterGroups.GroundPlaneFilter, (uint)CollisionFilterGroups.GroundPlaneMask);
 
         Vector3 minTerrainCoords = new Vector3(0f, 0f, HEIGHT_INITIALIZATION - HEIGHT_EQUAL_FUDGE);
         Vector3 maxTerrainCoords = new Vector3(DefaultRegionSize.X, DefaultRegionSize.Y, HEIGHT_INITIALIZATION);
@@ -304,7 +308,11 @@ public class BSTerrainManager
 
                     mapInfo.terrainBody = new BulletBody(mapInfo.ID, 
                             BulletSimAPI.CreateBodyWithDefaultMotionState2(mapInfo.terrainShape.ptr, 
-                                            centerPos, Quaternion.Identity)); 
+                                            id, centerPos, Quaternion.Identity)); 
+
+                    BulletSimAPI.SetCollisionFilterMask2(mapInfo.terrainBody.ptr, 
+                                        (uint)CollisionFilterGroups.TerrainFilter,
+                                        (uint)CollisionFilterGroups.TerrainMask);
                 }
 
                 // Make sure the entry is in the heightmap table

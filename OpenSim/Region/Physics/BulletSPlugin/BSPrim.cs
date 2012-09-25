@@ -271,7 +271,7 @@ public sealed class BSPrim : BSPhysObject
                 _position = BulletSimAPI.GetPosition2(BSBody.ptr);
 
             // don't do the GetObjectPosition for root elements because this function is called a zillion times
-            // _position = BulletSimAPI.GetObjectPosition(Scene.WorldID, LocalID);
+            // _position = BulletSimAPI.GetObjectPosition2(PhysicsScene.World.ptr, BSBody.ptr);
             return _position; 
         } 
         set {
@@ -432,7 +432,7 @@ public sealed class BSPrim : BSPhysObject
             // TODO: what does it mean if a child in a linkset changes its orientation? Rebuild the constraint?
             PhysicsScene.TaintedObject("BSPrim.setOrientation", delegate()
             {
-                // _position = BulletSimAPI.GetObjectPosition(Scene.WorldID, LocalID);
+                // _position = BulletSimAPI.GetObjectPosition2(PhysicsScene.World.ptr, BSBody.ptr);
                 DetailLog("{0},BSPrim.setOrientation,taint,pos={1},orient={2}", LocalID, _position, _orientation);
                 BulletSimAPI.SetTranslation2(BSBody.ptr, _position, _orientation);
             });
@@ -492,7 +492,8 @@ public sealed class BSPrim : BSPhysObject
     {
         DetailLog("{0},BSPrim.UpdatePhysicalParameters,entry,body={1},shape={2}", LocalID, BSBody, BSShape);
 
-        // Mangling all the physical properties requires the object to be out of the physical world
+        // Mangling all the physical properties requires the object to be out of the physical world.
+        // This is a NOOP if the object is not in the world (BulletSim and Bullet ignore objects not found).
         BulletSimAPI.RemoveObjectFromWorld2(PhysicsScene.World.ptr, BSBody.ptr);
 
 #if !CSHARP_BODY_MANAGEMENT
@@ -516,6 +517,14 @@ public sealed class BSPrim : BSPhysObject
 
         // Rebuild its shape
         BulletSimAPI.UpdateSingleAabb2(PhysicsScene.World.ptr, BSBody.ptr);
+
+        // Collision filter can be set only when the object is in the world
+        if (BSBody.collisionFilter != 0 || BSBody.collisionMask != 0)
+        {
+            BulletSimAPI.SetCollisionFilterMask2(BSBody.ptr, (uint)BSBody.collisionFilter, (uint)BSBody.collisionMask);
+            DetailLog("{0},BSPrim.UpdatePhysicalParameters,setCollisionFilterMask,filter={1},mask={2}",
+                        LocalID, BSBody.collisionFilter.ToString("X"), BSBody.collisionMask.ToString("X"));
+        }
 
         // Recompute any linkset parameters.
         // When going from non-physical to physical, this re-enables the constraints that
@@ -548,8 +557,11 @@ public sealed class BSPrim : BSPhysObject
             // There can be special things needed for implementing linksets
             Linkset.MakeStatic(this);
             // The activation state is 'sleeping' so Bullet will not try to act on it
-            BulletSimAPI.ForceActivationState2(BSBody.ptr, ActivationState.ISLAND_SLEEPING);
-            // BulletSimAPI.ForceActivationState2(BSBody.Ptr, ActivationState.DISABLE_SIMULATION);
+            // BulletSimAPI.ForceActivationState2(BSBody.ptr, ActivationState.ISLAND_SLEEPING);
+            BulletSimAPI.ForceActivationState2(BSBody.ptr, ActivationState.DISABLE_SIMULATION);
+
+            BSBody.collisionFilter = CollisionFilterGroups.StaticObjectFilter;
+            BSBody.collisionMask = CollisionFilterGroups.StaticObjectMask;
         }
         else
         {
@@ -582,6 +594,9 @@ public sealed class BSPrim : BSPhysObject
 
             // Force activation of the object so Bullet will act on it.
             BulletSimAPI.Activate2(BSBody.ptr, true);
+
+            BSBody.collisionFilter = CollisionFilterGroups.ObjectFilter;
+            BSBody.collisionMask = CollisionFilterGroups.ObjectMask;
         }
     }
 
@@ -609,6 +624,8 @@ public sealed class BSPrim : BSPhysObject
                 m_log.ErrorFormat("{0} MakeSolid: physical body of wrong type for non-solidness. id={1}, type={2}", LogHeader, LocalID, bodyType);
             }
             CurrentCollisionFlags = BulletSimAPI.AddToCollisionFlags2(BSBody.ptr, CollisionFlags.CF_NO_CONTACT_RESPONSE);
+            BSBody.collisionFilter = CollisionFilterGroups.VolumeDetectFilter;
+            BSBody.collisionMask = CollisionFilterGroups.VolumeDetectMask;
         }
 #else
         // If doing the body management in C#, all this logic is in CSShapeCollection.CreateObject().
@@ -745,7 +762,6 @@ public sealed class BSPrim : BSPhysObject
                 // Buoyancy is faked by changing the gravity applied to the object
                 float grav = PhysicsScene.Params.gravity * (1f - _buoyancy);
                 BulletSimAPI.SetGravity2(BSBody.ptr, new OMV.Vector3(0f, 0f, grav));
-                // BulletSimAPI.SetObjectBuoyancy(Scene.WorldID, LocalID, _buoyancy);
             });
         } 
     }

@@ -90,7 +90,8 @@ public class BSCharacter : BSPhysObject
         // Physics creates a unit capsule which is scaled by the physics engine.
         ComputeAvatarScale(_size);
         _avatarDensity = PhysicsScene.Params.avatarDensity;
-        ComputeAvatarVolumeAndMass();   // set _avatarVolume and _mass based on capsule size, _density and _scale
+        // set _avatarVolume and _mass based on capsule size, _density and _scale
+        ComputeAvatarVolumeAndMass();
 
         ShapeData shapeData = new ShapeData();
         shapeData.ID = LocalID;
@@ -111,10 +112,15 @@ public class BSCharacter : BSPhysObject
             DetailLog("{0},BSCharacter.create,taint", LocalID);
             BulletSimAPI.CreateObject(PhysicsScene.WorldID, shapeData);
 
-            // Set the buoyancy for flying. This will be refactored when all the settings happen in C#
+            // Set the buoyancy for flying. This will be refactored when all the settings happen in C#.
+            // If not set at creation, the avatar will stop flying when created after crossing a region boundry.
             BulletSimAPI.SetObjectBuoyancy(PhysicsScene.WorldID, LocalID, _buoyancy);
 
             BSBody = new BulletBody(LocalID, BulletSimAPI.GetBodyHandle2(PhysicsScene.World.ptr, LocalID));
+
+            // This works here because CreateObject has already put the character into the physical world.
+            BulletSimAPI.SetCollisionFilterMask2(BSBody.ptr,
+                            (uint)CollisionFilterGroups.AvatarFilter, (uint)CollisionFilterGroups.AvatarMask);
         });
             
         return;

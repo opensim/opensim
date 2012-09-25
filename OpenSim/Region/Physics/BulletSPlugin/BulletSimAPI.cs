@@ -57,9 +57,13 @@ public struct BulletBody
     {
         ID = id;
         ptr = xx;
+        collisionFilter = 0;
+        collisionMask = 0;
     }
     public IntPtr ptr;
     public uint ID;
+    public CollisionFilterGroups collisionFilter;
+    public CollisionFilterGroups collisionMask;
     public override string ToString()
     {
         StringBuilder buff = new StringBuilder();
@@ -67,6 +71,13 @@ public struct BulletBody
         buff.Append(ID.ToString());
         buff.Append(",p=");
         buff.Append(ptr.ToString("X"));
+        if (collisionFilter != 0 && collisionMask != 0)
+        {
+            buff.Append(",f=");
+            buff.Append(collisionFilter.ToString("X"));
+            buff.Append(",m=");
+            buff.Append(collisionMask.ToString("X"));
+        }
         buff.Append(">");
         return buff.ToString();
     }
@@ -80,7 +91,6 @@ public struct BulletShape
         type=ShapeData.PhysicsShapeType.SHAPE_UNKNOWN;
         shapeKey = 0;
         isNativeShape = false;
-        meshPtr = IntPtr.Zero;
     }
     public BulletShape(IntPtr xx, ShapeData.PhysicsShapeType typ)
     {
@@ -88,14 +98,12 @@ public struct BulletShape
         type = typ;
         shapeKey = 0;
         isNativeShape = false;
-        meshPtr = IntPtr.Zero;
     }
     public IntPtr ptr;
     public ShapeData.PhysicsShapeType type;
     public ulong shapeKey;
     public bool isNativeShape;
     // Hulls have an underlying mesh. A pointer to it is hidden here.
-    public IntPtr meshPtr;
     public override string ToString()
     {
         StringBuilder buff = new StringBuilder();
@@ -107,8 +115,6 @@ public struct BulletShape
         buff.Append(shapeKey.ToString("X"));
         buff.Append(",n=");
         buff.Append(isNativeShape.ToString());
-        buff.Append(",m=");
-        buff.Append(meshPtr.ToString("X"));
         buff.Append(">");
         return buff.ToString();
     }
@@ -124,7 +130,7 @@ public struct BulletConstraint
     public IntPtr Ptr;
 }
 
-// An allocated HeightMapThing which hold various heightmap info
+// An allocated HeightMapThing which holds various heightmap info.
 // Made a class rather than a struct so there would be only one
 //      instance of this and C# will pass around pointers rather
 //      than making copies.
@@ -345,20 +351,40 @@ public enum CollisionFlags : uint
 // Values for collisions groups and masks
 public enum CollisionFilterGroups : uint
 {
-    NoneFilter              = 0,
-    DefaultFilter           = 1 << 0,
-    StaticFilter            = 1 << 1,
-    KinematicFilter         = 1 << 2,
-    DebrisFilter            = 1 << 3,
-    SensorTrigger           = 1 << 4,
-    CharacterFilter         = 1 << 5,
-    AllFilter               = 0xFFFFFFFF,
+    // Don't use the bit definitions!!  Define the use in a
+    //   filter/mask definition below. This way collision interactions
+    //   are more easily debugged.
+    BNoneFilter              = 0,
+    BDefaultFilter           = 1 << 0,
+    BStaticFilter            = 1 << 1,
+    BKinematicFilter         = 1 << 2,
+    BDebrisFilter            = 1 << 3,
+    BSensorTrigger           = 1 << 4,
+    BCharacterFilter         = 1 << 5,
+    BAllFilter               = 0xFFFFFFFF,
     // Filter groups defined by BulletSim
-    GroundPlaneFilter       = 1 << 10,
-    TerrainFilter           = 1 << 11,
-    RaycastFilter           = 1 << 12,
-    SolidFilter             = 1 << 13,
+    BGroundPlaneFilter       = 1 << 10,
+    BTerrainFilter           = 1 << 11,
+    BRaycastFilter           = 1 << 12,
+    BSolidFilter             = 1 << 13,
+
+    // The collsion filters and masked are defined in one place -- don't want them scattered
+    AvatarFilter            = BDefaultFilter | BCharacterFilter | BSolidFilter,
+    AvatarMask              = BAllFilter,
+    ObjectFilter            = BDefaultFilter | BSolidFilter,
+    ObjectMask              = BAllFilter,
+    StaticObjectFilter      = BDefaultFilter | BStaticFilter | BSolidFilter,
+    StaticObjectMask        = BAllFilter,
+    VolumeDetectFilter      = BSensorTrigger,
+    VolumeDetectMask        = ~BSensorTrigger,
+    TerrainFilter           = BTerrainFilter,
+    TerrainMask             = BAllFilter,
+    GroundPlaneFilter       = BAllFilter,
+    GroundPlaneMask         = BAllFilter
+
 };
+
+
 
 // CFM controls the 'hardness' of the constraint. 0=fixed, 0..1=violatable. Default=0
 // ERP controls amount of correction per tick. Usable range=0.1..0.8. Default=0.2.
@@ -560,7 +586,7 @@ public static extern IntPtr CreateHullShape2(IntPtr world,
                 int hullCount, [MarshalAs(UnmanagedType.LPArray)] float[] hulls);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern IntPtr BuildHullShape2(IntPtr world, IntPtr meshShape);
+public static extern IntPtr BuildHullShapeFromMesh2(IntPtr world, IntPtr meshShape);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern IntPtr BuildNativeShape2(IntPtr world, ShapeData shapeData);
@@ -581,7 +607,7 @@ public static extern void RemoveChildFromCompoundShape2(IntPtr cShape, IntPtr re
 public static extern IntPtr DuplicateCollisionShape2(IntPtr sim, IntPtr srcShape, uint id);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern IntPtr CreateBodyFromShapeAndInfo2(IntPtr sim, IntPtr shape, IntPtr constructionInfo);
+public static extern IntPtr CreateBodyFromShapeAndInfo2(IntPtr sim, IntPtr shape, uint id, IntPtr constructionInfo);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern bool DeleteCollisionShape2(IntPtr world, IntPtr shape);
@@ -590,13 +616,13 @@ public static extern bool DeleteCollisionShape2(IntPtr world, IntPtr shape);
 public static extern int GetBodyType2(IntPtr obj);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern IntPtr CreateBodyFromShape2(IntPtr sim, IntPtr shape, Vector3 pos, Quaternion rot);
+public static extern IntPtr CreateBodyFromShape2(IntPtr sim, IntPtr shape, uint id, Vector3 pos, Quaternion rot);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern IntPtr CreateBodyWithDefaultMotionState2(IntPtr shape, Vector3 pos, Quaternion rot);
+public static extern IntPtr CreateBodyWithDefaultMotionState2(IntPtr shape, uint id, Vector3 pos, Quaternion rot);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern IntPtr CreateGhostFromShape2(IntPtr sim, IntPtr shape, Vector3 pos, Quaternion rot);
+public static extern IntPtr CreateGhostFromShape2(IntPtr sim, IntPtr shape, uint id, Vector3 pos, Quaternion rot);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern IntPtr AllocateBodyInfo2(IntPtr obj);
@@ -1015,6 +1041,9 @@ public static extern Vector3 GetPushVelocity2(IntPtr obj);
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern Vector3 GetTurnVelocity2(IntPtr obj);
 
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern void SetCollisionFilterMask2(IntPtr body, uint filter, uint mask);
+
 // =====================================================================================
 // btCollisionShape entries
 
@@ -1065,9 +1094,6 @@ public static extern void SetMargin2(IntPtr shape, float val);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern float GetMargin2(IntPtr shape);
-
-[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern void SetCollisionFilterMask(IntPtr shape, uint filter, uint mask);
 
 // =====================================================================================
 // Debugging

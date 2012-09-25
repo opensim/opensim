@@ -39,20 +39,20 @@ using log4net;
 using OpenMetaverse;
 
 // TODOs for BulletSim (for BSScene, BSPrim, BSCharacter and BulletSim)
-// Adjust character capsule size when height is adjusted (ScenePresence.SetHeight)
-// Test sculpties
+// Move all logic out of the C++ code and into the C# code for easier future modifications.
+// Test sculpties (verified that they don't work)
 // Compute physics FPS reasonably
 // Based on material, set density and friction
-// More efficient memory usage when passing hull information from BSPrim to BulletSim
-// Move all logic out of the C++ code and into the C# code for easier future modifications.
+// Don't use constraints in linksets of non-physical objects. Means having to move children manually.
 // Four states of prim: Physical, regular, phantom and selected. Are we modeling these correctly?
 //     In SL one can set both physical and phantom (gravity, does not effect others, makes collisions with ground)
 //     At the moment, physical and phantom causes object to drop through the terrain
 // Physical phantom objects and related typing (collision options )
-// Use collision masks for collision with terrain and phantom objects 
 // Check out llVolumeDetect. Must do something for that.
+// Use collision masks for collision with terrain and phantom objects 
+// More efficient memory usage when passing hull information from BSPrim to BulletSim
 // Should prim.link() and prim.delink() membership checking happen at taint time?
-// Mesh sharing. Use meshHash to tell if we already have a hull of that shape and only create once
+// Mesh sharing. Use meshHash to tell if we already have a hull of that shape and only create once.
 // Do attachments need to be handled separately? Need collision events. Do not collide with VolumeDetect
 // Implement LockAngularMotion
 // Decide if clearing forces is the right thing to do when setting position (BulletSim::SetObjectTranslation)
@@ -356,6 +356,12 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             Constraints = null;
         }
 
+        if (Shapes != null)
+        {
+            Shapes.Dispose();
+            Shapes = null;
+        }
+
         // Anything left in the unmanaged code should be cleaned out
         BulletSimAPI.Shutdown(WorldID);
 
@@ -589,7 +595,6 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     {
         if (localID <= TerrainManager.HighestTerrainID)
         {
-            DetailLog("{0},BSScene.SendCollision,collideWithTerrain,id={1},with={2}", DetailLogZero, localID, collidingWith);
             return;         // don't send collisions to the terrain
         }
 
@@ -601,8 +606,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             return;
         }
 
-        // The terrain is not in the physical object list so 'collidee'
-        //    can be null when Collide() is called.
+        // The terrain is not in the physical object list so 'collidee' can be null when Collide() is called.
         BSPhysObject collidee = null;
         PhysObjects.TryGetValue(collidingWith, out collidee);
 
@@ -1026,7 +1030,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             (s) => { return s.m_params[0].shouldRandomizeSolverOrder; },
             (s,p,l,v) => { s.m_params[0].shouldRandomizeSolverOrder = v; } ),
 	    new ParameterDefn("ShouldSplitSimulationIslands", "Enable splitting active object scanning islands",
-            ConfigurationParameters.numericFalse,
+            ConfigurationParameters.numericTrue,
             (s,cf,p,v) => { s.m_params[0].shouldSplitSimulationIslands = s.NumericBool(cf.GetBoolean(p, s.BoolNumeric(v))); },
             (s) => { return s.m_params[0].shouldSplitSimulationIslands; },
             (s,p,l,v) => { s.m_params[0].shouldSplitSimulationIslands = v; } ),
