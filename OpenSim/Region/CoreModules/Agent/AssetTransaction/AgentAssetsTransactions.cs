@@ -73,7 +73,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             {
                 if (!XferUploaders.ContainsKey(transactionID))
                 {
-                    uploader = new AssetXferUploader(this, m_Scene, m_dumpAssetsToFile);
+                    uploader = new AssetXferUploader(this, m_Scene, transactionID, m_dumpAssetsToFile);
 
 //                    m_log.DebugFormat(
 //                        "[AGENT ASSETS TRANSACTIONS]: Adding asset xfer uploader {0} since it didn't previously exist", transactionID);
@@ -151,7 +151,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             AssetXferUploader uploader = RequestXferUploader(transactionID);
 
             uploader.RequestCreateInventoryItem(
-                remoteClient, transactionID, folderID, callbackID,
+                remoteClient, folderID, callbackID,
                 description, name, invType, type, wearableType, nextOwnerMask);
         }
 
@@ -161,7 +161,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         {
             AssetXferUploader uploader = RequestXferUploader(transactionID);
 
-            uploader.RequestUpdateTaskInventoryItem(remoteClient, transactionID, item);
+            uploader.RequestUpdateTaskInventoryItem(remoteClient, item);
         }
 
         public void RequestUpdateInventoryItem(IClientAPI remoteClient,
@@ -169,7 +169,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         {
             AssetXferUploader uploader = RequestXferUploader(transactionID);
 
-            uploader.RequestUpdateInventoryItem(remoteClient, transactionID, item);
+            uploader.RequestUpdateInventoryItem(remoteClient, item);
         }
     }
 }
