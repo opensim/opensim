@@ -189,12 +189,13 @@ namespace OpenSim.Region.ClientStack.Linden
                 // this should never happen except possible on shutdown
                 NoEvents = (x, y) =>
                 {
+/*
                     lock (requests)
                     {
                         Hashtable request = requests.Find(id => id["RequestID"].ToString() == x.ToString());
                         requests.Remove(request);
                     }
-
+*/
                     Hashtable response = new Hashtable();
 
                     response["int_response_code"] = 500;
