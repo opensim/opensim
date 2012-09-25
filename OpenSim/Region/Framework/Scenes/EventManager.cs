@@ -345,15 +345,58 @@ namespace OpenSim.Region.Framework.Scenes
         public event StopScript OnStopScript;
 
         public delegate bool SceneGroupMoved(UUID groupID, Vector3 delta);
+
+        /// <summary>
+        /// Triggered when an object is moved.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerGroupMove"/>
+        /// in <see cref="SceneObjectGroup.UpdateGroupPosition"/>,
+        /// <see cref="SceneObjectGroup.GrabMovement"/>
+        /// </remarks>
         public event SceneGroupMoved OnSceneGroupMove;
 
         public delegate void SceneGroupGrabed(UUID groupID, Vector3 offset, UUID userID);
+
+        /// <summary>
+        /// Triggered when an object is grabbed.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerGroupGrab"/>
+        /// in <see cref="SceneObjectGroup.OnGrabGroup"/>
+        /// via <see cref="SceneObjectGroup.ObjectGrabHandler"/>
+        /// via <see cref="Scene.ProcessObjectGrab"/>
+        /// via <see cref="OpenSim.Framework.IClientAPI.OnGrabObject"/>
+        /// via <see cref="OpenSim.Region.ClientStack.LindenUDP.LLClientView.HandleObjectGrab"/>
+        /// </remarks>
         public event SceneGroupGrabed OnSceneGroupGrab;
 
         public delegate bool SceneGroupSpinStarted(UUID groupID);
+
+        /// <summary>
+        /// Triggered when an object starts to spin.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerGroupSpinStart"/>
+        /// in <see cref="SceneObjectGroup.SpinStart"/>
+        /// via <see cref="SceneGraph.SpinStart"/>
+        /// via <see cref="OpenSim.Framework.IClientAPI.OnSpinStart"/>
+        /// via <see cref="OpenSim.Region.ClientStack.LindenUDP.LLClientView.HandleObjectSpinStart"/>
+        /// </remarks>
         public event SceneGroupSpinStarted OnSceneGroupSpinStart;
 
         public delegate bool SceneGroupSpun(UUID groupID, Quaternion rotation);
+
+        /// <summary>
+        /// Triggered when an object is being spun.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerGroupSpin"/>
+        /// in <see cref="SceneObjectGroup.SpinMovement"/>
+        /// via <see cref="SceneGraph.SpinObject"/>
+        /// via <see cref="OpenSim.Framework.IClientAPI.OnSpinUpdate"/>
+        /// via <see cref="OpenSim.Region.ClientStack.LindenUDP.LLClientView.HandleObjectSpinUpdate"/>
+        /// </remarks>
         public event SceneGroupSpun OnSceneGroupSpin;
 
         public delegate void LandObjectAdded(ILandObject newParcel);
@@ -460,36 +503,170 @@ namespace OpenSim.Region.Framework.Scenes
         } 
 
         /// <summary>
+        /// Triggered when some scene object properties change.
+        /// </summary>
+        /// <remarks>
         /// ScriptChangedEvent is fired when a scene object property that a script might be interested 
         /// in (such as color, scale or inventory) changes.  Only enough information sent is for the LSL changed event.
         /// This is not an indication that the script has changed (see OnUpdateScript for that). 
         /// This event is sent to a script to tell it that some property changed on 
         /// the object the script is in. See http://lslwiki.net/lslwiki/wakka.php?wakka=changed .
-        /// </summary>
+        /// Triggered by <see cref="TriggerOnScriptChangedEvent"/>
+        /// in <see cref="OpenSim.Region.CoreModules.Framework.EntityTransfer.EntityTransferModule.TeleportAgentWithinRegion"/>,
+        /// <see cref="SceneObjectPart.TriggerScriptChangedEvent"/>
+        /// </remarks>
         public event ScriptChangedEvent OnScriptChangedEvent;
         public delegate void ScriptChangedEvent(uint localID, uint change);
 
         public delegate void ScriptControlEvent(UUID item, UUID avatarID, uint held, uint changed);
+
+        /// <summary>
+        /// Triggered when a script receives control input from an agent.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerControlEvent"/>
+        /// in <see cref="ScenePresence.SendControlsToScripts"/>
+        /// via <see cref="ScenePresence.HandleAgentUpdate"/>
+        /// via <see cref="OpenSim.Framework.IClientAPI.OnAgentUpdate"/>
+        /// via <see cref="OpenSim.Region.ClientStack.LindenUDP.LLClientView.HandleAgentUpdate"/>
+        /// </remarks>
         public event ScriptControlEvent OnScriptControlEvent;
 
         public delegate void ScriptAtTargetEvent(uint localID, uint handle, Vector3 targetpos, Vector3 atpos);
+
+        /// <summary>
+        /// Triggered when an object has arrived within a tolerance distance
+        /// of a motion target.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerAtTargetEvent"/>
+        /// in <see cref="SceneObjectGroup.checkAtTargets"/>
+        /// via <see cref="SceneObjectGroup.ScheduleGroupForFullUpdate"/>,
+        /// <see cref="Scene.CheckAtTargets"/> via <see cref="Scene.Update"/>
+        /// </remarks>
         public event ScriptAtTargetEvent OnScriptAtTargetEvent;
 
         public delegate void ScriptNotAtTargetEvent(uint localID);
+
+        /// <summary>
+        /// Triggered when an object has a motion target but has not arrived
+        /// within a tolerance distance.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerNotAtTargetEvent"/>
+        /// in <see cref="SceneObjectGroup.checkAtTargets"/>
+        /// via <see cref="SceneObjectGroup.ScheduleGroupForFullUpdate"/>,
+        /// <see cref="Scene.CheckAtTargets"/> via <see cref="Scene.Update"/>
+        /// </remarks>
         public event ScriptNotAtTargetEvent OnScriptNotAtTargetEvent;
 
         public delegate void ScriptAtRotTargetEvent(uint localID, uint handle, Quaternion targetrot, Quaternion atrot);
+
+        /// <summary>
+        /// Triggered when an object has arrived within a tolerance rotation
+        /// of a rotation target.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerAtRotTargetEvent"/>
+        /// in <see cref="SceneObjectGroup.checkAtTargets"/>
+        /// via <see cref="SceneObjectGroup.ScheduleGroupForFullUpdate"/>,
+        /// <see cref="Scene.CheckAtTargets"/> via <see cref="Scene.Update"/>
+        /// </remarks>
         public event ScriptAtRotTargetEvent OnScriptAtRotTargetEvent;
 
         public delegate void ScriptNotAtRotTargetEvent(uint localID);
+
+        /// <summary>
+        /// Triggered when an object has a rotation target but has not arrived
+        /// within a tolerance rotation.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerNotAtRotTargetEvent"/>
+        /// in <see cref="SceneObjectGroup.checkAtTargets"/>
+        /// via <see cref="SceneObjectGroup.ScheduleGroupForFullUpdate"/>,
+        /// <see cref="Scene.CheckAtTargets"/> via <see cref="Scene.Update"/>
+        /// </remarks>
         public event ScriptNotAtRotTargetEvent OnScriptNotAtRotTargetEvent;
 
         public delegate void ScriptColliding(uint localID, ColliderArgs colliders);
+
+        /// <summary>
+        /// Triggered when a physical collision has started between a prim
+        /// and something other than the region terrain.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerScriptCollidingStart"/>
+        /// in <see cref="SceneObjectPart.SendCollisionEvent"/>
+        /// via <see cref="SceneObjectPart.PhysicsCollision"/>
+        /// via <see cref="OpenSim.Region.Physics.Manager.PhysicsActor.OnCollisionUpdate"/>
+        /// via <see cref="OpenSim.Region.Physics.Manager.PhysicsActor.SendCollisionUpdate"/>
+        /// </remarks>
         public event ScriptColliding OnScriptColliderStart;
+
+        /// <summary>
+        /// Triggered when something that previously collided with a prim has
+        /// not stopped colliding with it.
+        /// </summary>
+        /// <remarks>
+        /// <seealso cref="OnScriptColliderStart"/>
+        /// Triggered by <see cref="TriggerScriptColliding"/>
+        /// in <see cref="SceneObjectPart.SendCollisionEvent"/>
+        /// via <see cref="SceneObjectPart.PhysicsCollision"/>
+        /// via <see cref="OpenSim.Region.Physics.Manager.PhysicsActor.OnCollisionUpdate"/>
+        /// via <see cref="OpenSim.Region.Physics.Manager.PhysicsActor.SendCollisionUpdate"/>
+        /// </remarks>
         public event ScriptColliding OnScriptColliding;
+
+        /// <summary>
+        /// Triggered when something that previously collided with a prim has
+        /// stopped colliding with it.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerScriptCollidingEnd"/>
+        /// in <see cref="SceneObjectPart.SendCollisionEvent"/>
+        /// via <see cref="SceneObjectPart.PhysicsCollision"/>
+        /// via <see cref="OpenSim.Region.Physics.Manager.PhysicsActor.OnCollisionUpdate"/>
+        /// via <see cref="OpenSim.Region.Physics.Manager.PhysicsActor.SendCollisionUpdate"/>
+        /// </remarks>
         public event ScriptColliding OnScriptCollidingEnd;
+
+        /// <summary>
+        /// Triggered when a physical collision has started between an object
+        /// and the region terrain.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerScriptLandCollidingStart"/>
+        /// in <see cref="SceneObjectPart.SendLandCollisionEvent"/>
+        /// via <see cref="SceneObjectPart.PhysicsCollision"/>
+        /// via <see cref="OpenSim.Region.Physics.Manager.PhysicsActor.OnCollisionUpdate"/>
+        /// via <see cref="OpenSim.Region.Physics.Manager.PhysicsActor.SendCollisionUpdate"/>
+        /// </remarks>
         public event ScriptColliding OnScriptLandColliderStart;
+
+        /// <summary>
+        /// Triggered when an object that previously collided with the region
+        /// terrain has not yet stopped colliding with it.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerScriptLandColliding"/>
+        /// in <see cref="SceneObjectPart.SendLandCollisionEvent"/>
+        /// via <see cref="SceneObjectPart.PhysicsCollision"/>
+        /// via <see cref="OpenSim.Region.Physics.Manager.PhysicsActor.OnCollisionUpdate"/>
+        /// via <see cref="OpenSim.Region.Physics.Manager.PhysicsActor.SendCollisionUpdate"/>
+        /// </remarks>
         public event ScriptColliding OnScriptLandColliding;
+
+        /// <summary>
+        /// Triggered when an object that previously collided with the region
+        /// terrain has stopped colliding with it.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerScriptLandCollidingEnd"/>
+        /// in <see cref="SceneObjectPart.SendLandCollisionEvent"/>
+        /// via <see cref="SceneObjectPart.PhysicsCollision"/>
+        /// via <see cref="OpenSim.Region.Physics.Manager.PhysicsActor.OnCollisionUpdate"/>
+        /// via <see cref="OpenSim.Region.Physics.Manager.PhysicsActor.SendCollisionUpdate"/>
+        /// </remarks>
         public event ScriptColliding OnScriptLandColliderEnd;
 
         public delegate void OnMakeChildAgentDelegate(ScenePresence presence);
@@ -550,6 +727,13 @@ namespace OpenSim.Region.Framework.Scenes
 
         /*
         public delegate void ScriptTimerEvent(uint localID, double timerinterval);
+        /// <summary>
+        /// Used to be triggered when the LSL timer event fires.
+        /// </summary>
+        /// <remarks>
+        /// Triggered by <see cref="TriggerTimerEvent"/>
+        /// via <see cref="SceneObjectPart.handleTimerAccounting"/>
+        /// </remarks>
         public event ScriptTimerEvent OnScriptTimerEvent;
          */
 
@@ -2293,7 +2477,11 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        // this lets us keep track of nasty script events like timer, etc.
+        /// <summary>
+        /// this lets us keep track of nasty script events like timer, etc.
+        /// </summary>
+        /// <param name="objLocalID"></param>
+        /// <param name="Interval"></param>
         public void TriggerTimerEvent(uint objLocalID, double Interval)
         {
             throw new NotImplementedException("TriggerTimerEvent was thought to be not used anymore and the registration for the event from scene object part has been commented out due to a memory leak");

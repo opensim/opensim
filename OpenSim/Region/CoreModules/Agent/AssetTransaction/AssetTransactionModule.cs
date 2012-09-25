@@ -215,7 +215,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             IClientAPI remoteClient, SceneObjectPart part, UUID transactionID, TaskInventoryItem item)
         {
             m_log.DebugFormat(
-                "[TRANSACTIONS MANAGER] Called HandleTaskItemUpdateFromTransaction with item {0} in {1} for {2} in {3}",
+                "[ASSET TRANSACTION MODULE] Called HandleTaskItemUpdateFromTransaction with item {0} in {1} for {2} in {3}",
                 item.Name, part.Name, remoteClient.Name, m_Scene.RegionInfo.RegionName);
 
             AgentAssetTransactions transactions =
@@ -274,13 +274,8 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             }
 
             AgentAssetTransactions transactions = GetUserTransactions(remoteClient.AgentId);
-            AssetXferUploader uploader = transactions.RequestXferUploader(transaction, assetID);
-
-            if (uploader != null)
-            {
-                uploader.Initialise(remoteClient, assetID, transaction, type,
-                        data, storeLocal, tempFile);
-            }
+            AssetXferUploader uploader = transactions.RequestXferUploader(transaction);
+            uploader.StartUpload(remoteClient, assetID, transaction, type, data, storeLocal, tempFile);
         }
 
         /// <summary>
