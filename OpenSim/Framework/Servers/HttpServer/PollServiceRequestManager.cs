@@ -278,15 +278,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             Thread.Sleep(1000); // let the world move
 
             foreach (Thread t in m_workerThreads)
-            {
-                try
-                {
-                    t.Abort();
-                }
-                catch
-                {
-                }
-            }
+                    Watchdog.AbortThread(t.ManagedThreadId);
 
             try
             {
