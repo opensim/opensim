@@ -41,38 +41,74 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
+        /// Upload state.
+        /// </summary>
+        /// <remarks>
+        /// New -> Uploading -> Complete
+        /// </remarks>
+        private enum UploadState
+        {
+            New,
+            Uploading,
+            Complete
+        }
+
+        /// <summary>
         /// Reference to the object that holds this uploader.  Used to remove ourselves from it's list if we
         /// are performing a delayed update.
         /// </summary>
         AgentAssetTransactions m_transactions;
 
+        private UploadState m_uploadState = UploadState.New;
+
         private AssetBase m_asset;
         private UUID InventFolder = UUID.Zero;
         private sbyte invType = 0;
 
-        private bool m_createItem = false;
-        private uint m_createItemCallback = 0;
-        private bool m_updateItem = false;
+        private bool m_createItem;
+        private uint m_createItemCallback;
+
+        private bool m_updateItem;
         private InventoryItemBase m_updateItemData;
+
+        private bool m_updateTaskItem;
+        private TaskInventoryItem m_updateTaskItemData;
 
         private string m_description = String.Empty;
         private bool m_dumpAssetToFile;
-        private bool m_finished = false;
         private string m_name = String.Empty;
-        private bool m_storeLocal;
+//        private bool m_storeLocal;
         private uint nextPerm = 0;
         private IClientAPI ourClient;
-        private UUID TransactionID = UUID.Zero;
+
+        private UUID m_transactionID;
+
         private sbyte type = 0;
         private byte wearableType = 0;
         public ulong XferID;
         private Scene m_Scene;
 
-        public AssetXferUploader(AgentAssetTransactions transactions, Scene scene, UUID assetID, bool dumpAssetToFile)
+        /// <summary>
+        /// AssetXferUploader constructor
+        /// </summary>
+        /// <param name='transactions'>/param>
+        /// <param name='scene'></param>
+        /// <param name='transactionID'></param>
+        /// <param name='dumpAssetToFile'>
+        /// If true then when the asset is uploaded it is dumped to a file with the format
+        /// String.Format("{6}_{7}_{0:d2}{1:d2}{2:d2}_{3:d2}{4:d2}{5:d2}.dat",
+        ///   now.Year, now.Month, now.Day, now.Hour, now.Minute,
+        ///   now.Second, m_asset.Name, m_asset.Type);
+        /// for debugging purposes.
+        /// </param>
+        public AssetXferUploader(
+            AgentAssetTransactions transactions, Scene scene, UUID transactionID, bool dumpAssetToFile)
         {
+            m_asset = new AssetBase();
+
             m_transactions = transactions;
+            m_transactionID = transactionID;
             m_Scene = scene;
-            m_asset = new AssetBase() { FullID = assetID };
             m_dumpAssetToFile = dumpAssetToFile;
         }
 
@@ -118,30 +154,50 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         }
 
         /// <summary>
-        /// Initialise asset transfer from the client
+        /// Start asset transfer from the client
         /// </summary>
-        /// <param name="xferID"></param>
-        /// <param name="packetID"></param>
-        /// <param name="data"></param>
-        public void Initialise(IClientAPI remoteClient, UUID assetID,
-                UUID transaction, sbyte type, byte[] data, bool storeLocal,
-                bool tempFile)
+        /// <param name="remoteClient"></param>
+        /// <param name="assetID"></param>
+        /// <param name="transaction"></param>
+        /// <param name="type"></param>
+        /// <param name="data">
+        /// Optional data.  If present then the asset is created immediately with this data
+        /// rather than requesting an upload from the client.  The data must be longer than 2 bytes.
+        /// </param>
+        /// <param name="storeLocal"></param>
+        /// <param name="tempFile"></param>
+        public void StartUpload(
+            IClientAPI remoteClient, UUID assetID, UUID transaction, sbyte type, byte[] data, bool storeLocal,
+            bool tempFile)
         {
 //            m_log.DebugFormat(
 //                "[ASSET XFER UPLOADER]: Initialised xfer from {0}, asset {1}, transaction {2}, type {3}, storeLocal {4}, tempFile {5}, already received data length {6}",
 //                remoteClient.Name, assetID, transaction, type, storeLocal, tempFile, data.Length);
 
+            lock (this)
+            {
+                if (m_uploadState != UploadState.New)
+                {
+                    m_log.WarnFormat(
+                        "[ASSET XFER UPLOADER]: Tried to start upload of asset {0}, transaction {1} for {2} but this is already in state {3}.  Aborting.",
+                        assetID, transaction, remoteClient.Name, m_uploadState);
+
+                    return;
+                }
+
+                m_uploadState = UploadState.Uploading;
+            }
+
             ourClient = remoteClient;
-            m_asset.Name = "blank";
-            m_asset.Description = "empty";
+
+            m_asset.FullID = assetID;
             m_asset.Type = type;
             m_asset.CreatorID = remoteClient.AgentId.ToString();
             m_asset.Data = data;
             m_asset.Local = storeLocal;
             m_asset.Temporary = tempFile;
 
-            TransactionID = transaction;
-            m_storeLocal = storeLocal;
+//            m_storeLocal = storeLocal;
 
             if (m_asset.Data.Length > 2)
             {
@@ -166,36 +222,35 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
 
         protected void SendCompleteMessage()
         {
-            ourClient.SendAssetUploadCompleteMessage(m_asset.Type, true,
-                    m_asset.FullID);
-
             // We must lock in order to avoid a race with a separate thread dealing with an inventory item or create
             // message from other client UDP.
             lock (this)
             {
-                m_finished = true;
+                m_uploadState = UploadState.Complete;
+
+                ourClient.SendAssetUploadCompleteMessage(m_asset.Type, true, m_asset.FullID);
+
                 if (m_createItem)
                 {
-                    DoCreateItem(m_createItemCallback);
+                    CompleteCreateItem(m_createItemCallback);
                 }
                 else if (m_updateItem)
                 {
-                    StoreAssetForItemUpdate(m_updateItemData);
-    
-                    // Remove ourselves from the list of transactions if completion was delayed until the transaction
-                    // was complete.
-                    // TODO: Should probably do the same for create item.
-                    m_transactions.RemoveXferUploader(TransactionID);
+                    CompleteItemUpdate(m_updateItemData);
                 }
-                else if (m_storeLocal)
+                else if (m_updateTaskItem)
                 {
-                    m_Scene.AssetService.Store(m_asset);
+                    CompleteTaskItemUpdate(m_updateTaskItemData);
                 }
+//                else if (m_storeLocal)
+//                {
+//                    m_Scene.AssetService.Store(m_asset);
+//                }
             }
 
             m_log.DebugFormat(
                 "[ASSET XFER UPLOADER]: Uploaded asset {0} for transaction {1}",
-                m_asset.FullID, TransactionID);
+                m_asset.FullID, m_transactionID);
 
             if (m_dumpAssetToFile)
             {
@@ -223,40 +278,37 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         }
 
         public void RequestCreateInventoryItem(IClientAPI remoteClient,
-                UUID transactionID, UUID folderID, uint callbackID,
+                UUID folderID, uint callbackID,
                 string description, string name, sbyte invType,
                 sbyte type, byte wearableType, uint nextOwnerMask)
         {
-            if (TransactionID == transactionID)
-            {
-                InventFolder = folderID;
-                m_name = name;
-                m_description = description;
-                this.type = type;
-                this.invType = invType;
-                this.wearableType = wearableType;
-                nextPerm = nextOwnerMask;
-                m_asset.Name = name;
-                m_asset.Description = description;
-                m_asset.Type = type;
+            InventFolder = folderID;
+            m_name = name;
+            m_description = description;
+            this.type = type;
+            this.invType = invType;
+            this.wearableType = wearableType;
+            nextPerm = nextOwnerMask;
+            m_asset.Name = name;
+            m_asset.Description = description;
+            m_asset.Type = type;
 
-                // We must lock to avoid a race with a separate thread uploading the asset.
-                lock (this)
+            // We must lock to avoid a race with a separate thread uploading the asset.
+            lock (this)
+            {
+                if (m_uploadState == UploadState.Complete)
                 {
-                    if (m_finished)
-                    {
-                        DoCreateItem(callbackID);
-                    }
-                    else
-                    {
-                        m_createItem = true; //set flag so the inventory item is created when upload is complete
-                        m_createItemCallback = callbackID;
-                    }
+                    CompleteCreateItem(callbackID);
+                }
+                else
+                {
+                    m_createItem = true; //set flag so the inventory item is created when upload is complete
+                    m_createItemCallback = callbackID;
                 }
             }
         }
 
-        public void RequestUpdateInventoryItem(IClientAPI remoteClient, UUID transactionID, InventoryItemBase item)
+        public void RequestUpdateInventoryItem(IClientAPI remoteClient, InventoryItemBase item)
         {
             // We must lock to avoid a race with a separate thread uploading the asset.
             lock (this)
@@ -271,9 +323,9 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                 item.AssetID = m_asset.FullID;
                 m_Scene.InventoryService.UpdateItem(item);
 
-                if (m_finished)
+                if (m_uploadState == UploadState.Complete)
                 {
-                    StoreAssetForItemUpdate(item);
+                    CompleteItemUpdate(item);
                 }
                 else
                 {
@@ -287,20 +339,59 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             }
         }
 
+        public void RequestUpdateTaskInventoryItem(IClientAPI remoteClient, TaskInventoryItem taskItem)
+        {
+            // We must lock to avoid a race with a separate thread uploading the asset.
+            lock (this)
+            {
+                m_asset.Name = taskItem.Name;
+                m_asset.Description = taskItem.Description;
+                m_asset.Type = (sbyte)taskItem.Type;
+                taskItem.AssetID = m_asset.FullID;
+
+                if (m_uploadState == UploadState.Complete)
+                {
+                    CompleteTaskItemUpdate(taskItem);
+                }
+                else
+                {
+                    m_updateTaskItem = true;
+                    m_updateTaskItemData = taskItem;
+                }
+            }
+        }
+
         /// <summary>
-        /// Store the asset for the given item.
+        /// Store the asset for the given item when it has been uploaded.
         /// </summary>
         /// <param name="item"></param>
-        private void StoreAssetForItemUpdate(InventoryItemBase item)
+        private void CompleteItemUpdate(InventoryItemBase item)
         {
 //            m_log.DebugFormat(
 //                "[ASSET XFER UPLOADER]: Storing asset {0} for earlier item update for {1} for {2}",
 //                m_asset.FullID, item.Name, ourClient.Name);
 
             m_Scene.AssetService.Store(m_asset);
+
+            m_transactions.RemoveXferUploader(m_transactionID);
         }
 
-        private void DoCreateItem(uint callbackID)
+        /// <summary>
+        /// Store the asset for the given task item when it has been uploaded.
+        /// </summary>
+        /// <param name="taskItem"></param>
+        private void CompleteTaskItemUpdate(TaskInventoryItem taskItem)
+        {
+//            m_log.DebugFormat(
+//                "[ASSET XFER UPLOADER]: Storing asset {0} for earlier task item update for {1} for {2}",
+//                m_asset.FullID, taskItem.Name, ourClient.Name);
+
+            m_Scene.AssetService.Store(m_asset);
+
+            m_transactions.RemoveXferUploader(m_transactionID);
+        }
+
+        private void CompleteCreateItem(uint callbackID)
         {
             m_Scene.AssetService.Store(m_asset);
 
@@ -326,20 +417,8 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                 ourClient.SendInventoryItemCreateUpdate(item, callbackID);
             else
                 ourClient.SendAlertMessage("Unable to create inventory item");
-        }
 
-        /// <summary>
-        /// Get the asset data uploaded in this transfer.
-        /// </summary>
-        /// <returns>null if the asset has not finished uploading</returns>
-        public AssetBase GetAssetData()
-        {
-            if (m_finished)
-            {
-                return m_asset;
-            }
-
-            return null;
+            m_transactions.RemoveXferUploader(m_transactionID);
         }
     }
 }
