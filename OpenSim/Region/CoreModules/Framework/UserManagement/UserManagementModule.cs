@@ -429,8 +429,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
         public void AddUser(UUID uuid, string first, string last, string homeURL)
         {
-            // m_log.DebugFormat("[USER MANAGEMENT MODULE]: Adding user with id {0}, first {1}, last {2}, url {3}", uuid, first, last, homeURL);
-
+            //m_log.DebugFormat("[USER MANAGEMENT MODULE]: Adding user with id {0}, first {1}, last {2}, url {3}", uuid, first, last, homeURL);
             AddUser(uuid, homeURL + ";" + first + " " + last);
         }
 
@@ -553,8 +552,8 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                 MainConsole.Instance.Output("-----------------------------------------------------------------------------");
                 foreach (KeyValuePair<UUID, UserData> kvp in m_UserCache)
                 {
-                    MainConsole.Instance.Output(String.Format("{0} {1} {2}",
-                           kvp.Key, kvp.Value.FirstName, kvp.Value.LastName));
+                    MainConsole.Instance.Output(String.Format("{0} {1} {2} ({3})",
+                           kvp.Key, kvp.Value.FirstName, kvp.Value.LastName, kvp.Value.HomeURL));
                 }
     
                 return;

@@ -245,6 +245,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             {
                 // Log them out of this grid
                 Scene.PresenceService.LogoutAgent(sp.ControllingClient.SessionId);
+                string userId = Scene.UserManagementModule.GetUserUUI(sp.UUID);
+                Scene.GridUserService.LoggedOut(userId, UUID.Zero, Scene.RegionInfo.RegionID, sp.AbsolutePosition, sp.Lookat);
             }
         }
 

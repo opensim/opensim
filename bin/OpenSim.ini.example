@@ -970,7 +970,8 @@
 
     ;; This page should have Accept/Decline links somewhere
     ;; that affect the GridUsers table. If you don't have such
-    ;; script in place, don't use the TOSModule
+    ;; script in place, don't use the TOSModule. The TOSModule appends this URL
+	;; with a query ?user={userid}&sid={sessionid}
     ;# {TOS_URL} {} {The URL for the TOS page} {}
     TOS_URL = "http://mygrid.com/tos"
 
