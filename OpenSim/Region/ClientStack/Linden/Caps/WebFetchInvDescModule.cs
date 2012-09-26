@@ -223,6 +223,7 @@ namespace OpenSim.Region.ClientStack.Linden
             PollServiceInventoryEventArgs args = new PollServiceInventoryEventArgs(agentID);
             
             args.Type = PollServiceEventArgs.EventType.Inventory;
+            args.GetEventsNeedsRequest = false;
             MainServer.Instance.AddPollServiceHTTPHandler(capUrl, args);
 
             string hostName = m_scene.RegionInfo.ExternalHostName;
