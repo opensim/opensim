@@ -3170,64 +3170,62 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void StoreUndoState(bool forGroup)
         {
-            if (!Undoing)
+            if (Undoing)
             {
-                if (!IgnoreUndoUpdate)
-                {
-                    if (ParentGroup != null)
-                    {
-                        lock (m_undo)
-                        {
-                            if (m_undo.Count > 0)
-                            {
-                                UndoState last = m_undo[m_undo.Count - 1];
-                                if (last != null)
-                                {
-                                    // TODO: May need to fix for group comparison
-                                    if (last.Compare(this))
-                                    {
-    //                                        m_log.DebugFormat(
-    //                                            "[SCENE OBJECT PART]: Not storing undo for {0} {1} since current state is same as last undo state, initial stack size {2}",
-    //                                            Name, LocalId, m_undo.Count);
-    
-                                        return;
-                                    }
-                                }
-                            }
-    
-//                                m_log.DebugFormat(
-//                                    "[SCENE OBJECT PART]: Storing undo state for {0} {1}, forGroup {2}, initial stack size {3}",
-//                                    Name, LocalId, forGroup, m_undo.Count);
-    
-                            if (ParentGroup.GetSceneMaxUndo() > 0)
-                            {
-                                UndoState nUndo = new UndoState(this, forGroup);
-    
-                                m_undo.Add(nUndo);
+//                m_log.DebugFormat(
+//                    "[SCENE OBJECT PART]: Ignoring undo store for {0} {1} since already undoing", Name, LocalId);
+                return;
+            }
 
-                                if (m_undo.Count > ParentGroup.GetSceneMaxUndo())
-                                    m_undo.RemoveAt(0);
-    
-                                if (m_redo.Count > 0)
-                                    m_redo.Clear();
-    
-//                                    m_log.DebugFormat(
-//                                        "[SCENE OBJECT PART]: Stored undo state for {0} {1}, forGroup {2}, stack size now {3}",
-//                                        Name, LocalId, forGroup, m_undo.Count);
-                            }
+            if (IgnoreUndoUpdate)
+            {
+//                    m_log.DebugFormat("[SCENE OBJECT PART]: Ignoring undo store for {0} {1}", Name, LocalId);
+                return;
+            }
+
+            if (ParentGroup == null)
+                return;
+
+            lock (m_undo)
+            {
+                if (m_undo.Count > 0)
+                {
+                    UndoState last = m_undo[m_undo.Count - 1];
+                    if (last != null)
+                    {
+                        // TODO: May need to fix for group comparison
+                        if (last.Compare(this))
+                        {
+//                                        m_log.DebugFormat(
+//                                            "[SCENE OBJECT PART]: Not storing undo for {0} {1} since current state is same as last undo state, initial stack size {2}",
+//                                            Name, LocalId, m_undo.Count);
+
+                            return;
                         }
                     }
                 }
-//                else
-//                {
-//                    m_log.DebugFormat("[SCENE OBJECT PART]: Ignoring undo store for {0} {1}", Name, LocalId);
-//                }
+
+//                                m_log.DebugFormat(
+//                                    "[SCENE OBJECT PART]: Storing undo state for {0} {1}, forGroup {2}, initial stack size {3}",
+//                                    Name, LocalId, forGroup, m_undo.Count);
+
+                if (ParentGroup.GetSceneMaxUndo() > 0)
+                {
+                    UndoState nUndo = new UndoState(this, forGroup);
+
+                    m_undo.Add(nUndo);
+
+                    if (m_undo.Count > ParentGroup.GetSceneMaxUndo())
+                        m_undo.RemoveAt(0);
+
+                    if (m_redo.Count > 0)
+                        m_redo.Clear();
+
+//                                    m_log.DebugFormat(
+//                                        "[SCENE OBJECT PART]: Stored undo state for {0} {1}, forGroup {2}, stack size now {3}",
+//                                        Name, LocalId, forGroup, m_undo.Count);
+                }
             }
-//            else
-//            {
-//                m_log.DebugFormat(
-//                    "[SCENE OBJECT PART]: Ignoring undo store for {0} {1} since already undoing", Name, LocalId);
-//            }
         }
 
         /// <summary>
