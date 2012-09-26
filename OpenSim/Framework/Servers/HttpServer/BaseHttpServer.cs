@@ -317,6 +317,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                         StreamReader reader = new StreamReader(requestStream, encoding);
 
                         string requestBody = reader.ReadToEnd();
+                        reader.Close();
 
                         Hashtable keysvals = new Hashtable();
                         Hashtable headervals = new Hashtable();

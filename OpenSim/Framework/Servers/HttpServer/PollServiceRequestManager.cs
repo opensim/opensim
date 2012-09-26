@@ -336,23 +336,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                     {
                         if (req.PollServiceArgs.HasEvents(req.RequestID, req.PollServiceArgs.Id))
                         {
-                            string strreq = "";
-                            if (req.PollServiceArgs.GetEventsNeedsRequestBody)
-                            {
-                                try
-                                {
-                                    // should we try to seek back? fear we can't
-                                    str = new StreamReader(req.Request.Body);
-                                    strreq = str.ReadToEnd();
-                                    str.Close();
-                                }
-                                catch
-                                {
-                                    continue;
-                                }
-                            }
-
-                            Hashtable responsedata = req.PollServiceArgs.GetEvents(req.RequestID, req.PollServiceArgs.Id, strreq);
+                            Hashtable responsedata = req.PollServiceArgs.GetEvents(req.RequestID, req.PollServiceArgs.Id);
 
                             if (responsedata == null)
                                 continue;

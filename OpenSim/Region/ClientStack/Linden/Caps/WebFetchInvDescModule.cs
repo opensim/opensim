@@ -150,7 +150,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     base(null, null, null, null, pId, int.MaxValue)
             {
                 HasEvents = (x, y) => { lock (responses) return responses.ContainsKey(x); };
-                GetEvents = (x, y, s) =>
+                GetEvents = (x, y) =>
                 {
                     lock (responses)
                     {

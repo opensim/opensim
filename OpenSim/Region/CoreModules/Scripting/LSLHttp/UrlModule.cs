@@ -444,7 +444,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                 }
             }
         }
-        private Hashtable GetEvents(UUID requestID, UUID sessionID, string request)
+        private Hashtable GetEvents(UUID requestID, UUID sessionID)
         {
             UrlData url = null;
             RequestData requestData = null;
