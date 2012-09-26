@@ -344,7 +344,10 @@ public class BSShapeCollection : IDisposable
             if (pbs.ProfileShape == ProfileShape.HalfCircle && pbs.PathCurve == (byte)Extrusion.Curve1)
             {
                 haveShape = true;
-                if (forceRebuild || (prim.BSShape.type != ShapeData.PhysicsShapeType.SHAPE_SPHERE))
+                if (forceRebuild 
+                        || prim.Scale != shapeData.Size
+                        || prim.BSShape.type != ShapeData.PhysicsShapeType.SHAPE_SPHERE
+                        )
                 {
                     ret = GetReferenceToNativeShape(prim, shapeData, 
                             ShapeData.PhysicsShapeType.SHAPE_SPHERE, ShapeData.FixedShapeKey.KEY_SPHERE);
@@ -355,7 +358,10 @@ public class BSShapeCollection : IDisposable
             else
             {
                 haveShape = true;
-                if (forceRebuild || (prim.BSShape.type != ShapeData.PhysicsShapeType.SHAPE_BOX))
+                if (forceRebuild 
+                        || prim.Scale != shapeData.Size
+                        || prim.BSShape.type != ShapeData.PhysicsShapeType.SHAPE_BOX
+                        )
                 {
                     ret = GetReferenceToNativeShape(
                         prim, shapeData, ShapeData.PhysicsShapeType.SHAPE_BOX, ShapeData.FixedShapeKey.KEY_BOX);
@@ -406,7 +412,7 @@ public class BSShapeCollection : IDisposable
         newShape.isNativeShape = true;
 
         // Don't need to do a 'ReferenceShape()' here because native shapes are not tracked.
-        DetailLog("{0},BSShapeCollection.AddNativeShapeToPrim,create,newshape={1}", shapeData.ID, newShape);
+        // DetailLog("{0},BSShapeCollection.AddNativeShapeToPrim,create,newshape={1}", shapeData.ID, newShape);
 
         prim.BSShape = newShape;
         return true;
@@ -683,13 +689,13 @@ public class BSShapeCollection : IDisposable
             {
                 bodyPtr = BulletSimAPI.CreateBodyFromShape2(sim.ptr, shape.ptr, 
                                         shapeData.ID, shapeData.Position, shapeData.Rotation);
-                DetailLog("{0},BSShapeCollection.CreateBody,mesh,ptr={1}", prim.LocalID, bodyPtr.ToString("X"));
+                // DetailLog("{0},BSShapeCollection.CreateBody,mesh,ptr={1}", prim.LocalID, bodyPtr.ToString("X"));
             }
             else
             {
                 bodyPtr = BulletSimAPI.CreateGhostFromShape2(sim.ptr, shape.ptr, 
                                         shapeData.ID, shapeData.Position, shapeData.Rotation);
-                DetailLog("{0},BSShapeCollection.CreateBody,ghost,ptr={1}", prim.LocalID, bodyPtr.ToString("X"));
+                // DetailLog("{0},BSShapeCollection.CreateBody,ghost,ptr={1}", prim.LocalID, bodyPtr.ToString("X"));
             }
             aBody = new BulletBody(shapeData.ID, bodyPtr);
 

@@ -121,8 +121,8 @@ public abstract class BSPhysObject : PhysicsActor
         // if someone has subscribed for collision events....
         if (SubscribedEvents()) {
             CollisionCollection.AddCollider(collidingWith, new ContactPoint(contactPoint, contactNormal, pentrationDepth));
-            DetailLog("{0},{1}.Collison.AddCollider,call,with={2},point={3},normal={4},depth={5}",
-                            LocalID, TypeName, collidingWith, contactPoint, contactNormal, pentrationDepth);
+            // DetailLog("{0},{1}.Collison.AddCollider,call,with={2},point={3},normal={4},depth={5}",
+            //                 LocalID, TypeName, collidingWith, contactPoint, contactNormal, pentrationDepth);
 
             ret = true;
         }
@@ -151,7 +151,7 @@ public abstract class BSPhysObject : PhysicsActor
                 PhysicsScene.ObjectsWithNoMoreCollisions.Add(this);
             }
 
-            DetailLog("{0},{1}.SendCollisionUpdate,call,numCollisions={2}", LocalID, TypeName, CollisionCollection.Count);
+            // DetailLog("{0},{1}.SendCollisionUpdate,call,numCollisions={2}", LocalID, TypeName, CollisionCollection.Count);
             base.SendCollisionUpdate(CollisionCollection);
 
             // The collisionCollection structure is passed around in the simulator.
@@ -163,7 +163,7 @@ public abstract class BSPhysObject : PhysicsActor
     // Subscribe for collision events.
     // Parameter is the millisecond rate the caller wishes collision events to occur.
     public override void SubscribeEvents(int ms) {
-        DetailLog("{0},{1}.SubscribeEvents,subscribing,ms={2}", LocalID, TypeName, ms);
+        // DetailLog("{0},{1}.SubscribeEvents,subscribing,ms={2}", LocalID, TypeName, ms);
         SubscribedEventsMs = ms;
         if (ms > 0)
         {
@@ -182,7 +182,7 @@ public abstract class BSPhysObject : PhysicsActor
         }
     }
     public override void UnSubscribeEvents() { 
-        DetailLog("{0},{1}.UnSubscribeEvents,unsubscribing", LocalID, TypeName);
+        // DetailLog("{0},{1}.UnSubscribeEvents,unsubscribing", LocalID, TypeName);
         SubscribedEventsMs = 0;
         PhysicsScene.TaintedObject(TypeName+".UnSubscribeEvents", delegate()
         {

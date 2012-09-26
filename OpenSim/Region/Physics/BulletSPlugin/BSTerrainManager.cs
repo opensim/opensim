@@ -201,10 +201,10 @@ public class BSTerrainManager
     // The 'doNow' boolean says whether to do all the unmanaged activities right now (like when
     //     calling this routine from initialization or taint-time routines) or whether to delay
     //     all the unmanaged activities to taint-time.
-    private void UpdateOrCreateTerrain(uint id, float[] heightMap, Vector3 minCoords, Vector3 maxCoords, bool doNow)
+    private void UpdateOrCreateTerrain(uint id, float[] heightMap, Vector3 minCoords, Vector3 maxCoords, bool atTaintTime)
     {
-        DetailLog("{0},BSTerrainManager.UpdateOrCreateTerrain,call,minC={1},maxC={2},doNow={3}",
-                            BSScene.DetailLogZero, minCoords, maxCoords, doNow);
+        DetailLog("{0},BSTerrainManager.UpdateOrCreateTerrain,call,minC={1},maxC={2},atTaintTime={3}",
+                            BSScene.DetailLogZero, minCoords, maxCoords, atTaintTime);
 
         float minZ = float.MaxValue;
         float maxZ = float.MinValue;
@@ -308,11 +308,7 @@ public class BSTerrainManager
 
                     mapInfo.terrainBody = new BulletBody(mapInfo.ID, 
                             BulletSimAPI.CreateBodyWithDefaultMotionState2(mapInfo.terrainShape.ptr, 
-                                            id, centerPos, Quaternion.Identity)); 
-
-                    BulletSimAPI.SetCollisionFilterMask2(mapInfo.terrainBody.ptr, 
-                                        (uint)CollisionFilterGroups.TerrainFilter,
-                                        (uint)CollisionFilterGroups.TerrainMask);
+                                                        id, centerPos, Quaternion.Identity)); 
                 }
 
                 // Make sure the entry is in the heightmap table
@@ -333,6 +329,10 @@ public class BSTerrainManager
                 // redo its bounding box now that it is in the world
                 BulletSimAPI.UpdateSingleAabb2(PhysicsScene.World.ptr, mapInfo.terrainBody.ptr);
 
+                BulletSimAPI.SetCollisionFilterMask2(mapInfo.terrainBody.ptr, 
+                                    (uint)CollisionFilterGroups.TerrainFilter,
+                                    (uint)CollisionFilterGroups.TerrainMask);
+
                 // Make sure the new shape is processed.
                 BulletSimAPI.Activate2(mapInfo.terrainBody.ptr, true);
 
@@ -341,7 +341,7 @@ public class BSTerrainManager
 
             // There is the option to do the changes now (we're already in 'taint time'), or
             //     to do the Bullet operations later.
-            if (doNow)
+            if (atTaintTime)
                 rebuildOperation();
             else
                 PhysicsScene.TaintedObject("BSScene.UpdateOrCreateTerrain:UpdateExisting", rebuildOperation);
@@ -380,7 +380,7 @@ public class BSTerrainManager
             };
 
             // If already in taint-time, just call Bullet. Otherwise queue the operations for the safe time.
-            if (doNow)
+            if (atTaintTime)
                 createOperation();
             else
                 PhysicsScene.TaintedObject("BSScene.UpdateOrCreateTerrain:NewTerrain", createOperation);
