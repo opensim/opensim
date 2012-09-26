@@ -76,6 +76,33 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         }
 
         [Test]
+        public void TestUndoLimit()
+        {
+            TestHelpers.InMethod();
+
+            Vector3 firstSize = new Vector3(2, 3, 4);
+            Vector3 secondSize = new Vector3(5, 6, 7);
+            Vector3 thirdSize = new Vector3(8, 9, 10);
+            Vector3 fourthSize = new Vector3(11, 12, 13);
+
+            Scene scene = new SceneHelpers().SetupScene();
+            scene.MaxUndoCount = 2;
+            SceneObjectGroup g1 = SceneHelpers.AddSceneObject(scene);
+
+            g1.GroupResize(firstSize);
+            g1.GroupResize(secondSize);
+            g1.GroupResize(thirdSize);
+            g1.GroupResize(fourthSize);
+
+            g1.RootPart.Undo();
+            g1.RootPart.Undo();
+            g1.RootPart.Undo();
+
+            Assert.That(g1.RootPart.UndoCount, Is.EqualTo(0));
+            Assert.That(g1.GroupScale, Is.EqualTo(secondSize));
+        }
+
+        [Test]
         public void TestUndoBeyondAvailable()
         {
             TestHelpers.InMethod();

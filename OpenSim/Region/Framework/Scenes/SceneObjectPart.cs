@@ -266,8 +266,8 @@ namespace OpenSim.Region.Framework.Scenes
         private string m_sitAnimation = "SIT";
         private string m_text = String.Empty;
         private string m_touchName = String.Empty;
-        private readonly Stack<UndoState> m_undo = new Stack<UndoState>(5);
-        private readonly Stack<UndoState> m_redo = new Stack<UndoState>(5);
+        private readonly List<UndoState> m_undo = new List<UndoState>(5);
+        private readonly List<UndoState> m_redo = new List<UndoState>(5);
 
         private bool m_passTouches = false;
         private bool m_passCollisions = false;
@@ -3176,7 +3176,7 @@ namespace OpenSim.Region.Framework.Scenes
                         {
                             if (m_undo.Count > 0)
                             {
-                                UndoState last = m_undo.Peek();
+                                UndoState last = m_undo[m_undo.Count - 1];
                                 if (last != null)
                                 {
                                     // TODO: May need to fix for group comparison
@@ -3199,7 +3199,10 @@ namespace OpenSim.Region.Framework.Scenes
                             {
                                 UndoState nUndo = new UndoState(this, forGroup);
     
-                                m_undo.Push(nUndo);
+                                m_undo.Add(nUndo);
+
+                                if (m_undo.Count > ParentGroup.GetSceneMaxUndo())
+                                    m_undo.RemoveAt(0);
     
                                 if (m_redo.Count > 0)
                                     m_redo.Clear();
@@ -3245,21 +3248,24 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (m_undo.Count > 0)
                 {
-                    UndoState goback = m_undo.Pop();
+                    UndoState goback = m_undo[m_undo.Count - 1];
+                    m_undo.RemoveAt(m_undo.Count - 1);
 
-                    if (goback != null)
+                    UndoState nUndo = null;
+    
+                    if (ParentGroup.GetSceneMaxUndo() > 0)
                     {
-                        UndoState nUndo = null;
-        
-                        if (ParentGroup.GetSceneMaxUndo() > 0)
-                        {
-                            nUndo = new UndoState(this, goback.ForGroup);
-                        }
+                        nUndo = new UndoState(this, goback.ForGroup);
+                    }
 
-                        goback.PlaybackState(this);
+                    goback.PlaybackState(this);
 
-                        if (nUndo != null)
-                            m_redo.Push(nUndo);
+                    if (nUndo != null)
+                    {
+                        m_redo.Add(nUndo);
+
+                        if (m_redo.Count > ParentGroup.GetSceneMaxUndo())
+                            m_redo.RemoveAt(0);
                     }
                 }
 
@@ -3279,19 +3285,20 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (m_redo.Count > 0)
                 {
-                    UndoState gofwd = m_redo.Pop();
-    
-                    if (gofwd != null)
+                    UndoState gofwd = m_redo[m_redo.Count - 1];
+                    m_redo.RemoveAt(m_redo.Count - 1);
+
+                    if (ParentGroup.GetSceneMaxUndo() > 0)
                     {
-                        if (ParentGroup.GetSceneMaxUndo() > 0)
-                        {
-                            UndoState nUndo = new UndoState(this, gofwd.ForGroup);
-    
-                            m_undo.Push(nUndo);
-                        }
-    
-                        gofwd.PlayfwdState(this);
+                        UndoState nUndo = new UndoState(this, gofwd.ForGroup);
+
+                        m_undo.Add(nUndo);
+
+                        if (m_undo.Count > ParentGroup.GetSceneMaxUndo())
+                            m_undo.RemoveAt(0);
                     }
+
+                    gofwd.PlayfwdState(this);
 
 //                m_log.DebugFormat(
 //                    "[SCENE OBJECT PART]: Handled redo request for {0} {1}, stack size now {2}",

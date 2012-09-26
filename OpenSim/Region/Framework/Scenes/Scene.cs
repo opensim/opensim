@@ -151,7 +151,8 @@ namespace OpenSim.Region.Framework.Scenes
         // TODO: need to figure out how allow client agents but deny
         // root agents when ACL denies access to root agent
         public bool m_strictAccessControl = true;
-        public int MaxUndoCount = 5;
+
+        public int MaxUndoCount { get; set; }
 
         // Using this for RegionReady module to prevent LoginsDisabled from changing under our feet;
         public bool LoginLock = false;
@@ -930,6 +931,9 @@ namespace OpenSim.Region.Framework.Scenes
             westBorder.CrossDirection = Cardinals.W;
             WestBorders.Add(westBorder);
             BordersLocked = false;
+
+            // TODO: At some point this should be made configurable.
+            MaxUndoCount = 5;
 
             m_eventManager = new EventManager();
 
