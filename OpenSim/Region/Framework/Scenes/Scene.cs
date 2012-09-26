@@ -742,6 +742,8 @@ namespace OpenSim.Region.Framework.Scenes
                 //Animation states
                 m_useFlySlow = startupConfig.GetBoolean("enableflyslow", false);
 
+                MaxUndoCount = startupConfig.GetInt("MaxPrimUndos", 20);
+
                 PhysicalPrims = startupConfig.GetBoolean("physical_prim", PhysicalPrims);
                 CollidablePrims = startupConfig.GetBoolean("collidable_prim", CollidablePrims);
 
@@ -931,9 +933,6 @@ namespace OpenSim.Region.Framework.Scenes
             westBorder.CrossDirection = Cardinals.W;
             WestBorders.Add(westBorder);
             BordersLocked = false;
-
-            // TODO: At some point this should be made configurable.
-            MaxUndoCount = 5;
 
             m_eventManager = new EventManager();
 

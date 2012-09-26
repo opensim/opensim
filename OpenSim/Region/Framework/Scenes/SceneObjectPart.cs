@@ -3209,13 +3209,13 @@ namespace OpenSim.Region.Framework.Scenes
 //                                    "[SCENE OBJECT PART]: Storing undo state for {0} {1}, forGroup {2}, initial stack size {3}",
 //                                    Name, LocalId, forGroup, m_undo.Count);
 
-                if (ParentGroup.GetSceneMaxUndo() > 0)
+                if (ParentGroup.Scene.MaxUndoCount > 0)
                 {
                     UndoState nUndo = new UndoState(this, forGroup);
 
                     m_undo.Add(nUndo);
 
-                    if (m_undo.Count > ParentGroup.GetSceneMaxUndo())
+                    if (m_undo.Count > ParentGroup.Scene.MaxUndoCount)
                         m_undo.RemoveAt(0);
 
                     if (m_redo.Count > 0)
@@ -3255,7 +3255,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                     UndoState nUndo = null;
     
-                    if (ParentGroup.GetSceneMaxUndo() > 0)
+                    if (ParentGroup.Scene.MaxUndoCount > 0)
                     {
                         nUndo = new UndoState(this, goback.ForGroup);
                     }
@@ -3266,7 +3266,7 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         m_redo.Add(nUndo);
 
-                        if (m_redo.Count > ParentGroup.GetSceneMaxUndo())
+                        if (m_redo.Count > ParentGroup.Scene.MaxUndoCount)
                             m_redo.RemoveAt(0);
                     }
                 }
@@ -3290,13 +3290,13 @@ namespace OpenSim.Region.Framework.Scenes
                     UndoState gofwd = m_redo[m_redo.Count - 1];
                     m_redo.RemoveAt(m_redo.Count - 1);
 
-                    if (ParentGroup.GetSceneMaxUndo() > 0)
+                    if (ParentGroup.Scene.MaxUndoCount > 0)
                     {
                         UndoState nUndo = new UndoState(this, gofwd.ForGroup);
 
                         m_undo.Add(nUndo);
 
-                        if (m_undo.Count > ParentGroup.GetSceneMaxUndo())
+                        if (m_undo.Count > ParentGroup.Scene.MaxUndoCount)
                             m_undo.RemoveAt(0);
                     }
 

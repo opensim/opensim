@@ -1119,14 +1119,6 @@ namespace OpenSim.Region.Framework.Scenes
                 parts[i].UUID = UUID.Random();
         }
 
-        // helper provided for parts.
-        public int GetSceneMaxUndo()
-        {
-            if (m_scene != null)
-                return m_scene.MaxUndoCount;
-            return 5;
-        }
-
         // justincc: I don't believe this hack is needed any longer, especially since the physics
         // parts of set AbsolutePosition were already commented out.  By changing HasGroupChanged to false
         // this method was preventing proper reload of scene objects.

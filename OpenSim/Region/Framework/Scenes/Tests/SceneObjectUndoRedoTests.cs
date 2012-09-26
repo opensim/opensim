@@ -52,6 +52,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Vector3 secondSize = new Vector3(5, 6, 7);
 
             Scene scene = new SceneHelpers().SetupScene();
+            scene.MaxUndoCount = 20;
             SceneObjectGroup g1 = SceneHelpers.AddSceneObject(scene);
 
             // TODO: It happens to be the case that we are not storing undo states for SOPs which are not yet in a SOG,
@@ -113,6 +114,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Vector3 fourthSize = new Vector3(11, 12, 13);
 
             Scene scene = new SceneHelpers().SetupScene();
+            scene.MaxUndoCount = 20;
             SceneObjectGroup g1 = SceneHelpers.CreateSceneObject(1, TestHelpers.ParseTail(0x1));
 
             g1.GroupResize(firstSize);
@@ -133,6 +135,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Vector3 newSize = new Vector3(2, 3, 4);
 
             Scene scene = new SceneHelpers().SetupScene();
+            scene.MaxUndoCount = 20;
             SceneObjectGroup g1 = SceneHelpers.AddSceneObject(scene);
             Vector3 originalSize = g1.GroupScale;
 
@@ -160,6 +163,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Vector3 newSize = new Vector3(2, 3, 4);
 
             Scene scene = new SceneHelpers().SetupScene();
+            scene.MaxUndoCount = 20;
             SceneObjectGroup g1 = SceneHelpers.AddSceneObject(scene);
             Vector3 originalSize = g1.GroupScale;
 
