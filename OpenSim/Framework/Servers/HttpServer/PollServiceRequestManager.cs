@@ -205,7 +205,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                         String.Format("PollServiceWorkerThread{0}", i),
                         ThreadPriority.Normal,
                         false,
-                        true,
+                        false,
                         null,
                         int.MaxValue);
             }
@@ -344,34 +344,35 @@ namespace OpenSim.Framework.Servers.HttpServer
                     {
                         if (req.PollServiceArgs.HasEvents(req.RequestID, req.PollServiceArgs.Id))
                         {
-                            try
+                            string strreq = "";
+                            if (req.PollServiceArgs.GetEventsNeedsRequest)
                             {
-                                str = new StreamReader(req.Request.Body);
-                            }
-                            catch (System.ArgumentException)
-                            {
-                                // Stream was not readable means a child agent
-                                // was closed due to logout, leaving the
-                                // Event Queue request orphaned.
-                                continue;
+                                try
+                                {
+                                    str = new StreamReader(req.Request.Body);
+                                    strreq = str.ReadToEnd();
+                                    str.Close();
+                                }
+                                catch
+                                {
+                                    continue;
+                                }
                             }
 
-                            // "Normal" means the viewer evebt queue. We need to push these out fast.
-                            // Process them inline. The rest go to the thread pool.
+                            Hashtable responsedata = req.PollServiceArgs.GetEvents(req.RequestID, req.PollServiceArgs.Id, strreq);
+
+                            if (responsedata == null)
+                                continue;
+
                             if (req.PollServiceArgs.Type == PollServiceEventArgs.EventType.Normal)
                             {
                                 try
                                 {
-                                    Hashtable responsedata = req.PollServiceArgs.GetEvents(req.RequestID, req.PollServiceArgs.Id, str.ReadToEnd());
                                     DoHTTPGruntWork(m_server, req, responsedata);
                                 }
                                 catch (ObjectDisposedException) // Browser aborted before we could read body, server closed the stream
                                 {
                                     // Ignore it, no need to reply
-                                }
-                                finally
-                                {
-                                    str.Close();
                                 }
                             }
                             else
@@ -380,27 +381,19 @@ namespace OpenSim.Framework.Servers.HttpServer
                                 {
                                     try
                                     {
-                                        Hashtable responsedata = req.PollServiceArgs.GetEvents(req.RequestID, req.PollServiceArgs.Id, str.ReadToEnd());
                                         DoHTTPGruntWork(m_server, req, responsedata);
                                     }
                                     catch (ObjectDisposedException) // Browser aborted before we could read body, server closed the stream
                                     {
                                         // Ignore it, no need to reply
                                     }
-                                    finally
-                                    {
-                                        str.Close();
-                                    }
 
                                     return null;
                                 }, null);
                             }
-
                         }
                         else
                         {
-//                            if ((Environment.TickCount - req.RequestTime) > m_timeout)
-
                             if ((Environment.TickCount - req.RequestTime) > req.PollServiceArgs.TimeOutms)
                             {
                                 DoHTTPGruntWork(m_server, req, 

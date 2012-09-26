@@ -160,7 +160,11 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 m_scene = scene;
 
-                HasEvents = (x, y) => { lock (responses) return responses.ContainsKey(x); };
+                HasEvents = (x, y) =>
+                {
+                    lock (responses)
+                        return responses.ContainsKey(x);
+                };
                 GetEvents = (x, y, s) =>
                 {
                     lock (responses)
@@ -247,6 +251,7 @@ namespace OpenSim.Region.ClientStack.Linden
             PollServiceTextureEventArgs args = new PollServiceTextureEventArgs(agentID, m_scene);
             
             args.Type = PollServiceEventArgs.EventType.Texture;
+            args.GetEventsNeedsRequest = false;
             MainServer.Instance.AddPollServiceHTTPHandler(capUrl, args);
 
             string hostName = m_scene.RegionInfo.ExternalHostName;

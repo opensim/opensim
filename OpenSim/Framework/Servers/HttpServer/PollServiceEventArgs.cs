@@ -47,6 +47,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         public UUID Id;
         public int TimeOutms;
         public EventType Type;
+        public bool GetEventsNeedsRequest = true;
 
         public enum EventType : int
         {
