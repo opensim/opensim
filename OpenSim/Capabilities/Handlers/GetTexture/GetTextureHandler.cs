@@ -187,7 +187,11 @@ namespace OpenSim.Capabilities.Handlers
             response["headers"] = headers;
 
             string range = String.Empty;
-            if (((Hashtable)request["headers"])["Range"] != null)
+
+            if (((Hashtable)request["headers"])["range"] != null)
+                range = (string)((Hashtable)request["headers"])["range"];
+
+            else if (((Hashtable)request["headers"])["Range"] != null)
                 range = (string)((Hashtable)request["headers"])["Range"];
 
             if (!String.IsNullOrEmpty(range)) // JP2's only
