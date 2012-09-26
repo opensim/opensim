@@ -3170,6 +3170,9 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void StoreUndoState(bool forGroup)
         {
+            if (ParentGroup == null || ParentGroup.Scene == null)
+                return;
+
             if (Undoing)
             {
 //                m_log.DebugFormat(
@@ -3182,9 +3185,6 @@ namespace OpenSim.Region.Framework.Scenes
 //                    m_log.DebugFormat("[SCENE OBJECT PART]: Ignoring undo store for {0} {1}", Name, LocalId);
                 return;
             }
-
-            if (ParentGroup == null)
-                return;
 
             lock (m_undo)
             {

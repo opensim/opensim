@@ -103,6 +103,29 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         }
 
         [Test]
+        public void TestNoUndoOnObjectsNotInScene()
+        {
+            TestHelpers.InMethod();
+
+            Vector3 firstSize = new Vector3(2, 3, 4);
+            Vector3 secondSize = new Vector3(5, 6, 7);
+            Vector3 thirdSize = new Vector3(8, 9, 10);
+            Vector3 fourthSize = new Vector3(11, 12, 13);
+
+            Scene scene = new SceneHelpers().SetupScene();
+            SceneObjectGroup g1 = SceneHelpers.CreateSceneObject(1, TestHelpers.ParseTail(0x1));
+
+            g1.GroupResize(firstSize);
+            g1.GroupResize(secondSize);
+
+            Assert.That(g1.RootPart.UndoCount, Is.EqualTo(0));
+
+            g1.RootPart.Undo();
+
+            Assert.That(g1.GroupScale, Is.EqualTo(secondSize));
+        }
+
+        [Test]
         public void TestUndoBeyondAvailable()
         {
             TestHelpers.InMethod();
