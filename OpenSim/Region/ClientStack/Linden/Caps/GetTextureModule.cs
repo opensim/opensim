@@ -160,7 +160,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     lock (responses)
                         return responses.ContainsKey(x);
                 };
-                GetEvents = (x, y, s) =>
+                GetEvents = (x, y) =>
                 {
                     lock (responses)
                     {

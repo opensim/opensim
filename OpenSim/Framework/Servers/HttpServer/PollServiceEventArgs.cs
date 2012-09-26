@@ -34,7 +34,7 @@ namespace OpenSim.Framework.Servers.HttpServer
     public delegate void RequestMethod(UUID requestID, Hashtable request);
     public delegate bool HasEventsMethod(UUID requestID, UUID pId);
 
-    public delegate Hashtable GetEventsMethod(UUID requestID, UUID pId, string request);
+    public delegate Hashtable GetEventsMethod(UUID requestID, UUID pId);
 
     public delegate Hashtable NoEventsMethod(UUID requestID, UUID pId);
 
@@ -47,13 +47,6 @@ namespace OpenSim.Framework.Servers.HttpServer
         public UUID Id;
         public int TimeOutms;
         public EventType Type;    
-        // must be set true for cases where GetEvents needs to access the request body
-        // at each pool. http can start processing before having the full body
-        // but not sure if this is active for poll events
-        // if original coder thinked its needed i keep it
-        // if the Event has a Request method this seems to smoke for now
-        // seems for now nothing actually uses this so default to false
-        public bool GetEventsNeedsRequestBody = false;
 
         public enum EventType : int
         {
