@@ -425,7 +425,7 @@ namespace OpenSim.Framework.Console
             return false;
         }
 
-        private Hashtable GetEvents(UUID RequestID, UUID sessionID, string request)
+        private Hashtable GetEvents(UUID RequestID, UUID sessionID)
         {
             ConsoleConnection c = null;
 
