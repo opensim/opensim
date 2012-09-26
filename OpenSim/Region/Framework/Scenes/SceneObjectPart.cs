@@ -3191,9 +3191,9 @@ namespace OpenSim.Region.Framework.Scenes
                                 }
                             }
     
-    //                            m_log.DebugFormat(
-    //                                "[SCENE OBJECT PART]: Storing undo state for {0} {1}, forGroup {2}, initial stack size {3}",
-    //                                Name, LocalId, forGroup, m_undo.Count);
+//                                m_log.DebugFormat(
+//                                    "[SCENE OBJECT PART]: Storing undo state for {0} {1}, forGroup {2}, initial stack size {3}",
+//                                    Name, LocalId, forGroup, m_undo.Count);
     
                             if (ParentGroup.GetSceneMaxUndo() > 0)
                             {
@@ -3204,9 +3204,9 @@ namespace OpenSim.Region.Framework.Scenes
                                 if (m_redo.Count > 0)
                                     m_redo.Clear();
     
-    //                                m_log.DebugFormat(
-    //                                    "[SCENE OBJECT PART]: Stored undo state for {0} {1}, forGroup {2}, stack size now {3}",
-    //                                    Name, LocalId, forGroup, m_undo.Count);
+//                                    m_log.DebugFormat(
+//                                        "[SCENE OBJECT PART]: Stored undo state for {0} {1}, forGroup {2}, stack size now {3}",
+//                                        Name, LocalId, forGroup, m_undo.Count);
                             }
                         }
                     }

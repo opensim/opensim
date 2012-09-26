@@ -44,7 +44,7 @@ using OpenSim.Tests.Common.Mock;
 namespace OpenSim.Region.Framework.Scenes.Tests
 {
     [TestFixture]
-    public class SceneObjectUserGroupTests
+    public class SceneObjectUserGroupTests : OpenSimTestCase
     {
         /// <summary>
         /// Test share with group object functionality
@@ -54,7 +54,6 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         public void TestShareWithGroup()
         {
             TestHelpers.InMethod();
-//            log4net.Config.XmlConfigurator.Configure();
                         
             UUID userId = UUID.Parse("10000000-0000-0000-0000-000000000001");
             
