@@ -321,13 +321,9 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         private void PoolWorkerJob()
         {
-            PollServiceHttpRequest req;
-            StreamReader str;
-
-//            while (true)
             while (m_running)
             {
-                req = m_requests.Dequeue(5000);
+                PollServiceHttpRequest req = m_requests.Dequeue(5000);
 
                 Watchdog.UpdateThread();
                 if (req != null)
