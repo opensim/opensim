@@ -46,8 +46,14 @@ namespace OpenSim.Framework.Servers.HttpServer
         public RequestMethod Request;
         public UUID Id;
         public int TimeOutms;
-        public EventType Type;
-        public bool GetEventsNeedsRequest = true;
+        public EventType Type;    
+        // must be set true for cases where GetEvents needs to access the request body
+        // at each pool. http can start processing before having the full body
+        // but not sure if this is active for poll events
+        // if original coder thinked its needed i keep it
+        // if the Event has a Request method this seems to smoke for now
+        // seems for now nothing actually uses this so default to false
+        public bool GetEventsNeedsRequestBody = false;
 
         public enum EventType : int
         {

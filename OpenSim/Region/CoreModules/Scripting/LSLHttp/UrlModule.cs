@@ -186,7 +186,6 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                
                 PollServiceEventArgs args = new PollServiceEventArgs(HttpRequestHandler, HasEvents, GetEvents, NoEvents, urlcode, 25000);
                 args.Type = PollServiceEventArgs.EventType.LslHttp;
-                args.GetEventsNeedsRequest = false;
                 m_HttpServer.AddPollServiceHTTPHandler(uri, args);
 
 //                m_log.DebugFormat(
