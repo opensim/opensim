@@ -217,17 +217,22 @@ namespace OpenSim.Capabilities.Handlers
 
                         //m_log.Debug("Serving " + start + " to " + end + " of " + texture.Data.Length + " bytes for texture " + texture.ID);
 
-                        // Always return PartialContent, even if the range covered the entire data length
-                        // We were accidentally sending back 404 before in this situation
-                        // https://issues.apache.org/bugzilla/show_bug.cgi?id=51878 supports sending 206 even if the
-                        // entire range is requested, and viewer 3.2.2 (and very probably earlier) seems fine with this.
-                        response["int_response_code"] = (int)System.Net.HttpStatusCode.PartialContent;
                         response["content-type"] = texture.Metadata.ContentType;
-                        headers["Content-Range"] = String.Format("bytes {0}-{1}/{2}", start, end, texture.Data.Length);
-    
-                        byte[] d = new byte[len];
-                        Array.Copy(texture.Data, start, d, 0, len);
-                        response["bin_response_data"] = d;
+
+                        if (start == 0 && len == texture.Data.Length) // well redudante maybe
+                        {
+                            response["int_response_code"] = (int)System.Net.HttpStatusCode.OK;
+                            response["bin_response_data"] = texture.Data;
+                        }
+                        else
+                        {
+                            response["int_response_code"] = (int)System.Net.HttpStatusCode.PartialContent;
+                            headers["Content-Range"] = String.Format("bytes {0}-{1}/{2}", start, end, texture.Data.Length);
+
+                            byte[] d = new byte[len];
+                            Array.Copy(texture.Data, start, d, 0, len);
+                            response["bin_response_data"] = d;
+                        }
 //                        response.Body.Write(texture.Data, start, len);
                     }
                 }
