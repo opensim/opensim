@@ -278,15 +278,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             Thread.Sleep(1000); // let the world move
 
             foreach (Thread t in m_workerThreads)
-            {
-                try
-                {
-                    t.Abort();
-                }
-                catch
-                {
-                }
-            }
+                    Watchdog.AbortThread(t.ManagedThreadId);
 
             try
             {
@@ -345,10 +337,11 @@ namespace OpenSim.Framework.Servers.HttpServer
                         if (req.PollServiceArgs.HasEvents(req.RequestID, req.PollServiceArgs.Id))
                         {
                             string strreq = "";
-                            if (req.PollServiceArgs.GetEventsNeedsRequest)
+                            if (req.PollServiceArgs.GetEventsNeedsRequestBody)
                             {
                                 try
                                 {
+                                    // should we try to seek back? fear we can't
                                     str = new StreamReader(req.Request.Body);
                                     strreq = str.ReadToEnd();
                                     str.Close();

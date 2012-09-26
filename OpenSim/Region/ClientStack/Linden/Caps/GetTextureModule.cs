@@ -151,12 +151,7 @@ namespace OpenSim.Region.ClientStack.Linden
             private Scene m_scene;
 
             public PollServiceTextureEventArgs(UUID pId, Scene scene) :
-                    base(null, null, null, null, pId, int.MaxValue)
-                // this should never timeout
-                // each request must be processed and return a response
-                // noevents can possible be use for nice shutdown, but not sure now
-                // the execution will provide a proper response even if it fails
-                
+                    base(null, null, null, null, pId, int.MaxValue)              
             {
                 m_scene = scene;
 
@@ -219,7 +214,6 @@ namespace OpenSim.Region.ClientStack.Linden
                 UUID requestID = requestinfo.reqID;
 
                 // If the avatar is gone, don't bother to get the texture
-               
                 if (m_scene.GetScenePresence(Id) == null)
                 {
                     response = new Hashtable();
@@ -246,12 +240,10 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             string capUrl = "/CAPS/" + UUID.Random() + "/";
 
-            // Register this as a poll service
-            // absurd large timeout to tune later to make a bit less than viewer
+            // Register this as a poll service           
             PollServiceTextureEventArgs args = new PollServiceTextureEventArgs(agentID, m_scene);
             
             args.Type = PollServiceEventArgs.EventType.Texture;
-            args.GetEventsNeedsRequest = false;
             MainServer.Instance.AddPollServiceHTTPHandler(capUrl, args);
 
             string hostName = m_scene.RegionInfo.ExternalHostName;
