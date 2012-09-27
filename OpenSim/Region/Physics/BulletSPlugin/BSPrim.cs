@@ -507,6 +507,9 @@ public sealed class BSPrim : BSPhysObject
         // Set up the object physicalness (does gravity and collisions move this object)
         MakeDynamic(IsStatic);
 
+        // Do any vehicle stuff
+        _vehicle.Refresh();
+
         // Arrange for collision events if the simulator wants them
         EnableCollisions(SubscribedEvents());
 
@@ -556,9 +559,8 @@ public sealed class BSPrim : BSPhysObject
             BulletSimAPI.UpdateInertiaTensor2(BSBody.ptr);
             // There can be special things needed for implementing linksets
             Linkset.MakeStatic(this);
-            // The activation state is 'sleeping' so Bullet will not try to act on it
-            BulletSimAPI.ForceActivationState2(BSBody.ptr, ActivationState.ISLAND_SLEEPING);
-            // BulletSimAPI.ForceActivationState2(BSBody.ptr, ActivationState.DISABLE_SIMULATION);
+            // The activation state is 'disabled' so Bullet will not try to act on it
+            BulletSimAPI.ForceActivationState2(BSBody.ptr, ActivationState.DISABLE_SIMULATION);
 
             BSBody.collisionFilter = CollisionFilterGroups.StaticObjectFilter;
             BSBody.collisionMask = CollisionFilterGroups.StaticObjectMask;
@@ -577,7 +579,8 @@ public sealed class BSPrim : BSPhysObject
 
             // A dynamic object has mass
             IntPtr collisionShapePtr = BulletSimAPI.GetCollisionShape2(BSBody.ptr);
-            OMV.Vector3 inertia = BulletSimAPI.CalculateLocalInertia2(collisionShapePtr, Linkset.LinksetMass);
+            OMV.Vector3 inertia = BulletSimAPI.CalculateLocalInertia2(collisionShapePtr, Mass);
+            // OMV.Vector3 inertia = OMV.Vector3.Zero;
             BulletSimAPI.SetMassProps2(BSBody.ptr, _mass, inertia);
             BulletSimAPI.UpdateInertiaTensor2(BSBody.ptr);
 
@@ -587,10 +590,12 @@ public sealed class BSPrim : BSPhysObject
             BulletSimAPI.SetSleepingThresholds2(BSBody.ptr, PhysicsScene.Params.linearSleepingThreshold, PhysicsScene.Params.angularSleepingThreshold);
             BulletSimAPI.SetContactProcessingThreshold2(BSBody.ptr, PhysicsScene.Params.contactProcessingThreshold);
 
-            // There can be special things needed for implementing linksets
+            // There can be special things needed for implementing linksets.
             Linkset.MakeDynamic(this);
 
             // Force activation of the object so Bullet will act on it.
+            // Must do the ForceActivationState2() to overcome the DISABLE_SIMULATION from static objects.
+            BulletSimAPI.ForceActivationState2(BSBody.ptr, ActivationState.ISLAND_SLEEPING);
             BulletSimAPI.Activate2(BSBody.ptr, true);
 
             BSBody.collisionFilter = CollisionFilterGroups.ObjectFilter;
@@ -1457,9 +1462,16 @@ public sealed class BSPrim : BSPhysObject
         ShapeData shapeData;
         FillShapeInfo(out shapeData);
 
+        // Undo me from any possible linkset so, if body is rebuilt, the link will get restored.
+        // NOTE that the new linkset is not set. This saves the handle to the linkset
+        //     so we can add ourselves back when shape mangling is complete.
+        Linkset.RemoveMeFromLinkset(this);
+
         // Create the correct physical representation for this type of object.
         // Updates BSBody and BSShape with the new information.
         PhysicsScene.Shapes.GetBodyAndShape(forceRebuild, PhysicsScene.World, this, shapeData, _pbs);
+
+        Linkset = Linkset.AddMeToLinkset(this);
             
         // Make sure the properties are set on the new object
         UpdatePhysicalParameters();

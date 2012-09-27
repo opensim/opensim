@@ -498,7 +498,8 @@ public class BSShapeCollection : IDisposable
         ulong newHullKey = ComputeShapeKey(shapeData, pbs, out lod);
 
         // if the hull hasn't changed, don't rebuild it
-        if (newHullKey == prim.BSShape.shapeKey) return false;
+        if (newHullKey == prim.BSShape.shapeKey && prim.BSShape.type == ShapeData.PhysicsShapeType.SHAPE_HULL)
+            return false;
 
         DetailLog("{0},BSShapeCollection.CreateGeomHull,create,oldKey={1},newKey={2}", 
                         prim.LocalID, prim.BSShape.shapeKey.ToString("X"), newHullKey.ToString("X"));
@@ -508,11 +509,8 @@ public class BSShapeCollection : IDisposable
 
         newShape = CreatePhysicalHull(prim.PhysObjectName, newHullKey, pbs, shapeData.Size, lod);
    
-        if (!ReferenceShape(newShape))
-        {
-            PhysicsScene.Logger.ErrorFormat("{0} Created new hull shape but one already exists: id={1}, key={2}, refCnt={3}", 
-                            LogHeader, shapeData.ID, newHullKey.ToString("X"), Hulls[newHullKey].referenceCount);
-        }
+        ReferenceShape(newShape);
+
         // hulls are already scaled by the meshmerizer
         prim.Scale = new OMV.Vector3(1f, 1f, 1f);
         prim.BSShape = newShape;

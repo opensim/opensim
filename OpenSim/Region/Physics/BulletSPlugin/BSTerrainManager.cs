@@ -334,7 +334,8 @@ public class BSTerrainManager
                                     (uint)CollisionFilterGroups.TerrainMask);
 
                 // Make sure the new shape is processed.
-                BulletSimAPI.Activate2(mapInfo.terrainBody.ptr, true);
+                // BulletSimAPI.Activate2(mapInfo.terrainBody.ptr, true);
+                BulletSimAPI.ForceActivationState2(mapInfo.terrainBody.ptr, ActivationState.DISABLE_SIMULATION);
 
                 m_terrainModified = true;
             };

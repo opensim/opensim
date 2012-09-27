@@ -135,8 +135,11 @@ public abstract class BSPhysObject : PhysicsActor
     //      collision event to make collision_end work.
     // Called at taint time from within the Step() function thus no locking problems
     //      with CollisionCollection and ObjectsWithNoMoreCollisions.
-    public virtual void SendCollisions()
+    // Return 'true' if there were some actual collisions passed up
+    public virtual bool SendCollisions()
     {
+        bool ret = true;
+
         // throttle the collisions to the number of milliseconds specified in the subscription
         int nowTime = PhysicsScene.SimulationNowTime;
         if (nowTime >= NextCollisionOkTime)
@@ -148,7 +151,7 @@ public abstract class BSPhysObject : PhysicsActor
             if (CollisionCollection.Count == 0)
             {
                 // If I have no collisions this time, remove me from the list of objects with collisions.
-                PhysicsScene.ObjectsWithNoMoreCollisions.Add(this);
+                ret = false;
             }
 
             // DetailLog("{0},{1}.SendCollisionUpdate,call,numCollisions={2}", LocalID, TypeName, CollisionCollection.Count);
@@ -158,6 +161,7 @@ public abstract class BSPhysObject : PhysicsActor
             // Make sure we don't have a handle to that one and that a new one is used for next time.
             CollisionCollection = new CollisionEventUpdate();
         }
+        return ret;
     }
 
     // Subscribe for collision events.

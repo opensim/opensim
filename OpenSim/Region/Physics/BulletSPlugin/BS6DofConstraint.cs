@@ -58,10 +58,22 @@ public class BS6DofConstraint : BSConstraint
         m_world = world;
         m_body1 = obj1;
         m_body2 = obj2;
-        m_constraint = new BulletConstraint(
-                            BulletSimAPI.Create6DofConstraintToPoint2(m_world.ptr, m_body1.ptr, m_body2.ptr,
-                                joinPoint,
-                                useLinearReferenceFrameA, disableCollisionsBetweenLinkedBodies));
+        if (obj1.ptr == IntPtr.Zero || obj2.ptr == IntPtr.Zero)
+        {
+            world.scene.DetailLog("{0},BS6DOFConstraint,badBodyPtr,wID={1}, rID={2}, rBody={3}, cID={4}, cBody={5}",
+                            "[BULLETSIM 6DOF CONSTRAINT]", world.worldID,
+                            obj1.ID, obj1.ptr.ToString("X"), obj2.ID, obj2.ptr.ToString("X"));
+            world.scene.Logger.ErrorFormat("{0} Attempt to build 6DOF constraint with missing bodies: wID={1}, rID={2}, rBody={3}, cID={4}, cBody={5}",
+                            "[BULLETSIM 6DOF CONSTRAINT]", world.worldID,
+                            obj1.ID, obj1.ptr.ToString("X"), obj2.ID, obj2.ptr.ToString("X"));
+        }
+        else
+        {
+            m_constraint = new BulletConstraint(
+                                BulletSimAPI.Create6DofConstraintToPoint2(m_world.ptr, m_body1.ptr, m_body2.ptr,
+                                    joinPoint,
+                                    useLinearReferenceFrameA, disableCollisionsBetweenLinkedBodies));
+        }
         m_enabled = true;
     }
 

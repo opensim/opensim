@@ -92,7 +92,9 @@ public class BSLinkset
     {
         lock (m_linksetActivityLock)
         {
-            AddChildToLinkset(child);
+            // Don't add the root to its own linkset
+            if (!IsRoot(child))
+                AddChildToLinkset(child);
         }
         return this;
     }
@@ -104,6 +106,17 @@ public class BSLinkset
     {
         lock (m_linksetActivityLock)
         {
+            if (IsRoot(child))
+            {
+                // Cannot remove the root from a linkset.
+                return this;
+            }
+
+            RemoveChildFromLinkset(child);
+
+            /* Alternate implementation that destroys the linkset of the root is removed.
+             * This fails because items are added and removed from linksets to build shapes.
+             * Code left for reference.
             if (IsRoot(child))
             {
                 // if root of linkset, take the linkset apart
@@ -120,6 +133,7 @@ public class BSLinkset
                 // Just removing a child from an existing linkset
                 RemoveChildFromLinkset(child);
             }
+             */
         }
 
         // The child is down to a linkset of just itself
@@ -308,12 +322,16 @@ public class BSLinkset
         {
             m_children.Add(child);
 
-            BSPhysObject rootx = LinksetRoot; // capture the root as of now
+            BSPhysObject rootx = LinksetRoot; // capture the root and body as of now
+            BulletBody rootBodyx = LinksetRoot.BSBody;
             BSPhysObject childx = child;
+            BulletBody childBodyx = child.BSBody;
+
             PhysicsScene.TaintedObject("AddChildToLinkset", delegate()
             {
                 DetailLog("{0},AddChildToLinkset,taint,child={1}", LinksetRoot.LocalID, child.LocalID);
-                PhysicallyLinkAChildToRoot(rootx, childx);     // build the physical binding between me and the child
+                // build the physical binding between me and the child
+                PhysicallyLinkAChildToRoot(rootx, rootBodyx, childx, childBodyx);
             });
         }
         return;
@@ -323,7 +341,7 @@ public class BSLinkset
     // This is not being called by the child so we have to make sure the child doesn't think
     //    it's still connected to the linkset.
     // Normal OpenSimulator operation will never do this because other SceneObjectPart information
-    //    has to be updated also (like pointer to prim's parent).
+    //    also has to be updated (like pointer to prim's parent).
     private void RemoveChildFromOtherLinkset(BSPhysObject pchild)
     {
         pchild.Linkset = new BSLinkset(PhysicsScene, pchild);
@@ -336,13 +354,15 @@ public class BSLinkset
     {
         if (m_children.Remove(child))
         {
-            BSPhysObject rootx = LinksetRoot; // capture the root as of now
+            BSPhysObject rootx = LinksetRoot; // capture the root and body as of now
+            BulletBody rootBodyx = LinksetRoot.BSBody;
             BSPhysObject childx = child;
+            BulletBody childBodyx = child.BSBody;
             PhysicsScene.TaintedObject("RemoveChildFromLinkset", delegate()
             {
                 DetailLog("{0},RemoveChildFromLinkset,taint,child={1}", LinksetRoot.LocalID, child.LocalID);
 
-                PhysicallyUnlinkAChildFromRoot(rootx, childx);
+                PhysicallyUnlinkAChildFromRoot(rootx, rootBodyx, childx, childBodyx);
                 RecomputeLinksetConstraintVariables();
             });
 
@@ -357,7 +377,8 @@ public class BSLinkset
 
     // Create a constraint between me (root of linkset) and the passed prim (the child).
     // Called at taint time!
-    private void PhysicallyLinkAChildToRoot(BSPhysObject rootPrim, BSPhysObject childPrim)
+    private void PhysicallyLinkAChildToRoot(BSPhysObject rootPrim, BulletBody rootBody,
+                                    BSPhysObject childPrim, BulletBody childBody)
     {
         // Zero motion for children so they don't interpolate
         childPrim.ZeroMotion();
@@ -371,16 +392,32 @@ public class BSLinkset
 
         // create a constraint that allows no freedom of movement between the two objects
         // http://bulletphysics.org/Bullet/phpBB3/viewtopic.php?t=4818
-        DetailLog("{0},PhysicallyLinkAChildToRoot,taint,root={1},child={2},rLoc={3},cLoc={4},midLoc={5}", 
-            rootPrim.LocalID, rootPrim.LocalID, childPrim.LocalID, rootPrim.Position, childPrim.Position, midPoint);
+        DetailLog("{0},PhysicallyLinkAChildToRoot,taint,root={1},rBody={2},child={3},cBody={4},rLoc={5},cLoc={6},midLoc={7}", 
+                                        rootPrim.LocalID, 
+                                        rootPrim.LocalID, rootBody.ptr.ToString("X"), 
+                                        childPrim.LocalID, childBody.ptr.ToString("X"), 
+                                        rootPrim.Position, childPrim.Position, midPoint);
+
+        // There is great subtlty in these paramters. Notice the check for a ptr of zero.
+        // We pass the BulletBody structure into the taint in order to capture the pointer 
+        //     of the body at the time of constraint creation. This doesn't work for the very first
+        //     construction because there is no body yet. The body
+        //     is constructed later at taint time. Thus we use the body address at time of the
+        //     taint creation but, if it is zero, use what's in the prim at the moment.
+        //     There is a possible race condition since shape can change without a taint call
+        //     (like changing to a mesh that is already constructed). The fix for that would be
+        //     to only change BSShape at taint time thus syncronizing these operations at
+        //     the cost of efficiency and lag.
         BS6DofConstraint constrain = new BS6DofConstraint(
-                        PhysicsScene.World, rootPrim.BSBody, childPrim.BSBody,
+                        PhysicsScene.World, 
+                        rootBody.ptr == IntPtr.Zero ? rootPrim.BSBody : rootBody, 
+                        childBody.ptr == IntPtr.Zero ? childPrim.BSBody : childBody,
                         midPoint,
                         true,
                         true
                         );
         /* NOTE: below is an attempt to build constraint with full frame computation, etc.
-         *     Using the midpoint is easier since it lets the Bullet code use the transforms
+         *     Using the midpoint is easier since it lets the Bullet code manipulate the transforms
          *     of the objects.
          * Code left as a warning to future programmers.
         // ==================================================================================
@@ -433,19 +470,26 @@ public class BSLinkset
     }
 
     // Remove linkage between myself and a particular child
+    // The root and child bodies are passed in because we need to remove the constraint between
+    //      the bodies that were at unlink time.
     // Called at taint time!
-    private void PhysicallyUnlinkAChildFromRoot(BSPhysObject rootPrim, BSPhysObject childPrim)
+    private void PhysicallyUnlinkAChildFromRoot(BSPhysObject rootPrim, BulletBody rootBody, 
+                                                    BSPhysObject childPrim, BulletBody childBody)
     {
-        DetailLog("{0},PhysicallyUnlinkAChildFromRoot,taint,root={1},child={2}", rootPrim.LocalID, rootPrim.LocalID, childPrim.LocalID);
+        DetailLog("{0},PhysicallyUnlinkAChildFromRoot,taint,root={1},rBody={2},child={3},cBody={4}", 
+                            rootPrim.LocalID, 
+                            rootPrim.LocalID, rootBody.ptr.ToString("X"),
+                            childPrim.LocalID, childBody.ptr.ToString("X"));
 
         // Find the constraint for this link and get rid of it from the overall collection and from my list
-        PhysicsScene.Constraints.RemoveAndDestroyConstraint(rootPrim.BSBody, childPrim.BSBody);
+        PhysicsScene.Constraints.RemoveAndDestroyConstraint(rootBody, childBody);
 
         // Make the child refresh its location
         BulletSimAPI.PushUpdate2(childPrim.BSBody.ptr);
     }
 
-    // Remove linkage between myself and any possible children I might have
+    /*
+    // Remove linkage between myself and any possible children I might have.
     // Called at taint time!
     private void PhysicallyUnlinkAllChildrenFromRoot(BSPhysObject rootPrim)
     {
@@ -453,6 +497,7 @@ public class BSLinkset
 
         PhysicsScene.Constraints.RemoveAndDestroyConstraint(rootPrim.BSBody);
     }
+     */
 
     // Invoke the detailed logger and output something if it's enabled.
     private void DetailLog(string msg, params Object[] args)

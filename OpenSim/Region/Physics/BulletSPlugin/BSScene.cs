@@ -544,12 +544,15 @@ public class BSScene : PhysicsScene, IPhysicsParameters
 
         // The above SendCollision's batch up the collisions on the objects.
         //      Now push the collisions into the simulator.
-        // If the object is done colliding, it will add itself to the ObjectsWithNoMoreCollisions list.
         if (ObjectsWithCollisions.Count > 0)
         {
             foreach (BSPhysObject bsp in ObjectsWithCollisions)
                 if (!m_avatars.Contains(bsp))   // don't call avatars twice
-                    bsp.SendCollisions();
+                    if (!bsp.SendCollisions())
+                    {
+                        // If the object is done colliding, see that it's removed from the colliding list
+                        ObjectsWithNoMoreCollisions.Add(bsp);
+                    }
         }
 
         // Objects that are done colliding are removed from the ObjectsWithCollisions list.
