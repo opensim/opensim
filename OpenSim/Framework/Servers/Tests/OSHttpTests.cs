@@ -75,6 +75,10 @@ namespace OpenSim.Framework.Servers.Tests
             /// </summary>
             public event EventHandler<RequestEventArgs> RequestReceived = delegate { };
 
+            public bool CanSend { get { return true; } }
+            public string RemoteEndPoint { get { return ""; } }
+            public string RemoteEndPointAddress { get { return ""; } }
+            public string RemoteEndPointPort { get { return ""; } }
         }
 
         public class TestHttpRequest: IHttpRequest

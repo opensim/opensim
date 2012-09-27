@@ -134,6 +134,17 @@ namespace OpenSim.Region.Physics.OdePlugin
         AddAngForce,
         AngLock,
 
+        Buoyancy,
+
+        PIDTarget,
+        PIDTau,
+        PIDActive,
+
+        PIDHoverHeight,
+        PIDHoverType,
+        PIDHoverTau,
+        PIDHoverActive,
+
         Size,
         Shape,
 

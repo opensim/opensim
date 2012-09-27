@@ -10599,31 +10599,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UUID key = new UUID();
             if (UUID.TryParse(id, out key))
             {
-                try
-                {
-                    /*
-                    SceneObjectPart obj = World.GetSceneObjectPart(World.Entities[key].LocalId);
-                    if (obj != null)
-                        return (double)obj.GetMass();
-                     */
-                    // return total object mass
-                    SceneObjectGroup obj = World.GetGroupByPrim(World.Entities[key].LocalId);
-                    if (obj != null)
-                        return obj.GetMass();
+                // return total object mass
+                SceneObjectPart part = World.GetSceneObjectPart(key);
+                if (part != null)
+                    return part.ParentGroup.GetMass();
 
-                    // the object is null so the key is for an avatar
-                    ScenePresence avatar = World.GetScenePresence(key);
-                    if (avatar != null)
-                        if (avatar.IsChildAgent)
-                            // reference http://www.lslwiki.net/lslwiki/wakka.php?wakka=llGetObjectMass
-                            // child agents have a mass of 1.0
-                            return 1;
-                        else
-                            return (double)avatar.GetMass();
-                }
-                catch (KeyNotFoundException)
+                // the object is null so the key is for an avatar
+                ScenePresence avatar = World.GetScenePresence(key);
+                if (avatar != null)
                 {
-                    return 0; // The Object/Agent not in the region so just return zero
+                    if (avatar.IsChildAgent)
+                    {
+                        // reference http://www.lslwiki.net/lslwiki/wakka.php?wakka=llGetObjectMass
+                        // child agents have a mass of 1.0
+                        return 1;
+                    }
+                    else
+                    {
+                        return (double)avatar.GetMass();
+                    }
                 }
             }
             return 0;
