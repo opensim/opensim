@@ -70,6 +70,8 @@ namespace OpenSim.Services.UserAccountService
             info.Login = Util.ToDateTime(Convert.ToInt32(d.Data["Login"]));
             info.Logout = Util.ToDateTime(Convert.ToInt32(d.Data["Logout"]));
 
+            info.TOS = d.Data["TOS"];
+
             return info;
         }
 

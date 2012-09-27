@@ -65,11 +65,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.GridUser
 
         public void OnMakeRootAgent(ScenePresence sp)
         {
-//            m_log.DebugFormat("[ACTIVITY DETECTOR]: Detected root presence {0} in {1}", sp.UUID, sp.Scene.RegionInfo.RegionName);
-
             if (sp.PresenceType != PresenceType.Npc)
+            {
+                string userid = sp.Scene.UserManagementModule.GetUserUUI(sp.UUID);
+                //m_log.DebugFormat("[ACTIVITY DETECTOR]: Detected root presence {0} in {1}", userid, sp.Scene.RegionInfo.RegionName);
                 m_GridUserService.SetLastPosition(
-                    sp.UUID.ToString(), UUID.Zero, sp.Scene.RegionInfo.RegionID, sp.AbsolutePosition, sp.Lookat);
+                    userid, UUID.Zero, sp.Scene.RegionInfo.RegionID, sp.AbsolutePosition, sp.Lookat);
+            }
         }
 
         public void OnNewClient(IClientAPI client)
@@ -82,9 +84,16 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.GridUser
             if (client.SceneAgent.IsChildAgent)
                 return;
 
-//            m_log.DebugFormat("[ACTIVITY DETECTOR]: Detected client logout {0} in {1}", client.AgentId, client.Scene.RegionInfo.RegionName);
+            string userId = client.AgentId.ToString();
+            if (client.Scene is Scene)
+            {
+                Scene s = (Scene)client.Scene;
+                userId = s.UserManagementModule.GetUserUUI(client.AgentId);
+            }
+            //m_log.DebugFormat("[ACTIVITY DETECTOR]: Detected client logout {0} in {1}", userId, client.Scene.RegionInfo.RegionName);
+
             m_GridUserService.LoggedOut(
-                client.AgentId.ToString(), client.SessionId, client.Scene.RegionInfo.RegionID,
+                userId, client.SessionId, client.Scene.RegionInfo.RegionID,
                 client.SceneAgent.AbsolutePosition, client.SceneAgent.Lookat);
         }
     }

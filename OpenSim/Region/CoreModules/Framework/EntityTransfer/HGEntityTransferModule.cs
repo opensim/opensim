@@ -106,7 +106,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 return m_ExportedAppearances;
             }
         }
-        
 
         #region ISharedRegionModule
 
@@ -149,9 +148,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             base.AddRegion(scene);
 
             if (m_Enabled)
+            {
                 scene.RegisterModuleInterface<IUserAgentVerificationModule>(this);
-
-            scene.EventManager.OnIncomingSceneObject += OnIncomingSceneObject;
+                scene.EventManager.OnIncomingSceneObject += OnIncomingSceneObject;
+            }
         }
 
         void OnIncomingSceneObject(SceneObjectGroup so)
@@ -245,6 +245,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             {
                 // Log them out of this grid
                 Scene.PresenceService.LogoutAgent(sp.ControllingClient.SessionId);
+                string userId = Scene.UserManagementModule.GetUserUUI(sp.UUID);
+                Scene.GridUserService.LoggedOut(userId, UUID.Zero, Scene.RegionInfo.RegionID, sp.AbsolutePosition, sp.Lookat);
             }
         }
 

@@ -50,6 +50,8 @@ namespace OpenSim.Services.Interfaces
         public DateTime Login;
         public DateTime Logout;
 
+        public string TOS = string.Empty;
+
         public GridUserInfo() {}
         
         public GridUserInfo(Dictionary<string, object> kvp)
@@ -78,6 +80,11 @@ namespace OpenSim.Services.Interfaces
             if (kvp.ContainsKey("Online"))
                 Boolean.TryParse(kvp["Online"].ToString(), out Online);
 
+            if (kvp.ContainsKey("TOS"))
+                TOS = kvp["TOS"].ToString();
+            else
+                TOS = string.Empty;
+
         }
 
         public Dictionary<string, object> ToKeyValuePairs()
@@ -97,6 +104,7 @@ namespace OpenSim.Services.Interfaces
             result["Login"] = Login.ToString();
             result["Logout"] = Logout.ToString();
 
+            result["TOS"] = TOS;
             
             return result;
         }

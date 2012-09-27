@@ -57,6 +57,7 @@ namespace OpenSim.Services.HypergridService
         private static IUserAccountService m_UserAccountService;
         private static IUserAgentService m_UserAgentService;
         private static ISimulationService m_SimulationService;
+        private static IGridUserService m_GridUserService;
 
         private static string m_AllowedClients = string.Empty;
         private static string m_DeniedClients = string.Empty;
@@ -84,8 +85,9 @@ namespace OpenSim.Services.HypergridService
                 string gridService = serverConfig.GetString("GridService", String.Empty);
                 string presenceService = serverConfig.GetString("PresenceService", String.Empty);
                 string simulationService = serverConfig.GetString("SimulationService", String.Empty);
+                string gridUserService = serverConfig.GetString("GridUserService", String.Empty);
 
-                // These 3 are mandatory, the others aren't
+                // These are mandatory, the others aren't
                 if (gridService == string.Empty || presenceService == string.Empty)
                     throw new Exception("Incomplete specifications, Gatekeeper Service cannot function.");
                 
@@ -105,6 +107,8 @@ namespace OpenSim.Services.HypergridService
                     m_UserAccountService = ServerUtils.LoadPlugin<IUserAccountService>(accountService, args);
                 if (homeUsersService != string.Empty)
                     m_UserAgentService = ServerUtils.LoadPlugin<IUserAgentService>(homeUsersService, args);
+                if (gridUserService != string.Empty)
+                    m_GridUserService = ServerUtils.LoadPlugin<IGridUserService>(gridUserService, args);
 
                 if (simService != null)
                     m_SimulationService = simService;
@@ -295,8 +299,6 @@ namespace OpenSim.Services.HypergridService
                 }
             }
 
-            // May want to authorize
-
             bool isFirstLogin = false;
             //
             // Login the presence, if it's not there yet (by the login service)
@@ -305,7 +307,8 @@ namespace OpenSim.Services.HypergridService
             if (presence != null) // it has been placed there by the login service
                 isFirstLogin = true;
 
-            else 
+            else
+            {
                 if (!m_PresenceService.LoginAgent(aCircuit.AgentID.ToString(), aCircuit.SessionID, aCircuit.SecureSessionID))
                 {
                     reason = "Unable to login presence";
@@ -314,6 +317,26 @@ namespace OpenSim.Services.HypergridService
                     return false;
                 }
                 m_log.DebugFormat("[GATEKEEPER SERVICE]: Login presence ok");
+
+                // Also login foreigners with GridUser service
+                if (m_GridUserService != null && account == null)
+                {
+                    string userId = aCircuit.AgentID.ToString();
+                    string first = aCircuit.firstname, last = aCircuit.lastname;
+                    if (last.StartsWith("@"))
+                    {
+                        string[] parts = aCircuit.firstname.Split('.');
+                        if (parts.Length >= 2)
+                        {
+                            first = parts[0];
+                            last = parts[1];
+                        }
+                    }
+
+                    userId += ";" + aCircuit.ServiceURLs["HomeURI"] + ";" + first + " " + last;
+                    m_GridUserService.LoggedIn(userId);
+                }
+            }
 
             //
             // Get the region
