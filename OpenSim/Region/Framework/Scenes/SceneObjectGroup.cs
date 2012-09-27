@@ -3488,8 +3488,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             PhysicsActor pa = m_rootPart.PhysActor;
 
-            RootPart.StoreUndoState(true);
-
             if (Scene != null)
             {
                 scale.X = Math.Max(Scene.m_minNonphys, Math.Min(Scene.m_maxNonphys, scale.X));
