@@ -102,7 +102,7 @@ public class BSShapeCollection : IDisposable
             bool newBody = CreateBody((newGeom || forceRebuild), prim, PhysicsScene.World, prim.BSShape, shapeData);
             ret = newGeom || newBody;
         }
-        DetailLog("{0},BSShapeCollection.GetBodyAndShape,force={1},ret={2},body={3},shape={4}", 
+        DetailLog("{0},BSShapeCollection.GetBodyAndShape,force={1},ret={2},body={3},shape={4}",
                                 prim.LocalID, forceRebuild, ret, prim.BSBody, prim.BSShape);
 
         return ret;
@@ -149,14 +149,14 @@ public class BSShapeCollection : IDisposable
                 bodyDesc.lastReferenced = System.DateTime.Now;
                 Bodies[shape.ID] = bodyDesc;
                 DetailLog("{0},BSShapeCollection.DereferenceBody,ref={1}", shape.ID, bodyDesc.referenceCount);
-                
+
                 // If body is no longer being used, free it -- bodies are never shared.
                 if (bodyDesc.referenceCount == 0)
                 {
                     Bodies.Remove(shape.ID);
                     BSScene.TaintCallback removeOperation = delegate()
                     {
-                        DetailLog("{0},BSShapeCollection.DereferenceBody,DestroyingBody. ptr={1}", 
+                        DetailLog("{0},BSShapeCollection.DereferenceBody,DestroyingBody. ptr={1}",
                                                     shape.ID, shape.ptr.ToString("X"));
                         // Zero any reference to the shape so it is not freed when the body is deleted.
                         BulletSimAPI.SetCollisionShape2(PhysicsScene.World.ptr, shape.ptr, IntPtr.Zero);
@@ -344,28 +344,28 @@ public class BSShapeCollection : IDisposable
             if (pbs.ProfileShape == ProfileShape.HalfCircle && pbs.PathCurve == (byte)Extrusion.Curve1)
             {
                 haveShape = true;
-                if (forceRebuild 
+                if (forceRebuild
                         || prim.Scale != shapeData.Size
                         || prim.BSShape.type != ShapeData.PhysicsShapeType.SHAPE_SPHERE
                         )
                 {
-                    ret = GetReferenceToNativeShape(prim, shapeData, 
+                    ret = GetReferenceToNativeShape(prim, shapeData,
                             ShapeData.PhysicsShapeType.SHAPE_SPHERE, ShapeData.FixedShapeKey.KEY_SPHERE);
-                    DetailLog("{0},BSShapeCollection.CreateGeom,sphere,force={1},shape={2}", 
+                    DetailLog("{0},BSShapeCollection.CreateGeom,sphere,force={1},shape={2}",
                                         prim.LocalID, forceRebuild, prim.BSShape);
                 }
             }
             else
             {
                 haveShape = true;
-                if (forceRebuild 
+                if (forceRebuild
                         || prim.Scale != shapeData.Size
                         || prim.BSShape.type != ShapeData.PhysicsShapeType.SHAPE_BOX
                         )
                 {
                     ret = GetReferenceToNativeShape(
                         prim, shapeData, ShapeData.PhysicsShapeType.SHAPE_BOX, ShapeData.FixedShapeKey.KEY_BOX);
-                    DetailLog("{0},BSShapeCollection.CreateGeom,box,force={1},shape={2}", 
+                    DetailLog("{0},BSShapeCollection.CreateGeom,box,force={1},shape={2}",
                                         prim.LocalID, forceRebuild, prim.BSShape);
                 }
             }
@@ -379,13 +379,13 @@ public class BSShapeCollection : IDisposable
             {
                 // Update prim.BSShape to reference a hull of this shape.
                 ret = GetReferenceToHull(prim, shapeData, pbs);
-                DetailLog("{0},BSShapeCollection.CreateGeom,hull,shape={1},key={2}", 
+                DetailLog("{0},BSShapeCollection.CreateGeom,hull,shape={1},key={2}",
                                         shapeData.ID, prim.BSShape, prim.BSShape.shapeKey.ToString("X"));
             }
             else
             {
                 ret = GetReferenceToMesh(prim, shapeData, pbs);
-                DetailLog("{0},BSShapeCollection.CreateGeom,mesh,shape={1},key={2}", 
+                DetailLog("{0},BSShapeCollection.CreateGeom,mesh,shape={1},key={2}",
                                         shapeData.ID, prim.BSShape, prim.BSShape.shapeKey.ToString("X"));
             }
         }
@@ -393,7 +393,7 @@ public class BSShapeCollection : IDisposable
     }
 
     // Creates a native shape and assignes it to prim.BSShape
-    private bool GetReferenceToNativeShape( BSPrim prim, ShapeData shapeData, 
+    private bool GetReferenceToNativeShape( BSPrim prim, ShapeData shapeData,
                             ShapeData.PhysicsShapeType shapeType, ShapeData.FixedShapeKey shapeKey)
     {
         BulletShape newShape;
@@ -432,7 +432,7 @@ public class BSShapeCollection : IDisposable
         // if this new shape is the same as last time, don't recreate the mesh
         if (prim.BSShape.shapeKey == newMeshKey) return false;
 
-        DetailLog("{0},BSShapeCollection.CreateGeomMesh,create,oldKey={1},newKey={2}", 
+        DetailLog("{0},BSShapeCollection.CreateGeomMesh,create,oldKey={1},newKey={2}",
                                 prim.LocalID, prim.BSShape.shapeKey.ToString("X"), newMeshKey.ToString("X"));
 
         // Since we're recreating new, get rid of the reference to the previous shape
@@ -476,10 +476,10 @@ public class BSShapeCollection : IDisposable
                 verticesAsFloats[vi++] = vv.Z;
             }
 
-            // m_log.DebugFormat("{0}: CreateGeomMesh: calling CreateMesh. lid={1}, key={2}, indices={3}, vertices={4}", 
+            // m_log.DebugFormat("{0}: CreateGeomMesh: calling CreateMesh. lid={1}, key={2}, indices={3}, vertices={4}",
             //                  LogHeader, prim.LocalID, newMeshKey, indices.Length, vertices.Count);
 
-            meshPtr = BulletSimAPI.CreateMeshShape2(PhysicsScene.World.ptr, 
+            meshPtr = BulletSimAPI.CreateMeshShape2(PhysicsScene.World.ptr,
                                 indices.GetLength(0), indices, vertices.Count, verticesAsFloats);
         }
         BulletShape newShape = new BulletShape(meshPtr, ShapeData.PhysicsShapeType.SHAPE_MESH);
@@ -501,14 +501,14 @@ public class BSShapeCollection : IDisposable
         if (newHullKey == prim.BSShape.shapeKey && prim.BSShape.type == ShapeData.PhysicsShapeType.SHAPE_HULL)
             return false;
 
-        DetailLog("{0},BSShapeCollection.CreateGeomHull,create,oldKey={1},newKey={2}", 
+        DetailLog("{0},BSShapeCollection.CreateGeomHull,create,oldKey={1},newKey={2}",
                         prim.LocalID, prim.BSShape.shapeKey.ToString("X"), newHullKey.ToString("X"));
 
         // Remove usage of the previous shape. Also removes reference to underlying mesh if it is a hull.
         DereferenceShape(prim.BSShape, true);
 
         newShape = CreatePhysicalHull(prim.PhysObjectName, newHullKey, pbs, shapeData.Size, lod);
-   
+
         ReferenceShape(newShape);
 
         // hulls are already scaled by the meshmerizer
@@ -559,7 +559,7 @@ public class BSShapeCollection : IDisposable
             convexBuilder.process(dcomp);
 
             // Convert the vertices and indices for passing to unmanaged.
-            // The hull information is passed as a large floating point array. 
+            // The hull information is passed as a large floating point array.
             // The format is:
             //  convHulls[0] = number of hulls
             //  convHulls[1] = number of vertices in first hull
@@ -635,11 +635,11 @@ public class BSShapeCollection : IDisposable
     {
         // level of detail based on size and type of the object
         float lod = PhysicsScene.MeshLOD;
-        if (pbs.SculptEntry) 
+        if (pbs.SculptEntry)
             lod = PhysicsScene.SculptLOD;
 
         float maxAxis = Math.Max(shapeData.Size.X, Math.Max(shapeData.Size.Y, shapeData.Size.Z));
-        if (maxAxis > PhysicsScene.MeshMegaPrimThreshold) 
+        if (maxAxis > PhysicsScene.MeshMegaPrimThreshold)
             lod = PhysicsScene.MeshMegaPrimLOD;
 
         retLod = lod;
@@ -685,13 +685,13 @@ public class BSShapeCollection : IDisposable
             IntPtr bodyPtr = IntPtr.Zero;
             if (prim.IsSolid)
             {
-                bodyPtr = BulletSimAPI.CreateBodyFromShape2(sim.ptr, shape.ptr, 
+                bodyPtr = BulletSimAPI.CreateBodyFromShape2(sim.ptr, shape.ptr,
                                         shapeData.ID, shapeData.Position, shapeData.Rotation);
                 // DetailLog("{0},BSShapeCollection.CreateBody,mesh,ptr={1}", prim.LocalID, bodyPtr.ToString("X"));
             }
             else
             {
-                bodyPtr = BulletSimAPI.CreateGhostFromShape2(sim.ptr, shape.ptr, 
+                bodyPtr = BulletSimAPI.CreateGhostFromShape2(sim.ptr, shape.ptr,
                                         shapeData.ID, shapeData.Position, shapeData.Rotation);
                 // DetailLog("{0},BSShapeCollection.CreateBody,ghost,ptr={1}", prim.LocalID, bodyPtr.ToString("X"));
             }

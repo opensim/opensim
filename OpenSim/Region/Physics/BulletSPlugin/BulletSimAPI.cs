@@ -41,8 +41,8 @@ public struct BulletSim
     public BulletSim(uint worldId, BSScene bss, IntPtr xx)
     {
         ptr = xx;
-        worldID = worldId; 
-        scene = bss;  
+        worldID = worldId;
+        scene = bss;
     }
     public IntPtr ptr;
     public uint worldID;

@@ -491,7 +491,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             // remember the position so next step we can limit absolute movement effects
             m_lastPositionVector = Prim.Position;
 
-            VDetailLog("{0},BSDynamics.Step,done,pos={1},force={2},velocity={3},angvel={4}", 
+            VDetailLog("{0},BSDynamics.Step,done,pos={1},force={2},velocity={3},angvel={4}",
                     Prim.LocalID, Prim.Position, Prim.Force, Prim.Velocity, Prim.RotationalVelocity);
         }// end Step
 
@@ -511,8 +511,8 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 Vector3 addAmount = (m_linearMotorDirection - m_lastLinearVelocityVector)/(m_linearMotorTimescale / pTimestep);
                 // lastLinearVelocityVector is the current body velocity vector
                 // RA: Not sure what the *10 is for. A correction for pTimestep?
-                // m_lastLinearVelocityVector += (addAmount*10);  
-                m_lastLinearVelocityVector += addAmount;  
+                // m_lastLinearVelocityVector += (addAmount*10);
+                m_lastLinearVelocityVector += addAmount;
 
                 // Limit the velocity vector to less than the last set linear motor direction
                 if (Math.Abs(m_lastLinearVelocityVector.X) > Math.Abs(m_linearMotorDirectionLASTSET.X))
@@ -695,7 +695,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             Vector3 keepFraction = Vector3.One - (Vector3.One / (m_linearFrictionTimescale / pTimestep));
             m_lastLinearVelocityVector *= keepFraction;
 
-            VDetailLog("{0},MoveLinear,done,lmDir={1},lmVel={2},newVel={3},grav={4},1Mdecay={5}", 
+            VDetailLog("{0},MoveLinear,done,lmDir={1},lmVel={2},newVel={3},grav={4},1Mdecay={5}",
                     Prim.LocalID, m_linearMotorDirection, m_lastLinearVelocityVector, m_newVelocity, grav, keepFraction);
 
         } // end MoveLinear()
@@ -728,7 +728,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 m_angularMotorVelocity.Y += (m_angularMotorDirection.Y - m_angularMotorVelocity.Y) /  (m_angularMotorTimescale / pTimestep);
                 m_angularMotorVelocity.Z += (m_angularMotorDirection.Z - m_angularMotorVelocity.Z) /  (m_angularMotorTimescale / pTimestep);
 
-                VDetailLog("{0},MoveAngular,angularMotorApply,apply={1},angTScale={2},timeStep={3},origvel={4},dir={5},vel={6}", 
+                VDetailLog("{0},MoveAngular,angularMotorApply,apply={1},angTScale={2},timeStep={3},origvel={4},dir={5},vel={6}",
                         Prim.LocalID, m_angularMotorApply, m_angularMotorTimescale, pTimestep, origAngularVelocity, m_angularMotorDirection, m_angularMotorVelocity);
 
                 // This is done so that if script request rate is less than phys frame rate the expected
@@ -779,7 +779,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 vertattr.X += bounce * angularVelocity.X;
                 vertattr.Y += bounce * angularVelocity.Y;
 
-                VDetailLog("{0},MoveAngular,verticalAttraction,verterr={1},bounce={2},vertattr={3}", 
+                VDetailLog("{0},MoveAngular,verticalAttraction,verterr={1},bounce={2},vertattr={3}",
                             Prim.LocalID, verterr, bounce, vertattr);
 
             } // else vertical attractor is off
@@ -792,7 +792,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 
             // Sum velocities
             m_lastAngularVelocity = m_angularMotorVelocity + vertattr; // + bank + deflection
-            
+         
             if ((m_flags & (VehicleFlag.NO_DEFLECTION_UP)) != 0)
             {
                 m_lastAngularVelocity.X = 0;

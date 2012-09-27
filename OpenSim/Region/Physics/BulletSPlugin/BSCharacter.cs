@@ -122,7 +122,6 @@ public class BSCharacter : BSPhysObject
             BulletSimAPI.SetCollisionFilterMask2(BSBody.ptr,
                             (uint)CollisionFilterGroups.AvatarFilter, (uint)CollisionFilterGroups.AvatarMask);
         });
-            
         return;
     }
 
@@ -141,8 +140,8 @@ public class BSCharacter : BSPhysObject
         base.RequestPhysicsterseUpdate();
     }
     // No one calls this method so I don't know what it could possibly mean
-    public override bool Stopped { 
-        get { return false; } 
+    public override bool Stopped {
+        get { return false; }
     }
     public override OMV.Vector3 Size {
         get
@@ -151,7 +150,7 @@ public class BSCharacter : BSPhysObject
             return new OMV.Vector3(_scale.X * 2, _scale.Y * 2, _scale.Z);
         }
 
-        set { 
+        set {
             // When an avatar's size is set, only the height is changed
             //    and that really only depends on the radius.
             _size = value;
@@ -166,19 +165,19 @@ public class BSCharacter : BSPhysObject
                 BulletSimAPI.SetObjectScaleMass(PhysicsScene.WorldID, LocalID, _scale, _mass, true);
             });
 
-        } 
+        }
     }
-    public override PrimitiveBaseShape Shape { 
-        set { _pbs = value; 
-        } 
+    public override PrimitiveBaseShape Shape {
+        set { _pbs = value;
+        }
     }
-    public override bool Grabbed { 
-        set { _grabbed = value; 
-        } 
+    public override bool Grabbed {
+        set { _grabbed = value;
+        }
     }
-    public override bool Selected { 
-        set { _selected = value; 
-        } 
+    public override bool Selected {
+        set { _selected = value;
+        }
     }
     public override void CrossingFailure() { return; }
     public override void link(PhysicsActor obj) { return; }
@@ -203,11 +202,11 @@ public class BSCharacter : BSPhysObject
 
     public override void LockAngularMotion(OMV.Vector3 axis) { return; }
 
-    public override OMV.Vector3 Position { 
+    public override OMV.Vector3 Position {
         get {
             // _position = BulletSimAPI.GetObjectPosition(Scene.WorldID, _localID);
-            return _position; 
-        } 
+            return _position;
+        }
         set {
             _position = value;
             PositionSanityCheck();
@@ -217,7 +216,7 @@ public class BSCharacter : BSPhysObject
                 DetailLog("{0},BSCharacter.SetPosition,taint,pos={1},orient={2}", LocalID, _position, _orientation);
                 BulletSimAPI.SetObjectTranslation(PhysicsScene.WorldID, LocalID, _position, _orientation);
             });
-        } 
+        }
     }
 
     // Check that the current position is sane and, if not, modify the position to make it so.
@@ -226,7 +225,7 @@ public class BSCharacter : BSPhysObject
     private bool PositionSanityCheck()
     {
         bool ret = false;
-        
+      
         // If below the ground, move the avatar up
         float terrainHeight = PhysicsScene.TerrainManager.GetTerrainHeightAtXYZ(_position);
         if (Position.Z < terrainHeight)
@@ -260,17 +259,17 @@ public class BSCharacter : BSPhysObject
         return ret;
     }
 
-    public override float Mass { 
-        get { 
-            return _mass; 
-        } 
+    public override float Mass {
+        get {
+            return _mass;
+        }
     }
 
     // used when we only want this prim's mass and not the linkset thing
     public override float MassRaw { get {return _mass; } }
 
-    public override OMV.Vector3 Force { 
-        get { return _force; } 
+    public override OMV.Vector3 Force {
+        get { return _force; }
         set {
             _force = value;
             // m_log.DebugFormat("{0}: Force = {1}", LogHeader, _force);
@@ -279,12 +278,12 @@ public class BSCharacter : BSPhysObject
                 DetailLog("{0},BSCharacter.setForce,taint,force={1}", LocalID, _force);
                 BulletSimAPI.SetObjectForce(PhysicsScene.WorldID, LocalID, _force);
             });
-        } 
+        }
     }
 
-    public override int VehicleType { 
-        get { return 0; } 
-        set { return; } 
+    public override int VehicleType {
+        get { return 0; }
+        set { return; }
     }
     public override void VehicleFloatParam(int param, float value) { }
     public override void VehicleVectorParam(int param, OMV.Vector3 value) {}
@@ -296,8 +295,8 @@ public class BSCharacter : BSPhysObject
 
     public override OMV.Vector3 GeometricCenter { get { return OMV.Vector3.Zero; } }
     public override OMV.Vector3 CenterOfMass { get { return OMV.Vector3.Zero; } }
-    public override OMV.Vector3 Velocity { 
-        get { return _velocity; } 
+    public override OMV.Vector3 Velocity {
+        get { return _velocity; }
         set {
             _velocity = value;
             // m_log.DebugFormat("{0}: set velocity = {1}", LogHeader, _velocity);
@@ -306,24 +305,24 @@ public class BSCharacter : BSPhysObject
                 DetailLog("{0},BSCharacter.setVelocity,taint,vel={1}", LocalID, _velocity);
                 BulletSimAPI.SetObjectVelocity(PhysicsScene.WorldID, LocalID, _velocity);
             });
-        } 
+        }
     }
-    public override OMV.Vector3 Torque { 
-        get { return _torque; } 
-        set { _torque = value; 
-        } 
+    public override OMV.Vector3 Torque {
+        get { return _torque; }
+        set { _torque = value;
+        }
     }
-    public override float CollisionScore { 
-        get { return _collisionScore; } 
-        set { _collisionScore = value; 
-        } 
+    public override float CollisionScore {
+        get { return _collisionScore; }
+        set { _collisionScore = value;
+        }
     }
-    public override OMV.Vector3 Acceleration { 
+    public override OMV.Vector3 Acceleration {
         get { return _acceleration; }
         set { _acceleration = value; }
     }
-    public override OMV.Quaternion Orientation { 
-        get { return _orientation; } 
+    public override OMV.Quaternion Orientation {
+        get { return _orientation; }
         set {
             _orientation = value;
             // m_log.DebugFormat("{0}: set orientation to {1}", LogHeader, _orientation);
@@ -332,98 +331,98 @@ public class BSCharacter : BSPhysObject
                 // _position = BulletSimAPI.GetObjectPosition(Scene.WorldID, _localID);
                 BulletSimAPI.SetObjectTranslation(PhysicsScene.WorldID, LocalID, _position, _orientation);
             });
-        } 
+        }
     }
-    public override int PhysicsActorType { 
-        get { return _physicsActorType; } 
-        set { _physicsActorType = value; 
-        } 
+    public override int PhysicsActorType {
+        get { return _physicsActorType; }
+        set { _physicsActorType = value;
+        }
     }
-    public override bool IsPhysical { 
-        get { return _isPhysical; } 
+    public override bool IsPhysical {
+        get { return _isPhysical; }
         set { _isPhysical = value;
-        } 
+        }
     }
-    public override bool Flying { 
-        get { return _flying; } 
+    public override bool Flying {
+        get { return _flying; }
         set {
             _flying = value;
             // simulate flying by changing the effect of gravity
             this.Buoyancy = ComputeBuoyancyFromFlying(_flying);
-        } 
+        }
     }
     // Flying is implimented by changing the avatar's buoyancy.
     // Would this be done better with a vehicle type?
     private float ComputeBuoyancyFromFlying(bool ifFlying) {
         return ifFlying ? 1f : 0f;
     }
-    public override bool 
-        SetAlwaysRun { 
-        get { return _setAlwaysRun; } 
-        set { _setAlwaysRun = value; } 
+    public override bool
+        SetAlwaysRun {
+        get { return _setAlwaysRun; }
+        set { _setAlwaysRun = value; }
     }
-    public override bool ThrottleUpdates { 
-        get { return _throttleUpdates; } 
-        set { _throttleUpdates = value; } 
+    public override bool ThrottleUpdates {
+        get { return _throttleUpdates; }
+        set { _throttleUpdates = value; }
     }
     public override bool IsColliding {
-        get { return (CollidingStep == PhysicsScene.SimulationStep); } 
-        set { _isColliding = value; } 
+        get { return (CollidingStep == PhysicsScene.SimulationStep); }
+        set { _isColliding = value; }
     }
     public override bool CollidingGround {
-        get { return (CollidingGroundStep == PhysicsScene.SimulationStep); } 
-        set { CollidingGround = value; } 
+        get { return (CollidingGroundStep == PhysicsScene.SimulationStep); }
+        set { CollidingGround = value; }
     }
-    public override bool CollidingObj { 
-        get { return _collidingObj; } 
-        set { _collidingObj = value; } 
+    public override bool CollidingObj {
+        get { return _collidingObj; }
+        set { _collidingObj = value; }
     }
-    public override bool FloatOnWater { 
-        set { _floatOnWater = value; } 
+    public override bool FloatOnWater {
+        set { _floatOnWater = value; }
     }
-    public override OMV.Vector3 RotationalVelocity { 
-        get { return _rotationalVelocity; } 
-        set { _rotationalVelocity = value; } 
+    public override OMV.Vector3 RotationalVelocity {
+        get { return _rotationalVelocity; }
+        set { _rotationalVelocity = value; }
     }
-    public override bool Kinematic { 
-        get { return _kinematic; } 
-        set { _kinematic = value; } 
+    public override bool Kinematic {
+        get { return _kinematic; }
+        set { _kinematic = value; }
     }
     // neg=fall quickly, 0=1g, 1=0g, pos=float up
-    public override float Buoyancy { 
-        get { return _buoyancy; } 
-        set { _buoyancy = value; 
+    public override float Buoyancy {
+        get { return _buoyancy; }
+        set { _buoyancy = value;
             PhysicsScene.TaintedObject("BSCharacter.setBuoyancy", delegate()
             {
                 DetailLog("{0},BSCharacter.setBuoyancy,taint,buoy={1}", LocalID, _buoyancy);
                 BulletSimAPI.SetObjectBuoyancy(PhysicsScene.WorldID, LocalID, _buoyancy);
             });
-        } 
+        }
     }
 
     // Used for MoveTo
-    public override OMV.Vector3 PIDTarget { 
-        set { _PIDTarget = value; } 
+    public override OMV.Vector3 PIDTarget {
+        set { _PIDTarget = value; }
     }
-    public override bool PIDActive { 
-        set { _usePID = value; } 
+    public override bool PIDActive {
+        set { _usePID = value; }
     }
-    public override float PIDTau { 
-        set { _PIDTau = value; } 
+    public override float PIDTau {
+        set { _PIDTau = value; }
     }
 
     // Used for llSetHoverHeight and maybe vehicle height
     // Hover Height will override MoveTo target's Z
-    public override bool PIDHoverActive { 
+    public override bool PIDHoverActive {
         set { _useHoverPID = value; }
     }
-    public override float PIDHoverHeight { 
+    public override float PIDHoverHeight {
         set { _PIDHoverHeight = value; }
     }
-    public override PIDHoverType PIDHoverType { 
+    public override PIDHoverType PIDHoverType {
         set { _PIDHoverType = value; }
     }
-    public override float PIDHoverTau { 
+    public override float PIDHoverTau {
         set { _PIDHoverTao = value; }
     }
 
@@ -433,7 +432,7 @@ public class BSCharacter : BSPhysObject
     public override float APIDStrength { set { return; } }
     public override float APIDDamping { set { return; } }
 
-    public override void AddForce(OMV.Vector3 force, bool pushforce) { 
+    public override void AddForce(OMV.Vector3 force, bool pushforce) {
         if (force.IsFinite())
         {
             _force.X += force.X;
@@ -453,9 +452,9 @@ public class BSCharacter : BSPhysObject
         //m_lastUpdateSent = false;
     }
 
-    public override void AddAngularForce(OMV.Vector3 force, bool pushforce) { 
+    public override void AddAngularForce(OMV.Vector3 force, bool pushforce) {
     }
-    public override void SetMomentum(OMV.Vector3 momentum) { 
+    public override void SetMomentum(OMV.Vector3 momentum) {
     }
 
     private void ComputeAvatarScale(OMV.Vector3 size)

@@ -49,7 +49,7 @@ using OpenMetaverse;
 //     At the moment, physical and phantom causes object to drop through the terrain
 // Physical phantom objects and related typing (collision options )
 // Check out llVolumeDetect. Must do something for that.
-// Use collision masks for collision with terrain and phantom objects 
+// Use collision masks for collision with terrain and phantom objects
 // More efficient memory usage when passing hull information from BSPrim to BulletSim
 // Should prim.link() and prim.delink() membership checking happen at taint time?
 // Mesh sharing. Use meshHash to tell if we already have a hull of that shape and only create once.
@@ -60,7 +60,7 @@ using OpenMetaverse;
 // Add PID movement operations. What does ScenePresence.MoveToTarget do?
 // Check terrain size. 128 or 127?
 // Raycast
-// 
+//
 namespace OpenSim.Region.Physics.BulletSPlugin
 {
 public class BSScene : PhysicsScene, IPhysicsParameters
@@ -327,7 +327,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     {
         m_log.Debug("[BULLETS UNMANAGED]:" + msg);
     }
-    
+  
     // Called directly from unmanaged code so don't do much
     private void BulletLoggerPhysLog(string msg)
     {
@@ -460,7 +460,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     }
 
     // This is a call from the simulator saying that some physical property has been updated.
-    // The BulletSim driver senses the changing of relevant properties so this taint 
+    // The BulletSim driver senses the changing of relevant properties so this taint
     // information call is not needed.
     public override void AddPhysicsActorTaint(PhysicsActor prim) { }
 
@@ -501,14 +501,14 @@ public class BSScene : PhysicsScene, IPhysicsParameters
                         out updatedEntityCount, out updatedEntitiesPtr, out collidersCount, out collidersPtr);
 
             if (PhysicsLogging.Enabled) simTime = Util.EnvironmentTickCountSubtract(beforeTime);
-            DetailLog("{0},Simulate,call, nTaints={1}, simTime={2}, substeps={3}, updates={4}, colliders={5}", 
-                        DetailLogZero, numTaints, simTime, numSubSteps, updatedEntityCount, collidersCount); 
+            DetailLog("{0},Simulate,call, nTaints={1}, simTime={2}, substeps={3}, updates={4}, colliders={5}",
+                        DetailLogZero, numTaints, simTime, numSubSteps, updatedEntityCount, collidersCount);
         }
         catch (Exception e)
         {
-            m_log.WarnFormat("{0},PhysicsStep Exception: nTaints={1}, substeps={2}, updates={3}, colliders={4}, e={5}", 
+            m_log.WarnFormat("{0},PhysicsStep Exception: nTaints={1}, substeps={2}, updates={3}, colliders={4}, e={5}",
                         LogHeader, numTaints, numSubSteps, updatedEntityCount, collidersCount, e);
-            DetailLog("{0},PhysicsStepException,call, nTaints={1}, substeps={2}, updates={3}, colliders={4}", 
+            DetailLog("{0},PhysicsStepException,call, nTaints={1}, substeps={2}, updates={3}, colliders={4}",
                         DetailLogZero, numTaints, numSubSteps, updatedEntityCount, collidersCount);
             updatedEntityCount = 0;
             collidersCount = 0;
@@ -535,7 +535,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             }
         }
 
-        // This is a kludge to get avatar movement updates. 
+        // This is a kludge to get avatar movement updates.
         //   ODE sends collisions for avatars even if there are have been no collisions. This updates
         //   avatar animations and stuff.
         // If you fix avatar animation updates, remove this overhead and let normal collision processing happen.
@@ -634,7 +634,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         TerrainManager.SetTerrain(heightMap);
     }
 
-    public override void SetWaterLevel(float baseheight) 
+    public override void SetWaterLevel(float baseheight)
     {
         m_waterLevel = baseheight;
     }
@@ -644,7 +644,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         return m_waterLevel;
     }
 
-    public override void DeleteTerrain() 
+    public override void DeleteTerrain()
     {
         // m_log.DebugFormat("{0}: DeleteTerrain()", LogHeader);
     }
@@ -806,7 +806,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     //    getters and setters.
     // It is easiest to find an existing definition and copy it.
     // Parameter values are floats. Booleans are converted to a floating value.
-    // 
+    //
     // A ParameterDefn() takes the following parameters:
     //    -- the text name of the parameter. This is used for console input and ini file.
     //    -- a short text description of the parameter. This shows up in the console listing.
@@ -1228,7 +1228,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
                     }
                 });
                 break;
-            default: 
+            default:
                 // setting only one localID
                 TaintedUpdateParameter(parm, localID, val);
                 break;

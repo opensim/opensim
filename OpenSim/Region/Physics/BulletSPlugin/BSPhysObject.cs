@@ -100,7 +100,7 @@ public abstract class BSPhysObject : PhysicsActor
     // The simulation step is telling this object about a collision.
     // Return 'true' if a collision was processed and should be sent up.
     // Called at taint time from within the Step() function
-    public virtual bool Collide(uint collidingWith, BSPhysObject collidee, 
+    public virtual bool Collide(uint collidingWith, BSPhysObject collidee,
                     OMV.Vector3 contactPoint, OMV.Vector3 contactNormal, float pentrationDepth)
     {
         bool ret = false;

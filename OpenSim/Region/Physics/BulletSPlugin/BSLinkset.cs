@@ -53,9 +53,9 @@ public class BSLinkset
 
     // We keep the prim's mass in the linkset structure since it could be dependent on other prims
     private float m_mass;
-    public float LinksetMass 
-    { 
-        get 
+    public float LinksetMass
+    {
+        get
         {
             m_mass = ComputeLinksetMass();
             return m_mass;
@@ -77,7 +77,7 @@ public class BSLinkset
         // A simple linkset of one (no children)
         LinksetID = m_nextLinksetID++;
         // We create LOTS of linksets.
-        if (m_nextLinksetID <= 0) 
+        if (m_nextLinksetID <= 0)
             m_nextLinksetID = 1;
         PhysicsScene = scene;
         LinksetRoot = parent;
@@ -276,7 +276,7 @@ public class BSLinkset
                 BSConstraint constrain;
                 if (PhysicsScene.Constraints.TryGetConstraint(LinksetRoot.BSBody, child.BSBody, out constrain))
                 {
-                    // DetailLog("{0},BSLinkset.RecomputeLinksetConstraintVariables,taint,child={1},mass={2},A={3},B={4}", 
+                    // DetailLog("{0},BSLinkset.RecomputeLinksetConstraintVariables,taint,child={1},mass={2},A={3},B={4}",
                     //         LinksetRoot.LocalID, child.LocalID, linksetMass, constrain.Body1.ID, constrain.Body2.ID);
                     constrain.RecomputeConstraintVariables(linksetMass);
                 }
@@ -392,14 +392,14 @@ public class BSLinkset
 
         // create a constraint that allows no freedom of movement between the two objects
         // http://bulletphysics.org/Bullet/phpBB3/viewtopic.php?t=4818
-        DetailLog("{0},PhysicallyLinkAChildToRoot,taint,root={1},rBody={2},child={3},cBody={4},rLoc={5},cLoc={6},midLoc={7}", 
-                                        rootPrim.LocalID, 
-                                        rootPrim.LocalID, rootBody.ptr.ToString("X"), 
-                                        childPrim.LocalID, childBody.ptr.ToString("X"), 
+        DetailLog("{0},PhysicallyLinkAChildToRoot,taint,root={1},rBody={2},child={3},cBody={4},rLoc={5},cLoc={6},midLoc={7}",
+                                        rootPrim.LocalID,
+                                        rootPrim.LocalID, rootBody.ptr.ToString("X"),
+                                        childPrim.LocalID, childBody.ptr.ToString("X"),
                                         rootPrim.Position, childPrim.Position, midPoint);
 
         // There is great subtlty in these paramters. Notice the check for a ptr of zero.
-        // We pass the BulletBody structure into the taint in order to capture the pointer 
+        // We pass the BulletBody structure into the taint in order to capture the pointer
         //     of the body at the time of constraint creation. This doesn't work for the very first
         //     construction because there is no body yet. The body
         //     is constructed later at taint time. Thus we use the body address at time of the
@@ -409,8 +409,8 @@ public class BSLinkset
         //     to only change BSShape at taint time thus syncronizing these operations at
         //     the cost of efficiency and lag.
         BS6DofConstraint constrain = new BS6DofConstraint(
-                        PhysicsScene.World, 
-                        rootBody.ptr == IntPtr.Zero ? rootPrim.BSBody : rootBody, 
+                        PhysicsScene.World,
+                        rootBody.ptr == IntPtr.Zero ? rootPrim.BSBody : rootBody,
                         childBody.ptr == IntPtr.Zero ? childPrim.BSBody : childBody,
                         midPoint,
                         true,
@@ -473,11 +473,11 @@ public class BSLinkset
     // The root and child bodies are passed in because we need to remove the constraint between
     //      the bodies that were at unlink time.
     // Called at taint time!
-    private void PhysicallyUnlinkAChildFromRoot(BSPhysObject rootPrim, BulletBody rootBody, 
+    private void PhysicallyUnlinkAChildFromRoot(BSPhysObject rootPrim, BulletBody rootBody,
                                                     BSPhysObject childPrim, BulletBody childBody)
     {
-        DetailLog("{0},PhysicallyUnlinkAChildFromRoot,taint,root={1},rBody={2},child={3},cBody={4}", 
-                            rootPrim.LocalID, 
+        DetailLog("{0},PhysicallyUnlinkAChildFromRoot,taint,root={1},rBody={2},child={3},cBody={4}",
+                            rootPrim.LocalID,
                             rootPrim.LocalID, rootBody.ptr.ToString("X"),
                             childPrim.LocalID, childBody.ptr.ToString("X"));
 
