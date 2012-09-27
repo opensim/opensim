@@ -266,8 +266,8 @@ namespace OpenSim.Region.Framework.Scenes
         private string m_sitAnimation = "SIT";
         private string m_text = String.Empty;
         private string m_touchName = String.Empty;
-        private readonly Stack<UndoState> m_undo = new Stack<UndoState>(5);
-        private readonly Stack<UndoState> m_redo = new Stack<UndoState>(5);
+        private readonly List<UndoState> m_undo = new List<UndoState>(5);
+        private readonly List<UndoState> m_redo = new List<UndoState>(5);
 
         private bool m_passTouches = false;
         private bool m_passCollisions = false;
@@ -2368,16 +2368,20 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="scale"></param>
         public void Resize(Vector3 scale)
         {
-            scale.X = Math.Max(ParentGroup.Scene.m_minNonphys, Math.Min(ParentGroup.Scene.m_maxNonphys, scale.X));
-            scale.Y = Math.Max(ParentGroup.Scene.m_minNonphys, Math.Min(ParentGroup.Scene.m_maxNonphys, scale.Y));
-            scale.Z = Math.Max(ParentGroup.Scene.m_minNonphys, Math.Min(ParentGroup.Scene.m_maxNonphys, scale.Z));
-
             PhysicsActor pa = PhysActor;
-            if (pa != null && pa.IsPhysical)
+
+            if (ParentGroup.Scene != null)
             {
-                scale.X = Math.Max(ParentGroup.Scene.m_minPhys, Math.Min(ParentGroup.Scene.m_maxPhys, scale.X));
-                scale.Y = Math.Max(ParentGroup.Scene.m_minPhys, Math.Min(ParentGroup.Scene.m_maxPhys, scale.Y));
-                scale.Z = Math.Max(ParentGroup.Scene.m_minPhys, Math.Min(ParentGroup.Scene.m_maxPhys, scale.Z));
+                scale.X = Math.Max(ParentGroup.Scene.m_minNonphys, Math.Min(ParentGroup.Scene.m_maxNonphys, scale.X));
+                scale.Y = Math.Max(ParentGroup.Scene.m_minNonphys, Math.Min(ParentGroup.Scene.m_maxNonphys, scale.Y));
+                scale.Z = Math.Max(ParentGroup.Scene.m_minNonphys, Math.Min(ParentGroup.Scene.m_maxNonphys, scale.Z));
+    
+                if (pa != null && pa.IsPhysical)
+                {
+                    scale.X = Math.Max(ParentGroup.Scene.m_minPhys, Math.Min(ParentGroup.Scene.m_maxPhys, scale.X));
+                    scale.Y = Math.Max(ParentGroup.Scene.m_minPhys, Math.Min(ParentGroup.Scene.m_maxPhys, scale.Y));
+                    scale.Z = Math.Max(ParentGroup.Scene.m_minPhys, Math.Min(ParentGroup.Scene.m_maxPhys, scale.Z));
+                }
             }
 
 //            m_log.DebugFormat("[SCENE OBJECT PART]: Resizing {0} {1} to {2}", Name, LocalId, scale);
@@ -3166,61 +3170,62 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void StoreUndoState(bool forGroup)
         {
-            if (!Undoing)
+            if (ParentGroup == null || ParentGroup.Scene == null)
+                return;
+
+            if (Undoing)
             {
-                if (!IgnoreUndoUpdate)
+//                m_log.DebugFormat(
+//                    "[SCENE OBJECT PART]: Ignoring undo store for {0} {1} since already undoing", Name, LocalId);
+                return;
+            }
+
+            if (IgnoreUndoUpdate)
+            {
+//                    m_log.DebugFormat("[SCENE OBJECT PART]: Ignoring undo store for {0} {1}", Name, LocalId);
+                return;
+            }
+
+            lock (m_undo)
+            {
+                if (m_undo.Count > 0)
                 {
-                    if (ParentGroup != null)
+                    UndoState last = m_undo[m_undo.Count - 1];
+                    if (last != null)
                     {
-                        lock (m_undo)
+                        // TODO: May need to fix for group comparison
+                        if (last.Compare(this))
                         {
-                            if (m_undo.Count > 0)
-                            {
-                                UndoState last = m_undo.Peek();
-                                if (last != null)
-                                {
-                                    // TODO: May need to fix for group comparison
-                                    if (last.Compare(this))
-                                    {
-    //                                        m_log.DebugFormat(
-    //                                            "[SCENE OBJECT PART]: Not storing undo for {0} {1} since current state is same as last undo state, initial stack size {2}",
-    //                                            Name, LocalId, m_undo.Count);
-    
-                                        return;
-                                    }
-                                }
-                            }
-    
-    //                            m_log.DebugFormat(
-    //                                "[SCENE OBJECT PART]: Storing undo state for {0} {1}, forGroup {2}, initial stack size {3}",
-    //                                Name, LocalId, forGroup, m_undo.Count);
-    
-                            if (ParentGroup.GetSceneMaxUndo() > 0)
-                            {
-                                UndoState nUndo = new UndoState(this, forGroup);
-    
-                                m_undo.Push(nUndo);
-    
-                                if (m_redo.Count > 0)
-                                    m_redo.Clear();
-    
-    //                                m_log.DebugFormat(
-    //                                    "[SCENE OBJECT PART]: Stored undo state for {0} {1}, forGroup {2}, stack size now {3}",
-    //                                    Name, LocalId, forGroup, m_undo.Count);
-                            }
+//                                        m_log.DebugFormat(
+//                                            "[SCENE OBJECT PART]: Not storing undo for {0} {1} since current state is same as last undo state, initial stack size {2}",
+//                                            Name, LocalId, m_undo.Count);
+
+                            return;
                         }
                     }
                 }
-//                else
-//                {
-//                    m_log.DebugFormat("[SCENE OBJECT PART]: Ignoring undo store for {0} {1}", Name, LocalId);
-//                }
+
+//                                m_log.DebugFormat(
+//                                    "[SCENE OBJECT PART]: Storing undo state for {0} {1}, forGroup {2}, initial stack size {3}",
+//                                    Name, LocalId, forGroup, m_undo.Count);
+
+                if (ParentGroup.Scene.MaxUndoCount > 0)
+                {
+                    UndoState nUndo = new UndoState(this, forGroup);
+
+                    m_undo.Add(nUndo);
+
+                    if (m_undo.Count > ParentGroup.Scene.MaxUndoCount)
+                        m_undo.RemoveAt(0);
+
+                    if (m_redo.Count > 0)
+                        m_redo.Clear();
+
+//                                    m_log.DebugFormat(
+//                                        "[SCENE OBJECT PART]: Stored undo state for {0} {1}, forGroup {2}, stack size now {3}",
+//                                        Name, LocalId, forGroup, m_undo.Count);
+                }
             }
-//            else
-//            {
-//                m_log.DebugFormat(
-//                    "[SCENE OBJECT PART]: Ignoring undo store for {0} {1} since already undoing", Name, LocalId);
-//            }
         }
 
         /// <summary>
@@ -3245,21 +3250,24 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (m_undo.Count > 0)
                 {
-                    UndoState goback = m_undo.Pop();
+                    UndoState goback = m_undo[m_undo.Count - 1];
+                    m_undo.RemoveAt(m_undo.Count - 1);
 
-                    if (goback != null)
+                    UndoState nUndo = null;
+    
+                    if (ParentGroup.Scene.MaxUndoCount > 0)
                     {
-                        UndoState nUndo = null;
-        
-                        if (ParentGroup.GetSceneMaxUndo() > 0)
-                        {
-                            nUndo = new UndoState(this, goback.ForGroup);
-                        }
+                        nUndo = new UndoState(this, goback.ForGroup);
+                    }
 
-                        goback.PlaybackState(this);
+                    goback.PlaybackState(this);
 
-                        if (nUndo != null)
-                            m_redo.Push(nUndo);
+                    if (nUndo != null)
+                    {
+                        m_redo.Add(nUndo);
+
+                        if (m_redo.Count > ParentGroup.Scene.MaxUndoCount)
+                            m_redo.RemoveAt(0);
                     }
                 }
 
@@ -3279,19 +3287,20 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (m_redo.Count > 0)
                 {
-                    UndoState gofwd = m_redo.Pop();
-    
-                    if (gofwd != null)
+                    UndoState gofwd = m_redo[m_redo.Count - 1];
+                    m_redo.RemoveAt(m_redo.Count - 1);
+
+                    if (ParentGroup.Scene.MaxUndoCount > 0)
                     {
-                        if (ParentGroup.GetSceneMaxUndo() > 0)
-                        {
-                            UndoState nUndo = new UndoState(this, gofwd.ForGroup);
-    
-                            m_undo.Push(nUndo);
-                        }
-    
-                        gofwd.PlayfwdState(this);
+                        UndoState nUndo = new UndoState(this, gofwd.ForGroup);
+
+                        m_undo.Add(nUndo);
+
+                        if (m_undo.Count > ParentGroup.Scene.MaxUndoCount)
+                            m_undo.RemoveAt(0);
                     }
+
+                    gofwd.PlayfwdState(this);
 
 //                m_log.DebugFormat(
 //                    "[SCENE OBJECT PART]: Handled redo request for {0} {1}, stack size now {2}",

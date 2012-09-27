@@ -151,7 +151,8 @@ namespace OpenSim.Region.Framework.Scenes
         // TODO: need to figure out how allow client agents but deny
         // root agents when ACL denies access to root agent
         public bool m_strictAccessControl = true;
-        public int MaxUndoCount = 5;
+
+        public int MaxUndoCount { get; set; }
 
         // Using this for RegionReady module to prevent LoginsDisabled from changing under our feet;
         public bool LoginLock = false;
@@ -740,6 +741,8 @@ namespace OpenSim.Region.Framework.Scenes
                 
                 //Animation states
                 m_useFlySlow = startupConfig.GetBoolean("enableflyslow", false);
+
+                MaxUndoCount = startupConfig.GetInt("MaxPrimUndos", 20);
 
                 PhysicalPrims = startupConfig.GetBoolean("physical_prim", PhysicalPrims);
                 CollidablePrims = startupConfig.GetBoolean("collidable_prim", CollidablePrims);
