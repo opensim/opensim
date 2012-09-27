@@ -19,9 +19,6 @@ CREATE TABLE `GridUser` (
 COMMIT;
 
 :VERSION 2         # -------------------------- 
-
 BEGIN;
-
-ALTER TABLE `GridUser` ADD COLUMN TOS CHAR(36);
 
 COMMIT;
