@@ -143,7 +143,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             }
         }
 
-        public void RequestCreateInventoryItem(IClientAPI remoteClient,
+        public bool RequestCreateInventoryItem(IClientAPI remoteClient,
                 UUID transactionID, UUID folderID, uint callbackID,
                 string description, string name, sbyte invType,
                sbyte type, byte wearableType, uint nextOwnerMask)
@@ -153,6 +153,8 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             uploader.RequestCreateInventoryItem(
                 remoteClient, folderID, callbackID,
                 description, name, invType, type, wearableType, nextOwnerMask);
+
+            return true;
         }
 
         public void RequestUpdateTaskInventoryItem(IClientAPI remoteClient,

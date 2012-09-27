@@ -33,6 +33,7 @@ using log4net;
 using HttpServer;
 using OpenSim.Framework;
 using OpenSim.Framework.Monitoring;
+using Amib.Threading;
 
 
 /*
@@ -185,6 +186,8 @@ namespace OpenSim.Framework.Servers.HttpServer
         private bool m_running = true;
         private int slowCount = 0;
 
+        private SmartThreadPool m_threadPool = new SmartThreadPool(20000, 12, 2);
+
 //        private int m_timeout = 1000;   //  increase timeout 250; now use the event one
 
         public PollServiceRequestManager(BaseHttpServer pSrv, uint pWorkerThreadCount, int pTimeout)
@@ -202,7 +205,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                         String.Format("PollServiceWorkerThread{0}", i),
                         ThreadPriority.Normal,
                         false,
-                        true,
+                        false,
                         null,
                         int.MaxValue);
             }
@@ -275,15 +278,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             Thread.Sleep(1000); // let the world move
 
             foreach (Thread t in m_workerThreads)
-            {
-                try
-                {
-                    t.Abort();
-                }
-                catch
-                {
-                }
-            }
+                    Watchdog.AbortThread(t.ManagedThreadId);
 
             try
             {
@@ -326,13 +321,9 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         private void PoolWorkerJob()
         {
-            PollServiceHttpRequest req;
-            StreamReader str;
-
-//            while (true)
             while (m_running)
             {
-                req = m_requests.Dequeue(5000);
+                PollServiceHttpRequest req = m_requests.Dequeue(5000);
 
                 Watchdog.UpdateThread();
                 if (req != null)
@@ -341,35 +332,41 @@ namespace OpenSim.Framework.Servers.HttpServer
                     {
                         if (req.PollServiceArgs.HasEvents(req.RequestID, req.PollServiceArgs.Id))
                         {
-                            try
-                            {
-                                str = new StreamReader(req.Request.Body);
-                            }
-                            catch (System.ArgumentException)
-                            {
-                                // Stream was not readable means a child agent
-                                // was closed due to logout, leaving the
-                                // Event Queue request orphaned.
+                            Hashtable responsedata = req.PollServiceArgs.GetEvents(req.RequestID, req.PollServiceArgs.Id);
+
+                            if (responsedata == null)
                                 continue;
-                            }
 
-                            try
+                            if (req.PollServiceArgs.Type == PollServiceEventArgs.EventType.Normal)
                             {
-                                Hashtable responsedata = req.PollServiceArgs.GetEvents(req.RequestID, req.PollServiceArgs.Id, str.ReadToEnd());
-                                DoHTTPGruntWork(m_server, req, responsedata);
+                                try
+                                {
+                                    DoHTTPGruntWork(m_server, req, responsedata);
+                                }
+                                catch (ObjectDisposedException) // Browser aborted before we could read body, server closed the stream
+                                {
+                                    // Ignore it, no need to reply
+                                }
                             }
-                            catch (ObjectDisposedException) // Browser aborted before we could read body, server closed the stream
+                            else
                             {
-                                // Ignore it, no need to reply
+                                m_threadPool.QueueWorkItem(x =>
+                                {
+                                    try
+                                    {
+                                        DoHTTPGruntWork(m_server, req, responsedata);
+                                    }
+                                    catch (ObjectDisposedException) // Browser aborted before we could read body, server closed the stream
+                                    {
+                                        // Ignore it, no need to reply
+                                    }
+
+                                    return null;
+                                }, null);
                             }
-
-                            str.Close();
-
                         }
                         else
                         {
-//                            if ((Environment.TickCount - req.RequestTime) > m_timeout)
-
                             if ((Environment.TickCount - req.RequestTime) > req.PollServiceArgs.TimeOutms)
                             {
                                 DoHTTPGruntWork(m_server, req, 

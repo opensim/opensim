@@ -419,7 +419,7 @@ namespace OpenSim.Region.ClientStack.Linden
             }
         }
 
-        public Hashtable GetEvents(UUID requestID, UUID pAgentId, string request)
+        public Hashtable GetEvents(UUID requestID, UUID pAgentId)
         {
             if (DebugLevel >= 2)
                 m_log.DebugFormat("POLLED FOR EQ MESSAGES BY {0} in {1}", pAgentId, m_scene.RegionInfo.RegionName);

@@ -26,9 +26,17 @@
  */
 
 using System;
+using OpenMetaverse;
 
 namespace OpenSim.Framework.Capabilities
 {
+    [OSDMap]
+    public class LLSDAssetUploadError
+    {
+        public string message = String.Empty;
+        public UUID identifier = UUID.Zero;
+    }
+
     [OSDMap]
     public class LLSDAssetUploadResponsePricebrkDown
     {
@@ -56,10 +64,12 @@ namespace OpenSim.Framework.Capabilities
         public string state = String.Empty;
         public int upload_price = 0;
         public LLSDAssetUploadResponseData data = null;
+        public LLSDAssetUploadError error = null;
         public LLSDAssetUploadResponse()
         {
         }
     }
+
 
     [OSDMap]
     public class LLSDNewFileAngentInventoryVariablePriceReplyResponse

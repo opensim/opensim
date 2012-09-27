@@ -716,6 +716,10 @@ namespace OpenSim.Tests.Common.Mock
         {
         }
 
+        public void SendInventoryItemCreateUpdate(InventoryItemBase Item, UUID transactionID, uint callbackId)
+        {
+        }
+
         public virtual void SendRemoveInventoryItem(UUID itemID)
         {
         }

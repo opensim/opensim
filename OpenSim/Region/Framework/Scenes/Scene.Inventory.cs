@@ -904,11 +904,22 @@ namespace OpenSim.Region.Framework.Scenes
         public void CreateNewInventoryItem(
             IClientAPI remoteClient, string creatorID, string creatorData, UUID folderID,
             string name, string description, uint flags, uint callbackID,
-            AssetBase asset, sbyte invType, uint nextOwnerMask, int creationDate)
+            AssetBase asset, sbyte invType, uint nextOwnerMask, int creationDate, UUID transationID)
         {
             CreateNewInventoryItem(
                 remoteClient, creatorID, creatorData, folderID, name, description, flags, callbackID, asset, invType,
-                (uint)PermissionMask.All, (uint)PermissionMask.All, 0, nextOwnerMask, 0, creationDate);
+                (uint)PermissionMask.All, (uint)PermissionMask.All, 0, nextOwnerMask, 0, creationDate, transationID);
+        }
+
+
+        private void CreateNewInventoryItem(
+            IClientAPI remoteClient, string creatorID, string creatorData, UUID folderID,
+            string name, string description, uint flags, uint callbackID, AssetBase asset, sbyte invType,
+            uint baseMask, uint currentMask, uint everyoneMask, uint nextOwnerMask, uint groupMask, int creationDate)
+        {
+            CreateNewInventoryItem(remoteClient, creatorID, creatorData, folderID,
+                name, description, flags, callbackID, asset, invType,
+                baseMask, currentMask, everyoneMask, nextOwnerMask, groupMask, creationDate, UUID.Zero);
         }
 
         /// <summary>
@@ -933,7 +944,7 @@ namespace OpenSim.Region.Framework.Scenes
         private void CreateNewInventoryItem(
             IClientAPI remoteClient, string creatorID, string creatorData, UUID folderID,
             string name, string description, uint flags, uint callbackID, AssetBase asset, sbyte invType,
-            uint baseMask, uint currentMask, uint everyoneMask, uint nextOwnerMask, uint groupMask, int creationDate)
+            uint baseMask, uint currentMask, uint everyoneMask, uint nextOwnerMask, uint groupMask, int creationDate,UUID transationID)
         {
             InventoryItemBase item = new InventoryItemBase();
             item.Owner = remoteClient.AgentId;
@@ -956,7 +967,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (AddInventoryItem(item))
             {
-                remoteClient.SendInventoryItemCreateUpdate(item, callbackID);
+                remoteClient.SendInventoryItemCreateUpdate(item, transationID, callbackID);
             }
             else
             {

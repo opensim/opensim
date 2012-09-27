@@ -739,6 +739,10 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         {
         }
 
+        public void SendInventoryItemCreateUpdate(InventoryItemBase Item, UUID transactionID, uint callbackId)
+        {
+        }
+
         public virtual void SendRemoveInventoryItem(UUID itemID)
         {
         }

@@ -45,7 +45,8 @@ namespace OpenSim.Framework
         /// <summary>
         /// Total number of queues (priorities) available
         /// </summary>
-        public const uint NumberOfQueues = 12;
+
+        public const uint NumberOfQueues = 12; // includes immediate queues, m_queueCounts need to be set acording
 
         /// <summary>
         /// Number of queuest (priorities) that are processed immediately
@@ -60,7 +61,8 @@ namespace OpenSim.Framework
         // each pass. weighted towards the higher priority queues
         private uint m_nextQueue = 0;
         private uint m_countFromQueue = 0;
-        private uint[] m_queueCounts = { 8, 4, 4, 2, 2, 2, 2, 1, 1, 1, 1, 1 };
+        // first queues are imediate, so no counts 
+        private uint[] m_queueCounts = {0, 0, 8, 4, 4, 2, 2, 2, 2, 1, 1, 1};
 
         // next request is a counter of the number of updates queued, it provides
         // a total ordering on the updates coming through the queue and is more
@@ -137,7 +139,7 @@ namespace OpenSim.Framework
         /// </summary>
         public bool TryDequeue(out IEntityUpdate value, out Int32 timeinqueue)
         {
-            // If there is anything in priority queue 0, return it first no
+            // If there is anything in imediate queues, return it first no
             // matter what else. Breaks fairness. But very useful.
             for (int iq = 0; iq < NumberOfImmediateQueues; iq++)
             {
@@ -172,14 +174,13 @@ namespace OpenSim.Framework
             }
             
             // Find the next non-immediate queue with updates in it
-            for (int i = 0; i < NumberOfQueues; ++i)
+            for (uint i = NumberOfImmediateQueues; i < NumberOfQueues; ++i)
             {
-                m_nextQueue = (uint)((m_nextQueue + 1) % NumberOfQueues);
-                m_countFromQueue = m_queueCounts[m_nextQueue];
+                m_nextQueue++;
+                if(m_nextQueue >= NumberOfQueues)
+                    m_nextQueue = NumberOfImmediateQueues;
 
-                // if this is one of the immediate queues, just skip it
-                if (m_nextQueue < NumberOfImmediateQueues)
-                    continue;
+                m_countFromQueue = m_queueCounts[m_nextQueue];
                 
                 if (m_heaps[m_nextQueue].Count > 0)
                 {
@@ -189,7 +190,6 @@ namespace OpenSim.Framework
                     m_lookupTable.Remove(item.Value.Entity.LocalId);
                     timeinqueue = Util.EnvironmentTickCountSubtract(item.EntryTime);
                     value = item.Value;
-
                     return true;
                 }
             }

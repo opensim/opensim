@@ -663,7 +663,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 //
                 // This sleep can be increased if necessary.  However, whilst it's active,
                 // an agent cannot teleport back to this region if it has teleported away.
-                Thread.Sleep(2000);
+                Thread.Sleep(3000);
 
                 sp.Scene.IncomingCloseAgent(sp.UUID, false);
             }

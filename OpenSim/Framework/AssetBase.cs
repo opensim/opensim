@@ -150,7 +150,8 @@ namespace OpenSim.Framework
                      Type == (sbyte)AssetType.SnapshotFolder ||
                      Type == (sbyte)AssetType.TrashFolder ||
                      Type == (sbyte)AssetType.ImageJPEG ||
-                     Type == (sbyte) AssetType.ImageTGA ||
+                     Type == (sbyte)AssetType.ImageTGA ||
+                     Type == (sbyte)AssetType.Mesh ||
                      Type == (sbyte) AssetType.LSLBytecode);
             }
         }

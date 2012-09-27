@@ -34,7 +34,7 @@ namespace OpenSim.Framework.Servers.HttpServer
     public delegate void RequestMethod(UUID requestID, Hashtable request);
     public delegate bool HasEventsMethod(UUID requestID, UUID pId);
 
-    public delegate Hashtable GetEventsMethod(UUID requestID, UUID pId, string request);
+    public delegate Hashtable GetEventsMethod(UUID requestID, UUID pId);
 
     public delegate Hashtable NoEventsMethod(UUID requestID, UUID pId);
 
@@ -46,7 +46,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         public RequestMethod Request;
         public UUID Id;
         public int TimeOutms;
-        public EventType Type;
+        public EventType Type;    
 
         public enum EventType : int
         {

@@ -1171,6 +1171,7 @@ namespace OpenSim.Framework
         /// </summary>
         /// <param name="Item"></param>
         void SendInventoryItemCreateUpdate(InventoryItemBase Item, uint callbackId);
+        void SendInventoryItemCreateUpdate(InventoryItemBase Item, UUID transactionID, uint callbackId);
 
         void SendRemoveInventoryItem(UUID itemID);
 
