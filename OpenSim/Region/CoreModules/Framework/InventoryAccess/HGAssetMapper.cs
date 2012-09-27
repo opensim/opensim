@@ -233,8 +233,6 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             HGUuidGatherer uuidGatherer = new HGUuidGatherer(m_scene.AssetService, userAssetURL);
             uuidGatherer.GatherAssetUuids(assetID, (AssetType)meta.Type, ids);
 
-            m_log.DebugFormat("[HG ASSET MAPPER]: Successfully fetched asset {0} from asset server {1}", assetID, userAssetURL);
-
         }
 
 
