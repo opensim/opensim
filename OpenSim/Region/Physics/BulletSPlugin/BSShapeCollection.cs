@@ -120,25 +120,25 @@ public class BSShapeCollection : IDisposable
     // Track another user of a body
     // We presume the caller has allocated the body.
     // Bodies only have one user so the reference count is either 1 or 0.
-    public void ReferenceBody(BulletBody shape, bool atTaintTime)
+    public void ReferenceBody(BulletBody body, bool atTaintTime)
     {
         lock (m_collectionActivityLock)
         {
             BodyDesc bodyDesc;
-            if (Bodies.TryGetValue(shape.ID, out bodyDesc))
+            if (Bodies.TryGetValue(body.ID, out bodyDesc))
             {
                 bodyDesc.referenceCount++;
-                DetailLog("{0},BSShapeCollection.ReferenceBody,existingBody,ref={1}", shape.ID, bodyDesc.referenceCount);
+                DetailLog("{0},BSShapeCollection.ReferenceBody,existingBody,body={1},ref={2}", body.ID, body, bodyDesc.referenceCount);
             }
             else
             {
                 // New entry
-                bodyDesc.ptr = shape.ptr;
+                bodyDesc.ptr = body.ptr;
                 bodyDesc.referenceCount = 1;
-                DetailLog("{0},BSShapeCollection.ReferenceBody,newBody,ref={1}", shape.ID, bodyDesc.referenceCount);
+                DetailLog("{0},BSShapeCollection.ReferenceBody,newBody,ref={1}", body.ID, body, bodyDesc.referenceCount);
             }
             bodyDesc.lastReferenced = System.DateTime.Now;
-            Bodies[shape.ID] = bodyDesc;
+            Bodies[body.ID] = bodyDesc;
         }
 }
 
@@ -256,7 +256,7 @@ public class BSShapeCollection : IDisposable
 
     // Release the usage of a shape.
     // The collisionObject is released since it is a copy of the real collision shape.
-    private void DereferenceShape(BulletShape shape, bool atTaintTime, ShapeDestructionCallback shapeCallback)
+    public void DereferenceShape(BulletShape shape, bool atTaintTime, ShapeDestructionCallback shapeCallback)
     {
         if (shape.ptr == IntPtr.Zero)
             return;

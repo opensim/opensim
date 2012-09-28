@@ -154,8 +154,9 @@ public sealed class BSPrim : BSPhysObject
         PhysicsScene.TaintedObject("BSPrim.destroy", delegate()
         {
             DetailLog("{0},BSPrim.Destroy,taint,", LocalID);
-            // everything in the C# world will get garbage collected. Tell the C++ world to free stuff.
-            BulletSimAPI.DestroyObject(PhysicsScene.WorldID, LocalID);
+            // If there are physical body and shape, release my use of same.
+            PhysicsScene.Shapes.DereferenceBody(BSBody, true, null);
+            PhysicsScene.Shapes.DereferenceShape(BSShape, true, null);
         });
     }
 
@@ -251,9 +252,6 @@ public sealed class BSPrim : BSPhysObject
         _rotationalVelocity = OMV.Vector3.Zero;
 
         // Zero some other properties directly into the physics engine
-        BulletSimAPI.SetLinearVelocity2(BSBody.ptr, OMV.Vector3.Zero);
-        BulletSimAPI.SetAngularVelocity2(BSBody.ptr, OMV.Vector3.Zero);
-        BulletSimAPI.SetInterpolationVelocity2(BSBody.ptr, OMV.Vector3.Zero, OMV.Vector3.Zero);
         BulletSimAPI.ClearForces2(BSBody.ptr);
     }
 
@@ -1108,9 +1106,8 @@ public sealed class BSPrim : BSPhysObject
         ShapeData shapeData;
         FillShapeInfo(out shapeData);
 
-        // Undo me from any possible linkset so, if body is rebuilt, the link will get restored.
-        // NOTE that the new linkset is not set. This saves the handle to the linkset
-        //     so we can add ourselves back when shape mangling is complete.
+        // If this prim is part of a linkset, we must remove and restore the physical
+        //    links of the body is rebuilt.
         bool needToRestoreLinkset = false;
 
         // Create the correct physical representation for this type of object.
@@ -1119,12 +1116,15 @@ public sealed class BSPrim : BSPhysObject
                         null, delegate(BulletBody dBody)
         {
             // Called if the current prim body is about to be destroyed.
-            // The problem is the constraints for Linksets which need to be updated for the new body.
+            // Remove all the physical dependencies on the old body.
             needToRestoreLinkset = Linkset.RemoveBodyDependencies(this);
         });
 
         if (needToRestoreLinkset)
+        {
+            // If physical body dependencies were removed, restore them
             Linkset.RestoreBodyDependencies(this);
+        }
 
         // Make sure the properties are set on the new object
         UpdatePhysicalParameters();
