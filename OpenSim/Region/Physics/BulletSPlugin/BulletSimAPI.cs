@@ -42,12 +42,12 @@ public struct BulletSim
     {
         ptr = xx;
         worldID = worldId;
-        scene = bss;
+        physicsScene = bss;
     }
     public IntPtr ptr;
     public uint worldID;
     // The scene is only in here so very low level routines have a handle to print debug/error messages
-    public BSScene scene;
+    public BSScene physicsScene;
 }
 
 // An allocated Bullet btRigidBody
@@ -120,14 +120,27 @@ public struct BulletShape
     }
 }
 
+    // Constraint type values as defined by Bullet
+public enum ConstraintType : int
+{
+	POINT2POINT_CONSTRAINT_TYPE = 3,
+	HINGE_CONSTRAINT_TYPE,
+	CONETWIST_CONSTRAINT_TYPE,
+	D6_CONSTRAINT_TYPE,
+	SLIDER_CONSTRAINT_TYPE,
+	CONTACT_CONSTRAINT_TYPE,
+	D6_SPRING_CONSTRAINT_TYPE,
+	MAX_CONSTRAINT_TYPE
+}
+
 // An allocated Bullet btConstraint
 public struct BulletConstraint
 {
     public BulletConstraint(IntPtr xx)
     {
-        Ptr = xx;
+        ptr = xx;
     }
-    public IntPtr Ptr;
+    public IntPtr ptr;
 }
 
 // An allocated HeightMapThing which holds various heightmap info.

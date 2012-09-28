@@ -81,12 +81,21 @@ public class BSShapeCollection : IDisposable
         // TODO!!!!!!!!!
     }
 
+    // Callbacks called just before either the body or shape is destroyed.
+    // Mostly used for changing bodies out from under Linksets.
+    // Useful for other cases where parameters need saving.
+    // Passing 'null' says no callback.
+    public delegate void ShapeDestructionCallback(BulletShape shape);
+    public delegate void BodyDestructionCallback(BulletBody body);
+
     // Called to update/change the body and shape for an object.
     // First checks the shape and updates that if necessary then makes
     //    sure the body is of the right type.
     // Return 'true' if either the body or the shape changed.
     // Called at taint-time!!
-    public bool GetBodyAndShape(bool forceRebuild, BulletSim sim, BSPrim prim, ShapeData shapeData, PrimitiveBaseShape pbs)
+    public bool GetBodyAndShape(bool forceRebuild, BulletSim sim, BSPrim prim, 
+                    ShapeData shapeData, PrimitiveBaseShape pbs,
+                    ShapeDestructionCallback shapeCallback, BodyDestructionCallback bodyCallback)
     {
         bool ret = false;
 
@@ -95,11 +104,11 @@ public class BSShapeCollection : IDisposable
         {
             // Do we have the correct geometry for this type of object?
             // Updates prim.BSShape with information/pointers to requested shape
-            bool newGeom = CreateGeom(forceRebuild, prim, shapeData, pbs);
+            bool newGeom = CreateGeom(forceRebuild, prim, shapeData, pbs, shapeCallback);
             // If we had to select a new shape geometry for the object,
             //    rebuild the body around it.
             // Updates prim.BSBody with information/pointers to requested body
-            bool newBody = CreateBody((newGeom || forceRebuild), prim, PhysicsScene.World, prim.BSShape, shapeData);
+            bool newBody = CreateBody((newGeom || forceRebuild), prim, PhysicsScene.World, prim.BSShape, shapeData, bodyCallback);
             ret = newGeom || newBody;
         }
         DetailLog("{0},BSShapeCollection.GetBodyAndShape,force={1},ret={2},body={3},shape={4}",
@@ -135,7 +144,7 @@ public class BSShapeCollection : IDisposable
 
     // Release the usage of a body.
     // Called when releasing use of a BSBody. BSShape is handled separately.
-    public void DereferenceBody(BulletBody shape, bool inTaintTime)
+    public void DereferenceBody(BulletBody shape, bool inTaintTime, BodyDestructionCallback bodyCallback )
     {
         if (shape.ptr == IntPtr.Zero)
             return;
@@ -244,7 +253,7 @@ public class BSShapeCollection : IDisposable
 
     // Release the usage of a shape.
     // The collisionObject is released since it is a copy of the real collision shape.
-    private void DereferenceShape(BulletShape shape, bool atTaintTime)
+    private void DereferenceShape(BulletShape shape, bool atTaintTime, ShapeDestructionCallback shapeCallback)
     {
         if (shape.ptr == IntPtr.Zero)
             return;
@@ -254,10 +263,10 @@ public class BSShapeCollection : IDisposable
             switch (shape.type)
             {
                 case ShapeData.PhysicsShapeType.SHAPE_HULL:
-                    DereferenceHull(shape);
+                    DereferenceHull(shape, shapeCallback);
                     break;
                 case ShapeData.PhysicsShapeType.SHAPE_MESH:
-                    DereferenceMesh(shape);
+                    DereferenceMesh(shape, shapeCallback);
                     break;
                 case ShapeData.PhysicsShapeType.SHAPE_UNKNOWN:
                     break;
@@ -267,6 +276,7 @@ public class BSShapeCollection : IDisposable
                     {
                         DetailLog("{0},BSShapeCollection.DereferenceShape,deleteNativeShape,ptr={1},taintTime={2}",
                                         BSScene.DetailLogZero, shape.ptr.ToString("X"), atTaintTime);
+                        if (shapeCallback != null) shapeCallback(shape);
                         BulletSimAPI.DeleteCollisionShape2(PhysicsScene.World.ptr, shape.ptr);
                     }
                     break;
@@ -287,13 +297,14 @@ public class BSShapeCollection : IDisposable
 
     // Count down the reference count for a mesh shape
     // Called at taint-time.
-    private void DereferenceMesh(BulletShape shape)
+    private void DereferenceMesh(BulletShape shape, ShapeDestructionCallback shapeCallback)
     {
         MeshDesc meshDesc;
         if (Meshes.TryGetValue(shape.shapeKey, out meshDesc))
         {
             meshDesc.referenceCount--;
             // TODO: release the Bullet storage
+            if (shapeCallback != null) shapeCallback(shape);
             meshDesc.lastReferenced = System.DateTime.Now;
             Meshes[shape.shapeKey] = meshDesc;
             DetailLog("{0},BSShapeCollection.DereferenceMesh,key={1},refCnt={2}",
@@ -304,13 +315,14 @@ public class BSShapeCollection : IDisposable
 
     // Count down the reference count for a hull shape
     // Called at taint-time.
-    private void DereferenceHull(BulletShape shape)
+    private void DereferenceHull(BulletShape shape, ShapeDestructionCallback shapeCallback)
     {
         HullDesc hullDesc;
         if (Hulls.TryGetValue(shape.shapeKey, out hullDesc))
         {
             hullDesc.referenceCount--;
             // TODO: release the Bullet storage (aging old entries?)
+            if (shapeCallback != null) shapeCallback(shape);
             hullDesc.lastReferenced = System.DateTime.Now;
             Hulls[shape.shapeKey] = hullDesc;
             DetailLog("{0},BSShapeCollection.DereferenceHull,key={1},refCnt={2}",
@@ -324,7 +336,8 @@ public class BSShapeCollection : IDisposable
     // if 'forceRebuild' is true, the geometry is rebuilt. Otherwise a previously built version is used.
     // Returns 'true' if the geometry was rebuilt.
     // Called at taint-time!
-    private bool CreateGeom(bool forceRebuild, BSPrim prim, ShapeData shapeData, PrimitiveBaseShape pbs)
+    private bool CreateGeom(bool forceRebuild, BSPrim prim, ShapeData shapeData, 
+                            PrimitiveBaseShape pbs, ShapeDestructionCallback shapeCallback)
     {
         bool ret = false;
         bool haveShape = false;
@@ -349,8 +362,8 @@ public class BSShapeCollection : IDisposable
                         || prim.BSShape.type != ShapeData.PhysicsShapeType.SHAPE_SPHERE
                         )
                 {
-                    ret = GetReferenceToNativeShape(prim, shapeData,
-                            ShapeData.PhysicsShapeType.SHAPE_SPHERE, ShapeData.FixedShapeKey.KEY_SPHERE);
+                    ret = GetReferenceToNativeShape(prim, shapeData, ShapeData.PhysicsShapeType.SHAPE_SPHERE, 
+                                            ShapeData.FixedShapeKey.KEY_SPHERE, shapeCallback);
                     DetailLog("{0},BSShapeCollection.CreateGeom,sphere,force={1},shape={2}",
                                         prim.LocalID, forceRebuild, prim.BSShape);
                 }
@@ -363,8 +376,8 @@ public class BSShapeCollection : IDisposable
                         || prim.BSShape.type != ShapeData.PhysicsShapeType.SHAPE_BOX
                         )
                 {
-                    ret = GetReferenceToNativeShape(
-                        prim, shapeData, ShapeData.PhysicsShapeType.SHAPE_BOX, ShapeData.FixedShapeKey.KEY_BOX);
+                    ret = GetReferenceToNativeShape( prim, shapeData, ShapeData.PhysicsShapeType.SHAPE_BOX, 
+                                            ShapeData.FixedShapeKey.KEY_BOX, shapeCallback);
                     DetailLog("{0},BSShapeCollection.CreateGeom,box,force={1},shape={2}",
                                         prim.LocalID, forceRebuild, prim.BSShape);
                 }
@@ -378,13 +391,13 @@ public class BSShapeCollection : IDisposable
             if (prim.IsPhysical)
             {
                 // Update prim.BSShape to reference a hull of this shape.
-                ret = GetReferenceToHull(prim, shapeData, pbs);
+                ret = GetReferenceToHull(prim, shapeData, pbs, shapeCallback);
                 DetailLog("{0},BSShapeCollection.CreateGeom,hull,shape={1},key={2}",
                                         shapeData.ID, prim.BSShape, prim.BSShape.shapeKey.ToString("X"));
             }
             else
             {
-                ret = GetReferenceToMesh(prim, shapeData, pbs);
+                ret = GetReferenceToMesh(prim, shapeData, pbs, shapeCallback);
                 DetailLog("{0},BSShapeCollection.CreateGeom,mesh,shape={1},key={2}",
                                         shapeData.ID, prim.BSShape, prim.BSShape.shapeKey.ToString("X"));
             }
@@ -394,7 +407,8 @@ public class BSShapeCollection : IDisposable
 
     // Creates a native shape and assignes it to prim.BSShape
     private bool GetReferenceToNativeShape( BSPrim prim, ShapeData shapeData,
-                            ShapeData.PhysicsShapeType shapeType, ShapeData.FixedShapeKey shapeKey)
+                            ShapeData.PhysicsShapeType shapeType, ShapeData.FixedShapeKey shapeKey,
+                            ShapeDestructionCallback shapeCallback)
     {
         BulletShape newShape;
 
@@ -404,7 +418,7 @@ public class BSShapeCollection : IDisposable
         shapeData.Scale = shapeData.Size;
 
         // release any previous shape
-        DereferenceShape(prim.BSShape, true);
+        DereferenceShape(prim.BSShape, true, shapeCallback);
 
         // Native shapes are always built independently.
         newShape = new BulletShape(BulletSimAPI.BuildNativeShape2(PhysicsScene.World.ptr, shapeData), shapeType);
@@ -422,7 +436,8 @@ public class BSShapeCollection : IDisposable
     // Dereferences previous shape in BSShape and adds a reference for this new shape.
     // Returns 'true' of a mesh was actually built. Otherwise .
     // Called at taint-time!
-    private bool GetReferenceToMesh(BSPrim prim, ShapeData shapeData, PrimitiveBaseShape pbs)
+    private bool GetReferenceToMesh(BSPrim prim, ShapeData shapeData, PrimitiveBaseShape pbs,
+                                ShapeDestructionCallback shapeCallback)
     {
         BulletShape newShape = new BulletShape(IntPtr.Zero);
 
@@ -436,7 +451,7 @@ public class BSShapeCollection : IDisposable
                                 prim.LocalID, prim.BSShape.shapeKey.ToString("X"), newMeshKey.ToString("X"));
 
         // Since we're recreating new, get rid of the reference to the previous shape
-        DereferenceShape(prim.BSShape, true);
+        DereferenceShape(prim.BSShape, true, shapeCallback);
 
         newShape = CreatePhysicalMesh(prim.PhysObjectName, newMeshKey, pbs, shapeData.Size, lod);
 
@@ -490,7 +505,8 @@ public class BSShapeCollection : IDisposable
 
     // See that hull shape exists in the physical world and update prim.BSShape.
     // We could be creating the hull because scale changed or whatever.
-    private bool GetReferenceToHull(BSPrim prim, ShapeData shapeData, PrimitiveBaseShape pbs)
+    private bool GetReferenceToHull(BSPrim prim, ShapeData shapeData, PrimitiveBaseShape pbs,
+                                ShapeDestructionCallback shapeCallback)
     {
         BulletShape newShape;
 
@@ -505,7 +521,7 @@ public class BSShapeCollection : IDisposable
                         prim.LocalID, prim.BSShape.shapeKey.ToString("X"), newHullKey.ToString("X"));
 
         // Remove usage of the previous shape. Also removes reference to underlying mesh if it is a hull.
-        DereferenceShape(prim.BSShape, true);
+        DereferenceShape(prim.BSShape, true, shapeCallback);
 
         newShape = CreatePhysicalHull(prim.PhysObjectName, newHullKey, pbs, shapeData.Size, lod);
 
@@ -656,7 +672,8 @@ public class BSShapeCollection : IDisposable
     // Updates prim.BSBody with the information about the new body if one is created.
     // Returns 'true' if an object was actually created.
     // Called at taint-time.
-    private bool CreateBody(bool forceRebuild, BSPrim prim, BulletSim sim, BulletShape shape, ShapeData shapeData)
+    private bool CreateBody(bool forceRebuild, BSPrim prim, BulletSim sim, BulletShape shape, 
+                            ShapeData shapeData, BodyDestructionCallback bodyCallback)
     {
         bool ret = false;
 
@@ -679,7 +696,7 @@ public class BSShapeCollection : IDisposable
 
         if (mustRebuild || forceRebuild)
         {
-            DereferenceBody(prim.BSBody, true);
+            DereferenceBody(prim.BSBody, true, bodyCallback);
 
             BulletBody aBody;
             IntPtr bodyPtr = IntPtr.Zero;

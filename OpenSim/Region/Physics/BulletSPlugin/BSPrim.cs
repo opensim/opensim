@@ -1111,13 +1111,21 @@ public sealed class BSPrim : BSPhysObject
         // Undo me from any possible linkset so, if body is rebuilt, the link will get restored.
         // NOTE that the new linkset is not set. This saves the handle to the linkset
         //     so we can add ourselves back when shape mangling is complete.
-        Linkset.RemoveMeFromLinkset(this);
+        bool needToRestoreLinkset = false;
 
         // Create the correct physical representation for this type of object.
         // Updates BSBody and BSShape with the new information.
-        PhysicsScene.Shapes.GetBodyAndShape(forceRebuild, PhysicsScene.World, this, shapeData, _pbs);
+        PhysicsScene.Shapes.GetBodyAndShape(forceRebuild, PhysicsScene.World, this, shapeData, _pbs, 
+                        null, delegate(BulletBody dBody)
+        {
+            // Called if the current prim body is about to be destroyed.
+            // The problem is the constraints for Linksets which need to be updated for the new body.
+            Linkset.RemoveBodyDependencies(this);
+            needToRestoreLinkset = true;
+        });
 
-        Linkset = Linkset.AddMeToLinkset(this);
+        if (needToRestoreLinkset)
+            Linkset.RestoreBodyDependencies(this);
 
         // Make sure the properties are set on the new object
         UpdatePhysicalParameters();
