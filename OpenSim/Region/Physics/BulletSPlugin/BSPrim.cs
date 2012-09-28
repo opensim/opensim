@@ -1120,8 +1120,7 @@ public sealed class BSPrim : BSPhysObject
         {
             // Called if the current prim body is about to be destroyed.
             // The problem is the constraints for Linksets which need to be updated for the new body.
-            Linkset.RemoveBodyDependencies(this);
-            needToRestoreLinkset = true;
+            needToRestoreLinkset = Linkset.RemoveBodyDependencies(this);
         });
 
         if (needToRestoreLinkset)
