@@ -36,17 +36,24 @@ public class BSLinkset
 {
     private static string LogHeader = "[BULLETSIM LINKSET]";
 
-    private BSPhysObject m_linksetRoot;
-    public BSPhysObject LinksetRoot { get { return m_linksetRoot; } }
+    public BSPhysObject LinksetRoot { get; protected set; }
 
-    private BSScene m_physicsScene;
-    public BSScene PhysicsScene { get { return m_physicsScene; } }
+    public BSScene PhysicsScene { get; private set; }
 
     static int m_nextLinksetID = 1;
     public int LinksetID { get; private set; }
 
-    // The children under the root in this linkset
+    // The children under the root in this linkset.
+    // There are two lists of children: the current children at runtime
+    //    and the children at taint-time. For instance, if you delink a
+    //    child from the linkset, the child is removed from m_children
+    //    but the constraint won't be removed until taint time.
+    //    Two lists lets this track the 'current' children and
+    //    the physical 'taint' children separately.
+    // After taint processing and before the simulation step, these
+    //    two lists must be the same.
     private List<BSPhysObject> m_children;
+    private List<BSPhysObject> m_taintChildren;
 
     // We lock the diddling of linkset classes to prevent any badness.
     // This locks the modification of the instances of this class. Changes
@@ -55,9 +62,9 @@ public class BSLinkset
 
     // We keep the prim's mass in the linkset structure since it could be dependent on other prims
     private float m_mass;
-    public float LinksetMass 
-    { 
-        get 
+    public float LinksetMass
+    {
+        get
         {
             m_mass = ComputeLinksetMass();
             return m_mass;
@@ -79,22 +86,26 @@ public class BSLinkset
         // A simple linkset of one (no children)
         LinksetID = m_nextLinksetID++;
         // We create LOTS of linksets.
-        if (m_nextLinksetID < 0) 
+        if (m_nextLinksetID <= 0)
             m_nextLinksetID = 1;
-        m_physicsScene = scene;
-        m_linksetRoot = parent;
+        PhysicsScene = scene;
+        LinksetRoot = parent;
         m_children = new List<BSPhysObject>();
+        m_taintChildren = new List<BSPhysObject>();
         m_mass = parent.MassRaw;
     }
 
     // Link to a linkset where the child knows the parent.
     // Parent changing should not happen so do some sanity checking.
     // We return the parent's linkset so the child can track its membership.
+    // Called at runtime.
     public BSLinkset AddMeToLinkset(BSPhysObject child)
     {
         lock (m_linksetActivityLock)
         {
-            AddChildToLinkset(child);
+            // Don't add the root to its own linkset
+            if (!IsRoot(child))
+                AddChildToLinkset(child);
         }
         return this;
     }
@@ -102,26 +113,18 @@ public class BSLinkset
     // Remove a child from a linkset.
     // Returns a new linkset for the child which is a linkset of one (just the
     //    orphened child).
+    // Called at runtime.
     public BSLinkset RemoveMeFromLinkset(BSPhysObject child)
     {
         lock (m_linksetActivityLock)
         {
             if (IsRoot(child))
             {
-                // if root of linkset, take the linkset apart
-                while (m_children.Count > 0)
-                {
-                    // Note that we don't do a foreach because the remove routine
-                    //    takes it out of the list.
-                    RemoveChildFromOtherLinkset(m_children[0]);
-                }
-                m_children.Clear(); // just to make sure
+                // Cannot remove the root from a linkset.
+                return this;
             }
-            else
-            {
-                // Just removing a child from an existing linkset
-                RemoveChildFromLinkset(child);
-            }
+
+            RemoveChildFromLinkset(child);
         }
 
         // The child is down to a linkset of just itself
@@ -131,7 +134,7 @@ public class BSLinkset
     // Return 'true' if the passed object is the root object of this linkset
     public bool IsRoot(BSPhysObject requestor)
     {
-        return (requestor.LocalID == m_linksetRoot.LocalID);
+        return (requestor.LocalID == LinksetRoot.LocalID);
     }
 
     public int NumberOfChildren { get { return m_children.Count; } }
@@ -157,51 +160,6 @@ public class BSLinkset
         return ret;
     }
 
-    private float ComputeLinksetMass()
-    {
-        float mass = m_linksetRoot.MassRaw;
-        foreach (BSPhysObject bp in m_children)
-        {
-            mass += bp.MassRaw;
-        }
-        return mass;
-    }
-
-    private OMV.Vector3 ComputeLinksetCenterOfMass()
-    {
-        OMV.Vector3 com = m_linksetRoot.Position * m_linksetRoot.MassRaw;
-        float totalMass = m_linksetRoot.MassRaw;
-
-        lock (m_linksetActivityLock)
-        {
-            foreach (BSPhysObject bp in m_children)
-            {
-                com += bp.Position * bp.MassRaw;
-                totalMass += bp.MassRaw;
-            }
-            if (totalMass != 0f)
-                com /= totalMass;
-        }
-
-        return com;
-    }
-
-    private OMV.Vector3 ComputeLinksetGeometricCenter()
-    {
-        OMV.Vector3 com = m_linksetRoot.Position;
-
-        lock (m_linksetActivityLock)
-        {
-            foreach (BSPhysObject bp in m_children)
-            {
-                com += bp.Position * bp.MassRaw;
-            }
-            com /= (m_children.Count + 1);
-        }
-
-        return com;
-    }
-
     // The object is going dynamic (physical). Do any setup necessary
     //     for a dynamic linkset.
     // Only the state of the passed object can be modified. The rest of the linkset
@@ -210,8 +168,8 @@ public class BSLinkset
     // Called at taint-time!
     public bool MakeDynamic(BSPhysObject child)
     {
-        bool ret = false;
-        return ret;
+        // What is done for each object in BSPrim is what we want.
+        return false;
     }
 
     // The object is going static (non-physical). Do any setup necessary
@@ -226,6 +184,7 @@ public class BSLinkset
 
     // When physical properties are changed the linkset needs to recalculate
     //   its internal properties.
+    // Called at runtime.
     public void Refresh(BSPhysObject requestor)
     {
         // If there are no children, there can't be any constraints to recompute
@@ -242,58 +201,125 @@ public class BSLinkset
         }
     }
 
-    // Call each of the constraints that make up this linkset and recompute the
-    //    various transforms and variables. Used when objects are added or removed
-    //    from a linkset to make sure the constraints know about the new mass and
-    //    geometry.
-    // Must only be called at taint time!!
-    private void RecomputeLinksetConstraintVariables()
+    // Routine used when rebuilding the body of the root of the linkset
+    // Destroy all the constraints have have been made to root.
+    // This is called when the root body is changing.
+    // Returns 'true' of something eas actually removed and would need restoring
+    // Called at taint-time!!
+    public bool RemoveBodyDependencies(BSPrim child)
     {
-        float linksetMass = LinksetMass;
+        bool ret = false;
+
         lock (m_linksetActivityLock)
         {
-            bool somethingMissing = false;
-            foreach (BSPhysObject child in m_children)
+            if (IsRoot(child))
             {
-                BSConstraint constrain;
-                if (m_physicsScene.Constraints.TryGetConstraint(LinksetRoot.BSBody, child.BSBody, out constrain))
+                // If the one with the dependency is root, must undo all children
+                DetailLog("{0},BSLinkset.RemoveBodyDependencies,removeChildrenForRoot,rID={1},numChild={2}",
+                                                child.LocalID, LinksetRoot.LocalID, m_taintChildren.Count);
+                foreach (BSPhysObject bpo in m_taintChildren)
                 {
-                    // DetailLog("{0},BSLinkset.RecomputeLinksetConstraintVariables,taint,child={1},mass={2},A={3},B={4}", 
-                    //         LinksetRoot.LocalID, child.LocalID, linksetMass, constrain.Body1.ID, constrain.Body2.ID);
-                    constrain.RecomputeConstraintVariables(linksetMass);
-                }
-                else
-                {
-                    // Non-fatal error that happens when children are being added to the linkset but
-                    //    their constraints have not been created yet.
-                    // Caused by the fact that m_children is built at run time but building constraints
-                    //    happens at taint time.
-                    somethingMissing = true;
-                    break;
+                    PhysicallyUnlinkAChildFromRoot(LinksetRoot, LinksetRoot.BSBody, bpo, bpo.BSBody);
+                    ret = true;
                 }
             }
-
-            // If the whole linkset is not here, doesn't make sense to recompute linkset wide values
-            if (!somethingMissing)
+            else
             {
-                // If this is a multiple object linkset, set everybody's center of mass to the set's center of mass
-                OMV.Vector3 centerOfMass = ComputeLinksetCenterOfMass();
-                BulletSimAPI.SetCenterOfMassByPosRot2(LinksetRoot.BSBody.Ptr, centerOfMass, OMV.Quaternion.Identity);
-                foreach (BSPhysObject child in m_children)
+                DetailLog("{0},BSLinkset.RemoveBodyDependencies,removeSingleChild,rID={1},rBody={2},cID={3},cBody={4}",
+                                                child.LocalID,
+                                                LinksetRoot.LocalID, LinksetRoot.BSBody.ptr.ToString("X"),
+                                                child.LocalID, child.BSBody.ptr.ToString("X"));
+                // Remove the dependency on the body of this one 
+                if (m_taintChildren.Contains(child))
                 {
-                    BulletSimAPI.SetCenterOfMassByPosRot2(child.BSBody.Ptr, centerOfMass, OMV.Quaternion.Identity);
+                    PhysicallyUnlinkAChildFromRoot(LinksetRoot, LinksetRoot.BSBody, child, child.BSBody);
+                    ret = true;
                 }
-                /*
-                // The root prim takes on the weight of the whole linkset
-                OMV.Vector3 inertia = BulletSimAPI.CalculateLocalInertia2(LinksetRoot.BSShape.Ptr, linksetMass);
-                BulletSimAPI.SetMassProps2(LinksetRoot.BSBody.Ptr, linksetMass, inertia);
-                OMV.Vector3 centerOfMass = ComputeLinksetCenterOfMass();
-                BulletSimAPI.SetCenterOfMassByPosRot2(LinksetRoot.BSBody.Ptr, centerOfMass, OMV.Quaternion.Identity);
-                BulletSimAPI.UpdateInertiaTensor2(LinksetRoot.BSBody.Ptr);
-                 */
             }
         }
-        return;
+        return ret;
+    }
+
+    // Routine used when rebuilding the body of the root of the linkset
+    // This is called after RemoveAllLinksToRoot() to restore all the constraints.
+    // This is called when the root body has been changed.
+    // Called at taint-time!!
+    public void RestoreBodyDependencies(BSPrim child)
+    {
+        lock (m_linksetActivityLock)
+        {
+            if (IsRoot(child))
+            {
+                DetailLog("{0},BSLinkset.RestoreBodyDependencies,restoreChildrenForRoot,rID={1},numChild={2}",
+                                                child.LocalID, LinksetRoot.LocalID, m_taintChildren.Count);
+                foreach (BSPhysObject bpo in m_taintChildren)
+                {
+                    PhysicallyLinkAChildToRoot(LinksetRoot, LinksetRoot.BSBody, bpo, bpo.BSBody);
+                }
+            }
+            else
+            {
+                DetailLog("{0},BSLinkset.RestoreBodyDependencies,restoreSingleChild,rID={1},rBody={2},cID={3},cBody={4}",
+                                                LinksetRoot.LocalID,
+                                                LinksetRoot.LocalID, LinksetRoot.BSBody.ptr.ToString("X"),
+                                                child.LocalID, child.BSBody.ptr.ToString("X"));
+                PhysicallyLinkAChildToRoot(LinksetRoot, LinksetRoot.BSBody, child, child.BSBody);
+            }
+        }
+    }
+
+    // ================================================================
+    // Below this point is internal magic
+
+    private float ComputeLinksetMass()
+    {
+        float mass;
+        lock (m_linksetActivityLock)
+        {
+            mass = LinksetRoot.MassRaw;
+            foreach (BSPhysObject bp in m_taintChildren)
+            {
+                mass += bp.MassRaw;
+            }
+        }
+        return mass;
+    }
+
+    private OMV.Vector3 ComputeLinksetCenterOfMass()
+    {
+        OMV.Vector3 com;
+        lock (m_linksetActivityLock)
+        {
+            com = LinksetRoot.Position * LinksetRoot.MassRaw;
+            float totalMass = LinksetRoot.MassRaw;
+
+            foreach (BSPhysObject bp in m_taintChildren)
+            {
+                com += bp.Position * bp.MassRaw;
+                totalMass += bp.MassRaw;
+            }
+            if (totalMass != 0f)
+                com /= totalMass;
+        }
+
+        return com;
+    }
+
+    private OMV.Vector3 ComputeLinksetGeometricCenter()
+    {
+        OMV.Vector3 com;
+        lock (m_linksetActivityLock)
+        {
+            com = LinksetRoot.Position;
+
+            foreach (BSPhysObject bp in m_taintChildren)
+            {
+                com += bp.Position * bp.MassRaw;
+            }
+            com /= (m_taintChildren.Count + 1);
+        }
+
+        return com;
     }
 
     // I am the root of a linkset and a new child is being added
@@ -304,12 +330,22 @@ public class BSLinkset
         {
             m_children.Add(child);
 
-            BSPhysObject rootx = LinksetRoot; // capture the root as of now
+            BSPhysObject rootx = LinksetRoot; // capture the root and body as of now
+            BulletBody rootBodyx = LinksetRoot.BSBody;
             BSPhysObject childx = child;
-            m_physicsScene.TaintedObject("AddChildToLinkset", delegate()
+            BulletBody childBodyx = child.BSBody;
+
+            DetailLog("{0},AddChildToLinkset,call,rID={1},rBody={2},cID={3},cBody={4}", 
+                            rootx.LocalID,
+                            rootx.LocalID, rootBodyx.ptr.ToString("X"),
+                            childx.LocalID, childBodyx.ptr.ToString("X"));
+
+            PhysicsScene.TaintedObject("AddChildToLinkset", delegate()
             {
-                DetailLog("{0},AddChildToLinkset,taint,child={1}", m_linksetRoot.LocalID, child.LocalID);
-                PhysicallyLinkAChildToRoot(rootx, childx);     // build the physical binding between me and the child
+                DetailLog("{0},AddChildToLinkset,taint,child={1}", LinksetRoot.LocalID, child.LocalID);
+                // build the physical binding between me and the child
+                m_taintChildren.Add(childx);
+                PhysicallyLinkAChildToRoot(rootx, rootBodyx, childx, childBodyx);
             });
         }
         return;
@@ -319,10 +355,10 @@ public class BSLinkset
     // This is not being called by the child so we have to make sure the child doesn't think
     //    it's still connected to the linkset.
     // Normal OpenSimulator operation will never do this because other SceneObjectPart information
-    //    has to be updated also (like pointer to prim's parent).
+    //    also has to be updated (like pointer to prim's parent).
     private void RemoveChildFromOtherLinkset(BSPhysObject pchild)
     {
-        pchild.Linkset = new BSLinkset(m_physicsScene, pchild);
+        pchild.Linkset = new BSLinkset(PhysicsScene, pchild);
         RemoveChildFromLinkset(pchild);
     }
 
@@ -332,13 +368,22 @@ public class BSLinkset
     {
         if (m_children.Remove(child))
         {
-            BSPhysObject rootx = LinksetRoot; // capture the root as of now
+            BSPhysObject rootx = LinksetRoot; // capture the root and body as of now
+            BulletBody rootBodyx = LinksetRoot.BSBody;
             BSPhysObject childx = child;
-            m_physicsScene.TaintedObject("RemoveChildFromLinkset", delegate()
-            {
-                DetailLog("{0},RemoveChildFromLinkset,taint,child={1}", m_linksetRoot.LocalID, child.LocalID);
+            BulletBody childBodyx = child.BSBody;
 
-                PhysicallyUnlinkAChildFromRoot(rootx, childx);
+            DetailLog("{0},RemoveChildFromLinkset,call,rID={1},rBody={2},cID={3},cBody={4}", 
+                            childx.LocalID,
+                            rootx.LocalID, rootBodyx.ptr.ToString("X"),
+                            childx.LocalID, childBodyx.ptr.ToString("X"));
+
+            PhysicsScene.TaintedObject("RemoveChildFromLinkset", delegate()
+            {
+                if (m_taintChildren.Contains(childx))
+                    m_taintChildren.Remove(childx);
+
+                PhysicallyUnlinkAChildFromRoot(rootx, rootBodyx, childx, childBodyx);
                 RecomputeLinksetConstraintVariables();
             });
 
@@ -353,7 +398,8 @@ public class BSLinkset
 
     // Create a constraint between me (root of linkset) and the passed prim (the child).
     // Called at taint time!
-    private void PhysicallyLinkAChildToRoot(BSPhysObject rootPrim, BSPhysObject childPrim)
+    private void PhysicallyLinkAChildToRoot(BSPhysObject rootPrim, BulletBody rootBody,
+                                    BSPhysObject childPrim, BulletBody childBody)
     {
         // Zero motion for children so they don't interpolate
         childPrim.ZeroMotion();
@@ -365,18 +411,36 @@ public class BSLinkset
         // real world coordinate of midpoint between the two objects
         OMV.Vector3 midPoint = rootPrim.Position + (childRelativePosition / 2);
 
+        DetailLog("{0},PhysicallyLinkAChildToRoot,taint,root={1},rBody={2},child={3},cBody={4},rLoc={5},cLoc={6},midLoc={7}",
+                                        rootPrim.LocalID,
+                                        rootPrim.LocalID, rootBody.ptr.ToString("X"),
+                                        childPrim.LocalID, childBody.ptr.ToString("X"),
+                                        rootPrim.Position, childPrim.Position, midPoint);
+
         // create a constraint that allows no freedom of movement between the two objects
         // http://bulletphysics.org/Bullet/phpBB3/viewtopic.php?t=4818
-        DetailLog("{0},PhysicallyLinkAChildToRoot,taint,root={1},child={2},rLoc={3},cLoc={4},midLoc={5}", 
-            rootPrim.LocalID, rootPrim.LocalID, childPrim.LocalID, rootPrim.Position, childPrim.Position, midPoint);
+
+        // There is great subtlty in these paramters. Notice the check for a ptr of zero.
+        // We pass the BulletBody structure into the taint in order to capture the pointer
+        //     of the body at the time of constraint creation. This doesn't work for the very first
+        //     construction because there is no body yet. The body
+        //     is constructed later at taint time. Thus we use the body address at time of the
+        //     taint creation but, if it is zero, use what's in the prim at the moment.
+        //     There is a possible race condition since shape can change without a taint call
+        //     (like changing to a mesh that is already constructed). The fix for that would be
+        //     to only change BSShape at taint time thus syncronizing these operations at
+        //     the cost of efficiency and lag.
         BS6DofConstraint constrain = new BS6DofConstraint(
-                        m_physicsScene.World, rootPrim.BSBody, childPrim.BSBody,
+                        PhysicsScene.World,
+                        rootBody.ptr == IntPtr.Zero ? rootPrim.BSBody : rootBody,
+                        childBody.ptr == IntPtr.Zero ? childPrim.BSBody : childBody,
                         midPoint,
                         true,
                         true
                         );
+
         /* NOTE: below is an attempt to build constraint with full frame computation, etc.
-         *     Using the midpoint is easier since it lets the Bullet code use the transforms
+         *     Using the midpoint is easier since it lets the Bullet code manipulate the transforms
          *     of the objects.
          * Code left as a warning to future programmers.
         // ==================================================================================
@@ -408,7 +472,7 @@ public class BSLinkset
         // ==================================================================================
         */
 
-        m_physicsScene.Constraints.AddConstraint(constrain);
+        PhysicsScene.Constraints.AddConstraint(constrain);
 
         // zero linear and angular limits makes the objects unable to move in relation to each other
         constrain.SetLinearLimits(OMV.Vector3.Zero, OMV.Vector3.Zero);
@@ -429,31 +493,79 @@ public class BSLinkset
     }
 
     // Remove linkage between myself and a particular child
+    // The root and child bodies are passed in because we need to remove the constraint between
+    //      the bodies that were at unlink time.
     // Called at taint time!
-    private void PhysicallyUnlinkAChildFromRoot(BSPhysObject rootPrim, BSPhysObject childPrim)
+    private void PhysicallyUnlinkAChildFromRoot(BSPhysObject rootPrim, BulletBody rootBody,
+                                                    BSPhysObject childPrim, BulletBody childBody)
     {
-        DetailLog("{0},PhysicallyUnlinkAChildFromRoot,taint,root={1},child={2}", rootPrim.LocalID, rootPrim.LocalID, childPrim.LocalID);
+        DetailLog("{0},PhysicallyUnlinkAChildFromRoot,taint,root={1},rBody={2},child={3},cBody={4}",
+                            rootPrim.LocalID,
+                            rootPrim.LocalID, rootBody.ptr.ToString("X"),
+                            childPrim.LocalID, childBody.ptr.ToString("X"));
 
         // Find the constraint for this link and get rid of it from the overall collection and from my list
-        m_physicsScene.Constraints.RemoveAndDestroyConstraint(rootPrim.BSBody, childPrim.BSBody);
+        PhysicsScene.Constraints.RemoveAndDestroyConstraint(rootBody, childBody);
 
         // Make the child refresh its location
-        BulletSimAPI.PushUpdate2(childPrim.BSBody.Ptr);
+        BulletSimAPI.PushUpdate2(childPrim.BSBody.ptr);
     }
 
-    // Remove linkage between myself and any possible children I might have
+    /*
+    // Remove linkage between myself and any possible children I might have.
     // Called at taint time!
     private void PhysicallyUnlinkAllChildrenFromRoot(BSPhysObject rootPrim)
     {
         DetailLog("{0},PhysicallyUnlinkAllChildren,taint", rootPrim.LocalID);
 
-        m_physicsScene.Constraints.RemoveAndDestroyConstraint(rootPrim.BSBody);
+        PhysicsScene.Constraints.RemoveAndDestroyConstraint(rootPrim.BSBody);
     }
+     */
+
+    // Call each of the constraints that make up this linkset and recompute the
+    //    various transforms and variables. Used when objects are added or removed
+    //    from a linkset to make sure the constraints know about the new mass and
+    //    geometry.
+    // Must only be called at taint time!!
+    private void RecomputeLinksetConstraintVariables()
+    {
+        float linksetMass = LinksetMass;
+        foreach (BSPhysObject child in m_taintChildren)
+        {
+            BSConstraint constrain;
+            if (PhysicsScene.Constraints.TryGetConstraint(LinksetRoot.BSBody, child.BSBody, out constrain))
+            {
+                // DetailLog("{0},BSLinkset.RecomputeLinksetConstraintVariables,taint,child={1},mass={2},A={3},B={4}",
+                //         LinksetRoot.LocalID, child.LocalID, linksetMass, constrain.Body1.ID, constrain.Body2.ID);
+                constrain.RecomputeConstraintVariables(linksetMass);
+            }
+            else
+            {
+                // Non-fatal error that happens when children are being added to the linkset but
+                //    their constraints have not been created yet.
+                break;
+            }
+        }
+
+        // If the whole linkset is not here, doesn't make sense to recompute linkset wide values
+        if (m_children.Count == m_taintChildren.Count)
+        {
+            // If this is a multiple object linkset, set everybody's center of mass to the set's center of mass
+            OMV.Vector3 centerOfMass = ComputeLinksetCenterOfMass();
+            BulletSimAPI.SetCenterOfMassByPosRot2(LinksetRoot.BSBody.ptr, centerOfMass, OMV.Quaternion.Identity);
+            foreach (BSPhysObject child in m_taintChildren)
+            {
+                BulletSimAPI.SetCenterOfMassByPosRot2(child.BSBody.ptr, centerOfMass, OMV.Quaternion.Identity);
+            }
+        }
+        return;
+    }
+
 
     // Invoke the detailed logger and output something if it's enabled.
     private void DetailLog(string msg, params Object[] args)
     {
-        m_physicsScene.PhysicsLogging.Write(msg, args);
+        PhysicsScene.PhysicsLogging.Write(msg, args);
     }
 
 }
