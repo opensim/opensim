@@ -225,9 +225,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             Assert.That(scene.GetSceneObjectGroups().Count, Is.EqualTo(1));
 
             // Check events
-
-            // FIXME: This is currently not occuring!
-//            Assert.That(m_numberOfAttachEventsFired, Is.EqualTo(1));
+            Assert.That(m_numberOfAttachEventsFired, Is.EqualTo(1));
         }
 
         /// <summary>

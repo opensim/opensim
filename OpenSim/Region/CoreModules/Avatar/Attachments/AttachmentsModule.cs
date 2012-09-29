@@ -238,8 +238,22 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             sp.ClearAttachments();
         }
-        
+
         public bool AttachObject(IScenePresence sp, SceneObjectGroup group, uint attachmentPt, bool silent, bool temp)
+        {
+            if (!Enabled)
+                return false;
+
+            if (AttachObjectInternal(sp, group, attachmentPt, silent, temp))
+            {
+                m_scene.EventManager.TriggerOnAttach(group.LocalId, group.FromItemID, sp.UUID);
+                return true;
+            }
+
+            return false;
+        }
+        
+        private bool AttachObjectInternal(IScenePresence sp, SceneObjectGroup group, uint attachmentPt, bool silent, bool temp)
         {
             lock (sp.AttachmentsSyncLock)
             {
@@ -794,7 +808,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     // This will throw if the attachment fails
                     try
                     {
-                        AttachObject(sp, objatt, attachmentPt, false, false);
+                        AttachObjectInternal(sp, objatt, attachmentPt, false, false);
                     }
                     catch (Exception e)
                     {
@@ -951,15 +965,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 AttachmentPt &= 0x7f;
 
                 // Calls attach with a Zero position
-                if (AttachObject(sp, part.ParentGroup, AttachmentPt, false, false))
-                {
-//                    m_log.Debug(
-//                        "[ATTACHMENTS MODULE]: Saving avatar attachment. AgentID: " + remoteClient.AgentId
-//                        + ", AttachmentPoint: " + AttachmentPt);
-
-                    // Save avatar attachment information
-                    m_scene.EventManager.TriggerOnAttach(objectLocalID, part.ParentGroup.FromItemID, remoteClient.AgentId);
-                }
+                AttachObject(sp, part.ParentGroup, AttachmentPt, false, false);
             }
             catch (Exception e)
             {
