@@ -161,9 +161,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private List<OdePrim> childrenPrim = new List<OdePrim>();
 
-
-//        private bool m_throttleUpdates;
-//        private int throttleCounter;
         public float m_collisionscore;
         private int m_colliderfilter = 0;
 
@@ -175,7 +172,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private bool m_lastUpdateSent;
 
         public IntPtr Body = IntPtr.Zero;
-//        public String Name { get; private set; }
+
         private Vector3 _target_velocity;
 
         public Vector3 primOOBsize; // prim real dimensions from mesh 
@@ -366,12 +363,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
 
         public override bool ThrottleUpdates {get;set;}
-/*
-        {
-            get { return m_throttleUpdates; }
-            set { m_throttleUpdates = value; }
-        }
-*/
+
         public override bool Stopped
         {
             get { return _zeroFlag; }
@@ -418,7 +410,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override Vector3 Force
         {
-            //get { return Vector3.Zero; }
             get { return m_force; }
             set
             {
@@ -673,7 +664,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             get { return m_buoyancy; }
             set
             {
-                m_buoyancy = value;
+                 AddChange(changes.Buoyancy,value);
             }
         }
 
@@ -691,28 +682,35 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 if (value.IsFinite())
                 {
-                    m_PIDTarget = value;
+                    AddChange(changes.PIDTarget,value);
                 }
                 else
                     m_log.WarnFormat("[PHYSICS]: Got NaN PIDTarget from Scene on Object {0}", Name);
             }
         }
 
-        public override bool PIDActive { set { m_usePID = value; } }
+        public override bool PIDActive
+        {
+            set
+            {
+                AddChange(changes.PIDActive,value);
+            }
+        }
+
         public override float PIDTau
         {
             set
             {
-                if (value <= 0)
-                    m_PIDTau = 0;
-                else
+                float tmp = 0;
+                if (value > 0)
                 {
                     float mint = (0.05f > m_timeStep ? 0.05f : m_timeStep);
                     if (value < mint)
-                        m_PIDTau = mint;
+                        tmp = mint;
                     else
-                        m_PIDTau = value;
+                        tmp = value;
                 }
+                AddChange(changes.PIDTau,tmp);
             }
         }
 
@@ -720,27 +718,39 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             set
             {
-                m_PIDHoverHeight = value;
-                if (value == 0)
-                    m_useHoverPID = false;
+                AddChange(changes.PIDHoverHeight,value);
             }
         }
-        public override bool PIDHoverActive { set { m_useHoverPID = value; } }
-        public override PIDHoverType PIDHoverType { set { m_PIDHoverType = value; } }
+        public override bool PIDHoverActive
+        {
+            set
+            {
+                AddChange(changes.PIDHoverActive, value);
+            }
+        }
+
+        public override PIDHoverType PIDHoverType
+        {
+            set
+            {
+                AddChange(changes.PIDHoverType,value);
+            }
+        }
+
         public override float PIDHoverTau
         {
             set
             {
-                if (value <= 0)
-                    m_PIDHoverTau = 0;
-                else
+                float tmp =0;
+                if (value > 0)
                 {
                     float mint = (0.05f > m_timeStep ? 0.05f : m_timeStep);
                     if (value < mint)
-                        m_PIDHoverTau = mint;
+                        tmp = mint;
                     else
-                        m_PIDHoverTau = value;
+                        tmp = value;
                 }
+                AddChange(changes.PIDHoverTau, tmp);
             }
         }
 
@@ -980,7 +990,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                 return true;
             return false;
         }
-
 
         public OdePrim(String primName, OdeScene parent_scene, Vector3 pos, Vector3 size,
                        Quaternion rotation, PrimitiveBaseShape pbs, bool pisPhysical,bool pisPhantom,byte _shapeType,uint plocalID)
@@ -3099,7 +3108,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             resetCollisionAccounting();
         }
 
-
         private void changeDisable(bool disable)
         {
             if (disable)
@@ -3250,7 +3258,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.BodyEnable(Body);
         }
 
-
         private void changeAddForce(Vector3 theforce)
         {
             m_forceacc += theforce;
@@ -3267,7 +3274,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                             d.BodyEnable(Body);
                     }
                 }
-
                 m_collisionscore = 0;
             }
         }
@@ -3316,7 +3322,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             _velocity = newVel;
         }
-
 
         private void changeangvelocity(Vector3 newAngVel)
         {
@@ -3384,6 +3389,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 m_vehicle = new ODEDynamics(this);
             m_vehicle.DoSetVehicle(vdata);
         }
+
         private void changeVehicleType(int value)
         {
             if (value == (int)Vehicle.TYPE_NONE)
@@ -3427,6 +3433,48 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (m_vehicle == null)
                 return;
             m_vehicle.ProcessVehicleFlags(bp.param, bp.value);
+        }
+
+        private void changeBuoyancy(float b)
+        {
+            m_buoyancy = b;
+        }
+
+        private void changePIDTarget(Vector3 trg)
+        {
+            m_PIDTarget = trg;
+        }
+
+        private void changePIDTau(float tau)
+        {
+            m_PIDTau = tau;
+        }
+
+        private void changePIDActive(bool val)
+        {
+            m_usePID = val;
+        }
+
+        private void changePIDHoverHeight(float val)
+        {
+          m_PIDHoverHeight = val;
+          if (val == 0)
+            m_useHoverPID = false;
+        }
+
+        private void changePIDHoverType(PIDHoverType type)
+        {
+            m_PIDHoverType = type;
+        }
+
+        private void changePIDHoverTau(float tau)
+        {
+            m_PIDHoverTau = tau;
+        }
+
+        private void changePIDHoverActive(bool active)
+        {
+            m_useHoverPID = active;
         }
 
         #endregion
@@ -3987,6 +4035,39 @@ namespace OpenSim.Region.Physics.OdePlugin
                 case changes.SetVehicle:
                     changeSetVehicle((VehicleData) arg);
                     break;
+
+                case changes.Buoyancy:
+                    changeBuoyancy((float)arg);
+                    break;
+
+                case changes.PIDTarget:
+                    changePIDTarget((Vector3)arg);
+                    break;
+
+                case changes.PIDTau:
+                    changePIDTau((float)arg);
+                    break;
+
+                case changes.PIDActive:
+                    changePIDActive((bool)arg);
+                    break;
+
+                case changes.PIDHoverHeight:
+                    changePIDHoverHeight((float)arg);
+                    break;
+
+                case changes.PIDHoverType:
+                    changePIDHoverType((PIDHoverType)arg);
+                    break;
+
+                case changes.PIDHoverTau:
+                    changePIDHoverTau((float)arg);
+                    break;
+
+                case changes.PIDHoverActive:
+                    changePIDHoverActive((bool)arg);
+                    break;
+
                 case changes.Null:
                     donullchange();
                     break;
