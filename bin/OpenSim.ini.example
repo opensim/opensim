@@ -947,35 +947,6 @@
     ;# {InitialTerrain} {} {Initial terrain type} {pinhead-island flat} pinhead-island
     ; InitialTerrain = "pinhead-island"
 
-[TOSModule]
-	;; Terms of Service module. It requires an external web script. Unless you
-	;; have that in place, don't enable this module.
-
-    ;# {Enabled} {} {Enable TOS facilities} {true false} false
-    ; Enabled = false
-
-	;; Should local users be shown the TOS on first login?
-    ;# {ShowToLocalUsers} {} {Show TOS to local users} {true false} false
-    ; ShowToLocalUsers = false
-	;; Should foreign users be shown the TOS on first HG login?
-    ;# {ShowToForeignUsers} {} {Show TOS to foreign users} {true false} true
-    ; ShowToForeignUsers = true
-
-	;; Tell the users what this is about
-	; Message = "Please read and agree to the Terms of Service"
-
-	;; How much time do the users have to accept the TOS before they get kicked out?
-	;; (in minutes)
-	; Timeout = 5
-
-    ;; This page should have Accept/Decline links somewhere
-    ;; that affect the GridUsers table. If you don't have such
-    ;; script in place, don't use the TOSModule. The TOSModule appends this URL
-	;; with a query ?user={userid}&sid={sessionid}
-    ;# {TOS_URL} {} {The URL for the TOS page} {}
-    TOS_URL = "http://mygrid.com/tos"
-
-
 [Architecture]
     ;# {Include-Architecture} {} {Choose one of the following architectures} {config-include/Standalone.ini config-include/StandaloneHypergrid.ini config-include/Grid.ini config-include/GridHypergrid.ini config-include/SimianGrid.ini config-include/HyperSimianGrid.ini} config-include/Standalone.ini
     ;; Uncomment one of the following includes as required.  For instance, to create a standalone OpenSim,

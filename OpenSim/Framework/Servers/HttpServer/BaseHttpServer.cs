@@ -728,14 +728,14 @@ namespace OpenSim.Framework.Servers.HttpServer
                     const int sampleLength = 80;
                     char[] sampleChars = new char[sampleLength];
                     reader.Read(sampleChars, 0, sampleLength);
-                    output = string.Format("[BASE HTTP SERVER]: {0}...", new string(sampleChars).Replace("\n", @"\n"));
+                    output = new string(sampleChars);
                 }
                 else
                 {
-                    output = string.Format("[BASE HTTP SERVER]: {0}", reader.ReadToEnd());
+                    output = reader.ReadToEnd();
                 }
 
-                m_log.Debug(output);
+                m_log.DebugFormat("[BASE HTTP SERVER]: {0}...", output.Replace("\n", @"\n"));
             }
         }
 

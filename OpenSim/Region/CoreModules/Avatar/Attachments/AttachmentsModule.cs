@@ -286,6 +286,20 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         
         public bool AttachObject(IScenePresence sp, SceneObjectGroup group, uint attachmentPt, bool silent, bool useAttachData, bool temp)
         {
+            if (!Enabled)
+                return false;
+
+            if (AttachObjectInternal(sp, group, attachmentPt, silent, useAttachData, temp))
+            {
+                m_scene.EventManager.TriggerOnAttach(group.LocalId, group.FromItemID, sp.UUID);
+                return true;
+            }
+
+            return false;
+        }
+        
+        private bool AttachObjectInternal(IScenePresence sp, SceneObjectGroup group, uint attachmentPt, bool silent, bool useAttachData, bool temp)
+        {
             lock (sp.AttachmentsSyncLock)
             {
 //                m_log.DebugFormat(
@@ -862,7 +876,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     // This will throw if the attachment fails
                     try
                     {
-                        AttachObject(sp, objatt, attachmentPt, false, false, false);
+                        AttachObjectInternal(sp, objatt, attachmentPt, false, false, false);
                     }
                     catch (Exception e)
                     {

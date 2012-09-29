@@ -1,5 +1,5 @@
-<<<>>>>The following people have contributed to OpenSim (Thank you 
-for your effort!)
+   <<<>>>>The following people have contributed to OpenSim (Thank you 
+for your effort!) 
 
 = Current OpenSim Developers (in very rough order of appearance) =
 These folks represent the current core team for OpenSim, and are the

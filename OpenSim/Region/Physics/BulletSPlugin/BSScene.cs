@@ -39,20 +39,20 @@ using log4net;
 using OpenMetaverse;
 
 // TODOs for BulletSim (for BSScene, BSPrim, BSCharacter and BulletSim)
-// Adjust character capsule size when height is adjusted (ScenePresence.SetHeight)
-// Test sculpties
+// Move all logic out of the C++ code and into the C# code for easier future modifications.
+// Test sculpties (verified that they don't work)
 // Compute physics FPS reasonably
 // Based on material, set density and friction
-// More efficient memory usage when passing hull information from BSPrim to BulletSim
-// Move all logic out of the C++ code and into the C# code for easier future modifications.
+// Don't use constraints in linksets of non-physical objects. Means having to move children manually.
 // Four states of prim: Physical, regular, phantom and selected. Are we modeling these correctly?
 //     In SL one can set both physical and phantom (gravity, does not effect others, makes collisions with ground)
 //     At the moment, physical and phantom causes object to drop through the terrain
 // Physical phantom objects and related typing (collision options )
-// Use collision masks for collision with terrain and phantom objects 
 // Check out llVolumeDetect. Must do something for that.
+// Use collision masks for collision with terrain and phantom objects
+// More efficient memory usage when passing hull information from BSPrim to BulletSim
 // Should prim.link() and prim.delink() membership checking happen at taint time?
-// Mesh sharing. Use meshHash to tell if we already have a hull of that shape and only create once
+// Mesh sharing. Use meshHash to tell if we already have a hull of that shape and only create once.
 // Do attachments need to be handled separately? Need collision events. Do not collide with VolumeDetect
 // Implement LockAngularMotion
 // Decide if clearing forces is the right thing to do when setting position (BulletSim::SetObjectTranslation)
@@ -60,7 +60,7 @@ using OpenMetaverse;
 // Add PID movement operations. What does ScenePresence.MoveToTarget do?
 // Check terrain size. 128 or 127?
 // Raycast
-// 
+//
 namespace OpenSim.Region.Physics.BulletSPlugin
 {
 public class BSScene : PhysicsScene, IPhysicsParameters
@@ -73,12 +73,15 @@ public class BSScene : PhysicsScene, IPhysicsParameters
 
     public string BulletSimVersion = "?";
 
-    public Dictionary<uint, BSPhysObject> PhysObjects = new Dictionary<uint, BSPhysObject>();
+    public Dictionary<uint, BSPhysObject> PhysObjects;
+    public BSShapeCollection Shapes;
 
-    private HashSet<BSPhysObject> m_objectsWithCollisions = new HashSet<BSPhysObject>();
-    // Following is a kludge and can  be removed when avatar animation updating is
-    //    moved to a better place.
-    private HashSet<BSPhysObject> m_avatarsWithCollisions = new HashSet<BSPhysObject>();
+    // Keeping track of the objects with collisions so we can report begin and end of a collision
+    public HashSet<BSPhysObject> ObjectsWithCollisions = new HashSet<BSPhysObject>();
+    public HashSet<BSPhysObject> ObjectsWithNoMoreCollisions = new HashSet<BSPhysObject>();
+    // Keep track of all the avatars so we can send them a collision event
+    //    every tick so OpenSim will update its animation.
+    private HashSet<BSPhysObject> m_avatars = new HashSet<BSPhysObject>();
 
     // List of all the objects that have vehicle properties and should be called
     //    to update each physics step.
@@ -202,6 +205,11 @@ public class BSScene : PhysicsScene, IPhysicsParameters
 
     public override void Initialise(IMesher meshmerizer, IConfigSource config)
     {
+        mesher = meshmerizer;
+        _taintedObjects = new List<TaintCallbackEntry>();
+        PhysObjects = new Dictionary<uint, BSPhysObject>();
+        Shapes = new BSShapeCollection(this);
+
         // Allocate pinned memory to pass parameters.
         m_params = new ConfigurationParameters[1];
         m_paramsHandle = GCHandle.Alloc(m_params, GCHandleType.Pinned);
@@ -215,12 +223,9 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         m_updateArray = new EntityProperties[m_maxUpdatesPerFrame];
         m_updateArrayPinnedHandle = GCHandle.Alloc(m_updateArray, GCHandleType.Pinned);
 
-        mesher = meshmerizer;
-        _taintedObjects = new List<TaintCallbackEntry>();
-
         // Enable very detailed logging.
         // By creating an empty logger when not logging, the log message invocation code
-        // can be left in and every call doesn't have to check for null.
+        //     can be left in and every call doesn't have to check for null.
         if (m_physicsLoggingEnabled)
         {
             PhysicsLogging = new Logging.LogWriter(m_physicsLoggingDir, m_physicsLoggingPrefix, m_physicsLoggingFileMinutes);
@@ -251,7 +256,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         //    a child in a mega-region.
         // Turns out that Bullet really doesn't care about the extents of the simulated
         //    area. It tracks active objects no matter where they are.
-        Vector3 worldExtent = new Vector3(Constants.RegionSize, Constants.RegionSize, 8192f);
+        Vector3 worldExtent = new Vector3(Constants.RegionSize, Constants.RegionSize, Constants.RegionHeight);
 
         // m_log.DebugFormat("{0}: Initialize: Calling BulletSimAPI.Initialize.", LogHeader);
         WorldID = BulletSimAPI.Initialize(worldExtent, m_paramsHandle.AddrOfPinnedObject(),
@@ -322,7 +327,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     {
         m_log.Debug("[BULLETS UNMANAGED]:" + msg);
     }
-    
+  
     // Called directly from unmanaged code so don't do much
     private void BulletLoggerPhysLog(string msg)
     {
@@ -349,6 +354,12 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         {
             Constraints.Dispose();
             Constraints = null;
+        }
+
+        if (Shapes != null)
+        {
+            Shapes.Dispose();
+            Shapes = null;
         }
 
         // Anything left in the unmanaged code should be cleaned out
@@ -379,7 +390,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         // TODO: Remove kludge someday.
         // We must generate a collision for avatars whether they collide or not.
         // This is required by OpenSim to update avatar animations, etc.
-        lock (m_avatarsWithCollisions) m_avatarsWithCollisions.Add(actor);
+        lock (m_avatars) m_avatars.Add(actor);
 
         return actor;
     }
@@ -397,7 +408,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             {
                 lock (PhysObjects) PhysObjects.Remove(actor.LocalID);
                 // Remove kludge someday
-                lock (m_avatarsWithCollisions) m_avatarsWithCollisions.Remove(bsactor);
+                lock (m_avatars) m_avatars.Remove(bsactor);
             }
             catch (Exception e)
             {
@@ -449,7 +460,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     }
 
     // This is a call from the simulator saying that some physical property has been updated.
-    // The BulletSim driver senses the changing of relevant properties so this taint 
+    // The BulletSim driver senses the changing of relevant properties so this taint
     // information call is not needed.
     public override void AddPhysicsActorTaint(PhysicsActor prim) { }
 
@@ -463,6 +474,9 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         IntPtr updatedEntitiesPtr;
         int collidersCount = 0;
         IntPtr collidersPtr;
+
+        int beforeTime = 0;
+        int simTime = 0;
 
         // prevent simulation until we've been initialized
         if (!m_initialized) return 5.0f;
@@ -481,16 +495,20 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         int numSubSteps = 0;
         try
         {
+            if (PhysicsLogging.Enabled) beforeTime = Util.EnvironmentTickCount();
+
             numSubSteps = BulletSimAPI.PhysicsStep(WorldID, timeStep, m_maxSubSteps, m_fixedTimeStep,
                         out updatedEntityCount, out updatedEntitiesPtr, out collidersCount, out collidersPtr);
-            DetailLog("{0},Simulate,call, nTaints= {1}, substeps={2}, updates={3}, colliders={4}", 
-                        DetailLogZero, numTaints, numSubSteps, updatedEntityCount, collidersCount); 
+
+            if (PhysicsLogging.Enabled) simTime = Util.EnvironmentTickCountSubtract(beforeTime);
+            DetailLog("{0},Simulate,call, nTaints={1}, simTime={2}, substeps={3}, updates={4}, colliders={5}",
+                        DetailLogZero, numTaints, simTime, numSubSteps, updatedEntityCount, collidersCount);
         }
         catch (Exception e)
         {
-            m_log.WarnFormat("{0},PhysicsStep Exception: nTaints={1}, substeps={2}, updates={3}, colliders={4}, e={5}", 
+            m_log.WarnFormat("{0},PhysicsStep Exception: nTaints={1}, substeps={2}, updates={3}, colliders={4}, e={5}",
                         LogHeader, numTaints, numSubSteps, updatedEntityCount, collidersCount, e);
-            DetailLog("{0},PhysicsStepException,call, nTaints={1}, substeps={2}, updates={3}, colliders={4}", 
+            DetailLog("{0},PhysicsStepException,call, nTaints={1}, substeps={2}, updates={3}, colliders={4}",
                         DetailLogZero, numTaints, numSubSteps, updatedEntityCount, collidersCount);
             updatedEntityCount = 0;
             collidersCount = 0;
@@ -501,12 +519,6 @@ public class BSScene : PhysicsScene, IPhysicsParameters
 
         // Get a value for 'now' so all the collision and update routines don't have to get their own
         SimulationNowTime = Util.EnvironmentTickCount();
-
-        // This is a kludge to get avatar movement updates. 
-        //   ODE sends collisions for avatars even if there are have been no collisions. This updates
-        //   avatar animations and stuff.
-        // If you fix avatar animation updates, remove this overhead and let normal collision processing happen.
-        m_objectsWithCollisions = new HashSet<BSPhysObject>(m_avatarsWithCollisions);
 
         // If there were collisions, process them by sending the event to the prim.
         // Collisions must be processed before updates.
@@ -523,11 +535,34 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             }
         }
 
+        // This is a kludge to get avatar movement updates.
+        //   ODE sends collisions for avatars even if there are have been no collisions. This updates
+        //   avatar animations and stuff.
+        // If you fix avatar animation updates, remove this overhead and let normal collision processing happen.
+        foreach (BSPhysObject bsp in m_avatars)
+            bsp.SendCollisions();
+
         // The above SendCollision's batch up the collisions on the objects.
         //      Now push the collisions into the simulator.
-        foreach (BSPhysObject bsp in m_objectsWithCollisions)
-            bsp.SendCollisions();
-        m_objectsWithCollisions.Clear();
+        if (ObjectsWithCollisions.Count > 0)
+        {
+            foreach (BSPhysObject bsp in ObjectsWithCollisions)
+                if (!m_avatars.Contains(bsp))   // don't call avatars twice
+                    if (!bsp.SendCollisions())
+                    {
+                        // If the object is done colliding, see that it's removed from the colliding list
+                        ObjectsWithNoMoreCollisions.Add(bsp);
+                    }
+        }
+
+        // Objects that are done colliding are removed from the ObjectsWithCollisions list.
+        // This can't be done by SendCollisions because it is inside an iteration of ObjectWithCollisions.
+        if (ObjectsWithNoMoreCollisions.Count > 0)
+        {
+            foreach (BSPhysObject po in ObjectsWithNoMoreCollisions)
+                ObjectsWithCollisions.Remove(po);
+            ObjectsWithNoMoreCollisions.Clear();
+        }
 
         // If any of the objects had updated properties, tell the object it has been changed by the physics engine
         if (updatedEntityCount > 0)
@@ -555,7 +590,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         // The physics engine returns the number of milliseconds it simulated this call.
         // These are summed and normalized to one second and divided by 1000 to give the reported physics FPS.
         // Since Bullet normally does 5 or 6 substeps, this will normally sum to about 60 FPS.
-        return numSubSteps * m_fixedTimeStep;
+        return numSubSteps * m_fixedTimeStep * 1000;
     }
 
     // Something has collided
@@ -570,20 +605,20 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         if (!PhysObjects.TryGetValue(localID, out collider))
         {
             // If the object that is colliding cannot be found, just ignore the collision.
+            DetailLog("{0},BSScene.SendCollision,colliderNotInObjectList,id={1},with={2}", DetailLogZero, localID, collidingWith);
             return;
         }
 
-        // The terrain is not in the physical object list so 'collidee'
-        //    can be null when Collide() is called.
+        // The terrain is not in the physical object list so 'collidee' can be null when Collide() is called.
         BSPhysObject collidee = null;
         PhysObjects.TryGetValue(collidingWith, out collidee);
 
-        // DetailLog("{0},BSScene.SendCollision,collide,id={1},with={2}", DetailLogZero, localID, collidingWith);
+        DetailLog("{0},BSScene.SendCollision,collide,id={1},with={2}", DetailLogZero, localID, collidingWith);
 
         if (collider.Collide(collidingWith, collidee, collidePoint, collideNormal, penetration))
         {
             // If a collision was posted, remember to send it to the simulator
-            m_objectsWithCollisions.Add(collider);
+            ObjectsWithCollisions.Add(collider);
         }
 
         return;
@@ -599,7 +634,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         TerrainManager.SetTerrain(heightMap);
     }
 
-    public override void SetWaterLevel(float baseheight) 
+    public override void SetWaterLevel(float baseheight)
     {
         m_waterLevel = baseheight;
     }
@@ -609,7 +644,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         return m_waterLevel;
     }
 
-    public override void DeleteTerrain() 
+    public override void DeleteTerrain()
     {
         // m_log.DebugFormat("{0}: DeleteTerrain()", LogHeader);
     }
@@ -771,7 +806,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     //    getters and setters.
     // It is easiest to find an existing definition and copy it.
     // Parameter values are floats. Booleans are converted to a floating value.
-    // 
+    //
     // A ParameterDefn() takes the following parameters:
     //    -- the text name of the parameter. This is used for console input and ini file.
     //    -- a short text description of the parameter. This shows up in the console listing.
@@ -998,7 +1033,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             (s) => { return s.m_params[0].shouldRandomizeSolverOrder; },
             (s,p,l,v) => { s.m_params[0].shouldRandomizeSolverOrder = v; } ),
 	    new ParameterDefn("ShouldSplitSimulationIslands", "Enable splitting active object scanning islands",
-            ConfigurationParameters.numericFalse,
+            ConfigurationParameters.numericTrue,
             (s,cf,p,v) => { s.m_params[0].shouldSplitSimulationIslands = s.NumericBool(cf.GetBoolean(p, s.BoolNumeric(v))); },
             (s) => { return s.m_params[0].shouldSplitSimulationIslands; },
             (s,p,l,v) => { s.m_params[0].shouldSplitSimulationIslands = v; } ),
@@ -1193,7 +1228,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
                     }
                 });
                 break;
-            default: 
+            default:
                 // setting only one localID
                 TaintedUpdateParameter(parm, localID, val);
                 break;

@@ -696,7 +696,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                 region.ExternalHostName = (string) requestData["external_address"];
 
-                bool persist = Convert.ToBoolean((string) requestData["persist"]);
+                bool persist = Convert.ToBoolean(requestData["persist"]);
                 if (persist)
                 {
                     // default place for region configuration files is in the
@@ -1105,8 +1105,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     string lastName = (string) requestData["user_lastname"];
                     string password = (string) requestData["user_password"];
 
-                    uint regionXLocation = Convert.ToUInt32((Int32) requestData["start_region_x"]);
-                    uint regionYLocation = Convert.ToUInt32((Int32) requestData["start_region_y"]);
+                    uint regionXLocation = Convert.ToUInt32(requestData["start_region_x"]);
+                    uint regionYLocation = Convert.ToUInt32(requestData["start_region_y"]);
 
                     string email = ""; // empty string for email
                     if (requestData.Contains("user_email"))
@@ -1303,9 +1303,9 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                     if (requestData.ContainsKey("user_password")) password = (string) requestData["user_password"];
                     if (requestData.ContainsKey("start_region_x"))
-                        regionXLocation = Convert.ToUInt32((Int32) requestData["start_region_x"]);
+                        regionXLocation = Convert.ToUInt32(requestData["start_region_x"]);
                     if (requestData.ContainsKey("start_region_y"))
-                        regionYLocation = Convert.ToUInt32((Int32) requestData["start_region_y"]);
+                        regionYLocation = Convert.ToUInt32(requestData["start_region_y"]);
 
             //        if (requestData.ContainsKey("start_lookat_x"))
             //            ulaX = Convert.ToUInt32((Int32) requestData["start_lookat_x"]);
