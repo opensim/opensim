@@ -826,6 +826,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
             try
             {
                 WebRequest request = HttpWebRequest.Create(url);
+                request.Proxy = null;
 //Ckrinke: Comment out for now as 'str' is unused. Bring it back into play later when it is used.
 //Ckrinke            Stream str = null;
                 HttpWebResponse response = (HttpWebResponse)(request).GetResponse();

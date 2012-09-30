@@ -386,7 +386,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
             updatePost.ContentType = "text/xml";
             updatePost.ContentLength = payload.Length;
             updatePost.UserAgent = "OpenSim.Concierge";
-
+            updatePost.Proxy = null;
 
             BrokerState bs = new BrokerState(uri, payload, updatePost);
             bs.Timer = new Timer(delegate(object state)

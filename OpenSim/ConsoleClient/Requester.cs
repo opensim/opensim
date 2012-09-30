@@ -46,8 +46,8 @@ namespace OpenSim.ConsoleClient
             WebRequest request = WebRequest.Create(requestUrl);
             WebResponse response = null;
 
+            request.Proxy = null;
             request.Method = "POST";
-
             request.ContentType = "application/x-www-form-urlencoded";
 
             byte[] buffer = Encoding.ASCII.GetBytes(data);

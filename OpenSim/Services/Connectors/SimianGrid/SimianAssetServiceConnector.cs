@@ -184,6 +184,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             {
                 HttpWebRequest request = UntrustedHttpWebRequest.Create(url);
                 request.Method = "HEAD";
+                request.Proxy = null;
 
                 using (WebResponse response = request.GetResponse())
                 {
@@ -339,7 +340,8 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 // Simian does not require the asset ID to be in the URL because it's in the post data.
                 // By appending it to the URL also, we allow caching proxies (squid) to invalidate asset URLs
                 HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(m_serverUrl + asset.FullID.ToString());
-                
+                request.Proxy = null;
+
                 HttpWebResponse response = MultipartForm.Post(request, postParameters);
                 using (Stream responseStream = response.GetResponseStream())
                 {
@@ -427,6 +429,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             {
                 HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(url);
                 request.Method = "DELETE";
+                request.Proxy = null;
 
                 using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
                 {
@@ -460,6 +463,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             try
             {
                 HttpWebRequest request = UntrustedHttpWebRequest.Create(url);
+                request.Proxy = null;
 
                 using (WebResponse response = request.GetResponse())
                 {

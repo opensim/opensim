@@ -148,19 +148,21 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
         private void MakeHttpRequest(string url, UUID requestID)
         {
             WebRequest request = HttpWebRequest.Create(url);
-            
-            if (m_proxyurl != null && m_proxyurl.Length > 0) 
+
+            if (m_proxyurl != null && m_proxyurl.Length > 0)
             {
-                if (m_proxyexcepts != null && m_proxyexcepts.Length > 0) 
+                if (m_proxyexcepts != null && m_proxyexcepts.Length > 0)
                 {
                     string[] elist = m_proxyexcepts.Split(';');
                     request.Proxy = new WebProxy(m_proxyurl, true, elist);
-                } 
-                else 
+                }
+                else
                 {
                     request.Proxy = new WebProxy(m_proxyurl, true);
                 }
             }
+            else
+                request.Proxy = null;
 
             RequestState state = new RequestState((HttpWebRequest) request, requestID);
             // IAsyncResult result = request.BeginGetResponse(new AsyncCallback(HttpRequestReturn), state);

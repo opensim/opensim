@@ -819,6 +819,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
             mapitemsrequest.Method = "POST";
             mapitemsrequest.ContentType = "application/xml+llsd";
+            mapitemsrequest.Proxy = null;
             OSDMap RAMap = new OSDMap();
 
             // string RAMapString = RAMap.ToString();

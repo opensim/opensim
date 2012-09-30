@@ -110,6 +110,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
             request.ContentLength = 0;
             request.KeepAlive     = false;
+            request.Proxy = null;
 
             WebResponse response = request.GetResponse();
             Stream file = response.GetResponseStream();

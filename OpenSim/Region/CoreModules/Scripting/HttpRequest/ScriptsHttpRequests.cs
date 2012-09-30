@@ -384,6 +384,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                 Request = (HttpWebRequest) WebRequest.Create(Url);
                 Request.Method = HttpMethod;
                 Request.ContentType = HttpMIMEType;
+                Request.Proxy = null;
 
                 if(!HttpVerifyCert)
                 {

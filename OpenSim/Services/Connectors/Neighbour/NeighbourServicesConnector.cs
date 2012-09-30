@@ -107,6 +107,7 @@ namespace OpenSim.Services.Connectors
             helloNeighbourRequest.Method = "POST";
             helloNeighbourRequest.ContentType = "application/json";
             helloNeighbourRequest.Timeout = 10000;
+            helloNeighbourRequest.Proxy = null;
 
             // Fill it in
             OSDMap args = null;

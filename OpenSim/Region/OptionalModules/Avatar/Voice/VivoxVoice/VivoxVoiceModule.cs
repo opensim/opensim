@@ -1119,6 +1119,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
 
                 // We are sending just parameters, no content
                 req.ContentLength = 0;
+                req.Proxy = null;
 
                 // Send request and retrieve the response
                 rsp = (HttpWebResponse)req.GetResponse();
