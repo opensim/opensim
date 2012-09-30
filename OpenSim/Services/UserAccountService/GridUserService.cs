@@ -49,7 +49,7 @@ namespace OpenSim.Services.UserAccountService
             m_log.Debug("[USER GRID SERVICE]: Starting user grid service");
         }
 
-        public GridUserInfo GetGridUserInfo(string userID)
+        public virtual GridUserInfo GetGridUserInfo(string userID)
         {
             GridUserData d = m_Database.Get(userID);
 
@@ -118,17 +118,6 @@ namespace OpenSim.Services.UserAccountService
             d.Data["LastRegionID"] = regionID.ToString();
             d.Data["LastPosition"] = lastPosition.ToString();
             d.Data["LastLookAt"] = lastLookAt.ToString();
-
-            return m_Database.Store(d);
-        }
-
-        protected bool StoreGridUserInfo(GridUserInfo info)
-        {
-            GridUserData d = new GridUserData();
-
-            d.Data["HomeRegionID"] = info.HomeRegionID.ToString();
-            d.Data["HomePosition"] = info.HomePosition.ToString();
-            d.Data["HomeLookAt"] = info.HomeLookAt.ToString();
 
             return m_Database.Store(d);
         }
