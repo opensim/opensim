@@ -112,14 +112,19 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
         public void GetDrawStringSize(string text, string fontName, int fontSize, 
                                       out double xSize, out double ySize)
         {
-            using (Font myFont = new Font(fontName, fontSize))
+            lock (this)
             {
-                SizeF stringSize = new SizeF();
-                lock (m_graph)
+                using (Font myFont = new Font(fontName, fontSize))
                 {
-                    stringSize = m_graph.MeasureString(text, myFont);
-                    xSize = stringSize.Width;
-                    ySize = stringSize.Height;
+                    SizeF stringSize = new SizeF();
+
+                    // XXX: This lock may be unnecessary.
+                    lock (m_graph)
+                    {
+                        stringSize = m_graph.MeasureString(text, myFont);
+                        xSize = stringSize.Width;
+                        ySize = stringSize.Height;
+                    }
                 }
             }
         }

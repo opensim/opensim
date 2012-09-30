@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -34,6 +34,8 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 
 class BSHingeConstraint : BSConstraint
 {
+    public override ConstraintType Type { get { return ConstraintType.HINGE_CONSTRAINT_TYPE; } }
+
     public BSHingeConstraint(BulletSim world, BulletBody obj1, BulletBody obj2,
                     Vector3 pivotInA, Vector3 pivotInB,
                     Vector3 axisInA, Vector3 axisInB,
@@ -43,7 +45,7 @@ class BSHingeConstraint : BSConstraint
         m_body1 = obj1;
         m_body2 = obj2;
         m_constraint = new BulletConstraint(
-                            BulletSimAPI.CreateHingeConstraint2(m_world.Ptr, m_body1.Ptr, m_body2.Ptr,
+                            BulletSimAPI.CreateHingeConstraint2(m_world.ptr, m_body1.ptr, m_body2.ptr,
                                 pivotInA, pivotInB,
                                 axisInA, axisInB,
                                 useLinearReferenceFrameA, disableCollisionsBetweenLinkedBodies));
