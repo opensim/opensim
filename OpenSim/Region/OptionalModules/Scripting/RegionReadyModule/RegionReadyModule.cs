@@ -280,7 +280,6 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
             WebRequest request = WebRequest.Create(m_uri);
             request.Method = request_method;
             request.ContentType = content_type;
-            request.Proxy = null;
 
             Stream os = null;
             try

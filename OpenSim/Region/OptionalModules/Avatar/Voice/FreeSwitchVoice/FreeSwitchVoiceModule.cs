@@ -541,7 +541,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
             forwardreq.Method = method;
             forwardreq.ContentType = contenttype;
             forwardreq.KeepAlive = false;
-            forwardreq.Proxy = null;
 
             if (method == "POST")
             {

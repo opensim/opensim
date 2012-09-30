@@ -125,7 +125,6 @@ namespace OpenSim.Services.Connectors.Hypergrid
             AgentCreateRequest.Method = "POST";
             AgentCreateRequest.ContentType = "application/json";
             AgentCreateRequest.Timeout = 10000;
-            AgentCreateRequest.Proxy = null;
             //AgentCreateRequest.KeepAlive = false;
             //AgentCreateRequest.Headers.Add("Authorization", authKey);
 

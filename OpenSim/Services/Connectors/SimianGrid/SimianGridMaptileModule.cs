@@ -212,7 +212,6 @@ namespace OpenSim.Region.OptionalModules.Simian
                 HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(m_serverUrl);
                 request.Timeout = 20000;
                 request.ReadWriteTimeout = 5000;
-                request.Proxy = null;
 
                 using (HttpWebResponse response = MultipartForm.Post(request, postParameters))
                 {

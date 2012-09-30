@@ -65,7 +65,6 @@ namespace OpenSim.Framework.Configuration.HTTP
                 byte[] buf = new byte[8192];
                 HttpWebRequest request =
                     (HttpWebRequest) WebRequest.Create(remoteConfigSettings.baseConfigURL + configFileName);
-                request.Proxy = null;
                 HttpWebResponse response = (HttpWebResponse) request.GetResponse();
 
                 Stream resStream = response.GetResponseStream();

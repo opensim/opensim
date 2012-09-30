@@ -57,7 +57,6 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             WebRequest request = WebRequest.Create(requestUrl);
             request.Method = verb;
-            request.Proxy = null;
             request.ContentType = "text/xml";
             request.Timeout = 10000;
 

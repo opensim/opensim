@@ -171,7 +171,6 @@ namespace OpenSim.Framework
                 request.Method = method;
                 request.Timeout = timeout;
                 request.KeepAlive = false;
-                request.Proxy = null;
                 request.MaximumAutomaticRedirections = 10;
                 request.ReadWriteTimeout = timeout / 4;
                 request.Headers[OSHeaderRequestID] = reqnum.ToString();
@@ -351,7 +350,6 @@ namespace OpenSim.Framework
                 request.Method = "POST";
                 request.Timeout = timeout;
                 request.KeepAlive = false;
-                request.Proxy = null;
                 request.MaximumAutomaticRedirections = 10;
                 request.ReadWriteTimeout = timeout / 4;
                 request.Headers[OSHeaderRequestID] = reqnum.ToString();
@@ -732,7 +730,6 @@ namespace OpenSim.Framework
             Type type = typeof(TRequest);
 
             WebRequest request = WebRequest.Create(requestUrl);
-            request.Proxy = null;
             WebResponse response = null;
             TResponse deserial = default(TResponse);
             XmlSerializer deserializer = new XmlSerializer(typeof(TResponse));
@@ -927,7 +924,6 @@ namespace OpenSim.Framework
 
             WebRequest request = WebRequest.Create(requestUrl);
             request.Method = verb;
-            request.Proxy = null;
             string respstring = String.Empty;
 
             using (MemoryStream buffer = new MemoryStream())
@@ -1055,7 +1051,6 @@ namespace OpenSim.Framework
 
             WebRequest request = WebRequest.Create(requestUrl);
             request.Method = verb;
-            request.Proxy = null;
             MemoryStream buffer = null;
 
             if ((verb == "POST") || (verb == "PUT"))

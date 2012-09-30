@@ -1150,7 +1150,6 @@ namespace Nwc.XmlRpc
             request.ContentType = "text/xml";
             request.AllowWriteStreamBuffering = true;
             request.KeepAlive = !_disableKeepAlive;
-            request.Proxy = null;
 
             Stream stream = request.GetRequestStream();
             XmlTextWriter xml = new XmlTextWriter(stream, Encoding.ASCII);

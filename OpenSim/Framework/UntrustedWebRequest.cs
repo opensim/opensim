@@ -88,7 +88,6 @@ namespace OpenSim.Framework
             httpWebRequest.ReadWriteTimeout = readWriteTimeoutMS;
             httpWebRequest.Timeout = timeoutMS;
             httpWebRequest.KeepAlive = false;
-            httpWebRequest.Proxy = null;
 
             return httpWebRequest;
         }

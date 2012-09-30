@@ -70,7 +70,6 @@ namespace OpenSim.Framework.RegionLoader.Web
                     int regionCount = 0;
                     HttpWebRequest webRequest = (HttpWebRequest) WebRequest.Create(url);
                     webRequest.Timeout = 30000; //30 Second Timeout
-                    webRequest.Proxy = null;
                     m_log.DebugFormat("[WEBLOADER]: Sending download request to {0}", url);
 
                     try
