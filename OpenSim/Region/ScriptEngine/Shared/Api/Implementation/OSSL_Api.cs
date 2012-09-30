@@ -3588,7 +3588,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
-        protected void DropAttachemntAt(bool checkPerms, LSL_Vector pos, LSL_Rotation rot)
+        protected void DropAttachmentAt(bool checkPerms, LSL_Vector pos, LSL_Rotation rot)
         {
             if (checkPerms && ShoutErrorOnLackingOwnerPerms(ScriptBaseClass.PERMISSION_ATTACH, "Cannot drop attachment"))
             {
@@ -3625,7 +3625,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.Moderate, "osDropAttachmentAt");
             m_host.AddScriptLPS(1);
 
-            DropAttachemntAt(true, pos, rot);
+            DropAttachmentAt(true, pos, rot);
         }
 
         public void osForceDropAttachmentAt(LSL_Vector pos, LSL_Rotation rot)
@@ -3633,7 +3633,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.High, "osForceDropAttachmentAt");
             m_host.AddScriptLPS(1);
 
-            DropAttachemntAt(false, pos, rot);
+            DropAttachmentAt(false, pos, rot);
         }
     }
 }
