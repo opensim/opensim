@@ -46,19 +46,13 @@ public sealed class BSPrim : BSPhysObject
     private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
     private static readonly string LogHeader = "[BULLETS PRIM]";
 
-    private IMesh _mesh;
     private PrimitiveBaseShape _pbs;
-    private ShapeData.PhysicsShapeType _shapeType;
-    private ulong _meshKey;
-    private ulong _hullKey;
-    private List<ConvexResult> _hulls;
 
     // _size is what the user passed. _scale is what we pass to the physics engine with the mesh.
     // Often _scale is unity because the meshmerizer will apply _size when creating the mesh.
     private OMV.Vector3 _size;  // the multiplier for each mesh dimension as passed by the user
     private OMV.Vector3 _scale; // the multiplier for each mesh dimension for the mesh as created by the meshmerizer
 
-    private bool _stopped;
     private bool _grabbed;
     private bool _isSelected;
     private bool _isVolumeDetect;
@@ -109,8 +103,6 @@ public sealed class BSPrim : BSPhysObject
         _buoyancy = 1f;
         _velocity = OMV.Vector3.Zero;
         _rotationalVelocity = OMV.Vector3.Zero;
-        _hullKey = 0;
-        _meshKey = 0;
         _pbs = pbs;
         _isPhysical = pisPhysical;
         _isVolumeDetect = false;
@@ -160,8 +152,9 @@ public sealed class BSPrim : BSPhysObject
         });
     }
 
+    // No one uses this property.
     public override bool Stopped {
-        get { return _stopped; }
+        get { return false; }
     }
     public override OMV.Vector3 Size {
         get { return _size; }
@@ -1082,15 +1075,15 @@ public sealed class BSPrim : BSPhysObject
     public void FillShapeInfo(out ShapeData shape)
     {
         shape.ID = LocalID;
-        shape.Type = _shapeType;
+        shape.Type = ShapeData.PhysicsShapeType.SHAPE_UNKNOWN;
         shape.Position = _position;
         shape.Rotation = _orientation;
         shape.Velocity = _velocity;
         shape.Scale = _scale;
         shape.Mass = _isPhysical ? _mass : 0f;
         shape.Buoyancy = _buoyancy;
-        shape.HullKey = _hullKey;
-        shape.MeshKey = _meshKey;
+        shape.HullKey = 0;
+        shape.MeshKey = 0;
         shape.Friction = _friction;
         shape.Restitution = _restitution;
         shape.Collidable = (!IsPhantom) ? ShapeData.numericTrue : ShapeData.numericFalse;

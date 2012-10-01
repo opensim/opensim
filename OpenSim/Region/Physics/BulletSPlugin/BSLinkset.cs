@@ -34,7 +34,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 {
 public class BSLinkset
 {
-    private static string LogHeader = "[BULLETSIM LINKSET]";
+    // private static string LogHeader = "[BULLETSIM LINKSET]";
 
     public BSPhysObject LinksetRoot { get; protected set; }
 
