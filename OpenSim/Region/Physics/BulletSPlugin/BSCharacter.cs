@@ -234,6 +234,15 @@ public class BSCharacter : BSPhysObject
             _position.Z = terrainHeight + 2.0f;
             ret = true;
         }
+        if ((CurrentCollisionFlags & CollisionFlags.BS_FLOATS_ON_WATER) == 0)
+        {
+            float waterHeight = PhysicsScene.GetWaterLevelAtXYZ(_position);
+            if (Position.Z < waterHeight)
+            {
+                _position.Z = waterHeight;
+                ret = true;
+            }
+        }
 
         // TODO: check for out of bounds
         return ret;
@@ -242,18 +251,22 @@ public class BSCharacter : BSPhysObject
     // A version of the sanity check that also makes sure a new position value is
     //    pushed back to the physics engine. This routine would be used by anyone
     //    who is not already pushing the value.
-    private bool PositionSanityCheck2()
+    private bool PositionSanityCheck2(bool atTaintTime)
     {
         bool ret = false;
         if (PositionSanityCheck())
         {
             // The new position value must be pushed into the physics engine but we can't
             //    just assign to "Position" because of potential call loops.
-            PhysicsScene.TaintedObject("BSCharacter.PositionSanityCheck", delegate()
+            BSScene.TaintCallback sanityOperation = delegate()
             {
                 DetailLog("{0},BSCharacter.PositionSanityCheck,taint,pos={1},orient={2}", LocalID, _position, _orientation);
                 BulletSimAPI.SetObjectTranslation(PhysicsScene.WorldID, LocalID, _position, _orientation);
-            });
+            };
+            if (atTaintTime)
+                sanityOperation();
+            else
+                PhysicsScene.TaintedObject("BSCharacter.PositionSanityCheck", sanityOperation);
             ret = true;
         }
         return ret;
@@ -378,7 +391,16 @@ public class BSCharacter : BSPhysObject
         set { _collidingObj = value; }
     }
     public override bool FloatOnWater {
-        set { _floatOnWater = value; }
+        set { 
+            _floatOnWater = value;
+            PhysicsScene.TaintedObject("BSCharacter.setFloatOnWater", delegate()
+            {
+                if (_floatOnWater)
+                    CurrentCollisionFlags = BulletSimAPI.AddToCollisionFlags2(BSBody.ptr, CollisionFlags.BS_FLOATS_ON_WATER);
+                else
+                    CurrentCollisionFlags = BulletSimAPI.RemoveFromCollisionFlags2(BSBody.ptr, CollisionFlags.BS_FLOATS_ON_WATER);
+            });
+        }
     }
     public override OMV.Vector3 RotationalVelocity {
         get { return _rotationalVelocity; }
@@ -493,15 +515,14 @@ public class BSCharacter : BSPhysObject
         _velocity = entprop.Velocity;
         _acceleration = entprop.Acceleration;
         _rotationalVelocity = entprop.RotationalVelocity;
+        // Do some sanity checking for the avatar. Make sure it's above ground and inbounds.
+        PositionSanityCheck2(true);
+
         // Avatars don't report their changes the usual way. Changes are checked for in the heartbeat loop.
         // base.RequestPhysicsterseUpdate();
 
-        // Do some sanity checking for the avatar. Make sure it's above ground and inbounds.
-        PositionSanityCheck2();
-
-        float heightHere = PhysicsScene.TerrainManager.GetTerrainHeightAtXYZ(_position);   // only for debug
-        DetailLog("{0},BSCharacter.UpdateProperties,call,pos={1},orient={2},vel={3},accel={4},rotVel={5},terrain={6}",
-                LocalID, _position, _orientation, _velocity, _acceleration, _rotationalVelocity, heightHere);
+        DetailLog("{0},BSCharacter.UpdateProperties,call,pos={1},orient={2},vel={3},accel={4},rotVel={5}",
+                LocalID, _position, _orientation, _velocity, _acceleration, _rotationalVelocity);
     }
 }
 }
