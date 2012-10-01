@@ -138,74 +138,55 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             switch (pParam)
             {
                 case Vehicle.ANGULAR_DEFLECTION_EFFICIENCY:
-                    if (pValue < 0.01f) pValue = 0.01f;
-                    // m_angularDeflectionEfficiency = pValue;
+                    // m_angularDeflectionEfficiency = Math.Max(pValue, 0.01f);
                     break;
                 case Vehicle.ANGULAR_DEFLECTION_TIMESCALE:
-                    if (pValue < 0.01f) pValue = 0.01f;
-                    // m_angularDeflectionTimescale = pValue;
+                    // m_angularDeflectionTimescale = Math.Max(pValue, 0.01f);
                     break;
                 case Vehicle.ANGULAR_MOTOR_DECAY_TIMESCALE:
-                    if (pValue < 0.01f) pValue = 0.01f;
-                    m_angularMotorDecayTimescale = pValue;
+                    m_angularMotorDecayTimescale = Math.Max(pValue, 0.01f);
                     break;
                 case Vehicle.ANGULAR_MOTOR_TIMESCALE:
-                    if (pValue < 0.01f) pValue = 0.01f;
-                    m_angularMotorTimescale = pValue;
+                    m_angularMotorTimescale = Math.Max(pValue, 0.01f);
                     break;
                 case Vehicle.BANKING_EFFICIENCY:
-                    if (pValue < 0.01f) pValue = 0.01f;
-                    // m_bankingEfficiency = pValue;
+                    // m_bankingEfficiency = Math.Max(pValue, 0.01f);
                     break;
                 case Vehicle.BANKING_MIX:
-                    if (pValue < 0.01f) pValue = 0.01f;
-                    // m_bankingMix = pValue;
+                    // m_bankingMix = Math.Max(pValue, 0.01f);
                     break;
                 case Vehicle.BANKING_TIMESCALE:
-                    if (pValue < 0.01f) pValue = 0.01f;
-                    // m_bankingTimescale = pValue;
+                    // m_bankingTimescale = Math.Max(pValue, 0.01f);
                     break;
                 case Vehicle.BUOYANCY:
-                    if (pValue < -1f) pValue = -1f;
-                    if (pValue > 1f) pValue = 1f;
-                    m_VehicleBuoyancy = pValue;
+                    m_VehicleBuoyancy = Math.Max(-1f, Math.Min(pValue, 1f));
                     break;
 //                case Vehicle.HOVER_EFFICIENCY:
-//                    if (pValue < 0f) pValue = 0f;
-//                    if (pValue > 1f) pValue = 1f;
-//                    m_VhoverEfficiency = pValue;
+//                    m_VhoverEfficiency = Math.Max(0f, Math.Min(pValue, 1f));
 //                    break;
                 case Vehicle.HOVER_HEIGHT:
                     m_VhoverHeight = pValue;
                     break;
                 case Vehicle.HOVER_TIMESCALE:
-                    if (pValue < 0.01f) pValue = 0.01f;
-                    m_VhoverTimescale = pValue;
+                    m_VhoverTimescale = Math.Max(pValue, 0.01f);
                     break;
                 case Vehicle.LINEAR_DEFLECTION_EFFICIENCY:
-                    if (pValue < 0.01f) pValue = 0.01f;
-                    // m_linearDeflectionEfficiency = pValue;
+                    // m_linearDeflectionEfficiency = Math.Max(pValue, 0.01f);
                     break;
                 case Vehicle.LINEAR_DEFLECTION_TIMESCALE:
-                    if (pValue < 0.01f) pValue = 0.01f;
-                    // m_linearDeflectionTimescale = pValue;
+                    // m_linearDeflectionTimescale = Math.Max(pValue, 0.01f);
                     break;
                 case Vehicle.LINEAR_MOTOR_DECAY_TIMESCALE:
-                    if (pValue < 0.01f) pValue = 0.01f;
-                    m_linearMotorDecayTimescale = pValue;
+                    m_linearMotorDecayTimescale = Math.Max(pValue, 0.01f);
                     break;
                 case Vehicle.LINEAR_MOTOR_TIMESCALE:
-                    if (pValue < 0.01f) pValue = 0.01f;
-                    m_linearMotorTimescale = pValue;
+                    m_linearMotorTimescale = Math.Max(pValue, 0.01f);
                     break;
                 case Vehicle.VERTICAL_ATTRACTION_EFFICIENCY:
-                    if (pValue < 0.1f) pValue = 0.1f;    // Less goes unstable
-                    if (pValue > 1.0f) pValue = 1.0f;
-                    m_verticalAttractionEfficiency = pValue;
+                    m_verticalAttractionEfficiency = Math.Max(0.1f, Math.Min(pValue, 1f));
                     break;
                 case Vehicle.VERTICAL_ATTRACTION_TIMESCALE:
-                    if (pValue < 0.01f) pValue = 0.01f;
-                    m_verticalAttractionTimescale = pValue;
+                    m_verticalAttractionTimescale = Math.Max(pValue, 0.01f);
                     break;
 
                 // These are vector properties but the engine lets you use a single float value to
