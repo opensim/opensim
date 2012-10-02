@@ -394,5 +394,29 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         /// </summary>
         /// <returns></returns>
         void osSetContentType(LSL_Key id, string type);
+
+        /// <summary>
+        /// Attempts to drop an attachment to the ground
+        /// </summary>
+        void osDropAttachment();
+
+        /// <summary>
+        /// Attempts to drop an attachment to the ground while bypassing the script permissions
+        /// </summary>
+        void osForceDropAttachment();
+
+        /// <summary>
+        /// Attempts to drop an attachment at the specified coordinates.
+        /// </summary>
+        /// <param name="pos"></param>
+        /// <param name="rot"></param>
+        void osDropAttachmentAt(vector pos, rotation rot);
+
+        /// <summary>
+        /// Attempts to drop an attachment at the specified coordinates while bypassing the script permissions
+        /// </summary>
+        /// <param name="pos"></param>
+        /// <param name="rot"></param>
+        void osForceDropAttachmentAt(vector pos, rotation rot);
     }
 }

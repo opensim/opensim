@@ -475,6 +475,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
         public void DetachSingleAttachmentToGround(IScenePresence sp, uint soLocalId)
         {
+            DetachSingleAttachmentToGround(sp, soLocalId, sp.AbsolutePosition, Quaternion.Identity);
+        }
+
+        public void DetachSingleAttachmentToGround(IScenePresence sp, uint soLocalId, Vector3 absolutePos, Quaternion absoluteRot)
+        {
             if (!Enabled)
                 return;
 
@@ -516,7 +521,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 so.FromItemID = UUID.Zero;
 
                 SceneObjectPart rootPart = so.RootPart;
-                so.AbsolutePosition = sp.AbsolutePosition;
+                so.AbsolutePosition = absolutePos;
+                if (absoluteRot != Quaternion.Identity)
+                {
+                    so.UpdateGroupRotationR(absoluteRot);
+                }
                 so.AttachedAvatar = UUID.Zero;
                 rootPart.SetParentLocalId(0);
                 so.ClearPartAttachmentData();

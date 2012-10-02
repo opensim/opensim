@@ -81,6 +81,10 @@ public abstract class BSPhysObject : PhysicsActor
     // Tell the object to clean up.
     public abstract void Destroy();
 
+    public abstract OMV.Vector3 ForcePosition { get; set; }
+
+    public abstract OMV.Quaternion ForceOrientation { get; set; }
+
     #region Collisions
 
     // Requested number of milliseconds between collision events. Zero means disabled.

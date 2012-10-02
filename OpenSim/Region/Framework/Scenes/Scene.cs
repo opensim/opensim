@@ -5958,6 +5958,9 @@ Environment.Exit(1);
 
         public void StoreExtraSetting(string name, string val)
         {
+            if (m_extraSettings == null)
+                return;
+
             string oldVal;
 
             if (m_extraSettings.TryGetValue(name, out oldVal))
@@ -5975,6 +5978,9 @@ Environment.Exit(1);
 
         public void RemoveExtraSetting(string name)
         {
+            if (m_extraSettings == null)
+                return;
+
             if (!m_extraSettings.ContainsKey(name))
                 return;
 

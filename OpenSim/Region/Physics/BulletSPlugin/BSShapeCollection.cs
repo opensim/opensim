@@ -36,7 +36,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 {
 public class BSShapeCollection : IDisposable
 {
-    private static string LogHeader = "[BULLETSIM SHAPE COLLECTION]";
+    // private static string LogHeader = "[BULLETSIM SHAPE COLLECTION]";
 
     protected BSScene PhysicsScene { get; set; }
 
@@ -108,7 +108,8 @@ public class BSShapeCollection : IDisposable
             // If we had to select a new shape geometry for the object,
             //    rebuild the body around it.
             // Updates prim.BSBody with information/pointers to requested body
-            bool newBody = CreateBody((newGeom || forceRebuild), prim, PhysicsScene.World, prim.BSShape, shapeData, bodyCallback);
+            bool newBody = CreateBody((newGeom || forceRebuild), prim, PhysicsScene.World, 
+                                    prim.BSShape, shapeData, bodyCallback);
             ret = newGeom || newBody;
         }
         DetailLog("{0},BSShapeCollection.GetBodyAndShape,force={1},ret={2},body={3},shape={4}",
@@ -140,7 +141,7 @@ public class BSShapeCollection : IDisposable
             bodyDesc.lastReferenced = System.DateTime.Now;
             Bodies[body.ID] = bodyDesc;
         }
-}
+    }
 
     // Release the usage of a body.
     // Called when releasing use of a BSBody. BSShape is handled separately.
@@ -167,7 +168,7 @@ public class BSShapeCollection : IDisposable
                     {
                         DetailLog("{0},BSShapeCollection.DereferenceBody,DestroyingBody. ptr={1}",
                                                     body.ID, body.ptr.ToString("X"));
-                        // If the caller needs to know, pass the event up.
+                        // If the caller needs to know the old body is going away, pass the event up.
                         if (bodyCallback != null) bodyCallback(body);
 
                         // Zero any reference to the shape so it is not freed when the body is deleted.
@@ -448,7 +449,8 @@ public class BSShapeCollection : IDisposable
         ulong newMeshKey = ComputeShapeKey(shapeData, pbs, out lod);
 
         // if this new shape is the same as last time, don't recreate the mesh
-        if (prim.BSShape.shapeKey == newMeshKey) return false;
+        if (newMeshKey == prim.BSShape.shapeKey && prim.BSShape.type == ShapeData.PhysicsShapeType.SHAPE_MESH)
+            return false;
 
         DetailLog("{0},BSShapeCollection.CreateGeomMesh,create,oldKey={1},newKey={2}",
                                 prim.LocalID, prim.BSShape.shapeKey.ToString("X"), newMeshKey.ToString("X"));
