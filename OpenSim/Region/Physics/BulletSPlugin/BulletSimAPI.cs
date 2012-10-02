@@ -71,7 +71,7 @@ public struct BulletBody
         buff.Append(ID.ToString());
         buff.Append(",p=");
         buff.Append(ptr.ToString("X"));
-        if (collisionFilter != 0 && collisionMask != 0)
+        if (collisionFilter != 0 || collisionMask != 0)
         {
             buff.Append(",f=");
             buff.Append(collisionFilter.ToString("X"));

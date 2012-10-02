@@ -493,6 +493,10 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         // step the physical world one interval
         m_simulationStep++;
         int numSubSteps = 0;
+
+        // Sometimes needed for debugging to find out what happened before the step
+        // PhysicsLogging.Flush();
+
         try
         {
             if (PhysicsLogging.Enabled) beforeTime = Util.EnvironmentTickCount();
@@ -536,7 +540,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         }
 
         // This is a kludge to get avatar movement updates.
-        //   ODE sends collisions for avatars even if there are have been no collisions. This updates
+        //   the simulator expects collisions for avatars even if there are have been no collisions. This updates
         //   avatar animations and stuff.
         // If you fix avatar animation updates, remove this overhead and let normal collision processing happen.
         foreach (BSPhysObject bsp in m_avatars)
@@ -556,7 +560,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         }
 
         // Objects that are done colliding are removed from the ObjectsWithCollisions list.
-        // This can't be done by SendCollisions because it is inside an iteration of ObjectWithCollisions.
+        // Not done above because it is inside an iteration of ObjectWithCollisions.
         if (ObjectsWithNoMoreCollisions.Count > 0)
         {
             foreach (BSPhysObject po in ObjectsWithNoMoreCollisions)
@@ -726,13 +730,10 @@ public class BSScene : PhysicsScene, IPhysicsParameters
 
     public void VehicleInSceneTypeChanged(BSPrim vehic, Vehicle newType)
     {
-        if (newType == Vehicle.TYPE_NONE)
+        RemoveVehiclePrim(vehic);
+        if (newType != Vehicle.TYPE_NONE)
         {
-            RemoveVehiclePrim(vehic);
-        }
-        else
-        {
-            // make it so the scene will call us each tick to do vehicle things
+           // make it so the scene will call us each tick to do vehicle things
            AddVehiclePrim(vehic);
         }
     }
@@ -764,7 +765,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     }
 
     // Some prims have extra vehicle actions
-    // no locking because only called when physics engine is not busy
+    // Called at taint time!
     private void ProcessVehicles(float timeStep)
     {
         foreach (BSPhysObject pobj in m_vehicles)
@@ -1008,12 +1009,12 @@ public class BSScene : PhysicsScene, IPhysicsParameters
 
 
 	    new ParameterDefn("MaxPersistantManifoldPoolSize", "Number of manifolds pooled (0 means default of 4096)",
-            0f,     // zero to disable
+            0f,
             (s,cf,p,v) => { s.m_params[0].maxPersistantManifoldPoolSize = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].maxPersistantManifoldPoolSize; },
             (s,p,l,v) => { s.m_params[0].maxPersistantManifoldPoolSize = v; } ),
 	    new ParameterDefn("MaxCollisionAlgorithmPoolSize", "Number of collisions pooled (0 means default of 4096)",
-            0f,     // zero to disable
+            0f,
             (s,cf,p,v) => { s.m_params[0].maxCollisionAlgorithmPoolSize = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].maxCollisionAlgorithmPoolSize; },
             (s,p,l,v) => { s.m_params[0].maxCollisionAlgorithmPoolSize = v; } ),
@@ -1028,7 +1029,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             (s) => { return s.m_params[0].shouldForceUpdateAllAabbs; },
             (s,p,l,v) => { s.m_params[0].shouldForceUpdateAllAabbs = v; } ),
 	    new ParameterDefn("ShouldRandomizeSolverOrder", "Enable for slightly better stacking interaction",
-            ConfigurationParameters.numericFalse,
+            ConfigurationParameters.numericTrue,
             (s,cf,p,v) => { s.m_params[0].shouldRandomizeSolverOrder = s.NumericBool(cf.GetBoolean(p, s.BoolNumeric(v))); },
             (s) => { return s.m_params[0].shouldRandomizeSolverOrder; },
             (s,p,l,v) => { s.m_params[0].shouldRandomizeSolverOrder = v; } ),
@@ -1152,7 +1153,6 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     {
         if (SettableParameters.Length < ParameterDefinitions.Length)
         {
-
             List<PhysParameterEntry> entries = new List<PhysParameterEntry>();
             for (int ii = 0; ii < ParameterDefinitions.Length; ii++)
             {
