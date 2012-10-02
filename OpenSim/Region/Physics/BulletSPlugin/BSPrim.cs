@@ -275,6 +275,17 @@ public sealed class BSPrim : BSPhysObject
             });
         }
     }
+    public override OMV.Vector3 ForcePosition {
+        get {
+            _position = BulletSimAPI.GetPosition2(BSBody.ptr);
+            return _position;
+        }
+        set {
+            _position = value;
+            PositionSanityCheck();
+            BulletSimAPI.SetTranslation2(BSBody.ptr, _position, _orientation);
+        }
+    }
 
     // Check that the current position is sane and, if not, modify the position to make it so.
     // Check for being below terrain and being out of bounds.
@@ -377,14 +388,15 @@ public sealed class BSPrim : BSPhysObject
         }
         set {
             Vehicle type = (Vehicle)value;
-            BSPrim vehiclePrim = this;
+
+            // Tell the scene about the vehicle so it will get processing each frame.
+            PhysicsScene.VehicleInSceneTypeChanged(this, type);
+
             PhysicsScene.TaintedObject("setVehicleType", delegate()
             {
                 // Done at taint time so we're sure the physics engine is not using the variables
                 // Vehicle code changes the parameters for this vehicle type.
-                _vehicle.ProcessTypeChange(type);
-                // Tell the scene about the vehicle so it will get processing each frame.
-                PhysicsScene.VehicleInSceneTypeChanged(this, type);
+                this._vehicle.ProcessTypeChange(type);
             });
         }
     }
@@ -422,7 +434,9 @@ public sealed class BSPrim : BSPhysObject
     public override void StepVehicle(float timeStep)
     {
         if (IsPhysical)
+        {
             _vehicle.Step(timeStep);
+        }
     }
 
     // Allows the detection of collisions with inherently non-physical prims. see llVolumeDetect for more
@@ -484,6 +498,20 @@ public sealed class BSPrim : BSPhysObject
                 // DetailLog("{0},BSPrim.setOrientation,taint,pos={1},orient={2}", LocalID, _position, _orientation);
                 BulletSimAPI.SetTranslation2(BSBody.ptr, _position, _orientation);
             });
+        }
+    }
+    // Go directly to Bullet to get/set the value. 
+    public override OMV.Quaternion ForceOrientation
+    {
+        get
+        {
+            _orientation = BulletSimAPI.GetOrientation2(BSBody.ptr);
+            return _orientation;
+        }
+        set
+        {
+            _orientation = value;
+            BulletSimAPI.SetTranslation2(BSBody.ptr, _position, _orientation);
         }
     }
     public override int PhysicsActorType {
@@ -1170,7 +1198,8 @@ public sealed class BSPrim : BSPhysObject
 
         // Create the correct physical representation for this type of object.
         // Updates BSBody and BSShape with the new information.
-        PhysicsScene.Shapes.GetBodyAndShape(forceRebuild, PhysicsScene.World, this, shapeData, _pbs, 
+        // Ignore 'forceRebuild'. This routine makes the right choices and changes of necessary.
+        PhysicsScene.Shapes.GetBodyAndShape(false, PhysicsScene.World, this, shapeData, _pbs, 
                         null, delegate(BulletBody dBody)
         {
             // Called if the current prim body is about to be destroyed.

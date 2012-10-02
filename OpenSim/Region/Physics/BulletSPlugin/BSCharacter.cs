@@ -218,6 +218,18 @@ public class BSCharacter : BSPhysObject
             });
         }
     }
+    public override OMV.Vector3 ForcePosition {
+        get {
+            _position = BulletSimAPI.GetPosition2(BSBody.ptr);
+            return _position;
+        }
+        set {
+            _position = value;
+            PositionSanityCheck();
+            BulletSimAPI.SetTranslation2(BSBody.ptr, _position, _orientation);
+        }
+    }
+
 
     // Check that the current position is sane and, if not, modify the position to make it so.
     // Check for being below terrain and being out of bounds.
@@ -344,6 +356,20 @@ public class BSCharacter : BSPhysObject
                 // _position = BulletSimAPI.GetObjectPosition(Scene.WorldID, _localID);
                 BulletSimAPI.SetObjectTranslation(PhysicsScene.WorldID, LocalID, _position, _orientation);
             });
+        }
+    }
+    // Go directly to Bullet to get/set the value. 
+    public override OMV.Quaternion ForceOrientation
+    {
+        get
+        {
+            _orientation = BulletSimAPI.GetOrientation2(BSBody.ptr);
+            return _orientation;
+        }
+        set
+        {
+            _orientation = value;
+            BulletSimAPI.SetTranslation2(BSBody.ptr, _position, _orientation);
         }
     }
     public override int PhysicsActorType {
