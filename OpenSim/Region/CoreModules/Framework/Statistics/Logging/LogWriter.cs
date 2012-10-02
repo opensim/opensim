@@ -111,6 +111,15 @@ namespace OpenSim.Region.CoreModules.Framework.Statistics.Logging
             Write(String.Format(line, args));
         }
 
+        public void Flush()
+        {
+            if (!Enabled) return;
+            if (m_logFile != null)
+            {
+                m_logFile.Flush();
+            }
+        }
+
         public void Write(string line)
         {
             if (!Enabled) return;
