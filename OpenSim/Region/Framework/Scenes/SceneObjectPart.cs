@@ -4902,6 +4902,8 @@ namespace OpenSim.Region.Framework.Scenes
         {
 //            m_log.DebugFormat("Processing CheckSculptAndLoad for {0} {1}", Name, LocalId);
 
+            return;
+
             if (ParentGroup.IsDeleted)
                 return;
 

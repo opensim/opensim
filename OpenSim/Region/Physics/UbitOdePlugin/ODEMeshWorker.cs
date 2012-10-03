@@ -29,12 +29,11 @@ namespace OpenSim.Region.Physics.OdePlugin
         public float meshSculptLOD = 32;
         public float MeshSculptphysicalLOD = 32;
 
-
         public ODEMeshWorker(OdeScene pScene, ILog pLog, IMesher pMesher, IConfig pConfig)
         {
             m_scene = pScene;
             m_log = pLog;
-            m_mesher = pMesher;
+            m_mesher = pMesher;          
 
             if (pConfig != null)
             {
@@ -44,8 +43,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                 MeshSculptphysicalLOD = pConfig.GetFloat("mesh_physical_lod", MeshSculptphysicalLOD);
             }
         }
-
-
 
         /// <summary>
         /// Routine to figure out if we need to mesh this prim with our mesher
@@ -207,9 +204,47 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                     if(pbs.SculptData != null && pbs.SculptData.Length >0)
                         return m_mesher.CreateMesh(actor.Name, pbs, size, clod, true, convex);
+
+                    ODEAssetRequest asr;
+                    RequestAssetDelegate assetProvider = m_scene.RequestAssetMethod;
+                    if (assetProvider != null)
+                        asr = new ODEAssetRequest(this, assetProvider, actor, pbs);
+                    return null;
                 }
             }
             return mesh;
+        }
+    }
+
+    public class ODEAssetRequest
+    {
+        PhysicsActor m_actor;
+        ODEMeshWorker m_worker;
+        PrimitiveBaseShape m_pbs;
+
+        public ODEAssetRequest(ODEMeshWorker pWorker, RequestAssetDelegate provider, PhysicsActor pActor, PrimitiveBaseShape ppbs)
+        {
+            m_actor = pActor;
+            m_worker = pWorker;
+            m_pbs = ppbs;
+
+            if (provider == null)
+                return;
+
+            UUID assetID = m_pbs.SculptTexture;
+            if (assetID == UUID.Zero)
+                return;
+
+            provider(assetID, ODEassetReceived);
+        }
+
+        void ODEassetReceived(AssetBase asset)
+        {
+            if (m_actor != null && m_pbs != null && asset != null && asset.Data != null && asset.Data.Length > 0)
+            {
+                m_pbs.SculptData = asset.Data;
+                m_actor.Shape = m_pbs;
+            }
         }
     }
 }
