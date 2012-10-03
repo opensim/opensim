@@ -230,11 +230,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         private float minimumGroundFlightOffset = 3f;
         public float maximumMassObject = 10000.01f;
 
-        public bool meshSculptedPrim = true;
-        public bool forceSimplePrimMeshing = false;
-
-        public float meshSculptLOD = 32;
-        public float MeshSculptphysicalLOD = 32;
 
         public float geomDefaultDensity = 10.000006836f;
 
@@ -328,7 +323,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private PhysicsScene m_parentScene = null;
 
         private ODERayCastRequestManager m_rayCastManager;
-
+        public ODEMeshWorker m_meshWorker;
 
 /* maybe needed if ode uses tls
         private void checkThread()
@@ -361,6 +356,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             nearCallback = near;
 
             m_rayCastManager = new ODERayCastRequestManager(this);
+            
+
             lock (OdeLock)
                 {
                 // Create the world and the first space
@@ -440,9 +437,11 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             int contactsPerCollision = 80;
 
+            IConfig physicsconfig = null;
+
             if (m_config != null)
             {
-                IConfig physicsconfig = m_config.Configs["ODEPhysicsSettings"];
+                physicsconfig = m_config.Configs["ODEPhysicsSettings"];
                 if (physicsconfig != null)
                 {
                     gravityx = physicsconfig.GetFloat("world_gravityx", gravityx);
@@ -469,27 +468,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                     geomDefaultDensity = physicsconfig.GetFloat("geometry_default_density", geomDefaultDensity);
                     bodyFramesAutoDisable = physicsconfig.GetInt("body_frames_auto_disable", bodyFramesAutoDisable);
-/*
-                    bodyPIDD = physicsconfig.GetFloat("body_pid_derivative", bodyPIDD);
-                    bodyPIDG = physicsconfig.GetFloat("body_pid_gain", bodyPIDG);
-*/
-                    forceSimplePrimMeshing = physicsconfig.GetBoolean("force_simple_prim_meshing", forceSimplePrimMeshing);
-                    meshSculptedPrim = physicsconfig.GetBoolean("mesh_sculpted_prim", meshSculptedPrim);
-                    meshSculptLOD = physicsconfig.GetFloat("mesh_lod", meshSculptLOD);
-                    MeshSculptphysicalLOD = physicsconfig.GetFloat("mesh_physical_lod", MeshSculptphysicalLOD);
-/*
-                    if (Environment.OSVersion.Platform == PlatformID.Unix)
-                    {
-                        avPIDD = physicsconfig.GetFloat("av_pid_derivative_linux", avPIDD);
-                        avPIDP = physicsconfig.GetFloat("av_pid_proportional_linux", avPIDP);
-                    }
-                    else
-                    {
- 
-                        avPIDD = physicsconfig.GetFloat("av_pid_derivative_win", avPIDD);
-                        avPIDP = physicsconfig.GetFloat("av_pid_proportional_win", avPIDP);
-                    }
-*/
+
                     physics_logging = physicsconfig.GetBoolean("physics_logging", false);
                     physics_logging_interval = physicsconfig.GetInt("physics_logging_interval", 0);
                     physics_logging_append_existing_logfile = physicsconfig.GetBoolean("physics_logging_append_existing_logfile", false);
@@ -498,6 +477,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                     maximumMassObject = physicsconfig.GetFloat("maximum_mass_object", maximumMassObject);
                 }
             }
+
+            m_meshWorker = new ODEMeshWorker(this, m_log, meshmerizer, physicsconfig);
 
             HalfOdeStep = ODE_STEPSIZE * 0.5f;
             odetimestepMS = (int)(1000.0f * ODE_STEPSIZE +0.5f);
@@ -1615,135 +1596,6 @@ namespace OpenSim.Region.Physics.OdePlugin
  
         #endregion
 
-        /// <summary>
-        /// Routine to figure out if we need to mesh this prim with our mesher
-        /// </summary>
-        /// <param name="pbs"></param>
-        /// <returns></returns>
-        public bool needsMeshing(PrimitiveBaseShape pbs)
-        {
-            // check sculpts or meshs 
-            if (pbs.SculptEntry)
-            {
-                if (meshSculptedPrim)
-                    return true;
-
-                if (pbs.SculptType == (byte)SculptType.Mesh) // always do meshs
-                    return true;
-
-                return false;
-            }
-
-            if (forceSimplePrimMeshing)
-                return true;
-
-            // if it's a standard box or sphere with no cuts, hollows, twist or top shear, return false since ODE can use an internal representation for the prim
-
-            if ((pbs.ProfileShape == ProfileShape.Square && pbs.PathCurve == (byte)Extrusion.Straight)
-                    || (pbs.ProfileShape == ProfileShape.HalfCircle && pbs.PathCurve == (byte)Extrusion.Curve1
-                    && pbs.Scale.X == pbs.Scale.Y && pbs.Scale.Y == pbs.Scale.Z))
-            {
-
-                if (pbs.ProfileBegin == 0 && pbs.ProfileEnd == 0
-                    && pbs.ProfileHollow == 0
-                    && pbs.PathTwist == 0 && pbs.PathTwistBegin == 0
-                    && pbs.PathBegin == 0 && pbs.PathEnd == 0
-                    && pbs.PathTaperX == 0 && pbs.PathTaperY == 0
-                    && pbs.PathScaleX == 100 && pbs.PathScaleY == 100
-                    && pbs.PathShearX == 0 && pbs.PathShearY == 0)
-                {
-#if SPAM
-                m_log.Warn("NonMesh");
-#endif
-                    return false;
-                }
-            }
-
-            //  following code doesn't give meshs to boxes and spheres ever
-            // and it's odd..  so for now just return true if asked to force meshs
-            // hopefully mesher will fail if doesn't suport so things still get basic boxes
-
-            int iPropertiesNotSupportedDefault = 0;
-
-            if (pbs.ProfileHollow != 0)
-                iPropertiesNotSupportedDefault++;
-
-            if ((pbs.PathBegin != 0) || pbs.PathEnd != 0)
-                iPropertiesNotSupportedDefault++;
-
-            if ((pbs.PathTwistBegin != 0) || (pbs.PathTwist != 0))
-                iPropertiesNotSupportedDefault++; 
-
-            if ((pbs.ProfileBegin != 0) || pbs.ProfileEnd != 0)
-                iPropertiesNotSupportedDefault++;
-
-            if ((pbs.PathScaleX != 100) || (pbs.PathScaleY != 100))
-                iPropertiesNotSupportedDefault++;
-
-            if ((pbs.PathShearX != 0) || (pbs.PathShearY != 0))
-                iPropertiesNotSupportedDefault++;
-
-            if (pbs.ProfileShape == ProfileShape.Circle && pbs.PathCurve == (byte)Extrusion.Straight)
-                iPropertiesNotSupportedDefault++;
-
-            if (pbs.ProfileShape == ProfileShape.HalfCircle && pbs.PathCurve == (byte)Extrusion.Curve1 && (pbs.Scale.X != pbs.Scale.Y || pbs.Scale.Y != pbs.Scale.Z || pbs.Scale.Z != pbs.Scale.X))
-                iPropertiesNotSupportedDefault++;
-
-            if (pbs.ProfileShape == ProfileShape.HalfCircle && pbs.PathCurve == (byte) Extrusion.Curve1)
-                iPropertiesNotSupportedDefault++;
-
-            // test for torus
-            if ((pbs.ProfileCurve & 0x07) == (byte)ProfileShape.Square)
-            {
-                if (pbs.PathCurve == (byte)Extrusion.Curve1)
-                {
-                    iPropertiesNotSupportedDefault++;
-                }
-            }
-            else if ((pbs.ProfileCurve & 0x07) == (byte)ProfileShape.Circle)
-            {
-                if (pbs.PathCurve == (byte)Extrusion.Straight)
-                {
-                    iPropertiesNotSupportedDefault++;
-                }
-
-                // ProfileCurve seems to combine hole shape and profile curve so we need to only compare against the lower 3 bits
-                else if (pbs.PathCurve == (byte)Extrusion.Curve1)
-                {
-                    iPropertiesNotSupportedDefault++;
-                }
-            }
-            else if ((pbs.ProfileCurve & 0x07) == (byte)ProfileShape.HalfCircle)
-            {
-                if (pbs.PathCurve == (byte)Extrusion.Curve1 || pbs.PathCurve == (byte)Extrusion.Curve2)
-                {
-                    iPropertiesNotSupportedDefault++;
-                }
-            }
-            else if ((pbs.ProfileCurve & 0x07) == (byte)ProfileShape.EquilateralTriangle)
-            {
-                if (pbs.PathCurve == (byte)Extrusion.Straight)
-                {
-                    iPropertiesNotSupportedDefault++;
-                }
-                else if (pbs.PathCurve == (byte)Extrusion.Curve1)
-                {
-                    iPropertiesNotSupportedDefault++;
-                }
-            }
-
-            if (iPropertiesNotSupportedDefault == 0)
-            {
-#if SPAM
-                m_log.Warn("NonMesh");
-#endif
-                return false;
-            }
-#if SPAM
-            m_log.Debug("Mesh");
-#endif
-            return true; 
-        }
 
         /// <summary>
         /// Called to queue a change to a actor

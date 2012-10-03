@@ -1061,6 +1061,42 @@ namespace OpenSim.Region.Physics.Meshing
 
         private static Vector3 m_MeshUnitSize = new Vector3(0.5f, 0.5f, 0.5f);
 
+        public IMesh GetMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical, bool convex)
+        {
+            Mesh mesh = null;
+
+            if (size.X < 0.01f) size.X = 0.01f;
+            if (size.Y < 0.01f) size.Y = 0.01f;
+            if (size.Z < 0.01f) size.Z = 0.01f;
+
+            AMeshKey key = GetMeshUniqueKey(primShape, size, (byte)lod, convex);
+            lock (m_uniqueMeshes)
+            {
+                m_uniqueMeshes.TryGetValue(key, out mesh);
+
+                if (mesh != null)
+                {
+                    mesh.RefCount++;
+                    return mesh;
+                }
+            }
+
+            // try to find a identical mesh on meshs recently released
+            lock (m_uniqueReleasedMeshes)
+            {
+                m_uniqueReleasedMeshes.TryGetValue(key, out mesh);
+                if (mesh != null)
+                {
+                    m_uniqueReleasedMeshes.Remove(key);
+                    lock (m_uniqueMeshes)
+                        m_uniqueMeshes.Add(key, mesh);
+                    mesh.RefCount = 1;
+                    return mesh;
+                }
+            }
+            return null;
+        }
+
         public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical, bool convex)
         {
 #if SPAM
@@ -1068,15 +1104,13 @@ namespace OpenSim.Region.Physics.Meshing
 #endif
 
             Mesh mesh = null;
-//            ulong key = 0;
-            
 
             if (size.X < 0.01f) size.X = 0.01f;
             if (size.Y < 0.01f) size.Y = 0.01f;
             if (size.Z < 0.01f) size.Z = 0.01f;
 
             // try to find a identical mesh on meshs in use
-//            key = primShape.GetMeshKey(size, lod, convex);
+
             AMeshKey key = GetMeshUniqueKey(primShape,size,(byte)lod, convex);
 
             lock (m_uniqueMeshes)

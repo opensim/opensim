@@ -37,7 +37,8 @@ namespace OpenSim.Region.Physics.Manager
     {
         IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod);
         IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical);
-        IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical,bool convex);
+        IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical, bool convex);
+        IMesh GetMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical, bool convex);
         void ReleaseMesh(IMesh mesh);
         void ExpireReleaseMeshs();
     }

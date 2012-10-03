@@ -1080,7 +1080,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             bounce = parent_scene.m_materialContactsData[(int)Material.Wood].bounce;
 
             CalcPrimBodyData();
-
+/*
             m_mesh = null;
             if (_parent_scene.needsMeshing(pbs) && (pbs.SculptData.Length > 0))
             {
@@ -1096,6 +1096,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 m_mesh = _parent_scene.mesher.CreateMesh(Name, _pbs, _size, clod, true, convex);
             }
+*/
+            m_mesh = _parent_scene.m_meshWorker.getMesh(this, pbs, _size, m_shapetype);
 
             m_building = true; // control must set this to false when done
 
@@ -1476,7 +1478,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             hasOOBoffsetFromMesh = false;
             m_NoColide = false;
 
-            if (_parent_scene.needsMeshing(_pbs))
+            if (_parent_scene.m_meshWorker.needsMeshing(_pbs))
             {
                 haveMesh = setMesh(_parent_scene); // this will give a mesh to non trivial known prims
                 if (!haveMesh)
