@@ -2395,15 +2395,15 @@ Console.WriteLine(" JointCreateFixed");
         {
             get
             {
-                // Averate previous velocity with the new one so
+                // Average previous velocity with the new one so
                 // client object interpolation works a 'little' better
                 if (_zeroFlag)
                     return Vector3.Zero;
 
                 Vector3 returnVelocity = Vector3.Zero;
-                returnVelocity.X = (m_lastVelocity.X + _velocity.X)/2;
-                returnVelocity.Y = (m_lastVelocity.Y + _velocity.Y)/2;
-                returnVelocity.Z = (m_lastVelocity.Z + _velocity.Z)/2;
+                returnVelocity.X = (m_lastVelocity.X + _velocity.X) * 0.5f; // 0.5f is mathematically equiv to '/ 2'
+                returnVelocity.Y = (m_lastVelocity.Y + _velocity.Y) * 0.5f;
+                returnVelocity.Z = (m_lastVelocity.Z + _velocity.Z) * 0.5f;
                 return returnVelocity;
             }
             set
@@ -2600,6 +2600,7 @@ Console.WriteLine(" JointCreateFixed");
             {
                 Vector3 pv = Vector3.Zero;
                 bool lastZeroFlag = _zeroFlag;
+                float m_minvelocity = 0;
                 if (Body != (IntPtr)0) // FIXME -> or if it is a joint
                 {
                     d.Vector3 vec = d.BodyGetPosition(Body);
@@ -2752,8 +2753,21 @@ Console.WriteLine(" JointCreateFixed");
                         _acceleration = ((_velocity - m_lastVelocity) / 0.1f);
                         _acceleration = new Vector3(_velocity.X - m_lastVelocity.X / 0.1f, _velocity.Y - m_lastVelocity.Y / 0.1f, _velocity.Z - m_lastVelocity.Z / 0.1f);
                         //m_log.Info("[PHYSICS]: V1: " + _velocity + " V2: " + m_lastVelocity + " Acceleration: " + _acceleration.ToString());
+                       
+                        // Note here that linearvelocity is affecting angular velocity...  so I'm guessing this is a vehicle specific thing... 
+                        // it does make sense to do this for tiny little instabilities with physical prim, however 0.5m/frame is fairly large. 
+                        // reducing this to 0.02m/frame seems to help the angular rubberbanding quite a bit, however, to make sure it doesn't affect elevators and vehicles
+                        // adding these logical exclusion situations to maintain this where I think it was intended to be.
+                        if (m_throttleUpdates || m_usePID || (m_vehicle != null && m_vehicle.Type != Vehicle.TYPE_NONE) || (Amotor != IntPtr.Zero)) 
+                        {
+                            m_minvelocity = 0.5f;
+                        }
+                        else
+                        {
+                            m_minvelocity = 0.02f;
+                        }
 
-                        if (_velocity.ApproxEquals(pv, 0.5f))
+                        if (_velocity.ApproxEquals(pv, m_minvelocity))
                         {
                             m_rotationalVelocity = pv;
                         }
