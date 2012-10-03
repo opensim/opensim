@@ -355,10 +355,19 @@ Asset service request failures: {3}" + Environment.NewLine,
             sb.Append(Environment.NewLine);
             sb.Append(
                 string.Format(
-                    "{0,6:0}  {1,6:0}  {2,6:0}  {3,6:0}  {4,6:0}  {5,6:0.0}  {6,6:0.0}  {7,6:0.0}  {8,6:0.0}  {9,6:0.0}  {10,6:0.0}",
+                    "{0,6:0}  {1,6:0}  {2,6:0}  {3,6:0}  {4,6:0}  {5,6:0.0}  {6,6:0.0}  {7,6:0.0}  {8,6:0.0}  {9,6:0.0}  {10,6:0.0}\n\n",
                     inPacketsPerSecond, outPacketsPerSecond, pendingDownloads, pendingUploads, unackedBytes, totalFrameTime,
                     netFrameTime, physicsFrameTime, otherFrameTime, agentFrameTime, imageFrameTime));
-            sb.Append(Environment.NewLine);
+
+            foreach (KeyValuePair<string, Stat> kvp in StatsManager.RegisteredStats)
+            {
+                Stat stat = kvp.Value;
+
+                if (stat.Category == "scene" && stat.Verbosity == StatVerbosity.Info)
+                {
+                    sb.AppendFormat("Slow frames ({0}): {1}\n", stat.Container, stat.Value);
+                }
+            }
 
             /*
             sb.Append(Environment.NewLine);
