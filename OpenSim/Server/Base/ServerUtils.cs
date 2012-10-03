@@ -33,6 +33,7 @@ using System.Xml.Serialization;
 using System.Text;
 using System.Collections.Generic;
 using log4net;
+using Nini.Config;
 using OpenSim.Framework;
 using OpenMetaverse;
 
@@ -332,6 +333,43 @@ namespace OpenSim.Server.Base
             }
 
             return ret;
+        }
+
+        public static IConfig GetConfig(string configFile, string configName)
+        {
+            IConfig config;
+
+            if (File.Exists(configFile))
+            {
+                IConfigSource configsource = new IniConfigSource(configFile);
+                config = configsource.Configs[configName];
+            }
+            else
+                config = null;
+
+            return config;
+        }
+
+        public static IConfigSource LoadInitialConfig(string url)
+        {
+            IConfigSource source = new XmlConfigSource();
+            m_log.InfoFormat("[CONFIG]: {0} is a http:// URI, fetching ...", url);
+
+            // The ini file path is a http URI
+            // Try to read it
+            try
+            {
+                XmlReader r = XmlReader.Create(url);
+                IConfigSource cs = new XmlConfigSource(r);
+                source.Merge(cs);
+            }
+            catch (Exception e)
+            {
+                m_log.FatalFormat("[CONFIG]: Exception reading config from URI {0}\n" + e.ToString(), url);
+                Environment.Exit(1);
+            }
+
+            return source;
         }
     }
 }

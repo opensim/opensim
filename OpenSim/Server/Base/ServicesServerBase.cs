@@ -64,6 +64,12 @@ namespace OpenSim.Server.Base
             get { return m_Config; }
         }
 
+        public string ConfigDirectory
+        {
+            get;
+            private set;
+        }
+
         // Run flag
         //
         private bool m_Running = true;
@@ -152,6 +158,8 @@ namespace OpenSim.Server.Base
             {
                 startupConfig = m_Config.Configs["Startup"];
             }
+
+            ConfigDirectory = startupConfig.GetString("ConfigDirectory", ".");
 
             prompt = startupConfig.GetString("Prompt", prompt);
 
