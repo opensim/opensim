@@ -79,6 +79,12 @@ namespace OpenSim.Region.Physics.Manager
 
             return null;
         }
+
+        public IMesh GetMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical, bool convex)
+        {
+            return null;
+        }
+
         public void ReleaseMesh(IMesh mesh) { }
         public void ExpireReleaseMeshs() { }
     }

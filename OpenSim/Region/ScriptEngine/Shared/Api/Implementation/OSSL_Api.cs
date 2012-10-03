@@ -2341,9 +2341,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     if (appearanceSerialized != null)
                     {
-                        OSDMap appearanceOsd = (OSDMap)OSDParser.DeserializeLLSDXml(appearanceSerialized);
-                        appearance = new AvatarAppearance();
-                        appearance.Unpack(appearanceOsd);
+                        try
+                        {
+                            OSDMap appearanceOsd = (OSDMap)OSDParser.DeserializeLLSDXml(appearanceSerialized);
+                            appearance = new AvatarAppearance();
+                            appearance.Unpack(appearanceOsd);
+                        }
+                        catch
+                        {
+                            return UUID.Zero.ToString();
+                        }
                     }
                 }
 
