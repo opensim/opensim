@@ -5,6 +5,7 @@
 using System;
 using System.Threading;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -177,7 +178,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             Vector3 size = psize;
             byte shapetype = pshapetype;
 
-            if (needsMeshing(pbs) && (pbs.SculptData.Length > 0))
+            if (needsMeshing(pbs))
             {
                 bool convex;
                 int clod = (int)LevelOfDetail.High;
@@ -189,9 +190,24 @@ namespace OpenSim.Region.Physics.OdePlugin
                     if (pbs.SculptType != (byte)SculptType.Mesh)
                         clod = (int)LevelOfDetail.Low;
                 }
-                mesh = m_mesher.CreateMesh(actor.Name, pbs, size, clod, true, convex);
-                if(mesh == null)
-                    mesh = m_mesher.CreateMesh(actor.Name, pbs, size, clod, true, convex);
+                mesh = m_mesher.GetMesh(actor.Name, pbs, size, clod, true, convex);
+                if (mesh == null)
+                {
+                    if (!pbs.SculptEntry)
+                        return m_mesher.CreateMesh(actor.Name, pbs, size, clod, true, convex);
+
+                    if (pbs.SculptTexture == UUID.Zero)
+                        return null;
+
+                    if(pbs.SculptType != (byte)SculptType.Mesh)
+                    { // check for sculpt decoded image on cache)
+                        if (File.Exists(System.IO.Path.Combine("j2kDecodeCache", "smap_" + pbs.SculptTexture.ToString())))
+                            return m_mesher.CreateMesh(actor.Name, pbs, size, clod, true, convex);
+                    }
+
+                    if(pbs.SculptData != null && pbs.SculptData.Length >0)
+                        return m_mesher.CreateMesh(actor.Name, pbs, size, clod, true, convex);
+                }
             }
             return mesh;
         }

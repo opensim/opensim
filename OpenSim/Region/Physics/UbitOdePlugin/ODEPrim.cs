@@ -1353,6 +1353,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 if (m_mesh == null)
                 {
+/*
                     bool convex;
                     int clod = (int)LevelOfDetail.High;
 
@@ -1366,6 +1367,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
 
                     mesh = _parent_scene.mesher.CreateMesh(Name, _pbs, _size, clod, true, convex);
+*/
+                    mesh = _parent_scene.m_meshWorker.getMesh(this, _pbs, _size, m_shapetype);
                 }
                 else
                 {
