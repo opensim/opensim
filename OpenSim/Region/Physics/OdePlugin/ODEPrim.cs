@@ -2395,15 +2395,15 @@ Console.WriteLine(" JointCreateFixed");
         {
             get
             {
-                // Averate previous velocity with the new one so
+                // Average previous velocity with the new one so
                 // client object interpolation works a 'little' better
                 if (_zeroFlag)
                     return Vector3.Zero;
 
                 Vector3 returnVelocity = Vector3.Zero;
-                returnVelocity.X = (m_lastVelocity.X + _velocity.X)/2;
-                returnVelocity.Y = (m_lastVelocity.Y + _velocity.Y)/2;
-                returnVelocity.Z = (m_lastVelocity.Z + _velocity.Z)/2;
+                returnVelocity.X = (m_lastVelocity.X + _velocity.X) * 0.5f; // 0.5f is mathematically equiv to '/ 2'
+                returnVelocity.Y = (m_lastVelocity.Y + _velocity.Y) * 0.5f;
+                returnVelocity.Z = (m_lastVelocity.Z + _velocity.Z) * 0.5f;
                 return returnVelocity;
             }
             set
