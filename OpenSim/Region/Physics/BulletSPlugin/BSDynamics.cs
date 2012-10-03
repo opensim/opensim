@@ -92,7 +92,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         private float m_angularMotorDecayTimescale = 0;                 // motor angular velocity decay rate
         private Vector3 m_angularFrictionTimescale = Vector3.Zero;      // body angular velocity  decay rate
         private Vector3 m_lastAngularVelocity = Vector3.Zero;           // what was last applied to body
- //       private Vector3 m_lastVertAttractor = Vector3.Zero;             // what VA was last applied to body
+        private Vector3 m_lastVertAttractor = Vector3.Zero;             // what VA was last applied to body
 
         //Deflection properties
         // private float m_angularDeflectionEfficiency = 0;
@@ -138,74 +138,55 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             switch (pParam)
             {
                 case Vehicle.ANGULAR_DEFLECTION_EFFICIENCY:
-                    if (pValue < 0.01f) pValue = 0.01f;
-                    // m_angularDeflectionEfficiency = pValue;
+                    // m_angularDeflectionEfficiency = Math.Max(pValue, 0.01f);
                     break;
                 case Vehicle.ANGULAR_DEFLECTION_TIMESCALE:
-                    if (pValue < 0.01f) pValue = 0.01f;
-                    // m_angularDeflectionTimescale = pValue;
+                    // m_angularDeflectionTimescale = Math.Max(pValue, 0.01f);
                     break;
                 case Vehicle.ANGULAR_MOTOR_DECAY_TIMESCALE:
-                    if (pValue < 0.01f) pValue = 0.01f;
-                    m_angularMotorDecayTimescale = pValue;
+                    m_angularMotorDecayTimescale = Math.Max(pValue, 0.01f);
                     break;
                 case Vehicle.ANGULAR_MOTOR_TIMESCALE:
-                    if (pValue < 0.01f) pValue = 0.01f;
-                    m_angularMotorTimescale = pValue;
+                    m_angularMotorTimescale = Math.Max(pValue, 0.01f);
                     break;
                 case Vehicle.BANKING_EFFICIENCY:
-                    if (pValue < 0.01f) pValue = 0.01f;
-                    // m_bankingEfficiency = pValue;
+                    // m_bankingEfficiency = Math.Max(pValue, 0.01f);
                     break;
                 case Vehicle.BANKING_MIX:
-                    if (pValue < 0.01f) pValue = 0.01f;
-                    // m_bankingMix = pValue;
+                    // m_bankingMix = Math.Max(pValue, 0.01f);
                     break;
                 case Vehicle.BANKING_TIMESCALE:
-                    if (pValue < 0.01f) pValue = 0.01f;
-                    // m_bankingTimescale = pValue;
+                    // m_bankingTimescale = Math.Max(pValue, 0.01f);
                     break;
                 case Vehicle.BUOYANCY:
-                    if (pValue < -1f) pValue = -1f;
-                    if (pValue > 1f) pValue = 1f;
-                    m_VehicleBuoyancy = pValue;
+                    m_VehicleBuoyancy = Math.Max(-1f, Math.Min(pValue, 1f));
                     break;
 //                case Vehicle.HOVER_EFFICIENCY:
-//                    if (pValue < 0f) pValue = 0f;
-//                    if (pValue > 1f) pValue = 1f;
-//                    m_VhoverEfficiency = pValue;
+//                    m_VhoverEfficiency = Math.Max(0f, Math.Min(pValue, 1f));
 //                    break;
                 case Vehicle.HOVER_HEIGHT:
                     m_VhoverHeight = pValue;
                     break;
                 case Vehicle.HOVER_TIMESCALE:
-                    if (pValue < 0.01f) pValue = 0.01f;
-                    m_VhoverTimescale = pValue;
+                    m_VhoverTimescale = Math.Max(pValue, 0.01f);
                     break;
                 case Vehicle.LINEAR_DEFLECTION_EFFICIENCY:
-                    if (pValue < 0.01f) pValue = 0.01f;
-                    // m_linearDeflectionEfficiency = pValue;
+                    // m_linearDeflectionEfficiency = Math.Max(pValue, 0.01f);
                     break;
                 case Vehicle.LINEAR_DEFLECTION_TIMESCALE:
-                    if (pValue < 0.01f) pValue = 0.01f;
-                    // m_linearDeflectionTimescale = pValue;
+                    // m_linearDeflectionTimescale = Math.Max(pValue, 0.01f);
                     break;
                 case Vehicle.LINEAR_MOTOR_DECAY_TIMESCALE:
-                    if (pValue < 0.01f) pValue = 0.01f;
-                    m_linearMotorDecayTimescale = pValue;
+                    m_linearMotorDecayTimescale = Math.Max(pValue, 0.01f);
                     break;
                 case Vehicle.LINEAR_MOTOR_TIMESCALE:
-                    if (pValue < 0.01f) pValue = 0.01f;
-                    m_linearMotorTimescale = pValue;
+                    m_linearMotorTimescale = Math.Max(pValue, 0.01f);
                     break;
                 case Vehicle.VERTICAL_ATTRACTION_EFFICIENCY:
-                    if (pValue < 0.1f) pValue = 0.1f;    // Less goes unstable
-                    if (pValue > 1.0f) pValue = 1.0f;
-                    m_verticalAttractionEfficiency = pValue;
+                    m_verticalAttractionEfficiency = Math.Max(0.1f, Math.Min(pValue, 1f));
                     break;
                 case Vehicle.VERTICAL_ATTRACTION_TIMESCALE:
-                    if (pValue < 0.01f) pValue = 0.01f;
-                    m_verticalAttractionTimescale = pValue;
+                    m_verticalAttractionTimescale = Math.Max(pValue, 0.01f);
                     break;
 
                 // These are vector properties but the engine lets you use a single float value to
@@ -371,8 +352,9 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     // m_bankingMix = 1;
                     // m_bankingTimescale = 1;
                     // m_referenceFrame = Quaternion.Identity;
-                    m_flags |= (VehicleFlag.NO_DEFLECTION_UP | VehicleFlag.LIMIT_ROLL_ONLY |
-                                VehicleFlag.LIMIT_MOTOR_UP);
+                    m_flags |= (VehicleFlag.NO_DEFLECTION_UP 
+                                | VehicleFlag.LIMIT_ROLL_ONLY
+                                | VehicleFlag.LIMIT_MOTOR_UP);
                     m_flags &= ~(VehicleFlag.HOVER_WATER_ONLY | VehicleFlag.HOVER_TERRAIN_ONLY | VehicleFlag.HOVER_GLOBAL_HEIGHT);
                     m_flags |= (VehicleFlag.HOVER_UP_ONLY);
                     break;
@@ -399,12 +381,13 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     // m_bankingMix = 0.8f;
                     // m_bankingTimescale = 1;
                     // m_referenceFrame = Quaternion.Identity;
-                    m_flags &= ~(VehicleFlag.HOVER_TERRAIN_ONLY |
-                            VehicleFlag.HOVER_GLOBAL_HEIGHT | VehicleFlag.HOVER_UP_ONLY);
-                    m_flags &= ~(VehicleFlag.LIMIT_ROLL_ONLY);
-                    m_flags |= (VehicleFlag.NO_DEFLECTION_UP |
-                                VehicleFlag.LIMIT_MOTOR_UP);
-                    m_flags |= (VehicleFlag.HOVER_WATER_ONLY);
+                    m_flags &= ~(VehicleFlag.HOVER_TERRAIN_ONLY
+                                    | VehicleFlag.HOVER_GLOBAL_HEIGHT 
+                                    | VehicleFlag.LIMIT_ROLL_ONLY
+                                    | VehicleFlag.HOVER_UP_ONLY);
+                    m_flags |= (VehicleFlag.NO_DEFLECTION_UP
+                                    | VehicleFlag.LIMIT_MOTOR_UP
+                                    | VehicleFlag.HOVER_WATER_ONLY);
                     break;
                 case Vehicle.TYPE_AIRPLANE:
                     m_linearFrictionTimescale = new Vector3(200, 10, 5);
@@ -429,9 +412,12 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     // m_bankingMix = 0.7f;
                     // m_bankingTimescale = 2;
                     // m_referenceFrame = Quaternion.Identity;
-                    m_flags &= ~(VehicleFlag.HOVER_WATER_ONLY | VehicleFlag.HOVER_TERRAIN_ONLY |
-                        VehicleFlag.HOVER_GLOBAL_HEIGHT | VehicleFlag.HOVER_UP_ONLY);
-                    m_flags &= ~(VehicleFlag.NO_DEFLECTION_UP | VehicleFlag.LIMIT_MOTOR_UP);
+                    m_flags &= ~(VehicleFlag.HOVER_WATER_ONLY
+                                    | VehicleFlag.HOVER_TERRAIN_ONLY
+                                    | VehicleFlag.HOVER_GLOBAL_HEIGHT
+                                    | VehicleFlag.HOVER_UP_ONLY
+                                    | VehicleFlag.NO_DEFLECTION_UP
+                                    | VehicleFlag.LIMIT_MOTOR_UP);
                     m_flags |= (VehicleFlag.LIMIT_ROLL_ONLY);
                     break;
                 case Vehicle.TYPE_BALLOON:
@@ -457,11 +443,13 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     // m_bankingMix = 0.7f;
                     // m_bankingTimescale = 5;
                     // m_referenceFrame = Quaternion.Identity;
-                    m_flags &= ~(VehicleFlag.HOVER_WATER_ONLY | VehicleFlag.HOVER_TERRAIN_ONLY |
-                        VehicleFlag.HOVER_UP_ONLY);
-                    m_flags &= ~(VehicleFlag.NO_DEFLECTION_UP | VehicleFlag.LIMIT_MOTOR_UP);
-                    m_flags |= (VehicleFlag.LIMIT_ROLL_ONLY);
-                    m_flags |= (VehicleFlag.HOVER_GLOBAL_HEIGHT);
+                    m_flags &= ~(VehicleFlag.HOVER_WATER_ONLY
+                                    | VehicleFlag.HOVER_TERRAIN_ONLY
+                                    | VehicleFlag.HOVER_UP_ONLY
+                                    | VehicleFlag.NO_DEFLECTION_UP
+                                    | VehicleFlag.LIMIT_MOTOR_UP);
+                    m_flags |= (VehicleFlag.LIMIT_ROLL_ONLY
+                                    | VehicleFlag.HOVER_GLOBAL_HEIGHT);
                     break;
             }
         }//end SetDefaultsForType
@@ -470,7 +458,8 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         // Do any updating needed for a vehicle
         public void Refresh()
         {
-            if (Type == Vehicle.TYPE_NONE) return;
+            if (!IsActive) 
+                return;
 
             // Set the prim's inertia to zero. The vehicle code handles that and this
             //    removes the torque action introduced by Bullet.
@@ -489,7 +478,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             LimitRotation(pTimestep);
 
             // remember the position so next step we can limit absolute movement effects
-            m_lastPositionVector = Prim.Position;
+            m_lastPositionVector = Prim.ForcePosition;
 
             VDetailLog("{0},BSDynamics.Step,done,pos={1},force={2},velocity={3},angvel={4}",
                     Prim.LocalID, Prim.Position, Prim.Force, Prim.Velocity, Prim.RotationalVelocity);
@@ -543,7 +532,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             }
 
             // convert requested object velocity to object relative vector
-            Quaternion rotq = Prim.Orientation;
+            Quaternion rotq = Prim.ForceOrientation;
             m_newVelocity = m_lastLinearVelocityVector * rotq;
 
             // Add the various forces into m_dir which will be our new direction vector (velocity)
@@ -560,19 +549,19 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             m_dir.Z = vel_now.Z;        // Preserve the accumulated falling velocity
              */
 
-            Vector3 pos = Prim.Position;
+            Vector3 pos = Prim.ForcePosition;
 //            Vector3 accel = new Vector3(-(m_dir.X - m_lastLinearVelocityVector.X / 0.1f), -(m_dir.Y - m_lastLinearVelocityVector.Y / 0.1f), m_dir.Z - m_lastLinearVelocityVector.Z / 0.1f);
 
             // If below the terrain, move us above the ground a little.
             float terrainHeight = Prim.PhysicsScene.TerrainManager.GetTerrainHeightAtXYZ(pos);
             // Taking the rotated size doesn't work here because m_prim.Size is the size of the root prim and not the linkset.
             //     Need to add a m_prim.LinkSet.Size similar to m_prim.LinkSet.Mass.
-            // Vector3 rotatedSize = m_prim.Size * m_prim.Orientation;
+            // Vector3 rotatedSize = m_prim.Size * m_prim.ForceOrientation;
             // if (rotatedSize.Z < terrainHeight)
             if (pos.Z < terrainHeight)
             {
                 pos.Z = terrainHeight + 2;
-                Prim.Position = pos;
+                Prim.ForcePosition = pos;
                 VDetailLog("{0},MoveLinear,terrainHeight,terrainHeight={1},pos={2}", Prim.LocalID, terrainHeight, pos);
             }
 
@@ -602,7 +591,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 {
                     if ((pos.Z - m_VhoverTargetHeight) > .2 || (pos.Z - m_VhoverTargetHeight) < -.2)
                     {
-                        Prim.Position = pos;
+                        Prim.ForcePosition = pos;
                     }
                 }
                 else
@@ -654,12 +643,13 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 }
                 if (changed)
                 {
-                    Prim.Position = pos;
+                    Prim.ForcePosition = pos;
                     VDetailLog("{0},MoveLinear,blockingEndPoint,block={1},origPos={2},pos={3}",
                                 Prim.LocalID, m_BlockingEndPoint, posChange, pos);
                 }
             }
 
+            // Limit absolute vertical change
             float Zchange = Math.Abs(posChange.Z);
             if ((m_flags & (VehicleFlag.LIMIT_MOTOR_UP)) != 0)
             {
@@ -678,6 +668,8 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     grav.Z = (float)(grav.Z * 1.037125);
                 VDetailLog("{0},MoveLinear,limitMotorUp,grav={1}", Prim.LocalID, grav);
             }
+
+            // If not changing some axis, reduce out velocity
             if ((m_flags & (VehicleFlag.NO_X)) != 0)
                 m_newVelocity.X = 0;
             if ((m_flags & (VehicleFlag.NO_Y)) != 0)
@@ -720,19 +712,19 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 //    a newly set velocity, this routine steps the value from the previous
                 //    value (m_angularMotorVelocity) to the requested value (m_angularMotorDirection).
                 // There are m_angularMotorApply steps.
-                Vector3 origAngularVelocity = m_angularMotorVelocity;
+                Vector3 origVel = m_angularMotorVelocity;
+                Vector3 origDir = m_angularMotorDirection;
+
                 // ramp up to new value
-                //   current velocity    +=                         error                          /    (  time to get there   / step interval)
+                //       new velocity    +=                         error                          /    (  time to get there   / step interval)
                 //                               requested speed       -       last motor speed
                 m_angularMotorVelocity.X += (m_angularMotorDirection.X - m_angularMotorVelocity.X) /  (m_angularMotorTimescale / pTimestep);
                 m_angularMotorVelocity.Y += (m_angularMotorDirection.Y - m_angularMotorVelocity.Y) /  (m_angularMotorTimescale / pTimestep);
                 m_angularMotorVelocity.Z += (m_angularMotorDirection.Z - m_angularMotorVelocity.Z) /  (m_angularMotorTimescale / pTimestep);
 
-                VDetailLog("{0},MoveAngular,angularMotorApply,apply={1},angTScale={2},timeStep={3},origvel={4},dir={5},vel={6}",
-                        Prim.LocalID, m_angularMotorApply, m_angularMotorTimescale, pTimestep, origAngularVelocity, m_angularMotorDirection, m_angularMotorVelocity);
+                VDetailLog("{0},MoveAngular,angularMotorApply,apply={1},angTScale={2},timeStep={3},origvel={4},origDir={5},vel={6}",
+                        Prim.LocalID, m_angularMotorApply, m_angularMotorTimescale, pTimestep, origVel, origDir, m_angularMotorVelocity);
 
-                // This is done so that if script request rate is less than phys frame rate the expected
-                //    velocity may still be acheived.
                 m_angularMotorApply--;
             }
             else
@@ -746,25 +738,32 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 
             // Vertical attractor section
             Vector3 vertattr = Vector3.Zero;
-            if (m_verticalAttractionTimescale < 300)
+            Vector3 deflection = Vector3.Zero;
+            Vector3 banking = Vector3.Zero;
+
+            if (m_verticalAttractionTimescale < 300 && m_lastAngularVelocity != Vector3.Zero)
             {
                 float VAservo = 0.2f / (m_verticalAttractionTimescale / pTimestep);
+                VAservo *= (m_verticalAttractionEfficiency * m_verticalAttractionEfficiency);
+
                 // get present body rotation
-                Quaternion rotq = Prim.Orientation;
-                // make a vector pointing up
+                Quaternion rotq = Prim.ForceOrientation;
+                // vector pointing up
                 Vector3 verterr = Vector3.Zero;
                 verterr.Z = 1.0f;
+
                 // rotate it to Body Angle
                 verterr = verterr * rotq;
-                // verterr.X and .Y are the World error ammounts. They are 0 when there is no error (Vehicle Body is 'vertical'), and .Z will be 1.
+                // verterr.X and .Y are the World error amounts. They are 0 when there is no error (Vehicle Body is 'vertical'), and .Z will be 1.
                 // As the body leans to its side |.X| will increase to 1 and .Z fall to 0. As body inverts |.X| will fall and .Z will go
                 // negative. Similar for tilt and |.Y|. .X and .Y must be modulated to prevent a stable inverted body.
+
+                // Error is 0 (no error) to +/- 2 (max error)
                 if (verterr.Z < 0.0f)
                 {
                     verterr.X = 2.0f - verterr.X;
                     verterr.Y = 2.0f - verterr.Y;
                 }
-                // Error is 0 (no error) to +/- 2 (max error)
                 // scale it by VAservo
                 verterr = verterr * VAservo;
 
@@ -784,7 +783,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 
             } // else vertical attractor is off
 
-            // m_lastVertAttractor = vertattr;
+            m_lastVertAttractor = vertattr;
 
             // Bank section tba
 
@@ -818,7 +817,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 
         internal void LimitRotation(float timestep)
         {
-            Quaternion rotq = Prim.Orientation;
+            Quaternion rotq = Prim.ForceOrientation;
             Quaternion m_rot = rotq;
             bool changed = false;
             if (m_RollreferenceFrame != Quaternion.Identity)
@@ -853,7 +852,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             }
             if (changed)
             {
-                Prim.Orientation = m_rot;
+                Prim.ForceOrientation = m_rot;
                 VDetailLog("{0},LimitRotation,done,orig={1},new={2}", Prim.LocalID, rotq, m_rot);
             }
 

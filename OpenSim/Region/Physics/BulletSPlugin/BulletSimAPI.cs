@@ -71,7 +71,7 @@ public struct BulletBody
         buff.Append(ID.ToString());
         buff.Append(",p=");
         buff.Append(ptr.ToString("X"));
-        if (collisionFilter != 0 && collisionMask != 0)
+        if (collisionFilter != 0 || collisionMask != 0)
         {
             buff.Append(",f=");
             buff.Append(collisionFilter.ToString("X"));
@@ -344,10 +344,7 @@ public enum CollisionFlags : uint
     CF_DISABLE_SPU_COLLISION_PROCESS = 1 << 6,
     // Following used by BulletSim to control collisions
     BS_SUBSCRIBE_COLLISION_EVENTS    = 1 << 10,
-    // BS_VOLUME_DETECT_OBJECT          = 1 << 11,
-    // BS_PHANTOM_OBJECT                = 1 << 12,
-    // BS_PHYSICAL_OBJECT               = 1 << 13,
-    // BS_TERRAIN_OBJECT                = 1 << 14,
+    BS_FLOATS_ON_WATER               = 1 << 11,
     BS_NONE                          = 0,
     BS_ALL                           = 0xFFFFFFFF,
 
@@ -356,9 +353,6 @@ public enum CollisionFlags : uint
     BS_ACTIVE = CF_STATIC_OBJECT
                 | CF_KINEMATIC_OBJECT
                 | CF_NO_CONTACT_RESPONSE
-    //            | BS_VOLUME_DETECT_OBJECT
-    //            | BS_PHANTOM_OBJECT
-    //            | BS_PHYSICAL_OBJECT,
 };
 
 // Values for collisions groups and masks

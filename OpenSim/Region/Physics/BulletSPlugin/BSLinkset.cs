@@ -34,7 +34,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 {
 public class BSLinkset
 {
-    private static string LogHeader = "[BULLETSIM LINKSET]";
+    // private static string LogHeader = "[BULLETSIM LINKSET]";
 
     public BSPhysObject LinksetRoot { get; protected set; }
 
@@ -331,21 +331,21 @@ public class BSLinkset
             m_children.Add(child);
 
             BSPhysObject rootx = LinksetRoot; // capture the root and body as of now
-            BulletBody rootBodyx = LinksetRoot.BSBody;
             BSPhysObject childx = child;
-            BulletBody childBodyx = child.BSBody;
 
             DetailLog("{0},AddChildToLinkset,call,rID={1},rBody={2},cID={3},cBody={4}", 
                             rootx.LocalID,
-                            rootx.LocalID, rootBodyx.ptr.ToString("X"),
-                            childx.LocalID, childBodyx.ptr.ToString("X"));
+                            rootx.LocalID, rootx.BSBody.ptr.ToString("X"),
+                            childx.LocalID, childx.BSBody.ptr.ToString("X"));
 
             PhysicsScene.TaintedObject("AddChildToLinkset", delegate()
             {
                 DetailLog("{0},AddChildToLinkset,taint,child={1}", LinksetRoot.LocalID, child.LocalID);
                 // build the physical binding between me and the child
                 m_taintChildren.Add(childx);
-                PhysicallyLinkAChildToRoot(rootx, rootBodyx, childx, childBodyx);
+
+                // Since this is taint-time, the body and shape could have changed for the child
+                PhysicallyLinkAChildToRoot(rootx, rootx.BSBody, childx, childx.BSBody);
             });
         }
         return;
@@ -369,21 +369,19 @@ public class BSLinkset
         if (m_children.Remove(child))
         {
             BSPhysObject rootx = LinksetRoot; // capture the root and body as of now
-            BulletBody rootBodyx = LinksetRoot.BSBody;
             BSPhysObject childx = child;
-            BulletBody childBodyx = child.BSBody;
 
             DetailLog("{0},RemoveChildFromLinkset,call,rID={1},rBody={2},cID={3},cBody={4}", 
                             childx.LocalID,
-                            rootx.LocalID, rootBodyx.ptr.ToString("X"),
-                            childx.LocalID, childBodyx.ptr.ToString("X"));
+                            rootx.LocalID, rootx.BSBody.ptr.ToString("X"),
+                            childx.LocalID, childx.BSBody.ptr.ToString("X"));
 
             PhysicsScene.TaintedObject("RemoveChildFromLinkset", delegate()
             {
                 if (m_taintChildren.Contains(childx))
                     m_taintChildren.Remove(childx);
 
-                PhysicallyUnlinkAChildFromRoot(rootx, rootBodyx, childx, childBodyx);
+                PhysicallyUnlinkAChildFromRoot(rootx, rootx.BSBody, childx, childx.BSBody);
                 RecomputeLinksetConstraintVariables();
             });
 
