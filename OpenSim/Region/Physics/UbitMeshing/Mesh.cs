@@ -48,8 +48,14 @@ namespace OpenSim.Region.Physics.Meshing
         int m_indexCount = 0;
         public float[] m_normals;
         Vector3 m_centroid;
-        int m_centroidDiv;
+        float m_obbXmin;
+        float m_obbXmax;
+        float m_obbYmin;
+        float m_obbYmax;
+        float m_obbZmin;
+        float m_obbZmax;
 
+        int m_centroidDiv;
 
         private class vertexcomp : IEqualityComparer<Vertex>
         {
@@ -77,6 +83,14 @@ namespace OpenSim.Region.Physics.Meshing
             m_triangles = new List<Triangle>();
             m_centroid = Vector3.Zero;
             m_centroidDiv = 0;
+            m_obbXmin = float.MaxValue;
+            m_obbXmax = float.MinValue;
+            m_obbYmin = float.MaxValue;
+            m_obbYmax = float.MinValue;
+            m_obbZmin = float.MaxValue;
+            m_obbZmax = float.MinValue;
+
+
         }
 
         public int RefCount { get; set; }
@@ -101,6 +115,35 @@ namespace OpenSim.Region.Physics.Meshing
             result.m_centroidDiv = m_centroidDiv;
             return result;
         }
+
+        public void addVertexLStats(Vertex v)
+        {
+            float x = v.X;
+            float y = v.Y;
+            float z = v.Z;
+
+            m_centroid.X += x;
+            m_centroid.Y += y;
+            m_centroid.Z += z;
+            m_centroidDiv++;
+
+            if (x > m_obbXmax)
+                m_obbXmax = x;
+            else if (x < m_obbXmin)
+                m_obbXmin = x;
+
+            if (y > m_obbYmax)
+                m_obbYmax = y;
+            else if (y < m_obbYmin)
+                m_obbYmin = y;
+
+            if (z > m_obbZmax)
+                m_obbZmax = z;
+            else if (z < m_obbZmin)
+                m_obbZmin = z;
+
+        }
+
 
         public void Add(Triangle triangle)
         {
@@ -127,26 +170,17 @@ namespace OpenSim.Region.Physics.Meshing
             if (!m_vertices.ContainsKey(triangle.v1))
             {
                 m_vertices[triangle.v1] = m_vertices.Count;
-                m_centroid.X += triangle.v1.X;
-                m_centroid.Y += triangle.v1.Y;
-                m_centroid.Z += triangle.v1.Z;
-                m_centroidDiv++;
+                addVertexLStats(triangle.v1);
             }
             if (!m_vertices.ContainsKey(triangle.v2))
             {
                 m_vertices[triangle.v2] = m_vertices.Count;
-                m_centroid.X += triangle.v2.X;
-                m_centroid.Y += triangle.v2.Y;
-                m_centroid.Z += triangle.v2.Z;
-                m_centroidDiv++;
+                addVertexLStats(triangle.v2);
             }
             if (!m_vertices.ContainsKey(triangle.v3))
             {
                 m_vertices[triangle.v3] = m_vertices.Count;
-                m_centroid.X += triangle.v3.X;
-                m_centroid.Y += triangle.v3.Y;
-                m_centroid.Z += triangle.v3.Z;
-                m_centroidDiv++;
+                addVertexLStats(triangle.v3);
             }
             m_triangles.Add(triangle);
         }
@@ -157,6 +191,24 @@ namespace OpenSim.Region.Physics.Meshing
                 return new Vector3(m_centroid.X / m_centroidDiv, m_centroid.Y / m_centroidDiv, m_centroid.Z / m_centroidDiv);
             else
                 return Vector3.Zero;
+        }
+
+        public Vector3 GetOBB()
+        {
+            float x, y, z;
+            if (m_centroidDiv > 0)
+            {
+                x = (m_obbXmax - m_obbXmin) * 0.5f;
+                y = (m_obbYmax - m_obbYmin) * 0.5f;
+                z = (m_obbZmax - m_obbZmin) * 0.5f;
+            }
+            else // ??
+            {
+                x = 0.5f;
+                y = 0.5f;
+                z = 0.5f;
+            }
+            return new Vector3(x, y, z);
         }
 
         public void CalcNormals()
