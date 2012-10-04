@@ -245,7 +245,7 @@ namespace OpenSim.Region.Framework.Scenes
                 = new Stat(
                     "SlowFrames",
                     "Slow Frames",
-                    "frames",
+                    " frames",
                     "scene",
                     m_scene.Name,
                     StatVerbosity.Info,

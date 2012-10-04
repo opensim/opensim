@@ -153,9 +153,9 @@ namespace OpenSim.Framework.Monitoring
         public string ShortName { get; private set; }
         public string Name { get; private set; }
         public string Description { get; private set; }
-        public string UnitName { get; private set; }
+        public virtual string UnitName { get; private set; }
 
-        public double Value { get; set; }
+        public virtual double Value { get; set; }
 
         public Stat(
             string shortName, string name, string unitName, string category, string container, StatVerbosity verbosity, string description)
@@ -174,6 +174,37 @@ namespace OpenSim.Framework.Monitoring
         public static string GenUniqueName(string container, string category, string shortName)
         {
             return string.Format("{0}+{1}+{2}", container, category, shortName);
+        }
+    }
+
+    public class PercentageStat : Stat
+    {
+        public int Antecedent { get; set; }
+        public int Consequent { get; set; }
+
+        public override double Value
+        {
+            get
+            {
+                int c = Consequent;
+
+                // Avoid any chance of a multi-threaded divide-by-zero
+                if (c == 0)
+                    return 0;
+
+                return (double)Antecedent / c;
+            }
+
+            set
+            {
+                throw new Exception("Cannot set value on a PercentageStat");
+            }
+        }
+
+        public PercentageStat(
+            string shortName, string name, string category, string container, StatVerbosity verbosity, string description)
+            : base(shortName, name, " %", category, container, verbosity, description)
+        {
         }
     }
 }
