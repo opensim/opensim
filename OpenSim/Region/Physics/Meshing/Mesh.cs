@@ -148,6 +148,12 @@ namespace OpenSim.Region.Physics.Meshing
                 return Vector3.Zero;
         }
 
+        // not functional
+        public Vector3 GetOBB()
+        {
+            return new Vector3(0.5f, 0.5f, 0.5f);
+        }
+
         public void CalcNormals()
         {
             int iTriangles = m_triangles.Count;

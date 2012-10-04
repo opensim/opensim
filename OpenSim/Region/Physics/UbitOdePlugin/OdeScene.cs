@@ -60,6 +60,29 @@ namespace OpenSim.Region.Physics.OdePlugin
         public int lastframe;
     }
 
+    public class ODEPhysRepData
+    {
+        public PhysicsActor actor;
+        public IntPtr geo = IntPtr.Zero;
+        public IntPtr triMeshData = IntPtr.Zero;
+        public IMesh mesh;
+        public IntPtr curSpace = IntPtr.Zero;
+        public PrimitiveBaseShape pbs;
+
+        public Vector3 size = Vector3.Zero;
+        public Vector3 OBB = Vector3.Zero;
+        public Vector3 OBBOffset = Vector3.Zero;
+
+        public float volume;
+
+        public float physCost = 0.0f;
+        public float streamCost = 0;
+        public byte shapetype = 0;
+        public bool canColide = true;
+        public bool hasOBB = false;
+        public bool hasMeshVolume = false;
+    }
+
     // colision flags of things others can colide with
     // rays, sensors, probes removed since can't  be colided with
     // The top space where things are placed provided further selection
@@ -297,6 +320,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         public IntPtr TopSpace; // the global space
         public IntPtr ActiveSpace; // space for active prims
         public IntPtr StaticSpace; // space for the static things around
+        public IntPtr WorkSpace; // no collisions work space
 
         // some speedup variables
         private int spaceGridMaxX;
@@ -369,6 +393,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     // now the major subspaces
                     ActiveSpace = d.HashSpaceCreate(TopSpace);
                     StaticSpace = d.HashSpaceCreate(TopSpace);
+                    WorkSpace = d.HashSpaceCreate(TopSpace);
                     }
                 catch
                     {
@@ -378,10 +403,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.HashSpaceSetLevels(TopSpace, -2, 8);
                 d.HashSpaceSetLevels(ActiveSpace, -2, 8);
                 d.HashSpaceSetLevels(StaticSpace, -2, 8);
+                d.HashSpaceSetLevels(WorkSpace, -2, 8);
 
                 // demote to second level
                 d.SpaceSetSublevel(ActiveSpace, 1);
                 d.SpaceSetSublevel(StaticSpace, 1);
+                d.SpaceSetSublevel(WorkSpace, 1);
 
                 d.GeomSetCategoryBits(ActiveSpace, (uint)(CollisionCategories.Space |
                                                         CollisionCategories.Geom |
@@ -398,6 +425,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                                                         CollisionCategories.VolumeDtc
                                                         ));
                 d.GeomSetCollideBits(StaticSpace, 0);
+
+                d.GeomSetCategoryBits(WorkSpace, 0);
+                d.GeomSetCollideBits(WorkSpace, 0);
 
                 contactgroup = d.JointGroupCreate(0);
                 //contactgroup
@@ -478,7 +508,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
             }
 
-            m_meshWorker = new ODEMeshWorker(this, m_log, meshmerizer, physicsconfig);
+            m_meshWorker = new ODEMeshWorker(this, m_log, meshmerizer, WorkSpace, physicsconfig);
 
             HalfOdeStep = ODE_STEPSIZE * 0.5f;
             odetimestepMS = (int)(1000.0f * ODE_STEPSIZE +0.5f);
