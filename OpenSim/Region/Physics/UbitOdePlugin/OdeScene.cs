@@ -77,8 +77,9 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public float physCost = 0.0f;
         public float streamCost = 0;
+        public MeshWorkerChange changed;
         public byte shapetype = 0;
-        public bool canColide = true;
+        public bool NoColide = false;
         public bool hasOBB = false;
         public bool hasMeshVolume = false;
     }
@@ -132,6 +133,14 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         light = 7 // compatibility with old viewers
     }
+    [Flags]
+    public enum MeshWorkerChange : uint
+    {
+        none = 0,
+        size = 1,
+        shape = 2,
+        shapetype = 3,
+    }
 
     public enum changes : int
     {
@@ -170,6 +179,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         Size,
         Shape,
+        PhysRepData,
 
         CollidesWater,
         VolumeDtc,
