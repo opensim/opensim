@@ -408,13 +408,19 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         {
             lock (m_animations)
             {
-                CurrentMovementAnimation = DetermineMovementAnimation();
+                string newMovementAnimation = DetermineMovementAnimation();
+                if (CurrentMovementAnimation != newMovementAnimation)
+                {
+                    CurrentMovementAnimation = DetermineMovementAnimation();
 
-//                m_log.DebugFormat(
-//                    "[SCENE PRESENCE ANIMATOR]: Determined animation {0} for {1} in UpdateMovementAnimations()",
-//                    CurrentMovementAnimation, m_scenePresence.Name);
+//                    m_log.DebugFormat(
+//                        "[SCENE PRESENCE ANIMATOR]: Determined animation {0} for {1} in UpdateMovementAnimations()",
+//                        CurrentMovementAnimation, m_scenePresence.Name);
 
-                TrySetMovementAnimation(CurrentMovementAnimation);
+                    // Only set it if it's actually changed, give a script
+                    // a chance to stop a default animation
+                    TrySetMovementAnimation(CurrentMovementAnimation);
+                }
             }
         }
 
