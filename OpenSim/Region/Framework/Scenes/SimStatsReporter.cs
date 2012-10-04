@@ -47,6 +47,7 @@ namespace OpenSim.Region.Framework.Scenes
             = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public const string LastReportedObjectUpdateStatName = "LastReportedObjectUpdates";
+        public const string SlowFramesStatName = "SlowFrames";
 
         public delegate void SendStatResult(SimStats stats);
 
@@ -127,6 +128,16 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get { return lastReportedSimStats; }
         }
+
+        /// <summary>
+        /// Number of frames that have taken longer to process than Scene.MIN_FRAME_TIME
+        /// </summary>
+        public Stat SlowFramesStat { get; private set; }
+
+        /// <summary>
+        /// The threshold at which we log a slow frame.
+        /// </summary>
+        public int SlowFramesStatReportThreshold { get; private set; }
 
         /// <summary>
         /// Extra sim statistics that are used by monitors but not sent to the client.
@@ -225,6 +236,22 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (StatsManager.SimExtraStats != null)
                 OnSendStatsResult += StatsManager.SimExtraStats.ReceiveClassicSimStatsPacket;
+
+            /// At the moment, we'll only report if a frame is over 120% of target, since commonly frames are a bit
+            /// longer than ideal (which in itself is a concern).
+            SlowFramesStatReportThreshold = (int)Math.Ceiling(m_scene.MinFrameTime * 1000 * 1.2);
+
+            SlowFramesStat
+                = new Stat(
+                    "SlowFrames",
+                    "Slow Frames",
+                    " frames",
+                    "scene",
+                    m_scene.Name,
+                    StatVerbosity.Info,
+                    "Number of frames where frame time has been significantly longer than the desired frame time.");
+
+            StatsManager.RegisterStat(SlowFramesStat);
         }
 
         public void Close()
@@ -418,6 +445,7 @@ namespace OpenSim.Region.Framework.Scenes
                 lock (m_lastReportedExtraSimStats)
                 {
                     m_lastReportedExtraSimStats[LastReportedObjectUpdateStatName] = m_objectUpdates / m_statsUpdateFactor;
+                    m_lastReportedExtraSimStats[SlowFramesStat.ShortName] = (float)SlowFramesStat.Value;
 
                     Dictionary<string, float> physicsStats = m_scene.PhysicsScene.GetStats();
     
@@ -535,6 +563,11 @@ namespace OpenSim.Region.Framework.Scenes
         public void addFrameMS(int ms)
         {
             m_frameMS += ms;
+
+            // At the moment, we'll only report if a frame is over 120% of target, since commonly frames are a bit
+            // longer than ideal due to the inaccuracy of the Sleep in Scene.Update() (which in itself is a concern).
+            if (ms > SlowFramesStatReportThreshold)
+                SlowFramesStat.Value++;
         }
 
         public void AddSpareMS(int ms)

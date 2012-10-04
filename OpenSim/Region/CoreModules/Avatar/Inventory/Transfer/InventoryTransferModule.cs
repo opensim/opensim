@@ -297,6 +297,45 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                         });
                 }
             }
+            else if (im.dialog == (byte) InstantMessageDialog.TaskInventoryAccepted)
+            {
+                UUID destinationFolderID = UUID.Zero;
+
+                if (im.binaryBucket != null && im.binaryBucket.Length >= 16)
+                {
+                    destinationFolderID = new UUID(im.binaryBucket, 0);
+                }
+
+                if (destinationFolderID != UUID.Zero)
+                {
+                    IInventoryService invService = scene.InventoryService;
+
+                    UUID inventoryID = new UUID(im.imSessionID); // The inventory item/folder, back from it's trip
+
+                    InventoryItemBase item = new InventoryItemBase(inventoryID, client.AgentId);
+                    item = invService.GetItem(item);
+                    InventoryFolderBase folder = null;
+
+                    if (item != null) // It's an item
+                    {
+                        item.Folder = destinationFolderID;
+
+                        invService.DeleteItems(item.Owner, new List<UUID>() { item.ID });
+                        scene.AddInventoryItem(client, item);
+                    }
+                    else
+                    {
+                        folder = new InventoryFolderBase(inventoryID, client.AgentId);
+                        folder = invService.GetFolder(folder);
+
+                        if (folder != null) // It's a folder
+                        {
+                            folder.ParentID = destinationFolderID;
+                            invService.MoveFolder(folder);
+                        }
+                    }
+                }
+            }
             else if (
                 im.dialog == (byte)InstantMessageDialog.InventoryDeclined
                 || im.dialog == (byte)InstantMessageDialog.TaskInventoryDeclined)

@@ -3538,7 +3538,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             return new LSL_Key(m_host.ParentGroup.FromPartID.ToString());
         }
- 
+
         /// <summary>
         /// Sets the response type for an HTTP request/response
         /// </summary>
@@ -3549,6 +3549,91 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (m_UrlModule != null)
                 m_UrlModule.HttpContentType(new UUID(id),type);
         }
-        
-   }
+        /// Shout an error if the object owner did not grant the script the specified permissions.
+        /// </summary>
+        /// <param name="perms"></param>
+        /// <returns>boolean indicating whether an error was shouted.</returns>
+        protected bool ShoutErrorOnLackingOwnerPerms(int perms, string errorPrefix)
+        {
+            CheckThreatLevel(ThreatLevel.Moderate, "osDropAttachment");
+            m_host.AddScriptLPS(1);
+            bool fail = false;
+            if (m_item.PermsGranter != m_host.OwnerID)
+            {
+                fail = true;
+                OSSLShoutError(string.Format("{0}. Permissions not granted to owner.", errorPrefix));
+            }
+            else if ((m_item.PermsMask & perms) == 0)
+            {
+                fail = true;
+                OSSLShoutError(string.Format("{0}. Permissions not granted.", errorPrefix));
+            }
+
+            return fail;
+        }
+
+        protected void DropAttachment(bool checkPerms)
+        {
+            if (checkPerms && ShoutErrorOnLackingOwnerPerms(ScriptBaseClass.PERMISSION_ATTACH, "Cannot drop attachment"))
+            {
+                return;
+            }
+
+            IAttachmentsModule attachmentsModule = m_ScriptEngine.World.AttachmentsModule;
+            ScenePresence sp = attachmentsModule == null ? null : m_host.ParentGroup.Scene.GetScenePresence(m_host.ParentGroup.OwnerID);
+
+            if (attachmentsModule != null && sp != null)
+            {
+                attachmentsModule.DetachSingleAttachmentToGround(sp, m_host.ParentGroup.LocalId);
+            }
+        }
+
+        protected void DropAttachmentAt(bool checkPerms, LSL_Vector pos, LSL_Rotation rot)
+        {
+            if (checkPerms && ShoutErrorOnLackingOwnerPerms(ScriptBaseClass.PERMISSION_ATTACH, "Cannot drop attachment"))
+            {
+                return;
+            }
+
+            IAttachmentsModule attachmentsModule = m_ScriptEngine.World.AttachmentsModule;
+            ScenePresence sp = attachmentsModule == null ? null : m_host.ParentGroup.Scene.GetScenePresence(m_host.ParentGroup.OwnerID);
+
+            if (attachmentsModule != null && sp != null)
+            {
+                attachmentsModule.DetachSingleAttachmentToGround(sp, m_host.ParentGroup.LocalId, pos, rot);
+            }
+        }
+
+        public void osDropAttachment()
+        {
+            CheckThreatLevel(ThreatLevel.Moderate, "osDropAttachment");
+            m_host.AddScriptLPS(1);
+
+            DropAttachment(true);
+        }
+
+        public void osForceDropAttachment()
+        {
+            CheckThreatLevel(ThreatLevel.High, "osForceDropAttachment");
+            m_host.AddScriptLPS(1);
+
+            DropAttachment(false);
+        }
+
+        public void osDropAttachmentAt(LSL_Vector pos, LSL_Rotation rot)
+        {
+            CheckThreatLevel(ThreatLevel.Moderate, "osDropAttachmentAt");
+            m_host.AddScriptLPS(1);
+
+            DropAttachmentAt(true, pos, rot);
+        }
+
+        public void osForceDropAttachmentAt(LSL_Vector pos, LSL_Rotation rot)
+        {
+            CheckThreatLevel(ThreatLevel.High, "osForceDropAttachmentAt");
+            m_host.AddScriptLPS(1);
+
+            DropAttachmentAt(false, pos, rot);
+        }
+    }
 }

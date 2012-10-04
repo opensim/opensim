@@ -63,6 +63,9 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private bool m_isphysical;
 
+        public int ExpectedCollisionContacts { get { return m_expectedCollisionContacts; } }
+        private int m_expectedCollisionContacts = 0;
+
         /// <summary>
         /// Is this prim subject to physics?  Even if not, it's still solid for collision purposes.
         /// </summary>
@@ -150,7 +153,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private PrimitiveBaseShape _pbs;
         private OdeScene _parent_scene;
-
+        
         /// <summary>
         /// The physics space which contains prim geometries
         /// </summary>
@@ -840,7 +843,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             int vertexStride, triStride;
             mesh.getVertexListAsPtrToFloatArray(out vertices, out vertexStride, out vertexCount); // Note, that vertices are fixed in unmanaged heap
             mesh.getIndexListAsPtrToIntArray(out indices, out triStride, out indexCount); // Also fixed, needs release after usage
-
+            m_expectedCollisionContacts = indexCount;
             mesh.releaseSourceMeshData(); // free up the original mesh data to save memory
 
             // We must lock here since m_MeshToTriMeshMap is static and multiple scene threads may call this method at
@@ -1377,6 +1380,7 @@ Console.WriteLine("CreateGeom:");
                             {
 //Console.WriteLine(" CreateGeom 1");
                                 SetGeom(d.CreateSphere(m_targetSpace, _size.X / 2));
+                                m_expectedCollisionContacts = 3;
                             }
                             catch (AccessViolationException)
                             {
@@ -1391,6 +1395,7 @@ Console.WriteLine("CreateGeom:");
                             {
 //Console.WriteLine(" CreateGeom 2");
                                 SetGeom(d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z));
+                                m_expectedCollisionContacts = 4;
                             }
                             catch (AccessViolationException)
                             {
@@ -1406,6 +1411,7 @@ Console.WriteLine("CreateGeom:");
                         {
 //Console.WriteLine("  CreateGeom 3");
                             SetGeom(d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z));
+                            m_expectedCollisionContacts = 4;
                         }
                         catch (AccessViolationException)
                         {
@@ -1421,6 +1427,7 @@ Console.WriteLine("CreateGeom:");
                     {
 //Console.WriteLine("  CreateGeom 4");
                         SetGeom(d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z));
+                        m_expectedCollisionContacts = 4;
                     }
                     catch (AccessViolationException)
                     {
@@ -1446,11 +1453,13 @@ Console.WriteLine("CreateGeom:");
                     _parent_scene.geom_name_map.Remove(prim_geom);
                     _parent_scene.actor_name_map.Remove(prim_geom);
                     d.GeomDestroy(prim_geom);
+                    m_expectedCollisionContacts = 0;
                     prim_geom = IntPtr.Zero;
                 }
                 catch (System.AccessViolationException)
                 {
                     prim_geom = IntPtr.Zero;
+                    m_expectedCollisionContacts = 0;
                     m_log.ErrorFormat("[PHYSICS]: PrimGeom dead for {0}", Name);
 
                     return false;
@@ -2395,15 +2404,15 @@ Console.WriteLine(" JointCreateFixed");
         {
             get
             {
-                // Averate previous velocity with the new one so
+                // Average previous velocity with the new one so
                 // client object interpolation works a 'little' better
                 if (_zeroFlag)
                     return Vector3.Zero;
 
                 Vector3 returnVelocity = Vector3.Zero;
-                returnVelocity.X = (m_lastVelocity.X + _velocity.X)/2;
-                returnVelocity.Y = (m_lastVelocity.Y + _velocity.Y)/2;
-                returnVelocity.Z = (m_lastVelocity.Z + _velocity.Z)/2;
+                returnVelocity.X = (m_lastVelocity.X + _velocity.X) * 0.5f; // 0.5f is mathematically equiv to '/ 2'
+                returnVelocity.Y = (m_lastVelocity.Y + _velocity.Y) * 0.5f;
+                returnVelocity.Z = (m_lastVelocity.Z + _velocity.Z) * 0.5f;
                 return returnVelocity;
             }
             set
@@ -2600,6 +2609,7 @@ Console.WriteLine(" JointCreateFixed");
             {
                 Vector3 pv = Vector3.Zero;
                 bool lastZeroFlag = _zeroFlag;
+                float m_minvelocity = 0;
                 if (Body != (IntPtr)0) // FIXME -> or if it is a joint
                 {
                     d.Vector3 vec = d.BodyGetPosition(Body);
@@ -2752,8 +2762,21 @@ Console.WriteLine(" JointCreateFixed");
                         _acceleration = ((_velocity - m_lastVelocity) / 0.1f);
                         _acceleration = new Vector3(_velocity.X - m_lastVelocity.X / 0.1f, _velocity.Y - m_lastVelocity.Y / 0.1f, _velocity.Z - m_lastVelocity.Z / 0.1f);
                         //m_log.Info("[PHYSICS]: V1: " + _velocity + " V2: " + m_lastVelocity + " Acceleration: " + _acceleration.ToString());
+                       
+                        // Note here that linearvelocity is affecting angular velocity...  so I'm guessing this is a vehicle specific thing... 
+                        // it does make sense to do this for tiny little instabilities with physical prim, however 0.5m/frame is fairly large. 
+                        // reducing this to 0.02m/frame seems to help the angular rubberbanding quite a bit, however, to make sure it doesn't affect elevators and vehicles
+                        // adding these logical exclusion situations to maintain this where I think it was intended to be.
+                        if (m_throttleUpdates || m_usePID || (m_vehicle != null && m_vehicle.Type != Vehicle.TYPE_NONE) || (Amotor != IntPtr.Zero)) 
+                        {
+                            m_minvelocity = 0.5f;
+                        }
+                        else
+                        {
+                            m_minvelocity = 0.02f;
+                        }
 
-                        if (_velocity.ApproxEquals(pv, 0.5f))
+                        if (_velocity.ApproxEquals(pv, m_minvelocity))
                         {
                             m_rotationalVelocity = pv;
                         }

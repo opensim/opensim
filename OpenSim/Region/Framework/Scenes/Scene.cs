@@ -5545,6 +5545,9 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void StoreExtraSetting(string name, string val)
         {
+            if (m_extraSettings == null)
+                return;
+
             string oldVal;
 
             if (m_extraSettings.TryGetValue(name, out oldVal))
@@ -5562,6 +5565,9 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void RemoveExtraSetting(string name)
         {
+            if (m_extraSettings == null)
+                return;
+
             if (!m_extraSettings.ContainsKey(name))
                 return;
 
