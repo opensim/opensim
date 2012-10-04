@@ -304,7 +304,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (GetTriMeshGeo(repData))
                     hasMesh = true;
                 else
-                    repData.canColide = false;
+                    repData.NoColide = true;
             }
 
             if (!hasMesh)
@@ -348,6 +348,15 @@ namespace OpenSim.Region.Physics.OdePlugin
             CalcVolumeData(repData);
 
             return repData;
+        }
+
+        public void ChangeActorPhysRep(PhysicsActor actor, PrimitiveBaseShape pbs,
+                                        Vector3 size, byte shapetype, MeshWorkerChange what)
+        {
+            ODEPhysRepData repData = CreateActorPhysRep(actor, pbs, null, size, shapetype);
+            repData.changed |= what;
+            if (repData != null && actor != null)
+                ((OdePrim)actor).AddChange(changes.PhysRepData, repData);   
         }
 
         private void CalculateBasicPrimVolume(ODEPhysRepData repData)

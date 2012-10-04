@@ -89,8 +89,6 @@ namespace OpenSim.Region.Physics.Meshing
             m_obbYmax = float.MinValue;
             m_obbZmin = float.MaxValue;
             m_obbZmax = float.MinValue;
-
-
         }
 
         public int RefCount { get; set; }
@@ -99,8 +97,6 @@ namespace OpenSim.Region.Physics.Meshing
 
         public void Scale(Vector3 scale)
         {
-
-
         }
 
         public Mesh Clone()
@@ -113,6 +109,12 @@ namespace OpenSim.Region.Physics.Meshing
             }
             result.m_centroid = m_centroid;
             result.m_centroidDiv = m_centroidDiv;
+            result.m_obbXmin = m_obbXmin;
+            result.m_obbXmax = m_obbXmax;
+            result.m_obbYmin = m_obbYmin;
+            result.m_obbYmax = m_obbYmax;
+            result.m_obbZmin = m_obbZmin;
+            result.m_obbZmax = m_obbZmax;
             return result;
         }
 

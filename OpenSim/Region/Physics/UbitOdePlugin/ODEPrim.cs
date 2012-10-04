@@ -104,9 +104,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         private float m_PIDTau;
         private bool m_usePID;
 
-        // KF: These next 7 params apply to llSetHoverHeight(float height, integer water, float tau),
-        // and are for non-VEHICLES only.
-
         private float m_PIDHoverHeight;
         private float m_PIDHoverTau;
         private bool m_useHoverPID;
@@ -395,6 +392,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (value.IsFinite())
                 {
                     AddChange(changes.Size, value);
+
+//                    _parent_scene.m_meshWorker.ChangeActorPhysRep(this, _pbs, value, m_shapetype, MeshWorkerChange.size);
                 }
                 else
                 {
@@ -529,6 +528,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             set
             {
                 AddChange(changes.Shape, value);
+//                _parent_scene.m_meshWorker.ChangeActorPhysRep(this, value, _size, m_shapetype, MeshWorkerChange.shape);
             }
         }
 
@@ -542,9 +542,9 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 m_shapetype = value;
                 AddChange(changes.Shape, null);
+//                _parent_scene.m_meshWorker.ChangeActorPhysRep(this, _pbs, _size, value, MeshWorkerChange.shapetype);
             }
         }
-
 
         public override Vector3 Velocity
         {
@@ -1529,7 +1529,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             if (prim_geom != IntPtr.Zero)
             {
-//                _parent_scene.geom_name_map.Remove(prim_geom);
                 _parent_scene.actor_name_map.Remove(prim_geom);
                 try
                 {
@@ -1539,11 +1538,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         d.GeomTriMeshDataDestroy(_triMeshData);
                         _triMeshData = IntPtr.Zero;
                     }
-
                 }
-
-
-                //                catch (System.AccessViolationException)
                 catch (Exception e)
                 {
                     m_log.ErrorFormat("[PHYSICS]: PrimGeom destruction failed for {0} exception {1}", Name, e);
@@ -1557,23 +1552,19 @@ namespace OpenSim.Region.Physics.OdePlugin
                 m_log.ErrorFormat("[PHYSICS]: PrimGeom destruction BAD {0}", Name);
             }
 
-            if (m_mesh != null)
+            lock (m_meshlock)
             {
-                _parent_scene.mesher.ReleaseMesh(m_mesh);
-                m_mesh = null;
+                if (m_mesh != null)
+                {
+                    _parent_scene.mesher.ReleaseMesh(m_mesh);
+                    m_mesh = null;
+                }
             }
 
             Body = IntPtr.Zero;
             hasOOBoffsetFromMesh = false;
         }
-/*
-        private void ChildSetGeom(OdePrim odePrim)
-        {
-            // well.. 
-            DestroyBody();
-            MakeBody();
-        }
-*/
+
         //sets non physical prim m_targetSpace to right space in spaces grid for static prims
         // should only be called for non physical prims unless they are becoming non physical
         private void SetInStaticSpace(OdePrim prim)
@@ -1636,9 +1627,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             if (Body != IntPtr.Zero)
             {
-//                d.BodyDestroy(Body);
-//                Body = IntPtr.Zero;
-                // do a more complet destruction
                 DestroyBody();
                 m_log.Warn("[PHYSICS]: MakeBody called having a body");
             }
@@ -2500,6 +2488,26 @@ namespace OpenSim.Region.Physics.OdePlugin
             primOOBradiusSQ = primOOBsize.LengthSquared();
         }
 
+        private void UpdatePrimBodyData()
+        {
+            primMass = m_density * primVolume;
+
+            if (primMass <= 0)
+                primMass = 0.0001f;//ckrinke: Mass must be greater then zero.
+            if (primMass > _parent_scene.maximumMassObject)
+                primMass = _parent_scene.maximumMassObject;
+
+            _mass = primMass; // just in case
+
+            d.MassSetBoxTotal(out primdMass, primMass, primOOBsize.X, primOOBsize.Y, primOOBsize.Z);
+
+            d.MassTranslate(ref primdMass,
+                                primOOBoffset.X,
+                                primOOBoffset.Y,
+                                primOOBoffset.Z);
+
+            primOOBradiusSQ = primOOBsize.LengthSquared();
+        }
 
         #endregion
 
@@ -3231,6 +3239,86 @@ namespace OpenSim.Region.Physics.OdePlugin
                 _pbs = newShape;
             changeprimsizeshape();
         }
+
+
+        private void changePhysRepData(ODEPhysRepData repData)
+        {
+            CheckDelaySelect();
+
+            OdePrim parent = (OdePrim)_parent;
+
+            bool chp = childPrim;
+
+            if (chp)
+            {
+                if (parent != null)
+                {
+                    parent.DestroyBody();
+                }
+            }
+            else
+            {
+                DestroyBody();
+            }
+
+            RemoveGeom();      
+
+            prim_geom = repData.geo;
+            _triMeshData = repData.triMeshData;
+            _size = repData.size;
+            _pbs = repData.pbs;
+            m_mesh = repData.mesh;
+            m_shapetype = repData.shapetype;
+
+            hasOOBoffsetFromMesh = repData.hasOBB;
+            primOOBoffset = repData.OBBOffset;
+            primOOBsize = repData.OBB;
+
+            m_NoColide = repData.NoColide;
+//          m_physCost = repData.physCost;
+//          m_streamCost = repData.streamCost;
+
+            primVolume = repData.volume;
+            m_targetSpace = repData.curSpace;
+
+            UpdatePrimBodyData();
+
+            _parent_scene.actor_name_map[prim_geom] = this;
+
+            if (prim_geom != IntPtr.Zero)
+            {
+                d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
+                d.Quaternion myrot = new d.Quaternion();
+                myrot.X = _orientation.X;
+                myrot.Y = _orientation.Y;
+                myrot.Z = _orientation.Z;
+                myrot.W = _orientation.W;
+                d.GeomSetQuaternion(prim_geom, ref myrot);
+            }
+
+            if (m_isphysical)
+            {
+                if (chp)
+                {
+                    if (parent != null)
+                    {
+                        parent.MakeBody();
+                    }
+                }
+                else
+                    MakeBody();
+            }
+
+            else
+            {
+                SetInStaticSpace(this);
+                UpdateCollisionCatFlags();
+                ApplyCollisionCatFlags();
+            }
+
+            resetCollisionAccounting();
+        }
+
 
         private void changeFloatOnWater(bool newval)
         {
@@ -3989,6 +4077,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                     changeShape((PrimitiveBaseShape)arg);
                     break;
 
+                case changes.PhysRepData:
+                    changePhysRepData((ODEPhysRepData) arg);
+                    break;
+
                 case changes.CollidesWater:
                     changeFloatOnWater((bool)arg);
                     break;
@@ -4076,6 +4168,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 case changes.Null:
                     donullchange();
                     break;
+
+
 
                 default:
                     donullchange();
