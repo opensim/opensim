@@ -63,6 +63,9 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private bool m_isphysical;
 
+        public int ExpectedCollisionContacts { get { return m_expectedCollisionContacts; } }
+        private int m_expectedCollisionContacts = 0;
+
         /// <summary>
         /// Is this prim subject to physics?  Even if not, it's still solid for collision purposes.
         /// </summary>
@@ -150,7 +153,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private PrimitiveBaseShape _pbs;
         private OdeScene _parent_scene;
-
+        
         /// <summary>
         /// The physics space which contains prim geometries
         /// </summary>
@@ -840,7 +843,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             int vertexStride, triStride;
             mesh.getVertexListAsPtrToFloatArray(out vertices, out vertexStride, out vertexCount); // Note, that vertices are fixed in unmanaged heap
             mesh.getIndexListAsPtrToIntArray(out indices, out triStride, out indexCount); // Also fixed, needs release after usage
-
+            m_expectedCollisionContacts = indexCount;
             mesh.releaseSourceMeshData(); // free up the original mesh data to save memory
 
             // We must lock here since m_MeshToTriMeshMap is static and multiple scene threads may call this method at
@@ -1377,6 +1380,7 @@ Console.WriteLine("CreateGeom:");
                             {
 //Console.WriteLine(" CreateGeom 1");
                                 SetGeom(d.CreateSphere(m_targetSpace, _size.X / 2));
+                                m_expectedCollisionContacts = 3;
                             }
                             catch (AccessViolationException)
                             {
@@ -1391,6 +1395,7 @@ Console.WriteLine("CreateGeom:");
                             {
 //Console.WriteLine(" CreateGeom 2");
                                 SetGeom(d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z));
+                                m_expectedCollisionContacts = 4;
                             }
                             catch (AccessViolationException)
                             {
@@ -1406,6 +1411,7 @@ Console.WriteLine("CreateGeom:");
                         {
 //Console.WriteLine("  CreateGeom 3");
                             SetGeom(d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z));
+                            m_expectedCollisionContacts = 4;
                         }
                         catch (AccessViolationException)
                         {
@@ -1421,6 +1427,7 @@ Console.WriteLine("CreateGeom:");
                     {
 //Console.WriteLine("  CreateGeom 4");
                         SetGeom(d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z));
+                        m_expectedCollisionContacts = 4;
                     }
                     catch (AccessViolationException)
                     {
@@ -1446,11 +1453,13 @@ Console.WriteLine("CreateGeom:");
                     _parent_scene.geom_name_map.Remove(prim_geom);
                     _parent_scene.actor_name_map.Remove(prim_geom);
                     d.GeomDestroy(prim_geom);
+                    m_expectedCollisionContacts = 0;
                     prim_geom = IntPtr.Zero;
                 }
                 catch (System.AccessViolationException)
                 {
                     prim_geom = IntPtr.Zero;
+                    m_expectedCollisionContacts = 0;
                     m_log.ErrorFormat("[PHYSICS]: PrimGeom dead for {0}", Name);
 
                     return false;

@@ -525,7 +525,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             {
                 for (int i = 0; i < AvatarWearable.MAX_WEARABLES; i++)
                 {
-                    for (int j = 0; j < appearance.Wearables[j].Count; j++)
+                    for (int j = 0; j < appearance.Wearables[i].Count; j++)
                     {
                         if (appearance.Wearables[i][j].ItemID == UUID.Zero)
                             continue;
@@ -533,6 +533,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                         // Ignore ruth's assets
                         if (appearance.Wearables[i][j].ItemID == AvatarWearable.DefaultWearables[i][0].ItemID)
                             continue;
+
                         InventoryItemBase baseItem = new InventoryItemBase(appearance.Wearables[i][j].ItemID, userID);
                         baseItem = invService.GetItem(baseItem);
 
