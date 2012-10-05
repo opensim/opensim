@@ -2448,11 +2448,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.SendSound(KeyOrName(sound).ToString(), volume, true, 0, 0, false, false);
         }
 
-        // Xantor 20080528: Clear prim data of sound instead
         public void llStopSound()
         {
             m_host.AddScriptLPS(1);
             m_host.AdjustSoundGain(0);
+            // Xantor 20080528: Clear prim data of sound instead
             if (m_host.ParentGroup.LoopSoundSlavePrims.Contains(m_host))
             {
                 if (m_host.ParentGroup.LoopSoundMasterPrim == m_host)
