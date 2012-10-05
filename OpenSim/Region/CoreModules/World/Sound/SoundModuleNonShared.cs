@@ -133,7 +133,8 @@ namespace OpenSim.Region.CoreModules.World.Sound
                 // Scale by distance
                 double thisSpGain = gain * ((radius - dis) / radius);
 
-                sp.ControllingClient.SendPlayAttachedSound(soundID, objectID, ownerID, (float)thisSpGain, flags);
+                sp.ControllingClient.SendPlayAttachedSound(soundID, objectID,
+                        ownerID, (float)thisSpGain, flags);
             });
         }
 
@@ -171,8 +172,9 @@ namespace OpenSim.Region.CoreModules.World.Sound
                 // Scale by distance
                 double thisSpGain = gain * ((radius - dis) / radius);
 
-                sp.ControllingClient.SendTriggeredSound(
-                    soundId, ownerID, objectID, parentID, handle, position, (float)thisSpGain);
+                sp.ControllingClient.SendTriggeredSound(soundId, ownerID,
+                        objectID, parentID, handle, position,
+                        (float)thisSpGain);
             });
         }
 

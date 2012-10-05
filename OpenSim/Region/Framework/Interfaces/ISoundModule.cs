@@ -35,7 +35,7 @@ namespace OpenSim.Region.Framework.Interfaces
         float MaxDistance { get; }
 
         void PlayAttachedSound(UUID soundID, UUID ownerID, UUID objectID, double gain, Vector3 position, byte flags, float radius);
-        
+
         void TriggerSound(
             UUID soundId, UUID ownerID, UUID objectID, UUID parentID, double gain, Vector3 position, UInt64 handle, float radius);
     }
