@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -24,43 +24,79 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 using System;
+using System.Reflection;
+
 using Nini.Config;
 using OpenMetaverse;
+using log4net;
+using Mono.Addins;
+
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using System.Reflection;
-using log4net;
 
 namespace OpenSim.Region.CoreModules.World.Sound
 {
-    public class SoundModule : IRegionModule, ISoundModule
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "SoundModuleNonShared")]
+    public class SoundModuleNonShared : INonSharedRegionModule, ISoundModule
     {
-//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
-        protected Scene m_scene;
-        
-        public void Initialise(Scene scene, IConfigSource source)
+        private static readonly ILog m_log = LogManager.GetLogger(
+                MethodBase.GetCurrentMethod().DeclaringType);
+
+        private Scene m_scene;
+
+        public bool Enabled { get; private set; }
+
+        #region INonSharedRegionModule
+
+        public void Initialise(IConfigSource configSource)
         {
+            IConfig config = configSource.Configs["Sounds"];
+
+            Enabled = (config != null && config.GetString("Module", "SoundModuleNonShared") == "SoundModuleNonShared");
+        }
+
+        public void AddRegion(Scene scene) { }
+
+        public void RemoveRegion(Scene scene)
+        {
+            m_scene.EventManager.OnClientLogin -= OnNewClient;
+        }
+
+        public void RegionLoaded(Scene scene)
+        {
+            if (!Enabled)
+                return;
+
             m_scene = scene;
-            
-            m_scene.EventManager.OnNewClient += OnNewClient;
-            
+            m_scene.EventManager.OnClientLogin += OnNewClient;
+
             m_scene.RegisterModuleInterface<ISoundModule>(this);
         }
-        
-        public void PostInitialise() {}
-        public void Close() {}
+
+        public void Close() { }
+
+        public Type ReplaceableInterface
+        {
+            get { return typeof(ISoundModule); }
+        }
+
         public string Name { get { return "Sound Module"; } }
-        public bool IsSharedModule { get { return false; } }
-        
+
+        #endregion
+
+        #region Event Handlers
+
         private void OnNewClient(IClientAPI client)
         {
             client.OnSoundTrigger += TriggerSound;
         }
-        
+
+        #endregion
+
+        #region ISoundModule
+
         public virtual void PlayAttachedSound(
             UUID soundID, UUID ownerID, UUID objectID, double gain, Vector3 position, byte flags, float radius)
         {
@@ -96,7 +132,7 @@ namespace OpenSim.Region.CoreModules.World.Sound
                 sp.ControllingClient.SendPlayAttachedSound(soundID, objectID, ownerID, thisSpGain, flags);
             });
         }
-        
+
         public virtual void TriggerSound(
             UUID soundId, UUID ownerID, UUID objectID, UUID parentID, double gain, Vector3 position, UInt64 handle, float radius)
         {
@@ -137,5 +173,7 @@ namespace OpenSim.Region.CoreModules.World.Sound
                     soundId, ownerID, objectID, parentID, handle, position, thisSpGain);
             });
         }
+
+        #endregion
     }
 }
