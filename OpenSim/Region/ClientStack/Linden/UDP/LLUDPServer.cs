@@ -222,6 +222,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_pausedAckTimeout = 1000 * 300; // 5 minutes
             }
 
+            // FIXME: This actually only needs to be done once since the PacketPool is shared across all servers.
+            // However, there is no harm in temporarily doing it multiple times.
+            IConfig packetConfig = configSource.Configs["PacketPool"];
+            if (packetConfig != null)
+            {
+                PacketPool.Instance.RecyclePackets = packetConfig.GetBoolean("RecyclePackets", true);
+                PacketPool.Instance.RecycleDataBlocks = packetConfig.GetBoolean("RecycleDataBlocks", true);
+            }
+
             #region BinaryStats
             config = configSource.Configs["Statistics.Binary"];
             m_shouldCollectStats = false;
