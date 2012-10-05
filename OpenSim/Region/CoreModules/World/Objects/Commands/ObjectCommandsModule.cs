@@ -205,6 +205,26 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             m_console.OutputFormat(sb.ToString());
         }
 
+        private void OutputSopsToConsole(Predicate<SceneObjectPart> searchPredicate)
+        {
+            List<SceneObjectGroup> sceneObjects = m_scene.GetSceneObjectGroups();
+            List<SceneObjectPart> parts = new List<SceneObjectPart>();
+
+            sceneObjects.ForEach(so => parts.AddRange(Array.FindAll<SceneObjectPart>(so.Parts, searchPredicate)));
+
+            StringBuilder sb = new StringBuilder();
+
+            foreach (SceneObjectPart part in parts)
+            {
+                AddScenePartReport(sb, part);
+                sb.Append("\n");
+            }
+
+            sb.AppendFormat("{0} parts found in {1}\n", parts.Count, m_scene.Name);
+
+            m_console.OutputFormat(sb.ToString());
+        }
+
         private void HandleShowObjectByUuid(string module, string[] cmd)
         {
             if (!(m_console.ConsoleScene == null || m_console.ConsoleScene == m_scene))
@@ -366,28 +386,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                 return;
             }
 
-            Predicate<SceneObjectGroup> searchPredicate
-                = so => Util.IsInsideBox(so.AbsolutePosition, startVector, endVector);
-
-            List<SceneObjectPart> parts = new List<SceneObjectPart>();
-
-            Action<SceneObjectGroup> searchAction
-                = so
-                    => so.ForEachPart(sop => { if (Util.IsInsideBox(so.AbsolutePosition, startVector, endVector)) { parts.Add(sop); }});
-
-            m_scene.ForEachSOG(searchAction);
-
-            StringBuilder sb = new StringBuilder();
-
-            foreach (SceneObjectPart part in parts)
-            {
-                AddScenePartReport(sb, part);
-                sb.Append("\n");
-            }
-
-            sb.AppendFormat("{0} parts found in {1}\n", parts.Count, m_scene.Name);
-
-            m_console.OutputFormat(sb.ToString());
+            OutputSopsToConsole(sop => Util.IsInsideBox(sop.AbsolutePosition, startVector, endVector));
         }
 
         private void HandleShowPartByName(string module, string[] cmdparams)
@@ -408,33 +407,19 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
             string name = mainParams[3];
 
-            List<SceneObjectPart> parts = new List<SceneObjectPart>();
-
-            Action<SceneObjectGroup> searchAction;
+            Predicate<SceneObjectPart> searchPredicate;
 
             if (useRegex)
             {
                 Regex nameRegex = new Regex(name);
-                searchAction = so => so.ForEachPart(sop => { if (nameRegex.IsMatch(sop.Name)) { parts.Add(sop); } });
+                searchPredicate = sop => nameRegex.IsMatch(sop.Name);
             }
             else
             {
-                searchAction = so => so.ForEachPart(sop => { if (sop.Name == name) { parts.Add(sop); } });
+                searchPredicate = sop => sop.Name == name;
             }
 
-            m_scene.ForEachSOG(searchAction);
-
-            StringBuilder sb = new StringBuilder();
-
-            foreach (SceneObjectPart part in parts)
-            {
-                AddScenePartReport(sb, part);
-                sb.Append("\n");
-            }
-
-            sb.AppendFormat("{0} parts found in {1}\n", parts.Count, m_scene.Name);
-
-            m_console.OutputFormat(sb.ToString());
+            OutputSopsToConsole(searchPredicate);
         }
 
         private StringBuilder AddSceneObjectReport(StringBuilder sb, SceneObjectGroup so)
