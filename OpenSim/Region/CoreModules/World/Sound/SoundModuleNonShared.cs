@@ -130,12 +130,10 @@ namespace OpenSim.Region.CoreModules.World.Sound
                         dis = 0;
                 }
 
-                float thisSpGain;
-
                 // Scale by distance
-                    thisSpGain = (float)((double)gain * ((radius - dis) / radius));
+                double thisSpGain = gain * ((radius - dis) / radius);
 
-                sp.ControllingClient.SendPlayAttachedSound(soundID, objectID, ownerID, thisSpGain, flags);
+                sp.ControllingClient.SendPlayAttachedSound(soundID, objectID, ownerID, (float)thisSpGain, flags);
             });
         }
 
@@ -170,13 +168,11 @@ namespace OpenSim.Region.CoreModules.World.Sound
                 if (dis > MaxDistance) // Max audio distance
                     return;
 
-                float thisSpGain;
-
                 // Scale by distance
-                    thisSpGain = (float)((double)gain * ((radius - dis) / radius));
+                double thisSpGain = gain * ((radius - dis) / radius);
 
                 sp.ControllingClient.SendTriggeredSound(
-                    soundId, ownerID, objectID, parentID, handle, position, thisSpGain);
+                    soundId, ownerID, objectID, parentID, handle, position, (float)thisSpGain);
             });
         }
 
