@@ -112,6 +112,9 @@ namespace OpenSim.Region.CoreModules.World.Sound
 
             SceneObjectGroup grp = part.ParentGroup;
 
+            if (radius == 0)
+                radius = MaxDistance;
+
             m_scene.ForEachRootScenePresence(delegate(ScenePresence sp)
             {
                 double dis = Util.GetDistanceTo(sp.AbsolutePosition, position);
@@ -130,9 +133,6 @@ namespace OpenSim.Region.CoreModules.World.Sound
                 float thisSpGain;
 
                 // Scale by distance
-                if (radius == 0)
-                    thisSpGain = (float)((double)gain * ((100.0 - dis) / 100.0));
-                else
                     thisSpGain = (float)((double)gain * ((radius - dis) / radius));
 
                 sp.ControllingClient.SendPlayAttachedSound(soundID, objectID, ownerID, thisSpGain, flags);
@@ -160,6 +160,9 @@ namespace OpenSim.Region.CoreModules.World.Sound
                 }
             }
 
+            if (radius == 0)
+                radius = MaxDistance;
+
             m_scene.ForEachRootScenePresence(delegate(ScenePresence sp)
             {
                 double dis = Util.GetDistanceTo(sp.AbsolutePosition, position);
@@ -170,9 +173,6 @@ namespace OpenSim.Region.CoreModules.World.Sound
                 float thisSpGain;
 
                 // Scale by distance
-                if (radius == 0)
-                    thisSpGain = (float)((double)gain * ((100.0 - dis) / 100.0));
-                else
                     thisSpGain = (float)((double)gain * ((radius - dis) / radius));
 
                 sp.ControllingClient.SendTriggeredSound(
