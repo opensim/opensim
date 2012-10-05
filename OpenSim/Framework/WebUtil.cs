@@ -706,9 +706,10 @@ namespace OpenSim.Framework
             // m_log.DebugFormat("[WEB UTIL]: <{0}> start osd request for {1}, method {2}",reqnum,url,method);
 
             int tickstart = Util.EnvironmentTickCount();
-            int tickdata = 0;
+//            int tickdata = 0;
+            int tickdiff = 0;
 
-            //            m_log.DebugFormat("[ASYNC REQUEST]: Starting {0} {1}", verb, requestUrl);
+//            m_log.DebugFormat("[ASYNC REQUEST]: Starting {0} {1}", verb, requestUrl);
 
             Type type = typeof(TRequest);
 
@@ -751,8 +752,8 @@ namespace OpenSim.Framework
                     requestStream.Close();
 
                     // capture how much time was spent writing
-                    tickdata = Util.EnvironmentTickCountSubtract(tickstart);
-
+                    // useless in this async
+//                    tickdata = Util.EnvironmentTickCountSubtract(tickstart);
                     request.BeginGetResponse(delegate(IAsyncResult ar)
                     {
                         response = request.EndGetResponse(ar);
@@ -769,7 +770,8 @@ namespace OpenSim.Framework
                         finally
                         {
                             // Let's not close this
-                            //buffer.Close();
+                            // yes do close it
+                            buffer.Close();
                             respStream.Close();
                             response.Close();
                         }
@@ -837,7 +839,6 @@ namespace OpenSim.Framework
                     }
     
                     //  m_log.DebugFormat("[ASYNC REQUEST]: Received {0}", deserial.ToString());
-
                     try
                     {
                         action(deserial);
@@ -852,9 +853,10 @@ namespace OpenSim.Framework
                 }, null);
             }
 
-            int tickdiff = Util.EnvironmentTickCountSubtract(tickstart);
+            tickdiff = Util.EnvironmentTickCountSubtract(tickstart);
             if (tickdiff > WebUtil.LongCallTime)
             {
+/*
                 string originalRequest = null;
 
                 if (buffer != null)
@@ -873,6 +875,13 @@ namespace OpenSim.Framework
                     tickdiff,
                     tickdata,
                     originalRequest);
+*/
+                m_log.InfoFormat(
+                    "[ASYNC REQUEST]:  Slow WebRequest SETUP <{0}> {1} {2} took {3}ms",
+                    reqnum,
+                    verb,
+                    requestUrl,
+                    tickdiff);
             }
         }
     }
@@ -902,6 +911,8 @@ namespace OpenSim.Framework
             WebRequest request = WebRequest.Create(requestUrl);
             request.Method = verb;
             string respstring = String.Empty;
+
+            int tickset = Util.EnvironmentTickCountSubtract(tickstart);
 
             using (MemoryStream buffer = new MemoryStream())
             {
@@ -979,11 +990,12 @@ namespace OpenSim.Framework
             int tickdiff = Util.EnvironmentTickCountSubtract(tickstart);
             if (tickdiff > WebUtil.LongCallTime)
                 m_log.InfoFormat(
-                    "[FORMS]: Slow request to <{0}> {1} {2} took {3}ms, {4}ms writing, {5}",
+                    "[FORMS]: Slow request to <{0}> {1} {2} took {3}ms {4}ms writing {5}",
                     reqnum,
                     verb,
                     requestUrl,
                     tickdiff,
+                    tickset,
                     tickdata,
                     obj.Length > WebUtil.MaxRequestDiagLength ? obj.Remove(WebUtil.MaxRequestDiagLength) : obj);
 
