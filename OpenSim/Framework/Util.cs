@@ -534,6 +534,19 @@ namespace OpenSim.Framework
         }
 
         /// <summary>
+        /// Determines whether a point is inside a bounding box.
+        /// </summary>
+        /// <param name='v'>/param>
+        /// <param name='min'></param>
+        /// <param name='max'></param>
+        /// <returns></returns>
+        public static bool IsInsideBox(Vector3 v, Vector3 min, Vector3 max)
+        {
+            return v.X >= min.X & v.Y >= min.Y && v.Z >= min.Z
+                && v.X <= max.X && v.Y <= max.Y && v.Z <= max.Z;
+        }
+
+        /// <summary>
         /// Are the co-ordinates of the new region visible from the old region?
         /// </summary>
         /// <param name="oldx">Old region x-coord</param>
