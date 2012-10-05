@@ -2701,7 +2701,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     foreach (KeyValuePair<UUID, TaskInventoryItem> item in TaskInventory)
                     {
-                        if (item.Value.Name == sound && item.Value.Type == (int)AssetType.Sound)
+                        if (item.Value.Type == (int)AssetType.Sound && item.Value.Name == sound)
                         {
                             soundID = item.Value.ItemID;
                             break;
