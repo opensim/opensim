@@ -145,7 +145,7 @@ namespace OpenSim.Region.CoreModules.World.Sound
             if (!m_scene.TryGetSceneObjectPart(objectID, out part))
             {
                 ScenePresence sp;
-                if (!m_scene.TryGetScenePresence(objectID, out sp))
+                if (!m_scene.TryGetScenePresence(ownerID, out sp))
                     return;
             }
             else
