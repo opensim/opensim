@@ -106,8 +106,8 @@ namespace OpenSim.Region.CoreModules.World.Sound
         public virtual void PlayAttachedSound(
             UUID soundID, UUID ownerID, UUID objectID, double gain, Vector3 position, byte flags, float radius)
         {
-            SceneObjectPart part = m_scene.GetSceneObjectPart(objectID);
-            if (part == null)
+            SceneObjectPart part;
+            if (!m_scene.TryGetSceneObjectPart(objectID, out part))
                 return;
 
             SceneObjectGroup grp = part.ParentGroup;
@@ -141,8 +141,8 @@ namespace OpenSim.Region.CoreModules.World.Sound
         public virtual void TriggerSound(
             UUID soundId, UUID ownerID, UUID objectID, UUID parentID, double gain, Vector3 position, UInt64 handle, float radius)
         {
-            SceneObjectPart part = m_scene.GetSceneObjectPart(objectID);
-            if (part == null)
+            SceneObjectPart part;
+            if (!m_scene.TryGetSceneObjectPart(objectID, out part))
             {
                 ScenePresence sp;
                 if (!m_scene.TryGetScenePresence(objectID, out sp))
