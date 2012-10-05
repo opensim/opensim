@@ -192,8 +192,9 @@ public struct ShapeData
 		SHAPE_SPHERE    = 5,
 		SHAPE_MESH      = 6,
 		SHAPE_HULL      = 7,
-		SHAPE_GROUNDPLANE  = 8,
-		SHAPE_TERRAIN   = 9,
+        // following defined by BulletSim
+		SHAPE_GROUNDPLANE  = 20,
+		SHAPE_TERRAIN   = 21,
     };
     public uint ID;
     public PhysicsShapeType Type;
@@ -1106,6 +1107,15 @@ public static extern float GetMargin2(IntPtr shape);
 // Debugging
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern void DumpRigidBody2(IntPtr sim, IntPtr collisionObject);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern void DumpCollisionShape2(IntPtr sim, IntPtr collisionShape);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern void DumpConstraint2(IntPtr sim, IntPtr constrain);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern void DumpAllInfo2(IntPtr sim);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern void DumpMapInfo2(IntPtr sim, IntPtr manInfo);

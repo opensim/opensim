@@ -862,7 +862,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         private void VDetailLog(string msg, params Object[] args)
         {
             if (Prim.PhysicsScene.VehicleLoggingEnabled)
-                Prim.PhysicsScene.PhysicsLogging.Write(msg, args);
+                Prim.PhysicsScene.DetailLog(msg, args);
         }
     }
 }

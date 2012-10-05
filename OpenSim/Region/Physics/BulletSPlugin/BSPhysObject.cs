@@ -207,7 +207,8 @@ public abstract class BSPhysObject : PhysicsActor
     // High performance detailed logging routine used by the physical objects.
     protected void DetailLog(string msg, params Object[] args)
     {
-        PhysicsScene.PhysicsLogging.Write(msg, args);
+        if (PhysicsScene.PhysicsLogging.Enabled)
+            PhysicsScene.DetailLog(msg, args);
     }
 }
 }

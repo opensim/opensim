@@ -254,7 +254,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
 
         // The bounding box for the simulated world. The origin is 0,0,0 unless we're
         //    a child in a mega-region.
-        // Turns out that Bullet really doesn't care about the extents of the simulated
+        // Bullet actually doesn't care about the extents of the simulated
         //    area. It tracks active objects no matter where they are.
         Vector3 worldExtent = new Vector3(Constants.RegionSize, Constants.RegionSize, Constants.RegionHeight);
 
@@ -331,7 +331,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     // Called directly from unmanaged code so don't do much
     private void BulletLoggerPhysLog(string msg)
     {
-        PhysicsLogging.Write("[BULLETS UNMANAGED]:" + msg);
+        DetailLog("[BULLETS UNMANAGED]:" + msg);
     }
 
     public override void Dispose()
@@ -494,8 +494,8 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         m_simulationStep++;
         int numSubSteps = 0;
 
-        // Sometimes needed for debugging to find out what happened before the step
-        // PhysicsLogging.Flush();
+        // DEBUG
+        DetailLog("{0},BSScene.Simulate,beforeStep,ntaimts={1},step={2}", DetailLogZero, numTaints, m_simulationStep);
 
         try
         {
@@ -715,6 +715,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             {
                 try
                 {
+                    DetailLog("{0},BSScene.ProcessTaints,doTaint,id={1}", DetailLogZero, tcbe.ident); // DEBUG DEBUG DEBUG
                     tcbe.callback();
                 }
                 catch (Exception e)
@@ -1270,6 +1271,8 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     public void DetailLog(string msg, params Object[] args)
     {
         PhysicsLogging.Write(msg, args);
+        // Add the Flush() if debugging crashes to get all the messages written out.
+        PhysicsLogging.Flush();         // DEBUG DEBUG DEBUG
     }
     // used to fill in the LocalID when there isn't one
     public const string DetailLogZero = "0000000000";

@@ -196,7 +196,7 @@ public sealed class BSPrim : BSPhysObject
             _isSelected = value;
             PhysicsScene.TaintedObject("BSPrim.setSelected", delegate()
             {
-                // DetailLog("{0},BSPrim.selected,taint,selected={1}", LocalID, _isSelected);
+                DetailLog("{0},BSPrim.selected,taint,selected={1}", LocalID, _isSelected);
                 SetObjectDynamic(false);
             });
         }
@@ -620,8 +620,10 @@ public sealed class BSPrim : BSPhysObject
             BulletSimAPI.UpdateInertiaTensor2(BSBody.ptr);
             // There can be special things needed for implementing linksets
             Linkset.MakeStatic(this);
-            // The activation state is 'disabled' so Bullet will not try to act on it
-            BulletSimAPI.ForceActivationState2(BSBody.ptr, ActivationState.DISABLE_SIMULATION);
+            // The activation state is 'disabled' so Bullet will not try to act on it.
+            // BulletSimAPI.ForceActivationState2(BSBody.ptr, ActivationState.DISABLE_SIMULATION);
+            // Start it out sleeping and physical actions could wake it up.
+            BulletSimAPI.ForceActivationState2(BSBody.ptr, ActivationState.ISLAND_SLEEPING);
 
             BSBody.collisionFilter = CollisionFilterGroups.StaticObjectFilter;
             BSBody.collisionMask = CollisionFilterGroups.StaticObjectMask;
@@ -1204,6 +1206,7 @@ public sealed class BSPrim : BSPhysObject
         {
             // Called if the current prim body is about to be destroyed.
             // Remove all the physical dependencies on the old body.
+            // (Maybe someday make the changing of BSShape an event handled by BSLinkset.)
             needToRestoreLinkset = Linkset.RemoveBodyDependencies(this);
         });
 
