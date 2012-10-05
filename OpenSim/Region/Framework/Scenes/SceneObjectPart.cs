@@ -2287,37 +2287,6 @@ namespace OpenSim.Region.Framework.Scenes
             ScheduleTerseUpdate();
         }
 
-        public void PreloadSound(string sound)
-        {
-            // UUID ownerID = OwnerID;
-            UUID objectID = ParentGroup.RootPart.UUID;
-            UUID soundID = UUID.Zero;
-
-            if (!UUID.TryParse(sound, out soundID))
-            {
-                //Trys to fetch sound id from prim's inventory.
-                //Prim's inventory doesn't support non script items yet
-                
-                lock (TaskInventory)
-                {
-                    foreach (KeyValuePair<UUID, TaskInventoryItem> item in TaskInventory)
-                    {
-                        if (item.Value.Name == sound)
-                        {
-                            soundID = item.Value.ItemID;
-                            break;
-                        }
-                    }
-                }
-            }
-
-            ParentGroup.Scene.ForEachRootScenePresence(delegate(ScenePresence sp)
-            {
-                if (!(Util.GetDistanceTo(sp.AbsolutePosition, AbsolutePosition) >= 100))
-                    sp.ControllingClient.SendPreLoadSound(objectID, objectID, soundID);
-            });
-        }
-
         public void RemFlag(PrimFlags flag)
         {
             // PrimFlags prevflag = Flags;

@@ -74,5 +74,15 @@ namespace OpenSim.Region.Framework.Interfaces
         /// </summary>
         /// <param name="objectID">Sound source ID</param>
         void StopSound(UUID objectID);
+
+        /// <summary>
+        /// Preload sound to viewers within range.
+        /// </summary>
+        /// <param name="soundID">Sound asset ID</param>
+        /// <param name="objectID">Sound source ID</param>
+        /// <param name="radius">
+        /// Radius used to determine which viewers should preload the sound.
+        /// </param>
+        void PreloadSound(UUID soundID, UUID objectID, float radius);
     }
 }

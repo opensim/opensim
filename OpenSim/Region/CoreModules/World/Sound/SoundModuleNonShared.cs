@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 
 using Nini.Config;
@@ -221,6 +222,25 @@ namespace OpenSim.Region.CoreModules.World.Sound
                 m_host.ScheduleFullUpdate();
                 m_host.SendFullUpdateToAllClients();
             }
+        }
+
+        public virtual void PreloadSound(UUID soundID, UUID objectID, float radius)
+        {
+            SceneObjectPart part;
+            if (soundID == UUID.Zero
+                    || !m_scene.TryGetSceneObjectPart(objectID, out part))
+            {
+                return;
+            }
+
+            if (radius == 0)
+                radius = MaxDistance;
+
+            m_scene.ForEachRootScenePresence(delegate(ScenePresence sp)
+            {
+                if (!(Util.GetDistanceTo(sp.AbsolutePosition, part.AbsolutePosition) >= MaxDistance))
+                    sp.ControllingClient.SendPreLoadSound(objectID, objectID, soundID);
+            });
         }
 
         #endregion

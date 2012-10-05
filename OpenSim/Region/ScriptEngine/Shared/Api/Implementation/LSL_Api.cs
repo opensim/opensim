@@ -2461,7 +2461,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llPreloadSound(string sound)
         {
             m_host.AddScriptLPS(1);
-            m_host.PreloadSound(sound);
+            if (m_SoundModule != null)
+                m_SoundModule.PreloadSound(KeyOrName(sound), m_host.UUID, 0);
             ScriptSleep(1000);
         }
 
