@@ -2684,10 +2684,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="flags"></param>
         public void SendSound(string sound, double volume, bool triggered, byte flags, float radius, bool useMaster, bool isMaster)
         {
-            if (volume > 1)
-                volume = 1;
-            if (volume < 0)
-                volume = 0;
+            volume = Util.Clip((float)volume, 0, 1);
 
             UUID ownerID = OwnerID;
             UUID objectID = ParentGroup.RootPart.UUID;
