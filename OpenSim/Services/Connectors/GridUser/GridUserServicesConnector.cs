@@ -207,7 +207,7 @@ namespace OpenSim.Services.Connectors
                     if ((replyData != null) && replyData.ContainsKey("result") && (replyData["result"] != null))
                     {
                         if (replyData["result"] is Dictionary<string, object>)
-                            guinfo = new GridUserInfo((Dictionary<string, object>)replyData["result"]);
+                            guinfo = Create((Dictionary<string, object>)replyData["result"]);
                     }
 
                     return guinfo;
@@ -273,7 +273,7 @@ namespace OpenSim.Services.Connectors
                 {
                     if (griduser is Dictionary<string, object>)
                     {
-                        GridUserInfo pinfo = new GridUserInfo((Dictionary<string, object>)griduser);
+                        GridUserInfo pinfo = Create((Dictionary<string, object>)griduser);
                         rinfos.Add(pinfo);
                     }
                     else
@@ -285,6 +285,11 @@ namespace OpenSim.Services.Connectors
                 m_log.DebugFormat("[GRID USER CONNECTOR]: GetGridUserInfo received null response");
 
             return rinfos.ToArray();
+        }
+
+        protected virtual GridUserInfo Create(Dictionary<string, object> griduser)
+        {
+            return new GridUserInfo(griduser);
         }
     }
 }
