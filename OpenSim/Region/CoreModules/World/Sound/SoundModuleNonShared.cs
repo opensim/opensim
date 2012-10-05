@@ -48,13 +48,19 @@ namespace OpenSim.Region.CoreModules.World.Sound
 
         public bool Enabled { get; private set; }
 
+        public float MaxDistance { get; private set; }
+
         #region INonSharedRegionModule
 
         public void Initialise(IConfigSource configSource)
         {
             IConfig config = configSource.Configs["Sounds"];
 
-            Enabled = (config != null && config.GetString("Module", "SoundModuleNonShared") == "SoundModuleNonShared");
+            if (config == null)
+                return;
+
+            Enabled = config.GetString("Module", "SoundModuleNonShared") == "SoundModuleNonShared";
+            MaxDistance = config.GetFloat("MaxDistance", 100.0f);
         }
 
         public void AddRegion(Scene scene) { }
@@ -109,7 +115,7 @@ namespace OpenSim.Region.CoreModules.World.Sound
             m_scene.ForEachRootScenePresence(delegate(ScenePresence sp)
             {
                 double dis = Util.GetDistanceTo(sp.AbsolutePosition, position);
-                if (dis > 100.0) // Max audio distance
+                if (dis > MaxDistance) // Max audio distance
                     return;
 
                 if (grp.IsAttachment)
@@ -158,7 +164,7 @@ namespace OpenSim.Region.CoreModules.World.Sound
             {
                 double dis = Util.GetDistanceTo(sp.AbsolutePosition, position);
 
-                if (dis > 100.0) // Max audio distance
+                if (dis > MaxDistance) // Max audio distance
                     return;
 
                 float thisSpGain;
