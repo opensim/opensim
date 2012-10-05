@@ -1376,110 +1376,6 @@
       </Files>
     </Project>
 
-    <Project frameworkVersion="v3_5" name="OpenSim.Region.CoreModules" path="OpenSim/Region/CoreModules" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-          <AllowUnsafe>true</AllowUnsafe>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-          <AllowUnsafe>true</AllowUnsafe>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System"/>
-      <Reference name="System.Core"/>
-      <Reference name="System.Xml"/>
-      <Reference name="System.Xml.Linq"/>
-      <Reference name="System.Drawing"/>
-      <Reference name="System.Web"/>
-      <Reference name="NDesk.Options" path="../../../bin/"/>
-      <Reference name="OpenMetaverseTypes" path="../../../bin/"/>
-      <Reference name="OpenMetaverse.StructuredData" path="../../../bin/"/>
-      <Reference name="OpenMetaverse" path="../../../bin/"/>
-      <Reference name="CSJ2K" path="../../../bin/"/>
-      <Reference name="Warp3D" path="../../../bin/"/>
-      <Reference name="OpenSim.Capabilities"/>
-      <Reference name="OpenSim.Data"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Communications"/>
-      <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="OpenSim.Framework.Monitoring"/>
-      <Reference name="OpenSim.Framework.Serialization"/>
-      <Reference name="OpenSim.Framework.Servers"/>
-      <Reference name="OpenSim.Framework.Servers.HttpServer"/>
-      <Reference name="OpenSim.Region.Framework"/>
-      <Reference name="OpenSim.Region.Physics.Manager"/>
-      <Reference name="OpenSim.Server.Base"/>
-      <Reference name="OpenSim.Server.Handlers"/>
-      <Reference name="OpenSim.Services.Connectors"/>
-      <Reference name="OpenSim.Services.Base"/>
-      <Reference name="OpenSim.Services.Interfaces"/>
-      <Reference name="Ionic.Zip" path="../../../bin/"/>
-
-      <Reference name="GlynnTucker.Cache" path="../../../bin/"/>
-
-      <!-- For scripting in funny languages by default -->
-      <Reference name="XMLRPC" path="../../../bin/"/>
-      <Reference name="OpenSim.Framework.Communications"/>
-      <Reference name="Nini" path="../../../bin/"/>
-      <Reference name="log4net" path="../../../bin/"/>
-      <Reference name="DotNetOpenMail" path="../../../bin/"/>
-
-      <!-- To allow regions to have mono addins -->
-      <Reference name="Mono.Addins" path="../../../bin/"/>
-
-      <Files>
-        <Match buildAction="EmbeddedResource" path="Resources" pattern="*.addin.xml" recurse="true"/>
-        <Match pattern="*.cs" recurse="true">
-          <Exclude name="Tests" pattern="Tests"/>
-        </Match>
-        <Match buildAction="EmbeddedResource" path="Resources" pattern="*.addin.xml" recurse="true"/>
-      </Files>
-    </Project>
-
-    <Project frameworkVersion="v3_5" name="OpenSim.Region.RegionCombinerModule" path="OpenSim/Region/RegionCombinerModule" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System"/>
-      <Reference name="System.Xml"/>
-      <Reference name="OpenMetaverseTypes" path="../../../bin/"/>
-      <Reference name="OpenMetaverse" path="../../../bin/"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Communications"/>
-      <Reference name="OpenSim.Region.Framework"/>
-      <Reference name="OpenSim.Server.Base"/>
-      <Reference name="OpenSim.Server.Handlers"/>
-      <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="OpenSim.Region.Physics.Manager"/>
-      <Reference name="OpenSim.Framework.Communications"/>
-      <Reference name="OpenSim.Region.CoreModules"/>
-      <Reference name="Nini" path="../../../bin/"/>
-      <Reference name="log4net" path="../../../bin/"/>
-
-      <!-- To allow regions to have mono addins -->
-      <Reference name="Mono.Addins" path="../../../bin/"/>
-
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-        <Match buildAction="EmbeddedResource" path="Resources" pattern="*.addin.xml" recurse="true"/>
-      </Files>
-    </Project>
-
     <Project frameworkVersion="v3_5" name="OpenSim.Region.ClientStack" path="OpenSim/Region/ClientStack" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -1597,6 +1493,111 @@
         <Match pattern="*.cs" recurse="true">
           <Exclude name="Tests" pattern="Tests"/>
         </Match>
+      </Files>
+    </Project>
+
+    <Project frameworkVersion="v3_5" name="OpenSim.Region.CoreModules" path="OpenSim/Region/CoreModules" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+          <AllowUnsafe>true</AllowUnsafe>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+          <AllowUnsafe>true</AllowUnsafe>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../bin/</ReferencePath>
+      <Reference name="System"/>
+      <Reference name="System.Core"/>
+      <Reference name="System.Xml"/>
+      <Reference name="System.Xml.Linq"/>
+      <Reference name="System.Drawing"/>
+      <Reference name="System.Web"/>
+      <Reference name="NDesk.Options" path="../../../bin/"/>
+      <Reference name="OpenMetaverseTypes" path="../../../bin/"/>
+      <Reference name="OpenMetaverse.StructuredData" path="../../../bin/"/>
+      <Reference name="OpenMetaverse" path="../../../bin/"/>
+      <Reference name="CSJ2K" path="../../../bin/"/>
+      <Reference name="Warp3D" path="../../../bin/"/>
+      <Reference name="OpenSim.Capabilities"/>
+      <Reference name="OpenSim.Data"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Communications"/>
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Framework.Monitoring"/>
+      <Reference name="OpenSim.Framework.Serialization"/>
+      <Reference name="OpenSim.Framework.Servers"/>
+      <Reference name="OpenSim.Framework.Servers.HttpServer"/>
+      <Reference name="OpenSim.Region.ClientStack.LindenUDP"/>
+      <Reference name="OpenSim.Region.Framework"/>
+      <Reference name="OpenSim.Region.Physics.Manager"/>
+      <Reference name="OpenSim.Server.Base"/>
+      <Reference name="OpenSim.Server.Handlers"/>
+      <Reference name="OpenSim.Services.Connectors"/>
+      <Reference name="OpenSim.Services.Base"/>
+      <Reference name="OpenSim.Services.Interfaces"/>
+      <Reference name="Ionic.Zip" path="../../../bin/"/>
+
+      <Reference name="GlynnTucker.Cache" path="../../../bin/"/>
+
+      <!-- For scripting in funny languages by default -->
+      <Reference name="XMLRPC" path="../../../bin/"/>
+      <Reference name="OpenSim.Framework.Communications"/>
+      <Reference name="Nini" path="../../../bin/"/>
+      <Reference name="log4net" path="../../../bin/"/>
+      <Reference name="DotNetOpenMail" path="../../../bin/"/>
+
+      <!-- To allow regions to have mono addins -->
+      <Reference name="Mono.Addins" path="../../../bin/"/>
+
+      <Files>
+        <Match buildAction="EmbeddedResource" path="Resources" pattern="*.addin.xml" recurse="true"/>
+        <Match pattern="*.cs" recurse="true">
+          <Exclude name="Tests" pattern="Tests"/>
+        </Match>
+        <Match buildAction="EmbeddedResource" path="Resources" pattern="*.addin.xml" recurse="true"/>
+      </Files>
+    </Project>
+
+    <Project frameworkVersion="v3_5" name="OpenSim.Region.RegionCombinerModule" path="OpenSim/Region/RegionCombinerModule" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../bin/</ReferencePath>
+      <Reference name="System"/>
+      <Reference name="System.Xml"/>
+      <Reference name="OpenMetaverseTypes" path="../../../bin/"/>
+      <Reference name="OpenMetaverse" path="../../../bin/"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Communications"/>
+      <Reference name="OpenSim.Region.Framework"/>
+      <Reference name="OpenSim.Server.Base"/>
+      <Reference name="OpenSim.Server.Handlers"/>
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Region.Physics.Manager"/>
+      <Reference name="OpenSim.Framework.Communications"/>
+      <Reference name="OpenSim.Region.CoreModules"/>
+      <Reference name="Nini" path="../../../bin/"/>
+      <Reference name="log4net" path="../../../bin/"/>
+
+      <!-- To allow regions to have mono addins -->
+      <Reference name="Mono.Addins" path="../../../bin/"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+        <Match buildAction="EmbeddedResource" path="Resources" pattern="*.addin.xml" recurse="true"/>
       </Files>
     </Project>
 
