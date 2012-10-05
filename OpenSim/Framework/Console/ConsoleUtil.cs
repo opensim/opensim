@@ -83,7 +83,10 @@ public class ConsoleUtil
         List<string> components = rawConsoleVector.Split(VectorSeparatorChars).ToList();
 
         if (components.Count < 1 || components.Count > 3)
+        {
+            vector = Vector3.Zero;
             return false;
+        }
 
         for (int i = components.Count; i < 3; i++)
             components.Add("");
