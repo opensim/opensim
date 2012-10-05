@@ -32,11 +32,39 @@ namespace OpenSim.Region.Framework.Interfaces
 {
     public interface ISoundModule
     {
+        /// <summary>
+        /// Maximum distance between a sound source and a recipient.
+        /// </summary>
         float MaxDistance { get; }
 
+        /// <summary>
+        /// Play a sound from an object.
+        /// </summary>
+        /// <param name="soundID">Sound asset ID</param>
+        /// <param name="ownerID">Sound source owner</param>
+        /// <param name="objectID">Sound source ID</param>
+        /// <param name="gain">Sound volume</param>
+        /// <param name="position">Sound source position</param>
+        /// <param name="flags">Sound flags</param>
+        /// <param name="radius">
+        /// Radius used to affect gain over distance.
+        /// </param>
         void PlayAttachedSound(UUID soundID, UUID ownerID, UUID objectID,
                 double gain, Vector3 position, byte flags, float radius);
 
+        /// <summary>
+        /// Trigger a sound in the scene.
+        /// </summary>
+        /// <param name="soundId">Sound asset ID</param>
+        /// <param name="ownerID">Sound source owner</param>
+        /// <param name="objectID">Sound source ID</param>
+        /// <param name="parentID">Sound source parent.</param>
+        /// <param name="gain">Sound volume</param>
+        /// <param name="position">Sound source position</param>
+        /// <param name="handle"></param>
+        /// <param name="radius">
+        /// Radius used to affect gain over distance.
+        /// </param>
         void TriggerSound(
                 UUID soundId, UUID ownerID, UUID objectID, UUID parentID,
                 double gain, Vector3 position, UInt64 handle, float radius);
