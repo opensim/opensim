@@ -157,6 +157,25 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                 "Show details of scene object parts with the given name.",
                 "If --regex is specified then the name is treatead as a regular expression",
                 HandleShowPartByName);
+
+            m_console.Commands.AddCommand(
+                "Objects",
+                false,
+                "show part pos",
+                "show part pos <start-coord> to <end-coord>",
+                "Show details of scene object parts within the given area.",
+                "Each component of the coord is comma separated.  There must be no spaces between the commas.\n"
+                    + "If you don't care about the z component you can simply omit it.\n"
+                    + "If you don't care about the x or y components then you can leave them blank (though a comma is still required)\n"
+                    + "If you want to specify the maxmimum value of a component then you can use ~ instead of a number\n"
+                    + "If you want to specify the minimum value of a component then you can use -~ instead of a number\n"
+                    + "e.g.\n"
+                    + "show object pos 20,20,20 to 40,40,40\n"
+                    + "show object pos 20,20 to 40,40\n"
+                    + "show object pos ,20,20 to ,40,40\n"
+                    + "show object pos ,,30 to ,,~\n"
+                    + "show object pos ,,-~ to ,,30",
+                HandleShowPartByPos);
         }
 
         public void RemoveRegion(Scene scene)
@@ -314,6 +333,59 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
             StringBuilder sb = new StringBuilder();
             AddScenePartReport(sb, sop);
+
+            m_console.OutputFormat(sb.ToString());
+        }
+
+        private void HandleShowPartByPos(string module, string[] cmdparams)
+        {
+            if (!(m_console.ConsoleScene == null || m_console.ConsoleScene == m_scene))
+                return;
+
+            if (cmdparams.Length < 5)
+            {
+                m_console.OutputFormat("Usage: show part pos <start-coord> to <end-coord>");
+                return;
+            }
+
+            string rawConsoleStartVector = cmdparams[3];
+            Vector3 startVector;
+
+            if (!ConsoleUtil.TryParseConsoleMinVector(rawConsoleStartVector, out startVector))
+            {
+                m_console.OutputFormat("Error: Start vector {0} does not have a valid format", rawConsoleStartVector);
+                return;
+            }
+
+            string rawConsoleEndVector = cmdparams[5];
+            Vector3 endVector;
+
+            if (!ConsoleUtil.TryParseConsoleMaxVector(rawConsoleEndVector, out endVector))
+            {
+                m_console.OutputFormat("Error: End vector {0} does not have a valid format", rawConsoleEndVector);
+                return;
+            }
+
+            Predicate<SceneObjectGroup> searchPredicate
+                = so => Util.IsInsideBox(so.AbsolutePosition, startVector, endVector);
+
+            List<SceneObjectPart> parts = new List<SceneObjectPart>();
+
+            Action<SceneObjectGroup> searchAction
+                = so
+                    => so.ForEachPart(sop => { if (Util.IsInsideBox(so.AbsolutePosition, startVector, endVector)) { parts.Add(sop); }});
+
+            m_scene.ForEachSOG(searchAction);
+
+            StringBuilder sb = new StringBuilder();
+
+            foreach (SceneObjectPart part in parts)
+            {
+                AddScenePartReport(sb, part);
+                sb.Append("\n");
+            }
+
+            sb.AppendFormat("{0} parts found in {1}\n", parts.Count, m_scene.Name);
 
             m_console.OutputFormat(sb.ToString());
         }
