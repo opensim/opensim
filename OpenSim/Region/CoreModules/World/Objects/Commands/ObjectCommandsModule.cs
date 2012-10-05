@@ -139,7 +139,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                     + "show object pos 20,20 to 40,40\n"
                     + "show object pos ,20,20 to ,40,40\n"
                     + "show object pos ,,30 to ,,~\n"
-                    + "show object pos ,,-~ to ,,30\n",
+                    + "show object pos ,,-~ to ,,30",
                 HandleShowObjectByPos);
 
             m_console.Commands.AddCommand(
@@ -167,6 +167,23 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
         public void RegionLoaded(Scene scene)
         {
 //            m_log.DebugFormat("[OBJECTS COMMANDS MODULE]: REGION {0} LOADED", scene.RegionInfo.RegionName);
+        }
+
+        private void OutputSogsToConsole(Predicate<SceneObjectGroup> searchPredicate)
+        {
+            List<SceneObjectGroup> sceneObjects = m_scene.GetSceneObjectGroups().FindAll(searchPredicate);
+
+            StringBuilder sb = new StringBuilder();
+
+            foreach (SceneObjectGroup so in sceneObjects)
+            {
+                AddSceneObjectReport(sb, so);
+                sb.Append("\n");
+            }
+
+            sb.AppendFormat("{0} object(s) found in {1}\n", sceneObjects.Count, m_scene.Name);
+
+            m_console.OutputFormat(sb.ToString());
         }
 
         private void HandleShowObjectByUuid(string module, string[] cmd)
@@ -219,32 +236,19 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
             string name = mainParams[3];
 
-            List<SceneObjectGroup> sceneObjects = new List<SceneObjectGroup>();
-            Action<SceneObjectGroup> searchAction;
+            Predicate<SceneObjectGroup> searchPredicate;
 
             if (useRegex)
             {
                 Regex nameRegex = new Regex(name);
-                searchAction = so => { if (nameRegex.IsMatch(so.Name)) { sceneObjects.Add(so); }};
+                searchPredicate = so => nameRegex.IsMatch(so.Name);
             }
             else
             {
-                searchAction = so => { if (so.Name == name) { sceneObjects.Add(so); }};
+                searchPredicate = so => so.Name == name;
             }
 
-            m_scene.ForEachSOG(searchAction);
-
-            StringBuilder sb = new StringBuilder();
-
-            foreach (SceneObjectGroup so in sceneObjects)
-            {
-                AddSceneObjectReport(sb, so);
-                sb.Append("\n");
-            }
-
-            sb.AppendFormat("{0} objects found in {1}\n", sceneObjects.Count, m_scene.Name);
-
-            m_console.OutputFormat(sb.ToString());
+            OutputSogsToConsole(searchPredicate);
         }
 
         private void HandleShowObjectByPos(string module, string[] cmdparams)
@@ -276,23 +280,10 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                 return;
             }
 
-            List<SceneObjectGroup> sceneObjects = new List<SceneObjectGroup>();
-            Action<SceneObjectGroup> searchAction
-                = so => { if (Util.IsInsideBox(so.AbsolutePosition, startVector, endVector)) { sceneObjects.Add(so); }};
+            Predicate<SceneObjectGroup> searchPredicate
+                = so => Util.IsInsideBox(so.AbsolutePosition, startVector, endVector);
 
-            m_scene.ForEachSOG(searchAction);
-
-            StringBuilder sb = new StringBuilder();
-
-            foreach (SceneObjectGroup so in sceneObjects)
-            {
-                AddSceneObjectReport(sb, so);
-                sb.Append("\n");
-            }
-
-            sb.AppendFormat("{0} objects found in {1}\n", sceneObjects.Count, m_scene.Name);
-
-            m_console.OutputFormat(sb.ToString());
+            OutputSogsToConsole(searchPredicate);
         }
 
         private void HandleShowPartByUuid(string module, string[] cmd)
