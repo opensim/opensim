@@ -215,12 +215,6 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
             m_scene.ForEachSOG(searchAction);
 
-            if (sceneObjects.Count == 0)
-            {
-                m_console.OutputFormat("No objects with name {0} found in {1}", name, m_scene.RegionInfo.RegionName);
-                return;
-            }
-
             StringBuilder sb = new StringBuilder();
 
             foreach (SceneObjectGroup so in sceneObjects)
@@ -228,6 +222,8 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                 AddSceneObjectReport(sb, so);
                 sb.Append("\n");
             }
+
+            sb.AppendFormat("{0} objects found in {1}\n", sceneObjects.Count, m_scene.Name);
 
             m_console.OutputFormat(sb.ToString());
         }
@@ -298,12 +294,6 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
             m_scene.ForEachSOG(searchAction);
 
-            if (parts.Count == 0)
-            {
-                m_console.OutputFormat("No parts with name {0} found in {1}", name, m_scene.RegionInfo.RegionName);
-                return;
-            }
-
             StringBuilder sb = new StringBuilder();
 
             foreach (SceneObjectPart part in parts)
@@ -311,6 +301,8 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                 AddScenePartReport(sb, part);
                 sb.Append("\n");
             }
+
+            sb.AppendFormat("{0} parts found in {1}\n", parts.Count, m_scene.Name);
 
             m_console.OutputFormat(sb.ToString());
         }
