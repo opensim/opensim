@@ -107,6 +107,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected IUrlModule m_UrlModule = null;
         protected Dictionary<UUID, UserInfoCacheEntry> m_userInfoCache = new Dictionary<UUID, UserInfoCacheEntry>();
         protected int EMAIL_PAUSE_TIME = 20;  // documented delay value for smtp.
+        protected ISoundModule m_SoundModule = null;
 
         public void Initialize(IScriptEngine ScriptEngine, SceneObjectPart host, TaskInventoryItem item)
         {
@@ -119,6 +120,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_TransferModule =
                     m_ScriptEngine.World.RequestModuleInterface<IMessageTransferModule>();
             m_UrlModule = m_ScriptEngine.World.RequestModuleInterface<IUrlModule>();
+            m_SoundModule = m_ScriptEngine.World.RequestModuleInterface<ISoundModule>();
 
             AsyncCommands = new AsyncCommandManager(ScriptEngine);
         }
@@ -2451,43 +2453,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llStopSound()
         {
             m_host.AddScriptLPS(1);
-            m_host.AdjustSoundGain(0);
-            // Xantor 20080528: Clear prim data of sound instead
-            if (m_host.ParentGroup.LoopSoundSlavePrims.Contains(m_host))
-            {
-                if (m_host.ParentGroup.LoopSoundMasterPrim == m_host)
-                {
-                    foreach (SceneObjectPart part in m_host.ParentGroup.LoopSoundSlavePrims)
-                    {
-                        part.Sound = UUID.Zero;
-                        part.SoundGain = 0;
-                        part.SoundFlags = 0;
-                        part.SoundRadius = 0;
-                        part.ScheduleFullUpdate();
-                        part.SendFullUpdateToAllClients();
-                    }
-                    m_host.ParentGroup.LoopSoundMasterPrim = null;
-                    m_host.ParentGroup.LoopSoundSlavePrims.Clear();
-                }
-                else
-                {
-                    m_host.Sound = UUID.Zero;
-                    m_host.SoundGain = 0;
-                    m_host.SoundFlags = 0;
-                    m_host.SoundRadius = 0;
-                    m_host.ScheduleFullUpdate();
-                    m_host.SendFullUpdateToAllClients();
-                }
-            }
-            else
-            {
-                m_host.Sound = UUID.Zero;
-                m_host.SoundGain = 0;
-                m_host.SoundFlags = 0;
-                m_host.SoundRadius = 0;
-                m_host.ScheduleFullUpdate();
-                m_host.SendFullUpdateToAllClients();
-            }
+
+            if (m_SoundModule != null)
+                m_SoundModule.StopSound(m_host.UUID);
         }
 
         public void llPreloadSound(string sound)

@@ -178,6 +178,51 @@ namespace OpenSim.Region.CoreModules.World.Sound
             });
         }
 
+        public virtual void StopSound(UUID objectID)
+        {
+            SceneObjectPart m_host;
+            if (!m_scene.TryGetSceneObjectPart(objectID, out m_host))
+                return;
+
+            m_host.AdjustSoundGain(0);
+            // Xantor 20080528: Clear prim data of sound instead
+            if (m_host.ParentGroup.LoopSoundSlavePrims.Contains(m_host))
+            {
+                if (m_host.ParentGroup.LoopSoundMasterPrim == m_host)
+                {
+                    foreach (SceneObjectPart part in m_host.ParentGroup.LoopSoundSlavePrims)
+                    {
+                        part.Sound = UUID.Zero;
+                        part.SoundGain = 0;
+                        part.SoundFlags = 0;
+                        part.SoundRadius = 0;
+                        part.ScheduleFullUpdate();
+                        part.SendFullUpdateToAllClients();
+                    }
+                    m_host.ParentGroup.LoopSoundMasterPrim = null;
+                    m_host.ParentGroup.LoopSoundSlavePrims.Clear();
+                }
+                else
+                {
+                    m_host.Sound = UUID.Zero;
+                    m_host.SoundGain = 0;
+                    m_host.SoundFlags = 0;
+                    m_host.SoundRadius = 0;
+                    m_host.ScheduleFullUpdate();
+                    m_host.SendFullUpdateToAllClients();
+                }
+            }
+            else
+            {
+                m_host.Sound = UUID.Zero;
+                m_host.SoundGain = 0;
+                m_host.SoundFlags = 0;
+                m_host.SoundRadius = 0;
+                m_host.ScheduleFullUpdate();
+                m_host.SendFullUpdateToAllClients();
+            }
+        }
+
         #endregion
     }
 }
