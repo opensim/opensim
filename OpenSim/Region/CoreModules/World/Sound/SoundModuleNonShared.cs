@@ -251,22 +251,7 @@ namespace OpenSim.Region.CoreModules.World.Sound
                 return;
 
             m_host.ParentGroup.LoopSoundMasterPrim = m_host;
-            lock (m_host.ParentGroup.LoopSoundSlavePrims)
-            {
-                foreach (SceneObjectPart prim in m_host.ParentGroup.LoopSoundSlavePrims)
-                {
-                    if (prim.Sound != UUID.Zero)
-                        StopSound(objectID);
 
-                    prim.Sound = soundID;
-                    prim.SoundGain = volume;
-                    prim.SoundFlags = 1;      // looping
-                    prim.SoundRadius = radius;
-
-                    prim.ScheduleFullUpdate();
-                    prim.SendFullUpdateToAllClients();
-                }
-            }
             if (m_host.Sound != UUID.Zero)
                 StopSound(objectID);
 
