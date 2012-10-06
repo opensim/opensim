@@ -224,7 +224,7 @@ namespace OpenSim.Region.CoreModules.World.Sound
             }
         }
 
-        public virtual void PreloadSound(UUID soundID, UUID objectID, float radius)
+        public virtual void PreloadSound(UUID objectID, UUID soundID, float radius)
         {
             SceneObjectPart part;
             if (soundID == UUID.Zero

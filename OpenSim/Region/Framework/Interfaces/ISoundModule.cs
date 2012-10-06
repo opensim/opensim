@@ -78,12 +78,12 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <summary>
         /// Preload sound to viewers within range.
         /// </summary>
-        /// <param name="soundID">Sound asset ID</param>
         /// <param name="objectID">Sound source ID</param>
+        /// <param name="soundID">Sound asset ID</param>
         /// <param name="radius">
         /// Radius used to determine which viewers should preload the sound.
         /// </param>
-        void PreloadSound(UUID soundID, UUID objectID, float radius);
+        void PreloadSound(UUID objectID, UUID soundID, float radius);
 
         /// <summary>
         /// Declare object as new sync master, play specified sound at
