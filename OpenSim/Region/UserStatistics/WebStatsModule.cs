@@ -61,7 +61,7 @@ namespace OpenSim.Region.UserStatistics
         /// <summary>
         /// User statistics sessions keyed by agent ID
         /// </summary>
-        private Dictionary<UUID, UserSessionID> m_sessions = new Dictionary<UUID, UserSessionID>();
+        private Dictionary<UUID, UserSession> m_sessions = new Dictionary<UUID, UserSession>();
 
         private List<Scene> m_scenes = new List<Scene>();
         private Dictionary<string, IStatsController> reports = new Dictionary<string, IStatsController>();
@@ -325,12 +325,12 @@ namespace OpenSim.Region.UserStatistics
 
             lock (m_sessions)
             {
-                UserSessionID uid;
+                UserSession uid;
 
                 if (!m_sessions.ContainsKey(agent.UUID))
                 {
                     UserSessionData usd = UserSessionUtil.newUserSessionData();
-                    uid = new UserSessionID();
+                    uid = new UserSession();
                     uid.name_f = agent.Firstname;
                     uid.name_l = agent.Lastname;
                     uid.session_data = usd;
@@ -415,9 +415,9 @@ namespace OpenSim.Region.UserStatistics
             return String.Empty;
         }
 
-        private UserSessionID ParseViewerStats(string request, UUID agentID)
+        private UserSession ParseViewerStats(string request, UUID agentID)
         {
-            UserSessionID uid = new UserSessionID();
+            UserSession uid = new UserSession();
             UserSessionData usd;
             OSD message = OSDParser.DeserializeLLSDXml(request);
             OSDMap mmap;
@@ -429,7 +429,7 @@ namespace OpenSim.Region.UserStatistics
                     if (!m_sessions.ContainsKey(agentID))
                     {
                         m_log.WarnFormat("[WEB STATS MODULE]: no session for stat disclosure for agent {0}", agentID);
-                        return new UserSessionID();
+                        return new UserSession();
                     }
 
                     uid = m_sessions[agentID];
@@ -440,14 +440,14 @@ namespace OpenSim.Region.UserStatistics
                 {
                     // parse through the beginning to locate the session
                     if (message.Type != OSDType.Map)
-                        return new UserSessionID();
+                        return new UserSession();
 
                     mmap = (OSDMap)message;
                     {
                         UUID sessionID = mmap["session_id"].AsUUID();
 
                         if (sessionID == UUID.Zero)
-                            return new UserSessionID();
+                            return new UserSession();
 
 
                         // search through each session looking for the owner
@@ -466,7 +466,7 @@ namespace OpenSim.Region.UserStatistics
                         // can't find a session
                         if (agentID == UUID.Zero)
                         {
-                            return new UserSessionID();
+                            return new UserSession();
                         }
                     }
                 }
@@ -475,12 +475,12 @@ namespace OpenSim.Region.UserStatistics
             usd = uid.session_data;
 
             if (message.Type != OSDType.Map)
-                return new UserSessionID();
+                return new UserSession();
 
             mmap = (OSDMap)message;
             {
                 if (mmap["agent"].Type != OSDType.Map)
-                    return new UserSessionID();
+                    return new UserSession();
                 OSDMap agent_map = (OSDMap)mmap["agent"];
                 usd.agent_id = agentID;
                 usd.name_f = uid.name_f;
@@ -500,7 +500,7 @@ namespace OpenSim.Region.UserStatistics
                                                  (float)agent_map["fps"].AsReal());
 
                 if (mmap["downloads"].Type != OSDType.Map)
-                    return new UserSessionID();
+                    return new UserSession();
                 OSDMap downloads_map = (OSDMap)mmap["downloads"];
                 usd.d_object_kb = (float)downloads_map["object_kbytes"].AsReal();
                 usd.d_texture_kb = (float)downloads_map["texture_kbytes"].AsReal();
@@ -511,7 +511,7 @@ namespace OpenSim.Region.UserStatistics
                 usd.session_id = mmap["session_id"].AsUUID();
 
                 if (mmap["system"].Type != OSDType.Map)
-                    return new UserSessionID();
+                    return new UserSession();
                 OSDMap system_map = (OSDMap)mmap["system"];
 
                 usd.s_cpu = system_map["cpu"].AsString();
@@ -520,13 +520,13 @@ namespace OpenSim.Region.UserStatistics
                 usd.s_ram = system_map["ram"].AsInteger();
 
                 if (mmap["stats"].Type != OSDType.Map)
-                    return new UserSessionID();
+                    return new UserSession();
 
                 OSDMap stats_map = (OSDMap)mmap["stats"];
                 {
 
                     if (stats_map["failures"].Type != OSDType.Map)
-                        return new UserSessionID();
+                        return new UserSession();
                     OSDMap stats_failures = (OSDMap)stats_map["failures"];
                     usd.f_dropped = stats_failures["dropped"].AsInteger();
                     usd.f_failed_resends = stats_failures["failed_resends"].AsInteger();
@@ -535,18 +535,18 @@ namespace OpenSim.Region.UserStatistics
                     usd.f_send_packet = stats_failures["send_packet"].AsInteger();
 
                     if (stats_map["net"].Type != OSDType.Map)
-                        return new UserSessionID();
+                        return new UserSession();
                     OSDMap stats_net = (OSDMap)stats_map["net"];
                     {
                         if (stats_net["in"].Type != OSDType.Map)
-                            return new UserSessionID();
+                            return new UserSession();
 
                         OSDMap net_in = (OSDMap)stats_net["in"];
                         usd.n_in_kb = (float)net_in["kbytes"].AsReal();
                         usd.n_in_pk = net_in["packets"].AsInteger();
 
                         if (stats_net["out"].Type != OSDType.Map)
-                            return new UserSessionID();
+                            return new UserSession();
                         OSDMap net_out = (OSDMap)stats_net["out"];
 
                         usd.n_out_kb = (float)net_out["kbytes"].AsReal();
@@ -564,7 +564,7 @@ namespace OpenSim.Region.UserStatistics
             return uid;
         }
 
-        private void UpdateUserStats(UserSessionID uid, SqliteConnection db)
+        private void UpdateUserStats(UserSession uid, SqliteConnection db)
         {
 //            m_log.DebugFormat(
 //                "[WEB STATS MODULE]: Updating user stats for {0} {1}, session {2}", uid.name_f, uid.name_l, uid.session_id);
@@ -999,7 +999,7 @@ VALUES
     }
     #region structs
 
-    public class UserSessionID
+    public class UserSession
     {
         public UUID session_id;
         public UUID region_id;
