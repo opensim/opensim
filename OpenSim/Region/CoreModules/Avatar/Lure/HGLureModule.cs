@@ -186,7 +186,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
                     client.FirstName+" "+client.LastName, targetid,
                     (byte)InstantMessageDialog.RequestTeleport, false,
                     message, sessionID, false, presence.AbsolutePosition,
-                    new Byte[0]);
+                    new Byte[0], true);
             m.RegionID = client.Scene.RegionInfo.RegionID.Guid;
 
             m_log.DebugFormat("[HG LURE MODULE]: RequestTeleport sessionID={0}, regionID={1}, message={2}", m.imSessionID, m.RegionID, m.message);

@@ -44,7 +44,6 @@ namespace OpenSim.Framework
         public Vector3 Position;
         public byte[] binaryBucket;
 
-
         public uint ParentEstateID;
         public Guid RegionID;
         public uint timestamp;
@@ -58,7 +57,7 @@ namespace OpenSim.Framework
                 string _fromAgentName, UUID _toAgentID,
                 byte _dialog, bool _fromGroup, string _message,
                 UUID _imSessionID, bool _offline, Vector3 _position,
-                byte[] _binaryBucket)
+                byte[] _binaryBucket, bool addTimestamp)
         {
             fromAgentID = _fromAgentID.Guid;
             fromAgentName = _fromAgentName;
@@ -79,7 +78,9 @@ namespace OpenSim.Framework
                 ParentEstateID = scene.RegionInfo.EstateSettings.ParentEstateID;
                 RegionID = scene.RegionInfo.RegionSettings.RegionUUID.Guid;
             }
-            timestamp = (uint)Util.UnixTimeSinceEpoch();
+
+            if (addTimestamp)
+                timestamp = (uint)Util.UnixTimeSinceEpoch();
         }
 
         public GridInstantMessage(IScene scene, UUID _fromAgentID,
@@ -87,7 +88,7 @@ namespace OpenSim.Framework
                 string _message, bool _offline,
                 Vector3 _position) : this(scene, _fromAgentID, _fromAgentName,
                 _toAgentID, _dialog, false, _message,
-                _fromAgentID ^ _toAgentID, _offline, _position, new byte[0])
+                _fromAgentID ^ _toAgentID, _offline, _position, new byte[0], true)
         {
         }
     }
