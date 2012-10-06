@@ -23,8 +23,16 @@
 [Startup]
 ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003/OpenSim.Server.Handlers.dll:XInventoryInConnector,8004/OpenSim.Server.Handlers.dll:FreeswitchServerConnector,8003/OpenSim.Server.Handlers.dll:GridServiceConnector,8002/OpenSim.Server.Handlers.dll:GridInfoServerInConnector,8003/OpenSim.Server.Handlers.dll:AuthenticationServiceConnector,8002/OpenSim.Server.Handlers.dll:OpenIdServerConnector,8003/OpenSim.Server.Handlers.dll:AvatarServiceConnector,8002/OpenSim.Server.Handlers.dll:LLLoginServiceInConnector,8003/OpenSim.Server.Handlers.dll:PresenceServiceConnector,8003/OpenSim.Server.Handlers.dll:UserAccountServiceConnector,8003/OpenSim.Server.Handlers.dll:GridUserServiceConnector,8003/OpenSim.Server.Handlers.dll:FriendsServiceConnector,8002/OpenSim.Server.Handlers.dll:GatekeeperServiceInConnector,8002/OpenSim.Server.Handlers.dll:UserAgentServerConnector,HGInventoryService@8002/OpenSim.Server.Handlers.dll:XInventoryInConnector,HGAssetService@8002/OpenSim.Server.Handlers.dll:AssetServiceConnector,8002/OpenSim.Server.Handlers.dll:HeloServiceInConnector,8002/OpenSim.Server.Handlers.dll:HGFriendsServerConnector,8002/OpenSim.Server.Handlers.dll:InstantMessageServerConnector,8003/OpenSim.Server.Handlers.dll:MapAddServiceConnector,8002/OpenSim.Server.Handlers.dll:MapGetServiceConnector"
 
+; Plugin Registry Location
+; Set path to directory for plugin registry. Information
+; about the registered repositories and installed plugins
+; will be stored here
+; The Robust.exe process must hvae R/W access to the location 
+RegistryLocation = "."
+
 ; Modular configurations
 ; Set path to directory for modular ini files...
+; The Robust.exe process must hvae R/W access to the location 
 ConfigDirectory = "/home/opensim/etc/Configs"
 
 ; * This is common for all services, it's the network setup for the entire

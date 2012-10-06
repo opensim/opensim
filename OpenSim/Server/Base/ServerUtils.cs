@@ -36,9 +36,115 @@ using log4net;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenMetaverse;
+using Mono.Addins;
+using OpenSim.Framework.Servers.HttpServer;
+using OpenSim.Framework.Servers;
 
+
+[assembly:AddinRoot("Robust", "0.1")]
 namespace OpenSim.Server.Base
 {
+    [TypeExtensionPoint(Path="/Robust/Connector", Name="RobustConnector")]
+    public interface IRobustConnector
+    {
+        string ConfigName
+        {
+            get;
+        }
+
+        bool Enabled
+        {
+            get;
+        }
+
+        string PluginPath
+        {
+            get;
+            set;
+        }
+
+        uint Configure(IConfigSource config);
+        void Initialize(IHttpServer server);
+    }
+
+    public class PluginLoader
+    {
+        static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        public AddinRegistry Registry
+        {
+            get;
+            private set;
+        }
+
+        public IConfigSource Config
+        {
+            get;
+            private set;
+        }
+
+        public PluginLoader(IConfigSource config, string registryPath)
+        {
+            Config = config;
+
+            Registry = new AddinRegistry(registryPath, ".");
+            AddinManager.Initialize(registryPath);
+            AddinManager.Registry.Update();
+            CommandManager commandmanager = new CommandManager(Registry);
+            AddinManager.AddExtensionNodeHandler("/Robust/Connector", OnExtensionChanged);
+        }
+
+        private void OnExtensionChanged(object s, ExtensionNodeEventArgs args)
+        {
+            IRobustConnector connector = (IRobustConnector)args.ExtensionObject;
+
+            Addin a = Registry.GetAddin(args.ExtensionNode.Addin.Id);
+            m_log.InfoFormat("[SERVER]: Extension Change: {0}/{1}", Registry.DefaultAddinsFolder, a.Name.Replace(',', '.'));
+
+            switch(args.Change)
+            {
+                case ExtensionChange.Add:
+                    connector.PluginPath = String.Format("{0}/{1}", Registry.DefaultAddinsFolder, a.Name.Replace(',', '.'));
+                    LoadPlugin(connector);
+                    break;
+                case ExtensionChange.Remove:
+                    UnloadPlugin(connector);
+                    break;
+            }
+        }
+
+        private void LoadPlugin(IRobustConnector connector)
+        {
+            IHttpServer server = null;
+            uint port = connector.Configure(Config);
+
+            if(connector.Enabled)
+            {
+                server = GetServer(connector, port);
+                m_log.InfoFormat("[SERVER]: Path is {0}", connector.PluginPath);
+                connector.Initialize(server);
+            }
+            else
+                m_log.InfoFormat("[SERVER]: {0} Disabled.", connector.ConfigName);
+        }
+
+        private void UnloadPlugin(IRobustConnector connector)
+        {
+        }
+
+        private IHttpServer GetServer(IRobustConnector connector, uint port)
+        {
+            IHttpServer server;
+
+            if(port != 0)
+                server = MainServer.GetHttpServer(port);
+            else    
+                server = MainServer.Instance;
+
+            return server;
+        }
+    }
+
     public static class ServerUtils
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);

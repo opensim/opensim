@@ -63,6 +63,10 @@ namespace OpenSim.Server.Handlers.Base
             protected set;
         }
 
+        public ServiceConnector()
+        {
+        }
+
         public ServiceConnector(IConfigSource config, IHttpServer server, string configName)
         {
         }
