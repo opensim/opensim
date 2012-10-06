@@ -319,6 +319,10 @@ namespace OpenSim.Region.UserStatistics
 
         private void OnMakeRootAgent(ScenePresence agent)
         {
+//            m_log.DebugFormat(
+//                "[WEB STATS MODULE]: Looking for session {0} for {1} in {2}",
+//                agent.ControllingClient.SessionId, agent.Name, agent.Scene.Name);
+
             lock (m_sessions)
             {
                 UserSessionID uid;
@@ -427,7 +431,10 @@ namespace OpenSim.Region.UserStatistics
                         m_log.WarnFormat("[WEB STATS MODULE]: no session for stat disclosure for agent {0}", agentID);
                         return new UserSessionID();
                     }
+
                     uid = m_sessions[agentID];
+
+//                    m_log.DebugFormat("[WEB STATS MODULE]: Got session {0} for {1}", uid.session_id, agentID);
                 }
                 else
                 {
@@ -499,6 +506,7 @@ namespace OpenSim.Region.UserStatistics
                 usd.d_texture_kb = (float)downloads_map["texture_kbytes"].AsReal();
                 usd.d_world_kb = (float)downloads_map["workd_kbytes"].AsReal();
 
+//                m_log.DebugFormat("[WEB STATS MODULE]: mmap[\"session_id\"] = [{0}]", mmap["session_id"].AsUUID());
 
                 usd.session_id = mmap["session_id"].AsUUID();
 
@@ -549,11 +557,18 @@ namespace OpenSim.Region.UserStatistics
 
             uid.session_data = usd;
             m_sessions[agentID] = uid;
+
+//            m_log.DebugFormat(
+//                "[WEB STATS MODULE]: Parse data for {0} {1}, session {2}", uid.name_f, uid.name_l, uid.session_id);
+
             return uid;
         }
 
         private void UpdateUserStats(UserSessionID uid, SqliteConnection db)
         {
+//            m_log.DebugFormat(
+//                "[WEB STATS MODULE]: Updating user stats for {0} {1}, session {2}", uid.name_f, uid.name_l, uid.session_id);
+
             if (uid.session_id == UUID.Zero)
                 return;
 
@@ -740,7 +755,6 @@ VALUES
             s.min_ping = ArrayMin_f(__ping);
             s.max_ping = ArrayMax_f(__ping);
             s.mode_ping = ArrayMode_f(__ping);
-
         }
 
         #region Statistics
@@ -985,7 +999,7 @@ VALUES
     }
     #region structs
 
-    public struct UserSessionID
+    public class UserSessionID
     {
         public UUID session_id;
         public UUID region_id;
