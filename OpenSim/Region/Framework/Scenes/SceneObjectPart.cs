@@ -2465,7 +2465,7 @@ namespace OpenSim.Region.Framework.Scenes
             //                UUID, Name, TimeStampFull);
 
             if (ParentGroup.Scene != null)
-                ParentGroup.Scene.EventManager.TriggerSceneObjectPartUpdated(this);
+                ParentGroup.Scene.EventManager.TriggerSceneObjectPartUpdated(this, true);
         }
 
         /// <summary>
@@ -2499,7 +2499,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             if (ParentGroup.Scene != null)
-                ParentGroup.Scene.EventManager.TriggerSceneObjectPartUpdated(this);
+                ParentGroup.Scene.EventManager.TriggerSceneObjectPartUpdated(this, false);
         }
 
         public void ScriptSetPhysicsStatus(bool UsePhysics)
