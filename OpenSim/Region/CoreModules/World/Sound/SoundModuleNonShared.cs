@@ -185,6 +185,11 @@ namespace OpenSim.Region.CoreModules.World.Sound
             if (!m_scene.TryGetSceneObjectPart(objectID, out m_host))
                 return;
 
+            StopSound(m_host);
+        }
+
+        private static void StopSound(SceneObjectPart m_host)
+        {
             m_host.AdjustSoundGain(0);
             // Xantor 20080528: Clear prim data of sound instead
             if (m_host.ParentGroup.LoopSoundSlavePrims.Contains(m_host))
@@ -253,7 +258,7 @@ namespace OpenSim.Region.CoreModules.World.Sound
             m_host.ParentGroup.LoopSoundMasterPrim = m_host;
 
             if (m_host.Sound != UUID.Zero)
-                StopSound(objectID);
+                StopSound(m_host);
 
             m_host.Sound = soundID;
             m_host.SoundGain = volume;
