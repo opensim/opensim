@@ -243,6 +243,42 @@ namespace OpenSim.Region.CoreModules.World.Sound
             });
         }
 
+        public virtual void LoopSoundMaster(UUID objectID, UUID soundID,
+                double volume, double radius)
+        {
+            SceneObjectPart m_host;
+            if (!m_scene.TryGetSceneObjectPart(objectID, out m_host))
+                return;
+
+            m_host.ParentGroup.LoopSoundMasterPrim = m_host;
+            lock (m_host.ParentGroup.LoopSoundSlavePrims)
+            {
+                foreach (SceneObjectPart prim in m_host.ParentGroup.LoopSoundSlavePrims)
+                {
+                    if (prim.Sound != UUID.Zero)
+                        StopSound(objectID);
+
+                    prim.Sound = soundID;
+                    prim.SoundGain = volume;
+                    prim.SoundFlags = 1;      // looping
+                    prim.SoundRadius = radius;
+
+                    prim.ScheduleFullUpdate();
+                    prim.SendFullUpdateToAllClients();
+                }
+            }
+            if (m_host.Sound != UUID.Zero)
+                StopSound(objectID);
+
+            m_host.Sound = soundID;
+            m_host.SoundGain = volume;
+            m_host.SoundFlags = 1;      // looping
+            m_host.SoundRadius = radius;
+
+            m_host.ScheduleFullUpdate();
+            m_host.SendFullUpdateToAllClients();
+        }
+
         #endregion
     }
 }

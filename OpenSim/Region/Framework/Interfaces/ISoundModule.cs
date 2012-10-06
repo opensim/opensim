@@ -84,5 +84,16 @@ namespace OpenSim.Region.Framework.Interfaces
         /// Radius used to determine which viewers should preload the sound.
         /// </param>
         void PreloadSound(UUID soundID, UUID objectID, float radius);
+
+        /// <summary>
+        /// Declare object as new sync master, play specified sound at
+        /// specified volume with specified radius.
+        /// </summary>
+        /// <param name="objectID">Sound source ID</param>
+        /// <param name="soundID">Sound asset ID</param>
+        /// <param name="gain">Sound volume</param>
+        /// <param name="radius">Sound radius</param>
+        void LoopSoundMaster(UUID objectID, UUID soundID, double gain,
+                double radius);
     }
 }

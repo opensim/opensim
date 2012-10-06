@@ -2397,33 +2397,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llLoopSoundMaster(string sound, double volume)
         {
             m_host.AddScriptLPS(1);
-            m_host.ParentGroup.LoopSoundMasterPrim = m_host;
-            lock (m_host.ParentGroup.LoopSoundSlavePrims)
+            if (m_SoundModule != null)
             {
-                foreach (SceneObjectPart prim in m_host.ParentGroup.LoopSoundSlavePrims)
-                {
-                    if (prim.Sound != UUID.Zero)
-                        llStopSound();
-
-                    prim.Sound = KeyOrName(sound);
-                    prim.SoundGain = volume;
-                    prim.SoundFlags = 1;      // looping
-                    prim.SoundRadius = 20;    // Magic number, 20 seems reasonable. Make configurable?
-
-                    prim.ScheduleFullUpdate();
-                    prim.SendFullUpdateToAllClients();
-                }
+                m_SoundModule.LoopSoundMaster(m_host.UUID, KeyOrName(sound),
+                        volume, 20);
             }
-            if (m_host.Sound != UUID.Zero)
-                llStopSound();
-
-            m_host.Sound = KeyOrName(sound);
-            m_host.SoundGain = volume;
-            m_host.SoundFlags = 1;      // looping
-            m_host.SoundRadius = 20;    // Magic number, 20 seems reasonable. Make configurable?
-
-            m_host.ScheduleFullUpdate();
-            m_host.SendFullUpdateToAllClients();
         }
 
         public void llLoopSoundSlave(string sound, double volume)
