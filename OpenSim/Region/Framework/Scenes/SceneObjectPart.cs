@@ -1583,7 +1583,9 @@ namespace OpenSim.Region.Framework.Scenes
 
                 float cost = 0.1f;
                 if (PhysActor != null)
-//                    cost += PhysActor.Cost;
+                    cost = PhysActor.PhysicsCost;
+                else
+                    cost = 0.1f;
 
                 if ((Flags & PrimFlags.Physics) != 0)
                     cost *= (1.0f + 0.01333f * Scale.LengthSquared()); // 0.01333 == 0.04/3
@@ -1596,9 +1598,12 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-
-
-                return 0.1f;
+                float cost;
+                if (PhysActor != null)
+                    cost = PhysActor.StreamCost;
+                else
+                    cost = 1.0f;
+                return 1.0f;
             }
         }
 

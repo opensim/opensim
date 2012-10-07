@@ -40,8 +40,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public float volume;
 
-        public float physCost;
-        public float streamCost;
         public byte shapetype;
         public bool hasOBB;
         public bool hasMeshVolume;
@@ -121,8 +119,14 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public void Stop()
         {
-            m_running = false;
-            m_thread.Abort();
+            try
+            {
+                m_thread.Abort();
+                createqueue.Clear();
+            }
+            catch
+            {
+            }
         }
 
         public void ChangeActorPhysRep(PhysicsActor actor, PrimitiveBaseShape pbs,
@@ -172,10 +176,15 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (repData.assetState != AssetState.needAsset)
                 return;
 
-            if (repData.assetID == null || repData.assetID == UUID.Zero)
-                return;
-
             repData.mesh = null;
+
+            if (repData.assetID == null || repData.assetID == UUID.Zero)
+            {
+                repData.assetState = AssetState.noNeedAsset;
+                repData.comand = meshWorkerCmnds.changefull;
+                createqueue.Enqueue(repData);
+                return;
+            }
 
             repData.assetState = AssetState.loadingAsset;
 
@@ -211,9 +220,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                     repData.OBBOffset = mesh.GetCentroid();
                     repData.OBB = mesh.GetOBB();
                     repData.hasOBB = true;
-                    repData.physCost = 0.0013f * (float)indexCount;
-                    // todo
-                    repData.streamCost = 1.0f;
                     mesh.releaseSourceMeshData();
                 }
             }
@@ -427,11 +433,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                     if (pbs.SculptTexture != null && pbs.SculptTexture != UUID.Zero)
                     {
                         repData.assetID = pbs.SculptTexture;
-                        repData.assetState = AssetState.needAsset;
+                        repData.assetState = AssetState.needAsset;                        
                     }
                     else
                         repData.assetState = AssetState.AssetFailed;
                 }
+                else
+                    repData.assetState = AssetState.needAsset;
+                
                 return false;
             }
 
@@ -828,14 +837,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (repData.hasOBB)
             {
                 Vector3 OBB = repData.OBB;
-                float pc = repData.physCost;
-                float psf = OBB.X * (OBB.Y + OBB.Z) + OBB.Y * OBB.Z;
-                psf *= 1.33f * .2f;
-                pc *= psf;
-                if (pc < 0.1f)
-                    pc = 0.1f;
-
-                repData.physCost = pc;
             }
             else
             {
@@ -846,9 +847,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 repData.OBB = OBB;
                 repData.OBBOffset = Vector3.Zero;
-
-                repData.physCost = 0.1f;
-                repData.streamCost = 1.0f;
             }
 
             CalculateBasicPrimVolume(repData);
