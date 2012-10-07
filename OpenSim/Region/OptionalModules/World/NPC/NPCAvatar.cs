@@ -148,7 +148,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             OnInstantMessage(this, new GridInstantMessage(m_scene,
                     m_uuid, m_firstname + " " + m_lastname,
                     target, 0, false, message,
-                    UUID.Zero, false, Position, new byte[0]));
+                    UUID.Zero, false, Position, new byte[0], true));
         }
 
         public void SendAgentOffline(UUID[] agentIDs)

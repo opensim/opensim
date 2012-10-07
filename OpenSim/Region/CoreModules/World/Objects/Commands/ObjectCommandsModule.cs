@@ -126,6 +126,25 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             m_console.Commands.AddCommand(
                 "Objects",
                 false,
+                "show object pos",
+                "show object pos <start-coord> to <end-coord>",
+                "Show details of scene objects within the given area.",
+                "Each component of the coord is comma separated.  There must be no spaces between the commas.\n"
+                    + "If you don't care about the z component you can simply omit it.\n"
+                    + "If you don't care about the x or y components then you can leave them blank (though a comma is still required)\n"
+                    + "If you want to specify the maxmimum value of a component then you can use ~ instead of a number\n"
+                    + "If you want to specify the minimum value of a component then you can use -~ instead of a number\n"
+                    + "e.g.\n"
+                    + "show object pos 20,20,20 to 40,40,40\n"
+                    + "show object pos 20,20 to 40,40\n"
+                    + "show object pos ,20,20 to ,40,40\n"
+                    + "show object pos ,,30 to ,,~\n"
+                    + "show object pos ,,-~ to ,,30",
+                HandleShowObjectByPos);
+
+            m_console.Commands.AddCommand(
+                "Objects",
+                false,
                 "show part uuid",
                 "show part uuid <UUID>",
                 "Show details of a scene object parts with the given UUID", HandleShowPartByUuid);
@@ -138,6 +157,25 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                 "Show details of scene object parts with the given name.",
                 "If --regex is specified then the name is treatead as a regular expression",
                 HandleShowPartByName);
+
+            m_console.Commands.AddCommand(
+                "Objects",
+                false,
+                "show part pos",
+                "show part pos <start-coord> to <end-coord>",
+                "Show details of scene object parts within the given area.",
+                "Each component of the coord is comma separated.  There must be no spaces between the commas.\n"
+                    + "If you don't care about the z component you can simply omit it.\n"
+                    + "If you don't care about the x or y components then you can leave them blank (though a comma is still required)\n"
+                    + "If you want to specify the maxmimum value of a component then you can use ~ instead of a number\n"
+                    + "If you want to specify the minimum value of a component then you can use -~ instead of a number\n"
+                    + "e.g.\n"
+                    + "show object pos 20,20,20 to 40,40,40\n"
+                    + "show object pos 20,20 to 40,40\n"
+                    + "show object pos ,20,20 to ,40,40\n"
+                    + "show object pos ,,30 to ,,~\n"
+                    + "show object pos ,,-~ to ,,30",
+                HandleShowPartByPos);
         }
 
         public void RemoveRegion(Scene scene)
@@ -148,6 +186,43 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
         public void RegionLoaded(Scene scene)
         {
 //            m_log.DebugFormat("[OBJECTS COMMANDS MODULE]: REGION {0} LOADED", scene.RegionInfo.RegionName);
+        }
+
+        private void OutputSogsToConsole(Predicate<SceneObjectGroup> searchPredicate)
+        {
+            List<SceneObjectGroup> sceneObjects = m_scene.GetSceneObjectGroups().FindAll(searchPredicate);
+
+            StringBuilder sb = new StringBuilder();
+
+            foreach (SceneObjectGroup so in sceneObjects)
+            {
+                AddSceneObjectReport(sb, so);
+                sb.Append("\n");
+            }
+
+            sb.AppendFormat("{0} object(s) found in {1}\n", sceneObjects.Count, m_scene.Name);
+
+            m_console.OutputFormat(sb.ToString());
+        }
+
+        private void OutputSopsToConsole(Predicate<SceneObjectPart> searchPredicate)
+        {
+            List<SceneObjectGroup> sceneObjects = m_scene.GetSceneObjectGroups();
+            List<SceneObjectPart> parts = new List<SceneObjectPart>();
+
+            sceneObjects.ForEach(so => parts.AddRange(Array.FindAll<SceneObjectPart>(so.Parts, searchPredicate)));
+
+            StringBuilder sb = new StringBuilder();
+
+            foreach (SceneObjectPart part in parts)
+            {
+                AddScenePartReport(sb, part);
+                sb.Append("\n");
+            }
+
+            sb.AppendFormat("{0} parts found in {1}\n", parts.Count, m_scene.Name);
+
+            m_console.OutputFormat(sb.ToString());
         }
 
         private void HandleShowObjectByUuid(string module, string[] cmd)
@@ -200,36 +275,54 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
             string name = mainParams[3];
 
-            List<SceneObjectGroup> sceneObjects = new List<SceneObjectGroup>();
-            Action<SceneObjectGroup> searchAction;
+            Predicate<SceneObjectGroup> searchPredicate;
 
             if (useRegex)
             {
                 Regex nameRegex = new Regex(name);
-                searchAction = so => { if (nameRegex.IsMatch(so.Name)) { sceneObjects.Add(so); }};
+                searchPredicate = so => nameRegex.IsMatch(so.Name);
             }
             else
             {
-                searchAction = so => { if (so.Name == name) { sceneObjects.Add(so); }};
+                searchPredicate = so => so.Name == name;
             }
 
-            m_scene.ForEachSOG(searchAction);
+            OutputSogsToConsole(searchPredicate);
+        }
 
-            if (sceneObjects.Count == 0)
+        private void HandleShowObjectByPos(string module, string[] cmdparams)
+        {
+            if (!(m_console.ConsoleScene == null || m_console.ConsoleScene == m_scene))
+                return;
+
+            if (cmdparams.Length < 5)
             {
-                m_console.OutputFormat("No objects with name {0} found in {1}", name, m_scene.RegionInfo.RegionName);
+                m_console.OutputFormat("Usage: show object pos <start-coord> to <end-coord>");
                 return;
             }
 
-            StringBuilder sb = new StringBuilder();
+            string rawConsoleStartVector = cmdparams[3];
+            Vector3 startVector;
 
-            foreach (SceneObjectGroup so in sceneObjects)
+            if (!ConsoleUtil.TryParseConsoleMinVector(rawConsoleStartVector, out startVector))
             {
-                AddSceneObjectReport(sb, so);
-                sb.Append("\n");
+                m_console.OutputFormat("Error: Start vector {0} does not have a valid format", rawConsoleStartVector);
+                return;
             }
 
-            m_console.OutputFormat(sb.ToString());
+            string rawConsoleEndVector = cmdparams[5];
+            Vector3 endVector;
+
+            if (!ConsoleUtil.TryParseConsoleMaxVector(rawConsoleEndVector, out endVector))
+            {
+                m_console.OutputFormat("Error: End vector {0} does not have a valid format", rawConsoleEndVector);
+                return;
+            }
+
+            Predicate<SceneObjectGroup> searchPredicate
+                = so => Util.IsInsideBox(so.AbsolutePosition, startVector, endVector);
+
+            OutputSogsToConsole(searchPredicate);
         }
 
         private void HandleShowPartByUuid(string module, string[] cmd)
@@ -264,6 +357,38 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             m_console.OutputFormat(sb.ToString());
         }
 
+        private void HandleShowPartByPos(string module, string[] cmdparams)
+        {
+            if (!(m_console.ConsoleScene == null || m_console.ConsoleScene == m_scene))
+                return;
+
+            if (cmdparams.Length < 5)
+            {
+                m_console.OutputFormat("Usage: show part pos <start-coord> to <end-coord>");
+                return;
+            }
+
+            string rawConsoleStartVector = cmdparams[3];
+            Vector3 startVector;
+
+            if (!ConsoleUtil.TryParseConsoleMinVector(rawConsoleStartVector, out startVector))
+            {
+                m_console.OutputFormat("Error: Start vector {0} does not have a valid format", rawConsoleStartVector);
+                return;
+            }
+
+            string rawConsoleEndVector = cmdparams[5];
+            Vector3 endVector;
+
+            if (!ConsoleUtil.TryParseConsoleMaxVector(rawConsoleEndVector, out endVector))
+            {
+                m_console.OutputFormat("Error: End vector {0} does not have a valid format", rawConsoleEndVector);
+                return;
+            }
+
+            OutputSopsToConsole(sop => Util.IsInsideBox(sop.AbsolutePosition, startVector, endVector));
+        }
+
         private void HandleShowPartByName(string module, string[] cmdparams)
         {
             if (!(m_console.ConsoleScene == null || m_console.ConsoleScene == m_scene))
@@ -282,37 +407,19 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
             string name = mainParams[3];
 
-            List<SceneObjectPart> parts = new List<SceneObjectPart>();
-
-            Action<SceneObjectGroup> searchAction;
+            Predicate<SceneObjectPart> searchPredicate;
 
             if (useRegex)
             {
                 Regex nameRegex = new Regex(name);
-                searchAction = so => so.ForEachPart(sop => { if (nameRegex.IsMatch(sop.Name)) { parts.Add(sop); } });
+                searchPredicate = sop => nameRegex.IsMatch(sop.Name);
             }
             else
             {
-                searchAction = so => so.ForEachPart(sop => { if (sop.Name == name) { parts.Add(sop); } });
+                searchPredicate = sop => sop.Name == name;
             }
 
-            m_scene.ForEachSOG(searchAction);
-
-            if (parts.Count == 0)
-            {
-                m_console.OutputFormat("No parts with name {0} found in {1}", name, m_scene.RegionInfo.RegionName);
-                return;
-            }
-
-            StringBuilder sb = new StringBuilder();
-
-            foreach (SceneObjectPart part in parts)
-            {
-                AddScenePartReport(sb, part);
-                sb.Append("\n");
-            }
-
-            m_console.OutputFormat(sb.ToString());
+            OutputSopsToConsole(searchPredicate);
         }
 
         private StringBuilder AddSceneObjectReport(StringBuilder sb, SceneObjectGroup so)

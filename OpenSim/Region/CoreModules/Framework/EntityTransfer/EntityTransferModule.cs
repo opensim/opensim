@@ -1028,6 +1028,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             Scene initiatingScene)
         {
             Thread.Sleep(10000);
+            
             IMessageTransferModule im = initiatingScene.RequestModuleInterface<IMessageTransferModule>();
             if (im != null)
             {
@@ -1040,11 +1041,22 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     (uint)(int)position.X,
                     (uint)(int)position.Y,
                     (uint)(int)position.Z);
-                GridInstantMessage m = new GridInstantMessage(initiatingScene, UUID.Zero,
-                "Region", agent.UUID,
-                (byte)InstantMessageDialog.GodLikeRequestTeleport, false,
-                "", gotoLocation, false, new Vector3(127, 0, 0),
-                new Byte[0]);
+
+                GridInstantMessage m
+                    = new GridInstantMessage(
+                        initiatingScene,
+                        UUID.Zero,
+                        "Region",
+                        agent.UUID,
+                        (byte)InstantMessageDialog.GodLikeRequestTeleport,
+                        false,
+                        "",
+                        gotoLocation,
+                        false,
+                        new Vector3(127, 0, 0),
+                        new Byte[0],
+                        false);
+
                 im.SendInstantMessage(m, delegate(bool success)
                 {
                     m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Client Initiating Teleport sending IM success = {0}", success);

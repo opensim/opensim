@@ -1469,7 +1469,7 @@ namespace OpenSim.Region.Framework.Scenes
             return newFolderID;
         }
 
-        private void SendInventoryUpdate(IClientAPI client, InventoryFolderBase folder, bool fetchFolders, bool fetchItems)
+        public void SendInventoryUpdate(IClientAPI client, InventoryFolderBase folder, bool fetchFolders, bool fetchItems)
         {
             if (folder == null)
                 return;

@@ -5962,7 +5962,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         msgpack.MessageBlock.ID,
                         msgpack.MessageBlock.Offline != 0 ? true : false,
                         msgpack.MessageBlock.Position,
-                        msgpack.MessageBlock.BinaryBucket);
+                        msgpack.MessageBlock.BinaryBucket,
+                        true);
 
                 handlerInstantMessage(this, im);
             }
