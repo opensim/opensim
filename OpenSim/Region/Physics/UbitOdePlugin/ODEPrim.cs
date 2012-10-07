@@ -146,7 +146,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private PrimitiveBaseShape _pbs;
 
         private UUID? m_assetID;
-        private AssetState m_assetState;
+        private MeshState m_meshState;
         
         public OdeScene _parent_scene;
 
@@ -1341,15 +1341,18 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             if (vertexCount == 0 || indexCount == 0)
             {
-                m_log.WarnFormat("[PHYSICS]: Invalid mesh data on OdePrim {0} mesh UUID {1}",
-                    Name, _pbs.SculptTexture.ToString());
+                m_log.WarnFormat("[PHYSICS]: Invalid mesh data on OdePrim {0}, mesh {1}",
+                    Name, _pbs.SculptEntry ? _pbs.SculptTexture.ToString() : "primMesh");
+
                 m_hasOBB = false;
                 m_OBBOffset = Vector3.Zero;
                 m_OBB = _size * 0.5f;
+
                 m_physCost = 0.1f;
                 m_streamCost = 1.0f;
+
                 _parent_scene.mesher.ReleaseMesh(mesh);
-                m_assetState = AssetState.AssetFailed;
+                m_meshState = MeshState.MeshFailed;
                 m_mesh = null;
                 return false;
             }
@@ -1360,7 +1363,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.GeomTriMeshDataBuildSimple(_triMeshData, vertices, vertexStride, vertexCount, indices, indexCount, triStride);
                 d.GeomTriMeshDataPreprocess(_triMeshData);
 
-                prim_geom = d.CreateTriMesh(IntPtr.Zero, _triMeshData, null, null, null);
+                prim_geom = d.CreateTriMesh(m_targetSpace, _triMeshData, null, null, null);
             }
 
             catch (Exception e)
@@ -1385,7 +1388,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 m_physCost = 0.1f;
                 m_streamCost = 1.0f;              
                 _parent_scene.mesher.ReleaseMesh(mesh);
-                m_assetState = AssetState.AssetFailed;
+                m_meshState = MeshState.AssetFailed;
                 m_mesh = null;
                 return false;
             }
@@ -1404,7 +1407,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             m_NoColide = false;
 
-            if (m_assetState == AssetState.AssetFailed)
+            if ((m_meshState & MeshState.FailMask) != 0)
                 m_NoColide = true;
 
             else if(m_mesh != null)
@@ -1422,7 +1425,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 { // it's a sphere
                     try
                     {
-                            geo = d.CreateSphere(IntPtr.Zero, _size.X * 0.5f);
+                        geo = d.CreateSphere(m_targetSpace, _size.X * 0.5f);
                     }
                     catch (Exception e)
                     {
@@ -1434,7 +1437,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {// do it as a box
                     try
                     {
-                            geo = d.CreateBox(IntPtr.Zero, _size.X, _size.Y, _size.Z);
+                        geo = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
                     }
                     catch (Exception e)
                     {
@@ -2748,7 +2751,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_mesh = repData.mesh;
 
             m_assetID = repData.assetID;
-            m_assetState = repData.assetState;
+            m_meshState = repData.meshState;
 
             m_hasOBB = repData.hasOBB;
             m_OBBOffset = repData.OBBOffset;
@@ -2781,12 +2784,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                 else
                     MakeBody();
 
-                if (m_assetState == AssetState.needAsset)
+                if ((m_meshState & MeshState.NeedMask) != 0)
                 {
                     repData.size = _size;
                     repData.pbs = _pbs;
                     repData.shapetype = m_shapetype;
-                    _parent_scene.m_meshWorker.RequestMeshAsset(repData);
+                    _parent_scene.m_meshWorker.RequestMesh(repData);
                 }
             }
         }
@@ -2820,7 +2823,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_mesh = repData.mesh;
 
             m_assetID = repData.assetID;
-            m_assetState = repData.assetState;
+            m_meshState = repData.meshState;
 
             m_hasOBB = repData.hasOBB;
             m_OBBOffset = repData.OBBOffset;
@@ -2832,12 +2835,9 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             if (prim_geom != IntPtr.Zero)
             {
-                m_targetSpace = IntPtr.Zero;
-
                 UpdatePrimBodyData();
 
-                    _parent_scene.actor_name_map[prim_geom] = this;
-
+                _parent_scene.actor_name_map[prim_geom] = this;
 
                 d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
                 d.Quaternion myrot = new d.Quaternion();
@@ -2846,7 +2846,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                 myrot.Z = _orientation.Z;
                 myrot.W = _orientation.W;
                 d.GeomSetQuaternion(prim_geom, ref myrot);
-
 
                 if (m_isphysical)
                 {
@@ -2869,13 +2868,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
 
                 resetCollisionAccounting();
-                if (m_assetState == AssetState.needAsset)
-                {
-                    repData.size = _size;
-                    repData.pbs = _pbs;
-                    repData.shapetype = m_shapetype;
-                    _parent_scene.m_meshWorker.RequestMeshAsset(repData);
-                }
+            }
+
+            if ((m_meshState & MeshState.NeedMask) != 0)
+            {
+                repData.size = _size;
+                repData.pbs = _pbs;
+                repData.shapetype = m_shapetype;
+                _parent_scene.m_meshWorker.RequestMesh(repData);
             }
         }
 

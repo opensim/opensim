@@ -111,17 +111,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         light = 7 // compatibility with old viewers
     }
     
-    public enum AssetState : byte
-    {
-        noNeedAsset = 0,
-        needAsset = 1,
-        loadingAsset = 2,
-        procAsset = 3,
-        AssetOK = 4,
-
-        AssetFailed = 0xff
-    }
-
     public enum changes : int
     {
         Add = 0,                // arg null. finishs the prim creation. should be used internally only ( to remove later ?)
