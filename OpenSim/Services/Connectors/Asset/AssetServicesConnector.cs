@@ -301,25 +301,30 @@ namespace OpenSim.Services.Connectors
                 bool success = false;
                 try
                 {
-                    AsynchronousRestObjectRequester.MakeRequest<int, AssetBase>("GET", uri, 0,
-                        delegate(AssetBase a)
-                        {
-                            if (m_Cache != null)
-                                m_Cache.Cache(a);
+                    AssetBase a = SynchronousRestObjectRequester.MakeRequest<int, AssetBase>("GET", uri, 0, 30);
+                    if (a != null)
+                    {
+                        if (m_Cache != null)
+                            m_Cache.Cache(a);
 
-                            List<AssetRetrievedEx> handlers;
-                            lock (m_AssetHandlers)
+                        List<AssetRetrievedEx> handlers;
+                        lock (m_AssetHandlers)
+                        {
+                            handlers = m_AssetHandlers[id];
+                            m_AssetHandlers.Remove(id);
+                        }
+                        foreach (AssetRetrievedEx h in handlers)
+                        {
+                            Util.FireAndForget(x =>
                             {
-                                handlers = m_AssetHandlers[id];
-                                m_AssetHandlers.Remove(id);
-                            }
-                            foreach (AssetRetrievedEx h in handlers)
                                 h.Invoke(a);
-                            if (handlers != null)
-                                handlers.Clear();
-                        }, m_maxAssetRequestConcurrency);
+                            });
+                        }
+                        if (handlers != null)
+                            handlers.Clear();
                     
-                    success = true;
+                        success = true;
+                    }
                 }
                 finally
                 {
@@ -332,7 +337,7 @@ namespace OpenSim.Services.Connectors
                             m_AssetHandlers.Remove(id);
                         }
                         if (handlers != null)
-                        handlers.Clear();
+                            handlers.Clear();
                     }
                 }
             }
