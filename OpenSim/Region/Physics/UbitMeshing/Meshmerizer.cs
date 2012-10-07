@@ -74,10 +74,6 @@ namespace OpenSim.Region.Physics.Meshing
         private const string baseDir = null; //"rawFiles";
 #endif
 
-        private bool cacheSculptMaps = true;
-        private bool cacheSculptAlphaMaps = true;
-
-        private string decodedSculptMapPath = null;
         private bool useMeshiesPhysicsMesh = false;
 
         private float minSizeForComplexMesh = 0.2f; // prims with all dimensions smaller than this will have a bounding box mesh
@@ -92,29 +88,9 @@ namespace OpenSim.Region.Physics.Meshing
             IConfig start_config = config.Configs["Startup"];
             IConfig mesh_config = config.Configs["Mesh"];
 
-            decodedSculptMapPath = start_config.GetString("DecodedSculptMapPath","j2kDecodeCache");
-
-            cacheSculptMaps = start_config.GetBoolean("CacheSculptMaps", cacheSculptMaps);
-
-            if (Environment.OSVersion.Platform == PlatformID.Unix)
-            {
-                cacheSculptAlphaMaps = false;
-            }
-            else
-                cacheSculptAlphaMaps = cacheSculptMaps;      
-
             if(mesh_config != null)
                 useMeshiesPhysicsMesh = mesh_config.GetBoolean("UseMeshiesPhysicsMesh", useMeshiesPhysicsMesh);
 
-            try
-            {
-                if (!Directory.Exists(decodedSculptMapPath))
-                    Directory.CreateDirectory(decodedSculptMapPath);
-            }
-            catch (Exception e)
-            {
-                m_log.WarnFormat("[SCULPT]: Unable to create {0} directory: ", decodedSculptMapPath, e.Message);
-            }
         }
 
         /// <summary>
@@ -444,7 +420,7 @@ namespace OpenSim.Region.Physics.Meshing
                     // physics_shape is an array of OSDMaps, one for each submesh
                     if (decodedMeshOsd is OSDArray)
                     {
-                        //                            Console.WriteLine("decodedMeshOsd for {0} - {1}", primName, Util.GetFormattedXml(decodedMeshOsd));
+//                            Console.WriteLine("decodedMeshOsd for {0} - {1}", primName, Util.GetFormattedXml(decodedMeshOsd));
 
                         decodedMeshOsdArray = (OSDArray)decodedMeshOsd;
                         foreach (OSD subMeshOsd in decodedMeshOsdArray)
@@ -717,29 +693,7 @@ namespace OpenSim.Region.Physics.Meshing
             faces = new List<Face>();
             PrimMesher.SculptMesh sculptMesh;
             Image idata = null;
-            string decodedSculptFileName = "";
 
-            if (cacheSculptMaps && primShape.SculptTexture != UUID.Zero)
-            {
-                decodedSculptFileName = System.IO.Path.Combine(decodedSculptMapPath, "smap_" + primShape.SculptTexture.ToString());
-                try
-                {
-                    if (File.Exists(decodedSculptFileName))
-                    {
-                        idata = Image.FromFile(decodedSculptFileName);
-                    }
-                }
-                catch (Exception e)
-                {
-                    m_log.Error("[SCULPT]: unable to load cached sculpt map " + decodedSculptFileName + " " + e.Message);
-
-                }
-                //if (idata != null)
-                //    m_log.Debug("[SCULPT]: loaded cached map asset for map ID: " + primShape.SculptTexture.ToString());
-            }
-
-            if (idata == null)
-            {
                 if (primShape.SculptData == null || primShape.SculptData.Length == 0)
                     return false;
 
@@ -748,24 +702,14 @@ namespace OpenSim.Region.Physics.Meshing
                     OpenMetaverse.Imaging.ManagedImage unusedData;
                     OpenMetaverse.Imaging.OpenJPEG.DecodeToImage(primShape.SculptData, out unusedData, out idata);
 
+                    unusedData = null;
+
                     if (idata == null)
                     {
                         // In some cases it seems that the decode can return a null bitmap without throwing
                         // an exception
                         m_log.WarnFormat("[PHYSICS]: OpenJPEG decoded sculpt data for {0} to a null bitmap.  Ignoring.", primName);
-
                         return false;
-                    }
-
-                    unusedData = null;
-
-                    //idata = CSJ2K.J2kImage.FromBytes(primShape.SculptData);
-
-                    if (cacheSculptMaps && (cacheSculptAlphaMaps || (((ImageFlags)(idata.Flags) & ImageFlags.HasAlpha) ==0)))
-                        // don't cache images with alpha channel in linux since mono can't load them correctly)
-                    {
-                        try { idata.Save(decodedSculptFileName, ImageFormat.MemoryBmp); }
-                        catch (Exception e) { m_log.Error("[SCULPT]: unable to cache sculpt map " + decodedSculptFileName + " " + e.Message); }
                     }
                 }
                 catch (DllNotFoundException)
@@ -783,7 +727,6 @@ namespace OpenSim.Region.Physics.Meshing
                     m_log.Error("[PHYSICS]: Unable to generate a Sculpty physics proxy. Sculpty texture decode failed: " + ex.Message);
                     return false;
                 }
-            }
 
             PrimMesher.SculptMesh.SculptType sculptType;
             // remove mirror and invert bits
@@ -1047,7 +990,6 @@ namespace OpenSim.Region.Physics.Meshing
             hash = ((hash << 5) + hash) + (ulong)((byte)c);
             return ((hash << 5) + hash) + (ulong)(c >> 8);
         }
-
 
         public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod)
         {

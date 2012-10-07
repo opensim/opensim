@@ -60,29 +60,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         public int lastframe;
     }
 
-    public class ODEPhysRepData
-    {
-        public PhysicsActor actor;
-        public IntPtr geo = IntPtr.Zero;
-        public IntPtr triMeshData = IntPtr.Zero;
-        public IMesh mesh;
-        public IntPtr curSpace = IntPtr.Zero;
-        public PrimitiveBaseShape pbs;
-
-        public Vector3 size = Vector3.Zero;
-        public Vector3 OBB = Vector3.Zero;
-        public Vector3 OBBOffset = Vector3.Zero;
-
-        public float volume;
-
-        public float physCost = 0.0f;
-        public float streamCost = 0;
-        public MeshWorkerChange changed;
-        public byte shapetype = 0;
-        public bool NoColide = false;
-        public bool hasOBB = false;
-        public bool hasMeshVolume = false;
-    }
 
     // colision flags of things others can colide with
     // rays, sensors, probes removed since can't  be colided with
@@ -133,13 +110,16 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         light = 7 // compatibility with old viewers
     }
-    [Flags]
-    public enum MeshWorkerChange : uint
+    
+    public enum AssetState : byte
     {
-        none = 0,
-        size = 1,
-        shape = 2,
-        shapetype = 3,
+        noNeedAsset = 0,
+        needAsset = 1,
+        loadingAsset = 2,
+        procAsset = 3,
+        AssetOK = 4,
+
+        AssetFailed = 0xff
     }
 
     public enum changes : int
@@ -180,6 +160,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         Size,
         Shape,
         PhysRepData,
+        AddPhysRep,
 
         CollidesWater,
         VolumeDtc,
@@ -330,7 +311,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         public IntPtr TopSpace; // the global space
         public IntPtr ActiveSpace; // space for active prims
         public IntPtr StaticSpace; // space for the static things around
-        public IntPtr WorkSpace; // no collisions work space
 
         // some speedup variables
         private int spaceGridMaxX;
@@ -342,7 +322,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private IntPtr[] staticPrimspaceOffRegion;
 
         public Object OdeLock;
-        private static Object SimulationLock;
+        public static Object SimulationLock;
 
         public IMesher mesher;
 
@@ -403,7 +383,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                     // now the major subspaces
                     ActiveSpace = d.HashSpaceCreate(TopSpace);
                     StaticSpace = d.HashSpaceCreate(TopSpace);
-                    WorkSpace = d.HashSpaceCreate(TopSpace);
                     }
                 catch
                     {
@@ -413,12 +392,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.HashSpaceSetLevels(TopSpace, -2, 8);
                 d.HashSpaceSetLevels(ActiveSpace, -2, 8);
                 d.HashSpaceSetLevels(StaticSpace, -2, 8);
-                d.HashSpaceSetLevels(WorkSpace, -2, 8);
 
                 // demote to second level
                 d.SpaceSetSublevel(ActiveSpace, 1);
                 d.SpaceSetSublevel(StaticSpace, 1);
-                d.SpaceSetSublevel(WorkSpace, 1);
 
                 d.GeomSetCategoryBits(ActiveSpace, (uint)(CollisionCategories.Space |
                                                         CollisionCategories.Geom |
@@ -436,8 +413,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                                                         ));
                 d.GeomSetCollideBits(StaticSpace, 0);
 
-                d.GeomSetCategoryBits(WorkSpace, 0);
-                d.GeomSetCollideBits(WorkSpace, 0);
 
                 contactgroup = d.JointGroupCreate(0);
                 //contactgroup
@@ -518,7 +493,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
             }
 
-            m_meshWorker = new ODEMeshWorker(this, m_log, meshmerizer, WorkSpace, physicsconfig);
+            m_meshWorker = new ODEMeshWorker(this, m_log, meshmerizer, physicsconfig);
 
             HalfOdeStep = ODE_STEPSIZE * 0.5f;
             odetimestepMS = (int)(1000.0f * ODE_STEPSIZE +0.5f);
@@ -1316,6 +1291,15 @@ namespace OpenSim.Region.Physics.OdePlugin
                 _collisionEventPrimRemove.Add(obj);
         }
 
+        public override float TimeDilation
+        {
+            get { return m_timeDilation; }
+        }
+
+        public override bool SupportsNINJAJoints
+        {
+            get { return false; }
+        }
 
         #region Add/Remove Entities
 
@@ -1371,59 +1355,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             ((OdeCharacter) actor).Destroy();
         }
 
-        private PhysicsActor AddPrim(String name, Vector3 position, Vector3 size, Quaternion rotation,
-                                     PrimitiveBaseShape pbs, bool isphysical, uint localID)
-        {
-            Vector3 pos = position;
-            Vector3 siz = size;
-            Quaternion rot = rotation;
-
-            OdePrim newPrim;
-            lock (OdeLock)
-            {
-                newPrim = new OdePrim(name, this, pos, siz, rot, pbs, isphysical,false,0,localID);
-
-                lock (_prims)
-                    _prims.Add(newPrim);
-            }
-            return newPrim;
-        }
-
-        private PhysicsActor AddPrim(String name, Vector3 position, Vector3 size, Quaternion rotation,
-                                     PrimitiveBaseShape pbs, bool isphysical, bool isPhantom, uint localID)
-        {
-            Vector3 pos = position;
-            Vector3 siz = size;
-            Quaternion rot = rotation;
-
-            OdePrim newPrim;
-            lock (OdeLock)
-            {
-                newPrim = new OdePrim(name, this, pos, siz, rot, pbs, isphysical, isPhantom, 0, localID);
-
-                lock (_prims)
-                    _prims.Add(newPrim);
-            }
-            return newPrim;
-        }
-
-        private PhysicsActor AddPrim(String name, Vector3 position, Vector3 size, Quaternion rotation,
-                                     PrimitiveBaseShape pbs, bool isphysical, bool isPhantom, byte shapeType, uint localID)
-        {
-            Vector3 pos = position;
-            Vector3 siz = size;
-            Quaternion rot = rotation;
-
-            OdePrim newPrim;
-            lock (OdeLock)
-            {
-                newPrim = new OdePrim(name, this, pos, siz, rot, pbs, isphysical, isPhantom, shapeType, localID);
-
-                lock (_prims)
-                    _prims.Add(newPrim);
-            }
-            return newPrim;
-        }
 
         public void addActivePrim(OdePrim activatePrim)
         {
@@ -1444,43 +1375,38 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
+        private PhysicsActor AddPrim(String name, Vector3 position, Vector3 size, Quaternion rotation,
+                                     PrimitiveBaseShape pbs, bool isphysical, bool isPhantom, byte shapeType, uint localID)
+        {
+            OdePrim newPrim;
+            lock (OdeLock)
+            {
+                newPrim = new OdePrim(name, this, position, size, rotation, pbs, isphysical, isPhantom, shapeType, localID);
+                lock (_prims)
+                    _prims.Add(newPrim);
+            }
+            return newPrim;
+        }
+
         public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position,
                                                   Vector3 size, Quaternion rotation, bool isPhysical, bool isPhantom, uint localid)
         {
-            return AddPrim(primName, position, size, rotation, pbs, isPhysical, isPhantom, localid);
+            return AddPrim(primName, position, size, rotation, pbs, isPhysical, isPhantom, 0 , localid);
         }
 
 
         public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position,
                                                   Vector3 size, Quaternion rotation, bool isPhysical, uint localid)
         {
-#if SPAM
-            m_log.DebugFormat("[PHYSICS]: Adding physics actor to {0}", primName);
-#endif
-
-            return AddPrim(primName, position, size, rotation, pbs, isPhysical, localid);
+            return AddPrim(primName, position, size, rotation, pbs, isPhysical,false, 0, localid);
         }
 
         public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position,
                                                   Vector3 size, Quaternion rotation, bool isPhysical, bool isPhantom, byte shapeType, uint localid)
         {
-#if SPAM
-            m_log.DebugFormat("[PHYSICS]: Adding physics actor to {0}", primName);
-#endif
 
             return AddPrim(primName, position, size, rotation, pbs, isPhysical,isPhantom, shapeType, localid);
         }
-
-        public override float TimeDilation
-        {
-            get { return m_timeDilation; }
-        }
-
-        public override bool SupportsNINJAJoints
-        {
-            get { return false; }
-        }
-
 
         public void remActivePrim(OdePrim deactivatePrim)
         {
@@ -1534,6 +1460,28 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
 
         }
+
+        public bool havePrim(OdePrim prm)
+        {
+            lock (_prims)
+                return _prims.Contains(prm);
+        }
+
+        public bool haveActor(PhysicsActor actor)
+        {
+            if (actor is OdePrim)
+            {
+                lock (_prims)
+                    return _prims.Contains((OdePrim)actor);
+            }
+            else if (actor is OdeCharacter)
+            {
+                lock (_characters)
+                    return _characters.Contains((OdeCharacter)actor);
+            }
+            return false;
+        }
+
         #endregion
 
         #region Space Separation Calculation
@@ -1706,20 +1654,9 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 if (world == IntPtr.Zero)
                     return 0;
+                
+                d.WorldSetQuickStepNumIterations(world, curphysiteractions);
 
-                // adjust number of iterations per step
-
-//                try
-//                {
-                    d.WorldSetQuickStepNumIterations(world, curphysiteractions);
-/*                }
-                catch (StackOverflowException)
-                {
-                    m_log.Error("[PHYSICS]: The operating system wasn't able to allocate enough memory for the simulation.  Restarting the sim.");
-//                    ode.drelease(world);
-                    base.TriggerPhysicsBasedRestart();
-                }
-*/
                 while (step_time > HalfOdeStep && nodeframes < 10) //limit number of steps so we don't say here for ever
                 {
                     try
@@ -1747,8 +1684,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                                     }
                                     catch
                                     {
-                                        m_log.Warn("[PHYSICS]: doChange failed for a actor");
-                                    };
+                                        m_log.WarnFormat("[PHYSICS]: doChange failed for a actor {0} {1}",
+                                            item.actor.Name, item.what.ToString());
+                                    }
                                 }
                                 ttmp = Util.EnvironmentTickCountSubtract(ttmpstart);
                                 if (ttmp > 20)
@@ -2491,6 +2429,9 @@ namespace OpenSim.Region.Physics.OdePlugin
 */
         public override void Dispose()
         {
+            if (m_meshWorker != null)
+                m_meshWorker.Stop();
+
             lock (OdeLock)
             {
                 m_rayCastManager.Dispose();

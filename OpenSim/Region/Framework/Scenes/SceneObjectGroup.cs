@@ -4299,8 +4299,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             SceneObjectPart[] parts = m_parts.GetArray();
 
-            for (int i = 0; i < parts.Length; i++)
-                parts[i].CheckSculptAndLoad();
+//            for (int i = 0; i < parts.Length; i++)
+//                parts[i].CheckSculptAndLoad();
         }
 
         /// <summary>
