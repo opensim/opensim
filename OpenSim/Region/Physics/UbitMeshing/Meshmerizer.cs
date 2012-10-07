@@ -1113,17 +1113,17 @@ namespace OpenSim.Region.Physics.Meshing
 
             Mesh mesh = (Mesh)imesh;
 
-            int curRefCount = mesh.RefCount;
-            curRefCount--;
-
-            if (curRefCount > 0)
-            {
-                mesh.RefCount = curRefCount;
-                return;
-            }
-
             lock (m_uniqueMeshes)
             {
+                int curRefCount = mesh.RefCount;
+                curRefCount--;
+
+                if (curRefCount > 0)
+                {
+                    mesh.RefCount = curRefCount;
+                    return;
+                }
+
                 mesh.RefCount = 0;
                 m_uniqueMeshes.Remove(mesh.Key);
                 lock (m_uniqueReleasedMeshes)

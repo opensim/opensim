@@ -18,6 +18,23 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.Physics.OdePlugin
 {
+    public enum MeshState : byte
+    {
+        noNeed = 0,
+
+        loadingAsset = 1,
+
+        AssetOK = 0x0f,     // 00001111
+
+        NeedMask = 0x30,    // 00110000
+        needMesh = 0x10,    // 00010000 
+        needAsset = 0x20,   // 00100000
+
+        FailMask = 0xC0,    // 11000000
+        AssetFailed = 0x40, // 01000000
+        MeshFailed = 0x80   // 10000000
+    }
+
     public enum meshWorkerCmnds : byte
     {
         nop = 0,
@@ -43,12 +60,10 @@ namespace OpenSim.Region.Physics.OdePlugin
         public byte shapetype;
         public bool hasOBB;
         public bool hasMeshVolume;
-        public AssetState assetState;
+        public MeshState meshState;
         public UUID? assetID;
         public meshWorkerCmnds comand;
     }
-
-
 
     public class ODEMeshWorker
     {
@@ -138,16 +153,10 @@ namespace OpenSim.Region.Physics.OdePlugin
             repData.size = size;
             repData.shapetype = shapetype;
 
-            //            if (CheckMeshDone(repData))
-            {
-                CheckMeshDone(repData);
-                CalcVolumeData(repData);
-                m_scene.AddChange(actor, changes.PhysRepData, repData);
-                return;
-            }
-
-//            repData.comand = meshWorkerCmnds.changefull;
-//            createqueue.Enqueue(repData);
+            CheckMeshDone(repData);
+            CalcVolumeData(repData);
+            m_scene.AddChange(actor, changes.PhysRepData, repData);
+            return;
         }
 
         public void NewActorPhysRep(PhysicsActor actor, PrimitiveBaseShape pbs,
@@ -159,39 +168,43 @@ namespace OpenSim.Region.Physics.OdePlugin
             repData.size = size;
             repData.shapetype = shapetype;
 
-            //            bool done = CheckMeshDone(repData);
-
             CheckMeshDone(repData);
             CalcVolumeData(repData);
             m_scene.AddChange(actor, changes.AddPhysRep, repData);
-//            if (done)
-                return;
-
-//            repData.comand = meshWorkerCmnds.addnew;
-//            createqueue.Enqueue(repData);
         }
 
-        public void RequestMeshAsset(ODEPhysRepData repData)
+        public void RequestMesh(ODEPhysRepData repData)
         {
-            if (repData.assetState != AssetState.needAsset)
-                return;
-
             repData.mesh = null;
 
-            if (repData.assetID == null || repData.assetID == UUID.Zero)
+            if (repData.meshState == MeshState.needMesh)
             {
-                repData.assetState = AssetState.noNeedAsset;
                 repData.comand = meshWorkerCmnds.changefull;
                 createqueue.Enqueue(repData);
-                return;
             }
+            else if (repData.meshState == MeshState.needAsset)
+            {
+                PrimitiveBaseShape pbs = repData.pbs;
 
-            repData.assetState = AssetState.loadingAsset;
+                // check if we got outdated
 
-            repData.comand = meshWorkerCmnds.getmesh;
-            createqueue.Enqueue(repData);
+                if (!pbs.SculptEntry || pbs.SculptTexture == UUID.Zero)
+                {
+                    repData.meshState = MeshState.noNeed;
+                    return;
+                }
+
+                if (pbs.SculptTexture != repData.assetID)
+                    return;
+
+                repData.meshState = MeshState.loadingAsset;
+
+                repData.comand = meshWorkerCmnds.getmesh;
+                createqueue.Enqueue(repData);
+            }
         }
 
+        // creates and prepares a mesh to use and calls parameters estimation
         public bool CreateActorPhysRep(ODEPhysRepData repData)
         {
             getMesh(repData);
@@ -210,7 +223,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     m_log.WarnFormat("[PHYSICS]: Invalid mesh data on prim {0} mesh UUID {1}",
                         repData.actor.Name, repData.pbs.SculptTexture.ToString());
-                    repData.assetState = AssetState.AssetFailed;
+                    repData.meshState = MeshState.MeshFailed;
                     repData.hasOBB = false;
                     repData.mesh = null;
                     m_scene.mesher.ReleaseMesh(mesh);
@@ -237,6 +250,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                     createqueue.Enqueue(repData);
                 }
             }
+            else
+                repData.pbs.SculptData = Utils.EmptyBytes;
         }
 
         public void DoRepDataGetMesh(ODEPhysRepData repData)
@@ -244,7 +259,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (!repData.pbs.SculptEntry)
                 return;
 
-            if (repData.assetState != AssetState.loadingAsset)
+            if (repData.meshState != MeshState.loadingAsset)
                 return;
 
             if (repData.assetID == null || repData.assetID == UUID.Zero)
@@ -381,32 +396,17 @@ namespace OpenSim.Region.Physics.OdePlugin
             return true;
         }
 
+        // see if we need a mesh and if so if we have a cached one
+        // called with a new repData
         public bool CheckMeshDone(ODEPhysRepData repData)
         {
             PhysicsActor actor = repData.actor;
             PrimitiveBaseShape pbs = repData.pbs;
 
-            repData.mesh = null;
-            repData.hasOBB = false;
-
             if (!needsMeshing(pbs))
             {
-                repData.assetState = AssetState.noNeedAsset;
+                repData.meshState = MeshState.noNeed;
                 return true;
-            }
-
-            if (pbs.SculptEntry)
-            {
-                if (repData.assetState == AssetState.AssetFailed)
-                {
-                    if (pbs.SculptTexture == repData.assetID)
-                        return true;
-                }
-            }
-            else
-            {
-                repData.assetState = AssetState.noNeedAsset;
-                repData.assetID = null;
             }
 
             IMesh mesh = null;
@@ -425,7 +425,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (pbs.SculptType != (byte)SculptType.Mesh)
                     clod = (int)LevelOfDetail.Low;
             }
+
             mesh = m_mesher.GetMesh(actor.Name, pbs, size, clod, true, convex);
+
             if (mesh == null)
             {
                 if (pbs.SculptEntry)
@@ -433,13 +435,13 @@ namespace OpenSim.Region.Physics.OdePlugin
                     if (pbs.SculptTexture != null && pbs.SculptTexture != UUID.Zero)
                     {
                         repData.assetID = pbs.SculptTexture;
-                        repData.assetState = AssetState.needAsset;                        
+                        repData.meshState = MeshState.needAsset;                        
                     }
                     else
-                        repData.assetState = AssetState.AssetFailed;
+                        repData.meshState = MeshState.MeshFailed;
                 }
                 else
-                    repData.assetState = AssetState.needAsset;
+                    repData.meshState = MeshState.needMesh;
                 
                 return false;
             }
@@ -447,13 +449,13 @@ namespace OpenSim.Region.Physics.OdePlugin
             repData.mesh = mesh;
             if (pbs.SculptEntry)
             {
-                repData.assetState = AssetState.AssetOK;
+                repData.meshState = MeshState.AssetOK;
                 repData.assetID = pbs.SculptTexture;
-                pbs.SculptData = Utils.EmptyBytes;
             }
+
+            pbs.SculptData = Utils.EmptyBytes;
             return true;
         }
-
 
         public bool getMesh(ODEPhysRepData repData)
         {
@@ -467,16 +469,19 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (!needsMeshing(pbs))
                 return false;
 
+            if (repData.meshState == MeshState.MeshFailed)
+                return false;
+
             if (pbs.SculptEntry)
             {
-                if (repData.assetState == AssetState.AssetFailed)
+                if (repData.meshState == MeshState.AssetFailed)
                 {
                     if (pbs.SculptTexture == repData.assetID)
                         return true;
                 }
             }
 
-            repData.assetState = AssetState.noNeedAsset;
+            repData.meshState = MeshState.noNeed;
 
             IMesh mesh = null;
             Vector3 size = repData.size;
@@ -492,7 +497,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (pbs.SculptType != (byte)SculptType.Mesh)
                     clod = (int)LevelOfDetail.Low;
             }
+
+            // check cached
             mesh = m_mesher.GetMesh(actor.Name, pbs, size, clod, true, convex);
+
             if (mesh == null)
             {
                 if (pbs.SculptEntry)
@@ -501,17 +509,16 @@ namespace OpenSim.Region.Physics.OdePlugin
                         return false;
 
                     repData.assetID = pbs.SculptTexture;
-                    repData.assetState = AssetState.AssetOK;
+                    repData.meshState = MeshState.AssetOK;
 
                     if (pbs.SculptData == null || pbs.SculptData.Length == 0)
                     {
-                        repData.assetState = AssetState.needAsset;
+                        repData.meshState = MeshState.needAsset;
                         return false;
                     }
                 }
 
                 mesh = m_mesher.CreateMesh(actor.Name, pbs, size, clod, true, convex);
-
             }
 
             repData.mesh = mesh;
@@ -520,13 +527,14 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (mesh == null)
             {
                 if (pbs.SculptEntry)
-                    repData.assetState = AssetState.AssetFailed;
+                    repData.meshState = MeshState.AssetFailed;
+                else
+                    repData.meshState = MeshState.MeshFailed;
 
                 return false;
             }
 
-            if (pbs.SculptEntry)
-                repData.assetState = AssetState.AssetOK;
+            repData.meshState = MeshState.AssetOK;
 
             return true;
         }
@@ -866,7 +874,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_log = plog;
             repData = pRepData;
 
-            repData.assetState = AssetState.AssetFailed;
+            repData.meshState = MeshState.AssetFailed;
             if (provider == null)
                 return;
 
@@ -877,29 +885,27 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (assetID == UUID.Zero)
                 return;
 
-            repData.assetState = AssetState.loadingAsset;
+            repData.meshState = MeshState.loadingAsset;
             provider(assetID, ODEassetReceived);
         }
 
         void ODEassetReceived(AssetBase asset)
         {
-            repData.assetState = AssetState.AssetFailed;
+            repData.meshState = MeshState.AssetFailed;
             if (asset != null)
             {
                 if (asset.Data != null && asset.Data.Length > 0)
                 {
+                    repData.meshState = MeshState.noNeed;
+
                     if (!repData.pbs.SculptEntry)
                         return;
                     if (repData.pbs.SculptTexture != repData.assetID)
                         return;
 
-                    // asset get may return a pointer to the same asset data
-                    // for similar prims and we destroy with it
-                    // so waste a lot of time stressing gc and hoping it clears things
-                    // TODO avoid this
                     repData.pbs.SculptData = new byte[asset.Data.Length];
                     asset.Data.CopyTo(repData.pbs.SculptData,0);
-                    repData.assetState = AssetState.AssetOK;
+                    repData.meshState = MeshState.AssetOK;
                     m_worker.AssetLoaded(repData);
                 }
                 else
