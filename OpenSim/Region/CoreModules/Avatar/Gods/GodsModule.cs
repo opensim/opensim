@@ -206,7 +206,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
                     transferModule.SendInstantMessage(new GridInstantMessage(
                             m_scene, godID, "God", agentID, (byte)250, false,
                             Utils.BytesToString(reason), UUID.Zero, true,
-                            new Vector3(), new byte[] {(byte)kickflags}),
+                            new Vector3(), new byte[] {(byte)kickflags}, true),
                             delegate(bool success) {} );
                 }
                 return;

@@ -825,13 +825,6 @@ namespace OpenSim.Region.Framework.Scenes
                     m_defaultScriptEngine = startupConfig.GetString("DefaultScriptEngine", "XEngine");
                     m_log.InfoFormat("[SCENE]: Default script engine {0}", m_defaultScriptEngine);
 
-                    IConfig packetConfig = m_config.Configs["PacketPool"];
-                    if (packetConfig != null)
-                    {
-                        PacketPool.Instance.RecyclePackets = packetConfig.GetBoolean("RecyclePackets", true);
-                        PacketPool.Instance.RecycleDataBlocks = packetConfig.GetBoolean("RecycleDataBlocks", true);
-                    }
-
                     m_strictAccessControl = startupConfig.GetBoolean("StrictAccessControl", m_strictAccessControl);
                     m_seeIntoBannedRegion = startupConfig.GetBoolean("SeeIntoBannedRegion", m_seeIntoBannedRegion);
                     CombineRegions = startupConfig.GetBoolean("CombineContiguousRegions", false);
