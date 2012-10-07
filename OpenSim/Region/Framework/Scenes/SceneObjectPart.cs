@@ -4460,7 +4460,7 @@ namespace OpenSim.Region.Framework.Scenes
                         if (god)
                         {
                             BaseMask = ApplyMask(BaseMask, set, mask);
-                            Inventory.ApplyGodPermissions(_baseMask);
+                            Inventory.ApplyGodPermissions(BaseMask);
                         }
 
                         break;
@@ -4479,7 +4479,7 @@ namespace OpenSim.Region.Framework.Scenes
                     case 16:
                         NextOwnerMask = ApplyMask(NextOwnerMask, set, mask) &
                                 baseMask;
-                        // Prevent the client from creating no mod, no copy
+                        // Prevent the client from creating no copy, no transfer
                         // objects
                         if ((NextOwnerMask & (uint)PermissionMask.Copy) == 0)
                             NextOwnerMask |= (uint)PermissionMask.Transfer;

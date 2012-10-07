@@ -3422,7 +3422,15 @@ namespace OpenSim.Region.Framework.Scenes
         {
             RootPart.UpdatePermissions(AgentID, field, localID, mask, addRemTF);
 
+            bool god = Scene.Permissions.IsGod(AgentID);
+
             AdjustChildPrimPermissions();
+
+            if (field == 1 && god) // Base mask was set. Update all child part inventories
+            {
+                foreach (SceneObjectPart part in Parts)
+                    part.Inventory.ApplyGodPermissions(RootPart.BaseMask);
+            }
 
             HasGroupChanged = true;
 
