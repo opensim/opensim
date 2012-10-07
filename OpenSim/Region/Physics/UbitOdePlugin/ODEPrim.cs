@@ -277,7 +277,23 @@ namespace OpenSim.Region.Physics.OdePlugin
                     cdata.mu *= veh.FrictionFactor;
 //                    cdata.mu *= 0;
             }
-        }    
+        }
+
+        public override float PhysicsCost
+        {
+            get
+            {
+                return m_physCost;
+            }
+        }
+
+        public override float StreamCost
+        {
+            get
+            {
+                return m_streamCost;
+            }
+        }
 
         public override int PhysicsActorType
         {
@@ -1373,6 +1389,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                 m_mesh = null;
                 return false;
             }
+
+            m_physCost = 0.0013f * (float)indexCount;
+            // todo
+            m_streamCost = 1.0f;
+
             return true;
         }
 
@@ -1386,7 +1407,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (m_assetState == AssetState.AssetFailed)
                 m_NoColide = true;
 
-            else if (m_mesh != null)
+            else if(m_mesh != null)
             {
                 if (GetMeshGeom())
                     hasMesh = true;
@@ -2058,7 +2079,23 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 m_OBBOffset.Y,
                                 m_OBBOffset.Z);
 
-            primOOBradiusSQ = m_OBBOffset.LengthSquared();
+            primOOBradiusSQ = m_OBB.LengthSquared();
+
+            if (_triMeshData != IntPtr.Zero)
+            {
+                float pc = m_physCost;
+                float psf = primOOBradiusSQ;
+                psf *= 1.33f * .2f;
+                pc *= psf;
+                if (pc < 0.1f)
+                    pc = 0.1f;
+
+                m_physCost = pc;
+            }
+            else
+                m_physCost = 0.1f;
+
+            m_streamCost = 1.0f;
         }
 
         #endregion
@@ -2717,10 +2754,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_OBBOffset = repData.OBBOffset;
             m_OBB = repData.OBB;
 
-//            m_NoColide = repData.NoColide;
-            m_physCost = repData.physCost;
-            m_streamCost = repData.streamCost;
-
             primVolume = repData.volume;
 
             CreateGeom();
@@ -2793,9 +2826,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_OBBOffset = repData.OBBOffset;
             m_OBB = repData.OBB;
 
-            m_physCost = repData.physCost;
-            m_streamCost = repData.streamCost;
-
             primVolume = repData.volume;
 
             CreateGeom();
@@ -2806,14 +2836,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 UpdatePrimBodyData();
 
-                try
-                {
                     _parent_scene.actor_name_map[prim_geom] = this;
-                }
-                catch
-                {
 
-                }
 
                 d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
                 d.Quaternion myrot = new d.Quaternion();

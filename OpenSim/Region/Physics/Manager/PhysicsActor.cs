@@ -315,6 +315,23 @@ namespace OpenSim.Region.Physics.Manager
             }
         }
 
+
+        public virtual float PhysicsCost
+        {
+            get
+            {
+                return 0.1f;
+            }
+        }
+
+        public virtual float StreamCost
+        {
+            get
+            {
+                return 1.0f;
+            }
+        }
+
         /// <summary>
         /// Velocity of this actor.
         /// </summary>
