@@ -261,12 +261,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                     closestHit = ((CurrentRayFilter & RayFilterFlags.ClosestHit) == 0 ? 0 : 1);
                     backfacecull = ((CurrentRayFilter & RayFilterFlags.BackFaceCull) == 0 ? 0 : 1);
 
-                    // current ode land to ray collisions is very bad
-                    // so for now limit its range badly
-
-                    if (req.length > 30.0f && (CurrentRayFilter & RayFilterFlags.land) != 0)
-                        req.length = 30.0f;
-
                     d.GeomRaySetLength(ray, req.length);
                     d.GeomRaySet(ray, req.Origin.X, req.Origin.Y, req.Origin.Z, req.Normal.X, req.Normal.Y, req.Normal.Z);
                     d.GeomRaySetParams(ray, 0, backfacecull);
@@ -334,7 +328,15 @@ namespace OpenSim.Region.Physics.OdePlugin
             if ((CurrentRayFilter & FilterStaticSpace) != 0 && (m_contactResults.Count < CurrentMaxCount))
                 d.SpaceCollide2(ray, m_scene.StaticSpace, IntPtr.Zero, nearCallback);
             if ((CurrentRayFilter & RayFilterFlags.land) != 0 && (m_contactResults.Count < CurrentMaxCount))
+            {
+                // current ode land to ray collisions is very bad
+                // so for now limit its range badly
+
+                if (req.length > 30.0f)
+                    d.GeomRaySetLength(ray, 30.0f);
+
                 d.SpaceCollide2(ray, m_scene.GroundSpace, IntPtr.Zero, nearCallback);
+            }
 
             if (req.callbackMethod is RaycastCallback)
             {
