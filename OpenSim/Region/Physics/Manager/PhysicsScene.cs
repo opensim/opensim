@@ -246,6 +246,9 @@ namespace OpenSim.Region.Physics.Manager
 
         public abstract void AddPhysicsActorTaint(PhysicsActor prim);
 
+
+        public virtual void PrepareSimulation() { }
+
         /// <summary>
         /// Perform a simulation of the current physics scene over the given timestep.
         /// </summary>

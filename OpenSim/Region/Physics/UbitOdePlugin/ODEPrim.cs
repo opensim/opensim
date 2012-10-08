@@ -1325,12 +1325,48 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
+
+        private void SetGeom(IntPtr geom)
+        {
+            prim_geom = geom;
+            //Console.WriteLine("SetGeom to " + prim_geom + " for " + Name);
+            if (prim_geom != IntPtr.Zero)
+            {
+
+                if (m_NoColide)
+                {
+                    d.GeomSetCategoryBits(prim_geom, 0);
+                    if (m_isphysical)
+                    {
+                        d.GeomSetCollideBits(prim_geom, (uint)CollisionCategories.Land);
+                    }
+                    else
+                    {
+                        d.GeomSetCollideBits(prim_geom, 0);
+                        d.GeomDisable(prim_geom);
+                    }
+                }
+                else
+                {
+                    d.GeomSetCategoryBits(prim_geom, (uint)m_collisionCategories);
+                    d.GeomSetCollideBits(prim_geom, (uint)m_collisionFlags);
+                }
+
+                UpdatePrimBodyData();
+                _parent_scene.actor_name_map[prim_geom] = this;
+
+            }
+            else
+                m_log.Warn("Setting bad Geom");
+        }
+
         private bool GetMeshGeom()
         {
             IntPtr vertices, indices;
             int vertexCount, indexCount;
             int vertexStride, triStride;
 
+            
             IMesh mesh = m_mesh;
 
             if (mesh == null)
@@ -1356,6 +1392,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                 m_mesh = null;
                 return false;
             }
+
+            IntPtr geo = IntPtr.Zero;
+
             try
             {
                 _triMeshData = d.GeomTriMeshDataCreate();
@@ -1363,7 +1402,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.GeomTriMeshDataBuildSimple(_triMeshData, vertices, vertexStride, vertexCount, indices, indexCount, triStride);
                 d.GeomTriMeshDataPreprocess(_triMeshData);
 
-                prim_geom = d.CreateTriMesh(m_targetSpace, _triMeshData, null, null, null);
+                geo = d.CreateTriMesh(m_targetSpace, _triMeshData, null, null, null);
             }
 
             catch (Exception e)
@@ -1380,15 +1419,15 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                 }
                 _triMeshData = IntPtr.Zero;
-                prim_geom = IntPtr.Zero;
 
                 m_hasOBB = false;
                 m_OBBOffset = Vector3.Zero;
                 m_OBB = _size * 0.5f;
                 m_physCost = 0.1f;
-                m_streamCost = 1.0f;              
+                m_streamCost = 1.0f;
+              
                 _parent_scene.mesher.ReleaseMesh(mesh);
-                m_meshState = MeshState.AssetFailed;
+                m_meshState = MeshState.MeshFailed;
                 m_mesh = null;
                 return false;
             }
@@ -1397,12 +1436,13 @@ namespace OpenSim.Region.Physics.OdePlugin
             // todo
             m_streamCost = 1.0f;
 
+            SetGeom(geo);
+
             return true;
         }
 
         private void CreateGeom()
         {
-            IntPtr geo = IntPtr.Zero;
             bool hasMesh = false;
 
             m_NoColide = false;
@@ -1418,8 +1458,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_NoColide = true;
             }
 
+
             if (!hasMesh)
             {
+                IntPtr geo = IntPtr.Zero;
+
                 if (_pbs.ProfileShape == ProfileShape.HalfCircle && _pbs.PathCurve == (byte)Extrusion.Curve1
                     && _size.X == _size.Y && _size.Y == _size.Z)
                 { // it's a sphere
@@ -1447,7 +1490,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 m_physCost = 0.1f;
                 m_streamCost = 1.0f;
-                prim_geom = geo;
+                SetGeom(geo);
             }
         }
 
@@ -2740,8 +2783,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
         }
 
- 
-
         private void changeAddPhysRep(ODEPhysRepData repData)
         {
             _size = repData.size; //??
@@ -2763,10 +2804,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             if (prim_geom != IntPtr.Zero)
             {
-                UpdatePrimBodyData();
-
-                _parent_scene.actor_name_map[prim_geom] = this;
-
                 d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
                 d.Quaternion myrot = new d.Quaternion();
                 myrot.X = _orientation.X;
@@ -2774,23 +2811,23 @@ namespace OpenSim.Region.Physics.OdePlugin
                 myrot.Z = _orientation.Z;
                 myrot.W = _orientation.W;
                 d.GeomSetQuaternion(prim_geom, ref myrot);
+            }
 
-                if (!m_isphysical)
-                {
-                    SetInStaticSpace(this);
-                    UpdateCollisionCatFlags();
-                    ApplyCollisionCatFlags();
-                }
-                else
-                    MakeBody();
+            if (!m_isphysical)
+            {
+                SetInStaticSpace(this);
+                UpdateCollisionCatFlags();
+                ApplyCollisionCatFlags();
+            }
+            else
+                MakeBody();
 
-                if ((m_meshState & MeshState.NeedMask) != 0)
-                {
-                    repData.size = _size;
-                    repData.pbs = _pbs;
-                    repData.shapetype = m_shapetype;
-                    _parent_scene.m_meshWorker.RequestMesh(repData);
-                }
+            if ((m_meshState & MeshState.NeedMask) != 0)
+            {
+                repData.size = _size;
+                repData.pbs = _pbs;
+                repData.shapetype = m_shapetype;
+                _parent_scene.m_meshWorker.RequestMesh(repData);
             }
         }
 
@@ -2831,14 +2868,10 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             primVolume = repData.volume;
 
-            CreateGeom();
+            CreateGeom();          
 
             if (prim_geom != IntPtr.Zero)
             {
-                UpdatePrimBodyData();
-
-                _parent_scene.actor_name_map[prim_geom] = this;
-
                 d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
                 d.Quaternion myrot = new d.Quaternion();
                 myrot.X = _orientation.X;
@@ -2846,29 +2879,28 @@ namespace OpenSim.Region.Physics.OdePlugin
                 myrot.Z = _orientation.Z;
                 myrot.W = _orientation.W;
                 d.GeomSetQuaternion(prim_geom, ref myrot);
-
-                if (m_isphysical)
-                {
-                    if (chp)
-                    {
-                        if (parent != null)
-                        {
-                            parent.MakeBody();
-                        }
-                    }
-                    else
-                        MakeBody();
-                }
-
-                else
-                {
-                    SetInStaticSpace(this);
-                    UpdateCollisionCatFlags();
-                    ApplyCollisionCatFlags();
-                }
-
-                resetCollisionAccounting();
             }
+
+            if (m_isphysical)
+            {
+                if (chp)
+                {
+                    if (parent != null)
+                    {
+                        parent.MakeBody();
+                    }
+                }
+                else
+                    MakeBody();
+            }
+            else
+            {
+                SetInStaticSpace(this);
+                UpdateCollisionCatFlags();
+                ApplyCollisionCatFlags();
+            }
+
+            resetCollisionAccounting();
 
             if ((m_meshState & MeshState.NeedMask) != 0)
             {
