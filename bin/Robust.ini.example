@@ -13,7 +13,23 @@
 ; * [[<ConfigName>@]<port>/]<dll name>[:<class name>]
 ; *
 [Startup]
-ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003/OpenSim.Server.Handlers.dll:XInventoryInConnector,8004/OpenSim.Server.Handlers.dll:FreeswitchServerConnector,8003/OpenSim.Server.Handlers.dll:GridServiceConnector,8002/OpenSim.Server.Handlers.dll:GridInfoServerInConnector,8003/OpenSim.Server.Handlers.dll:AuthenticationServiceConnector,8002/OpenSim.Server.Handlers.dll:OpenIdServerConnector,8003/OpenSim.Server.Handlers.dll:AvatarServiceConnector,8002/OpenSim.Server.Handlers.dll:LLLoginServiceInConnector,8003/OpenSim.Server.Handlers.dll:PresenceServiceConnector,8003/OpenSim.Server.Handlers.dll:UserAccountServiceConnector,8003/OpenSim.Server.Handlers.dll:GridUserServiceConnector,8003/OpenSim.Server.Handlers.dll:FriendsServiceConnector,8003/OpenSim.Server.Handlers.dll:MapAddServiceConnector,8002/OpenSim.Server.Handlers.dll:MapGetServiceConnector"
+
+[ServiceList]
+AssetServiceConnector = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector"
+InventoryInConnector = "8003/OpenSim.Server.Handlers.dll:XInventoryInConnector"
+VoiceConnector = "8004/OpenSim.Server.Handlers.dll:FreeswitchServerConnector"
+GridServiceConnector = "8003/OpenSim.Server.Handlers.dll:GridServiceConnector"
+GridInfoServerInConnector = "8002/OpenSim.Server.Handlers.dll:GridInfoServerInConnector"
+AuthenticationServiceConnector = "8003/OpenSim.Server.Handlers.dll:AuthenticationServiceConnector"
+OpenIdServerConnector = "8002/OpenSim.Server.Handlers.dll:OpenIdServerConnector"
+AvatarServiceConnector = "8003/OpenSim.Server.Handlers.dll:AvatarServiceConnector"
+LLLoginServiceInConnector = "8002/OpenSim.Server.Handlers.dll:LLLoginServiceInConnector"
+PresenceServiceConnector = "8003/OpenSim.Server.Handlers.dll:PresenceServiceConnector"
+UserAccountServiceConnector = "8003/OpenSim.Server.Handlers.dll:UserAccountServiceConnector"
+GridUserServiceConnector = "8003/OpenSim.Server.Handlers.dll:GridUserServiceConnector"
+FriendsServiceConnector = "8003/OpenSim.Server.Handlers.dll:FriendsServiceConnector"
+MapAddServiceConnector = "8003/OpenSim.Server.Handlers.dll:MapAddServiceConnector"
+MapGetServiceConnector = "8002/OpenSim.Server.Handlers.dll:MapGetServiceConnector"
 
 ; * This is common for all services, it's the network setup for the entire
 ; * server instance, if none is specified above
