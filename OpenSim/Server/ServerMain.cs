@@ -75,7 +75,7 @@ namespace OpenSim.Server
                         servicesList.Add(v);
                 }
 
-                connList = servicesConfig.Join(",");
+                connList = String.Join(",", servicesList.ToArray());
             }
 
             string[] conns = connList.Split(new char[] {',', ' ', '\n', '\r', '\t'});
