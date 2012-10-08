@@ -60,7 +60,7 @@ namespace OpenSim.Server
             }
 
             string connList = serverConfig.GetString("ServiceConnectors", String.Empty);
-            string[] conns = connList.Split(new char[] {',', ' '});
+            string[] conns = connList.Split(new char[] {',', ' ', '\n', '\r', '\t'});
 
 //            int i = 0;
             foreach (string c in conns)
