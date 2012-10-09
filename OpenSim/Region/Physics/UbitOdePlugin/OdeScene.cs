@@ -735,6 +735,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         else
                             m_log.WarnFormat("[PHYSICS]: land versus large prim geo {0},size {1}, AABBsize <{2},{3},{4}>, at {5}",
                                 dp2.Name, dp2.Size, x, y, z, dp2.Position);
+                        return;
                     }
                 }
 //
