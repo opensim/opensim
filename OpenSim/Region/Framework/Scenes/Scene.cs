@@ -3461,11 +3461,9 @@ namespace OpenSim.Region.Framework.Scenes
 
         /// <summary>
         /// Do the work necessary to initiate a new user connection for a particular scene.
-        /// At the moment, this consists of setting up the caps infrastructure
-        /// The return bool should allow for connections to be refused, but as not all calling paths
-        /// take proper notice of it let, we allowed banned users in still.
         /// </summary>
         /// <param name="agent">CircuitData of the agent who is connecting</param>
+        /// <param name="teleportFlags"></param>
         /// <param name="reason">Outputs the reason for the false response on this string</param>
         /// <returns>True if the region accepts this agent.  False if it does not.  False will 
         /// also return a reason.</returns>
@@ -3476,10 +3474,20 @@ namespace OpenSim.Region.Framework.Scenes
 
         /// <summary>
         /// Do the work necessary to initiate a new user connection for a particular scene.
-        /// At the moment, this consists of setting up the caps infrastructure
+        /// </summary>
+        /// <remarks>
+        /// The return bool should allow for connections to be refused, but as not all calling paths
+        /// take proper notice of it yet, we still allowed banned users in.
+        ///
+        /// At the moment this method consists of setting up the caps infrastructure
         /// The return bool should allow for connections to be refused, but as not all calling paths
         /// take proper notice of it let, we allowed banned users in still.
-        /// </summary>
+        ///
+        /// This method is called by the login service (in the case of login) or another simulator (in the case of region
+        /// cross or teleport) to initiate the connection.  It is not triggered by the viewer itself - the connection
+        /// is activated later when the viewer sends the initial UseCircuitCodePacket UDP packet (in the case of
+        /// the LLUDP stack).
+        /// </remarks>
         /// <param name="agent">CircuitData of the agent who is connecting</param>
         /// <param name="reason">Outputs the reason for the false response on this string</param>
         /// <param name="requirePresenceLookup">True for normal presence. False for NPC
@@ -3565,7 +3573,6 @@ namespace OpenSim.Region.Framework.Scenes
                 reason = "Access denied, your viewer is banned by the region owner";
                 return false;
             }           
-
 
             ScenePresence sp = GetScenePresence(agent.AgentID);
 
