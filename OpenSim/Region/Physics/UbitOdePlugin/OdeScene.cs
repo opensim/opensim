@@ -719,6 +719,28 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (b1 != IntPtr.Zero && b2 != IntPtr.Zero && d.AreConnectedExcluding(b1, b2, d.JointType.Contact))
                     return;
 
+// debug
+                PhysicsActor dp2;
+                if (d.GeomGetClass(g1) == d.GeomClassID.HeightfieldClass)
+                {
+                    d.AABB aabb;
+                    d.GeomGetAABB(g2, out aabb);
+                    float x = aabb.MaxX - aabb.MinX;
+                    float y = aabb.MaxY - aabb.MinY;
+                    float z = aabb.MaxZ - aabb.MinZ;
+                    if (x > 60.0f || y > 60.0f || z > 60.0f)
+                    {
+                        if (!actor_name_map.TryGetValue(g2, out dp2))
+                            m_log.WarnFormat("[PHYSICS]: failed actor mapping for geom 2");
+                        else
+                            m_log.WarnFormat("[PHYSICS]: land versus large prim geo {0},size {1}, AABBsize <{2},{3},{4}>, at {5}",
+                                dp2.Name, dp2.Size, x, y, z, dp2.Position);
+                    }
+                }
+//
+
+
+
                 if(d.GeomGetCategoryBits(g1) == (uint)CollisionCategories.VolumeDtc ||
                     d.GeomGetCategoryBits(g1) == (uint)CollisionCategories.VolumeDtc)
                 {
