@@ -646,6 +646,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                     if (value.Length() > 1.01f || qlen <0.99)
                         m_log.WarnFormat("[PHYSICS]: Got nonnorm quaternion Orientation from Scene in Object {0} norm {1}", Name, qlen);
 //
+                    value.Normalize();
+
                     AddChange(changes.Orientation, value);
                 }
                 else
@@ -2252,6 +2254,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (qlen > 1.01f || qlen < 0.99)
                     m_log.WarnFormat("[PHYSICS]: Got nonnorm quaternion from geom in Object {0} norm {1}", Name, qlen);
 //
+                _orientation.Normalize();
 
                 d.Vector3 lpos = d.GeomGetPosition(prim_geom);
                 _position.X = lpos.X;
