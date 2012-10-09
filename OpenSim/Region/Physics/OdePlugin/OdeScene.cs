@@ -502,7 +502,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         public bool physics_logging_append_existing_logfile = false;
 
         private bool avplanted = false;
-
+        private bool av_av_collisions_off = false;
 
         public d.Vector3 xyz = new d.Vector3(128.1640f, 128.3079f, 25.7600f);
         public d.Vector3 hpr = new d.Vector3(125.5000f, -17.0000f, 0.0000f);
@@ -647,7 +647,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                     avMovementDivisorRun = physicsconfig.GetFloat("av_movement_divisor_run", 0.8f);
                     avCapRadius = physicsconfig.GetFloat("av_capsule_radius", 0.37f);
                     avplanted = physicsconfig.GetBoolean("av_planted", false);
-                    
+                    av_av_collisions_off = physicsconfig.GetBoolean("av_av_collisions_off", false);
+
                     IsAvCapsuleTilted = physicsconfig.GetBoolean("av_capsule_tilted", false);
 
                     contactsPerCollision = physicsconfig.GetInt("contacts_per_collision", 80);
@@ -667,6 +668,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                     meshSculptLOD = physicsconfig.GetFloat("mesh_lod", 32f);
                     MeshSculptphysicalLOD = physicsconfig.GetFloat("mesh_physical_lod", 16f);
                     m_filterCollisions = physicsconfig.GetBoolean("filter_collisions", false);
+                    
+                    
 
                     if (Environment.OSVersion.Platform == PlatformID.Unix)
                     {
@@ -1312,6 +1315,10 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 if ((p1 is OdePrim) && (((OdePrim)p1).m_isVolumeDetect))
                     skipThisContact = true;   // No collision on volume detect prims
+
+                if (av_av_collisions_off)
+                    if ((p1 is OdeCharacter) && (p2 is OdeCharacter))
+                        skipThisContact = true;
 
                 if (!skipThisContact && (p2 is OdePrim) && (((OdePrim)p2).m_isVolumeDetect))
                     skipThisContact = true;   // No collision on volume detect prims
