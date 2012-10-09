@@ -86,7 +86,6 @@ namespace OpenSim.Server
             }
 
             string[] conns = connList.Split(new char[] {',', ' ', '\n', '\r', '\t'});
->>>>>>> master
 
 //            int i = 0;
             foreach (string c in conns)
