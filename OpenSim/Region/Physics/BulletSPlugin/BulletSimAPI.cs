@@ -306,6 +306,8 @@ public struct ConfigurationParameters
     public float linkConstraintCFM;
     public float linkConstraintSolverIterations;
 
+    public float physicsLoggingFrames;
+
     public const float numericTrue = 1f;
     public const float numericFalse = 0f;
 }

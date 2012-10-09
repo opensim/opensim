@@ -332,6 +332,13 @@ public class BSCharacter : BSPhysObject
             });
         }
     }
+    public override OMV.Vector3 ForceVelocity {
+        get { return _velocity; }
+        set {
+            _velocity = value;
+            BulletSimAPI.SetObjectVelocity(PhysicsScene.WorldID, LocalID, _velocity);
+        }
+    }
     public override OMV.Vector3 Torque {
         get { return _torque; }
         set { _torque = value;
@@ -429,6 +436,10 @@ public class BSCharacter : BSPhysObject
         }
     }
     public override OMV.Vector3 RotationalVelocity {
+        get { return _rotationalVelocity; }
+        set { _rotationalVelocity = value; }
+    }
+    public override OMV.Vector3 ForceRotationalVelocity {
         get { return _rotationalVelocity; }
         set { _rotationalVelocity = value; }
     }

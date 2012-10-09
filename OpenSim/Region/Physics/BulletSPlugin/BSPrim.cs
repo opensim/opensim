@@ -265,6 +265,11 @@ public sealed class BSPrim : BSPhysObject
             return _position;
         }
         set {
+            // If you must push the position into the physics engine, use ForcePosition.
+            if (_position == value)
+            {
+                return;
+            }
             _position = value;
             // TODO: what does it mean to set the position of a child prim?? Rebuild the constraint?
             PositionSanityCheck();
@@ -453,7 +458,6 @@ public sealed class BSPrim : BSPhysObject
         }
         return;
     }
-
     public override OMV.Vector3 Velocity {
         get { return _velocity; }
         set {
@@ -463,6 +467,13 @@ public sealed class BSPrim : BSPhysObject
                 // DetailLog("{0},BSPrim.SetVelocity,taint,vel={1}", LocalID, _velocity);
                 BulletSimAPI.SetLinearVelocity2(BSBody.ptr, _velocity);
             });
+        }
+    }
+    public override OMV.Vector3 ForceVelocity {
+        get { return _velocity; }
+        set {
+            _velocity = value;
+            BulletSimAPI.SetLinearVelocity2(BSBody.ptr, _velocity);
         }
     }
     public override OMV.Vector3 Torque {
@@ -490,6 +501,8 @@ public sealed class BSPrim : BSPhysObject
             return _orientation;
         }
         set {
+            if (_orientation == value)
+                return;
             _orientation = value;
             // TODO: what does it mean if a child in a linkset changes its orientation? Rebuild the constraint?
             PhysicsScene.TaintedObject("BSPrim.setOrientation", delegate()
@@ -621,9 +634,9 @@ public sealed class BSPrim : BSPhysObject
             // There can be special things needed for implementing linksets
             Linkset.MakeStatic(this);
             // The activation state is 'disabled' so Bullet will not try to act on it.
-            // BulletSimAPI.ForceActivationState2(BSBody.ptr, ActivationState.DISABLE_SIMULATION);
+            BulletSimAPI.ForceActivationState2(BSBody.ptr, ActivationState.DISABLE_SIMULATION);
             // Start it out sleeping and physical actions could wake it up.
-            BulletSimAPI.ForceActivationState2(BSBody.ptr, ActivationState.ISLAND_SLEEPING);
+            // BulletSimAPI.ForceActivationState2(BSBody.ptr, ActivationState.ISLAND_SLEEPING);
 
             BSBody.collisionFilter = CollisionFilterGroups.StaticObjectFilter;
             BSBody.collisionMask = CollisionFilterGroups.StaticObjectMask;
@@ -639,6 +652,9 @@ public sealed class BSPrim : BSPhysObject
 
             // per http://www.bulletphysics.org/Bullet/phpBB3/viewtopic.php?t=3382
             BulletSimAPI.ClearAllForces2(BSBody.ptr);
+
+            // For good measure, make sure the transform is set through to the motion state
+            BulletSimAPI.SetTranslation2(BSBody.ptr, _position, _orientation);
 
             // A dynamic object has mass
             IntPtr collisionShapePtr = BulletSimAPI.GetCollisionShape2(BSBody.ptr);
@@ -774,6 +790,15 @@ public sealed class BSPrim : BSPhysObject
                 // DetailLog("{0},BSPrim.SetRotationalVel,taint,rotvel={1}", LocalID, _rotationalVelocity);
                 BulletSimAPI.SetAngularVelocity2(BSBody.ptr, _rotationalVelocity);
             });
+        }
+    }
+    public override OMV.Vector3 ForceRotationalVelocity {
+        get {
+            return _rotationalVelocity;
+        }
+        set {
+            _rotationalVelocity = value;
+            BulletSimAPI.SetAngularVelocity2(BSBody.ptr, _rotationalVelocity);
         }
     }
     public override bool Kinematic {
@@ -1307,7 +1332,7 @@ public sealed class BSPrim : BSPhysObject
             /*
         else
         {
-            // For debugging, we can also report the movement of children
+            // For debugging, report the movement of children
             DetailLog("{0},BSPrim.UpdateProperties,child,pos={1},orient={2},vel={3},accel={4},rotVel={5}",
                     LocalID, entprop.Position, entprop.Rotation, entprop.Velocity,
                     entprop.Acceleration, entprop.RotationalVelocity);

@@ -407,7 +407,7 @@ public class BSShapeCollection : IDisposable
         //     made. Native shapes are best used in either case.
         if (!haveShape)
         {
-            if (prim.IsPhysical)
+            if (prim.IsPhysical && PhysicsScene.ShouldUseHullsForPhysicalObjects)
             {
                 // Update prim.BSShape to reference a hull of this shape.
                 ret = GetReferenceToHull(prim, shapeData, pbs, shapeCallback);

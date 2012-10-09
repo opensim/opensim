@@ -85,6 +85,10 @@ public abstract class BSPhysObject : PhysicsActor
 
     public abstract OMV.Quaternion ForceOrientation { get; set; }
 
+    public abstract OMV.Vector3 ForceVelocity { get; set; }
+
+    public abstract OMV.Vector3 ForceRotationalVelocity { get; set; }
+
     #region Collisions
 
     // Requested number of milliseconds between collision events. Zero means disabled.
