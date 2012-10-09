@@ -1103,20 +1103,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             IClientAPI client = null;
 
-            // In priciple there shouldn't be more than one thread here, ever.
-            // But in case that happens, we need to synchronize this piece of code
-            // because it's too important
-            lock (this) 
+            // We currently synchronize this code across the whole scene to avoid issues such as
+            // http://opensimulator.org/mantis/view.php?id=5365  However, once locking per agent circuit can be done
+            // consistently, this lock could probably be removed.
+            lock (this)
             {
                 if (!m_scene.TryGetClient(agentID, out client))
                 {
                     LLUDPClient udpClient = new LLUDPClient(this, ThrottleRates, m_throttle, circuitCode, agentID, remoteEndPoint, m_defaultRTO, m_maxRTO);
-
+    
                     client = new LLClientView(m_scene, this, udpClient, sessionInfo, agentID, sessionID, circuitCode);
                     client.OnLogout += LogoutHandler;
-
+    
                     ((LLClientView)client).DisableFacelights = m_disableFacelights;
-
+    
                     client.Start();
                 }
             }
