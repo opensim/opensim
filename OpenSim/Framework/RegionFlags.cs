@@ -34,6 +34,7 @@ namespace OpenSim.Framework
     /// </summary>
     /// <remarks>
     /// Don't confuse with OpenMetaverse.RegionFlags which are client facing flags (i.e. they go over the wire).
+    /// Returned by IGridService.GetRegionFlags()
     /// </remarks>
     [Flags]
     public enum RegionFlags : int

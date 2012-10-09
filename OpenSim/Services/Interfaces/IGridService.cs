@@ -100,6 +100,19 @@ namespace OpenSim.Services.Interfaces
         List<GridRegion> GetFallbackRegions(UUID scopeID, int x, int y);
         List<GridRegion> GetHyperlinks(UUID scopeID);
 
+        /// <summary>
+        /// Get internal OpenSimulator region flags.
+        /// </summary>
+        /// <remarks>
+        /// See OpenSimulator.Framework.RegionFlags.  These are not returned in the GridRegion structure -
+        /// they currently need to be requested separately.  Possibly this should change to avoid multiple service calls
+        /// in some situations.
+        /// </remarks>
+        /// <returns>
+        /// The region flags.
+        /// </returns>
+        /// <param name='scopeID'></param>
+        /// <param name='regionID'></param>
         int GetRegionFlags(UUID scopeID, UUID regionID);
     }
 
