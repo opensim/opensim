@@ -3978,7 +3978,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             World.RegionInfo.RegionName+" "+
                             m_host.AbsolutePosition.ToString(),
                             agentItem.ID, true, m_host.AbsolutePosition,
-                            bucket);
+                            bucket, true); // TODO: May actually send no timestamp
 
                     m_TransferModule.SendInstantMessage(msg, delegate(bool success) {});
                 }
@@ -6452,16 +6452,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (m_TransferModule != null)
             {
                 byte[] bucket = new byte[] { (byte)AssetType.Folder };
-    
+
+                Vector3 pos = m_host.AbsolutePosition;
+
                 GridInstantMessage msg = new GridInstantMessage(World,
-                        m_host.UUID, m_host.Name + ", an object owned by " +
-                        resolveName(m_host.OwnerID) + ",", destID,
+                        m_host.OwnerID, m_host.Name, destID,
                         (byte)InstantMessageDialog.TaskInventoryOffered,
-                        false, category + "\n" + m_host.Name + " is located at " +
-                        World.RegionInfo.RegionName + " " +
-                        m_host.AbsolutePosition.ToString(),
-                        folderID, true, m_host.AbsolutePosition,
-                        bucket);
+                        false, string.Format("'{0}'"),
+// We won't go so far as to add a SLURL, but this is the format used by LL as of 2012-10-06                                       
+// false, string.Format("'{0}'  ( http://slurl.com/secondlife/{1}/{2}/{3}/{4} )", category, World.Name, (int)pos.X, (int)pos.Y, (int)pos.Z),
+                        folderID, false, pos,
+                        bucket, false);
 
                 m_TransferModule.SendInstantMessage(msg, delegate(bool success) {});
             }

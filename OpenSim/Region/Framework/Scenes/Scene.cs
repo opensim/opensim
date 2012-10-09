@@ -801,13 +801,6 @@ namespace OpenSim.Region.Framework.Scenes
                 SpawnPointRouting = startupConfig.GetString("SpawnPointRouting", "closest");
                 TelehubAllowLandmarks = startupConfig.GetBoolean("TelehubAllowLandmark", false);
 
-                IConfig packetConfig = m_config.Configs["PacketPool"];
-                if (packetConfig != null)
-                {
-                    PacketPool.Instance.RecyclePackets = packetConfig.GetBoolean("RecyclePackets", true);
-                    PacketPool.Instance.RecycleDataBlocks = packetConfig.GetBoolean("RecycleDataBlocks", true);
-                }
-
                 m_strictAccessControl = startupConfig.GetBoolean("StrictAccessControl", m_strictAccessControl);
 
                 m_generateMaptiles = startupConfig.GetBoolean("GenerateMaptiles", true);

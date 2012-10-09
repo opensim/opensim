@@ -32,9 +32,8 @@ using OpenMetaverse;
 using OpenMetaverse.Packets;
 using log4net;
 
-namespace OpenSim.Framework
+namespace OpenSim.Region.ClientStack.LindenUDP
 {
-
     public sealed class PacketPool
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -44,6 +43,9 @@ namespace OpenSim.Framework
         private bool packetPoolEnabled = true;
         private bool dataBlockPoolEnabled = true;
 
+        /// <summary>
+        /// Pool of packets available for reuse.
+        /// </summary>
         private readonly Dictionary<PacketType, Stack<Packet>> pool = new Dictionary<PacketType, Stack<Packet>>();
 
         private static Dictionary<Type, Stack<Object>> DataBlocks =

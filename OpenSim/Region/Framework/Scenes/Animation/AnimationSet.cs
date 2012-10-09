@@ -87,7 +87,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             {
                 if (m_defaultAnimation.AnimID == animID)
                 {
-                    ResetDefaultAnimation();
+                    m_defaultAnimation = new OpenSim.Framework.Animation(UUID.Zero, 1, UUID.Zero);
                 }
                 else if (HasAnimation(animID))
                 {
@@ -149,19 +149,26 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         {
             lock (m_animations)
             {
-                animIDs = new UUID[m_animations.Count + 1];
-                sequenceNums = new int[m_animations.Count + 1];
-                objectIDs = new UUID[m_animations.Count + 1];
+                int defaultSize = 0;
+                if (m_defaultAnimation.AnimID != UUID.Zero)
+                    defaultSize++;
 
-                animIDs[0] = m_defaultAnimation.AnimID;
-                sequenceNums[0] = m_defaultAnimation.SequenceNum;
-                objectIDs[0] = m_defaultAnimation.ObjectID;
+                animIDs = new UUID[m_animations.Count + defaultSize];
+                sequenceNums = new int[m_animations.Count + defaultSize];
+                objectIDs = new UUID[m_animations.Count + defaultSize];
+
+                if (m_defaultAnimation.AnimID != UUID.Zero)
+                {
+                    animIDs[0] = m_defaultAnimation.AnimID;
+                    sequenceNums[0] = m_defaultAnimation.SequenceNum;
+                    objectIDs[0] = m_defaultAnimation.ObjectID;
+                }
 
                 for (int i = 0; i < m_animations.Count; ++i)
                 {
-                    animIDs[i + 1] = m_animations[i].AnimID;
-                    sequenceNums[i + 1] = m_animations[i].SequenceNum;
-                    objectIDs[i + 1] = m_animations[i].ObjectID;
+                    animIDs[i + defaultSize] = m_animations[i].AnimID;
+                    sequenceNums[i + defaultSize] = m_animations[i].SequenceNum;
+                    objectIDs[i + defaultSize] = m_animations[i].ObjectID;
                 }
             }
         }
