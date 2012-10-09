@@ -2401,6 +2401,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                 _target_velocity = Vector3.Zero;
                 if (m_vehicle != null && m_vehicle.Type != Vehicle.TYPE_NONE)
                     m_vehicle.Stop();
+
+                _zeroFlag = false;
+                base.RequestPhysicsterseUpdate();
             }
 
             if (Body != IntPtr.Zero)
