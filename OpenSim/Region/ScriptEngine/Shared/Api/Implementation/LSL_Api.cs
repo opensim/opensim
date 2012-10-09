@@ -56,6 +56,7 @@ using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 using PresenceInfo = OpenSim.Services.Interfaces.PresenceInfo;
 using PrimType = OpenSim.Region.Framework.Scenes.PrimType;
 using AssetLandmark = OpenSim.Framework.AssetLandmark;
+using RegionFlags = OpenSim.Framework.RegionFlags;
 
 using LSL_Float = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLFloat;
 using LSL_Integer = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLInteger;
@@ -9327,12 +9328,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             ScriptSleep(1000);
                             return UUID.Zero.ToString();
                         }
-                        if (m_ScriptEngine.World.RegionInfo.RegionName != simulator)
-                        {
-                            //Hypergrid Region co-ordinates
-                            uint rx = 0, ry = 0;
-                            Utils.LongToUInts(Convert.ToUInt64(info.RegionSecret), out rx, out ry);
 
+                        RegionFlags regionFlags = (RegionFlags)m_ScriptEngine.World.GridService.GetRegionFlags(info.ScopeID, info.RegionID);
+                        if ((regionFlags & RegionFlags.Hyperlink) != 0)
+                        {
+                            uint rx = 0, ry = 0;
+                            //Hypergrid Region co-ordinates
+                            Utils.LongToUInts(Convert.ToUInt64(info.RegionSecret), out rx, out ry);
                             reply = new LSL_Vector(
                                 rx,
                                 ry,
@@ -9340,11 +9342,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         }
                         else
                         {
-                            //Local-cooridnates
-                            reply = new LSL_Vector(
-                                info.RegionLocX,
-                                info.RegionLocY,
-                                0).ToString();
+                            UUID regionSecret = UUID.Zero;
+                            if (UUID.TryParse(info.RegionSecret, out regionSecret))
+                            {
+                                if (regionSecret != UUID.Zero)
+                                {
+                                    //Local co-oridnates
+                                    reply = new LSL_Vector(
+                                        info.RegionLocX,
+                                        info.RegionLocY,
+                                        0).ToString();
+                                }
+                            }
                         }
                         break;
                     case ScriptBaseClass.DATA_SIM_STATUS:
