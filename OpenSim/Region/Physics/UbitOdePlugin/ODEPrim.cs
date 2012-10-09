@@ -1355,6 +1355,25 @@ namespace OpenSim.Region.Physics.OdePlugin
                 UpdatePrimBodyData();
                 _parent_scene.actor_name_map[prim_geom] = this;
 
+
+// debug
+                d.AABB aabb;
+                d.GeomGetAABB(prim_geom, out aabb);
+                float x = aabb.MaxX - aabb.MinX;
+                float y = aabb.MaxY - aabb.MinY;
+                float z = aabb.MaxZ - aabb.MinZ;
+                if( x > 60.0f || y > 60.0f || z > 60.0f)
+                    m_log.WarnFormat("[PHYSICS]: large prim geo {0},size {1}, AABBsize <{2},{3},{4}, mesh {5} at {6}",
+                        Name, _size.ToString(), x, y, z, _pbs.SculptEntry ? _pbs.SculptTexture.ToString() : "primMesh", _position.ToString());
+                else if (x < 0.001f || y < 0.001f || z < 0.001f)
+                    m_log.WarnFormat("[PHYSICS]: small prim geo {0},size {1}, AABBsize <{2},{3},{4}, mesh {5} at {6}",
+                        Name, _size.ToString(), x, y, z, _pbs.SculptEntry ? _pbs.SculptTexture.ToString() : "primMesh", _position.ToString());
+
+//
+
+
+
+
             }
             else
                 m_log.Warn("Setting bad Geom");
