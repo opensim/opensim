@@ -2247,6 +2247,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                 _orientation.Z = qtmp.Z;
                 _orientation.W = qtmp.W;
 
+// Debug
+                float qlen = _orientation.Length();
+                if (qlen > 1.01f || qlen < 0.99)
+                    m_log.WarnFormat("[PHYSICS]: Got nonnorm quaternion from geom in Object {0} norm {1}", Name, qlen);
+//
+
                 d.Vector3 lpos = d.GeomGetPosition(prim_geom);
                 _position.X = lpos.X;
                 _position.Y = lpos.Y;
