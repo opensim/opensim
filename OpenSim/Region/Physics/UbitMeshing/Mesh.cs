@@ -315,6 +315,32 @@ namespace OpenSim.Region.Physics.Meshing
             return result;
         }
 
+        public void PrepForOde()
+        {
+            // If there isn't an unmanaged array allocated yet, do it now
+            if (m_verticesPtr == IntPtr.Zero)
+            {
+                float[] vertexList = getVertexListAsFloat();
+                // Each vertex is 3 elements (floats)
+                m_vertexCount = vertexList.Length / 3;
+                int byteCount = m_vertexCount * 3 * sizeof(float);
+                m_verticesPtr = System.Runtime.InteropServices.Marshal.AllocHGlobal(byteCount);
+                System.Runtime.InteropServices.Marshal.Copy(vertexList, 0, m_verticesPtr, m_vertexCount * 3);
+            }
+
+            // If there isn't an unmanaged array allocated yet, do it now
+            if (m_indicesPtr == IntPtr.Zero)
+            {
+                int[] indexList = getIndexListAsInt();
+                m_indexCount = indexList.Length;
+                int byteCount = m_indexCount * sizeof(int);
+                m_indicesPtr = System.Runtime.InteropServices.Marshal.AllocHGlobal(byteCount);
+                System.Runtime.InteropServices.Marshal.Copy(indexList, 0, m_indicesPtr, m_indexCount);
+            }
+
+            releaseSourceMeshData();
+        }
+
         public void getVertexListAsPtrToFloatArray(out IntPtr vertices, out int vertexStride, out int vertexCount)
         {
             // A vertex is 3 floats

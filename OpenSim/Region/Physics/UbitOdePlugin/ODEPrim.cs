@@ -1384,7 +1384,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             IntPtr vertices, indices;
             int vertexCount, indexCount;
             int vertexStride, triStride;
-
             
             IMesh mesh = m_mesh;
 

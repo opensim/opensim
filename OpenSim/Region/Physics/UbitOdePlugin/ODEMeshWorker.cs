@@ -518,7 +518,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                 }
 
-                mesh = m_mesher.CreateMesh(actor.Name, pbs, size, clod, true, convex);
+                mesh = m_mesher.CreateMesh(actor.Name, pbs, size, clod, true, convex,true);
             }
 
             repData.mesh = mesh;

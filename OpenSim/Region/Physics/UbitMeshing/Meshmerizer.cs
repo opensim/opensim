@@ -993,12 +993,12 @@ namespace OpenSim.Region.Physics.Meshing
 
         public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod)
         {
-            return CreateMesh(primName, primShape, size, lod, false,false);
+            return CreateMesh(primName, primShape, size, lod, false,false,false);
         }
 
         public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical)
         {
-            return CreateMesh(primName, primShape, size, lod, false,false);
+            return CreateMesh(primName, primShape, size, lod, false,false,false);
         }
 
         private static Vector3 m_MeshUnitSize = new Vector3(0.5f, 0.5f, 0.5f);
@@ -1039,7 +1039,7 @@ namespace OpenSim.Region.Physics.Meshing
             return null;
         }
 
-        public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical, bool convex)
+        public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical, bool convex, bool forOde)
         {
 #if SPAM
             m_log.DebugFormat("[MESH]: Creating mesh for {0}", primName);
@@ -1094,8 +1094,14 @@ namespace OpenSim.Region.Physics.Meshing
                     mesh.DumpRaw(baseDir, primName, "Z extruded");
                 }
 
-                // trim the vertex and triangle lists to free up memory
-                mesh.TrimExcess();
+                if (forOde)
+                {
+                    // force pinned mem allocation
+                    mesh.PrepForOde();
+                }
+                else
+                    mesh.TrimExcess();
+
                 mesh.Key = key;
                 mesh.RefCount = 1;
 
