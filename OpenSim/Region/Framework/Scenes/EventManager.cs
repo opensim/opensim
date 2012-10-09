@@ -121,13 +121,21 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <remarks>
         /// This is triggered for both child and root agent client connections.
+        ///
         /// Triggered before OnClientLogin.
+        ///
+        /// This is triggered under per-agent lock.  So if you want to perform any long-running operations, please
+        /// do this on a separate thread.
         /// </remarks>
         public event OnNewClientDelegate OnNewClient;
 
         /// <summary>
         /// Fired if the client entering this sim is doing so as a new login
         /// </summary>
+        /// <remarks>
+        /// This is triggered under per-agent lock.  So if you want to perform any long-running operations, please
+        /// do this on a separate thread.
+        /// </remarks>
         public event Action<IClientAPI> OnClientLogin;
 
         public delegate void OnNewPresenceDelegate(ScenePresence presence);
@@ -149,6 +157,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <remarks>
         /// Triggered in <see cref="OpenSim.Region.Framework.Scenes.Scene.AddNewClient"/> which is used by both
         /// <see cref="OpenSim.Framework.PresenceType.User">users</see> and <see cref="OpenSim.Framework.PresenceType.Npc">NPCs</see>
+        /// 
+        /// Triggered under per-agent lock.  So if you want to perform any long-running operations, please
+        /// do this on a separate thread.
         /// </remarks>
         public event OnRemovePresenceDelegate OnRemovePresence;
 
@@ -425,6 +436,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <remarks>
         /// At the point of firing, the scene still contains the client's scene presence.
+        ///
+        /// This is triggered under per-agent lock.  So if you want to perform any long-running operations, please
+        /// do this on a separate thread.
         /// </remarks>
         public event ClientClosed OnClientClosed;
 
