@@ -97,8 +97,14 @@ namespace OpenSim.Server.Base
         private void OnExtensionChanged(object s, ExtensionNodeEventArgs args)
         {
             IRobustConnector connector = (IRobustConnector)args.ExtensionObject;
-
             Addin a = Registry.GetAddin(args.ExtensionNode.Addin.Id);
+
+            if(a == null)
+            {
+                Registry.Rebuild(null);
+                a = Registry.GetAddin(args.ExtensionNode.Addin.Id);
+            }
+
             m_log.InfoFormat("[SERVER]: Extension Change: {0}/{1}", Registry.DefaultAddinsFolder, a.Name.Replace(',', '.'));
 
             switch(args.Change)
