@@ -733,8 +733,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                         if (!actor_name_map.TryGetValue(g2, out dp2))
                             m_log.WarnFormat("[PHYSICS]: failed actor mapping for geom 2");
                         else
-                            m_log.WarnFormat("[PHYSICS]: land versus large prim geo {0},size {1}, AABBsize <{2},{3},{4}>, at {5}",
-                                dp2.Name, dp2.Size, x, y, z, dp2.Position);
+                            m_log.WarnFormat("[PHYSICS]: land versus large prim geo {0},size {1}, AABBsize <{2},{3},{4}>, at {5} ori {6},({7})",
+                                dp2.Name, dp2.Size, x, y, z,
+                                dp2.Position.ToString(),
+                                dp2.Orientation.ToString(),
+                                dp2.Orientation.Length());
                         return;
                     }
                 }
