@@ -644,7 +644,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 // Debug
                     float qlen = value.Length();
                     if (value.Length() > 1.01f || qlen <0.99)
-                        m_log.WarnFormat("[PHYSICS]: Got nonnorm quaternion Orientation from Scene in Object {0} norm {}", Name, qlen);
+                        m_log.WarnFormat("[PHYSICS]: Got nonnorm quaternion Orientation from Scene in Object {0} norm {1}", Name, qlen);
 //
                     AddChange(changes.Orientation, value);
                 }
