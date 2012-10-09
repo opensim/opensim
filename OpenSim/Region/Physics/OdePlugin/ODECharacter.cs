@@ -100,7 +100,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private bool m_hackSentFly = false;
         private int m_requestedUpdateFrequency = 0;
         private Vector3 m_taintPosition;
-
+        internal bool m_avatarplanted = false;
         /// <summary>
         /// Hold set forces so we can process them outside physics calculations.  This prevents race conditions if we set force
         /// while calculatios are going on
@@ -413,7 +413,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             set
             {
                 m_iscollidingObj = value;
-                if (value)
+                if (value && !m_avatarplanted)
                     m_pidControllerActive = false;
                 else
                     m_pidControllerActive = true;
