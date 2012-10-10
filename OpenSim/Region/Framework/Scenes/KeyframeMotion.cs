@@ -575,6 +575,7 @@ namespace OpenSim.Region.Framework.Scenes
                             Quaternion current = m_group.GroupRotation;
 
                             Quaternion step = Quaternion.Slerp(m_currentFrame.StartRotation, (Quaternion)m_currentFrame.Rotation, complete);
+                            step.Normalize();
 /* use simpler change detection
  * float angle = 0;
 
