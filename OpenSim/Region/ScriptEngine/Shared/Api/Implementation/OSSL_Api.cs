@@ -3555,7 +3555,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// <returns>boolean indicating whether an error was shouted.</returns>
         protected bool ShoutErrorOnLackingOwnerPerms(int perms, string errorPrefix)
         {
-            CheckThreatLevel(ThreatLevel.Moderate, "osDropAttachment");
             m_host.AddScriptLPS(1);
             bool fail = false;
             if (m_item.PermsGranter != m_host.OwnerID)
