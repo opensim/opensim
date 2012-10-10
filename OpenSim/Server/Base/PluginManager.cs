@@ -246,6 +246,8 @@ namespace OpenSim.Server.Base
         public bool AddRepository(string repo)
         {
             Repositories.RegisterRepository(null, repo, true);
+            PluginRegistry.Rebuild(null);
+
             return true;
         }
 

@@ -65,6 +65,7 @@ namespace OpenSim.Server.Base
 
         uint Configure(IConfigSource config);
         void Initialize(IHttpServer server);
+        void Unload();
     }
 
     public class PluginLoader
@@ -105,12 +106,17 @@ namespace OpenSim.Server.Base
                 a = Registry.GetAddin(args.ExtensionNode.Addin.Id);
             }
 
-            m_log.InfoFormat("[SERVER]: Extension Change: {0}/{1}", Registry.DefaultAddinsFolder, a.Name.Replace(',', '.'));
-
             switch(args.Change)
             {
                 case ExtensionChange.Add:
-                    connector.PluginPath = String.Format("{0}/{1}", Registry.DefaultAddinsFolder, a.Name.Replace(',', '.'));
+                    if (a.AddinFile.Contains(Registry.DefaultAddinsFolder))
+                    {
+                        connector.PluginPath = String.Format("{0}/{1}", Registry.DefaultAddinsFolder, a.Name.Replace(',', '.'));
+                    }
+                    else
+                    {
+                        connector.PluginPath = a.AddinFile;
+                    }
                     LoadPlugin(connector);
                     break;
                 case ExtensionChange.Remove:
@@ -127,15 +133,19 @@ namespace OpenSim.Server.Base
             if(connector.Enabled)
             {
                 server = GetServer(connector, port);
-                m_log.InfoFormat("[SERVER]: Path is {0}", connector.PluginPath);
                 connector.Initialize(server);
             }
             else
+            {
                 m_log.InfoFormat("[SERVER]: {0} Disabled.", connector.ConfigName);
+            }
         }
 
         private void UnloadPlugin(IRobustConnector connector)
         {
+            m_log.InfoFormat("[Server]: Unloading {0}", connector.ConfigName);
+
+            connector.Unload();
         }
 
         private IHttpServer GetServer(IRobustConnector connector, uint port)
