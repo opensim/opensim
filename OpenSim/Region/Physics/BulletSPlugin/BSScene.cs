@@ -581,8 +581,9 @@ public class BSScene : PhysicsScene, IPhysicsParameters
 
         // The physics engine returns the number of milliseconds it simulated this call.
         // These are summed and normalized to one second and divided by 1000 to give the reported physics FPS.
-        // Since Bullet normally does 5 or 6 substeps, this will normally sum to about 60 FPS.
-        return numSubSteps * m_fixedTimeStep * 1000;
+        // We multiply by 45 to give a recognizable running rate (45 or less).
+        return numSubSteps * m_fixedTimeStep * 1000 * 45;
+        // return timeStep * 1000 * 45;
     }
 
     // Something has collided
@@ -1300,7 +1301,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     {
         PhysicsLogging.Write(msg, args);
         // Add the Flush() if debugging crashes to get all the messages written out.
-        PhysicsLogging.Flush();         // DEBUG DEBUG DEBUG
+        // PhysicsLogging.Flush();
     }
     // used to fill in the LocalID when there isn't one
     public const string DetailLogZero = "0000000000";
