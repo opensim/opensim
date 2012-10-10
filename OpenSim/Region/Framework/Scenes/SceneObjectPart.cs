@@ -4584,6 +4584,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
 
                     Quaternion rot = Quaternion.Slerp(RotationOffset,APIDTarget,1.0f/(float)m_APIDIterations);
+                    rot.Normalize();
                     UpdateRotation(rot);
 
                     m_APIDIterations--;
