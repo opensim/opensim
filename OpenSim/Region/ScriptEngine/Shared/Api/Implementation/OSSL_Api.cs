@@ -3545,10 +3545,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// <returns></returns>
         public void osSetContentType(LSL_Key id, string type)
         {
-            CheckThreatLevel(ThreatLevel.High,"osSetResponseType");
+            CheckThreatLevel(ThreatLevel.High, "osSetContentType");
+
             if (m_UrlModule != null)
                 m_UrlModule.HttpContentType(new UUID(id),type);
         }
+
         /// Shout an error if the object owner did not grant the script the specified permissions.
         /// </summary>
         /// <param name="perms"></param>
