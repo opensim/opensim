@@ -462,7 +462,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 return;
 
             // Set the prim's inertia to zero. The vehicle code handles that and this
-            //    removes the torque action introduced by Bullet.
+            //    removes the motion and torque actions introduced by Bullet.
             Vector3 inertia = Vector3.Zero;
             BulletSimAPI.SetMassProps2(Prim.BSBody.ptr, Prim.MassRaw, inertia);
             BulletSimAPI.UpdateInertiaTensor2(Prim.BSBody.ptr);
@@ -540,7 +540,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             // add Gravity and Buoyancy
             // There is some gravity, make a gravity force vector that is applied after object velocity.
             // m_VehicleBuoyancy: -1=2g; 0=1g; 1=0g;
-            Vector3 grav = Prim.PhysicsScene.DefaultGravity * (Prim.MassRaw * (1f - m_VehicleBuoyancy));
+            Vector3 grav = Prim.PhysicsScene.DefaultGravity * (Prim.Linkset.LinksetMass * (1f - m_VehicleBuoyancy));
 
             /*
              * RA: Not sure why one would do this
@@ -681,7 +681,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             Prim.ForceVelocity = m_newVelocity;
             // apply gravity force
             // Why is this set here? The physics engine already does gravity.
-            Prim.AddForce(grav, false);
+            Prim.AddForce(grav, false, true);
 
             // Apply friction
             Vector3 keepFraction = Vector3.One - (Vector3.One / (m_linearFrictionTimescale / pTimestep));

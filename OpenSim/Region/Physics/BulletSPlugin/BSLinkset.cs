@@ -165,13 +165,11 @@ public class BSLinkset
     // May be called at runtime or taint-time (just pass the appropriate flag).
     public void Refresh(BSPhysObject requestor, bool inTaintTime)
     {
-        // If there are no children, there can't be any constraints to recompute
-        if (!HasAnyChildren)
+        // If there are no children, not physical or not root, I am not the one that recomputes the constraints
+        // (For the moment, static linksets do create constraints so remove the test for physical.)
+        if (!HasAnyChildren || /*!requestor.IsPhysical ||*/ !IsRoot(requestor))
             return;
 
-        // Only the root does the recomputation
-        if (IsRoot(requestor))
-        {
         BSScene.TaintCallback refreshOperation = delegate()
             {
                 RecomputeLinksetConstraintVariables();
@@ -182,7 +180,6 @@ public class BSLinkset
             refreshOperation();
         else
             PhysicsScene.TaintedObject("BSLinkSet.Refresh", refreshOperation);
-        }
     }
 
     // The object is going dynamic (physical). Do any setup necessary

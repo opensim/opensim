@@ -855,6 +855,9 @@ public sealed class BSPrim : BSPhysObject
 
     private List<OMV.Vector3> m_accumulatedForces = new List<OMV.Vector3>();
     public override void AddForce(OMV.Vector3 force, bool pushforce) {
+        AddForce(force, pushforce, false);
+    }
+    public void AddForce(OMV.Vector3 force, bool pushforce, bool inTaintTime) {
         // for an object, doesn't matter if force is a pushforce or not
         if (force.IsFinite())
         {
@@ -867,11 +870,12 @@ public sealed class BSPrim : BSPhysObject
             m_log.WarnFormat("{0}: Got a NaN force applied to a prim. LocalID={1}", LogHeader, LocalID);
             return;
         }
-        PhysicsScene.TaintedObject("BSPrim.AddForce", delegate()
+        BSScene.TaintCallback addForceOperation = delegate()
         {
             OMV.Vector3 fSum = OMV.Vector3.Zero;
             lock (m_accumulatedForces)
             {
+                // Sum the accumulated additional forces for one big force to apply once.
                 foreach (OMV.Vector3 v in m_accumulatedForces)
                 {
                     fSum += v;
@@ -881,7 +885,11 @@ public sealed class BSPrim : BSPhysObject
             // DetailLog("{0},BSPrim.AddObjectForce,taint,force={1}", LocalID, fSum);
             // For unknown reasons, "ApplyCentralForce" adds this force to the total force on the object.
             BulletSimAPI.ApplyCentralForce2(BSBody.ptr, fSum);
-        });
+        };
+        if (inTaintTime)
+            addForceOperation();
+        else
+            PhysicsScene.TaintedObject("BSPrim.AddForce", addForceOperation);
     }
 
     public override void AddAngularForce(OMV.Vector3 force, bool pushforce) {
