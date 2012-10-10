@@ -39,7 +39,6 @@ using log4net;
 using OpenMetaverse;
 
 // TODOs for BulletSim (for BSScene, BSPrim, BSCharacter and BulletSim)
-// Move all logic out of the C++ code and into the C# code for easier future modifications.
 // Test sculpties (verified that they don't work)
 // Compute physics FPS reasonably
 // Based on material, set density and friction
@@ -493,7 +492,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         int numSubSteps = 0;
 
         // DEBUG
-        DetailLog("{0},BSScene.Simulate,beforeStep,ntaimts={1},step={2}", DetailLogZero, numTaints, m_simulationStep);
+        // DetailLog("{0},BSScene.Simulate,beforeStep,ntaimts={1},step={2}", DetailLogZero, numTaints, m_simulationStep);
 
         try
         {
@@ -503,8 +502,8 @@ public class BSScene : PhysicsScene, IPhysicsParameters
                         out updatedEntityCount, out updatedEntitiesPtr, out collidersCount, out collidersPtr);
 
             if (PhysicsLogging.Enabled) simTime = Util.EnvironmentTickCountSubtract(beforeTime);
-            DetailLog("{0},Simulate,call, nTaints={1}, simTime={2}, substeps={3}, updates={4}, colliders={5}",
-                        DetailLogZero, numTaints, simTime, numSubSteps, updatedEntityCount, collidersCount);
+            DetailLog("{0},Simulate,call, frame={1}, nTaints={2}, simTime={3}, substeps={4}, updates={5}, colliders={6}",
+                        DetailLogZero, m_simulationStep, numTaints, simTime, numSubSteps, updatedEntityCount, collidersCount);
         }
         catch (Exception e)
         {
@@ -855,7 +854,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             (s) => { return s.NumericBool(s.ShouldForceSimplePrimMeshing); },
             (s,p,l,v) => { s.ShouldForceSimplePrimMeshing = s.BoolNumeric(v); } ),
         new ParameterDefn("UseHullsForPhysicalObjects", "If true, create hulls for physical objects",
-            ConfigurationParameters.numericFalse,
+            ConfigurationParameters.numericTrue,
             (s,cf,p,v) => { s.ShouldUseHullsForPhysicalObjects = cf.GetBoolean(p, s.BoolNumeric(v)); },
             (s) => { return s.NumericBool(s.ShouldUseHullsForPhysicalObjects); },
             (s,p,l,v) => { s.ShouldUseHullsForPhysicalObjects = s.BoolNumeric(v); } ),

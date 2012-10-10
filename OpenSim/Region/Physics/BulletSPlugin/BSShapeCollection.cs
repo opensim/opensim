@@ -67,8 +67,8 @@ public class BSShapeCollection : IDisposable
         public DateTime lastReferenced;
     }
 
-    private Dictionary<ulong, MeshDesc> Meshes = new Dictionary<ulong, MeshDesc>();
-    private Dictionary<ulong, HullDesc> Hulls = new Dictionary<ulong, HullDesc>();
+    private Dictionary<System.UInt64, MeshDesc> Meshes = new Dictionary<System.UInt64, MeshDesc>();
+    private Dictionary<System.UInt64, HullDesc> Hulls = new Dictionary<System.UInt64, HullDesc>();
     private Dictionary<uint, BodyDesc> Bodies = new Dictionary<uint, BodyDesc>();
 
     public BSShapeCollection(BSScene physScene)
@@ -121,7 +121,7 @@ public class BSShapeCollection : IDisposable
     // Track another user of a body
     // We presume the caller has allocated the body.
     // Bodies only have one user so the reference count is either 1 or 0.
-    public void ReferenceBody(BulletBody body, bool atTaintTime)
+    public void ReferenceBody(BulletBody body, bool inTaintTime)
     {
         lock (m_collectionActivityLock)
         {
@@ -147,7 +147,7 @@ public class BSShapeCollection : IDisposable
                                         body.ID, body);
                     }
                 };
-                if (atTaintTime)
+                if (inTaintTime)
                     createOperation();
                 else
                     PhysicsScene.TaintedObject("BSShapeCollection.ReferenceBody", createOperation);
@@ -272,7 +272,7 @@ public class BSShapeCollection : IDisposable
 
     // Release the usage of a shape.
     // The collisionObject is released since it is a copy of the real collision shape.
-    public void DereferenceShape(BulletShape shape, bool atTaintTime, ShapeDestructionCallback shapeCallback)
+    public void DereferenceShape(BulletShape shape, bool inTaintTime, ShapeDestructionCallback shapeCallback)
     {
         if (shape.ptr == IntPtr.Zero)
             return;
@@ -294,14 +294,14 @@ public class BSShapeCollection : IDisposable
                     if (shape.ptr != IntPtr.Zero & shape.isNativeShape)
                     {
                         DetailLog("{0},BSShapeCollection.DereferenceShape,deleteNativeShape,ptr={1},taintTime={2}",
-                                        BSScene.DetailLogZero, shape.ptr.ToString("X"), atTaintTime);
+                                        BSScene.DetailLogZero, shape.ptr.ToString("X"), inTaintTime);
                         if (shapeCallback != null) shapeCallback(shape);
                         BulletSimAPI.DeleteCollisionShape2(PhysicsScene.World.ptr, shape.ptr);
                     }
                     break;
             }
         };
-        if (atTaintTime)
+        if (inTaintTime)
         {
             lock (m_collectionActivityLock)
             {
@@ -441,7 +441,7 @@ public class BSShapeCollection : IDisposable
 
         // Native shapes are always built independently.
         newShape = new BulletShape(BulletSimAPI.BuildNativeShape2(PhysicsScene.World.ptr, shapeData), shapeType);
-        newShape.shapeKey = (ulong)shapeKey;
+        newShape.shapeKey = (System.UInt64)shapeKey;
         newShape.isNativeShape = true;
 
         // Don't need to do a 'ReferenceShape()' here because native shapes are not tracked.
@@ -461,7 +461,7 @@ public class BSShapeCollection : IDisposable
         BulletShape newShape = new BulletShape(IntPtr.Zero);
 
         float lod;
-        ulong newMeshKey = ComputeShapeKey(shapeData, pbs, out lod);
+        System.UInt64 newMeshKey = ComputeShapeKey(shapeData, pbs, out lod);
 
         // if this new shape is the same as last time, don't recreate the mesh
         if (newMeshKey == prim.BSShape.shapeKey && prim.BSShape.type == ShapeData.PhysicsShapeType.SHAPE_MESH)
@@ -484,7 +484,7 @@ public class BSShapeCollection : IDisposable
         return true;        // 'true' means a new shape has been added to this prim
     }
 
-    private BulletShape CreatePhysicalMesh(string objName, ulong newMeshKey, PrimitiveBaseShape pbs, OMV.Vector3 size, float lod)
+    private BulletShape CreatePhysicalMesh(string objName, System.UInt64 newMeshKey, PrimitiveBaseShape pbs, OMV.Vector3 size, float lod)
     {
         IMesh meshData = null;
         IntPtr meshPtr;
@@ -531,7 +531,7 @@ public class BSShapeCollection : IDisposable
         BulletShape newShape;
 
         float lod;
-        ulong newHullKey = ComputeShapeKey(shapeData, pbs, out lod);
+        System.UInt64 newHullKey = ComputeShapeKey(shapeData, pbs, out lod);
 
         // if the hull hasn't changed, don't rebuild it
         if (newHullKey == prim.BSShape.shapeKey && prim.BSShape.type == ShapeData.PhysicsShapeType.SHAPE_HULL)
@@ -554,7 +554,7 @@ public class BSShapeCollection : IDisposable
     }
 
     List<ConvexResult> m_hulls;
-    private BulletShape CreatePhysicalHull(string objName, ulong newHullKey, PrimitiveBaseShape pbs, OMV.Vector3 size, float lod)
+    private BulletShape CreatePhysicalHull(string objName, System.UInt64 newHullKey, PrimitiveBaseShape pbs, OMV.Vector3 size, float lod)
     {
 
         IntPtr hullPtr;
@@ -667,7 +667,7 @@ public class BSShapeCollection : IDisposable
 
     // Create a hash of all the shape parameters to be used as a key
     //    for this particular shape.
-    private ulong ComputeShapeKey(ShapeData shapeData, PrimitiveBaseShape pbs, out float retLod)
+    private System.UInt64 ComputeShapeKey(ShapeData shapeData, PrimitiveBaseShape pbs, out float retLod)
     {
         // level of detail based on size and type of the object
         float lod = PhysicsScene.MeshLOD;
@@ -680,10 +680,10 @@ public class BSShapeCollection : IDisposable
             lod = PhysicsScene.MeshMegaPrimLOD;
 
         retLod = lod;
-        return (ulong)pbs.GetMeshKey(shapeData.Size, lod);
+        return pbs.GetMeshKey(shapeData.Size, lod);
     }
     // For those who don't want the LOD
-    private ulong ComputeShapeKey(ShapeData shapeData, PrimitiveBaseShape pbs)
+    private System.UInt64 ComputeShapeKey(ShapeData shapeData, PrimitiveBaseShape pbs)
     {
         float lod;
         return ComputeShapeKey(shapeData, pbs, out lod);
@@ -717,6 +717,7 @@ public class BSShapeCollection : IDisposable
 
         if (mustRebuild || forceRebuild)
         {
+            // Free any old body
             DereferenceBody(prim.BSBody, true, bodyCallback);
 
             BulletBody aBody;

@@ -201,10 +201,10 @@ public class BSTerrainManager
     // The 'doNow' boolean says whether to do all the unmanaged activities right now (like when
     //     calling this routine from initialization or taint-time routines) or whether to delay
     //     all the unmanaged activities to taint-time.
-    private void UpdateOrCreateTerrain(uint id, float[] heightMap, Vector3 minCoords, Vector3 maxCoords, bool atTaintTime)
+    private void UpdateOrCreateTerrain(uint id, float[] heightMap, Vector3 minCoords, Vector3 maxCoords, bool inTaintTime)
     {
-        DetailLog("{0},BSTerrainManager.UpdateOrCreateTerrain,call,minC={1},maxC={2},atTaintTime={3}",
-                            BSScene.DetailLogZero, minCoords, maxCoords, atTaintTime);
+        DetailLog("{0},BSTerrainManager.UpdateOrCreateTerrain,call,minC={1},maxC={2},inTaintTime={3}",
+                            BSScene.DetailLogZero, minCoords, maxCoords, inTaintTime);
 
         float minZ = float.MaxValue;
         float maxZ = float.MinValue;
@@ -320,7 +320,9 @@ public class BSTerrainManager
                 BulletSimAPI.SetRestitution2(mapInfo.terrainBody.ptr, PhysicsScene.Params.terrainRestitution);
                 BulletSimAPI.SetCollisionFlags2(mapInfo.terrainBody.ptr, CollisionFlags.CF_STATIC_OBJECT);
 
-                BulletSimAPI.SetMassProps2(mapInfo.terrainBody.ptr, 0f, Vector3.Zero);
+                float terrainMass = 1000;
+                Vector3 localInertia = BulletSimAPI.CalculateLocalInertia2(mapInfo.terrainBody.ptr, terrainMass);
+                BulletSimAPI.SetMassProps2(mapInfo.terrainBody.ptr, terrainMass, localInertia);
                 BulletSimAPI.UpdateInertiaTensor2(mapInfo.terrainBody.ptr);
 
                 // Return the new terrain to the world of physical objects
@@ -342,7 +344,7 @@ public class BSTerrainManager
 
             // There is the option to do the changes now (we're already in 'taint time'), or
             //     to do the Bullet operations later.
-            if (atTaintTime)
+            if (inTaintTime)
                 rebuildOperation();
             else
                 PhysicsScene.TaintedObject("BSScene.UpdateOrCreateTerrain:UpdateExisting", rebuildOperation);
@@ -381,7 +383,7 @@ public class BSTerrainManager
             };
 
             // If already in taint-time, just call Bullet. Otherwise queue the operations for the safe time.
-            if (atTaintTime)
+            if (inTaintTime)
                 createOperation();
             else
                 PhysicsScene.TaintedObject("BSScene.UpdateOrCreateTerrain:NewTerrain", createOperation);

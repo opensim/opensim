@@ -101,9 +101,8 @@ public struct BulletShape
     }
     public IntPtr ptr;
     public ShapeData.PhysicsShapeType type;
-    public ulong shapeKey;
+    public System.UInt64 shapeKey;
     public bool isNativeShape;
-    // Hulls have an underlying mesh. A pointer to it is hidden here.
     public override string ToString()
     {
         StringBuilder buff = new StringBuilder();

@@ -160,6 +160,31 @@ public class BSLinkset
         return ret;
     }
 
+    // When physical properties are changed the linkset needs to recalculate
+    //   its internal properties.
+    // May be called at runtime or taint-time (just pass the appropriate flag).
+    public void Refresh(BSPhysObject requestor, bool inTaintTime)
+    {
+        // If there are no children, there can't be any constraints to recompute
+        if (!HasAnyChildren)
+            return;
+
+        // Only the root does the recomputation
+        if (IsRoot(requestor))
+        {
+        BSScene.TaintCallback refreshOperation = delegate()
+            {
+                RecomputeLinksetConstraintVariables();
+                DetailLog("{0},BSLinkset.Refresh,complete,rBody={1}", 
+                                LinksetRoot.LocalID, LinksetRoot.BSBody.ptr.ToString("X"));
+            };
+        if (inTaintTime)
+            refreshOperation();
+        else
+            PhysicsScene.TaintedObject("BSLinkSet.Refresh", refreshOperation);
+        }
+    }
+
     // The object is going dynamic (physical). Do any setup necessary
     //     for a dynamic linkset.
     // Only the state of the passed object can be modified. The rest of the linkset
@@ -182,24 +207,19 @@ public class BSLinkset
         return false;
     }
 
-    // When physical properties are changed the linkset needs to recalculate
-    //   its internal properties.
-    // Called at runtime.
-    public void Refresh(BSPhysObject requestor)
+    // If the software is handling the movement of all the objects in a linkset
+    // (like if one doesn't use constraints for static linksets), this is called
+    // when an update for the root of the linkset is received.
+    // Called at taint-time!!
+    public void UpdateProperties(BSPhysObject physObject)
     {
-        // If there are no children, there can't be any constraints to recompute
-        if (!HasAnyChildren)
-            return;
-
-        // Only the root does the recomputation
-        if (IsRoot(requestor))
+        // The root local properties have been updated. Apply to the children if appropriate.
+        if (IsRoot(physObject) && HasAnyChildren)
         {
-            PhysicsScene.TaintedObject("BSLinkSet.Refresh", delegate()
+            if (!physObject.IsPhysical)
             {
-                RecomputeLinksetConstraintVariables();
-                DetailLog("{0},BSLinkset.Refresh,complete,rBody={1}", 
-                                LinksetRoot.LocalID, LinksetRoot.BSBody.ptr.ToString("X"));
-            });
+                // TODO: implement software linkset update for static object linksets
+            }
         }
     }
 
@@ -236,9 +256,8 @@ public class BSLinkset
         return ret;
     }
 
-    // Routine used when rebuilding the body of the root of the linkset
-    // This is called after RemoveAllLinksToRoot() to restore all the constraints.
-    // This is called when the root body has been changed.
+    // Companion to RemoveBodyDependencies(). If RemoveBodyDependencies() returns 'true',
+    // this routine will restore the removed constraints.
     // Called at taint-time!!
     public void RestoreBodyDependencies(BSPrim child)
     {

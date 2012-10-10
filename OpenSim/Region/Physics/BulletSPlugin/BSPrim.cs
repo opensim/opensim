@@ -327,7 +327,7 @@ public sealed class BSPrim : BSPhysObject
     // A version of the sanity check that also makes sure a new position value is
     //    pushed back to the physics engine. This routine would be used by anyone
     //    who is not already pushing the value.
-    private bool PositionSanityCheck2(bool atTaintTime)
+    private bool PositionSanityCheck2(bool inTaintTime)
     {
         bool ret = false;
         if (PositionSanityCheck())
@@ -339,7 +339,7 @@ public sealed class BSPrim : BSPhysObject
                 DetailLog("{0},BSPrim.PositionSanityCheck,taint,pos={1},orient={2}", LocalID, _position, _orientation);
                 BulletSimAPI.SetObjectTranslation(PhysicsScene.WorldID, LocalID, _position, _orientation);
             };
-            if (atTaintTime)
+            if (inTaintTime)
                 sanityOperation();
             else
                 PhysicsScene.TaintedObject("BSPrim.PositionSanityCheck", sanityOperation);
@@ -583,7 +583,7 @@ public sealed class BSPrim : BSPhysObject
         // Set up the object physicalness (does gravity and collisions move this object)
         MakeDynamic(IsStatic);
 
-        // Update vehicle specific parameters
+        // Update vehicle specific parameters (after MakeDynamic() so can change physical parameters)
         _vehicle.Refresh();
 
         // Arrange for collision events if the simulator wants them
@@ -606,7 +606,7 @@ public sealed class BSPrim : BSPhysObject
         // Recompute any linkset parameters.
         // When going from non-physical to physical, this re-enables the constraints that
         //     had been automatically disabled when the mass was set to zero.
-        Linkset.Refresh(this);
+        Linkset.Refresh(this, true);
 
         DetailLog("{0},BSPrim.UpdatePhysicalParameters,exit,static={1},solid={2},mass={3},collide={4},cf={5:X},body={6},shape={7}",
                         LocalID, IsStatic, IsSolid, _mass, SubscribedEvents(), CurrentCollisionFlags, BSBody, BSShape);
@@ -1321,6 +1321,8 @@ public sealed class BSPrim : BSPhysObject
             _rotationalVelocity = entprop.RotationalVelocity;
 
             PositionSanityCheck2(true);
+
+            Linkset.UpdateProperties(this);
 
             DetailLog("{0},BSPrim.UpdateProperties,call,pos={1},orient={2},vel={3},accel={4},rotVel={5}",
                     LocalID, _position, _orientation, _velocity, _acceleration, _rotationalVelocity);
