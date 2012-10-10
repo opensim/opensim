@@ -34,7 +34,7 @@ using OpenMetaverse;
 
 public class ConsoleUtil
 {
-    private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//    private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
     public const string MinRawConsoleVectorValue = "-~";
     public const string MaxRawConsoleVectorValue = "~";
@@ -107,7 +107,7 @@ public class ConsoleUtil
 
         string semiDigestedConsoleVector = string.Join(VectorSeparator, semiDigestedComponents.ToArray());
 
-        m_log.DebugFormat("[CONSOLE UTIL]: Parsing {0} into OpenMetaverse.Vector3", semiDigestedConsoleVector);
+//        m_log.DebugFormat("[CONSOLE UTIL]: Parsing {0} into OpenMetaverse.Vector3", semiDigestedConsoleVector);
 
         return Vector3.TryParse(semiDigestedConsoleVector, out vector);
     }
