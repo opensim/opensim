@@ -677,6 +677,8 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             if (!ConsoleUtil.TryParseConsoleMinVector(rawConsoleStartVector, out startVector))
             {
                 m_console.OutputFormat("Error: Start vector {0} does not have a valid format", rawConsoleStartVector);
+                endVector = Vector3.Zero;
+                
                 return false;
             }
 
