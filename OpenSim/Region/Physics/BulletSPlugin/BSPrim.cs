@@ -673,8 +673,8 @@ public sealed class BSPrim : BSPhysObject
 
             // Force activation of the object so Bullet will act on it.
             // Must do the ForceActivationState2() to overcome the DISABLE_SIMULATION from static objects.
-            BulletSimAPI.ForceActivationState2(BSBody.ptr, ActivationState.ISLAND_SLEEPING);
-            BulletSimAPI.Activate2(BSBody.ptr, true);
+            BulletSimAPI.ForceActivationState2(BSBody.ptr, ActivationState.ACTIVE_TAG);
+            // BulletSimAPI.Activate2(BSBody.ptr, true);
 
             BSBody.collisionFilter = CollisionFilterGroups.ObjectFilter;
             BSBody.collisionMask = CollisionFilterGroups.ObjectMask;
