@@ -27,7 +27,6 @@
 
 using System;
 using System.Collections.Generic;
-using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework.Monitoring
 {
@@ -62,7 +61,7 @@ namespace OpenSim.Framework.Monitoring
         public static UserStatsCollector UserStats { get { return userStats; } }
         public static SimExtraStatsCollector SimExtraStats { get { return simExtraStats; } }
 
-        public static void RegisterConsoleCommands(CommandConsole console)
+        public static void RegisterConsoleCommands(ICommandConsole console)
         {
             console.Commands.AddCommand(
                 "General",
