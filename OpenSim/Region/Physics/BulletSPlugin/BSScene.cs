@@ -39,7 +39,6 @@ using log4net;
 using OpenMetaverse;
 
 // TODOs for BulletSim (for BSScene, BSPrim, BSCharacter and BulletSim)
-// Move all logic out of the C++ code and into the C# code for easier future modifications.
 // Test sculpties (verified that they don't work)
 // Compute physics FPS reasonably
 // Based on material, set density and friction
@@ -90,10 +89,6 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     // let my minuions use my logger
     public ILog Logger { get { return m_log; } }
 
-    // If non-zero, the number of simulation steps between calls to the physics
-    //    engine to output detailed physics stats. Debug logging level must be on also.
-    private int m_detailedStatsStep = 0;
-
     public IMesher mesher;
     // Level of Detail values kept as float because that's what the Meshmerizer wants
     public float MeshLOD { get; private set; }
@@ -112,6 +107,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     private float m_fixedTimeStep;
     private long m_simulationStep = 0;
     public long SimulationStep { get { return m_simulationStep; } }
+    private int m_taintsToProcessPerStep;
 
     // A value of the time now so all the collision and update routines do not have to get their own
     // Set to 'now' just before all the prims and actors are called for collisions and updates
@@ -131,6 +127,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
 
     public bool ShouldMeshSculptedPrim { get; private set; }   // cause scuplted prims to get meshed
     public bool ShouldForceSimplePrimMeshing { get; private set; }   // if a cube or sphere, let Bullet do internal shapes
+    public bool ShouldUseHullsForPhysicalObjects { get; private set; }   // 'true' if should create hulls for physical objects
 
     public float PID_D { get; private set; }    // derivative
     public float PID_P { get; private set; }    // proportional
@@ -254,7 +251,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
 
         // The bounding box for the simulated world. The origin is 0,0,0 unless we're
         //    a child in a mega-region.
-        // Turns out that Bullet really doesn't care about the extents of the simulated
+        // Bullet actually doesn't care about the extents of the simulated
         //    area. It tracks active objects no matter where they are.
         Vector3 worldExtent = new Vector3(Constants.RegionSize, Constants.RegionSize, Constants.RegionHeight);
 
@@ -331,7 +328,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     // Called directly from unmanaged code so don't do much
     private void BulletLoggerPhysLog(string msg)
     {
-        PhysicsLogging.Write("[BULLETS UNMANAGED]:" + msg);
+        DetailLog("[BULLETS UNMANAGED]:" + msg);
     }
 
     public override void Dispose()
@@ -494,8 +491,8 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         m_simulationStep++;
         int numSubSteps = 0;
 
-        // Sometimes needed for debugging to find out what happened before the step
-        // PhysicsLogging.Flush();
+        // DEBUG
+        // DetailLog("{0},BSScene.Simulate,beforeStep,ntaimts={1},step={2}", DetailLogZero, numTaints, m_simulationStep);
 
         try
         {
@@ -505,8 +502,8 @@ public class BSScene : PhysicsScene, IPhysicsParameters
                         out updatedEntityCount, out updatedEntitiesPtr, out collidersCount, out collidersPtr);
 
             if (PhysicsLogging.Enabled) simTime = Util.EnvironmentTickCountSubtract(beforeTime);
-            DetailLog("{0},Simulate,call, nTaints={1}, simTime={2}, substeps={3}, updates={4}, colliders={5}",
-                        DetailLogZero, numTaints, simTime, numSubSteps, updatedEntityCount, collidersCount);
+            DetailLog("{0},Simulate,call, frame={1}, nTaints={2}, simTime={3}, substeps={4}, updates={5}, colliders={6}",
+                        DetailLogZero, m_simulationStep, numTaints, simTime, numSubSteps, updatedEntityCount, collidersCount);
         }
         catch (Exception e)
         {
@@ -582,19 +579,11 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             }
         }
 
-        // If enabled, call into the physics engine to dump statistics
-        if (m_detailedStatsStep > 0)
-        {
-            if ((m_simulationStep % m_detailedStatsStep) == 0)
-            {
-                BulletSimAPI.DumpBulletStatistics();
-            }
-        }
-
         // The physics engine returns the number of milliseconds it simulated this call.
         // These are summed and normalized to one second and divided by 1000 to give the reported physics FPS.
-        // Since Bullet normally does 5 or 6 substeps, this will normally sum to about 60 FPS.
-        return numSubSteps * m_fixedTimeStep * 1000;
+        // We multiply by 45 to give a recognizable running rate (45 or less).
+        return numSubSteps * m_fixedTimeStep * 1000 * 45;
+        // return timeStep * 1000 * 45;
     }
 
     // Something has collided
@@ -617,7 +606,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         BSPhysObject collidee = null;
         PhysObjects.TryGetValue(collidingWith, out collidee);
 
-        DetailLog("{0},BSScene.SendCollision,collide,id={1},with={2}", DetailLogZero, localID, collidingWith);
+        // DetailLog("{0},BSScene.SendCollision,collide,id={1},with={2}", DetailLogZero, localID, collidingWith);
 
         if (collider.Collide(collidingWith, collidee, collidePoint, collideNormal, penetration))
         {
@@ -704,6 +693,35 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         if (_taintedObjects.Count > 0)  // save allocating new list if there is nothing to process
         {
             // swizzle a new list into the list location so we can process what's there
+            int taintCount = m_taintsToProcessPerStep;
+            TaintCallbackEntry oneCallback = new TaintCallbackEntry();
+            while (_taintedObjects.Count > 0 && taintCount-- > 0)
+            {
+                bool gotOne = false;
+                lock (_taintLock)
+                {
+                    if (_taintedObjects.Count > 0)
+                    {
+                        oneCallback = _taintedObjects[0];
+                        _taintedObjects.RemoveAt(0);
+                        gotOne = true;
+                    }
+                }
+                if (gotOne)
+                {
+                    try
+                    {
+                        DetailLog("{0},BSScene.ProcessTaints,doTaint,id={1}", DetailLogZero, oneCallback.ident); // DEBUG DEBUG DEBUG
+                        oneCallback.callback();
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat("{0}: ProcessTaints: {1}: Exception: {2}", LogHeader, oneCallback.ident, e);
+                    }
+                }
+            }
+            /*
+            // swizzle a new list into the list location so we can process what's there
             List<TaintCallbackEntry> oldList;
             lock (_taintLock)
             {
@@ -715,6 +733,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             {
                 try
                 {
+                    DetailLog("{0},BSScene.ProcessTaints,doTaint,id={1}", DetailLogZero, tcbe.ident); // DEBUG DEBUG DEBUG
                     tcbe.callback();
                 }
                 catch (Exception e)
@@ -723,6 +742,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
                 }
             }
             oldList.Clear();
+             */
         }
     }
 
@@ -834,6 +854,11 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             (s,cf,p,v) => { s.ShouldForceSimplePrimMeshing = cf.GetBoolean(p, s.BoolNumeric(v)); },
             (s) => { return s.NumericBool(s.ShouldForceSimplePrimMeshing); },
             (s,p,l,v) => { s.ShouldForceSimplePrimMeshing = s.BoolNumeric(v); } ),
+        new ParameterDefn("UseHullsForPhysicalObjects", "If true, create hulls for physical objects",
+            ConfigurationParameters.numericTrue,
+            (s,cf,p,v) => { s.ShouldUseHullsForPhysicalObjects = cf.GetBoolean(p, s.BoolNumeric(v)); },
+            (s) => { return s.NumericBool(s.ShouldUseHullsForPhysicalObjects); },
+            (s,p,l,v) => { s.ShouldUseHullsForPhysicalObjects = s.BoolNumeric(v); } ),
 
         new ParameterDefn("MeshLevelOfDetail", "Level of detail to render meshes (32, 16, 8 or 4. 32=most detailed)",
             8f,
@@ -876,6 +901,11 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             (s,cf,p,v) => { s.m_maxUpdatesPerFrame = cf.GetInt(p, (int)v); },
             (s) => { return (float)s.m_maxUpdatesPerFrame; },
             (s,p,l,v) => { s.m_maxUpdatesPerFrame = (int)v; } ),
+        new ParameterDefn("MaxTaintsToProcessPerStep", "Number of update taints to process before each simulation step",
+            100f,
+            (s,cf,p,v) => { s.m_taintsToProcessPerStep = cf.GetInt(p, (int)v); },
+            (s) => { return (float)s.m_taintsToProcessPerStep; },
+            (s,p,l,v) => { s.m_taintsToProcessPerStep = (int)v; } ),
         new ParameterDefn("MaxObjectMass", "Maximum object mass (10000.01)",
             10000.01f,
             (s,cf,p,v) => { s.MaximumObjectMass = cf.GetFloat(p, v); },
@@ -1070,12 +1100,12 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             (s) => { return s.m_params[0].linkConstraintTransMotorMaxForce; },
             (s,p,l,v) => { s.m_params[0].linkConstraintTransMotorMaxForce = v; } ),
 	    new ParameterDefn("LinkConstraintCFM", "Amount constraint can be violated. 0=no violation, 1=infinite. Default=0.1",
-            0.1f,
+            0.001f,
             (s,cf,p,v) => { s.m_params[0].linkConstraintCFM = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].linkConstraintCFM; },
             (s,p,l,v) => { s.m_params[0].linkConstraintCFM = v; } ),
 	    new ParameterDefn("LinkConstraintERP", "Amount constraint is corrected each tick. 0=none, 1=all. Default = 0.2",
-            0.2f,
+            0.8f,
             (s,cf,p,v) => { s.m_params[0].linkConstraintERP = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].linkConstraintERP; },
             (s,p,l,v) => { s.m_params[0].linkConstraintERP = v; } ),
@@ -1085,11 +1115,11 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             (s) => { return s.m_params[0].linkConstraintSolverIterations; },
             (s,p,l,v) => { s.m_params[0].linkConstraintSolverIterations = v; } ),
 
-        new ParameterDefn("DetailedStats", "Frames between outputting detailed phys stats. (0 is off)",
+        new ParameterDefn("LogPhysicsStatisticsFrames", "Frames between outputting detailed phys stats. (0 is off)",
             0f,
-            (s,cf,p,v) => { s.m_detailedStatsStep = cf.GetInt(p, (int)v); },
-            (s) => { return (float)s.m_detailedStatsStep; },
-            (s,p,l,v) => { s.m_detailedStatsStep = (int)v; } ),
+            (s,cf,p,v) => { s.m_params[0].physicsLoggingFrames = cf.GetInt(p, (int)v); },
+            (s) => { return (float)s.m_params[0].physicsLoggingFrames; },
+            (s,p,l,v) => { s.m_params[0].physicsLoggingFrames = (int)v; } ),
     };
 
     // Convert a boolean to our numeric true and false values
@@ -1270,6 +1300,8 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     public void DetailLog(string msg, params Object[] args)
     {
         PhysicsLogging.Write(msg, args);
+        // Add the Flush() if debugging crashes to get all the messages written out.
+        // PhysicsLogging.Flush();
     }
     // used to fill in the LocalID when there isn't one
     public const string DetailLogZero = "0000000000";

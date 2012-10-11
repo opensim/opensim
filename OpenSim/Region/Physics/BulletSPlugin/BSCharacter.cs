@@ -263,7 +263,7 @@ public class BSCharacter : BSPhysObject
     // A version of the sanity check that also makes sure a new position value is
     //    pushed back to the physics engine. This routine would be used by anyone
     //    who is not already pushing the value.
-    private bool PositionSanityCheck2(bool atTaintTime)
+    private bool PositionSanityCheck2(bool inTaintTime)
     {
         bool ret = false;
         if (PositionSanityCheck())
@@ -275,7 +275,7 @@ public class BSCharacter : BSPhysObject
                 DetailLog("{0},BSCharacter.PositionSanityCheck,taint,pos={1},orient={2}", LocalID, _position, _orientation);
                 BulletSimAPI.SetObjectTranslation(PhysicsScene.WorldID, LocalID, _position, _orientation);
             };
-            if (atTaintTime)
+            if (inTaintTime)
                 sanityOperation();
             else
                 PhysicsScene.TaintedObject("BSCharacter.PositionSanityCheck", sanityOperation);
@@ -330,6 +330,13 @@ public class BSCharacter : BSPhysObject
                 DetailLog("{0},BSCharacter.setVelocity,taint,vel={1}", LocalID, _velocity);
                 BulletSimAPI.SetObjectVelocity(PhysicsScene.WorldID, LocalID, _velocity);
             });
+        }
+    }
+    public override OMV.Vector3 ForceVelocity {
+        get { return _velocity; }
+        set {
+            _velocity = value;
+            BulletSimAPI.SetObjectVelocity(PhysicsScene.WorldID, LocalID, _velocity);
         }
     }
     public override OMV.Vector3 Torque {
@@ -429,6 +436,10 @@ public class BSCharacter : BSPhysObject
         }
     }
     public override OMV.Vector3 RotationalVelocity {
+        get { return _rotationalVelocity; }
+        set { _rotationalVelocity = value; }
+    }
+    public override OMV.Vector3 ForceRotationalVelocity {
         get { return _rotationalVelocity; }
         set { _rotationalVelocity = value; }
     }
