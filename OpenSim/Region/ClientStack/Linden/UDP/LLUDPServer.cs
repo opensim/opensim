@@ -420,6 +420,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 byte[] data = packet.ToBytes();
                 SendPacketData(udpClient, data, packet.Type, category, method);
             }
+
+            PacketPool.Instance.ReturnPacket(packet);
         }
 
         /// <summary>

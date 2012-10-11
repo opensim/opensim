@@ -126,8 +126,7 @@ namespace OpenSim.Framework.Monitoring
             {
                 foreach (Stat stat in container.Values)
                 {
-                    con.OutputFormat(
-                        "{0}.{1}.{2} : {3}{4}", stat.Category, stat.Container, stat.ShortName, stat.Value, stat.UnitName);
+                    con.Output(stat.ToConsoleString());
                 }
             }
         }
@@ -330,6 +329,12 @@ namespace OpenSim.Framework.Monitoring
         {
             return string.Format("{0}+{1}+{2}", container, category, shortName);
         }
+
+        public virtual string ToConsoleString()
+        {
+            return string.Format(
+                "{0}.{1}.{2} : {3}{4}", Category, Container, ShortName, Value, UnitName);
+        }
     }
 
     public class PercentageStat : Stat
@@ -358,8 +363,13 @@ namespace OpenSim.Framework.Monitoring
 
         public PercentageStat(
             string shortName, string name, string category, string container, StatVerbosity verbosity, string description)
-            : base(shortName, name, "%", category, container, verbosity, description)
+            : base(shortName, name, "%", category, container, verbosity, description) {}
+
+        public override string ToConsoleString()
         {
+            return string.Format(
+                "{0}.{1}.{2} : {3:0.###}{4} ({5}/{6})",
+                Category, Container, ShortName, Value, UnitName, Antecedent, Consequent);
         }
     }
 }

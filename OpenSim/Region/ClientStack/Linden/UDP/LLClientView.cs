@@ -3922,7 +3922,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock> blocks = terseAgentUpdateBlocks.Value;
 
-                    ImprovedTerseObjectUpdatePacket packet = new ImprovedTerseObjectUpdatePacket();
+                    ImprovedTerseObjectUpdatePacket packet
+                        = (ImprovedTerseObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ImprovedTerseObjectUpdate);
+
                     packet.RegionData.RegionHandle = m_scene.RegionInfo.RegionHandle;
                     packet.RegionData.TimeDilation = timeDilation;
                     packet.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[blocks.Count];
@@ -3967,7 +3969,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock> blocks = terseUpdateBlocks.Value;
         
-                    ImprovedTerseObjectUpdatePacket packet = new ImprovedTerseObjectUpdatePacket();
+                    ImprovedTerseObjectUpdatePacket packet
+                        = (ImprovedTerseObjectUpdatePacket)PacketPool.Instance.GetPacket(
+                            PacketType.ImprovedTerseObjectUpdate);
+
                     packet.RegionData.RegionHandle = m_scene.RegionInfo.RegionHandle;
                     packet.RegionData.TimeDilation = timeDilation;
                     packet.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[blocks.Count];
@@ -12286,7 +12291,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 ushort timeDilation = Utils.FloatToUInt16(TIME_DILATION, 0.0f, 1.0f);
 
 
-                ImprovedTerseObjectUpdatePacket packet = new ImprovedTerseObjectUpdatePacket();
+                ImprovedTerseObjectUpdatePacket packet
+                    = (ImprovedTerseObjectUpdatePacket)PacketPool.Instance.GetPacket(
+                        PacketType.ImprovedTerseObjectUpdate);
+
                 packet.RegionData.RegionHandle = m_scene.RegionInfo.RegionHandle;
                 packet.RegionData.TimeDilation = timeDilation;
                 packet.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];

@@ -47,7 +47,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private PercentageStat m_packetsReusedStat = new PercentageStat(
             "PacketsReused",
             "Packets reused",
-            "simulator",
+            "clientstack",
             "simulator",
             StatVerbosity.Debug,
             "Number of packets reused out of all requests to the packet pool");
@@ -55,7 +55,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private PercentageStat m_blocksReusedStat = new PercentageStat(
             "BlocksReused",
             "Blocks reused",
-            "simulator",
+            "clientstack",
             "simulator",
             StatVerbosity.Debug,
             "Number of data blocks reused out of all requests to the packet pool");
