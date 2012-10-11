@@ -96,11 +96,6 @@ namespace OpenSim.Framework.Servers
             get { return m_httpServer; }
         }
 
-        /// <summary>
-        /// Holds the non-viewer statistics collection object for this service/server
-        /// </summary>
-        protected IStatsCollector m_stats;
-
         public BaseOpenSimServer()
         {
             m_startuptime = DateTime.Now;
@@ -177,10 +172,6 @@ namespace OpenSim.Framework.Servers
                         "show info",
                         "Show general information about the server", HandleShow);
 
-                m_console.Commands.AddCommand("General", false, "show stats",
-                        "show stats",
-                        "Show statistics", HandleShow);
-
                 m_console.Commands.AddCommand("General", false, "show threads",
                         "show threads",
                         "Show thread status", HandleShow);
@@ -226,12 +217,7 @@ namespace OpenSim.Framework.Servers
         {
             StringBuilder sb = new StringBuilder("DIAGNOSTICS\n\n");
             sb.Append(GetUptimeReport());
-
-            if (m_stats != null)
-            {
-                sb.Append(m_stats.Report());
-            }
-
+            sb.Append(StatsManager.SimExtraStats.Report());
             sb.Append(Environment.NewLine);
             sb.Append(GetThreadsReport());
 
@@ -382,10 +368,6 @@ namespace OpenSim.Framework.Servers
             {
                 Notice("set log level [level] - change the console logging level only.  For example, off or debug.");
                 Notice("show info - show server information (e.g. startup path).");
-
-                if (m_stats != null)
-                    Notice("show stats - show statistical information for this server");
-
                 Notice("show threads - list tracked threads");
                 Notice("show uptime - show server startup time and uptime.");
                 Notice("show version - show server version.");
@@ -407,11 +389,6 @@ namespace OpenSim.Framework.Servers
             {
                 case "info":
                     ShowInfo();
-                    break;
-
-                case "stats":
-                    if (m_stats != null)
-                        Notice(m_stats.Report());
                     break;
 
                 case "threads":
@@ -604,8 +581,7 @@ namespace OpenSim.Framework.Servers
         
         public string osSecret {
             // Secret uuid for the simulator
-            get { return m_osSecret; }
-            
+            get { return m_osSecret; }            
         }
 
         public string StatReport(IOSHttpRequest httpRequest)
@@ -613,11 +589,11 @@ namespace OpenSim.Framework.Servers
             // If we catch a request for "callback", wrap the response in the value for jsonp
             if (httpRequest.Query.ContainsKey("callback"))
             {
-                return httpRequest.Query["callback"].ToString() + "(" + m_stats.XReport((DateTime.Now - m_startuptime).ToString() , m_version) + ");";
+                return httpRequest.Query["callback"].ToString() + "(" + StatsManager.SimExtraStats.XReport((DateTime.Now - m_startuptime).ToString() , m_version) + ");";
             } 
             else 
             {
-                return m_stats.XReport((DateTime.Now - m_startuptime).ToString() , m_version); 
+                return StatsManager.SimExtraStats.XReport((DateTime.Now - m_startuptime).ToString() , m_version);
             }
         }
            
