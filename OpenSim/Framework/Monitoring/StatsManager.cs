@@ -351,7 +351,7 @@ namespace OpenSim.Framework.Monitoring
                 if (c == 0)
                     return 0;
 
-                return (double)Antecedent / c;
+                return (double)Antecedent / c * 100;
             }
 
             set
@@ -367,7 +367,7 @@ namespace OpenSim.Framework.Monitoring
         public override string ToConsoleString()
         {
             return string.Format(
-                "{0}.{1}.{2} : {3:0.###}{4} ({5}/{6})",
+                "{0}.{1}.{2} : {3:0.##}{4} ({5}/{6})",
                 Category, Container, ShortName, Value, UnitName, Antecedent, Consequent);
         }
     }
