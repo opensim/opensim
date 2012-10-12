@@ -160,7 +160,6 @@
       <Reference name="OpenMetaverse" path="../../../bin/"/>
       <Reference name="OpenMetaverse.StructuredData" path="../../../bin/"/>
       <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Console"/>
 
       <Files>
         <Match pattern="*.cs" recurse="true"/>
