@@ -172,11 +172,8 @@ public sealed class BSPrim : BSPhysObject
     }
     // Scale is what we set in the physics engine. It is different than 'size' in that
     //     'size' can be encorporated into the mesh. In that case, the scale is <1,1,1>.
-    public OMV.Vector3 Scale
-    {
-        get { return _scale; }
-        set { _scale = value; }
-    }
+    public override OMV.Vector3 Scale { get; set; }
+
     public override PrimitiveBaseShape Shape {
         set {
             _pbs = value;
@@ -325,9 +322,9 @@ public sealed class BSPrim : BSPhysObject
     }
 
     // A version of the sanity check that also makes sure a new position value is
-    //    pushed back to the physics engine. This routine would be used by anyone
+    //    pushed to the physics engine. This routine would be used by anyone
     //    who is not already pushing the value.
-    private bool PositionSanityCheck2(bool inTaintTime)
+    private bool PositionSanityCheck(bool inTaintTime)
     {
         bool ret = false;
         if (PositionSanityCheck())
@@ -337,7 +334,7 @@ public sealed class BSPrim : BSPhysObject
             BSScene.TaintCallback sanityOperation = delegate()
             {
                 DetailLog("{0},BSPrim.PositionSanityCheck,taint,pos={1},orient={2}", LocalID, _position, _orientation);
-                BulletSimAPI.SetObjectTranslation(PhysicsScene.WorldID, LocalID, _position, _orientation);
+                ForcePosition = _position;
             };
             if (inTaintTime)
                 sanityOperation();
@@ -547,13 +544,13 @@ public sealed class BSPrim : BSPhysObject
     }
 
     // An object is static (does not move) if selected or not physical
-    private bool IsStatic
+    public override bool IsStatic
     {
         get { return _isSelected || !IsPhysical; }
     }
 
     // An object is solid if it's not phantom and if it's not doing VolumeDetect
-    public bool IsSolid
+    public override bool IsSolid
     {
         get { return !IsPhantom && !_isVolumeDetect; }
     }
@@ -631,6 +628,12 @@ public sealed class BSPrim : BSPhysObject
             BulletSimAPI.SetMassProps2(BSBody.ptr, 0f, OMV.Vector3.Zero);
             // There is no inertia in a static object
             BulletSimAPI.UpdateInertiaTensor2(BSBody.ptr);
+            // Set collision detection parameters
+            if (PhysicsScene.Params.ccdMotionThreshold > 0f)
+            {
+                BulletSimAPI.SetCcdMotionThreshold2(BSBody.ptr, PhysicsScene.Params.ccdMotionThreshold);
+                BulletSimAPI.SetCcdSweepSphereRadius2(BSBody.ptr, PhysicsScene.Params.ccdSweptSphereRadius);
+            }
             // There can be special things needed for implementing linksets
             Linkset.MakeStatic(this);
             // The activation state is 'disabled' so Bullet will not try to act on it.
@@ -661,6 +664,13 @@ public sealed class BSPrim : BSPhysObject
             OMV.Vector3 inertia = BulletSimAPI.CalculateLocalInertia2(collisionShapePtr, Mass);
             BulletSimAPI.SetMassProps2(BSBody.ptr, _mass, inertia);
             BulletSimAPI.UpdateInertiaTensor2(BSBody.ptr);
+
+            // Set collision detection parameters
+            if (PhysicsScene.Params.ccdMotionThreshold > 0f)
+            {
+                BulletSimAPI.SetCcdMotionThreshold2(BSBody.ptr, PhysicsScene.Params.ccdMotionThreshold);
+                BulletSimAPI.SetCcdSweepSphereRadius2(BSBody.ptr, PhysicsScene.Params.ccdSweptSphereRadius);
+            }
 
             // Various values for simulation limits
             BulletSimAPI.SetDamping2(BSBody.ptr, PhysicsScene.Params.linearDamping, PhysicsScene.Params.angularDamping);
@@ -813,11 +823,18 @@ public sealed class BSPrim : BSPhysObject
             _buoyancy = value;
             PhysicsScene.TaintedObject("BSPrim.setBuoyancy", delegate()
             {
-                // DetailLog("{0},BSPrim.SetBuoyancy,taint,buoy={1}", LocalID, _buoyancy);
-                // Buoyancy is faked by changing the gravity applied to the object
-                float grav = PhysicsScene.Params.gravity * (1f - _buoyancy);
-                BulletSimAPI.SetGravity2(BSBody.ptr, new OMV.Vector3(0f, 0f, grav));
+                ForceBuoyancy = _buoyancy;
             });
+        }
+    }
+    public override float ForceBuoyancy {
+        get { return _buoyancy; }
+        set {
+            _buoyancy = value;
+            // DetailLog("{0},BSPrim.setForceBuoyancy,taint,buoy={1}", LocalID, _buoyancy);
+            // Buoyancy is faked by changing the gravity applied to the object
+            float grav = PhysicsScene.Params.gravity * (1f - _buoyancy);
+            BulletSimAPI.SetGravity2(BSBody.ptr, new OMV.Vector3(0f, 0f, grav));
         }
     }
 
@@ -1328,9 +1345,11 @@ public sealed class BSPrim : BSPhysObject
             _acceleration = entprop.Acceleration;
             _rotationalVelocity = entprop.RotationalVelocity;
 
-            PositionSanityCheck2(true);
+            // remember the current and last set values
+            LastEntityProperties = CurrentEntityProperties;
+            CurrentEntityProperties = entprop;
 
-            Linkset.UpdateProperties(this);
+            PositionSanityCheck(true);
 
             DetailLog("{0},BSPrim.UpdateProperties,call,pos={1},orient={2},vel={3},accel={4},rotVel={5}",
                     LocalID, _position, _orientation, _velocity, _acceleration, _rotationalVelocity);
@@ -1348,6 +1367,9 @@ public sealed class BSPrim : BSPhysObject
                     entprop.Acceleration, entprop.RotationalVelocity);
         }
              */
+        // The linkset implimentation might want to know about this.
+
+        Linkset.UpdateProperties(this);
     }
 }
 }

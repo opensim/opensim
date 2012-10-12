@@ -93,7 +93,7 @@ public class BSShapeCollection : IDisposable
     //    sure the body is of the right type.
     // Return 'true' if either the body or the shape changed.
     // Called at taint-time!!
-    public bool GetBodyAndShape(bool forceRebuild, BulletSim sim, BSPrim prim, 
+    public bool GetBodyAndShape(bool forceRebuild, BulletSim sim, BSPhysObject prim, 
                     ShapeData shapeData, PrimitiveBaseShape pbs,
                     ShapeDestructionCallback shapeCallback, BodyDestructionCallback bodyCallback)
     {
@@ -351,19 +351,30 @@ public class BSShapeCollection : IDisposable
 
     // Create the geometry information in Bullet for later use.
     // The objects needs a hull if it's physical otherwise a mesh is enough.
-    // No locking here because this is done when we know physics is not simulating.
-    // if 'forceRebuild' is true, the geometry is rebuilt. Otherwise a previously built version is used.
+    // if 'forceRebuild' is true, the geometry is unconditionally rebuilt. For meshes and hulls,
+    //     shared geometries will be used. If the parameters of the existing shape are the same
+    //     as this request, the shape is not rebuilt.
+    // Info in prim.BSShape is updated to the new shape.
     // Returns 'true' if the geometry was rebuilt.
     // Called at taint-time!
-    private bool CreateGeom(bool forceRebuild, BSPrim prim, ShapeData shapeData, 
+    private bool CreateGeom(bool forceRebuild, BSPhysObject prim, ShapeData shapeData, 
                             PrimitiveBaseShape pbs, ShapeDestructionCallback shapeCallback)
     {
         bool ret = false;
         bool haveShape = false;
         bool nativeShapePossible = true;
 
+        if (shapeData.Type == ShapeData.PhysicsShapeType.SHAPE_AVATAR)
+        {
+            // an avatar capsule is close to a native shape (it is not shared)
+            ret = GetReferenceToNativeShape(prim, shapeData, ShapeData.PhysicsShapeType.SHAPE_AVATAR, 
+                            ShapeData.FixedShapeKey.KEY_CAPSULE, shapeCallback);
+            haveShape = true;
+        }
         // If the prim attributes are simple, this could be a simple Bullet native shape
-        if (nativeShapePossible
+        if (!haveShape
+                && pbs != null
+                && nativeShapePossible
                 && ((pbs.SculptEntry && !PhysicsScene.ShouldMeshSculptedPrim)
                     || (pbs.ProfileBegin == 0 && pbs.ProfileEnd == 0
                         && pbs.ProfileHollow == 0
@@ -406,7 +417,7 @@ public class BSShapeCollection : IDisposable
         // If a simple shape is not happening, create a mesh and possibly a hull.
         // Note that if it's a native shape, the check for physical/non-physical is not
         //     made. Native shapes are best used in either case.
-        if (!haveShape)
+        if (!haveShape && pbs != null)
         {
             if (prim.IsPhysical && PhysicsScene.ShouldUseHullsForPhysicalObjects)
             {
@@ -425,8 +436,9 @@ public class BSShapeCollection : IDisposable
         return ret;
     }
 
-    // Creates a native shape and assignes it to prim.BSShape
-    private bool GetReferenceToNativeShape( BSPrim prim, ShapeData shapeData,
+    // Creates a native shape and assignes it to prim.BSShape.
+    // "Native" shapes are never shared. they are created here and destroyed in DereferenceShape().
+    private bool GetReferenceToNativeShape(BSPhysObject prim, ShapeData shapeData,
                             ShapeData.PhysicsShapeType shapeType, ShapeData.FixedShapeKey shapeKey,
                             ShapeDestructionCallback shapeCallback)
     {
@@ -440,10 +452,19 @@ public class BSShapeCollection : IDisposable
         // release any previous shape
         DereferenceShape(prim.BSShape, true, shapeCallback);
 
-        // Native shapes are always built independently.
-        newShape = new BulletShape(BulletSimAPI.BuildNativeShape2(PhysicsScene.World.ptr, shapeData), shapeType);
-        newShape.shapeKey = (System.UInt64)shapeKey;
-        newShape.isNativeShape = true;
+        if (shapeType == ShapeData.PhysicsShapeType.SHAPE_AVATAR)
+        {
+            newShape = new BulletShape(BulletSimAPI.BuildCapsuleShape2(PhysicsScene.World.ptr, shapeData), shapeType);
+            newShape.shapeKey = (System.UInt64)shapeKey;
+            newShape.isNativeShape = true;
+        }
+        else
+        {
+            // Native shapes are always built independently.
+            newShape = new BulletShape(BulletSimAPI.BuildNativeShape2(PhysicsScene.World.ptr, shapeData), shapeType);
+            newShape.shapeKey = (System.UInt64)shapeKey;
+            newShape.isNativeShape = true;
+        }
 
         // Don't need to do a 'ReferenceShape()' here because native shapes are not tracked.
         // DetailLog("{0},BSShapeCollection.AddNativeShapeToPrim,create,newshape={1}", shapeData.ID, newShape);
@@ -456,7 +477,7 @@ public class BSShapeCollection : IDisposable
     // Dereferences previous shape in BSShape and adds a reference for this new shape.
     // Returns 'true' of a mesh was actually built. Otherwise .
     // Called at taint-time!
-    private bool GetReferenceToMesh(BSPrim prim, ShapeData shapeData, PrimitiveBaseShape pbs,
+    private bool GetReferenceToMesh(BSPhysObject prim, ShapeData shapeData, PrimitiveBaseShape pbs,
                                 ShapeDestructionCallback shapeCallback)
     {
         BulletShape newShape = new BulletShape(IntPtr.Zero);
@@ -526,7 +547,7 @@ public class BSShapeCollection : IDisposable
 
     // See that hull shape exists in the physical world and update prim.BSShape.
     // We could be creating the hull because scale changed or whatever.
-    private bool GetReferenceToHull(BSPrim prim, ShapeData shapeData, PrimitiveBaseShape pbs,
+    private bool GetReferenceToHull(BSPhysObject prim, ShapeData shapeData, PrimitiveBaseShape pbs,
                                 ShapeDestructionCallback shapeCallback)
     {
         BulletShape newShape;
@@ -694,7 +715,7 @@ public class BSShapeCollection : IDisposable
     // Updates prim.BSBody with the information about the new body if one is created.
     // Returns 'true' if an object was actually created.
     // Called at taint-time.
-    private bool CreateBody(bool forceRebuild, BSPrim prim, BulletSim sim, BulletShape shape, 
+    private bool CreateBody(bool forceRebuild, BSPhysObject prim, BulletSim sim, BulletShape shape, 
                             ShapeData shapeData, BodyDestructionCallback bodyCallback)
     {
         bool ret = false;

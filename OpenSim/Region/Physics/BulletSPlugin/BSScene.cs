@@ -256,10 +256,10 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         Vector3 worldExtent = new Vector3(Constants.RegionSize, Constants.RegionSize, Constants.RegionHeight);
 
         // m_log.DebugFormat("{0}: Initialize: Calling BulletSimAPI.Initialize.", LogHeader);
-        WorldID = BulletSimAPI.Initialize(worldExtent, m_paramsHandle.AddrOfPinnedObject(),
+        World = new BulletSim(0, this, BulletSimAPI.Initialize2(worldExtent, m_paramsHandle.AddrOfPinnedObject(),
                                         m_maxCollisionsPerFrame, m_collisionArrayPinnedHandle.AddrOfPinnedObject(),
                                         m_maxUpdatesPerFrame, m_updateArrayPinnedHandle.AddrOfPinnedObject(),
-                                        m_DebugLogCallbackHandle);
+                                        m_DebugLogCallbackHandle));
 
         // Initialization to support the transition to a new API which puts most of the logic
         //   into the C# code so it is easier to modify and add to.
@@ -360,7 +360,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         }
 
         // Anything left in the unmanaged code should be cleaned out
-        BulletSimAPI.Shutdown(WorldID);
+        BulletSimAPI.Shutdown2(World.ptr);
 
         // Not logging any more
         PhysicsLogging.Close();
@@ -498,7 +498,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         {
             if (PhysicsLogging.Enabled) beforeTime = Util.EnvironmentTickCount();
 
-            numSubSteps = BulletSimAPI.PhysicsStep(WorldID, timeStep, m_maxSubSteps, m_fixedTimeStep,
+            numSubSteps = BulletSimAPI.PhysicsStep2(World.ptr, timeStep, m_maxSubSteps, m_fixedTimeStep,
                         out updatedEntityCount, out updatedEntitiesPtr, out collidersCount, out collidersPtr);
 
             if (PhysicsLogging.Enabled) simTime = Util.EnvironmentTickCountSubtract(beforeTime);
@@ -1011,6 +1011,11 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             (s,cf,p,v) => { s.m_params[0].avatarFriction = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].avatarFriction; },
             (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].avatarFriction, p, l, v); } ),
+        new ParameterDefn("AvatarStandingFriction", "Avatar friction when standing. Changed on avatar recreation.",
+            10f,
+            (s,cf,p,v) => { s.m_params[0].avatarStandingFriction = cf.GetFloat(p, v); },
+            (s) => { return s.m_params[0].avatarStandingFriction; },
+            (s,p,l,v) => { s.m_params[0].avatarStandingFriction = v; } ),
         new ParameterDefn("AvatarDensity", "Density of an avatar. Changed on avatar recreation.",
             60f,
             (s,cf,p,v) => { s.m_params[0].avatarDensity = cf.GetFloat(p, v); },
@@ -1247,6 +1252,8 @@ public class BSScene : PhysicsScene, IPhysicsParameters
                 defaultLoc = val;   // setting only the default value
                 break;
             case PhysParameterEntry.APPLY_TO_ALL:
+                m_log.ErrorFormat("{0} Cannot change parameters of multiple objects. Someday it will be added.", LogHeader);
+                /*
                 defaultLoc = val;  // setting ALL also sets the default value
                 List<uint> objectIDs = lIDs;
                 string xparm = parm.ToLower();
@@ -1257,6 +1264,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
                         BulletSimAPI.UpdateParameter(WorldID, lID, xparm, xval);
                     }
                 });
+                 */
                 break;
             default:
                 // setting only one localID
@@ -1268,12 +1276,15 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     // schedule the actual updating of the paramter to when the phys engine is not busy
     protected void TaintedUpdateParameter(string parm, uint localID, float val)
     {
+        m_log.ErrorFormat("{0} Cannot change parameters of base objects. Someday it will be added.", LogHeader);
+        /*
         uint xlocalID = localID;
         string xparm = parm.ToLower();
         float xval = val;
         TaintedObject("BSScene.TaintedUpdateParameter", delegate() {
             BulletSimAPI.UpdateParameter(WorldID, xlocalID, xparm, xval);
         });
+        */
     }
 
     // Get parameter.

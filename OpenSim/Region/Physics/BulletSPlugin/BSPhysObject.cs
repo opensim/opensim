@@ -69,6 +69,16 @@ public abstract class BSPhysObject : PhysicsActor
     // Reference to the physical shape (btCollisionShape) of this object
     public BulletShape BSShape;
 
+    // When the physical properties are updated, an EntityProperty holds the update values.
+    // Keep the current and last EntityProperties to enable computation of differences 
+    //      between the current update and the previous values.
+    public EntityProperties CurrentEntityProperties { get; set; }
+    public EntityProperties LastEntityProperties { get; set; }
+
+    public abstract OMV.Vector3 Scale { get; set; }
+    public abstract bool IsSolid { get; }
+    public abstract bool IsStatic { get; }
+
     // Stop all physical motion.
     public abstract void ZeroMotion();
 
@@ -88,6 +98,8 @@ public abstract class BSPhysObject : PhysicsActor
     public abstract OMV.Vector3 ForceVelocity { get; set; }
 
     public abstract OMV.Vector3 ForceRotationalVelocity { get; set; }
+
+    public abstract float ForceBuoyancy { get; set; }
 
     #region Collisions
 
