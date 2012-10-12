@@ -718,7 +718,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 if (b1 != IntPtr.Zero && b2 != IntPtr.Zero && d.AreConnectedExcluding(b1, b2, d.JointType.Contact))
                     return;
-
+/*
 // debug
                 PhysicsActor dp2;
                 if (d.GeomGetClass(g1) == d.GeomClassID.HeightfieldClass)
@@ -742,7 +742,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                 }
 //
-
+*/
 
 
                 if(d.GeomGetCategoryBits(g1) == (uint)CollisionCategories.VolumeDtc ||
