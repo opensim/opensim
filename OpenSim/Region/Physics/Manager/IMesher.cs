@@ -68,10 +68,12 @@ namespace OpenSim.Region.Physics.Manager
         public ulong hashA;
         [FieldOffset(8)]
         public ulong hashB;
+        [FieldOffset(16)]
+        public ulong hashC;
 
         public override string ToString()
         {
-            return uuid.ToString();
+            return uuid.ToString() + "-" + hashC.ToString() ;
         }
     }
 
