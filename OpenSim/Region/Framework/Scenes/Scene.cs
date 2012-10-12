@@ -306,6 +306,30 @@ namespace OpenSim.Region.Framework.Scenes
         }
         private volatile bool m_shuttingDown;
 
+        /// <summary>
+        /// Is the scene active?
+        /// </summary>
+        /// <remarks>
+        /// If false, maintenance and update loops are not run.
+        /// </remarks>
+        public bool Active
+        {
+            get { return m_active; }
+            set
+            {
+                if (value)
+                {
+                    if (!m_active)
+                        Start();
+                }
+                else
+                {
+                    m_active = false;
+                }
+            }
+        }
+        private volatile bool m_active;
+
 //        private int m_lastUpdate;
 //        private bool m_firstHeartbeat = true;
         
@@ -1159,6 +1183,14 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SetSceneCoreDebug(Dictionary<string, string> options)
         {
+            if (options.ContainsKey("active"))
+            {
+                bool active;
+
+                if (bool.TryParse(options["active"], out active))
+                    Active = active;
+            }
+
             if (options.ContainsKey("scripting"))
             {
                 bool enableScripts = true;
@@ -1298,6 +1330,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void Start()
         {
+            m_active = true;
+
 //            m_log.DebugFormat("[SCENE]: Starting Heartbeat timer for {0}", RegionInfo.RegionName);
 
             //m_heartbeatTimer.Enabled = true;
@@ -1339,7 +1373,7 @@ namespace OpenSim.Region.Framework.Scenes
         #region Update Methods
 
         /// <summary>
-        /// Performs per-frame updates regularly
+        /// Activate the various loops necessary to continually update the scene.
         /// </summary>
         private void Heartbeat()
         {
@@ -1396,7 +1430,7 @@ namespace OpenSim.Region.Framework.Scenes
             List<Vector3> coarseLocations;
             List<UUID> avatarUUIDs;
 
-            while (!m_shuttingDown && (endRun == null || MaintenanceRun < endRun))
+            while (Active && !m_shuttingDown && (endRun == null || MaintenanceRun < endRun))
             {
                 runtc = Util.EnvironmentTickCount();
                 ++MaintenanceRun;
@@ -1455,7 +1489,7 @@ namespace OpenSim.Region.Framework.Scenes
             int previousFrameTick, tmpMS;
             int maintc = Util.EnvironmentTickCount();
 
-            while (!m_shuttingDown && (endFrame == null || Frame < endFrame))
+            while (Active && !m_shuttingDown && (endFrame == null || Frame < endFrame))
             {
                 ++Frame;
 
