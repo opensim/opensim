@@ -936,13 +936,14 @@ namespace OpenSim.Region.Physics.Meshing
             Byte[] someBytes;
 
             key.hashB = 5181;
+            key.hashC = 5181;
             ulong hash = 5381;
 
             if (primShape.SculptEntry)
             {
                 key.uuid = primShape.SculptTexture;
-                key.hashB = mdjb2(key.hashB, primShape.SculptType);
-                key.hashB = mdjb2(key.hashB, primShape.PCode);
+                key.hashC = mdjb2(key.hashC, primShape.SculptType);
+                key.hashC = mdjb2(key.hashC, primShape.PCode);
             }
             else
             {
@@ -954,6 +955,9 @@ namespace OpenSim.Region.Physics.Meshing
                 hash = mdjb2(hash, primShape.PathScaleX);
                 hash = mdjb2(hash, primShape.PathScaleY);
                 hash = mdjb2(hash, primShape.PathShearX);
+                key.hashA = hash;
+                key.hashA |= 0xf000000000000000;
+                hash = key.hashB;
                 hash = mdjb2(hash, primShape.PathShearY);
                 hash = mdjb2(hash, (byte)primShape.PathTwist);
                 hash = mdjb2(hash, (byte)primShape.PathTwistBegin);
@@ -966,10 +970,10 @@ namespace OpenSim.Region.Physics.Meshing
                 hash = mdjb2(hash, primShape.ProfileEnd);
                 hash = mdjb2(hash, primShape.ProfileHollow);
                 hash = mdjb2(hash, primShape.PCode);
-                key.hashA = hash;
+                key.hashB = hash;
             }
 
-            hash = key.hashB;
+            hash = key.hashC;
 
             someBytes = size.GetBytes();
             for (int i = 0; i < someBytes.Length; i++)
