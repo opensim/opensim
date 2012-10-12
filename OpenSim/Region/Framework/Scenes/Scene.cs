@@ -310,7 +310,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// Is the scene active?
         /// </summary>
         /// <remarks>
-        /// If false, maintenance and update loops are not run.
+        /// If false, maintenance and update loops are not being run.  Updates can still be triggered manually if
+        /// the scene is not active.
         /// </remarks>
         public bool Active
         {
@@ -1430,7 +1431,7 @@ namespace OpenSim.Region.Framework.Scenes
             List<Vector3> coarseLocations;
             List<UUID> avatarUUIDs;
 
-            while (Active && !m_shuttingDown && (endRun == null || MaintenanceRun < endRun))
+            while (!m_shuttingDown && ((endRun == null && Active) || MaintenanceRun < endRun))
             {
                 runtc = Util.EnvironmentTickCount();
                 ++MaintenanceRun;
@@ -1489,7 +1490,7 @@ namespace OpenSim.Region.Framework.Scenes
             int previousFrameTick, tmpMS;
             int maintc = Util.EnvironmentTickCount();
 
-            while (Active && !m_shuttingDown && (endFrame == null || Frame < endFrame))
+            while (!m_shuttingDown && ((endFrame == null && Active) || Frame < endFrame))
             {
                 ++Frame;
 

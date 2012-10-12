@@ -65,6 +65,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         public void Init()
         {
             m_scene = new SceneHelpers().SetupScene();
+            m_scene.Start();
         }
 
         [Test]
