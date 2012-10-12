@@ -32,30 +32,49 @@ using System.Runtime.InteropServices;
 using OpenSim.Region.Physics.Manager;
 using PrimMesher;
 using OpenMetaverse;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace OpenSim.Region.Physics.Meshing
 {
+    public class MeshBuildingData
+    {
+        public Dictionary<Vertex, int> m_vertices;
+        public List<Triangle> m_triangles;
+        public float m_obbXmin;
+        public float m_obbXmax;
+        public float m_obbYmin;
+        public float m_obbYmax;
+        public float m_obbZmin;
+        public float m_obbZmax;
+        public Vector3 m_centroid;
+        public int m_centroidDiv;
+    }
+
+    [Serializable()]
     public class Mesh : IMesh
     {
-
-        private Dictionary<Vertex, int> m_vertices;
-        private List<Triangle> m_triangles;
-        GCHandle m_pinnedVertexes;
-        GCHandle m_pinnedIndex;
+        float[] vertices;
+        int[] indexes;
+        Vector3 m_obb;
+        Vector3 m_obboffset;
+        [NonSerialized()]
+        MeshBuildingData m_bdata;
+        [NonSerialized()]
+        GCHandle vhandler;
+        [NonSerialized()]
+        GCHandle ihandler;
+        [NonSerialized()]
         IntPtr m_verticesPtr = IntPtr.Zero;
-        int m_vertexCount = 0;
+        [NonSerialized()]
         IntPtr m_indicesPtr = IntPtr.Zero;
+        [NonSerialized()]
+        int m_vertexCount = 0;
+        [NonSerialized()]
         int m_indexCount = 0;
-        public float[] m_normals;
-        Vector3 m_centroid;
-        float m_obbXmin;
-        float m_obbXmax;
-        float m_obbYmin;
-        float m_obbYmax;
-        float m_obbZmin;
-        float m_obbZmax;
 
-        int m_centroidDiv;
+        public int RefCount { get; set; }
+        public AMeshKey Key { get; set; }
 
         private class vertexcomp : IEqualityComparer<Vertex>
         {
@@ -79,42 +98,82 @@ namespace OpenSim.Region.Physics.Meshing
         {
             vertexcomp vcomp = new vertexcomp();
 
-            m_vertices = new Dictionary<Vertex, int>(vcomp);
-            m_triangles = new List<Triangle>();
-            m_centroid = Vector3.Zero;
-            m_centroidDiv = 0;
-            m_obbXmin = float.MaxValue;
-            m_obbXmax = float.MinValue;
-            m_obbYmin = float.MaxValue;
-            m_obbYmax = float.MinValue;
-            m_obbZmin = float.MaxValue;
-            m_obbZmax = float.MinValue;
+            m_bdata = new MeshBuildingData();
+            m_bdata.m_vertices = new Dictionary<Vertex, int>(vcomp);
+            m_bdata.m_triangles = new List<Triangle>();
+            m_bdata.m_centroid = Vector3.Zero;
+            m_bdata.m_centroidDiv = 0;
+            m_bdata.m_obbXmin = float.MaxValue;
+            m_bdata.m_obbXmax = float.MinValue;
+            m_bdata.m_obbYmin = float.MaxValue;
+            m_bdata.m_obbYmax = float.MinValue;
+            m_bdata.m_obbZmin = float.MaxValue;
+            m_bdata.m_obbZmax = float.MinValue;
+            m_obb = new Vector3(0.5f, 0.5f, 0.5f);
+            m_obboffset = Vector3.Zero;
         }
 
-        public int RefCount { get; set; }
 
-        public AMeshKey Key { get; set; }
-
-        public void Scale(Vector3 scale)
+        public Mesh Scale(Vector3 scale)
         {
+            if (m_verticesPtr == null || m_indicesPtr == null)
+                return null;
+
+            Mesh result = new Mesh();
+
+            float x = scale.X;
+            float y = scale.Y;
+            float z = scale.Z;
+
+            result.m_obb.X = m_obb.X * x;
+            result.m_obb.Y = m_obb.Y * y;
+            result.m_obb.Z = m_obb.Z * z;
+            result.m_obboffset.X = m_obboffset.X * x;
+            result.m_obboffset.Y = m_obboffset.Y * y;
+            result.m_obboffset.Z = m_obboffset.Z * z;
+
+            result.vertices = new float[vertices.Length];
+            int j = 0;
+            for (int i = 0; i < m_vertexCount; i++)
+            {
+                result.vertices[j] = vertices[j] * x;
+                j++;
+                result.vertices[j] = vertices[j] * y;
+                j++;
+                result.vertices[j] = vertices[j] * z;
+                j++;
+            }
+
+            result.indexes = new int[indexes.Length];
+            indexes.CopyTo(result.indexes,0);
+
+            result.pinMemory();
+
+            return result;
         }
 
         public Mesh Clone()
         {
             Mesh result = new Mesh();
 
-            foreach (Triangle t in m_triangles)
+            if (m_bdata != null)
             {
-                result.Add(new Triangle(t.v1.Clone(), t.v2.Clone(), t.v3.Clone()));
+                result.m_bdata = new MeshBuildingData();
+                foreach (Triangle t in m_bdata.m_triangles)
+                {
+                    result.Add(new Triangle(t.v1.Clone(), t.v2.Clone(), t.v3.Clone()));
+                }
+                result.m_bdata.m_centroid = m_bdata.m_centroid;
+                result.m_bdata.m_centroidDiv = m_bdata.m_centroidDiv;
+                result.m_bdata.m_obbXmin = m_bdata.m_obbXmin;
+                result.m_bdata.m_obbXmax = m_bdata.m_obbXmax;
+                result.m_bdata.m_obbYmin = m_bdata.m_obbYmin;
+                result.m_bdata.m_obbYmax = m_bdata.m_obbYmax;
+                result.m_bdata.m_obbZmin = m_bdata.m_obbZmin;
+                result.m_bdata.m_obbZmax = m_bdata.m_obbZmax;
             }
-            result.m_centroid = m_centroid;
-            result.m_centroidDiv = m_centroidDiv;
-            result.m_obbXmin = m_obbXmin;
-            result.m_obbXmax = m_obbXmax;
-            result.m_obbYmin = m_obbYmin;
-            result.m_obbYmax = m_obbYmax;
-            result.m_obbZmin = m_obbZmin;
-            result.m_obbZmax = m_obbZmax;
+            result.m_obb = m_obb;
+            result.m_obboffset = m_obboffset;
             return result;
         }
 
@@ -124,37 +183,34 @@ namespace OpenSim.Region.Physics.Meshing
             float y = v.Y;
             float z = v.Z;
 
-            m_centroid.X += x;
-            m_centroid.Y += y;
-            m_centroid.Z += z;
-            m_centroidDiv++;
+            m_bdata.m_centroid.X += x;
+            m_bdata.m_centroid.Y += y;
+            m_bdata.m_centroid.Z += z;
+            m_bdata.m_centroidDiv++;
 
-            if (x > m_obbXmax)
-                m_obbXmax = x;
-            else if (x < m_obbXmin)
-                m_obbXmin = x;
+            if (x > m_bdata.m_obbXmax)
+                m_bdata.m_obbXmax = x;
+            else if (x < m_bdata.m_obbXmin)
+                m_bdata.m_obbXmin = x;
 
-            if (y > m_obbYmax)
-                m_obbYmax = y;
-            else if (y < m_obbYmin)
-                m_obbYmin = y;
+            if (y > m_bdata.m_obbYmax)
+                m_bdata.m_obbYmax = y;
+            else if (y < m_bdata.m_obbYmin)
+                m_bdata.m_obbYmin = y;
 
-            if (z > m_obbZmax)
-                m_obbZmax = z;
-            else if (z < m_obbZmin)
-                m_obbZmin = z;
+            if (z > m_bdata.m_obbZmax)
+                m_bdata.m_obbZmax = z;
+            else if (z < m_bdata.m_obbZmin)
+                m_bdata.m_obbZmin = z;
 
         }
 
 
         public void Add(Triangle triangle)
         {
-            if (m_pinnedIndex.IsAllocated || m_pinnedVertexes.IsAllocated || m_indicesPtr != IntPtr.Zero || m_verticesPtr != IntPtr.Zero)
+            if (m_indicesPtr != IntPtr.Zero || m_verticesPtr != IntPtr.Zero)
                 throw new NotSupportedException("Attempt to Add to a pinned Mesh");
-            // If a vertex of the triangle is not yet in the vertices list,
-            // add it and set its index to the current index count
-            // vertex == seems broken
-            // skip colapsed triangles
+
             if ((triangle.v1.X == triangle.v2.X && triangle.v1.Y == triangle.v2.Y && triangle.v1.Z == triangle.v2.Z)
                 || (triangle.v1.X == triangle.v3.X && triangle.v1.Y == triangle.v3.Y && triangle.v1.Z == triangle.v3.Z)
                 || (triangle.v2.X == triangle.v3.X && triangle.v2.Y == triangle.v3.Y && triangle.v2.Z == triangle.v3.Z)
@@ -163,46 +219,45 @@ namespace OpenSim.Region.Physics.Meshing
                 return;
             }
 
-            if (m_vertices.Count == 0)
+            if (m_bdata.m_vertices.Count == 0)
             {
-                m_centroidDiv = 0;
-                m_centroid = Vector3.Zero;
+                m_bdata.m_centroidDiv = 0;
+                m_bdata.m_centroid = Vector3.Zero;
             }
 
-            if (!m_vertices.ContainsKey(triangle.v1))
+            if (!m_bdata.m_vertices.ContainsKey(triangle.v1))
             {
-                m_vertices[triangle.v1] = m_vertices.Count;
+                m_bdata.m_vertices[triangle.v1] = m_bdata.m_vertices.Count;
                 addVertexLStats(triangle.v1);
             }
-            if (!m_vertices.ContainsKey(triangle.v2))
+            if (!m_bdata.m_vertices.ContainsKey(triangle.v2))
             {
-                m_vertices[triangle.v2] = m_vertices.Count;
+                m_bdata.m_vertices[triangle.v2] = m_bdata.m_vertices.Count;
                 addVertexLStats(triangle.v2);
             }
-            if (!m_vertices.ContainsKey(triangle.v3))
+            if (!m_bdata.m_vertices.ContainsKey(triangle.v3))
             {
-                m_vertices[triangle.v3] = m_vertices.Count;
+                m_bdata.m_vertices[triangle.v3] = m_bdata.m_vertices.Count;
                 addVertexLStats(triangle.v3);
             }
-            m_triangles.Add(triangle);
+            m_bdata.m_triangles.Add(triangle);
         }
 
         public Vector3 GetCentroid()
         {
-            if (m_centroidDiv > 0)
-                return new Vector3(m_centroid.X / m_centroidDiv, m_centroid.Y / m_centroidDiv, m_centroid.Z / m_centroidDiv);
-            else
-                return Vector3.Zero;
+            return m_obboffset;
+
         }
 
         public Vector3 GetOBB()
         {
+            return m_obb;
             float x, y, z;
-            if (m_centroidDiv > 0)
+            if (m_bdata.m_centroidDiv > 0)
             {
-                x = (m_obbXmax - m_obbXmin) * 0.5f;
-                y = (m_obbYmax - m_obbYmin) * 0.5f;
-                z = (m_obbZmax - m_obbZmin) * 0.5f;
+                x = (m_bdata.m_obbXmax - m_bdata.m_obbXmin) * 0.5f;
+                y = (m_bdata.m_obbYmax - m_bdata.m_obbYmin) * 0.5f;
+                z = (m_bdata.m_obbZmax - m_bdata.m_obbZmin) * 0.5f;
             }
             else // ??
             {
@@ -213,72 +268,10 @@ namespace OpenSim.Region.Physics.Meshing
             return new Vector3(x, y, z);
         }
 
-        public void CalcNormals()
-        {
-            int iTriangles = m_triangles.Count;
-
-            this.m_normals = new float[iTriangles * 3];
-
-            int i = 0;
-            foreach (Triangle t in m_triangles)
-            {
-                float ux, uy, uz;
-                float vx, vy, vz;
-                float wx, wy, wz;
-
-                ux = t.v1.X;
-                uy = t.v1.Y;
-                uz = t.v1.Z;
-
-                vx = t.v2.X;
-                vy = t.v2.Y;
-                vz = t.v2.Z;
-
-                wx = t.v3.X;
-                wy = t.v3.Y;
-                wz = t.v3.Z;
-
-
-                // Vectors for edges
-                float e1x, e1y, e1z;
-                float e2x, e2y, e2z;
-
-                e1x = ux - vx;
-                e1y = uy - vy;
-                e1z = uz - vz;
-
-                e2x = ux - wx;
-                e2y = uy - wy;
-                e2z = uz - wz;
-
-
-                // Cross product for normal
-                float nx, ny, nz;
-                nx = e1y * e2z - e1z * e2y;
-                ny = e1z * e2x - e1x * e2z;
-                nz = e1x * e2y - e1y * e2x;
-
-                // Length
-                float l = (float)Math.Sqrt(nx * nx + ny * ny + nz * nz);
-                float lReciprocal = 1.0f / l;
-
-                // Normalized "normal"
-                //nx /= l;
-                //ny /= l;
-                //nz /= l;
-
-                m_normals[i] = nx * lReciprocal;
-                m_normals[i + 1] = ny * lReciprocal;
-                m_normals[i + 2] = nz * lReciprocal;
-
-                i += 3;
-            }
-        }
-
         public List<Vector3> getVertexList()
         {
             List<Vector3> result = new List<Vector3>();
-            foreach (Vertex v in m_vertices.Keys)
+            foreach (Vertex v in m_bdata.m_vertices.Keys)
             {
                 result.Add(new Vector3(v.X, v.Y, v.Z));
             }
@@ -287,10 +280,10 @@ namespace OpenSim.Region.Physics.Meshing
 
         private float[] getVertexListAsFloat()
         {
-            if (m_vertices == null)
+            if (m_bdata.m_vertices == null)
                 throw new NotSupportedException();
-            float[] result = new float[m_vertices.Count * 3];
-            foreach (KeyValuePair<Vertex, int> kvp in m_vertices)
+            float[] result = new float[m_bdata.m_vertices.Count * 3];
+            foreach (KeyValuePair<Vertex, int> kvp in m_bdata.m_vertices)
             {
                 Vertex v = kvp.Key;
                 int i = kvp.Value;
@@ -303,74 +296,39 @@ namespace OpenSim.Region.Physics.Meshing
 
         public float[] getVertexListAsFloatLocked()
         {
-            if (m_pinnedVertexes.IsAllocated)
-                return (float[])(m_pinnedVertexes.Target);
-
-            float[] result = getVertexListAsFloat();
-            m_pinnedVertexes = GCHandle.Alloc(result, GCHandleType.Pinned);
-            // Inform the garbage collector of this unmanaged allocation so it can schedule
-            // the next GC round more intelligently
-            GC.AddMemoryPressure(Buffer.ByteLength(result));
-
-            return result;
+            return null;
         }
 
-        public void PrepForOde()
-        {
-            // If there isn't an unmanaged array allocated yet, do it now
-            if (m_verticesPtr == IntPtr.Zero)
-            {
-                float[] vertexList = getVertexListAsFloat();
-                // Each vertex is 3 elements (floats)
-                m_vertexCount = vertexList.Length / 3;
-                int byteCount = m_vertexCount * 3 * sizeof(float);
-                m_verticesPtr = System.Runtime.InteropServices.Marshal.AllocHGlobal(byteCount);
-                System.Runtime.InteropServices.Marshal.Copy(vertexList, 0, m_verticesPtr, m_vertexCount * 3);
-            }
-
-            // If there isn't an unmanaged array allocated yet, do it now
-            if (m_indicesPtr == IntPtr.Zero)
-            {
-                int[] indexList = getIndexListAsInt();
-                m_indexCount = indexList.Length;
-                int byteCount = m_indexCount * sizeof(int);
-                m_indicesPtr = System.Runtime.InteropServices.Marshal.AllocHGlobal(byteCount);
-                System.Runtime.InteropServices.Marshal.Copy(indexList, 0, m_indicesPtr, m_indexCount);
-            }
-
-            releaseSourceMeshData();
-        }
-
-        public void getVertexListAsPtrToFloatArray(out IntPtr vertices, out int vertexStride, out int vertexCount)
+        public void getVertexListAsPtrToFloatArray(out IntPtr _vertices, out int vertexStride, out int vertexCount)
         {
             // A vertex is 3 floats
             vertexStride = 3 * sizeof(float);
 
             // If there isn't an unmanaged array allocated yet, do it now
-            if (m_verticesPtr == IntPtr.Zero)
+            if (m_verticesPtr == IntPtr.Zero && m_bdata != null)
             {
-                float[] vertexList = getVertexListAsFloat();
+                vertices = getVertexListAsFloat();
                 // Each vertex is 3 elements (floats)
-                m_vertexCount = vertexList.Length / 3;
-                int byteCount = m_vertexCount * vertexStride;
-                m_verticesPtr = System.Runtime.InteropServices.Marshal.AllocHGlobal(byteCount);
-                System.Runtime.InteropServices.Marshal.Copy(vertexList, 0, m_verticesPtr, m_vertexCount * 3);
+                m_vertexCount = vertices.Length / 3;
+                vhandler = GCHandle.Alloc(vertices, GCHandleType.Pinned);
+                m_verticesPtr = vhandler.AddrOfPinnedObject();
+                GC.AddMemoryPressure(Buffer.ByteLength(vertices));
             }
-            vertices = m_verticesPtr;
+            _vertices = m_verticesPtr;
             vertexCount = m_vertexCount;
         }
 
         public int[] getIndexListAsInt()
         {
-            if (m_triangles == null)
+            if (m_bdata.m_triangles == null)
                 throw new NotSupportedException();
-            int[] result = new int[m_triangles.Count * 3];
-            for (int i = 0; i < m_triangles.Count; i++)
+            int[] result = new int[m_bdata.m_triangles.Count * 3];
+            for (int i = 0; i < m_bdata.m_triangles.Count; i++)
             {
-                Triangle t = m_triangles[i];
-                result[3 * i + 0] = m_vertices[t.v1];
-                result[3 * i + 1] = m_vertices[t.v2];
-                result[3 * i + 2] = m_vertices[t.v3];
+                Triangle t = m_bdata.m_triangles[i];
+                result[3 * i + 0] = m_bdata.m_vertices[t.v1];
+                result[3 * i + 1] = m_bdata.m_vertices[t.v2];
+                result[3 * i + 2] = m_bdata.m_vertices[t.v3];
             }
             return result;
         }
@@ -381,28 +339,19 @@ namespace OpenSim.Region.Physics.Meshing
         /// <returns></returns>
         public int[] getIndexListAsIntLocked()
         {
-            if (m_pinnedIndex.IsAllocated)
-                return (int[])(m_pinnedIndex.Target);
-        
-            int[] result = getIndexListAsInt();
-            m_pinnedIndex = GCHandle.Alloc(result, GCHandleType.Pinned);
-            // Inform the garbage collector of this unmanaged allocation so it can schedule
-            // the next GC round more intelligently
-            GC.AddMemoryPressure(Buffer.ByteLength(result));
-
-            return result;
+            return null;
         }
 
         public void getIndexListAsPtrToIntArray(out IntPtr indices, out int triStride, out int indexCount)
         {
             // If there isn't an unmanaged array allocated yet, do it now
-            if (m_indicesPtr == IntPtr.Zero)
+            if (m_indicesPtr == IntPtr.Zero && m_bdata != null)
             {
-                int[] indexList = getIndexListAsInt();
-                m_indexCount = indexList.Length;
-                int byteCount = m_indexCount * sizeof(int);
-                m_indicesPtr = System.Runtime.InteropServices.Marshal.AllocHGlobal(byteCount);
-                System.Runtime.InteropServices.Marshal.Copy(indexList, 0, m_indicesPtr, m_indexCount);
+                indexes = getIndexListAsInt();
+                m_indexCount = indexes.Length;
+                ihandler = GCHandle.Alloc(indexes, GCHandleType.Pinned);
+                m_indicesPtr = ihandler.AddrOfPinnedObject();
+                GC.AddMemoryPressure(Buffer.ByteLength(indexes));
             }
             // A triangle is 3 ints (indices)
             triStride = 3 * sizeof(int);
@@ -412,18 +361,16 @@ namespace OpenSim.Region.Physics.Meshing
 
         public void releasePinned()
         {
-            if (m_pinnedVertexes.IsAllocated)
-                m_pinnedVertexes.Free();
-            if (m_pinnedIndex.IsAllocated)
-                m_pinnedIndex.Free();
             if (m_verticesPtr != IntPtr.Zero)
             {
-                System.Runtime.InteropServices.Marshal.FreeHGlobal(m_verticesPtr);
+                vhandler.Free();
+                vertices = null;
                 m_verticesPtr = IntPtr.Zero;
             }
             if (m_indicesPtr != IntPtr.Zero)
             {
-                System.Runtime.InteropServices.Marshal.FreeHGlobal(m_indicesPtr);
+                ihandler.Free();
+                indexes = null;
                 m_indicesPtr = IntPtr.Zero;
             }
         }
@@ -433,29 +380,42 @@ namespace OpenSim.Region.Physics.Meshing
         /// </summary>
         public void releaseSourceMeshData()
         {
-            m_triangles = null;
-            m_vertices = null;
+            if (m_bdata != null)
+            {
+                m_bdata.m_triangles = null;
+                m_bdata.m_vertices = null;
+            }
+        }
+
+        public void releaseBuildingMeshData()
+        {
+            if (m_bdata != null)
+            {
+                m_bdata.m_triangles = null;
+                m_bdata.m_vertices = null;
+                m_bdata = null;
+            }
         }
 
         public void Append(IMesh newMesh)
         {
-            if (m_pinnedIndex.IsAllocated || m_pinnedVertexes.IsAllocated || m_indicesPtr != IntPtr.Zero || m_verticesPtr != IntPtr.Zero)
+            if (m_indicesPtr != IntPtr.Zero || m_verticesPtr != IntPtr.Zero)
                 throw new NotSupportedException("Attempt to Append to a pinned Mesh");
         
             if (!(newMesh is Mesh))
                 return;
 
-            foreach (Triangle t in ((Mesh)newMesh).m_triangles)
+            foreach (Triangle t in ((Mesh)newMesh).m_bdata.m_triangles)
                 Add(t);
         }
 
         // Do a linear transformation of  mesh.
         public void TransformLinear(float[,] matrix, float[] offset)
         {
-            if (m_pinnedIndex.IsAllocated || m_pinnedVertexes.IsAllocated || m_indicesPtr != IntPtr.Zero || m_verticesPtr != IntPtr.Zero)
+            if (m_indicesPtr != IntPtr.Zero || m_verticesPtr != IntPtr.Zero)
                 throw new NotSupportedException("Attempt to TransformLinear a pinned Mesh");
-        
-            foreach (Vertex v in m_vertices.Keys)
+
+            foreach (Vertex v in m_bdata.m_vertices.Keys)
             {
                 if (v == null)
                     continue;
@@ -473,10 +433,12 @@ namespace OpenSim.Region.Physics.Meshing
         {
             if (path == null)
                 return;
+            if (m_bdata == null)
+                return;
             String fileName = name + "_" + title + ".raw";
             String completePath = System.IO.Path.Combine(path, fileName);
             StreamWriter sw = new StreamWriter(completePath);
-            foreach (Triangle t in m_triangles)
+            foreach (Triangle t in m_bdata.m_triangles)
             {
                 String s = t.ToStringRaw();
                 sw.WriteLine(s);
@@ -486,7 +448,144 @@ namespace OpenSim.Region.Physics.Meshing
 
         public void TrimExcess()
         {
-            m_triangles.TrimExcess();
+            m_bdata.m_triangles.TrimExcess();
+        }
+
+        public void pinMemory()
+        {
+            m_vertexCount = vertices.Length / 3;
+            vhandler = GCHandle.Alloc(vertices, GCHandleType.Pinned);
+            m_verticesPtr = vhandler.AddrOfPinnedObject();
+            GC.AddMemoryPressure(Buffer.ByteLength(vertices));
+
+            m_indexCount = indexes.Length;
+            ihandler = GCHandle.Alloc(indexes, GCHandleType.Pinned);
+            m_indicesPtr = ihandler.AddrOfPinnedObject();
+            GC.AddMemoryPressure(Buffer.ByteLength(indexes));
+        }
+
+        public void PrepForOde()
+        {
+            // If there isn't an unmanaged array allocated yet, do it now
+            if (m_verticesPtr == IntPtr.Zero)
+                vertices = getVertexListAsFloat();
+
+            // If there isn't an unmanaged array allocated yet, do it now
+            if (m_indicesPtr == IntPtr.Zero)
+                indexes = getIndexListAsInt();
+
+            pinMemory();
+
+            float x, y, z;
+
+            if (m_bdata.m_centroidDiv > 0)
+            {
+                m_obboffset = new Vector3(m_bdata.m_centroid.X / m_bdata.m_centroidDiv, m_bdata.m_centroid.Y / m_bdata.m_centroidDiv, m_bdata.m_centroid.Z / m_bdata.m_centroidDiv);
+                x = (m_bdata.m_obbXmax - m_bdata.m_obbXmin) * 0.5f;
+                y = (m_bdata.m_obbYmax - m_bdata.m_obbYmin) * 0.5f;
+                z = (m_bdata.m_obbZmax - m_bdata.m_obbZmin) * 0.5f;
+            }
+
+            else
+            {
+                m_obboffset = Vector3.Zero;
+                x = 0.5f;
+                y = 0.5f;
+                z = 0.5f;
+            }
+            m_obb = new Vector3(x, y, z);
+
+            releaseBuildingMeshData();
+        }
+        public bool ToStream(Stream st)
+        {
+            if (m_indicesPtr == IntPtr.Zero || m_verticesPtr == IntPtr.Zero)
+                return false;
+
+            BinaryWriter bw = new BinaryWriter(st);
+            bool ok = true;
+
+            try
+            {
+
+                bw.Write(m_vertexCount);
+                bw.Write(m_indexCount);
+
+                for (int i = 0; i < 3 * m_vertexCount; i++)
+                    bw.Write(vertices[i]);
+                for (int i = 0; i < m_indexCount; i++)
+                    bw.Write(indexes[i]);
+                bw.Write(m_obb.X);
+                bw.Write(m_obb.Y);
+                bw.Write(m_obb.Z);
+                bw.Write(m_obboffset.X);
+                bw.Write(m_obboffset.Y);
+                bw.Write(m_obboffset.Z);
+            }
+            catch
+            {
+                ok = false;
+            }
+
+            if (bw != null)
+            {
+                bw.Flush();
+                bw.Close();
+            }
+
+            return ok;
+        }
+
+        public static Mesh FromStream(Stream st, AMeshKey key)
+        {
+            Mesh mesh = new Mesh();
+            mesh.releaseBuildingMeshData();
+
+            BinaryReader br = new BinaryReader(st);
+
+            bool ok = true;
+            try
+            {
+                mesh.m_vertexCount = br.ReadInt32();
+                mesh.m_indexCount = br.ReadInt32();
+
+                int n = 3 * mesh.m_vertexCount;
+                mesh.vertices = new float[n];
+                for (int i = 0; i < n; i++)
+                    mesh.vertices[i] = br.ReadSingle();
+
+                mesh.indexes = new int[mesh.m_indexCount];
+                for (int i = 0; i < mesh.m_indexCount; i++)
+                    mesh.indexes[i] = br.ReadInt32();
+
+                mesh.m_obb.X = br.ReadSingle();
+                mesh.m_obb.Y = br.ReadSingle();
+                mesh.m_obb.Z = br.ReadSingle();
+
+                mesh.m_obboffset.X = br.ReadSingle();
+                mesh.m_obboffset.Y = br.ReadSingle();
+                mesh.m_obboffset.Z = br.ReadSingle();
+            }
+            catch
+            {
+                ok = false;
+            }
+
+            br.Close();
+
+            if (ok)
+            {
+                mesh.pinMemory();
+
+                mesh.Key = key;
+                mesh.RefCount = 1;
+
+                return mesh;
+            }
+
+            mesh.vertices = null;
+            mesh.indexes = null;
+            return null;
         }
     }
 }
