@@ -100,9 +100,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         /// <summary>The measured resolution of Environment.TickCount</summary>
         public readonly float TickCountResolution;
+
         /// <summary>Number of prim updates to put on the queue each time the 
         /// OnQueueEmpty event is triggered for updates</summary>
         public readonly int PrimUpdatesPerCallback;
+
         /// <summary>Number of texture packets to put on the queue each time the
         /// OnQueueEmpty event is triggered for textures</summary>
         public readonly int TextureSendLimit;
@@ -111,6 +113,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         //PacketEventDictionary packetEvents = new PacketEventDictionary();
         /// <summary>Incoming packets that are awaiting handling</summary>
         private OpenMetaverse.BlockingQueue<IncomingPacket> packetInbox = new OpenMetaverse.BlockingQueue<IncomingPacket>();
+
         /// <summary></summary>
         //private UDPClientCollection m_clients = new UDPClientCollection();
         /// <summary>Bandwidth throttle for this UDP server</summary>
@@ -121,28 +124,37 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         
         /// <summary>Manages authentication for agent circuits</summary>
         private AgentCircuitManager m_circuitManager;
+
         /// <summary>Reference to the scene this UDP server is attached to</summary>
         protected Scene m_scene;
+
         /// <summary>The X/Y coordinates of the scene this UDP server is attached to</summary>
         private Location m_location;
+
         /// <summary>The size of the receive buffer for the UDP socket. This value
         /// is passed up to the operating system and used in the system networking
         /// stack. Use zero to leave this value as the default</summary>
         private int m_recvBufferSize;
+
         /// <summary>Flag to process packets asynchronously or synchronously</summary>
         private bool m_asyncPacketHandling;
+
         /// <summary>Tracks whether or not a packet was sent each round so we know
         /// whether or not to sleep</summary>
         private bool m_packetSent;
 
         /// <summary>Environment.TickCount of the last time that packet stats were reported to the scene</summary>
         private int m_elapsedMSSinceLastStatReport = 0;
+
         /// <summary>Environment.TickCount of the last time the outgoing packet handler executed</summary>
         private int m_tickLastOutgoingPacketHandler;
+
         /// <summary>Keeps track of the number of elapsed milliseconds since the last time the outgoing packet handler looped</summary>
         private int m_elapsedMSOutgoingPacketHandler;
+
         /// <summary>Keeps track of the number of 100 millisecond periods elapsed in the outgoing packet handler executed</summary>
         private int m_elapsed100MSOutgoingPacketHandler;
+
         /// <summary>Keeps track of the number of 500 millisecond periods elapsed in the outgoing packet handler executed</summary>
         private int m_elapsed500MSOutgoingPacketHandler;
 
@@ -739,7 +751,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             try
             {
-                packet = Packet.BuildPacket(buffer.Data, ref packetEnd,
+//                packet = Packet.BuildPacket(buffer.Data, ref packetEnd,
+//                    // Only allocate a buffer for zerodecoding if the packet is zerocoded
+//                    ((buffer.Data[0] & Helpers.MSG_ZEROCODED) != 0) ? new byte[4096] : null);
+                packet = PacketPool.Instance.GetPacket(buffer.Data, ref packetEnd,
                     // Only allocate a buffer for zerodecoding if the packet is zerocoded
                     ((buffer.Data[0] & Helpers.MSG_ZEROCODED) != 0) ? new byte[4096] : null);
             }
@@ -754,11 +769,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 return; // Drop short packet
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 if (m_malformedCount < 100)
                     m_log.DebugFormat("[LLUDPSERVER]: Dropped malformed packet: " + e.ToString());
+
                 m_malformedCount++;
+
                 if ((m_malformedCount % 100000) == 0)
                     m_log.DebugFormat("[LLUDPSERVER]: Received {0} malformed packets so far, probable network attack.", m_malformedCount);
             }

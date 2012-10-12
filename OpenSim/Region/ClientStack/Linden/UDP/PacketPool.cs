@@ -90,6 +90,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             StatsManager.RegisterStat(m_blocksReusedStat);
         }
 
+        /// <summary>
+        /// Gets a packet of the given type.
+        /// </summary>
+        /// <param name='type'></param>
+        /// <returns>Guaranteed to always return a packet, whether from the pool or newly constructed.</returns>
         public Packet GetPacket(PacketType type)
         {
             m_packetsReusedStat.Consequent++;
@@ -160,7 +165,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             PacketType type = GetType(bytes);
 
-            Array.Clear(zeroBuffer, 0, zeroBuffer.Length);
+//            Array.Clear(zeroBuffer, 0, zeroBuffer.Length);
 
             int i = 0;
             Packet packet = GetPacket(type);
@@ -207,6 +212,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 switch (packet.Type)
                 {
                     // List pooling packets here
+                    case PacketType.AgentUpdate:
                     case PacketType.PacketAck:
                     case PacketType.ObjectUpdate:
                     case PacketType.ImprovedTerseObjectUpdate:
