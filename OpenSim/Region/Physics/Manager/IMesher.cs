@@ -58,6 +58,7 @@ namespace OpenSim.Region.Physics.Manager
     {
     }
 
+    [Serializable()]
     [StructLayout(LayoutKind.Explicit)]
     public struct AMeshKey
     {
@@ -67,6 +68,11 @@ namespace OpenSim.Region.Physics.Manager
         public ulong hashA;
         [FieldOffset(8)]
         public ulong hashB;
+
+        public override string ToString()
+        {
+            return uuid.ToString();
+        }
     }
 
     public interface IMesh
