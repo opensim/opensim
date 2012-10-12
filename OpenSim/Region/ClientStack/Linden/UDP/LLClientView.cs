@@ -11765,7 +11765,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     logPacket = false;
                 
                 if (DebugPacketLevel <= 50
-                    & (packet.Type == PacketType.ImprovedTerseObjectUpdate || packet.Type == PacketType.ObjectUpdate))
+                    && (packet.Type == PacketType.ImprovedTerseObjectUpdate || packet.Type == PacketType.ObjectUpdate))
                     logPacket = false;
 
                 if (DebugPacketLevel <= 25 && packet.Type == PacketType.ObjectPropertiesFamily)
