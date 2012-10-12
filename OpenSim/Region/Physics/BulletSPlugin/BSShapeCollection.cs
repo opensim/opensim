@@ -387,7 +387,7 @@ public class BSShapeCollection : IDisposable
                                         prim.LocalID, forceRebuild, prim.BSShape);
                 }
             }
-            else
+            if (pbs.ProfileShape == ProfileShape.Square && pbs.PathCurve == (byte)Extrusion.Straight)
             {
                 haveShape = true;
                 if (forceRebuild
