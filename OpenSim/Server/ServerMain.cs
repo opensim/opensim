@@ -60,7 +60,25 @@ namespace OpenSim.Server
             }
 
             string connList = serverConfig.GetString("ServiceConnectors", String.Empty);
-            string[] conns = connList.Split(new char[] {',', ' '});
+
+            IConfig servicesConfig = m_Server.Config.Configs["ServiceList"];
+            if (servicesConfig != null)
+            {
+                List<string> servicesList = new List<string>();
+                if (connList != String.Empty)
+                    servicesList.Add(connList);
+
+                foreach (string k in servicesConfig.GetKeys())
+                {
+                    string v = servicesConfig.GetString(k);
+                    if (v != String.Empty)
+                        servicesList.Add(v);
+                }
+
+                connList = String.Join(",", servicesList.ToArray());
+            }
+
+            string[] conns = connList.Split(new char[] {',', ' ', '\n', '\r', '\t'});
 
 //            int i = 0;
             foreach (string c in conns)

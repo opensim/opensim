@@ -390,8 +390,8 @@ namespace OpenSim.Services.GridService
             List<RegionData> regions = m_Database.Get(mapName, m_ScopeID);
             if (regions != null && regions.Count > 0)
             {
-                OpenSim.Data.RegionFlags rflags = (OpenSim.Data.RegionFlags)Convert.ToInt32(regions[0].Data["flags"]);
-                if ((rflags & OpenSim.Data.RegionFlags.Hyperlink) != 0)
+                OpenSim.Framework.RegionFlags rflags = (OpenSim.Framework.RegionFlags)Convert.ToInt32(regions[0].Data["flags"]);
+                if ((rflags & OpenSim.Framework.RegionFlags.Hyperlink) != 0)
                 {
                     regInfo = new GridRegion(); 
                     regInfo.RegionID = regions[0].RegionID;
@@ -460,7 +460,7 @@ namespace OpenSim.Services.GridService
         private void AddHyperlinkRegion(GridRegion regionInfo, ulong regionHandle)
         {
             RegionData rdata = m_GridService.RegionInfo2RegionData(regionInfo);
-            int flags = (int)OpenSim.Data.RegionFlags.Hyperlink + (int)OpenSim.Data.RegionFlags.NoDirectLogin + (int)OpenSim.Data.RegionFlags.RegionOnline;
+            int flags = (int)OpenSim.Framework.RegionFlags.Hyperlink + (int)OpenSim.Framework.RegionFlags.NoDirectLogin + (int)OpenSim.Framework.RegionFlags.RegionOnline;
             rdata.Data["flags"] = flags.ToString();
 
             m_Database.Store(rdata);

@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -83,29 +84,56 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             m_console.Commands.AddCommand(
                 "Objects", false, "delete object owner",
                 "delete object owner <UUID>",
-                "Delete a scene object by owner", HandleDeleteObject);
+                "Delete scene objects by owner",
+                "Command will ask for confirmation before proceeding.",
+                HandleDeleteObject);
 
             m_console.Commands.AddCommand(
                 "Objects", false, "delete object creator",
                 "delete object creator <UUID>",
-                "Delete a scene object by creator", HandleDeleteObject);
+                "Delete scene objects by creator",
+                "Command will ask for confirmation before proceeding.",
+                HandleDeleteObject);
 
             m_console.Commands.AddCommand(
                 "Objects", false, "delete object uuid",
                 "delete object uuid <UUID>",
-                "Delete a scene object by uuid", HandleDeleteObject);
+                "Delete a scene object by uuid",
+                HandleDeleteObject);
 
             m_console.Commands.AddCommand(
                 "Objects", false, "delete object name",
                 "delete object name [--regex] <name>",
                 "Delete a scene object by name.",
-                "If --regex is specified then the name is treatead as a regular expression",
+                "Command will ask for confirmation before proceeding.\n"
+                  + "If --regex is specified then the name is treatead as a regular expression",
                 HandleDeleteObject);
 
             m_console.Commands.AddCommand(
                 "Objects", false, "delete object outside",
                 "delete object outside",
-                "Delete all scene objects outside region boundaries", HandleDeleteObject);
+                "Delete all scene objects outside region boundaries",
+                "Command will ask for confirmation before proceeding.",
+                HandleDeleteObject);
+
+            m_console.Commands.AddCommand(
+                "Objects",
+                false,
+                "delete object pos",
+                "delete object pos <start-coord> to <end-coord>",
+                "Delete scene objects within the given area.",
+                "Each component of the coord is comma separated.  There must be no spaces between the commas.\n"
+                    + "If you don't care about the z component you can simply omit it.\n"
+                    + "If you don't care about the x or y components then you can leave them blank (though a comma is still required)\n"
+                    + "If you want to specify the maxmimum value of a component then you can use ~ instead of a number\n"
+                    + "If you want to specify the minimum value of a component then you can use -~ instead of a number\n"
+                    + "e.g.\n"
+                    + "delete object pos 20,20,20 to 40,40,40\n"
+                    + "delete object pos 20,20 to 40,40\n"
+                    + "delete object pos ,20,20 to ,40,40\n"
+                    + "delete object pos ,,30 to ,,~\n"
+                    + "delete object pos ,,-~ to ,,30",
+                HandleDeleteObject);
 
             m_console.Commands.AddCommand(
                 "Objects",
@@ -301,23 +329,10 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                 return;
             }
 
-            string rawConsoleStartVector = cmdparams[3];
-            Vector3 startVector;
+            Vector3 startVector, endVector;
 
-            if (!ConsoleUtil.TryParseConsoleMinVector(rawConsoleStartVector, out startVector))
-            {
-                m_console.OutputFormat("Error: Start vector {0} does not have a valid format", rawConsoleStartVector);
+            if (!TryParseVectorRange(cmdparams.Skip(3).Take(3), out startVector, out endVector))
                 return;
-            }
-
-            string rawConsoleEndVector = cmdparams[5];
-            Vector3 endVector;
-
-            if (!ConsoleUtil.TryParseConsoleMaxVector(rawConsoleEndVector, out endVector))
-            {
-                m_console.OutputFormat("Error: End vector {0} does not have a valid format", rawConsoleEndVector);
-                return;
-            }
 
             Predicate<SceneObjectGroup> searchPredicate
                 = so => Util.IsInsideBox(so.AbsolutePosition, startVector, endVector);
@@ -557,6 +572,10 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
         
                     break;
 
+                case "pos":
+                    deletes = GetDeleteCandidatesByPos(module, cmd);
+                    break;
+
                 default:
                     m_console.OutputFormat("Unrecognized mode {0}", mode);
                     return;
@@ -571,7 +590,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                     string.Format(
                         "Are you sure that you want to delete {0} objects from {1}",
                         deletes.Count, m_scene.RegionInfo.RegionName),
-                    "n");
+                    "y/N");
     
                 if (response.ToLower() != "y")
                 {
@@ -593,9 +612,6 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
         private List<SceneObjectGroup> GetDeleteCandidatesByName(string module, string[] cmdparams)
         {
-            if (!(m_console.ConsoleScene == null || m_console.ConsoleScene == m_scene))
-                return null;
-
             bool useRegex = false;
             OptionSet options = new OptionSet().Add("regex", v=> useRegex = v != null );
 
@@ -628,6 +644,53 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                 m_console.OutputFormat("No objects with name {0} found in {1}", name, m_scene.RegionInfo.RegionName);
 
             return sceneObjects;
+        }
+
+        /// <summary>
+        /// Get scene object delete candidates by position
+        /// </summary>
+        /// <param name='module'></param>
+        /// <param name='cmdparams'></param>
+        /// <returns>null if parsing failed on one of the arguments, otherwise a list of objects to delete.  If there
+        /// are no objects to delete then the list will be empty./returns>
+        private List<SceneObjectGroup> GetDeleteCandidatesByPos(string module, string[] cmdparams)
+        {
+            if (cmdparams.Length < 5)
+            {
+                m_console.OutputFormat("Usage: delete object pos <start-coord> to <end-coord>");
+                return null;
+            }
+
+            Vector3 startVector, endVector;
+
+            if (!TryParseVectorRange(cmdparams.Skip(3).Take(3), out startVector, out endVector))
+                return null;
+
+            return m_scene.GetSceneObjectGroups().FindAll(
+                so => !so.IsAttachment && Util.IsInsideBox(so.AbsolutePosition, startVector, endVector));
+        }
+
+        private bool TryParseVectorRange(IEnumerable<string> rawComponents, out Vector3 startVector, out Vector3 endVector)
+        {
+            string rawConsoleStartVector = rawComponents.Take(1).Single();
+
+            if (!ConsoleUtil.TryParseConsoleMinVector(rawConsoleStartVector, out startVector))
+            {
+                m_console.OutputFormat("Error: Start vector {0} does not have a valid format", rawConsoleStartVector);
+                endVector = Vector3.Zero;
+                
+                return false;
+            }
+
+            string rawConsoleEndVector = rawComponents.Skip(1).Take(1).Single();
+
+            if (!ConsoleUtil.TryParseConsoleMaxVector(rawConsoleEndVector, out endVector))
+            {
+                m_console.OutputFormat("Error: End vector {0} does not have a valid format", rawConsoleEndVector);
+                return false;
+            }
+
+            return true;
         }
     }
 }

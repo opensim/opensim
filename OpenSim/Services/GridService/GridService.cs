@@ -151,11 +151,11 @@ namespace OpenSim.Services.GridService
                 //
                 // Get it's flags
                 //
-                OpenSim.Data.RegionFlags rflags = (OpenSim.Data.RegionFlags)Convert.ToInt32(region.Data["flags"]);
+                OpenSim.Framework.RegionFlags rflags = (OpenSim.Framework.RegionFlags)Convert.ToInt32(region.Data["flags"]);
 
                 // Is this a reservation?
                 //
-                if ((rflags & OpenSim.Data.RegionFlags.Reservation) != 0)
+                if ((rflags & OpenSim.Framework.RegionFlags.Reservation) != 0)
                 {
                     // Regions reserved for the null key cannot be taken.
                     if ((string)region.Data["PrincipalID"] == UUID.Zero.ToString())
@@ -166,10 +166,10 @@ namespace OpenSim.Services.GridService
                     // NOTE: Fudging the flags value here, so these flags
                     //       should not be used elsewhere. Don't optimize
                     //       this with the later retrieval of the same flags!
-                    rflags |= OpenSim.Data.RegionFlags.Authenticate;
+                    rflags |= OpenSim.Framework.RegionFlags.Authenticate;
                 }
 
-                if ((rflags & OpenSim.Data.RegionFlags.Authenticate) != 0)
+                if ((rflags & OpenSim.Framework.RegionFlags.Authenticate) != 0)
                 {
                     // Can we authenticate at all?
                     //
@@ -205,10 +205,10 @@ namespace OpenSim.Services.GridService
             if ((region != null) && (region.RegionID == regionInfos.RegionID) && 
                 ((region.posX != regionInfos.RegionLocX) || (region.posY != regionInfos.RegionLocY)))
             {
-                if ((Convert.ToInt32(region.Data["flags"]) & (int)OpenSim.Data.RegionFlags.NoMove) != 0)
+                if ((Convert.ToInt32(region.Data["flags"]) & (int)OpenSim.Framework.RegionFlags.NoMove) != 0)
                     return "Can't move this region";
 
-                if ((Convert.ToInt32(region.Data["flags"]) & (int)OpenSim.Data.RegionFlags.LockedOut) != 0)
+                if ((Convert.ToInt32(region.Data["flags"]) & (int)OpenSim.Framework.RegionFlags.LockedOut) != 0)
                     return "Region locked out";
 
                 // Region reregistering in other coordinates. Delete the old entry
@@ -233,7 +233,7 @@ namespace OpenSim.Services.GridService
             {
                 int oldFlags = Convert.ToInt32(region.Data["flags"]);
 
-                oldFlags &= ~(int)OpenSim.Data.RegionFlags.Reservation;
+                oldFlags &= ~(int)OpenSim.Framework.RegionFlags.Reservation;
 
                 rdata.Data["flags"] = oldFlags.ToString(); // Preserve flags
             }
@@ -252,7 +252,7 @@ namespace OpenSim.Services.GridService
             }
 
             int flags = Convert.ToInt32(rdata.Data["flags"]);
-            flags |= (int)OpenSim.Data.RegionFlags.RegionOnline;
+            flags |= (int)OpenSim.Framework.RegionFlags.RegionOnline;
             rdata.Data["flags"] = flags.ToString();
 
             try
@@ -283,9 +283,9 @@ namespace OpenSim.Services.GridService
 
             int flags = Convert.ToInt32(region.Data["flags"]);
 
-            if (!m_DeleteOnUnregister || (flags & (int)OpenSim.Data.RegionFlags.Persistent) != 0)
+            if (!m_DeleteOnUnregister || (flags & (int)OpenSim.Framework.RegionFlags.Persistent) != 0)
             {
-                flags &= ~(int)OpenSim.Data.RegionFlags.RegionOnline;
+                flags &= ~(int)OpenSim.Framework.RegionFlags.RegionOnline;
                 region.Data["flags"] = flags.ToString();
                 region.Data["last_seen"] = Util.UnixTimeSinceEpoch();
                 try
@@ -320,7 +320,7 @@ namespace OpenSim.Services.GridService
                     if (rdata.RegionID != regionID)
                     {
                         int flags = Convert.ToInt32(rdata.Data["flags"]);
-                        if ((flags & (int)Data.RegionFlags.Hyperlink) == 0) // no hyperlinks as neighbours
+                        if ((flags & (int)Framework.RegionFlags.Hyperlink) == 0) // no hyperlinks as neighbours
                             rinfos.Add(RegionData2RegionInfo(rdata));
                     }
                 }
@@ -470,7 +470,7 @@ namespace OpenSim.Services.GridService
 
             foreach (RegionData r in regions)
             {
-                if ((Convert.ToInt32(r.Data["flags"]) & (int)OpenSim.Data.RegionFlags.RegionOnline) != 0)
+                if ((Convert.ToInt32(r.Data["flags"]) & (int)OpenSim.Framework.RegionFlags.RegionOnline) != 0)
                     ret.Add(RegionData2RegionInfo(r));
             }
 
@@ -486,7 +486,7 @@ namespace OpenSim.Services.GridService
 
             foreach (RegionData r in regions)
             {
-                if ((Convert.ToInt32(r.Data["flags"]) & (int)OpenSim.Data.RegionFlags.RegionOnline) != 0)
+                if ((Convert.ToInt32(r.Data["flags"]) & (int)OpenSim.Framework.RegionFlags.RegionOnline) != 0)
                     ret.Add(RegionData2RegionInfo(r));
             }
 
@@ -502,7 +502,7 @@ namespace OpenSim.Services.GridService
 
             foreach (RegionData r in regions)
             {
-                if ((Convert.ToInt32(r.Data["flags"]) & (int)OpenSim.Data.RegionFlags.RegionOnline) != 0)
+                if ((Convert.ToInt32(r.Data["flags"]) & (int)OpenSim.Framework.RegionFlags.RegionOnline) != 0)
                     ret.Add(RegionData2RegionInfo(r));
             }
 
@@ -629,7 +629,7 @@ namespace OpenSim.Services.GridService
 
         private void OutputRegionToConsole(RegionData r)
         {
-            OpenSim.Data.RegionFlags flags = (OpenSim.Data.RegionFlags)Convert.ToInt32(r.Data["flags"]);
+            OpenSim.Framework.RegionFlags flags = (OpenSim.Framework.RegionFlags)Convert.ToInt32(r.Data["flags"]);
 
             ConsoleDisplayList dispList = new ConsoleDisplayList();
             dispList.AddRow("Region Name", r.RegionName);
@@ -659,7 +659,7 @@ namespace OpenSim.Services.GridService
 
             foreach (RegionData r in regions)
             {
-                OpenSim.Data.RegionFlags flags = (OpenSim.Data.RegionFlags)Convert.ToInt32(r.Data["flags"]);
+                OpenSim.Framework.RegionFlags flags = (OpenSim.Framework.RegionFlags)Convert.ToInt32(r.Data["flags"]);
                 dispTable.AddRow(
                     r.RegionName,
                     r.RegionID.ToString(),
@@ -673,7 +673,7 @@ namespace OpenSim.Services.GridService
 
         private int ParseFlags(int prev, string flags)
         {
-            OpenSim.Data.RegionFlags f = (OpenSim.Data.RegionFlags)prev;
+            OpenSim.Framework.RegionFlags f = (OpenSim.Framework.RegionFlags)prev;
 
             string[] parts = flags.Split(new char[] {',', ' '}, StringSplitOptions.RemoveEmptyEntries);
 
@@ -685,18 +685,18 @@ namespace OpenSim.Services.GridService
                 {
                     if (p.StartsWith("+"))
                     {
-                        val = (int)Enum.Parse(typeof(OpenSim.Data.RegionFlags), p.Substring(1));
-                        f |= (OpenSim.Data.RegionFlags)val;
+                        val = (int)Enum.Parse(typeof(OpenSim.Framework.RegionFlags), p.Substring(1));
+                        f |= (OpenSim.Framework.RegionFlags)val;
                     }
                     else if (p.StartsWith("-"))
                     {
-                        val = (int)Enum.Parse(typeof(OpenSim.Data.RegionFlags), p.Substring(1));
-                        f &= ~(OpenSim.Data.RegionFlags)val;
+                        val = (int)Enum.Parse(typeof(OpenSim.Framework.RegionFlags), p.Substring(1));
+                        f &= ~(OpenSim.Framework.RegionFlags)val;
                     }
                     else
                     {
-                        val = (int)Enum.Parse(typeof(OpenSim.Data.RegionFlags), p);
-                        f |= (OpenSim.Data.RegionFlags)val;
+                        val = (int)Enum.Parse(typeof(OpenSim.Framework.RegionFlags), p);
+                        f |= (OpenSim.Framework.RegionFlags)val;
                     }
                 }
                 catch (Exception)
@@ -728,7 +728,7 @@ namespace OpenSim.Services.GridService
                 int flags = Convert.ToInt32(r.Data["flags"]);
                 flags = ParseFlags(flags, cmd[4]);
                 r.Data["flags"] = flags.ToString();
-                OpenSim.Data.RegionFlags f = (OpenSim.Data.RegionFlags)flags;
+                OpenSim.Framework.RegionFlags f = (OpenSim.Framework.RegionFlags)flags;
 
                 MainConsole.Instance.Output(String.Format("Set region {0} to {1}", r.RegionName, f));
                 m_Database.Store(r);

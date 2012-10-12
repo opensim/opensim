@@ -359,13 +359,19 @@ Asset service request failures: {3}" + Environment.NewLine,
                     inPacketsPerSecond, outPacketsPerSecond, pendingDownloads, pendingUploads, unackedBytes, totalFrameTime,
                     netFrameTime, physicsFrameTime, otherFrameTime, agentFrameTime, imageFrameTime));
 
-            foreach (KeyValuePair<string, Stat> kvp in StatsManager.RegisteredStats)
-            {
-                Stat stat = kvp.Value;
+            Dictionary<string, Dictionary<string, Stat>> sceneStats;
 
-                if (stat.Category == "scene" && stat.Verbosity == StatVerbosity.Info)
+            if (StatsManager.TryGetStats("scene", out sceneStats))
+            {
+                foreach (KeyValuePair<string, Dictionary<string, Stat>> kvp in sceneStats)
                 {
-                    sb.AppendFormat("Slow frames ({0}): {1}\n", stat.Container, stat.Value);
+                    foreach (Stat stat in kvp.Value.Values)
+                    {
+                        if (stat.Verbosity == StatVerbosity.Info)
+                        {
+                            sb.AppendFormat("{0} ({1}): {2}{3}\n", stat.Name, stat.Container, stat.Value, stat.UnitName);
+                        }
+                    }
                 }
             }
 

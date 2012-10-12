@@ -462,7 +462,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 return;
 
             // Set the prim's inertia to zero. The vehicle code handles that and this
-            //    removes the torque action introduced by Bullet.
+            //    removes the motion and torque actions introduced by Bullet.
             Vector3 inertia = Vector3.Zero;
             BulletSimAPI.SetMassProps2(Prim.BSBody.ptr, Prim.MassRaw, inertia);
             BulletSimAPI.UpdateInertiaTensor2(Prim.BSBody.ptr);
@@ -481,7 +481,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             m_lastPositionVector = Prim.ForcePosition;
 
             VDetailLog("{0},BSDynamics.Step,done,pos={1},force={2},velocity={3},angvel={4}",
-                    Prim.LocalID, Prim.Position, Prim.Force, Prim.Velocity, Prim.RotationalVelocity);
+                    Prim.LocalID, Prim.ForcePosition, Prim.Force, Prim.ForceVelocity, Prim.RotationalVelocity);
         }// end Step
 
         // Apply the effect of the linear motor.
@@ -540,7 +540,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             // add Gravity and Buoyancy
             // There is some gravity, make a gravity force vector that is applied after object velocity.
             // m_VehicleBuoyancy: -1=2g; 0=1g; 1=0g;
-            Vector3 grav = Prim.PhysicsScene.DefaultGravity * (Prim.Mass * (1f - m_VehicleBuoyancy));
+            Vector3 grav = Prim.PhysicsScene.DefaultGravity * (Prim.Linkset.LinksetMass * (1f - m_VehicleBuoyancy));
 
             /*
              * RA: Not sure why one would do this
@@ -678,10 +678,10 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 m_newVelocity.Z = 0;
 
             // Apply velocity
-            Prim.Velocity = m_newVelocity;
+            Prim.ForceVelocity = m_newVelocity;
             // apply gravity force
             // Why is this set here? The physics engine already does gravity.
-            // m_prim.AddForce(grav, false);
+            Prim.AddForce(grav, false, true);
 
             // Apply friction
             Vector3 keepFraction = Vector3.One - (Vector3.One / (m_linearFrictionTimescale / pTimestep));
@@ -704,7 +704,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             // m_lastAngularVelocity           // what was last applied to body
 
             // Get what the body is doing, this includes 'external' influences
-            Vector3 angularVelocity = Prim.RotationalVelocity;
+            Vector3 angularVelocity = Prim.ForceRotationalVelocity;
 
             if (m_angularMotorApply > 0)
             {
@@ -810,7 +810,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             m_lastAngularVelocity -= m_lastAngularVelocity * decayamount;
 
             // Apply to the body
-            Prim.RotationalVelocity = m_lastAngularVelocity;
+            Prim.ForceRotationalVelocity = m_lastAngularVelocity;
 
             VDetailLog("{0},MoveAngular,done,decay={1},lastAngular={2}", Prim.LocalID, decayamount, m_lastAngularVelocity);
         } //end MoveAngular
@@ -862,7 +862,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         private void VDetailLog(string msg, params Object[] args)
         {
             if (Prim.PhysicsScene.VehicleLoggingEnabled)
-                Prim.PhysicsScene.PhysicsLogging.Write(msg, args);
+                Prim.PhysicsScene.DetailLog(msg, args);
         }
     }
 }

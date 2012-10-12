@@ -35,13 +35,23 @@ namespace OpenSim.Framework.Monitoring
     /// </summary>
     public class StatsManager
     {
+        // Subcommand used to list other stats.
+        public const string AllSubCommand = "all";
+
+        // Subcommand used to list other stats.
+        public const string ListSubCommand = "list";
+
+        // All subcommands
+        public static HashSet<string> SubCommands = new HashSet<string> { AllSubCommand, ListSubCommand };
+
         /// <summary>
-        /// Registered stats.
+        /// Registered stats categorized by category/container/shortname
         /// </summary>
         /// <remarks>
-        /// Do not add or remove from this dictionary.
+        /// Do not add or remove directly from this dictionary.
         /// </remarks>
-        public static Dictionary<string, Stat> RegisteredStats = new Dictionary<string, Stat>();
+        public static Dictionary<string, Dictionary<string, Dictionary<string, Stat>>> RegisteredStats
+            = new Dictionary<string, Dictionary<string, Dictionary<string, Stat>>>();
 
         private static AssetStatsCollector assetStats;
         private static UserStatsCollector userStats;
@@ -50,6 +60,75 @@ namespace OpenSim.Framework.Monitoring
         public static AssetStatsCollector AssetStats { get { return assetStats; } }
         public static UserStatsCollector UserStats { get { return userStats; } }
         public static SimExtraStatsCollector SimExtraStats { get { return simExtraStats; } }
+
+        public static void RegisterConsoleCommands(ICommandConsole console)
+        {
+            console.Commands.AddCommand(
+                "General",
+                false,
+                "show stats",
+                "show stats [list|all|<category>]",
+                "Show statistical information for this server",
+                "If no final argument is specified then legacy statistics information is currently shown.\n"
+                    + "If list is specified then statistic categories are shown.\n"
+                    + "If all is specified then all registered statistics are shown.\n"
+                    + "If a category name is specified then only statistics from that category are shown.\n"
+                    + "THIS STATS FACILITY IS EXPERIMENTAL AND DOES NOT YET CONTAIN ALL STATS",
+                HandleShowStatsCommand);
+        }
+
+        public static void HandleShowStatsCommand(string module, string[] cmd)
+        {
+            ICommandConsole con = MainConsole.Instance;
+
+            if (cmd.Length > 2)
+            {
+                var categoryName = cmd[2];
+
+                if (categoryName == AllSubCommand)
+                {
+                    foreach (var category in RegisteredStats.Values)
+                    {
+                        OutputCategoryStatsToConsole(con, category);
+                    }
+                }
+                else if (categoryName == ListSubCommand)
+                {
+                    con.Output("Statistic categories available are:");
+                    foreach (string category in RegisteredStats.Keys)
+                        con.OutputFormat("  {0}", category);
+                }
+                else
+                {
+                    Dictionary<string, Dictionary<string, Stat>> category;
+                    if (!RegisteredStats.TryGetValue(categoryName, out category))
+                    {
+                        con.OutputFormat("No such category as {0}", categoryName);
+                    }
+                    else
+                    {
+                        OutputCategoryStatsToConsole(con, category);
+                    }
+                }
+            }
+            else
+            {
+                // Legacy
+                con.Output(SimExtraStats.Report());
+            }
+        }
+
+        private static void OutputCategoryStatsToConsole(
+            ICommandConsole con, Dictionary<string, Dictionary<string, Stat>> category)
+        {
+            foreach (var container in category.Values)
+            {
+                foreach (Stat stat in container.Values)
+                {
+                    con.Output(stat.ToConsoleString());
+                }
+            }
+        }
 
         /// <summary>
         /// Start collecting statistics related to assets.
@@ -73,42 +152,99 @@ namespace OpenSim.Framework.Monitoring
             return userStats;
         }
 
+        /// <summary>
+        /// Registers a statistic.
+        /// </summary>
+        /// <param name='stat'></param>
+        /// <returns></returns>
         public static bool RegisterStat(Stat stat)
         {
+            Dictionary<string, Dictionary<string, Stat>> category = null, newCategory;
+            Dictionary<string, Stat> container = null, newContainer;
+
             lock (RegisteredStats)
             {
-                if (RegisteredStats.ContainsKey(stat.UniqueName))
-                {
-                    // XXX: For now just return false.  This is to avoid problems in regression tests where all tests
-                    // in a class are run in the same instance of the VM.
+                // Stat name is not unique across category/container/shortname key.
+                // XXX: For now just return false.  This is to avoid problems in regression tests where all tests
+                // in a class are run in the same instance of the VM.
+                if (TryGetStat(stat, out category, out container))
                     return false;
 
-//                    throw new Exception(
-//                        "StatsManager already contains stat with ShortName {0} in Category {1}", stat.ShortName, stat.Category);
-                }
+                // We take a copy-on-write approach here of replacing dictionaries when keys are added or removed.
+                // This means that we don't need to lock or copy them on iteration, which will be a much more
+                // common operation after startup.
+                if (container != null)
+                    newContainer = new Dictionary<string, Stat>(container);
+                else
+                    newContainer = new Dictionary<string, Stat>();
 
-                // We take a replace-on-write approach here so that we don't need to generate a new Dictionary
-                Dictionary<string, Stat> newRegisteredStats = new Dictionary<string, Stat>(RegisteredStats);
-                newRegisteredStats[stat.UniqueName] = stat;
-                RegisteredStats = newRegisteredStats;
+                if (category != null)
+                    newCategory = new Dictionary<string, Dictionary<string, Stat>>(category);
+                else
+                    newCategory = new Dictionary<string, Dictionary<string, Stat>>();
+
+                newContainer[stat.ShortName] = stat;
+                newCategory[stat.Container] = newContainer;
+                RegisteredStats[stat.Category] = newCategory;
             }
 
             return true;
         }
 
+        /// <summary>
+        /// Deregister a statistic
+        /// </summary>>
+        /// <param name='stat'></param>
+        /// <returns></returns
         public static bool DeregisterStat(Stat stat)
         {
+            Dictionary<string, Dictionary<string, Stat>> category = null, newCategory;
+            Dictionary<string, Stat> container = null, newContainer;
+
             lock (RegisteredStats)
             {
-                if (!RegisteredStats.ContainsKey(stat.UniqueName))
+                if (!TryGetStat(stat, out category, out container))
                     return false;
 
-                Dictionary<string, Stat> newRegisteredStats = new Dictionary<string, Stat>(RegisteredStats);
-                newRegisteredStats.Remove(stat.UniqueName);
-                RegisteredStats = newRegisteredStats;
+                newContainer = new Dictionary<string, Stat>(container);
+                newContainer.Remove(stat.UniqueName);
+
+                newCategory = new Dictionary<string, Dictionary<string, Stat>>(category);
+                newCategory.Remove(stat.Container);
+
+                newCategory[stat.Container] = newContainer;
+                RegisteredStats[stat.Category] = newCategory;
 
                 return true;
             }
+        }
+
+        public static bool TryGetStats(string category, out Dictionary<string, Dictionary<string, Stat>> stats)
+        {
+            return RegisteredStats.TryGetValue(category, out stats);
+        }
+
+        public static bool TryGetStat(
+            Stat stat,
+            out Dictionary<string, Dictionary<string, Stat>> category,
+            out Dictionary<string, Stat> container)
+        {
+            category = null;
+            container = null;
+
+            lock (RegisteredStats)
+            {
+                if (RegisteredStats.TryGetValue(stat.Category, out category))
+                {
+                    if (category.TryGetValue(stat.Container, out container))
+                    {
+                        if (container.ContainsKey(stat.ShortName))
+                            return true;
+                    }
+                }
+            }
+
+            return false;
         }
     }
 
@@ -157,9 +293,26 @@ namespace OpenSim.Framework.Monitoring
 
         public virtual double Value { get; set; }
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name='shortName'>Short name for the stat.  Must not contain spaces.  e.g. "LongFrames"</param>
+        /// <param name='name'>Human readable name for the stat.  e.g. "Long frames"</param>
+        /// <param name='unitName'>
+        /// Unit name for the stat.  Should be preceeded by a space if the unit name isn't normally appeneded immediately to the value.
+        /// e.g. " frames"
+        /// </param>
+        /// <param name='category'>Category under which this stat should appear, e.g. "scene".  Do not capitalize.</param>
+        /// <param name='container'>Entity to which this stat relates.  e.g. scene name if this is a per scene stat.</param>
+        /// <param name='verbosity'>Verbosity of stat.  Controls whether it will appear in short stat display or only full display.</param>
+        /// <param name='description'>Description of stat</param>
         public Stat(
             string shortName, string name, string unitName, string category, string container, StatVerbosity verbosity, string description)
         {
+            if (StatsManager.SubCommands.Contains(category))
+                throw new Exception(
+                    string.Format("Stat cannot be in category '{0}' since this is reserved for a subcommand", category));
+
             ShortName = shortName;
             Name = name;
             UnitName = unitName;
@@ -174,6 +327,12 @@ namespace OpenSim.Framework.Monitoring
         public static string GenUniqueName(string container, string category, string shortName)
         {
             return string.Format("{0}+{1}+{2}", container, category, shortName);
+        }
+
+        public virtual string ToConsoleString()
+        {
+            return string.Format(
+                "{0}.{1}.{2} : {3}{4}", Category, Container, ShortName, Value, UnitName);
         }
     }
 
@@ -192,7 +351,7 @@ namespace OpenSim.Framework.Monitoring
                 if (c == 0)
                     return 0;
 
-                return (double)Antecedent / c;
+                return (double)Antecedent / c * 100;
             }
 
             set
@@ -203,8 +362,13 @@ namespace OpenSim.Framework.Monitoring
 
         public PercentageStat(
             string shortName, string name, string category, string container, StatVerbosity verbosity, string description)
-            : base(shortName, name, " %", category, container, verbosity, description)
+            : base(shortName, name, "%", category, container, verbosity, description) {}
+
+        public override string ToConsoleString()
         {
+            return string.Format(
+                "{0}.{1}.{2} : {3:0.##}{4} ({5}/{6})",
+                Category, Container, ShortName, Value, UnitName, Antecedent, Consequent);
         }
     }
 }

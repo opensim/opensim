@@ -231,7 +231,25 @@ namespace OpenSim.Framework.Monitoring
         private static bool RemoveThread(int threadID)
         {
             lock (m_threads)
-                return m_threads.Remove(threadID);
+            {
+                ThreadWatchdogInfo twi;
+                if (m_threads.TryGetValue(threadID, out twi))
+                {
+                    m_log.DebugFormat(
+                        "[WATCHDOG]: Removing thread {0}, ID {1}", twi.Thread.Name, twi.Thread.ManagedThreadId);
+
+                    m_threads.Remove(threadID);
+
+                    return true;
+                }
+                else
+                {
+                    m_log.WarnFormat(
+                        "[WATCHDOG]: Requested to remove thread with ID {0} but this is not being monitored", threadID);
+
+                    return false;
+                }
+            }
         }
 
         public static bool AbortThread(int threadID)

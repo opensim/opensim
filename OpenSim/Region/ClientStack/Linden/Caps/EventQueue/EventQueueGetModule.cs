@@ -94,7 +94,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 
                 //scene.CommsManager.HttpServer.AddLLSDHandler("/CAPS/EQG/", EventQueueFallBack);
 
-                scene.EventManager.OnNewClient += OnNewClient;
+//                scene.EventManager.OnNewClient += OnNewClient;
 
                 // TODO: Leaving these open, or closing them when we
                 // become a child is incorrect. It messes up TP in a big
@@ -102,6 +102,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 // circuit is there.
 
                 scene.EventManager.OnClientClosed += ClientClosed;
+                
                 scene.EventManager.OnMakeChildAgent += MakeChildAgent;
                 scene.EventManager.OnRegisterCaps += OnRegisterCaps;
 
@@ -225,16 +226,6 @@ namespace OpenSim.Region.ClientStack.Linden
         }
 
         #endregion
-
-        private void OnNewClient(IClientAPI client)
-        {
-            //client.OnLogout += ClientClosed;
-        }
-
-//        private void ClientClosed(IClientAPI client)
-//        {
-//            ClientClosed(client.AgentId);
-//        }
 
         private void ClientClosed(UUID agentID, Scene scene)
         {

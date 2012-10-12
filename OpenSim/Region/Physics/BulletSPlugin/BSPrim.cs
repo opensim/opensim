@@ -196,7 +196,7 @@ public sealed class BSPrim : BSPhysObject
             _isSelected = value;
             PhysicsScene.TaintedObject("BSPrim.setSelected", delegate()
             {
-                // DetailLog("{0},BSPrim.selected,taint,selected={1}", LocalID, _isSelected);
+                DetailLog("{0},BSPrim.selected,taint,selected={1}", LocalID, _isSelected);
                 SetObjectDynamic(false);
             });
         }
@@ -265,6 +265,11 @@ public sealed class BSPrim : BSPhysObject
             return _position;
         }
         set {
+            // If you must push the position into the physics engine, use ForcePosition.
+            if (_position == value)
+            {
+                return;
+            }
             _position = value;
             // TODO: what does it mean to set the position of a child prim?? Rebuild the constraint?
             PositionSanityCheck();
@@ -322,7 +327,7 @@ public sealed class BSPrim : BSPhysObject
     // A version of the sanity check that also makes sure a new position value is
     //    pushed back to the physics engine. This routine would be used by anyone
     //    who is not already pushing the value.
-    private bool PositionSanityCheck2(bool atTaintTime)
+    private bool PositionSanityCheck2(bool inTaintTime)
     {
         bool ret = false;
         if (PositionSanityCheck())
@@ -334,7 +339,7 @@ public sealed class BSPrim : BSPhysObject
                 DetailLog("{0},BSPrim.PositionSanityCheck,taint,pos={1},orient={2}", LocalID, _position, _orientation);
                 BulletSimAPI.SetObjectTranslation(PhysicsScene.WorldID, LocalID, _position, _orientation);
             };
-            if (atTaintTime)
+            if (inTaintTime)
                 sanityOperation();
             else
                 PhysicsScene.TaintedObject("BSPrim.PositionSanityCheck", sanityOperation);
@@ -453,7 +458,6 @@ public sealed class BSPrim : BSPhysObject
         }
         return;
     }
-
     public override OMV.Vector3 Velocity {
         get { return _velocity; }
         set {
@@ -463,6 +467,13 @@ public sealed class BSPrim : BSPhysObject
                 // DetailLog("{0},BSPrim.SetVelocity,taint,vel={1}", LocalID, _velocity);
                 BulletSimAPI.SetLinearVelocity2(BSBody.ptr, _velocity);
             });
+        }
+    }
+    public override OMV.Vector3 ForceVelocity {
+        get { return _velocity; }
+        set {
+            _velocity = value;
+            BulletSimAPI.SetLinearVelocity2(BSBody.ptr, _velocity);
         }
     }
     public override OMV.Vector3 Torque {
@@ -490,6 +501,8 @@ public sealed class BSPrim : BSPhysObject
             return _orientation;
         }
         set {
+            if (_orientation == value)
+                return;
             _orientation = value;
             // TODO: what does it mean if a child in a linkset changes its orientation? Rebuild the constraint?
             PhysicsScene.TaintedObject("BSPrim.setOrientation", delegate()
@@ -570,7 +583,7 @@ public sealed class BSPrim : BSPhysObject
         // Set up the object physicalness (does gravity and collisions move this object)
         MakeDynamic(IsStatic);
 
-        // Update vehicle specific parameters
+        // Update vehicle specific parameters (after MakeDynamic() so can change physical parameters)
         _vehicle.Refresh();
 
         // Arrange for collision events if the simulator wants them
@@ -593,7 +606,7 @@ public sealed class BSPrim : BSPhysObject
         // Recompute any linkset parameters.
         // When going from non-physical to physical, this re-enables the constraints that
         //     had been automatically disabled when the mass was set to zero.
-        Linkset.Refresh(this);
+        Linkset.Refresh(this, true);
 
         DetailLog("{0},BSPrim.UpdatePhysicalParameters,exit,static={1},solid={2},mass={3},collide={4},cf={5:X},body={6},shape={7}",
                         LocalID, IsStatic, IsSolid, _mass, SubscribedEvents(), CurrentCollisionFlags, BSBody, BSShape);
@@ -620,8 +633,10 @@ public sealed class BSPrim : BSPhysObject
             BulletSimAPI.UpdateInertiaTensor2(BSBody.ptr);
             // There can be special things needed for implementing linksets
             Linkset.MakeStatic(this);
-            // The activation state is 'disabled' so Bullet will not try to act on it
+            // The activation state is 'disabled' so Bullet will not try to act on it.
             BulletSimAPI.ForceActivationState2(BSBody.ptr, ActivationState.DISABLE_SIMULATION);
+            // Start it out sleeping and physical actions could wake it up.
+            // BulletSimAPI.ForceActivationState2(BSBody.ptr, ActivationState.ISLAND_SLEEPING);
 
             BSBody.collisionFilter = CollisionFilterGroups.StaticObjectFilter;
             BSBody.collisionMask = CollisionFilterGroups.StaticObjectMask;
@@ -637,6 +652,9 @@ public sealed class BSPrim : BSPhysObject
 
             // per http://www.bulletphysics.org/Bullet/phpBB3/viewtopic.php?t=3382
             BulletSimAPI.ClearAllForces2(BSBody.ptr);
+
+            // For good measure, make sure the transform is set through to the motion state
+            BulletSimAPI.SetTranslation2(BSBody.ptr, _position, _orientation);
 
             // A dynamic object has mass
             IntPtr collisionShapePtr = BulletSimAPI.GetCollisionShape2(BSBody.ptr);
@@ -655,8 +673,8 @@ public sealed class BSPrim : BSPhysObject
 
             // Force activation of the object so Bullet will act on it.
             // Must do the ForceActivationState2() to overcome the DISABLE_SIMULATION from static objects.
-            BulletSimAPI.ForceActivationState2(BSBody.ptr, ActivationState.ISLAND_SLEEPING);
-            BulletSimAPI.Activate2(BSBody.ptr, true);
+            BulletSimAPI.ForceActivationState2(BSBody.ptr, ActivationState.ACTIVE_TAG);
+            // BulletSimAPI.Activate2(BSBody.ptr, true);
 
             BSBody.collisionFilter = CollisionFilterGroups.ObjectFilter;
             BSBody.collisionMask = CollisionFilterGroups.ObjectMask;
@@ -774,6 +792,15 @@ public sealed class BSPrim : BSPhysObject
             });
         }
     }
+    public override OMV.Vector3 ForceRotationalVelocity {
+        get {
+            return _rotationalVelocity;
+        }
+        set {
+            _rotationalVelocity = value;
+            BulletSimAPI.SetAngularVelocity2(BSBody.ptr, _rotationalVelocity);
+        }
+    }
     public override bool Kinematic {
         get { return _kinematic; }
         set { _kinematic = value;
@@ -828,6 +855,9 @@ public sealed class BSPrim : BSPhysObject
 
     private List<OMV.Vector3> m_accumulatedForces = new List<OMV.Vector3>();
     public override void AddForce(OMV.Vector3 force, bool pushforce) {
+        AddForce(force, pushforce, false);
+    }
+    public void AddForce(OMV.Vector3 force, bool pushforce, bool inTaintTime) {
         // for an object, doesn't matter if force is a pushforce or not
         if (force.IsFinite())
         {
@@ -840,11 +870,12 @@ public sealed class BSPrim : BSPhysObject
             m_log.WarnFormat("{0}: Got a NaN force applied to a prim. LocalID={1}", LogHeader, LocalID);
             return;
         }
-        PhysicsScene.TaintedObject("BSPrim.AddForce", delegate()
+        BSScene.TaintCallback addForceOperation = delegate()
         {
             OMV.Vector3 fSum = OMV.Vector3.Zero;
             lock (m_accumulatedForces)
             {
+                // Sum the accumulated additional forces for one big force to apply once.
                 foreach (OMV.Vector3 v in m_accumulatedForces)
                 {
                     fSum += v;
@@ -854,7 +885,11 @@ public sealed class BSPrim : BSPhysObject
             // DetailLog("{0},BSPrim.AddObjectForce,taint,force={1}", LocalID, fSum);
             // For unknown reasons, "ApplyCentralForce" adds this force to the total force on the object.
             BulletSimAPI.ApplyCentralForce2(BSBody.ptr, fSum);
-        });
+        };
+        if (inTaintTime)
+            addForceOperation();
+        else
+            PhysicsScene.TaintedObject("BSPrim.AddForce", addForceOperation);
     }
 
     public override void AddAngularForce(OMV.Vector3 force, bool pushforce) {
@@ -1204,6 +1239,7 @@ public sealed class BSPrim : BSPhysObject
         {
             // Called if the current prim body is about to be destroyed.
             // Remove all the physical dependencies on the old body.
+            // (Maybe someday make the changing of BSShape an event handled by BSLinkset.)
             needToRestoreLinkset = Linkset.RemoveBodyDependencies(this);
         });
 
@@ -1294,6 +1330,8 @@ public sealed class BSPrim : BSPhysObject
 
             PositionSanityCheck2(true);
 
+            Linkset.UpdateProperties(this);
+
             DetailLog("{0},BSPrim.UpdateProperties,call,pos={1},orient={2},vel={3},accel={4},rotVel={5}",
                     LocalID, _position, _orientation, _velocity, _acceleration, _rotationalVelocity);
 
@@ -1304,7 +1342,7 @@ public sealed class BSPrim : BSPhysObject
             /*
         else
         {
-            // For debugging, we can also report the movement of children
+            // For debugging, report the movement of children
             DetailLog("{0},BSPrim.UpdateProperties,child,pos={1},orient={2},vel={3},accel={4},rotVel={5}",
                     LocalID, entprop.Position, entprop.Rotation, entprop.Velocity,
                     entprop.Acceleration, entprop.RotationalVelocity);

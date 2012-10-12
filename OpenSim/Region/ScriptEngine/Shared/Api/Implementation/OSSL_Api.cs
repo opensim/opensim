@@ -3600,7 +3600,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// <returns></returns>
         public void osSetContentType(LSL_Key id, string type)
         {
-            CheckThreatLevel(ThreatLevel.High,"osSetResponseType");
+            CheckThreatLevel(ThreatLevel.High, "osSetContentType");
+
             if (m_UrlModule != null)
                 m_UrlModule.HttpContentType(new UUID(id),type);
         }
@@ -3611,7 +3612,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// <returns>boolean indicating whether an error was shouted.</returns>
         protected bool ShoutErrorOnLackingOwnerPerms(int perms, string errorPrefix)
         {
-            CheckThreatLevel(ThreatLevel.Moderate, "osDropAttachment");
             m_host.AddScriptLPS(1);
             bool fail = false;
             if (m_item.PermsGranter != m_host.OwnerID)
