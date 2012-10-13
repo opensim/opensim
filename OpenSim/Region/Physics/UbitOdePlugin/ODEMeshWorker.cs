@@ -103,6 +103,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private void DoWork()
         {
+            m_mesher.ExpireFileCache();
+
             while(m_running)
             {
                  ODEPhysRepData nextRep = createqueue.Dequeue();
