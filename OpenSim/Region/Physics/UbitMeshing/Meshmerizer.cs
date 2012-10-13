@@ -76,6 +76,8 @@ namespace OpenSim.Region.Physics.Meshing
         public bool doMeshFileCache = true;
 
         public string cachePath = "MeshCache";
+        public TimeSpan CacheExpire;
+        public bool doCacheExpire = true;
 
 //        const string baseDir = "rawFiles";
         private const string baseDir = null; //"rawFiles";
@@ -92,17 +94,29 @@ namespace OpenSim.Region.Physics.Meshing
             IConfig start_config = config.Configs["Startup"];
             IConfig mesh_config = config.Configs["Mesh"];
 
+
+            float fcache = 48.0f;
+//            float fcache = 0.02f;
+
             if(mesh_config != null)
             {
                 useMeshiesPhysicsMesh = mesh_config.GetBoolean("UseMeshiesPhysicsMesh", useMeshiesPhysicsMesh);
-                if(useMeshiesPhysicsMesh)
+                if (useMeshiesPhysicsMesh)
                 {
                     doMeshFileCache = mesh_config.GetBoolean("MeshFileCache", doMeshFileCache);
                     cachePath = mesh_config.GetString("MeshFileCachePath", cachePath);
+                    fcache = mesh_config.GetFloat("MeshFileCacheExpireHours", fcache);
+                    doCacheExpire = mesh_config.GetBoolean("MeshFileCacheDoExpire", doCacheExpire);
                 }
                 else
+                {
                     doMeshFileCache = false;
+                    doCacheExpire = false;
+                }
             }
+
+            CacheExpire = TimeSpan.FromHours(fcache);
+
         }
 
         /// <summary>
@@ -1273,6 +1287,7 @@ namespace OpenSim.Region.Physics.Meshing
                         BinaryFormatter bformatter = new BinaryFormatter();
 
                         mesh = Mesh.FromStream(stream, key);
+                        
                     }
                     catch (Exception e)
                     {
@@ -1281,11 +1296,14 @@ namespace OpenSim.Region.Physics.Meshing
                             "[MESH CACHE]: Failed to get file {0}.  Exception {1} {2}",
                             filename, e.Message, e.StackTrace);
                     }
+
                     if (stream != null)
                         stream.Close();
 
                     if (mesh == null || !ok)
                         File.Delete(filename);
+                    else
+                        File.SetLastAccessTimeUtc(filename, DateTime.UtcNow);
                 }
             }
 
@@ -1326,8 +1344,72 @@ namespace OpenSim.Region.Physics.Meshing
                 if (stream != null)
                     stream.Close();
 
-                if (!ok && File.Exists(filename))
-                    File.Delete(filename);
+                if (File.Exists(filename))
+                {
+                    if (ok)
+                        File.SetLastAccessTimeUtc(filename, DateTime.UtcNow);
+                    else
+                        File.Delete(filename);
+                }
+            }
+        }
+        
+        public void ExpireFileCache()
+        {
+            if (!doCacheExpire)
+                return;
+
+            string controlfile = System.IO.Path.Combine(cachePath, "cntr");
+
+            lock (diskLock)
+            {
+                try
+                {
+                    if (File.Exists(controlfile))
+                    {
+                        int ndeleted = 0;
+                        int totalfiles = 0;
+                        int ndirs = 0;
+                        DateTime OlderTime = File.GetLastAccessTimeUtc(controlfile) - CacheExpire;
+                        File.SetLastAccessTimeUtc(controlfile, DateTime.UtcNow);
+                        
+                        foreach (string dir in Directory.GetDirectories(cachePath))                       
+                        {
+                            try
+                            {
+                                foreach (string file in Directory.GetFiles(dir))
+                                {
+                                    try
+                                    {
+                                        if (File.GetLastAccessTimeUtc(file) < OlderTime)
+                                        {
+                                            File.Delete(file);
+                                            ndeleted++;
+                                        }
+                                    }
+                                    catch { }
+                                    totalfiles++;
+                                }
+                            }
+                            catch { }
+                            ndirs++;
+                        }
+
+                        if (ndeleted == 0)
+                            m_log.InfoFormat("[MESH CACHE]: {0} Files in {1} cache folders, no expires",
+                                totalfiles,ndirs);
+                        else
+                            m_log.InfoFormat("[MESH CACHE]: {0} Files in {1} cache folders, expired {2} files accessed before {3}",
+                                totalfiles,ndirs, ndeleted, OlderTime.ToString());
+                    }
+                    else
+                    {
+                        m_log.Info("[MESH CACHE]: Expire delayed to next startup");
+                        FileStream fs = File.Create(controlfile,4096,FileOptions.WriteThrough);
+                        fs.Close();
+                    }
+                }
+                catch { }
             }
         }
     }

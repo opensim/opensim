@@ -755,5 +755,6 @@ namespace OpenSim.Region.Physics.Meshing
 
         public void ReleaseMesh(IMesh imesh) { }
         public void ExpireReleaseMeshs() { }
+        public void ExpireFileCache() { }
     }
 }

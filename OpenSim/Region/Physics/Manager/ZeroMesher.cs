@@ -87,5 +87,6 @@ namespace OpenSim.Region.Physics.Manager
 
         public void ReleaseMesh(IMesh mesh) { }
         public void ExpireReleaseMeshs() { }
+        public void ExpireFileCache() { }
     }
 }
