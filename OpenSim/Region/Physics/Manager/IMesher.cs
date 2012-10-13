@@ -73,7 +73,7 @@ namespace OpenSim.Region.Physics.Manager
 
         public override string ToString()
         {
-            return uuid.ToString() + "-" + hashC.ToString() ;
+            return uuid.ToString() + "-" + hashC.ToString("x") ;
         }
     }
 

@@ -956,7 +956,6 @@ namespace OpenSim.Region.Physics.Meshing
                 hash = mdjb2(hash, primShape.PathScaleY);
                 hash = mdjb2(hash, primShape.PathShearX);
                 key.hashA = hash;
-                key.hashA |= 0xf000000000000000;
                 hash = key.hashB;
                 hash = mdjb2(hash, primShape.PathShearY);
                 hash = mdjb2(hash, (byte)primShape.PathTwist);
@@ -975,21 +974,32 @@ namespace OpenSim.Region.Physics.Meshing
 
             hash = key.hashC;
 
-            someBytes = size.GetBytes();
-            for (int i = 0; i < someBytes.Length; i++)
-                hash = mdjb2(hash, someBytes[i]);
-
             hash = mdjb2(hash, lod);
-            
-            hash &= 0x3fffffffffffffff; 
+
+            if (size == m_MeshUnitSize)
+            {
+                hash = hash << 8;
+                hash |= 8;
+            }
+            else
+            {
+                someBytes = size.GetBytes();
+                for (int i = 0; i < someBytes.Length; i++)
+                    hash = mdjb2(hash, someBytes[i]);
+                hash = hash << 8;
+            }          
 
             if (convex)
-                hash |= 0x4000000000000000;
+                hash |= 4;
 
             if (primShape.SculptEntry)
-                hash |= 0x8000000000000000;
+            {
+                hash |= 1;
+                if (primShape.SculptType == (byte)SculptType.Mesh)
+                    hash |= 2;
+            }
 
-            key.hashB = hash;
+            key.hashC = hash;
 
             return key;
         }
