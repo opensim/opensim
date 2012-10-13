@@ -9314,11 +9314,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 GridRegion info;
 
-                if (m_ScriptEngine.World.RegionInfo.RegionName == simulator) //Det data for this simulator?
-
-                    info = new GridRegion(m_ScriptEngine.World.RegionInfo);
+                if (World.RegionInfo.RegionName == simulator)
+                    info = new GridRegion(World.RegionInfo);
                 else
-                    info = m_ScriptEngine.World.GridService.GetRegionByName(m_ScriptEngine.World.RegionInfo.ScopeID, simulator);
+                    info = World.GridService.GetRegionByName(m_ScriptEngine.World.RegionInfo.ScopeID, simulator);
 
                 switch (data)
                 {
@@ -9329,12 +9328,26 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             return UUID.Zero.ToString();
                         }
 
-                        RegionFlags regionFlags = (RegionFlags)m_ScriptEngine.World.GridService.GetRegionFlags(info.ScopeID, info.RegionID);
-                        if ((regionFlags & RegionFlags.Hyperlink) != 0)
+                        bool isHypergridRegion = false;
+
+                        if (World.RegionInfo.RegionName != simulator && info.RegionSecret != "")
+                        {
+                            // Hypergrid is currently placing real destination region co-ords into RegionSecret.
+                            // But other code can also use this field for a genuine RegionSecret!  Therefore, if
+                            // anything is present we need to disambiguate.
+                            //
+                            // FIXME: Hypergrid should be storing this data in a different field.
+                            RegionFlags regionFlags
+                                = (RegionFlags)m_ScriptEngine.World.GridService.GetRegionFlags(
+                                    info.ScopeID, info.RegionID);
+                            isHypergridRegion = (regionFlags & RegionFlags.Hyperlink) != 0;
+                        }
+
+                        if (isHypergridRegion)
                         {
                             uint rx = 0, ry = 0;
-                            //Hypergrid Region co-ordinates
                             Utils.LongToUInts(Convert.ToUInt64(info.RegionSecret), out rx, out ry);
+
                             reply = new LSL_Vector(
                                 rx,
                                 ry,
@@ -9342,18 +9355,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         }
                         else
                         {
-                            UUID regionSecret = UUID.Zero;
-                            if (UUID.TryParse(info.RegionSecret, out regionSecret))
-                            {
-                                if (regionSecret != UUID.Zero)
-                                {
-                                    //Local co-oridnates
-                                    reply = new LSL_Vector(
-                                        info.RegionLocX,
-                                        info.RegionLocY,
-                                        0).ToString();
-                                }
-                            }
+                            // Local grid co-oridnates
+                            reply = new LSL_Vector(
+                                info.RegionLocX,
+                                info.RegionLocY,
+                                0).ToString();
                         }
                         break;
                     case ScriptBaseClass.DATA_SIM_STATUS:
