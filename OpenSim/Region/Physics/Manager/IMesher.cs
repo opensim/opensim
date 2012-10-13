@@ -41,6 +41,7 @@ namespace OpenSim.Region.Physics.Manager
         IMesh GetMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical, bool convex);
         void ReleaseMesh(IMesh mesh);
         void ExpireReleaseMeshs();
+        void ExpireFileCache();
     }
 
     // Values for level of detail to be passed to the mesher.
