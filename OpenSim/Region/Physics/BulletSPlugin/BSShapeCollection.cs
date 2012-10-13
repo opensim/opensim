@@ -373,7 +373,8 @@ public class BSShapeCollection : IDisposable
                         && pbs.PathScaleX == 100 && pbs.PathScaleY == 100
                         && pbs.PathShearX == 0 && pbs.PathShearY == 0) ) )
         {
-            if (pbs.ProfileShape == ProfileShape.HalfCircle && pbs.PathCurve == (byte)Extrusion.Curve1)
+            if ((pbs.ProfileShape == ProfileShape.HalfCircle && pbs.PathCurve == (byte)Extrusion.Curve1)
+                                && pbs.Scale.X == pbs.Scale.Y && pbs.Scale.Y == pbs.Scale.Z)
             {
                 haveShape = true;
                 if (forceRebuild
