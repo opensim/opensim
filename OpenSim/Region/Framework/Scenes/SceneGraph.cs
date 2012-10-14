@@ -1849,6 +1849,7 @@ namespace OpenSim.Region.Framework.Scenes
                         SceneObjectGroupsByLocalPartID[part.LocalId] = parentGroup;
                 }
 
+                parentGroup.AdjustChildPrimPermissions();
                 parentGroup.HasGroupChanged = true;
                 parentGroup.ProcessBackup(m_parentScene.SimulationDataService, true);
                 parentGroup.ScheduleGroupForFullUpdate();
@@ -1989,6 +1990,7 @@ namespace OpenSim.Region.Framework.Scenes
                     // return unless the root is deleted. This will remove them
                     // from the database. They will be rewritten immediately,
                     // minus the rows for the unlinked child prims.
+                    g.AdjustChildPrimPermissions();
                     m_parentScene.SimulationDataService.RemoveObject(g.UUID, m_parentScene.RegionInfo.RegionID);
                     g.TriggerScriptChangedEvent(Changed.LINK);
                     g.HasGroupChanged = true; // Persist

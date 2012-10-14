@@ -3410,11 +3410,18 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void AdjustChildPrimPermissions()
         {
+            uint newOwnerMask = (uint)PermissionMask.All & 0xfffffff8; // Mask folded bits
+            uint foldedPerms = RootPart.OwnerMask & 3;
+
             ForEachPart(part =>
             {
+                newOwnerMask &= part.BaseMask;
                 if (part != RootPart)
                     part.ClonePermissions(RootPart);
             });
+
+            RootPart.OwnerMask = newOwnerMask | foldedPerms;
+            RootPart.ScheduleFullUpdate();
         }
 
         public void UpdatePermissions(UUID AgentID, byte field, uint localID,

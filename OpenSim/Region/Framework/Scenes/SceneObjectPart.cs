@@ -4497,20 +4497,20 @@ namespace OpenSim.Region.Framework.Scenes
         {
             bool update = false;
 
-            if (BaseMask != source.BaseMask ||
-                OwnerMask != source.OwnerMask ||
-                GroupMask != source.GroupMask ||
-                EveryoneMask != source.EveryoneMask ||
-                NextOwnerMask != source.NextOwnerMask)
-                update = true;
+            uint prevOwnerMask = OwnerMask;
+            uint prevGroupMask = GroupMask;
+            uint prevEveryoneMask = EveryoneMask;
+            uint prevNextOwnerMask = NextOwnerMask;
 
-            BaseMask = source.BaseMask;
-            OwnerMask = source.OwnerMask;
-            GroupMask = source.GroupMask;
-            EveryoneMask = source.EveryoneMask;
-            NextOwnerMask = source.NextOwnerMask;
+            OwnerMask = source.OwnerMask & BaseMask;
+            GroupMask = source.GroupMask & BaseMask;
+            EveryoneMask = source.EveryoneMask & BaseMask;
+            NextOwnerMask = source.NextOwnerMask & BaseMask;
 
-            if (update)
+            if (OwnerMask != prevOwnerMask ||
+                GroupMask != prevGroupMask ||
+                EveryoneMask != prevEveryoneMask ||
+                NextOwnerMask != prevNextOwnerMask)
                 SendFullUpdateToAllClients();
         }
 
