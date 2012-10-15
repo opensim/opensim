@@ -2370,28 +2370,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.SendSound(KeyOrName(sound).ToString(), volume, false, 0, 0, false, false);
         }
 
-        // Xantor 20080528 we should do this differently.
-        // 1) apply the sound to the object
-        // 2) schedule full update
-        // just sending the sound out once doesn't work so well when other avatars come in view later on
-        // or when the prim gets moved, changed, sat on, whatever
-        // see large number of mantises (mantes?)
-        // 20080530 Updated to remove code duplication
-        // 20080530 Stop sound if there is one, otherwise volume only changes don't work
         public void llLoopSound(string sound, double volume)
         {
             m_host.AddScriptLPS(1);
-
-            if (m_host.Sound != UUID.Zero)
-                llStopSound();
-
-            m_host.Sound = KeyOrName(sound);
-            m_host.SoundGain = volume;
-            m_host.SoundFlags = 1;      // looping
-            m_host.SoundRadius = 20;    // Magic number, 20 seems reasonable. Make configurable?
-
-            m_host.ScheduleFullUpdate();
-            m_host.SendFullUpdateToAllClients();
+            if (m_SoundModule != null)
+            {
+                m_SoundModule.LoopSound(m_host.UUID, KeyOrName(sound),
+                        volume, 20, false);
+            }
         }
 
         public void llLoopSoundMaster(string sound, double volume)
@@ -2399,8 +2385,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             if (m_SoundModule != null)
             {
-                m_SoundModule.LoopSoundMaster(m_host.UUID, KeyOrName(sound),
-                        volume, 20);
+                m_SoundModule.LoopSound(m_host.UUID, KeyOrName(sound),
+                        volume, 20, true);
             }
         }
 

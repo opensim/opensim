@@ -86,14 +86,15 @@ namespace OpenSim.Region.Framework.Interfaces
         void PreloadSound(UUID objectID, UUID soundID, float radius);
 
         /// <summary>
-        /// Declare object as new sync master, play specified sound at
-        /// specified volume with specified radius.
+        /// Loop specified sound at specified volume with specified radius,
+        /// optionally declaring object as new sync master.
         /// </summary>
         /// <param name="objectID">Sound source ID</param>
         /// <param name="soundID">Sound asset ID</param>
         /// <param name="gain">Sound volume</param>
         /// <param name="radius">Sound radius</param>
-        void LoopSoundMaster(UUID objectID, UUID soundID, double gain,
-                double radius);
+        /// <param name="isMaster">Set object to sync master if true</param>
+        void LoopSound(UUID objectID, UUID soundID, double gain,
+                double radius, bool isMaster);
     }
 }

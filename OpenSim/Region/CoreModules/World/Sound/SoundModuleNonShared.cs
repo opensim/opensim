@@ -248,13 +248,22 @@ namespace OpenSim.Region.CoreModules.World.Sound
             });
         }
 
-        public virtual void LoopSoundMaster(UUID objectID, UUID soundID,
-                double volume, double radius)
+        // Xantor 20080528 we should do this differently.
+        // 1) apply the sound to the object
+        // 2) schedule full update
+        // just sending the sound out once doesn't work so well when other avatars come in view later on
+        // or when the prim gets moved, changed, sat on, whatever
+        // see large number of mantises (mantes?)
+        // 20080530 Updated to remove code duplication
+        // 20080530 Stop sound if there is one, otherwise volume only changes don't work
+        public void LoopSound(UUID objectID, UUID soundID,
+                double volume, double radius, bool isMaster)
         {
             SceneObjectPart m_host;
             if (!m_scene.TryGetSceneObjectPart(objectID, out m_host))
                 return;
 
+            if (isMaster)
             m_host.ParentGroup.LoopSoundMasterPrim = m_host;
 
             if (m_host.Sound != UUID.Zero)
