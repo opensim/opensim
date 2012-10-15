@@ -51,7 +51,7 @@ public class BSShapeCollection : IDisposable
     }
 
     // Description of a hull.
-    // Meshes and hulls have the same shape hash key but we only need hulls for efficient physical objects
+    // Meshes and hulls have the same shape hash key but we only need hulls for efficient collision calculations.
     private struct HullDesc
     {
         public IntPtr ptr;
@@ -59,17 +59,9 @@ public class BSShapeCollection : IDisposable
         public DateTime lastReferenced;
     }
 
-    private struct BodyDesc
-    {
-        public IntPtr ptr;
-        // Bodies are only used once so reference count is always either one or zero
-        public int referenceCount;
-        public DateTime lastReferenced;
-    }
-
+    // The sharable set of meshes and hulls. Indexed by their shape hash.
     private Dictionary<System.UInt64, MeshDesc> Meshes = new Dictionary<System.UInt64, MeshDesc>();
     private Dictionary<System.UInt64, HullDesc> Hulls = new Dictionary<System.UInt64, HullDesc>();
-    private Dictionary<uint, BodyDesc> Bodies = new Dictionary<uint, BodyDesc>();
 
     public BSShapeCollection(BSScene physScene)
     {
@@ -92,6 +84,10 @@ public class BSShapeCollection : IDisposable
     // First checks the shape and updates that if necessary then makes
     //    sure the body is of the right type.
     // Return 'true' if either the body or the shape changed.
+    // 'shapeCallback' and 'bodyCallback' are, if non-null, functions called just before
+    //    the current shape or body is destroyed. This allows the caller to remove any
+    //    higher level dependencies on the shape or body. Mostly used for LinkSets to
+    //    remove the physical constraints before the body is destroyed.
     // Called at taint-time!!
     public bool GetBodyAndShape(bool forceRebuild, BulletSim sim, BSPhysObject prim, 
                     ShapeData shapeData, PrimitiveBaseShape pbs,
@@ -103,7 +99,8 @@ public class BSShapeCollection : IDisposable
         lock (m_collectionActivityLock)
         {
             // Do we have the correct geometry for this type of object?
-            // Updates prim.BSShape with information/pointers to requested shape
+            // Updates prim.BSShape with information/pointers to shape.
+            // CreateGeom returns 'true' of BSShape as changed to a new shape.
             bool newGeom = CreateGeom(forceRebuild, prim, shapeData, pbs, shapeCallback);
             // If we had to select a new shape geometry for the object,
             //    rebuild the body around it.
@@ -125,35 +122,19 @@ public class BSShapeCollection : IDisposable
     {
         lock (m_collectionActivityLock)
         {
-            BodyDesc bodyDesc;
-            if (Bodies.TryGetValue(body.ID, out bodyDesc))
+            DetailLog("{0},BSShapeCollection.ReferenceBody,newBody", body.ID, body);
+            BSScene.TaintCallback createOperation = delegate()
             {
-                bodyDesc.referenceCount++;
-                DetailLog("{0},BSShapeCollection.ReferenceBody,existingBody,body={1},ref={2}", body.ID, body, bodyDesc.referenceCount);
-            }
-            else
-            {
-                // New entry
-                bodyDesc.ptr = body.ptr;
-                bodyDesc.referenceCount = 1;
-                DetailLog("{0},BSShapeCollection.ReferenceBody,newBody,ref={2}",
-                                    body.ID, body, bodyDesc.referenceCount);
-                BSScene.TaintCallback createOperation = delegate()
+                if (!BulletSimAPI.IsInWorld2(body.ptr))
                 {
-                    if (!BulletSimAPI.IsInWorld2(body.ptr))
-                    {
-                        BulletSimAPI.AddObjectToWorld2(PhysicsScene.World.ptr, body.ptr);
-                        DetailLog("{0},BSShapeCollection.ReferenceBody,addedToWorld,ref={1}", 
-                                        body.ID, body);
-                    }
-                };
-                if (inTaintTime)
-                    createOperation();
-                else
-                    PhysicsScene.TaintedObject("BSShapeCollection.ReferenceBody", createOperation);
-            }
-            bodyDesc.lastReferenced = System.DateTime.Now;
-            Bodies[body.ID] = bodyDesc;
+                    BulletSimAPI.AddObjectToWorld2(PhysicsScene.World.ptr, body.ptr);
+                    DetailLog("{0},BSShapeCollection.ReferenceBody,addedToWorld,ref={1}", body.ID, body);
+                }
+            };
+            if (inTaintTime)
+                createOperation();
+            else
+                PhysicsScene.TaintedObject("BSShapeCollection.ReferenceBody", createOperation);
         }
     }
 
@@ -166,43 +147,25 @@ public class BSShapeCollection : IDisposable
 
         lock (m_collectionActivityLock)
         {
-            BodyDesc bodyDesc;
-            if (Bodies.TryGetValue(body.ID, out bodyDesc))
+            BSScene.TaintCallback removeOperation = delegate()
             {
-                bodyDesc.referenceCount--;
-                bodyDesc.lastReferenced = System.DateTime.Now;
-                Bodies[body.ID] = bodyDesc;
-                DetailLog("{0},BSShapeCollection.DereferenceBody,ref={1}", body.ID, bodyDesc.referenceCount);
+                DetailLog("{0},BSShapeCollection.DereferenceBody,DestroyingBody. ptr={1}, inTaintTime={2}",
+                                            body.ID, body.ptr.ToString("X"), inTaintTime);
+                // If the caller needs to know the old body is going away, pass the event up.
+                if (bodyCallback != null) bodyCallback(body);
 
-                // If body is no longer being used, free it -- bodies can never be shared.
-                if (bodyDesc.referenceCount == 0)
-                {
-                    Bodies.Remove(body.ID);
-                    BSScene.TaintCallback removeOperation = delegate()
-                    {
-                        DetailLog("{0},BSShapeCollection.DereferenceBody,DestroyingBody. ptr={1}, inTaintTime={2}",
-                                                    body.ID, body.ptr.ToString("X"), inTaintTime);
-                        // If the caller needs to know the old body is going away, pass the event up.
-                        if (bodyCallback != null) bodyCallback(body);
+                // It may have already been removed from the world in which case the next is a NOOP.
+                BulletSimAPI.RemoveObjectFromWorld2(PhysicsScene.World.ptr, body.ptr);
 
-                        // It may have already been removed from the world in which case the next is a NOOP.
-                        BulletSimAPI.RemoveObjectFromWorld2(PhysicsScene.World.ptr, body.ptr);
-
-                        // Zero any reference to the shape so it is not freed when the body is deleted.
-                        BulletSimAPI.SetCollisionShape2(PhysicsScene.World.ptr, body.ptr, IntPtr.Zero);
-                        BulletSimAPI.DestroyObject2(PhysicsScene.World.ptr, body.ptr);
-                    };
-                    // If already in taint-time, do the operations now. Otherwise queue for later.
-                    if (inTaintTime)
-                        removeOperation();
-                    else
-                        PhysicsScene.TaintedObject("BSShapeCollection.DereferenceBody", removeOperation);
-                }
-            }
+                // Zero any reference to the shape so it is not freed when the body is deleted.
+                BulletSimAPI.SetCollisionShape2(PhysicsScene.World.ptr, body.ptr, IntPtr.Zero);
+                BulletSimAPI.DestroyObject2(PhysicsScene.World.ptr, body.ptr);
+            };
+            // If already in taint-time, do the operations now. Otherwise queue for later.
+            if (inTaintTime)
+                removeOperation();
             else
-            {
-                DetailLog("{0},BSShapeCollection.DereferenceBody,DID NOT FIND BODY", body.ID, bodyDesc.referenceCount);
-            }
+                PhysicsScene.TaintedObject("BSShapeCollection.DereferenceBody", removeOperation);
         }
     }
 
@@ -271,7 +234,6 @@ public class BSShapeCollection : IDisposable
     }
 
     // Release the usage of a shape.
-    // The collisionObject is released since it is a copy of the real collision shape.
     public void DereferenceShape(BulletShape shape, bool inTaintTime, ShapeDestructionCallback shapeCallback)
     {
         if (shape.ptr == IntPtr.Zero)

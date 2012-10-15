@@ -117,14 +117,6 @@ public class BSCharacter : BSPhysObject
             PhysicsScene.Shapes.GetBodyAndShape(true, PhysicsScene.World, this, shapeData, null, null, null);
 
             SetPhysicalProperties();
-
-            // Set the buoyancy for flying. This will be refactored when all the settings happen in C#.
-            // If not set at creation, the avatar will stop flying when created after crossing a region boundry.
-            ForceBuoyancy = _buoyancy;
-
-            // This works here because CreateObject has already put the character into the physical world.
-            BulletSimAPI.SetCollisionFilterMask2(BSBody.ptr,
-                            (uint)CollisionFilterGroups.AvatarFilter, (uint)CollisionFilterGroups.AvatarMask);
         });
         return;
     }
@@ -149,24 +141,29 @@ public class BSCharacter : BSPhysObject
         OMV.Vector3 localInertia = BulletSimAPI.CalculateLocalInertia2(BSShape.ptr, MassRaw);
         BulletSimAPI.SetMassProps2(BSBody.ptr, MassRaw, localInertia);
 
+        ForcePosition = _position;
         // Set the velocity and compute the proper friction
         ForceVelocity = _velocity;
-
-        BulletSimAPI.SetFriction2(BSBody.ptr, _currentFriction);
         BulletSimAPI.SetRestitution2(BSBody.ptr, PhysicsScene.Params.avatarRestitution);
-
         BulletSimAPI.SetLocalScaling2(BSShape.ptr, Scale);
         BulletSimAPI.SetContactProcessingThreshold2(BSBody.ptr, PhysicsScene.Params.contactProcessingThreshold);
-
         if (PhysicsScene.Params.ccdMotionThreshold > 0f)
         {
             BulletSimAPI.SetCcdMotionThreshold2(BSBody.ptr, PhysicsScene.Params.ccdMotionThreshold);
             BulletSimAPI.SetCcdSweepSphereRadius2(BSBody.ptr, PhysicsScene.Params.ccdSweptSphereRadius);
         }
 
-        BulletSimAPI.SetActivationState2(BSBody.ptr, (int)ActivationState.DISABLE_DEACTIVATION);
+        BulletSimAPI.AddToCollisionFlags2(BSBody.ptr, CollisionFlags.CF_CHARACTER_OBJECT);
 
         BulletSimAPI.AddObjectToWorld2(PhysicsScene.World.ptr, BSBody.ptr);
+
+        BulletSimAPI.ForceActivationState2(BSBody.ptr, ActivationState.DISABLE_DEACTIVATION);
+        BulletSimAPI.UpdateSingleAabb2(PhysicsScene.World.ptr, BSBody.ptr);
+
+        // Do this after the object has been added to the world
+        BulletSimAPI.SetCollisionFilterMask2(BSBody.ptr,
+                        (uint)CollisionFilterGroups.AvatarFilter, 
+                        (uint)CollisionFilterGroups.AvatarMask);
     }
 
     public override void RequestPhysicsterseUpdate()
@@ -174,9 +171,7 @@ public class BSCharacter : BSPhysObject
         base.RequestPhysicsterseUpdate();
     }
     // No one calls this method so I don't know what it could possibly mean
-    public override bool Stopped {
-        get { return false; }
-    }
+    public override bool Stopped { get { return false; } }
     public override OMV.Vector3 Size {
         get
         {
@@ -185,18 +180,14 @@ public class BSCharacter : BSPhysObject
         }
 
         set {
-            // When an avatar's size is set, only the height is changed
-            //    and that really only depends on the radius.
+            // When an avatar's size is set, only the height is changed.
             _size = value;
             ComputeAvatarScale(_size);
-
-            // TODO: something has to be done with the avatar's vertical position
-
             ComputeAvatarVolumeAndMass();
 
             PhysicsScene.TaintedObject("BSCharacter.setSize", delegate()
             {
-                BulletSimAPI.SetLocalScaling2(BSBody.ptr, Scale);
+                BulletSimAPI.SetLocalScaling2(BSShape.ptr, Scale);
                 OMV.Vector3 localInertia = BulletSimAPI.CalculateLocalInertia2(BSBody.ptr, MassRaw);
                 BulletSimAPI.SetMassProps2(BSBody.ptr, MassRaw, localInertia);
             });
@@ -300,7 +291,7 @@ public class BSCharacter : BSPhysObject
     // A version of the sanity check that also makes sure a new position value is
     //    pushed back to the physics engine. This routine would be used by anyone
     //    who is not already pushing the value.
-    private bool PositionSanityCheck2(bool inTaintTime)
+    private bool PositionSanityCheck(bool inTaintTime)
     {
         bool ret = false;
         if (PositionSanityCheck())
@@ -378,14 +369,16 @@ public class BSCharacter : BSPhysObject
             }
             else
             {
-                if (_currentFriction == 999f)
+                if (_currentFriction != PhysicsScene.Params.avatarFriction)
                 {
                     _currentFriction = PhysicsScene.Params.avatarFriction;
                     BulletSimAPI.SetFriction2(BSBody.ptr, _currentFriction);
                 }
             }
             _velocity = value;
+            // Remember the set velocity so we can suppress the reduction by friction, ...
             _appliedVelocity = value;
+
             BulletSimAPI.SetLinearVelocity2(BSBody.ptr, _velocity);
             BulletSimAPI.Activate2(BSBody.ptr, true);
         }
@@ -590,7 +583,8 @@ public class BSCharacter : BSPhysObject
 
         // The 1.15 came from ODE but it seems to cause the avatar to float off the ground
         // Scale.Z = (_size.Z * 1.15f) - (Scale.X + Scale.Y);
-        newScale.Z = (_size.Z) - (Scale.X + Scale.Y);
+        // From the total height, remove the capsule half spheres that are at each end 
+        newScale.Z = (size.Z) - (Math.Min(newScale.X, newScale.Y) * 2f);
         Scale = newScale;
     }
 
@@ -621,7 +615,7 @@ public class BSCharacter : BSPhysObject
         _acceleration = entprop.Acceleration;
         _rotationalVelocity = entprop.RotationalVelocity;
         // Do some sanity checking for the avatar. Make sure it's above ground and inbounds.
-        PositionSanityCheck2(true);
+        PositionSanityCheck(true);
 
         // remember the current and last set values
         LastEntityProperties = CurrentEntityProperties;
