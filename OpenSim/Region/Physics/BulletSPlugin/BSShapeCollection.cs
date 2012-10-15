@@ -369,6 +369,7 @@ public class BSShapeCollection : IDisposable
             // an avatar capsule is close to a native shape (it is not shared)
             ret = GetReferenceToNativeShape(prim, shapeData, ShapeData.PhysicsShapeType.SHAPE_AVATAR, 
                             ShapeData.FixedShapeKey.KEY_CAPSULE, shapeCallback);
+            DetailLog("{0},BSShapeCollection.CreateGeom,avatarCapsule,shape={1}", prim.LocalID, prim.BSShape);
             haveShape = true;
         }
         // If the prim attributes are simple, this could be a simple Bullet native shape
@@ -460,7 +461,6 @@ public class BSShapeCollection : IDisposable
         }
         else
         {
-            // Native shapes are always built independently.
             newShape = new BulletShape(BulletSimAPI.BuildNativeShape2(PhysicsScene.World.ptr, shapeData), shapeType);
             newShape.shapeKey = (System.UInt64)shapeKey;
             newShape.isNativeShape = true;

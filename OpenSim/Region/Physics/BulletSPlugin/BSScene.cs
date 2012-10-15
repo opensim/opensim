@@ -261,10 +261,6 @@ public class BSScene : PhysicsScene, IPhysicsParameters
                                         m_maxUpdatesPerFrame, m_updateArrayPinnedHandle.AddrOfPinnedObject(),
                                         m_DebugLogCallbackHandle));
 
-        // Initialization to support the transition to a new API which puts most of the logic
-        //   into the C# code so it is easier to modify and add to.
-        World = new BulletSim(WorldID, this, BulletSimAPI.GetSimHandle2(WorldID));
-
         Constraints = new BSConstraintCollection(World);
 
         TerrainManager = new BSTerrainManager(this);
@@ -1252,9 +1248,8 @@ public class BSScene : PhysicsScene, IPhysicsParameters
                 defaultLoc = val;   // setting only the default value
                 break;
             case PhysParameterEntry.APPLY_TO_ALL:
-                m_log.ErrorFormat("{0} Cannot change parameters of multiple objects. Someday it will be added.", LogHeader);
-                /*
                 defaultLoc = val;  // setting ALL also sets the default value
+                /*
                 List<uint> objectIDs = lIDs;
                 string xparm = parm.ToLower();
                 float xval = val;
@@ -1276,15 +1271,15 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     // schedule the actual updating of the paramter to when the phys engine is not busy
     protected void TaintedUpdateParameter(string parm, uint localID, float val)
     {
+        /* Settings in the C++ code are not working at the moment. TODO: fix the settings.
         m_log.ErrorFormat("{0} Cannot change parameters of base objects. Someday it will be added.", LogHeader);
-        /*
         uint xlocalID = localID;
         string xparm = parm.ToLower();
         float xval = val;
         TaintedObject("BSScene.TaintedUpdateParameter", delegate() {
             BulletSimAPI.UpdateParameter(WorldID, xlocalID, xparm, xval);
         });
-        */
+         */
     }
 
     // Get parameter.

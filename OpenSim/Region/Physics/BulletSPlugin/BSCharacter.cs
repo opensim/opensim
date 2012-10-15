@@ -146,7 +146,7 @@ public class BSCharacter : BSPhysObject
 
         ZeroMotion();
 
-        OMV.Vector3 localInertia = BulletSimAPI.CalculateLocalInertia2(BSBody.ptr, MassRaw);
+        OMV.Vector3 localInertia = BulletSimAPI.CalculateLocalInertia2(BSShape.ptr, MassRaw);
         BulletSimAPI.SetMassProps2(BSBody.ptr, MassRaw, localInertia);
 
         // Set the velocity and compute the proper friction
