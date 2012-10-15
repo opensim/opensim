@@ -264,7 +264,7 @@ namespace OpenSim.Region.CoreModules.World.Sound
                 return;
 
             if (isMaster)
-            m_host.ParentGroup.LoopSoundMasterPrim = m_host;
+                m_host.ParentGroup.LoopSoundMasterPrim = m_host;
 
             if (m_host.Sound != UUID.Zero)
                 StopSound(m_host);
