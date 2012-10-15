@@ -107,7 +107,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
             UUID capID = UUID.Random();
 
-            m_log.DebugFormat("[REGION CONSOLE]: /CAPS/{0} in region {1}", capID, m_scene.RegionInfo.RegionName);
+//            m_log.DebugFormat("[REGION CONSOLE]: /CAPS/{0} in region {1}", capID, m_scene.RegionInfo.RegionName);
             caps.RegisterHandler(
                     "SimConsoleAsync",
                     new ConsoleHandler("/CAPS/" + capID + "/", "SimConsoleAsync", agentID, this, m_scene));
