@@ -2695,11 +2695,6 @@ namespace OpenSim.Region.Framework.Scenes
                     else
                         soundModule.PlayAttachedSound(soundID, ownerID, objectID, volume, position, flags, radius);
                     ParentGroup.PlaySoundMasterPrim = this;
-                    ownerID = OwnerID;
-                    objectID = ParentGroup.RootPart.UUID;
-                    parentID = ParentGroup.UUID;
-                    position = AbsolutePosition; // region local
-                    regionHandle = ParentGroup.Scene.RegionInfo.RegionHandle;
                     if (triggered)
                         soundModule.TriggerSound(soundID, ownerID, objectID, parentID, volume, position, regionHandle, radius);
                     else
@@ -2707,10 +2702,7 @@ namespace OpenSim.Region.Framework.Scenes
                     foreach (SceneObjectPart prim in ParentGroup.PlaySoundSlavePrims)
                     {
                         ownerID = prim.OwnerID;
-                        objectID = prim.ParentGroup.RootPart.UUID;
-                        parentID = prim.ParentGroup.UUID;
                         position = prim.AbsolutePosition; // region local
-                        regionHandle = prim.ParentGroup.Scene.RegionInfo.RegionHandle;
                         if (triggered)
                             soundModule.TriggerSound(soundID, ownerID, objectID, parentID, volume, position, regionHandle, radius);
                         else
