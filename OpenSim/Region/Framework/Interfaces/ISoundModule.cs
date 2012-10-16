@@ -100,18 +100,27 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <summary>
         /// Trigger or play an attached sound in this part's inventory.
         /// </summary>
-        /// <param name="objectID"></param>
-        /// <param name="sound"></param>
-        /// <param name="volume"></param>
-        /// <param name="triggered"></param>
+        /// <param name="objectID">Sound source ID</param>
+        /// <param name="sound">Sound asset ID</param>
+        /// <param name="volume">Sound volume</param>
+        /// <param name="triggered">Triggered or not.</param>
         /// <param name="flags"></param>
-        /// <param name="radius"></param>
-        /// <param name="useMaster"></param>
-        /// <param name="isMaster"></param>
+        /// <param name="radius">Sound radius</param>
+        /// <param name="useMaster">Play using sound master</param>
+        /// <param name="isMaster">Play as sound master</param>
         void SendSound(UUID objectID, UUID sound, double volume,
                 bool triggered, byte flags, float radius, bool useMaster,
                 bool isMaster);
 
+        /// <summary>
+        /// Trigger a sound to be played to all agents within an axis-aligned
+        /// bounding box.
+        /// </summary>
+        /// <param name="objectID">Sound source ID</param>
+        /// <param name="sound">Sound asset ID</param>
+        /// <param name="volume">Sound volume</param>
+        /// <param name="min">AABB bottom south-west corner</param>
+        /// <param name="max">AABB top north-east corner</param>
         void TriggerSoundLimited(UUID objectID, UUID sound, double volume,
                 Vector3 min, Vector3 max);
     }
