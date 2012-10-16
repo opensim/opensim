@@ -204,8 +204,7 @@ namespace OpenSim.Region.CoreModules.World.Sound
                     foreach (SceneObjectPart part in m_host.ParentGroup.LoopSoundSlavePrims)
                     {
                         part.Sound = UUID.Zero;
-                        part.SoundGain = 0;
-                        part.SoundFlags = 0;
+                        part.SoundFlags = 1 << 5;
                         part.SoundRadius = 0;
                         part.ScheduleFullUpdate();
                         part.SendFullUpdateToAllClients();
@@ -216,8 +215,7 @@ namespace OpenSim.Region.CoreModules.World.Sound
                 else
                 {
                     m_host.Sound = UUID.Zero;
-                    m_host.SoundGain = 0;
-                    m_host.SoundFlags = 0;
+                    m_host.SoundFlags = 1 << 5;
                     m_host.SoundRadius = 0;
                     m_host.ScheduleFullUpdate();
                     m_host.SendFullUpdateToAllClients();
@@ -226,8 +224,7 @@ namespace OpenSim.Region.CoreModules.World.Sound
             else
             {
                 m_host.Sound = UUID.Zero;
-                m_host.SoundGain = 0;
-                m_host.SoundFlags = 0;
+                m_host.SoundFlags = 1 << 5;
                 m_host.SoundRadius = 0;
                 m_host.ScheduleFullUpdate();
                 m_host.SendFullUpdateToAllClients();
