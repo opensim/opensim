@@ -188,7 +188,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         private IClientAPI m_currentIncomingClient;
 
-        public LLUDPServer(IPAddress listenIP, ref uint port, int proxyPortOffsetParm, bool allow_alternate_port, IConfigSource configSource, AgentCircuitManager circuitManager)
+        public LLUDPServer(
+            IPAddress listenIP, ref uint port, int proxyPortOffsetParm, bool allow_alternate_port,
+            IConfigSource configSource, AgentCircuitManager circuitManager)
             : base(listenIP, (int)port)
         {
             #region Environment.TickCount Measurement
@@ -242,6 +244,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 PacketPool.Instance.RecyclePackets = packetConfig.GetBoolean("RecyclePackets", true);
                 PacketPool.Instance.RecycleDataBlocks = packetConfig.GetBoolean("RecycleDataBlocks", true);
+                UsePools = packetConfig.GetBoolean("RecycleBaseUDPPackets", false);
             }
 
             #region BinaryStats
@@ -284,8 +287,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private void StartInbound()
         {
             m_log.InfoFormat(
-                "[LLUDPSERVER]: Starting inbound packet processing for the LLUDP server in {0} mode",
-                m_asyncPacketHandling ? "asynchronous" : "synchronous");
+                "[LLUDPSERVER]: Starting inbound packet processing for the LLUDP server in {0} mode with UsePools = {1}",
+                m_asyncPacketHandling ? "asynchronous" : "synchronous", UsePools);
 
             base.StartInbound(m_recvBufferSize, m_asyncPacketHandling);
 
@@ -300,7 +303,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 Watchdog.DEFAULT_WATCHDOG_TIMEOUT_MS);
         }
 
-        private void StartOutbound()
+        private new void StartOutbound()
         {
             m_log.Info("[LLUDPSERVER]: Starting outbound packet processing for the LLUDP server");
 
@@ -317,7 +320,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 Watchdog.DEFAULT_WATCHDOG_TIMEOUT_MS);
         }
 
-        public new void Stop()
+        public void Stop()
         {
             m_log.Info("[LLUDPSERVER]: Shutting down the LLUDP server for " + m_scene.RegionInfo.RegionName);
             base.StopOutbound();
@@ -806,7 +809,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             LLUDPClient udpClient = null;
             Packet packet = null;
             int packetEnd = buffer.DataLength - 1;
-            IPEndPoint address = (IPEndPoint)buffer.RemoteEndPoint;
+            IPEndPoint endPoint = (IPEndPoint)buffer.RemoteEndPoint;
 
             #region Decoding
 
@@ -816,7 +819,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 //                    "[LLUDPSERVER]: Dropping undersized packet with {0} bytes received from {1} in {2}",
 //                    buffer.DataLength, buffer.RemoteEndPoint, m_scene.RegionInfo.RegionName);
 
-                return; // Drop undersizd packet
+                return; // Drop undersized packet
             }
 
             int headerLen = 7;
@@ -842,6 +845,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 //                packet = Packet.BuildPacket(buffer.Data, ref packetEnd,
 //                    // Only allocate a buffer for zerodecoding if the packet is zerocoded
 //                    ((buffer.Data[0] & Helpers.MSG_ZEROCODED) != 0) ? new byte[4096] : null);
+                // If OpenSimUDPBase.UsePool == true (which is currently separate from the PacketPool) then we
+                // assume that packet construction does not retain a reference to byte[] buffer.Data (instead, all
+                // bytes are copied out).
                 packet = PacketPool.Instance.GetPacket(buffer.Data, ref packetEnd,
                     // Only allocate a buffer for zerodecoding if the packet is zerocoded
                     ((buffer.Data[0] & Helpers.MSG_ZEROCODED) != 0) ? new byte[4096] : null);
@@ -884,7 +890,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // UseCircuitCode handling
             if (packet.Type == PacketType.UseCircuitCode)
             {
-                object[] array = new object[] { buffer, packet };
+                // We need to copy the endpoint so that it doesn't get changed when another thread reuses the
+                // buffer.
+                object[] array = new object[] { new IPEndPoint(endPoint.Address, endPoint.Port), packet };
 
                 Util.FireAndForget(HandleUseCircuitCode, array);
 
@@ -893,7 +901,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             // Determine which agent this packet came from
             IClientAPI client;
-            if (!m_scene.TryGetClient(address, out client) || !(client is LLClientView))
+            if (!m_scene.TryGetClient(endPoint, out client) || !(client is LLClientView))
             {
                 //m_log.Debug("[LLUDPSERVER]: Received a " + packet.Type + " packet from an unrecognized source: " + address + " in " + m_scene.RegionInfo.RegionName);
                 return;
@@ -1091,21 +1099,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private void HandleUseCircuitCode(object o)
         {
-            IPEndPoint remoteEndPoint = null;
+            IPEndPoint endPoint = null;
             IClientAPI client = null;
 
             try
             {
     //            DateTime startTime = DateTime.Now;
                 object[] array = (object[])o;
-                UDPPacketBuffer buffer = (UDPPacketBuffer)array[0];
+                endPoint = (IPEndPoint)array[0];
                 UseCircuitCodePacket uccp = (UseCircuitCodePacket)array[1];
 
                 m_log.DebugFormat(
                     "[LLUDPSERVER]: Handling UseCircuitCode request for circuit {0} to {1} from IP {2}",
-                    uccp.CircuitCode.Code, m_scene.RegionInfo.RegionName, buffer.RemoteEndPoint);
-    
-                remoteEndPoint = (IPEndPoint)buffer.RemoteEndPoint;
+                    uccp.CircuitCode.Code, m_scene.RegionInfo.RegionName, endPoint);
     
                 AuthenticateResponse sessionInfo;
                 if (IsClientAuthorized(uccp, out sessionInfo))
@@ -1116,13 +1122,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             uccp.CircuitCode.Code,
                             uccp.CircuitCode.ID,
                             uccp.CircuitCode.SessionID,
-                            remoteEndPoint,
+                            endPoint,
                             sessionInfo);
             
                     // Send ack straight away to let the viewer know that the connection is active.
                     // The client will be null if it already exists (e.g. if on a region crossing the client sends a use
                     // circuit code to the existing child agent.  This is not particularly obvious.
-                    SendAckImmediate(remoteEndPoint, uccp.Header.Sequence);
+                    SendAckImmediate(endPoint, uccp.Header.Sequence);
             
                     // We only want to send initial data to new clients, not ones which are being converted from child to root.
                     if (client != null)
@@ -1133,7 +1139,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     // Don't create clients for unauthorized requesters.
                     m_log.WarnFormat(
                         "[LLUDPSERVER]: Ignoring connection request for {0} to {1} with unknown circuit code {2} from IP {3}",
-                        uccp.CircuitCode.ID, m_scene.RegionInfo.RegionName, uccp.CircuitCode.Code, remoteEndPoint);
+                        uccp.CircuitCode.ID, m_scene.RegionInfo.RegionName, uccp.CircuitCode.Code, endPoint);
                 }
     
                 //            m_log.DebugFormat(
@@ -1145,7 +1151,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 m_log.ErrorFormat(
                     "[LLUDPSERVER]: UseCircuitCode handling from endpoint {0}, client {1} {2} failed.  Exception {3}{4}",
-                    remoteEndPoint != null ? remoteEndPoint.ToString() : "n/a",
+                    endPoint != null ? endPoint.ToString() : "n/a",
                     client != null ? client.Name : "unknown",
                     client != null ? client.AgentId.ToString() : "unknown",
                     e.Message,
