@@ -536,7 +536,7 @@ namespace OpenSim.Framework
         /// <summary>
         /// Determines whether a point is inside a bounding box.
         /// </summary>
-        /// <param name='v'>/param>
+        /// <param name='v'></param>
         /// <param name='min'></param>
         /// <param name='max'></param>
         /// <returns></returns>
