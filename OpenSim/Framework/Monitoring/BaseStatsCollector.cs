@@ -49,7 +49,11 @@ namespace OpenSim.Framework.Monitoring
                 Math.Round(GC.GetTotalMemory(false) / 1024.0 / 1024.0));
 
             sb.AppendFormat(
-                "OpenSim object memory churn : {0} MB/s\n",
+                "OpenSim last object memory churn    : {0} MB/s\n",
+                Math.Round((MemoryWatchdog.LastMemoryChurn * 1000) / 1024.0 / 1024, 3));
+
+            sb.AppendFormat(
+                "OpenSim average object memory churn : {0} MB/s\n",
                 Math.Round((MemoryWatchdog.AverageMemoryChurn * 1000) / 1024.0 / 1024, 3));
 
             sb.AppendFormat(
