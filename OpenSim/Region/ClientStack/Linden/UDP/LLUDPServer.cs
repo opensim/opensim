@@ -37,6 +37,7 @@ using log4net;
 using Nini.Config;
 using OpenMetaverse.Packets;
 using OpenSim.Framework;
+using OpenSim.Framework.Console;
 using OpenSim.Framework.Monitoring;
 using OpenSim.Region.Framework.Scenes;
 using OpenMetaverse;
@@ -278,16 +279,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void Start()
         {
-            if (m_scene == null)
-                throw new InvalidOperationException("[LLUDPSERVER]: Cannot LLUDPServer.Start() without an IScene reference");
+            StartInbound();
+            StartOutbound();
 
+            m_elapsedMSSinceLastStatReport = Environment.TickCount;
+        }
+
+        private void StartInbound()
+        {
             m_log.InfoFormat(
-                "[LLUDPSERVER]: Starting the LLUDP server in {0} mode",
+                "[LLUDPSERVER]: Starting inbound packet processing for the LLUDP server in {0} mode",
                 m_asyncPacketHandling ? "asynchronous" : "synchronous");
 
-            base.Start(m_recvBufferSize, m_asyncPacketHandling);
+            base.StartInbound(m_recvBufferSize, m_asyncPacketHandling);
 
-            // Start the packet processing threads
+            // This thread will process the packets received that are placed on the packetInbox
             Watchdog.StartThread(
                 IncomingPacketHandler,
                 string.Format("Incoming Packets ({0})", m_scene.RegionInfo.RegionName),
@@ -296,7 +302,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 true,
                 GetWatchdogIncomingAlarmData,
                 Watchdog.DEFAULT_WATCHDOG_TIMEOUT_MS);
+        }
 
+        private void StartOutbound()
+        {
+            m_log.Info("[LLUDPSERVER]: Starting outbound packet processing for the LLUDP server");
+
+            base.StartOutbound();
+
+            // This thread will process the packets received that are placed on the packetInbox
             Watchdog.StartThread(
                 OutgoingPacketHandler,
                 string.Format("Outgoing Packets ({0})", m_scene.RegionInfo.RegionName),
@@ -305,8 +319,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 true,
                 GetWatchdogOutgoingAlarmData,
                 Watchdog.DEFAULT_WATCHDOG_TIMEOUT_MS);
+        }
 
-            m_elapsedMSSinceLastStatReport = Environment.TickCount;
+        public new void Stop()
+        {
+            m_log.Info("[LLUDPSERVER]: Shutting down the LLUDP server for " + m_scene.RegionInfo.RegionName);
+            base.StopOutbound();
+            base.StopInbound();
         }
 
         /// <summary>
@@ -331,12 +350,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_currentOutgoingClient != null ? m_currentOutgoingClient.Name : "none");
         }
 
-        public new void Stop()
-        {
-            m_log.Info("[LLUDPSERVER]: Shutting down the LLUDP server for " + m_scene.RegionInfo.RegionName);
-            base.Stop();
-        }
-
         public void AddScene(IScene scene)
         {
             if (m_scene != null)
@@ -353,6 +366,81 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             m_scene = (Scene)scene;
             m_location = new Location(m_scene.RegionInfo.RegionHandle);
+
+            MainConsole.Instance.Commands.AddCommand(
+                "Debug",
+                false,
+                "debug lludp start",
+                "debug lludp start <in|out|all>",
+                "Control LLUDP packet processing.",
+                "No effect if packet processing has already started.\n"
+                    + "in  - start inbound processing.\n"
+                    + "out - start outbound processing.\n"
+                    + "all - start in and outbound processing.\n",
+                HandleStartCommand);
+
+            MainConsole.Instance.Commands.AddCommand(
+                "Debug",
+                false,
+                "debug lludp stop",
+                "debug lludp stop <in|out|all>",
+                "Stop LLUDP packet processing.",
+                "No effect if packet processing has already stopped.\n"
+                    + "in  - stop inbound processing.\n"
+                    + "out - stop outbound processing.\n"
+                    + "all - stop in and outbound processing.\n",
+                HandleStopCommand);
+
+            MainConsole.Instance.Commands.AddCommand(
+                "Debug",
+                false,
+                "debug lludp status",
+                "debug lludp status",
+                "Return status of LLUDP packet processing.",
+                HandleStatusCommand);
+        }
+
+        private void HandleStartCommand(string module, string[] args)
+        {
+            if (args.Length != 4)
+            {
+                MainConsole.Instance.Output("Usage: debug lludp start <in|out|all>");
+                return;
+            }
+
+            string subCommand = args[3];
+
+            if (subCommand == "in" || subCommand == "all")
+                StartInbound();
+
+            if (subCommand == "out" || subCommand == "all")
+                StartOutbound();
+        }
+
+        private void HandleStopCommand(string module, string[] args)
+        {
+            if (args.Length != 4)
+            {
+                MainConsole.Instance.Output("Usage: debug lludp stop <in|out|all>");
+                return;
+            }
+
+            string subCommand = args[3];
+
+            if (subCommand == "in" || subCommand == "all")
+                StopInbound();
+
+            if (subCommand == "out" || subCommand == "all")
+                StopOutbound();
+        }
+
+        private void HandleStatusCommand(string module, string[] args)
+        {
+            MainConsole.Instance.OutputFormat(
+                "IN  LLUDP packet processing for {0} is {1}", m_scene.Name, IsRunningInbound ? "enabled" : "disabled");
+
+            MainConsole.Instance.OutputFormat(
+                "OUT LLUDP packet processing for {0} is {1}", m_scene.Name, IsRunningOutbound ? "enabled" : "disabled");
         }
 
         public bool HandlesRegion(Location x)
@@ -1239,7 +1327,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // on to en-US to avoid number parsing issues
             Culture.SetCurrentCulture();
 
-            while (base.IsRunning)
+            while (base.IsRunningInbound)
             {
                 m_scene.ThreadAlive(1);
                 try
@@ -1282,7 +1370,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Action generic every round
             Action<IClientAPI> clientPacketHandler = ClientOutgoingPacketHandler;
 
-            while (base.IsRunning)
+            while (base.IsRunningOutbound)
             {
                 m_scene.ThreadAlive(2);
                 try
