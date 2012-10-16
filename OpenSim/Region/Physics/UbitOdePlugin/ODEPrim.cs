@@ -1104,7 +1104,12 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             m_building = true; // control must set this to false when done
 
-            _parent_scene.m_meshWorker.NewActorPhysRep(this, _pbs, _size, m_shapetype);
+            // get basic mass parameters
+            ODEPhysRepData repData = _parent_scene.m_meshWorker.NewActorPhysRep(this, _pbs, _size, m_shapetype);
+
+            primVolume = repData.volume;
+
+            UpdatePrimBodyData();
         }
 
         private void resetCollisionAccounting()
@@ -1466,7 +1471,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             m_NoColide = false;
 
-            if ((m_meshState & MeshState.FailMask) != 0)
+            if ((m_meshState & MeshState.MeshNoColide) != 0)
                 m_NoColide = true;
 
             else if(m_mesh != null)
