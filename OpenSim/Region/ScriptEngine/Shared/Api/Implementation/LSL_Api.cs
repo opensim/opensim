@@ -2405,7 +2405,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // send the sound, once, to all clients in range
             if (m_SoundModule != null)
             {
-            m_SoundModule.SendSound(m_host.UUID, KeyOrName(sound, AssetType.Sound), volume, false, 0, 0, false, false);
+                m_SoundModule.SendSound(m_host.UUID,
+                        KeyOrName(sound, AssetType.Sound), volume, false, 0,
+                        0, false, false);
             }
         }
 
@@ -2445,7 +2447,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // send the sound, once, to all clients in range
             if (m_SoundModule != null)
             {
-            m_SoundModule.SendSound(m_host.UUID, KeyOrName(sound, AssetType.Sound), volume, false, 0, 0, true, false);
+                m_SoundModule.SendSound(m_host.UUID,
+                        KeyOrName(sound, AssetType.Sound), volume, false, 0,
+                        0, true, false);
             }
         }
 
@@ -2455,7 +2459,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // send the sound, once, to all clients in rangeTrigger or play an attached sound in this part's inventory.
             if (m_SoundModule != null)
             {
-            m_SoundModule.SendSound(m_host.UUID, KeyOrName(sound, AssetType.Sound), volume, true, 0, 0, false, false);
+                m_SoundModule.SendSound(m_host.UUID,
+                        KeyOrName(sound, AssetType.Sound), volume, true, 0, 0,
+                        false, false);
             }
         }
 
@@ -5871,10 +5877,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             if (m_SoundModule != null)
             {
-            float radius1 = (float)llVecDist(llGetPos(), top_north_east);
-            float radius2 = (float)llVecDist(llGetPos(), bottom_south_west);
-            float radius = Math.Abs(radius1 - radius2);
-            m_SoundModule.SendSound(m_host.UUID, KeyOrName(sound, AssetType.Sound), volume, true, 0, radius, false, false);
+                float radius1 = (float)llVecDist(llGetPos(), top_north_east);
+                float radius2 = (float)llVecDist(llGetPos(), bottom_south_west);
+                float radius = Math.Abs(radius1 - radius2);
+                m_SoundModule.SendSound(m_host.UUID,
+                        KeyOrName(sound, AssetType.Sound), volume, true, 0,
+                        radius, false, false);
             }
         }
 
