@@ -334,6 +334,36 @@ namespace OpenSim.Region.CoreModules.World.Sound
             }
         }
 
+        public void TriggerSoundLimited(UUID objectID, UUID sound,
+                double volume, Vector3 min, Vector3 max)
+        {
+            if (sound == UUID.Zero)
+                return;
+
+            SceneObjectPart part;
+            if (!m_scene.TryGetSceneObjectPart(objectID, out part))
+                return;
+
+            m_scene.ForEachRootScenePresence(delegate(ScenePresence sp)
+            {
+                double dis = Util.GetDistanceTo(sp.AbsolutePosition,
+                        part.AbsolutePosition);
+
+                if (dis > MaxDistance) // Max audio distance
+                    return;
+                else if (!Util.IsInsideBox(sp.AbsolutePosition, min, max))
+                    return;
+
+                // Scale by distance
+                double thisSpGain = volume * ((MaxDistance - dis) / MaxDistance);
+
+                sp.ControllingClient.SendTriggeredSound(sound, part.OwnerID,
+                        part.UUID, part.ParentGroup.UUID,
+                        m_scene.RegionInfo.RegionHandle,
+                        part.AbsolutePosition, (float)thisSpGain);
+            });
+        }
+
         #endregion
     }
 }

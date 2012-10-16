@@ -5876,12 +5876,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             if (m_SoundModule != null)
             {
-                double radius1 = VecDist(m_host.GetWorldPosition(), top_north_east);
-                double radius2 = VecDist(m_host.GetWorldPosition(), bottom_south_west);
-                double radius = Math.Abs(radius1 - radius2);
-                m_SoundModule.SendSound(m_host.UUID,
-                        KeyOrName(sound, AssetType.Sound), volume, true, 0,
-                        (float)radius, false, false);
+                m_SoundModule.TriggerSoundLimited(m_host.UUID,
+                        KeyOrName(sound, AssetType.Sound), volume,
+                        bottom_south_west, top_north_east);
             }
         }
 

@@ -111,5 +111,8 @@ namespace OpenSim.Region.Framework.Interfaces
         void SendSound(UUID objectID, UUID sound, double volume,
                 bool triggered, byte flags, float radius, bool useMaster,
                 bool isMaster);
+
+        void TriggerSoundLimited(UUID objectID, UUID sound, double volume,
+                Vector3 min, Vector3 max);
     }
 }
