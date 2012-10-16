@@ -59,6 +59,7 @@ using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 using PresenceInfo = OpenSim.Services.Interfaces.PresenceInfo;
 using PrimType = OpenSim.Region.Framework.Scenes.PrimType;
 using AssetLandmark = OpenSim.Framework.AssetLandmark;
+using RegionFlags = OpenSim.Framework.RegionFlags;
 
 using LSL_Float = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLFloat;
 using LSL_Integer = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLInteger;
@@ -6918,7 +6919,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 GridInstantMessage msg = new GridInstantMessage(World,
                         m_host.OwnerID, m_host.Name, destID,
                         (byte)InstantMessageDialog.TaskInventoryOffered,
-                        false, string.Format("'{0}'"),
+                        false, string.Format("'{0}'", category),
 // We won't go so far as to add a SLURL, but this is the format used by LL as of 2012-10-06                                       
 // false, string.Format("'{0}'  ( http://slurl.com/secondlife/{1}/{2}/{3}/{4} )", category, World.Name, (int)pos.X, (int)pos.Y, (int)pos.Z),
                         folderID, false, pos,
@@ -10058,11 +10059,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 GridRegion info;
 
-                if (m_ScriptEngine.World.RegionInfo.RegionName == simulator) //Det data for this simulator?
-
-                    info = new GridRegion(m_ScriptEngine.World.RegionInfo);
+                if (World.RegionInfo.RegionName == simulator)
+                    info = new GridRegion(World.RegionInfo);
                 else
-                    info = m_ScriptEngine.World.GridService.GetRegionByName(m_ScriptEngine.World.RegionInfo.ScopeID, simulator);
+                    info = World.GridService.GetRegionByName(m_ScriptEngine.World.RegionInfo.ScopeID, simulator);
 
                 switch (data)
                 {
@@ -10072,9 +10072,24 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             ScriptSleep(1000);
                             return UUID.Zero.ToString();
                         }
-                        if (m_ScriptEngine.World.RegionInfo.RegionName != simulator)
+
+                        bool isHypergridRegion = false;
+
+                        if (World.RegionInfo.RegionName != simulator && info.RegionSecret != "")
                         {
-                            //Hypergrid Region co-ordinates
+                            // Hypergrid is currently placing real destination region co-ords into RegionSecret.
+                            // But other code can also use this field for a genuine RegionSecret!  Therefore, if
+                            // anything is present we need to disambiguate.
+                            //
+                            // FIXME: Hypergrid should be storing this data in a different field.
+                            RegionFlags regionFlags
+                                = (RegionFlags)m_ScriptEngine.World.GridService.GetRegionFlags(
+                                    info.ScopeID, info.RegionID);
+                            isHypergridRegion = (regionFlags & RegionFlags.Hyperlink) != 0;
+                        }
+
+                        if (isHypergridRegion)
+                        {
                             uint rx = 0, ry = 0;
                             Utils.LongToUInts(Convert.ToUInt64(info.RegionSecret), out rx, out ry);
 
@@ -10085,7 +10100,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         }
                         else
                         {
-                            //Local-cooridnates
+                            // Local grid co-oridnates
                             reply = new LSL_Vector(
                                 info.RegionLocX,
                                 info.RegionLocY,
