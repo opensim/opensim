@@ -96,5 +96,20 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="isMaster">Set object to sync master if true</param>
         void LoopSound(UUID objectID, UUID soundID, double gain,
                 double radius, bool isMaster);
+
+        /// <summary>
+        /// Trigger or play an attached sound in this part's inventory.
+        /// </summary>
+        /// <param name="objectID"></param>
+        /// <param name="sound"></param>
+        /// <param name="volume"></param>
+        /// <param name="triggered"></param>
+        /// <param name="flags"></param>
+        /// <param name="radius"></param>
+        /// <param name="useMaster"></param>
+        /// <param name="isMaster"></param>
+        void SendSound(UUID objectID, string sound, double volume,
+                bool triggered, byte flags, float radius, bool useMaster,
+                bool isMaster);
     }
 }

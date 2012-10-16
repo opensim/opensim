@@ -278,6 +278,79 @@ namespace OpenSim.Region.CoreModules.World.Sound
             m_host.SendFullUpdateToAllClients();
         }
 
+        public void SendSound(UUID objectID, string sound, double volume,
+                bool triggered, byte flags, float radius, bool useMaster,
+                bool isMaster)
+        {
+            SceneObjectPart part;
+            if (!m_scene.TryGetSceneObjectPart(objectID, out part))
+                return;
+
+            volume = Util.Clip((float)volume, 0, 1);
+
+            UUID parentID = part.ParentGroup.UUID;
+
+            UUID soundID = UUID.Zero;
+            Vector3 position = part.AbsolutePosition; // region local
+            ulong regionHandle = m_scene.RegionInfo.RegionHandle;
+
+            if (!UUID.TryParse(sound, out soundID))
+            {
+                // search sound file from inventory
+                lock (part.TaskInventory)
+                {
+                    foreach (KeyValuePair<UUID, TaskInventoryItem> item in part.TaskInventory)
+                    {
+                        if (item.Value.Type == (int)AssetType.Sound && item.Value.Name == sound)
+                        {
+                            soundID = item.Value.ItemID;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (soundID == UUID.Zero)
+                return;
+
+            if (useMaster)
+            {
+                if (isMaster)
+                {
+                    if (triggered)
+                        TriggerSound(soundID, part.OwnerID, part.UUID, parentID, volume, position, regionHandle, radius);
+                    else
+                        PlayAttachedSound(soundID, part.OwnerID, part.UUID, volume, position, flags, radius);
+                    part.ParentGroup.PlaySoundMasterPrim = part;
+                    if (triggered)
+                        TriggerSound(soundID, part.OwnerID, part.UUID, parentID, volume, position, regionHandle, radius);
+                    else
+                        PlayAttachedSound(soundID, part.OwnerID, part.UUID, volume, position, flags, radius);
+                    foreach (SceneObjectPart prim in part.ParentGroup.PlaySoundSlavePrims)
+                    {
+                        position = prim.AbsolutePosition; // region local
+                        if (triggered)
+                            TriggerSound(soundID, part.OwnerID, prim.UUID, parentID, volume, position, regionHandle, radius);
+                        else
+                            PlayAttachedSound(soundID, part.OwnerID, prim.UUID, volume, position, flags, radius);
+                    }
+                    part.ParentGroup.PlaySoundSlavePrims.Clear();
+                    part.ParentGroup.PlaySoundMasterPrim = null;
+                }
+                else
+                {
+                    part.ParentGroup.PlaySoundSlavePrims.Add(part);
+                }
+            }
+            else
+            {
+                if (triggered)
+                    TriggerSound(soundID, part.OwnerID, part.UUID, parentID, volume, position, regionHandle, radius);
+                else
+                    PlayAttachedSound(soundID, part.OwnerID, part.UUID, volume, position, flags, radius);
+            }
+        }
+
         #endregion
     }
 }

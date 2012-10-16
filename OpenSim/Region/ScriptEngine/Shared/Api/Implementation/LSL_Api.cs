@@ -2367,7 +2367,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
 
             // send the sound, once, to all clients in range
-            m_host.SendSound(KeyOrName(sound).ToString(), volume, false, 0, 0, false, false);
+            if (m_SoundModule != null)
+            {
+            m_SoundModule.SendSound(m_host.UUID, KeyOrName(sound).ToString(), volume, false, 0, 0, false, false);
+            }
         }
 
         public void llLoopSound(string sound, double volume)
@@ -2404,14 +2407,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
 
             // send the sound, once, to all clients in range
-            m_host.SendSound(KeyOrName(sound).ToString(), volume, false, 0, 0, true, false);
+            if (m_SoundModule != null)
+            {
+            m_SoundModule.SendSound(m_host.UUID, KeyOrName(sound).ToString(), volume, false, 0, 0, true, false);
+            }
         }
 
         public void llTriggerSound(string sound, double volume)
         {
             m_host.AddScriptLPS(1);
-            // send the sound, once, to all clients in range
-            m_host.SendSound(KeyOrName(sound).ToString(), volume, true, 0, 0, false, false);
+            // send the sound, once, to all clients in rangeTrigger or play an attached sound in this part's inventory.
+            if (m_SoundModule != null)
+            {
+            m_SoundModule.SendSound(m_host.UUID, KeyOrName(sound).ToString(), volume, true, 0, 0, false, false);
+            }
         }
 
         public void llStopSound()
@@ -5824,10 +5833,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                           LSL_Vector bottom_south_west)
         {
             m_host.AddScriptLPS(1);
+            if (m_SoundModule != null)
+            {
             float radius1 = (float)llVecDist(llGetPos(), top_north_east);
             float radius2 = (float)llVecDist(llGetPos(), bottom_south_west);
             float radius = Math.Abs(radius1 - radius2);
-            m_host.SendSound(KeyOrName(sound).ToString(), volume, true, 0, radius, false, false);
+            m_SoundModule.SendSound(m_host.UUID, KeyOrName(sound).ToString(), volume, true, 0, radius, false, false);
+            }
         }
 
         public void llEjectFromLand(string pest)

@@ -821,8 +821,11 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         {
             if (!CanEdit())
                 return;
-
-            GetSOP().SendSound(asset.ToString(), volume, true, 0, 0, false, false);
+            ISoundModule module = m_rootScene.RequestModuleInterface<ISoundModule>();
+            if (module != null)
+            {
+                module.SendSound(GetSOP().UUID, asset.ToString(), volume, true, 0, 0, false, false);
+            }
         }
 
         #endregion
