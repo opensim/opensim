@@ -58,10 +58,15 @@ namespace OpenSim.Region.CoreModules.World.Sound
             IConfig config = configSource.Configs["Sounds"];
 
             if (config == null)
-                return;
-
-            Enabled = config.GetString("Module", "SoundModuleNonShared") == "SoundModuleNonShared";
-            MaxDistance = config.GetFloat("MaxDistance", 100.0f);
+            {
+                Enabled = true;
+                MaxDistance = 100.0f;
+            }
+            else
+            {
+                Enabled = config.GetString("Module", "SoundModuleNonShared") == "SoundModuleNonShared";
+                MaxDistance = config.GetFloat("MaxDistance", 100.0f);
+            }
         }
 
         public void AddRegion(Scene scene) { }
