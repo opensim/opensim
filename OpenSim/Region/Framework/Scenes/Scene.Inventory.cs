@@ -2506,6 +2506,12 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             m_sceneGraph.LinkObjects(root, children);
+
+            ScenePresence sp;
+            if (TryGetScenePresence(agentId, out sp))
+            {
+                root.SendPropertiesToClient(sp.ControllingClient);
+            }
         }
 
         private string PermissionString(uint permissions)

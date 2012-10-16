@@ -104,9 +104,9 @@ namespace OpenSim.Region.ClientStack.Linden
 
             if (m_workerThreads == null)
             {
-                m_workerThreads = new Thread[4];
+                m_workerThreads = new Thread[2];
 
-                for (uint i = 0; i < 4; i++)
+                for (uint i = 0; i < 2; i++)
                 {
                     m_workerThreads[i] = Watchdog.StartThread(DoTextureRequests,
                             String.Format("TextureWorkerThread{0}", i),

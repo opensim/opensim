@@ -3762,6 +3762,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if (World.GetExtraSetting("auto_grant_attach_perms") == "true")
                         implicitPerms = ScriptBaseClass.PERMISSION_ATTACH;
                 }
+                if (World.GetExtraSetting("auto_grant_all_perms") == "true")
+                {
+                    implicitPerms = perm;
+                }
             }
 
             if ((perm & (~implicitPerms)) == 0) // Requested only implicit perms
