@@ -4342,16 +4342,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             
             // TODO: Parameter check logic required.
-            UUID soundId = UUID.Zero;
-            if (!UUID.TryParse(impact_sound, out soundId))
-            {
-                TaskInventoryItem item = m_host.Inventory.GetInventoryItem(impact_sound);
-
-                if (item != null && item.Type == (int)AssetType.Sound)
-                    soundId = item.AssetID;
-            }
-
-            m_host.CollisionSound = soundId;
+            m_host.CollisionSound = KeyOrName(impact_sound, AssetType.Sound);
             m_host.CollisionSoundVolume = (float)impact_volume;
         }
 
