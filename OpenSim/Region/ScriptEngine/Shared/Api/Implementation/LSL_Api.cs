@@ -333,6 +333,42 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return key;
         }
 
+        /// <summary>
+        /// Return the UUID of the asset matching the specified key or name
+        /// and asset type.
+        /// </summary>
+        /// <param name="k"></param>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        protected UUID KeyOrName(string k, AssetType type)
+        {
+            UUID key;
+
+            if (!UUID.TryParse(k, out key))
+            {
+                TaskInventoryItem item = m_host.Inventory.GetInventoryItem(k);
+                if (item != null && item.Type == (int)type)
+                    key = item.AssetID;
+            }
+            else
+            {
+                lock (m_host.TaskInventory)
+                {
+                    foreach (KeyValuePair<UUID, TaskInventoryItem> item in m_host.TaskInventory)
+                    {
+                        if (item.Value.Type == (int)type && item.Value.Name == k)
+                        {
+                            key = item.Value.ItemID;
+                            break;
+                        }
+                    }
+                }
+            }
+
+
+            return key;
+        }
+
         //These are the implementations of the various ll-functions used by the LSL scripts.
         public LSL_Float llSin(double f)
         {
@@ -2369,7 +2405,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // send the sound, once, to all clients in range
             if (m_SoundModule != null)
             {
-            m_SoundModule.SendSound(m_host.UUID, KeyOrName(sound).ToString(), volume, false, 0, 0, false, false);
+            m_SoundModule.SendSound(m_host.UUID, KeyOrName(sound, AssetType.Sound), volume, false, 0, 0, false, false);
             }
         }
 
@@ -2409,7 +2445,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // send the sound, once, to all clients in range
             if (m_SoundModule != null)
             {
-            m_SoundModule.SendSound(m_host.UUID, KeyOrName(sound).ToString(), volume, false, 0, 0, true, false);
+            m_SoundModule.SendSound(m_host.UUID, KeyOrName(sound, AssetType.Sound), volume, false, 0, 0, true, false);
             }
         }
 
@@ -2419,7 +2455,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // send the sound, once, to all clients in rangeTrigger or play an attached sound in this part's inventory.
             if (m_SoundModule != null)
             {
-            m_SoundModule.SendSound(m_host.UUID, KeyOrName(sound).ToString(), volume, true, 0, 0, false, false);
+            m_SoundModule.SendSound(m_host.UUID, KeyOrName(sound, AssetType.Sound), volume, true, 0, 0, false, false);
             }
         }
 
@@ -5838,7 +5874,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             float radius1 = (float)llVecDist(llGetPos(), top_north_east);
             float radius2 = (float)llVecDist(llGetPos(), bottom_south_west);
             float radius = Math.Abs(radius1 - radius2);
-            m_SoundModule.SendSound(m_host.UUID, KeyOrName(sound).ToString(), volume, true, 0, radius, false, false);
+            m_SoundModule.SendSound(m_host.UUID, KeyOrName(sound, AssetType.Sound), volume, true, 0, radius, false, false);
             }
         }
 

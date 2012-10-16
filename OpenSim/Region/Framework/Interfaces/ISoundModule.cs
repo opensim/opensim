@@ -108,7 +108,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="radius"></param>
         /// <param name="useMaster"></param>
         /// <param name="isMaster"></param>
-        void SendSound(UUID objectID, string sound, double volume,
+        void SendSound(UUID objectID, UUID sound, double volume,
                 bool triggered, byte flags, float radius, bool useMaster,
                 bool isMaster);
     }
