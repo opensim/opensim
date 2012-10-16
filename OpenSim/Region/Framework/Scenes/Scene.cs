@@ -4144,8 +4144,9 @@ namespace OpenSim.Region.Framework.Scenes
                 return false;
             }
 
-            // We have to wait until the viewer contacts this region after receiving EAC.
-            // That calls AddNewClient, which finally creates the ScenePresence
+            // We have to wait until the viewer contacts this region
+            // after receiving the EnableSimulator HTTP Event Queue message.  This triggers the viewer to send
+            // a UseCircuitCode packet which in turn calls AddNewClient which finally creates the ScenePresence.
             ScenePresence childAgentUpdate = WaitGetScenePresence(cAgentData.AgentID);
 
             if (childAgentUpdate != null)
