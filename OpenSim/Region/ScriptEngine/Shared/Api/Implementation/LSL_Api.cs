@@ -5877,12 +5877,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             if (m_SoundModule != null)
             {
-                float radius1 = (float)llVecDist(llGetPos(), top_north_east);
-                float radius2 = (float)llVecDist(llGetPos(), bottom_south_west);
-                float radius = Math.Abs(radius1 - radius2);
+                double radius1 = llVecDist(llGetPos(), top_north_east);
+                double radius2 = llVecDist(llGetPos(), bottom_south_west);
+                double radius = Math.Abs(radius1 - radius2);
                 m_SoundModule.SendSound(m_host.UUID,
                         KeyOrName(sound, AssetType.Sound), volume, true, 0,
-                        radius, false, false);
+                        (float)radius, false, false);
             }
         }
 
