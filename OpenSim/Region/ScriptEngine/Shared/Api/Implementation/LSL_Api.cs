@@ -2082,8 +2082,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Vector llGetPos()
         {
             m_host.AddScriptLPS(1);
-            Vector3 pos = m_host.GetWorldPosition();
-            return new LSL_Vector(pos.X, pos.Y, pos.Z);
+            return m_host.GetWorldPosition();
         }
 
         public LSL_Vector llGetLocalPos()
