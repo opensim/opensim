@@ -1729,33 +1729,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 ODEchangeitem item;
 
-                if (ChangesQueue.Count > 0)
-                {
-                    int ttmpstart = Util.EnvironmentTickCount();
-                    int ttmp;
 
-                    while (ChangesQueue.Dequeue(out item))
-                    {
-                        if (item.actor != null)
-                        {
-                            try
-                            {
-                                if (item.actor is OdeCharacter)
-                                    ((OdeCharacter)item.actor).DoAChange(item.what, item.arg);
-                                else if (((OdePrim)item.actor).DoAChange(item.what, item.arg))
-                                    RemovePrimThreadLocked((OdePrim)item.actor);
-                            }
-                            catch
-                            {
-                                m_log.WarnFormat("[PHYSICS]: doChange failed for a actor {0} {1}",
-                                    item.actor.Name, item.what.ToString());
-                            }
-                        }
-                        ttmp = Util.EnvironmentTickCountSubtract(ttmpstart);
-                        if (ttmp > 20)
-                            break;
-                    }
-                }
                 
                 d.WorldSetQuickStepNumIterations(world, curphysiteractions);
 
@@ -1766,6 +1740,33 @@ namespace OpenSim.Region.Physics.OdePlugin
                         // clear pointer/counter to contacts to pass into joints
                         m_global_contactcount = 0;
 
+                        if (ChangesQueue.Count > 0)
+                        {
+                            int ttmpstart = Util.EnvironmentTickCount();
+                            int ttmp;
+
+                            while (ChangesQueue.Dequeue(out item))
+                            {
+                                if (item.actor != null)
+                                {
+                                    try
+                                    {
+                                        if (item.actor is OdeCharacter)
+                                            ((OdeCharacter)item.actor).DoAChange(item.what, item.arg);
+                                        else if (((OdePrim)item.actor).DoAChange(item.what, item.arg))
+                                            RemovePrimThreadLocked((OdePrim)item.actor);
+                                    }
+                                    catch
+                                    {
+                                        m_log.WarnFormat("[PHYSICS]: doChange failed for a actor {0} {1}",
+                                            item.actor.Name, item.what.ToString());
+                                    }
+                                }
+                                ttmp = Util.EnvironmentTickCountSubtract(ttmpstart);
+                                if (ttmp > 20)
+                                    break;
+                            }
+                        }
 
                         // Move characters
                         lock (_characters)
