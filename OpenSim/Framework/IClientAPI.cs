@@ -805,8 +805,23 @@ namespace OpenSim.Framework
         event Action<IClientAPI> OnRegionHandShakeReply;
         event GenericCall1 OnRequestWearables;
         event Action<IClientAPI, bool> OnCompleteMovementToRegion;
+
+        /// <summary>
+        /// Called when an AgentUpdate message is received and before OnAgentUpdate.
+        /// </summary>
+        /// <remarks>
+        /// Listeners must not retain a reference to AgentUpdateArgs since this object may be reused for subsequent AgentUpdates.
+        /// </remarks>
         event UpdateAgent OnPreAgentUpdate;
+
+        /// <summary>
+        /// Called when an AgentUpdate message is received and after OnPreAgentUpdate.
+        /// </summary>
+        /// <remarks>
+        /// Listeners must not retain a reference to AgentUpdateArgs since this object may be reused for subsequent AgentUpdates.
+        /// </remarks>
         event UpdateAgent OnAgentUpdate;
+
         event AgentRequestSit OnAgentRequestSit;
         event AgentSit OnAgentSit;
         event AvatarPickerRequest OnAvatarPickerRequest;
