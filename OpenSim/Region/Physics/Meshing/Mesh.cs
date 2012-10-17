@@ -148,6 +148,12 @@ namespace OpenSim.Region.Physics.Meshing
                 return Vector3.Zero;
         }
 
+        // not functional
+        public Vector3 GetOBB()
+        {
+            return new Vector3(0.5f, 0.5f, 0.5f);
+        }
+
         public void CalcNormals()
         {
             int iTriangles = m_triangles.Count;
@@ -253,6 +259,7 @@ namespace OpenSim.Region.Physics.Meshing
         public void getVertexListAsPtrToFloatArray(out IntPtr vertices, out int vertexStride, out int vertexCount)
         {
             // A vertex is 3 floats
+            
             vertexStride = 3 * sizeof(float);
 
             // If there isn't an unmanaged array allocated yet, do it now

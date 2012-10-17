@@ -129,7 +129,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             req.length = length;
             req.Normal = direction;
             req.Origin = position;
-            req.filter = RayFilterFlags.AllPrims;
+            req.filter = RayFilterFlags.AllPrims | RayFilterFlags.land;
 
             m_PendingRequests.Enqueue(req);
         }
@@ -288,7 +288,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                             catflags |= CollisionCategories.Water;
 
                         if (catflags != 0)
+                        {
+                            d.GeomSetCollideBits(ray, (uint)catflags);
                             doSpaceRay(req);
+                        }
                     }
                     else
                     {
@@ -314,7 +317,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// 
 
         private const RayFilterFlags FilterActiveSpace = RayFilterFlags.agent | RayFilterFlags.physical | RayFilterFlags.LSLPhanton;
-        private const RayFilterFlags FilterStaticSpace = RayFilterFlags.water | RayFilterFlags.land | RayFilterFlags.nonphysical | RayFilterFlags.LSLPhanton;
+//        private const RayFilterFlags FilterStaticSpace = RayFilterFlags.water | RayFilterFlags.land | RayFilterFlags.nonphysical | RayFilterFlags.LSLPhanton;
+        private const RayFilterFlags FilterStaticSpace = RayFilterFlags.water | RayFilterFlags.nonphysical | RayFilterFlags.LSLPhanton;
 
         private void doSpaceRay(ODERayRequest req)
         {
@@ -323,6 +327,16 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.SpaceCollide2(ray, m_scene.ActiveSpace, IntPtr.Zero, nearCallback);
             if ((CurrentRayFilter & FilterStaticSpace) != 0 && (m_contactResults.Count < CurrentMaxCount))
                 d.SpaceCollide2(ray, m_scene.StaticSpace, IntPtr.Zero, nearCallback);
+            if ((CurrentRayFilter & RayFilterFlags.land) != 0 && (m_contactResults.Count < CurrentMaxCount))
+            {
+                // current ode land to ray collisions is very bad
+                // so for now limit its range badly
+
+                if (req.length > 30.0f)
+                    d.GeomRaySetLength(ray, 30.0f);
+
+                d.SpaceCollide2(ray, m_scene.GroundSpace, IntPtr.Zero, nearCallback);
+            }
 
             if (req.callbackMethod is RaycastCallback)
             {
