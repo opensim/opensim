@@ -168,6 +168,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>Flag to signal when clients should send pings</summary>
         protected bool m_sendPing;
 
+        private Pool<IncomingPacket> m_incomingPacketPool;
+
         private int m_defaultRTO = 0;
         private int m_maxRTO = 0;
         private int m_ackTimeout = 0;
@@ -274,6 +276,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             m_throttle = new TokenBucket(null, sceneThrottleBps);
             ThrottleRates = new ThrottleRates(configSource);
+
+            if (UsePools)
+                m_incomingPacketPool = new Pool<IncomingPacket>(() => new IncomingPacket(), 500);
         }
 
         public void Start()
@@ -1012,8 +1017,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             #endregion Ping Check Handling
 
+            IncomingPacket incomingPacket;
+
             // Inbox insertion
-            packetInbox.Enqueue(new IncomingPacket((LLClientView)client, packet));
+            if (UsePools)
+            {
+                incomingPacket = m_incomingPacketPool.GetObject();
+                incomingPacket.Client = (LLClientView)client;
+                incomingPacket.Packet = packet;
+            }
+            else
+            {
+                incomingPacket = new IncomingPacket((LLClientView)client, packet);
+            }
+
+            packetInbox.Enqueue(incomingPacket);
         }
 
         #region BinaryStats
@@ -1283,7 +1301,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
 
                     if (packetInbox.Dequeue(100, ref incomingPacket))
+                    {
                         ProcessInPacket(incomingPacket);//, incomingPacket); Util.FireAndForget(ProcessInPacket, incomingPacket);
+
+                        if (UsePools)
+                            m_incomingPacketPool.ReturnObject(incomingPacket);
+                    }
                 }
                 catch (Exception ex)
                 {
