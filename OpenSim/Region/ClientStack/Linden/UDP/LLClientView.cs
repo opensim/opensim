@@ -5522,16 +5522,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         #region Scene/Avatar
 
-        private bool HandleAgentUpdate(IClientAPI sener, Packet Pack)
+        private bool HandleAgentUpdate(IClientAPI sener, Packet packet)
         {
             if (OnAgentUpdate != null)
             {
                 bool update = false;
-                AgentUpdatePacket agenUpdate = (AgentUpdatePacket)Pack;
+                AgentUpdatePacket agenUpdate = (AgentUpdatePacket)packet;
 
                 #region Packet Session and User Check
                 if (agenUpdate.AgentData.SessionID != SessionId || agenUpdate.AgentData.AgentID != AgentId)
+                {
+                    PacketPool.Instance.ReturnPacket(packet);
                     return false;
+                }
                 #endregion
 
                 AgentUpdatePacket.AgentDataBlock x = agenUpdate.AgentData;
@@ -5596,6 +5599,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     handlerPreAgentUpdate = null;
                 }
             }
+
+            PacketPool.Instance.ReturnPacket(packet);
 
             return true;
         }
@@ -12041,8 +12046,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if (!ProcessPacketMethod(packet))
                 m_log.Warn("[CLIENT]: unhandled packet " + packet.Type);
-
-            PacketPool.Instance.ReturnPacket(packet);
         }
 
         private static PrimitiveBaseShape GetShapeFromAddPacket(ObjectAddPacket addPacket)

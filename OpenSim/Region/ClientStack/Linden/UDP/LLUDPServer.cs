@@ -171,6 +171,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected bool m_sendPing;
 
         private ExpiringCache<IPEndPoint, Queue<UDPPacketBuffer>> m_pendingCache = new ExpiringCache<IPEndPoint, Queue<UDPPacketBuffer>>();
+        private Pool<IncomingPacket> m_incomingPacketPool;
 
         private int m_defaultRTO = 0;
         private int m_maxRTO = 0;
@@ -278,6 +279,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             m_throttle = new TokenBucket(null, sceneThrottleBps);
             ThrottleRates = new ThrottleRates(configSource);
+
+            if (UsePools)
+                m_incomingPacketPool = new Pool<IncomingPacket>(() => new IncomingPacket(), 500);
         }
 
         public void Start()
@@ -313,7 +317,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             base.StartOutbound();
 
-            // This thread will process the packets received that are placed on the packetInbox
             Watchdog.StartThread(
                 OutgoingPacketHandler,
                 string.Format("Outgoing Packets ({0})", m_scene.RegionInfo.RegionName),
@@ -957,6 +960,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Handle appended ACKs
             if (packet.Header.AppendedAcks && packet.Header.AckList != null)
             {
+//                m_log.DebugFormat(
+//                    "[LLUDPSERVER]: Handling {0} appended acks from {1} in {2}",
+//                    packet.Header.AckList.Length, client.Name, m_scene.Name);
+
                 for (int i = 0; i < packet.Header.AckList.Length; i++)
                     udpClient.NeedAcks.Acknowledge(packet.Header.AckList[i], now, packet.Header.Resent);
             }
@@ -965,6 +972,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (packet.Type == PacketType.PacketAck)
             {
                 PacketAckPacket ackPacket = (PacketAckPacket)packet;
+
+//                m_log.DebugFormat(
+//                    "[LLUDPSERVER]: Handling {0} packet acks for {1} in {2}",
+//                    ackPacket.Packets.Length, client.Name, m_scene.Name);
 
                 for (int i = 0; i < ackPacket.Packets.Length; i++)
                     udpClient.NeedAcks.Acknowledge(ackPacket.Packets[i].ID, now, packet.Header.Resent);
@@ -979,6 +990,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if (packet.Header.Reliable)
             {
+//                m_log.DebugFormat(
+//                    "[LLUDPSERVER]: Adding ack request for {0} {1} from {2} in {3}",
+//                    packet.Type, packet.Header.Sequence, client.Name, m_scene.Name);
+
                 udpClient.PendingAcks.Enqueue(packet.Header.Sequence);
 
                 // This is a somewhat odd sequence of steps to pull the client.BytesSinceLastACK value out,
@@ -1025,6 +1040,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if (packet.Type == PacketType.StartPingCheck)
             {
+//                m_log.DebugFormat("[LLUDPSERVER]: Handling ping from {0} in {1}", client.Name, m_scene.Name);
+
                 // We don't need to do anything else with ping checks
                 StartPingCheckPacket startPing = (StartPingCheckPacket)packet;
                 CompletePing(udpClient, startPing.PingID.PingID);
@@ -1044,13 +1061,25 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             #endregion Ping Check Handling
 
+            IncomingPacket incomingPacket;
+
             // Inbox insertion
-            if (packet.Type == PacketType.AgentUpdate ||
-                packet.Type == PacketType.ChatFromViewer)
-                packetInbox.EnqueueHigh(new IncomingPacket((LLClientView)client, packet));
+            if (UsePools)
+            {
+                incomingPacket = m_incomingPacketPool.GetObject();
+                incomingPacket.Client = (LLClientView)client;
+                incomingPacket.Packet = packet;
+            }
             else
-                packetInbox.EnqueueLow(new IncomingPacket((LLClientView)client, packet));
-//            packetInbox.Enqueue(new IncomingPacket((LLClientView)client, packet));
+            {
+                incomingPacket = new IncomingPacket((LLClientView)client, packet);
+            }
+
+            if (incomingPacket.Packet.Type == PacketType.AgentUpdate ||
+                incomingPacket.Packet.Type == PacketType.ChatFromViewer)
+                packetInbox.EnqueueHigh(incomingPacket);
+            else
+                packetInbox.EnqueueLow(incomingPacket);
         }
 
         #region BinaryStats
@@ -1333,7 +1362,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // on to en-US to avoid number parsing issues
             Culture.SetCurrentCulture();
 
-            while (base.IsRunningInbound)
+            while (IsRunningInbound)
             {
                 m_scene.ThreadAlive(1);
                 try
@@ -1349,7 +1378,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
 
                     if (packetInbox.Dequeue(100, ref incomingPacket))
+                    {
                         ProcessInPacket(incomingPacket);//, incomingPacket); Util.FireAndForget(ProcessInPacket, incomingPacket);
+
+                        if (UsePools)
+                            m_incomingPacketPool.ReturnObject(incomingPacket);
+                    }
                 }
                 catch (Exception ex)
                 {
