@@ -108,15 +108,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 if (!pool.ContainsKey(type) || pool[type] == null || (pool[type]).Count == 0)
                 {
+//                    m_log.DebugFormat("[PACKETPOOL]: Building {0} packet", type);
+
                     // Creating a new packet if we cannot reuse an old package
                     packet = Packet.BuildPacket(type);
                 }
                 else
                 {
+//                    m_log.DebugFormat("[PACKETPOOL]: Pulling {0} packet", type);
+
                     // Recycle old packages
                     m_packetsReusedStat.Antecedent++;
 
-                    packet = (pool[type]).Pop();
+                    packet = pool[type].Pop();
                 }
             }
 
@@ -227,7 +231,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                             if ((pool[type]).Count < 50)
                             {
-                                (pool[type]).Push(packet);
+//                                m_log.DebugFormat("[PACKETPOOL]: Pushing {0} packet", type);
+
+                                pool[type].Push(packet);
                             }
                         }
                         break;
