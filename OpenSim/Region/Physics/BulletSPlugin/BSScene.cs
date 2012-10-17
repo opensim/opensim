@@ -533,7 +533,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         }
 
         // This is a kludge to get avatar movement updates.
-        //   the simulator expects collisions for avatars even if there are have been no collisions. This updates
+        //   The simulator expects collisions for avatars even if there are have been no collisions. This updates
         //   avatar animations and stuff.
         // If you fix avatar animation updates, remove this overhead and let normal collision processing happen.
         foreach (BSPhysObject bsp in m_avatars)
@@ -577,9 +577,9 @@ public class BSScene : PhysicsScene, IPhysicsParameters
 
         // The physics engine returns the number of milliseconds it simulated this call.
         // These are summed and normalized to one second and divided by 1000 to give the reported physics FPS.
-        // We multiply by 45 to give a recognizable running rate (45 or less).
-        return numSubSteps * m_fixedTimeStep * 1000 * 45;
-        // return timeStep * 1000 * 45;
+        // We multiply by 55 to give a recognizable running rate (55 or less).
+        return numSubSteps * m_fixedTimeStep * 1000 * 55;
+        // return timeStep * 1000 * 55;
     }
 
     // Something has collided

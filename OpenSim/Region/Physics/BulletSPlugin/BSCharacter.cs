@@ -89,13 +89,15 @@ public class BSCharacter : BSPhysObject
         _appliedVelocity = OMV.Vector3.Zero;
         _buoyancy = ComputeBuoyancyFromFlying(isFlying);
         _currentFriction = PhysicsScene.Params.avatarStandingFriction;
+        _avatarDensity = PhysicsScene.Params.avatarDensity;
 
         // The dimensions of the avatar capsule are kept in the scale.
         // Physics creates a unit capsule which is scaled by the physics engine.
         ComputeAvatarScale(_size);
-        _avatarDensity = PhysicsScene.Params.avatarDensity;
         // set _avatarVolume and _mass based on capsule size, _density and Scale
         ComputeAvatarVolumeAndMass();
+        DetailLog("{0},BSCharacter.create,call,size={1},scale={2},density={3},volume={4},mass={5}",
+                            LocalID, _size, Scale, _avatarDensity, _avatarVolume, MassRaw);
 
         ShapeData shapeData = new ShapeData();
         shapeData.ID = LocalID;
@@ -103,6 +105,7 @@ public class BSCharacter : BSPhysObject
         shapeData.Position = _position;
         shapeData.Rotation = _orientation;
         shapeData.Velocity = _velocity;
+        shapeData.Size = Scale;
         shapeData.Scale = Scale;
         shapeData.Mass = _mass;
         shapeData.Buoyancy = _buoyancy;
@@ -114,6 +117,7 @@ public class BSCharacter : BSPhysObject
         PhysicsScene.TaintedObject("BSCharacter.create", delegate()
         {
             DetailLog("{0},BSCharacter.create,taint", LocalID);
+            // New body and shape into BSBody and BSShape
             PhysicsScene.Shapes.GetBodyAndShape(true, PhysicsScene.World, this, shapeData, null, null, null);
 
             SetPhysicalProperties();
@@ -157,7 +161,7 @@ public class BSCharacter : BSPhysObject
 
         BulletSimAPI.AddObjectToWorld2(PhysicsScene.World.ptr, BSBody.ptr);
 
-        BulletSimAPI.ForceActivationState2(BSBody.ptr, ActivationState.DISABLE_DEACTIVATION);
+        BulletSimAPI.ForceActivationState2(BSBody.ptr, ActivationState.ACTIVE_TAG);
         BulletSimAPI.UpdateSingleAabb2(PhysicsScene.World.ptr, BSBody.ptr);
 
         // Do this after the object has been added to the world
@@ -176,7 +180,7 @@ public class BSCharacter : BSPhysObject
         get
         {
             // Avatar capsule size is kept in the scale parameter.
-            return new OMV.Vector3(Scale.X * 2, Scale.Y * 2, Scale.Z);
+            return _size;
         }
 
         set {
@@ -184,11 +188,13 @@ public class BSCharacter : BSPhysObject
             _size = value;
             ComputeAvatarScale(_size);
             ComputeAvatarVolumeAndMass();
+            DetailLog("{0},BSCharacter.setSize,call,scale={1},density={2},volume={3},mass={4}",
+                            LocalID, Scale, _avatarDensity, _avatarVolume, MassRaw);
 
             PhysicsScene.TaintedObject("BSCharacter.setSize", delegate()
             {
                 BulletSimAPI.SetLocalScaling2(BSShape.ptr, Scale);
-                OMV.Vector3 localInertia = BulletSimAPI.CalculateLocalInertia2(BSBody.ptr, MassRaw);
+                OMV.Vector3 localInertia = BulletSimAPI.CalculateLocalInertia2(BSShape.ptr, MassRaw);
                 BulletSimAPI.SetMassProps2(BSBody.ptr, MassRaw, localInertia);
             });
 
@@ -578,13 +584,13 @@ public class BSCharacter : BSPhysObject
     private void ComputeAvatarScale(OMV.Vector3 size)
     {
         OMV.Vector3 newScale = OMV.Vector3.Zero;
-        newScale.X = PhysicsScene.Params.avatarCapsuleRadius;
-        newScale.Y = PhysicsScene.Params.avatarCapsuleRadius;
+        // Scale wants the diameter so mult radius by two
+        newScale.X = PhysicsScene.Params.avatarCapsuleRadius * 2f;
+        newScale.Y = PhysicsScene.Params.avatarCapsuleRadius * 2f;
 
-        // The 1.15 came from ODE but it seems to cause the avatar to float off the ground
-        // Scale.Z = (_size.Z * 1.15f) - (Scale.X + Scale.Y);
-        // From the total height, remove the capsule half spheres that are at each end 
-        newScale.Z = (size.Z) - (Math.Min(newScale.X, newScale.Y) * 2f);
+        // From the total height, add the capsule half spheres that are at each end 
+        // newScale.Z = (size.Z) - Math.Min(newScale.X, newScale.Y);
+        newScale.Z = (size.Z * 2f);
         Scale = newScale;
     }
 
@@ -593,14 +599,14 @@ public class BSCharacter : BSPhysObject
     {
         _avatarVolume = (float)(
                         Math.PI
-                        * Scale.X
-                        * Scale.Y  // the area of capsule cylinder
+                        * (Scale.X / 2f)
+                        * (Scale.Y / 2f)  // the area of capsule cylinder
                         * Scale.Z  // times height of capsule cylinder
                       + 1.33333333f
                         * Math.PI
-                        * Scale.X
-                        * Math.Min(Scale.X, Scale.Y)
-                        * Scale.Y  // plus the volume of the capsule end caps
+                        * (Scale.X / 2f)
+                        * (Math.Min(Scale.X, Scale.Y) / 2f)
+                        * (Scale.Y / 2f)  // plus the volume of the capsule end caps
                         );
         _mass = _avatarDensity * _avatarVolume;
     }

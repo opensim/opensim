@@ -417,7 +417,10 @@ public class BSShapeCollection : IDisposable
 
         if (shapeType == ShapeData.PhysicsShapeType.SHAPE_AVATAR)
         {
-            newShape = new BulletShape(BulletSimAPI.BuildCapsuleShape2(PhysicsScene.World.ptr, shapeData), shapeType);
+            // The radius is scaled by 1/2 because we scale by the diameter.
+            newShape = new BulletShape(
+                    BulletSimAPI.BuildCapsuleShape2(PhysicsScene.World.ptr, 0.5f, 1.0f, shapeData.Scale), 
+                    shapeType);
             newShape.shapeKey = (System.UInt64)shapeKey;
             newShape.isNativeShape = true;
         }
@@ -428,7 +431,7 @@ public class BSShapeCollection : IDisposable
             newShape.isNativeShape = true;
         }
 
-        // Don't need to do a 'ReferenceShape()' here because native shapes are not tracked.
+        // Don't need to do a 'ReferenceShape()' here because native shapes are not shared.
         // DetailLog("{0},BSShapeCollection.AddNativeShapeToPrim,create,newshape={1}", shapeData.ID, newShape);
 
         prim.BSShape = newShape;

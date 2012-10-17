@@ -48,10 +48,10 @@ public sealed class BSPrim : BSPhysObject
 
     private PrimitiveBaseShape _pbs;
 
-    // _size is what the user passed. _scale is what we pass to the physics engine with the mesh.
-    // Often _scale is unity because the meshmerizer will apply _size when creating the mesh.
+    // _size is what the user passed. Scale is what we pass to the physics engine with the mesh.
+    // Often Scale is unity because the meshmerizer will apply _size when creating the mesh.
     private OMV.Vector3 _size;  // the multiplier for each mesh dimension as passed by the user
-    private OMV.Vector3 _scale; // the multiplier for each mesh dimension for the mesh as created by the meshmerizer
+    // private OMV.Vector3 _scale; // the multiplier for each mesh dimension for the mesh as created by the meshmerizer
 
     private bool _grabbed;
     private bool _isSelected;
@@ -98,7 +98,7 @@ public sealed class BSPrim : BSPhysObject
         _physicsActorType = (int)ActorTypes.Prim;
         _position = pos;
         _size = size;
-        _scale = new OMV.Vector3(1f, 1f, 1f);   // the scale will be set by CreateGeom depending on object type
+        Scale = new OMV.Vector3(1f, 1f, 1f);   // the scale will be set by CreateGeom depending on object type
         _orientation = rotation;
         _buoyancy = 1f;
         _velocity = OMV.Vector3.Zero;
@@ -166,7 +166,7 @@ public sealed class BSPrim : BSPhysObject
                 // Since _size changed, the mesh needs to be rebuilt. If rebuilt, all the correct
                 //   scale and margins are set.
                 CreateGeomAndObject(true);
-                // DetailLog("{0},BSPrim.setSize,size={1},scale={2},mass={3},physical={4}", LocalID, _size, _scale, _mass, IsPhysical);
+                // DetailLog("{0},BSPrim.setSize,size={1},scale={2},mass={3},physical={4}", LocalID, _size, Scale, _mass, IsPhysical);
             });
         }
     }
@@ -1224,7 +1224,8 @@ public sealed class BSPrim : BSPhysObject
         shape.Position = _position;
         shape.Rotation = _orientation;
         shape.Velocity = _velocity;
-        shape.Scale = _scale;
+        shape.Size = _size;
+        shape.Scale = Scale;
         shape.Mass = _isPhysical ? _mass : 0f;
         shape.Buoyancy = _buoyancy;
         shape.HullKey = 0;
@@ -1234,7 +1235,6 @@ public sealed class BSPrim : BSPhysObject
         shape.Collidable = (!IsPhantom) ? ShapeData.numericTrue : ShapeData.numericFalse;
         shape.Static = _isPhysical ? ShapeData.numericFalse : ShapeData.numericTrue;
         shape.Solid = IsSolid ? ShapeData.numericFalse : ShapeData.numericTrue;
-        shape.Size = _size;
     }
     // Rebuild the geometry and object.
     // This is called when the shape changes so we need to recreate the mesh/hull.

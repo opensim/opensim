@@ -608,7 +608,7 @@ public static extern IntPtr BuildNativeShape2(IntPtr world, ShapeData shapeData)
 public static extern bool IsNativeShape2(IntPtr shape);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern IntPtr BuildCapsuleShape2(IntPtr world, ShapeData shapeData);
+public static extern IntPtr BuildCapsuleShape2(IntPtr world, float radius, float height, Vector3 scale);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern IntPtr CreateCompoundShape2(IntPtr sim);

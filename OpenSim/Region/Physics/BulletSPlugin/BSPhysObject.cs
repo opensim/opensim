@@ -141,18 +141,15 @@ public abstract class BSPhysObject : PhysicsActor
         // if someone has subscribed for collision events....
         if (SubscribedEvents()) {
             CollisionCollection.AddCollider(collidingWith, new ContactPoint(contactPoint, contactNormal, pentrationDepth));
-            // DetailLog("{0},{1}.Collison.AddCollider,call,with={2},point={3},normal={4},depth={5}",
-            //                 LocalID, TypeName, collidingWith, contactPoint, contactNormal, pentrationDepth);
+            DetailLog("{0},{1}.Collison.AddCollider,call,with={2},point={3},normal={4},depth={5}",
+                            LocalID, TypeName, collidingWith, contactPoint, contactNormal, pentrationDepth);
 
             ret = true;
         }
         return ret;
     }
 
-    // Routine to send the collected collisions into the simulator.
-    // Also handles removal of this from the collection of objects with collisions if
-    //      there are no collisions from this object. Mechanism is create one last
-    //      collision event to make collision_end work.
+    // Send the collected collisions into the simulator.
     // Called at taint time from within the Step() function thus no locking problems
     //      with CollisionCollection and ObjectsWithNoMoreCollisions.
     // Return 'true' if there were some actual collisions passed up
@@ -161,10 +158,9 @@ public abstract class BSPhysObject : PhysicsActor
         bool ret = true;
 
         // throttle the collisions to the number of milliseconds specified in the subscription
-        int nowTime = PhysicsScene.SimulationNowTime;
-        if (nowTime >= NextCollisionOkTime)
+        if (PhysicsScene.SimulationNowTime >= NextCollisionOkTime)
         {
-            NextCollisionOkTime = nowTime + SubscribedEventsMs;
+            NextCollisionOkTime = PhysicsScene.SimulationNowTime + SubscribedEventsMs;
 
             // We are called if we previously had collisions. If there are no collisions
             //   this time, send up one last empty event so OpenSim can sense collision end.
