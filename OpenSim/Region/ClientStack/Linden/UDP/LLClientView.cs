@@ -92,23 +92,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event ObjectDeselect OnObjectDetach;
         public event ObjectDrop OnObjectDrop;
         public event Action<IClientAPI, bool> OnCompleteMovementToRegion;
-
-        /// <summary>
-        /// Called when an AgentUpdate message is received and before OnAgentUpdate.
-        /// </summary>
-        /// <remarks>
-        /// Listeners must not retain a reference to AgentUpdateArgs since this object is reused for subsequent AgentUpdates.
-        /// </remarks>
         public event UpdateAgent OnPreAgentUpdate;
-
-        /// <summary>
-        /// Called when an AgentUpdate message is received and after OnPreAgentUpdate.
-        /// </summary>
-        /// <remarks>
-        /// Listeners must not retain a reference to AgentUpdateArgs since this object is reused for subsequent AgentUpdates.
-        /// </remarks>
         public event UpdateAgent OnAgentUpdate;
-
         public event AgentRequestSit OnAgentRequestSit;
         public event AgentSit OnAgentSit;
         public event AvatarPickerRequest OnAvatarPickerRequest;
