@@ -479,31 +479,34 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
         private StringBuilder AddSummarySceneObjectReport(StringBuilder sb, SceneObjectGroup so)
         {
-            sb.AppendFormat("Name:        {0}\n", so.Name);
-            sb.AppendFormat("Description: {0}\n", so.Description);
-            sb.AppendFormat("Local ID     {0}\n", so.LocalId);
-            sb.AppendFormat("UUID         {0}\n", so.UUID);
-            sb.AppendFormat("Location:    {0} @ {1}\n", so.AbsolutePosition, so.Scene.RegionInfo.RegionName);
-            sb.AppendFormat("Parts:       {0}\n", so.PrimCount);
-            sb.AppendFormat("Flags:       {0}\n", so.RootPart.Flags);
+            ConsoleDisplayList cdl = new ConsoleDisplayList();
+            cdl.AddRow("Name", so.Name);
+            cdl.AddRow("Descrition", so.Description);
+            cdl.AddRow("Local ID", so.LocalId);
+            cdl.AddRow("UUID", so.UUID);
+            cdl.AddRow("Location", string.Format("{0} @ {1}", so.AbsolutePosition, so.Scene.Name));
+            cdl.AddRow("Parts", so.PrimCount);
+            cdl.AddRow("Flags", so.RootPart.Flags);
 
-            return sb;
+            return sb.Append(cdl.ToString());
         }
 
         private StringBuilder AddScenePartReport(StringBuilder sb, SceneObjectPart sop)
         {
-            sb.AppendFormat("Name:        {0}\n", sop.Name);
-            sb.AppendFormat("Description: {0}\n", sop.Description);
-            sb.AppendFormat("Local ID     {0}\n", sop.LocalId);
-            sb.AppendFormat("UUID         {0}\n", sop.UUID);
-            sb.AppendFormat("Location:    {0} @ {1}\n", sop.AbsolutePosition, sop.ParentGroup.Scene.RegionInfo.RegionName);
-            sb.AppendFormat("Parent:      {0}",
-                sop.IsRoot ? "Is Root\n" : string.Format("{0} {1}\n", sop.ParentGroup.Name, sop.ParentGroup.UUID));
-            sb.AppendFormat("Link number: {0}\n", sop.LinkNum);
-            sb.AppendFormat("Items:       {0}\n", sop.Inventory.Count);
-            sb.AppendFormat("Flags:       {0}\n", sop.Flags);
+            ConsoleDisplayList cdl = new ConsoleDisplayList();
+            cdl.AddRow("Name", sop.Name);
+            cdl.AddRow("Description", sop.Description);
+            cdl.AddRow("Local ID", sop.LocalId);
+            cdl.AddRow("UUID", sop.UUID);
+            cdl.AddRow("Location",  string.Format("{0} @ {1}", sop.AbsolutePosition, sop.ParentGroup.Scene.Name));
+            cdl.AddRow(
+                "Parent",
+                sop.IsRoot ? "Is Root" : string.Format("{0} {1}", sop.ParentGroup.Name, sop.ParentGroup.UUID));
+            cdl.AddRow("Link number", sop.LinkNum);
+            cdl.AddRow("Flags", sop.Flags);
+            cdl.AddRow("Items", sop.Inventory.Count);
 
-            return sb;
+            return sb.Append(cdl.ToString());
         }
 
         private void HandleDeleteObject(string module, string[] cmd)
