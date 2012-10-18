@@ -106,7 +106,7 @@ namespace OpenSim.Region.Physics.Manager
             get { return new NullPhysicsScene(); }
         }
 
-        public RequestAssetDelegate RequestAssetMethod { private get; set; }
+        public RequestAssetDelegate RequestAssetMethod { get; set; }
 
         public virtual void TriggerPhysicsBasedRestart()
         {
@@ -245,6 +245,9 @@ namespace OpenSim.Region.Physics.Manager
         { return Vector3.Zero; }
 
         public abstract void AddPhysicsActorTaint(PhysicsActor prim);
+
+
+        public virtual void PrepareSimulation() { }
 
         /// <summary>
         /// Perform a simulation of the current physics scene over the given timestep.

@@ -79,7 +79,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private bool m_lastdoneSelected;
         internal bool m_outbounds;
 
-        private Quaternion m_lastorientation = new Quaternion();
+        private Quaternion m_lastorientation;
         private Quaternion _orientation;
 
         private Vector3 _position;
@@ -91,33 +91,30 @@ namespace OpenSim.Region.Physics.OdePlugin
         private Vector3 _size;
         private Vector3 _acceleration;
         private Vector3 m_angularlock = Vector3.One;
-        private IntPtr Amotor = IntPtr.Zero;
+        private IntPtr Amotor;
 
         private Vector3 m_force;
         private Vector3 m_forceacc;
         private Vector3 m_angularForceacc;
 
-        private float m_invTimeStep = 50.0f;
-        private float m_timeStep = .02f;
+        private float m_invTimeStep;
+        private float m_timeStep;
 
         private Vector3 m_PIDTarget;
         private float m_PIDTau;
         private bool m_usePID;
 
-        // KF: These next 7 params apply to llSetHoverHeight(float height, integer water, float tau),
-        // and are for non-VEHICLES only.
-
         private float m_PIDHoverHeight;
         private float m_PIDHoverTau;
         private bool m_useHoverPID;
-        private PIDHoverType m_PIDHoverType = PIDHoverType.Ground;
+        private PIDHoverType m_PIDHoverType;
         private float m_targetHoverHeight;
         private float m_groundHeight;
         private float m_waterHeight;
         private float m_buoyancy;                //KF: m_buoyancy should be set by llSetBuoyancy() for non-vehicle. 
 
-        private int body_autodisable_frames = 5;
-        public int bodydisablecontrol = 0;
+        private int body_autodisable_frames;
+        public int bodydisablecontrol;
 
 
         // Default we're a Geometry
@@ -147,12 +144,16 @@ namespace OpenSim.Region.Physics.OdePlugin
         private IMesh m_mesh;
         private object m_meshlock = new object();
         private PrimitiveBaseShape _pbs;
+
+        private UUID? m_assetID;
+        private MeshState m_meshState;
+        
         public OdeScene _parent_scene;
 
         /// <summary>
         /// The physics space which contains prim geometry
         /// </summary>
-        public IntPtr m_targetSpace = IntPtr.Zero;
+        public IntPtr m_targetSpace;
 
         public IntPtr prim_geom;
         public IntPtr _triMeshData;
@@ -166,27 +167,32 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public IntPtr collide_geom; // for objects: geom if single prim space it linkset
 
-        private float m_density = 10.000006836f; // Aluminum g/cm3;
+        private float m_density;
         private byte m_shapetype;
         public bool _zeroFlag;
         private bool m_lastUpdateSent;
 
-        public IntPtr Body = IntPtr.Zero;
+        public IntPtr Body;
 
         private Vector3 _target_velocity;
 
-        public Vector3 primOOBsize; // prim real dimensions from mesh 
-        public Vector3 primOOBoffset; // its centroid out of mesh or rest aabb
+        public Vector3 m_OBBOffset;
+        public Vector3 m_OBB;
         public float primOOBradiusSQ;
+
+        private bool m_hasOBB = true;
+
+        private float m_physCost;
+        private float m_streamCost;
+
         public d.Mass primdMass; // prim inertia information on it's own referencial
         float primMass; // prim own mass
         float primVolume; // prim own volume;
         float _mass; // object mass acording to case
-        private bool hasOOBoffsetFromMesh = false; // if true we did compute it form mesh centroid, else from aabb
 
-        public int givefakepos = 0;
+        public int givefakepos;
         private Vector3 fakepos;
-        public int givefakeori = 0;
+        public int givefakeori;
         private Quaternion fakeori;
 
         private int m_eventsubscription;
@@ -271,7 +277,23 @@ namespace OpenSim.Region.Physics.OdePlugin
                     cdata.mu *= veh.FrictionFactor;
 //                    cdata.mu *= 0;
             }
-        }    
+        }
+
+        public override float PhysicsCost
+        {
+            get
+            {
+                return m_physCost;
+            }
+        }
+
+        public override float StreamCost
+        {
+            get
+            {
+                return m_streamCost;
+            }
+        }
 
         public override int PhysicsActorType
         {
@@ -394,7 +416,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 if (value.IsFinite())
                 {
-                    AddChange(changes.Size, value);
+                     _parent_scene.m_meshWorker.ChangeActorPhysRep(this, _pbs, value, m_shapetype);
                 }
                 else
                 {
@@ -464,7 +486,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         q.Z = dq.Z;
                         q.W = dq.W;
 
-                        Vector3 Ptot = primOOBoffset * q;
+                        Vector3 Ptot = m_OBBOffset * q;
                         dtmp = d.GeomGetPosition(prim_geom);
                         Ptot.X += dtmp.X;
                         Ptot.Y += dtmp.Y;
@@ -504,7 +526,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
             get
                 {
-                return primOOBsize;
+                return m_OBB;
                 }
             }
 
@@ -512,7 +534,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
             get
                 {
-                return primOOBoffset;
+                return m_OBBOffset;
                 }
             }
 
@@ -528,7 +550,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             set
             {
-                AddChange(changes.Shape, value);
+//                AddChange(changes.Shape, value);
+                _parent_scene.m_meshWorker.ChangeActorPhysRep(this, value, _size, m_shapetype);
             }
         }
 
@@ -541,10 +564,9 @@ namespace OpenSim.Region.Physics.OdePlugin
             set
             {
                 m_shapetype = value;
-                AddChange(changes.Shape, null);
+               _parent_scene.m_meshWorker.ChangeActorPhysRep(this, _pbs, _size, value);
             }
         }
-
 
         public override Vector3 Velocity
         {
@@ -619,6 +641,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     fakeori = value;
                     givefakeori++;
+
+                    value.Normalize();
+
                     AddChange(changes.Orientation, value);
                 }
                 else
@@ -1012,7 +1037,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_invTimeStep = 1f / m_timeStep;
 
             m_density = parent_scene.geomDefaultDensity;
-            // m_tensor = parent_scene.bodyMotorJointMaxforceTensor;
             body_autodisable_frames = parent_scene.bodyFramesAutoDisable;
 
             prim_geom = IntPtr.Zero;
@@ -1064,7 +1088,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_colliderfilter = 0;
             m_NoColide = false;
 
-            hasOOBoffsetFromMesh = false;
             _triMeshData = IntPtr.Zero;
 
             m_shapetype = _shapeType;
@@ -1079,27 +1102,14 @@ namespace OpenSim.Region.Physics.OdePlugin
             mu = parent_scene.m_materialContactsData[(int)Material.Wood].mu;
             bounce = parent_scene.m_materialContactsData[(int)Material.Wood].bounce;
 
-            CalcPrimBodyData();
-
-            m_mesh = null;
-            if (_parent_scene.needsMeshing(pbs) && (pbs.SculptData.Length > 0))
-            {
-                bool convex;
-                int clod = (int)LevelOfDetail.High;
-                if (m_shapetype == 0)
-                    convex = false;
-                else
-                {
-                    convex = true;
-                    if (_pbs.SculptType != (byte)SculptType.Mesh)
-                        clod = (int)LevelOfDetail.Low;
-                }
-                m_mesh = _parent_scene.mesher.CreateMesh(Name, _pbs, _size, clod, true, convex);
-            }
-
             m_building = true; // control must set this to false when done
 
-            AddChange(changes.Add, null);
+            // get basic mass parameters
+            ODEPhysRepData repData = _parent_scene.m_meshWorker.NewActorPhysRep(this, _pbs, _size, m_shapetype);
+
+            primVolume = repData.volume;
+
+            UpdatePrimBodyData();
         }
 
         private void resetCollisionAccounting()
@@ -1323,105 +1333,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
-        private bool setMesh(OdeScene parent_scene)
-        {
-            IntPtr vertices, indices;
-            int vertexCount, indexCount;
-            int vertexStride, triStride;
-
-            if (Body != IntPtr.Zero)
-            {
-                if (childPrim)
-                {
-                    if (_parent != null)
-                    {
-                        OdePrim parent = (OdePrim)_parent;
-                        parent.ChildDelink(this, false);
-                    }
-                }
-                else
-                {
-                    DestroyBody();
-                }
-            }
-
-            IMesh mesh = null;
-
-            lock (m_meshlock)
-            {
-                if (m_mesh == null)
-                {
-                    bool convex;
-                    int clod = (int)LevelOfDetail.High;
-
-                    if (m_shapetype == 0)
-                        convex = false;
-                    else
-                    {
-                        convex = true;
-                        if (_pbs.SculptType != (byte)SculptType.Mesh)
-                            clod = (int)LevelOfDetail.Low;
-                    }
-
-                    mesh = _parent_scene.mesher.CreateMesh(Name, _pbs, _size, clod, true, convex);
-                }
-                else
-                {
-                    mesh = m_mesh;
-                }
-
-                if (mesh == null)
-                {                  
-                    m_log.WarnFormat("[PHYSICS]: CreateMesh Failed on prim {0} at <{1},{2},{3}>.", Name, _position.X, _position.Y, _position.Z);
-                    return false;
-                }
-
-
-                mesh.getVertexListAsPtrToFloatArray(out vertices, out vertexStride, out vertexCount); // Note, that vertices are fixed in unmanaged heap
-                mesh.getIndexListAsPtrToIntArray(out indices, out triStride, out indexCount); // Also fixed, needs release after usage
-
-                if (vertexCount == 0 || indexCount == 0)
-                {
-                    m_log.WarnFormat("[PHYSICS]: Got invalid mesh on prim {0} at <{1},{2},{3}>. mesh UUID {4}",
-                        Name, _position.X, _position.Y, _position.Z, _pbs.SculptTexture.ToString());
-                    mesh.releaseSourceMeshData();
-                    return false;
-                }
-
-                primOOBoffset = mesh.GetCentroid();
-                hasOOBoffsetFromMesh = true;
-
-                mesh.releaseSourceMeshData();
-                m_mesh = mesh;
-            }
-
-            IntPtr geo = IntPtr.Zero;
-
-            try
-            {
-                _triMeshData = d.GeomTriMeshDataCreate();
-
-                d.GeomTriMeshDataBuildSimple(_triMeshData, vertices, vertexStride, vertexCount, indices, indexCount, triStride);
-                d.GeomTriMeshDataPreprocess(_triMeshData);
-
-                _parent_scene.waitForSpaceUnlock(m_targetSpace);
-                geo = d.CreateTriMesh(m_targetSpace, _triMeshData, null, null, null);
-            }
-
-            catch (Exception e)
-            {
-                m_log.ErrorFormat("[PHYSICS]: SetGeom Mesh failed for {0} exception: {1}", Name, e);
-                if (_triMeshData != IntPtr.Zero)
-                {
-                    d.GeomTriMeshDataDestroy(_triMeshData);
-                    _triMeshData = IntPtr.Zero;
-                }
-                return false;
-            }
-
-            SetGeom(geo);
-            return true;
-        }
 
         private void SetGeom(IntPtr geom)
         {
@@ -1449,49 +1360,139 @@ namespace OpenSim.Region.Physics.OdePlugin
                     d.GeomSetCollideBits(prim_geom, (uint)m_collisionFlags);
                 }
 
-                CalcPrimBodyData();
-
+                UpdatePrimBodyData();
                 _parent_scene.actor_name_map[prim_geom] = this;
+
+/*
+// debug
+                d.AABB aabb;
+                d.GeomGetAABB(prim_geom, out aabb);
+                float x = aabb.MaxX - aabb.MinX;
+                float y = aabb.MaxY - aabb.MinY;
+                float z = aabb.MaxZ - aabb.MinZ;
+                if( x > 60.0f || y > 60.0f || z > 60.0f)
+                    m_log.WarnFormat("[PHYSICS]: large prim geo {0},size {1}, AABBsize <{2},{3},{4}, mesh {5} at {6}",
+                        Name, _size.ToString(), x, y, z, _pbs.SculptEntry ? _pbs.SculptTexture.ToString() : "primMesh", _position.ToString());
+                else if (x < 0.001f || y < 0.001f || z < 0.001f)
+                    m_log.WarnFormat("[PHYSICS]: small prim geo {0},size {1}, AABBsize <{2},{3},{4}, mesh {5} at {6}",
+                        Name, _size.ToString(), x, y, z, _pbs.SculptEntry ? _pbs.SculptTexture.ToString() : "primMesh", _position.ToString());
+
+//
+*/
 
             }
             else
                 m_log.Warn("Setting bad Geom");
         }
 
-
-        /// <summary>
-        /// Create a geometry for the given mesh in the given target space.
-        /// </summary>
-        /// <param name="m_targetSpace"></param>
-        /// <param name="mesh">If null, then a mesh is used that is based on the profile shape data.</param>
-        private void CreateGeom()
+        private bool GetMeshGeom()
         {
-            if (_triMeshData != IntPtr.Zero)
+            IntPtr vertices, indices;
+            int vertexCount, indexCount;
+            int vertexStride, triStride;
+            
+            IMesh mesh = m_mesh;
+
+            if (mesh == null)
+                return false;
+
+            mesh.getVertexListAsPtrToFloatArray(out vertices, out vertexStride, out vertexCount);
+            mesh.getIndexListAsPtrToIntArray(out indices, out triStride, out indexCount);
+
+            if (vertexCount == 0 || indexCount == 0)
             {
-                d.GeomTriMeshDataDestroy(_triMeshData);
-                _triMeshData = IntPtr.Zero;
+                m_log.WarnFormat("[PHYSICS]: Invalid mesh data on OdePrim {0}, mesh {1}",
+                    Name, _pbs.SculptEntry ? _pbs.SculptTexture.ToString() : "primMesh");
+
+                m_hasOBB = false;
+                m_OBBOffset = Vector3.Zero;
+                m_OBB = _size * 0.5f;
+
+                m_physCost = 0.1f;
+                m_streamCost = 1.0f;
+
+                _parent_scene.mesher.ReleaseMesh(mesh);
+                m_meshState = MeshState.MeshFailed;
+                m_mesh = null;
+                return false;
             }
 
-            bool haveMesh = false;
-            hasOOBoffsetFromMesh = false;
+            IntPtr geo = IntPtr.Zero;
+
+            try
+            {
+                _triMeshData = d.GeomTriMeshDataCreate();
+
+                d.GeomTriMeshDataBuildSimple(_triMeshData, vertices, vertexStride, vertexCount, indices, indexCount, triStride);
+                d.GeomTriMeshDataPreprocess(_triMeshData);
+
+                geo = d.CreateTriMesh(m_targetSpace, _triMeshData, null, null, null);
+            }
+
+            catch (Exception e)
+            {
+                m_log.ErrorFormat("[PHYSICS]: SetGeom Mesh failed for {0} exception: {1}", Name, e);
+                if (_triMeshData != IntPtr.Zero)
+                {
+                    try
+                    {
+                        d.GeomTriMeshDataDestroy(_triMeshData);
+                    }
+                    catch
+                    {
+                    }
+                }
+                _triMeshData = IntPtr.Zero;
+
+                m_hasOBB = false;
+                m_OBBOffset = Vector3.Zero;
+                m_OBB = _size * 0.5f;
+                m_physCost = 0.1f;
+                m_streamCost = 1.0f;
+              
+                _parent_scene.mesher.ReleaseMesh(mesh);
+                m_meshState = MeshState.MeshFailed;
+                m_mesh = null;
+                return false;
+            }
+
+            m_physCost = 0.0013f * (float)indexCount;
+            // todo
+            m_streamCost = 1.0f;
+
+            SetGeom(geo);
+
+            return true;
+        }
+
+        private void CreateGeom()
+        {
+            bool hasMesh = false;
+
             m_NoColide = false;
 
-            if (_parent_scene.needsMeshing(_pbs))
+            if ((m_meshState & MeshState.MeshNoColide) != 0)
+                m_NoColide = true;
+
+            else if(m_mesh != null)
             {
-                haveMesh = setMesh(_parent_scene); // this will give a mesh to non trivial known prims
-                if (!haveMesh)
+                if (GetMeshGeom())
+                    hasMesh = true;
+                else
                     m_NoColide = true;
             }
 
-            if (!haveMesh)
+
+            if (!hasMesh)
             {
+                IntPtr geo = IntPtr.Zero;
+
                 if (_pbs.ProfileShape == ProfileShape.HalfCircle && _pbs.PathCurve == (byte)Extrusion.Curve1
                     && _size.X == _size.Y && _size.Y == _size.Z)
                 { // it's a sphere
-                    _parent_scene.waitForSpaceUnlock(m_targetSpace);
                     try
                     {
-                        SetGeom(d.CreateSphere(m_targetSpace, _size.X * 0.5f));
+                        geo = d.CreateSphere(m_targetSpace, _size.X * 0.5f);
                     }
                     catch (Exception e)
                     {
@@ -1501,11 +1502,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 else
                 {// do it as a box
-                    _parent_scene.waitForSpaceUnlock(m_targetSpace);
                     try
                     {
-                        //Console.WriteLine("  CreateGeom 4");
-                        SetGeom(d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z));
+                        geo = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
                     }
                     catch (Exception e)
                     {
@@ -1513,19 +1512,18 @@ namespace OpenSim.Region.Physics.OdePlugin
                         return;
                     }
                 }
+                m_physCost = 0.1f;
+                m_streamCost = 1.0f;
+                SetGeom(geo);
             }
         }
 
-        /// <summary>
-        /// Set a new geometry for this prim.
-        /// </summary>
-        /// <param name="geom"></param>
         private void RemoveGeom()
         {
             if (prim_geom != IntPtr.Zero)
             {
-//                _parent_scene.geom_name_map.Remove(prim_geom);
                 _parent_scene.actor_name_map.Remove(prim_geom);
+
                 try
                 {
                     d.GeomDestroy(prim_geom);
@@ -1534,11 +1532,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         d.GeomTriMeshDataDestroy(_triMeshData);
                         _triMeshData = IntPtr.Zero;
                     }
-
                 }
-
-
-                //                catch (System.AccessViolationException)
                 catch (Exception e)
                 {
                     m_log.ErrorFormat("[PHYSICS]: PrimGeom destruction failed for {0} exception {1}", Name, e);
@@ -1546,29 +1540,26 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 prim_geom = IntPtr.Zero;
                 collide_geom = IntPtr.Zero;
+                m_targetSpace = IntPtr.Zero;
             }
             else
             {
                 m_log.ErrorFormat("[PHYSICS]: PrimGeom destruction BAD {0}", Name);
             }
 
-            if (m_mesh != null)
+            lock (m_meshlock)
             {
-                _parent_scene.mesher.ReleaseMesh(m_mesh);
-                m_mesh = null;
+                if (m_mesh != null)
+                {
+                    _parent_scene.mesher.ReleaseMesh(m_mesh);
+                    m_mesh = null;
+                }
             }
 
             Body = IntPtr.Zero;
-            hasOOBoffsetFromMesh = false;
+            m_hasOBB = false;
         }
-/*
-        private void ChildSetGeom(OdePrim odePrim)
-        {
-            // well.. 
-            DestroyBody();
-            MakeBody();
-        }
-*/
+
         //sets non physical prim m_targetSpace to right space in spaces grid for static prims
         // should only be called for non physical prims unless they are becoming non physical
         private void SetInStaticSpace(OdePrim prim)
@@ -1631,9 +1622,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             if (Body != IntPtr.Zero)
             {
-//                d.BodyDestroy(Body);
-//                Body = IntPtr.Zero;
-                // do a more complet destruction
                 DestroyBody();
                 m_log.Warn("[PHYSICS]: MakeBody called having a body");
             }
@@ -2143,339 +2131,9 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         #region Mass Calculation
 
-        private float CalculatePrimVolume()
+        private void UpdatePrimBodyData()
         {
-            float volume = _size.X * _size.Y * _size.Z; // default
-            float tmp;
-
-            float hollowAmount = (float)_pbs.ProfileHollow * 2.0e-5f;
-            float hollowVolume = hollowAmount * hollowAmount;
-
-            switch (_pbs.ProfileShape)
-            {
-                case ProfileShape.Square:
-                    // default box
-
-                    if (_pbs.PathCurve == (byte)Extrusion.Straight)
-                    {
-                        if (hollowAmount > 0.0)
-                        {
-                            switch (_pbs.HollowShape)
-                            {
-                                case HollowShape.Square:
-                                case HollowShape.Same:
-                                    break;
-
-                                case HollowShape.Circle:
-
-                                    hollowVolume *= 0.78539816339f;
-                                    break;
-
-                                case HollowShape.Triangle:
-
-                                    hollowVolume *= (0.5f * .5f);
-                                    break;
-
-                                default:
-                                    hollowVolume = 0;
-                                    break;
-                            }
-                            volume *= (1.0f - hollowVolume);
-                        }
-                    }
-
-                    else if (_pbs.PathCurve == (byte)Extrusion.Curve1)
-                    {
-                        //a tube 
-
-                        volume *= 0.78539816339e-2f * (float)(200 - _pbs.PathScaleX);
-                        tmp = 1.0f - 2.0e-2f * (float)(200 - _pbs.PathScaleY);
-                        volume -= volume * tmp * tmp;
-
-                        if (hollowAmount > 0.0)
-                        {
-                            hollowVolume *= hollowAmount;
-
-                            switch (_pbs.HollowShape)
-                            {
-                                case HollowShape.Square:
-                                case HollowShape.Same:
-                                    break;
-
-                                case HollowShape.Circle:
-                                    hollowVolume *= 0.78539816339f;
-                                    break;
-
-                                case HollowShape.Triangle:
-                                    hollowVolume *= 0.5f * 0.5f;
-                                    break;
-                                default:
-                                    hollowVolume = 0;
-                                    break;
-                            }
-                            volume *= (1.0f - hollowVolume);
-                        }
-                    }
-
-                    break;
-
-                case ProfileShape.Circle:
-
-                    if (_pbs.PathCurve == (byte)Extrusion.Straight)
-                    {
-                        volume *= 0.78539816339f; // elipse base
-
-                        if (hollowAmount > 0.0)
-                        {
-                            switch (_pbs.HollowShape)
-                            {
-                                case HollowShape.Same:
-                                case HollowShape.Circle:
-                                    break;
-
-                                case HollowShape.Square:
-                                    hollowVolume *= 0.5f * 2.5984480504799f;
-                                    break;
-
-                                case HollowShape.Triangle:
-                                    hollowVolume *= .5f * 1.27323954473516f;
-                                    break;
-
-                                default:
-                                    hollowVolume = 0;
-                                    break;
-                            }
-                            volume *= (1.0f - hollowVolume);
-                        }
-                    }
-
-                    else if (_pbs.PathCurve == (byte)Extrusion.Curve1)
-                    {
-                        volume *= 0.61685027506808491367715568749226e-2f * (float)(200 - _pbs.PathScaleX);
-                        tmp = 1.0f - .02f * (float)(200 - _pbs.PathScaleY);
-                        volume *= (1.0f - tmp * tmp);
-
-                        if (hollowAmount > 0.0)
-                        {
-
-                            // calculate the hollow volume by it's shape compared to the prim shape
-                            hollowVolume *= hollowAmount;
-
-                            switch (_pbs.HollowShape)
-                            {
-                                case HollowShape.Same:
-                                case HollowShape.Circle:
-                                    break;
-
-                                case HollowShape.Square:
-                                    hollowVolume *= 0.5f * 2.5984480504799f;
-                                    break;
-
-                                case HollowShape.Triangle:
-                                    hollowVolume *= .5f * 1.27323954473516f;
-                                    break;
-
-                                default:
-                                    hollowVolume = 0;
-                                    break;
-                            }
-                            volume *= (1.0f - hollowVolume);
-                        }
-                    }
-                    break;
-
-                case ProfileShape.HalfCircle:
-                    if (_pbs.PathCurve == (byte)Extrusion.Curve1)
-                    {
-                        volume *= 0.5236f;
-
-                        if (hollowAmount > 0.0)
-                        {
-                            hollowVolume *= hollowAmount;
-
-                            switch (_pbs.HollowShape)
-                            {
-                                case HollowShape.Circle:
-                                case HollowShape.Triangle:  // diference in sl is minor and odd
-                                case HollowShape.Same:
-                                    break;
-
-                                case HollowShape.Square:
-                                    hollowVolume *= 0.909f;
-                                    break;
-
-                                //                                case HollowShape.Triangle:
-                                //                                    hollowVolume *= .827f;
-                                //                                    break;
-                                default:
-                                    hollowVolume = 0;
-                                    break;
-                            }
-                            volume *= (1.0f - hollowVolume);
-                        }
-
-                    }
-                    break;
-
-                case ProfileShape.EquilateralTriangle:
-
-                    if (_pbs.PathCurve == (byte)Extrusion.Straight)
-                    {
-                        volume *= 0.32475953f;
-
-                        if (hollowAmount > 0.0)
-                        {
-
-                            // calculate the hollow volume by it's shape compared to the prim shape
-                            switch (_pbs.HollowShape)
-                            {
-                                case HollowShape.Same:
-                                case HollowShape.Triangle:
-                                    hollowVolume *= .25f;
-                                    break;
-
-                                case HollowShape.Square:
-                                    hollowVolume *= 0.499849f * 3.07920140172638f;
-                                    break;
-
-                                case HollowShape.Circle:
-                                    // Hollow shape is a perfect cyllinder in respect to the cube's scale
-                                    // Cyllinder hollow volume calculation
-
-                                    hollowVolume *= 0.1963495f * 3.07920140172638f;
-                                    break;
-
-                                default:
-                                    hollowVolume = 0;
-                                    break;
-                            }
-                            volume *= (1.0f - hollowVolume);
-                        }
-                    }
-                    else if (_pbs.PathCurve == (byte)Extrusion.Curve1)
-                    {
-                        volume *= 0.32475953f;
-                        volume *= 0.01f * (float)(200 - _pbs.PathScaleX);
-                        tmp = 1.0f - .02f * (float)(200 - _pbs.PathScaleY);
-                        volume *= (1.0f - tmp * tmp);
-
-                        if (hollowAmount > 0.0)
-                        {
-
-                            hollowVolume *= hollowAmount;
-
-                            switch (_pbs.HollowShape)
-                            {
-                                case HollowShape.Same:
-                                case HollowShape.Triangle:
-                                    hollowVolume *= .25f;
-                                    break;
-
-                                case HollowShape.Square:
-                                    hollowVolume *= 0.499849f * 3.07920140172638f;
-                                    break;
-
-                                case HollowShape.Circle:
-
-                                    hollowVolume *= 0.1963495f * 3.07920140172638f;
-                                    break;
-
-                                default:
-                                    hollowVolume = 0;
-                                    break;
-                            }
-                            volume *= (1.0f - hollowVolume);
-                        }
-                    }
-                    break;
-
-                default:
-                    break;
-            }
-
-            float taperX1;
-            float taperY1;
-            float taperX;
-            float taperY;
-            float pathBegin;
-            float pathEnd;
-            float profileBegin;
-            float profileEnd;
-
-            if (_pbs.PathCurve == (byte)Extrusion.Straight || _pbs.PathCurve == (byte)Extrusion.Flexible)
-            {
-                taperX1 = _pbs.PathScaleX * 0.01f;
-                if (taperX1 > 1.0f)
-                    taperX1 = 2.0f - taperX1;
-                taperX = 1.0f - taperX1;
-
-                taperY1 = _pbs.PathScaleY * 0.01f;
-                if (taperY1 > 1.0f)
-                    taperY1 = 2.0f - taperY1;
-                taperY = 1.0f - taperY1;
-            }
-            else
-            {
-                taperX = _pbs.PathTaperX * 0.01f;
-                if (taperX < 0.0f)
-                    taperX = -taperX;
-                taperX1 = 1.0f - taperX;
-
-                taperY = _pbs.PathTaperY * 0.01f;
-                if (taperY < 0.0f)
-                    taperY = -taperY;
-                taperY1 = 1.0f - taperY;
-            }
-
-            volume *= (taperX1 * taperY1 + 0.5f * (taperX1 * taperY + taperX * taperY1) + 0.3333333333f * taperX * taperY);
-
-            pathBegin = (float)_pbs.PathBegin * 2.0e-5f;
-            pathEnd = 1.0f - (float)_pbs.PathEnd * 2.0e-5f;
-            volume *= (pathEnd - pathBegin);
-
-            // this is crude aproximation
-            profileBegin = (float)_pbs.ProfileBegin * 2.0e-5f;
-            profileEnd = 1.0f - (float)_pbs.ProfileEnd * 2.0e-5f;
-            volume *= (profileEnd - profileBegin);
-
-            return volume;
-        }
-
-
-        private void CalcPrimBodyData()
-        {
-            float volume;
-
-            if (prim_geom == IntPtr.Zero)
-            {
-                // Ubit let's have a initial basic OOB
-                primOOBsize.X = _size.X;
-                primOOBsize.Y = _size.Y;
-                primOOBsize.Z = _size.Z;
-                primOOBoffset = Vector3.Zero;
-            }
-            else
-            {
-                d.AABB AABB;
-                d.GeomGetAABB(prim_geom, out AABB); // get the AABB from engine geom
-
-                primOOBsize.X = (AABB.MaxX - AABB.MinX);
-                primOOBsize.Y = (AABB.MaxY - AABB.MinY);
-                primOOBsize.Z = (AABB.MaxZ - AABB.MinZ);
-                if (!hasOOBoffsetFromMesh)
-                {
-                    primOOBoffset.X = (AABB.MaxX + AABB.MinX) * 0.5f;
-                    primOOBoffset.Y = (AABB.MaxY + AABB.MinY) * 0.5f;
-                    primOOBoffset.Z = (AABB.MaxZ + AABB.MinZ) * 0.5f;
-                }
-            }
-
-            // also its own inertia and mass
-            // keep using basic shape mass for now
-            volume = CalculatePrimVolume();
-
-            primVolume = volume;
-            primMass = m_density * volume;
+            primMass = m_density * primVolume;
 
             if (primMass <= 0)
                 primMass = 0.0001f;//ckrinke: Mass must be greater then zero.
@@ -2484,17 +2142,31 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             _mass = primMass; // just in case
 
-            d.MassSetBoxTotal(out primdMass, primMass, primOOBsize.X, primOOBsize.Y, primOOBsize.Z);
+            d.MassSetBoxTotal(out primdMass, primMass, m_OBB.X, m_OBB.Y, m_OBB.Z);
 
             d.MassTranslate(ref primdMass,
-                                primOOBoffset.X,
-                                primOOBoffset.Y,
-                                primOOBoffset.Z);
+                                m_OBBOffset.X,
+                                m_OBBOffset.Y,
+                                m_OBBOffset.Z);
 
-            primOOBsize *= 0.5f; // let obb size be a corner coords
-            primOOBradiusSQ = primOOBsize.LengthSquared();
+            primOOBradiusSQ = m_OBB.LengthSquared();
+
+            if (_triMeshData != IntPtr.Zero)
+            {
+                float pc = m_physCost;
+                float psf = primOOBradiusSQ;
+                psf *= 1.33f * .2f;
+                pc *= psf;
+                if (pc < 0.1f)
+                    pc = 0.1f;
+
+                m_physCost = pc;
+            }
+            else
+                m_physCost = 0.1f;
+
+            m_streamCost = 1.0f;
         }
-
 
         #endregion
 
@@ -2575,6 +2247,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                 _orientation.Y = qtmp.Y;
                 _orientation.Z = qtmp.Z;
                 _orientation.W = qtmp.W;
+/*
+// Debug
+                float qlen = _orientation.Length();
+                if (qlen > 1.01f || qlen < 0.99)
+                    m_log.WarnFormat("[PHYSICS]: Got nonnorm quaternion from geom in Object {0} norm {1}", Name, qlen);
+//
+*/
+                _orientation.Normalize();
 
                 d.Vector3 lpos = d.GeomGetPosition(prim_geom);
                 _position.X = lpos.X;
@@ -2684,27 +2364,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private void changeadd()
         {
-            CreateGeom();
-
-            if (prim_geom != IntPtr.Zero)
-            {
-                d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
-                d.Quaternion myrot = new d.Quaternion();
-                myrot.X = _orientation.X;
-                myrot.Y = _orientation.Y;
-                myrot.Z = _orientation.Z;
-                myrot.W = _orientation.W;
-                d.GeomSetQuaternion(prim_geom, ref myrot);
-
-                if (!m_isphysical)
-                {
-                    SetInStaticSpace(this);
-                    UpdateCollisionCatFlags();
-                    ApplyCollisionCatFlags();
-                }
-                else 
-                    MakeBody();
-            }
         }
 
         private void changeAngularLock(Vector3 newLock)
@@ -2774,6 +2433,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                 _target_velocity = Vector3.Zero;
                 if (m_vehicle != null && m_vehicle.Type != Vehicle.TYPE_NONE)
                     m_vehicle.Stop();
+
+                _zeroFlag = false;
+                base.RequestPhysicsterseUpdate();
             }
 
             if (Body != IntPtr.Zero)
@@ -3148,7 +2810,63 @@ namespace OpenSim.Region.Physics.OdePlugin
             resetCollisionAccounting();
         }
 
-        private void changeprimsizeshape()
+        private void changeSize(Vector3 newSize)
+        {
+        }
+
+        private void changeShape(PrimitiveBaseShape newShape)
+        {
+        }
+
+        private void changeAddPhysRep(ODEPhysRepData repData)
+        {
+            _size = repData.size; //??
+            _pbs = repData.pbs;
+            m_shapetype = repData.shapetype;
+
+            m_mesh = repData.mesh;
+
+            m_assetID = repData.assetID;
+            m_meshState = repData.meshState;
+
+            m_hasOBB = repData.hasOBB;
+            m_OBBOffset = repData.OBBOffset;
+            m_OBB = repData.OBB;
+
+            primVolume = repData.volume;
+
+            CreateGeom();
+
+            if (prim_geom != IntPtr.Zero)
+            {
+                d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
+                d.Quaternion myrot = new d.Quaternion();
+                myrot.X = _orientation.X;
+                myrot.Y = _orientation.Y;
+                myrot.Z = _orientation.Z;
+                myrot.W = _orientation.W;
+                d.GeomSetQuaternion(prim_geom, ref myrot);
+            }
+
+            if (!m_isphysical)
+            {
+                SetInStaticSpace(this);
+                UpdateCollisionCatFlags();
+                ApplyCollisionCatFlags();
+            }
+            else
+                MakeBody();
+
+            if ((m_meshState & MeshState.NeedMask) != 0)
+            {
+                repData.size = _size;
+                repData.pbs = _pbs;
+                repData.shapetype = m_shapetype;
+                _parent_scene.m_meshWorker.RequestMesh(repData);
+            }
+        }
+
+        private void changePhysRepData(ODEPhysRepData repData)
         {
             CheckDelaySelect();
 
@@ -3170,16 +2888,22 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             RemoveGeom();
 
-            // we don't need to do space calculation because the client sends a position update also.
-            if (_size.X <= 0)
-                _size.X = 0.01f;
-            if (_size.Y <= 0)
-                _size.Y = 0.01f;
-            if (_size.Z <= 0)
-                _size.Z = 0.01f;
-            // Construction of new prim
+            _size = repData.size;
+            _pbs = repData.pbs;
+            m_shapetype = repData.shapetype;
 
-            CreateGeom();
+            m_mesh = repData.mesh;
+
+            m_assetID = repData.assetID;
+            m_meshState = repData.meshState;
+
+            m_hasOBB = repData.hasOBB;
+            m_OBBOffset = repData.OBBOffset;
+            m_OBB = repData.OBB;
+
+            primVolume = repData.volume;
+
+            CreateGeom();          
 
             if (prim_geom != IntPtr.Zero)
             {
@@ -3202,29 +2926,24 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                 }
                 else
-                        MakeBody();
+                    MakeBody();
             }
-
             else
             {
+                SetInStaticSpace(this);
                 UpdateCollisionCatFlags();
                 ApplyCollisionCatFlags();
             }
 
             resetCollisionAccounting();
-        }
 
-        private void changeSize(Vector3 newSize)
-        {
-            _size = newSize;
-            changeprimsizeshape();
-        }
-
-        private void changeShape(PrimitiveBaseShape newShape)
-        {
-            if(newShape != null)
-                _pbs = newShape;
-            changeprimsizeshape();
+            if ((m_meshState & MeshState.NeedMask) != 0)
+            {
+                repData.size = _size;
+                repData.pbs = _pbs;
+                repData.shapetype = m_shapetype;
+                _parent_scene.m_meshWorker.RequestMesh(repData);
+            }
         }
 
         private void changeFloatOnWater(bool newval)
@@ -3891,7 +3610,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public bool DoAChange(changes what, object arg)
         {
-            if (prim_geom == IntPtr.Zero && what != changes.Add && what != changes.Remove)
+            if (prim_geom == IntPtr.Zero && what != changes.Add && what != changes.AddPhysRep && what != changes.Remove)
             {
                 return false;
             }
@@ -3902,6 +3621,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                 case changes.Add:
                     changeadd();
                     break;
+
+                case changes.AddPhysRep:
+                    changeAddPhysRep((ODEPhysRepData)arg);
+                    break;
+
                 case changes.Remove:
                     //If its being removed, we don't want to rebuild the physical rep at all, so ignore this stuff...
                     //When we return true, it destroys all of the prims in the linkset anyway
@@ -3982,6 +3706,10 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 case changes.Shape:
                     changeShape((PrimitiveBaseShape)arg);
+                    break;
+
+                case changes.PhysRepData:
+                    changePhysRepData((ODEPhysRepData) arg);
                     break;
 
                 case changes.CollidesWater:
@@ -4071,6 +3799,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 case changes.Null:
                     donullchange();
                     break;
+
+
 
                 default:
                     donullchange();

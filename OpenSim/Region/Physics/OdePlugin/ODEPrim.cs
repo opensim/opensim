@@ -100,6 +100,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         private Vector3 m_taintAngularLock = Vector3.One;
         private IntPtr Amotor = IntPtr.Zero;
 
+        private object m_assetsLock = new object();
+        private bool m_assetFailed = false;
+
         private Vector3 m_PIDTarget;
         private float m_PIDTau;
         private float PID_D = 35f;
@@ -282,6 +285,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
 
             m_taintadd = true;
+            m_assetFailed = false;
             _parent_scene.AddPhysicsActorTaint(this);
         }
 
@@ -604,8 +608,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                                     break;
 
                                 case HollowShape.Circle:
-                                    // Hollow shape is a perfect cylinder in respect to the cube's scale
-                                    // Cylinder hollow volume calculation
+                                    // Hollow shape is a perfect cyllinder in respect to the cube's scale
+                                    // Cyllinder hollow volume calculation
 
                                     hollowVolume *= 0.1963495f * 3.07920140172638f;
                                     break;
@@ -1498,6 +1502,8 @@ Console.WriteLine("CreateGeom:");
                 mesh = _parent_scene.mesher.CreateMesh(Name, _pbs, _size, _parent_scene.meshSculptLOD, IsPhysical);
                 // createmesh returns null when it's a shape that isn't a cube.
                // m_log.Debug(m_localID);
+                if (mesh == null)
+                    CheckMeshAsset();
             }
 
 #if SPAM
@@ -1997,7 +2003,12 @@ Console.WriteLine(" JointCreateFixed");
                 // Don't need to re-enable body..   it's done in SetMesh
 
                 if (_parent_scene.needsMeshing(_pbs))
+                {
                     mesh = _parent_scene.mesher.CreateMesh(Name, _pbs, _size, meshlod, IsPhysical);
+                    if (mesh == null)
+                        CheckMeshAsset();
+                }
+                    
             }
 
             CreateGeom(m_targetSpace, mesh);
@@ -2057,6 +2068,8 @@ Console.WriteLine(" JointCreateFixed");
         /// </summary>
         private void changeshape()
         {
+            m_taintshape = false;
+
             // Cleanup of old prim geometry and Bodies
             if (IsPhysical && Body != IntPtr.Zero)
             {
@@ -2084,6 +2097,7 @@ Console.WriteLine(" JointCreateFixed");
 
             IMesh mesh = null;
 
+
             if (_parent_scene.needsMeshing(_pbs))
             {
                 // Don't need to re-enable body..   it's done in CreateMesh
@@ -2094,6 +2108,8 @@ Console.WriteLine(" JointCreateFixed");
 
                 // createmesh returns null when it doesn't mesh.
                 mesh = _parent_scene.mesher.CreateMesh(Name, _pbs, _size, meshlod, IsPhysical);
+                if (mesh == null)
+                    CheckMeshAsset();
             }
 
             CreateGeom(m_targetSpace, mesh);
@@ -2130,7 +2146,7 @@ Console.WriteLine(" JointCreateFixed");
             }
 
             resetCollisionAccounting();
-            m_taintshape = false;
+//            m_taintshape = false;
         }
 
         /// <summary>
@@ -2396,6 +2412,7 @@ Console.WriteLine(" JointCreateFixed");
             set
             {
                 _pbs = value;
+                m_assetFailed = false;
                 m_taintshape = true;
             }
         }
@@ -3234,5 +3251,37 @@ Console.WriteLine(" JointCreateFixed");
         {
             m_material = pMaterial;
         }
+
+
+        private void CheckMeshAsset()
+        {
+            if (_pbs.SculptEntry && !m_assetFailed && _pbs.SculptTexture != UUID.Zero)
+            {
+                m_assetFailed = true;
+                Util.FireAndForget(delegate
+                    {
+                        RequestAssetDelegate assetProvider = _parent_scene.RequestAssetMethod;
+                        if (assetProvider != null)
+                            assetProvider(_pbs.SculptTexture, MeshAssetReveived);
+                    });
+            }
+        }
+
+        void MeshAssetReveived(AssetBase asset)
+        {
+            if (asset.Data != null && asset.Data.Length > 0)
+            {
+                if (!_pbs.SculptEntry)
+                    return;
+                if (_pbs.SculptTexture.ToString() != asset.ID)
+                    return;
+
+                _pbs.SculptData = new byte[asset.Data.Length];
+                asset.Data.CopyTo(_pbs.SculptData, 0);
+                m_assetFailed = false;
+                m_taintshape = true;
+               _parent_scene.AddPhysicsActorTaint(this);
+            }
+        }          
     }
 }

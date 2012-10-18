@@ -37,9 +37,11 @@ namespace OpenSim.Region.Physics.Manager
     {
         IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod);
         IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical);
-        IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical,bool convex);
+        IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical, bool convex, bool forOde);
+        IMesh GetMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical, bool convex);
         void ReleaseMesh(IMesh mesh);
         void ExpireReleaseMeshs();
+        void ExpireFileCache();
     }
 
     // Values for level of detail to be passed to the mesher.
@@ -57,6 +59,7 @@ namespace OpenSim.Region.Physics.Manager
     {
     }
 
+    [Serializable()]
     [StructLayout(LayoutKind.Explicit)]
     public struct AMeshKey
     {
@@ -66,6 +69,13 @@ namespace OpenSim.Region.Physics.Manager
         public ulong hashA;
         [FieldOffset(8)]
         public ulong hashB;
+        [FieldOffset(16)]
+        public ulong hashC;
+
+        public override string ToString()
+        {
+            return uuid.ToString() + "-" + hashC.ToString("x") ;
+        }
     }
 
     public interface IMesh
@@ -81,5 +91,6 @@ namespace OpenSim.Region.Physics.Manager
         void Append(IMesh newMesh);
         void TransformLinear(float[,] matrix, float[] offset);
         Vector3 GetCentroid();
+        Vector3 GetOBB();
     }
 }
