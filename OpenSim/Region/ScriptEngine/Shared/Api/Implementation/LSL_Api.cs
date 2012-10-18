@@ -3828,7 +3828,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             // simplest case, this prims link number
-            if (linknum == m_host.LinkNum)
+            if (linknum == m_host.LinkNum || linknum == ScriptBaseClass.LINK_THIS)
                 return m_host.Name;
 
             // Single prim
