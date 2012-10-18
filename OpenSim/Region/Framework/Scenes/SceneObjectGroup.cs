@@ -4287,6 +4287,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <remarks>
         /// When the physics engine has finished with it, the sculpt data is discarded to save memory.
         /// </remarks>
+/*        
         public void CheckSculptAndLoad()
         {
             if (IsDeleted)
@@ -4299,10 +4300,10 @@ namespace OpenSim.Region.Framework.Scenes
 
             SceneObjectPart[] parts = m_parts.GetArray();
 
-//            for (int i = 0; i < parts.Length; i++)
-//                parts[i].CheckSculptAndLoad();
+            for (int i = 0; i < parts.Length; i++)
+                parts[i].CheckSculptAndLoad();
         }
-
+*/
         /// <summary>
         /// Set the user group to which this scene object belongs.
         /// </summary>
