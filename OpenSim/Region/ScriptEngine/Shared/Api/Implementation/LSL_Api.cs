@@ -3773,6 +3773,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         }
 
         /// <summary>
+        /// Returns the name of the child prim or seated avatar matching the
+        /// specified link number.
+        /// </summary>
+        /// <param name="linknum">
+        /// The number of a link in the linkset or a link-related constant.
+        /// </param>
+        /// <returns>
+        /// The name determined to match the specified link number.
+        /// </returns>
+        /// <remarks>
         /// The rules governing the returned name are not simple. The only
         /// time a blank name is returned is if the target prim has a blank
         /// name. If no prim with the given link number can be found then
@@ -3800,7 +3810,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// Mentions NULL_KEY being returned
         /// http://wiki.secondlife.com/wiki/LlGetLinkName
         /// Mentions using the LINK_* constants, some of which are negative
-        /// </summary>
+        /// </remarks>
         public LSL_String llGetLinkName(int linknum)
         {
             m_host.AddScriptLPS(1);
