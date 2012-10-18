@@ -139,25 +139,29 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                 "Objects",
                 false,
                 "show object uuid",
-                "show object uuid <UUID>",
-                "Show details of a scene object with the given UUID", HandleShowObjectByUuid);
+                "show object uuid [--full] <UUID>",
+                "Show details of a scene object with the given UUID",
+                "The --full option will print out information on all the parts of the object.",
+                HandleShowObjectByUuid);
 
             m_console.Commands.AddCommand(
                 "Objects",
                 false,
                 "show object name",
-                "show object name [--regex] <name>",
+                "show object name [--full] [--regex] <name>",
                 "Show details of scene objects with the given name.",
-                "If --regex is specified then the name is treatead as a regular expression",
+                "The --full option will print out information on all the parts of the object.\n"
+                    + "If --regex is specified then the name is treatead as a regular expression.",
                 HandleShowObjectByName);
 
             m_console.Commands.AddCommand(
                 "Objects",
                 false,
                 "show object pos",
-                "show object pos <start-coord> to <end-coord>",
+                "show object pos [--full] <start-coord> to <end-coord>",
                 "Show details of scene objects within the given area.",
-                "Each component of the coord is comma separated.  There must be no spaces between the commas.\n"
+                "The --full option will print out information on all the parts of the object.\n"
+                    + "Each component of the coord is comma separated.  There must be no spaces between the commas.\n"
                     + "If you don't care about the z component you can simply omit it.\n"
                     + "If you don't care about the x or y components then you can leave them blank (though a comma is still required)\n"
                     + "If you want to specify the maxmimum value of a component then you can use ~ instead of a number\n"
@@ -216,7 +220,12 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 //            m_log.DebugFormat("[OBJECTS COMMANDS MODULE]: REGION {0} LOADED", scene.RegionInfo.RegionName);
         }
 
-        private void OutputSogsToConsole(Predicate<SceneObjectGroup> searchPredicate)
+        /// <summary>
+        /// Outputs the sogs to console.
+        /// </summary>
+        /// <param name='searchPredicate'></param>
+        /// <param name='showFull'>If true then output all part details.  If false then output summary.</param>
+        private void OutputSogsToConsole(Predicate<SceneObjectGroup> searchPredicate, bool showFull)
         {
             List<SceneObjectGroup> sceneObjects = m_scene.GetSceneObjectGroups().FindAll(searchPredicate);
 
@@ -224,7 +233,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
             foreach (SceneObjectGroup so in sceneObjects)
             {
-                AddSceneObjectReport(sb, so);
+                AddSceneObjectReport(sb, so, showFull);
                 sb.Append("\n");
             }
 
@@ -253,21 +262,26 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             m_console.OutputFormat(sb.ToString());
         }
 
-        private void HandleShowObjectByUuid(string module, string[] cmd)
+        private void HandleShowObjectByUuid(string module, string[] cmdparams)
         {
             if (!(m_console.ConsoleScene == null || m_console.ConsoleScene == m_scene))
                 return;
 
-            if (cmd.Length < 4)
+            bool showFull = false;
+            OptionSet options = new OptionSet().Add("full", v => showFull = v != null );
+
+            List<string> mainParams = options.Parse(cmdparams);
+
+            if (mainParams.Count < 4)
             {
                 m_console.OutputFormat("Usage: show object uuid <uuid>");
                 return;
             }
 
             UUID objectUuid;
-            if (!UUID.TryParse(cmd[3], out objectUuid))
+            if (!UUID.TryParse(mainParams[3], out objectUuid))
             {
-                m_console.OutputFormat("{0} is not a valid uuid", cmd[3]);
+                m_console.OutputFormat("{0} is not a valid uuid", mainParams[3]);
                 return;
             }
 
@@ -280,7 +294,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             }
 
             StringBuilder sb = new StringBuilder();
-            AddSceneObjectReport(sb, so);
+            AddSceneObjectReport(sb, so, showFull);
 
             m_console.OutputFormat(sb.ToString());
         }
@@ -290,14 +304,17 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             if (!(m_console.ConsoleScene == null || m_console.ConsoleScene == m_scene))
                 return;
 
+            bool showFull = false;
             bool useRegex = false;
-            OptionSet options = new OptionSet().Add("regex", v=> useRegex = v != null );
+            OptionSet options = new OptionSet();
+            options.Add("full", v => showFull = v != null );
+            options.Add("regex", v => useRegex = v != null );
 
             List<string> mainParams = options.Parse(cmdparams);
 
             if (mainParams.Count < 4)
             {
-                m_console.OutputFormat("Usage: show object name [--regex] <name>");
+                m_console.OutputFormat("Usage: show object name [--full] [--regex] <name>");
                 return;
             }
 
@@ -315,7 +332,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                 searchPredicate = so => so.Name == name;
             }
 
-            OutputSogsToConsole(searchPredicate);
+            OutputSogsToConsole(searchPredicate, showFull);
         }
 
         private void HandleShowObjectByPos(string module, string[] cmdparams)
@@ -323,9 +340,14 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             if (!(m_console.ConsoleScene == null || m_console.ConsoleScene == m_scene))
                 return;
 
-            if (cmdparams.Length < 5)
+            bool showFull = false;
+            OptionSet options = new OptionSet().Add("full", v => showFull = v != null );
+
+            List<string> mainParams = options.Parse(cmdparams);
+
+            if (mainParams.Count < 5)
             {
-                m_console.OutputFormat("Usage: show object pos <start-coord> to <end-coord>");
+                m_console.OutputFormat("Usage: show object pos [--full] <start-coord> to <end-coord>");
                 return;
             }
 
@@ -337,7 +359,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             Predicate<SceneObjectGroup> searchPredicate
                 = so => Util.IsInsideBox(so.AbsolutePosition, startVector, endVector);
 
-            OutputSogsToConsole(searchPredicate);
+            OutputSogsToConsole(searchPredicate, showFull);
         }
 
         private void HandleShowPartByUuid(string module, string[] cmd)
@@ -437,7 +459,25 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             OutputSopsToConsole(searchPredicate);
         }
 
-        private StringBuilder AddSceneObjectReport(StringBuilder sb, SceneObjectGroup so)
+        private StringBuilder AddSceneObjectReport(StringBuilder sb, SceneObjectGroup so, bool showFull)
+        {
+            if (showFull)
+            {
+                foreach (SceneObjectPart sop in so.Parts)
+                {
+                    AddScenePartReport(sb, sop);
+                    sb.Append("\n");
+                }
+            }
+            else
+            {
+                AddSummarySceneObjectReport(sb, so);
+            }
+
+            return sb;
+        }
+
+        private StringBuilder AddSummarySceneObjectReport(StringBuilder sb, SceneObjectGroup so)
         {
             sb.AppendFormat("Name:        {0}\n", so.Name);
             sb.AppendFormat("Description: {0}\n", so.Description);
