@@ -341,8 +341,17 @@ namespace OpenSim.Region.Physics.OdePlugin
             prim_geom = geom;
 //Console.WriteLine("SetGeom to " + prim_geom + " for " + Name);
 
-            d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
-            d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+            if (m_assetFailed)
+            {
+                d.GeomSetCategoryBits(prim_geom, 0);
+                d.GeomSetCollideBits(prim_geom, 0);
+            }
+            else
+            {
+
+                d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
+                d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+            }
 
             _parent_scene.geom_name_map[prim_geom] = Name;
             _parent_scene.actor_name_map[prim_geom] = this;
@@ -405,8 +414,17 @@ namespace OpenSim.Region.Physics.OdePlugin
                 myrot.W = _orientation.W;
                 d.BodySetQuaternion(Body, ref myrot);
                 d.GeomSetBody(prim_geom, Body);
-                m_collisionCategories |= CollisionCategories.Body;
-                m_collisionFlags |= (CollisionCategories.Land | CollisionCategories.Wind);
+
+                if (m_assetFailed)
+                {
+                    d.GeomSetCategoryBits(prim_geom, 0);
+                    d.GeomSetCollideBits(prim_geom, 0);
+                }
+                else
+                {
+                    m_collisionCategories |= CollisionCategories.Body;
+                    m_collisionFlags |= (CollisionCategories.Land | CollisionCategories.Wind);
+                }
 
                 d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
                 d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
@@ -778,8 +796,16 @@ namespace OpenSim.Region.Physics.OdePlugin
                         m_collisionCategories &= ~CollisionCategories.Body;
                         m_collisionFlags &= ~(CollisionCategories.Wind | CollisionCategories.Land);
 
-                        d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
-                        d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+                        if (m_assetFailed)
+                        {
+                            d.GeomSetCategoryBits(prim_geom, 0);
+                            d.GeomSetCollideBits(prim_geom, 0);
+                        }
+                        else
+                        {
+                            d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
+                            d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+                        }
 
                         d.BodyDestroy(Body);
                         lock (childrenPrim)
@@ -803,8 +829,17 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_collisionCategories &= ~CollisionCategories.Body;
                     m_collisionFlags &= ~(CollisionCategories.Wind | CollisionCategories.Land);
 
-                    d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
-                    d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+                    if (m_assetFailed)
+                    {
+                        d.GeomSetCategoryBits(prim_geom, 0);
+                        d.GeomSetCollideBits(prim_geom, 0);
+                    }
+                    else
+                    {
+
+                        d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
+                        d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+                    }
 
                     Body = IntPtr.Zero;
                 }
@@ -1094,8 +1129,16 @@ Console.WriteLine("ZProcessTaints for " + Name);
                     prm.m_collisionFlags |= (CollisionCategories.Land | CollisionCategories.Wind);
 
 //Console.WriteLine(" GeomSetCategoryBits 1: " + prm.prim_geom + " - " + (int)prm.m_collisionCategories + " for " + Name);
-                    d.GeomSetCategoryBits(prm.prim_geom, (int)prm.m_collisionCategories);
-                    d.GeomSetCollideBits(prm.prim_geom, (int)prm.m_collisionFlags);
+                    if (prm.m_assetFailed)
+                    {
+                        d.GeomSetCategoryBits(prm.prim_geom, 0);
+                        d.GeomSetCollideBits(prm.prim_geom, 0);
+                    }
+                    else
+                    {
+                        d.GeomSetCategoryBits(prm.prim_geom, (int)prm.m_collisionCategories);
+                        d.GeomSetCollideBits(prm.prim_geom, (int)prm.m_collisionFlags);
+                    }
 
                     d.Quaternion quat = new d.Quaternion();
                     quat.W = prm._orientation.W;
@@ -1140,10 +1183,18 @@ Console.WriteLine("ZProcessTaints for " + Name);
                 m_collisionCategories |= CollisionCategories.Body;
                 m_collisionFlags |= (CollisionCategories.Land | CollisionCategories.Wind);
 
-//Console.WriteLine("GeomSetCategoryBits 2: " + prim_geom + " - " + (int)m_collisionCategories + " for " + Name);
-                d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
-//Console.WriteLine(" Post GeomSetCategoryBits 2");
-                d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+                if (m_assetFailed)
+                {
+                    d.GeomSetCategoryBits(prim_geom, 0);
+                    d.GeomSetCollideBits(prim_geom, 0);
+                }
+                else
+                {
+                    //Console.WriteLine("GeomSetCategoryBits 2: " + prim_geom + " - " + (int)m_collisionCategories + " for " + Name);
+                    d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
+                    //Console.WriteLine(" Post GeomSetCategoryBits 2");
+                    d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+                }
 
                 d.Quaternion quat2 = new d.Quaternion();
                 quat2.W = _orientation.W;
@@ -1304,8 +1355,16 @@ Console.WriteLine("ZProcessTaints for " + Name);
                     disableBodySoft();
                 }
 
-                d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
-                d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+                if (m_assetFailed)
+                {
+                    d.GeomSetCategoryBits(prim_geom, 0);
+                    d.GeomSetCollideBits(prim_geom, 0);
+                }
+                else
+                {
+                    d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
+                    d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+                }
 
                 if (IsPhysical)
                 {
@@ -1326,8 +1385,16 @@ Console.WriteLine("ZProcessTaints for " + Name);
                 if (m_collidesWater)
                     m_collisionFlags |= CollisionCategories.Water;
 
-                d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
-                d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+                if (m_assetFailed)
+                {
+                    d.GeomSetCategoryBits(prim_geom, 0);
+                    d.GeomSetCollideBits(prim_geom, 0);
+                }
+                else
+                {
+                    d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
+                    d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+                }
 
                 if (IsPhysical)
                 {
@@ -1504,6 +1571,8 @@ Console.WriteLine("CreateGeom:");
                // m_log.Debug(m_localID);
                 if (mesh == null)
                     CheckMeshAsset();
+                else
+                    m_assetFailed = false;
             }
 
 #if SPAM
@@ -2007,6 +2076,8 @@ Console.WriteLine(" JointCreateFixed");
                     mesh = _parent_scene.mesher.CreateMesh(Name, _pbs, _size, meshlod, IsPhysical);
                     if (mesh == null)
                         CheckMeshAsset();
+                    else
+                        m_assetFailed = false;
                 }
                     
             }
@@ -2060,9 +2131,12 @@ Console.WriteLine(" JointCreateFixed");
                 m_collisionFlags &= ~CollisionCategories.Water;
             }
 
-            d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
-        }
+            if (m_assetFailed)
+                d.GeomSetCollideBits(prim_geom, 0);
+            else
 
+                d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+        }
         /// <summary>
         /// Change prim in response to a shape taint.
         /// </summary>
@@ -2110,6 +2184,8 @@ Console.WriteLine(" JointCreateFixed");
                 mesh = _parent_scene.mesher.CreateMesh(Name, _pbs, _size, meshlod, IsPhysical);
                 if (mesh == null)
                     CheckMeshAsset();
+                else
+                    m_assetFailed = false;
             }
 
             CreateGeom(m_targetSpace, mesh);
@@ -3278,7 +3354,7 @@ Console.WriteLine(" JointCreateFixed");
 
                 _pbs.SculptData = new byte[asset.Data.Length];
                 asset.Data.CopyTo(_pbs.SculptData, 0);
-                m_assetFailed = false;
+//                m_assetFailed = false;
                 m_taintshape = true;
                _parent_scene.AddPhysicsActorTaint(this);
             }
