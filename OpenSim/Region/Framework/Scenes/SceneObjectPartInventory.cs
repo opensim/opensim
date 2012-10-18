@@ -92,6 +92,15 @@ namespace OpenSim.Region.Framework.Scenes
                 QueryScriptStates();
             }
         }
+
+        public int Count
+        {
+            get
+            {
+                lock (m_items)
+                    return m_items.Count;
+            }
+        }
         
         /// <summary>
         /// Constructor
