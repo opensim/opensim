@@ -76,7 +76,7 @@ namespace OpenSim.Region.Physics.Manager
             get { return new NullPhysicsScene(); }
         }
 
-        public RequestAssetDelegate RequestAssetMethod { private get; set; }
+        public RequestAssetDelegate RequestAssetMethod { get; set; }
 
         public virtual void TriggerPhysicsBasedRestart()
         {
