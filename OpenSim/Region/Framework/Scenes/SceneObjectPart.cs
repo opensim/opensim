@@ -4028,14 +4028,6 @@ namespace OpenSim.Region.Framework.Scenes
                 if (!wasUsingPhysics)
                 {
                     DoPhysicsPropertyUpdate(UsePhysics, false);
-
-                    if (!ParentGroup.IsDeleted)
-                    {
-                        if (LocalId == ParentGroup.RootPart.LocalId)
-                        {
-                            ParentGroup.CheckSculptAndLoad();
-                        }
-                    }
                 }
             }
             else
@@ -4075,14 +4067,6 @@ namespace OpenSim.Region.Framework.Scenes
                         pa.SetMaterial(Material);
                         DoPhysicsPropertyUpdate(UsePhysics, true);
     
-                        if (!ParentGroup.IsDeleted)
-                        {
-                            if (LocalId == ParentGroup.RootPart.LocalId)
-                            {
-                                ParentGroup.CheckSculptAndLoad();
-                            }
-                        }
-    
                         if (
                             ((AggregateScriptEvents & scriptEvents.collision) != 0) ||
                             ((AggregateScriptEvents & scriptEvents.collision_end) != 0) ||
@@ -4107,14 +4091,6 @@ namespace OpenSim.Region.Framework.Scenes
                 else // it already has a physical representation
                 {
                     DoPhysicsPropertyUpdate(UsePhysics, false); // Update physical status. If it's phantom this will remove the prim
-
-                    if (!ParentGroup.IsDeleted)
-                    {
-                        if (LocalId == ParentGroup.RootPart.LocalId)
-                        {
-                            ParentGroup.CheckSculptAndLoad();
-                        }
-                    }
                 }
             }
 
