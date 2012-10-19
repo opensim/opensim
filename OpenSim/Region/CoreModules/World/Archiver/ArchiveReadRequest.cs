@@ -290,7 +290,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
             foreach (DearchiveContext sceneContext in sceneContexts.Values)
             {
-                m_log.InfoFormat("[ARCHIVER:] Loading region {0}", sceneContext.Scene.RegionInfo.RegionName);
+                m_log.InfoFormat("[ARCHIVER]: Loading region {0}", sceneContext.Scene.RegionInfo.RegionName);
 
                 if (!m_merge)
                 {
@@ -324,7 +324,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             Util.FireAndForget(delegate(object o)
             {
                 Thread.Sleep(15000);
-                m_log.Info("Starting scripts in scene objects");
+                m_log.Info("[ARCHIVER]: Starting scripts in scene objects");
 
                 foreach (DearchiveContext sceneContext in sceneContexts.Values)
                 {
