@@ -914,8 +914,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                     if (repData.pbs.SculptTexture != repData.assetID)
                         return;
 
-                    repData.pbs.SculptData = new byte[asset.Data.Length];
-                    asset.Data.CopyTo(repData.pbs.SculptData,0);
+//                    repData.pbs.SculptData = new byte[asset.Data.Length];
+//                    asset.Data.CopyTo(repData.pbs.SculptData,0);
+                    repData.pbs.SculptData = asset.Data;
                     repData.meshState = MeshState.AssetOK;
                     m_worker.AssetLoaded(repData);
                 }
