@@ -384,8 +384,8 @@ namespace OpenSim.Services.Connectors.SimianGrid
             if (response["Success"].AsBoolean())
             {
                 OSDMap extraData = response["ExtraData"] as OSDMap;
-                int enabled = response["Enabled"].AsBoolean() ? (int) OpenSim.Data.RegionFlags.RegionOnline : 0;
-                int hypergrid = extraData["HyperGrid"].AsBoolean() ? (int) OpenSim.Data.RegionFlags.Hyperlink : 0;
+                int enabled = response["Enabled"].AsBoolean() ? (int)OpenSim.Framework.RegionFlags.RegionOnline : 0;
+                int hypergrid = extraData["HyperGrid"].AsBoolean() ? (int)OpenSim.Framework.RegionFlags.Hyperlink : 0;
                 int flags =  enabled | hypergrid;
                 m_log.DebugFormat("[SGGC] enabled - {0} hg - {1} flags - {2}", enabled, hypergrid, flags);
                 return flags;

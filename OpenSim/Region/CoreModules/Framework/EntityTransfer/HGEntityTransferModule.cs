@@ -212,7 +212,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             int flags = Scene.GridService.GetRegionFlags(Scene.RegionInfo.ScopeID, region.RegionID);
             m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: region {0} flags: {1}", region.RegionID, flags);
 
-            if ((flags & (int)OpenSim.Data.RegionFlags.Hyperlink) != 0)
+            if ((flags & (int)OpenSim.Framework.RegionFlags.Hyperlink) != 0)
             {
                 m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Destination region {0} is hyperlink", region.RegionID);
                 GridRegion real_destination = m_GatekeeperConnector.GetHyperlinkRegion(region, region.RegionID);
@@ -232,7 +232,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 return true;
 
             int flags = Scene.GridService.GetRegionFlags(Scene.RegionInfo.ScopeID, reg.RegionID);
-            if (flags == -1 /* no region in DB */ || (flags & (int)OpenSim.Data.RegionFlags.Hyperlink) != 0)
+            if (flags == -1 /* no region in DB */ || (flags & (int)OpenSim.Framework.RegionFlags.Hyperlink) != 0)
                 return true;
 
             return false;
@@ -256,7 +256,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             reason = string.Empty;
             logout = false;
             int flags = Scene.GridService.GetRegionFlags(Scene.RegionInfo.ScopeID, reg.RegionID);
-            if (flags == -1 /* no region in DB */ || (flags & (int)OpenSim.Data.RegionFlags.Hyperlink) != 0)
+            if (flags == -1 /* no region in DB */ || (flags & (int)OpenSim.Framework.RegionFlags.Hyperlink) != 0)
             {
                 // this user is going to another grid
                 // check if HyperGrid teleport is allowed, based on user level
@@ -298,7 +298,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // The rest is only needed for controlling appearance
 
             int flags = Scene.GridService.GetRegionFlags(Scene.RegionInfo.ScopeID, reg.RegionID);
-            if (flags == -1 /* no region in DB */ || (flags & (int)OpenSim.Data.RegionFlags.Hyperlink) != 0)
+            if (flags == -1 /* no region in DB */ || (flags & (int)OpenSim.Framework.RegionFlags.Hyperlink) != 0)
             {
                 // this user is going to another grid
                 if (Scene.UserManagementModule.IsLocalGridUser(sp.UUID))

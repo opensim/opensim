@@ -913,7 +913,7 @@ namespace OpenSim.Region.Framework.Scenes
         public event SceneObjectPartCopyDelegate OnSceneObjectPartCopy;
         public delegate void SceneObjectPartCopyDelegate(SceneObjectPart copy, SceneObjectPart original, bool userExposed);
 
-        public delegate void SceneObjectPartUpdated(SceneObjectPart sop);
+        public delegate void SceneObjectPartUpdated(SceneObjectPart sop, bool full);
         public event SceneObjectPartUpdated OnSceneObjectPartUpdated;
 
         public delegate void ScenePresenceUpdated(ScenePresence sp);
@@ -2837,7 +2837,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void TriggerSceneObjectPartUpdated(SceneObjectPart sop)
+        public void TriggerSceneObjectPartUpdated(SceneObjectPart sop, bool full)
         {
             SceneObjectPartUpdated handler = OnSceneObjectPartUpdated;
             if (handler != null)
@@ -2846,7 +2846,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     try
                     {
-                        d(sop);
+                        d(sop, full);
                     }
                     catch (Exception e)
                     {
