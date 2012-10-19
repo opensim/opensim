@@ -33,15 +33,21 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Mono.Addins;
-using Mono.Addins.Setup;
+// using Mono.Addins.Setup;
 using Mono.Addins.Description;
 using OpenSim.Framework;
 
 namespace OpenSim.Server.Base
 {
+    /// <summary>
+    /// Command manager -
+    /// Wrapper for OpenSim.Framework.PluginManager to allow 
+    /// us to add commands to the console to perform operations
+    /// on our repos and plugins
+    /// </summary>
 	public class CommandManager
 	{
-		protected AddinRegistry PluginRegistry;
+		public AddinRegistry PluginRegistry;
 		protected PluginManager PluginManager;
 
 		public CommandManager(AddinRegistry registry)

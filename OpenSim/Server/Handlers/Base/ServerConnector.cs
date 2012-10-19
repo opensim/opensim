@@ -41,8 +41,7 @@ namespace OpenSim.Server.Handlers.Base
     {
         public virtual string ConfigURL
         {
-            get;
-            protected set;
+            get { return String.Empty; }
         }
 
         public virtual string ConfigName
@@ -95,7 +94,10 @@ namespace OpenSim.Server.Handlers.Base
             return config;
         }
 
-        // We get our remote initial configuration for bootstrapping
+        // We get our remote initial configuration for bootstrapping in case
+        // we have no configuration in our main file or in an existing
+        // modular config file. This is the last resort to bootstrap the 
+        // configuration, likely a new plugin loading for the first time.
         private IConfigSource GetConfigSource()
         {
             IConfigSource source = null;

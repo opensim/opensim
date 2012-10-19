@@ -38,13 +38,17 @@ using Mono.Addins.Setup;
 using Mono.Addins.Description;
 using OpenSim.Framework;
 
-namespace OpenSim.Server.Base
+
+namespace OpenSim.Framework
 {
+    /// <summary>
+    /// Manager for registries and plugins
+    /// </summary>
 	public class PluginManager : SetupService
 	{
-		protected AddinRegistry PluginRegistry;
+		public AddinRegistry PluginRegistry;
 
-		internal PluginManager(AddinRegistry registry): base (registry)
+		public PluginManager(AddinRegistry registry): base (registry)
         {
 			PluginRegistry = registry;
 

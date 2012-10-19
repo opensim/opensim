@@ -111,17 +111,18 @@ namespace OpenSim.Server.Base
                 case ExtensionChange.Add:
                     if (a.AddinFile.Contains(Registry.DefaultAddinsFolder))
                     {
-                        m_log.InfoFormat("[SERVER]: Adding {0}", a.Name);
+                        m_log.InfoFormat("[SERVER]: Adding {0} from registry", a.Name);
                         connector.PluginPath = String.Format("{0}/{1}", Registry.DefaultAddinsFolder, a.Name.Replace(',', '.'));
                     }
                     else
                     {
-                        m_log.InfoFormat("[SERVER]: Removing {0}", a.Name);
+                        m_log.InfoFormat("[SERVER]: Adding {0} from ./bin", a.Name);
                         connector.PluginPath = a.AddinFile;
                     }
                     LoadPlugin(connector);
                     break;
                 case ExtensionChange.Remove:
+                    m_log.InfoFormat("[SERVER]: Removing {0}", a.Name);
                     UnloadPlugin(connector);
                     break;
             }
