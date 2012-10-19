@@ -117,7 +117,7 @@ public class BSShapeCollection : IDisposable
 
     // Track another user of a body
     // We presume the caller has allocated the body.
-    // Bodies only have one user so the reference count is either 1 or 0.
+    // Bodies only have one user so the body is just put into the world if not already there.
     public void ReferenceBody(BulletBody body, bool inTaintTime)
     {
         lock (m_collectionActivityLock)
@@ -241,26 +241,32 @@ public class BSShapeCollection : IDisposable
 
         BSScene.TaintCallback dereferenceOperation = delegate()
         {
-            switch (shape.type)
+            if (shape.ptr != IntPtr.Zero)
             {
-                case ShapeData.PhysicsShapeType.SHAPE_HULL:
-                    DereferenceHull(shape, shapeCallback);
-                    break;
-                case ShapeData.PhysicsShapeType.SHAPE_MESH:
-                    DereferenceMesh(shape, shapeCallback);
-                    break;
-                case ShapeData.PhysicsShapeType.SHAPE_UNKNOWN:
-                    break;
-                default:
+                if (shape.isNativeShape)
+                {
                     // Native shapes are not tracked and are released immediately
-                    if (shape.ptr != IntPtr.Zero & shape.isNativeShape)
+                    DetailLog("{0},BSShapeCollection.DereferenceShape,deleteNativeShape,ptr={1},taintTime={2}",
+                                    BSScene.DetailLogZero, shape.ptr.ToString("X"), inTaintTime);
+                    if (shapeCallback != null) shapeCallback(shape);
+                    BulletSimAPI.DeleteCollisionShape2(PhysicsScene.World.ptr, shape.ptr);
+                }
+                else
+                {
+                    switch (shape.type)
                     {
-                        DetailLog("{0},BSShapeCollection.DereferenceShape,deleteNativeShape,ptr={1},taintTime={2}",
-                                        BSScene.DetailLogZero, shape.ptr.ToString("X"), inTaintTime);
-                        if (shapeCallback != null) shapeCallback(shape);
-                        BulletSimAPI.DeleteCollisionShape2(PhysicsScene.World.ptr, shape.ptr);
+                        case ShapeData.PhysicsShapeType.SHAPE_HULL:
+                            DereferenceHull(shape, shapeCallback);
+                            break;
+                        case ShapeData.PhysicsShapeType.SHAPE_MESH:
+                            DereferenceMesh(shape, shapeCallback);
+                            break;
+                        case ShapeData.PhysicsShapeType.SHAPE_UNKNOWN:
+                            break;
+                        default:
+                            break;
                     }
-                    break;
+                }
             }
         };
         if (inTaintTime)
@@ -405,7 +411,6 @@ public class BSShapeCollection : IDisposable
                             ShapeData.PhysicsShapeType shapeType, ShapeData.FixedShapeKey shapeKey,
                             ShapeDestructionCallback shapeCallback)
     {
-        BulletShape newShape;
 
         shapeData.Type = shapeType;
         // Bullet native objects are scaled by the Bullet engine so pass the size in
@@ -415,20 +420,7 @@ public class BSShapeCollection : IDisposable
         // release any previous shape
         DereferenceShape(prim.BSShape, true, shapeCallback);
 
-        if (shapeType == ShapeData.PhysicsShapeType.SHAPE_AVATAR)
-        {
-            newShape = new BulletShape(
-                        BulletSimAPI.BuildCapsuleShape2(PhysicsScene.World.ptr, 1.0f, 1.0f, shapeData.Scale), 
-                        shapeType);
-            newShape.shapeKey = (System.UInt64)shapeKey;
-            newShape.isNativeShape = true;
-        }
-        else
-        {
-            newShape = new BulletShape(BulletSimAPI.BuildNativeShape2(PhysicsScene.World.ptr, shapeData), shapeType);
-            newShape.shapeKey = (System.UInt64)shapeKey;
-            newShape.isNativeShape = true;
-        }
+        BulletShape newShape = BuildPhysicalNativeShape(shapeType, shapeData, shapeKey);
 
         // Don't need to do a 'ReferenceShape()' here because native shapes are not shared.
         DetailLog("{0},BSShapeCollection.AddNativeShapeToPrim,create,newshape={1},scale={2}", 
@@ -436,6 +428,27 @@ public class BSShapeCollection : IDisposable
 
         prim.BSShape = newShape;
         return true;
+    }
+
+    private BulletShape BuildPhysicalNativeShape(ShapeData.PhysicsShapeType shapeType, 
+                        ShapeData shapeData, ShapeData.FixedShapeKey shapeKey)
+    {
+        BulletShape newShape;
+
+        if (shapeType == ShapeData.PhysicsShapeType.SHAPE_AVATAR)
+        {
+            newShape = new BulletShape(
+                        BulletSimAPI.BuildCapsuleShape2(PhysicsScene.World.ptr, 1.0f, 1.0f, shapeData.Scale), 
+                        shapeType);
+        }
+        else
+        {
+            newShape = new BulletShape(BulletSimAPI.BuildNativeShape2(PhysicsScene.World.ptr, shapeData), shapeType);
+        }
+        newShape.shapeKey = (System.UInt64)shapeKey;
+        newShape.isNativeShape = true;
+
+        return newShape;
     }
 
     // Builds a mesh shape in the physical world and updates prim.BSShape.
@@ -461,6 +474,8 @@ public class BSShapeCollection : IDisposable
         DereferenceShape(prim.BSShape, true, shapeCallback);
 
         newShape = CreatePhysicalMesh(prim.PhysObjectName, newMeshKey, pbs, shapeData.Size, lod);
+        // Take evasive action if the mesh was not constructed.
+        newShape = VerifyMeshCreated(newShape, prim, shapeData, pbs);
 
         ReferenceShape(newShape);
 
@@ -474,7 +489,7 @@ public class BSShapeCollection : IDisposable
     private BulletShape CreatePhysicalMesh(string objName, System.UInt64 newMeshKey, PrimitiveBaseShape pbs, OMV.Vector3 size, float lod)
     {
         IMesh meshData = null;
-        IntPtr meshPtr;
+        IntPtr meshPtr = IntPtr.Zero;
         MeshDesc meshDesc;
         if (Meshes.TryGetValue(newMeshKey, out meshDesc))
         {
@@ -486,23 +501,26 @@ public class BSShapeCollection : IDisposable
             // Pass false for physicalness as this creates some sort of bounding box which we don't need
             meshData = PhysicsScene.mesher.CreateMesh(objName, pbs, size, lod, false);
 
-            int[] indices = meshData.getIndexListAsInt();
-            List<OMV.Vector3> vertices = meshData.getVertexList();
-
-            float[] verticesAsFloats = new float[vertices.Count * 3];
-            int vi = 0;
-            foreach (OMV.Vector3 vv in vertices)
+            if (meshData != null)
             {
-                verticesAsFloats[vi++] = vv.X;
-                verticesAsFloats[vi++] = vv.Y;
-                verticesAsFloats[vi++] = vv.Z;
+                int[] indices = meshData.getIndexListAsInt();
+                List<OMV.Vector3> vertices = meshData.getVertexList();
+
+                float[] verticesAsFloats = new float[vertices.Count * 3];
+                int vi = 0;
+                foreach (OMV.Vector3 vv in vertices)
+                {
+                    verticesAsFloats[vi++] = vv.X;
+                    verticesAsFloats[vi++] = vv.Y;
+                    verticesAsFloats[vi++] = vv.Z;
+                }
+
+                // m_log.DebugFormat("{0}: CreateGeomMesh: calling CreateMesh. lid={1}, key={2}, indices={3}, vertices={4}",
+                //                  LogHeader, prim.LocalID, newMeshKey, indices.Length, vertices.Count);
+
+                meshPtr = BulletSimAPI.CreateMeshShape2(PhysicsScene.World.ptr,
+                                    indices.GetLength(0), indices, vertices.Count, verticesAsFloats);
             }
-
-            // m_log.DebugFormat("{0}: CreateGeomMesh: calling CreateMesh. lid={1}, key={2}, indices={3}, vertices={4}",
-            //                  LogHeader, prim.LocalID, newMeshKey, indices.Length, vertices.Count);
-
-            meshPtr = BulletSimAPI.CreateMeshShape2(PhysicsScene.World.ptr,
-                                indices.GetLength(0), indices, vertices.Count, verticesAsFloats);
         }
         BulletShape newShape = new BulletShape(meshPtr, ShapeData.PhysicsShapeType.SHAPE_MESH);
         newShape.shapeKey = newMeshKey;
@@ -531,6 +549,7 @@ public class BSShapeCollection : IDisposable
         DereferenceShape(prim.BSShape, true, shapeCallback);
 
         newShape = CreatePhysicalHull(prim.PhysObjectName, newHullKey, pbs, shapeData.Size, lod);
+        newShape = VerifyMeshCreated(newShape, prim, shapeData, pbs);
 
         ReferenceShape(newShape);
 
@@ -544,7 +563,7 @@ public class BSShapeCollection : IDisposable
     private BulletShape CreatePhysicalHull(string objName, System.UInt64 newHullKey, PrimitiveBaseShape pbs, OMV.Vector3 size, float lod)
     {
 
-        IntPtr hullPtr;
+        IntPtr hullPtr = IntPtr.Zero;
         HullDesc hullDesc;
         if (Hulls.TryGetValue(newHullKey, out hullDesc))
         {
@@ -556,86 +575,89 @@ public class BSShapeCollection : IDisposable
             // Build a new hull in the physical world
             // Pass false for physicalness as this creates some sort of bounding box which we don't need
             IMesh meshData = PhysicsScene.mesher.CreateMesh(objName, pbs, size, lod, false);
-
-            int[] indices = meshData.getIndexListAsInt();
-            List<OMV.Vector3> vertices = meshData.getVertexList();
-
-            //format conversion from IMesh format to DecompDesc format
-            List<int> convIndices = new List<int>();
-            List<float3> convVertices = new List<float3>();
-            for (int ii = 0; ii < indices.GetLength(0); ii++)
+            if (meshData != null)
             {
-                convIndices.Add(indices[ii]);
-            }
-            foreach (OMV.Vector3 vv in vertices)
-            {
-                convVertices.Add(new float3(vv.X, vv.Y, vv.Z));
-            }
 
-            // setup and do convex hull conversion
-            m_hulls = new List<ConvexResult>();
-            DecompDesc dcomp = new DecompDesc();
-            dcomp.mIndices = convIndices;
-            dcomp.mVertices = convVertices;
-            ConvexBuilder convexBuilder = new ConvexBuilder(HullReturn);
-            // create the hull into the _hulls variable
-            convexBuilder.process(dcomp);
+                int[] indices = meshData.getIndexListAsInt();
+                List<OMV.Vector3> vertices = meshData.getVertexList();
 
-            // Convert the vertices and indices for passing to unmanaged.
-            // The hull information is passed as a large floating point array.
-            // The format is:
-            //  convHulls[0] = number of hulls
-            //  convHulls[1] = number of vertices in first hull
-            //  convHulls[2] = hull centroid X coordinate
-            //  convHulls[3] = hull centroid Y coordinate
-            //  convHulls[4] = hull centroid Z coordinate
-            //  convHulls[5] = first hull vertex X
-            //  convHulls[6] = first hull vertex Y
-            //  convHulls[7] = first hull vertex Z
-            //  convHulls[8] = second hull vertex X
-            //  ...
-            //  convHulls[n] = number of vertices in second hull
-            //  convHulls[n+1] = second hull centroid X coordinate
-            //  ...
-            //
-            // TODO: is is very inefficient. Someday change the convex hull generator to return
-            //   data structures that do not need to be converted in order to pass to Bullet.
-            //   And maybe put the values directly into pinned memory rather than marshaling.
-            int hullCount = m_hulls.Count;
-            int totalVertices = 1;          // include one for the count of the hulls
-            foreach (ConvexResult cr in m_hulls)
-            {
-                totalVertices += 4;                         // add four for the vertex count and centroid
-                totalVertices += cr.HullIndices.Count * 3;  // we pass just triangles
-            }
-            float[] convHulls = new float[totalVertices];
-
-            convHulls[0] = (float)hullCount;
-            int jj = 1;
-            foreach (ConvexResult cr in m_hulls)
-            {
-                // copy vertices for index access
-                float3[] verts = new float3[cr.HullVertices.Count];
-                int kk = 0;
-                foreach (float3 ff in cr.HullVertices)
+                //format conversion from IMesh format to DecompDesc format
+                List<int> convIndices = new List<int>();
+                List<float3> convVertices = new List<float3>();
+                for (int ii = 0; ii < indices.GetLength(0); ii++)
                 {
-                    verts[kk++] = ff;
+                    convIndices.Add(indices[ii]);
+                }
+                foreach (OMV.Vector3 vv in vertices)
+                {
+                    convVertices.Add(new float3(vv.X, vv.Y, vv.Z));
                 }
 
-                // add to the array one hull's worth of data
-                convHulls[jj++] = cr.HullIndices.Count;
-                convHulls[jj++] = 0f;   // centroid x,y,z
-                convHulls[jj++] = 0f;
-                convHulls[jj++] = 0f;
-                foreach (int ind in cr.HullIndices)
+                // setup and do convex hull conversion
+                m_hulls = new List<ConvexResult>();
+                DecompDesc dcomp = new DecompDesc();
+                dcomp.mIndices = convIndices;
+                dcomp.mVertices = convVertices;
+                ConvexBuilder convexBuilder = new ConvexBuilder(HullReturn);
+                // create the hull into the _hulls variable
+                convexBuilder.process(dcomp);
+
+                // Convert the vertices and indices for passing to unmanaged.
+                // The hull information is passed as a large floating point array.
+                // The format is:
+                //  convHulls[0] = number of hulls
+                //  convHulls[1] = number of vertices in first hull
+                //  convHulls[2] = hull centroid X coordinate
+                //  convHulls[3] = hull centroid Y coordinate
+                //  convHulls[4] = hull centroid Z coordinate
+                //  convHulls[5] = first hull vertex X
+                //  convHulls[6] = first hull vertex Y
+                //  convHulls[7] = first hull vertex Z
+                //  convHulls[8] = second hull vertex X
+                //  ...
+                //  convHulls[n] = number of vertices in second hull
+                //  convHulls[n+1] = second hull centroid X coordinate
+                //  ...
+                //
+                // TODO: is is very inefficient. Someday change the convex hull generator to return
+                //   data structures that do not need to be converted in order to pass to Bullet.
+                //   And maybe put the values directly into pinned memory rather than marshaling.
+                int hullCount = m_hulls.Count;
+                int totalVertices = 1;          // include one for the count of the hulls
+                foreach (ConvexResult cr in m_hulls)
                 {
-                    convHulls[jj++] = verts[ind].x;
-                    convHulls[jj++] = verts[ind].y;
-                    convHulls[jj++] = verts[ind].z;
+                    totalVertices += 4;                         // add four for the vertex count and centroid
+                    totalVertices += cr.HullIndices.Count * 3;  // we pass just triangles
                 }
+                float[] convHulls = new float[totalVertices];
+
+                convHulls[0] = (float)hullCount;
+                int jj = 1;
+                foreach (ConvexResult cr in m_hulls)
+                {
+                    // copy vertices for index access
+                    float3[] verts = new float3[cr.HullVertices.Count];
+                    int kk = 0;
+                    foreach (float3 ff in cr.HullVertices)
+                    {
+                        verts[kk++] = ff;
+                    }
+
+                    // add to the array one hull's worth of data
+                    convHulls[jj++] = cr.HullIndices.Count;
+                    convHulls[jj++] = 0f;   // centroid x,y,z
+                    convHulls[jj++] = 0f;
+                    convHulls[jj++] = 0f;
+                    foreach (int ind in cr.HullIndices)
+                    {
+                        convHulls[jj++] = verts[ind].x;
+                        convHulls[jj++] = verts[ind].y;
+                        convHulls[jj++] = verts[ind].z;
+                    }
+                }
+                // create the hull data structure in Bullet
+                hullPtr = BulletSimAPI.CreateHullShape2(PhysicsScene.World.ptr, hullCount, convHulls);
             }
-            // create the hull data structure in Bullet
-            hullPtr = BulletSimAPI.CreateHullShape2(PhysicsScene.World.ptr, hullCount, convHulls);
         }
 
         BulletShape newShape = new BulletShape(hullPtr, ShapeData.PhysicsShapeType.SHAPE_HULL);
@@ -674,6 +696,50 @@ public class BSShapeCollection : IDisposable
     {
         float lod;
         return ComputeShapeKey(shapeData, pbs, out lod);
+    }
+
+    private BulletShape VerifyMeshCreated(BulletShape newShape, BSPhysObject prim, ShapeData shapeData, PrimitiveBaseShape pbs)
+    {
+        // If the shape was successfully created, nothing more to do
+        if (newShape.ptr != IntPtr.Zero)
+            return newShape;
+
+        // The most common reason for failure is that an underlying asset is not available
+
+        // If this mesh has an underlying asset and we have not failed getting it before, fetch the asset
+        if (pbs.SculptEntry && !prim.LastAssetBuildFailed && pbs.SculptTexture != OMV.UUID.Zero)
+        {
+            prim.LastAssetBuildFailed = true;
+            BSPhysObject xprim = prim;
+            Util.FireAndForget(delegate
+                {
+                    RequestAssetDelegate assetProvider = PhysicsScene.RequestAssetMethod;
+                    if (assetProvider != null)
+                    {
+                        BSPhysObject yprim = xprim; // probably not necessary, but, just in case.
+                        assetProvider(yprim.BaseShape.SculptTexture, delegate(AssetBase asset)
+                        {
+                            if (!yprim.BaseShape.SculptEntry)
+                                return;
+                            if (yprim.BaseShape.SculptTexture.ToString() != asset.ID)
+                                return;
+
+                            yprim.BaseShape.SculptData = new byte[asset.Data.Length];
+                            asset.Data.CopyTo(yprim.BaseShape.SculptData, 0);
+                            // This will cause the prim to see that the filler shape is not the right
+                            //    one and try again to build the object.
+                            yprim.ForceBodyShapeRebuild(false);
+
+                        });
+                    }
+                });
+        }
+
+        // While we figure out the real problem, stick a simple native shape on the object.
+        BulletShape fillinShape =
+            BuildPhysicalNativeShape(ShapeData.PhysicsShapeType.SHAPE_SPHERE, shapeData, ShapeData.FixedShapeKey.KEY_SPHERE);
+
+        return fillinShape;
     }
 
     // Create a body object in Bullet.

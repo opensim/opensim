@@ -200,10 +200,9 @@ public class BSCharacter : BSPhysObject
         }
     }
     public override OMV.Vector3 Scale { get; set; }
-    private PrimitiveBaseShape _pbs;
     public override PrimitiveBaseShape Shape
     {
-        set { _pbs = value;}
+        set { BaseShape = value; }
     }
 
     public override bool Grabbed {

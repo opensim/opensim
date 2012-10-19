@@ -47,6 +47,7 @@ public abstract class BSPhysObject : PhysicsActor
         TypeName = typeName;
 
         Linkset = new BSLinkset(PhysicsScene, this);
+        LastAssetBuildFailed = false;
 
         CollisionCollection = new CollisionEventUpdate();
         SubscribedEventsMs = 0;
@@ -68,6 +69,13 @@ public abstract class BSPhysObject : PhysicsActor
     public BulletBody BSBody;
     // Reference to the physical shape (btCollisionShape) of this object
     public BulletShape BSShape;
+
+    // 'true' if the mesh's underlying asset failed to build.
+    // This will keep us from looping after the first time the build failed.
+    public bool LastAssetBuildFailed { get; set; }
+
+    // The objects base shape information. Null if not a prim type shape.
+    public PrimitiveBaseShape BaseShape { get; protected set; }
 
     // When the physical properties are updated, an EntityProperty holds the update values.
     // Keep the current and last EntityProperties to enable computation of differences 
@@ -100,6 +108,8 @@ public abstract class BSPhysObject : PhysicsActor
     public abstract OMV.Vector3 ForceRotationalVelocity { get; set; }
 
     public abstract float ForceBuoyancy { get; set; }
+
+    public virtual bool ForceBodyShapeRebuild(bool inTaintTime) { return false; }
 
     #region Collisions
 

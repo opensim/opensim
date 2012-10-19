@@ -46,8 +46,6 @@ public sealed class BSPrim : BSPhysObject
     private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
     private static readonly string LogHeader = "[BULLETS PRIM]";
 
-    private PrimitiveBaseShape _pbs;
-
     // _size is what the user passed. Scale is what we pass to the physics engine with the mesh.
     // Often Scale is unity because the meshmerizer will apply _size when creating the mesh.
     private OMV.Vector3 _size;  // the multiplier for each mesh dimension as passed by the user
@@ -103,7 +101,7 @@ public sealed class BSPrim : BSPhysObject
         _buoyancy = 1f;
         _velocity = OMV.Vector3.Zero;
         _rotationalVelocity = OMV.Vector3.Zero;
-        _pbs = pbs;
+        BaseShape = pbs;
         _isPhysical = pisPhysical;
         _isVolumeDetect = false;
         _friction = PhysicsScene.Params.defaultFriction;  // TODO: compute based on object material
@@ -160,14 +158,7 @@ public sealed class BSPrim : BSPhysObject
         get { return _size; }
         set {
             _size = value;
-            PhysicsScene.TaintedObject("BSPrim.setSize", delegate()
-            {
-                _mass = CalculateMass();   // changing size changes the mass
-                // Since _size changed, the mesh needs to be rebuilt. If rebuilt, all the correct
-                //   scale and margins are set.
-                CreateGeomAndObject(true);
-                // DetailLog("{0},BSPrim.setSize,size={1},scale={2},mass={3},physical={4}", LocalID, _size, Scale, _mass, IsPhysical);
-            });
+            ForceBodyShapeRebuild(false);
         }
     }
     // Scale is what we set in the physics engine. It is different than 'size' in that
@@ -176,13 +167,22 @@ public sealed class BSPrim : BSPhysObject
 
     public override PrimitiveBaseShape Shape {
         set {
-            _pbs = value;
-            PhysicsScene.TaintedObject("BSPrim.setShape", delegate()
-            {
-                _mass = CalculateMass();   // changing the shape changes the mass
-                CreateGeomAndObject(true);
-            });
+            BaseShape = value;
+            ForceBodyShapeRebuild(false);
         }
+    }
+    public override bool ForceBodyShapeRebuild(bool inTaintTime)
+    {
+        BSScene.TaintCallback rebuildOperation = delegate()
+        {
+            _mass = CalculateMass();   // changing the shape changes the mass
+            CreateGeomAndObject(true);
+        };
+        if (inTaintTime)
+            rebuildOperation();
+        else
+            PhysicsScene.TaintedObject("BSPrim.ForceBodyShapeRebuild", rebuildOperation);
+        return true;
     }
     public override bool Grabbed {
         set { _grabbed = value;
@@ -924,19 +924,19 @@ public sealed class BSPrim : BSPhysObject
         float tmp;
 
         float returnMass = 0;
-        float hollowAmount = (float)_pbs.ProfileHollow * 2.0e-5f;
+        float hollowAmount = (float)BaseShape.ProfileHollow * 2.0e-5f;
         float hollowVolume = hollowAmount * hollowAmount;
 
-        switch (_pbs.ProfileShape)
+        switch (BaseShape.ProfileShape)
         {
             case ProfileShape.Square:
                 // default box
 
-                if (_pbs.PathCurve == (byte)Extrusion.Straight)
+                if (BaseShape.PathCurve == (byte)Extrusion.Straight)
                     {
                     if (hollowAmount > 0.0)
                         {
-                        switch (_pbs.HollowShape)
+                        switch (BaseShape.HollowShape)
                             {
                             case HollowShape.Square:
                             case HollowShape.Same:
@@ -960,19 +960,19 @@ public sealed class BSPrim : BSPhysObject
                         }
                     }
 
-                else if (_pbs.PathCurve == (byte)Extrusion.Curve1)
+                else if (BaseShape.PathCurve == (byte)Extrusion.Curve1)
                     {
                     //a tube
 
-                    volume *= 0.78539816339e-2f * (float)(200 - _pbs.PathScaleX);
-                    tmp= 1.0f -2.0e-2f * (float)(200 - _pbs.PathScaleY);
+                    volume *= 0.78539816339e-2f * (float)(200 - BaseShape.PathScaleX);
+                    tmp= 1.0f -2.0e-2f * (float)(200 - BaseShape.PathScaleY);
                     volume -= volume*tmp*tmp;
 
                     if (hollowAmount > 0.0)
                         {
                         hollowVolume *= hollowAmount;
    
-                        switch (_pbs.HollowShape)
+                        switch (BaseShape.HollowShape)
                             {
                             case HollowShape.Square:
                             case HollowShape.Same:
@@ -997,13 +997,13 @@ public sealed class BSPrim : BSPhysObject
 
             case ProfileShape.Circle:
 
-                if (_pbs.PathCurve == (byte)Extrusion.Straight)
+                if (BaseShape.PathCurve == (byte)Extrusion.Straight)
                     {
                     volume *= 0.78539816339f; // elipse base
 
                     if (hollowAmount > 0.0)
                         {
-                        switch (_pbs.HollowShape)
+                        switch (BaseShape.HollowShape)
                             {
                             case HollowShape.Same:
                             case HollowShape.Circle:
@@ -1025,10 +1025,10 @@ public sealed class BSPrim : BSPhysObject
                         }
                     }
 
-                else if (_pbs.PathCurve == (byte)Extrusion.Curve1)
+                else if (BaseShape.PathCurve == (byte)Extrusion.Curve1)
                     {
-                    volume *= 0.61685027506808491367715568749226e-2f * (float)(200 - _pbs.PathScaleX);
-                    tmp = 1.0f - .02f * (float)(200 - _pbs.PathScaleY);
+                    volume *= 0.61685027506808491367715568749226e-2f * (float)(200 - BaseShape.PathScaleX);
+                    tmp = 1.0f - .02f * (float)(200 - BaseShape.PathScaleY);
                     volume *= (1.0f - tmp * tmp);
 
                     if (hollowAmount > 0.0)
@@ -1037,7 +1037,7 @@ public sealed class BSPrim : BSPhysObject
                         // calculate the hollow volume by it's shape compared to the prim shape
                         hollowVolume *= hollowAmount;
 
-                        switch (_pbs.HollowShape)
+                        switch (BaseShape.HollowShape)
                             {
                             case HollowShape.Same:
                             case HollowShape.Circle:
@@ -1061,7 +1061,7 @@ public sealed class BSPrim : BSPhysObject
                 break;
 
             case ProfileShape.HalfCircle:
-                if (_pbs.PathCurve == (byte)Extrusion.Curve1)
+                if (BaseShape.PathCurve == (byte)Extrusion.Curve1)
                 {
                 volume *= 0.52359877559829887307710723054658f;
                 }
@@ -1069,7 +1069,7 @@ public sealed class BSPrim : BSPhysObject
 
             case ProfileShape.EquilateralTriangle:
 
-                if (_pbs.PathCurve == (byte)Extrusion.Straight)
+                if (BaseShape.PathCurve == (byte)Extrusion.Straight)
                     {
                     volume *= 0.32475953f;
 
@@ -1077,7 +1077,7 @@ public sealed class BSPrim : BSPhysObject
                         {
 
                         // calculate the hollow volume by it's shape compared to the prim shape
-                        switch (_pbs.HollowShape)
+                        switch (BaseShape.HollowShape)
                             {
                             case HollowShape.Same:
                             case HollowShape.Triangle:
@@ -1102,11 +1102,11 @@ public sealed class BSPrim : BSPhysObject
                         volume *= (1.0f - hollowVolume);
                         }
                     }
-                else if (_pbs.PathCurve == (byte)Extrusion.Curve1)
+                else if (BaseShape.PathCurve == (byte)Extrusion.Curve1)
                     {
                     volume *= 0.32475953f;
-                    volume *= 0.01f * (float)(200 - _pbs.PathScaleX);
-                    tmp = 1.0f - .02f * (float)(200 - _pbs.PathScaleY);
+                    volume *= 0.01f * (float)(200 - BaseShape.PathScaleX);
+                    tmp = 1.0f - .02f * (float)(200 - BaseShape.PathScaleY);
                     volume *= (1.0f - tmp * tmp);
 
                     if (hollowAmount > 0.0)
@@ -1114,7 +1114,7 @@ public sealed class BSPrim : BSPhysObject
 
                         hollowVolume *= hollowAmount;
 
-                        switch (_pbs.HollowShape)
+                        switch (BaseShape.HollowShape)
                             {
                             case HollowShape.Same:
                             case HollowShape.Triangle:
@@ -1154,26 +1154,26 @@ public sealed class BSPrim : BSPhysObject
         float profileBegin;
         float profileEnd;
 
-        if (_pbs.PathCurve == (byte)Extrusion.Straight || _pbs.PathCurve == (byte)Extrusion.Flexible)
+        if (BaseShape.PathCurve == (byte)Extrusion.Straight || BaseShape.PathCurve == (byte)Extrusion.Flexible)
             {
-            taperX1 = _pbs.PathScaleX * 0.01f;
+            taperX1 = BaseShape.PathScaleX * 0.01f;
             if (taperX1 > 1.0f)
                 taperX1 = 2.0f - taperX1;
             taperX = 1.0f - taperX1;
 
-            taperY1 = _pbs.PathScaleY * 0.01f;
+            taperY1 = BaseShape.PathScaleY * 0.01f;
             if (taperY1 > 1.0f)
                 taperY1 = 2.0f - taperY1;
             taperY = 1.0f - taperY1;
             }
         else
             {
-            taperX = _pbs.PathTaperX * 0.01f;
+            taperX = BaseShape.PathTaperX * 0.01f;
             if (taperX < 0.0f)
                 taperX = -taperX;
             taperX1 = 1.0f - taperX;
 
-            taperY = _pbs.PathTaperY * 0.01f;
+            taperY = BaseShape.PathTaperY * 0.01f;
             if (taperY < 0.0f)
                 taperY = -taperY;
             taperY1 = 1.0f - taperY;
@@ -1183,13 +1183,13 @@ public sealed class BSPrim : BSPhysObject
 
         volume *= (taperX1 * taperY1 + 0.5f * (taperX1 * taperY + taperX * taperY1) + 0.3333333333f * taperX * taperY);
 
-        pathBegin = (float)_pbs.PathBegin * 2.0e-5f;
-        pathEnd = 1.0f - (float)_pbs.PathEnd * 2.0e-5f;
+        pathBegin = (float)BaseShape.PathBegin * 2.0e-5f;
+        pathEnd = 1.0f - (float)BaseShape.PathEnd * 2.0e-5f;
         volume *= (pathEnd - pathBegin);
 
         // this is crude aproximation
-        profileBegin = (float)_pbs.ProfileBegin * 2.0e-5f;
-        profileEnd = 1.0f - (float)_pbs.ProfileEnd * 2.0e-5f;
+        profileBegin = (float)BaseShape.ProfileBegin * 2.0e-5f;
+        profileEnd = 1.0f - (float)BaseShape.ProfileEnd * 2.0e-5f;
         volume *= (profileEnd - profileBegin);
 
         returnMass = _density * volume;
@@ -1251,7 +1251,7 @@ public sealed class BSPrim : BSPhysObject
         // Create the correct physical representation for this type of object.
         // Updates BSBody and BSShape with the new information.
         // Ignore 'forceRebuild'. This routine makes the right choices and changes of necessary.
-        PhysicsScene.Shapes.GetBodyAndShape(false, PhysicsScene.World, this, shapeData, _pbs, 
+        PhysicsScene.Shapes.GetBodyAndShape(false, PhysicsScene.World, this, shapeData, BaseShape, 
                         null, delegate(BulletBody dBody)
         {
             // Called if the current prim body is about to be destroyed.
