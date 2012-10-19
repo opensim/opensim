@@ -141,10 +141,6 @@ public class BSCharacter : BSPhysObject
         BulletSimAPI.RemoveObjectFromWorld2(PhysicsScene.World.ptr, BSBody.ptr);
 
         ZeroMotion();
-
-        OMV.Vector3 localInertia = BulletSimAPI.CalculateLocalInertia2(BSShape.ptr, MassRaw);
-        BulletSimAPI.SetMassProps2(BSBody.ptr, MassRaw, localInertia);
-
         ForcePosition = _position;
         // Set the velocity and compute the proper friction
         ForceVelocity = _velocity;
@@ -156,6 +152,9 @@ public class BSCharacter : BSPhysObject
             BulletSimAPI.SetCcdMotionThreshold2(BSBody.ptr, PhysicsScene.Params.ccdMotionThreshold);
             BulletSimAPI.SetCcdSweepSphereRadius2(BSBody.ptr, PhysicsScene.Params.ccdSweptSphereRadius);
         }
+
+        OMV.Vector3 localInertia = BulletSimAPI.CalculateLocalInertia2(BSShape.ptr, MassRaw);
+        BulletSimAPI.SetMassProps2(BSBody.ptr, MassRaw, localInertia);
 
         BulletSimAPI.AddToCollisionFlags2(BSBody.ptr, CollisionFlags.CF_CHARACTER_OBJECT);
 
@@ -583,14 +582,16 @@ public class BSCharacter : BSPhysObject
 
     private void ComputeAvatarScale(OMV.Vector3 size)
     {
-        OMV.Vector3 newScale = OMV.Vector3.Zero;
-        // Scale wants the diameter so mult radius by two
-        newScale.X = PhysicsScene.Params.avatarCapsuleRadius * 2f;
-        newScale.Y = PhysicsScene.Params.avatarCapsuleRadius * 2f;
+        // The 'size' given by the simulator is the mid-point of the avatar
+        //    and X and Y are unspecified.
 
-        // From the total height, add the capsule half spheres that are at each end 
-        // newScale.Z = (size.Z) - Math.Min(newScale.X, newScale.Y);
-        newScale.Z = (size.Z * 2f);
+        OMV.Vector3 newScale = OMV.Vector3.Zero;
+        newScale.X = PhysicsScene.Params.avatarCapsuleRadius;
+        newScale.Y = PhysicsScene.Params.avatarCapsuleRadius;
+
+        // From the total height, remote the capsule half spheres that are at each end 
+        newScale.Z = (size.Z * 2f) - Math.Min(newScale.X, newScale.Y);
+        // newScale.Z = (size.Z * 2f);
         Scale = newScale;
     }
 
@@ -599,14 +600,14 @@ public class BSCharacter : BSPhysObject
     {
         _avatarVolume = (float)(
                         Math.PI
-                        * (Scale.X / 2f)
-                        * (Scale.Y / 2f)  // the area of capsule cylinder
-                        * Scale.Z  // times height of capsule cylinder
+                        * Scale.X
+                        * Scale.Y    // the area of capsule cylinder
+                        * Scale.Z    // times height of capsule cylinder
                       + 1.33333333f
                         * Math.PI
-                        * (Scale.X / 2f)
-                        * (Math.Min(Scale.X, Scale.Y) / 2f)
-                        * (Scale.Y / 2f)  // plus the volume of the capsule end caps
+                        * Scale.X
+                        * Math.Min(Scale.X, Scale.Y)
+                        * Scale.Y    // plus the volume of the capsule end caps
                         );
         _mass = _avatarDensity * _avatarVolume;
     }

@@ -532,25 +532,25 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             }
         }
 
-        // This is a kludge to get avatar movement updates.
-        //   The simulator expects collisions for avatars even if there are have been no collisions. This updates
-        //   avatar animations and stuff.
-        // If you fix avatar animation updates, remove this overhead and let normal collision processing happen.
-        foreach (BSPhysObject bsp in m_avatars)
-            bsp.SendCollisions();
-
         // The above SendCollision's batch up the collisions on the objects.
         //      Now push the collisions into the simulator.
         if (ObjectsWithCollisions.Count > 0)
         {
             foreach (BSPhysObject bsp in ObjectsWithCollisions)
-                if (!m_avatars.Contains(bsp))   // don't call avatars twice
-                    if (!bsp.SendCollisions())
-                    {
-                        // If the object is done colliding, see that it's removed from the colliding list
-                        ObjectsWithNoMoreCollisions.Add(bsp);
-                    }
+                if (!bsp.SendCollisions())
+                {
+                    // If the object is done colliding, see that it's removed from the colliding list
+                    ObjectsWithNoMoreCollisions.Add(bsp);
+                }
         }
+
+        // This is a kludge to get avatar movement updates.
+        // The simulator expects collisions for avatars even if there are have been no collisions. 
+        //    The event updates avatar animations and stuff.
+        // If you fix avatar animation updates, remove this overhead and let normal collision processing happen.
+        foreach (BSPhysObject bsp in m_avatars)
+            if (!ObjectsWithCollisions.Contains(bsp))   // don't call avatars twice
+                bsp.SendCollisions();
 
         // Objects that are done colliding are removed from the ObjectsWithCollisions list.
         // Not done above because it is inside an iteration of ObjectWithCollisions.
@@ -574,6 +574,10 @@ public class BSScene : PhysicsScene, IPhysicsParameters
                 }
             }
         }
+
+        // This causes the unmanaged code to output ALL the values found in ALL the objects in the world.
+        // Only enable this in a limited test world with few objects.
+        // BulletSimAPI.DumpAllInfo2(World.ptr);    // DEBUG DEBUG DEBUG
 
         // The physics engine returns the number of milliseconds it simulated this call.
         // These are summed and normalized to one second and divided by 1000 to give the reported physics FPS.

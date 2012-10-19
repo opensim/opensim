@@ -390,7 +390,7 @@ public enum CollisionFilterGroups : uint
     VolumeDetectMask        = ~BSensorTrigger,
     TerrainFilter           = BTerrainFilter,
     TerrainMask             = BAllFilter & ~BStaticFilter,
-    GroundPlaneFilter       = BAllFilter,
+    GroundPlaneFilter       = BGroundPlaneFilter,
     GroundPlaneMask         = BAllFilter
 
 };

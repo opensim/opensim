@@ -156,9 +156,11 @@ public abstract class BSPhysObject : PhysicsActor
     public virtual bool SendCollisions()
     {
         bool ret = true;
+        // If the 'no collision' call, force it to happen right now so quick collision_end
+        bool force = CollisionCollection.Count == 0;
 
         // throttle the collisions to the number of milliseconds specified in the subscription
-        if (PhysicsScene.SimulationNowTime >= NextCollisionOkTime)
+        if (force || (PhysicsScene.SimulationNowTime >= NextCollisionOkTime))
         {
             NextCollisionOkTime = PhysicsScene.SimulationNowTime + SubscribedEventsMs;
 
