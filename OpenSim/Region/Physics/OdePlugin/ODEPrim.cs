@@ -69,9 +69,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <summary>
         /// Gets collide bits so that we can still perform land collisions if a mesh fails to load.
         /// </summary>
-        /// <value>
-        /// The bad asset collide bits.
-        /// </value>
         private int BadMeshAssetCollideBits
         {
             get { return m_isphysical ? (int)CollisionCategories.Land : 0; }
