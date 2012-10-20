@@ -241,6 +241,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         public void SendMessageToGroup(GridInstantMessage im, UUID groupID)
         {
             List<GroupMembersData> groupMembers = m_groupData.GetGroupMembers(new UUID(im.fromAgentID), groupID);
+            int groupMembersCount = groupMembers.Count;
 
             if (m_messageOnlineAgentsOnly)
             {
@@ -259,13 +260,12 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 HashSet<string> onlineAgentsUuidSet = new HashSet<string>();
                 Array.ForEach<PresenceInfo>(onlineAgents, pi => onlineAgentsUuidSet.Add(pi.UserID));
 
-                int allMembersCount = groupMembers.Count;
                 groupMembers = groupMembers.Where(gmd => onlineAgentsUuidSet.Contains(gmd.AgentID.ToString())).ToList();
 
     //            if (m_debugEnabled)
-                    m_log.DebugFormat(
-                        "[GROUPS-MESSAGING]: SendMessageToGroup called for group {0} with {1} visible members, {2} online",
-                        groupID, allMembersCount, groupMembers.Count());
+//                    m_log.DebugFormat(
+//                        "[GROUPS-MESSAGING]: SendMessageToGroup called for group {0} with {1} visible members, {2} online",
+//                        groupID, groupMembersCount, groupMembers.Count());
             }
             else
             {
@@ -274,6 +274,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                         "[GROUPS-MESSAGING]: SendMessageToGroup called for group {0} with {1} visible members",
                         groupID, groupMembers.Count);
             }
+
+            int requestStartTick = Environment.TickCount;
 
             foreach (GroupMembersData member in groupMembers)
             {
@@ -316,6 +318,12 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                     ProcessMessageFromGroupSession(msg);
                 }
             }
+
+            // Temporary for assessing how long it still takes to send messages to large online groups.
+            if (m_messageOnlineAgentsOnly)
+                m_log.DebugFormat(
+                    "[GROUPS-MESSAGING]: SendMessageToGroup for group {0} with {1} visible members, {2} online took {3}ms",
+                    groupID, groupMembersCount, groupMembers.Count(), Environment.TickCount - requestStartTick);
         }
         
         #region SimGridEventHandlers
