@@ -2344,7 +2344,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         }
                     }
                 }
-                IntPtr HeightmapData = d.GeomHeightfieldDataCreate();
+                IntPtr HeightmapData = d.GeomUbitTerrainDataCreate();
 
                 const int wrap = 0;
                 float thickness = hfmin;
