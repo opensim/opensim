@@ -47,6 +47,7 @@ public abstract class BSPhysObject : PhysicsActor
         TypeName = typeName;
 
         Linkset = new BSLinkset(PhysicsScene, this);
+        LastAssetBuildFailed = false;
 
         CollisionCollection = new CollisionEventUpdate();
         SubscribedEventsMs = 0;
@@ -69,6 +70,23 @@ public abstract class BSPhysObject : PhysicsActor
     // Reference to the physical shape (btCollisionShape) of this object
     public BulletShape BSShape;
 
+    // 'true' if the mesh's underlying asset failed to build.
+    // This will keep us from looping after the first time the build failed.
+    public bool LastAssetBuildFailed { get; set; }
+
+    // The objects base shape information. Null if not a prim type shape.
+    public PrimitiveBaseShape BaseShape { get; protected set; }
+
+    // When the physical properties are updated, an EntityProperty holds the update values.
+    // Keep the current and last EntityProperties to enable computation of differences 
+    //      between the current update and the previous values.
+    public EntityProperties CurrentEntityProperties { get; set; }
+    public EntityProperties LastEntityProperties { get; set; }
+
+    public abstract OMV.Vector3 Scale { get; set; }
+    public abstract bool IsSolid { get; }
+    public abstract bool IsStatic { get; }
+
     // Stop all physical motion.
     public abstract void ZeroMotion();
 
@@ -88,6 +106,10 @@ public abstract class BSPhysObject : PhysicsActor
     public abstract OMV.Vector3 ForceVelocity { get; set; }
 
     public abstract OMV.Vector3 ForceRotationalVelocity { get; set; }
+
+    public abstract float ForceBuoyancy { get; set; }
+
+    public virtual bool ForceBodyShapeRebuild(bool inTaintTime) { return false; }
 
     #region Collisions
 
@@ -129,30 +151,28 @@ public abstract class BSPhysObject : PhysicsActor
         // if someone has subscribed for collision events....
         if (SubscribedEvents()) {
             CollisionCollection.AddCollider(collidingWith, new ContactPoint(contactPoint, contactNormal, pentrationDepth));
-            // DetailLog("{0},{1}.Collison.AddCollider,call,with={2},point={3},normal={4},depth={5}",
-            //                 LocalID, TypeName, collidingWith, contactPoint, contactNormal, pentrationDepth);
+            DetailLog("{0},{1}.Collison.AddCollider,call,with={2},point={3},normal={4},depth={5}",
+                            LocalID, TypeName, collidingWith, contactPoint, contactNormal, pentrationDepth);
 
             ret = true;
         }
         return ret;
     }
 
-    // Routine to send the collected collisions into the simulator.
-    // Also handles removal of this from the collection of objects with collisions if
-    //      there are no collisions from this object. Mechanism is create one last
-    //      collision event to make collision_end work.
+    // Send the collected collisions into the simulator.
     // Called at taint time from within the Step() function thus no locking problems
     //      with CollisionCollection and ObjectsWithNoMoreCollisions.
     // Return 'true' if there were some actual collisions passed up
     public virtual bool SendCollisions()
     {
         bool ret = true;
+        // If the 'no collision' call, force it to happen right now so quick collision_end
+        bool force = CollisionCollection.Count == 0;
 
         // throttle the collisions to the number of milliseconds specified in the subscription
-        int nowTime = PhysicsScene.SimulationNowTime;
-        if (nowTime >= NextCollisionOkTime)
+        if (force || (PhysicsScene.SimulationNowTime >= NextCollisionOkTime))
         {
-            NextCollisionOkTime = nowTime + SubscribedEventsMs;
+            NextCollisionOkTime = PhysicsScene.SimulationNowTime + SubscribedEventsMs;
 
             // We are called if we previously had collisions. If there are no collisions
             //   this time, send up one last empty event so OpenSim can sense collision end.
