@@ -67,6 +67,14 @@ namespace OpenSim.Region.Physics.OdePlugin
         private int m_expectedCollisionContacts = 0;
 
         /// <summary>
+        /// Gets collide bits so that we can still perform land collisions if a mesh fails to load.
+        /// </summary>
+        private int BadMeshAssetCollideBits
+        {
+            get { return m_isphysical ? (int)CollisionCategories.Land : 0; }
+        }
+
+        /// <summary>
         /// Is this prim subject to physics?  Even if not, it's still solid for collision purposes.
         /// </summary>
         public override bool IsPhysical
@@ -344,11 +352,10 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (m_assetFailed)
             {
                 d.GeomSetCategoryBits(prim_geom, 0);
-                d.GeomSetCollideBits(prim_geom, BadAssetColideBits());
+                d.GeomSetCollideBits(prim_geom, BadMeshAssetCollideBits);
             }
             else
             {
-
                 d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
                 d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
             }
@@ -418,7 +425,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (m_assetFailed)
                 {
                     d.GeomSetCategoryBits(prim_geom, 0);
-                    d.GeomSetCollideBits(prim_geom, BadAssetColideBits());
+                    d.GeomSetCollideBits(prim_geom, BadMeshAssetCollideBits);
                 }
                 else
                 {
@@ -851,11 +858,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private static Dictionary<IMesh, IntPtr> m_MeshToTriMeshMap = new Dictionary<IMesh, IntPtr>();
 
-        public int BadAssetColideBits()
-        {
-            return (m_isphysical ? (int)CollisionCategories.Land : 0);
-        }
-
         private void setMesh(OdeScene parent_scene, IMesh mesh)
         {
 //            m_log.DebugFormat("[ODE PRIM]: Setting mesh on {0} to {1}", Name, mesh);
@@ -1137,7 +1139,7 @@ Console.WriteLine("ZProcessTaints for " + Name);
                     if (prm.m_assetFailed)
                     {
                         d.GeomSetCategoryBits(prm.prim_geom, 0);
-                        d.GeomSetCollideBits(prm.prim_geom, prm.BadAssetColideBits());
+                        d.GeomSetCollideBits(prm.prim_geom, prm.BadMeshAssetCollideBits);
                     }
                     else
                     {
@@ -1191,7 +1193,7 @@ Console.WriteLine("ZProcessTaints for " + Name);
                 if (m_assetFailed)
                 {
                     d.GeomSetCategoryBits(prim_geom, 0);
-                    d.GeomSetCollideBits(prim_geom, BadAssetColideBits());
+                    d.GeomSetCollideBits(prim_geom, BadMeshAssetCollideBits);
                 }
                 else
                 {
@@ -1393,7 +1395,7 @@ Console.WriteLine("ZProcessTaints for " + Name);
                 if (m_assetFailed)
                 {
                     d.GeomSetCategoryBits(prim_geom, 0);
-                    d.GeomSetCollideBits(prim_geom, BadAssetColideBits());
+                    d.GeomSetCollideBits(prim_geom, BadMeshAssetCollideBits);
                 }
                 else
                 {
@@ -2137,7 +2139,7 @@ Console.WriteLine(" JointCreateFixed");
             }
 
             if (m_assetFailed)
-                d.GeomSetCollideBits(prim_geom, BadAssetColideBits());
+                d.GeomSetCollideBits(prim_geom, BadMeshAssetCollideBits);
             else
 
                 d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);

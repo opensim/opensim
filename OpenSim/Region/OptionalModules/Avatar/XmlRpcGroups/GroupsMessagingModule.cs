@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using log4net;
 using Mono.Addins;
@@ -36,6 +37,8 @@ using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Services.Interfaces;
+using PresenceInfo = OpenSim.Services.Interfaces.PresenceInfo;
 
 namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 {
@@ -45,6 +48,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private List<Scene> m_sceneList = new List<Scene>();
+        private IPresenceService m_presenceService;
 
         private IMessageTransferModule m_msgTransferModule = null;
 
@@ -53,6 +57,27 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         // Config Options
         private bool m_groupMessagingEnabled = false;
         private bool m_debugEnabled = true;
+
+        /// <summary>
+        /// If enabled, module only tries to send group IMs to online users by querying cached presence information.
+        /// </summary>
+        private bool m_messageOnlineAgentsOnly;
+
+        /// <summary>
+        /// Cache for online users.
+        /// </summary>
+        /// <remarks>
+        /// Group ID is key, presence information for online members is value.
+        /// Will only be non-null if m_messageOnlineAgentsOnly = true
+        /// We cache here so that group messages don't constantly have to re-request the online user list to avoid
+        /// attempted expensive sending of messages to offline users.
+        /// The tradeoff is that a user that comes online will not receive messages consistently from all other users
+        /// until caches have updated.
+        /// Therefore, we set the cache expiry to just 20 seconds.
+        /// </remarks>
+        private ExpiringCache<UUID, PresenceInfo[]> m_usersOnlineCache;
+
+        private int m_usersOnlineCacheExpirySeconds = 20;
 
         #region IRegionModuleBase Members
 
@@ -83,10 +108,17 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                     return;
                 }
 
+                m_messageOnlineAgentsOnly = groupsConfig.GetBoolean("MessageOnlineUsersOnly", false);
+
+                if (m_messageOnlineAgentsOnly)
+                     m_usersOnlineCache = new ExpiringCache<UUID, PresenceInfo[]>();
+
                 m_debugEnabled = groupsConfig.GetBoolean("DebugEnabled", true);
             }
 
-            m_log.Info("[GROUPS-MESSAGING]: GroupsMessagingModule starting up");
+            m_log.InfoFormat(
+                "[GROUPS-MESSAGING]: GroupsMessagingModule enabled with MessageOnlineOnly = {0}, DebugEnabled = {1}",
+                m_messageOnlineAgentsOnly, m_debugEnabled);
         }
 
         public void AddRegion(Scene scene)
@@ -126,6 +158,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 return;
             }
 
+            if (m_presenceService == null)
+                m_presenceService = scene.PresenceService;
 
             m_sceneList.Add(scene);
 
@@ -207,12 +241,42 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         public void SendMessageToGroup(GridInstantMessage im, UUID groupID)
         {
             List<GroupMembersData> groupMembers = m_groupData.GetGroupMembers(new UUID(im.fromAgentID), groupID);
-            
-            if (m_debugEnabled) 
-                m_log.DebugFormat(
-                    "[GROUPS-MESSAGING]: SendMessageToGroup called for group {0} with {1} visible members", 
-                    groupID, groupMembers.Count);
-            
+            int groupMembersCount = groupMembers.Count;
+
+            if (m_messageOnlineAgentsOnly)
+            {
+                string[] t1 = groupMembers.ConvertAll<string>(gmd => gmd.AgentID.ToString()).ToArray();
+
+                // We cache in order not to overwhlem the presence service on large grids with many groups.  This does
+                // mean that members coming online will not see all group members until after m_usersOnlineCacheExpirySeconds has elapsed.
+                // (assuming this is the same across all grid simulators).
+                PresenceInfo[] onlineAgents;
+                if (!m_usersOnlineCache.TryGetValue(groupID, out onlineAgents))
+                {
+                    onlineAgents = m_presenceService.GetAgents(t1);
+                    m_usersOnlineCache.Add(groupID, onlineAgents, m_usersOnlineCacheExpirySeconds);
+                }
+
+                HashSet<string> onlineAgentsUuidSet = new HashSet<string>();
+                Array.ForEach<PresenceInfo>(onlineAgents, pi => onlineAgentsUuidSet.Add(pi.UserID));
+
+                groupMembers = groupMembers.Where(gmd => onlineAgentsUuidSet.Contains(gmd.AgentID.ToString())).ToList();
+
+    //            if (m_debugEnabled)
+//                    m_log.DebugFormat(
+//                        "[GROUPS-MESSAGING]: SendMessageToGroup called for group {0} with {1} visible members, {2} online",
+//                        groupID, groupMembersCount, groupMembers.Count());
+            }
+            else
+            {
+                if (m_debugEnabled)
+                    m_log.DebugFormat(
+                        "[GROUPS-MESSAGING]: SendMessageToGroup called for group {0} with {1} visible members",
+                        groupID, groupMembers.Count);
+            }
+
+            int requestStartTick = Environment.TickCount;
+
             foreach (GroupMembersData member in groupMembers)
             {
                 if (m_groupData.hasAgentDroppedGroupChatSession(member.AgentID, groupID))
@@ -254,6 +318,12 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                     ProcessMessageFromGroupSession(msg);
                 }
             }
+
+            // Temporary for assessing how long it still takes to send messages to large online groups.
+            if (m_messageOnlineAgentsOnly)
+                m_log.DebugFormat(
+                    "[GROUPS-MESSAGING]: SendMessageToGroup for group {0} with {1} visible members, {2} online took {3}ms",
+                    groupID, groupMembersCount, groupMembers.Count(), Environment.TickCount - requestStartTick);
         }
         
         #region SimGridEventHandlers
