@@ -223,9 +223,9 @@ namespace OpenSim.Capabilities.Handlers
                     // sending back the last byte instead of an error status
                     if (start >= texture.Data.Length)
                     {
-                        m_log.DebugFormat(
-                            "[GETTEXTURE]: Client requested range for texture {0} starting at {1} but texture has end of {2}",
-                            texture.ID, start, texture.Data.Length);
+//                        m_log.DebugFormat(
+//                            "[GETTEXTURE]: Client requested range for texture {0} starting at {1} but texture has end of {2}",
+//                            texture.ID, start, texture.Data.Length);
 
                         // Stricly speaking, as per http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html, we should be sending back
                         // Requested Range Not Satisfiable (416) here.  However, it appears that at least recent implementations

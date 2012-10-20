@@ -123,7 +123,36 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         public void AddRegion(Scene scene)
         {
             if (m_groupsEnabled)
+            {
                 scene.RegisterModuleInterface<IGroupsModule>(this);
+                scene.AddCommand(
+                    "debug",
+                    this,
+                    "debug groups verbose",
+                    "debug groups verbose <true|false>",
+                    "This setting turns on very verbose groups debugging",
+                    HandleDebugGroupsVerbose);
+            }
+        }
+
+        private void HandleDebugGroupsVerbose(object modules, string[] args)
+        {
+            if (args.Length < 4)
+            {
+                MainConsole.Instance.Output("Usage: debug groups verbose <true|false>");
+                return;
+            }
+
+            bool verbose = false;
+            if (!bool.TryParse(args[3], out verbose))
+            {
+                MainConsole.Instance.Output("Usage: debug groups verbose <true|false>");
+                return;
+            }
+
+            m_debugEnabled = verbose;
+
+            MainConsole.Instance.OutputFormat("{0} verbose logging set to {1}", Name, m_debugEnabled);
         }
 
         public void RegionLoaded(Scene scene)

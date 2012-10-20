@@ -347,7 +347,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private int m_moneyBalance;
         private int m_animationSequenceNumber = 1;
         private bool m_SendLogoutPacketWhenClosing = true;
-        private AgentUpdateArgs lastarg;
+
+        /// <summary>
+        /// We retain a single AgentUpdateArgs so that we can constantly reuse it rather than construct a new one for
+        /// every single incoming AgentUpdate.  Every client sends 10 AgentUpdate UDP messages per second, even if it
+        /// is doing absolutely nothing.
+        /// </summary>
+        /// <remarks>
+        /// This does mean that agent updates must be processed synchronously, at least for each client, and called methods
+        /// cannot retain a reference to it outside of that method.
+        /// </remarks>
+        private AgentUpdateArgs m_lastAgentUpdateArgs;
 
         protected Dictionary<PacketType, PacketProcessor> m_packetHandlers = new Dictionary<PacketType, PacketProcessor>();
         protected Dictionary<string, GenericMessage> m_genericPacketHandlers = new Dictionary<string, GenericMessage>(); //PauPaw:Local Generic Message handlers
@@ -3922,7 +3932,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock> blocks = terseAgentUpdateBlocks.Value;
 
-                    ImprovedTerseObjectUpdatePacket packet = new ImprovedTerseObjectUpdatePacket();
+                    ImprovedTerseObjectUpdatePacket packet
+                        = (ImprovedTerseObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ImprovedTerseObjectUpdate);
+
                     packet.RegionData.RegionHandle = m_scene.RegionInfo.RegionHandle;
                     packet.RegionData.TimeDilation = timeDilation;
                     packet.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[blocks.Count];
@@ -3967,7 +3979,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock> blocks = terseUpdateBlocks.Value;
         
-                    ImprovedTerseObjectUpdatePacket packet = new ImprovedTerseObjectUpdatePacket();
+                    ImprovedTerseObjectUpdatePacket packet
+                        = (ImprovedTerseObjectUpdatePacket)PacketPool.Instance.GetPacket(
+                            PacketType.ImprovedTerseObjectUpdate);
+
                     packet.RegionData.RegionHandle = m_scene.RegionInfo.RegionHandle;
                     packet.RegionData.TimeDilation = timeDilation;
                     packet.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[blocks.Count];
@@ -4959,7 +4974,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             Utils.UInt16ToBytes(Utils.FloatToUInt16(angularVelocity.Y, -64.0f, 64.0f), data, pos); pos += 2;
             Utils.UInt16ToBytes(Utils.FloatToUInt16(angularVelocity.Z, -64.0f, 64.0f), data, pos); pos += 2;
 
-            ImprovedTerseObjectUpdatePacket.ObjectDataBlock block = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock();
+            ImprovedTerseObjectUpdatePacket.ObjectDataBlock block
+                = PacketPool.Instance.GetDataBlock<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>();
+            
             block.Data = data;
 
             if (textureEntry != null && textureEntry.Length > 0)
@@ -5191,7 +5208,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected virtual void RegisterLocalPacketHandlers()
         {
             AddLocalPacketHandler(PacketType.LogoutRequest, HandleLogout);
+
+            // If AgentUpdate is ever handled asynchronously, then we will also need to construct a new AgentUpdateArgs
+            // for each AgentUpdate packet.
             AddLocalPacketHandler(PacketType.AgentUpdate, HandleAgentUpdate, false);
+            
             AddLocalPacketHandler(PacketType.ViewerEffect, HandleViewerEffect, false);
             AddLocalPacketHandler(PacketType.AgentCachedTexture, HandleAgentTextureCached, false);
             AddLocalPacketHandler(PacketType.MultipleObjectUpdate, HandleMultipleObjUpdate, false);
@@ -5418,79 +5439,82 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         #region Scene/Avatar
 
-        private bool HandleAgentUpdate(IClientAPI sener, Packet Pack)
+        private bool HandleAgentUpdate(IClientAPI sener, Packet packet)
         {
             if (OnAgentUpdate != null)
             {
-                bool update = false;
-                AgentUpdatePacket agenUpdate = (AgentUpdatePacket)Pack;
+                AgentUpdatePacket agentUpdate = (AgentUpdatePacket)packet;
 
                 #region Packet Session and User Check
-                if (agenUpdate.AgentData.SessionID != SessionId || agenUpdate.AgentData.AgentID != AgentId)
+                if (agentUpdate.AgentData.SessionID != SessionId || agentUpdate.AgentData.AgentID != AgentId)
+                {
+                    PacketPool.Instance.ReturnPacket(packet);
                     return false;
+                }
                 #endregion
 
-                AgentUpdatePacket.AgentDataBlock x = agenUpdate.AgentData;
+                bool update = false;
+                AgentUpdatePacket.AgentDataBlock x = agentUpdate.AgentData;
 
-                // We can only check when we have something to check
-                // against.
-
-                if (lastarg != null)
+                if (m_lastAgentUpdateArgs != null)
                 {
+                    // These should be ordered from most-likely to
+                    // least likely to change. I've made an initial
+                    // guess at that.
                     update =
                        (
-                        (x.BodyRotation != lastarg.BodyRotation) ||
-                        (x.CameraAtAxis != lastarg.CameraAtAxis) ||
-                        (x.CameraCenter != lastarg.CameraCenter) ||
-                        (x.CameraLeftAxis != lastarg.CameraLeftAxis) ||
-                        (x.CameraUpAxis != lastarg.CameraUpAxis) ||
-                        (x.ControlFlags != lastarg.ControlFlags) ||
-                        (x.Far != lastarg.Far) ||
-                        (x.Flags != lastarg.Flags) ||
-                        (x.State != lastarg.State) ||
-                        (x.HeadRotation != lastarg.HeadRotation) ||
-                        (x.SessionID != lastarg.SessionID) ||
-                        (x.AgentID != lastarg.AgentID)
+                        (x.BodyRotation != m_lastAgentUpdateArgs.BodyRotation) ||
+                        (x.CameraAtAxis != m_lastAgentUpdateArgs.CameraAtAxis) ||
+                        (x.CameraCenter != m_lastAgentUpdateArgs.CameraCenter) ||
+                        (x.CameraLeftAxis != m_lastAgentUpdateArgs.CameraLeftAxis) ||
+                        (x.CameraUpAxis != m_lastAgentUpdateArgs.CameraUpAxis) ||
+                        (x.ControlFlags != m_lastAgentUpdateArgs.ControlFlags) ||
+                        (x.Far != m_lastAgentUpdateArgs.Far) ||
+                        (x.Flags != m_lastAgentUpdateArgs.Flags) ||
+                        (x.State != m_lastAgentUpdateArgs.State) ||
+                        (x.HeadRotation != m_lastAgentUpdateArgs.HeadRotation) ||
+                        (x.SessionID != m_lastAgentUpdateArgs.SessionID) ||
+                        (x.AgentID != m_lastAgentUpdateArgs.AgentID)
                        );
                 }
                 else
                 {
+                    m_lastAgentUpdateArgs = new AgentUpdateArgs();
                     update = true;
                 }
-
-                // These should be ordered from most-likely to
-                // least likely to change. I've made an initial
-                // guess at that.
 
                 if (update)
                 {
 //                    m_log.DebugFormat("[LLCLIENTVIEW]: Triggered AgentUpdate for {0}", sener.Name);
 
-                    AgentUpdateArgs arg = new AgentUpdateArgs();
-                    arg.AgentID = x.AgentID;
-                    arg.BodyRotation = x.BodyRotation;
-                    arg.CameraAtAxis = x.CameraAtAxis;
-                    arg.CameraCenter = x.CameraCenter;
-                    arg.CameraLeftAxis = x.CameraLeftAxis;
-                    arg.CameraUpAxis = x.CameraUpAxis;
-                    arg.ControlFlags = x.ControlFlags;
-                    arg.Far = x.Far;
-                    arg.Flags = x.Flags;
-                    arg.HeadRotation = x.HeadRotation;
-                    arg.SessionID = x.SessionID;
-                    arg.State = x.State;
+                    m_lastAgentUpdateArgs.AgentID = x.AgentID;
+                    m_lastAgentUpdateArgs.BodyRotation = x.BodyRotation;
+                    m_lastAgentUpdateArgs.CameraAtAxis = x.CameraAtAxis;
+                    m_lastAgentUpdateArgs.CameraCenter = x.CameraCenter;
+                    m_lastAgentUpdateArgs.CameraLeftAxis = x.CameraLeftAxis;
+                    m_lastAgentUpdateArgs.CameraUpAxis = x.CameraUpAxis;
+                    m_lastAgentUpdateArgs.ControlFlags = x.ControlFlags;
+                    m_lastAgentUpdateArgs.Far = x.Far;
+                    m_lastAgentUpdateArgs.Flags = x.Flags;
+                    m_lastAgentUpdateArgs.HeadRotation = x.HeadRotation;
+                    m_lastAgentUpdateArgs.SessionID = x.SessionID;
+                    m_lastAgentUpdateArgs.State = x.State;
+
                     UpdateAgent handlerAgentUpdate = OnAgentUpdate;
                     UpdateAgent handlerPreAgentUpdate = OnPreAgentUpdate;
-                    lastarg = arg; // save this set of arguments for nexttime
+
                     if (handlerPreAgentUpdate != null)
-                        OnPreAgentUpdate(this, arg);
+                        OnPreAgentUpdate(this, m_lastAgentUpdateArgs);
+
                     if (handlerAgentUpdate != null)
-                        OnAgentUpdate(this, arg);
+                        OnAgentUpdate(this, m_lastAgentUpdateArgs);
 
                     handlerAgentUpdate = null;
                     handlerPreAgentUpdate = null;
                 }
             }
+
+            PacketPool.Instance.ReturnPacket(packet);
 
             return true;
         }
@@ -9056,7 +9080,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             #endregion
 
-            switch (Utils.BytesToString(messagePacket.MethodData.Method))
+            string method = Utils.BytesToString(messagePacket.MethodData.Method);
+
+            switch (method)
             {
                 case "getinfo":
                     if (((Scene)m_scene).Permissions.CanIssueEstateCommand(AgentId, false))
@@ -9372,7 +9398,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     return true;
 
                 default:
-                    m_log.Error("EstateOwnerMessage: Unknown method requested\n" + messagePacket);
+                    m_log.WarnFormat(
+                        "[LLCLIENTVIEW]: EstateOwnerMessage: Unknown method {0} requested for {1} in {2}",
+                        method, Name, Scene.Name);
+
+                    for (int i = 0; i < messagePacket.ParamList.Length; i++)
+                    {
+                        EstateOwnerMessagePacket.ParamListBlock block = messagePacket.ParamList[i];
+                        string data = (string)Utils.BytesToString(block.Parameter);
+                        m_log.DebugFormat("[LLCLIENTVIEW]: Param {0}={1}", i, data);
+                    }
+
                     return true;
             }
 
@@ -11758,7 +11794,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     logPacket = false;
                 
                 if (DebugPacketLevel <= 50
-                    & (packet.Type == PacketType.ImprovedTerseObjectUpdate || packet.Type == PacketType.ObjectUpdate))
+                    && (packet.Type == PacketType.ImprovedTerseObjectUpdate || packet.Type == PacketType.ObjectUpdate))
                     logPacket = false;
 
                 if (DebugPacketLevel <= 25 && packet.Type == PacketType.ObjectPropertiesFamily)
@@ -11832,8 +11868,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if (!ProcessPacketMethod(packet))
                 m_log.Warn("[CLIENT]: unhandled packet " + packet.Type);
-
-            PacketPool.Instance.ReturnPacket(packet);
         }
 
         private static PrimitiveBaseShape GetShapeFromAddPacket(ObjectAddPacket addPacket)
@@ -12286,7 +12320,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 ushort timeDilation = Utils.FloatToUInt16(TIME_DILATION, 0.0f, 1.0f);
 
 
-                ImprovedTerseObjectUpdatePacket packet = new ImprovedTerseObjectUpdatePacket();
+                ImprovedTerseObjectUpdatePacket packet
+                    = (ImprovedTerseObjectUpdatePacket)PacketPool.Instance.GetPacket(
+                        PacketType.ImprovedTerseObjectUpdate);
+
                 packet.RegionData.RegionHandle = m_scene.RegionInfo.RegionHandle;
                 packet.RegionData.TimeDilation = timeDilation;
                 packet.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];

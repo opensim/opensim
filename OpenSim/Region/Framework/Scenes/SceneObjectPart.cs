@@ -1014,9 +1014,9 @@ namespace OpenSim.Region.Framework.Scenes
                             {
                                 actor.Size = m_shape.Scale;
 
-                                if (Shape.SculptEntry)
-                                    CheckSculptAndLoad();
-                                else
+//                                if (Shape.SculptEntry)
+//                                    CheckSculptAndLoad();
+//                                else
                                     ParentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(actor);
                             }
                         }
@@ -1620,12 +1620,13 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (userExposed)
             {
+/*
                 if (dupe.m_shape.SculptEntry && dupe.m_shape.SculptTexture != UUID.Zero)
                 {
                     ParentGroup.Scene.AssetService.Get(
                         dupe.m_shape.SculptTexture.ToString(), dupe, dupe.AssetReceived);
                 }
-                
+*/                
                 bool UsePhysics = ((dupe.Flags & PrimFlags.Physics) != 0);
                 dupe.DoPhysicsPropertyUpdate(UsePhysics, true);
             }
@@ -1643,6 +1644,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="id">ID of asset received</param>
         /// <param name="sender">Register</param>
         /// <param name="asset"></param>
+/*        
         protected void AssetReceived(string id, Object sender, AssetBase asset)
         {
             if (asset != null)
@@ -1652,7 +1654,7 @@ namespace OpenSim.Region.Framework.Scenes
                     "[SCENE OBJECT PART]: Part {0} {1} requested mesh/sculpt data for asset id {2} from asset service but received no data",
                     Name, UUID, id);
         }
-
+*/
         /// <summary>
         /// Do a physics property update for a NINJA joint.
         /// </summary>
@@ -1833,9 +1835,9 @@ namespace OpenSim.Region.Framework.Scenes
 
                     // If this part is a sculpt then delay the physics update until we've asynchronously loaded the
                     // mesh data.
-                    if (Shape.SculptEntry)
-                        CheckSculptAndLoad();
-                    else
+//                    if (Shape.SculptEntry)
+//                        CheckSculptAndLoad();
+//                    else
                         ParentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(pa);
                 }
             }
@@ -2511,6 +2513,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// Set sculpt and mesh data, and tell the physics engine to process the change.
         /// </summary>
         /// <param name="texture">The mesh itself.</param>
+/*        
         public void SculptTextureCallback(AssetBase texture)
         {
             if (m_shape.SculptEntry)
@@ -2538,7 +2541,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
         }
-
+*/
         /// <summary>
         /// Send a full update to the client for the given part
         /// </summary>
@@ -3783,7 +3786,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void UpdateExtraParam(ushort type, bool inUse, byte[] data)
         {
             m_shape.ReadInUpdateExtraParam(type, inUse, data);
-
+/*
             if (type == 0x30)
             {
                 if (m_shape.SculptEntry && m_shape.SculptTexture != UUID.Zero)
@@ -3791,7 +3794,7 @@ namespace OpenSim.Region.Framework.Scenes
                     ParentGroup.Scene.AssetService.Get(m_shape.SculptTexture.ToString(), this, AssetReceived);
                 }
             }
-
+*/
             if (ParentGroup != null)
             {
                 ParentGroup.HasGroupChanged = true;
@@ -4025,14 +4028,6 @@ namespace OpenSim.Region.Framework.Scenes
                 if (!wasUsingPhysics)
                 {
                     DoPhysicsPropertyUpdate(UsePhysics, false);
-
-                    if (!ParentGroup.IsDeleted)
-                    {
-                        if (LocalId == ParentGroup.RootPart.LocalId)
-                        {
-                            ParentGroup.CheckSculptAndLoad();
-                        }
-                    }
                 }
             }
             else
@@ -4072,14 +4067,6 @@ namespace OpenSim.Region.Framework.Scenes
                         pa.SetMaterial(Material);
                         DoPhysicsPropertyUpdate(UsePhysics, true);
     
-                        if (!ParentGroup.IsDeleted)
-                        {
-                            if (LocalId == ParentGroup.RootPart.LocalId)
-                            {
-                                ParentGroup.CheckSculptAndLoad();
-                            }
-                        }
-    
                         if (
                             ((AggregateScriptEvents & scriptEvents.collision) != 0) ||
                             ((AggregateScriptEvents & scriptEvents.collision_end) != 0) ||
@@ -4104,14 +4091,6 @@ namespace OpenSim.Region.Framework.Scenes
                 else // it already has a physical representation
                 {
                     DoPhysicsPropertyUpdate(UsePhysics, false); // Update physical status. If it's phantom this will remove the prim
-
-                    if (!ParentGroup.IsDeleted)
-                    {
-                        if (LocalId == ParentGroup.RootPart.LocalId)
-                        {
-                            ParentGroup.CheckSculptAndLoad();
-                        }
-                    }
                 }
             }
 
@@ -4341,6 +4320,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <remarks>
         /// When the physics engine has finished with it, the sculpt data is discarded to save memory.
         /// </remarks>
+/*
         public void CheckSculptAndLoad()
         {
 //            m_log.DebugFormat("Processing CheckSculptAndLoad for {0} {1}", Name, LocalId);
@@ -4366,7 +4346,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
         }
-
+*/
         /// <summary>
         /// Update the texture entry for this part.
         /// </summary>
@@ -4604,6 +4584,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
 
                     Quaternion rot = Quaternion.Slerp(RotationOffset,APIDTarget,1.0f/(float)m_APIDIterations);
+                    rot.Normalize();
                     UpdateRotation(rot);
 
                     m_APIDIterations--;

@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -26,46 +26,51 @@
  */
 
 using System;
-using System.Diagnostics;
-using System.Text;
-using OpenMetaverse;
-using OpenMetaverse.StructuredData;
+using System.Collections.Generic;
 
-namespace OpenSim.Framework.Monitoring
+namespace OpenSim.Framework
 {
     /// <summary>
-    /// Statistics which all collectors are interested in reporting
+    /// Naive pool implementation.
     /// </summary>
-    public class BaseStatsCollector : IStatsCollector
+    /// <remarks>
+    /// Currently assumes that objects are in a useable state when returned.
+    /// </remarks>
+    public class Pool<T>
     {
-        public virtual string Report()
+        private Stack<T> m_pool;
+
+        private int m_maxPoolSize;
+
+        private Func<T> m_createFunction;
+
+        public Pool(Func<T> createFunction, int maxSize)
         {
-            StringBuilder sb = new StringBuilder(Environment.NewLine);
-            sb.Append("MEMORY STATISTICS");
-            sb.Append(Environment.NewLine);
-
-            sb.AppendFormat(
-                "Allocated to OpenSim objects: {0} MB\n",
-                Math.Round(GC.GetTotalMemory(false) / 1024.0 / 1024.0));
-
-            sb.AppendFormat(
-                "OpenSim last object memory churn    : {0} MB/s\n",
-                Math.Round((MemoryWatchdog.LastMemoryChurn * 1000) / 1024.0 / 1024, 3));
-
-            sb.AppendFormat(
-                "OpenSim average object memory churn : {0} MB/s\n",
-                Math.Round((MemoryWatchdog.AverageMemoryChurn * 1000) / 1024.0 / 1024, 3));
-
-            sb.AppendFormat(
-                "Process memory              : {0} MB\n",
-                Math.Round(Process.GetCurrentProcess().WorkingSet64 / 1024.0 / 1024.0));
-
-            return sb.ToString();
+            m_maxPoolSize = maxSize;
+            m_createFunction = createFunction;
+            m_pool = new Stack<T>(m_maxPoolSize);
         }
-        
-        public virtual string XReport(string uptime, string version)
+
+        public T GetObject()
         {
-            return (string) Math.Round(GC.GetTotalMemory(false) / 1024.0 / 1024.0).ToString() ;
+            lock (m_pool)
+            {
+                if (m_pool.Count > 0)
+                    return m_pool.Pop();
+                else
+                    return m_createFunction();
+            }
+        }
+
+        public void ReturnObject(T obj)
+        {
+            lock (m_pool)
+            {
+                if (m_pool.Count >= m_maxPoolSize)
+                    return;
+                else
+                    m_pool.Push(obj);
+            }
         }
     }
 }

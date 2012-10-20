@@ -45,7 +45,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public Packet Packet;
 
         /// <summary>
-        /// Default constructor
+        /// No arg constructor.
+        /// </summary>
+        public IncomingPacket() {}
+
+        /// <summary>
+        /// Constructor
         /// </summary>
         /// <param name="client">Reference to the client this packet came from</param>
         /// <param name="packet">Packet data</param>

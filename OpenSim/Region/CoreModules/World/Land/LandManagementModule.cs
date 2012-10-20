@@ -207,6 +207,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             client.OnParcelInfoRequest += ClientOnParcelInfoRequest;
             client.OnParcelDeedToGroup += ClientOnParcelDeedToGroup;
             client.OnPreAgentUpdate += ClientOnPreAgentUpdate;
+            client.OnParcelDwellRequest += ClientOnParcelDwellRequest;
 
             EntityBase presenceEntity;
             if (m_scene.Entities.TryGetValue(client.AgentId, out presenceEntity) && presenceEntity is ScenePresence)
@@ -796,6 +797,17 @@ namespace OpenSim.Region.CoreModules.World.Land
                     return null;
                 }
             }
+        }
+
+        private void ClientOnParcelDwellRequest(int localID, IClientAPI client)
+        {
+            ILandObject parcel = null;
+            lock (m_landList)
+            {
+                if (!m_landList.TryGetValue(localID, out parcel))
+                    return;
+            }
+            client.SendParcelDwellReply(localID, parcel.LandData.GlobalID, parcel.LandData.Dwell);
         }
 
         #endregion

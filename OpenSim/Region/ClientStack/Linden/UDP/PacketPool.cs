@@ -31,6 +31,7 @@ using System.Reflection;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
 using log4net;
+using OpenSim.Framework.Monitoring;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
@@ -43,17 +44,28 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private bool packetPoolEnabled = true;
         private bool dataBlockPoolEnabled = true;
 
+        private PercentageStat m_packetsReusedStat = new PercentageStat(
+            "PacketsReused",
+            "Packets reused",
+            "clientstack",
+            "packetpool",
+            StatVerbosity.Debug,
+            "Number of packets reused out of all requests to the packet pool");
+
+        private PercentageStat m_blocksReusedStat = new PercentageStat(
+            "BlocksReused",
+            "Blocks reused",
+            "clientstack",
+            "packetpool",
+            StatVerbosity.Debug,
+            "Number of data blocks reused out of all requests to the packet pool");
+
         /// <summary>
         /// Pool of packets available for reuse.
         /// </summary>
         private readonly Dictionary<PacketType, Stack<Packet>> pool = new Dictionary<PacketType, Stack<Packet>>();
 
-        private static Dictionary<Type, Stack<Object>> DataBlocks =
-                new Dictionary<Type, Stack<Object>>();
-
-        static PacketPool()
-        {
-        }
+        private static Dictionary<Type, Stack<Object>> DataBlocks = new Dictionary<Type, Stack<Object>>();
 
         public static PacketPool Instance
         {
@@ -72,8 +84,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             get { return dataBlockPoolEnabled; }
         }
 
+        private PacketPool()
+        {
+            StatsManager.RegisterStat(m_packetsReusedStat);
+            StatsManager.RegisterStat(m_blocksReusedStat);
+        }
+
+        /// <summary>
+        /// Gets a packet of the given type.
+        /// </summary>
+        /// <param name='type'></param>
+        /// <returns>Guaranteed to always return a packet, whether from the pool or newly constructed.</returns>
         public Packet GetPacket(PacketType type)
         {
+            m_packetsReusedStat.Consequent++;
+
             Packet packet;
 
             if (!packetPoolEnabled)
@@ -83,13 +108,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 if (!pool.ContainsKey(type) || pool[type] == null || (pool[type]).Count == 0)
                 {
+//                    m_log.DebugFormat("[PACKETPOOL]: Building {0} packet", type);
+
                     // Creating a new packet if we cannot reuse an old package
                     packet = Packet.BuildPacket(type);
                 }
                 else
                 {
+//                    m_log.DebugFormat("[PACKETPOOL]: Pulling {0} packet", type);
+
                     // Recycle old packages
-                    packet = (pool[type]).Pop();
+                    m_packetsReusedStat.Antecedent++;
+
+                    packet = pool[type].Pop();
                 }
             }
 
@@ -138,7 +169,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             PacketType type = GetType(bytes);
 
-            Array.Clear(zeroBuffer, 0, zeroBuffer.Length);
+//            Array.Clear(zeroBuffer, 0, zeroBuffer.Length);
 
             int i = 0;
             Packet packet = GetPacket(type);
@@ -185,6 +216,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 switch (packet.Type)
                 {
                     // List pooling packets here
+                    case PacketType.AgentUpdate:
                     case PacketType.PacketAck:
                     case PacketType.ObjectUpdate:
                     case PacketType.ImprovedTerseObjectUpdate:
@@ -199,7 +231,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                             if ((pool[type]).Count < 50)
                             {
-                                (pool[type]).Push(packet);
+//                                m_log.DebugFormat("[PACKETPOOL]: Pushing {0} packet", type);
+
+                                pool[type].Push(packet);
                             }
                         }
                         break;
@@ -211,16 +245,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        public static T GetDataBlock<T>() where T: new()
+        public T GetDataBlock<T>() where T: new()
         {
             lock (DataBlocks)
             {
+                m_blocksReusedStat.Consequent++;
+
                 Stack<Object> s;
 
                 if (DataBlocks.TryGetValue(typeof(T), out s))
                 {
                     if (s.Count > 0)
+                    {
+                        m_blocksReusedStat.Antecedent++;
                         return (T)s.Pop();
+                    }
                 }
                 else
                 {
@@ -231,7 +270,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        public static void ReturnDataBlock<T>(T block) where T: new()
+        public void ReturnDataBlock<T>(T block) where T: new()
         {
             if (block == null)
                 return;

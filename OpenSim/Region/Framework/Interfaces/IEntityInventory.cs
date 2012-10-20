@@ -268,17 +268,25 @@ namespace OpenSim.Region.Framework.Interfaces
         void ApplyGodPermissions(uint perms);
 
         /// <summary>
+        /// Number of items in this inventory.
+        /// </summary>
+        int Count { get; }
+
+        /// <summary>
         /// Returns true if this inventory contains any scripts
         /// </summary></returns>
         bool ContainsScripts();
 
         /// <summary>
-        /// Returns the count of scripts contained
-        /// </summary></returns>
+        /// Number of scripts in this inventory.
+        /// </summary>
+        /// <remarks>
+        /// Includes both running and non running scripts.
+        /// </remarks>
         int ScriptCount();
 
         /// <summary>
-        /// Returns the count of running scripts contained
+        /// Number of running scripts in this inventory.
         /// </summary></returns>
         int RunningScriptCount();
 
