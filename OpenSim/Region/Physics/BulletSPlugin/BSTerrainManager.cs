@@ -114,6 +114,7 @@ public class BSTerrainManager
                         BulletSimAPI.CreateBodyWithDefaultMotionState2(groundPlaneShape.ptr, BSScene.GROUNDPLANE_ID,
                                                             Vector3.Zero, Quaternion.Identity));
         BulletSimAPI.AddObjectToWorld2(PhysicsScene.World.ptr, m_groundPlane.ptr);
+        BulletSimAPI.UpdateSingleAabb2(PhysicsScene.World.ptr, m_groundPlane.ptr);
         // Ground plane does not move
         BulletSimAPI.ForceActivationState2(m_groundPlane.ptr, ActivationState.DISABLE_SIMULATION);
         // Everything collides with the ground plane.
@@ -334,7 +335,8 @@ public class BSTerrainManager
 
                 // Make sure the new shape is processed.
                 // BulletSimAPI.Activate2(mapInfo.terrainBody.ptr, true);
-                BulletSimAPI.ForceActivationState2(mapInfo.terrainBody.ptr, ActivationState.DISABLE_SIMULATION);
+                BulletSimAPI.ForceActivationState2(mapInfo.terrainBody.ptr, ActivationState.ISLAND_SLEEPING);
+                // BulletSimAPI.ForceActivationState2(mapInfo.terrainBody.ptr, ActivationState.DISABLE_SIMULATION);
 
                 m_terrainModified = true;
             };

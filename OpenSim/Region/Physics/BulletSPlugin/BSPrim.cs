@@ -46,12 +46,10 @@ public sealed class BSPrim : BSPhysObject
     private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
     private static readonly string LogHeader = "[BULLETS PRIM]";
 
-    private PrimitiveBaseShape _pbs;
-
-    // _size is what the user passed. _scale is what we pass to the physics engine with the mesh.
-    // Often _scale is unity because the meshmerizer will apply _size when creating the mesh.
+    // _size is what the user passed. Scale is what we pass to the physics engine with the mesh.
+    // Often Scale is unity because the meshmerizer will apply _size when creating the mesh.
     private OMV.Vector3 _size;  // the multiplier for each mesh dimension as passed by the user
-    private OMV.Vector3 _scale; // the multiplier for each mesh dimension for the mesh as created by the meshmerizer
+    // private OMV.Vector3 _scale; // the multiplier for each mesh dimension for the mesh as created by the meshmerizer
 
     private bool _grabbed;
     private bool _isSelected;
@@ -98,12 +96,12 @@ public sealed class BSPrim : BSPhysObject
         _physicsActorType = (int)ActorTypes.Prim;
         _position = pos;
         _size = size;
-        _scale = new OMV.Vector3(1f, 1f, 1f);   // the scale will be set by CreateGeom depending on object type
+        Scale = new OMV.Vector3(1f, 1f, 1f);   // the scale will be set by CreateGeom depending on object type
         _orientation = rotation;
         _buoyancy = 1f;
         _velocity = OMV.Vector3.Zero;
         _rotationalVelocity = OMV.Vector3.Zero;
-        _pbs = pbs;
+        BaseShape = pbs;
         _isPhysical = pisPhysical;
         _isVolumeDetect = false;
         _friction = PhysicsScene.Params.defaultFriction;  // TODO: compute based on object material
@@ -160,32 +158,31 @@ public sealed class BSPrim : BSPhysObject
         get { return _size; }
         set {
             _size = value;
-            PhysicsScene.TaintedObject("BSPrim.setSize", delegate()
-            {
-                _mass = CalculateMass();   // changing size changes the mass
-                // Since _size changed, the mesh needs to be rebuilt. If rebuilt, all the correct
-                //   scale and margins are set.
-                CreateGeomAndObject(true);
-                // DetailLog("{0},BSPrim.setSize,size={1},scale={2},mass={3},physical={4}", LocalID, _size, _scale, _mass, IsPhysical);
-            });
+            ForceBodyShapeRebuild(false);
         }
     }
     // Scale is what we set in the physics engine. It is different than 'size' in that
     //     'size' can be encorporated into the mesh. In that case, the scale is <1,1,1>.
-    public OMV.Vector3 Scale
-    {
-        get { return _scale; }
-        set { _scale = value; }
-    }
+    public override OMV.Vector3 Scale { get; set; }
+
     public override PrimitiveBaseShape Shape {
         set {
-            _pbs = value;
-            PhysicsScene.TaintedObject("BSPrim.setShape", delegate()
-            {
-                _mass = CalculateMass();   // changing the shape changes the mass
-                CreateGeomAndObject(true);
-            });
+            BaseShape = value;
+            ForceBodyShapeRebuild(false);
         }
+    }
+    public override bool ForceBodyShapeRebuild(bool inTaintTime)
+    {
+        BSScene.TaintCallback rebuildOperation = delegate()
+        {
+            _mass = CalculateMass();   // changing the shape changes the mass
+            CreateGeomAndObject(true);
+        };
+        if (inTaintTime)
+            rebuildOperation();
+        else
+            PhysicsScene.TaintedObject("BSPrim.ForceBodyShapeRebuild", rebuildOperation);
+        return true;
     }
     public override bool Grabbed {
         set { _grabbed = value;
@@ -325,9 +322,9 @@ public sealed class BSPrim : BSPhysObject
     }
 
     // A version of the sanity check that also makes sure a new position value is
-    //    pushed back to the physics engine. This routine would be used by anyone
+    //    pushed to the physics engine. This routine would be used by anyone
     //    who is not already pushing the value.
-    private bool PositionSanityCheck2(bool inTaintTime)
+    private bool PositionSanityCheck(bool inTaintTime)
     {
         bool ret = false;
         if (PositionSanityCheck())
@@ -337,7 +334,7 @@ public sealed class BSPrim : BSPhysObject
             BSScene.TaintCallback sanityOperation = delegate()
             {
                 DetailLog("{0},BSPrim.PositionSanityCheck,taint,pos={1},orient={2}", LocalID, _position, _orientation);
-                BulletSimAPI.SetObjectTranslation(PhysicsScene.WorldID, LocalID, _position, _orientation);
+                ForcePosition = _position;
             };
             if (inTaintTime)
                 sanityOperation();
@@ -547,13 +544,13 @@ public sealed class BSPrim : BSPhysObject
     }
 
     // An object is static (does not move) if selected or not physical
-    private bool IsStatic
+    public override bool IsStatic
     {
         get { return _isSelected || !IsPhysical; }
     }
 
     // An object is solid if it's not phantom and if it's not doing VolumeDetect
-    public bool IsSolid
+    public override bool IsSolid
     {
         get { return !IsPhantom && !_isVolumeDetect; }
     }
@@ -631,6 +628,12 @@ public sealed class BSPrim : BSPhysObject
             BulletSimAPI.SetMassProps2(BSBody.ptr, 0f, OMV.Vector3.Zero);
             // There is no inertia in a static object
             BulletSimAPI.UpdateInertiaTensor2(BSBody.ptr);
+            // Set collision detection parameters
+            if (PhysicsScene.Params.ccdMotionThreshold > 0f)
+            {
+                BulletSimAPI.SetCcdMotionThreshold2(BSBody.ptr, PhysicsScene.Params.ccdMotionThreshold);
+                BulletSimAPI.SetCcdSweepSphereRadius2(BSBody.ptr, PhysicsScene.Params.ccdSweptSphereRadius);
+            }
             // There can be special things needed for implementing linksets
             Linkset.MakeStatic(this);
             // The activation state is 'disabled' so Bullet will not try to act on it.
@@ -661,6 +664,13 @@ public sealed class BSPrim : BSPhysObject
             OMV.Vector3 inertia = BulletSimAPI.CalculateLocalInertia2(collisionShapePtr, Mass);
             BulletSimAPI.SetMassProps2(BSBody.ptr, _mass, inertia);
             BulletSimAPI.UpdateInertiaTensor2(BSBody.ptr);
+
+            // Set collision detection parameters
+            if (PhysicsScene.Params.ccdMotionThreshold > 0f)
+            {
+                BulletSimAPI.SetCcdMotionThreshold2(BSBody.ptr, PhysicsScene.Params.ccdMotionThreshold);
+                BulletSimAPI.SetCcdSweepSphereRadius2(BSBody.ptr, PhysicsScene.Params.ccdSweptSphereRadius);
+            }
 
             // Various values for simulation limits
             BulletSimAPI.SetDamping2(BSBody.ptr, PhysicsScene.Params.linearDamping, PhysicsScene.Params.angularDamping);
@@ -813,11 +823,18 @@ public sealed class BSPrim : BSPhysObject
             _buoyancy = value;
             PhysicsScene.TaintedObject("BSPrim.setBuoyancy", delegate()
             {
-                // DetailLog("{0},BSPrim.SetBuoyancy,taint,buoy={1}", LocalID, _buoyancy);
-                // Buoyancy is faked by changing the gravity applied to the object
-                float grav = PhysicsScene.Params.gravity * (1f - _buoyancy);
-                BulletSimAPI.SetGravity2(BSBody.ptr, new OMV.Vector3(0f, 0f, grav));
+                ForceBuoyancy = _buoyancy;
             });
+        }
+    }
+    public override float ForceBuoyancy {
+        get { return _buoyancy; }
+        set {
+            _buoyancy = value;
+            // DetailLog("{0},BSPrim.setForceBuoyancy,taint,buoy={1}", LocalID, _buoyancy);
+            // Buoyancy is faked by changing the gravity applied to the object
+            float grav = PhysicsScene.Params.gravity * (1f - _buoyancy);
+            BulletSimAPI.SetGravity2(BSBody.ptr, new OMV.Vector3(0f, 0f, grav));
         }
     }
 
@@ -907,19 +924,19 @@ public sealed class BSPrim : BSPhysObject
         float tmp;
 
         float returnMass = 0;
-        float hollowAmount = (float)_pbs.ProfileHollow * 2.0e-5f;
+        float hollowAmount = (float)BaseShape.ProfileHollow * 2.0e-5f;
         float hollowVolume = hollowAmount * hollowAmount;
 
-        switch (_pbs.ProfileShape)
+        switch (BaseShape.ProfileShape)
         {
             case ProfileShape.Square:
                 // default box
 
-                if (_pbs.PathCurve == (byte)Extrusion.Straight)
+                if (BaseShape.PathCurve == (byte)Extrusion.Straight)
                     {
                     if (hollowAmount > 0.0)
                         {
-                        switch (_pbs.HollowShape)
+                        switch (BaseShape.HollowShape)
                             {
                             case HollowShape.Square:
                             case HollowShape.Same:
@@ -943,19 +960,19 @@ public sealed class BSPrim : BSPhysObject
                         }
                     }
 
-                else if (_pbs.PathCurve == (byte)Extrusion.Curve1)
+                else if (BaseShape.PathCurve == (byte)Extrusion.Curve1)
                     {
                     //a tube
 
-                    volume *= 0.78539816339e-2f * (float)(200 - _pbs.PathScaleX);
-                    tmp= 1.0f -2.0e-2f * (float)(200 - _pbs.PathScaleY);
+                    volume *= 0.78539816339e-2f * (float)(200 - BaseShape.PathScaleX);
+                    tmp= 1.0f -2.0e-2f * (float)(200 - BaseShape.PathScaleY);
                     volume -= volume*tmp*tmp;
 
                     if (hollowAmount > 0.0)
                         {
                         hollowVolume *= hollowAmount;
    
-                        switch (_pbs.HollowShape)
+                        switch (BaseShape.HollowShape)
                             {
                             case HollowShape.Square:
                             case HollowShape.Same:
@@ -980,13 +997,13 @@ public sealed class BSPrim : BSPhysObject
 
             case ProfileShape.Circle:
 
-                if (_pbs.PathCurve == (byte)Extrusion.Straight)
+                if (BaseShape.PathCurve == (byte)Extrusion.Straight)
                     {
                     volume *= 0.78539816339f; // elipse base
 
                     if (hollowAmount > 0.0)
                         {
-                        switch (_pbs.HollowShape)
+                        switch (BaseShape.HollowShape)
                             {
                             case HollowShape.Same:
                             case HollowShape.Circle:
@@ -1008,10 +1025,10 @@ public sealed class BSPrim : BSPhysObject
                         }
                     }
 
-                else if (_pbs.PathCurve == (byte)Extrusion.Curve1)
+                else if (BaseShape.PathCurve == (byte)Extrusion.Curve1)
                     {
-                    volume *= 0.61685027506808491367715568749226e-2f * (float)(200 - _pbs.PathScaleX);
-                    tmp = 1.0f - .02f * (float)(200 - _pbs.PathScaleY);
+                    volume *= 0.61685027506808491367715568749226e-2f * (float)(200 - BaseShape.PathScaleX);
+                    tmp = 1.0f - .02f * (float)(200 - BaseShape.PathScaleY);
                     volume *= (1.0f - tmp * tmp);
 
                     if (hollowAmount > 0.0)
@@ -1020,7 +1037,7 @@ public sealed class BSPrim : BSPhysObject
                         // calculate the hollow volume by it's shape compared to the prim shape
                         hollowVolume *= hollowAmount;
 
-                        switch (_pbs.HollowShape)
+                        switch (BaseShape.HollowShape)
                             {
                             case HollowShape.Same:
                             case HollowShape.Circle:
@@ -1044,7 +1061,7 @@ public sealed class BSPrim : BSPhysObject
                 break;
 
             case ProfileShape.HalfCircle:
-                if (_pbs.PathCurve == (byte)Extrusion.Curve1)
+                if (BaseShape.PathCurve == (byte)Extrusion.Curve1)
                 {
                 volume *= 0.52359877559829887307710723054658f;
                 }
@@ -1052,7 +1069,7 @@ public sealed class BSPrim : BSPhysObject
 
             case ProfileShape.EquilateralTriangle:
 
-                if (_pbs.PathCurve == (byte)Extrusion.Straight)
+                if (BaseShape.PathCurve == (byte)Extrusion.Straight)
                     {
                     volume *= 0.32475953f;
 
@@ -1060,7 +1077,7 @@ public sealed class BSPrim : BSPhysObject
                         {
 
                         // calculate the hollow volume by it's shape compared to the prim shape
-                        switch (_pbs.HollowShape)
+                        switch (BaseShape.HollowShape)
                             {
                             case HollowShape.Same:
                             case HollowShape.Triangle:
@@ -1085,11 +1102,11 @@ public sealed class BSPrim : BSPhysObject
                         volume *= (1.0f - hollowVolume);
                         }
                     }
-                else if (_pbs.PathCurve == (byte)Extrusion.Curve1)
+                else if (BaseShape.PathCurve == (byte)Extrusion.Curve1)
                     {
                     volume *= 0.32475953f;
-                    volume *= 0.01f * (float)(200 - _pbs.PathScaleX);
-                    tmp = 1.0f - .02f * (float)(200 - _pbs.PathScaleY);
+                    volume *= 0.01f * (float)(200 - BaseShape.PathScaleX);
+                    tmp = 1.0f - .02f * (float)(200 - BaseShape.PathScaleY);
                     volume *= (1.0f - tmp * tmp);
 
                     if (hollowAmount > 0.0)
@@ -1097,7 +1114,7 @@ public sealed class BSPrim : BSPhysObject
 
                         hollowVolume *= hollowAmount;
 
-                        switch (_pbs.HollowShape)
+                        switch (BaseShape.HollowShape)
                             {
                             case HollowShape.Same:
                             case HollowShape.Triangle:
@@ -1137,26 +1154,26 @@ public sealed class BSPrim : BSPhysObject
         float profileBegin;
         float profileEnd;
 
-        if (_pbs.PathCurve == (byte)Extrusion.Straight || _pbs.PathCurve == (byte)Extrusion.Flexible)
+        if (BaseShape.PathCurve == (byte)Extrusion.Straight || BaseShape.PathCurve == (byte)Extrusion.Flexible)
             {
-            taperX1 = _pbs.PathScaleX * 0.01f;
+            taperX1 = BaseShape.PathScaleX * 0.01f;
             if (taperX1 > 1.0f)
                 taperX1 = 2.0f - taperX1;
             taperX = 1.0f - taperX1;
 
-            taperY1 = _pbs.PathScaleY * 0.01f;
+            taperY1 = BaseShape.PathScaleY * 0.01f;
             if (taperY1 > 1.0f)
                 taperY1 = 2.0f - taperY1;
             taperY = 1.0f - taperY1;
             }
         else
             {
-            taperX = _pbs.PathTaperX * 0.01f;
+            taperX = BaseShape.PathTaperX * 0.01f;
             if (taperX < 0.0f)
                 taperX = -taperX;
             taperX1 = 1.0f - taperX;
 
-            taperY = _pbs.PathTaperY * 0.01f;
+            taperY = BaseShape.PathTaperY * 0.01f;
             if (taperY < 0.0f)
                 taperY = -taperY;
             taperY1 = 1.0f - taperY;
@@ -1166,13 +1183,13 @@ public sealed class BSPrim : BSPhysObject
 
         volume *= (taperX1 * taperY1 + 0.5f * (taperX1 * taperY + taperX * taperY1) + 0.3333333333f * taperX * taperY);
 
-        pathBegin = (float)_pbs.PathBegin * 2.0e-5f;
-        pathEnd = 1.0f - (float)_pbs.PathEnd * 2.0e-5f;
+        pathBegin = (float)BaseShape.PathBegin * 2.0e-5f;
+        pathEnd = 1.0f - (float)BaseShape.PathEnd * 2.0e-5f;
         volume *= (pathEnd - pathBegin);
 
         // this is crude aproximation
-        profileBegin = (float)_pbs.ProfileBegin * 2.0e-5f;
-        profileEnd = 1.0f - (float)_pbs.ProfileEnd * 2.0e-5f;
+        profileBegin = (float)BaseShape.ProfileBegin * 2.0e-5f;
+        profileEnd = 1.0f - (float)BaseShape.ProfileEnd * 2.0e-5f;
         volume *= (profileEnd - profileBegin);
 
         returnMass = _density * volume;
@@ -1207,7 +1224,8 @@ public sealed class BSPrim : BSPhysObject
         shape.Position = _position;
         shape.Rotation = _orientation;
         shape.Velocity = _velocity;
-        shape.Scale = _scale;
+        shape.Size = _size;
+        shape.Scale = Scale;
         shape.Mass = _isPhysical ? _mass : 0f;
         shape.Buoyancy = _buoyancy;
         shape.HullKey = 0;
@@ -1217,7 +1235,6 @@ public sealed class BSPrim : BSPhysObject
         shape.Collidable = (!IsPhantom) ? ShapeData.numericTrue : ShapeData.numericFalse;
         shape.Static = _isPhysical ? ShapeData.numericFalse : ShapeData.numericTrue;
         shape.Solid = IsSolid ? ShapeData.numericFalse : ShapeData.numericTrue;
-        shape.Size = _size;
     }
     // Rebuild the geometry and object.
     // This is called when the shape changes so we need to recreate the mesh/hull.
@@ -1234,7 +1251,7 @@ public sealed class BSPrim : BSPhysObject
         // Create the correct physical representation for this type of object.
         // Updates BSBody and BSShape with the new information.
         // Ignore 'forceRebuild'. This routine makes the right choices and changes of necessary.
-        PhysicsScene.Shapes.GetBodyAndShape(false, PhysicsScene.World, this, shapeData, _pbs, 
+        PhysicsScene.Shapes.GetBodyAndShape(false, PhysicsScene.World, this, shapeData, BaseShape, 
                         null, delegate(BulletBody dBody)
         {
             // Called if the current prim body is about to be destroyed.
@@ -1328,9 +1345,11 @@ public sealed class BSPrim : BSPhysObject
             _acceleration = entprop.Acceleration;
             _rotationalVelocity = entprop.RotationalVelocity;
 
-            PositionSanityCheck2(true);
+            // remember the current and last set values
+            LastEntityProperties = CurrentEntityProperties;
+            CurrentEntityProperties = entprop;
 
-            Linkset.UpdateProperties(this);
+            PositionSanityCheck(true);
 
             DetailLog("{0},BSPrim.UpdateProperties,call,pos={1},orient={2},vel={3},accel={4},rotVel={5}",
                     LocalID, _position, _orientation, _velocity, _acceleration, _rotationalVelocity);
@@ -1348,6 +1367,9 @@ public sealed class BSPrim : BSPhysObject
                     entprop.Acceleration, entprop.RotationalVelocity);
         }
              */
+        // The linkset implimentation might want to know about this.
+
+        Linkset.UpdateProperties(this);
     }
 }
 }

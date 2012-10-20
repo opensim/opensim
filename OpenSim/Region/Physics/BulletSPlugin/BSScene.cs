@@ -256,14 +256,10 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         Vector3 worldExtent = new Vector3(Constants.RegionSize, Constants.RegionSize, Constants.RegionHeight);
 
         // m_log.DebugFormat("{0}: Initialize: Calling BulletSimAPI.Initialize.", LogHeader);
-        WorldID = BulletSimAPI.Initialize(worldExtent, m_paramsHandle.AddrOfPinnedObject(),
+        World = new BulletSim(0, this, BulletSimAPI.Initialize2(worldExtent, m_paramsHandle.AddrOfPinnedObject(),
                                         m_maxCollisionsPerFrame, m_collisionArrayPinnedHandle.AddrOfPinnedObject(),
                                         m_maxUpdatesPerFrame, m_updateArrayPinnedHandle.AddrOfPinnedObject(),
-                                        m_DebugLogCallbackHandle);
-
-        // Initialization to support the transition to a new API which puts most of the logic
-        //   into the C# code so it is easier to modify and add to.
-        World = new BulletSim(WorldID, this, BulletSimAPI.GetSimHandle2(WorldID));
+                                        m_DebugLogCallbackHandle));
 
         Constraints = new BSConstraintCollection(World);
 
@@ -360,7 +356,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         }
 
         // Anything left in the unmanaged code should be cleaned out
-        BulletSimAPI.Shutdown(WorldID);
+        BulletSimAPI.Shutdown2(World.ptr);
 
         // Not logging any more
         PhysicsLogging.Close();
@@ -498,7 +494,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         {
             if (PhysicsLogging.Enabled) beforeTime = Util.EnvironmentTickCount();
 
-            numSubSteps = BulletSimAPI.PhysicsStep(WorldID, timeStep, m_maxSubSteps, m_fixedTimeStep,
+            numSubSteps = BulletSimAPI.PhysicsStep2(World.ptr, timeStep, m_maxSubSteps, m_fixedTimeStep,
                         out updatedEntityCount, out updatedEntitiesPtr, out collidersCount, out collidersPtr);
 
             if (PhysicsLogging.Enabled) simTime = Util.EnvironmentTickCountSubtract(beforeTime);
@@ -536,25 +532,25 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             }
         }
 
-        // This is a kludge to get avatar movement updates.
-        //   the simulator expects collisions for avatars even if there are have been no collisions. This updates
-        //   avatar animations and stuff.
-        // If you fix avatar animation updates, remove this overhead and let normal collision processing happen.
-        foreach (BSPhysObject bsp in m_avatars)
-            bsp.SendCollisions();
-
         // The above SendCollision's batch up the collisions on the objects.
         //      Now push the collisions into the simulator.
         if (ObjectsWithCollisions.Count > 0)
         {
             foreach (BSPhysObject bsp in ObjectsWithCollisions)
-                if (!m_avatars.Contains(bsp))   // don't call avatars twice
-                    if (!bsp.SendCollisions())
-                    {
-                        // If the object is done colliding, see that it's removed from the colliding list
-                        ObjectsWithNoMoreCollisions.Add(bsp);
-                    }
+                if (!bsp.SendCollisions())
+                {
+                    // If the object is done colliding, see that it's removed from the colliding list
+                    ObjectsWithNoMoreCollisions.Add(bsp);
+                }
         }
+
+        // This is a kludge to get avatar movement updates.
+        // The simulator expects collisions for avatars even if there are have been no collisions. 
+        //    The event updates avatar animations and stuff.
+        // If you fix avatar animation updates, remove this overhead and let normal collision processing happen.
+        foreach (BSPhysObject bsp in m_avatars)
+            if (!ObjectsWithCollisions.Contains(bsp))   // don't call avatars twice
+                bsp.SendCollisions();
 
         // Objects that are done colliding are removed from the ObjectsWithCollisions list.
         // Not done above because it is inside an iteration of ObjectWithCollisions.
@@ -579,11 +575,15 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             }
         }
 
+        // This causes the unmanaged code to output ALL the values found in ALL the objects in the world.
+        // Only enable this in a limited test world with few objects.
+        // BulletSimAPI.DumpAllInfo2(World.ptr);    // DEBUG DEBUG DEBUG
+
         // The physics engine returns the number of milliseconds it simulated this call.
         // These are summed and normalized to one second and divided by 1000 to give the reported physics FPS.
-        // We multiply by 45 to give a recognizable running rate (45 or less).
-        return numSubSteps * m_fixedTimeStep * 1000 * 45;
-        // return timeStep * 1000 * 45;
+        // We multiply by 55 to give a recognizable running rate (55 or less).
+        return numSubSteps * m_fixedTimeStep * 1000 * 55;
+        // return timeStep * 1000 * 55;
     }
 
     // Something has collided
@@ -800,6 +800,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     delegate void ParamUser(BSScene scene, IConfig conf, string paramName, float val);
     delegate float ParamGet(BSScene scene);
     delegate void ParamSet(BSScene scene, string paramName, uint localID, float val);
+    delegate void SetOnObject(BSScene scene, BSPhysObject obj, float val);
 
     private struct ParameterDefn
     {
@@ -809,6 +810,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         public ParamUser userParam; // get the value from the configuration file
         public ParamGet getter;     // return the current value stored for this parameter
         public ParamSet setter;     // set the current value for this parameter
+        public SetOnObject onObject;    // set the value on an object in the physical domain
         public ParameterDefn(string n, string d, float v, ParamUser u, ParamGet g, ParamSet s)
         {
             name = n;
@@ -817,6 +819,17 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             userParam = u;
             getter = g;
             setter = s;
+            onObject = null;
+        }
+        public ParameterDefn(string n, string d, float v, ParamUser u, ParamGet g, ParamSet s, SetOnObject o)
+        {
+            name = n;
+            desc = d;
+            defaultValue = v;
+            userParam = u;
+            getter = g;
+            setter = s;
+            onObject = o;
         }
     }
 
@@ -838,6 +851,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     //
     // The single letter parameters for the delegates are:
     //    s = BSScene
+    //    o = BSPhysObject
     //    p = string parameter name
     //    l = localID of referenced object
     //    v = float value
@@ -947,70 +961,84 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             -9.80665f,
             (s,cf,p,v) => { s.m_params[0].gravity = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].gravity; },
-            (s,p,l,v) => { s.m_params[0].gravity = v; s.TaintedUpdateParameter(p,l,v); } ),
+            (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].gravity, p, PhysParameterEntry.APPLY_TO_NONE, v); },
+            (s,o,v) => { BulletSimAPI.SetGravity2(s.World.ptr, new Vector3(0f,0f,v)); } ),
 
 
         new ParameterDefn("LinearDamping", "Factor to damp linear movement per second (0.0 - 1.0)",
             0f,
             (s,cf,p,v) => { s.m_params[0].linearDamping = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].linearDamping; },
-            (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].linearDamping, p, l, v); } ),
+            (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].linearDamping, p, l, v); },
+            (s,o,v) => { BulletSimAPI.SetDamping2(o.BSBody.ptr, v, v); } ),
         new ParameterDefn("AngularDamping", "Factor to damp angular movement per second (0.0 - 1.0)",
             0f,
             (s,cf,p,v) => { s.m_params[0].angularDamping = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].angularDamping; },
-            (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].angularDamping, p, l, v); } ),
+            (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].angularDamping, p, l, v); },
+            (s,o,v) => { BulletSimAPI.SetDamping2(o.BSBody.ptr, v, v); } ),
         new ParameterDefn("DeactivationTime", "Seconds before considering an object potentially static",
             0.2f,
             (s,cf,p,v) => { s.m_params[0].deactivationTime = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].deactivationTime; },
-            (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].deactivationTime, p, l, v); } ),
+            (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].deactivationTime, p, l, v); },
+            (s,o,v) => { BulletSimAPI.SetDeactivationTime2(o.BSBody.ptr, v); } ),
         new ParameterDefn("LinearSleepingThreshold", "Seconds to measure linear movement before considering static",
             0.8f,
             (s,cf,p,v) => { s.m_params[0].linearSleepingThreshold = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].linearSleepingThreshold; },
-            (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].linearSleepingThreshold, p, l, v); } ),
+            (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].linearSleepingThreshold, p, l, v); },
+            (s,o,v) => { BulletSimAPI.SetSleepingThresholds2(o.BSBody.ptr, v, v); } ),
         new ParameterDefn("AngularSleepingThreshold", "Seconds to measure angular movement before considering static",
             1.0f,
             (s,cf,p,v) => { s.m_params[0].angularSleepingThreshold = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].angularSleepingThreshold; },
-            (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].angularSleepingThreshold, p, l, v); } ),
+            (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].angularSleepingThreshold, p, l, v); },
+            (s,o,v) => { BulletSimAPI.SetSleepingThresholds2(o.BSBody.ptr, v, v); } ),
         new ParameterDefn("CcdMotionThreshold", "Continuious collision detection threshold (0 means no CCD)" ,
             0f,     // set to zero to disable
             (s,cf,p,v) => { s.m_params[0].ccdMotionThreshold = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].ccdMotionThreshold; },
-            (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].ccdMotionThreshold, p, l, v); } ),
+            (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].ccdMotionThreshold, p, l, v); },
+            (s,o,v) => { BulletSimAPI.SetCcdMotionThreshold2(o.BSBody.ptr, v); } ),
         new ParameterDefn("CcdSweptSphereRadius", "Continuious collision detection test radius" ,
             0f,
             (s,cf,p,v) => { s.m_params[0].ccdSweptSphereRadius = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].ccdSweptSphereRadius; },
-            (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].ccdSweptSphereRadius, p, l, v); } ),
+            (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].ccdSweptSphereRadius, p, l, v); },
+            (s,o,v) => { BulletSimAPI.SetCcdSweepSphereRadius2(o.BSBody.ptr, v); } ),
         new ParameterDefn("ContactProcessingThreshold", "Distance between contacts before doing collision check" ,
             0.1f,
             (s,cf,p,v) => { s.m_params[0].contactProcessingThreshold = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].contactProcessingThreshold; },
-            (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].contactProcessingThreshold, p, l, v); } ),
+            (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].contactProcessingThreshold, p, l, v); },
+            (s,o,v) => { BulletSimAPI.SetContactProcessingThreshold2(o.BSBody.ptr, v); } ),
 
         new ParameterDefn("TerrainFriction", "Factor to reduce movement against terrain surface" ,
             0.5f,
             (s,cf,p,v) => { s.m_params[0].terrainFriction = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].terrainFriction; },
-            (s,p,l,v) => { s.m_params[0].terrainFriction = v; s.TaintedUpdateParameter(p,l,v); } ),
+            (s,p,l,v) => { s.m_params[0].terrainFriction = v;  /* TODO: set on real terrain */} ),
         new ParameterDefn("TerrainHitFraction", "Distance to measure hit collisions" ,
             0.8f,
             (s,cf,p,v) => { s.m_params[0].terrainHitFraction = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].terrainHitFraction; },
-            (s,p,l,v) => { s.m_params[0].terrainHitFraction = v; s.TaintedUpdateParameter(p,l,v); } ),
+            (s,p,l,v) => { s.m_params[0].terrainHitFraction = v; /* TODO: set on real terrain */ } ),
         new ParameterDefn("TerrainRestitution", "Bouncyness" ,
             0f,
             (s,cf,p,v) => { s.m_params[0].terrainRestitution = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].terrainRestitution; },
-            (s,p,l,v) => { s.m_params[0].terrainRestitution = v; s.TaintedUpdateParameter(p,l,v); } ),
+            (s,p,l,v) => { s.m_params[0].terrainRestitution = v;  /* TODO: set on real terrain */ } ),
         new ParameterDefn("AvatarFriction", "Factor to reduce movement against an avatar. Changed on avatar recreation.",
             0.2f,
             (s,cf,p,v) => { s.m_params[0].avatarFriction = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].avatarFriction; },
             (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].avatarFriction, p, l, v); } ),
+        new ParameterDefn("AvatarStandingFriction", "Avatar friction when standing. Changed on avatar recreation.",
+            10f,
+            (s,cf,p,v) => { s.m_params[0].avatarStandingFriction = cf.GetFloat(p, v); },
+            (s) => { return s.m_params[0].avatarStandingFriction; },
+            (s,p,l,v) => { s.m_params[0].avatarStandingFriction = v; } ),
         new ParameterDefn("AvatarDensity", "Density of an avatar. Changed on avatar recreation.",
             60f,
             (s,cf,p,v) => { s.m_params[0].avatarDensity = cf.GetFloat(p, v); },
@@ -1227,52 +1255,54 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         return ret;
     }
 
-    // check to see if we are updating a parameter for a particular or all of the prims
-    protected void UpdateParameterObject(ref float loc, string parm, uint localID, float val)
-    {
-        List<uint> operateOn;
-        lock (PhysObjects) operateOn = new List<uint>(PhysObjects.Keys);
-        UpdateParameterSet(operateOn, ref loc, parm, localID, val);
-    }
-
     // update all the localIDs specified
     // If the local ID is APPLY_TO_NONE, just change the default value
     // If the localID is APPLY_TO_ALL change the default value and apply the new value to all the lIDs
     // If the localID is a specific object, apply the parameter change to only that object
-    protected void UpdateParameterSet(List<uint> lIDs, ref float defaultLoc, string parm, uint localID, float val)
+    protected void UpdateParameterObject(ref float defaultLoc, string parm, uint localID, float val)
     {
+        List<uint> objectIDs = new List<uint>();
         switch (localID)
         {
             case PhysParameterEntry.APPLY_TO_NONE:
                 defaultLoc = val;   // setting only the default value
+                // This will cause a call into the physical world if some operation is specified (SetOnObject).
+                objectIDs.Add(TERRAIN_ID);
+                TaintedUpdateParameter(parm, objectIDs, val);
                 break;
             case PhysParameterEntry.APPLY_TO_ALL:
                 defaultLoc = val;  // setting ALL also sets the default value
-                List<uint> objectIDs = lIDs;
-                string xparm = parm.ToLower();
-                float xval = val;
-                TaintedObject("BSScene.UpdateParameterSet", delegate() {
-                    foreach (uint lID in objectIDs)
-                    {
-                        BulletSimAPI.UpdateParameter(WorldID, lID, xparm, xval);
-                    }
-                });
+                lock (PhysObjects) objectIDs = new List<uint>(PhysObjects.Keys);
+                TaintedUpdateParameter(parm, objectIDs, val);
                 break;
             default:
                 // setting only one localID
-                TaintedUpdateParameter(parm, localID, val);
+                objectIDs.Add(localID);
+                TaintedUpdateParameter(parm, objectIDs, val);
                 break;
         }
     }
 
     // schedule the actual updating of the paramter to when the phys engine is not busy
-    protected void TaintedUpdateParameter(string parm, uint localID, float val)
+    protected void TaintedUpdateParameter(string parm, List<uint> lIDs, float val)
     {
-        uint xlocalID = localID;
-        string xparm = parm.ToLower();
         float xval = val;
-        TaintedObject("BSScene.TaintedUpdateParameter", delegate() {
-            BulletSimAPI.UpdateParameter(WorldID, xlocalID, xparm, xval);
+        List<uint> xlIDs = lIDs;
+        string xparm = parm;
+        TaintedObject("BSScene.UpdateParameterSet", delegate() {
+            ParameterDefn thisParam;
+            if (TryGetParameter(xparm, out thisParam))
+            {
+                if (thisParam.onObject != null)
+                {
+                    foreach (uint lID in xlIDs)
+                    {
+                        BSPhysObject theObject = null;
+                        PhysObjects.TryGetValue(lID, out theObject);
+                        thisParam.onObject(this, theObject, xval);
+                    }
+                }
+            }
         });
     }
 

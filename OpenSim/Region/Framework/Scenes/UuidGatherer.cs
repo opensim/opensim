@@ -66,9 +66,9 @@ namespace OpenSim.Region.Framework.Scenes
 //        /// </summary>
 //        private bool m_waitingForObjectAsset;
                 
-        public UuidGatherer(IAssetService assetCache)
+        public UuidGatherer(IAssetService assetService)
         {
-            m_assetService = assetCache;
+            m_assetService = assetService;
         }
                 
         /// <summary>

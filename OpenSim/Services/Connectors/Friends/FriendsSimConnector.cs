@@ -128,7 +128,7 @@ namespace OpenSim.Services.Connectors.Friends
             return Call(region, sendData);
         }
 
-        public bool StatusNotify(GridRegion region, UUID userID, UUID friendID, bool online)
+        public bool StatusNotify(GridRegion region, UUID userID, string friendID, bool online)
         {
             Dictionary<string, object> sendData = new Dictionary<string, object>();
             //sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
@@ -136,7 +136,7 @@ namespace OpenSim.Services.Connectors.Friends
             sendData["METHOD"] = "status";
 
             sendData["FromID"] = userID.ToString();
-            sendData["ToID"] = friendID.ToString();
+            sendData["ToID"] = friendID;
             sendData["Online"] = online.ToString();
 
             return Call(region, sendData);

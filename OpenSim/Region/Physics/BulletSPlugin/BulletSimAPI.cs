@@ -223,6 +223,7 @@ public struct ShapeData
         KEY_SPHERE      = 2,
         KEY_CONE        = 3,
         KEY_CYLINDER    = 4,
+        KEY_CAPSULE     = 5,
     }
 }
 [StructLayout(LayoutKind.Sequential)]
@@ -282,6 +283,7 @@ public struct ConfigurationParameters
     public float terrainHitFraction;
     public float terrainRestitution;
     public float avatarFriction;
+    public float avatarStandingFriction;
     public float avatarDensity;
     public float avatarRestitution;
     public float avatarCapsuleRadius;
@@ -388,7 +390,7 @@ public enum CollisionFilterGroups : uint
     VolumeDetectMask        = ~BSensorTrigger,
     TerrainFilter           = BTerrainFilter,
     TerrainMask             = BAllFilter & ~BStaticFilter,
-    GroundPlaneFilter       = BAllFilter,
+    GroundPlaneFilter       = BGroundPlaneFilter,
     GroundPlaneMask         = BAllFilter
 
 };
@@ -428,6 +430,7 @@ public delegate void DebugLogCallback([MarshalAs(UnmanagedType.LPStr)]string msg
 [return: MarshalAs(UnmanagedType.LPStr)]
 public static extern string GetVersion();
 
+/* Remove the linkage to the old api methods
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern uint Initialize(Vector3 maxPosition, IntPtr parms,
                         int maxCollisions, IntPtr collisionArray,
@@ -531,7 +534,7 @@ public static extern Vector3 RecoverFromPenetration(uint worldID, uint id);
 // ===============================================================================
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern void DumpBulletStatistics();
-
+*/
 // Log a debug message
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern void SetDebugLogCallback(DebugLogCallback callback);
@@ -562,7 +565,8 @@ public static extern IntPtr GetBodyHandle2(IntPtr world, uint id);
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern IntPtr Initialize2(Vector3 maxPosition, IntPtr parms,
 											int maxCollisions,  IntPtr collisionArray,
-											int maxUpdates, IntPtr updateArray);
+											int maxUpdates, IntPtr updateArray,
+                                            DebugLogCallback logRoutine);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern bool UpdateParameter2(IntPtr world, uint localID, String parm, float value);
@@ -602,6 +606,9 @@ public static extern IntPtr BuildNativeShape2(IntPtr world, ShapeData shapeData)
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern bool IsNativeShape2(IntPtr shape);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern IntPtr BuildCapsuleShape2(IntPtr world, float radius, float height, Vector3 scale);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern IntPtr CreateCompoundShape2(IntPtr sim);
