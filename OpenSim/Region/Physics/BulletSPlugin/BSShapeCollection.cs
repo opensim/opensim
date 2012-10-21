@@ -724,8 +724,7 @@ public class BSShapeCollection : IDisposable
                             if (yprim.BaseShape.SculptTexture.ToString() != asset.ID)
                                 return;
 
-                            yprim.BaseShape.SculptData = new byte[asset.Data.Length];
-                            asset.Data.CopyTo(yprim.BaseShape.SculptData, 0);
+                            yprim.BaseShape.SculptData = asset.Data;
                             // This will cause the prim to see that the filler shape is not the right
                             //    one and try again to build the object.
                             yprim.ForceBodyShapeRebuild(false);
