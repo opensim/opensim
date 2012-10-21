@@ -46,7 +46,7 @@ public abstract class BSPhysObject : PhysicsActor
         PhysObjectName = name;
         TypeName = typeName;
 
-        Linkset = new BSLinkset(PhysicsScene, this);
+        Linkset = BSLinkset.Factory(PhysicsScene, this);
         LastAssetBuildFailed = false;
 
         CollisionCollection = new CollisionEventUpdate();
