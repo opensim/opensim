@@ -219,9 +219,15 @@ namespace OpenSim.Services.InventoryService
 
             XInventoryFolder root = null;
             foreach (XInventoryFolder folder in folders)
+            {
                 if (folder.folderName == "My Inventory")
+                {
                     root = folder;
-            if (folders == null) // oops
+                    break;
+                }
+            }
+            
+            if (root == null) // oops
                 root = folders[0];
 
             return ConvertToOpenSim(root);
@@ -249,6 +255,9 @@ namespace OpenSim.Services.InventoryService
         {
 //            m_log.DebugFormat("[XINVENTORY SERVICE]: Getting folder type {0} for user {1}", type, principalID);
             
+            if (type == AssetType.RootFolder)
+                return rootFolder;
+
             XInventoryFolder[] folders = m_Database.GetFolders(
                     new string[] { "agentID", "parentFolderID", "type"},
                     new string[] { rootFolder.Owner.ToString(), rootFolder.ID.ToString(), ((int)type).ToString() });
