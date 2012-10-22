@@ -165,6 +165,9 @@ public abstract class BSLinkset
         bool ret = false;
         lock (m_linksetActivityLock)
         {
+            if (m_children.Contains(child))
+                    ret = true;
+            /*
             foreach (BSPhysObject bp in m_children)
             {
                 if (child.LocalID == bp.LocalID)
@@ -173,6 +176,7 @@ public abstract class BSLinkset
                     break;
                 }
             }
+             */
         }
         return ret;
     }
@@ -196,21 +200,20 @@ public abstract class BSLinkset
     // Called at taint-time!
     public abstract bool MakeStatic(BSPhysObject child);
 
-    // If the software is handling the movement of all the objects in a linkset
-    // (like if one doesn't use constraints for static linksets), this is called
-    // when an update for the root of the linkset is received.
+    // Called when a parameter update comes from the physics engine for any object
+    //      of the linkset is received.
     // Called at taint-time!!
     public abstract void UpdateProperties(BSPhysObject physObject);
 
     // Routine used when rebuilding the body of the root of the linkset
     // Destroy all the constraints have have been made to root.
     // This is called when the root body is changing.
-    // Returns 'true' of something eas actually removed and would need restoring
+    // Returns 'true' of something was actually removed and would need restoring
     // Called at taint-time!!
     public abstract bool RemoveBodyDependencies(BSPrim child);
 
     // Companion to RemoveBodyDependencies(). If RemoveBodyDependencies() returns 'true',
-    // this routine will restore the removed constraints.
+    //     this routine will restore the removed constraints.
     // Called at taint-time!!
     public abstract void RestoreBodyDependencies(BSPrim child);
 

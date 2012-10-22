@@ -36,7 +36,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 {
 public class BSShapeCollection : IDisposable
 {
-    // private static string LogHeader = "[BULLETSIM SHAPE COLLECTION]";
+    private static string LogHeader = "[BULLETSIM SHAPE COLLECTION]";
 
     protected BSScene PhysicsScene { get; set; }
 
@@ -434,16 +434,26 @@ public class BSShapeCollection : IDisposable
                         ShapeData shapeData, ShapeData.FixedShapeKey shapeKey)
     {
         BulletShape newShape;
+        // Need to make sure the passed shape information is for the native type.
+        ShapeData nativeShapeData = shapeData;
+        nativeShapeData.Type = shapeType;
+        nativeShapeData.MeshKey = (ulong)shapeKey;
+        nativeShapeData.HullKey = (ulong)shapeKey;
 
         if (shapeType == ShapeData.PhysicsShapeType.SHAPE_AVATAR)
         {
             newShape = new BulletShape(
-                        BulletSimAPI.BuildCapsuleShape2(PhysicsScene.World.ptr, 1.0f, 1.0f, shapeData.Scale),
-                        shapeType);
+                        BulletSimAPI.BuildCapsuleShape2(PhysicsScene.World.ptr, 1.0f, 1.0f, nativeShapeData.Scale), shapeType);
+            DetailLog("{0},BSShapeCollection.BuiletPhysicalNativeShape,capsule,scale={1}", nativeShapeData.ID, nativeShapeData.Scale);
         }
         else
         {
-            newShape = new BulletShape(BulletSimAPI.BuildNativeShape2(PhysicsScene.World.ptr, shapeData), shapeType);
+            newShape = new BulletShape(BulletSimAPI.BuildNativeShape2(PhysicsScene.World.ptr, nativeShapeData), shapeType);
+        }
+        if (newShape.ptr == IntPtr.Zero)
+        {
+            PhysicsScene.Logger.ErrorFormat("{0} BuildPhysicalNativeShape failed. ID={1}, shape={2}",
+                                    LogHeader, nativeShapeData.ID, nativeShapeData.Type);
         }
         newShape.shapeKey = (System.UInt64)shapeKey;
         newShape.isNativeShape = true;
@@ -716,6 +726,8 @@ public class BSShapeCollection : IDisposable
         {
             prim.LastAssetBuildFailed = true;
             BSPhysObject xprim = prim;
+            DetailLog("{0},BSShapeCollection.VerifyMeshCreated,fetchAsset,lID={1},lastFailed={2}",
+                            LogHeader, shapeData.ID.ToString("X"), prim.LastAssetBuildFailed);
             Util.FireAndForget(delegate
                 {
                     RequestAssetDelegate assetProvider = PhysicsScene.RequestAssetMethod;
@@ -732,16 +744,25 @@ public class BSShapeCollection : IDisposable
                             yprim.BaseShape.SculptData = asset.Data;
                             // This will cause the prim to see that the filler shape is not the right
                             //    one and try again to build the object.
+                            // No race condition with the native sphere setting since the rebuild is at taint time.
                             yprim.ForceBodyShapeRebuild(false);
 
                         });
                     }
                 });
         }
+        else
+        {
+            if (prim.LastAssetBuildFailed)
+            {
+                PhysicsScene.Logger.ErrorFormat("{0} Mesh failed to fetch asset. lID={1}, texture={2}",
+                                            LogHeader, shapeData.ID, pbs.SculptTexture);
+            }
+        }
 
         // While we figure out the real problem, stick a simple native shape on the object.
         BulletShape fillinShape =
-            BuildPhysicalNativeShape(ShapeData.PhysicsShapeType.SHAPE_SPHERE, shapeData, ShapeData.FixedShapeKey.KEY_SPHERE);
+            BuildPhysicalNativeShape(ShapeData.PhysicsShapeType.SHAPE_BOX, shapeData, ShapeData.FixedShapeKey.KEY_BOX);
 
         return fillinShape;
     }

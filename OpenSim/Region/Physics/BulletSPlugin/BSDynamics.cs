@@ -464,8 +464,9 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             // Set the prim's inertia to zero. The vehicle code handles that and this
             //    removes the motion and torque actions introduced by Bullet.
             Vector3 inertia = Vector3.Zero;
-            BulletSimAPI.SetMassProps2(Prim.BSBody.ptr, Prim.MassRaw, inertia);
-            BulletSimAPI.UpdateInertiaTensor2(Prim.BSBody.ptr);
+            // comment out for DEBUG test
+            // BulletSimAPI.SetMassProps2(Prim.BSBody.ptr, Prim.MassRaw, inertia);
+            // BulletSimAPI.UpdateInertiaTensor2(Prim.BSBody.ptr);
         }
 
         // One step of the vehicle properties for the next 'pTimestep' seconds.

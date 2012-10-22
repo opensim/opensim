@@ -34,6 +34,8 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 
 public abstract class BSConstraint : IDisposable
 {
+    private static string LogHeader = "[BULLETSIM CONSTRAINT]";
+
     protected BulletSim m_world;
     protected BulletBody m_body1;
     protected BulletBody m_body2;
@@ -124,7 +126,7 @@ public abstract class BSConstraint : IDisposable
             }
             else
             {
-                m_world.physicsScene.Logger.ErrorFormat("[BULLETSIM CONSTRAINT] CalculateTransforms failed. A={0}, B={1}", Body1.ID, Body2.ID);
+                m_world.physicsScene.Logger.ErrorFormat("{0} CalculateTransforms failed. A={1}, B={2}", LogHeader, Body1.ID, Body2.ID);
             }
         }
         return ret;

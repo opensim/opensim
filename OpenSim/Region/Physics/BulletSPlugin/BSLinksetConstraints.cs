@@ -46,9 +46,8 @@ public class BSLinksetConstraints : BSLinkset
     // May be called at runtime or taint-time (just pass the appropriate flag).
     public override void Refresh(BSPhysObject requestor, bool inTaintTime)
     {
-        // If there are no children, not physical or not root, I am not the one that recomputes the constraints
-        // (For the moment, static linksets do create constraints so remove the test for physical.)
-        if (!HasAnyChildren || /*!requestor.IsPhysical ||*/ !IsRoot(requestor))
+        // If there are no children or not root, I am not the one that recomputes the constraints
+        if (!HasAnyChildren || !IsRoot(requestor))
             return;
 
         BSScene.TaintCallback refreshOperation = delegate()
@@ -85,20 +84,10 @@ public class BSLinksetConstraints : BSLinkset
         return false;
     }
 
-    // If the software is handling the movement of all the objects in a linkset
-    // (like if one doesn't use constraints for static linksets), this is called
-    // when an update for the root of the linkset is received.
     // Called at taint-time!!
-    public override void UpdateProperties(BSPhysObject physObject)
+    public override void UpdateProperties(BSPhysObject updated)
     {
-        // The root local properties have been updated. Apply to the children if appropriate.
-        if (IsRoot(physObject) && HasAnyChildren)
-        {
-            if (!physObject.IsPhysical)
-            {
-                // TODO: implement software linkset update for static object linksets
-            }
-        }
+        // Nothing to do for constraints on property updates
     }
 
     // Routine used when rebuilding the body of the root of the linkset

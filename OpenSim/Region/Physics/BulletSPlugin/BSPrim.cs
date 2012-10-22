@@ -399,7 +399,7 @@ public sealed class BSPrim : BSPhysObject
             {
                 // Done at taint time so we're sure the physics engine is not using the variables
                 // Vehicle code changes the parameters for this vehicle type.
-                this._vehicle.ProcessTypeChange(type);
+                _vehicle.ProcessTypeChange(type);
             });
         }
     }
@@ -1246,12 +1246,13 @@ public sealed class BSPrim : BSPhysObject
         FillShapeInfo(out shapeData);
 
         // If this prim is part of a linkset, we must remove and restore the physical
-        //    links of the body is rebuilt.
+        //    links if the body is rebuilt.
         bool needToRestoreLinkset = false;
 
         // Create the correct physical representation for this type of object.
         // Updates BSBody and BSShape with the new information.
         // Ignore 'forceRebuild'. This routine makes the right choices and changes of necessary.
+        // Returns 'true' if either the body or the shape was changed.
         PhysicsScene.Shapes.GetBodyAndShape(false, PhysicsScene.World, this, shapeData, BaseShape,
                         null, delegate(BulletBody dBody)
         {
@@ -1355,7 +1356,7 @@ public sealed class BSPrim : BSPhysObject
             DetailLog("{0},BSPrim.UpdateProperties,call,pos={1},orient={2},vel={3},accel={4},rotVel={5}",
                     LocalID, _position, _orientation, _velocity, _acceleration, _rotationalVelocity);
 
-            // BulletSimAPI.DumpRigidBody2(Scene.World.Ptr, BSBody.Ptr);
+            BulletSimAPI.DumpRigidBody2(PhysicsScene.World.ptr, BSBody.ptr);   // DEBUG DEBUG DEBUG
 
             base.RequestPhysicsterseUpdate();
         }
@@ -1368,8 +1369,8 @@ public sealed class BSPrim : BSPhysObject
                     entprop.Acceleration, entprop.RotationalVelocity);
         }
              */
-        // The linkset implimentation might want to know about this.
 
+        // The linkset implimentation might want to know about this.
         Linkset.UpdateProperties(this);
     }
 }

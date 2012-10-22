@@ -716,6 +716,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
                     }
                     catch (Exception e)
                     {
+                        DetailLog("{0},BSScene.ProcessTaints,doTaintException,id={1}", DetailLogZero, oneCallback.ident); // DEBUG DEBUG DEBUG
                         m_log.ErrorFormat("{0}: ProcessTaints: {1}: Exception: {2}", LogHeader, oneCallback.ident, e);
                     }
                 }
