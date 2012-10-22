@@ -698,13 +698,18 @@ public class BSShapeCollection : IDisposable
         return ComputeShapeKey(shapeData, pbs, out lod);
     }
 
+    // The creation of a mesh or hull can fail if an underlying asset is not available.
+    // There are two cases: 1) the asset is not in the cache and it needs to be fetched;
+    //     and 2) the asset cannot be converted (like decompressing JPEG2000s).
+    //     The first case causes the asset to be fetched. The second case just requires
+    //     us to not loop forever.
+    // Called after creating a physical mesh or hull. If the physical shape was created,
+    //     just return.
     private BulletShape VerifyMeshCreated(BulletShape newShape, BSPhysObject prim, ShapeData shapeData, PrimitiveBaseShape pbs)
     {
         // If the shape was successfully created, nothing more to do
         if (newShape.ptr != IntPtr.Zero)
             return newShape;
-
-        // The most common reason for failure is that an underlying asset is not available
 
         // If this mesh has an underlying asset and we have not failed getting it before, fetch the asset
         if (pbs.SculptEntry && !prim.LastAssetBuildFailed && pbs.SculptTexture != OMV.UUID.Zero)

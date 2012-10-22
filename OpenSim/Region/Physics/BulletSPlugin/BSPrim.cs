@@ -173,6 +173,7 @@ public sealed class BSPrim : BSPhysObject
     }
     public override bool ForceBodyShapeRebuild(bool inTaintTime)
     {
+        LastAssetBuildFailed = false;
         BSScene.TaintCallback rebuildOperation = delegate()
         {
             _mass = CalculateMass();   // changing the shape changes the mass
