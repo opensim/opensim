@@ -54,7 +54,7 @@ public class BSLinksetConstraints : BSLinkset
         BSScene.TaintCallback refreshOperation = delegate()
             {
                 RecomputeLinksetConstraintVariables();
-                DetailLog("{0},BSLinkset.Refresh,complete,rBody={1}", 
+                DetailLog("{0},BSLinkset.Refresh,complete,rBody={1}",
                                 LinksetRoot.LocalID, LinksetRoot.BSBody.ptr.ToString("X"));
             };
         if (inTaintTime)
@@ -179,7 +179,7 @@ public class BSLinksetConstraints : BSLinkset
 
             PhysicsScene.TaintedObject("AddChildToLinkset", delegate()
             {
-                DetailLog("{0},AddChildToLinkset,taint,rID={1},rBody={2},cID={3},cBody={4}", 
+                DetailLog("{0},AddChildToLinkset,taint,rID={1},rBody={2},cID={3},cBody={4}",
                                 rootx.LocalID,
                                 rootx.LocalID, rootx.BSBody.ptr.ToString("X"),
                                 childx.LocalID, childx.BSBody.ptr.ToString("X"));
@@ -213,7 +213,7 @@ public class BSLinksetConstraints : BSLinkset
             BSPhysObject rootx = LinksetRoot; // capture the root and body as of now
             BSPhysObject childx = child;
 
-            DetailLog("{0},RemoveChildFromLinkset,call,rID={1},rBody={2},cID={3},cBody={4}", 
+            DetailLog("{0},RemoveChildFromLinkset,call,rID={1},rBody={2},cID={3},cBody={4}",
                             childx.LocalID,
                             rootx.LocalID, rootx.BSBody.ptr.ToString("X"),
                             childx.LocalID, childx.BSBody.ptr.ToString("X"));
@@ -378,13 +378,13 @@ public class BSLinksetConstraints : BSLinkset
         {
             // If this is a multiple object linkset, set everybody's center of mass to the set's center of mass
             OMV.Vector3 centerOfMass = ComputeLinksetCenterOfMass();
-            BulletSimAPI.SetCenterOfMassByPosRot2(LinksetRoot.BSBody.ptr, 
+            BulletSimAPI.SetCenterOfMassByPosRot2(LinksetRoot.BSBody.ptr,
                                 centerOfMass, OMV.Quaternion.Identity);
             DetailLog("{0},BSLinkset.RecomputeLinksetConstraintVariables,setCenterOfMass,COM={1},rBody={2}",
                                 LinksetRoot.LocalID, centerOfMass, LinksetRoot.BSBody.ptr.ToString("X"));
             foreach (BSPhysObject child in m_taintChildren)
             {
-                BulletSimAPI.SetCenterOfMassByPosRot2(child.BSBody.ptr, 
+                BulletSimAPI.SetCenterOfMassByPosRot2(child.BSBody.ptr,
                                 centerOfMass, OMV.Quaternion.Identity);
             }
 

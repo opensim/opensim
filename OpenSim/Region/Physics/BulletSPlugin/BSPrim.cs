@@ -295,7 +295,7 @@ public sealed class BSPrim : BSPhysObject
     private bool PositionSanityCheck()
     {
         bool ret = false;
-      
+
         // If totally below the ground, move the prim up
         // TODO: figure out the right solution for this... only for dynamic objects?
         /*
@@ -510,7 +510,7 @@ public sealed class BSPrim : BSPhysObject
             });
         }
     }
-    // Go directly to Bullet to get/set the value. 
+    // Go directly to Bullet to get/set the value.
     public override OMV.Quaternion ForceOrientation
     {
         get
@@ -768,7 +768,7 @@ public sealed class BSPrim : BSPhysObject
         }
     }
     public override bool FloatOnWater {
-        set { 
+        set {
             _floatOnWater = value;
             PhysicsScene.TaintedObject("BSPrim.setFloatOnWater", delegate()
             {
@@ -971,7 +971,7 @@ public sealed class BSPrim : BSPhysObject
                     if (hollowAmount > 0.0)
                         {
                         hollowVolume *= hollowAmount;
-   
+
                         switch (BaseShape.HollowShape)
                             {
                             case HollowShape.Square:
@@ -1251,7 +1251,7 @@ public sealed class BSPrim : BSPhysObject
         // Create the correct physical representation for this type of object.
         // Updates BSBody and BSShape with the new information.
         // Ignore 'forceRebuild'. This routine makes the right choices and changes of necessary.
-        PhysicsScene.Shapes.GetBodyAndShape(false, PhysicsScene.World, this, shapeData, BaseShape, 
+        PhysicsScene.Shapes.GetBodyAndShape(false, PhysicsScene.World, this, shapeData, BaseShape,
                         null, delegate(BulletBody dBody)
         {
             // Called if the current prim body is about to be destroyed.

@@ -165,7 +165,7 @@ public class BSCharacter : BSPhysObject
 
         // Do this after the object has been added to the world
         BulletSimAPI.SetCollisionFilterMask2(BSBody.ptr,
-                        (uint)CollisionFilterGroups.AvatarFilter, 
+                        (uint)CollisionFilterGroups.AvatarFilter,
                         (uint)CollisionFilterGroups.AvatarMask);
     }
 
@@ -269,7 +269,7 @@ public class BSCharacter : BSPhysObject
     private bool PositionSanityCheck()
     {
         bool ret = false;
-      
+
         // If below the ground, move the avatar up
         float terrainHeight = PhysicsScene.TerrainManager.GetTerrainHeightAtXYZ(_position);
         if (Position.Z < terrainHeight)
@@ -413,7 +413,7 @@ public class BSCharacter : BSPhysObject
             });
         }
     }
-    // Go directly to Bullet to get/set the value. 
+    // Go directly to Bullet to get/set the value.
     public override OMV.Quaternion ForceOrientation
     {
         get
@@ -478,7 +478,7 @@ public class BSCharacter : BSPhysObject
         set { _collidingObj = value; }
     }
     public override bool FloatOnWater {
-        set { 
+        set {
             _floatOnWater = value;
             PhysicsScene.TaintedObject("BSCharacter.setFloatOnWater", delegate()
             {
@@ -588,7 +588,7 @@ public class BSCharacter : BSPhysObject
         newScale.X = PhysicsScene.Params.avatarCapsuleRadius;
         newScale.Y = PhysicsScene.Params.avatarCapsuleRadius;
 
-        // From the total height, remote the capsule half spheres that are at each end 
+        // From the total height, remote the capsule half spheres that are at each end
         newScale.Z = (size.Z * 2f) - Math.Min(newScale.X, newScale.Y);
         // newScale.Z = (size.Z * 2f);
         Scale = newScale;

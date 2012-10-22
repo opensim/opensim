@@ -320,7 +320,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     {
         m_log.Debug("[BULLETS UNMANAGED]:" + msg);
     }
-  
+
     // Called directly from unmanaged code so don't do much
     private void BulletLoggerPhysLog(string msg)
     {
@@ -545,7 +545,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         }
 
         // This is a kludge to get avatar movement updates.
-        // The simulator expects collisions for avatars even if there are have been no collisions. 
+        // The simulator expects collisions for avatars even if there are have been no collisions.
         //    The event updates avatar animations and stuff.
         // If you fix avatar animation updates, remove this overhead and let normal collision processing happen.
         foreach (BSPhysObject bsp in m_avatars)
