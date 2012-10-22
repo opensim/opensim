@@ -687,7 +687,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 "[BASE HTTP SERVER]: HTTP IN {0} :{1} {2} content type handler {3} {4} from {5}",
                 RequestNumber,
                 Port,
-                request.ContentType,
+                (request.ContentType == null || request.ContentType == "") ? "not set" : request.ContentType,
                 request.HttpMethod,
                 request.Url.PathAndQuery,
                 request.RemoteIPEndPoint);
