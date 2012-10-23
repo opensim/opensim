@@ -338,6 +338,7 @@ public class BSShapeCollection : IDisposable
             ret = GetReferenceToNativeShape(prim, shapeData, ShapeData.PhysicsShapeType.SHAPE_AVATAR,
                             ShapeData.FixedShapeKey.KEY_CAPSULE, shapeCallback);
             DetailLog("{0},BSShapeCollection.CreateGeom,avatarCapsule,shape={1}", prim.LocalID, prim.BSShape);
+            ret = true;
             haveShape = true;
         }
         // If the prim attributes are simple, this could be a simple Bullet native shape
@@ -411,14 +412,13 @@ public class BSShapeCollection : IDisposable
                             ShapeData.PhysicsShapeType shapeType, ShapeData.FixedShapeKey shapeKey,
                             ShapeDestructionCallback shapeCallback)
     {
+        // release any previous shape
+        DereferenceShape(prim.BSShape, true, shapeCallback);
 
         shapeData.Type = shapeType;
         // Bullet native objects are scaled by the Bullet engine so pass the size in
         prim.Scale = shapeData.Size;
         shapeData.Scale = shapeData.Size;
-
-        // release any previous shape
-        DereferenceShape(prim.BSShape, true, shapeCallback);
 
         BulletShape newShape = BuildPhysicalNativeShape(shapeType, shapeData, shapeKey);
 
