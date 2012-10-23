@@ -1334,7 +1334,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         // Add the Flush() if debugging crashes to get all the messages written out.
         // PhysicsLogging.Flush();
     }
-    // used to fill in the LocalID when there isn't one
+    // Used to fill in the LocalID when there isn't one. It's the correct number of characters.
     public const string DetailLogZero = "0000000000";
 
 }
