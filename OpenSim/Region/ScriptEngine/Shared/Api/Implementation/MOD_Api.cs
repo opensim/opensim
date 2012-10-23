@@ -359,6 +359,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             result[i] = (string)(LSL_String)plist[i];                            
                         else if (plist[i] is LSL_Integer)
                             result[i] = (int)(LSL_Integer)plist[i];
+                        else if (plist[i] is int)
+                            result[i] = plist[i];
                         else if (plist[i] is LSL_Float)
                             result[i] = (float)(LSL_Float)plist[i];
                         else if (plist[i] is LSL_Key)
