@@ -207,7 +207,7 @@ namespace OpenSim.Framework.Monitoring
                     return false;
 
                 newContainer = new Dictionary<string, Stat>(container);
-                newContainer.Remove(stat.UniqueName);
+                newContainer.Remove(stat.ShortName);
 
                 newCategory = new Dictionary<string, Dictionary<string, Stat>>(category);
                 newCategory.Remove(stat.Container);
@@ -278,11 +278,6 @@ namespace OpenSim.Framework.Monitoring
     /// </summary>
     public class Stat
     {
-        /// <summary>
-        /// Unique stat name used for indexing.  Each ShortName in a Category must be unique.
-        /// </summary>
-        public string UniqueName { get; private set; }
-
         /// <summary>
         /// Category of this stat (e.g. cache, scene, etc).
         /// </summary>
@@ -376,13 +371,6 @@ namespace OpenSim.Framework.Monitoring
                 PullAction = pullAction;
 
             Verbosity = verbosity;
-
-            UniqueName = GenUniqueName(Container, Category, ShortName);
-        }
-
-        public static string GenUniqueName(string container, string category, string shortName)
-        {
-            return string.Format("{0}+{1}+{2}", container, category, shortName);
         }
 
         public virtual string ToConsoleString()
