@@ -366,15 +366,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         else if (plist[i] is LSL_Key)
                             result[i] = new UUID((LSL_Key)plist[i]);
                         else if (plist[i] is LSL_Rotation)
-                        {
-                            result[i] = (OpenMetaverse.Quaternion)(
-                                (LSL_Rotation)plist[i]);
-                        }
+                            result[i] = (Quaternion)((LSL_Rotation)plist[i]);
                         else if (plist[i] is LSL_Vector)
-                        {
-                            result[i] = (OpenMetaverse.Vector3)(
-                                (LSL_Vector)plist[i]);
-                        }
+                            result[i] = (Vector3)((LSL_Vector)plist[i]);
                         else
                             MODError(String.Format("{0}: unknown LSL list element type", fname));
                     }
