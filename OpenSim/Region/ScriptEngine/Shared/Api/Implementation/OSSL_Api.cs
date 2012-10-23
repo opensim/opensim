@@ -3647,5 +3647,68 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             DropAttachmentAt(false, pos, rot);
         }
+
+        public LSL_Integer osListenRegex(int channelID, string name, string ID, string msg, int regexBitfield)
+        {
+            CheckThreatLevel(ThreatLevel.Low, "osListenRegex");
+            m_host.AddScriptLPS(1);
+            UUID keyID;
+            UUID.TryParse(ID, out keyID);
+
+            // if we want the name to be used as a regular expression, ensure it is valid first.
+            if ((regexBitfield & ScriptBaseClass.OS_LISTEN_REGEX_NAME) == ScriptBaseClass.OS_LISTEN_REGEX_NAME)
+            {
+                try
+                {
+                    Regex.IsMatch("", name);
+                }
+                catch (Exception)
+                {
+                    OSSLShoutError("Name regex is invalid.");
+                    return -1;
+                }
+            }
+
+            // if we want the msg to be used as a regular expression, ensure it is valid first.
+            if ((regexBitfield & ScriptBaseClass.OS_LISTEN_REGEX_MESSAGE) == ScriptBaseClass.OS_LISTEN_REGEX_MESSAGE)
+            {
+                try
+                {
+                    Regex.IsMatch("", msg);
+                }
+                catch (Exception)
+                {
+                    OSSLShoutError("Message regex is invalid.");
+                    return -1;
+                }
+            }
+
+            IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
+            return (wComm == null) ? -1 : wComm.Listen(
+                m_host.LocalId,
+                m_item.ItemID,
+                m_host.UUID,
+                channelID,
+                name,
+                keyID,
+                msg,
+                regexBitfield
+            );
+        }
+
+        public LSL_Integer osRegexIsMatch(string input, string pattern)
+        {
+            CheckThreatLevel(ThreatLevel.Low, "osRegexIsMatch");
+            m_host.AddScriptLPS(1);
+            try
+            {
+                return Regex.IsMatch(input, pattern) ? 1 : 0;
+            }
+            catch (Exception)
+            {
+                OSSLShoutError("Possible invalid regular expression detected.");
+                return 0;
+            }
+        }
     }
 }

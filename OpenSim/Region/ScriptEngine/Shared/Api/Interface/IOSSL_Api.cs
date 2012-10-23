@@ -418,5 +418,29 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         /// <param name="pos"></param>
         /// <param name="rot"></param>
         void osForceDropAttachmentAt(vector pos, rotation rot);
+
+        /// <summary>
+        /// Identical to llListen except for a bitfield which indicates which
+        /// string parameters should be parsed as regex patterns.
+        /// </summary>
+        /// <param name="channelID"></param>
+        /// <param name="name"></param>
+        /// <param name="ID"></param>
+        /// <param name="msg"></param>
+        /// <param name="regexBitfield">
+        /// OS_LISTEN_REGEX_NAME
+        /// OS_LISTEN_REGEX_MESSAGE
+        /// </param>
+        /// <returns></returns>
+        LSL_Integer osListenRegex(int channelID, string name, string ID,
+                string msg, int regexBitfield);
+
+        /// <summary>
+        /// Wraps to bool Regex.IsMatch(string input, string pattern)
+        /// </summary>
+        /// <param name="input">string to test for match</param>
+        /// <param name="regex">string to use as pattern</param>
+        /// <returns>boolean</returns>
+        LSL_Integer osRegexIsMatch(string input, string pattern);
     }
 }

@@ -992,5 +992,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             m_OSSL_Functions.osForceDropAttachmentAt(pos, rot);
         }
+
+        public LSL_Integer osListenRegex(int channelID, string name, string ID, string msg, int regexBitfield)
+        {
+            return m_OSSL_Functions.osListenRegex(channelID, name, ID, msg, regexBitfield);
+        }
+
+        public LSL_Integer osRegexIsMatch(string input, string pattern)
+        {
+            return m_OSSL_Functions.osRegexIsMatch(input, pattern);
+        }
     }
 }
