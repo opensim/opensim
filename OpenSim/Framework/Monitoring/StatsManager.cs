@@ -207,7 +207,7 @@ namespace OpenSim.Framework.Monitoring
                     return false;
 
                 newContainer = new Dictionary<string, Stat>(container);
-                newContainer.Remove(stat.UniqueName);
+                newContainer.Remove(stat.ShortName);
 
                 newCategory = new Dictionary<string, Dictionary<string, Stat>>(category);
                 newCategory.Remove(stat.Container);
@@ -249,6 +249,19 @@ namespace OpenSim.Framework.Monitoring
     }
 
     /// <summary>
+    /// Stat type.
+    /// </summary>
+    /// <remarks>
+    /// A push stat is one which is continually updated and so it's value can simply by read.
+    /// A pull stat is one where reading the value triggers a collection method - the stat is not continually updated.
+    /// </remarks>
+    public enum StatType
+    {
+        Push,
+        Pull
+    }
+
+    /// <summary>
     /// Verbosity of stat.
     /// </summary>
     /// <remarks>
@@ -266,11 +279,6 @@ namespace OpenSim.Framework.Monitoring
     public class Stat
     {
         /// <summary>
-        /// Unique stat name used for indexing.  Each ShortName in a Category must be unique.
-        /// </summary>
-        public string UniqueName { get; private set; }
-
-        /// <summary>
         /// Category of this stat (e.g. cache, scene, etc).
         /// </summary>
         public string Category { get; private set; }
@@ -285,29 +293,65 @@ namespace OpenSim.Framework.Monitoring
         /// </value>
         public string Container { get; private set; }
 
+        public StatType StatType { get; private set; }
+
+        /// <summary>
+        /// Action used to update this stat when the value is requested if it's a pull type.
+        /// </summary>
+        public Action<Stat> PullAction { get; private set; }
+
         public StatVerbosity Verbosity { get; private set; }
         public string ShortName { get; private set; }
         public string Name { get; private set; }
         public string Description { get; private set; }
         public virtual string UnitName { get; private set; }
 
-        public virtual double Value { get; set; }
+        public virtual double Value
+        {
+            get
+            {
+                // Asking for an update here means that the updater cannot access this value without infinite recursion.
+                // XXX: A slightly messy but simple solution may be to flick a flag so we can tell if this is being
+                // called by the pull action and just return the value.
+                if (StatType == StatType.Pull)
+                    PullAction(this);
+
+                return m_value;
+            }
+
+            set
+            {
+                m_value = value;
+            }
+        }
+
+        private double m_value;
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name='shortName'>Short name for the stat.  Must not contain spaces.  e.g. "LongFrames"</param>
         /// <param name='name'>Human readable name for the stat.  e.g. "Long frames"</param>
+        /// <param name='description'>Description of stat</param>
         /// <param name='unitName'>
         /// Unit name for the stat.  Should be preceeded by a space if the unit name isn't normally appeneded immediately to the value.
         /// e.g. " frames"
         /// </param>
         /// <param name='category'>Category under which this stat should appear, e.g. "scene".  Do not capitalize.</param>
         /// <param name='container'>Entity to which this stat relates.  e.g. scene name if this is a per scene stat.</param>
+        /// <param name='type'>Push or pull</param>
+        /// <param name='pullAction'>Pull stats need an action to update the stat on request.  Push stats should set null here.</param>
         /// <param name='verbosity'>Verbosity of stat.  Controls whether it will appear in short stat display or only full display.</param>
-        /// <param name='description'>Description of stat</param>
         public Stat(
-            string shortName, string name, string unitName, string category, string container, StatVerbosity verbosity, string description)
+            string shortName,
+            string name,
+            string description,
+            string unitName,
+            string category,
+            string container,
+            StatType type,
+            Action<Stat> pullAction,
+            StatVerbosity verbosity)
         {
             if (StatsManager.SubCommands.Contains(category))
                 throw new Exception(
@@ -315,18 +359,18 @@ namespace OpenSim.Framework.Monitoring
 
             ShortName = shortName;
             Name = name;
+            Description = description;
             UnitName = unitName;
             Category = category;
             Container = container;
+            StatType = type;
+
+            if (StatType == StatType.Push && pullAction != null)
+                throw new Exception("A push stat cannot have a pull action");
+            else
+                PullAction = pullAction;
+
             Verbosity = verbosity;
-            Description = description;
-
-            UniqueName = GenUniqueName(Container, Category, ShortName);
-        }
-
-        public static string GenUniqueName(string container, string category, string shortName)
-        {
-            return string.Format("{0}+{1}+{2}", container, category, shortName);
         }
 
         public virtual string ToConsoleString()
@@ -361,8 +405,15 @@ namespace OpenSim.Framework.Monitoring
         }
 
         public PercentageStat(
-            string shortName, string name, string category, string container, StatVerbosity verbosity, string description)
-            : base(shortName, name, "%", category, container, verbosity, description) {}
+            string shortName,
+            string name,
+            string description,
+            string category,
+            string container,
+            StatType type,
+            Action<Stat> pullAction,
+            StatVerbosity verbosity)
+            : base(shortName, name, description, "%", category, container, type, pullAction, verbosity) {}
 
         public override string ToConsoleString()
         {

@@ -47,18 +47,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private PercentageStat m_packetsReusedStat = new PercentageStat(
             "PacketsReused",
             "Packets reused",
+            "Number of packets reused out of all requests to the packet pool",
             "clientstack",
             "packetpool",
-            StatVerbosity.Debug,
-            "Number of packets reused out of all requests to the packet pool");
+            StatType.Push,
+            null,
+            StatVerbosity.Debug);
 
         private PercentageStat m_blocksReusedStat = new PercentageStat(
-            "BlocksReused",
-            "Blocks reused",
+            "PacketDataBlocksReused",
+            "Packet data blocks reused",
+            "Number of data blocks reused out of all requests to the packet pool",
             "clientstack",
             "packetpool",
-            StatVerbosity.Debug,
-            "Number of data blocks reused out of all requests to the packet pool");
+            StatType.Push,
+            null,
+            StatVerbosity.Debug);
 
         /// <summary>
         /// Pool of packets available for reuse.
@@ -88,6 +92,30 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             StatsManager.RegisterStat(m_packetsReusedStat);
             StatsManager.RegisterStat(m_blocksReusedStat);
+
+            StatsManager.RegisterStat(
+                new Stat(
+                    "PacketsPoolCount",
+                    "Objects within the packet pool",
+                    "The number of objects currently stored within the packet pool",
+                    "",
+                    "clientstack",
+                    "packetpool",
+                    StatType.Pull,
+                    stat => { lock (pool) { stat.Value = pool.Count; } },
+                    StatVerbosity.Debug));
+
+            StatsManager.RegisterStat(
+                new Stat(
+                    "PacketDataBlocksPoolCount",
+                    "Objects within the packet data block pool",
+                    "The number of objects currently stored within the packet data block pool",
+                    "",
+                    "clientstack",
+                    "packetpool",
+                    StatType.Pull,
+                    stat => { lock (DataBlocks) { stat.Value = DataBlocks.Count; } },
+                    StatVerbosity.Debug));
         }
 
         /// <summary>

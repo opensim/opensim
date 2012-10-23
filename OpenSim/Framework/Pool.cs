@@ -38,8 +38,23 @@ namespace OpenSim.Framework
     /// </remarks>
     public class Pool<T>
     {
+        /// <summary>
+        /// Number of objects in the pool.
+        /// </summary>
+        public int Count
+        {
+            get
+            {
+                lock (m_pool)
+                    return m_pool.Count;
+            }
+        }
+
         private Stack<T> m_pool;
 
+        /// <summary>
+        /// Maximum pool size.  Beyond this, any returned objects are not pooled.
+        /// </summary>
         private int m_maxPoolSize;
 
         private Func<T> m_createFunction;

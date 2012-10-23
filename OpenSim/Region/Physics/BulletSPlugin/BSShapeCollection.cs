@@ -36,7 +36,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 {
 public class BSShapeCollection : IDisposable
 {
-    // private static string LogHeader = "[BULLETSIM SHAPE COLLECTION]";
+    private static string LogHeader = "[BULLETSIM SHAPE COLLECTION]";
 
     protected BSScene PhysicsScene { get; set; }
 
@@ -89,7 +89,7 @@ public class BSShapeCollection : IDisposable
     //    higher level dependencies on the shape or body. Mostly used for LinkSets to
     //    remove the physical constraints before the body is destroyed.
     // Called at taint-time!!
-    public bool GetBodyAndShape(bool forceRebuild, BulletSim sim, BSPhysObject prim, 
+    public bool GetBodyAndShape(bool forceRebuild, BulletSim sim, BSPhysObject prim,
                     ShapeData shapeData, PrimitiveBaseShape pbs,
                     ShapeDestructionCallback shapeCallback, BodyDestructionCallback bodyCallback)
     {
@@ -105,7 +105,7 @@ public class BSShapeCollection : IDisposable
             // If we had to select a new shape geometry for the object,
             //    rebuild the body around it.
             // Updates prim.BSBody with information/pointers to requested body
-            bool newBody = CreateBody((newGeom || forceRebuild), prim, PhysicsScene.World, 
+            bool newBody = CreateBody((newGeom || forceRebuild), prim, PhysicsScene.World,
                                     prim.BSShape, shapeData, bodyCallback);
             ret = newGeom || newBody;
         }
@@ -325,7 +325,7 @@ public class BSShapeCollection : IDisposable
     // Info in prim.BSShape is updated to the new shape.
     // Returns 'true' if the geometry was rebuilt.
     // Called at taint-time!
-    private bool CreateGeom(bool forceRebuild, BSPhysObject prim, ShapeData shapeData, 
+    private bool CreateGeom(bool forceRebuild, BSPhysObject prim, ShapeData shapeData,
                             PrimitiveBaseShape pbs, ShapeDestructionCallback shapeCallback)
     {
         bool ret = false;
@@ -335,7 +335,7 @@ public class BSShapeCollection : IDisposable
         if (shapeData.Type == ShapeData.PhysicsShapeType.SHAPE_AVATAR)
         {
             // an avatar capsule is close to a native shape (it is not shared)
-            ret = GetReferenceToNativeShape(prim, shapeData, ShapeData.PhysicsShapeType.SHAPE_AVATAR, 
+            ret = GetReferenceToNativeShape(prim, shapeData, ShapeData.PhysicsShapeType.SHAPE_AVATAR,
                             ShapeData.FixedShapeKey.KEY_CAPSULE, shapeCallback);
             DetailLog("{0},BSShapeCollection.CreateGeom,avatarCapsule,shape={1}", prim.LocalID, prim.BSShape);
             haveShape = true;
@@ -362,7 +362,7 @@ public class BSShapeCollection : IDisposable
                         || prim.BSShape.type != ShapeData.PhysicsShapeType.SHAPE_SPHERE
                         )
                 {
-                    ret = GetReferenceToNativeShape(prim, shapeData, ShapeData.PhysicsShapeType.SHAPE_SPHERE, 
+                    ret = GetReferenceToNativeShape(prim, shapeData, ShapeData.PhysicsShapeType.SHAPE_SPHERE,
                                             ShapeData.FixedShapeKey.KEY_SPHERE, shapeCallback);
                     DetailLog("{0},BSShapeCollection.CreateGeom,sphere,force={1},shape={2}",
                                         prim.LocalID, forceRebuild, prim.BSShape);
@@ -376,7 +376,7 @@ public class BSShapeCollection : IDisposable
                         || prim.BSShape.type != ShapeData.PhysicsShapeType.SHAPE_BOX
                         )
                 {
-                    ret = GetReferenceToNativeShape( prim, shapeData, ShapeData.PhysicsShapeType.SHAPE_BOX, 
+                    ret = GetReferenceToNativeShape( prim, shapeData, ShapeData.PhysicsShapeType.SHAPE_BOX,
                                             ShapeData.FixedShapeKey.KEY_BOX, shapeCallback);
                     DetailLog("{0},BSShapeCollection.CreateGeom,box,force={1},shape={2}",
                                         prim.LocalID, forceRebuild, prim.BSShape);
@@ -423,27 +423,37 @@ public class BSShapeCollection : IDisposable
         BulletShape newShape = BuildPhysicalNativeShape(shapeType, shapeData, shapeKey);
 
         // Don't need to do a 'ReferenceShape()' here because native shapes are not shared.
-        DetailLog("{0},BSShapeCollection.AddNativeShapeToPrim,create,newshape={1},scale={2}", 
+        DetailLog("{0},BSShapeCollection.AddNativeShapeToPrim,create,newshape={1},scale={2}",
                                 shapeData.ID, newShape, shapeData.Scale);
 
         prim.BSShape = newShape;
         return true;
     }
 
-    private BulletShape BuildPhysicalNativeShape(ShapeData.PhysicsShapeType shapeType, 
+    private BulletShape BuildPhysicalNativeShape(ShapeData.PhysicsShapeType shapeType,
                         ShapeData shapeData, ShapeData.FixedShapeKey shapeKey)
     {
         BulletShape newShape;
+        // Need to make sure the passed shape information is for the native type.
+        ShapeData nativeShapeData = shapeData;
+        nativeShapeData.Type = shapeType;
+        nativeShapeData.MeshKey = (ulong)shapeKey;
+        nativeShapeData.HullKey = (ulong)shapeKey;
 
         if (shapeType == ShapeData.PhysicsShapeType.SHAPE_AVATAR)
         {
             newShape = new BulletShape(
-                        BulletSimAPI.BuildCapsuleShape2(PhysicsScene.World.ptr, 1.0f, 1.0f, shapeData.Scale), 
-                        shapeType);
+                        BulletSimAPI.BuildCapsuleShape2(PhysicsScene.World.ptr, 1.0f, 1.0f, nativeShapeData.Scale), shapeType);
+            DetailLog("{0},BSShapeCollection.BuiletPhysicalNativeShape,capsule,scale={1}", nativeShapeData.ID, nativeShapeData.Scale);
         }
         else
         {
-            newShape = new BulletShape(BulletSimAPI.BuildNativeShape2(PhysicsScene.World.ptr, shapeData), shapeType);
+            newShape = new BulletShape(BulletSimAPI.BuildNativeShape2(PhysicsScene.World.ptr, nativeShapeData), shapeType);
+        }
+        if (newShape.ptr == IntPtr.Zero)
+        {
+            PhysicsScene.Logger.ErrorFormat("{0} BuildPhysicalNativeShape failed. ID={1}, shape={2}",
+                                    LogHeader, nativeShapeData.ID, nativeShapeData.Type);
         }
         newShape.shapeKey = (System.UInt64)shapeKey;
         newShape.isNativeShape = true;
@@ -698,19 +708,26 @@ public class BSShapeCollection : IDisposable
         return ComputeShapeKey(shapeData, pbs, out lod);
     }
 
+    // The creation of a mesh or hull can fail if an underlying asset is not available.
+    // There are two cases: 1) the asset is not in the cache and it needs to be fetched;
+    //     and 2) the asset cannot be converted (like decompressing JPEG2000s).
+    //     The first case causes the asset to be fetched. The second case just requires
+    //     us to not loop forever.
+    // Called after creating a physical mesh or hull. If the physical shape was created,
+    //     just return.
     private BulletShape VerifyMeshCreated(BulletShape newShape, BSPhysObject prim, ShapeData shapeData, PrimitiveBaseShape pbs)
     {
         // If the shape was successfully created, nothing more to do
         if (newShape.ptr != IntPtr.Zero)
             return newShape;
 
-        // The most common reason for failure is that an underlying asset is not available
-
         // If this mesh has an underlying asset and we have not failed getting it before, fetch the asset
         if (pbs.SculptEntry && !prim.LastAssetBuildFailed && pbs.SculptTexture != OMV.UUID.Zero)
         {
             prim.LastAssetBuildFailed = true;
             BSPhysObject xprim = prim;
+            DetailLog("{0},BSShapeCollection.VerifyMeshCreated,fetchAsset,lID={1},lastFailed={2}",
+                            LogHeader, shapeData.ID.ToString("X"), prim.LastAssetBuildFailed);
             Util.FireAndForget(delegate
                 {
                     RequestAssetDelegate assetProvider = PhysicsScene.RequestAssetMethod;
@@ -724,20 +741,28 @@ public class BSShapeCollection : IDisposable
                             if (yprim.BaseShape.SculptTexture.ToString() != asset.ID)
                                 return;
 
-                            yprim.BaseShape.SculptData = new byte[asset.Data.Length];
-                            asset.Data.CopyTo(yprim.BaseShape.SculptData, 0);
+                            yprim.BaseShape.SculptData = asset.Data;
                             // This will cause the prim to see that the filler shape is not the right
                             //    one and try again to build the object.
+                            // No race condition with the native sphere setting since the rebuild is at taint time.
                             yprim.ForceBodyShapeRebuild(false);
 
                         });
                     }
                 });
         }
+        else
+        {
+            if (prim.LastAssetBuildFailed)
+            {
+                PhysicsScene.Logger.ErrorFormat("{0} Mesh failed to fetch asset. lID={1}, texture={2}",
+                                            LogHeader, shapeData.ID, pbs.SculptTexture);
+            }
+        }
 
         // While we figure out the real problem, stick a simple native shape on the object.
         BulletShape fillinShape =
-            BuildPhysicalNativeShape(ShapeData.PhysicsShapeType.SHAPE_SPHERE, shapeData, ShapeData.FixedShapeKey.KEY_SPHERE);
+            BuildPhysicalNativeShape(ShapeData.PhysicsShapeType.SHAPE_BOX, shapeData, ShapeData.FixedShapeKey.KEY_BOX);
 
         return fillinShape;
     }
@@ -746,7 +771,7 @@ public class BSShapeCollection : IDisposable
     // Updates prim.BSBody with the information about the new body if one is created.
     // Returns 'true' if an object was actually created.
     // Called at taint-time.
-    private bool CreateBody(bool forceRebuild, BSPhysObject prim, BulletSim sim, BulletShape shape, 
+    private bool CreateBody(bool forceRebuild, BSPhysObject prim, BulletSim sim, BulletShape shape,
                             ShapeData shapeData, BodyDestructionCallback bodyCallback)
     {
         bool ret = false;

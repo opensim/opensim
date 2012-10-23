@@ -31,6 +31,7 @@ using System.Net.Sockets;
 using System.Threading;
 using log4net;
 using OpenSim.Framework;
+using OpenSim.Framework.Monitoring;
 
 namespace OpenMetaverse
 {
@@ -76,6 +77,8 @@ namespace OpenMetaverse
         /// <remarks>If IsRunningOut = false, then any request to send a packet is simply dropped.</remarks>
         public bool IsRunningOutbound { get; private set; }
 
+        private Stat m_poolCountStat;
+
         /// <summary>
         /// Default constructor
         /// </summary>
@@ -106,11 +109,6 @@ namespace OpenMetaverse
         /// necessary</remarks>
         public void StartInbound(int recvBufferSize, bool asyncPacketHandling)
         {
-            if (UsePools)
-                m_pool = new Pool<UDPPacketBuffer>(() => new UDPPacketBuffer(), 500);
-            else
-                m_pool = null;
-
             m_asyncPacketHandling = asyncPacketHandling;
 
             if (!IsRunningInbound)
@@ -174,6 +172,49 @@ namespace OpenMetaverse
         public void StopOutbound()
         {
             IsRunningOutbound = false;
+        }
+
+        protected virtual bool EnablePools()
+        {
+            if (!UsePools)
+            {
+                m_pool = new Pool<UDPPacketBuffer>(() => new UDPPacketBuffer(), 500);
+
+                m_poolCountStat
+                    = new Stat(
+                        "UDPPacketBufferPoolCount",
+                        "Objects within the UDPPacketBuffer pool",
+                        "The number of objects currently stored within the UDPPacketBuffer pool",
+                        "",
+                        "clientstack",
+                        "packetpool",
+                        StatType.Pull,
+                        stat => stat.Value = m_pool.Count,
+                        StatVerbosity.Debug);
+
+                StatsManager.RegisterStat(m_poolCountStat);
+
+                UsePools = true;
+
+                return true;
+            }
+
+            return false;
+        }
+
+        protected virtual bool DisablePools()
+        {
+            if (UsePools)
+            {
+                UsePools = false;
+                StatsManager.DeregisterStat(m_poolCountStat);
+
+                // We won't null out the pool to avoid a race condition with code that may be in the middle of using it.
+
+                return true;
+            }
+
+            return false;
         }
 
         private void AsyncBeginReceive()

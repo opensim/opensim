@@ -201,9 +201,7 @@ public class BSTerrainManager
     // If called with a mapInfo in m_heightMaps and there is an existing terrain body, a new
     //     terrain shape is created and added to the body.
     //     This call is most often used to update the heightMap and parameters of the terrain.
-    // The 'doNow' boolean says whether to do all the unmanaged activities right now (like when
-    //     calling this routine from initialization or taint-time routines) or whether to delay
-    //     all the unmanaged activities to taint-time.
+    // (The above does suggest that some simplification/refactoring is in order.)
     private void UpdateOrCreateTerrain(uint id, float[] heightMap, Vector3 minCoords, Vector3 maxCoords, bool inTaintTime)
     {
         DetailLog("{0},BSTerrainManager.UpdateOrCreateTerrain,call,minC={1},maxC={2},inTaintTime={3}",

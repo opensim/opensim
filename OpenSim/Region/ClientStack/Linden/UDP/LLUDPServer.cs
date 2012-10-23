@@ -173,6 +173,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private ExpiringCache<IPEndPoint, Queue<UDPPacketBuffer>> m_pendingCache = new ExpiringCache<IPEndPoint, Queue<UDPPacketBuffer>>();
         private Pool<IncomingPacket> m_incomingPacketPool;
 
+        private Stat m_incomingPacketPoolStat;
+
         private int m_defaultRTO = 0;
         private int m_maxRTO = 0;
         private int m_ackTimeout = 0;
@@ -217,6 +219,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             m_circuitManager = circuitManager;
             int sceneThrottleBps = 0;
+            bool usePools = false;
 
             IConfig config = configSource.Configs["ClientStack.LindenUDP"];
             if (config != null)
@@ -249,7 +252,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 PacketPool.Instance.RecyclePackets = packetConfig.GetBoolean("RecyclePackets", true);
                 PacketPool.Instance.RecycleDataBlocks = packetConfig.GetBoolean("RecycleDataBlocks", true);
-                UsePools = packetConfig.GetBoolean("RecycleBaseUDPPackets", false);
+                usePools = packetConfig.GetBoolean("RecycleBaseUDPPackets", usePools);
             }
 
             #region BinaryStats
@@ -280,8 +283,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_throttle = new TokenBucket(null, sceneThrottleBps);
             ThrottleRates = new ThrottleRates(configSource);
 
-            if (UsePools)
-                m_incomingPacketPool = new Pool<IncomingPacket>(() => new IncomingPacket(), 500);
+            if (usePools)
+                EnablePools();
         }
 
         public void Start()
@@ -332,6 +335,50 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_log.Info("[LLUDPSERVER]: Shutting down the LLUDP server for " + m_scene.RegionInfo.RegionName);
             base.StopOutbound();
             base.StopInbound();
+        }
+
+        protected override bool EnablePools()
+        {
+            if (!UsePools)
+            {
+                base.EnablePools();
+
+                m_incomingPacketPool = new Pool<IncomingPacket>(() => new IncomingPacket(), 500);
+
+                m_incomingPacketPoolStat
+                    = new Stat(
+                        "IncomingPacketPoolCount",
+                        "Objects within incoming packet pool",
+                        "The number of objects currently stored within the incoming packet pool",
+                        "",
+                        "clientstack",
+                        "packetpool",
+                        StatType.Pull,
+                        stat => stat.Value = m_incomingPacketPool.Count,
+                        StatVerbosity.Debug);
+
+                StatsManager.RegisterStat(m_incomingPacketPoolStat);
+
+                return true;
+            }
+
+            return false;
+        }
+
+        protected override bool DisablePools()
+        {
+            if (UsePools)
+            {
+                base.DisablePools();
+
+                StatsManager.DeregisterStat(m_incomingPacketPoolStat);
+
+                // We won't null out the pool to avoid a race condition with code that may be in the middle of using it.
+
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -400,6 +447,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             MainConsole.Instance.Commands.AddCommand(
                 "Debug",
                 false,
+                "debug lludp pool",
+                "debug lludp pool <on|off>",
+                "Turn object pooling within the lludp component on or off.",
+                HandlePoolCommand);
+
+            MainConsole.Instance.Commands.AddCommand(
+                "Debug",
+                false,
                 "debug lludp status",
                 "debug lludp status",
                 "Return status of LLUDP packet processing.",
@@ -440,6 +495,32 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 StopOutbound();
         }
 
+        private void HandlePoolCommand(string module, string[] args)
+        {
+            if (args.Length != 4)
+            {
+                MainConsole.Instance.Output("Usage: debug lludp pool <on|off>");
+                return;
+            }
+
+            string enabled = args[3];
+
+            if (enabled == "on")
+            {
+                if (EnablePools())
+                    MainConsole.Instance.OutputFormat("Packet pools enabled on {0}", m_scene.Name);
+            }
+            else if (enabled == "off")
+            {
+                if (DisablePools())
+                    MainConsole.Instance.OutputFormat("Packet pools disabled on {0}", m_scene.Name);
+            }
+            else
+            {
+                MainConsole.Instance.Output("Usage: debug lludp pool <on|off>");
+            }
+        }
+
         private void HandleStatusCommand(string module, string[] args)
         {
             MainConsole.Instance.OutputFormat(
@@ -447,6 +528,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             MainConsole.Instance.OutputFormat(
                 "OUT LLUDP packet processing for {0} is {1}", m_scene.Name, IsRunningOutbound ? "enabled" : "disabled");
+
+            MainConsole.Instance.OutputFormat("LLUDP pools in {0} are {1}", m_scene.Name, UsePools ? "on" : "off");
         }
 
         public bool HandlesRegion(Location x)

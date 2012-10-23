@@ -543,11 +543,8 @@ namespace OpenSim.Framework.Servers.HttpServer
                     {
                         case null:
                         case "text/html":
-    
                             if (DebugLevel >= 3)
-                                m_log.DebugFormat(
-                                    "[BASE HTTP SERVER]: HTTP IN {0} :{1} {2} content type handler {3} {4} from {5}",
-                                    RequestNumber, Port, request.ContentType, request.HttpMethod, request.Url.PathAndQuery, request.RemoteIPEndPoint);
+                                LogIncomingToContentTypeHandler(request);
     
                             buffer = HandleHTTPRequest(request, response);
                             break;
@@ -555,11 +552,8 @@ namespace OpenSim.Framework.Servers.HttpServer
                         case "application/llsd+xml":
                         case "application/xml+llsd":
                         case "application/llsd+json":
-    
                             if (DebugLevel >= 3)
-                                m_log.DebugFormat(
-                                    "[BASE HTTP SERVER]: HTTP IN {0} :{1} {2} content type handler {3} {4} from {5}",
-                                    RequestNumber, Port, request.ContentType, request.HttpMethod, request.Url.PathAndQuery, request.RemoteIPEndPoint);
+                                LogIncomingToContentTypeHandler(request);
     
                             buffer = HandleLLSDRequests(request, response);
                             break;
@@ -694,7 +688,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 "[BASE HTTP SERVER]: HTTP IN {0} :{1} {2} content type handler {3} {4} from {5}",
                 RequestNumber,
                 Port,
-                request.ContentType,
+                (request.ContentType == null || request.ContentType == "") ? "not set" : request.ContentType,
                 request.HttpMethod,
                 request.Url.PathAndQuery,
                 request.RemoteIPEndPoint);
