@@ -110,7 +110,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 lastX = (lastX == null) ? curLastX : (lastX > curLastX) ? lastX : curLastX;
             }
 
-            Rect = new Rectangle((int)firstX, (int)firstY, (int)(lastY - firstY + 1), (int)(lastX - firstX + 1));
+            Rect = new Rectangle((int)firstX, (int)firstY, (int)(lastX - firstX + 1), (int)(lastY - firstY + 1));
 
 
             // Calculate the subdirectory in which each region will be stored in the archive
