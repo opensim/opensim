@@ -927,6 +927,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             ILandObject newLand = startLandObject.Copy();
             newLand.LandData.Name = newLand.LandData.Name;
             newLand.LandData.GlobalID = UUID.Random();
+            newLand.LandData.Dwell = 0;
 
             newLand.SetLandBitmap(newLand.GetSquareLandBitmap(start_x, start_y, end_x, end_y));
 
