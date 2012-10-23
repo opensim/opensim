@@ -51,8 +51,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// 1 corresponds to IWorldCommListenerInfo::GetName()
         /// 2 corresponds to IWorldCommListenerInfo::GetMessage()
         /// </summary>
-        /// <returns></returns>
-        int GetRegexBitfield();
+        int RegexBitfield { get; }
     }
 
     public interface IWorldComm

@@ -711,8 +711,8 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                         continue;
                     }
                     if (li.GetName().Length > 0 && (
-                        ((li.GetRegexBitfield() & OS_LISTEN_REGEX_NAME) != OS_LISTEN_REGEX_NAME && !li.GetName().Equals(name)) ||
-                        ((li.GetRegexBitfield() & OS_LISTEN_REGEX_NAME) == OS_LISTEN_REGEX_NAME && !Regex.IsMatch(name, li.GetName()))
+                        ((li.RegexBitfield & OS_LISTEN_REGEX_NAME) != OS_LISTEN_REGEX_NAME && !li.GetName().Equals(name)) ||
+                        ((li.RegexBitfield & OS_LISTEN_REGEX_NAME) == OS_LISTEN_REGEX_NAME && !Regex.IsMatch(name, li.GetName()))
                     ))
                     {
                         continue;
@@ -722,8 +722,8 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                         continue;
                     }
                     if (li.GetMessage().Length > 0 && (
-                        ((li.GetRegexBitfield() & OS_LISTEN_REGEX_MESSAGE) != OS_LISTEN_REGEX_MESSAGE && !li.GetMessage().Equals(msg)) ||
-                        ((li.GetRegexBitfield() & OS_LISTEN_REGEX_MESSAGE) == OS_LISTEN_REGEX_MESSAGE && !Regex.IsMatch(msg, li.GetMessage()))
+                        ((li.RegexBitfield & OS_LISTEN_REGEX_MESSAGE) != OS_LISTEN_REGEX_MESSAGE && !li.GetMessage().Equals(msg)) ||
+                        ((li.RegexBitfield & OS_LISTEN_REGEX_MESSAGE) == OS_LISTEN_REGEX_MESSAGE && !Regex.IsMatch(msg, li.GetMessage()))
                     ))
                     {
                         continue;
@@ -791,7 +791,6 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
         private UUID m_id; // ID to filter messages from
         private string m_name; // Object name to filter messages from
         private string m_message; // The message
-        private int m_regexBitfield; // The regex bitfield
 
         public ListenerInfo(int handle, uint localID, UUID ItemID, UUID hostID, int channel, string name, UUID id, string message)
         {
@@ -828,7 +827,7 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
             m_name = name;
             m_id = id;
             m_message = message;
-            m_regexBitfield = regexBitfield;
+            RegexBitfield = regexBitfield;
         }
 
         public Object[] GetSerializationData()
@@ -841,7 +840,7 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
             data[3] = m_name;
             data[4] = m_id;
             data[5] = m_message;
-            data[6] = m_regexBitfield;
+            data[6] = RegexBitfield;
 
             return data;
         }
@@ -852,7 +851,7 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
             linfo.m_active = (bool)data[0];
             if (data.Length >= 7)
             {
-                linfo.m_regexBitfield = (int)data[6];
+                linfo.RegexBitfield = (int)data[6];
             }
 
             return linfo;
@@ -913,9 +912,6 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
             return m_id;
         }
 
-        public int GetRegexBitfield()
-        {
-            return m_regexBitfield;
-        }
+        public int RegexBitfield { get; private set; }
     }
 }
