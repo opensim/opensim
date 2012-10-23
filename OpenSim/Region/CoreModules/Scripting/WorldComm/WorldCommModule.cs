@@ -472,8 +472,8 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
 
             if (coll.Count > 0)
             {
-                // special case, called with same filter settings, return same handle
-                // (2008-05-02, tested on 1.21.1 server, still holds)
+                // special case, called with same filter settings, return same
+                // handle (2008-05-02, tested on 1.21.1 server, still holds)
                 return coll[0].GetHandle();
             }
 
@@ -712,7 +712,7 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
         }
     }
 
-    public class ListenerInfo: IWorldCommListenerInfo
+    public class ListenerInfo : IWorldCommListenerInfo
     {
         private bool m_active; // Listener is active or not
         private int m_handle; // Assigned handle of this listener

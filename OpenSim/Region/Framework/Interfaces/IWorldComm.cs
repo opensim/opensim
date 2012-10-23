@@ -60,7 +60,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// the script during 'peek' time. Parameter hostID is needed to
         /// determine the position of the script.
         /// </summary>
-        /// <param name="localID">localID of the script engine</param>
+        /// <param name="LocalID">localID of the script engine</param>
         /// <param name="itemID">UUID of the script engine</param>
         /// <param name="hostID">UUID of the SceneObjectPart</param>
         /// <param name="channel">channel to listen on</param>
