@@ -31,6 +31,7 @@ using System.Net.Sockets;
 using System.Threading;
 using log4net;
 using OpenSim.Framework;
+using OpenSim.Framework.Monitoring;
 
 namespace OpenMetaverse
 {
@@ -107,9 +108,25 @@ namespace OpenMetaverse
         public void StartInbound(int recvBufferSize, bool asyncPacketHandling)
         {
             if (UsePools)
+            {
                 m_pool = new Pool<UDPPacketBuffer>(() => new UDPPacketBuffer(), 500);
+
+                StatsManager.RegisterStat(
+                    new Stat(
+                        "UDPPacketBufferPoolCount",
+                        "Objects within the UDPPacketBuffer pool",
+                        "The number of objects currently stored within the UDPPacketBuffer pool",
+                        "",
+                        "clientstack",
+                        "packetpool",
+                        StatType.Pull,
+                        stat => stat.Value = m_pool.Count,
+                        StatVerbosity.Debug));
+            }
             else
+            {
                 m_pool = null;
+            }
 
             m_asyncPacketHandling = asyncPacketHandling;
 

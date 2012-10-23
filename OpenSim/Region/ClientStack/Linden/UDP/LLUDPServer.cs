@@ -278,7 +278,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             ThrottleRates = new ThrottleRates(configSource);
 
             if (UsePools)
+            {
                 m_incomingPacketPool = new Pool<IncomingPacket>(() => new IncomingPacket(), 500);
+
+                StatsManager.RegisterStat(
+                    new Stat(
+                        "IncomingPacketPoolCount",
+                        "Objects within incoming packet pool",
+                        "The number of objects currently stored within the incoming packet pool",
+                        "",
+                        "clientstack",
+                        "packetpool",
+                        StatType.Pull,
+                        stat => stat.Value = m_incomingPacketPool.Count,
+                        StatVerbosity.Debug));
+            }
         }
 
         public void Start()
