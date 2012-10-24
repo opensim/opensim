@@ -122,17 +122,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                 "delete object pos",
                 "delete object pos <start-coord> to <end-coord>",
                 "Delete scene objects within the given area.",
-                "Each component of the coord is comma separated.  There must be no spaces between the commas.\n"
-                    + "If you don't care about the z component you can simply omit it.\n"
-                    + "If you don't care about the x or y components then you can leave them blank (though a comma is still required)\n"
-                    + "If you want to specify the maxmimum value of a component then you can use ~ instead of a number\n"
-                    + "If you want to specify the minimum value of a component then you can use -~ instead of a number\n"
-                    + "e.g.\n"
-                    + "delete object pos 20,20,20 to 40,40,40\n"
-                    + "delete object pos 20,20 to 40,40\n"
-                    + "delete object pos ,20,20 to ,40,40\n"
-                    + "delete object pos ,,30 to ,,~\n"
-                    + "delete object pos ,,-~ to ,,30",
+                ConsoleUtil.CoordHelp,
                 HandleDeleteObject);
 
             m_console.Commands.AddCommand(
@@ -164,17 +154,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                 "Show details of scene objects within the given area.",
                 "The --full option will print out information on all the parts of the object.\n"
                     + "For yet more detailed part information, use the \"show part\" commands.\n"
-                    + "Each component of the coord is comma separated.  There must be no spaces between the commas.\n"
-                    + "If you don't care about the z component you can simply omit it.\n"
-                    + "If you don't care about the x or y components then you can leave them blank (though a comma is still required)\n"
-                    + "If you want to specify the maxmimum value of a component then you can use ~ instead of a number\n"
-                    + "If you want to specify the minimum value of a component then you can use -~ instead of a number\n"
-                    + "e.g.\n"
-                    + "show object pos 20,20,20 to 40,40,40\n"
-                    + "show object pos 20,20 to 40,40\n"
-                    + "show object pos ,20,20 to ,40,40\n"
-                    + "show object pos ,,30 to ,,~\n"
-                    + "show object pos ,,-~ to ,,30",
+                    + ConsoleUtil.CoordHelp,
                 HandleShowObjectByPos);
 
             m_console.Commands.AddCommand(
@@ -199,17 +179,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                 "show part pos",
                 "show part pos <start-coord> to <end-coord>",
                 "Show details of scene object parts within the given area.",
-                "Each component of the coord is comma separated.  There must be no spaces between the commas.\n"
-                    + "If you don't care about the z component you can simply omit it.\n"
-                    + "If you don't care about the x or y components then you can leave them blank (though a comma is still required)\n"
-                    + "If you want to specify the maxmimum value of a component then you can use ~ instead of a number\n"
-                    + "If you want to specify the minimum value of a component then you can use -~ instead of a number\n"
-                    + "e.g.\n"
-                    + "show object pos 20,20,20 to 40,40,40\n"
-                    + "show object pos 20,20 to 40,40\n"
-                    + "show object pos ,20,20 to ,40,40\n"
-                    + "show object pos ,,30 to ,,~\n"
-                    + "show object pos ,,-~ to ,,30",
+                ConsoleUtil.CoordHelp,
                 HandleShowPartByPos);
         }
 

@@ -36,6 +36,23 @@ public class ConsoleUtil
 {
 //    private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+    /// <summary>
+    /// Used by modules to display stock co-ordinate help, though possibly this should be under some general section
+    /// rather than in each help summary.
+    /// </summary>
+    public const string CoordHelp
+= @"Each component of the coord is comma separated.  There must be no spaces between the commas.
+If you don't care about the z component you can simply omit it.
+If you don't care about the x or y components then you can leave them blank (though a comma is still required)
+If you want to specify the maxmimum value of a component then you can use ~ instead of a number
+If you want to specify the minimum value of a component then you can use -~ instead of a number
+e.g.
+delete object pos 20,20,20 to 40,40,40
+delete object pos 20,20 to 40,40
+delete object pos ,20,20 to ,40,40
+delete object pos ,,30 to ,,~
+delete object pos ,,-~ to ,,30";
+
     public const string MinRawConsoleVectorValue = "-~";
     public const string MaxRawConsoleVectorValue = "~";
 
