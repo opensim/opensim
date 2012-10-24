@@ -38,6 +38,8 @@ namespace OpenSim.Framework.Console
     public class ConsoleUtil
     {
     //    private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        public const int LocalIdNotFound = 0;
     
         /// <summary>
         /// Used by modules to display stock co-ordinate help, though possibly this should be under some general section
@@ -87,18 +89,70 @@ namespace OpenSim.Framework.Console
         /// Will complain to the console if parsing fails.
         /// </remarks>
         /// <returns></returns>
-        /// <param name='console'></param>
+        /// <param name='console'>If null then no complaint is printed.</param>
         /// <param name='rawUuid'></param>
         /// <param name='uuid'></param>
         public static bool TryParseConsoleUuid(ICommandConsole console, string rawUuid, out UUID uuid)
         {
             if (!UUID.TryParse(rawUuid, out uuid))
             {
-                console.OutputFormat("{0} is not a valid uuid", rawUuid);
+                if (console != null)
+                    console.OutputFormat("{0} is not a valid uuid", rawUuid);
+
                 return false;
             }
     
             return true;
+        }
+
+        public static bool TryParseConsoleLocalId(ICommandConsole console, string rawLocalId, out uint localId)
+        {
+            if (!uint.TryParse(rawLocalId, out localId))
+            {
+                if (console != null)
+                    console.OutputFormat("{0} is not a valid local id", localId);
+
+                return false;
+            }
+
+            if (localId == 0)
+            {
+                if (console != null)
+                    console.OutputFormat("{0} is not a valid local id - it must be greater than 0", localId);
+
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Tries to parse the input as either a UUID or a local ID.
+        /// </summary>
+        /// <returns>true if parsing succeeded, false otherwise.</returns>
+        /// <param name='console'></param>
+        /// <param name='rawId'></param>
+        /// <param name='uuid'></param>
+        /// <param name='localId'>
+        /// Will be set to ConsoleUtil.LocalIdNotFound if parsing result was a UUID or no parse succeeded.
+        /// </param>
+        public static bool TryParseConsoleId(ICommandConsole console, string rawId, out UUID uuid, out uint localId)
+        {
+            if (TryParseConsoleUuid(null, rawId, out uuid))
+            {
+                localId = LocalIdNotFound;
+                return true;
+            }
+
+            if (TryParseConsoleLocalId(null, rawId, out localId))
+            {
+                return true;
+            }
+
+            if (console != null)
+                console.OutputFormat("{0} is not a valid UUID or local id", rawId);
+
+            return false;
         }
     
         /// <summary>
