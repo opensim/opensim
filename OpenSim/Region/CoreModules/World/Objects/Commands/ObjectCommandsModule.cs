@@ -27,10 +27,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Xml;
 using log4net;
 using Mono.Addins;
 using NDesk.Options;
@@ -41,6 +43,7 @@ using OpenSim.Framework.Console;
 using OpenSim.Framework.Monitoring;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Framework.Scenes.Serialization;
 
 namespace OpenSim.Region.CoreModules.World.Objects.Commands
 {
@@ -181,6 +184,16 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                 "Show details of scene object parts within the given area.",
                 ConsoleUtil.CoordHelp,
                 HandleShowPartByPos);
+
+            m_console.Commands.AddCommand(
+                "Objects",
+                false,
+                "dump object uuid",
+                "dump object uuid <UUID>",
+                "Dump the formatted serialization of the given object to the file <UUID>.xml",
+                "e.g. dump object uuid c1ed6809-cc24-4061-a4c2-93082a2d1f1d will dump serialization to c1ed6809-cc24-4061-a4c2-93082a2d1f1d.xml\n"
+                    + "To locate the UUID in the first place, you need to use the other show object commands",
+                HandleDumpObjectByUuid);
         }
 
         public void RemoveRegion(Scene scene)
@@ -445,6 +458,46 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             }
 
             OutputSopsToConsole(searchPredicate, true);
+        }
+
+        private void HandleDumpObjectByUuid(string module, string[] cmdparams)
+        {
+            if (!(m_console.ConsoleScene == null || m_console.ConsoleScene == m_scene))
+                return;
+
+            if (cmdparams.Length < 4)
+            {
+                m_console.OutputFormat("Usage: dump object uuid <uuid>");
+                return;
+            }
+
+            UUID objectUuid;
+            if (!ConsoleUtil.TryParseConsoleUuid(m_console, cmdparams[3], out objectUuid))
+                return;
+
+            SceneObjectGroup so = m_scene.GetSceneObjectGroup(objectUuid);
+
+            if (so == null)
+            {
+//                m_console.OutputFormat("No part found with uuid {0}", objectUuid);
+                return;
+            }
+
+            string fileName = string.Format("{0}.xml", objectUuid);
+
+            if (File.Exists(fileName))
+            {
+                m_console.OutputFormat("File {0} already exists.  Please move or remove it.", fileName);
+                return;
+            }
+            
+            using (XmlTextWriter xtw = new XmlTextWriter(fileName, Encoding.UTF8))
+            {
+                xtw.Formatting = Formatting.Indented;
+                SceneObjectSerializer.ToOriginalXmlFormat(so, xtw, true);
+            }
+            
+            m_console.OutputFormat("Object dumped to file {0}", fileName);
         }
 
         /// <summary>
