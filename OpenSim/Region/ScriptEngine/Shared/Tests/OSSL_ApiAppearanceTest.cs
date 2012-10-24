@@ -36,11 +36,12 @@ using OpenMetaverse;
 using OpenMetaverse.Assets;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
+using OpenSim.Region.CoreModules.Avatar.Attachments;
 using OpenSim.Region.CoreModules.Avatar.AvatarFactory;
-using OpenSim.Region.OptionalModules.World.NPC;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.ScriptEngine.Shared;
 using OpenSim.Region.ScriptEngine.Shared.Api;
+using OpenSim.Region.OptionalModules.World.NPC;
 using OpenSim.Services.Interfaces;
 using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Mock;
@@ -68,7 +69,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             config.Set("Enabled", "true");
 
             m_scene = new SceneHelpers().SetupScene();
-            SceneHelpers.SetupSceneModules(m_scene, initConfigSource, new AvatarFactoryModule(), new NPCModule());
+            SceneHelpers.SetupSceneModules(
+                m_scene, initConfigSource, new AvatarFactoryModule(), new AttachmentsModule(), new NPCModule());
 
             m_engine = new XEngine.XEngine();
             m_engine.Initialise(initConfigSource);
