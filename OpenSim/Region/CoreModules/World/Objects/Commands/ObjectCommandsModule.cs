@@ -485,11 +485,8 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
             string fileName = string.Format("{0}.xml", objectUuid);
 
-            if (File.Exists(fileName))
-            {
-                m_console.OutputFormat("File {0} already exists.  Please move or remove it.", fileName);
+            if (!ConsoleUtil.CheckFileDoesNotExist(m_console, fileName))
                 return;
-            }
             
             using (XmlTextWriter xtw = new XmlTextWriter(fileName, Encoding.UTF8))
             {

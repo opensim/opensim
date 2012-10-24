@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using log4net;
@@ -60,6 +61,24 @@ namespace OpenSim.Framework.Console
     
         public const string VectorSeparator = ",";
         public static char[] VectorSeparatorChars = VectorSeparator.ToCharArray();
+
+        /// <summary>
+        /// Check if the given file path exists.
+        /// </summary>
+        /// <remarks>If not, warning is printed to the given console.</remarks>
+        /// <returns>true if the file does not exist, false otherwise.</returns>
+        /// <param name='console'></param>
+        /// <param name='path'></param>
+        public static bool CheckFileDoesNotExist(ICommandConsole console, string path)
+        {
+            if (File.Exists(path))
+            {
+                console.OutputFormat("File {0} already exists.  Please move or remove it.", path);
+                return false;
+            }
+
+            return true;
+        }
     
         /// <summary>
         /// Try to parse a console UUID from the console.
