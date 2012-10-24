@@ -46,7 +46,7 @@ public abstract class BSPhysObject : PhysicsActor
         PhysObjectName = name;
         TypeName = typeName;
 
-        Linkset = new BSLinkset(PhysicsScene, this);
+        Linkset = BSLinkset.Factory(PhysicsScene, this);
         LastAssetBuildFailed = false;
 
         CollisionCollection = new CollisionEventUpdate();
@@ -78,7 +78,7 @@ public abstract class BSPhysObject : PhysicsActor
     public PrimitiveBaseShape BaseShape { get; protected set; }
 
     // When the physical properties are updated, an EntityProperty holds the update values.
-    // Keep the current and last EntityProperties to enable computation of differences 
+    // Keep the current and last EntityProperties to enable computation of differences
     //      between the current update and the previous values.
     public EntityProperties CurrentEntityProperties { get; set; }
     public EntityProperties LastEntityProperties { get; set; }
@@ -213,7 +213,7 @@ public abstract class BSPhysObject : PhysicsActor
             UnSubscribeEvents();
         }
     }
-    public override void UnSubscribeEvents() { 
+    public override void UnSubscribeEvents() {
         // DetailLog("{0},{1}.UnSubscribeEvents,unsubscribing", LocalID, TypeName);
         SubscribedEventsMs = 0;
         PhysicsScene.TaintedObject(TypeName+".UnSubscribeEvents", delegate()
@@ -222,7 +222,7 @@ public abstract class BSPhysObject : PhysicsActor
         });
     }
     // Return 'true' if the simulator wants collision events
-    public override bool SubscribedEvents() { 
+    public override bool SubscribedEvents() {
         return (SubscribedEventsMs > 0);
     }
 

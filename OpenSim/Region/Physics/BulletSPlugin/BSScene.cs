@@ -320,7 +320,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     {
         m_log.Debug("[BULLETS UNMANAGED]:" + msg);
     }
-  
+
     // Called directly from unmanaged code so don't do much
     private void BulletLoggerPhysLog(string msg)
     {
@@ -545,7 +545,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         }
 
         // This is a kludge to get avatar movement updates.
-        // The simulator expects collisions for avatars even if there are have been no collisions. 
+        // The simulator expects collisions for avatars even if there are have been no collisions.
         //    The event updates avatar animations and stuff.
         // If you fix avatar animation updates, remove this overhead and let normal collision processing happen.
         foreach (BSPhysObject bsp in m_avatars)
@@ -692,7 +692,6 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     {
         if (_taintedObjects.Count > 0)  // save allocating new list if there is nothing to process
         {
-            // swizzle a new list into the list location so we can process what's there
             int taintCount = m_taintsToProcessPerStep;
             TaintCallbackEntry oneCallback = new TaintCallbackEntry();
             while (_taintedObjects.Count > 0 && taintCount-- > 0)
@@ -711,11 +710,12 @@ public class BSScene : PhysicsScene, IPhysicsParameters
                 {
                     try
                     {
-                        DetailLog("{0},BSScene.ProcessTaints,doTaint,id={1}", DetailLogZero, oneCallback.ident); // DEBUG DEBUG DEBUG
+                        DetailLog("{0},BSScene.ProcessTaints,doTaint,id={1}", DetailLogZero, oneCallback.ident);
                         oneCallback.callback();
                     }
                     catch (Exception e)
                     {
+                        DetailLog("{0},BSScene.ProcessTaints,doTaintException,id={1}", DetailLogZero, oneCallback.ident); // DEBUG DEBUG DEBUG
                         m_log.ErrorFormat("{0}: ProcessTaints: {1}: Exception: {2}", LogHeader, oneCallback.ident, e);
                     }
                 }
@@ -1333,7 +1333,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         // Add the Flush() if debugging crashes to get all the messages written out.
         // PhysicsLogging.Flush();
     }
-    // used to fill in the LocalID when there isn't one
+    // Used to fill in the LocalID when there isn't one. It's the correct number of characters.
     public const string DetailLogZero = "0000000000";
 
 }

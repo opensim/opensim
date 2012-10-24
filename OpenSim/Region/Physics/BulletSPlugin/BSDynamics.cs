@@ -23,7 +23,7 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+ *
 
 /* RA: June 14, 2011. Copied from ODEDynamics.cs and converted to
  * call the BulletSim system.
@@ -352,7 +352,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     // m_bankingMix = 1;
                     // m_bankingTimescale = 1;
                     // m_referenceFrame = Quaternion.Identity;
-                    m_flags |= (VehicleFlag.NO_DEFLECTION_UP 
+                    m_flags |= (VehicleFlag.NO_DEFLECTION_UP
                                 | VehicleFlag.LIMIT_ROLL_ONLY
                                 | VehicleFlag.LIMIT_MOTOR_UP);
                     m_flags &= ~(VehicleFlag.HOVER_WATER_ONLY | VehicleFlag.HOVER_TERRAIN_ONLY | VehicleFlag.HOVER_GLOBAL_HEIGHT);
@@ -382,7 +382,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     // m_bankingTimescale = 1;
                     // m_referenceFrame = Quaternion.Identity;
                     m_flags &= ~(VehicleFlag.HOVER_TERRAIN_ONLY
-                                    | VehicleFlag.HOVER_GLOBAL_HEIGHT 
+                                    | VehicleFlag.HOVER_GLOBAL_HEIGHT
                                     | VehicleFlag.LIMIT_ROLL_ONLY
                                     | VehicleFlag.HOVER_UP_ONLY);
                     m_flags |= (VehicleFlag.NO_DEFLECTION_UP
@@ -458,14 +458,15 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         // Do any updating needed for a vehicle
         public void Refresh()
         {
-            if (!IsActive) 
+            if (!IsActive)
                 return;
 
             // Set the prim's inertia to zero. The vehicle code handles that and this
             //    removes the motion and torque actions introduced by Bullet.
             Vector3 inertia = Vector3.Zero;
-            BulletSimAPI.SetMassProps2(Prim.BSBody.ptr, Prim.MassRaw, inertia);
-            BulletSimAPI.UpdateInertiaTensor2(Prim.BSBody.ptr);
+            // comment out for DEBUG test
+            // BulletSimAPI.SetMassProps2(Prim.BSBody.ptr, Prim.MassRaw, inertia);
+            // BulletSimAPI.UpdateInertiaTensor2(Prim.BSBody.ptr);
         }
 
         // One step of the vehicle properties for the next 'pTimestep' seconds.
@@ -791,7 +792,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 
             // Sum velocities
             m_lastAngularVelocity = m_angularMotorVelocity + vertattr; // + bank + deflection
-         
+
             if ((m_flags & (VehicleFlag.NO_DEFLECTION_UP)) != 0)
             {
                 m_lastAngularVelocity.X = 0;
