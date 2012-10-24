@@ -443,7 +443,8 @@ public class BSShapeCollection : IDisposable
         if (shapeType == ShapeData.PhysicsShapeType.SHAPE_AVATAR)
         {
             newShape = new BulletShape(
-                        BulletSimAPI.BuildCapsuleShape2(PhysicsScene.World.ptr, 1.0f, 1.0f, nativeShapeData.Scale), shapeType);
+                        BulletSimAPI.BuildCapsuleShape2(PhysicsScene.World.ptr, 1f, 1f, nativeShapeData.Scale)
+                        , shapeType);
             DetailLog("{0},BSShapeCollection.BuiletPhysicalNativeShape,capsule,scale={1}", nativeShapeData.ID, nativeShapeData.Scale);
         }
         else
@@ -790,7 +791,6 @@ public class BSShapeCollection : IDisposable
                 // If the collisionObject is not the correct type for solidness, rebuild what's there
                 mustRebuild = true;
             }
-
         }
 
         if (mustRebuild || forceRebuild)
