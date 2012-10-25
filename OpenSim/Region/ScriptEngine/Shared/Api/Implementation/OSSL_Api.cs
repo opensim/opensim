@@ -210,7 +210,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         internal void OSSLError(string msg)
         {
-            throw new Exception("OSSL Runtime Error: " + msg);
+            throw new ScriptException("OSSL Runtime Error: " + msg);
         }
 
         /// <summary>

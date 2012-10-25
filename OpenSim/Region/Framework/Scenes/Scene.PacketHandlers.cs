@@ -38,7 +38,6 @@ namespace OpenSim.Region.Framework.Scenes
 {
     public partial class Scene
     {
-
         protected void SimChat(byte[] message, ChatTypeEnum type, int channel, Vector3 fromPos, string fromName,
                                UUID fromID, UUID targetID, bool fromAgent, bool broadcast)
         {
@@ -65,6 +64,10 @@ namespace OpenSim.Region.Framework.Scenes
 
             args.From = fromName;
             args.TargetUUID = targetID;
+
+//            m_log.DebugFormat(
+//                "[SCENE]: Sending message {0} on channel {1}, type {2} from {3}, broadcast {4}",
+//                args.Message.Replace("\n", "\\n"), args.Channel, args.Type, fromName, broadcast);
 
             if (broadcast)
                 EventManager.TriggerOnChatBroadcast(this, args);

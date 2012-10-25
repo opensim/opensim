@@ -95,13 +95,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         internal void MODError(string msg)
         {
-            throw new Exception("MOD Runtime Error: " + msg);
+            throw new ScriptException("MOD Runtime Error: " + msg);
         }
 
-        //
-        //Dumps an error message on the debug console.
-        //
-
+        /// <summary>
+        /// Dumps an error message on the debug console.
+        /// </summary>
+        /// <param name='message'></param>
         internal void MODShoutError(string message) 
         {
             if (message.Length > 1023)

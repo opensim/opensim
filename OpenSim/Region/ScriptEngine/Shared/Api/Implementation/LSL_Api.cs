@@ -10685,12 +10685,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         internal void Deprecated(string command)
         {
-            throw new Exception("Command deprecated: " + command);
+            throw new ScriptException("Command deprecated: " + command);
         }
 
         internal void LSLError(string msg)
         {
-            throw new Exception("LSL Runtime Error: " + msg);
+            throw new ScriptException("LSL Runtime Error: " + msg);
         }
 
         public delegate void AssetRequestCallback(UUID assetID, AssetBase asset);
