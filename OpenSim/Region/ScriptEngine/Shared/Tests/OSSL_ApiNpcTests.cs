@@ -127,11 +127,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             OSSL_Api osslApi = new OSSL_Api();
             osslApi.Initialize(m_engine, so.RootPart, null);
 
-            string npcRaw
-                = osslApi.osNpcCreate("Jane", "Doe", new LSL_Types.Vector3(128, 128, 128), "not existing notecard name");
+            string npcRaw;
+            bool gotExpectedException = false;
+            try
+            {
+                npcRaw
+                    = osslApi.osNpcCreate("Jane", "Doe", new LSL_Types.Vector3(128, 128, 128), "not existing notecard name");
+            }
+            catch (ScriptException)
+            {
+                gotExpectedException = true;
+            }
 
-            UUID npcId = new UUID(npcRaw);
-            Assert.That(npcId, Is.EqualTo(UUID.Zero));
+            Assert.That(gotExpectedException, Is.True);
         }
 
         /// <summary>
@@ -233,7 +241,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             string npcRaw
                 = osslApi.osNpcCreate("Jane", "Doe", new LSL_Types.Vector3(128, 128, 128), firstAppearanceNcName);
 
-            osslApi.osNpcLoadAppearance(npcRaw, secondAppearanceNcName);
+            bool gotExpectedException = false;
+            try
+            {
+                osslApi.osNpcLoadAppearance(npcRaw, secondAppearanceNcName);
+            }
+            catch (ScriptException)
+            {
+                gotExpectedException = true;
+            }
+
+            Assert.That(gotExpectedException, Is.True);
 
             UUID npcId = new UUID(npcRaw);
             ScenePresence npc = m_scene.GetScenePresence(npcId);
