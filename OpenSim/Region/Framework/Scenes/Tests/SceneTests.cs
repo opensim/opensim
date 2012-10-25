@@ -65,5 +65,22 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             
             Assert.That(scene.Frame, Is.EqualTo(1));
         }
+
+        [Test]
+        public void TestShutdownScene()
+        {
+            TestHelpers.InMethod();
+
+            Scene scene = new SceneHelpers().SetupScene();
+            scene.Close();
+
+            Assert.That(scene.ShuttingDown, Is.True);
+            Assert.That(scene.Active, Is.False);
+
+            // Trying to update a shutdown scene should result in no update
+            scene.Update(1);
+
+            Assert.That(scene.Frame, Is.EqualTo(0));
+        }
     }
 }

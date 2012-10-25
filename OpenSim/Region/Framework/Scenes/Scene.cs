@@ -1310,6 +1310,14 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_sceneGraph.Close();
 
+            if (!GridService.DeregisterRegion(RegionInfo.RegionID))
+                m_log.WarnFormat("[SCENE]: Deregister from grid failed for region {0}", Name);
+
+            base.Close();
+
+            // XEngine currently listens to the EventManager.OnShutdown event to trigger script stop and persistence.
+            // Therefore. we must dispose of the PhysicsScene after this to prevent a window where script code can
+            // attempt to reference a null or disposed physics scene.
             if (PhysicsScene != null)
             {
                 PhysicsScene phys = PhysicsScene;
@@ -1318,12 +1326,6 @@ namespace OpenSim.Region.Framework.Scenes
                 phys.Dispose();
                 phys = null;
             }
-
-            if (!GridService.DeregisterRegion(RegionInfo.RegionID))
-                m_log.WarnFormat("[SCENE]: Deregister from grid failed for region {0}", Name);
-
-            // call the base class Close method.
-            base.Close();
         }
 
         /// <summary>
