@@ -87,7 +87,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             {
                 if (m_defaultAnimation.AnimID == animID)
                 {
-                    m_defaultAnimation = new OpenSim.Framework.Animation(UUID.Zero, 1, UUID.Zero);
+                     m_defaultAnimation = new OpenSim.Framework.Animation(animID, 1, UUID.Zero);
                 }
                 else if (HasAnimation(animID))
                 {
