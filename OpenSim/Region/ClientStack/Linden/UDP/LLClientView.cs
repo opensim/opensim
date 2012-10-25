@@ -817,8 +817,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(mov, ThrottleOutPacketType.Unknown);
         }
 
-        public void SendChatMessage(string message, byte type, Vector3 fromPos, string fromName,
-                                    UUID fromAgentID, byte source, byte audible)
+        public void SendChatMessage(
+            string message, byte type, Vector3 fromPos, string fromName,
+            UUID fromAgentID, UUID ownerID, byte source, byte audible)
         {
             ChatFromSimulatorPacket reply = (ChatFromSimulatorPacket)PacketPool.Instance.GetPacket(PacketType.ChatFromSimulator);
             reply.ChatData.Audible = audible;
@@ -827,7 +828,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             reply.ChatData.SourceType = source;
             reply.ChatData.Position = fromPos;
             reply.ChatData.FromName = Util.StringToBytes256(fromName);
-            reply.ChatData.OwnerID = fromAgentID;
+            reply.ChatData.OwnerID = ownerID;
             reply.ChatData.SourceID = fromAgentID;
 
             OutPacket(reply, ThrottleOutPacketType.Task);

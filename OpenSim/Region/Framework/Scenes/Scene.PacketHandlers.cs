@@ -38,6 +38,18 @@ namespace OpenSim.Region.Framework.Scenes
 {
     public partial class Scene
     {
+        /// <summary>
+        /// Send chat to listeners.
+        /// </summary>
+        /// <param name='message'></param>
+        /// <param name='type'>/param>
+        /// <param name='channel'></param>
+        /// <param name='fromPos'></param>
+        /// <param name='fromName'></param>
+        /// <param name='fromID'></param>
+        /// <param name='targetID'></param>
+        /// <param name='fromAgent'></param>
+        /// <param name='broadcast'></param>
         protected void SimChat(byte[] message, ChatTypeEnum type, int channel, Vector3 fromPos, string fromName,
                                UUID fromID, UUID targetID, bool fromAgent, bool broadcast)
         {
