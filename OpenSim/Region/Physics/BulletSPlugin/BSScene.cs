@@ -62,7 +62,7 @@ using OpenMetaverse;
 //
 namespace OpenSim.Region.Physics.BulletSPlugin
 {
-public class BSScene : PhysicsScene, IPhysicsParameters
+public sealed class BSScene : PhysicsScene, IPhysicsParameters
 {
     private static readonly ILog m_log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
     private static readonly string LogHeader = "[BULLETS SCENE]";

@@ -88,6 +88,8 @@ public abstract class BSLinkset
         }
     }
 
+    public virtual bool LinksetIsColliding { get { return false; } }
+
     public OMV.Vector3 CenterOfMass
     {
         get { return ComputeLinksetCenterOfMass(); }

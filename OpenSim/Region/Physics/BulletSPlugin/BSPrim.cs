@@ -311,6 +311,7 @@ public sealed class BSPrim : BSPhysObject
         if ((CurrentCollisionFlags & CollisionFlags.BS_FLOATS_ON_WATER) != 0)
         {
             float waterHeight = PhysicsScene.GetWaterLevelAtXYZ(_position);
+            // TODO: a floating motor so object will bob in the water
             if (Position.Z < waterHeight)
             {
                 _position.Z = waterHeight;
@@ -902,7 +903,8 @@ public sealed class BSPrim : BSPhysObject
             }
             // DetailLog("{0},BSPrim.AddObjectForce,taint,force={1}", LocalID, fSum);
             // For unknown reasons, "ApplyCentralForce" adds this force to the total force on the object.
-            BulletSimAPI.ApplyCentralForce2(BSBody.ptr, fSum);
+            if (fSum != OMV.Vector3.Zero)
+                BulletSimAPI.ApplyCentralForce2(BSBody.ptr, fSum);
         };
         if (inTaintTime)
             addForceOperation();

@@ -182,12 +182,14 @@ what it is today.
 
 This software uses components from the following developers:
 * Sleepycat Software (Berkeley DB)
+* Aurora-Sim (http://aurora-sim.org)
 * SQLite (Public Domain)
 * XmlRpcCS (http://xmlrpccs.sf.net/)
 * MySQL, Inc. (MySQL Connector/NET)
 * NUnit (http://www.nunit.org)
 * AGEIA Inc. (PhysX)
 * Russel L. Smith (ODE)
+* Erwin Coumans (Bullet)
 * Prebuild (http://sourceforge.net/projects/dnpb/)
 * LibOpenMetaverse (http://lib.openmetaverse.org/)
 * DotNetOpenMail v0.5.8b (http://dotnetopenmail.sourceforge.net)

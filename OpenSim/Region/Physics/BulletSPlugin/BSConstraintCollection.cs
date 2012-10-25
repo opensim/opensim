@@ -33,7 +33,7 @@ using OpenMetaverse;
 namespace OpenSim.Region.Physics.BulletSPlugin
 {
 
-public class BSConstraintCollection : IDisposable
+public sealed class BSConstraintCollection : IDisposable
 {
     // private static readonly ILog m_log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
     // private static readonly string LogHeader = "[CONSTRAINT COLLECTION]";

@@ -32,7 +32,7 @@ using OpenMetaverse;
 namespace OpenSim.Region.Physics.BulletSPlugin
 {
 
-class BSHingeConstraint : BSConstraint
+public sealed class BSHingeConstraint : BSConstraint
 {
     public override ConstraintType Type { get { return ConstraintType.HINGE_CONSTRAINT_TYPE; } }
 

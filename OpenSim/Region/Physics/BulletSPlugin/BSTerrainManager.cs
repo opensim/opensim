@@ -40,7 +40,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.Physics.BulletSPlugin
 {
-public class BSTerrainManager
+public sealed class BSTerrainManager
 {
     static string LogHeader = "[BULLETSIM TERRAIN MANAGER]";
 

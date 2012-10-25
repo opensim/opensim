@@ -32,7 +32,7 @@ using OpenMetaverse;
 namespace OpenSim.Region.Physics.BulletSPlugin
 {
 
-public class BS6DofConstraint : BSConstraint
+public sealed class BS6DofConstraint : BSConstraint
 {
     private static string LogHeader = "[BULLETSIM 6DOF CONSTRAINT]";
 

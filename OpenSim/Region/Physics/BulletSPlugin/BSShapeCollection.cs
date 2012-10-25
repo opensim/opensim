@@ -34,7 +34,7 @@ using OpenSim.Region.Physics.ConvexDecompositionDotNet;
 
 namespace OpenSim.Region.Physics.BulletSPlugin
 {
-public class BSShapeCollection : IDisposable
+public sealed class BSShapeCollection : IDisposable
 {
     private static string LogHeader = "[BULLETSIM SHAPE COLLECTION]";
 
