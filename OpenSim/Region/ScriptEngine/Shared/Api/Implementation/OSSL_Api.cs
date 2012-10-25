@@ -1780,18 +1780,24 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected string LoadNotecard(string notecardNameOrUuid)
         {
             UUID assetID = CacheNotecard(notecardNameOrUuid);
-            StringBuilder notecardData = new StringBuilder();
 
-            for (int count = 0; count < NotecardCache.GetLines(assetID); count++)
+            if (assetID != UUID.Zero)
             {
-                string line = NotecardCache.GetLine(assetID, count) + "\n";
-
-//                m_log.DebugFormat("[OSSL]: From notecard {0} loading line {1}", notecardNameOrUuid, line);
-
-                notecardData.Append(line);
+                StringBuilder notecardData = new StringBuilder();
+    
+                for (int count = 0; count < NotecardCache.GetLines(assetID); count++)
+                {
+                    string line = NotecardCache.GetLine(assetID, count) + "\n";
+    
+    //                m_log.DebugFormat("[OSSL]: From notecard {0} loading line {1}", notecardNameOrUuid, line);
+    
+                    notecardData.Append(line);
+                }
+    
+                return notecardData.ToString();
             }
 
-            return notecardData.ToString();
+            return null;
         }
 
         /// <summary>
@@ -2407,6 +2413,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return;
 
                 string appearanceSerialized = LoadNotecard(notecard);
+
+                if (appearanceSerialized == null)
+                    return;
+                
                 OSDMap appearanceOsd = (OSDMap)OSDParser.DeserializeLLSDXml(appearanceSerialized);
 //                OSD a = OSDParser.DeserializeLLSDXml(appearanceSerialized);
 //                Console.WriteLine("appearanceSerialized {0}", appearanceSerialized);

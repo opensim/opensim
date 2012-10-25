@@ -114,6 +114,26 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             Assert.That(npc.Appearance.AvatarHeight, Is.EqualTo(newHeight));
         }
 
+        [Test]
+        public void TestOsNpcCreateNotExistingNotecard()
+        {
+            TestHelpers.InMethod();
+
+            UUID userId = TestHelpers.ParseTail(0x1);
+
+            SceneObjectGroup so = SceneHelpers.CreateSceneObject(1, userId, 0x10);
+            m_scene.AddSceneObject(so);
+
+            OSSL_Api osslApi = new OSSL_Api();
+            osslApi.Initialize(m_engine, so.RootPart, null);
+
+            string npcRaw
+                = osslApi.osNpcCreate("Jane", "Doe", new LSL_Types.Vector3(128, 128, 128), "not existing notecard name");
+
+            UUID npcId = new UUID(npcRaw);
+            Assert.That(npcId, Is.EqualTo(UUID.Zero));
+        }
+
         /// <summary>
         /// Test creation of an NPC where the appearance data comes from an avatar already in the region.
         /// </summary>
@@ -185,6 +205,40 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             ScenePresence npc = m_scene.GetScenePresence(npcId);
             Assert.That(npc, Is.Not.Null);
             Assert.That(npc.Appearance.AvatarHeight, Is.EqualTo(secondHeight));
+        }
+
+        [Test]
+        public void TestOsNpcLoadAppearanceNotExistingNotecard()
+        {
+            TestHelpers.InMethod();
+
+            // Store an avatar with a different height from default in a notecard.
+            UUID userId = TestHelpers.ParseTail(0x1);
+            float firstHeight = 1.9f;
+            float secondHeight = 2.1f;
+            string firstAppearanceNcName = "appearanceNc1";
+            string secondAppearanceNcName = "appearanceNc2";
+
+            ScenePresence sp = SceneHelpers.AddScenePresence(m_scene, userId);
+            sp.Appearance.AvatarHeight = firstHeight;
+            SceneObjectGroup so = SceneHelpers.CreateSceneObject(1, userId, 0x10);
+            SceneObjectPart part = so.RootPart;
+            m_scene.AddSceneObject(so);
+
+            OSSL_Api osslApi = new OSSL_Api();
+            osslApi.Initialize(m_engine, part, null);
+
+            osslApi.osOwnerSaveAppearance(firstAppearanceNcName);
+
+            string npcRaw
+                = osslApi.osNpcCreate("Jane", "Doe", new LSL_Types.Vector3(128, 128, 128), firstAppearanceNcName);
+
+            osslApi.osNpcLoadAppearance(npcRaw, secondAppearanceNcName);
+
+            UUID npcId = new UUID(npcRaw);
+            ScenePresence npc = m_scene.GetScenePresence(npcId);
+            Assert.That(npc, Is.Not.Null);
+            Assert.That(npc.Appearance.AvatarHeight, Is.EqualTo(firstHeight));
         }
 
         /// <summary>
