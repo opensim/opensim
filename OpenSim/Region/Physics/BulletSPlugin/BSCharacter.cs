@@ -152,7 +152,7 @@ public sealed class BSCharacter : BSPhysObject
         if (PhysicsScene.Params.ccdMotionThreshold > 0f)
         {
             BulletSimAPI.SetCcdMotionThreshold2(BSBody.ptr, PhysicsScene.Params.ccdMotionThreshold);
-            BulletSimAPI.SetCcdSweepSphereRadius2(BSBody.ptr, PhysicsScene.Params.ccdSweptSphereRadius);
+            BulletSimAPI.SetCcdSweptSphereRadius2(BSBody.ptr, PhysicsScene.Params.ccdSweptSphereRadius);
         }
 
         OMV.Vector3 localInertia = BulletSimAPI.CalculateLocalInertia2(BSShape.ptr, MassRaw);

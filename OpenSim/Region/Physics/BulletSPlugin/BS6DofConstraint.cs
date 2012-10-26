@@ -135,7 +135,11 @@ public sealed class BS6DofConstraint : BSConstraint
         bool ret = false;
         float onOff = enable ? ConfigurationParameters.numericTrue : ConfigurationParameters.numericFalse;
         if (m_enabled)
+        {
             ret = BulletSimAPI.TranslationalLimitMotor2(m_constraint.ptr, onOff, targetVelocity, maxMotorForce);
+            m_world.physicsScene.DetailLog("{0},BS6DOFConstraint,TransLimitMotor,enable={1},vel={2},maxForce={3}",
+                            BSScene.DetailLogZero, enable, targetVelocity, maxMotorForce);
+        }
         return ret;
     }
 

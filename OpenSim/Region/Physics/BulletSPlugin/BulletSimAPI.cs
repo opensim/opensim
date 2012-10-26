@@ -881,10 +881,10 @@ public static extern float GetCcdMotionThreshold2(IntPtr obj);
 public static extern void SetCcdMotionThreshold2(IntPtr obj, float val);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern float GetCcdSweepSphereRadius2(IntPtr obj);
+public static extern float GetCcdSweptSphereRadius2(IntPtr obj);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern void SetCcdSweepSphereRadius2(IntPtr obj, float val);
+public static extern void SetCcdSweptSphereRadius2(IntPtr obj, float val);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern IntPtr GetUserPointer2(IntPtr obj);
