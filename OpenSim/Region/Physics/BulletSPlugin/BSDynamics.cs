@@ -526,6 +526,12 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 BulletSimAPI.UpdateInertiaTensor2(Prim.BSBody.ptr);
             }
              */
+            if (IsActive)
+            {
+                // Friction effects are handled by this vehicle code
+                BulletSimAPI.SetFriction2(Prim.BSBody.ptr, 0f);
+                BulletSimAPI.SetHitFraction2(Prim.BSBody.ptr, 0f);
+            }
         }
 
         // One step of the vehicle properties for the next 'pTimestep' seconds.
@@ -552,6 +558,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 Prim.ForceOrientation = newOrientation;
             }
              */
+            BulletSimAPI.SetInterpolationVelocity2(Prim.BSBody.ptr, m_newVelocity, m_lastAngularVelocity);
 
             // remember the position so next step we can limit absolute movement effects
             m_lastPositionVector = Prim.ForcePosition;
@@ -570,17 +577,21 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             {
                 Vector3 origDir = m_linearMotorDirection;
                 Vector3 origVel = m_lastLinearVelocityVector;
+                Vector3 vehicleVelocity = Prim.ForceVelocity * Quaternion.Inverse(Prim.ForceOrientation);   // DEBUG
 
                 // add drive to body
                 Vector3 addAmount = (m_linearMotorDirection - m_lastLinearVelocityVector)/(m_linearMotorTimescale / pTimestep);
                 // lastLinearVelocityVector is the current body velocity vector
                 m_lastLinearVelocityVector += addAmount;
 
-                float keepfraction = 1.0f - (1.0f / (m_linearMotorDecayTimescale / pTimestep));
-                m_linearMotorDirection *= keepfraction;
+                float decayFactor = (1.0f / m_linearMotorDecayTimescale) * pTimestep;
+                m_linearMotorDirection *= (1f - decayFactor);
 
-                VDetailLog("{0},MoveLinear,nonZero,origdir={1},origvel={2},add={3},notDecay={4},dir={5},vel={6}",
-                    Prim.LocalID, origDir, origVel, addAmount, keepfraction, m_linearMotorDirection, m_lastLinearVelocityVector);
+                Vector3 frictionFactor = (Vector3.One / m_linearFrictionTimescale) * pTimestep;
+                m_lastLinearVelocityVector *= (Vector3.One - frictionFactor);
+
+                VDetailLog("{0},MoveLinear,nonZero,origdir={1},origvel={2},vehVel={3},add={4},decay={5},lmDir={6},lmVel={7}",
+                    Prim.LocalID, origDir, origVel, vehicleVelocity, addAmount, decayFactor, m_linearMotorDirection, m_lastLinearVelocityVector);
 
                 // convert requested object velocity to object relative vector
                 m_newVelocity = m_lastLinearVelocityVector * Prim.ForceOrientation;
@@ -661,18 +672,18 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 }
                 else
                 {
-                    float horizontalError = pos.Z - m_VhoverTargetHeight;
+                    float verticalError = pos.Z - m_VhoverTargetHeight;
                     // RA: where does the 50 come from>
-                    float horizontalCorrectionVelocity = ((horizontalError * 50.0f) / (m_VhoverTimescale / pTimestep));
+                    float verticalCorrectionVelocity = pTimestep * ((verticalError * 50.0f) / m_VhoverTimescale);
                     // Replace Vertical speed with correction figure if significant
-                    if (Math.Abs(horizontalError) > 0.01f)
+                    if (Math.Abs(verticalError) > 0.01f)
                     {
-                        m_newVelocity.Z += horizontalCorrectionVelocity;
+                        m_newVelocity.Z += verticalCorrectionVelocity;
                         //KF: m_VhoverEfficiency is not yet implemented
                     }
-                    else if (horizontalError < -0.01)
+                    else if (verticalError < -0.01)
                     {
-                        m_newVelocity.Z -= horizontalCorrectionVelocity;
+                        m_newVelocity.Z -= verticalCorrectionVelocity;
                     }
                     else
                     {
@@ -748,16 +759,13 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             if ((m_flags & (VehicleFlag.NO_Z)) != 0)
                 m_newVelocity.Z = 0;
 
-            // Apply friction
-            Vector3 keepFraction = Vector3.One - (Vector3.One / (m_linearFrictionTimescale / pTimestep));
-            m_lastLinearVelocityVector *= keepFraction;
-
             // Apply velocity
-            // Prim.ForceVelocity = m_newVelocity;
-            Prim.AddForce(m_newVelocity, false);
+            Prim.ForceVelocity = m_newVelocity;
+            // Prim.AddForce(m_newVelocity * Prim.Linkset.LinksetMass, false);
+            // Prim.AddForce(grav * Prim.Linkset.LinksetMass, false);
 
-            VDetailLog("{0},MoveLinear,done,lmDir={1},lmVel={2},newVel={3},grav={4},1Mdecay={5}",
-                    Prim.LocalID, m_linearMotorDirection, m_lastLinearVelocityVector, m_newVelocity, grav, keepFraction);
+            VDetailLog("{0},MoveLinear,done,lmDir={1},lmVel={2},newVel={3},grav={4}",
+                    Prim.LocalID, m_linearMotorDirection, m_lastLinearVelocityVector, m_newVelocity, grav);
 
         } // end MoveLinear()
 
@@ -858,14 +866,17 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             #region Deflection
 
             //Forward is the prefered direction, but if the reference frame has changed, we need to take this into account as well
-            Vector3 PreferredAxisOfMotion =
-                new Vector3((10*(m_angularDeflectionEfficiency/m_angularDeflectionTimescale)), 0, 0);
-            PreferredAxisOfMotion *= Quaternion.Add(Prim.ForceOrientation, m_referenceFrame);
+            if (m_angularDeflectionEfficiency != 0)
+            {
+                Vector3 preferredAxisOfMotion =
+                    new Vector3((pTimestep * 10 * (m_angularDeflectionEfficiency / m_angularDeflectionTimescale)), 0, 0);
+                preferredAxisOfMotion *= Quaternion.Add(Prim.ForceOrientation, m_referenceFrame);
 
-            //Multiply it so that it scales linearly
-            //deflection = PreferredAxisOfMotion;
+                deflection = (preferredAxisOfMotion * (m_angularDeflectionEfficiency) / m_angularDeflectionTimescale) * pTimestep;
 
-            //deflection = ((PreferredAxisOfMotion * m_angularDeflectionEfficiency) / (m_angularDeflectionTimescale / pTimestep));
+                VDetailLog("{0},MoveAngular,Deflection,perfAxis={1},deflection={2}", 
+                                        Prim.LocalID, preferredAxisOfMotion, deflection);
+            }
 
             #endregion
 
@@ -917,18 +928,16 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     banking += bankingRot;
                 }
                 m_angularMotorVelocity.X *= m_bankingEfficiency == 1 ? 0.0f : 1 - m_bankingEfficiency;
+                VDetailLog("{0},MoveAngular,Banking,bEff={1},angMotVel={2},banking={3}", 
+                                Prim.LocalID, m_bankingEfficiency, m_angularMotorVelocity, banking);
             }
 
             #endregion
 
             m_lastVertAttractor = vertattr;
 
-            // Bank section tba
-
-            // Deflection section tba
-
             // Sum velocities
-            m_lastAngularVelocity = m_angularMotorVelocity + vertattr; // + bank + deflection
+            m_lastAngularVelocity = m_angularMotorVelocity + vertattr + banking + deflection;
 
             if ((m_flags & (VehicleFlag.NO_DEFLECTION_UP)) != 0)
             {
@@ -948,8 +957,8 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             m_lastAngularVelocity -= m_lastAngularVelocity * decayamount;
 
             // Apply to the body
-            // Prim.ForceRotationalVelocity = m_lastAngularVelocity;
-            Prim.AddAngularForce(m_lastAngularVelocity, false);
+            // The above calculates the absolute angular velocity needed
+            Prim.ForceRotationalVelocity = m_lastAngularVelocity;
 
             VDetailLog("{0},MoveAngular,done,decay={1},lastAngular={2}", Prim.LocalID, decayamount, m_lastAngularVelocity);
         } //end MoveAngular
