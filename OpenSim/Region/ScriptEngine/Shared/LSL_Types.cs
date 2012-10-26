@@ -631,19 +631,44 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public LSL_Types.Vector3 GetVector3Item(int itemIndex)
             {
-                if(m_data[itemIndex] is LSL_Types.Vector3)
+                if (m_data[itemIndex] is LSL_Types.Vector3)
+                {
                     return (LSL_Types.Vector3)m_data[itemIndex];
+                }
+                else if(m_data[itemIndex] is OpenMetaverse.Vector3)
+                {
+                    return new LSL_Types.Vector3(
+                            (OpenMetaverse.Vector3)m_data[itemIndex]);
+                }
                 else
+                {
                     throw new InvalidCastException(string.Format(
                         "{0} expected but {1} given",
                         typeof(LSL_Types.Vector3).Name,
                         m_data[itemIndex] != null ?
                         m_data[itemIndex].GetType().Name : "null"));
+                }
             }
 
             public LSL_Types.Quaternion GetQuaternionItem(int itemIndex)
             {
-              return (LSL_Types.Quaternion)m_data[itemIndex];
+                if (m_data[itemIndex] is LSL_Types.Quaternion)
+                {
+                    return (LSL_Types.Quaternion)m_data[itemIndex];
+                }
+                else if(m_data[itemIndex] is OpenMetaverse.Quaternion)
+                {
+                    return new LSL_Types.Quaternion(
+                            (OpenMetaverse.Quaternion)m_data[itemIndex]);
+                }
+                else
+                {
+                    throw new InvalidCastException(string.Format(
+                        "{0} expected but {1} given",
+                        typeof(LSL_Types.Quaternion).Name,
+                        m_data[itemIndex] != null ?
+                        m_data[itemIndex].GetType().Name : "null"));
+                }
             }
 
             public LSL_Types.key GetKeyItem(int itemIndex)
