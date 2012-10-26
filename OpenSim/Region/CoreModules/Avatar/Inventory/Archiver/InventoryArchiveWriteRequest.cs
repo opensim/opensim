@@ -337,11 +337,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 {
                     m_log.DebugFormat("[INVENTORY ARCHIVER]: Saving {0} assets for items", m_assetUuids.Count);
 
-                    new AssetsRequest(
-                        new AssetsArchiver(m_archiveWriter),
-                        m_assetUuids, m_scene.AssetService,
-                        m_scene.UserAccountService, m_scene.RegionInfo.ScopeID,
-                        options, ReceivedAllAssets).Execute();
+                    AssetsRequest ar
+                        = new AssetsRequest(
+                            new AssetsArchiver(m_archiveWriter),
+                            m_assetUuids, m_scene.AssetService,
+                            m_scene.UserAccountService, m_scene.RegionInfo.ScopeID,
+                            options, ReceivedAllAssets);
+
+                    Util.FireAndForget(o => ar.Execute());
                 }
                 else
                 {

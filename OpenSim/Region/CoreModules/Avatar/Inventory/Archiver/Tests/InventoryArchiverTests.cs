@@ -49,7 +49,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 {
     [TestFixture]
     public class InventoryArchiverTests : InventoryArchiveTestCase
-    {   
+    {
         protected TestScene m_scene;
         protected InventoryArchiverModule m_archiverModule;
             
@@ -69,7 +69,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         public void TestLoadCoalesecedItem()
         {
             TestHelpers.InMethod();
-//            log4net.Config.XmlConfigurator.Configure();
+//            TestHelpers.EnableLogging();
             
             UserAccountHelpers.CreateUserWithInventory(m_scene, m_uaLL1, "password");
             m_archiverModule.DearchiveInventory(m_uaLL1.FirstName, m_uaLL1.LastName, "/", "password", m_iarStream);            
