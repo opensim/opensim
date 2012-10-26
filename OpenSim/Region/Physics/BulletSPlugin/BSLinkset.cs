@@ -167,9 +167,8 @@ public abstract class BSLinkset
         bool ret = false;
         lock (m_linksetActivityLock)
         {
-            if (m_children.Contains(child))
-                    ret = true;
-            /*
+            ret = m_children.Contains(child);
+            /* Safer version but the above should work
             foreach (BSPhysObject bp in m_children)
             {
                 if (child.LocalID == bp.LocalID)
@@ -179,6 +178,25 @@ public abstract class BSLinkset
                 }
             }
              */
+        }
+        return ret;
+    }
+
+    // Perform an action on each member of the linkset including root prim.
+    // The action is performed only on the objects that are physically in the linkset.
+    // Depends on the action on whether this should be done at taint time.
+    public delegate bool ForEachMemberAction(BSPhysObject obj);
+    public virtual bool ForEachMember(ForEachMemberAction action)
+    {
+        bool ret = false;
+        lock (m_linksetActivityLock)
+        {
+            action(LinksetRoot);
+            foreach (BSPhysObject po in m_taintChildren)
+            {
+                if (action(po))
+                    break;
+            }
         }
         return ret;
     }
@@ -224,13 +242,15 @@ public abstract class BSLinkset
 
     protected virtual float ComputeLinksetMass()
     {
-        float mass;
-        lock (m_linksetActivityLock)
+        float mass = LinksetRoot.MassRaw;
+        if (HasAnyChildren)
         {
-            mass = LinksetRoot.MassRaw;
-            foreach (BSPhysObject bp in m_taintChildren)
+            lock (m_linksetActivityLock)
             {
-                mass += bp.MassRaw;
+                foreach (BSPhysObject bp in m_children)
+                {
+                    mass += bp.MassRaw;
+                }
             }
         }
         return mass;
