@@ -692,7 +692,6 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     {
         if (_taintedObjects.Count > 0)  // save allocating new list if there is nothing to process
         {
-            // swizzle a new list into the list location so we can process what's there
             int taintCount = m_taintsToProcessPerStep;
             TaintCallbackEntry oneCallback = new TaintCallbackEntry();
             while (_taintedObjects.Count > 0 && taintCount-- > 0)
@@ -711,7 +710,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
                 {
                     try
                     {
-                        DetailLog("{0},BSScene.ProcessTaints,doTaint,id={1}", DetailLogZero, oneCallback.ident); // DEBUG DEBUG DEBUG
+                        DetailLog("{0},BSScene.ProcessTaints,doTaint,id={1}", DetailLogZero, oneCallback.ident);
                         oneCallback.callback();
                     }
                     catch (Exception e)

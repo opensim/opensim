@@ -333,8 +333,8 @@ public class BSTerrainManager
 
                 // Make sure the new shape is processed.
                 // BulletSimAPI.Activate2(mapInfo.terrainBody.ptr, true);
-                BulletSimAPI.ForceActivationState2(mapInfo.terrainBody.ptr, ActivationState.ISLAND_SLEEPING);
-                // BulletSimAPI.ForceActivationState2(mapInfo.terrainBody.ptr, ActivationState.DISABLE_SIMULATION);
+                // BulletSimAPI.ForceActivationState2(mapInfo.terrainBody.ptr, ActivationState.ISLAND_SLEEPING);
+                BulletSimAPI.ForceActivationState2(mapInfo.terrainBody.ptr, ActivationState.DISABLE_SIMULATION);
 
                 m_terrainModified = true;
             };

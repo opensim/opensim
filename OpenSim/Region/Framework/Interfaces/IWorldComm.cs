@@ -45,6 +45,13 @@ namespace OpenSim.Region.Framework.Interfaces
         void Deactivate();
         void Activate();
         UUID GetID();
+
+        /// <summary>
+        /// Bitfield indicating which strings should be processed as regex.
+        /// 1 corresponds to IWorldCommListenerInfo::GetName()
+        /// 2 corresponds to IWorldCommListenerInfo::GetMessage()
+        /// </summary>
+        int RegexBitfield { get; }
     }
 
     public interface IWorldComm
@@ -60,7 +67,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// the script during 'peek' time. Parameter hostID is needed to
         /// determine the position of the script.
         /// </summary>
-        /// <param name="localID">localID of the script engine</param>
+        /// <param name="LocalID">localID of the script engine</param>
         /// <param name="itemID">UUID of the script engine</param>
         /// <param name="hostID">UUID of the SceneObjectPart</param>
         /// <param name="channel">channel to listen on</param>
@@ -69,6 +76,23 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="msg">msg to filter on</param>
         /// <returns>number of the scripts handle</returns>
         int Listen(uint LocalID, UUID itemID, UUID hostID, int channel, string name, UUID id, string msg);
+
+         /// <summary>
+        /// Create a listen event callback with the specified filters.
+        /// The parameters localID,itemID are needed to uniquely identify
+        /// the script during 'peek' time. Parameter hostID is needed to
+        /// determine the position of the script.
+        /// </summary>
+        /// <param name="LocalID">localID of the script engine</param>
+        /// <param name="itemID">UUID of the script engine</param>
+        /// <param name="hostID">UUID of the SceneObjectPart</param>
+        /// <param name="channel">channel to listen on</param>
+        /// <param name="name">name to filter on</param>
+        /// <param name="id">key to filter on (user given, could be totally faked)</param>
+        /// <param name="msg">msg to filter on</param>
+        /// <param name="regexBitfield">Bitfield indicating which strings should be processed as regex.</param>
+        /// <returns>number of the scripts handle</returns>
+        int Listen(uint LocalID, UUID itemID, UUID hostID, int channel, string name, UUID id, string msg, int regexBitfield);
 
         /// <summary>
         /// This method scans over the objects which registered an interest in listen callbacks.

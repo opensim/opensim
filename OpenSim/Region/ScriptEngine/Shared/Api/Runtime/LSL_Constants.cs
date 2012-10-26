@@ -741,5 +741,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int KFM_CMD_PLAY = 0;
         public const int KFM_CMD_STOP = 1;
         public const int KFM_CMD_PAUSE = 2;
+
+        /// <summary>
+        /// process name parameter as regex
+        /// </summary>
+        public const int OS_LISTEN_REGEX_NAME = 0x1;
+
+        /// <summary>
+        /// process message parameter as regex
+        /// </summary>
+        public const int OS_LISTEN_REGEX_MESSAGE = 0x2;
     }
 }

@@ -218,7 +218,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else
             {
-                throw new Exception("OSSL Runtime Error: " + msg);
+                throw new ScriptException("OSSL Runtime Error: " + msg);
             }
         }
 
@@ -1789,18 +1789,24 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected string LoadNotecard(string notecardNameOrUuid)
         {
             UUID assetID = CacheNotecard(notecardNameOrUuid);
-            StringBuilder notecardData = new StringBuilder();
 
-            for (int count = 0; count < NotecardCache.GetLines(assetID); count++)
+            if (assetID != UUID.Zero)
             {
-                string line = NotecardCache.GetLine(assetID, count) + "\n";
-
-//                m_log.DebugFormat("[OSSL]: From notecard {0} loading line {1}", notecardNameOrUuid, line);
-
-                notecardData.Append(line);
+                StringBuilder notecardData = new StringBuilder();
+    
+                for (int count = 0; count < NotecardCache.GetLines(assetID); count++)
+                {
+                    string line = NotecardCache.GetLine(assetID, count) + "\n";
+    
+    //                m_log.DebugFormat("[OSSL]: From notecard {0} loading line {1}", notecardNameOrUuid, line);
+    
+                    notecardData.Append(line);
+                }
+    
+                return notecardData.ToString();
             }
 
-            return notecardData.ToString();
+            return null;
         }
 
         /// <summary>
@@ -2373,10 +2379,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             return UUID.Zero.ToString();
                         }
                     }
+                    else
+                    {
+                        OSSLError(string.Format("osNpcCreate: Notecard reference '{0}' not found.", notecard));
+                    }
                 }
-
-                if (appearance == null)
-                    return new LSL_Key(UUID.Zero.ToString());
 
                 UUID ownerID = UUID.Zero;
                 if (owned)
@@ -2446,6 +2453,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return;
 
                 string appearanceSerialized = LoadNotecard(notecard);
+
+                if (appearanceSerialized == null)
+                    OSSLError(string.Format("osNpcCreate: Notecard reference '{0}' not found.", notecard));
+
                 OSDMap appearanceOsd = (OSDMap)OSDParser.DeserializeLLSDXml(appearanceSerialized);
 //                OSD a = OSDParser.DeserializeLLSDXml(appearanceSerialized);
 //                Console.WriteLine("appearanceSerialized {0}", appearanceSerialized);
@@ -3690,6 +3701,69 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
 
             DropAttachmentAt(false, pos, rot);
+        }
+
+        public LSL_Integer osListenRegex(int channelID, string name, string ID, string msg, int regexBitfield)
+        {
+            CheckThreatLevel(ThreatLevel.Low, "osListenRegex");
+            m_host.AddScriptLPS(1);
+            UUID keyID;
+            UUID.TryParse(ID, out keyID);
+
+            // if we want the name to be used as a regular expression, ensure it is valid first.
+            if ((regexBitfield & ScriptBaseClass.OS_LISTEN_REGEX_NAME) == ScriptBaseClass.OS_LISTEN_REGEX_NAME)
+            {
+                try
+                {
+                    Regex.IsMatch("", name);
+                }
+                catch (Exception)
+                {
+                    OSSLShoutError("Name regex is invalid.");
+                    return -1;
+                }
+            }
+
+            // if we want the msg to be used as a regular expression, ensure it is valid first.
+            if ((regexBitfield & ScriptBaseClass.OS_LISTEN_REGEX_MESSAGE) == ScriptBaseClass.OS_LISTEN_REGEX_MESSAGE)
+            {
+                try
+                {
+                    Regex.IsMatch("", msg);
+                }
+                catch (Exception)
+                {
+                    OSSLShoutError("Message regex is invalid.");
+                    return -1;
+                }
+            }
+
+            IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
+            return (wComm == null) ? -1 : wComm.Listen(
+                m_host.LocalId,
+                m_item.ItemID,
+                m_host.UUID,
+                channelID,
+                name,
+                keyID,
+                msg,
+                regexBitfield
+            );
+        }
+
+        public LSL_Integer osRegexIsMatch(string input, string pattern)
+        {
+            CheckThreatLevel(ThreatLevel.Low, "osRegexIsMatch");
+            m_host.AddScriptLPS(1);
+            try
+            {
+                return Regex.IsMatch(input, pattern) ? 1 : 0;
+            }
+            catch (Exception)
+            {
+                OSSLShoutError("Possible invalid regular expression detected.");
+                return 0;
+            }
         }
     }
 }

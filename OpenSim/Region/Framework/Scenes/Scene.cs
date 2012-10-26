@@ -1300,6 +1300,12 @@ namespace OpenSim.Region.Framework.Scenes
         // This is the method that shuts down the scene.
         public override void Close()
         {
+            if (m_shuttingDown)
+            {
+                m_log.WarnFormat("[SCENE]: Ignoring close request because already closing {0}", Name);
+                return;
+            }
+
             m_log.InfoFormat("[SCENE]: Closing down the single simulator: {0}", RegionInfo.RegionName);
 
             StatsReporter.Close();
@@ -1343,6 +1349,14 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_sceneGraph.Close();
 
+            if (!GridService.DeregisterRegion(RegionInfo.RegionID))
+                m_log.WarnFormat("[SCENE]: Deregister from grid failed for region {0}", Name);
+
+            base.Close();
+
+            // XEngine currently listens to the EventManager.OnShutdown event to trigger script stop and persistence.
+            // Therefore. we must dispose of the PhysicsScene after this to prevent a window where script code can
+            // attempt to reference a null or disposed physics scene.
             if (PhysicsScene != null)
             {
                 PhysicsScene phys = PhysicsScene;
@@ -1351,12 +1365,6 @@ namespace OpenSim.Region.Framework.Scenes
                 phys.Dispose();
                 phys = null;
             }
-
-            if (!GridService.DeregisterRegion(RegionInfo.RegionID))
-                m_log.WarnFormat("[SCENE]: Deregister from grid failed for region {0}", Name);
-
-            // call the base class Close method.
-            base.Close();
         }
 
         /// <summary>
@@ -3595,9 +3603,10 @@ namespace OpenSim.Region.Framework.Scenes
                     if (closeChildAgents && CapsModule != null)
                         CapsModule.RemoveCaps(agentID);
     
-                    // REFACTORING PROBLEM -- well not really a problem, but just to point out that whatever
-                    // this method is doing is HORRIBLE!!!
-                    avatar.Scene.NeedSceneCacheClear(avatar.UUID);
+//                    // REFACTORING PROBLEM -- well not really a problem, but just to point out that whatever
+//                    // this method is doing is HORRIBLE!!!
+                    // Commented pending deletion since this method no longer appears to do anything at all
+//                    avatar.Scene.NeedSceneCacheClear(avatar.UUID);
     
                     if (closeChildAgents && !isChildAgent)
                     {
@@ -4899,10 +4908,21 @@ namespace OpenSim.Region.Framework.Scenes
         /// Get a group via its UUID
         /// </summary>
         /// <param name="fullID"></param>
-        /// <returns>null if no group with that name exists</returns>
+        /// <returns>null if no group with that id exists</returns>
         public SceneObjectGroup GetSceneObjectGroup(UUID fullID)
         {
             return m_sceneGraph.GetSceneObjectGroup(fullID);
+        }
+
+        /// <summary>
+        /// Get a group via its local ID
+        /// </summary>
+        /// <remarks>This will only return a group if the local ID matches a root part</remarks>
+        /// <param name="localID"></param>
+        /// <returns>null if no group with that id exists</returns>
+        public SceneObjectGroup GetSceneObjectGroup(uint localID)
+        {
+            return m_sceneGraph.GetSceneObjectGroup(localID);
         }
 
         /// <summary>
@@ -5065,14 +5085,15 @@ namespace OpenSim.Region.Framework.Scenes
                 client.SendRegionHandle(regionID, handle);
         }
 
-        public bool NeedSceneCacheClear(UUID agentID)
-        {
-            IInventoryTransferModule inv = RequestModuleInterface<IInventoryTransferModule>();
-            if (inv == null)
-                return true;
-
-            return inv.NeedSceneCacheClear(agentID, this);
-        }
+// Commented pending deletion since this method no longer appears to do anything at all
+//        public bool NeedSceneCacheClear(UUID agentID)
+//        {
+//            IInventoryTransferModule inv = RequestModuleInterface<IInventoryTransferModule>();
+//            if (inv == null)
+//                return true;
+//
+//            return inv.NeedSceneCacheClear(agentID, this);
+//        }
 
         public void CleanTempObjects()
         {

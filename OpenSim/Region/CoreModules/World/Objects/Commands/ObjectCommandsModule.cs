@@ -27,10 +27,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Xml;
 using log4net;
 using Mono.Addins;
 using NDesk.Options;
@@ -41,6 +43,7 @@ using OpenSim.Framework.Console;
 using OpenSim.Framework.Monitoring;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Framework.Scenes.Serialization;
 
 namespace OpenSim.Region.CoreModules.World.Objects.Commands
 {
@@ -96,9 +99,9 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                 HandleDeleteObject);
 
             m_console.Commands.AddCommand(
-                "Objects", false, "delete object uuid",
-                "delete object uuid <UUID>",
-                "Delete a scene object by uuid",
+                "Objects", false, "delete object id",
+                "delete object id <UUID-or-localID>",
+                "Delete a scene object by uuid or localID",
                 HandleDeleteObject);
 
             m_console.Commands.AddCommand(
@@ -122,28 +125,18 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                 "delete object pos",
                 "delete object pos <start-coord> to <end-coord>",
                 "Delete scene objects within the given area.",
-                "Each component of the coord is comma separated.  There must be no spaces between the commas.\n"
-                    + "If you don't care about the z component you can simply omit it.\n"
-                    + "If you don't care about the x or y components then you can leave them blank (though a comma is still required)\n"
-                    + "If you want to specify the maxmimum value of a component then you can use ~ instead of a number\n"
-                    + "If you want to specify the minimum value of a component then you can use -~ instead of a number\n"
-                    + "e.g.\n"
-                    + "delete object pos 20,20,20 to 40,40,40\n"
-                    + "delete object pos 20,20 to 40,40\n"
-                    + "delete object pos ,20,20 to ,40,40\n"
-                    + "delete object pos ,,30 to ,,~\n"
-                    + "delete object pos ,,-~ to ,,30",
+                ConsoleUtil.CoordHelp,
                 HandleDeleteObject);
 
             m_console.Commands.AddCommand(
                 "Objects",
                 false,
-                "show object uuid",
-                "show object uuid [--full] <UUID>",
-                "Show details of a scene object with the given UUID",
+                "show object id",
+                "show object id [--full] <UUID-or-localID>",
+                "Show details of a scene object with the given UUID or localID",
                 "The --full option will print out information on all the parts of the object.\n"
                     + "For yet more detailed part information, use the \"show part\" commands.",
-                HandleShowObjectByUuid);
+                HandleShowObjectById);
 
             m_console.Commands.AddCommand(
                 "Objects",
@@ -164,25 +157,15 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                 "Show details of scene objects within the given area.",
                 "The --full option will print out information on all the parts of the object.\n"
                     + "For yet more detailed part information, use the \"show part\" commands.\n"
-                    + "Each component of the coord is comma separated.  There must be no spaces between the commas.\n"
-                    + "If you don't care about the z component you can simply omit it.\n"
-                    + "If you don't care about the x or y components then you can leave them blank (though a comma is still required)\n"
-                    + "If you want to specify the maxmimum value of a component then you can use ~ instead of a number\n"
-                    + "If you want to specify the minimum value of a component then you can use -~ instead of a number\n"
-                    + "e.g.\n"
-                    + "show object pos 20,20,20 to 40,40,40\n"
-                    + "show object pos 20,20 to 40,40\n"
-                    + "show object pos ,20,20 to ,40,40\n"
-                    + "show object pos ,,30 to ,,~\n"
-                    + "show object pos ,,-~ to ,,30",
+                    + ConsoleUtil.CoordHelp,
                 HandleShowObjectByPos);
 
             m_console.Commands.AddCommand(
                 "Objects",
                 false,
-                "show part uuid",
-                "show part uuid <UUID>",
-                "Show details of a scene object parts with the given UUID", HandleShowPartByUuid);
+                "show part id",
+                "show part id <UUID-or-localID>",
+                "Show details of a scene object part with the given UUID or localID", HandleShowPartById);
 
             m_console.Commands.AddCommand(
                 "Objects",
@@ -190,7 +173,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                 "show part name",
                 "show part name [--regex] <name>",
                 "Show details of scene object parts with the given name.",
-                "If --regex is specified then the name is treatead as a regular expression",
+                "If --regex is specified then the name is treated as a regular expression",
                 HandleShowPartByName);
 
             m_console.Commands.AddCommand(
@@ -199,18 +182,19 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                 "show part pos",
                 "show part pos <start-coord> to <end-coord>",
                 "Show details of scene object parts within the given area.",
-                "Each component of the coord is comma separated.  There must be no spaces between the commas.\n"
-                    + "If you don't care about the z component you can simply omit it.\n"
-                    + "If you don't care about the x or y components then you can leave them blank (though a comma is still required)\n"
-                    + "If you want to specify the maxmimum value of a component then you can use ~ instead of a number\n"
-                    + "If you want to specify the minimum value of a component then you can use -~ instead of a number\n"
-                    + "e.g.\n"
-                    + "show object pos 20,20,20 to 40,40,40\n"
-                    + "show object pos 20,20 to 40,40\n"
-                    + "show object pos ,20,20 to ,40,40\n"
-                    + "show object pos ,,30 to ,,~\n"
-                    + "show object pos ,,-~ to ,,30",
+                ConsoleUtil.CoordHelp,
                 HandleShowPartByPos);
+
+            m_console.Commands.AddCommand(
+                "Objects",
+                false,
+                "dump object id",
+                "dump object id <UUID-or-localID>",
+                "Dump the formatted serialization of the given object to the file <UUID>.xml",
+                "e.g. dump object uuid c1ed6809-cc24-4061-a4c2-93082a2d1f1d will dump serialization to c1ed6809-cc24-4061-a4c2-93082a2d1f1d.xml\n"
+                    + "To locate the UUID or localID in the first place, you need to use the other show object commands.\n"
+                    + "If a local ID is given then the filename used is still that for the UUID",
+                HandleDumpObjectById);
         }
 
         public void RemoveRegion(Scene scene)
@@ -265,7 +249,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             m_console.OutputFormat(sb.ToString());
         }
 
-        private void HandleShowObjectByUuid(string module, string[] cmdparams)
+        private void HandleShowObjectById(string module, string[] cmdparams)
         {
             if (!(m_console.ConsoleScene == null || m_console.ConsoleScene == m_scene))
                 return;
@@ -281,14 +265,17 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                 return;
             }
 
-            UUID objectUuid;
-            if (!UUID.TryParse(mainParams[3], out objectUuid))
-            {
-                m_console.OutputFormat("{0} is not a valid uuid", mainParams[3]);
+            UUID uuid;
+            uint localId;
+            if (!ConsoleUtil.TryParseConsoleId(m_console, mainParams[3], out uuid, out localId))
                 return;
-            }
 
-            SceneObjectGroup so = m_scene.GetSceneObjectGroup(objectUuid);
+            SceneObjectGroup so;
+
+            if (localId != ConsoleUtil.LocalIdNotFound)
+                so = m_scene.GetSceneObjectGroup(localId);
+            else
+                so = m_scene.GetSceneObjectGroup(uuid);
 
             if (so == null)
             {
@@ -365,7 +352,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             OutputSogsToConsole(searchPredicate, showFull);
         }
 
-        private void HandleShowPartByUuid(string module, string[] cmdparams)
+        private void HandleShowPartById(string module, string[] cmdparams)
         {
             if (!(m_console.ConsoleScene == null || m_console.ConsoleScene == m_scene))
                 return;
@@ -378,18 +365,20 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
             if (mainParams.Count < 4)
             {
-                m_console.OutputFormat("Usage: show part uuid [--full] <uuid>");
+                m_console.OutputFormat("Usage: show part id [--full] <UUID-or-localID>");
                 return;
             }
 
             UUID objectUuid;
-            if (!UUID.TryParse(mainParams[3], out objectUuid))
-            {
-                m_console.OutputFormat("{0} is not a valid uuid", mainParams[3]);
+            uint localId;
+            if (!ConsoleUtil.TryParseConsoleId(m_console, mainParams[3], out objectUuid, out localId))
                 return;
-            }
 
-            SceneObjectPart sop = m_scene.GetSceneObjectPart(objectUuid);
+            SceneObjectPart sop;
+            if (localId == ConsoleUtil.LocalIdNotFound)
+                sop = m_scene.GetSceneObjectPart(objectUuid);
+            else
+                sop = m_scene.GetSceneObjectPart(localId);
 
             if (sop == null)
             {
@@ -475,6 +464,51 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             }
 
             OutputSopsToConsole(searchPredicate, true);
+        }
+
+        private void HandleDumpObjectById(string module, string[] cmdparams)
+        {
+            if (!(m_console.ConsoleScene == null || m_console.ConsoleScene == m_scene))
+                return;
+
+            if (cmdparams.Length < 4)
+            {
+                m_console.OutputFormat("Usage: dump object id <UUID-or-localID>");
+                return;
+            }
+
+            UUID objectUuid;
+            uint localId;
+            if (!ConsoleUtil.TryParseConsoleId(m_console, cmdparams[3], out objectUuid, out localId))
+                return;
+
+            SceneObjectGroup so;
+            if (localId == ConsoleUtil.LocalIdNotFound)
+                so = m_scene.GetSceneObjectGroup(objectUuid);
+            else
+                so = m_scene.GetSceneObjectGroup(localId);
+
+            if (so == null)
+            {
+//                m_console.OutputFormat("No part found with uuid {0}", objectUuid);
+                return;
+            }
+
+            // In case we found it via local ID.
+            objectUuid = so.UUID;
+
+            string fileName = string.Format("{0}.xml", objectUuid);
+
+            if (!ConsoleUtil.CheckFileDoesNotExist(m_console, fileName))
+                return;
+            
+            using (XmlTextWriter xtw = new XmlTextWriter(fileName, Encoding.UTF8))
+            {
+                xtw.Formatting = Formatting.Indented;
+                SceneObjectSerializer.ToOriginalXmlFormat(so, xtw, true);
+            }
+            
+            m_console.OutputFormat("Object dumped to file {0}", fileName);
         }
 
         /// <summary>
@@ -641,19 +675,24 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
         
                     break;
         
-                case "uuid":
-                    if (!UUID.TryParse(o, out match))
+                case "id":
+                    UUID uuid;
+                    uint localId;
+                    if (!ConsoleUtil.TryParseConsoleId(m_console, o, out uuid, out localId))
                         return;
 
                     requireConfirmation = false;
                     deletes = new List<SceneObjectGroup>();
-        
-                    m_scene.ForEachSOG(delegate (SceneObjectGroup g)
-                    {
-                        if (g.UUID == match && !g.IsAttachment)
-                            deletes.Add(g);
-                    });
-        
+
+                    SceneObjectGroup so;
+                    if (localId == ConsoleUtil.LocalIdNotFound)
+                        so = m_scene.GetSceneObjectGroup(uuid);
+                    else
+                        so = m_scene.GetSceneObjectGroup(localId);
+
+                    if (!so.IsAttachment)
+                       deletes.Add(so);
+
         //                if (deletes.Count == 0)
         //                    m_console.OutputFormat("No objects were found with uuid {0}", match);
         

@@ -26,18 +26,15 @@
  */
 
 using System;
-using System.Collections.Generic;
-using OpenMetaverse;
-using OpenSim.Framework;
 
-namespace OpenSim.Region.RegionCombinerModule
+namespace OpenSim.Region.ScriptEngine.Shared
 {
-
-    struct RegionCoarseLocationStruct
+    public class ScriptException : Exception
     {
-        public List<Vector3> Locations;
-        public List<UUID> Uuids;
-        public IClientAPI UserAPI;
-        public Vector2 Offset;
+        public ScriptException() : base() {}
+
+        public ScriptException(string message) : base(message) {}
+
+        public ScriptException(string message, Exception innerException) : base(message, innerException) {}
     }
 }

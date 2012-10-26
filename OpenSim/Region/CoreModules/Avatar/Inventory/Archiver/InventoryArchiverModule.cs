@@ -35,6 +35,7 @@ using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
+using OpenSim.Framework.Console;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
@@ -209,6 +210,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             Guid id, string firstName, string lastName, string invPath, string pass, string savePath,
             Dictionary<string, object> options)
         {
+            if (!ConsoleUtil.CheckFileDoesNotExist(MainConsole.Instance, savePath))
+                return false;
+
             if (m_scenes.Count > 0)
             {
                 UserAccount userInfo = GetUserInfo(firstName, lastName, pass);
