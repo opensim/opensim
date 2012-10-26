@@ -242,8 +242,8 @@ public sealed class BSPrim : BSPhysObject
         _acceleration = OMV.Vector3.Zero;
         _rotationalVelocity = OMV.Vector3.Zero;
 
-        // Zero some other properties directly into the physics engine
-        BulletSimAPI.ClearForces2(BSBody.ptr);
+        // Zero some other properties in the physics engine
+        BulletSimAPI.ClearAllForces2(BSBody.ptr);
     }
 
     public override void LockAngularMotion(OMV.Vector3 axis)
@@ -275,6 +275,7 @@ public sealed class BSPrim : BSPhysObject
             {
                 // DetailLog("{0},BSPrim.SetPosition,taint,pos={1},orient={2}", LocalID, _position, _orientation);
                 BulletSimAPI.SetTranslation2(BSBody.ptr, _position, _orientation);
+                ActivateIfPhysical(false);
             });
         }
     }
@@ -287,6 +288,7 @@ public sealed class BSPrim : BSPhysObject
             _position = value;
             PositionSanityCheck();
             BulletSimAPI.SetTranslation2(BSBody.ptr, _position, _orientation);
+            ActivateIfPhysical(false);
         }
     }
 
@@ -401,6 +403,7 @@ public sealed class BSPrim : BSPhysObject
                 // Done at taint time so we're sure the physics engine is not using the variables
                 // Vehicle code changes the parameters for this vehicle type.
                 _vehicle.ProcessTypeChange(type);
+                ActivateIfPhysical(false);
             });
         }
     }
@@ -409,6 +412,7 @@ public sealed class BSPrim : BSPhysObject
         PhysicsScene.TaintedObject("BSPrim.VehicleFloatParam", delegate()
         {
             _vehicle.ProcessFloatVehicleParam((Vehicle)param, value);
+            ActivateIfPhysical(false);
         });
     }
     public override void VehicleVectorParam(int param, OMV.Vector3 value)
@@ -416,6 +420,7 @@ public sealed class BSPrim : BSPhysObject
         PhysicsScene.TaintedObject("BSPrim.VehicleVectorParam", delegate()
         {
             _vehicle.ProcessVectorVehicleParam((Vehicle)param, value);
+            ActivateIfPhysical(false);
         });
     }
     public override void VehicleRotationParam(int param, OMV.Quaternion rotation)
@@ -423,6 +428,7 @@ public sealed class BSPrim : BSPhysObject
         PhysicsScene.TaintedObject("BSPrim.VehicleRotationParam", delegate()
         {
             _vehicle.ProcessRotationVehicleParam((Vehicle)param, rotation);
+            ActivateIfPhysical(false);
         });
     }
     public override void VehicleFlags(int param, bool remove)
@@ -540,6 +546,8 @@ public sealed class BSPrim : BSPhysObject
                 {
                     // DetailLog("{0},setIsPhysical,taint,isPhys={1}", LocalID, _isPhysical);
                     SetObjectDynamic(true);
+                    // whether phys-to-static or static-to-phys, the object is not moving.
+                    ZeroMotion();
                 });
             }
         }
@@ -623,7 +631,7 @@ public sealed class BSPrim : BSPhysObject
             // Become a Bullet 'static' object type
             CurrentCollisionFlags = BulletSimAPI.AddToCollisionFlags2(BSBody.ptr, CollisionFlags.CF_STATIC_OBJECT);
             // Stop all movement
-            BulletSimAPI.ClearAllForces2(BSBody.ptr);
+            ZeroMotion();
             // Center of mass is at the center of the object
             BulletSimAPI.SetCenterOfMassByPosRot2(Linkset.LinksetRoot.BSBody.ptr, _position, _orientation);
             // Mass is zero which disables a bunch of physics stuff in Bullet
@@ -634,7 +642,7 @@ public sealed class BSPrim : BSPhysObject
             if (PhysicsScene.Params.ccdMotionThreshold > 0f)
             {
                 BulletSimAPI.SetCcdMotionThreshold2(BSBody.ptr, PhysicsScene.Params.ccdMotionThreshold);
-                BulletSimAPI.SetCcdSweepSphereRadius2(BSBody.ptr, PhysicsScene.Params.ccdSweptSphereRadius);
+                BulletSimAPI.SetCcdSweptSphereRadius2(BSBody.ptr, PhysicsScene.Params.ccdSweptSphereRadius);
             }
             // There can be special things needed for implementing linksets
             Linkset.MakeStatic(this);
@@ -656,14 +664,14 @@ public sealed class BSPrim : BSPhysObject
             BulletSimAPI.SetRestitution2(BSBody.ptr, PhysicsScene.Params.defaultRestitution);
 
             // per http://www.bulletphysics.org/Bullet/phpBB3/viewtopic.php?t=3382
-            BulletSimAPI.ClearAllForces2(BSBody.ptr);
+            // Since this can be called multiple times, only zero forces when becoming physical
+            // BulletSimAPI.ClearAllForces2(BSBody.ptr);
 
             // For good measure, make sure the transform is set through to the motion state
             BulletSimAPI.SetTranslation2(BSBody.ptr, _position, _orientation);
 
             // A dynamic object has mass
-            IntPtr collisionShapePtr = BulletSimAPI.GetCollisionShape2(BSBody.ptr);
-            OMV.Vector3 inertia = BulletSimAPI.CalculateLocalInertia2(collisionShapePtr, Mass);
+            OMV.Vector3 inertia = BulletSimAPI.CalculateLocalInertia2(BSShape.ptr, Mass);
             BulletSimAPI.SetMassProps2(BSBody.ptr, _mass, inertia);
             BulletSimAPI.UpdateInertiaTensor2(BSBody.ptr);
 
@@ -671,7 +679,7 @@ public sealed class BSPrim : BSPhysObject
             if (PhysicsScene.Params.ccdMotionThreshold > 0f)
             {
                 BulletSimAPI.SetCcdMotionThreshold2(BSBody.ptr, PhysicsScene.Params.ccdMotionThreshold);
-                BulletSimAPI.SetCcdSweepSphereRadius2(BSBody.ptr, PhysicsScene.Params.ccdSweptSphereRadius);
+                BulletSimAPI.SetCcdSweptSphereRadius2(BSBody.ptr, PhysicsScene.Params.ccdSweptSphereRadius);
             }
 
             // Various values for simulation limits
@@ -719,6 +727,15 @@ public sealed class BSPrim : BSPhysObject
             BSBody.collisionFilter = CollisionFilterGroups.VolumeDetectFilter;
             BSBody.collisionMask = CollisionFilterGroups.VolumeDetectMask;
         }
+    }
+
+    // Enable physical actions. Bullet will keep sleeping non-moving physical objects so
+    //     they need waking up when parameters are changed.
+    // Called in taint-time!!
+    private void ActivateIfPhysical(bool forceIt)
+    {
+        if (IsPhysical)
+            BulletSimAPI.Activate2(BSBody.ptr, forceIt);
     }
 
     // Turn on or off the flag controlling whether collision events are returned to the simulator.
@@ -901,8 +918,7 @@ public sealed class BSPrim : BSPhysObject
                 }
                 m_accumulatedForces.Clear();
             }
-            // DetailLog("{0},BSPrim.AddObjectForce,taint,force={1}", LocalID, fSum);
-            // For unknown reasons, "ApplyCentralForce" adds this force to the total force on the object.
+            DetailLog("{0},BSPrim.AddForce,taint,force={1}", LocalID, fSum);
             if (fSum != OMV.Vector3.Zero)
                 BulletSimAPI.ApplyCentralForce2(BSBody.ptr, fSum);
         };
@@ -912,9 +928,43 @@ public sealed class BSPrim : BSPhysObject
             PhysicsScene.TaintedObject("BSPrim.AddForce", addForceOperation);
     }
 
+    private List<OMV.Vector3> m_accumulatedAngularForces = new List<OMV.Vector3>();
     public override void AddAngularForce(OMV.Vector3 force, bool pushforce) {
-        // DetailLog("{0},BSPrim.AddAngularForce,call,angForce={1},push={2}", LocalID, force, pushforce);
-        // m_log.DebugFormat("{0}: AddAngularForce. f={1}, push={2}", LogHeader, force, pushforce);
+        AddAngularForce(force, pushforce, false);
+    }
+    public void AddAngularForce(OMV.Vector3 force, bool pushforce, bool inTaintTime)
+    {
+        if (force.IsFinite())
+        {
+            // _force += force;
+            lock (m_accumulatedAngularForces)
+                m_accumulatedAngularForces.Add(new OMV.Vector3(force));
+        }
+        else
+        {
+            m_log.WarnFormat("{0}: Got a NaN force applied to a prim. LocalID={1}", LogHeader, LocalID);
+            return;
+        }
+        BSScene.TaintCallback addAngularForceOperation = delegate()
+        {
+            OMV.Vector3 fSum = OMV.Vector3.Zero;
+            lock (m_accumulatedAngularForces)
+            {
+                // Sum the accumulated additional forces for one big force to apply once.
+                foreach (OMV.Vector3 v in m_accumulatedAngularForces)
+                {
+                    fSum += v;
+                }
+                m_accumulatedAngularForces.Clear();
+            }
+            // DetailLog("{0},BSPrim.AddAngularForce,taint,aForce={1}", LocalID, fSum);
+            if (fSum != OMV.Vector3.Zero)
+                BulletSimAPI.ApplyTorque2(BSBody.ptr, fSum);
+        };
+        if (inTaintTime)
+            addAngularForceOperation();
+        else
+            PhysicsScene.TaintedObject("BSPrim.AddForce", addAngularForceOperation);
     }
     public override void SetMomentum(OMV.Vector3 momentum) {
         // DetailLog("{0},BSPrim.SetMomentum,call,mom={1}", LocalID, momentum);
