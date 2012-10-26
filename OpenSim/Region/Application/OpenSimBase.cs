@@ -543,7 +543,7 @@ namespace OpenSim
             if (account == null)
             {
                 m_log.ErrorFormat(
-                    "[OPENSIM]: Unable to store account. If this simulator is connected to a grid, you must create the estate owner account first.");
+                    "[OPENSIM]: Unable to store account. If this simulator is connected to a grid, you must create the estate owner account first at the grid level.");
             }
             else
             {
