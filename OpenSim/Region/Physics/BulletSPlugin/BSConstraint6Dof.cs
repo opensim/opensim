@@ -32,14 +32,14 @@ using OpenMetaverse;
 namespace OpenSim.Region.Physics.BulletSPlugin
 {
 
-public sealed class BS6DofConstraint : BSConstraint
+public sealed class BSConstraint6Dof : BSConstraint
 {
     private static string LogHeader = "[BULLETSIM 6DOF CONSTRAINT]";
 
     public override ConstraintType Type { get { return ConstraintType.D6_CONSTRAINT_TYPE; } }
 
     // Create a btGeneric6DofConstraint
-    public BS6DofConstraint(BulletSim world, BulletBody obj1, BulletBody obj2,
+    public BSConstraint6Dof(BulletSim world, BulletBody obj1, BulletBody obj2,
                     Vector3 frame1, Quaternion frame1rot,
                     Vector3 frame2, Quaternion frame2rot,
                     bool useLinearReferenceFrameA, bool disableCollisionsBetweenLinkedBodies)
@@ -58,7 +58,7 @@ public sealed class BS6DofConstraint : BSConstraint
                             obj1.ID, obj1.ptr.ToString("X"), obj2.ID, obj2.ptr.ToString("X"));
     }
 
-    public BS6DofConstraint(BulletSim world, BulletBody obj1, BulletBody obj2,
+    public BSConstraint6Dof(BulletSim world, BulletBody obj1, BulletBody obj2,
                     Vector3 joinPoint,
                     bool useLinearReferenceFrameA, bool disableCollisionsBetweenLinkedBodies)
     {

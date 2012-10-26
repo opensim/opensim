@@ -246,7 +246,7 @@ public sealed class BSLinksetConstraints : BSLinkset
         // create a constraint that allows no freedom of movement between the two objects
         // http://bulletphysics.org/Bullet/phpBB3/viewtopic.php?t=4818
 
-        BS6DofConstraint constrain = new BS6DofConstraint(
+        BSConstraint6Dof constrain = new BSConstraint6Dof(
                             PhysicsScene.World, rootPrim.BSBody, childPrim.BSBody, midPoint, true, true );
 
         /* NOTE: below is an attempt to build constraint with full frame computation, etc.
