@@ -3275,7 +3275,7 @@ namespace OpenSim.Region.Framework.Scenes
                 cAgent.Anims = Animator.Animations.ToArray();
             }
             catch { }
-            cAgent.DefaultAnim = Animator.Animations.DefaultAnimation;
+            cAgent.DefaultAnim = Animator.Animations.ImplicitDefaultAnimation;
 
             if (Scene.AttachmentsModule != null)
                 Scene.AttachmentsModule.CopyAttachments(this, cAgent);

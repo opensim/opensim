@@ -6122,7 +6122,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                  flags |= ScriptBaseClass.AGENT_SITTING;
              }
 
-             if (agent.Animator.Animations.DefaultAnimation.AnimID
+             if (agent.Animator.Animations.ImplicitDefaultAnimation.AnimID
                 == DefaultAvatarAnimations.AnimsUUID["SIT_GROUND_CONSTRAINED"])
              {
                  flags |= ScriptBaseClass.AGENT_SITTING;
@@ -8584,7 +8584,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 // and standing avatar since server 1.36
                 LSL_Vector lower;
                 LSL_Vector upper;
-                if (presence.Animator.Animations.DefaultAnimation.AnimID 
+                if (presence.Animator.Animations.ImplicitDefaultAnimation.AnimID 
                     == DefaultAvatarAnimations.AnimsUUID["SIT_GROUND_CONSTRAINED"])
                 {
                     // This is for ground sitting avatars
