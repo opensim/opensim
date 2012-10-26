@@ -4388,7 +4388,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     AnimationSet currentAnims = presence.Animator.Animations;
                     string currentAnimationState = String.Empty;
-                    if (animationstateNames.TryGetValue(currentAnims.DefaultAnimation.AnimID, out currentAnimationState))
+                    if (animationstateNames.TryGetValue(currentAnims.ImplicitDefaultAnimation.AnimID, out currentAnimationState))
                         return currentAnimationState;
                 }
             }
@@ -5705,7 +5705,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                  flags |= ScriptBaseClass.AGENT_SITTING;
              }
 
-             if (agent.Animator.Animations.DefaultAnimation.AnimID
+             if (agent.Animator.Animations.ImplicitDefaultAnimation.AnimID
                 == DefaultAvatarAnimations.AnimsUUID["SIT_GROUND_CONSTRAINED"])
              {
                  flags |= ScriptBaseClass.AGENT_SITTING;
@@ -7892,7 +7892,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     LSL_Vector lower;
                     LSL_Vector upper;
-                    if (presence.Animator.Animations.DefaultAnimation.AnimID
+                    if (presence.Animator.Animations.ImplicitDefaultAnimation.AnimID
                         == DefaultAvatarAnimations.AnimsUUID["SIT_GROUND_CONSTRAINED"])
                     {
                         // This is for ground sitting avatars

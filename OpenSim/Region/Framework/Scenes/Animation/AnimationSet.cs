@@ -41,12 +41,13 @@ namespace OpenSim.Region.Framework.Scenes.Animation
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        private OpenSim.Framework.Animation m_implicitDefaultAnimation = new OpenSim.Framework.Animation();
         private OpenSim.Framework.Animation m_defaultAnimation = new OpenSim.Framework.Animation();
         private List<OpenSim.Framework.Animation> m_animations = new List<OpenSim.Framework.Animation>();
 
-        public OpenSim.Framework.Animation DefaultAnimation 
+        public OpenSim.Framework.Animation ImplicitDefaultAnimation 
         {
-            get { return m_defaultAnimation; } 
+            get { return m_implicitDefaultAnimation; } 
         }
         
         public AnimationSet()
@@ -87,7 +88,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             {
                 if (m_defaultAnimation.AnimID == animID)
                 {
-                     m_defaultAnimation = new OpenSim.Framework.Animation(animID, 1, UUID.Zero);
+                    m_defaultAnimation = new OpenSim.Framework.Animation(UUID.Zero, 1, UUID.Zero);
                 }
                 else if (HasAnimation(animID))
                 {
@@ -119,6 +120,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             if (m_defaultAnimation.AnimID != animID)
             {
                 m_defaultAnimation = new OpenSim.Framework.Animation(animID, sequenceNum, objectID);
+                m_implicitDefaultAnimation = m_defaultAnimation;
                 return true;
             }
             return false;
