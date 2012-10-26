@@ -359,6 +359,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             result[i] = (string)(LSL_String)plist[i];                            
                         else if (plist[i] is LSL_Integer)
                             result[i] = (int)(LSL_Integer)plist[i];
+                        // The int check exists because of the many plain old int script constants in ScriptBase which
+                        // are not LSL_Integers.
                         else if (plist[i] is int)
                             result[i] = plist[i];
                         else if (plist[i] is LSL_Float)
