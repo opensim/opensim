@@ -129,6 +129,10 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             m_options = options;
             m_repliesRequired = uuids.Count;
 
+            // FIXME: This is a really poor way of handling the timeout since it will always leave the original requesting thread
+            // hanging.  Need to restructure so an original request thread waits for a ManualResetEvent on asset received
+            // so we can properly abort that thread.  Or request all assets synchronously, though that would be a more
+            // radical change
             m_requestCallbackTimer = new System.Timers.Timer(TIMEOUT);
             m_requestCallbackTimer.AutoReset = false;
             m_requestCallbackTimer.Elapsed += new ElapsedEventHandler(OnRequestCallbackTimeout);
