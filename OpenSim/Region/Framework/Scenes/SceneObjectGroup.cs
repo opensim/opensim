@@ -307,6 +307,11 @@ namespace OpenSim.Region.Framework.Scenes
 
         private bool m_isBackedUp;
 
+        public bool IsBackedUp
+        {
+            get { return m_isBackedUp; }
+        }
+
         protected MapAndArray<UUID, SceneObjectPart> m_parts = new MapAndArray<UUID, SceneObjectPart>();
 
         protected ulong m_regionHandle;
@@ -3430,6 +3435,14 @@ namespace OpenSim.Region.Framework.Scenes
             RootPart.UpdatePermissions(AgentID, field, localID, mask, addRemTF);
 
             bool god = Scene.Permissions.IsGod(AgentID);
+
+            if (field == 1 && god)
+            {
+                ForEachPart(part =>
+                {
+                    part.BaseMask = RootPart.BaseMask;
+                });
+            }
 
             AdjustChildPrimPermissions();
 
