@@ -1692,7 +1692,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             DateTime now = DateTime.UtcNow;
             TimeSpan timedif = now - m_lastframe;
-            m_lastframe = now;
             timeStep = (float)timedif.TotalSeconds;
             
             // acumulate time so we can reduce error
@@ -1703,6 +1702,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             if (framecount < 0)
                 framecount = 0;
+
+            m_lastframe = now;
 
             framecount++;
 
