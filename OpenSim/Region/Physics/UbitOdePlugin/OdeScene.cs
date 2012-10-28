@@ -1977,6 +1977,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         m_timeDilation = 1;
                     if (step_time > m_SkipFramesAtms)
                         step_time = 0;
+                    m_lastframe = DateTime.UtcNow; // skip also the time lost
                 }
             }
 
