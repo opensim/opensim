@@ -1322,7 +1322,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 //            m_lastUpdate = Util.EnvironmentTickCount();
 
-            m_sceneGraph.PreparePhysicsSimulation();
+//            m_sceneGraph.PreparePhysicsSimulation();
 
 
             m_heartbeatThread
