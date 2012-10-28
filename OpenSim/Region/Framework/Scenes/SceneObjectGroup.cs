@@ -307,6 +307,11 @@ namespace OpenSim.Region.Framework.Scenes
 
         private bool m_isBackedUp;
 
+        public bool IsBackedUp
+        {
+            get { return m_isBackedUp; }
+        }
+
         protected MapAndArray<UUID, SceneObjectPart> m_parts = new MapAndArray<UUID, SceneObjectPart>();
 
         protected ulong m_regionHandle;
@@ -3450,6 +3455,14 @@ namespace OpenSim.Region.Framework.Scenes
 
             bool god = Scene.Permissions.IsGod(AgentID);
 
+            if (field == 1 && god)
+            {
+                ForEachPart(part =>
+                {
+                    part.BaseMask = RootPart.BaseMask;
+                });
+            }
+
             AdjustChildPrimPermissions();
 
             if (field == 1 && god) // Base mask was set. Update all child part inventories
@@ -4374,6 +4387,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <remarks>
         /// When the physics engine has finished with it, the sculpt data is discarded to save memory.
         /// </remarks>
+/*        
         public void CheckSculptAndLoad()
         {
             if (IsDeleted)
@@ -4386,10 +4400,10 @@ namespace OpenSim.Region.Framework.Scenes
 
             SceneObjectPart[] parts = m_parts.GetArray();
 
-//            for (int i = 0; i < parts.Length; i++)
-//                parts[i].CheckSculptAndLoad();
+            for (int i = 0; i < parts.Length; i++)
+                parts[i].CheckSculptAndLoad();
         }
-
+*/
         /// <summary>
         /// Set the user group to which this scene object belongs.
         /// </summary>
