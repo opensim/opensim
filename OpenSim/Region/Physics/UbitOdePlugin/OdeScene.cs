@@ -1689,10 +1689,10 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <returns></returns>
         public override float Simulate(float timeStep)
         {
-
             DateTime now = DateTime.UtcNow;
             TimeSpan timedif = now - m_lastframe;
             timeStep = (float)timedif.TotalSeconds;
+            m_lastframe = now;
             
             // acumulate time so we can reduce error
             step_time += timeStep;
@@ -1703,7 +1703,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (framecount < 0)
                 framecount = 0;
 
-            m_lastframe = now;
 
             framecount++;
 
