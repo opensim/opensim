@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Reflection;
 
@@ -64,7 +65,9 @@ namespace OpenSim.Region.CoreModules.World.Sound
             }
             else
             {
-                Enabled = config.GetString("Module", "SoundModule") == "SoundModule";
+                Enabled = config.GetString("Module", "OpenSim.Region.CoreModules.dll:SoundModule") ==
+                        Path.GetFileName(Assembly.GetExecutingAssembly().Location)
+                        + ":" + MethodBase.GetCurrentMethod().DeclaringType.Name;
                 MaxDistance = config.GetFloat("MaxDistance", 100.0f);
             }
         }
