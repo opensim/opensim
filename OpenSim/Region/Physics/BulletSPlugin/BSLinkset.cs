@@ -204,7 +204,7 @@ public abstract class BSLinkset
     // When physical properties are changed the linkset needs to recalculate
     //   its internal properties.
     // May be called at runtime or taint-time (just pass the appropriate flag).
-    public abstract void Refresh(BSPhysObject requestor, bool inTaintTime);
+    public abstract void Refresh(BSPhysObject requestor);
 
     // The object is going dynamic (physical). Do any setup necessary
     //     for a dynamic linkset.
