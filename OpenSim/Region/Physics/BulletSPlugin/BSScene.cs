@@ -171,7 +171,9 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         }
     }
     private Object _taintLock = new Object();   // lock for using the next object
-    private List<TaintCallbackEntry> _taintedObjects;
+    private List<TaintCallbackEntry> _taintOperations;
+    private Dictionary<string, TaintCallbackEntry> _postTaintOperations;
+    private List<TaintCallbackEntry> _postStepOperations;
 
     // A pointer to an instance if this structure is passed to the C++ code
     // Used to pass basic configuration values to the unmanaged code.
@@ -203,7 +205,9 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     public override void Initialise(IMesher meshmerizer, IConfigSource config)
     {
         mesher = meshmerizer;
-        _taintedObjects = new List<TaintCallbackEntry>();
+        _taintOperations = new List<TaintCallbackEntry>();
+        _postTaintOperations = new Dictionary<string, TaintCallbackEntry>();
+        _postStepOperations = new List<TaintCallbackEntry>();
         PhysObjects = new Dictionary<uint, BSPhysObject>();
         Shapes = new BSShapeCollection(this);
 
@@ -475,23 +479,21 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         if (!m_initialized) return 5.0f;
 
         // update the prim states while we know the physics engine is not busy
-        int numTaints = _taintedObjects.Count;
+        int numTaints = _taintOperations.Count;
         ProcessTaints();
 
         // Some of the prims operate with special vehicle properties
         ProcessVehicles(timeStep);
-        numTaints += _taintedObjects.Count;
+        numTaints += _taintOperations.Count;
         ProcessTaints();    // the vehicles might have added taints
 
         // step the physical world one interval
         m_simulationStep++;
         int numSubSteps = 0;
 
-        // DEBUG
-        // DetailLog("{0},BSScene.Simulate,beforeStep,ntaimts={1},step={2}", DetailLogZero, numTaints, m_simulationStep);
-
         try
         {
+            // DumpVehicles();  // DEBUG
             if (PhysicsLogging.Enabled) beforeTime = Util.EnvironmentTickCount();
 
             numSubSteps = BulletSimAPI.PhysicsStep2(World.ptr, timeStep, m_maxSubSteps, m_fixedTimeStep,
@@ -500,6 +502,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             if (PhysicsLogging.Enabled) simTime = Util.EnvironmentTickCountSubtract(beforeTime);
             DetailLog("{0},Simulate,call, frame={1}, nTaints={2}, simTime={3}, substeps={4}, updates={5}, colliders={6}",
                         DetailLogZero, m_simulationStep, numTaints, simTime, numSubSteps, updatedEntityCount, collidersCount);
+            // DumpVehicles();  // DEBUG
         }
         catch (Exception e)
         {
@@ -578,6 +581,8 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         // This causes the unmanaged code to output ALL the values found in ALL the objects in the world.
         // Only enable this in a limited test world with few objects.
         // BulletSimAPI.DumpAllInfo2(World.ptr);    // DEBUG DEBUG DEBUG
+
+        ProcessPostStepTaints();
 
         // The physics engine returns the number of milliseconds it simulated this call.
         // These are summed and normalized to one second and divided by 1000 to give the reported physics FPS.
@@ -670,6 +675,8 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
     public override bool IsThreaded { get { return false;  } }
 
+    #region Taints
+
     // Calls to the PhysicsActors can't directly call into the physics engine
     // because it might be busy. We delay changes to a known time.
     // We rely on C#'s closure to save and restore the context for the delegate.
@@ -679,7 +686,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
         lock (_taintLock)
         {
-            _taintedObjects.Add(new TaintCallbackEntry(ident, callback));
+            _taintOperations.Add(new TaintCallbackEntry(ident, callback));
         }
 
         return;
@@ -690,19 +697,25 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     // here just before the physics engine is called to step the simulation.
     public void ProcessTaints()
     {
-        if (_taintedObjects.Count > 0)  // save allocating new list if there is nothing to process
+        ProcessRegularTaints();
+        ProcessPostTaintTaints();
+    }
+
+    private void ProcessRegularTaints()
+    {
+        if (_taintOperations.Count > 0)  // save allocating new list if there is nothing to process
         {
             int taintCount = m_taintsToProcessPerStep;
             TaintCallbackEntry oneCallback = new TaintCallbackEntry();
-            while (_taintedObjects.Count > 0 && taintCount-- > 0)
+            while (_taintOperations.Count > 0 && taintCount-- > 0)
             {
                 bool gotOne = false;
                 lock (_taintLock)
                 {
-                    if (_taintedObjects.Count > 0)
+                    if (_taintOperations.Count > 0)
                     {
-                        oneCallback = _taintedObjects[0];
-                        _taintedObjects.RemoveAt(0);
+                        oneCallback = _taintOperations[0];
+                        _taintOperations.RemoveAt(0);
                         gotOne = true;
                     }
                 }
@@ -745,6 +758,89 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
              */
         }
     }
+
+    // Schedule an update to happen after all the regular taints are processed.
+    // Note that new requests for the same operation ("ident") for the same object ("ID")
+    //     will replace any previous operation by the same object.
+    public void PostTaintObject(String ident, uint ID, TaintCallback callback)
+    {
+        if (!m_initialized) return;
+
+        lock (_taintLock)
+        {
+            _postTaintOperations[ident] = new TaintCallbackEntry(ident + "-" + ID.ToString(), callback);
+        }
+
+        return;
+    }
+
+    private void ProcessPostTaintTaints()
+    {
+        if (_postTaintOperations.Count > 0)
+        {
+            Dictionary<string, TaintCallbackEntry> oldList;
+            lock (_taintLock)
+            {
+                oldList = _postTaintOperations;
+                _postTaintOperations = new Dictionary<string, TaintCallbackEntry>();
+            }
+
+            foreach (KeyValuePair<string,TaintCallbackEntry> kvp in oldList)
+            {
+                try
+                {
+                    DetailLog("{0},BSScene.ProcessPostTaintTaints,doTaint,id={1}", DetailLogZero, kvp.Key); // DEBUG DEBUG DEBUG
+                    kvp.Value.callback();
+                }
+                catch (Exception e)
+                {
+                    m_log.ErrorFormat("{0}: ProcessPostTaintTaints: {1}: Exception: {2}", LogHeader, kvp.Key, e);
+                }
+            }
+            oldList.Clear();
+        }
+    }
+
+    public void PostStepTaintObject(String ident, TaintCallback callback)
+    {
+        if (!m_initialized) return;
+
+        lock (_taintLock)
+        {
+            _postStepOperations.Add(new TaintCallbackEntry(ident, callback));
+        }
+
+        return;
+    }
+
+    private void ProcessPostStepTaints()
+    {
+        if (_postStepOperations.Count > 0)
+        {
+            List<TaintCallbackEntry> oldList;
+            lock (_taintLock)
+            {
+                oldList = _postStepOperations;
+                _postStepOperations = new List<TaintCallbackEntry>();
+            }
+
+            foreach (TaintCallbackEntry tcbe in oldList)
+            {
+                try
+                {
+                    DetailLog("{0},BSScene.ProcessPostStepTaints,doTaint,id={1}", DetailLogZero, tcbe.ident); // DEBUG DEBUG DEBUG
+                    tcbe.callback();
+                }
+                catch (Exception e)
+                {
+                    m_log.ErrorFormat("{0}: ProcessPostStepTaints: {1}: Exception: {2}", LogHeader, tcbe.ident, e);
+                }
+            }
+            oldList.Clear();
+        }
+    }
+
+    #endregion // Taints
 
     #region Vehicles
 
@@ -1006,7 +1102,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             (s,cf,p,v) => { s.m_params[0].ccdSweptSphereRadius = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].ccdSweptSphereRadius; },
             (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].ccdSweptSphereRadius, p, l, v); },
-            (s,o,v) => { BulletSimAPI.SetCcdSweepSphereRadius2(o.BSBody.ptr, v); } ),
+            (s,o,v) => { BulletSimAPI.SetCcdSweptSphereRadius2(o.BSBody.ptr, v); } ),
         new ParameterDefn("ContactProcessingThreshold", "Distance between contacts before doing collision check" ,
             0.1f,
             (s,cf,p,v) => { s.m_params[0].contactProcessingThreshold = cf.GetFloat(p, v); },
@@ -1128,12 +1224,12 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             (s) => { return s.m_params[0].linkConstraintTransMotorMaxForce; },
             (s,p,l,v) => { s.m_params[0].linkConstraintTransMotorMaxForce = v; } ),
 	    new ParameterDefn("LinkConstraintCFM", "Amount constraint can be violated. 0=no violation, 1=infinite. Default=0.1",
-            0.001f,
+            0.1f,
             (s,cf,p,v) => { s.m_params[0].linkConstraintCFM = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].linkConstraintCFM; },
             (s,p,l,v) => { s.m_params[0].linkConstraintCFM = v; } ),
 	    new ParameterDefn("LinkConstraintERP", "Amount constraint is corrected each tick. 0=none, 1=all. Default = 0.2",
-            0.8f,
+            0.1f,
             (s,cf,p,v) => { s.m_params[0].linkConstraintERP = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].linkConstraintERP; },
             (s,p,l,v) => { s.m_params[0].linkConstraintERP = v; } ),
@@ -1325,6 +1421,16 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     #endregion IPhysicsParameters
 
     #endregion Runtime settable parameters
+
+    // Debugging routine for dumping detailed physical information for vehicle prims
+    private void DumpVehicles()
+    {
+        foreach (BSPrim prim in m_vehicles)
+        {
+            BulletSimAPI.DumpRigidBody2(World.ptr, prim.BSBody.ptr);
+            BulletSimAPI.DumpCollisionShape2(World.ptr, prim.BSShape.ptr);
+        }
+    }
 
     // Invoke the detailed logger and output something if it's enabled.
     public void DetailLog(string msg, params Object[] args)
