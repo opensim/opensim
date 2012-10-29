@@ -578,11 +578,11 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             }
         }
 
+        ProcessPostStepTaints();
+
         // This causes the unmanaged code to output ALL the values found in ALL the objects in the world.
         // Only enable this in a limited test world with few objects.
         // BulletSimAPI.DumpAllInfo2(World.ptr);    // DEBUG DEBUG DEBUG
-
-        ProcessPostStepTaints();
 
         // The physics engine returns the number of milliseconds it simulated this call.
         // These are summed and normalized to one second and divided by 1000 to give the reported physics FPS.
@@ -766,9 +766,10 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     {
         if (!m_initialized) return;
 
+        string uniqueIdent = ident + "-" + ID.ToString();
         lock (_taintLock)
         {
-            _postTaintOperations[ident] = new TaintCallbackEntry(ident + "-" + ID.ToString(), callback);
+            _postTaintOperations[uniqueIdent] = new TaintCallbackEntry(uniqueIdent, callback);
         }
 
         return;
