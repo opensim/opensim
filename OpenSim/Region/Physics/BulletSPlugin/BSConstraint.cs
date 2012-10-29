@@ -42,6 +42,12 @@ public abstract class BSConstraint : IDisposable
     protected BulletConstraint m_constraint;
     protected bool m_enabled = false;
 
+    public BulletBody Body1 { get { return m_body1; } }
+    public BulletBody Body2 { get { return m_body2; } }
+    public BulletConstraint Constraint { get { return m_constraint; } }
+    public abstract ConstraintType Type { get; }
+    public bool IsEnabled { get { return m_enabled; } }
+
     public BSConstraint()
     {
     }
@@ -63,12 +69,6 @@ public abstract class BSConstraint : IDisposable
             }
         }
     }
-
-    public BulletBody Body1 { get { return m_body1; } }
-    public BulletBody Body2 { get { return m_body2; } }
-    public BulletConstraint Constraint { get { return m_constraint; } }
-    public abstract ConstraintType Type { get; }
-
 
     public virtual bool SetLinearLimits(Vector3 low, Vector3 high)
     {

@@ -143,8 +143,6 @@ public sealed class BSConstraintCollection : IDisposable
     // Return 'true' if any constraints were destroyed.
     public bool RemoveAndDestroyConstraint(BulletBody body1)
     {
-        // return BulletSimAPI.RemoveConstraintByID(m_world.ID, obj.ID);
-
         List<BSConstraint> toRemove = new List<BSConstraint>();
         uint lookingID = body1.ID;
         lock (m_constraints)
