@@ -3007,7 +3007,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// <summary>
         /// Attach the object containing this script to the avatar that owns it.
         /// </summary>
-        /// <param name='attachment'>The attachment point (e.g. ATTACH_CHEST)</param>
+        /// <param name='attachmentPoint'>
+        /// The attachment point (e.g. <see cref="OpenSim.Region.ScriptEngine.Shared.ScriptBase.ScriptBaseClass.ATTACH_CHEST">ATTACH_CHEST</see>)
+        /// </param>
         /// <returns>true if the attach suceeded, false if it did not</returns>
         public bool AttachToAvatar(int attachmentPoint)
         {
@@ -5418,9 +5420,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         }
 
         /// <summary>
-        /// Insert the list identified by <src> into the
-        /// list designated by <dest> such that the first
-        /// new element has the index specified by <index>
+        /// Insert the list identified by <paramref name="src"/> into the
+        /// list designated by <paramref name="dest"/> such that the first
+        /// new element has the index specified by <paramref name="index"/>
         /// </summary>
 
         public LSL_List llListInsertList(LSL_List dest, LSL_List src, int index)
@@ -11520,7 +11522,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// Get a notecard line.
         /// </summary>
         /// <param name="assetID"></param>
-        /// <param name="line">Lines start at index 0</param>
+        /// <param name="lineNumber">Lines start at index 0</param>
         /// <returns></returns>
         public static string GetLine(UUID assetID, int lineNumber)
         {
@@ -11549,9 +11551,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// Get a notecard line.
         /// </summary>
         /// <param name="assetID"></param>
-        /// <param name="line">Lines start at index 0</param>
-        /// <param name="maxLength">Maximum length of the returned line.  Longer lines will be truncated</para>
-        /// <returns></returns>
+        /// <param name="lineNumber">Lines start at index 0</param>
+        /// <param name="maxLength">
+        /// Maximum length of the returned line.
+        /// </param>
+        /// <returns>
+        /// If the line length is longer than <paramref name="maxLength"/>,
+        /// the return string will be truncated.
+        /// </returns>
         public static string GetLine(UUID assetID, int lineNumber, int maxLength)
         {
             string line = GetLine(assetID, lineNumber);
