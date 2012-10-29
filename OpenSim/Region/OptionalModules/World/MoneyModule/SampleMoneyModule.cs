@@ -49,7 +49,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
     /// (such as land transfers).  There is no money code here!  Use FORGE as an example for money code.
     /// Demo Economy/Money Module.  This is a purposely crippled module!
     ///  // To land transfer you need to add:
-    /// -helperuri <ADDRESS TO THIS SERVER>
+    /// -helperuri http://serveraddress:port/
     /// to the command line parameters you use to start up your client
     /// This commonly looks like -helperuri http://127.0.0.1:9000/
     ///
@@ -116,10 +116,9 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
         }
 
         /// <summary>
-        /// Startup
+        /// Called on startup so the module can be configured.
         /// </summary>
-        /// <param name="scene"></param>
-        /// <param name="config"></param>
+        /// <param name="config">Configuration source.</param>
         public void Initialise(IConfigSource config)
         {
             m_gConfig = config;
@@ -674,9 +673,12 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
         }
 
         /// <summary>
-        /// When the client closes the connection we remove their accounting info from memory to free up resources.
+        /// When the client closes the connection we remove their accounting
+        /// info from memory to free up resources.
         /// </summary>
-        /// <param name="AgentID"></param>
+        /// <param name="AgentID">UUID of agent</param>
+        /// <param name="scene">Scene the agent was connected to.</param>
+        /// <see cref="OpenSim.Region.Framework.Scenes.EventManager.ClientClosed"/>
         public void ClientClosed(UUID AgentID, Scene scene)
         {
             
