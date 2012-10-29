@@ -539,6 +539,8 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         {
             if (!IsActive) return;
 
+            m_lastAngularVelocity = Prim.ForceRotationalVelocity;   // DEBUG: account for what Bullet did last time
+
             MoveLinear(pTimestep);
             MoveAngular(pTimestep);
             LimitRotation(pTimestep);
@@ -558,7 +560,8 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 Prim.ForceOrientation = newOrientation;
             }
              */
-            BulletSimAPI.SetInterpolationVelocity2(Prim.BSBody.ptr, m_newVelocity, m_lastAngularVelocity);
+            // DEBUG: Trying to figure out why Bullet goes crazy when the root prim is moved.
+            BulletSimAPI.SetInterpolationVelocity2(Prim.BSBody.ptr, m_newVelocity, m_lastAngularVelocity); // DEBUG DEBUG DEBUG
 
             // remember the position so next step we can limit absolute movement effects
             m_lastPositionVector = Prim.ForcePosition;
@@ -762,13 +765,14 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             // Apply velocity
             Prim.ForceVelocity = m_newVelocity;
             // Prim.AddForce(m_newVelocity * Prim.Linkset.LinksetMass, false);
-            // Prim.AddForce(grav * Prim.Linkset.LinksetMass, false);
+            Prim.AddForce(grav * Prim.Linkset.LinksetMass, false);
 
             VDetailLog("{0},MoveLinear,done,lmDir={1},lmVel={2},newVel={3},grav={4}",
                     Prim.LocalID, m_linearMotorDirection, m_lastLinearVelocityVector, m_newVelocity, grav);
 
         } // end MoveLinear()
 
+        // =======================================================================
         // Apply the effect of the angular motor.
         private void MoveAngular(float pTimestep)
         {
