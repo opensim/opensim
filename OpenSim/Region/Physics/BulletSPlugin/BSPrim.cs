@@ -356,13 +356,32 @@ public sealed class BSPrim : BSPhysObject
     {
         get
         {
-            // return Linkset.LinksetMass;
-            return _mass;
+            return Linkset.LinksetMass;
+            // return _mass;
         }
     }
 
     // used when we only want this prim's mass and not the linkset thing
-    public override float MassRaw { get { return _mass; }  }
+    public override float MassRaw { 
+        get { return _mass; }
+    }
+    // Set the physical mass to the passed mass.
+    // Note that this does not change _mass!
+    public override void UpdatePhysicalMassProperties(float physMass)
+    {
+        if (IsStatic)
+        {
+            BulletSimAPI.SetMassProps2(BSBody.ptr, 0f, OMV.Vector3.Zero);
+            BulletSimAPI.UpdateInertiaTensor2(BSBody.ptr);
+        }
+        else
+        {
+            OMV.Vector3 localInertia = BulletSimAPI.CalculateLocalInertia2(BSShape.ptr, physMass);
+            BulletSimAPI.SetMassProps2(BSBody.ptr, physMass, localInertia);
+            BulletSimAPI.UpdateInertiaTensor2(BSBody.ptr);
+            DetailLog("{0},BSPrim.UpdateMassProperties,mass={1},localInertia={2}", LocalID, physMass, localInertia);
+        }
+    }
 
     // Is this used?
     public override OMV.Vector3 CenterOfMass
@@ -613,7 +632,7 @@ public sealed class BSPrim : BSPhysObject
         // Recompute any linkset parameters.
         // When going from non-physical to physical, this re-enables the constraints that
         //     had been automatically disabled when the mass was set to zero.
-        Linkset.Refresh(this, true);
+        Linkset.Refresh(this);
 
         DetailLog("{0},BSPrim.UpdatePhysicalParameters,exit,static={1},solid={2},mass={3},collide={4},cf={5:X},body={6},shape={7}",
                         LocalID, IsStatic, IsSolid, _mass, SubscribedEvents(), CurrentCollisionFlags, BSBody, BSShape);
@@ -635,9 +654,7 @@ public sealed class BSPrim : BSPhysObject
             // Center of mass is at the center of the object
             BulletSimAPI.SetCenterOfMassByPosRot2(Linkset.LinksetRoot.BSBody.ptr, _position, _orientation);
             // Mass is zero which disables a bunch of physics stuff in Bullet
-            BulletSimAPI.SetMassProps2(BSBody.ptr, 0f, OMV.Vector3.Zero);
-            // There is no inertia in a static object
-            BulletSimAPI.UpdateInertiaTensor2(BSBody.ptr);
+            UpdatePhysicalMassProperties(0f);
             // Set collision detection parameters
             if (PhysicsScene.Params.ccdMotionThreshold > 0f)
             {
@@ -671,9 +688,7 @@ public sealed class BSPrim : BSPhysObject
             BulletSimAPI.SetTranslation2(BSBody.ptr, _position, _orientation);
 
             // A dynamic object has mass
-            OMV.Vector3 inertia = BulletSimAPI.CalculateLocalInertia2(BSShape.ptr, Mass);
-            BulletSimAPI.SetMassProps2(BSBody.ptr, _mass, inertia);
-            BulletSimAPI.UpdateInertiaTensor2(BSBody.ptr);
+            UpdatePhysicalMassProperties(MassRaw);
 
             // Set collision detection parameters
             if (PhysicsScene.Params.ccdMotionThreshold > 0f)
@@ -1247,9 +1262,7 @@ public sealed class BSPrim : BSPhysObject
 
         returnMass = _density * volume;
 
-        /*
-         * This change means each object keeps its own mass and the Mass property
-         * will return the sum if we're part of a linkset.
+        /* Comment out code that computes the mass of the linkset. That is done in the Linkset class.
         if (IsRootOfLinkset)
         {
             foreach (BSPrim prim in _childrenPrims)

@@ -64,6 +64,8 @@ public abstract class BSPhysObject : PhysicsActor
 
     // Return the object mass without calculating it or having side effects
     public abstract float MassRaw { get; }
+    // Set the raw mass but also update physical mass properties (inertia, ...)
+    public abstract void UpdatePhysicalMassProperties(float mass);
 
     // Reference to the physical body (btCollisionObject) of this object
     public BulletBody BSBody;
