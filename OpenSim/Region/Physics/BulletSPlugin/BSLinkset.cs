@@ -61,16 +61,7 @@ public abstract class BSLinkset
     public int LinksetID { get; private set; }
 
     // The children under the root in this linkset.
-    // There are two lists of children: the current children at runtime
-    //    and the children at taint-time. For instance, if you delink a
-    //    child from the linkset, the child is removed from m_children
-    //    but the constraint won't be removed until taint time.
-    //    Two lists lets this track the 'current' children and
-    //    the physical 'taint' children separately.
-    // After taint processing and before the simulation step, these
-    //    two lists must be the same.
     protected HashSet<BSPhysObject> m_children;
-    protected HashSet<BSPhysObject> m_taintChildren;
 
     // We lock the diddling of linkset classes to prevent any badness.
     // This locks the modification of the instances of this class. Changes
@@ -110,7 +101,6 @@ public abstract class BSLinkset
         PhysicsScene = scene;
         LinksetRoot = parent;
         m_children = new HashSet<BSPhysObject>();
-        m_taintChildren = new HashSet<BSPhysObject>();
         m_mass = parent.MassRaw;
     }
 
@@ -192,7 +182,7 @@ public abstract class BSLinkset
         lock (m_linksetActivityLock)
         {
             action(LinksetRoot);
-            foreach (BSPhysObject po in m_taintChildren)
+            foreach (BSPhysObject po in m_children)
             {
                 if (action(po))
                     break;
@@ -201,9 +191,24 @@ public abstract class BSLinkset
         return ret;
     }
 
+    // I am the root of a linkset and a new child is being added
+    // Called while LinkActivity is locked.
+    protected abstract void AddChildToLinkset(BSPhysObject child);
+
+    // Forcefully removing a child from a linkset.
+    // This is not being called by the child so we have to make sure the child doesn't think
+    //    it's still connected to the linkset.
+    // Normal OpenSimulator operation will never do this because other SceneObjectPart information
+    //    also has to be updated (like pointer to prim's parent).
+    protected abstract void RemoveChildFromOtherLinkset(BSPhysObject pchild);
+
+    // I am the root of a linkset and one of my children is being removed.
+    // Safe to call even if the child is not really in my linkset.
+    protected abstract void RemoveChildFromLinkset(BSPhysObject child);
+
     // When physical properties are changed the linkset needs to recalculate
     //   its internal properties.
-    // May be called at runtime or taint-time (just pass the appropriate flag).
+    // May be called at runtime or taint-time.
     public abstract void Refresh(BSPhysObject requestor);
 
     // The object is going dynamic (physical). Do any setup necessary
@@ -238,8 +243,6 @@ public abstract class BSLinkset
     public abstract void RestoreBodyDependencies(BSPrim child);
 
     // ================================================================
-    // Below this point is internal magic
-
     protected virtual float ComputeLinksetMass()
     {
         float mass = LinksetRoot.MassRaw;
@@ -264,7 +267,7 @@ public abstract class BSLinkset
             com = LinksetRoot.Position * LinksetRoot.MassRaw;
             float totalMass = LinksetRoot.MassRaw;
 
-            foreach (BSPhysObject bp in m_taintChildren)
+            foreach (BSPhysObject bp in m_children)
             {
                 com += bp.Position * bp.MassRaw;
                 totalMass += bp.MassRaw;
@@ -283,30 +286,15 @@ public abstract class BSLinkset
         {
             com = LinksetRoot.Position;
 
-            foreach (BSPhysObject bp in m_taintChildren)
+            foreach (BSPhysObject bp in m_children)
             {
                 com += bp.Position * bp.MassRaw;
             }
-            com /= (m_taintChildren.Count + 1);
+            com /= (m_children.Count + 1);
         }
 
         return com;
     }
-
-    // I am the root of a linkset and a new child is being added
-    // Called while LinkActivity is locked.
-    protected abstract void AddChildToLinkset(BSPhysObject child);
-
-    // Forcefully removing a child from a linkset.
-    // This is not being called by the child so we have to make sure the child doesn't think
-    //    it's still connected to the linkset.
-    // Normal OpenSimulator operation will never do this because other SceneObjectPart information
-    //    also has to be updated (like pointer to prim's parent).
-    protected abstract void RemoveChildFromOtherLinkset(BSPhysObject pchild);
-
-    // I am the root of a linkset and one of my children is being removed.
-    // Safe to call even if the child is not really in my linkset.
-    protected abstract void RemoveChildFromLinkset(BSPhysObject child);
 
     // Invoke the detailed logger and output something if it's enabled.
     protected void DetailLog(string msg, params Object[] args)
