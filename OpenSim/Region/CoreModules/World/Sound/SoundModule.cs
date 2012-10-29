@@ -39,8 +39,8 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.World.Sound
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "SoundModuleNonShared")]
-    public class SoundModuleNonShared : INonSharedRegionModule, ISoundModule
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "SoundModule")]
+    public class SoundModule : INonSharedRegionModule, ISoundModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
@@ -64,7 +64,7 @@ namespace OpenSim.Region.CoreModules.World.Sound
             }
             else
             {
-                Enabled = config.GetString("Module", "SoundModuleNonShared") == "SoundModuleNonShared";
+                Enabled = config.GetString("Module", "SoundModule") == "SoundModule";
                 MaxDistance = config.GetFloat("MaxDistance", 100.0f);
             }
         }
