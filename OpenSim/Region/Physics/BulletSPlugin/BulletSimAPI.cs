@@ -378,6 +378,7 @@ public enum CollisionFilterGroups : uint
     BTerrainFilter           = 1 << 11,
     BRaycastFilter           = 1 << 12,
     BSolidFilter             = 1 << 13,
+    BLinksetFilter           = 1 << 14,
 
     // The collsion filters and masked are defined in one place -- don't want them scattered
     AvatarFilter            = BCharacterFilter,
@@ -386,6 +387,8 @@ public enum CollisionFilterGroups : uint
     ObjectMask              = BAllFilter,
     StaticObjectFilter      = BStaticFilter,
     StaticObjectMask        = BAllFilter,
+    LinksetFilter           = BLinksetFilter,
+    LinksetMask             = BAllFilter & ~BLinksetFilter,
     VolumeDetectFilter      = BSensorTrigger,
     VolumeDetectMask        = ~BSensorTrigger,
     TerrainFilter           = BTerrainFilter,
