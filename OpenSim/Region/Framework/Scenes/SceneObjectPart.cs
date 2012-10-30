@@ -4468,7 +4468,7 @@ namespace OpenSim.Region.Framework.Scenes
                         if (god)
                         {
                             BaseMask = ApplyMask(BaseMask, set, mask);
-                            Inventory.ApplyGodPermissions(_baseMask);
+                            Inventory.ApplyGodPermissions(BaseMask);
                         }
 
                         break;
@@ -4487,7 +4487,7 @@ namespace OpenSim.Region.Framework.Scenes
                     case 16:
                         NextOwnerMask = ApplyMask(NextOwnerMask, set, mask) &
                                 baseMask;
-                        // Prevent the client from creating no mod, no copy
+                        // Prevent the client from creating no copy, no transfer
                         // objects
                         if ((NextOwnerMask & (uint)PermissionMask.Copy) == 0)
                             NextOwnerMask |= (uint)PermissionMask.Transfer;
@@ -4505,20 +4505,20 @@ namespace OpenSim.Region.Framework.Scenes
         {
             bool update = false;
 
-            if (BaseMask != source.BaseMask ||
-                OwnerMask != source.OwnerMask ||
-                GroupMask != source.GroupMask ||
-                EveryoneMask != source.EveryoneMask ||
-                NextOwnerMask != source.NextOwnerMask)
-                update = true;
+            uint prevOwnerMask = OwnerMask;
+            uint prevGroupMask = GroupMask;
+            uint prevEveryoneMask = EveryoneMask;
+            uint prevNextOwnerMask = NextOwnerMask;
 
-            BaseMask = source.BaseMask;
-            OwnerMask = source.OwnerMask;
-            GroupMask = source.GroupMask;
-            EveryoneMask = source.EveryoneMask;
-            NextOwnerMask = source.NextOwnerMask;
+            OwnerMask = source.OwnerMask & BaseMask;
+            GroupMask = source.GroupMask & BaseMask;
+            EveryoneMask = source.EveryoneMask & BaseMask;
+            NextOwnerMask = source.NextOwnerMask & BaseMask;
 
-            if (update)
+            if (OwnerMask != prevOwnerMask ||
+                GroupMask != prevGroupMask ||
+                EveryoneMask != prevEveryoneMask ||
+                NextOwnerMask != prevNextOwnerMask)
                 SendFullUpdateToAllClients();
         }
 

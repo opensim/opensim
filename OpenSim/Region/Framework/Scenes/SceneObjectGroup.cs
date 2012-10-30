@@ -307,6 +307,11 @@ namespace OpenSim.Region.Framework.Scenes
 
         private bool m_isBackedUp;
 
+        public bool IsBackedUp
+        {
+            get { return m_isBackedUp; }
+        }
+
         protected MapAndArray<UUID, SceneObjectPart> m_parts = new MapAndArray<UUID, SceneObjectPart>();
 
         protected ulong m_regionHandle;
@@ -3410,11 +3415,18 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void AdjustChildPrimPermissions()
         {
+            uint newOwnerMask = (uint)PermissionMask.All & 0xfffffff8; // Mask folded bits
+            uint foldedPerms = RootPart.OwnerMask & 3;
+
             ForEachPart(part =>
             {
+                newOwnerMask &= part.BaseMask;
                 if (part != RootPart)
                     part.ClonePermissions(RootPart);
             });
+
+            RootPart.OwnerMask = newOwnerMask | foldedPerms;
+            RootPart.ScheduleFullUpdate();
         }
 
         public void UpdatePermissions(UUID AgentID, byte field, uint localID,
@@ -3422,7 +3434,23 @@ namespace OpenSim.Region.Framework.Scenes
         {
             RootPart.UpdatePermissions(AgentID, field, localID, mask, addRemTF);
 
+            bool god = Scene.Permissions.IsGod(AgentID);
+
+            if (field == 1 && god)
+            {
+                ForEachPart(part =>
+                {
+                    part.BaseMask = RootPart.BaseMask;
+                });
+            }
+
             AdjustChildPrimPermissions();
+
+            if (field == 1 && god) // Base mask was set. Update all child part inventories
+            {
+                foreach (SceneObjectPart part in Parts)
+                    part.Inventory.ApplyGodPermissions(RootPart.BaseMask);
+            }
 
             HasGroupChanged = true;
 
