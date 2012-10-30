@@ -3351,7 +3351,7 @@ Console.WriteLine(" JointCreateFixed");
 
         private void MeshAssetReceived(AssetBase asset)
         {
-            if (asset.Data != null && asset.Data.Length > 0)
+            if (asset != null && asset.Data != null && asset.Data.Length > 0)
             {
                 if (!_pbs.SculptEntry)
                     return;
