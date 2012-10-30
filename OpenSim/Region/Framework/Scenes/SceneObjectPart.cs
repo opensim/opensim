@@ -2864,6 +2864,35 @@ namespace OpenSim.Region.Framework.Scenes
                 SendLandCollisionEvent(scriptEvents.land_collision_end, ParentGroup.Scene.EventManager.TriggerScriptLandCollidingEnd);
         }
 
+        // The Collision sounds code calls this
+        public void SendCollisionSound(UUID soundID, double volume, Vector3 position)
+        {
+            if (soundID == UUID.Zero)
+                return;
+
+            ISoundModule soundModule = ParentGroup.Scene.RequestModuleInterface<ISoundModule>();
+            if (soundModule == null)
+                return;
+
+            if (volume > 1)
+                volume = 1;
+            if (volume < 0)
+                volume = 0;
+
+            int now = Util.EnvironmentTickCount();
+            if(Util.EnvironmentTickCountSubtract(now,LastColSoundSentTime) <200)
+                return;
+
+            LastColSoundSentTime = now;
+
+            UUID ownerID = OwnerID;
+            UUID objectID = ParentGroup.RootPart.UUID;
+            UUID parentID = ParentGroup.UUID;
+            ulong regionHandle = ParentGroup.Scene.RegionInfo.RegionHandle;
+
+            soundModule.TriggerSound(soundID, ownerID, objectID, parentID, volume, position, regionHandle, 0 );
+        }
+
         public void PhysicsOutOfBounds(Vector3 pos)
         {
             m_log.Error("[PHYSICS]: Physical Object went out of bounds.");
