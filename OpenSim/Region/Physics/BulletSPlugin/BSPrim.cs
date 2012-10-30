@@ -634,7 +634,7 @@ public sealed class BSPrim : BSPhysObject
         //     had been automatically disabled when the mass was set to zero.
         Linkset.Refresh(this);
 
-        DetailLog("{0},BSPrim.UpdatePhysicalParameters,exit,static={1},solid={2},mass={3},collide={4},cf={5:X},body={6},shape={7}",
+        DetailLog("{0},BSPrim.UpdatePhysicalParameters,taintExit,static={1},solid={2},mass={3},collide={4},cf={5:X},body={6},shape={7}",
                         LocalID, IsStatic, IsSolid, _mass, SubscribedEvents(), CurrentCollisionFlags, BSBody, BSShape);
     }
 

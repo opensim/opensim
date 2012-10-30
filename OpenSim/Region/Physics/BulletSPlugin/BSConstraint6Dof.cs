@@ -71,8 +71,7 @@ public sealed class BSConstraint6Dof : BSConstraint
                             BSScene.DetailLogZero, world.worldID,
                             obj1.ID, obj1.ptr.ToString("X"), obj2.ID, obj2.ptr.ToString("X"));
             world.physicsScene.Logger.ErrorFormat("{0} Attempt to build 6DOF constraint with missing bodies: wID={1}, rID={2}, rBody={3}, cID={4}, cBody={5}",
-                            "[BULLETSIM 6DOF CONSTRAINT]", world.worldID,
-                            obj1.ID, obj1.ptr.ToString("X"), obj2.ID, obj2.ptr.ToString("X"));
+                            LogHeader, world.worldID, obj1.ID, obj1.ptr.ToString("X"), obj2.ID, obj2.ptr.ToString("X"));
             m_enabled = false;
         }
         else

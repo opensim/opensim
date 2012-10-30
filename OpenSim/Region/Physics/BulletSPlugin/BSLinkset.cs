@@ -132,7 +132,6 @@ public abstract class BSLinkset
                 // Cannot remove the root from a linkset.
                 return this;
             }
-
             RemoveChildFromLinkset(child);
         }
 

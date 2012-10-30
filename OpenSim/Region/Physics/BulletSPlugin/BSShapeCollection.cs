@@ -109,7 +109,7 @@ public sealed class BSShapeCollection : IDisposable
                                     prim.BSShape, shapeData, bodyCallback);
             ret = newGeom || newBody;
         }
-        DetailLog("{0},BSShapeCollection.GetBodyAndShape,force={1},ret={2},body={3},shape={4}",
+        DetailLog("{0},BSShapeCollection.GetBodyAndShape,taintExit,force={1},ret={2},body={3},shape={4}",
                                 prim.LocalID, forceRebuild, ret, prim.BSBody, prim.BSShape);
 
         return ret;
