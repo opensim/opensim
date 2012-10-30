@@ -813,7 +813,7 @@ namespace OpenSim.Region.Framework.Scenes
                         actor.Orientation = GetWorldRotation();
 
                         // Tell the physics engines that this prim changed.
-                        if (ParentGroup.Scene != null)
+                        if (ParentGroup.Scene != null && ParentGroup.Scene.PhysicsScene != null)
                             ParentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(actor);
                     }
 
