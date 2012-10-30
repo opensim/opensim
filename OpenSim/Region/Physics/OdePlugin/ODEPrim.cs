@@ -3335,7 +3335,6 @@ Console.WriteLine(" JointCreateFixed");
             m_material = pMaterial;
         }
 
-
         private void CheckMeshAsset()
         {
             if (_pbs.SculptEntry && !m_assetFailed && _pbs.SculptTexture != UUID.Zero)
@@ -3345,12 +3344,12 @@ Console.WriteLine(" JointCreateFixed");
                     {
                         RequestAssetDelegate assetProvider = _parent_scene.RequestAssetMethod;
                         if (assetProvider != null)
-                            assetProvider(_pbs.SculptTexture, MeshAssetReveived);
+                            assetProvider(_pbs.SculptTexture, MeshAssetReceived);
                     });
             }
         }
 
-        void MeshAssetReveived(AssetBase asset)
+        void MeshAssetReceived(AssetBase asset)
         {
             if (asset.Data != null && asset.Data.Length > 0)
             {
