@@ -3349,7 +3349,7 @@ Console.WriteLine(" JointCreateFixed");
             }
         }
 
-        void MeshAssetReceived(AssetBase asset)
+        private void MeshAssetReceived(AssetBase asset)
         {
             if (asset.Data != null && asset.Data.Length > 0)
             {
