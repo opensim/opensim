@@ -192,7 +192,18 @@ namespace OpenSim.Framework.Servers
                         "threads show",
                         "Show thread status.  Synonym for \"show threads\"",
                         (string module, string[] args) => Notice(GetThreadsReport()));
+
+                m_console.Commands.AddCommand("General", false, "force gc",
+                        "force gc",
+                        "Manually invoke runtime garbage collection.  For debugging purposes",
+                        HandleForceGc);
             }
+        }
+
+        private void HandleForceGc(string module, string[] args)
+        {
+            MainConsole.Instance.Output("Manually invoking runtime garbage collection");
+            GC.Collect();
         }
         
         /// <summary>

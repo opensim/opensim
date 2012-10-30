@@ -3552,9 +3552,10 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 else
                 {
-                    // We remove the acd up here to avoid later raec conditions if two RemoveClient() calls occurred
+                    // We remove the acd up here to avoid later race conditions if two RemoveClient() calls occurred
                     // simultaneously.
-                    m_authenticateHandler.RemoveCircuit(acd.circuitcode);
+                    // We also need to remove by agent ID since NPCs will have no circuit code.
+                    m_authenticateHandler.RemoveCircuit(agentID);
                 }
             }
 

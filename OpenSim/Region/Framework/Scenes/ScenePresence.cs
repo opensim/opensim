@@ -75,8 +75,9 @@ namespace OpenSim.Region.Framework.Scenes
     {
 //        ~ScenePresence()
 //        {
-//            m_log.Debug("[SCENE PRESENCE] Destructor called");
+//            m_log.DebugFormat("[SCENE PRESENCE]: Destructor called on {0}", Name);
 //        }
+
         private void TriggerScenePresenceUpdated()
         {
             if (m_scene != null)
