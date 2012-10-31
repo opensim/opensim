@@ -606,12 +606,18 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             cdt.AddColumn("Asset UUID", 36);
 
             foreach (TaskInventoryItem item in inv.GetInventoryItems())
+            {
+                bool foundScriptInstance, scriptRunning;
+                foundScriptInstance
+                    = SceneObjectPartInventory.TryGetScriptInstanceRunning(m_scene, item, out scriptRunning);
+
                 cdt.AddRow(
                     item.Name,
                     ((InventoryType)item.InvType).ToString(),
-                    (InventoryType)item.InvType == InventoryType.LSL ? item.ScriptRunning.ToString() : "n/a",
+                    foundScriptInstance ? scriptRunning.ToString() : "n/a",
                     item.ItemID.ToString(),
                     item.AssetID.ToString());
+            }
 
             return sb.Append(cdt.ToString());
         }
