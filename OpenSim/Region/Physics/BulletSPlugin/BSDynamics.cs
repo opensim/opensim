@@ -514,8 +514,8 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             if (IsActive)
             {
                 // Friction effects are handled by this vehicle code
-                BulletSimAPI.SetFriction2(Prim.BSBody.ptr, 0f);
-                BulletSimAPI.SetHitFraction2(Prim.BSBody.ptr, 0f);
+                BulletSimAPI.SetFriction2(Prim.PhysBody.ptr, 0f);
+                BulletSimAPI.SetHitFraction2(Prim.PhysBody.ptr, 0f);
             }
         }
 

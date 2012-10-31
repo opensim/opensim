@@ -194,13 +194,6 @@ public abstract class BSLinkset
     // Called while LinkActivity is locked.
     protected abstract void AddChildToLinkset(BSPhysObject child);
 
-    // Forcefully removing a child from a linkset.
-    // This is not being called by the child so we have to make sure the child doesn't think
-    //    it's still connected to the linkset.
-    // Normal OpenSimulator operation will never do this because other SceneObjectPart information
-    //    also has to be updated (like pointer to prim's parent).
-    protected abstract void RemoveChildFromOtherLinkset(BSPhysObject pchild);
-
     // I am the root of a linkset and one of my children is being removed.
     // Safe to call even if the child is not really in my linkset.
     protected abstract void RemoveChildFromLinkset(BSPhysObject child);

@@ -68,9 +68,9 @@ public abstract class BSPhysObject : PhysicsActor
     public abstract void UpdatePhysicalMassProperties(float mass);
 
     // Reference to the physical body (btCollisionObject) of this object
-    public BulletBody BSBody;
+    public BulletBody PhysBody;
     // Reference to the physical shape (btCollisionShape) of this object
-    public BulletShape BSShape;
+    public BulletShape PhysShape;
 
     // 'true' if the mesh's underlying asset failed to build.
     // This will keep us from looping after the first time the build failed.
@@ -206,7 +206,7 @@ public abstract class BSPhysObject : PhysicsActor
 
             PhysicsScene.TaintedObject(TypeName+".SubscribeEvents", delegate()
             {
-                CurrentCollisionFlags = BulletSimAPI.AddToCollisionFlags2(BSBody.ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
+                CurrentCollisionFlags = BulletSimAPI.AddToCollisionFlags2(PhysBody.ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
             });
         }
         else
@@ -220,7 +220,7 @@ public abstract class BSPhysObject : PhysicsActor
         SubscribedEventsMs = 0;
         PhysicsScene.TaintedObject(TypeName+".UnSubscribeEvents", delegate()
         {
-            CurrentCollisionFlags = BulletSimAPI.RemoveFromCollisionFlags2(BSBody.ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
+            CurrentCollisionFlags = BulletSimAPI.RemoveFromCollisionFlags2(PhysBody.ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
         });
     }
     // Return 'true' if the simulator wants collision events

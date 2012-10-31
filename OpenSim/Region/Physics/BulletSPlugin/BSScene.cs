@@ -1067,49 +1067,49 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             (s,cf,p,v) => { s.m_params[0].linearDamping = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].linearDamping; },
             (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].linearDamping, p, l, v); },
-            (s,o,v) => { BulletSimAPI.SetDamping2(o.BSBody.ptr, v, v); } ),
+            (s,o,v) => { BulletSimAPI.SetDamping2(o.PhysBody.ptr, v, v); } ),
         new ParameterDefn("AngularDamping", "Factor to damp angular movement per second (0.0 - 1.0)",
             0f,
             (s,cf,p,v) => { s.m_params[0].angularDamping = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].angularDamping; },
             (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].angularDamping, p, l, v); },
-            (s,o,v) => { BulletSimAPI.SetDamping2(o.BSBody.ptr, v, v); } ),
+            (s,o,v) => { BulletSimAPI.SetDamping2(o.PhysBody.ptr, v, v); } ),
         new ParameterDefn("DeactivationTime", "Seconds before considering an object potentially static",
             0.2f,
             (s,cf,p,v) => { s.m_params[0].deactivationTime = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].deactivationTime; },
             (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].deactivationTime, p, l, v); },
-            (s,o,v) => { BulletSimAPI.SetDeactivationTime2(o.BSBody.ptr, v); } ),
+            (s,o,v) => { BulletSimAPI.SetDeactivationTime2(o.PhysBody.ptr, v); } ),
         new ParameterDefn("LinearSleepingThreshold", "Seconds to measure linear movement before considering static",
             0.8f,
             (s,cf,p,v) => { s.m_params[0].linearSleepingThreshold = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].linearSleepingThreshold; },
             (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].linearSleepingThreshold, p, l, v); },
-            (s,o,v) => { BulletSimAPI.SetSleepingThresholds2(o.BSBody.ptr, v, v); } ),
+            (s,o,v) => { BulletSimAPI.SetSleepingThresholds2(o.PhysBody.ptr, v, v); } ),
         new ParameterDefn("AngularSleepingThreshold", "Seconds to measure angular movement before considering static",
             1.0f,
             (s,cf,p,v) => { s.m_params[0].angularSleepingThreshold = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].angularSleepingThreshold; },
             (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].angularSleepingThreshold, p, l, v); },
-            (s,o,v) => { BulletSimAPI.SetSleepingThresholds2(o.BSBody.ptr, v, v); } ),
+            (s,o,v) => { BulletSimAPI.SetSleepingThresholds2(o.PhysBody.ptr, v, v); } ),
         new ParameterDefn("CcdMotionThreshold", "Continuious collision detection threshold (0 means no CCD)" ,
             0f,     // set to zero to disable
             (s,cf,p,v) => { s.m_params[0].ccdMotionThreshold = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].ccdMotionThreshold; },
             (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].ccdMotionThreshold, p, l, v); },
-            (s,o,v) => { BulletSimAPI.SetCcdMotionThreshold2(o.BSBody.ptr, v); } ),
+            (s,o,v) => { BulletSimAPI.SetCcdMotionThreshold2(o.PhysBody.ptr, v); } ),
         new ParameterDefn("CcdSweptSphereRadius", "Continuious collision detection test radius" ,
             0f,
             (s,cf,p,v) => { s.m_params[0].ccdSweptSphereRadius = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].ccdSweptSphereRadius; },
             (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].ccdSweptSphereRadius, p, l, v); },
-            (s,o,v) => { BulletSimAPI.SetCcdSweptSphereRadius2(o.BSBody.ptr, v); } ),
+            (s,o,v) => { BulletSimAPI.SetCcdSweptSphereRadius2(o.PhysBody.ptr, v); } ),
         new ParameterDefn("ContactProcessingThreshold", "Distance between contacts before doing collision check" ,
             0.1f,
             (s,cf,p,v) => { s.m_params[0].contactProcessingThreshold = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].contactProcessingThreshold; },
             (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].contactProcessingThreshold, p, l, v); },
-            (s,o,v) => { BulletSimAPI.SetContactProcessingThreshold2(o.BSBody.ptr, v); } ),
+            (s,o,v) => { BulletSimAPI.SetContactProcessingThreshold2(o.PhysBody.ptr, v); } ),
 
         new ParameterDefn("TerrainFriction", "Factor to reduce movement against terrain surface" ,
             0.5f,
@@ -1428,8 +1428,8 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     {
         foreach (BSPrim prim in m_vehicles)
         {
-            BulletSimAPI.DumpRigidBody2(World.ptr, prim.BSBody.ptr);
-            BulletSimAPI.DumpCollisionShape2(World.ptr, prim.BSShape.ptr);
+            BulletSimAPI.DumpRigidBody2(World.ptr, prim.PhysBody.ptr);
+            BulletSimAPI.DumpCollisionShape2(World.ptr, prim.PhysShape.ptr);
         }
     }
 
