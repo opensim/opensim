@@ -5219,8 +5219,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AddLocalPacketHandler(PacketType.MultipleObjectUpdate, HandleMultipleObjUpdate, false);
             AddLocalPacketHandler(PacketType.MoneyTransferRequest, HandleMoneyTransferRequest, false);
             AddLocalPacketHandler(PacketType.ParcelBuy, HandleParcelBuyRequest, false);
-            AddLocalPacketHandler(PacketType.UUIDGroupNameRequest, HandleUUIDGroupNameRequest, false);
-            AddLocalPacketHandler(PacketType.ObjectGroup, HandleObjectGroupRequest, false);
+            AddLocalPacketHandler(PacketType.UUIDGroupNameRequest, HandleUUIDGroupNameRequest);
+            AddLocalPacketHandler(PacketType.ObjectGroup, HandleObjectGroupRequest);
             AddLocalPacketHandler(PacketType.GenericMessage, HandleGenericMessage);
             AddLocalPacketHandler(PacketType.AvatarPropertiesRequest, HandleAvatarPropertiesRequest);
             AddLocalPacketHandler(PacketType.ChatFromViewer, HandleChatFromViewer);
