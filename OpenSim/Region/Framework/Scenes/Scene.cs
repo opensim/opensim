@@ -1748,15 +1748,19 @@ namespace OpenSim.Region.Framework.Scenes
 
         private void CheckAtTargets()
         {
-            List<SceneObjectGroup> objs = new List<SceneObjectGroup>();
+            List<SceneObjectGroup> objs = null;
+
             lock (m_groupsWithTargets)
             {
-                foreach (SceneObjectGroup grp in m_groupsWithTargets.Values)
-                    objs.Add(grp);
+                if (m_groupsWithTargets.Count != 0)
+                    objs = new List<SceneObjectGroup>(m_groupsWithTargets.Values);
             }
 
-            foreach (SceneObjectGroup entry in objs)
-                entry.checkAtTargets();
+            if (objs != null)
+            {
+                foreach (SceneObjectGroup entry in objs)
+                    entry.checkAtTargets();
+            }
         }
 
         /// <summary>

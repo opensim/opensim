@@ -45,6 +45,11 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         private OpenSim.Framework.Animation m_defaultAnimation = new OpenSim.Framework.Animation();
         private List<OpenSim.Framework.Animation> m_animations = new List<OpenSim.Framework.Animation>();
 
+        public OpenSim.Framework.Animation DefaultAnimation 
+        {
+            get { return m_defaultAnimation; } 
+        }
+        
         public OpenSim.Framework.Animation ImplicitDefaultAnimation 
         {
             get { return m_implicitDefaultAnimation; } 
@@ -124,6 +129,12 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                 return true;
             }
             return false;
+        }
+
+        // Called from serialization only
+        public void SetImplicitDefaultAnimation(UUID animID, int sequenceNum, UUID objectID)
+        {
+            m_implicitDefaultAnimation = new OpenSim.Framework.Animation(animID, sequenceNum, objectID);
         }
 
         protected bool ResetDefaultAnimation()
