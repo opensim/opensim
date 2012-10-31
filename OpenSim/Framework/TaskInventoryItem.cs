@@ -73,9 +73,6 @@ namespace OpenSim.Framework
 
         private bool _ownerChanged = false;
 
-        // This used ONLY during copy. It can't be relied on at other times!
-        private bool _scriptRunning = true;
-
         public UUID AssetID {
             get {
                 return _assetID;
@@ -353,14 +350,13 @@ namespace OpenSim.Framework
             }
         }
 
-        public bool ScriptRunning {
-            get {
-                return _scriptRunning;
-            }
-            set {
-                _scriptRunning = value;
-            }
-        }
+        /// <summary>
+        /// This used ONLY during copy. It can't be relied on at other times!
+        /// </summary>
+        /// <remarks>
+        /// For true script running status, use IEntityInventory.TryGetScriptInstanceRunning() for now.
+        /// </remarks>
+        public bool ScriptRunning { get; set; }
 
         // See ICloneable
 
@@ -388,6 +384,7 @@ namespace OpenSim.Framework
 
         public TaskInventoryItem()
         {
+            ScriptRunning = true;
             CreationDate = (uint)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
         }
     }

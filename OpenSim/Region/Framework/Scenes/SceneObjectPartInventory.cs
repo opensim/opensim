@@ -232,29 +232,47 @@ namespace OpenSim.Region.Framework.Scenes
             if (m_part == null || m_part.ParentGroup == null || m_part.ParentGroup.Scene == null)
                 return;
 
-            IScriptModule[] engines = m_part.ParentGroup.Scene.RequestModuleInterfaces<IScriptModule>();
-            if (engines == null) // No engine at all
-                return;
-
             lock (Items)
             {
                 foreach (TaskInventoryItem item in Items.Values)
                 {
-                    if (item.InvType == (int)InventoryType.LSL)
-                    {
-                        foreach (IScriptModule e in engines)
-                        {
-                            bool running;
-
-                            if (e.HasScript(item.ItemID, out running))
-                            {
-                                item.ScriptRunning = running;
-                                break;
-                            }
-                        }
-                    }
+                    bool running;
+                    if (TryGetScriptInstanceRunning(m_part.ParentGroup.Scene, item, out running))
+                        item.ScriptRunning = running;
                 }
             }
+        }
+
+        public bool TryGetScriptInstanceRunning(UUID itemId, out bool running)
+        {
+            running = false;
+
+            TaskInventoryItem item = GetInventoryItem(itemId);
+
+            if (item == null)
+                return false;
+
+            return TryGetScriptInstanceRunning(m_part.ParentGroup.Scene, item, out running);
+        }
+
+        public static bool TryGetScriptInstanceRunning(Scene scene, TaskInventoryItem item, out bool running)
+        {
+            running = false;
+
+            if (item.InvType != (int)InventoryType.LSL)
+                return false;
+
+            IScriptModule[] engines = scene.RequestModuleInterfaces<IScriptModule>();
+            if (engines == null) // No engine at all
+                return false;
+
+            foreach (IScriptModule e in engines)
+            {
+                if (e.HasScript(item.ItemID, out running))
+                    return true;
+            }
+
+            return false;
         }
 
         public int CreateScriptInstances(int startParam, bool postOnRez, string engine, int stateSource)
