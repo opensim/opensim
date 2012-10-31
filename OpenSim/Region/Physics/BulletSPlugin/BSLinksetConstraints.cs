@@ -299,7 +299,7 @@ public sealed class BSLinksetConstraints : BSLinkset
             // DEBUG: see of inter-linkset collisions are causing problems
         // BulletSimAPI.SetCollisionFilterMask2(LinksetRoot.BSBody.ptr, 
         //                     (uint)CollisionFilterGroups.LinksetFilter, (uint)CollisionFilterGroups.LinksetMask);
-        DetailLog("{0},BSLinksetConstraint.RecomputeLinksetConstraints,setCenterOfMass,rBody={1},linksetMass={2}",
+        DetailLog("{0},BSLinksetConstraint.RecomputeLinksetConstraints,set,rBody={1},linksetMass={2}",
                             LinksetRoot.LocalID, LinksetRoot.BSBody.ptr.ToString("X"), linksetMass);
 
         foreach (BSPhysObject child in m_children)

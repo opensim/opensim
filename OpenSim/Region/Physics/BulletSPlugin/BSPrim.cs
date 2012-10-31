@@ -378,7 +378,9 @@ public sealed class BSPrim : BSPhysObject
         {
             OMV.Vector3 localInertia = BulletSimAPI.CalculateLocalInertia2(BSShape.ptr, physMass);
             BulletSimAPI.SetMassProps2(BSBody.ptr, physMass, localInertia);
-            BulletSimAPI.UpdateInertiaTensor2(BSBody.ptr);
+            // center of mass is at the zero of the object
+            BulletSimAPI.SetCenterOfMassByPosRot2(BSBody.ptr, ForcePosition, ForceOrientation);
+            // BulletSimAPI.UpdateInertiaTensor2(BSBody.ptr);
             DetailLog("{0},BSPrim.UpdateMassProperties,mass={1},localInertia={2}", LocalID, physMass, localInertia);
         }
     }
@@ -462,9 +464,16 @@ public sealed class BSPrim : BSPhysObject
     // Called from Scene when doing simulation step so we're in taint processing time.
     public override void StepVehicle(float timeStep)
     {
-        if (IsPhysical)
+        if (IsPhysical && _vehicle.IsActive)
         {
             _vehicle.Step(timeStep);
+            /* // TEST TEST DEBUG DEBUG -- trying to reduce the extra action of Bullet simulation step
+            PhysicsScene.PostTaintObject("BSPrim.StepVehicles", LocalID, delegate()
+            {
+                // This resets the interpolation values and recomputes the tensor variables
+                BulletSimAPI.SetCenterOfMassByPosRot2(BSBody.ptr, ForcePosition, ForceOrientation);
+            });
+             */
         }
     }
 
@@ -502,7 +511,9 @@ public sealed class BSPrim : BSPhysObject
     }
     public override OMV.Vector3 Torque {
         get { return _torque; }
-        set { _torque = value;
+        set {
+            _torque = value;
+            AddAngularForce(_torque, false, false);
             // DetailLog("{0},BSPrim.SetTorque,call,torque={1}", LocalID, _torque);
         }
     }
@@ -831,7 +842,7 @@ public sealed class BSPrim : BSPhysObject
             // m_log.DebugFormat("{0}: RotationalVelocity={1}", LogHeader, _rotationalVelocity);
             PhysicsScene.TaintedObject("BSPrim.setRotationalVelocity", delegate()
             {
-                // DetailLog("{0},BSPrim.SetRotationalVel,taint,rotvel={1}", LocalID, _rotationalVelocity);
+                DetailLog("{0},BSPrim.SetRotationalVel,taint,rotvel={1}", LocalID, _rotationalVelocity);
                 BulletSimAPI.SetAngularVelocity2(BSBody.ptr, _rotationalVelocity);
             });
         }
@@ -972,14 +983,31 @@ public sealed class BSPrim : BSPhysObject
                 }
                 m_accumulatedAngularForces.Clear();
             }
-            // DetailLog("{0},BSPrim.AddAngularForce,taint,aForce={1}", LocalID, fSum);
+            DetailLog("{0},BSPrim.AddAngularForce,taint,aForce={1}", LocalID, fSum);
             if (fSum != OMV.Vector3.Zero)
+            {
                 BulletSimAPI.ApplyTorque2(BSBody.ptr, fSum);
+                _torque = fSum;
+            }
         };
         if (inTaintTime)
             addAngularForceOperation();
         else
-            PhysicsScene.TaintedObject("BSPrim.AddForce", addAngularForceOperation);
+            PhysicsScene.TaintedObject("BSPrim.AddAngularForce", addAngularForceOperation);
+    }
+    // A torque impulse.
+    public void ApplyTorqueImpulse(OMV.Vector3 impulse, bool inTaintTime)
+    {
+        OMV.Vector3 applyImpulse = impulse;
+        BSScene.TaintCallback applyTorqueImpulseOperation = delegate()
+        {
+            DetailLog("{0},BSPrim.ApplyTorqueImpulse,taint,tImpulse={1}", LocalID, applyImpulse);
+            BulletSimAPI.ApplyTorqueImpulse2(BSBody.ptr, applyImpulse);
+        };
+        if (inTaintTime)
+            applyTorqueImpulseOperation();
+        else
+            PhysicsScene.TaintedObject("BSPrim.ApplyTorqueImpulse", applyTorqueImpulseOperation);
     }
     public override void SetMomentum(OMV.Vector3 momentum) {
         // DetailLog("{0},BSPrim.SetMomentum,call,mom={1}", LocalID, momentum);
@@ -1418,8 +1446,9 @@ public sealed class BSPrim : BSPhysObject
 
             PositionSanityCheck(true);
 
-            DetailLog("{0},BSPrim.UpdateProperties,call,pos={1},orient={2},vel={3},accel={4},rotVel={5}",
-                    LocalID, _position, _orientation, _velocity, _acceleration, _rotationalVelocity);
+            OMV.Vector3 direction = OMV.Vector3.UnitX * _orientation;
+            DetailLog("{0},BSPrim.UpdateProperties,call,pos={1},orient={2},dir={3},vel={4},rotVel={5}",
+                    LocalID, _position, _orientation, direction, _velocity, _rotationalVelocity);
 
             // BulletSimAPI.DumpRigidBody2(PhysicsScene.World.ptr, BSBody.ptr);   // DEBUG DEBUG DEBUG
 
