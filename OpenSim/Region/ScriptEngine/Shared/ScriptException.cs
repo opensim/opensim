@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Runtime.Serialization;
 
 namespace OpenSim.Region.ScriptEngine.Shared
 {
@@ -37,5 +38,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
         public ScriptException(string message) : base(message) {}
 
         public ScriptException(string message, Exception innerException) : base(message, innerException) {}
+
+        public ScriptException(SerializationInfo info, StreamingContext context) :base(info, context) {}
     }
 }
