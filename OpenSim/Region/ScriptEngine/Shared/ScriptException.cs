@@ -29,6 +29,7 @@ using System;
 
 namespace OpenSim.Region.ScriptEngine.Shared
 {
+    [Serializable]
     public class ScriptException : Exception
     {
         public ScriptException() : base() {}
