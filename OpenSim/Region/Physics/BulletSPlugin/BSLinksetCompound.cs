@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -158,6 +158,9 @@ public sealed class BSLinksetCompound : BSLinkset
     // Called at taint time!!
     private void RecomputeLinksetCompound()
     {
+        // Release the existing shape
+        PhysicsScene.Shapes.DereferenceShape(LinksetRoot.PhysShape, true, null);
+        
         float linksetMass = LinksetMass;
         LinksetRoot.UpdatePhysicalMassProperties(linksetMass);
 

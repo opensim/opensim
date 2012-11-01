@@ -68,6 +68,11 @@ public abstract class BSLinkset
     //    to the physical representation is done via the tainting mechenism.
     protected object m_linksetActivityLock = new Object();
 
+    // Some linksets have a preferred physical shape.
+    // Returns SHAPE_UNKNOWN if there is no preference.
+    public virtual ShapeData.PhysicsShapeType PreferredPhysicalShape
+        { get { return ShapeData.PhysicsShapeType.SHAPE_UNKNOWN; } }
+
     // We keep the prim's mass in the linkset structure since it could be dependent on other prims
     protected float m_mass;
     public float LinksetMass

@@ -194,6 +194,7 @@ public struct ShapeData
         // following defined by BulletSim
 		SHAPE_GROUNDPLANE  = 20,
 		SHAPE_TERRAIN   = 21,
+		SHAPE_COMPOUND  = 22,
     };
     public uint ID;
     public PhysicsShapeType Type;

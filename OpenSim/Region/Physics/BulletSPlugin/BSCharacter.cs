@@ -99,26 +99,12 @@ public sealed class BSCharacter : BSPhysObject
         DetailLog("{0},BSCharacter.create,call,size={1},scale={2},density={3},volume={4},mass={5}",
                             LocalID, _size, Scale, _avatarDensity, _avatarVolume, MassRaw);
 
-        ShapeData shapeData = new ShapeData();
-        shapeData.ID = LocalID;
-        shapeData.Type = ShapeData.PhysicsShapeType.SHAPE_AVATAR;
-        shapeData.Position = _position;
-        shapeData.Rotation = _orientation;
-        shapeData.Velocity = _velocity;
-        shapeData.Size = Scale; // capsule is a native shape but scale is not just <1,1,1>
-        shapeData.Scale = Scale;
-        shapeData.Mass = _mass;
-        shapeData.Buoyancy = _buoyancy;
-        shapeData.Static = ShapeData.numericFalse;
-        shapeData.Friction = PhysicsScene.Params.avatarStandingFriction;
-        shapeData.Restitution = PhysicsScene.Params.avatarRestitution;
-
         // do actual create at taint time
         PhysicsScene.TaintedObject("BSCharacter.create", delegate()
         {
             DetailLog("{0},BSCharacter.create,taint", LocalID);
             // New body and shape into BSBody and BSShape
-            PhysicsScene.Shapes.GetBodyAndShape(true, PhysicsScene.World, this, shapeData, null, null, null);
+            PhysicsScene.Shapes.GetBodyAndShape(true, PhysicsScene.World, this, null, null);
 
             SetPhysicalProperties();
         });
@@ -212,6 +198,9 @@ public sealed class BSCharacter : BSPhysObject
     {
         set { BaseShape = value; }
     }
+    // I want the physics engine to make an avatar capsule
+    public override ShapeData.PhysicsShapeType PreferredPhysicalShape
+        { get { return ShapeData.PhysicsShapeType.SHAPE_AVATAR; } }
 
     public override bool Grabbed {
         set { _grabbed = value; }

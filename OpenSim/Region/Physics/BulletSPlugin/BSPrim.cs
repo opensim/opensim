@@ -171,6 +171,10 @@ public sealed class BSPrim : BSPhysObject
             ForceBodyShapeRebuild(false);
         }
     }
+    // Whatever the linkset wants is what I want.
+    public override ShapeData.PhysicsShapeType PreferredPhysicalShape
+        { get { return Linkset.PreferredPhysicalShape; } }
+
     public override bool ForceBodyShapeRebuild(bool inTaintTime)
     {
         LastAssetBuildFailed = false;
@@ -1310,34 +1314,11 @@ public sealed class BSPrim : BSPhysObject
     }// end CalculateMass
     #endregion Mass Calculation
 
-    // Copy prim's info into the BulletSim shape description structure
-    public void FillShapeInfo(out ShapeData shape)
-    {
-        shape.ID = LocalID;
-        shape.Type = ShapeData.PhysicsShapeType.SHAPE_UNKNOWN;
-        shape.Position = _position;
-        shape.Rotation = _orientation;
-        shape.Velocity = _velocity;
-        shape.Size = _size;
-        shape.Scale = Scale;
-        shape.Mass = _isPhysical ? _mass : 0f;
-        shape.Buoyancy = _buoyancy;
-        shape.HullKey = 0;
-        shape.MeshKey = 0;
-        shape.Friction = _friction;
-        shape.Restitution = _restitution;
-        shape.Collidable = (!IsPhantom) ? ShapeData.numericTrue : ShapeData.numericFalse;
-        shape.Static = _isPhysical ? ShapeData.numericFalse : ShapeData.numericTrue;
-        shape.Solid = IsSolid ? ShapeData.numericFalse : ShapeData.numericTrue;
-    }
     // Rebuild the geometry and object.
     // This is called when the shape changes so we need to recreate the mesh/hull.
     // Called at taint-time!!!
     private void CreateGeomAndObject(bool forceRebuild)
     {
-        ShapeData shapeData;
-        FillShapeInfo(out shapeData);
-
         // If this prim is part of a linkset, we must remove and restore the physical
         //    links if the body is rebuilt.
         bool needToRestoreLinkset = false;
@@ -1346,8 +1327,7 @@ public sealed class BSPrim : BSPhysObject
         // Updates BSBody and BSShape with the new information.
         // Ignore 'forceRebuild'. This routine makes the right choices and changes of necessary.
         // Returns 'true' if either the body or the shape was changed.
-        PhysicsScene.Shapes.GetBodyAndShape(false, PhysicsScene.World, this, shapeData, BaseShape,
-                        null, delegate(BulletBody dBody)
+        PhysicsScene.Shapes.GetBodyAndShape(false, PhysicsScene.World, this, null, delegate(BulletBody dBody)
         {
             // Called if the current prim body is about to be destroyed.
             // Remove all the physical dependencies on the old body.
