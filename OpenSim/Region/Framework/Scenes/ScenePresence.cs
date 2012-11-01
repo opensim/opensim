@@ -532,7 +532,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (PhysicsActor != null)
                 {
-                    m_velocity = PhysicsActor.Velocity;
+                    m_velocity = PhysicsActor.TargetVelocity;
 
 //                    m_log.DebugFormat(
 //                        "[SCENE PRESENCE]: Set velocity {0} for {1} in {2} via getting Velocity!",

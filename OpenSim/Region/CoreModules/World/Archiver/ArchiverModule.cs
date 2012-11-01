@@ -158,8 +158,10 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             else
                 path = DEFAULT_OAR_BACKUP_FILENAME;
 
-            if (!ConsoleUtil.CheckFileDoesNotExist(MainConsole.Instance, path))
-                return;
+            // Not doing this right now as this causes some problems with auto-backup systems.  Maybe a force flag is
+            // needed
+//            if (!ConsoleUtil.CheckFileDoesNotExist(MainConsole.Instance, path))
+//                return;
 
             ArchiveRegion(path, options);
         }
