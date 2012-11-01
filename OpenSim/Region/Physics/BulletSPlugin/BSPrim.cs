@@ -256,6 +256,11 @@ public sealed class BSPrim : BSPhysObject
         return;
     }
 
+    public override OMV.Vector3 RawPosition
+    {
+        get { return _position; }
+        set { _position = value; }
+    }
     public override OMV.Vector3 Position {
         get {
             if (!Linkset.IsRoot(this))
@@ -366,7 +371,7 @@ public sealed class BSPrim : BSPhysObject
     }
 
     // used when we only want this prim's mass and not the linkset thing
-    public override float MassRaw { 
+    public override float RawMass { 
         get { return _mass; }
     }
     // Set the physical mass to the passed mass.
@@ -529,6 +534,11 @@ public sealed class BSPrim : BSPhysObject
     public override OMV.Vector3 Acceleration {
         get { return _acceleration; }
         set { _acceleration = value; }
+    }
+    public override OMV.Quaternion RawOrientation
+    {
+        get { return _orientation; }
+        set { _orientation = value; }
     }
     public override OMV.Quaternion Orientation {
         get {
@@ -703,7 +713,7 @@ public sealed class BSPrim : BSPhysObject
             BulletSimAPI.SetTranslation2(PhysBody.ptr, _position, _orientation);
 
             // A dynamic object has mass
-            UpdatePhysicalMassProperties(MassRaw);
+            UpdatePhysicalMassProperties(RawMass);
 
             // Set collision detection parameters
             if (PhysicsScene.Params.ccdMotionThreshold > 0f)

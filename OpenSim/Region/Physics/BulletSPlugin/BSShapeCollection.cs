@@ -811,7 +811,7 @@ public sealed class BSShapeCollection : IDisposable
             if (prim.IsSolid)
             {
                 bodyPtr = BulletSimAPI.CreateBodyFromShape2(sim.ptr, shape.ptr,
-                                        prim.LocalID, prim.ForcePosition, prim.ForceOrientation);
+                                        prim.LocalID, prim.RawPosition, prim.RawOrientation);
                 DetailLog("{0},BSShapeCollection.CreateBody,mesh,ptr={1}", prim.LocalID, bodyPtr.ToString("X"));
             }
             else

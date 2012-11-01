@@ -106,7 +106,7 @@ public abstract class BSLinkset
         PhysicsScene = scene;
         LinksetRoot = parent;
         m_children = new HashSet<BSPhysObject>();
-        m_mass = parent.MassRaw;
+        m_mass = parent.RawMass;
     }
 
     // Link to a linkset where the child knows the parent.
@@ -242,14 +242,14 @@ public abstract class BSLinkset
     // ================================================================
     protected virtual float ComputeLinksetMass()
     {
-        float mass = LinksetRoot.MassRaw;
+        float mass = LinksetRoot.RawMass;
         if (HasAnyChildren)
         {
             lock (m_linksetActivityLock)
             {
                 foreach (BSPhysObject bp in m_children)
                 {
-                    mass += bp.MassRaw;
+                    mass += bp.RawMass;
                 }
             }
         }
@@ -261,13 +261,13 @@ public abstract class BSLinkset
         OMV.Vector3 com;
         lock (m_linksetActivityLock)
         {
-            com = LinksetRoot.Position * LinksetRoot.MassRaw;
-            float totalMass = LinksetRoot.MassRaw;
+            com = LinksetRoot.Position * LinksetRoot.RawMass;
+            float totalMass = LinksetRoot.RawMass;
 
             foreach (BSPhysObject bp in m_children)
             {
-                com += bp.Position * bp.MassRaw;
-                totalMass += bp.MassRaw;
+                com += bp.Position * bp.RawMass;
+                totalMass += bp.RawMass;
             }
             if (totalMass != 0f)
                 com /= totalMass;
@@ -285,7 +285,7 @@ public abstract class BSLinkset
 
             foreach (BSPhysObject bp in m_children)
             {
-                com += bp.Position * bp.MassRaw;
+                com += bp.Position * bp.RawMass;
             }
             com /= (m_children.Count + 1);
         }

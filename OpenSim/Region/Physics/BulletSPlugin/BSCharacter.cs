@@ -97,7 +97,7 @@ public sealed class BSCharacter : BSPhysObject
         // set _avatarVolume and _mass based on capsule size, _density and Scale
         ComputeAvatarVolumeAndMass();
         DetailLog("{0},BSCharacter.create,call,size={1},scale={2},density={3},volume={4},mass={5}",
-                            LocalID, _size, Scale, _avatarDensity, _avatarVolume, MassRaw);
+                            LocalID, _size, Scale, _avatarDensity, _avatarVolume, RawMass);
 
         // do actual create at taint time
         PhysicsScene.TaintedObject("BSCharacter.create", delegate()
@@ -141,7 +141,7 @@ public sealed class BSCharacter : BSPhysObject
             BulletSimAPI.SetCcdSweptSphereRadius2(PhysBody.ptr, PhysicsScene.Params.ccdSweptSphereRadius);
         }
 
-        UpdatePhysicalMassProperties(MassRaw);
+        UpdatePhysicalMassProperties(RawMass);
 
         // Make so capsule does not fall over
         BulletSimAPI.SetAngularFactorV2(PhysBody.ptr, OMV.Vector3.Zero);
@@ -181,12 +181,12 @@ public sealed class BSCharacter : BSPhysObject
             ComputeAvatarScale(_size);
             ComputeAvatarVolumeAndMass();
             DetailLog("{0},BSCharacter.setSize,call,scale={1},density={2},volume={3},mass={4}",
-                            LocalID, Scale, _avatarDensity, _avatarVolume, MassRaw);
+                            LocalID, Scale, _avatarDensity, _avatarVolume, RawMass);
 
             PhysicsScene.TaintedObject("BSCharacter.setSize", delegate()
             {
                 BulletSimAPI.SetLocalScaling2(PhysShape.ptr, Scale);
-                UpdatePhysicalMassProperties(MassRaw);
+                UpdatePhysicalMassProperties(RawMass);
             });
 
         }
@@ -231,6 +231,11 @@ public sealed class BSCharacter : BSPhysObject
 
     public override void LockAngularMotion(OMV.Vector3 axis) { return; }
 
+    public override OMV.Vector3 RawPosition
+    {
+        get { return _position; }
+        set { _position = value; }
+    }
     public override OMV.Vector3 Position {
         get {
             // _position = BulletSimAPI.GetObjectPosition2(Scene.World.ptr, LocalID);
@@ -316,7 +321,7 @@ public sealed class BSCharacter : BSPhysObject
     public override float Mass { get { return _mass; } }
 
     // used when we only want this prim's mass and not the linkset thing
-    public override float MassRaw { 
+    public override float RawMass { 
         get {return _mass; }
     }
     public override void UpdatePhysicalMassProperties(float physMass)
@@ -404,6 +409,11 @@ public sealed class BSCharacter : BSPhysObject
     public override OMV.Vector3 Acceleration {
         get { return _acceleration; }
         set { _acceleration = value; }
+    }
+    public override OMV.Quaternion RawOrientation
+    {
+        get { return _orientation; }
+        set { _orientation = value; }
     }
     public override OMV.Quaternion Orientation {
         get { return _orientation; }

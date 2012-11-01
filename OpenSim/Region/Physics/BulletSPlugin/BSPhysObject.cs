@@ -63,7 +63,7 @@ public abstract class BSPhysObject : PhysicsActor
     public BSLinkset Linkset { get; set; }
 
     // Return the object mass without calculating it or having side effects
-    public abstract float MassRaw { get; }
+    public abstract float RawMass { get; }
     // Set the raw mass but also update physical mass properties (inertia, ...)
     public abstract void UpdatePhysicalMassProperties(float mass);
 
@@ -105,8 +105,10 @@ public abstract class BSPhysObject : PhysicsActor
     // Tell the object to clean up.
     public abstract void Destroy();
 
+    public abstract OMV.Vector3 RawPosition { get; set; }
     public abstract OMV.Vector3 ForcePosition { get; set; }
 
+    public abstract OMV.Quaternion RawOrientation { get; set; }
     public abstract OMV.Quaternion ForceOrientation { get; set; }
 
     public abstract OMV.Vector3 ForceVelocity { get; set; }
