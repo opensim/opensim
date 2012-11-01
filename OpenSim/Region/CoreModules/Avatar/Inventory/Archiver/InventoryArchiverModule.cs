@@ -210,8 +210,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             Guid id, string firstName, string lastName, string invPath, string pass, string savePath,
             Dictionary<string, object> options)
         {
-            if (!ConsoleUtil.CheckFileDoesNotExist(MainConsole.Instance, savePath))
-                return false;
+//            if (!ConsoleUtil.CheckFileDoesNotExist(MainConsole.Instance, savePath))
+//                return false;
 
             if (m_scenes.Count > 0)
             {
