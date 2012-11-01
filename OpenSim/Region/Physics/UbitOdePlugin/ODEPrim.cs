@@ -1108,6 +1108,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             ODEPhysRepData repData = _parent_scene.m_meshWorker.NewActorPhysRep(this, _pbs, _size, m_shapetype);
 
             primVolume = repData.volume;
+            m_OBB = repData.OBB;
+            m_OBBOffset = repData.OBBOffset;
 
             UpdatePrimBodyData();
         }

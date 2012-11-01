@@ -2458,6 +2458,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 foreach (Action<Scene> d in handler.GetInvocationList())
                 {
+                    m_log.InfoFormat("[EVENT MANAGER]: TriggerSceneShuttingDown invoque {0}", d.Method.Name.ToString());
                     try
                     {
                         d(s);
@@ -2470,6 +2471,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
             }
+            m_log.Info("[EVENT MANAGER]: TriggerSceneShuttingDown done");
         }
 
         public void TriggerOnRegionStarted(Scene scene)

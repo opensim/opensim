@@ -1689,11 +1689,10 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <returns></returns>
         public override float Simulate(float timeStep)
         {
-
             DateTime now = DateTime.UtcNow;
             TimeSpan timedif = now - m_lastframe;
-            m_lastframe = now;
             timeStep = (float)timedif.TotalSeconds;
+            m_lastframe = now;
             
             // acumulate time so we can reduce error
             step_time += timeStep;
@@ -1703,6 +1702,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             if (framecount < 0)
                 framecount = 0;
+
 
             framecount++;
 
@@ -1714,9 +1714,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             else
                 curphysiteractions = m_physicsiterations;
 
-            int nodeframes = 0;
-
 //            checkThread();
+            int nodeframes = 0;
 
             lock (SimulationLock)
                 lock(OdeLock)
@@ -1733,7 +1732,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                 
                 d.WorldSetQuickStepNumIterations(world, curphysiteractions);
 
-                while (step_time > HalfOdeStep && nodeframes < 10) //limit number of steps so we don't say here for ever
+                int loopstartMS = Util.EnvironmentTickCount();
+                int looptimeMS = 0;
+                
+
+                while (step_time > HalfOdeStep)
                 {
                     try
                     {
@@ -1742,9 +1745,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                         if (ChangesQueue.Count > 0)
                         {
-                            int ttmpstart = Util.EnvironmentTickCount();
+                            int changestartMS = Util.EnvironmentTickCount();
                             int ttmp;
-
                             while (ChangesQueue.Dequeue(out item))
                             {
                                 if (item.actor != null)
@@ -1762,7 +1764,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                             item.actor.Name, item.what.ToString());
                                     }
                                 }
-                                ttmp = Util.EnvironmentTickCountSubtract(ttmpstart);
+                                ttmp = Util.EnvironmentTickCountSubtract(changestartMS);
                                 if (ttmp > 20)
                                     break;
                             }
@@ -1873,9 +1875,12 @@ namespace OpenSim.Region.Physics.OdePlugin
 //                        ode.dunlock(world);
                     }
 
-
                     step_time -= ODE_STEPSIZE;
                     nodeframes++;
+
+                    looptimeMS = Util.EnvironmentTickCountSubtract(loopstartMS);
+                    if (looptimeMS > 100)
+                        break;
                 }
 
                 lock (_badCharacter)
@@ -1963,7 +1968,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 
                 // think time dilation as to do with dinamic step size that we dont' have
                 // even so tell something to world
-                if (nodeframes < 10) // we did the requested loops
+                if (looptimeMS < 100) // we did the requested loops
                     m_timeDilation = 1.0f;
                 else if (step_time > 0)
                 {
@@ -1972,6 +1977,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         m_timeDilation = 1;
                     if (step_time > m_SkipFramesAtms)
                         step_time = 0;
+                    m_lastframe = DateTime.UtcNow; // skip also the time lost
                 }
             }
 
@@ -2344,7 +2350,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         }
                     }
                 }
-                IntPtr HeightmapData = d.GeomHeightfieldDataCreate();
+                IntPtr HeightmapData = d.GeomUbitTerrainDataCreate();
 
                 const int wrap = 0;
                 float thickness = hfmin;
