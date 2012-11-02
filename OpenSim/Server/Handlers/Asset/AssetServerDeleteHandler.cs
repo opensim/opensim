@@ -42,18 +42,32 @@ using OpenSim.Framework.Servers.HttpServer;
 
 namespace OpenSim.Server.Handlers.Asset
 {
+    /// <summary>
+    /// Remote deletes allowed.
+    /// </summary>
+    public enum AllowedRemoteDeleteTypes
+    {
+        None,
+        MapTile,
+        All
+    }
+
     public class AssetServerDeleteHandler : BaseStreamHandler
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private IAssetService m_AssetService;
-        protected bool m_allowDelete;
 
-        public AssetServerDeleteHandler(IAssetService service, bool allowDelete) :
+        /// <summary>
+        /// Asset types that can be deleted remotely.
+        /// </summary>
+        private AllowedRemoteDeleteTypes m_allowedTypes;
+
+        public AssetServerDeleteHandler(IAssetService service, AllowedRemoteDeleteTypes allowedTypes) :
                 base("DELETE", "/assets")
         {
             m_AssetService = service;
-            m_allowDelete = allowDelete;
+            m_allowedTypes = allowedTypes;
         }
 
         public override byte[] Handle(string path, Stream request,
@@ -63,19 +77,27 @@ namespace OpenSim.Server.Handlers.Asset
 
             string[] p = SplitParams(path);
 
-            if (p.Length > 0 && m_allowDelete)
+            if (p.Length > 0)
             {
-                string assetID = p[0];
+                if (m_allowedTypes != AllowedRemoteDeleteTypes.None)
+                {
+                    string assetID = p[0];
 
-                AssetBase asset = m_AssetService.Get(assetID);
-                if (asset != null && (int)(asset.Flags & AssetFlags.Maptile) != 0)
-                {
-                    result = m_AssetService.Delete(assetID);
-                }
-                else
-                {
-                    m_log.DebugFormat(
-                        "[ASSET SERVER DELETE HANDLER]: Request to delete asset {0}, but flags are not Maptile", assetID);
+                    AssetBase asset = m_AssetService.Get(assetID);
+                    if (asset != null)
+                    {
+                        if (m_allowedTypes == AllowedRemoteDeleteTypes.All
+                            || (int)(asset.Flags & AssetFlags.Maptile) != 0)
+                        {
+                            result = m_AssetService.Delete(assetID);
+                        }
+                        else
+                        {
+                            m_log.DebugFormat(
+                                "[ASSET SERVER DELETE HANDLER]: Request to delete asset {0}, but type is {1} and allowed remote delete types are {2}",
+                                assetID, (AssetFlags)asset.Flags, m_allowedTypes);
+                        }
+                    }
                 }
             }
 
