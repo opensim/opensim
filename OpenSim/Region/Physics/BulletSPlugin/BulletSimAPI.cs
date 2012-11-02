@@ -300,6 +300,7 @@ public struct ConfigurationParameters
 	public float shouldEnableFrictionCaching;
 	public float numberOfSolverIterations;
 
+    public float linksetImplementation;
     public float linkConstraintUseFrameOffset;
     public float linkConstraintEnableTransMotor;
     public float linkConstraintTransMotorMaxVel;

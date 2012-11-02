@@ -1214,6 +1214,11 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             (s) => { return s.m_params[0].numberOfSolverIterations; },
             (s,p,l,v) => { s.m_params[0].numberOfSolverIterations = v; } ),
 
+	    new ParameterDefn("LinksetImplementation", "Type of linkset implementation (0=Constraint, 1=Compound)",
+            (float)BSLinkset.LinksetImplementation.Constraint,
+            (s,cf,p,v) => { s.m_params[0].linksetImplementation = cf.GetFloat(p,v); },
+            (s) => { return s.m_params[0].linksetImplementation; },
+            (s,p,l,v) => { s.m_params[0].linksetImplementation = v; } ),
 	    new ParameterDefn("LinkConstraintUseFrameOffset", "For linksets built with constraints, enable frame offsetFor linksets built with constraints, enable frame offset.",
             ConfigurationParameters.numericFalse,
             (s,cf,p,v) => { s.m_params[0].linkConstraintUseFrameOffset = s.NumericBool(cf.GetBoolean(p, s.BoolNumeric(v))); },

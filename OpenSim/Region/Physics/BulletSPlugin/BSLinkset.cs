@@ -36,21 +36,29 @@ public abstract class BSLinkset
 {
     // private static string LogHeader = "[BULLETSIM LINKSET]";
 
+    public enum LinksetImplementation
+    {
+        Constraint   = 0,   // linkset tied together with constraints
+        Compound     = 1,   // linkset tied together as a compound object
+        Manual       = 2    // linkset tied together manually (code moves all the pieces)
+    }
     // Create the correct type of linkset for this child
     public static BSLinkset Factory(BSScene physScene, BSPhysObject parent)
     {
         BSLinkset ret = null;
-        /*
-        if (parent.IsPhysical)
-            ret = new BSLinksetConstraints(physScene, parent);
-        else
-            ret = new BSLinksetManual(physScene, parent);
-         */
 
-        // at the moment, there is only one
-        // ret = new BSLinksetConstraints(physScene, parent);
-        ret = new BSLinksetCompound(physScene, parent);
-
+        switch ((int)physScene.Params.linksetImplementation)
+        {
+            case (int)LinksetImplementation.Compound:
+                ret = new BSLinksetCompound(physScene, parent);
+                break;
+            case (int)LinksetImplementation.Manual:
+                // ret = new BSLinksetManual(physScene, parent);
+                break;
+            default:
+                ret = new BSLinksetConstraints(physScene, parent);
+                break;
+        }
         return ret;
     }
 
