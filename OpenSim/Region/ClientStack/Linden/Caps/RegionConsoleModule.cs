@@ -104,7 +104,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public void RegisterCaps(UUID agentID, Caps caps)
         {
-            if (!m_scene.RegionInfo.EstateSettings.IsEstateManagerOrOwner(agentID))
+            if (!m_scene.RegionInfo.EstateSettings.IsEstateManagerOrOwner(agentID) && !m_scene.Permissions.IsGod(agentID))
                 return;
 
             UUID capID = UUID.Random();

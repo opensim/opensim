@@ -1116,17 +1116,17 @@ namespace OpenSim.Region.ClientStack.Linden
                 else
                 {
                     AddNewInventoryItem(m_HostCapsObj.AgentID, item, (uint)cost);
-                    if (client != null)
-                    {
-                        // let users see anything..  i don't so far
-                        string str;
-                        if (cost > 0)
-                            // dont remember where is money unit name to put here
-                            str = "Upload complete. charged " + cost.ToString() + "$";
-                        else
-                            str = "Upload complete";
-                        client.SendAgentAlertMessage(str, true);
-                    }
+//                    if (client != null)
+//                    {
+//                        // let users see anything..  i don't so far
+//                        string str;
+//                        if (cost > 0)
+//                            // dont remember where is money unit name to put here
+//                            str = "Upload complete. charged " + cost.ToString() + "$";
+//                        else
+//                            str = "Upload complete";
+//                        client.SendAgentAlertMessage(str, true);
+//                    }
                 }
             }
 

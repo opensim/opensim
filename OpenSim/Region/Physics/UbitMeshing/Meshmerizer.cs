@@ -1057,25 +1057,22 @@ namespace OpenSim.Region.Physics.Meshing
                     mesh.RefCount++;
                     return mesh;
                 }
-            }
 
-            // try to find a identical mesh on meshs recently released
-            lock (m_uniqueReleasedMeshes)
-            {
-                m_uniqueReleasedMeshes.TryGetValue(key, out mesh);
-                if (mesh != null)
+                // try to find a identical mesh on meshs recently released
+                lock (m_uniqueReleasedMeshes)
                 {
-                    m_uniqueReleasedMeshes.Remove(key);
-                    lock (m_uniqueMeshes)
+                    m_uniqueReleasedMeshes.TryGetValue(key, out mesh);
+                    if (mesh != null)
                     {
+                        m_uniqueReleasedMeshes.Remove(key);
                         try
                         {
                             m_uniqueMeshes.Add(key, mesh);
                         }
                         catch { }
+                        mesh.RefCount = 1;
+                        return mesh;
                     }
-                    mesh.RefCount = 1;
-                    return mesh;
                 }
             }
             return null;
@@ -1108,25 +1105,22 @@ namespace OpenSim.Region.Physics.Meshing
                     mesh.RefCount++;
                     return mesh;
                 }
-            }
 
-            // try to find a identical mesh on meshs recently released
-            lock (m_uniqueReleasedMeshes)
-            {
-                m_uniqueReleasedMeshes.TryGetValue(key, out mesh);
-                if (mesh != null)
+                // try to find a identical mesh on meshs recently released
+                lock (m_uniqueReleasedMeshes)
                 {
-                    m_uniqueReleasedMeshes.Remove(key);
-                    lock (m_uniqueMeshes)
+                    m_uniqueReleasedMeshes.TryGetValue(key, out mesh);
+                    if (mesh != null)
                     {
+                        m_uniqueReleasedMeshes.Remove(key);
                         try
                         {
                             m_uniqueMeshes.Add(key, mesh);
                         }
                         catch { }
+                        mesh.RefCount = 1;
+                        return mesh;
                     }
-                    mesh.RefCount = 1;
-                    return mesh;
                 }
             }
 
