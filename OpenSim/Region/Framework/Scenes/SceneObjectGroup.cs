@@ -112,7 +112,7 @@ namespace OpenSim.Region.Framework.Scenes
         private long timeLastChanged = 0;
         private long m_maxPersistTime = 0;
         private long m_minPersistTime = 0;
-        private Random m_rand;
+//        private Random m_rand;
         private List<ScenePresence> m_linkedAvatars = new List<ScenePresence>();
 
         /// <summary>
@@ -130,6 +130,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (value)
                 {
+                    
                     if (m_isBackedUp)
                     {
                         m_scene.SceneGraph.FireChangeBackup(this);
@@ -139,13 +140,15 @@ namespace OpenSim.Region.Framework.Scenes
                         timeFirstChanged = DateTime.Now.Ticks;
                     if (m_rootPart != null && m_rootPart.UUID != null && m_scene != null)
                     {
+/*
                         if (m_rand == null)
                         {
                             byte[] val = new byte[16];
                             m_rootPart.UUID.ToBytes(val, 0);
                             m_rand = new Random(BitConverter.ToInt32(val, 0));
                         }
-                       
+ */
+                      Random m_rand = new Random();
                         if (m_scene.GetRootAgentCount() == 0)
                         {
                             //If the region is empty, this change has been made by an automated process
