@@ -148,13 +148,13 @@ namespace OpenSim.Region.Framework.Scenes
                             m_rand = new Random(BitConverter.ToInt32(val, 0));
                         }
  */
-                      Random m_rand = new Random();
                         if (m_scene.GetRootAgentCount() == 0)
                         {
                             //If the region is empty, this change has been made by an automated process
                             //and thus we delay the persist time by a random amount between 1.5 and 2.5.
 
-                            float factor = 1.5f + (float)(m_rand.NextDouble());
+//                            float factor = 1.5f + (float)(m_rand.NextDouble());
+                            float factor = 2.0f;
                             m_maxPersistTime = (long)((float)m_scene.m_persistAfter * factor);
                             m_minPersistTime = (long)((float)m_scene.m_dontPersistBefore * factor);
                         }
@@ -162,8 +162,10 @@ namespace OpenSim.Region.Framework.Scenes
                         {
                             //If the region is not empty, we want to obey the minimum and maximum persist times
                             //but add a random factor so we stagger the object persistance a little
-                            m_maxPersistTime = (long)((float)m_scene.m_persistAfter * (1.0d - (m_rand.NextDouble() / 5.0d))); //Multiply by 1.0-1.5
-                            m_minPersistTime = (long)((float)m_scene.m_dontPersistBefore * (1.0d + (m_rand.NextDouble() / 2.0d))); //Multiply by 0.8-1.0
+//                            m_maxPersistTime = (long)((float)m_scene.m_persistAfter * (1.0d - (m_rand.NextDouble() / 5.0d))); //Multiply by 1.0-1.5
+//                            m_minPersistTime = (long)((float)m_scene.m_dontPersistBefore * (1.0d + (m_rand.NextDouble() / 2.0d))); //Multiply by 0.8-1.0
+                            m_maxPersistTime = m_scene.m_persistAfter;
+                            m_minPersistTime = m_scene.m_dontPersistBefore;
                         }
                     }
                 }
