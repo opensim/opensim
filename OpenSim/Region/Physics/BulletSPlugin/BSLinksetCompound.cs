@@ -41,18 +41,31 @@ public sealed class BSLinksetCompound : BSLinkset
         base.Initialize(scene, parent);
     }
 
+    // For compound implimented linksets, if there are children, use compound shape for the root.
+    public override ShapeData.PhysicsShapeType PreferredPhysicalShape(BSPhysObject requestor)
+    { 
+        ShapeData.PhysicsShapeType ret = ShapeData.PhysicsShapeType.SHAPE_UNKNOWN;
+        if (IsRoot(requestor) && HasAnyChildren)
+        {
+            ret = ShapeData.PhysicsShapeType.SHAPE_COMPOUND;
+        }
+        // DetailLog("{0},BSLinksetCompound.PreferredPhysicalShape,call,shape={1}", LinksetRoot.LocalID, ret);
+        return ret;
+    }
+
     // When physical properties are changed the linkset needs to recalculate
     //   its internal properties.
     // This is queued in the 'post taint' queue so the
     //   refresh will happen once after all the other taints are applied.
     public override void Refresh(BSPhysObject requestor)
     {
+        DetailLog("{0},BSLinksetCompound.Refresh,schedulingRefresh,requestor={1}", LinksetRoot.LocalID, requestor.LocalID);
         // Queue to happen after all the other taint processing
-        PhysicsScene.PostTaintObject("BSLinksetcompound.Refresh", requestor.LocalID, delegate()
-            {
-                if (HasAnyChildren && IsRoot(requestor))
-                    RecomputeLinksetCompound();
-            });
+        PhysicsScene.PostTaintObject("BSLinksetCompound.Refresh", requestor.LocalID, delegate()
+        {
+            if (IsRoot(requestor) && HasAnyChildren)
+                RecomputeLinksetCompound();
+        });
     }
 
     // The object is going dynamic (physical). Do any setup necessary
@@ -63,8 +76,17 @@ public sealed class BSLinksetCompound : BSLinkset
     // Called at taint-time!
     public override bool MakeDynamic(BSPhysObject child)
     {
-        // What is done for each object in BSPrim is what we want.
-        return false;
+        bool ret = false;
+        DetailLog("{0},BSLinksetCompound.MakeDynamic,call,isChild={1}", child.LocalID, HasChild(child));
+        if (HasChild(child))
+        {
+            // Physical children are removed from the world as the shape ofthe root compound
+            //     shape takes over.
+            BulletSimAPI.AddToCollisionFlags2(child.PhysBody.ptr, CollisionFlags.CF_NO_CONTACT_RESPONSE);
+            BulletSimAPI.ForceActivationState2(child.PhysBody.ptr, ActivationState.DISABLE_SIMULATION);
+            ret = true;
+        }
+        return ret;
     }
 
     // The object is going static (non-physical). Do any setup necessary for a static linkset.
@@ -74,8 +96,17 @@ public sealed class BSLinksetCompound : BSLinkset
     // Called at taint-time!
     public override bool MakeStatic(BSPhysObject child)
     {
-        // What is done for each object in BSPrim is what we want.
-        return false;
+        bool ret = false;
+        DetailLog("{0},BSLinksetCompound.MakeStatic,call,hasChild={1}", child.LocalID, HasChild(child));
+        if (HasChild(child))
+        {
+            // The non-physical children can come back to life.
+            BulletSimAPI.RemoveFromCollisionFlags2(child.PhysBody.ptr, CollisionFlags.CF_NO_CONTACT_RESPONSE);
+            // Don't force activation so setting of DISABLE_SIMULATION can stay.
+            BulletSimAPI.Activate2(child.PhysBody.ptr, false);
+            ret = true;
+        }
+        return ret;
     }
 
     // Called at taint-time!!
@@ -84,20 +115,35 @@ public sealed class BSLinksetCompound : BSLinkset
         // Nothing to do for constraints on property updates
     }
 
+    // The children move around in relationship to the root.
+    // Just grab the current values of wherever it is right now.
+    public override OMV.Vector3 Position(BSPhysObject member)
+    {
+        return BulletSimAPI.GetPosition2(member.PhysBody.ptr);
+    }
+
+    public override OMV.Quaternion Orientation(BSPhysObject member)
+    {
+        return BulletSimAPI.GetOrientation2(member.PhysBody.ptr);
+    }
+
     // Routine called when rebuilding the body of some member of the linkset.
-    // Destroy all the constraints have have been made to root and set
-    //     up to rebuild the constraints before the next simulation step.
+    // Since we don't keep in-physical world relationships, do nothing unless it's a child changing.
     // Returns 'true' of something was actually removed and would need restoring
     // Called at taint-time!!
     public override bool RemoveBodyDependencies(BSPrim child)
     {
         bool ret = false;
 
-        DetailLog("{0},BSLinksetcompound.RemoveBodyDependencies,removeChildrenForRoot,rID={1},rBody={2}",
-                                    child.LocalID, LinksetRoot.LocalID, LinksetRoot.PhysBody.ptr.ToString("X"));
+        DetailLog("{0},BSLinksetCompound.RemoveBodyDependencies,removeChildrenForRoot,rID={1},rBody={2},isRoot={3}",
+                                    child.LocalID, LinksetRoot.LocalID, LinksetRoot.PhysBody.ptr.ToString("X"), IsRoot(child));
 
-        // Cause the current shape to be freed and the new one to be built.
-        Refresh(LinksetRoot);
+        if (!IsRoot(child))
+        {
+            // Cause the current shape to be freed and the new one to be built.
+            Refresh(LinksetRoot);
+            ret = true;
+        }
 
         return ret;
     }
@@ -139,13 +185,19 @@ public sealed class BSLinksetCompound : BSLinkset
                             LinksetRoot.LocalID, LinksetRoot.PhysBody.ptr.ToString("X"),
                             child.LocalID, child.PhysBody.ptr.ToString("X"));
 
-            // See that the linkset parameters are recomputed at the end of the taint time.
-            Refresh(LinksetRoot);
-        }
-        else
-        {
-            // Non-fatal occurance.
-            // PhysicsScene.Logger.ErrorFormat("{0}: Asked to remove child from linkset that was not in linkset", LogHeader);
+            // Cause the child's body to be rebuilt and thus restored to normal operation
+            child.ForceBodyShapeRebuild(false);
+
+            if (!HasAnyChildren)
+            {
+                // The linkset is now empty. The root needs rebuilding.
+                LinksetRoot.ForceBodyShapeRebuild(false);
+            }
+            else
+            {
+                // Schedule a rebuild of the linkset  before the next simulation tick.
+                Refresh(LinksetRoot);
+            }
         }
         return;
     }
@@ -158,16 +210,18 @@ public sealed class BSLinksetCompound : BSLinkset
     // Called at taint time!!
     private void RecomputeLinksetCompound()
     {
-        // Release the existing shape
-        PhysicsScene.Shapes.DereferenceShape(LinksetRoot.PhysShape, true, null);
-        
+        DetailLog("{0},BSLinksetCompound.RecomputeLinksetCompound,start,rBody={1},numChildren={2}",
+                        LinksetRoot.LocalID, LinksetRoot.PhysBody.ptr.ToString("X"), NumberOfChildren);
+
+        LinksetRoot.ForceBodyShapeRebuild(true);
+
         float linksetMass = LinksetMass;
         LinksetRoot.UpdatePhysicalMassProperties(linksetMass);
 
             // DEBUG: see of inter-linkset collisions are causing problems
         // BulletSimAPI.SetCollisionFilterMask2(LinksetRoot.BSBody.ptr, 
         //                     (uint)CollisionFilterGroups.LinksetFilter, (uint)CollisionFilterGroups.LinksetMask);
-        DetailLog("{0},BSLinksetCompound.RecomputeLinksetCompound,set,rBody={1},linksetMass={2}",
+        DetailLog("{0},BSLinksetCompound.RecomputeLinksetCompound,end,rBody={1},linksetMass={2}",
                             LinksetRoot.LocalID, LinksetRoot.PhysBody.ptr.ToString("X"), linksetMass);
 
 

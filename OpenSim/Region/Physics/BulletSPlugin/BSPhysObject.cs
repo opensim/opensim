@@ -81,7 +81,9 @@ public abstract class BSPhysObject : PhysicsActor
     // Some types of objects have preferred physical representations.
     // Returns SHAPE_UNKNOWN if there is no preference.
     public virtual ShapeData.PhysicsShapeType PreferredPhysicalShape
-        { get { return ShapeData.PhysicsShapeType.SHAPE_UNKNOWN; } }
+    {
+        get { return ShapeData.PhysicsShapeType.SHAPE_UNKNOWN; }
+    }
 
     // When the physical properties are updated, an EntityProperty holds the update values.
     // Keep the current and last EntityProperties to enable computation of differences

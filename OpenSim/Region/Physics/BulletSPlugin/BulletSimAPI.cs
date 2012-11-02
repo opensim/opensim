@@ -399,8 +399,6 @@ public enum CollisionFilterGroups : uint
 
 };
 
-
-
 // CFM controls the 'hardness' of the constraint. 0=fixed, 0..1=violatable. Default=0
 // ERP controls amount of correction per tick. Usable range=0.1..0.8. Default=0.2.
 public enum ConstraintParams : int
@@ -618,10 +616,19 @@ public static extern IntPtr BuildCapsuleShape2(IntPtr world, float radius, float
 public static extern IntPtr CreateCompoundShape2(IntPtr sim);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern void AddChildToCompoundShape2(IntPtr cShape, IntPtr addShape, Vector3 pos, Quaternion rot);
+public static extern int GetNumberOfCompoundChildren2(IntPtr cShape);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern void RemoveChildFromCompoundShape2(IntPtr cShape, IntPtr removeShape);
+public static extern void AddChildShapeToCompoundShape2(IntPtr cShape, IntPtr addShape, Vector3 pos, Quaternion rot);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern IntPtr GetChildShapeFromCompoundShapeIndex2(IntPtr cShape, int indx);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern IntPtr RemoveChildShapeFromCompoundShapeIndex2(IntPtr cShape, int indx);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern void RemoveChildShapeFromCompoundShape2(IntPtr cShape, IntPtr removeShape);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern IntPtr DuplicateCollisionShape2(IntPtr sim, IntPtr srcShape, uint id);

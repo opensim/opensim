@@ -122,18 +122,14 @@ public sealed class BSShapeCollection : IDisposable
         lock (m_collectionActivityLock)
         {
             DetailLog("{0},BSShapeCollection.ReferenceBody,newBody", body.ID, body);
-            BSScene.TaintCallback createOperation = delegate()
+            PhysicsScene.TaintedObject(inTaintTime, "BSShapeCollection.ReferenceBody", delegate()
             {
                 if (!BulletSimAPI.IsInWorld2(body.ptr))
                 {
                     BulletSimAPI.AddObjectToWorld2(PhysicsScene.World.ptr, body.ptr);
                     DetailLog("{0},BSShapeCollection.ReferenceBody,addedToWorld,ref={1}", body.ID, body);
                 }
-            };
-            if (inTaintTime)
-                createOperation();
-            else
-                PhysicsScene.TaintedObject("BSShapeCollection.ReferenceBody", createOperation);
+            });
         }
     }
 
@@ -146,7 +142,7 @@ public sealed class BSShapeCollection : IDisposable
 
         lock (m_collectionActivityLock)
         {
-            BSScene.TaintCallback removeOperation = delegate()
+            PhysicsScene.TaintedObject(inTaintTime, "BSShapeCollection.DereferenceBody", delegate()
             {
                 DetailLog("{0},BSShapeCollection.DereferenceBody,DestroyingBody. ptr={1}, inTaintTime={2}",
                                             body.ID, body.ptr.ToString("X"), inTaintTime);
@@ -159,12 +155,7 @@ public sealed class BSShapeCollection : IDisposable
                 // Zero any reference to the shape so it is not freed when the body is deleted.
                 BulletSimAPI.SetCollisionShape2(PhysicsScene.World.ptr, body.ptr, IntPtr.Zero);
                 BulletSimAPI.DestroyObject2(PhysicsScene.World.ptr, body.ptr);
-            };
-            // If already in taint-time, do the operations now. Otherwise queue for later.
-            if (inTaintTime)
-                removeOperation();
-            else
-                PhysicsScene.TaintedObject("BSShapeCollection.DereferenceBody", removeOperation);
+            });
         }
     }
 
@@ -238,7 +229,7 @@ public sealed class BSShapeCollection : IDisposable
         if (shape.ptr == IntPtr.Zero)
             return;
 
-        BSScene.TaintCallback dereferenceOperation = delegate()
+        PhysicsScene.TaintedObject(inTaintTime, "BSShapeCollection.DereferenceShape", delegate()
         {
             if (shape.ptr != IntPtr.Zero)
             {
@@ -270,18 +261,7 @@ public sealed class BSShapeCollection : IDisposable
                     }
                 }
             }
-        };
-        if (inTaintTime)
-        {
-            lock (m_collectionActivityLock)
-            {
-                dereferenceOperation();
-            }
-        }
-        else
-        {
-            PhysicsScene.TaintedObject("BSShapeCollection.DereferenceShape", dereferenceOperation);
-        }
+        });
     }
 
     // Count down the reference count for a mesh shape
@@ -311,7 +291,10 @@ public sealed class BSShapeCollection : IDisposable
         {
             hullDesc.referenceCount--;
             // TODO: release the Bullet storage (aging old entries?)
+
+            // Tell upper layers that, if they have dependencies on this shape, this link is going away
             if (shapeCallback != null) shapeCallback(shape);
+
             hullDesc.lastReferenced = System.DateTime.Now;
             Hulls[shape.shapeKey] = hullDesc;
             DetailLog("{0},BSShapeCollection.DereferenceHull,key={1},refCnt={2}",
@@ -320,10 +303,48 @@ public sealed class BSShapeCollection : IDisposable
     }
 
     // Remove a reference to a compound shape.
+    // Taking a compound shape apart is a little tricky because if you just delete the
+    //      physical object, it will free all the underlying children. We can't do that because
+    //      they could be shared. So, this removes each of the children from the compound and
+    //      dereferences them separately before destroying the compound collision object itself.
     // Called at taint-time.
     private void DereferenceCompound(BulletShape shape, ShapeDestructionCallback shapeCallback)
     {
-        // Compound shape is made of a bunch of meshes and natives.
+        if (!BulletSimAPI.IsCompound2(shape.ptr))
+        {
+            // Failed the sanity check!!
+            PhysicsScene.Logger.ErrorFormat("{0} Attempt to free a compound shape that is not compound!! type={1}, ptr={2}",
+                                        LogHeader, shape.type, shape.ptr.ToString("X"));
+            DetailLog("{0},BSShapeCollection.DereferenceCompound,notACompoundShape,type={1},ptr={2}",
+                                        BSScene.DetailLogZero, shape.type, shape.ptr.ToString("X"));
+            return;
+        }
+        int numChildren = BulletSimAPI.GetNumberOfCompoundChildren2(shape.ptr);
+        for (int ii = 0; ii < numChildren; ii++)
+        {
+            IntPtr childShape = BulletSimAPI.RemoveChildShapeFromCompoundShapeIndex2(shape.ptr, ii);
+            DereferenceAnonCollisionShape(childShape);
+        }
+        BulletSimAPI.DeleteCollisionShape2(PhysicsScene.World.ptr, shape.ptr);
+    }
+
+    // Sometimes we have a pointer to a collision shape but don't know what type it is.
+    // Figure out type and call the correct dereference routine.
+    // This is coming from a compound shape that we created so we know it is either native or mesh.
+    // Called at taint-time.
+    private void DereferenceAnonCollisionShape(IntPtr cShape)
+    {
+        BulletShape shapeInfo = new BulletShape(cShape, ShapeData.PhysicsShapeType.SHAPE_MESH);
+        if (BulletSimAPI.IsCompound2(cShape))
+            shapeInfo.type = ShapeData.PhysicsShapeType.SHAPE_COMPOUND;
+
+        if (BulletSimAPI.IsNativeShape2(cShape))
+        {
+            shapeInfo.isNativeShape = true;
+            shapeInfo.type = ShapeData.PhysicsShapeType.SHAPE_BOX; // (technically, type doesn't matter)
+        }
+
+        DereferenceShape(shapeInfo, true, null);
     }
 
     // Create the geometry information in Bullet for later use.
@@ -338,10 +359,8 @@ public sealed class BSShapeCollection : IDisposable
     {
         bool ret = false;
         bool haveShape = false;
-        bool nativeShapePossible = true;
-        PrimitiveBaseShape pbs = prim.BaseShape;
 
-        if (prim.PreferredPhysicalShape == ShapeData.PhysicsShapeType.SHAPE_AVATAR)
+        if (!haveShape && prim.PreferredPhysicalShape == ShapeData.PhysicsShapeType.SHAPE_AVATAR)
         {
             // an avatar capsule is close to a native shape (it is not shared)
             ret = GetReferenceToNativeShape(prim, ShapeData.PhysicsShapeType.SHAPE_AVATAR,
@@ -350,6 +369,31 @@ public sealed class BSShapeCollection : IDisposable
             ret = true;
             haveShape = true;
         }
+
+        // Compound shapes are handled special as they are rebuilt from scratch.
+        // This isn't too great a hardship since most of the child shapes will already been created.
+        if (!haveShape && prim.PreferredPhysicalShape == ShapeData.PhysicsShapeType.SHAPE_COMPOUND)
+        {
+            ret = GetReferenceToCompoundShape(prim, shapeCallback);
+            DetailLog("{0},BSShapeCollection.CreateGeom,compoundShape,shape={1}", prim.LocalID, prim.PhysShape);
+            haveShape = true;
+        }
+
+        if (!haveShape)
+        {
+            ret = CreateGeomNonSpecial(forceRebuild, prim, shapeCallback);
+        }
+
+        return ret;
+    }
+
+    private bool CreateGeomNonSpecial(bool forceRebuild, BSPhysObject prim, ShapeDestructionCallback shapeCallback)
+    {
+        bool ret = false;
+        bool haveShape = false;
+        bool nativeShapePossible = true;
+        PrimitiveBaseShape pbs = prim.BaseShape;
+
         // If the prim attributes are simple, this could be a simple Bullet native shape
         if (!haveShape
                 && pbs != null
@@ -363,6 +407,7 @@ public sealed class BSShapeCollection : IDisposable
                         && pbs.PathScaleX == 100 && pbs.PathScaleY == 100
                         && pbs.PathShearX == 0 && pbs.PathShearY == 0) ) )
         {
+            // It doesn't look like Bullet scales spheres so make sure the scales are all equal
             if ((pbs.ProfileShape == ProfileShape.HalfCircle && pbs.PathCurve == (byte)Extrusion.Curve1)
                                 && pbs.Scale.X == pbs.Scale.Y && pbs.Scale.Y == pbs.Scale.Z)
             {
@@ -378,7 +423,7 @@ public sealed class BSShapeCollection : IDisposable
                                         prim.LocalID, forceRebuild, prim.PhysShape);
                 }
             }
-            if (pbs.ProfileShape == ProfileShape.Square && pbs.PathCurve == (byte)Extrusion.Straight)
+            if (!haveShape && pbs.ProfileShape == ProfileShape.Square && pbs.PathCurve == (byte)Extrusion.Straight)
             {
                 haveShape = true;
                 if (forceRebuild
@@ -393,9 +438,10 @@ public sealed class BSShapeCollection : IDisposable
                 }
             }
         }
+
         // If a simple shape is not happening, create a mesh and possibly a hull.
         // Note that if it's a native shape, the check for physical/non-physical is not
-        //     made. Native shapes are best used in either case.
+        //     made. Native shapes work in either case.
         if (!haveShape && pbs != null)
         {
             if (prim.IsPhysical && PhysicsScene.ShouldUseHullsForPhysicalObjects)
@@ -487,7 +533,7 @@ public sealed class BSShapeCollection : IDisposable
         if (newMeshKey == prim.PhysShape.shapeKey && prim.PhysShape.type == ShapeData.PhysicsShapeType.SHAPE_MESH)
             return false;
 
-        DetailLog("{0},BSShapeCollection.CreateGeomMesh,create,oldKey={1},newKey={2}",
+        DetailLog("{0},BSShapeCollection.GetReferenceToMesh,create,oldKey={1},newKey={2}",
                                 prim.LocalID, prim.PhysShape.shapeKey.ToString("X"), newMeshKey.ToString("X"));
 
         // Since we're recreating new, get rid of the reference to the previous shape
@@ -535,7 +581,7 @@ public sealed class BSShapeCollection : IDisposable
                     verticesAsFloats[vi++] = vv.Z;
                 }
 
-                // m_log.DebugFormat("{0}: CreateGeomMesh: calling CreateMesh. lid={1}, key={2}, indices={3}, vertices={4}",
+                // m_log.DebugFormat("{0}: BSShapeCollection.CreatePhysicalMesh: calling CreateMesh. lid={1}, key={2}, indices={3}, vertices={4}",
                 //                  LogHeader, prim.LocalID, newMeshKey, indices.Length, vertices.Count);
 
                 meshPtr = BulletSimAPI.CreateMeshShape2(PhysicsScene.World.ptr,
@@ -561,7 +607,7 @@ public sealed class BSShapeCollection : IDisposable
         if (newHullKey == prim.PhysShape.shapeKey && prim.PhysShape.type == ShapeData.PhysicsShapeType.SHAPE_HULL)
             return false;
 
-        DetailLog("{0},BSShapeCollection.CreateGeomHull,create,oldKey={1},newKey={2}",
+        DetailLog("{0},BSShapeCollection.GetReferenceToHull,create,oldKey={1},newKey={2}",
                         prim.LocalID, prim.PhysShape.shapeKey.ToString("X"), newHullKey.ToString("X"));
 
         // Remove usage of the previous shape.
@@ -691,6 +737,42 @@ public sealed class BSShapeCollection : IDisposable
     {
         m_hulls.Add(result);
         return;
+    }
+
+    // Compound shapes are always built from scratch.
+    // This shouldn't be to bad since most of the parts will be meshes that had been built previously.
+    private bool GetReferenceToCompoundShape(BSPhysObject prim, ShapeDestructionCallback shapeCallback)
+    {
+        BulletShape cShape = new BulletShape(
+            BulletSimAPI.CreateCompoundShape2(PhysicsScene.World.ptr), ShapeData.PhysicsShapeType.SHAPE_COMPOUND);
+
+        // The prim's linkset is the source of the children.
+        // TODO: there is too much knowledge here about the internals of linksets and too much
+        //     dependency on the relationship of compound shapes and linksets (what if we want to use
+        //     compound shapes for something else?). Think through this and clean up so the
+        //     appropriate knowledge is used at the correct software levels.
+
+        // Recreate the geometry of the root prim (might have been a linkset root in the past)
+        CreateGeomNonSpecial(true, prim, null);
+
+        BSPhysObject rootPrim = prim.Linkset.LinksetRoot;
+
+        prim.Linkset.ForEachMember(delegate(BSPhysObject cPrim)
+        {
+            OMV.Quaternion invRootOrientation = OMV.Quaternion.Inverse(rootPrim.RawOrientation);
+            OMV.Vector3 displacementPos = (cPrim.RawPosition - rootPrim.RawPosition) * invRootOrientation;
+            OMV.Quaternion displacementRot = cPrim.RawOrientation * invRootOrientation;
+
+            DetailLog("{0},BSShapeCollection.GetReferenceToCompoundShape,addMemberToShape,mID={1},mShape={2},dispPos={3},dispRot={4}",
+                prim.LocalID, cPrim.LocalID, cPrim.PhysShape.ptr.ToString("X"), displacementPos, displacementRot);
+
+            BulletSimAPI.AddChildShapeToCompoundShape2(cShape.ptr, cPrim.PhysShape.ptr, displacementPos, displacementRot);
+            return false;
+        });
+
+        prim.PhysShape = cShape;
+
+        return true;
     }
 
     // Create a hash of all the shape parameters to be used as a key

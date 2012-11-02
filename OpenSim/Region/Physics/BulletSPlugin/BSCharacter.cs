@@ -200,7 +200,9 @@ public sealed class BSCharacter : BSPhysObject
     }
     // I want the physics engine to make an avatar capsule
     public override ShapeData.PhysicsShapeType PreferredPhysicalShape
-        { get { return ShapeData.PhysicsShapeType.SHAPE_AVATAR; } }
+    {
+        get {return ShapeData.PhysicsShapeType.SHAPE_AVATAR; }
+    }
 
     public override bool Grabbed {
         set { _grabbed = value; }
@@ -238,6 +240,7 @@ public sealed class BSCharacter : BSPhysObject
     }
     public override OMV.Vector3 Position {
         get {
+            // Don't refetch the position because this function is called a zillion times
             // _position = BulletSimAPI.GetObjectPosition2(Scene.World.ptr, LocalID);
             return _position;
         }
@@ -304,15 +307,11 @@ public sealed class BSCharacter : BSPhysObject
         {
             // The new position value must be pushed into the physics engine but we can't
             //    just assign to "Position" because of potential call loops.
-            BSScene.TaintCallback sanityOperation = delegate()
+            PhysicsScene.TaintedObject(inTaintTime, "BSCharacter.PositionSanityCheck", delegate()
             {
                 DetailLog("{0},BSCharacter.PositionSanityCheck,taint,pos={1},orient={2}", LocalID, _position, _orientation);
                 BulletSimAPI.SetTranslation2(PhysBody.ptr, _position, _orientation);
-            };
-            if (inTaintTime)
-                sanityOperation();
-            else
-                PhysicsScene.TaintedObject("BSCharacter.PositionSanityCheck", sanityOperation);
+            });
             ret = true;
         }
         return ret;

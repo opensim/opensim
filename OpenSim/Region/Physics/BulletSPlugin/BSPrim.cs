@@ -173,20 +173,16 @@ public sealed class BSPrim : BSPhysObject
     }
     // Whatever the linkset wants is what I want.
     public override ShapeData.PhysicsShapeType PreferredPhysicalShape
-        { get { return Linkset.PreferredPhysicalShape; } }
+        { get { return Linkset.PreferredPhysicalShape(this); } }
 
     public override bool ForceBodyShapeRebuild(bool inTaintTime)
     {
         LastAssetBuildFailed = false;
-        BSScene.TaintCallback rebuildOperation = delegate()
+        PhysicsScene.TaintedObject(inTaintTime, "BSPrim.ForceBodyShapeRebuild", delegate()
         {
             _mass = CalculateMass();   // changing the shape changes the mass
             CreateGeomAndObject(true);
-        };
-        if (inTaintTime)
-            rebuildOperation();
-        else
-            PhysicsScene.TaintedObject("BSPrim.ForceBodyShapeRebuild", rebuildOperation);
+        });
         return true;
     }
     public override bool Grabbed {
@@ -263,9 +259,9 @@ public sealed class BSPrim : BSPhysObject
     }
     public override OMV.Vector3 Position {
         get {
+            // child prims move around based on their parent. Need to get the latest location
             if (!Linkset.IsRoot(this))
-                // child prims move around based on their parent. Need to get the latest location
-                _position = BulletSimAPI.GetPosition2(PhysBody.ptr);
+                _position = Linkset.Position(this);
 
             // don't do the GetObjectPosition for root elements because this function is called a zillion times
             // _position = BulletSimAPI.GetObjectPosition2(PhysicsScene.World.ptr, BSBody.ptr);
@@ -344,16 +340,11 @@ public sealed class BSPrim : BSPhysObject
         {
             // The new position value must be pushed into the physics engine but we can't
             //    just assign to "Position" because of potential call loops.
-            BSScene.TaintCallback sanityOperation = delegate()
+            PhysicsScene.TaintedObject(inTaintTime, "BSPrim.PositionSanityCheck", delegate()
             {
                 DetailLog("{0},BSPrim.PositionSanityCheck,taint,pos={1},orient={2}", LocalID, _position, _orientation);
                 ForcePosition = _position;
-            };
-            if (inTaintTime)
-                sanityOperation();
-            else
-                PhysicsScene.TaintedObject("BSPrim.PositionSanityCheck", sanityOperation);
-
+            });
             ret = true;
         }
         return ret;
@@ -542,10 +533,10 @@ public sealed class BSPrim : BSPhysObject
     }
     public override OMV.Quaternion Orientation {
         get {
+            // Children move around because tied to parent. Get a fresh value.
             if (!Linkset.IsRoot(this))
             {
-                // Children move around because tied to parent. Get a fresh value.
-                _orientation = BulletSimAPI.GetOrientation2(PhysBody.ptr);
+                _orientation = Linkset.Orientation(this);
             }
             return _orientation;
         }
@@ -946,7 +937,7 @@ public sealed class BSPrim : BSPhysObject
             m_log.WarnFormat("{0}: Got a NaN force applied to a prim. LocalID={1}", LogHeader, LocalID);
             return;
         }
-        BSScene.TaintCallback addForceOperation = delegate()
+        PhysicsScene.TaintedObject(inTaintTime, "BSPrim.AddForce", delegate()
         {
             OMV.Vector3 fSum = OMV.Vector3.Zero;
             lock (m_accumulatedForces)
@@ -961,11 +952,7 @@ public sealed class BSPrim : BSPhysObject
             DetailLog("{0},BSPrim.AddForce,taint,force={1}", LocalID, fSum);
             if (fSum != OMV.Vector3.Zero)
                 BulletSimAPI.ApplyCentralForce2(PhysBody.ptr, fSum);
-        };
-        if (inTaintTime)
-            addForceOperation();
-        else
-            PhysicsScene.TaintedObject("BSPrim.AddForce", addForceOperation);
+        });
     }
 
     private List<OMV.Vector3> m_accumulatedAngularForces = new List<OMV.Vector3>();
@@ -985,7 +972,7 @@ public sealed class BSPrim : BSPhysObject
             m_log.WarnFormat("{0}: Got a NaN force applied to a prim. LocalID={1}", LogHeader, LocalID);
             return;
         }
-        BSScene.TaintCallback addAngularForceOperation = delegate()
+        PhysicsScene.TaintedObject(inTaintTime, "BSPrim.AddAngularForce", delegate()
         {
             OMV.Vector3 fSum = OMV.Vector3.Zero;
             lock (m_accumulatedAngularForces)
@@ -1003,26 +990,19 @@ public sealed class BSPrim : BSPhysObject
                 BulletSimAPI.ApplyTorque2(PhysBody.ptr, fSum);
                 _torque = fSum;
             }
-        };
-        if (inTaintTime)
-            addAngularForceOperation();
-        else
-            PhysicsScene.TaintedObject("BSPrim.AddAngularForce", addAngularForceOperation);
+        });
     }
     // A torque impulse.
     public void ApplyTorqueImpulse(OMV.Vector3 impulse, bool inTaintTime)
     {
         OMV.Vector3 applyImpulse = impulse;
-        BSScene.TaintCallback applyTorqueImpulseOperation = delegate()
+        PhysicsScene.TaintedObject(inTaintTime, "BSPrim.ApplyTorqueImpulse", delegate()
         {
             DetailLog("{0},BSPrim.ApplyTorqueImpulse,taint,tImpulse={1}", LocalID, applyImpulse);
             BulletSimAPI.ApplyTorqueImpulse2(PhysBody.ptr, applyImpulse);
-        };
-        if (inTaintTime)
-            applyTorqueImpulseOperation();
-        else
-            PhysicsScene.TaintedObject("BSPrim.ApplyTorqueImpulse", applyTorqueImpulseOperation);
+        });
     }
+
     public override void SetMomentum(OMV.Vector3 momentum) {
         // DetailLog("{0},BSPrim.SetMomentum,call,mom={1}", LocalID, momentum);
     }

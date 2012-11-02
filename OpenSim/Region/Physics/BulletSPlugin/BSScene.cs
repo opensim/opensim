@@ -692,6 +692,16 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         return;
     }
 
+    // Sometimes a potentially tainted operation can be used in and out of taint time.
+    // This routine executes the command immediately if in taint-time otherwise it is queued.
+    public void TaintedObject(bool inTaintTime, string ident, TaintCallback callback)
+    {
+        if (inTaintTime)
+            callback();
+        else
+            TaintedObject(ident, callback);
+    }
+
     // When someone tries to change a property on a BSPrim or BSCharacter, the object queues
     // a callback into itself to do the actual property change. That callback is called
     // here just before the physics engine is called to step the simulation.
@@ -1438,7 +1448,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     {
         PhysicsLogging.Write(msg, args);
         // Add the Flush() if debugging crashes to get all the messages written out.
-        // PhysicsLogging.Flush();
+        PhysicsLogging.Flush();
     }
     // Used to fill in the LocalID when there isn't one. It's the correct number of characters.
     public const string DetailLogZero = "0000000000";

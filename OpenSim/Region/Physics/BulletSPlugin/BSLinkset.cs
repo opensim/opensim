@@ -48,7 +48,8 @@ public abstract class BSLinkset
          */
 
         // at the moment, there is only one
-        ret = new BSLinksetConstraints(physScene, parent);
+        // ret = new BSLinksetConstraints(physScene, parent);
+        ret = new BSLinksetCompound(physScene, parent);
 
         return ret;
     }
@@ -69,10 +70,19 @@ public abstract class BSLinkset
     protected object m_linksetActivityLock = new Object();
 
     // Some linksets have a preferred physical shape.
-    // Returns SHAPE_UNKNOWN if there is no preference.
-    public virtual ShapeData.PhysicsShapeType PreferredPhysicalShape
-        { get { return ShapeData.PhysicsShapeType.SHAPE_UNKNOWN; } }
+    // Returns SHAPE_UNKNOWN if there is no preference. Causes the correct shape to be selected.
+    public virtual ShapeData.PhysicsShapeType PreferredPhysicalShape(BSPhysObject requestor)
+    {
+        return ShapeData.PhysicsShapeType.SHAPE_UNKNOWN;
+    }
 
+    // Linksets move around the children so the linkset might need to compute the child position
+    public virtual OMV.Vector3 Position(BSPhysObject member)
+        { return member.RawPosition; }
+    public virtual OMV.Quaternion Orientation(BSPhysObject member)
+        { return member.RawOrientation; }
+    // TODO: does this need to be done for Velocity and RotationalVelocityy?
+    
     // We keep the prim's mass in the linkset structure since it could be dependent on other prims
     protected float m_mass;
     public float LinksetMass
@@ -177,7 +187,6 @@ public abstract class BSLinkset
     }
 
     // Perform an action on each member of the linkset including root prim.
-    // The action is performed only on the objects that are physically in the linkset.
     // Depends on the action on whether this should be done at taint time.
     public delegate bool ForEachMemberAction(BSPhysObject obj);
     public virtual bool ForEachMember(ForEachMemberAction action)
