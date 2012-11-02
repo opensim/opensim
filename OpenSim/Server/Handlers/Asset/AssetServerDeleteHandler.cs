@@ -44,7 +44,7 @@ namespace OpenSim.Server.Handlers.Asset
 {
     public class AssetServerDeleteHandler : BaseStreamHandler
     {
-        // private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private IAssetService m_AssetService;
         protected bool m_allowDelete;
@@ -65,7 +65,18 @@ namespace OpenSim.Server.Handlers.Asset
 
             if (p.Length > 0 && m_allowDelete)
             {
-                result = m_AssetService.Delete(p[0]);
+                string assetID = p[0];
+
+                AssetBase asset = m_AssetService.Get(assetID);
+                if (asset != null && (int)(asset.Flags & AssetFlags.Maptile) != 0)
+                {
+                    result = m_AssetService.Delete(assetID);
+                }
+                else
+                {
+                    m_log.DebugFormat(
+                        "[ASSET SERVER DELETE HANDLER]: Request to delete asset {0}, but flags are not Maptile", assetID);
+                }
             }
 
             XmlSerializer xs = new XmlSerializer(typeof(bool));
