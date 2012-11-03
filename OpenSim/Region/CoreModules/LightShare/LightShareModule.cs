@@ -153,6 +153,9 @@ namespace OpenSim.Region.CoreModules.World.LightShare
 
         public void SendProfileToClient(IClientAPI client, RegionLightShareData wl)
         {
+            if (client == null)
+                return;
+
             if (m_enableWindlight)
             {
                 if (m_scene.RegionInfo.WindlightSettings.valid)
