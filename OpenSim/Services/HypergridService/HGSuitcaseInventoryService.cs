@@ -460,6 +460,15 @@ namespace OpenSim.Services.HypergridService
 
             if (folders != null && folders.Length > 0)
                 return folders[0];
+
+            // OK, so the RootFolder type didn't work. Let's look for any type with parent UUID.Zero.
+            folders = m_Database.GetFolders(
+                new string[] { "agentID", "folderName", "parentFolderID" },
+                new string[] { principalID.ToString(), "My Inventory", UUID.Zero.ToString() });
+
+            if (folders != null && folders.Length > 0)
+                return folders[0];
+
             return null;
         }
 
