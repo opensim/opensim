@@ -116,6 +116,10 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     // True if initialized and ready to do simulation steps
     private bool m_initialized = false;
 
+    // Flag which is true when processing taints.
+    // Not guaranteed to be correct all the time (don't depend on this) but good for debugging.
+    public bool InTaintTime { get; private set; }
+
     // Pinned memory used to pass step information between managed and unmanaged
     private int m_maxCollisionsPerFrame;
     private CollisionDesc[] m_collisionArray;
@@ -270,6 +274,9 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         TerrainManager = new BSTerrainManager(this);
         TerrainManager.CreateInitialGroundPlaneAndTerrain();
 
+        m_log.WarnFormat("{0} Linksets implemented with {1}", LogHeader, (BSLinkset.LinksetImplementation)Params.linksetImplementation);
+
+        InTaintTime = false;
         m_initialized = true;
     }
 
@@ -707,8 +714,10 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     // here just before the physics engine is called to step the simulation.
     public void ProcessTaints()
     {
+        InTaintTime = true;
         ProcessRegularTaints();
         ProcessPostTaintTaints();
+        InTaintTime = false;
     }
 
     private void ProcessRegularTaints()
@@ -849,6 +858,17 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             }
             oldList.Clear();
         }
+    }
+
+    public bool AssertInTaintTime(string whereFrom)
+    {
+        if (!InTaintTime)
+        {
+            DetailLog("{0},BSScene.AssertInTaintTime,NOT IN TAINT TIME,Region={1},Where={2}", DetailLogZero, RegionName, whereFrom);
+            m_log.ErrorFormat("{0} NOT IN TAINT TIME!! Region={1}, Where={2}", LogHeader, RegionName, whereFrom);
+            Util.PrintCallStack();
+        }
+        return InTaintTime;
     }
 
     #endregion // Taints
@@ -1214,8 +1234,8 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             (s) => { return s.m_params[0].numberOfSolverIterations; },
             (s,p,l,v) => { s.m_params[0].numberOfSolverIterations = v; } ),
 
-	    new ParameterDefn("LinksetImplementation", "Type of linkset implementation (0=Constraint, 1=Compound)",
-            (float)BSLinkset.LinksetImplementation.Constraint,
+	    new ParameterDefn("LinksetImplementation", "Type of linkset implementation (0=Constraint, 1=Compound, 2=Manual)",
+            (float)BSLinkset.LinksetImplementation.Compound,
             (s,cf,p,v) => { s.m_params[0].linksetImplementation = cf.GetFloat(p,v); },
             (s) => { return s.m_params[0].linksetImplementation; },
             (s,p,l,v) => { s.m_params[0].linksetImplementation = v; } ),

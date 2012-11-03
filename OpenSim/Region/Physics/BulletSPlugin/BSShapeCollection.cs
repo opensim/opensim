@@ -92,6 +92,8 @@ public sealed class BSShapeCollection : IDisposable
     public bool GetBodyAndShape(bool forceRebuild, BulletSim sim, BSPhysObject prim,
                     ShapeDestructionCallback shapeCallback, BodyDestructionCallback bodyCallback)
     {
+        PhysicsScene.AssertInTaintTime("BSShapeCollection.GetBodyAndShape");
+
         bool ret = false;
 
         // This lock could probably be pushed down lower but building shouldn't take long
@@ -121,7 +123,7 @@ public sealed class BSShapeCollection : IDisposable
     {
         lock (m_collectionActivityLock)
         {
-            DetailLog("{0},BSShapeCollection.ReferenceBody,newBody", body.ID, body);
+            DetailLog("{0},BSShapeCollection.ReferenceBody,newBody,body={1}", body.ID, body);
             PhysicsScene.TaintedObject(inTaintTime, "BSShapeCollection.ReferenceBody", delegate()
             {
                 if (!BulletSimAPI.IsInWorld2(body.ptr))
@@ -165,7 +167,7 @@ public sealed class BSShapeCollection : IDisposable
     // Meshes and hulls for the same shape have the same hash key.
     // NOTE that native shapes are not added to the mesh list or removed.
     // Returns 'true' if this is the initial reference to the shape. Otherwise reused.
-    private bool ReferenceShape(BulletShape shape)
+    public bool ReferenceShape(BulletShape shape)
     {
         bool ret = false;
         switch (shape.type)
@@ -276,8 +278,8 @@ public sealed class BSShapeCollection : IDisposable
             if (shapeCallback != null) shapeCallback(shape);
             meshDesc.lastReferenced = System.DateTime.Now;
             Meshes[shape.shapeKey] = meshDesc;
-            DetailLog("{0},BSShapeCollection.DereferenceMesh,key={1},refCnt={2}",
-                    BSScene.DetailLogZero, shape.shapeKey.ToString("X"), meshDesc.referenceCount);
+            DetailLog("{0},BSShapeCollection.DereferenceMesh,shape={1},refCnt={2}",
+                                BSScene.DetailLogZero, shape, meshDesc.referenceCount);
 
         }
     }
@@ -297,8 +299,8 @@ public sealed class BSShapeCollection : IDisposable
 
             hullDesc.lastReferenced = System.DateTime.Now;
             Hulls[shape.shapeKey] = hullDesc;
-            DetailLog("{0},BSShapeCollection.DereferenceHull,key={1},refCnt={2}",
-                    BSScene.DetailLogZero, shape.shapeKey.ToString("X"), hullDesc.referenceCount);
+            DetailLog("{0},BSShapeCollection.DereferenceHull,shape={1},refCnt={2}",
+                    BSScene.DetailLogZero, shape, hullDesc.referenceCount);
         }
     }
 
@@ -319,8 +321,11 @@ public sealed class BSShapeCollection : IDisposable
                                         BSScene.DetailLogZero, shape.type, shape.ptr.ToString("X"));
             return;
         }
+
         int numChildren = BulletSimAPI.GetNumberOfCompoundChildren2(shape.ptr);
-        for (int ii = 0; ii < numChildren; ii++)
+        DetailLog("{0},BSShapeCollection.DereferenceCompound,shape={1},children={2}", BSScene.DetailLogZero, shape, numChildren);
+
+        for (int ii = numChildren - 1; ii >= 0; ii--)
         {
             IntPtr childShape = BulletSimAPI.RemoveChildShapeFromCompoundShapeIndex2(shape.ptr, ii);
             DereferenceAnonCollisionShape(childShape);
@@ -343,6 +348,7 @@ public sealed class BSShapeCollection : IDisposable
             shapeInfo.isNativeShape = true;
             shapeInfo.type = ShapeData.PhysicsShapeType.SHAPE_BOX; // (technically, type doesn't matter)
         }
+        DetailLog("{0},BSShapeCollection.DereferenceAnonCollisionShape,shape={1}", BSScene.DetailLogZero, shapeInfo);
 
         DereferenceShape(shapeInfo, true, null);
     }
@@ -440,23 +446,32 @@ public sealed class BSShapeCollection : IDisposable
         }
 
         // If a simple shape is not happening, create a mesh and possibly a hull.
-        // Note that if it's a native shape, the check for physical/non-physical is not
-        //     made. Native shapes work in either case.
         if (!haveShape && pbs != null)
         {
-            if (prim.IsPhysical && PhysicsScene.ShouldUseHullsForPhysicalObjects)
-            {
-                // Update prim.BSShape to reference a hull of this shape.
-                ret = GetReferenceToHull(prim,shapeCallback);
-                DetailLog("{0},BSShapeCollection.CreateGeom,hull,shape={1},key={2}",
-                                        prim.LocalID, prim.PhysShape, prim.PhysShape.shapeKey.ToString("X"));
-            }
-            else
-            {
-                ret = GetReferenceToMesh(prim, shapeCallback);
-                DetailLog("{0},BSShapeCollection.CreateGeom,mesh,shape={1},key={2}",
-                                        prim.LocalID, prim.PhysShape, prim.PhysShape.shapeKey.ToString("X"));
-            }
+            ret = CreateGeomMeshOrHull(prim, shapeCallback);
+        }
+
+        return ret;
+    }
+
+    public bool CreateGeomMeshOrHull(BSPhysObject prim, ShapeDestructionCallback shapeCallback)
+    {
+
+        bool ret = false;
+        // Note that if it's a native shape, the check for physical/non-physical is not
+        //     made. Native shapes work in either case.
+        if (prim.IsPhysical && PhysicsScene.ShouldUseHullsForPhysicalObjects)
+        {
+            // Update prim.BSShape to reference a hull of this shape.
+            ret = GetReferenceToHull(prim,shapeCallback);
+            DetailLog("{0},BSShapeCollection.CreateGeom,hull,shape={1},key={2}",
+                                    prim.LocalID, prim.PhysShape, prim.PhysShape.shapeKey.ToString("X"));
+        }
+        else
+        {
+            ret = GetReferenceToMesh(prim, shapeCallback);
+            DetailLog("{0},BSShapeCollection.CreateGeom,mesh,shape={1},key={2}",
+                                    prim.LocalID, prim.PhysShape, prim.PhysShape.shapeKey.ToString("X"));
         }
         return ret;
     }
@@ -743,32 +758,16 @@ public sealed class BSShapeCollection : IDisposable
     // This shouldn't be to bad since most of the parts will be meshes that had been built previously.
     private bool GetReferenceToCompoundShape(BSPhysObject prim, ShapeDestructionCallback shapeCallback)
     {
+        // Remove reference to the old shape
+        // Don't need to do this as the shape is freed when we create the new root shape below.
+        // DereferenceShape(prim.PhysShape, true, shapeCallback);
+
         BulletShape cShape = new BulletShape(
             BulletSimAPI.CreateCompoundShape2(PhysicsScene.World.ptr), ShapeData.PhysicsShapeType.SHAPE_COMPOUND);
 
-        // The prim's linkset is the source of the children.
-        // TODO: there is too much knowledge here about the internals of linksets and too much
-        //     dependency on the relationship of compound shapes and linksets (what if we want to use
-        //     compound shapes for something else?). Think through this and clean up so the
-        //     appropriate knowledge is used at the correct software levels.
-
-        // Recreate the geometry of the root prim (might have been a linkset root in the past)
+        // Create the shape for the root prim and add it to the compound shape
         CreateGeomNonSpecial(true, prim, null);
-
-        BSPhysObject rootPrim = prim.Linkset.LinksetRoot;
-
-        prim.Linkset.ForEachMember(delegate(BSPhysObject cPrim)
-        {
-            OMV.Quaternion invRootOrientation = OMV.Quaternion.Inverse(rootPrim.RawOrientation);
-            OMV.Vector3 displacementPos = (cPrim.RawPosition - rootPrim.RawPosition) * invRootOrientation;
-            OMV.Quaternion displacementRot = cPrim.RawOrientation * invRootOrientation;
-
-            DetailLog("{0},BSShapeCollection.GetReferenceToCompoundShape,addMemberToShape,mID={1},mShape={2},dispPos={3},dispRot={4}",
-                prim.LocalID, cPrim.LocalID, cPrim.PhysShape.ptr.ToString("X"), displacementPos, displacementRot);
-
-            BulletSimAPI.AddChildShapeToCompoundShape2(cShape.ptr, cPrim.PhysShape.ptr, displacementPos, displacementRot);
-            return false;
-        });
+        BulletSimAPI.AddChildShapeToCompoundShape2(cShape.ptr, prim.PhysShape.ptr, OMV.Vector3.Zero, OMV.Quaternion.Identity);
 
         prim.PhysShape = cShape;
 

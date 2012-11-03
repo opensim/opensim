@@ -34,7 +34,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 {
 public sealed class BSLinksetCompound : BSLinkset
 {
-    // private static string LogHeader = "[BULLETSIM LINKSET CONSTRAINTS]";
+    private static string LogHeader = "[BULLETSIM LINKSET COMPOUND]";
 
     public BSLinksetCompound(BSScene scene, BSPhysObject parent)
     {
@@ -58,6 +58,12 @@ public sealed class BSLinksetCompound : BSLinkset
     // This is queued in the 'post taint' queue so the
     //   refresh will happen once after all the other taints are applied.
     public override void Refresh(BSPhysObject requestor)
+    {
+        // External request for Refresh (from BSPrim) is not necessary
+        // InternalRefresh(requestor);
+    }
+
+    private void InternalRefresh(BSPhysObject requestor)
     {
         DetailLog("{0},BSLinksetCompound.Refresh,schedulingRefresh,requestor={1}", LinksetRoot.LocalID, requestor.LocalID);
         // Queue to happen after all the other taint processing
@@ -135,13 +141,13 @@ public sealed class BSLinksetCompound : BSLinkset
     {
         bool ret = false;
 
-        DetailLog("{0},BSLinksetCompound.RemoveBodyDependencies,removeChildrenForRoot,rID={1},rBody={2},isRoot={3}",
-                                    child.LocalID, LinksetRoot.LocalID, LinksetRoot.PhysBody.ptr.ToString("X"), IsRoot(child));
+        DetailLog("{0},BSLinksetCompound.RemoveBodyDependencies,refreshIfChild,rID={1},rBody={2},isRoot={3}",
+                        child.LocalID, LinksetRoot.LocalID, LinksetRoot.PhysBody.ptr.ToString("X"), IsRoot(child));
 
         if (!IsRoot(child))
         {
             // Cause the current shape to be freed and the new one to be built.
-            Refresh(LinksetRoot);
+            InternalRefresh(LinksetRoot);
             ret = true;
         }
 
@@ -169,7 +175,7 @@ public sealed class BSLinksetCompound : BSLinkset
             DetailLog("{0},BSLinksetCompound.AddChildToLinkset,call,child={1}", LinksetRoot.LocalID, child.LocalID);
 
             // Cause constraints and assorted properties to be recomputed before the next simulation step.
-            Refresh(LinksetRoot);
+            InternalRefresh(LinksetRoot);
         }
         return;
     }
@@ -196,24 +202,61 @@ public sealed class BSLinksetCompound : BSLinkset
             else
             {
                 // Schedule a rebuild of the linkset  before the next simulation tick.
-                Refresh(LinksetRoot);
+                InternalRefresh(LinksetRoot);
             }
         }
         return;
     }
 
-
-    // Call each of the constraints that make up this linkset and recompute the
-    //    various transforms and variables. Create constraints of not created yet.
-    // Called before the simulation step to make sure the constraint based linkset
+    // Called before the simulation step to make sure the compound based linkset
     //    is all initialized.
+    // Constraint linksets are rebuilt every time.
+    // Note that this works for rebuilding just the root after a linkset is taken apart.
     // Called at taint time!!
     private void RecomputeLinksetCompound()
     {
-        DetailLog("{0},BSLinksetCompound.RecomputeLinksetCompound,start,rBody={1},numChildren={2}",
-                        LinksetRoot.LocalID, LinksetRoot.PhysBody.ptr.ToString("X"), NumberOfChildren);
-
+        // Cause the root shape to be rebuilt as a compound object with just the root in it
         LinksetRoot.ForceBodyShapeRebuild(true);
+
+        DetailLog("{0},BSLinksetCompound.RecomputeLinksetCompound,start,rBody={1},rShape={2},numChildren={3}",
+                        LinksetRoot.LocalID, LinksetRoot.PhysBody, LinksetRoot.PhysShape, NumberOfChildren);
+
+        ForEachMember(delegate(BSPhysObject cPrim)
+        {
+            if (!IsRoot(cPrim))
+            {
+                OMV.Quaternion invRootOrientation = OMV.Quaternion.Inverse(LinksetRoot.RawOrientation);
+                OMV.Vector3 displacementPos = (cPrim.RawPosition - LinksetRoot.RawPosition) * invRootOrientation;
+                OMV.Quaternion displacementRot = cPrim.RawOrientation * invRootOrientation;
+
+                DetailLog("{0},BSLinksetCompound.RecomputeLinksetCompound,addMemberToShape,mID={1},mShape={2},dispPos={3},dispRot={4}",
+                    LinksetRoot.LocalID, cPrim.LocalID, cPrim.PhysShape, displacementPos, displacementRot);
+
+                if (cPrim.PhysShape.isNativeShape)
+                {
+                    // Native shapes are not shared so we need to create a new one.
+                    // A mesh or hull is created because scale is not available on a native shape.
+                    //     (TODO: Bullet does have a btScaledCollisionShape. Can that be used?)
+                    BulletShape saveShape = cPrim.PhysShape;
+                    PhysicsScene.Shapes.CreateGeomMeshOrHull(cPrim, null);
+                    BulletShape newShape = cPrim.PhysShape;
+                    cPrim.PhysShape = saveShape;
+                    BulletSimAPI.AddChildShapeToCompoundShape2(LinksetRoot.PhysShape.ptr, newShape.ptr, displacementPos, displacementRot);
+                }
+                else
+                {
+                    // For the shared shapes (meshes and hulls) just use the shape in the child
+                    if (PhysicsScene.Shapes.ReferenceShape(cPrim.PhysShape))
+                    {
+                        PhysicsScene.Logger.ErrorFormat("{0} Rebuilt sharable shape when building linkset! Region={1}, primID={2}, shape={3}",
+                                            LogHeader, PhysicsScene.RegionName, cPrim.LocalID, cPrim.PhysShape);
+                    }
+                    BulletSimAPI.AddChildShapeToCompoundShape2(LinksetRoot.PhysShape.ptr, cPrim.PhysShape.ptr, displacementPos, displacementRot);
+                }
+            }
+            return false;
+        });
+
 
         float linksetMass = LinksetMass;
         LinksetRoot.UpdatePhysicalMassProperties(linksetMass);
@@ -221,9 +264,6 @@ public sealed class BSLinksetCompound : BSLinkset
             // DEBUG: see of inter-linkset collisions are causing problems
         // BulletSimAPI.SetCollisionFilterMask2(LinksetRoot.BSBody.ptr, 
         //                     (uint)CollisionFilterGroups.LinksetFilter, (uint)CollisionFilterGroups.LinksetMask);
-        DetailLog("{0},BSLinksetCompound.RecomputeLinksetCompound,end,rBody={1},linksetMass={2}",
-                            LinksetRoot.LocalID, LinksetRoot.PhysBody.ptr.ToString("X"), linksetMass);
-
 
     }
 }
