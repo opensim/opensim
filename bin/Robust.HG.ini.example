@@ -485,8 +485,15 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
 ; * 
 [HGInventoryService]
     ; For the InventoryServiceInConnector
-    LocalServiceModule = "OpenSim.Services.HypergridService.dll:HGInventoryService"
+    LocalServiceModule    = "OpenSim.Services.HypergridService.dll:HGSuitcaseInventoryService"
+	;; alternatives:
+	;;  HG1.5, more permissive, not recommended, but still supported
+    ;LocalServiceModule    = "OpenSim.Services.HypergridService.dll:HGInventoryService"
+	;;  HG1.0, totally permissive, not recommended, but OK for grids with 100% trust
+    ;LocalServiceModule    = "OpenSim.Services.InventoryService.dll:XInventoryService"
+
 	UserAccountsService = "OpenSim.Services.UserAccountService.dll:UserAccountService"
+	AvatarService = "OpenSim.Services.AvatarService.dll:AvatarService"
 	HomeURI = "http://127.0.0.1:8002"
 
 ; * The interface that local users get when they are in other grids.

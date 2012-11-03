@@ -71,7 +71,7 @@ namespace OpenSim.Services.HypergridService
                 m_ConfigName = configName;
 
             if (m_Database == null)
-                m_log.WarnFormat("[XXX]: m_Database is null!");
+                m_log.ErrorFormat("[HG SUITCASE INVENTORY SERVICE]: m_Database is null!");
 
             //
             // Try reading the [InventoryService] section, if it exists
@@ -301,7 +301,7 @@ namespace OpenSim.Services.HypergridService
 
         public override bool AddFolder(InventoryFolderBase folder)
         {
-            m_log.WarnFormat("[HG SUITCASE INVENTORY SERVICE]: AddFolder {0} {1}", folder.Name, folder.ParentID);
+            //m_log.WarnFormat("[HG SUITCASE INVENTORY SERVICE]: AddFolder {0} {1}", folder.Name, folder.ParentID);
             // Let's do a bit of sanity checking, more than the base service does
             // make sure the given folder's parent folder exists under the suitcase tree of this user
 
@@ -323,7 +323,7 @@ namespace OpenSim.Services.HypergridService
 
         public override bool UpdateFolder(InventoryFolderBase folder)
         {
-            m_log.DebugFormat("[HG SUITCASE INVENTORY SERVICE]: Update folder {0}, version {1}", folder.ID, folder.Version);
+            //m_log.DebugFormat("[HG SUITCASE INVENTORY SERVICE]: Update folder {0}, version {1}", folder.ID, folder.Version);
             if (!IsWithinSuitcaseTree(folder.Owner, folder.ID))
             {
                 m_log.DebugFormat("[HG SUITCASE INVENTORY SERVICE]: folder {0} not within Suitcase tree", folder.Name);
@@ -584,7 +584,7 @@ namespace OpenSim.Services.HypergridService
                 {
                     if (a.Wearables[i][j].ItemID == itemID)
                     {
-                        m_log.DebugFormat("[HG SUITCASE INVENTORY SERVICE]: item {0} is a wearable", itemID); 
+                        //m_log.DebugFormat("[HG SUITCASE INVENTORY SERVICE]: item {0} is a wearable", itemID); 
                         return true;
                     }
                 }
@@ -593,7 +593,7 @@ namespace OpenSim.Services.HypergridService
             // Check attachments
             if (a.GetAttachmentForItem(itemID) != null)
             {
-                m_log.DebugFormat("[HG SUITCASE INVENTORY SERVICE]: item {0} is an attachment", itemID); 
+                //m_log.DebugFormat("[HG SUITCASE INVENTORY SERVICE]: item {0} is an attachment", itemID); 
                 return true;
             }
 

@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -532,7 +532,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (PhysicsActor != null)
                 {
-                    m_velocity = PhysicsActor.TargetVelocity;
+                    m_velocity = PhysicsActor.Velocity;
 
 //                    m_log.DebugFormat(
 //                        "[SCENE PRESENCE]: Set velocity {0} for {1} in {2} via getting Velocity!",
@@ -547,7 +547,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     try
                     {
-                        PhysicsActor.Velocity = value;
+                        PhysicsActor.TargetVelocity = value;
                     }
                     catch (Exception e)
                     {

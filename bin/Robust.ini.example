@@ -77,7 +77,19 @@ MapGetServiceConnector = "8002/OpenSim.Server.Handlers.dll:MapGetServiceConnecto
     LocalServiceModule = "OpenSim.Services.AssetService.dll:AssetService"
     DefaultAssetLoader = "OpenSim.Framework.AssetLoader.Filesystem.dll"
     AssetLoaderArgs = "./assets/AssetSets.xml"
-    AllowRemoteDelete = "false"
+
+    ; Allow maptile assets to remotely deleted by remote calls to the asset service.
+    ; There is no harm in having this as false - it just means that historical maptile assets are not deleted.
+    ; This only applies to maptiles served via the version 1 viewer mechanisms
+    ; Default is false
+    AllowRemoteDelete = false
+
+    ; Allow all assets to be remotely deleted.
+    ; Only set this to true if you are operating a grid where you control all calls to the asset service
+    ; (where a necessary condition is that you control all simulators) and you need this for admin purposes.
+    ; If set to true, AllowRemoteDelete = true is required as well.
+    ; Default is false.
+    AllowRemoteDeleteAllTypes = false
 
 ; * This configuration loads the inventory server modules. It duplicates
 ; * the function of the legacy inventory server
