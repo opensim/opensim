@@ -1472,7 +1472,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     public void DetailLog(string msg, params Object[] args)
     {
         PhysicsLogging.Write(msg, args);
-        // Add the Flush() if debugging crashes to get all the messages written out.
+        // Add the Flush() if debugging crashes. Gets all the messages written out.
         PhysicsLogging.Flush();
     }
     // Used to fill in the LocalID when there isn't one. It's the correct number of characters.

@@ -134,7 +134,7 @@ public sealed class BSLinksetCompound : BSLinkset
     }
 
     // Routine called when rebuilding the body of some member of the linkset.
-    // Since we don't keep in-physical world relationships, do nothing unless it's a child changing.
+    // Since we don't keep in world relationships, do nothing unless it's a child changing.
     // Returns 'true' of something was actually removed and would need restoring
     // Called at taint-time!!
     public override bool RemoveBodyDependencies(BSPrim child)
@@ -221,10 +221,12 @@ public sealed class BSLinksetCompound : BSLinkset
         DetailLog("{0},BSLinksetCompound.RecomputeLinksetCompound,start,rBody={1},rShape={2},numChildren={3}",
                         LinksetRoot.LocalID, LinksetRoot.PhysBody, LinksetRoot.PhysShape, NumberOfChildren);
 
+        // Add a shape for each of the other children in the linkset
         ForEachMember(delegate(BSPhysObject cPrim)
         {
             if (!IsRoot(cPrim))
             {
+                // Each child position and rotation is given relative to the root.
                 OMV.Quaternion invRootOrientation = OMV.Quaternion.Inverse(LinksetRoot.RawOrientation);
                 OMV.Vector3 displacementPos = (cPrim.RawPosition - LinksetRoot.RawPosition) * invRootOrientation;
                 OMV.Quaternion displacementRot = cPrim.RawOrientation * invRootOrientation;
@@ -245,7 +247,7 @@ public sealed class BSLinksetCompound : BSLinkset
                 }
                 else
                 {
-                    // For the shared shapes (meshes and hulls) just use the shape in the child
+                    // For the shared shapes (meshes and hulls), just use the shape in the child.
                     if (PhysicsScene.Shapes.ReferenceShape(cPrim.PhysShape))
                     {
                         PhysicsScene.Logger.ErrorFormat("{0} Rebuilt sharable shape when building linkset! Region={1}, primID={2}, shape={3}",
@@ -254,10 +256,10 @@ public sealed class BSLinksetCompound : BSLinkset
                     BulletSimAPI.AddChildShapeToCompoundShape2(LinksetRoot.PhysShape.ptr, cPrim.PhysShape.ptr, displacementPos, displacementRot);
                 }
             }
-            return false;
+            return false;   // 'false' says to move onto the next child in the list
         });
 
-
+        // With all of the linkset packed into the root prim, it has the mass of everyone.
         float linksetMass = LinksetMass;
         LinksetRoot.UpdatePhysicalMassProperties(linksetMass);
 

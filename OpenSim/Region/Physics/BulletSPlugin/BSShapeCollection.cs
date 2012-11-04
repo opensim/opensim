@@ -48,6 +48,7 @@ public sealed class BSShapeCollection : IDisposable
         public IntPtr ptr;
         public int referenceCount;
         public DateTime lastReferenced;
+        public UInt64 shapeKey;
     }
 
     // Description of a hull.
@@ -57,6 +58,7 @@ public sealed class BSShapeCollection : IDisposable
         public IntPtr ptr;
         public int referenceCount;
         public DateTime lastReferenced;
+        public UInt64 shapeKey;
     }
 
     // The sharable set of meshes and hulls. Indexed by their shape hash.
@@ -116,7 +118,7 @@ public sealed class BSShapeCollection : IDisposable
         return ret;
     }
 
-    // Track another user of a body
+    // Track another user of a body.
     // We presume the caller has allocated the body.
     // Bodies only have one user so the body is just put into the world if not already there.
     public void ReferenceBody(BulletBody body, bool inTaintTime)
@@ -146,13 +148,16 @@ public sealed class BSShapeCollection : IDisposable
         {
             PhysicsScene.TaintedObject(inTaintTime, "BSShapeCollection.DereferenceBody", delegate()
             {
-                DetailLog("{0},BSShapeCollection.DereferenceBody,DestroyingBody. ptr={1}, inTaintTime={2}",
-                                            body.ID, body.ptr.ToString("X"), inTaintTime);
+                DetailLog("{0},BSShapeCollection.DereferenceBody,DestroyingBody,body={1},inTaintTime={2}",
+                                            body.ID, body, inTaintTime);
                 // If the caller needs to know the old body is going away, pass the event up.
                 if (bodyCallback != null) bodyCallback(body);
 
-                // It may have already been removed from the world in which case the next is a NOOP.
-                BulletSimAPI.RemoveObjectFromWorld2(PhysicsScene.World.ptr, body.ptr);
+                if (BulletSimAPI.IsInWorld2(body.ptr))
+                {
+                    BulletSimAPI.RemoveObjectFromWorld2(PhysicsScene.World.ptr, body.ptr);
+                    DetailLog("{0},BSShapeCollection.DereferenceBody,removingFromWorld. Body={1}", body.ID, body);
+                }
 
                 // Zero any reference to the shape so it is not freed when the body is deleted.
                 BulletSimAPI.SetCollisionShape2(PhysicsScene.World.ptr, body.ptr, IntPtr.Zero);
@@ -185,6 +190,7 @@ public sealed class BSShapeCollection : IDisposable
                 {
                     // This is a new reference to a mesh
                     meshDesc.ptr = shape.ptr;
+                    meshDesc.shapeKey = shape.shapeKey;
                     // We keep a reference to the underlying IMesh data so a hull can be built
                     meshDesc.referenceCount = 1;
                     DetailLog("{0},BSShapeCollection.ReferenceShape,newMesh,key={1},cnt={2}",
@@ -207,6 +213,7 @@ public sealed class BSShapeCollection : IDisposable
                 {
                     // This is a new reference to a hull
                     hullDesc.ptr = shape.ptr;
+                    hullDesc.shapeKey = shape.shapeKey;
                     hullDesc.referenceCount = 1;
                     DetailLog("{0},BSShapeCollection.ReferenceShape,newHull,key={1},cnt={2}",
                                 BSScene.DetailLogZero, shape.shapeKey.ToString("X"), hullDesc.referenceCount);
@@ -306,7 +313,7 @@ public sealed class BSShapeCollection : IDisposable
 
     // Remove a reference to a compound shape.
     // Taking a compound shape apart is a little tricky because if you just delete the
-    //      physical object, it will free all the underlying children. We can't do that because
+    //      physical shape, it will free all the underlying children. We can't do that because
     //      they could be shared. So, this removes each of the children from the compound and
     //      dereferences them separately before destroying the compound collision object itself.
     // Called at taint-time.
@@ -335,22 +342,53 @@ public sealed class BSShapeCollection : IDisposable
 
     // Sometimes we have a pointer to a collision shape but don't know what type it is.
     // Figure out type and call the correct dereference routine.
-    // This is coming from a compound shape that we created so we know it is either native or mesh.
     // Called at taint-time.
     private void DereferenceAnonCollisionShape(IntPtr cShape)
     {
-        BulletShape shapeInfo = new BulletShape(cShape, ShapeData.PhysicsShapeType.SHAPE_MESH);
-        if (BulletSimAPI.IsCompound2(cShape))
-            shapeInfo.type = ShapeData.PhysicsShapeType.SHAPE_COMPOUND;
+        MeshDesc meshDesc;
+        HullDesc hullDesc;
 
-        if (BulletSimAPI.IsNativeShape2(cShape))
+        BulletShape shapeInfo = new BulletShape(cShape);
+        if (TryGetMeshByPtr(cShape, out meshDesc))
         {
-            shapeInfo.isNativeShape = true;
-            shapeInfo.type = ShapeData.PhysicsShapeType.SHAPE_BOX; // (technically, type doesn't matter)
+            shapeInfo.type = ShapeData.PhysicsShapeType.SHAPE_MESH;
+            shapeInfo.shapeKey = meshDesc.shapeKey;
         }
+        else
+        {
+            if (TryGetHullByPtr(cShape, out hullDesc))
+            {
+                shapeInfo.type = ShapeData.PhysicsShapeType.SHAPE_HULL;
+                shapeInfo.shapeKey = hullDesc.shapeKey;
+            }
+            else
+            {
+                if (BulletSimAPI.IsCompound2(cShape))
+                {
+                    shapeInfo.type = ShapeData.PhysicsShapeType.SHAPE_COMPOUND;
+                }
+                else
+                {
+                    if (BulletSimAPI.IsNativeShape2(cShape))
+                    {
+                        shapeInfo.isNativeShape = true;
+                        shapeInfo.type = ShapeData.PhysicsShapeType.SHAPE_BOX; // (technically, type doesn't matter)
+                    }
+                }
+            }
+        }
+
         DetailLog("{0},BSShapeCollection.DereferenceAnonCollisionShape,shape={1}", BSScene.DetailLogZero, shapeInfo);
 
-        DereferenceShape(shapeInfo, true, null);
+        if (shapeInfo.type != ShapeData.PhysicsShapeType.SHAPE_UNKNOWN)
+        {
+            DereferenceShape(shapeInfo, true, null);
+        }
+        else
+        {
+            PhysicsScene.Logger.ErrorFormat("{0} Could not decypher shape type. Region={1}, addr={2}",
+                                    LogHeader, PhysicsScene.RegionName, cShape.ToString("X"));
+        }
     }
 
     // Create the geometry information in Bullet for later use.
@@ -910,6 +948,42 @@ public sealed class BSShapeCollection : IDisposable
             ret = true;
         }
 
+        return ret;
+    }
+
+    private bool TryGetMeshByPtr(IntPtr addr, out MeshDesc outDesc)
+    {
+        bool ret = false;
+        MeshDesc foundDesc = new MeshDesc();
+        foreach (MeshDesc md in Meshes.Values)
+        {
+            if (md.ptr == addr)
+            {
+                foundDesc = md;
+                ret = true;
+                break;
+            }
+
+        }
+        outDesc = foundDesc;
+        return ret;
+    }
+
+    private bool TryGetHullByPtr(IntPtr addr, out HullDesc outDesc)
+    {
+        bool ret = false;
+        HullDesc foundDesc = new HullDesc();
+        foreach (HullDesc hd in Hulls.Values)
+        {
+            if (hd.ptr == addr)
+            {
+                foundDesc = hd;
+                ret = true;
+                break;
+            }
+
+        }
+        outDesc = foundDesc;
         return ret;
     }
 
