@@ -1335,8 +1335,10 @@ namespace OpenSim.Region.Framework.Scenes
             // Stop all client threads.
             ForEachScenePresence(delegate(ScenePresence avatar) { avatar.ControllingClient.Close(); });
 
-            m_log.Debug("[SCENE]: Persisting changed objects");
+            m_log.Debug("[SCENE]: TriggerSceneShuttingDown");
             EventManager.TriggerSceneShuttingDown(this);
+
+            m_log.Debug("[SCENE]: Persisting changed objects");
 
             EntityBase[] entities = GetEntities();
             foreach (EntityBase entity in entities)
@@ -1347,6 +1349,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
+            m_log.Debug("[SCENE]: Graph close");
             m_sceneGraph.Close();
 
             if (!GridService.DeregisterRegion(RegionInfo.RegionID))
@@ -1359,6 +1362,7 @@ namespace OpenSim.Region.Framework.Scenes
             // attempt to reference a null or disposed physics scene.
             if (PhysicsScene != null)
             {
+                m_log.Debug("[SCENE]: Dispose Physics");
                 PhysicsScene phys = PhysicsScene;
                 // remove the physics engine from both Scene and SceneGraph
                 PhysicsScene = null;
@@ -1400,6 +1404,9 @@ namespace OpenSim.Region.Framework.Scenes
                 m_heartbeatThread = null;
             }
 //            m_lastUpdate = Util.EnvironmentTickCount();
+
+//            m_sceneGraph.PreparePhysicsSimulation();
+
 
             m_heartbeatThread
                 = Watchdog.StartThread(
