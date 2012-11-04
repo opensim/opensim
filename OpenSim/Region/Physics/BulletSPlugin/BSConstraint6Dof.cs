@@ -32,14 +32,14 @@ using OpenMetaverse;
 namespace OpenSim.Region.Physics.BulletSPlugin
 {
 
-public class BS6DofConstraint : BSConstraint
+public sealed class BSConstraint6Dof : BSConstraint
 {
     private static string LogHeader = "[BULLETSIM 6DOF CONSTRAINT]";
 
     public override ConstraintType Type { get { return ConstraintType.D6_CONSTRAINT_TYPE; } }
 
     // Create a btGeneric6DofConstraint
-    public BS6DofConstraint(BulletSim world, BulletBody obj1, BulletBody obj2,
+    public BSConstraint6Dof(BulletSim world, BulletBody obj1, BulletBody obj2,
                     Vector3 frame1, Quaternion frame1rot,
                     Vector3 frame2, Quaternion frame2rot,
                     bool useLinearReferenceFrameA, bool disableCollisionsBetweenLinkedBodies)
@@ -58,7 +58,7 @@ public class BS6DofConstraint : BSConstraint
                             obj1.ID, obj1.ptr.ToString("X"), obj2.ID, obj2.ptr.ToString("X"));
     }
 
-    public BS6DofConstraint(BulletSim world, BulletBody obj1, BulletBody obj2,
+    public BSConstraint6Dof(BulletSim world, BulletBody obj1, BulletBody obj2,
                     Vector3 joinPoint,
                     bool useLinearReferenceFrameA, bool disableCollisionsBetweenLinkedBodies)
     {
@@ -71,8 +71,7 @@ public class BS6DofConstraint : BSConstraint
                             BSScene.DetailLogZero, world.worldID,
                             obj1.ID, obj1.ptr.ToString("X"), obj2.ID, obj2.ptr.ToString("X"));
             world.physicsScene.Logger.ErrorFormat("{0} Attempt to build 6DOF constraint with missing bodies: wID={1}, rID={2}, rBody={3}, cID={4}, cBody={5}",
-                            "[BULLETSIM 6DOF CONSTRAINT]", world.worldID,
-                            obj1.ID, obj1.ptr.ToString("X"), obj2.ID, obj2.ptr.ToString("X"));
+                            LogHeader, world.worldID, obj1.ID, obj1.ptr.ToString("X"), obj2.ID, obj2.ptr.ToString("X"));
             m_enabled = false;
         }
         else
@@ -135,7 +134,11 @@ public class BS6DofConstraint : BSConstraint
         bool ret = false;
         float onOff = enable ? ConfigurationParameters.numericTrue : ConfigurationParameters.numericFalse;
         if (m_enabled)
+        {
             ret = BulletSimAPI.TranslationalLimitMotor2(m_constraint.ptr, onOff, targetVelocity, maxMotorForce);
+            m_world.physicsScene.DetailLog("{0},BS6DOFConstraint,TransLimitMotor,enable={1},vel={2},maxForce={3}",
+                            BSScene.DetailLogZero, enable, targetVelocity, maxMotorForce);
+        }
         return ret;
     }
 

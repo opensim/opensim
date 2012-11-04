@@ -40,7 +40,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.Physics.BulletSPlugin
 {
-public class BSTerrainManager
+public sealed class BSTerrainManager
 {
     static string LogHeader = "[BULLETSIM TERRAIN MANAGER]";
 
@@ -238,7 +238,7 @@ public class BSTerrainManager
             DetailLog("{0},UpdateOrCreateTerrain:UpdateExisting,call,terrainBase={1},minC={2}, maxC={3}, szX={4}, szY={5}",
                         BSScene.DetailLogZero, terrainRegionBase, mapInfo.minCoords, mapInfo.maxCoords, mapInfo.sizeX, mapInfo.sizeY);
 
-            BSScene.TaintCallback rebuildOperation = delegate()
+            PhysicsScene.TaintedObject(inTaintTime, "BSScene.UpdateOrCreateTerrain:UpdateExisting", delegate()
             {
                 if (MegaRegionParentPhysicsScene != null)
                 {
@@ -337,14 +337,7 @@ public class BSTerrainManager
                 BulletSimAPI.ForceActivationState2(mapInfo.terrainBody.ptr, ActivationState.DISABLE_SIMULATION);
 
                 m_terrainModified = true;
-            };
-
-            // There is the option to do the changes now (we're already in 'taint time'), or
-            //     to do the Bullet operations later.
-            if (inTaintTime)
-                rebuildOperation();
-            else
-                PhysicsScene.TaintedObject("BSScene.UpdateOrCreateTerrain:UpdateExisting", rebuildOperation);
+            });
         }
         else
         {
@@ -364,7 +357,7 @@ public class BSTerrainManager
                             BSScene.DetailLogZero, newTerrainID, minCoords, minCoords);
 
             // Code that must happen at taint-time
-            BSScene.TaintCallback createOperation = delegate()
+            PhysicsScene.TaintedObject(inTaintTime, "BSScene.UpdateOrCreateTerrain:NewTerrain", delegate()
             {
                 DetailLog("{0},UpdateOrCreateTerrain:NewTerrain,taint,baseX={1},baseY={2}", BSScene.DetailLogZero, minCoords.X, minCoords.Y);
                 // Create a new mapInfo that will be filled with the new info
@@ -377,13 +370,7 @@ public class BSTerrainManager
                 UpdateOrCreateTerrain(newTerrainID, heightMap, minCoords, maxCoords, true);
 
                 m_terrainModified = true;
-            };
-
-            // If already in taint-time, just call Bullet. Otherwise queue the operations for the safe time.
-            if (inTaintTime)
-                createOperation();
-            else
-                PhysicsScene.TaintedObject("BSScene.UpdateOrCreateTerrain:NewTerrain", createOperation);
+            });
         }
     }
 

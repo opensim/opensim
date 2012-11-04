@@ -194,6 +194,7 @@ public struct ShapeData
         // following defined by BulletSim
 		SHAPE_GROUNDPLANE  = 20,
 		SHAPE_TERRAIN   = 21,
+		SHAPE_COMPOUND  = 22,
     };
     public uint ID;
     public PhysicsShapeType Type;
@@ -299,6 +300,7 @@ public struct ConfigurationParameters
 	public float shouldEnableFrictionCaching;
 	public float numberOfSolverIterations;
 
+    public float linksetImplementation;
     public float linkConstraintUseFrameOffset;
     public float linkConstraintEnableTransMotor;
     public float linkConstraintTransMotorMaxVel;
@@ -378,6 +380,7 @@ public enum CollisionFilterGroups : uint
     BTerrainFilter           = 1 << 11,
     BRaycastFilter           = 1 << 12,
     BSolidFilter             = 1 << 13,
+    BLinksetFilter           = 1 << 14,
 
     // The collsion filters and masked are defined in one place -- don't want them scattered
     AvatarFilter            = BCharacterFilter,
@@ -386,6 +389,8 @@ public enum CollisionFilterGroups : uint
     ObjectMask              = BAllFilter,
     StaticObjectFilter      = BStaticFilter,
     StaticObjectMask        = BAllFilter,
+    LinksetFilter           = BLinksetFilter,
+    LinksetMask             = BAllFilter & ~BLinksetFilter,
     VolumeDetectFilter      = BSensorTrigger,
     VolumeDetectMask        = ~BSensorTrigger,
     TerrainFilter           = BTerrainFilter,
@@ -394,8 +399,6 @@ public enum CollisionFilterGroups : uint
     GroundPlaneMask         = BAllFilter
 
 };
-
-
 
 // CFM controls the 'hardness' of the constraint. 0=fixed, 0..1=violatable. Default=0
 // ERP controls amount of correction per tick. Usable range=0.1..0.8. Default=0.2.
@@ -611,13 +614,22 @@ public static extern bool IsNativeShape2(IntPtr shape);
 public static extern IntPtr BuildCapsuleShape2(IntPtr world, float radius, float height, Vector3 scale);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern IntPtr CreateCompoundShape2(IntPtr sim);
+public static extern IntPtr CreateCompoundShape2(IntPtr sim, bool enableDynamicAabbTree);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern void AddChildToCompoundShape2(IntPtr cShape, IntPtr addShape, Vector3 pos, Quaternion rot);
+public static extern int GetNumberOfCompoundChildren2(IntPtr cShape);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern void RemoveChildFromCompoundShape2(IntPtr cShape, IntPtr removeShape);
+public static extern void AddChildShapeToCompoundShape2(IntPtr cShape, IntPtr addShape, Vector3 pos, Quaternion rot);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern IntPtr GetChildShapeFromCompoundShapeIndex2(IntPtr cShape, int indx);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern IntPtr RemoveChildShapeFromCompoundShapeIndex2(IntPtr cShape, int indx);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern void RemoveChildShapeFromCompoundShape2(IntPtr cShape, IntPtr removeShape);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern IntPtr DuplicateCollisionShape2(IntPtr sim, IntPtr srcShape, uint id);
@@ -881,10 +893,10 @@ public static extern float GetCcdMotionThreshold2(IntPtr obj);
 public static extern void SetCcdMotionThreshold2(IntPtr obj, float val);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern float GetCcdSweepSphereRadius2(IntPtr obj);
+public static extern float GetCcdSweptSphereRadius2(IntPtr obj);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern void SetCcdSweepSphereRadius2(IntPtr obj, float val);
+public static extern void SetCcdSweptSphereRadius2(IntPtr obj, float val);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern IntPtr GetUserPointer2(IntPtr obj);

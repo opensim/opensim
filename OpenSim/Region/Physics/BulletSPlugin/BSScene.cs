@@ -62,7 +62,7 @@ using OpenMetaverse;
 //
 namespace OpenSim.Region.Physics.BulletSPlugin
 {
-public class BSScene : PhysicsScene, IPhysicsParameters
+public sealed class BSScene : PhysicsScene, IPhysicsParameters
 {
     private static readonly ILog m_log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
     private static readonly string LogHeader = "[BULLETS SCENE]";
@@ -115,6 +115,10 @@ public class BSScene : PhysicsScene, IPhysicsParameters
 
     // True if initialized and ready to do simulation steps
     private bool m_initialized = false;
+
+    // Flag which is true when processing taints.
+    // Not guaranteed to be correct all the time (don't depend on this) but good for debugging.
+    public bool InTaintTime { get; private set; }
 
     // Pinned memory used to pass step information between managed and unmanaged
     private int m_maxCollisionsPerFrame;
@@ -171,7 +175,9 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         }
     }
     private Object _taintLock = new Object();   // lock for using the next object
-    private List<TaintCallbackEntry> _taintedObjects;
+    private List<TaintCallbackEntry> _taintOperations;
+    private Dictionary<string, TaintCallbackEntry> _postTaintOperations;
+    private List<TaintCallbackEntry> _postStepOperations;
 
     // A pointer to an instance if this structure is passed to the C++ code
     // Used to pass basic configuration values to the unmanaged code.
@@ -203,7 +209,9 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     public override void Initialise(IMesher meshmerizer, IConfigSource config)
     {
         mesher = meshmerizer;
-        _taintedObjects = new List<TaintCallbackEntry>();
+        _taintOperations = new List<TaintCallbackEntry>();
+        _postTaintOperations = new Dictionary<string, TaintCallbackEntry>();
+        _postStepOperations = new List<TaintCallbackEntry>();
         PhysObjects = new Dictionary<uint, BSPhysObject>();
         Shapes = new BSShapeCollection(this);
 
@@ -266,6 +274,9 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         TerrainManager = new BSTerrainManager(this);
         TerrainManager.CreateInitialGroundPlaneAndTerrain();
 
+        m_log.WarnFormat("{0} Linksets implemented with {1}", LogHeader, (BSLinkset.LinksetImplementation)Params.linksetImplementation);
+
+        InTaintTime = false;
         m_initialized = true;
     }
 
@@ -475,23 +486,21 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         if (!m_initialized) return 5.0f;
 
         // update the prim states while we know the physics engine is not busy
-        int numTaints = _taintedObjects.Count;
+        int numTaints = _taintOperations.Count;
         ProcessTaints();
 
         // Some of the prims operate with special vehicle properties
         ProcessVehicles(timeStep);
-        numTaints += _taintedObjects.Count;
+        numTaints += _taintOperations.Count;
         ProcessTaints();    // the vehicles might have added taints
 
         // step the physical world one interval
         m_simulationStep++;
         int numSubSteps = 0;
 
-        // DEBUG
-        // DetailLog("{0},BSScene.Simulate,beforeStep,ntaimts={1},step={2}", DetailLogZero, numTaints, m_simulationStep);
-
         try
         {
+            // DumpVehicles();  // DEBUG
             if (PhysicsLogging.Enabled) beforeTime = Util.EnvironmentTickCount();
 
             numSubSteps = BulletSimAPI.PhysicsStep2(World.ptr, timeStep, m_maxSubSteps, m_fixedTimeStep,
@@ -500,6 +509,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             if (PhysicsLogging.Enabled) simTime = Util.EnvironmentTickCountSubtract(beforeTime);
             DetailLog("{0},Simulate,call, frame={1}, nTaints={2}, simTime={3}, substeps={4}, updates={5}, colliders={6}",
                         DetailLogZero, m_simulationStep, numTaints, simTime, numSubSteps, updatedEntityCount, collidersCount);
+            // DumpVehicles();  // DEBUG
         }
         catch (Exception e)
         {
@@ -574,6 +584,8 @@ public class BSScene : PhysicsScene, IPhysicsParameters
                 }
             }
         }
+
+        ProcessPostStepTaints();
 
         // This causes the unmanaged code to output ALL the values found in ALL the objects in the world.
         // Only enable this in a limited test world with few objects.
@@ -670,6 +682,8 @@ public class BSScene : PhysicsScene, IPhysicsParameters
 
     public override bool IsThreaded { get { return false;  } }
 
+    #region Taints
+
     // Calls to the PhysicsActors can't directly call into the physics engine
     // because it might be busy. We delay changes to a known time.
     // We rely on C#'s closure to save and restore the context for the delegate.
@@ -679,10 +693,20 @@ public class BSScene : PhysicsScene, IPhysicsParameters
 
         lock (_taintLock)
         {
-            _taintedObjects.Add(new TaintCallbackEntry(ident, callback));
+            _taintOperations.Add(new TaintCallbackEntry(ident, callback));
         }
 
         return;
+    }
+
+    // Sometimes a potentially tainted operation can be used in and out of taint time.
+    // This routine executes the command immediately if in taint-time otherwise it is queued.
+    public void TaintedObject(bool inTaintTime, string ident, TaintCallback callback)
+    {
+        if (inTaintTime)
+            callback();
+        else
+            TaintedObject(ident, callback);
     }
 
     // When someone tries to change a property on a BSPrim or BSCharacter, the object queues
@@ -690,19 +714,27 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     // here just before the physics engine is called to step the simulation.
     public void ProcessTaints()
     {
-        if (_taintedObjects.Count > 0)  // save allocating new list if there is nothing to process
+        InTaintTime = true;
+        ProcessRegularTaints();
+        ProcessPostTaintTaints();
+        InTaintTime = false;
+    }
+
+    private void ProcessRegularTaints()
+    {
+        if (_taintOperations.Count > 0)  // save allocating new list if there is nothing to process
         {
             int taintCount = m_taintsToProcessPerStep;
             TaintCallbackEntry oneCallback = new TaintCallbackEntry();
-            while (_taintedObjects.Count > 0 && taintCount-- > 0)
+            while (_taintOperations.Count > 0 && taintCount-- > 0)
             {
                 bool gotOne = false;
                 lock (_taintLock)
                 {
-                    if (_taintedObjects.Count > 0)
+                    if (_taintOperations.Count > 0)
                     {
-                        oneCallback = _taintedObjects[0];
-                        _taintedObjects.RemoveAt(0);
+                        oneCallback = _taintOperations[0];
+                        _taintOperations.RemoveAt(0);
                         gotOne = true;
                     }
                 }
@@ -745,6 +777,101 @@ public class BSScene : PhysicsScene, IPhysicsParameters
              */
         }
     }
+
+    // Schedule an update to happen after all the regular taints are processed.
+    // Note that new requests for the same operation ("ident") for the same object ("ID")
+    //     will replace any previous operation by the same object.
+    public void PostTaintObject(String ident, uint ID, TaintCallback callback)
+    {
+        if (!m_initialized) return;
+
+        string uniqueIdent = ident + "-" + ID.ToString();
+        lock (_taintLock)
+        {
+            _postTaintOperations[uniqueIdent] = new TaintCallbackEntry(uniqueIdent, callback);
+        }
+
+        return;
+    }
+
+    private void ProcessPostTaintTaints()
+    {
+        if (_postTaintOperations.Count > 0)
+        {
+            Dictionary<string, TaintCallbackEntry> oldList;
+            lock (_taintLock)
+            {
+                oldList = _postTaintOperations;
+                _postTaintOperations = new Dictionary<string, TaintCallbackEntry>();
+            }
+
+            foreach (KeyValuePair<string,TaintCallbackEntry> kvp in oldList)
+            {
+                try
+                {
+                    DetailLog("{0},BSScene.ProcessPostTaintTaints,doTaint,id={1}", DetailLogZero, kvp.Key); // DEBUG DEBUG DEBUG
+                    kvp.Value.callback();
+                }
+                catch (Exception e)
+                {
+                    m_log.ErrorFormat("{0}: ProcessPostTaintTaints: {1}: Exception: {2}", LogHeader, kvp.Key, e);
+                }
+            }
+            oldList.Clear();
+        }
+    }
+
+    public void PostStepTaintObject(String ident, TaintCallback callback)
+    {
+        if (!m_initialized) return;
+
+        lock (_taintLock)
+        {
+            _postStepOperations.Add(new TaintCallbackEntry(ident, callback));
+        }
+
+        return;
+    }
+
+    private void ProcessPostStepTaints()
+    {
+        if (_postStepOperations.Count > 0)
+        {
+            List<TaintCallbackEntry> oldList;
+            lock (_taintLock)
+            {
+                oldList = _postStepOperations;
+                _postStepOperations = new List<TaintCallbackEntry>();
+            }
+
+            foreach (TaintCallbackEntry tcbe in oldList)
+            {
+                try
+                {
+                    DetailLog("{0},BSScene.ProcessPostStepTaints,doTaint,id={1}", DetailLogZero, tcbe.ident); // DEBUG DEBUG DEBUG
+                    tcbe.callback();
+                }
+                catch (Exception e)
+                {
+                    m_log.ErrorFormat("{0}: ProcessPostStepTaints: {1}: Exception: {2}", LogHeader, tcbe.ident, e);
+                }
+            }
+            oldList.Clear();
+        }
+    }
+
+    public bool AssertInTaintTime(string whereFrom)
+    {
+        if (!InTaintTime)
+        {
+            DetailLog("{0},BSScene.AssertInTaintTime,NOT IN TAINT TIME,Region={1},Where={2}", DetailLogZero, RegionName, whereFrom);
+            m_log.ErrorFormat("{0} NOT IN TAINT TIME!! Region={1}, Where={2}", LogHeader, RegionName, whereFrom);
+            Util.PrintCallStack();
+        }
+        return InTaintTime;
+    }
+
+    #endregion // Taints
 
     #region Vehicles
 
@@ -970,49 +1097,49 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             (s,cf,p,v) => { s.m_params[0].linearDamping = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].linearDamping; },
             (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].linearDamping, p, l, v); },
-            (s,o,v) => { BulletSimAPI.SetDamping2(o.BSBody.ptr, v, v); } ),
+            (s,o,v) => { BulletSimAPI.SetDamping2(o.PhysBody.ptr, v, v); } ),
         new ParameterDefn("AngularDamping", "Factor to damp angular movement per second (0.0 - 1.0)",
             0f,
             (s,cf,p,v) => { s.m_params[0].angularDamping = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].angularDamping; },
             (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].angularDamping, p, l, v); },
-            (s,o,v) => { BulletSimAPI.SetDamping2(o.BSBody.ptr, v, v); } ),
+            (s,o,v) => { BulletSimAPI.SetDamping2(o.PhysBody.ptr, v, v); } ),
         new ParameterDefn("DeactivationTime", "Seconds before considering an object potentially static",
             0.2f,
             (s,cf,p,v) => { s.m_params[0].deactivationTime = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].deactivationTime; },
             (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].deactivationTime, p, l, v); },
-            (s,o,v) => { BulletSimAPI.SetDeactivationTime2(o.BSBody.ptr, v); } ),
+            (s,o,v) => { BulletSimAPI.SetDeactivationTime2(o.PhysBody.ptr, v); } ),
         new ParameterDefn("LinearSleepingThreshold", "Seconds to measure linear movement before considering static",
             0.8f,
             (s,cf,p,v) => { s.m_params[0].linearSleepingThreshold = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].linearSleepingThreshold; },
             (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].linearSleepingThreshold, p, l, v); },
-            (s,o,v) => { BulletSimAPI.SetSleepingThresholds2(o.BSBody.ptr, v, v); } ),
+            (s,o,v) => { BulletSimAPI.SetSleepingThresholds2(o.PhysBody.ptr, v, v); } ),
         new ParameterDefn("AngularSleepingThreshold", "Seconds to measure angular movement before considering static",
             1.0f,
             (s,cf,p,v) => { s.m_params[0].angularSleepingThreshold = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].angularSleepingThreshold; },
             (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].angularSleepingThreshold, p, l, v); },
-            (s,o,v) => { BulletSimAPI.SetSleepingThresholds2(o.BSBody.ptr, v, v); } ),
+            (s,o,v) => { BulletSimAPI.SetSleepingThresholds2(o.PhysBody.ptr, v, v); } ),
         new ParameterDefn("CcdMotionThreshold", "Continuious collision detection threshold (0 means no CCD)" ,
             0f,     // set to zero to disable
             (s,cf,p,v) => { s.m_params[0].ccdMotionThreshold = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].ccdMotionThreshold; },
             (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].ccdMotionThreshold, p, l, v); },
-            (s,o,v) => { BulletSimAPI.SetCcdMotionThreshold2(o.BSBody.ptr, v); } ),
+            (s,o,v) => { BulletSimAPI.SetCcdMotionThreshold2(o.PhysBody.ptr, v); } ),
         new ParameterDefn("CcdSweptSphereRadius", "Continuious collision detection test radius" ,
             0f,
             (s,cf,p,v) => { s.m_params[0].ccdSweptSphereRadius = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].ccdSweptSphereRadius; },
             (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].ccdSweptSphereRadius, p, l, v); },
-            (s,o,v) => { BulletSimAPI.SetCcdSweepSphereRadius2(o.BSBody.ptr, v); } ),
+            (s,o,v) => { BulletSimAPI.SetCcdSweptSphereRadius2(o.PhysBody.ptr, v); } ),
         new ParameterDefn("ContactProcessingThreshold", "Distance between contacts before doing collision check" ,
             0.1f,
             (s,cf,p,v) => { s.m_params[0].contactProcessingThreshold = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].contactProcessingThreshold; },
             (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].contactProcessingThreshold, p, l, v); },
-            (s,o,v) => { BulletSimAPI.SetContactProcessingThreshold2(o.BSBody.ptr, v); } ),
+            (s,o,v) => { BulletSimAPI.SetContactProcessingThreshold2(o.PhysBody.ptr, v); } ),
 
         new ParameterDefn("TerrainFriction", "Factor to reduce movement against terrain surface" ,
             0.5f,
@@ -1107,6 +1234,11 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             (s) => { return s.m_params[0].numberOfSolverIterations; },
             (s,p,l,v) => { s.m_params[0].numberOfSolverIterations = v; } ),
 
+	    new ParameterDefn("LinksetImplementation", "Type of linkset implementation (0=Constraint, 1=Compound, 2=Manual)",
+            (float)BSLinkset.LinksetImplementation.Compound,
+            (s,cf,p,v) => { s.m_params[0].linksetImplementation = cf.GetFloat(p,v); },
+            (s) => { return s.m_params[0].linksetImplementation; },
+            (s,p,l,v) => { s.m_params[0].linksetImplementation = v; } ),
 	    new ParameterDefn("LinkConstraintUseFrameOffset", "For linksets built with constraints, enable frame offsetFor linksets built with constraints, enable frame offset.",
             ConfigurationParameters.numericFalse,
             (s,cf,p,v) => { s.m_params[0].linkConstraintUseFrameOffset = s.NumericBool(cf.GetBoolean(p, s.BoolNumeric(v))); },
@@ -1128,12 +1260,12 @@ public class BSScene : PhysicsScene, IPhysicsParameters
             (s) => { return s.m_params[0].linkConstraintTransMotorMaxForce; },
             (s,p,l,v) => { s.m_params[0].linkConstraintTransMotorMaxForce = v; } ),
 	    new ParameterDefn("LinkConstraintCFM", "Amount constraint can be violated. 0=no violation, 1=infinite. Default=0.1",
-            0.001f,
+            0.1f,
             (s,cf,p,v) => { s.m_params[0].linkConstraintCFM = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].linkConstraintCFM; },
             (s,p,l,v) => { s.m_params[0].linkConstraintCFM = v; } ),
 	    new ParameterDefn("LinkConstraintERP", "Amount constraint is corrected each tick. 0=none, 1=all. Default = 0.2",
-            0.8f,
+            0.1f,
             (s,cf,p,v) => { s.m_params[0].linkConstraintERP = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].linkConstraintERP; },
             (s,p,l,v) => { s.m_params[0].linkConstraintERP = v; } ),
@@ -1259,7 +1391,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     // If the local ID is APPLY_TO_NONE, just change the default value
     // If the localID is APPLY_TO_ALL change the default value and apply the new value to all the lIDs
     // If the localID is a specific object, apply the parameter change to only that object
-    protected void UpdateParameterObject(ref float defaultLoc, string parm, uint localID, float val)
+    private void UpdateParameterObject(ref float defaultLoc, string parm, uint localID, float val)
     {
         List<uint> objectIDs = new List<uint>();
         switch (localID)
@@ -1284,7 +1416,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     }
 
     // schedule the actual updating of the paramter to when the phys engine is not busy
-    protected void TaintedUpdateParameter(string parm, List<uint> lIDs, float val)
+    private void TaintedUpdateParameter(string parm, List<uint> lIDs, float val)
     {
         float xval = val;
         List<uint> xlIDs = lIDs;
@@ -1326,12 +1458,22 @@ public class BSScene : PhysicsScene, IPhysicsParameters
 
     #endregion Runtime settable parameters
 
+    // Debugging routine for dumping detailed physical information for vehicle prims
+    private void DumpVehicles()
+    {
+        foreach (BSPrim prim in m_vehicles)
+        {
+            BulletSimAPI.DumpRigidBody2(World.ptr, prim.PhysBody.ptr);
+            BulletSimAPI.DumpCollisionShape2(World.ptr, prim.PhysShape.ptr);
+        }
+    }
+
     // Invoke the detailed logger and output something if it's enabled.
     public void DetailLog(string msg, params Object[] args)
     {
         PhysicsLogging.Write(msg, args);
-        // Add the Flush() if debugging crashes to get all the messages written out.
-        // PhysicsLogging.Flush();
+        // Add the Flush() if debugging crashes. Gets all the messages written out.
+        PhysicsLogging.Flush();
     }
     // Used to fill in the LocalID when there isn't one. It's the correct number of characters.
     public const string DetailLogZero = "0000000000";
