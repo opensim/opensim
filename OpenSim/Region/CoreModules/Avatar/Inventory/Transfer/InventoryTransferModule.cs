@@ -409,16 +409,19 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                             "received inventory" + reason, false);
                 }
 
-                ScenePresence user = scene.GetScenePresence(new UUID(im.toAgentID));
+                if (im.dialog == (byte)InstantMessageDialog.InventoryDeclined)
+                {
+                    ScenePresence user = scene.GetScenePresence(new UUID(im.toAgentID));
 
-                if (user != null) // Local
-                {
-                    user.ControllingClient.SendInstantMessage(im);
-                }
-                else
-                {
-                    if (m_TransferModule != null)
-                        m_TransferModule.SendInstantMessage(im, delegate(bool success) {});
+                    if (user != null) // Local
+                    {
+                        user.ControllingClient.SendInstantMessage(im);
+                    }
+                    else
+                    {
+                        if (m_TransferModule != null)
+                            m_TransferModule.SendInstantMessage(im, delegate(bool success) { });
+                    }
                 }
             }
         }
