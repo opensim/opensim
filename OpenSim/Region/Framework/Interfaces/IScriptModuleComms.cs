@@ -27,6 +27,7 @@
 
 using System;
 using System.Reflection;
+using System.Collections.Generic;
 using OpenMetaverse;
 
 namespace OpenSim.Region.Framework.Interfaces
@@ -70,6 +71,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// For constants
         void RegisterConstant(string cname, object value);
         object LookupModConstant(string cname);
+        Dictionary<string, object> GetConstants();
 
         // For use ONLY by the script API
         void RaiseEvent(UUID script, string id, string module, string command, string key);
