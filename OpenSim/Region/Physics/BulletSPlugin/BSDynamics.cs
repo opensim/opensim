@@ -89,7 +89,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 
         //Angular properties
         private Vector3 m_angularMotorDirection = Vector3.Zero;         // angular velocity requested by LSL motor
-        private int m_angularMotorApply = 0;                            // application frame counter
+        // private int m_angularMotorApply = 0;                            // application frame counter
         private Vector3 m_angularMotorVelocity = Vector3.Zero;          // current angular motor velocity
         private float m_angularMotorTimescale = 0;                      // motor angular velocity ramp up rate
         private float m_angularMotorDecayTimescale = 0;                 // motor angular velocity decay rate
@@ -199,7 +199,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     break;
                 case Vehicle.ANGULAR_MOTOR_DIRECTION:
                     m_angularMotorDirection = new Vector3(pValue, pValue, pValue);
-                    m_angularMotorApply = 100;
+                    // m_angularMotorApply = 100;
                     break;
                 case Vehicle.LINEAR_FRICTION_TIMESCALE:
                     m_linearFrictionTimescale = new Vector3(pValue, pValue, pValue);
@@ -229,7 +229,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     pValue.Y = Math.Max(-12.56f, Math.Min(pValue.Y, 12.56f));
                     pValue.Z = Math.Max(-12.56f, Math.Min(pValue.Z, 12.56f));
                     m_angularMotorDirection = new Vector3(pValue.X, pValue.Y, pValue.Z);
-                    m_angularMotorApply = 100;
+                    // m_angularMotorApply = 100;
                     break;
                 case Vehicle.LINEAR_FRICTION_TIMESCALE:
                     m_linearFrictionTimescale = new Vector3(pValue.X, pValue.Y, pValue.Z);

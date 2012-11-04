@@ -1391,7 +1391,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     // If the local ID is APPLY_TO_NONE, just change the default value
     // If the localID is APPLY_TO_ALL change the default value and apply the new value to all the lIDs
     // If the localID is a specific object, apply the parameter change to only that object
-    protected void UpdateParameterObject(ref float defaultLoc, string parm, uint localID, float val)
+    private void UpdateParameterObject(ref float defaultLoc, string parm, uint localID, float val)
     {
         List<uint> objectIDs = new List<uint>();
         switch (localID)
@@ -1416,7 +1416,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     }
 
     // schedule the actual updating of the paramter to when the phys engine is not busy
-    protected void TaintedUpdateParameter(string parm, List<uint> lIDs, float val)
+    private void TaintedUpdateParameter(string parm, List<uint> lIDs, float val)
     {
         float xval = val;
         List<uint> xlIDs = lIDs;

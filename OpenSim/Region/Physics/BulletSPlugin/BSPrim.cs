@@ -703,6 +703,9 @@ public sealed class BSPrim : BSPhysObject
             // For good measure, make sure the transform is set through to the motion state
             BulletSimAPI.SetTranslation2(PhysBody.ptr, _position, _orientation);
 
+            // Center of mass is at the center of the object
+            BulletSimAPI.SetCenterOfMassByPosRot2(Linkset.LinksetRoot.PhysBody.ptr, _position, _orientation);
+
             // A dynamic object has mass
             UpdatePhysicalMassProperties(RawMass);
 

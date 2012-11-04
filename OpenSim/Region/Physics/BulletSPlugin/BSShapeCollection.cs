@@ -38,7 +38,7 @@ public sealed class BSShapeCollection : IDisposable
 {
     private static string LogHeader = "[BULLETSIM SHAPE COLLECTION]";
 
-    protected BSScene PhysicsScene { get; set; }
+    private BSScene PhysicsScene { get; set; }
 
     private Object m_collectionActivityLock = new Object();
 
@@ -103,11 +103,12 @@ public sealed class BSShapeCollection : IDisposable
         {
             // Do we have the correct geometry for this type of object?
             // Updates prim.BSShape with information/pointers to shape.
-            // CreateGeom returns 'true' of BSShape as changed to a new shape.
+            // Returns 'true' of BSShape is changed to a new shape.
             bool newGeom = CreateGeom(forceRebuild, prim, shapeCallback);
             // If we had to select a new shape geometry for the object,
             //    rebuild the body around it.
             // Updates prim.BSBody with information/pointers to requested body
+            // Returns 'true' if BSBody was changed.
             bool newBody = CreateBody((newGeom || forceRebuild), prim, PhysicsScene.World,
                                     prim.PhysShape, bodyCallback);
             ret = newGeom || newBody;
@@ -431,6 +432,7 @@ public sealed class BSShapeCollection : IDisposable
         return ret;
     }
 
+    // Create a mesh/hull shape or a native shape if 'nativeShapePossible' is 'true'.
     private bool CreateGeomNonSpecial(bool forceRebuild, BSPhysObject prim, ShapeDestructionCallback shapeCallback)
     {
         bool ret = false;
@@ -797,15 +799,17 @@ public sealed class BSShapeCollection : IDisposable
     private bool GetReferenceToCompoundShape(BSPhysObject prim, ShapeDestructionCallback shapeCallback)
     {
         // Remove reference to the old shape
-        // Don't need to do this as the shape is freed when we create the new root shape below.
+        // Don't need to do this as the shape is freed when the new root shape is created below.
         // DereferenceShape(prim.PhysShape, true, shapeCallback);
 
         BulletShape cShape = new BulletShape(
-            BulletSimAPI.CreateCompoundShape2(PhysicsScene.World.ptr), ShapeData.PhysicsShapeType.SHAPE_COMPOUND);
+            BulletSimAPI.CreateCompoundShape2(PhysicsScene.World.ptr, false), ShapeData.PhysicsShapeType.SHAPE_COMPOUND);
 
-        // Create the shape for the root prim and add it to the compound shape
-        CreateGeomNonSpecial(true, prim, null);
+        // Create the shape for the root prim and add it to the compound shape. Cannot be a native shape.
+        CreateGeomMeshOrHull(prim, shapeCallback);
         BulletSimAPI.AddChildShapeToCompoundShape2(cShape.ptr, prim.PhysShape.ptr, OMV.Vector3.Zero, OMV.Quaternion.Identity);
+        DetailLog("{0},BSShapeCollection.GetReferenceToCompoundShape,addRootPrim,compShape={1},rootShape={2}",
+                                    prim.LocalID, cShape, prim.PhysShape);
 
         prim.PhysShape = cShape;
 

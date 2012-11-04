@@ -83,8 +83,8 @@ public sealed class BSLinksetCompound : BSLinkset
     public override bool MakeDynamic(BSPhysObject child)
     {
         bool ret = false;
-        DetailLog("{0},BSLinksetCompound.MakeDynamic,call,isChild={1}", child.LocalID, HasChild(child));
-        if (HasChild(child))
+        DetailLog("{0},BSLinksetCompound.MakeDynamic,call,IsRoot={1}", child.LocalID, IsRoot(child));
+        if (!IsRoot(child))
         {
             // Physical children are removed from the world as the shape ofthe root compound
             //     shape takes over.
@@ -103,8 +103,8 @@ public sealed class BSLinksetCompound : BSLinkset
     public override bool MakeStatic(BSPhysObject child)
     {
         bool ret = false;
-        DetailLog("{0},BSLinksetCompound.MakeStatic,call,hasChild={1}", child.LocalID, HasChild(child));
-        if (HasChild(child))
+        DetailLog("{0},BSLinksetCompound.MakeStatic,call,IsRoot={1}", child.LocalID, IsRoot(child));
+        if (!IsRoot(child))
         {
             // The non-physical children can come back to life.
             BulletSimAPI.RemoveFromCollisionFlags2(child.PhysBody.ptr, CollisionFlags.CF_NO_CONTACT_RESPONSE);
@@ -240,6 +240,7 @@ public sealed class BSLinksetCompound : BSLinkset
                     // A mesh or hull is created because scale is not available on a native shape.
                     //     (TODO: Bullet does have a btScaledCollisionShape. Can that be used?)
                     BulletShape saveShape = cPrim.PhysShape;
+                    cPrim.PhysShape.ptr = IntPtr.Zero;  // Don't let the create free the child's shape
                     PhysicsScene.Shapes.CreateGeomMeshOrHull(cPrim, null);
                     BulletShape newShape = cPrim.PhysShape;
                     cPrim.PhysShape = saveShape;
@@ -263,7 +264,7 @@ public sealed class BSLinksetCompound : BSLinkset
         float linksetMass = LinksetMass;
         LinksetRoot.UpdatePhysicalMassProperties(linksetMass);
 
-            // DEBUG: see of inter-linkset collisions are causing problems
+        // DEBUG: see of inter-linkset collisions are causing problems for constraint linksets.
         // BulletSimAPI.SetCollisionFilterMask2(LinksetRoot.BSBody.ptr, 
         //                     (uint)CollisionFilterGroups.LinksetFilter, (uint)CollisionFilterGroups.LinksetMask);
 
