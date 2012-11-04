@@ -121,34 +121,40 @@ namespace OpenSim.Region.OptionalModules
 
         private bool CanObjectEnter(UUID objectID, bool enteringRegion, Vector3 newPoint, Scene scene)
         {
-            if ((newPoint.X > 257f || newPoint.X < -1f || newPoint.Y > 257f || newPoint.Y < -1f))
+            if (newPoint.X < -1f || newPoint.X > (float)(Constants.RegionSize + 1) ||
+                newPoint.Y < -1f || newPoint.Y > (float)(Constants.RegionSize + 1))
                 return true;
 
             SceneObjectPart obj = scene.GetSceneObjectPart(objectID);
-            Vector3 oldPoint = obj.GroupPosition;
-            int objectCount = obj.ParentGroup.PrimCount;
-            ILandObject oldParcel = scene.LandChannel.GetLandObject(oldPoint.X, oldPoint.Y);
+
+            if (obj == null)
+                return false;
+
+            // Prim counts are determined by the location of the root prim.  if we're
+            // moving a child prim, just let it pass
+            if (!obj.IsRoot)
+            {
+                return true;
+            }
+
             ILandObject newParcel = scene.LandChannel.GetLandObject(newPoint.X, newPoint.Y);
 
             if (newParcel == null)
                 return true;
 
-            int usedPrims = newParcel.PrimCounts.Total;
-            int simulatorCapacity = newParcel.GetSimulatorMaxPrimCount();
+            Vector3 oldPoint = obj.GroupPosition;
+            ILandObject oldParcel = scene.LandChannel.GetLandObject(oldPoint.X, oldPoint.Y);
             
             // The prim hasn't crossed a region boundry so we don't need to worry
             // about prim counts here
-            if(oldParcel.Equals(newParcel))
+            if(oldParcel != null && oldParcel.Equals(newParcel))
             {
                 return true;
             }
 
-            // Prim counts are determined by the location of the root prim.  if we're
-            // moving a child prim, just let it pass
-            if(!obj.IsRoot)
-            {
-                return true;
-            }
+            int objectCount = obj.ParentGroup.PrimCount;
+            int usedPrims = newParcel.PrimCounts.Total;
+            int simulatorCapacity = newParcel.GetSimulatorMaxPrimCount();
 
             // TODO: Add Special Case here for temporary prims
             
