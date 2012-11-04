@@ -24,6 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+using System;
 
 using Nini.Config;
 using OpenSim.Region.Framework.Scenes;
@@ -33,6 +34,7 @@ namespace OpenSim.Region.Framework.Interfaces
     /// <summary>
     /// DEPRECATED! Use INonSharedRegionModule or ISharedRegionModule instead
     /// </summary>
+    [Obsolete("Use INonSharedRegionModule or ISharedRegionModule instead", false)]
     public interface IRegionModule
     {
         /// <summary>
