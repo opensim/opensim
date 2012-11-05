@@ -3963,17 +3963,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 if (m_TransferModule != null)
                 {
-                    byte[] bucket = new byte[] { (byte)item.Type };
+                    byte[] bucket = new byte[1];
+                    bucket[0] = (byte)item.Type;
 
                     GridInstantMessage msg = new GridInstantMessage(World,
-                            m_host.UUID, m_host.Name + ", an object owned by " +
-                            resolveName(m_host.OwnerID) + ",", destId,
+                            m_host.OwnerID, m_host.Name, destId,
                             (byte)InstantMessageDialog.TaskInventoryOffered,
-                            false, item.Name + "\n" + m_host.Name + " is located at " +
+                            false, item.Name+". "+m_host.Name+" is located at "+
                             World.RegionInfo.RegionName+" "+
                             m_host.AbsolutePosition.ToString(),
                             agentItem.ID, true, m_host.AbsolutePosition,
-                            bucket, true); // TODO: May actually send no timestamp
+                            bucket, true);
 
                     m_TransferModule.SendInstantMessage(msg, delegate(bool success) {});
                 }
