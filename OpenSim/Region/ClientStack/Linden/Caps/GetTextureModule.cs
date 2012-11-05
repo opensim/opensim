@@ -61,6 +61,13 @@ namespace OpenSim.Region.ClientStack.Linden
             public Hashtable request;
         }
 
+        public struct aPollResponse
+        {
+            public Hashtable response;
+            public int bytes;
+        }
+
+
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private Scene m_scene;
@@ -74,6 +81,8 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private static OpenMetaverse.BlockingQueue<aPollRequest> m_queue =
                 new OpenMetaverse.BlockingQueue<aPollRequest>();
+
+        private Dictionary<UUID,PollServiceTextureEventArgs> m_pollservices = new Dictionary<UUID,PollServiceTextureEventArgs>();
 
         #region ISharedRegionModule Members
 
@@ -147,7 +156,7 @@ namespace OpenSim.Region.ClientStack.Linden
            // int wind = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); pos += 4;
            // int cloud = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); pos += 4;
            // int task = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); pos += 4;
-            pos = pos + 16;
+            pos = pos + 20;
             int texture = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); pos += 4;
             //int asset = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f);
             return texture;
@@ -159,6 +168,11 @@ namespace OpenSim.Region.ClientStack.Linden
             byte[] throttles = p.ControllingClient.GetThrottlesPacked(1);
             UUID user = p.UUID;
             int imagethrottle = ExtractImageThrottle(throttles);
+            PollServiceTextureEventArgs args;
+            if (m_pollservices.TryGetValue(user,out args))
+            {
+                args.UpdateThrottle(imagethrottle);
+            }
         }
 
         public void PostInitialise()
@@ -187,8 +201,8 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             private List<Hashtable> requests =
                     new List<Hashtable>();
-            private Dictionary<UUID, Hashtable> responses =
-                    new Dictionary<UUID, Hashtable>();
+            private Dictionary<UUID, aPollResponse> responses =
+                    new Dictionary<UUID, aPollResponse>();
 
             private Scene m_scene;
 
@@ -196,7 +210,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     base(null, null, null, null, pId, int.MaxValue)              
             {
                 m_scene = scene;
-
+                // x is request id, y is userid
                 HasEvents = (x, y) =>
                 {
                     lock (responses)
@@ -208,7 +222,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     {
                         try
                         {
-                            return responses[x];
+                            return responses[x].response;
                         }
                         finally
                         {
@@ -216,14 +230,14 @@ namespace OpenSim.Region.ClientStack.Linden
                         }
                     }
                 };
-
+                // x is request id, y is request data hashtable
                 Request = (x, y) =>
                 {
                     aPollRequest reqinfo = new aPollRequest();
                     reqinfo.thepoll = this;
                     reqinfo.reqID = x;
                     reqinfo.request = y;
-
+                    
                     m_queue.Enqueue(reqinfo);
                 };
 
@@ -265,16 +279,21 @@ namespace OpenSim.Region.ClientStack.Linden
                     response["content_type"] = "text/plain";
                     response["keepalive"] = false;
                     response["reusecontext"] = false;
-
+                    
                     lock (responses)
-                        responses[requestID] = response;
+                        responses[requestID] = new aPollResponse() {bytes = 0,response = response};
 
                     return;
                 }
 
                 response = m_getTextureHandler.Handle(requestinfo.request);
                 lock (responses)
-                    responses[requestID] = response; 
+                    responses[requestID] = new aPollResponse() { bytes = (int)response["int_bytes"], response = response};
+            }
+
+            internal void UpdateThrottle(int pimagethrottle)
+            {
+               
             }
         }
 
@@ -299,18 +318,22 @@ namespace OpenSim.Region.ClientStack.Linden
                 protocol = "https";
             }
             caps.RegisterHandler("GetTexture", String.Format("{0}://{1}:{2}{3}", protocol, hostName, port, capUrl));
-
+            m_pollservices.Add(agentID, args);
             m_capsDict[agentID] = capUrl;
         }
 
         private void DeregisterCaps(UUID agentID, Caps caps)
         {
             string capUrl;
-
+            PollServiceTextureEventArgs args;
             if (m_capsDict.TryGetValue(agentID, out capUrl))
             {
                 MainServer.Instance.RemoveHTTPHandler("", capUrl);
                 m_capsDict.Remove(agentID);
+            }
+            if (m_pollservices.TryGetValue(agentID, out args))
+            {
+                m_pollservices.Remove(agentID);
             }
         }
 

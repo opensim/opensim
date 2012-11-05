@@ -68,7 +68,7 @@ namespace OpenSim.Capabilities.Handlers
             ret["content_type"] = "text/plain";
             ret["keepalive"] = false;
             ret["reusecontext"] = false;
-
+            ret["int_bytes"] = 0;
             string textureStr = (string)request["texture_id"];
             string format = (string)request["format"];
 
@@ -223,6 +223,7 @@ namespace OpenSim.Capabilities.Handlers
                         {
                             response["int_response_code"] = (int)System.Net.HttpStatusCode.OK;
                             response["bin_response_data"] = texture.Data;
+                            response["int_bytes"] = texture.Data.Length;
                         }
                         else
                         {
@@ -232,6 +233,7 @@ namespace OpenSim.Capabilities.Handlers
                             byte[] d = new byte[len];
                             Array.Copy(texture.Data, start, d, 0, len);
                             response["bin_response_data"] = d;
+                            response["int_bytes"] = len;
                         }
 //                        response.Body.Write(texture.Data, start, len);
                     }
@@ -252,6 +254,8 @@ namespace OpenSim.Capabilities.Handlers
                     response["content_type"] = "image/" + format;
                 
                 response["bin_response_data"] = texture.Data;
+                response["int_bytes"] = texture.Data.Length;
+
 //                response.Body.Write(texture.Data, 0, texture.Data.Length);
             }
 
