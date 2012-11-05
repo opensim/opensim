@@ -295,6 +295,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event MuteListEntryRemove OnRemoveMuteListEntry;
         public event GodlikeMessage onGodlikeMessage;
         public event GodUpdateRegionInfoUpdate OnGodUpdateRegionInfoUpdate;
+        public event GenericCall2 OnUpdateThrottles;
 
         #endregion Events
 
@@ -6729,6 +6730,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             #endregion
 
             m_udpClient.SetThrottles(atpack.Throttle.Throttles);
+            GenericCall2 handler = OnUpdateThrottles;
+            if (handler != null)
+            {
+                handler();
+            }
             return true;
         }
 
@@ -11870,6 +11876,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void SetChildAgentThrottle(byte[] throttles)
         {
             m_udpClient.SetThrottles(throttles);
+            GenericCall2 handler = OnUpdateThrottles;
+            if (handler != null)
+            {
+                handler();
+            }
         }
 
         /// <summary>

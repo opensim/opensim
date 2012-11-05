@@ -376,6 +376,10 @@ namespace OpenSim.Region.Framework.Scenes
         public event ParcelPrimCountTainted OnParcelPrimCountTainted;
         public event GetScriptRunning OnGetScriptRunning;
 
+        public delegate void ThrottleUpdate(ScenePresence scenePresence);
+
+        public event ThrottleUpdate OnThrottleUpdate;
+
         /// <summary>
         /// RegisterCapsEvent is called by Scene after the Caps object
         /// has been instantiated and before it is return to the
@@ -2639,6 +2643,15 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
+            }
+        }
+
+        public void TriggerThrottleUpdate(ScenePresence scenePresence)
+        {
+            ThrottleUpdate handler = OnThrottleUpdate;
+            if (handler != null)
+            {
+                handler(scenePresence);
             }
         }
     }

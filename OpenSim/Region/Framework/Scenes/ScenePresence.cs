@@ -793,6 +793,7 @@ namespace OpenSim.Region.Framework.Scenes
             ControllingClient.OnChangeAnim += avnHandleChangeAnim;
             ControllingClient.OnForceReleaseControls += HandleForceReleaseControls;
             ControllingClient.OnAutoPilotGo += MoveToTarget;
+            ControllingClient.OnUpdateThrottles += RaiseUpdateThrottles;
 
             // ControllingClient.OnChildAgentStatus += new StatusChange(this.ChildStatusChange);
             // ControllingClient.OnStopMovement += new GenericCall2(this.StopMovement);
@@ -3166,6 +3167,10 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         private static Vector3 marker = new Vector3(-1f, -1f, -1f);
+        private void RaiseUpdateThrottles()
+        {
+            m_scene.EventManager.TriggerThrottleUpdate(this);
+        }
         /// <summary>
         /// This updates important decision making data about a child agent
         /// The main purpose is to figure out what objects to send to a child agent that's in a neighboring region

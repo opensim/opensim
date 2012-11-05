@@ -91,6 +91,7 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             m_scene.EventManager.OnRegisterCaps -= RegisterCaps;
             m_scene.EventManager.OnDeregisterCaps -= DeregisterCaps;
+            m_scene.EventManager.OnThrottleUpdate -= ThrottleUpdate;
             m_scene = null;
         }
 
@@ -101,6 +102,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
             m_scene.EventManager.OnRegisterCaps += RegisterCaps;
             m_scene.EventManager.OnDeregisterCaps += DeregisterCaps;
+            m_scene.EventManager.OnThrottleUpdate += ThrottleUpdate;
 
             if (m_workerThreads == null)
             {
@@ -117,6 +119,46 @@ namespace OpenSim.Region.ClientStack.Linden
                             int.MaxValue);
                 }
             }
+        }
+        private int ExtractImageThrottle(byte[] pthrottles)
+        {
+       
+            byte[] adjData;
+            int pos = 0;
+
+            if (!BitConverter.IsLittleEndian)
+            {
+                byte[] newData = new byte[7 * 4];
+                Buffer.BlockCopy(pthrottles, 0, newData, 0, 7 * 4);
+
+                for (int i = 0; i < 7; i++)
+                    Array.Reverse(newData, i * 4, 4);
+
+                adjData = newData;
+            }
+            else
+            {
+                adjData = pthrottles;
+            }
+
+            // 0.125f converts from bits to bytes
+            //int resend = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); pos += 4;
+           // int land = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); pos += 4;
+           // int wind = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); pos += 4;
+           // int cloud = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); pos += 4;
+           // int task = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); pos += 4;
+            pos = pos + 16;
+            int texture = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); pos += 4;
+            //int asset = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f);
+            return texture;
+        }
+
+        // Now we know when the throttle is changed by the client in the case of a root agent or by a neighbor region in the case of a child agent.
+        public void ThrottleUpdate(ScenePresence p)
+        {
+            byte[] throttles = p.ControllingClient.GetThrottlesPacked(1);
+            UUID user = p.UUID;
+            int imagethrottle = ExtractImageThrottle(throttles);
         }
 
         public void PostInitialise()
