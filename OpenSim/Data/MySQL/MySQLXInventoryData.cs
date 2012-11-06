@@ -123,11 +123,24 @@ namespace OpenSim.Data.MySQL
         {
         }
 
+        public override bool Delete(string field, string val)
+        {
+            XInventoryItem[] retrievedItems = Get(new string[] { field }, new string[] { val });
+            if (retrievedItems.Length == 0)
+                return false;
+
+            if (!base.Delete(field, val))
+                return false;
+
+            IncrementFolderVersion(retrievedItems[0].parentFolderID);
+
+            return true;
+        }
+
         public bool MoveItem(string id, string newParent)
         {
             using (MySqlCommand cmd = new MySqlCommand())
             {
-
                 cmd.CommandText = String.Format("update {0} set parentFolderID = ?ParentFolderID where inventoryID = ?InventoryID", m_Realm);
                 cmd.Parameters.AddWithValue("?ParentFolderID", newParent);
                 cmd.Parameters.AddWithValue("?InventoryID", id);
@@ -184,6 +197,13 @@ namespace OpenSim.Data.MySQL
             if (!base.Store(item))
                 return false;
 
+            IncrementFolderVersion(item.parentFolderID);
+
+            return true;
+        }
+
+        private bool IncrementFolderVersion(UUID folderID)
+        {
             using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
             {
                 dbcon.Open();
@@ -193,7 +213,7 @@ namespace OpenSim.Data.MySQL
                     cmd.Connection = dbcon;
 
                     cmd.CommandText = String.Format("update inventoryfolders set version=version+1 where folderID = ?folderID");
-                    cmd.Parameters.AddWithValue("?folderID", item.parentFolderID.ToString());
+                    cmd.Parameters.AddWithValue("?folderID", folderID.ToString());
 
                     try
                     {
@@ -205,8 +225,10 @@ namespace OpenSim.Data.MySQL
                     }
                     cmd.Dispose();
                 }
+
                 dbcon.Close();
             }
+
             return true;
         }
     }
