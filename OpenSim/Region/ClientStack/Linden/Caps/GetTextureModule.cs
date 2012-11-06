@@ -61,7 +61,7 @@ namespace OpenSim.Region.ClientStack.Linden
             public Hashtable request;
         }
 
-        public struct aPollResponse
+        public class aPollResponse
         {
             public Hashtable response;
             public int bytes;
@@ -151,13 +151,18 @@ namespace OpenSim.Region.ClientStack.Linden
             }
 
             // 0.125f converts from bits to bytes
-            //int resend = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); pos += 4;
-           // int land = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); pos += 4;
-           // int wind = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); pos += 4;
-           // int cloud = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); pos += 4;
-           // int task = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); pos += 4;
+            //int resend = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); 
+            //pos += 4;
+           // int land = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); 
+            //pos += 4;
+           // int wind = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); 
+           // pos += 4;
+           // int cloud = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); 
+           // pos += 4;
+           // int task = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); 
+           // pos += 4;
             pos = pos + 20;
-            int texture = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); pos += 4;
+            int texture = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); //pos += 4;
             //int asset = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f);
             return texture;
         }
@@ -205,7 +210,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     new Dictionary<UUID, aPollResponse>();
 
             private Scene m_scene;
-
+            private CapsDataThrottler m_throttler = new CapsDataThrottler(100000, 1400000,10000);
             public PollServiceTextureEventArgs(UUID pId, Scene scene) :
                     base(null, null, null, null, pId, int.MaxValue)              
             {
@@ -214,7 +219,12 @@ namespace OpenSim.Region.ClientStack.Linden
                 HasEvents = (x, y) =>
                 {
                     lock (responses)
-                        return responses.ContainsKey(x);
+                    {
+                        bool ret = m_throttler.hasEvents(x, responses);
+                        m_throttler.ProcessTime();
+                        return ret;
+
+                    }
                 };
                 GetEvents = (x, y) =>
                 {
@@ -281,19 +291,27 @@ namespace OpenSim.Region.ClientStack.Linden
                     response["reusecontext"] = false;
                     
                     lock (responses)
-                        responses[requestID] = new aPollResponse() {bytes = 0,response = response};
+                        responses[requestID] = new aPollResponse() {bytes = 0, response = response};
 
                     return;
                 }
-
+                
                 response = m_getTextureHandler.Handle(requestinfo.request);
                 lock (responses)
-                    responses[requestID] = new aPollResponse() { bytes = (int)response["int_bytes"], response = response};
+                {
+                    responses[requestID] = new aPollResponse()
+                                               {
+                                                   bytes = (int) response["int_bytes"],
+                                                   response = response
+                                               };
+                   
+                } 
+                m_throttler.ProcessTime();
             }
 
             internal void UpdateThrottle(int pimagethrottle)
             {
-               
+                m_throttler.ThrottleBytes = pimagethrottle;
             }
         }
 
@@ -346,5 +364,80 @@ namespace OpenSim.Region.ClientStack.Linden
                 poolreq.thepoll.Process(poolreq);
             }
         }
+    }
+
+    internal sealed class CapsDataThrottler
+    {
+        
+        private volatile int currenttime = 0;
+        private volatile int lastTimeElapsed = 0;
+        private volatile int BytesSent = 0;
+        private int oversizedImages = 0;
+        public CapsDataThrottler(int pBytes, int max, int min)
+        {
+            ThrottleBytes = pBytes;
+            lastTimeElapsed = Util.EnvironmentTickCount();
+        }
+        public bool hasEvents(UUID key, Dictionary<UUID, GetTextureModule.aPollResponse> responses)
+        {
+            PassTime();
+            // Note, this is called IN LOCK
+            bool haskey = responses.ContainsKey(key);
+            if (!haskey)
+            {
+                return false;
+            }
+            GetTextureModule.aPollResponse response;
+            if (responses.TryGetValue(key,out response))
+            {
+
+                // Normal
+                if (BytesSent + response.bytes <= ThrottleBytes)
+                {
+                    BytesSent += response.bytes;
+                    //TimeBasedAction timeBasedAction = new TimeBasedAction { byteRemoval = response.bytes, requestId = key, timeMS = currenttime + 1000, unlockyn = false };
+                    //m_actions.Add(timeBasedAction);
+                    return true;
+                }
+                    // Big textures
+                else if (response.bytes > ThrottleBytes && oversizedImages <= ((ThrottleBytes%50000) + 1))
+                {
+                    Interlocked.Increment(ref oversizedImages);
+                    BytesSent += response.bytes;
+                    //TimeBasedAction timeBasedAction = new TimeBasedAction { byteRemoval = response.bytes, requestId = key, timeMS = currenttime + (((response.bytes % ThrottleBytes)+1)*1000) , unlockyn = false };
+                    //m_actions.Add(timeBasedAction);
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
+            return haskey;
+        }
+        public void ProcessTime()
+        {
+            PassTime();
+        }
+       
+        
+        private void PassTime()
+        {
+            currenttime = Util.EnvironmentTickCount();
+            int timeElapsed = Util.EnvironmentTickCountSubtract(currenttime, lastTimeElapsed);
+            //processTimeBasedActions(responses);
+            if (Util.EnvironmentTickCountSubtract(currenttime, timeElapsed) >= 1000)
+            {
+                lastTimeElapsed = Util.EnvironmentTickCount();
+                BytesSent -= ThrottleBytes;
+                if (BytesSent < 0) BytesSent = 0;
+                if (BytesSent < ThrottleBytes)
+                {
+                    oversizedImages = 0;
+                }
+            }
+        }
+        public int ThrottleBytes;
     }
 }
