@@ -264,6 +264,8 @@ public sealed class BSLinksetCompound : BSLinkset
         float linksetMass = LinksetMass;
         LinksetRoot.UpdatePhysicalMassProperties(linksetMass);
 
+        BulletSimAPI.RecalculateCompoundShapeLocalAabb2(LinksetRoot.PhysShape.ptr);
+
         // DEBUG: see of inter-linkset collisions are causing problems for constraint linksets.
         // BulletSimAPI.SetCollisionFilterMask2(LinksetRoot.BSBody.ptr, 
         //                     (uint)CollisionFilterGroups.LinksetFilter, (uint)CollisionFilterGroups.LinksetMask);
