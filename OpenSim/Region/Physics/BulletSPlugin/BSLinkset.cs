@@ -49,6 +49,9 @@ public abstract class BSLinkset
 
         switch ((int)physScene.Params.linksetImplementation)
         {
+            case (int)LinksetImplementation.Constraint:
+                ret = new BSLinksetConstraints(physScene, parent);
+                break;
             case (int)LinksetImplementation.Compound:
                 ret = new BSLinksetCompound(physScene, parent);
                 break;
@@ -56,7 +59,7 @@ public abstract class BSLinkset
                 // ret = new BSLinksetManual(physScene, parent);
                 break;
             default:
-                ret = new BSLinksetConstraints(physScene, parent);
+                ret = new BSLinksetCompound(physScene, parent);
                 break;
         }
         return ret;
@@ -97,7 +100,6 @@ public abstract class BSLinkset
     {
         get
         {
-            m_mass = ComputeLinksetMass();
             return m_mass;
         }
     }
@@ -138,6 +140,7 @@ public abstract class BSLinkset
             // Don't add the root to its own linkset
             if (!IsRoot(child))
                 AddChildToLinkset(child);
+            m_mass = ComputeLinksetMass();
         }
         return this;
     }
@@ -156,6 +159,7 @@ public abstract class BSLinkset
                 return this;
             }
             RemoveChildFromLinkset(child);
+            m_mass = ComputeLinksetMass();
         }
 
         // The child is down to a linkset of just itself
