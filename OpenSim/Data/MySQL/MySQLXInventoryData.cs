@@ -26,9 +26,10 @@
  */
 
 using System;
-using System.Data;
-using System.Reflection;
 using System.Collections.Generic;
+using System.Data;
+using System.Linq;
+using System.Reflection;
 using log4net;
 using MySql.Data.MySqlClient;
 using OpenMetaverse;
@@ -118,6 +119,8 @@ namespace OpenSim.Data.MySQL
 
     public class MySqlItemHandler : MySQLGenericTableHandler<XInventoryItem>
     {
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         public MySqlItemHandler(string c, string t, string m) :
                 base(c, t, m)
         {
@@ -132,21 +135,53 @@ namespace OpenSim.Data.MySQL
             if (!base.Delete(field, val))
                 return false;
 
-            IncrementFolderVersion(retrievedItems[0].parentFolderID);
+            // Don't increment folder version here since Delete(string, string) calls Delete(string[], string[])
+//            IncrementFolderVersion(retrievedItems[0].parentFolderID);
+
+            return true;
+        }
+
+        public override bool Delete(string[] fields, string[] vals)
+        {
+            XInventoryItem[] retrievedItems = Get(fields, vals);
+            if (retrievedItems.Length == 0)
+                return false;
+
+            if (!base.Delete(fields, vals))
+                return false;
+
+            HashSet<UUID> deletedItemFolderUUIDs = new HashSet<UUID>();
+
+            Array.ForEach<XInventoryItem>(retrievedItems, i => deletedItemFolderUUIDs.Add(i.parentFolderID));
+
+            foreach (UUID deletedItemFolderUUID in deletedItemFolderUUIDs)
+                IncrementFolderVersion(deletedItemFolderUUID);
 
             return true;
         }
 
         public bool MoveItem(string id, string newParent)
         {
+            XInventoryItem[] retrievedItems = Get(new string[] { "inventoryID" }, new string[] { id });
+            if (retrievedItems.Length == 0)
+                return false;
+
+            UUID oldParent = retrievedItems[0].parentFolderID;
+
             using (MySqlCommand cmd = new MySqlCommand())
             {
                 cmd.CommandText = String.Format("update {0} set parentFolderID = ?ParentFolderID where inventoryID = ?InventoryID", m_Realm);
                 cmd.Parameters.AddWithValue("?ParentFolderID", newParent);
                 cmd.Parameters.AddWithValue("?InventoryID", id);
 
-                return ExecuteNonQuery(cmd) == 0 ? false : true;
+                if (ExecuteNonQuery(cmd) == 0)
+                    return false;
             }
+
+            IncrementFolderVersion(oldParent);
+            IncrementFolderVersion(newParent);
+
+            return true;
         }
 
         public XInventoryItem[] GetActiveGestures(UUID principalID)
@@ -204,6 +239,14 @@ namespace OpenSim.Data.MySQL
 
         private bool IncrementFolderVersion(UUID folderID)
         {
+            return IncrementFolderVersion(folderID.ToString());
+        }
+
+        private bool IncrementFolderVersion(string folderID)
+        {
+//            m_log.DebugFormat("[MYSQL ITEM HANDLER]: Incrementing version on folder {0}", folderID);
+//            Util.PrintCallStack();
+            
             using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
             {
                 dbcon.Open();
@@ -213,7 +256,7 @@ namespace OpenSim.Data.MySQL
                     cmd.Connection = dbcon;
 
                     cmd.CommandText = String.Format("update inventoryfolders set version=version+1 where folderID = ?folderID");
-                    cmd.Parameters.AddWithValue("?folderID", folderID.ToString());
+                    cmd.Parameters.AddWithValue("?folderID", folderID);
 
                     try
                     {
