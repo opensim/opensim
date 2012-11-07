@@ -491,7 +491,6 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
         // Some of the prims operate with special vehicle properties
         ProcessVehicles(timeStep);
-        numTaints += _taintOperations.Count;
         ProcessTaints();    // the vehicles might have added taints
 
         // step the physical world one interval
@@ -500,7 +499,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
         try
         {
-            // DumpVehicles();  // DEBUG
+            if (VehicleLoggingEnabled) DumpVehicles();  // DEBUG
             if (PhysicsLogging.Enabled) beforeTime = Util.EnvironmentTickCount();
 
             numSubSteps = BulletSimAPI.PhysicsStep2(World.ptr, timeStep, m_maxSubSteps, m_fixedTimeStep,
@@ -509,7 +508,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             if (PhysicsLogging.Enabled) simTime = Util.EnvironmentTickCountSubtract(beforeTime);
             DetailLog("{0},Simulate,call, frame={1}, nTaints={2}, simTime={3}, substeps={4}, updates={5}, colliders={6}",
                         DetailLogZero, m_simulationStep, numTaints, simTime, numSubSteps, updatedEntityCount, collidersCount);
-            // DumpVehicles();  // DEBUG
+            if (VehicleLoggingEnabled) DumpVehicles();  // DEBUG
         }
         catch (Exception e)
         {
@@ -520,7 +519,6 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             updatedEntityCount = 0;
             collidersCount = 0;
         }
-
 
         // Don't have to use the pointers passed back since we know it is the same pinned memory we passed in
 
@@ -724,6 +722,9 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     {
         if (_taintOperations.Count > 0)  // save allocating new list if there is nothing to process
         {
+            /*
+            // Code to limit the number of taints processed per step. Meant to limit step time.
+            // Unsure if a good idea as code assumes that taints are done before the step.
             int taintCount = m_taintsToProcessPerStep;
             TaintCallbackEntry oneCallback = new TaintCallbackEntry();
             while (_taintOperations.Count > 0 && taintCount-- > 0)
@@ -752,13 +753,17 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
                     }
                 }
             }
-            /*
+            if (_taintOperations.Count > 0)
+            {
+                DetailLog("{0},BSScene.ProcessTaints,leftTaintsOnList,numNotProcessed={1}", DetailLogZero, _taintOperations.Count);
+            }
+             */
             // swizzle a new list into the list location so we can process what's there
             List<TaintCallbackEntry> oldList;
             lock (_taintLock)
             {
-                oldList = _taintedObjects;
-                _taintedObjects = new List<TaintCallbackEntry>();
+                oldList = _taintOperations;
+                _taintOperations = new List<TaintCallbackEntry>();
             }
 
             foreach (TaintCallbackEntry tcbe in oldList)
@@ -774,7 +779,6 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
                 }
             }
             oldList.Clear();
-             */
         }
     }
 
@@ -1043,7 +1047,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             (s) => { return (float)s.m_maxUpdatesPerFrame; },
             (s,p,l,v) => { s.m_maxUpdatesPerFrame = (int)v; } ),
         new ParameterDefn("MaxTaintsToProcessPerStep", "Number of update taints to process before each simulation step",
-            100f,
+            500f,
             (s,cf,p,v) => { s.m_taintsToProcessPerStep = cf.GetInt(p, (int)v); },
             (s) => { return (float)s.m_taintsToProcessPerStep; },
             (s,p,l,v) => { s.m_taintsToProcessPerStep = (int)v; } ),
@@ -1097,13 +1101,13 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             (s,cf,p,v) => { s.m_params[0].linearDamping = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].linearDamping; },
             (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].linearDamping, p, l, v); },
-            (s,o,v) => { BulletSimAPI.SetDamping2(o.PhysBody.ptr, v, v); } ),
+            (s,o,v) => { BulletSimAPI.SetDamping2(o.PhysBody.ptr, v, s.m_params[0].angularDamping); } ),
         new ParameterDefn("AngularDamping", "Factor to damp angular movement per second (0.0 - 1.0)",
             0f,
             (s,cf,p,v) => { s.m_params[0].angularDamping = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].angularDamping; },
             (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].angularDamping, p, l, v); },
-            (s,o,v) => { BulletSimAPI.SetDamping2(o.PhysBody.ptr, v, v); } ),
+            (s,o,v) => { BulletSimAPI.SetDamping2(o.PhysBody.ptr, s.m_params[0].linearDamping, v); } ),
         new ParameterDefn("DeactivationTime", "Seconds before considering an object potentially static",
             0.2f,
             (s,cf,p,v) => { s.m_params[0].deactivationTime = cf.GetFloat(p, v); },
@@ -1473,7 +1477,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     {
         PhysicsLogging.Write(msg, args);
         // Add the Flush() if debugging crashes. Gets all the messages written out.
-        PhysicsLogging.Flush();
+        // PhysicsLogging.Flush();
     }
     // Used to fill in the LocalID when there isn't one. It's the correct number of characters.
     public const string DetailLogZero = "0000000000";
