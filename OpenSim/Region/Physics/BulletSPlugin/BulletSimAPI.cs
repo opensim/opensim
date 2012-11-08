@@ -632,6 +632,9 @@ public static extern IntPtr RemoveChildShapeFromCompoundShapeIndex2(IntPtr cShap
 public static extern void RemoveChildShapeFromCompoundShape2(IntPtr cShape, IntPtr removeShape);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern void RecalculateCompoundShapeLocalAabb2(IntPtr cShape);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern IntPtr DuplicateCollisionShape2(IntPtr sim, IntPtr srcShape, uint id);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
@@ -917,6 +920,12 @@ public static extern Vector3 GetGravity2(IntPtr obj);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern void SetDamping2(IntPtr obj, float lin_damping, float ang_damping);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern void SetLinearDamping2(IntPtr obj, float lin_damping);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern void SetAngularDamping2(IntPtr obj, float ang_damping);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern float GetLinearDamping2(IntPtr obj);

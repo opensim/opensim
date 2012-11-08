@@ -103,7 +103,7 @@ public sealed class BSCharacter : BSPhysObject
         PhysicsScene.TaintedObject("BSCharacter.create", delegate()
         {
             DetailLog("{0},BSCharacter.create,taint", LocalID);
-            // New body and shape into BSBody and BSShape
+            // New body and shape into PhysBody and PhysShape
             PhysicsScene.Shapes.GetBodyAndShape(true, PhysicsScene.World, this, null, null);
 
             SetPhysicalProperties();
@@ -126,7 +126,7 @@ public sealed class BSCharacter : BSPhysObject
     {
         BulletSimAPI.RemoveObjectFromWorld2(PhysicsScene.World.ptr, PhysBody.ptr);
 
-        ZeroMotion();
+        ZeroMotion(true);
         ForcePosition = _position;
         // Set the velocity and compute the proper friction
         ForceVelocity = _velocity;
@@ -218,18 +218,31 @@ public sealed class BSCharacter : BSPhysObject
     // Do it to the properties so the values get set in the physics engine.
     // Push the setting of the values to the viewer.
     // Called at taint time!
-    public override void ZeroMotion()
+    public override void ZeroMotion(bool inTaintTime)
     {
         _velocity = OMV.Vector3.Zero;
         _acceleration = OMV.Vector3.Zero;
         _rotationalVelocity = OMV.Vector3.Zero;
 
         // Zero some other properties directly into the physics engine
-        BulletSimAPI.SetLinearVelocity2(PhysBody.ptr, OMV.Vector3.Zero);
-        BulletSimAPI.SetAngularVelocity2(PhysBody.ptr, OMV.Vector3.Zero);
-        BulletSimAPI.SetInterpolationVelocity2(PhysBody.ptr, OMV.Vector3.Zero, OMV.Vector3.Zero);
-        BulletSimAPI.ClearForces2(PhysBody.ptr);
+        PhysicsScene.TaintedObject(inTaintTime, "BSCharacter.ZeroMotion", delegate()
+        {
+            BulletSimAPI.ClearAllForces2(PhysBody.ptr);
+        });
     }
+    public override void ZeroAngularMotion(bool inTaintTime)
+    {
+        _rotationalVelocity = OMV.Vector3.Zero;
+
+        PhysicsScene.TaintedObject(inTaintTime, "BSCharacter.ZeroMotion", delegate()
+        {
+            BulletSimAPI.SetInterpolationAngularVelocity2(PhysBody.ptr, OMV.Vector3.Zero);
+            BulletSimAPI.SetAngularVelocity2(PhysBody.ptr, OMV.Vector3.Zero);
+            // The next also get rid of applied linear force but the linear velocity is untouched.
+            BulletSimAPI.ClearForces2(PhysBody.ptr);
+        });
+    }
+
 
     public override void LockAngularMotion(OMV.Vector3 axis) { return; }
 

@@ -121,6 +121,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
 
             if (sp != null || agentID == kickUserID)
             {
+                m_dialogModule = m_scene.RequestModuleInterface<IDialogModule>();
                 if (m_scene.Permissions.IsGod(godID))
                 {
                     if (kickflags == 0)
@@ -162,20 +163,27 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
                     if (kickflags == 1)
                     {
                         sp.AllowMovement = false;
-                        m_dialogModule.SendAlertToUser(agentID, Utils.BytesToString(reason));
-                        m_dialogModule.SendAlertToUser(godID, "User Frozen");
+                        if (m_dialogModule != null)
+                        {
+                            m_dialogModule.SendAlertToUser(agentID, Utils.BytesToString(reason));
+                            m_dialogModule.SendAlertToUser(godID, "User Frozen");
+                        }
                     }
                     
                     if (kickflags == 2)
                     {
                         sp.AllowMovement = true;
-                        m_dialogModule.SendAlertToUser(agentID, Utils.BytesToString(reason));
-                        m_dialogModule.SendAlertToUser(godID, "User Unfrozen");
+                        if (m_dialogModule != null)
+                        {
+                            m_dialogModule.SendAlertToUser(agentID, Utils.BytesToString(reason));
+                            m_dialogModule.SendAlertToUser(godID, "User Unfrozen");
+                        }
                     }
                 }
                 else
                 {
-                    m_dialogModule.SendAlertToUser(godID, "Kick request denied");
+                    if (m_dialogModule != null)
+                        m_dialogModule.SendAlertToUser(godID, "Kick request denied");
                 }
             }
         }
