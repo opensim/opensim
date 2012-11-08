@@ -184,7 +184,7 @@ public sealed class BSLinksetConstraints : BSLinkset
     private BSConstraint BuildConstraint(BSPhysObject rootPrim, BSPhysObject childPrim)
     {
         // Zero motion for children so they don't interpolate
-        childPrim.ZeroMotion();
+        childPrim.ZeroMotion(true);
 
         // Relative position normalized to the root prim
         // Essentually a vector pointing from center of rootPrim to center of childPrim

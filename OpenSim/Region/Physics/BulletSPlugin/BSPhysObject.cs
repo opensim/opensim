@@ -34,9 +34,17 @@ using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.Physics.BulletSPlugin
 {
-// Class to wrap all objects.
-// The rest of BulletSim doesn't need to keep checking for avatars or prims
-// unless the difference is significant.
+/*
+ * Class to wrap all objects.
+ * The rest of BulletSim doesn't need to keep checking for avatars or prims
+ *        unless the difference is significant.
+ * 
+ *  Variables in the physicsl objects are in three forms:
+ *      VariableName: used by the simulator and performs taint operations, etc
+ *      RawVariableName: direct reference to the BulletSim storage for the variable value
+ *      ForceVariableName: direct reference (store and fetch) to the value in the physics engine.
+ *  The last two (and certainly the last one) should be referenced only in taint-time.
+ */
 public abstract class BSPhysObject : PhysicsActor
 {
     protected void BaseInitialize(BSScene parentScene, uint localID, string name, string typeName)
@@ -67,6 +75,9 @@ public abstract class BSPhysObject : PhysicsActor
     // Set the raw mass but also update physical mass properties (inertia, ...)
     public abstract void UpdatePhysicalMassProperties(float mass);
 
+    // The last value calculated for the prim's inertia
+    public OMV.Vector3 Inertia { get; set; }
+
     // Reference to the physical body (btCollisionObject) of this object
     public BulletBody PhysBody;
     // Reference to the physical shape (btCollisionShape) of this object
@@ -96,7 +107,8 @@ public abstract class BSPhysObject : PhysicsActor
     public abstract bool IsStatic { get; }
 
     // Stop all physical motion.
-    public abstract void ZeroMotion();
+    public abstract void ZeroMotion(bool inTaintTime);
+    public abstract void ZeroAngularMotion(bool inTaintTime);
 
     // Step the vehicle simulation for this object. A NOOP if the vehicle was not configured.
     public virtual void StepVehicle(float timeStep) { }

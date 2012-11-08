@@ -224,6 +224,8 @@ namespace OpenSim.Data.MySQL
 
         public virtual bool Store(T row)
         {
+//            m_log.DebugFormat("[MYSQL GENERIC TABLE HANDLER]: Store(T row) invoked");
+
             using (MySqlCommand cmd = new MySqlCommand())
             {
                 string query = "";
@@ -278,6 +280,10 @@ namespace OpenSim.Data.MySQL
 
         public virtual bool Delete(string[] fields, string[] keys)
         {
+//            m_log.DebugFormat(
+//                "[MYSQL GENERIC TABLE HANDLER]: Delete(string[] fields, string[] keys) invoked with {0}:{1}",
+//                string.Join(",", fields), string.Join(",", keys));
+
             if (fields.Length != keys.Length)
                 return false;
 
