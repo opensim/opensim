@@ -400,16 +400,7 @@ namespace OpenSim.Services.InventoryService
 
         public virtual bool MoveFolder(InventoryFolderBase folder)
         {
-            XInventoryFolder[] x = m_Database.GetFolders(
-                    new string[] { "folderID" },
-                    new string[] { folder.ID.ToString() });
-
-            if (x.Length == 0)
-                return false;
-
-            x[0].parentFolderID = folder.ParentID;
-
-            return m_Database.StoreFolder(x[0]);
+            return m_Database.MoveFolder(folder.ID.ToString(), folder.ParentID.ToString());
         }
 
         // We don't check the principal's ID here

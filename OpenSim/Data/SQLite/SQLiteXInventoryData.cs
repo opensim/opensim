@@ -47,7 +47,7 @@ namespace OpenSim.Data.SQLite
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private SQLiteGenericTableHandler<XInventoryFolder> m_Folders;
+        private SqliteFolderHandler m_Folders;
         private SqliteItemHandler m_Items;
 
         public SQLiteXInventoryData(string conn, string realm)
@@ -55,7 +55,7 @@ namespace OpenSim.Data.SQLite
             if (Util.IsWindows())
                 Util.LoadArchSpecificWindowsDll("sqlite3.dll");
 
-            m_Folders = new SQLiteGenericTableHandler<XInventoryFolder>(
+            m_Folders = new SqliteFolderHandler(
                     conn, "inventoryfolders", "XInventoryStore");
             m_Items = new SqliteItemHandler(
                     conn, "inventoryitems", String.Empty);
@@ -112,6 +112,11 @@ namespace OpenSim.Data.SQLite
         public bool MoveItem(string id, string newParent)
         {
             return m_Items.MoveItem(id, newParent);
+        }
+
+        public bool MoveFolder(string id, string newParent)
+        {
+            return m_Folders.MoveFolder(id, newParent);
         }
 
         public XInventoryItem[] GetActiveGestures(UUID principalID)
@@ -175,6 +180,25 @@ namespace OpenSim.Data.SQLite
             //CloseCommand(cmd);
 
             return perms;
+        }
+    }
+
+    public class SqliteFolderHandler : SQLiteGenericTableHandler<XInventoryFolder>
+    {
+        public SqliteFolderHandler(string c, string t, string m) :
+                base(c, t, m)
+        {
+        }
+
+        public bool MoveFolder(string id, string newParentFolderID)
+        {
+            SqliteCommand cmd = new SqliteCommand();
+
+            cmd.CommandText = String.Format("update {0} set parentFolderID = :ParentFolderID where folderID = :FolderID", m_Realm);
+            cmd.Parameters.Add(new SqliteParameter(":ParentFolderID", newParentFolderID));
+            cmd.Parameters.Add(new SqliteParameter(":FolderID", id));
+
+            return ExecuteNonQuery(cmd, m_Connection) == 0 ? false : true;
         }
     }
 }

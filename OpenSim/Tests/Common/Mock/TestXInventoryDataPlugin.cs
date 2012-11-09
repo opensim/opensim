@@ -125,6 +125,7 @@ namespace OpenSim.Tests.Common.Mock
         }
 
         public bool MoveItem(string id, string newParent) { throw new NotImplementedException(); }
+        public bool MoveFolder(string id, string newParent) { throw new NotImplementedException(); }
         public XInventoryItem[] GetActiveGestures(UUID principalID) { throw new NotImplementedException(); }
         public int GetAssetPermissions(UUID principalID, UUID assetID) { throw new NotImplementedException(); }
     }
