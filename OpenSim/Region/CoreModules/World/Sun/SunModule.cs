@@ -267,13 +267,12 @@ namespace OpenSim.Region.CoreModules
             return GetCurrentSunHour() + 6.0f;
         }
 
-        #region IRegion Methods
+        #region INonSharedRegion Methods
 
         // Called immediately after the module is loaded for a given region
         // i.e. Immediately after instance creation.
-        public void Initialise(Scene scene, IConfigSource config)
+        public void Initialise(IConfigSource config)
         {
-            m_scene = scene;
             m_frame = 0;
 
             // This one puts an entry in the main help screen
@@ -358,15 +357,6 @@ namespace OpenSim.Region.CoreModules
                     HorizonShift      = m_HorizonShift; // Z axis translation
                     // HoursToRadians    = (SunCycle/24)*VWTimeRatio;
 
-                    //  Insert our event handling hooks
-
-                    scene.EventManager.OnFrame     += SunUpdate;
-                    scene.EventManager.OnAvatarEnteringNewParcel += AvatarEnteringParcel;
-                    scene.EventManager.OnEstateToolsSunUpdate += EstateToolsSunUpdate;
-                    scene.EventManager.OnGetCurrentTimeAsLindenSunHour += GetCurrentTimeAsLindenSunHour;
-
-                    ready = true;
-
                     m_log.Debug("[SUN]: Mode is " + m_RegionMode);
                     m_log.Debug("[SUN]: Initialization completed. Day is " + SecondsPerSunCycle + " seconds, and year is " + m_YearLengthDays + " days");
                     m_log.Debug("[SUN]: Axis offset is " + m_HorizonShift);
@@ -376,14 +366,29 @@ namespace OpenSim.Region.CoreModules
                     break;
             }
 
-            scene.RegisterModuleInterface<ISunModule>(this);
         }
 
-        public void PostInitialise()
+        public Type ReplaceableInterface 
         {
+            get { return null; }
         }
 
-        public void Close()
+        public void AddRegion(Scene scene)
+        {
+            m_scene = scene;
+            //  Insert our event handling hooks
+
+            scene.EventManager.OnFrame += SunUpdate;
+            scene.EventManager.OnAvatarEnteringNewParcel += AvatarEnteringParcel;
+            scene.EventManager.OnEstateToolsSunUpdate += EstateToolsSunUpdate;
+            scene.EventManager.OnGetCurrentTimeAsLindenSunHour += GetCurrentTimeAsLindenSunHour;
+
+            scene.RegisterModuleInterface<ISunModule>(this);
+
+            ready = true;
+        }
+
+        public void RemoveRegion(Scene scene)
         {
             ready = false;
 
@@ -394,14 +399,17 @@ namespace OpenSim.Region.CoreModules
             m_scene.EventManager.OnGetCurrentTimeAsLindenSunHour -= GetCurrentTimeAsLindenSunHour;
         }
 
+        public void RegionLoaded(Scene scene)
+        {
+        }
+
+        public void Close()
+        {
+        }
+
         public string Name
         {
             get { return "SunModule"; }
-        }
-
-        public bool IsSharedModule
-        {
-            get { return false; }
         }
 
         #endregion
