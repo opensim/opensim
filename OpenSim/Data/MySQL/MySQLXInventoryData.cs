@@ -42,12 +42,12 @@ namespace OpenSim.Data.MySQL
     /// </summary>
     public class MySQLXInventoryData : IXInventoryData
     {
-        private MySQLGenericTableHandler<XInventoryFolder> m_Folders;
+        private MySqlFolderHandler m_Folders;
         private MySqlItemHandler m_Items;
 
         public MySQLXInventoryData(string conn, string realm)
         {
-            m_Folders = new MySQLGenericTableHandler<XInventoryFolder>(
+            m_Folders = new MySqlFolderHandler(
                     conn, "inventoryfolders", "InventoryStore");
             m_Items = new MySqlItemHandler(
                     conn, "inventoryitems", String.Empty);
@@ -104,6 +104,11 @@ namespace OpenSim.Data.MySQL
         public bool MoveItem(string id, string newParent)
         {
             return m_Items.MoveItem(id, newParent);
+        }
+
+        public bool MoveFolder(string id, string newParent)
+        {
+            return m_Folders.MoveFolder(id, newParent);
         }
 
         public XInventoryItem[] GetActiveGestures(UUID principalID)
@@ -247,6 +252,91 @@ namespace OpenSim.Data.MySQL
 //            m_log.DebugFormat("[MYSQL ITEM HANDLER]: Incrementing version on folder {0}", folderID);
 //            Util.PrintCallStack();
             
+            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            {
+                dbcon.Open();
+
+                using (MySqlCommand cmd = new MySqlCommand())
+                {
+                    cmd.Connection = dbcon;
+
+                    cmd.CommandText = String.Format("update inventoryfolders set version=version+1 where folderID = ?folderID");
+                    cmd.Parameters.AddWithValue("?folderID", folderID);
+
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                    }
+                    catch (Exception)
+                    {
+                        return false;
+                    }
+                    cmd.Dispose();
+                }
+
+                dbcon.Close();
+            }
+
+            return true;
+        }
+    }
+
+    public class MySqlFolderHandler : MySQLGenericTableHandler<XInventoryFolder>
+    {
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        public MySqlFolderHandler(string c, string t, string m) :
+                base(c, t, m)
+        {
+        }
+
+        public bool MoveFolder(string id, string newParentFolderID)
+        {
+            XInventoryFolder[] folders = Get(new string[] { "folderID" }, new string[] { id });
+
+            if (folders.Length == 0)
+                return false;
+
+            UUID oldParentFolderUUID = folders[0].parentFolderID;
+
+            using (MySqlCommand cmd = new MySqlCommand())
+            {
+                cmd.CommandText
+                    = String.Format(
+                        "update {0} set parentFolderID = ?ParentFolderID where folderID = ?folderID", m_Realm);
+                cmd.Parameters.AddWithValue("?ParentFolderID", newParentFolderID);
+                cmd.Parameters.AddWithValue("?folderID", id);
+
+                if (ExecuteNonQuery(cmd) == 0)
+                    return false;
+            }
+
+            IncrementFolderVersion(oldParentFolderUUID);
+            IncrementFolderVersion(newParentFolderID);
+
+            return true;
+        }
+
+        public override bool Store(XInventoryFolder folder)
+        {
+            if (!base.Store(folder))
+                return false;
+
+            IncrementFolderVersion(folder.parentFolderID);
+
+            return true;
+        }
+
+        private bool IncrementFolderVersion(UUID folderID)
+        {
+            return IncrementFolderVersion(folderID.ToString());
+        }
+
+        private bool IncrementFolderVersion(string folderID)
+        {
+//            m_log.DebugFormat("[MYSQL FOLDER HANDLER]: Incrementing version on folder {0}", folderID);
+//            Util.PrintCallStack();
+
             using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
             {
                 dbcon.Open();

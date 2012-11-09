@@ -68,6 +68,7 @@ namespace OpenSim.Services.HypergridService
         private static UUID m_ScopeID;
         private static bool m_AllowTeleportsToAnyRegion;
         private static string m_ExternalName;
+        private static Uri m_Uri;
         private static GridRegion m_DefaultGatewayRegion;
 
         public GatekeeperService(IConfigSource config, ISimulationService simService)
@@ -98,6 +99,15 @@ namespace OpenSim.Services.HypergridService
                 m_ExternalName = serverConfig.GetString("ExternalName", string.Empty);
                 if (m_ExternalName != string.Empty && !m_ExternalName.EndsWith("/"))
                     m_ExternalName = m_ExternalName + "/";
+
+                try
+                {
+                    m_Uri = new Uri(m_ExternalName);
+                }
+                catch
+                {
+                    m_log.WarnFormat("[GATEKEEPER SERVICE]: Malformed gatekeeper address {0}", m_ExternalName);
+                }
 
                 Object[] args = new Object[] { config };
                 m_GridService = ServerUtils.LoadPlugin<IGridService>(gridService, args);
@@ -433,7 +443,18 @@ namespace OpenSim.Services.HypergridService
             string externalname = m_ExternalName.TrimEnd(trailing_slash);
             m_log.DebugFormat("[GATEKEEPER SERVICE]: Verifying {0} against {1}", addressee, externalname);
 
-            return string.Equals(addressee, externalname, StringComparison.OrdinalIgnoreCase);
+            Uri uri;
+            try
+            {
+                uri = new Uri(addressee);
+            }
+            catch
+            {
+                m_log.DebugFormat("[GATEKEEPER SERVICE]: Visitor provided malformed service address {0}", addressee);
+                return false;
+            }
+
+            return string.Equals(uri.GetLeftPart(UriPartial.Authority), m_Uri.GetLeftPart(UriPartial.Authority), StringComparison.OrdinalIgnoreCase) ;
         }
 
         #endregion

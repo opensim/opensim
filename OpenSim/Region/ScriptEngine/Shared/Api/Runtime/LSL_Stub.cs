@@ -1515,6 +1515,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_LSL_Functions.llSetCameraEyeOffset(offset);
         }
 
+        public void llSetLinkCamera(LSL_Integer link, LSL_Vector eye, LSL_Vector at)
+        {
+            m_LSL_Functions.llSetLinkCamera(link, eye, at);
+        }
+
         public void llSetCameraParams(LSL_List rules)
         {
             m_LSL_Functions.llSetCameraParams(rules);

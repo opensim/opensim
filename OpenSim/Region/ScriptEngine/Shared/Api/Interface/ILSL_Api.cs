@@ -336,6 +336,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
               void llSetBuoyancy(double buoyancy);
               void llSetCameraAtOffset(LSL_Vector offset);
               void llSetCameraEyeOffset(LSL_Vector offset);
+              void llSetLinkCamera(LSL_Integer link, LSL_Vector eye, LSL_Vector at);
               void llSetCameraParams(LSL_List rules);
               void llSetClickAction(int action);
               void llSetColor(LSL_Vector color, int face);

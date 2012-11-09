@@ -43,12 +43,12 @@ namespace OpenSim.Data.MSSQL
         private static readonly ILog m_log = LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
-        private MSSQLGenericTableHandler<XInventoryFolder> m_Folders;
+        private MSSQLFolderHandler m_Folders;
         private MSSQLItemHandler m_Items;
 
         public MSSQLXInventoryData(string conn, string realm)
         {
-            m_Folders = new MSSQLGenericTableHandler<XInventoryFolder>(
+            m_Folders = new MSSQLFolderHandler(
                     conn, "inventoryfolders", "InventoryStore");
             m_Items = new MSSQLItemHandler(
                     conn, "inventoryitems", String.Empty);
@@ -85,6 +85,7 @@ namespace OpenSim.Data.MSSQL
         {
             return m_Folders.Delete(field, val);
         }
+
         public bool DeleteFolders(string[] fields, string[] vals)
         {
             return m_Folders.Delete(fields, vals);
@@ -94,13 +95,20 @@ namespace OpenSim.Data.MSSQL
         {
             return m_Items.Delete(field, val);
         }
+
         public bool DeleteItems(string[] fields, string[] vals)
         {
             return m_Items.Delete(fields, vals);
         }
+
         public bool MoveItem(string id, string newParent)
         {
             return m_Items.MoveItem(id, newParent);
+        }
+
+        public bool MoveFolder(string id, string newParent)
+        {
+            return m_Folders.MoveFolder(id, newParent);
         }
 
         public XInventoryItem[] GetActiveGestures(UUID principalID)
@@ -124,79 +132,115 @@ namespace OpenSim.Data.MSSQL
         public bool MoveItem(string id, string newParent)
         {
             using (SqlConnection conn = new SqlConnection(m_ConnectionString))
-            using (SqlCommand cmd = new SqlCommand())
             {
+                using (SqlCommand cmd = new SqlCommand())
+                {
 
-                cmd.CommandText = String.Format("update {0} set parentFolderID = @ParentFolderID where inventoryID = @InventoryID", m_Realm);
-                cmd.Parameters.Add(m_database.CreateParameter("@ParentFolderID", newParent));
-                cmd.Parameters.Add(m_database.CreateParameter("@InventoryID", id));
-                cmd.Connection = conn;
-                conn.Open();
-                return cmd.ExecuteNonQuery() == 0 ? false : true;
+                    cmd.CommandText = String.Format("update {0} set parentFolderID = @ParentFolderID where inventoryID = @InventoryID", m_Realm);
+                    cmd.Parameters.Add(m_database.CreateParameter("@ParentFolderID", newParent));
+                    cmd.Parameters.Add(m_database.CreateParameter("@InventoryID", id));
+                    cmd.Connection = conn;
+                    conn.Open();
+                    return cmd.ExecuteNonQuery() == 0 ? false : true;
+                }
             }
         }
 
         public XInventoryItem[] GetActiveGestures(UUID principalID)
         {
             using (SqlConnection conn = new SqlConnection(m_ConnectionString))
-            using (SqlCommand cmd = new SqlCommand())
             {
-                cmd.CommandText = String.Format("select * from inventoryitems where avatarId = @uuid and assetType = @type and flags = 1", m_Realm);
+                using (SqlCommand cmd = new SqlCommand())
+                {
+                    cmd.CommandText = String.Format("select * from inventoryitems where avatarId = @uuid and assetType = @type and flags = 1", m_Realm);
 
-                cmd.Parameters.Add(m_database.CreateParameter("@uuid", principalID.ToString()));
-                cmd.Parameters.Add(m_database.CreateParameter("@type", (int)AssetType.Gesture));
-                cmd.Connection = conn;
-                conn.Open();
-                return DoQuery(cmd);
+                    cmd.Parameters.Add(m_database.CreateParameter("@uuid", principalID.ToString()));
+                    cmd.Parameters.Add(m_database.CreateParameter("@type", (int)AssetType.Gesture));
+                    cmd.Connection = conn;
+                    conn.Open();
+                    return DoQuery(cmd);
+                }
             }
         }
 
         public int GetAssetPermissions(UUID principalID, UUID assetID)
         {
             using (SqlConnection conn = new SqlConnection(m_ConnectionString))
-            using (SqlCommand cmd = new SqlCommand())
             {
-                cmd.CommandText = String.Format("select bit_or(inventoryCurrentPermissions) as inventoryCurrentPermissions from inventoryitems where avatarID = @PrincipalID and assetID = @AssetID group by assetID", m_Realm);
-                cmd.Parameters.Add(m_database.CreateParameter("@PrincipalID", principalID.ToString()));
-                cmd.Parameters.Add(m_database.CreateParameter("@AssetID", assetID.ToString()));
-                cmd.Connection = conn;
-                conn.Open();
-                using (SqlDataReader reader = cmd.ExecuteReader())
+                using (SqlCommand cmd = new SqlCommand())
                 {
-
-                    int perms = 0;
-
-                    if (reader.Read())
+                    cmd.CommandText = String.Format("select bit_or(inventoryCurrentPermissions) as inventoryCurrentPermissions from inventoryitems where avatarID = @PrincipalID and assetID = @AssetID group by assetID", m_Realm);
+                    cmd.Parameters.Add(m_database.CreateParameter("@PrincipalID", principalID.ToString()));
+                    cmd.Parameters.Add(m_database.CreateParameter("@AssetID", assetID.ToString()));
+                    cmd.Connection = conn;
+                    conn.Open();
+                    using (SqlDataReader reader = cmd.ExecuteReader())
                     {
-                        perms = Convert.ToInt32(reader["inventoryCurrentPermissions"]);
+
+                        int perms = 0;
+
+                        if (reader.Read())
+                        {
+                            perms = Convert.ToInt32(reader["inventoryCurrentPermissions"]);
+                        }
+
+                        return perms;
                     }
 
-                    return perms;
                 }
-
             }
         }
+
         public override bool Store(XInventoryItem item)
         {
             if (!base.Store(item))
                 return false;
+
             string sql = "update inventoryfolders set version=version+1 where folderID = @folderID";
             using (SqlConnection conn = new SqlConnection(m_ConnectionString))
-            using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
-                conn.Open();
+                using (SqlCommand cmd = new SqlCommand(sql, conn))
+                {
+                    conn.Open();
 
-                    cmd.Parameters.AddWithValue("@folderID", item.parentFolderID.ToString());
-                    try
-                    {
-                        cmd.ExecuteNonQuery();
-                    }
-                    catch (Exception)
-                    {
-                        return false;
-                    }                
+                        cmd.Parameters.AddWithValue("@folderID", item.parentFolderID.ToString());
+                        try
+                        {
+                            cmd.ExecuteNonQuery();
+                        }
+                        catch (Exception)
+                        {
+                            return false;
+                        }
+                }
+
+                return true;
             }
-            return true;
+        }
+    }
+
+    public class MSSQLFolderHandler : MSSQLGenericTableHandler<XInventoryFolder>
+    {
+        public MSSQLFolderHandler(string c, string t, string m) :
+            base(c, t, m)
+        {
+        }
+
+        public bool MoveFolder(string id, string newParentFolderID)
+        {
+            using (SqlConnection conn = new SqlConnection(m_ConnectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand())
+                {
+
+                    cmd.CommandText = String.Format("update {0} set parentFolderID = @ParentFolderID where folderID = @folderID", m_Realm);
+                    cmd.Parameters.Add(m_database.CreateParameter("@ParentFolderID", newParentFolderID));
+                    cmd.Parameters.Add(m_database.CreateParameter("@folderID", id));
+                    cmd.Connection = conn;
+                    conn.Open();
+                    return cmd.ExecuteNonQuery() == 0 ? false : true;
+                }
+            }
         }
     }
 }

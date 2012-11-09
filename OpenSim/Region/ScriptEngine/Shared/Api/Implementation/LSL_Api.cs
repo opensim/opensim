@@ -7105,6 +7105,36 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.SetCameraAtOffset(offset);
         }
 
+        public void llSetLinkCamera(LSL_Integer link, LSL_Vector eye, LSL_Vector at)
+        {
+            m_host.AddScriptLPS(1);
+
+            if (link == ScriptBaseClass.LINK_SET ||
+                link == ScriptBaseClass.LINK_ALL_CHILDREN ||
+                link == ScriptBaseClass.LINK_ALL_OTHERS) return;
+
+            SceneObjectPart part = null;
+
+            switch (link)
+            {
+                case ScriptBaseClass.LINK_ROOT:
+                    part = m_host.ParentGroup.RootPart;
+                    break;
+                case ScriptBaseClass.LINK_THIS:
+                    part = m_host;
+                    break;
+                default:
+                    part = m_host.ParentGroup.GetLinkNumPart(link);
+                    break;
+            }
+
+            if (null != part)
+            {
+                part.SetCameraEyeOffset(eye);
+                part.SetCameraAtOffset(at);
+            }
+        }
+
         public LSL_String llDumpList2String(LSL_List src, string seperator)
         {
             m_host.AddScriptLPS(1);

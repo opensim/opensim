@@ -661,6 +661,20 @@ namespace OpenSim.Region.Physics.OdePlugin
             set { return; }
         }
 
+        public override Vector3 TargetVelocity
+        {
+            get
+            {
+                return m_taintTargetVelocity;
+            }
+
+            set
+            {
+                Velocity = value;
+            }
+        }
+
+
         public override Vector3 Velocity
         {
             get
