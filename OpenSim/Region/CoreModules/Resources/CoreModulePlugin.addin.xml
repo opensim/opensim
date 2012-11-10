@@ -44,6 +44,7 @@
         <RegionModule id="VegetationModule" type="OpenSim.Region.CoreModules.Avatar.Vegetation.VegetationModule"/>
         <RegionModule id="IPBanModule" type="OpenSim.Region.CoreModules.Agent.IPBan.IPBanModule"/>
         <RegionModule id="J2KDecoderModule" type="OpenSim.Region.CoreModules.Agent.TextureSender.J2KDecoderModule"/>
+        <RegionModule id="CloudModule" type="OpenSim.Region.CoreModules.CloudModule"/>
       <!-- Service connectors OUT modules -->
         <RegionModule id="LocalAssetServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset.LocalAssetServicesConnector" />
         <RegionModule id="RemoteAssetServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset.RemoteAssetServicesConnector" />
