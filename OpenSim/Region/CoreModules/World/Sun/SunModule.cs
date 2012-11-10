@@ -278,14 +278,6 @@ namespace OpenSim.Region.CoreModules
             // This one puts an entry in the main help screen
 //            m_scene.AddCommand("Regions", this, "sun", "sun", "Usage: sun [param] [value] - Get or Update Sun module paramater", null);
 
-            // This one enables the ability to type just "sun" without any parameters
-//            m_scene.AddCommand("Regions", this, "sun", "", "", HandleSunConsoleCommand);
-            foreach (KeyValuePair<string, string> kvp in GetParamList())
-            {
-                string sunCommand = string.Format("sun {0}", kvp.Key);
-                m_scene.AddCommand("Regions", this, sunCommand, string.Format("{0} [<value>]", sunCommand), kvp.Value, "", HandleSunConsoleCommand);
-            }
-
             TimeZone local = TimeZone.CurrentTimeZone;
             TicksUTCOffset = local.GetUtcOffset(local.ToLocalTime(DateTime.Now)).Ticks;
             m_log.DebugFormat("[SUN]: localtime offset is {0}", TicksUTCOffset);
@@ -384,6 +376,14 @@ namespace OpenSim.Region.CoreModules
             scene.EventManager.OnGetCurrentTimeAsLindenSunHour += GetCurrentTimeAsLindenSunHour;
 
             scene.RegisterModuleInterface<ISunModule>(this);
+
+            // This one enables the ability to type just "sun" without any parameters
+            //            m_scene.AddCommand("Regions", this, "sun", "", "", HandleSunConsoleCommand);
+            foreach (KeyValuePair<string, string> kvp in GetParamList())
+            {
+                string sunCommand = string.Format("sun {0}", kvp.Key);
+                m_scene.AddCommand("Regions", this, sunCommand, string.Format("{0} [<value>]", sunCommand), kvp.Value, "", HandleSunConsoleCommand);
+            }
 
             ready = true;
         }
