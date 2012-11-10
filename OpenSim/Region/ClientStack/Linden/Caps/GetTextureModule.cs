@@ -364,80 +364,81 @@ namespace OpenSim.Region.ClientStack.Linden
                 poolreq.thepoll.Process(poolreq);
             }
         }
-    }
+        internal sealed class CapsDataThrottler
+        {
 
-    internal sealed class CapsDataThrottler
-    {
-        
-        private volatile int currenttime = 0;
-        private volatile int lastTimeElapsed = 0;
-        private volatile int BytesSent = 0;
-        private int oversizedImages = 0;
-        public CapsDataThrottler(int pBytes, int max, int min)
-        {
-            ThrottleBytes = pBytes;
-            lastTimeElapsed = Util.EnvironmentTickCount();
-        }
-        public bool hasEvents(UUID key, Dictionary<UUID, GetTextureModule.aPollResponse> responses)
-        {
-            PassTime();
-            // Note, this is called IN LOCK
-            bool haskey = responses.ContainsKey(key);
-            if (!haskey)
+            private volatile int currenttime = 0;
+            private volatile int lastTimeElapsed = 0;
+            private volatile int BytesSent = 0;
+            private int oversizedImages = 0;
+            public CapsDataThrottler(int pBytes, int max, int min)
             {
-                return false;
+                ThrottleBytes = pBytes;
+                lastTimeElapsed = Util.EnvironmentTickCount();
             }
-            GetTextureModule.aPollResponse response;
-            if (responses.TryGetValue(key,out response))
+            public bool hasEvents(UUID key, Dictionary<UUID, GetTextureModule.aPollResponse> responses)
             {
-
-                // Normal
-                if (BytesSent + response.bytes <= ThrottleBytes)
-                {
-                    BytesSent += response.bytes;
-                    //TimeBasedAction timeBasedAction = new TimeBasedAction { byteRemoval = response.bytes, requestId = key, timeMS = currenttime + 1000, unlockyn = false };
-                    //m_actions.Add(timeBasedAction);
-                    return true;
-                }
-                    // Big textures
-                else if (response.bytes > ThrottleBytes && oversizedImages <= ((ThrottleBytes%50000) + 1))
-                {
-                    Interlocked.Increment(ref oversizedImages);
-                    BytesSent += response.bytes;
-                    //TimeBasedAction timeBasedAction = new TimeBasedAction { byteRemoval = response.bytes, requestId = key, timeMS = currenttime + (((response.bytes % ThrottleBytes)+1)*1000) , unlockyn = false };
-                    //m_actions.Add(timeBasedAction);
-                    return true;
-                }
-                else
+                PassTime();
+                // Note, this is called IN LOCK
+                bool haskey = responses.ContainsKey(key);
+                if (!haskey)
                 {
                     return false;
                 }
+                GetTextureModule.aPollResponse response;
+                if (responses.TryGetValue(key, out response))
+                {
+
+                    // Normal
+                    if (BytesSent + response.bytes <= ThrottleBytes)
+                    {
+                        BytesSent += response.bytes;
+                        //TimeBasedAction timeBasedAction = new TimeBasedAction { byteRemoval = response.bytes, requestId = key, timeMS = currenttime + 1000, unlockyn = false };
+                        //m_actions.Add(timeBasedAction);
+                        return true;
+                    }
+                    // Big textures
+                    else if (response.bytes > ThrottleBytes && oversizedImages <= ((ThrottleBytes % 50000) + 1))
+                    {
+                        Interlocked.Increment(ref oversizedImages);
+                        BytesSent += response.bytes;
+                        //TimeBasedAction timeBasedAction = new TimeBasedAction { byteRemoval = response.bytes, requestId = key, timeMS = currenttime + (((response.bytes % ThrottleBytes)+1)*1000) , unlockyn = false };
+                        //m_actions.Add(timeBasedAction);
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+
+                return haskey;
+            }
+            public void ProcessTime()
+            {
+                PassTime();
             }
 
-            return haskey;
-        }
-        public void ProcessTime()
-        {
-            PassTime();
-        }
-       
-        
-        private void PassTime()
-        {
-            currenttime = Util.EnvironmentTickCount();
-            int timeElapsed = Util.EnvironmentTickCountSubtract(currenttime, lastTimeElapsed);
-            //processTimeBasedActions(responses);
-            if (Util.EnvironmentTickCountSubtract(currenttime, timeElapsed) >= 1000)
+
+            private void PassTime()
             {
-                lastTimeElapsed = Util.EnvironmentTickCount();
-                BytesSent -= ThrottleBytes;
-                if (BytesSent < 0) BytesSent = 0;
-                if (BytesSent < ThrottleBytes)
+                currenttime = Util.EnvironmentTickCount();
+                int timeElapsed = Util.EnvironmentTickCountSubtract(currenttime, lastTimeElapsed);
+                //processTimeBasedActions(responses);
+                if (Util.EnvironmentTickCountSubtract(currenttime, timeElapsed) >= 1000)
                 {
-                    oversizedImages = 0;
+                    lastTimeElapsed = Util.EnvironmentTickCount();
+                    BytesSent -= ThrottleBytes;
+                    if (BytesSent < 0) BytesSent = 0;
+                    if (BytesSent < ThrottleBytes)
+                    {
+                        oversizedImages = 0;
+                    }
                 }
             }
+            public int ThrottleBytes;
         }
-        public int ThrottleBytes;
     }
+
+    
 }
