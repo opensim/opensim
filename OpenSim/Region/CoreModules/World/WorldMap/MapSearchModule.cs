@@ -24,6 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using log4net;
@@ -37,7 +38,7 @@ using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Region.CoreModules.World.WorldMap
 {
-    public class MapSearchModule : IRegionModule
+    public class MapSearchModule : ISharedRegionModule
     {
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -45,8 +46,12 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         Scene m_scene = null; // only need one for communication with GridService
         List<Scene> m_scenes = new List<Scene>();
 
-        #region IRegionModule Members
-        public void Initialise(Scene scene, IConfigSource source)
+        #region ISharedRegionModule Members
+        public void Initialise(IConfigSource source)
+        {
+        }
+
+        public void AddRegion(Scene scene)
         {
             if (m_scene == null)
             {
@@ -55,6 +60,15 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
             m_scenes.Add(scene);
             scene.EventManager.OnNewClient += OnNewClient;
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+            m_scenes.Remove(scene);
+            if (m_scene == scene && m_scenes.Count > 0)
+                m_scene = m_scenes[0];
+
+            scene.EventManager.OnNewClient -= OnNewClient;
         }
 
         public void PostInitialise()
@@ -72,11 +86,14 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             get { return "MapSearchModule"; }
         }
 
-        public bool IsSharedModule
+        public Type ReplaceableInterface
         {
-            get { return true; }
+            get { return null; }
         }
 
+        public void RegionLoaded(Scene scene)
+        {
+        }
         #endregion
 
         private void OnNewClient(IClientAPI client)
