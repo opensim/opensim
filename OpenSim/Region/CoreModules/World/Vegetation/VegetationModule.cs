@@ -36,7 +36,7 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.Avatar.Vegetation
 {
-    public class VegetationModule : IRegionModule, IVegetationModule
+    public class VegetationModule : INonSharedRegionModule, IVegetationModule
     { 
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
@@ -45,16 +45,32 @@ namespace OpenSim.Region.CoreModules.Avatar.Vegetation
         protected static readonly PCode[] creationCapabilities = new PCode[] { PCode.Grass, PCode.NewTree, PCode.Tree };
         public PCode[] CreationCapabilities { get { return creationCapabilities; } }
         
-        public void Initialise(Scene scene, IConfigSource source)
+        public void Initialise(IConfigSource source)
+        {
+        }
+
+        public void AddRegion(Scene scene)
         {
             m_scene = scene;
             m_scene.RegisterModuleInterface<IVegetationModule>(this);
         }
-        
-        public void PostInitialise() {}
+
+        public void RemoveRegion(Scene scene)
+        {
+            m_scene.UnregisterModuleInterface<IVegetationModule>(this);
+        }
+
         public void Close() {}
         public string Name { get { return "Vegetation Module"; } }
-        public bool IsSharedModule { get { return false; } }
+
+        public Type ReplaceableInterface
+        {
+            get { return null; }
+        }
+
+        public void RegionLoaded(Scene scene)
+        {
+        }
 
         public SceneObjectGroup AddTree(
             UUID uuid, UUID groupID, Vector3 scale, Quaternion rotation, Vector3 position, Tree treeType, bool newTree)

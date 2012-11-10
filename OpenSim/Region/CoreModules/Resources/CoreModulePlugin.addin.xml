@@ -41,6 +41,7 @@
         <RegionModule id="SunModule" type="OpenSim.Region.CoreModules.SunModule"/>
         <RegionModule id="WindModule" type="OpenSim.Region.CoreModules.WindModule"/>
         <RegionModule id="MapSearchModule" type="OpenSim.Region.CoreModules.World.WorldMap.MapSearchModule"/>
+        <RegionModule id="VegetationModule" type="OpenSim.Region.CoreModules.Avatar.Vegetation.VegetationModule"/>
       <!-- Service connectors OUT modules -->
         <RegionModule id="LocalAssetServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset.LocalAssetServicesConnector" />
         <RegionModule id="RemoteAssetServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset.RemoteAssetServicesConnector" />
