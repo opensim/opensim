@@ -42,7 +42,7 @@ using OpenSim.Region.DataSnapshot.Interfaces;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
-[assembly: Addin("LindenCaps", "0.1")]
+[assembly: Addin("DataSnapshot", "0.1")]
 [assembly: AddinDependency("OpenSim", "0.5")]
 
 namespace OpenSim.Region.DataSnapshot
