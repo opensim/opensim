@@ -32,6 +32,7 @@ using log4net;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
+using Mono.Addins;
 
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -39,16 +40,27 @@ using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.CoreModules.Avatar.Dialog
 {
-    public class DialogModule : IRegionModule, IDialogModule
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    public class DialogModule : IDialogModule, INonSharedRegionModule
     { 
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         protected Scene m_scene;
-        
-        public void Initialise(Scene scene, IConfigSource source)
+
+        public void Initialise(IConfigSource source) { }
+
+        public Type ReplaceableInterface { get { return null; } }
+
+        public void AddRegion(Scene scene)
         {
             m_scene = scene;
             m_scene.RegisterModuleInterface<IDialogModule>(this);
+        }
+
+        public void RegionLoaded(Scene scene)
+        {
+            if(scene != m_scene)
+                return;
 
             m_scene.AddCommand(
                 "Users", this, "alert", "alert <message>",
@@ -60,11 +72,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
                 "Send an alert to a user",
                 HandleAlertConsoleCommand);
         }
+
+        public void RemoveRegion(Scene scene)
+        {
+            if(scene != m_scene)
+                return;
+
+            m_scene.UnregisterModuleInterface<IDialogModule>(this);
+        }
         
-        public void PostInitialise() {}
         public void Close() {}
         public string Name { get { return "Dialog Module"; } }
-        public bool IsSharedModule { get { return false; } }
         
         public void SendAlertToUser(IClientAPI client, string message)
         {
