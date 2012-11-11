@@ -31,6 +31,7 @@ using System.Reflection;
 using System.Threading;
 using log4net;
 using Nini.Config;
+using Mono.Addins;
 using OpenMetaverse;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -40,24 +41,39 @@ using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.OptionalModules.World.NPC
 {
-    public class NPCModule : IRegionModule, INPCModule
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    public class NPCModule : INPCModule, ISharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private Dictionary<UUID, NPCAvatar> m_avatars = new Dictionary<UUID, NPCAvatar>();
 
-        public void Initialise(Scene scene, IConfigSource source)
+        public bool Enabled { get; private set; }
+
+        public void Initialise(IConfigSource source)
         {
             IConfig config = source.Configs["NPC"];
 
-            if (config != null && config.GetBoolean("Enabled", false))
-            {
+            Enabled = (config != null && config.GetBoolean("Enabled", false));
+        }
+
+        public void AddRegion(Scene scene)
+        {
+            if (Enabled)
                 scene.RegisterModuleInterface<INPCModule>(this);
-            }
+        }
+
+        public void RegionLoaded(Scene scene)
+        {
         }
 
         public void PostInitialise()
         {
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+            scene.UnregisterModuleInterface<INPCModule>(this);
         }
 
         public void Close()
@@ -69,10 +85,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             get { return "NPCModule"; }
         }
 
-        public bool IsSharedModule
-        {
-            get { return true; }
-        }
+        public Type ReplaceableInterface { get { return null; } }
 
         public bool IsNPC(UUID agentId, Scene scene)
         {
