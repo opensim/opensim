@@ -744,10 +744,23 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
 
         #endregion
 
-        // Theres probably a more clever and efficient way to
-        // do this, maybe with regex.
-        // PM2008: Ha, one could even be smart and define a specialized Enumerator.
-        public List<ListenerInfo> GetListeners(UUID itemID, int channel, string name, UUID id, string msg)
+        /// <summary>
+        /// Get listeners matching the input parameters.
+        /// </summary>
+        /// <remarks>
+        /// Theres probably a more clever and efficient way to do this, maybe
+        /// with regex.
+        /// PM2008: Ha, one could even be smart and define a specialized
+        /// Enumerator.
+        /// </remarks>
+        /// <param name="itemID"></param>
+        /// <param name="channel"></param>
+        /// <param name="name"></param>
+        /// <param name="id"></param>
+        /// <param name="msg"></param>
+        /// <returns></returns>
+        public List<ListenerInfo> GetListeners(UUID itemID, int channel,
+                string name, UUID id, string msg)
         {
             List<ListenerInfo> collection = new List<ListenerInfo>();
 
@@ -845,17 +858,54 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
 
     public class ListenerInfo : IWorldCommListenerInfo
     {
-        private bool m_active; // Listener is active or not
-        private int m_handle; // Assigned handle of this listener
-        private uint m_localID; // Local ID from script engine
-        private UUID m_itemID; // ID of the host script engine
-        private UUID m_hostID; // ID of the host/scene part
-        private int m_channel; // Channel
-        private UUID m_id; // ID to filter messages from
-        private string m_name; // Object name to filter messages from
-        private string m_message; // The message
+        /// <summary>
+        /// Listener is active or not
+        /// </summary>
+        private bool m_active;
 
-        public ListenerInfo(int handle, uint localID, UUID ItemID, UUID hostID, int channel, string name, UUID id, string message)
+        /// <summary>
+        /// Assigned handle of this listener
+        /// </summary>
+        private int m_handle;
+
+        /// <summary>
+        /// Local ID from script engine
+        /// </summary>
+        private uint m_localID;
+
+        /// <summary>
+        /// ID of the host script engine
+        /// </summary>
+        private UUID m_itemID;
+
+        /// <summary>
+        /// ID of the host/scene part
+        /// </summary>
+        private UUID m_hostID;
+
+        /// <summary>
+        /// Channel
+        /// </summary>
+        private int m_channel;
+
+        /// <summary>
+        /// ID to filter messages from
+        /// </summary>
+        private UUID m_id;
+
+        /// <summary>
+        /// Object name to filter messages from
+        /// </summary>
+        private string m_name;
+
+        /// <summary>
+        /// The message
+        /// </summary>
+        private string m_message;
+
+        public ListenerInfo(int handle, uint localID, UUID ItemID,
+                UUID hostID, int channel, string name, UUID id,
+                string message)
         {
             Initialise(handle, localID, ItemID, hostID, channel, name, id,
                     message, 0);
