@@ -103,8 +103,8 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
             //m_openSim.ModuleLoader.LoadDefaultSharedModule(new DynamicTextureModule());
             //m_log.Info("[LOAD REGIONS PLUGIN]: LoadImageURLModule...");
             //m_openSim.ModuleLoader.LoadDefaultSharedModule(new LoadImageURLModule());
-            m_log.Info("[LOAD REGIONS PLUGIN]: XMLRPCModule...");
-            m_openSim.ModuleLoader.LoadDefaultSharedModule(new XMLRPCModule());
+            //m_log.Info("[LOAD REGIONS PLUGIN]: XMLRPCModule...");
+            //m_openSim.ModuleLoader.LoadDefaultSharedModule(new XMLRPCModule());
 //            m_log.Info("[LOADREGIONSPLUGIN]: AssetTransactionModule...");
 //            m_openSim.ModuleLoader.LoadDefaultSharedModule(new AssetTransactionModule());
             m_log.Info("[LOAD REGIONS PLUGIN]: Done.");
