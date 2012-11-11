@@ -37,10 +37,12 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using Mono.Addins;
 
 namespace OpenSim.Region.CoreModules.Scripting.EmailModules
 {
-    public class EmailModule : IRegionModule, IEmailModule
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "EmailModule")]
+    public class EmailModule : ISharedRegionModule, IEmailModule
     {
         //
         // Log
@@ -72,31 +74,9 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
 
         private bool m_Enabled = false;
 
-        public void InsertEmail(UUID to, Email email)
-        {
-            // It's tempting to create the queue here.  Don't; objects which have
-            // not yet called GetNextEmail should have no queue, and emails to them
-            // should be silently dropped.
+        #region ISharedRegionModule
 
-            lock (m_MailQueues)
-            {
-                if (m_MailQueues.ContainsKey(to))
-                {
-                    if (m_MailQueues[to].Count >= m_MaxQueueSize)
-                    {
-                        // fail silently
-                        return;
-                    }
-
-                    lock (m_MailQueues[to])
-                    {
-                        m_MailQueues[to].Add(email);
-                    }
-                }
-            }
-        }
-
-        public void Initialise(Scene scene, IConfigSource config)
+        public void Initialise(IConfigSource config)
         {
             m_Config = config;
             IConfig SMTPConfig;
@@ -129,36 +109,44 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
                 SMTP_SERVER_PORT = SMTPConfig.GetInt("SMTP_SERVER_PORT", SMTP_SERVER_PORT);
                 SMTP_SERVER_LOGIN = SMTPConfig.GetString("SMTP_SERVER_LOGIN", SMTP_SERVER_LOGIN);
                 SMTP_SERVER_PASSWORD = SMTPConfig.GetString("SMTP_SERVER_PASSWORD", SMTP_SERVER_PASSWORD);
-		m_MaxEmailSize = SMTPConfig.GetInt("email_max_size", m_MaxEmailSize); 
+                m_MaxEmailSize = SMTPConfig.GetInt("email_max_size", m_MaxEmailSize);
             }
             catch (Exception e)
             {
-                m_log.Error("[EMAIL] DefaultEmailModule not configured: "+ e.Message);
+                m_log.Error("[EMAIL] DefaultEmailModule not configured: " + e.Message);
                 m_Enabled = false;
                 return;
             }
 
-            // It's a go!
-            if (m_Enabled)
+        }
+
+        public void AddRegion(Scene scene)
+        {
+            if (!m_Enabled)
+                return;
+
+        // It's a go!
+            lock (m_Scenes)
             {
-                lock (m_Scenes)
+                // Claim the interface slot
+                scene.RegisterModuleInterface<IEmailModule>(this);
+
+                // Add to scene list
+                if (m_Scenes.ContainsKey(scene.RegionInfo.RegionHandle))
                 {
-                    // Claim the interface slot
-                    scene.RegisterModuleInterface<IEmailModule>(this);
-
-                    // Add to scene list
-                    if (m_Scenes.ContainsKey(scene.RegionInfo.RegionHandle))
-                    {
-                        m_Scenes[scene.RegionInfo.RegionHandle] = scene;
-                    }
-                    else
-                    {
-                        m_Scenes.Add(scene.RegionInfo.RegionHandle, scene);
-                    }
+                    m_Scenes[scene.RegionInfo.RegionHandle] = scene;
                 }
-
-                m_log.Info("[EMAIL] Activated DefaultEmailModule");
+                else
+                {
+                    m_Scenes.Add(scene.RegionInfo.RegionHandle, scene);
+                }
             }
+
+            m_log.Info("[EMAIL] Activated DefaultEmailModule");
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
         }
 
         public void PostInitialise()
@@ -174,9 +162,39 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
             get { return "DefaultEmailModule"; }
         }
 
-        public bool IsSharedModule
+        public Type ReplaceableInterface
         {
-            get { return true; }
+            get { return null; }
+        }
+
+        public void RegionLoaded(Scene scene)
+        {
+        }
+
+        #endregion
+
+        public void InsertEmail(UUID to, Email email)
+        {
+            // It's tempting to create the queue here.  Don't; objects which have
+            // not yet called GetNextEmail should have no queue, and emails to them
+            // should be silently dropped.
+
+            lock (m_MailQueues)
+            {
+                if (m_MailQueues.ContainsKey(to))
+                {
+                    if (m_MailQueues[to].Count >= m_MaxQueueSize)
+                    {
+                        // fail silently
+                        return;
+                    }
+
+                    lock (m_MailQueues[to])
+                    {
+                        m_MailQueues[to].Add(email);
+                    }
+                }
+            }
         }
 
         private bool IsLocal(UUID objectID)
