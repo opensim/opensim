@@ -38,6 +38,13 @@
         <RegionModule id="GlynnTuckerAssetCache" type="OpenSim.Region.CoreModules.Asset.GlynnTuckerAssetCache" />
         <RegionModule id="CenomeMemoryAssetCache" type="OpenSim.Region.CoreModules.Asset.CenomeMemoryAssetCache"/>
         <RegionModule id="LibraryModule" type="OpenSim.Region.CoreModules.Framework.Library.LibraryModule"/>
+        <RegionModule id="SunModule" type="OpenSim.Region.CoreModules.SunModule"/>
+        <RegionModule id="WindModule" type="OpenSim.Region.CoreModules.WindModule"/>
+        <RegionModule id="MapSearchModule" type="OpenSim.Region.CoreModules.World.WorldMap.MapSearchModule"/>
+        <RegionModule id="VegetationModule" type="OpenSim.Region.CoreModules.Avatar.Vegetation.VegetationModule"/>
+        <RegionModule id="IPBanModule" type="OpenSim.Region.CoreModules.Agent.IPBan.IPBanModule"/>
+        <RegionModule id="J2KDecoderModule" type="OpenSim.Region.CoreModules.Agent.TextureSender.J2KDecoderModule"/>
+        <RegionModule id="CloudModule" type="OpenSim.Region.CoreModules.CloudModule"/>
       <!-- Service connectors OUT modules -->
         <RegionModule id="LocalAssetServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset.LocalAssetServicesConnector" />
         <RegionModule id="RemoteAssetServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset.RemoteAssetServicesConnector" />

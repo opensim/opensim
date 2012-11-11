@@ -45,7 +45,7 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
 {
     public delegate void J2KDecodeDelegate(UUID assetID);
 
-    public class J2KDecoderModule : IRegionModule, IJ2KDecoder
+    public class J2KDecoderModule : ISharedRegionModule, IJ2KDecoder
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -56,31 +56,44 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
         /// <summary>Cache that will store decoded JPEG2000 layer boundary data</summary>
         private IImprovedAssetCache m_cache;
         /// <summary>Reference to a scene (doesn't matter which one as long as it can load the cache module)</summary>
+        private UUID m_CreatorID = UUID.Zero;
         private Scene m_scene;
 
-        #region IRegionModule
+        #region ISharedRegionModule
 
         private bool m_useCSJ2K = true;
 
         public string Name { get { return "J2KDecoderModule"; } }
-        public bool IsSharedModule { get { return true; } }
 
         public J2KDecoderModule()
         {
         }
 
-        public void Initialise(Scene scene, IConfigSource source)
+        public void Initialise(IConfigSource source)
         {
-            if (m_scene == null)
-                m_scene = scene;
-
-            scene.RegisterModuleInterface<IJ2KDecoder>(this);
-
             IConfig startupConfig = source.Configs["Startup"];
             if (startupConfig != null)
             {
                 m_useCSJ2K = startupConfig.GetBoolean("UseCSJ2K", m_useCSJ2K);
             }
+        }
+
+        public void AddRegion(Scene scene)
+        {
+            if (m_scene == null)
+            {
+                m_scene = scene;
+                m_CreatorID = scene.RegionInfo.RegionID;
+            }
+
+            scene.RegisterModuleInterface<IJ2KDecoder>(this);
+
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+            if (m_scene == scene)
+                m_scene = null;
         }
 
         public void PostInitialise()
@@ -90,6 +103,15 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
 
         public void Close()
         {
+        }
+
+        public void RegionLoaded(Scene scene)
+        {
+        }
+
+        public Type ReplaceableInterface
+        {
+            get { return null; }
         }
 
         #endregion IRegionModule
@@ -279,7 +301,7 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
             {
                 string assetID = "j2kCache_" + AssetId.ToString();
 
-                AssetBase layerDecodeAsset = new AssetBase(assetID, assetID, (sbyte)AssetType.Notecard, m_scene.RegionInfo.RegionID.ToString());
+                AssetBase layerDecodeAsset = new AssetBase(assetID, assetID, (sbyte)AssetType.Notecard, m_CreatorID.ToString());
                 layerDecodeAsset.Local = true;
                 layerDecodeAsset.Temporary = true;
 

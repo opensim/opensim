@@ -1954,8 +1954,19 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public virtual void DeRezObjects(IClientAPI remoteClient, List<uint> localIDs,
-                UUID groupID, DeRezAction action, UUID destinationID)
+        /// <summary>
+        /// Derez one or more objects from the scene.
+        /// </summary>
+        /// <remarks>
+        /// Won't actually remove the scene object in the case where the object is being copied to a user inventory.
+        /// </remarks>
+        /// <param name='remoteClient'>Client requesting derez</param>
+        /// <param name='localIDs'>Local ids of root parts of objects to delete.</param>
+        /// <param name='groupID'>Not currently used.  Here because the client passes this to us.</param>
+        /// <param name='action'>DeRezAction</param>
+        /// <param name='destinationID'>User folder ID to place derezzed object</param>
+        public virtual void DeRezObjects(
+            IClientAPI remoteClient, List<uint> localIDs, UUID groupID, DeRezAction action, UUID destinationID)
         {
             // First, see of we can perform the requested action and
             // build a list of eligible objects

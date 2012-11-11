@@ -14,5 +14,6 @@
       <RegionModule id="VivoxVoice"            type="OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice.VivoxVoiceModule" />
       <RegionModule id="WorldViewModule"            type="OpenSim.Region.OptionalModules.World.WorldView.WorldViewModule" />
       <RegionModule id="AutoBackupModule"      type="OpenSim.Region.OptionalModules.World.AutoBackup.AutoBackupModule" />
+      <RegionModule id="TreePopulatorModule"      type="OpenSim.Region.OptionalModules.World.TreePopulator.TreePopulatorModule" />
     </Extension>
 </Addin>

@@ -49,8 +49,8 @@ using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
 
 
-[assembly: Addin("FlotsamAssetCache", "1.1")]
-[assembly: AddinDependency("OpenSim", "0.5")]
+//[assembly: Addin("FlotsamAssetCache", "1.1")]
+//[assembly: AddinDependency("OpenSim", "0.5")]
 
 namespace OpenSim.Region.CoreModules.Asset
 {
