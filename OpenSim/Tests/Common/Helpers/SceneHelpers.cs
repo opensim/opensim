@@ -141,9 +141,9 @@ namespace OpenSim.Tests.Common
             TestScene testScene = new TestScene(
                 regInfo, m_acm, scs, m_simDataService, m_estateDataService, null, false, configSource, null);
 
-            IRegionModule godsModule = new GodsModule();
-            godsModule.Initialise(testScene, new IniConfigSource());
-            testScene.AddModule(godsModule.Name, godsModule);
+            INonSharedRegionModule godsModule = new GodsModule();
+            godsModule.Initialise(new IniConfigSource());
+            godsModule.AddRegion(testScene);
 
             // Add scene to services
             m_assetService.AddRegion(testScene);

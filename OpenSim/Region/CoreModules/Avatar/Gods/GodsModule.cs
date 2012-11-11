@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Collections.Generic;
 using Nini.Config;
 using OpenMetaverse;
@@ -32,29 +33,59 @@ using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Interfaces;
 
+using Mono.Addins;
+
 namespace OpenSim.Region.CoreModules.Avatar.Gods
 {
-    public class GodsModule : IRegionModule, IGodsModule
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    public class GodsModule : INonSharedRegionModule, IGodsModule
     {
         /// <summary>Special UUID for actions that apply to all agents</summary>
         private static readonly UUID ALL_AGENTS = new UUID("44e87126-e794-4ded-05b3-7c42da3d5cdb");
 
         protected Scene m_scene;
         protected IDialogModule m_dialogModule;
-        
-        public void Initialise(Scene scene, IConfigSource source)
+        protected IDialogModule DialogModule
+        {
+            get
+            {
+                if (m_dialogModule == null)
+                    m_dialogModule = m_scene.RequestModuleInterface<IDialogModule>();
+
+                return m_dialogModule;
+            }
+        }
+
+        public void Initialise(IConfigSource source)
+        {
+        }
+
+        public void AddRegion(Scene scene)
         {
             m_scene = scene;
-            m_dialogModule = m_scene.RequestModuleInterface<IDialogModule>();
             m_scene.RegisterModuleInterface<IGodsModule>(this);
             m_scene.EventManager.OnNewClient += SubscribeToClientEvents;
         }
-        
-        public void PostInitialise() {}
+
+        public void RemoveRegion(Scene scene)
+        {
+            m_scene.UnregisterModuleInterface<IGodsModule>(this);
+            m_scene.EventManager.OnNewClient -= SubscribeToClientEvents;
+            m_scene = null;
+        }
+
+        public void RegionLoaded(Scene scene)
+        {
+        }
+
         public void Close() {}
         public string Name { get { return "Gods Module"; } }
-        public bool IsSharedModule { get { return false; } }
-        
+
+        public Type ReplaceableInterface
+        {
+            get { return null; }
+        }
+
         public void SubscribeToClientEvents(IClientAPI client)
         {
             client.OnGodKickUser += KickUser;
@@ -96,8 +127,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
                 }
                 else
                 {
-                    if (m_dialogModule != null)
-                        m_dialogModule.SendAlertToUser(agentID, "Request for god powers denied");
+                    if (DialogModule != null)
+                        DialogModule.SendAlertToUser(agentID, "Request for god powers denied");
                 }
             }
         }
@@ -121,7 +152,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
 
             if (sp != null || agentID == kickUserID)
             {
-                m_dialogModule = m_scene.RequestModuleInterface<IDialogModule>();
                 if (m_scene.Permissions.IsGod(godID))
                 {
                     if (kickflags == 0)
@@ -163,27 +193,27 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
                     if (kickflags == 1)
                     {
                         sp.AllowMovement = false;
-                        if (m_dialogModule != null)
+                        if (DialogModule != null)
                         {
-                            m_dialogModule.SendAlertToUser(agentID, Utils.BytesToString(reason));
-                            m_dialogModule.SendAlertToUser(godID, "User Frozen");
+                            DialogModule.SendAlertToUser(agentID, Utils.BytesToString(reason));
+                            DialogModule.SendAlertToUser(godID, "User Frozen");
                         }
                     }
                     
                     if (kickflags == 2)
                     {
                         sp.AllowMovement = true;
-                        if (m_dialogModule != null)
+                        if (DialogModule != null)
                         {
-                            m_dialogModule.SendAlertToUser(agentID, Utils.BytesToString(reason));
-                            m_dialogModule.SendAlertToUser(godID, "User Unfrozen");
+                            DialogModule.SendAlertToUser(agentID, Utils.BytesToString(reason));
+                            DialogModule.SendAlertToUser(godID, "User Unfrozen");
                         }
                     }
                 }
                 else
                 {
-                    if (m_dialogModule != null)
-                        m_dialogModule.SendAlertToUser(godID, "Kick request denied");
+                    if (DialogModule != null)
+                        DialogModule.SendAlertToUser(godID, "Kick request denied");
                 }
             }
         }
