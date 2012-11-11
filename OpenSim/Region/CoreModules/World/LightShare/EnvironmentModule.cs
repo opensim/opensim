@@ -51,10 +51,10 @@ namespace OpenSim.Region.CoreModules.World.LightShare
         private Scene m_scene = null;
         private UUID regionID = UUID.Zero;
         private static bool Enabled = false;
-        
+
         private static readonly string capsName = "EnvironmentSettings";
         private static readonly string capsBase = "/CAPS/0020/";
-        
+
         private LLSDEnvironmentSetResponse setResponse = null;
 
         #region INonSharedRegionModule
@@ -72,7 +72,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
             }
 
             Enabled = true;
-            
+
             m_log.InfoFormat("[{0}]: Module is enabled.", Name);
         }
 
@@ -132,8 +132,8 @@ namespace OpenSim.Region.CoreModules.World.LightShare
         #region Events
         private void OnRegisterCaps(UUID agentID, Caps caps)
         {
-//            m_log.DebugFormat("[{0}]: Register capability for agentID {1} in region {2}",
-//                Name, agentID, caps.RegionName);
+            //            m_log.DebugFormat("[{0}]: Register capability for agentID {1} in region {2}",
+            //                Name, agentID, caps.RegionName);
 
             string capsPath = capsBase + UUID.Random();
 
@@ -163,8 +163,8 @@ namespace OpenSim.Region.CoreModules.World.LightShare
         private string GetEnvironmentSettings(string request, string path, string param,
               UUID agentID, Caps caps)
         {
-//            m_log.DebugFormat("[{0}]: Environment GET handle for agentID {1} in region {2}",
-//                Name, agentID, caps.RegionName);
+            //            m_log.DebugFormat("[{0}]: Environment GET handle for agentID {1} in region {2}",
+            //                Name, agentID, caps.RegionName);
 
             string env = String.Empty;
 
@@ -188,8 +188,8 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                               UUID agentID, Caps caps)
         {
 
-//            m_log.DebugFormat("[{0}]: Environment SET handle from agentID {1} in region {2}",
-//                Name, agentID, caps.RegionName);
+            //            m_log.DebugFormat("[{0}]: Environment SET handle from agentID {1} in region {2}",
+            //                Name, agentID, caps.RegionName);
 
             setResponse.regionID = regionID;
             setResponse.success = false;
@@ -204,7 +204,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
             {
                 m_scene.SimulationDataService.StoreRegionEnvironmentSettings(regionID, request);
                 setResponse.success = true;
-                
+
                 m_log.InfoFormat("[{0}]: New Environment settings has been saved from agentID {1} in region {2}",
                     Name, agentID, caps.RegionName);
             }
