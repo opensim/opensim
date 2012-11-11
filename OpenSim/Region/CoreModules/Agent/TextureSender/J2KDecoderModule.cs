@@ -55,6 +55,16 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
         private readonly Dictionary<UUID, List<DecodedCallback>> m_notifyList = new Dictionary<UUID, List<DecodedCallback>>();
         /// <summary>Cache that will store decoded JPEG2000 layer boundary data</summary>
         private IImprovedAssetCache m_cache;
+        private IImprovedAssetCache Cache
+        {
+            get
+            {
+                if (m_cache == null)
+                    m_cache = m_scene.RequestModuleInterface<IImprovedAssetCache>();
+
+                return m_cache;
+            }
+        }
         /// <summary>Reference to a scene (doesn't matter which one as long as it can load the cache module)</summary>
         private UUID m_CreatorID = UUID.Zero;
         private Scene m_scene;
@@ -98,7 +108,6 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
 
         public void PostInitialise()
         {
-            m_cache = m_scene.RequestModuleInterface<IImprovedAssetCache>();
         }
 
         public void Close()
@@ -297,7 +306,7 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
         {
             m_decodedCache.AddOrUpdate(AssetId, Layers, TimeSpan.FromMinutes(10));
 
-            if (m_cache != null)
+            if (Cache != null)
             {
                 string assetID = "j2kCache_" + AssetId.ToString();
 
@@ -321,7 +330,7 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
 
                 #endregion Serialize Layer Data
 
-                m_cache.Cache(layerDecodeAsset);
+                Cache.Cache(layerDecodeAsset);
             }
         }
 
@@ -331,10 +340,10 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
             {
                 return true;
             }
-            else if (m_cache != null)
+            else if (Cache != null)
             {
                 string assetName = "j2kCache_" + AssetId.ToString();
-                AssetBase layerDecodeAsset = m_cache.Get(assetName);
+                AssetBase layerDecodeAsset = Cache.Get(assetName);
 
                 if (layerDecodeAsset != null)
                 {
@@ -346,7 +355,7 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
                     if (lines.Length == 0)
                     {
                         m_log.Warn("[J2KDecodeCache]: Expiring corrupted layer data (empty) " + assetName);
-                        m_cache.Expire(assetName);
+                        Cache.Expire(assetName);
                         return false;
                     }
 
@@ -367,7 +376,7 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
                             catch (FormatException)
                             {
                                 m_log.Warn("[J2KDecodeCache]: Expiring corrupted layer data (format) " + assetName);
-                                m_cache.Expire(assetName);
+                                Cache.Expire(assetName);
                                 return false;
                             }
 
@@ -378,7 +387,7 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
                         else
                         {
                             m_log.Warn("[J2KDecodeCache]: Expiring corrupted layer data (layout) " + assetName);
-                            m_cache.Expire(assetName);
+                            Cache.Expire(assetName);
                             return false;
                         }
                     }
