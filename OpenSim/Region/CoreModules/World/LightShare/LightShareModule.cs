@@ -27,21 +27,20 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Reflection;
 using OpenMetaverse;
-using log4net;
-using Nini.Config;
-using OpenSim.Data;
 using OpenSim.Framework;
 using OpenSim.Region.CoreModules.Framework.InterfaceCommander;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-
+using log4net;
+using Nini.Config;
+using Mono.Addins;
 
 namespace OpenSim.Region.CoreModules.World.LightShare
 {
-    public class LightShareModule : IRegionModule, ICommandableModule
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    public class LightShareModule : INonSharedRegionModule, ILightShareModule, ICommandableModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private readonly Commander m_commander = new Commander("windlight");
@@ -57,7 +56,72 @@ namespace OpenSim.Region.CoreModules.World.LightShare
 
         #endregion
 
-        #region IRegionModule Members
+        #region INonSharedRegionModule Members
+
+        public void Initialise(IConfigSource config)
+        {
+            try
+            {
+                m_enableWindlight = config.Configs["LightShare"].GetBoolean("enable_windlight", false);
+            }
+            catch (Exception)
+            {
+                m_log.Debug("[WINDLIGHT]: ini failure for enable_windlight - using default");
+            }
+
+            m_log.DebugFormat("[WINDLIGHT]: windlight module {0}", (m_enableWindlight ? "enabled" : "disabled"));
+        }
+
+        public void AddRegion(Scene scene)
+        {
+            if (!m_enableWindlight)
+                return;
+
+            m_scene = scene;
+            m_scene.RegisterModuleInterface<ILightShareModule>(this);
+            m_scene.EventManager.OnPluginConsole += EventManager_OnPluginConsole;
+
+            m_scene.EventManager.OnMakeRootAgent += EventManager_OnMakeRootAgent;
+            m_scene.EventManager.OnSaveNewWindlightProfile += EventManager_OnSaveNewWindlightProfile;
+            m_scene.EventManager.OnSendNewWindlightProfileTargeted += EventManager_OnSendNewWindlightProfileTargeted;
+            m_scene.LoadWindlightProfile();
+
+            InstallCommands();
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+            if (!m_enableWindlight)
+                return;
+
+            m_scene.EventManager.OnPluginConsole -= EventManager_OnPluginConsole;
+
+            m_scene.EventManager.OnMakeRootAgent -= EventManager_OnMakeRootAgent;
+            m_scene.EventManager.OnSaveNewWindlightProfile -= EventManager_OnSaveNewWindlightProfile;
+            m_scene.EventManager.OnSendNewWindlightProfileTargeted -= EventManager_OnSendNewWindlightProfileTargeted;
+
+            m_scene = null;
+        }
+
+        public void Close()
+        {
+        }
+
+        public string Name
+        {
+            get { return "LightShareModule"; }
+        }
+
+        public void RegionLoaded(Scene scene)
+        {
+        }
+
+        public Type ReplaceableInterface
+        {
+            get { return null; }
+        }
+
+        #endregion
 
         public static bool EnableWindlight
         {
@@ -70,34 +134,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
             }
         }
 
-        public void Initialise(Scene scene, IConfigSource config)
-        {
-            m_scene = scene;
-            m_scene.RegisterModuleInterface<IRegionModule>(this);
-            m_scene.EventManager.OnPluginConsole += EventManager_OnPluginConsole;
-
-            // ini file settings
-            try
-            {
-                m_enableWindlight = config.Configs["LightShare"].GetBoolean("enable_windlight", false);
-            }
-            catch (Exception)
-            {
-                m_log.Debug("[WINDLIGHT]: ini failure for enable_windlight - using default");
-            }
-
-            if (m_enableWindlight)
-            {
-                m_scene.EventManager.OnMakeRootAgent += EventManager_OnMakeRootAgent;
-                m_scene.EventManager.OnSaveNewWindlightProfile += EventManager_OnSaveNewWindlightProfile;
-                m_scene.EventManager.OnSendNewWindlightProfileTargeted += EventManager_OnSendNewWindlightProfileTargeted;
-                m_scene.LoadWindlightProfile();
-            }
-
-            InstallCommands();
-
-            m_log.Debug("[WINDLIGHT]: Initialised windlight module");
-        }
+        #region events
 
         private List<byte[]> compileWindlightSettings(RegionLightShareData wl)
         {
@@ -190,29 +227,6 @@ namespace OpenSim.Region.CoreModules.World.LightShare
             m_scene.ForEachRootClient(SendProfileToClient);
         }
 
-        public void PostInitialise()
-        {
-
-        }
-
-        public void Close()
-        {
-        }
-
-        public string Name
-        {
-            get { return "LightShareModule"; }
-        }
-
-        public bool IsSharedModule
-        {
-            get { return false; }
-        }
-
-        #endregion
-
-        #region events
-
         #endregion
 
         #region ICommandableModule Members
@@ -247,7 +261,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
         private void HandleDisable(Object[] args)
         {
             m_log.InfoFormat("[WINDLIGHT]: Plugin now disabled");
-            m_enableWindlight=false;
+            m_enableWindlight = false;
         }
 
         private void HandleEnable(Object[] args)
