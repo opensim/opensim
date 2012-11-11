@@ -27,22 +27,20 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Reflection;
 using OpenMetaverse;
-using log4net;
-using Nini.Config;
-using OpenSim.Data;
 using OpenSim.Framework;
 using OpenSim.Region.CoreModules.Framework.InterfaceCommander;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using log4net;
+using Nini.Config;
 using Mono.Addins;
 
 namespace OpenSim.Region.CoreModules.World.LightShare
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class LightShareModule : INonSharedRegionModule, ICommandableModule
+    public class LightShareModule : INonSharedRegionModule, ILightShareModule, ICommandableModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private readonly Commander m_commander = new Commander("windlight");
@@ -58,22 +56,10 @@ namespace OpenSim.Region.CoreModules.World.LightShare
 
         #endregion
 
-        #region IRegionModule Members
-
-        public static bool EnableWindlight
-        {
-            get
-            {
-                return m_enableWindlight;
-            }
-            set
-            {
-            }
-        }
+        #region INonSharedRegionModule Members
 
         public void Initialise(IConfigSource config)
         {
-            // ini file settings
             try
             {
                 m_enableWindlight = config.Configs["LightShare"].GetBoolean("enable_windlight", false);
@@ -92,7 +78,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                 return;
 
             m_scene = scene;
-            //m_scene.RegisterModuleInterface<IRegionModule>(this);
+            m_scene.RegisterModuleInterface<ILightShareModule>(this);
             m_scene.EventManager.OnPluginConsole += EventManager_OnPluginConsole;
 
             m_scene.EventManager.OnMakeRootAgent += EventManager_OnMakeRootAgent;
@@ -136,6 +122,17 @@ namespace OpenSim.Region.CoreModules.World.LightShare
         }
 
         #endregion
+
+        public static bool EnableWindlight
+        {
+            get
+            {
+                return m_enableWindlight;
+            }
+            set
+            {
+            }
+        }
 
         #region events
 
@@ -260,7 +257,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
         private void HandleDisable(Object[] args)
         {
             m_log.InfoFormat("[WINDLIGHT]: Plugin now disabled");
-            m_enableWindlight=false;
+            m_enableWindlight = false;
         }
 
         private void HandleEnable(Object[] args)
