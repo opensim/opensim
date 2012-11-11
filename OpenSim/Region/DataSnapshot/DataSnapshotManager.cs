@@ -72,6 +72,7 @@ namespace OpenSim.Region.DataSnapshot
         public string m_listener_port = ConfigSettings.DefaultRegionHttpPort.ToString();
         public string m_hostname = "127.0.0.1";
         private UUID m_Secret = UUID.Random();
+        private bool m_servicesNotified = false;
 
         //Update timers
         private int m_period = 20; // in seconds
@@ -179,6 +180,23 @@ namespace OpenSim.Region.DataSnapshot
                     }
                 }
             }
+
+            // Must be done here because on shared modules, PostInitialise() will run
+            // BEFORE any scenes are registered. There is no "all scenes have been loaded"
+            // kind of callback because scenes may be created dynamically, so we cannot
+            // have that info, ever.
+            if (!m_servicesNotified)
+            {
+                //Hand it the first scene, assuming that all scenes have the same BaseHTTPServer
+                new DataRequestHandler(m_scenes[0], this);
+
+                m_hostname = m_scenes[0].RegionInfo.ExternalHostName;
+
+                if (m_dataServices != "" && m_dataServices != "noservices")
+                    NotifyDataServices(m_dataServices, "online");
+
+                m_servicesNotified = true;
+            }
         }
 
         public void RemoveRegion(Scene scene)
@@ -214,16 +232,6 @@ namespace OpenSim.Region.DataSnapshot
 
         public void PostInitialise()
         {
-            if (!m_enabled)
-                return;
-
-            //Hand it the first scene, assuming that all scenes have the same BaseHTTPServer
-            new DataRequestHandler(m_scenes[0], this);
-
-            m_hostname = m_scenes[0].RegionInfo.ExternalHostName;
-
-            if (m_dataServices != "" && m_dataServices != "noservices")
-                NotifyDataServices(m_dataServices, "online");
         }
 
         public void RegionLoaded(Scene scene)
