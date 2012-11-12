@@ -40,12 +40,14 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using log4net;
 using System.Reflection;
+using Mono.Addins;
 
 //using Cairo;
 
 namespace OpenSim.Region.CoreModules.Scripting.VectorRender
 {
-    public class VectorRenderModule : IRegionModule, IDynamicTextureRender
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "VectorRenderModule")]
+    public class VectorRenderModule : ISharedRegionModule, IDynamicTextureRender
     {
         // These fields exist for testing purposes, please do not remove.
 //        private static bool s_flipper;
@@ -56,6 +58,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
 
         private Scene m_scene;
         private IDynamicTextureManager m_textureManager;
+
         private Graphics m_graph;
         private string m_fontName = "Arial";
 
@@ -103,6 +106,11 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
 
         public bool AsyncConvertData(UUID id, string bodyData, string extraParams)
         {
+            if (m_textureManager == null)
+            {
+                m_log.Warn("[VECTORRENDERMODULE]: No texture manager. Can't function");
+                return false;
+            }
             // XXX: This isn't actually being done asynchronously!
             m_textureManager.ReturnData(id, ConvertData(bodyData, extraParams));
 
@@ -131,45 +139,49 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
 
         #endregion
 
-        #region IRegionModule Members
+        #region ISharedRegionModule Members
 
-        public void Initialise(Scene scene, IConfigSource config)
+        public void Initialise(IConfigSource config)
         {
-            if (m_scene == null)
-            {
-                m_scene = scene;
-            }
-
-            if (m_graph == null)
-            {
-                // We won't dispose of these explicitly since this module is only removed when the entire simulator
-                // is shut down.
-                Bitmap bitmap = new Bitmap(1024, 1024, PixelFormat.Format32bppArgb);
-                m_graph = Graphics.FromImage(bitmap);
-            }
-
             IConfig cfg = config.Configs["VectorRender"];
             if (null != cfg)
             {
                 m_fontName = cfg.GetString("font_name", m_fontName);
             }
             m_log.DebugFormat("[VECTORRENDERMODULE]: using font \"{0}\" for text rendering.", m_fontName);
+
+            // We won't dispose of these explicitly since this module is only removed when the entire simulator
+            // is shut down.
+            Bitmap bitmap = new Bitmap(1024, 1024, PixelFormat.Format32bppArgb);
+            m_graph = Graphics.FromImage(bitmap);
         }
 
         public void PostInitialise()
         {
-            m_textureManager = m_scene.RequestModuleInterface<IDynamicTextureManager>();
-            if (m_textureManager != null)
+        }
+
+        public void AddRegion(Scene scene)
+        {
+            if (m_scene == null)
             {
-                m_textureManager.RegisterRender(GetContentType(), this);
+                m_scene = scene;
             }
+        }
 
-                // This code exists for testing purposes, please do not remove.
-//            s_asset1Data = m_scene.AssetService.Get("00000000-0000-1111-9999-000000000001").Data;
-//            s_asset1Data = m_scene.AssetService.Get("9f4acf0d-1841-4e15-bdb8-3a12efc9dd8f").Data;
+        public void RegionLoaded(Scene scene)
+        {
+            if (m_textureManager == null && m_scene == scene)
+            {
+                m_textureManager = m_scene.RequestModuleInterface<IDynamicTextureManager>();
+                if (m_textureManager != null)
+                {
+                    m_textureManager.RegisterRender(GetContentType(), this);
+                }
+            }
+        }
 
-            // Terrain dirt - smallest bin/assets file (6004 bytes)
-//            s_asset2Data = m_scene.AssetService.Get("b8d3965a-ad78-bf43-699b-bff8eca6c975").Data;
+        public void RemoveRegion(Scene scene)
+        {
         }
 
         public void Close()
@@ -181,9 +193,9 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
             get { return "VectorRenderModule"; }
         }
 
-        public bool IsSharedModule
+        public Type ReplaceableInterface
         {
-            get { return true; }
+            get { return null; }
         }
 
         #endregion
