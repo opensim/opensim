@@ -51,7 +51,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
         private IMessageTransferModule m_TransferModule = null;
         private bool m_Enabled = true;
 
-        #region IRegionModule Members
+        #region Region Module interface
 
         public void Initialise(IConfigSource config)
         {

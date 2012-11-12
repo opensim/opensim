@@ -58,7 +58,7 @@ namespace OpenSim.Region.ClientStack.Linden
         private bool m_Enabled = true;
         private string m_URL;
 
-        #region IRegionModuleBase Members
+        #region Region Module interfaceBase Members
 
         public Type ReplaceableInterface
         {

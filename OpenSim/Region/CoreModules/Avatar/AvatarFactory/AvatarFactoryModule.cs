@@ -62,7 +62,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
         private object m_setAppearanceLock = new object();
 
-        #region IRegionModule
+        #region Region Module interface
 
         public void Initialise(IConfigSource config)
         {

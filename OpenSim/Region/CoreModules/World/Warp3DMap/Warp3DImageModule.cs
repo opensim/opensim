@@ -63,7 +63,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
         private bool m_useAntiAliasing = false; // TODO: Make this a config option
         private bool m_Enabled = false;
 
-        #region IRegionModule Members
+        #region Region Module interface
 
         public void Initialise(IConfigSource source)
         {

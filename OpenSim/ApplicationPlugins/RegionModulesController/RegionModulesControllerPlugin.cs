@@ -215,7 +215,7 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
             }
         }
 
-#region IRegionModulesController implementation
+#region Region Module interfacesController implementation
         
         /// <summary>
         /// Check that the given module is no disabled in the [Modules] section of the config files.

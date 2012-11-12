@@ -51,7 +51,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Land
         private IConfigSource m_Config;
         private List<Scene> m_Scenes = new List<Scene>();
 
-        #region IRegionModule interface
+        #region Region Module interface
 
         public void Initialise(IConfigSource config)
         {

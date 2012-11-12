@@ -83,7 +83,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         private Dictionary<UUID, List<UUID>> m_groupsAgentsDroppedFromChatSession = new Dictionary<UUID, List<UUID>>();
         private Dictionary<UUID, List<UUID>> m_groupsAgentsInvitedToChatSession = new Dictionary<UUID, List<UUID>>();
 
-        #region IRegionModuleBase Members
+        #region Region Module interfaceBase Members
 
         public string Name
         {

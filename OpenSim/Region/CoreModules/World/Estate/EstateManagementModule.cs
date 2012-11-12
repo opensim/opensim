@@ -1072,7 +1072,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         #endregion
 
-        #region IRegionModule Members
+        #region Region Module interface
         
         public string Name { get { return "EstateManagementModule"; } }
         

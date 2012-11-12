@@ -58,7 +58,7 @@ namespace OpenSim.Region.ClientStack.Linden
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private Scene m_scene;
 
-        #region IRegionModuleBase Members
+        #region Region Module interfaceBase Members
 
 
         public Type ReplaceableInterface
@@ -92,7 +92,7 @@ namespace OpenSim.Region.ClientStack.Linden
         #endregion
 
 
-        #region IRegionModule Members
+        #region Region Module interface
 
 
 

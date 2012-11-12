@@ -123,7 +123,7 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
             get { return null; }
         }
 
-        #endregion IRegionModule
+        #endregion Region Module interface
 
         #region IJ2KDecoder
 

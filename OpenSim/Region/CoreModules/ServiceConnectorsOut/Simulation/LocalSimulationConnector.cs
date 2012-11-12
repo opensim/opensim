@@ -58,7 +58,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
         /// </summary>
         private bool m_ModuleEnabled = false;
 
-        #region IRegionModule
+        #region Region Module interface
 
         public void Initialise(IConfigSource config)
         {
@@ -156,7 +156,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
             }
         }
 
-        #endregion /* IRegionModule */
+        #endregion
 
         #region ISimulation
 
