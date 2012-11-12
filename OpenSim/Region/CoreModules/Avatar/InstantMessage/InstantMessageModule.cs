@@ -54,7 +54,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         
         private readonly List<Scene> m_scenes = new List<Scene>();
 
-        #region IRegionModule Members
+        #region Region Module interface
 
         private IMessageTransferModule m_TransferModule = null;
 

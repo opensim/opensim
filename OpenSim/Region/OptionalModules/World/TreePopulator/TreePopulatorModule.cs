@@ -168,7 +168,7 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
 
         #endregion
 
-        #region IRegionModule Members
+        #region Region Module interface
 
         public void Initialise(IConfigSource config)
         {
@@ -200,7 +200,6 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
         public void AddRegion(Scene scene)
         {
             m_scene = scene;
-            //m_scene.RegisterModuleInterface<IRegionModule>(this);
             m_scene.RegisterModuleCommander(m_commander);
             m_scene.EventManager.OnPluginConsole += EventManager_OnPluginConsole;
 

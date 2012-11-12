@@ -59,7 +59,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         private Dictionary<UUID,JsonStore> m_JsonValueStore;
         private UUID m_sharedStore;
 
-#region IRegionModule Members
+#region Region Module interface
 
         // -----------------------------------------------------------------
         /// <summary>

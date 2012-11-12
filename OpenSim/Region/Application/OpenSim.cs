@@ -757,33 +757,13 @@ namespace OpenSim
                 switch (cmdparams[0].ToLower())
                 {
                     case "list":
-                        foreach (IRegionModule irm in m_moduleLoader.GetLoadedSharedModules)
-                        {
-                            MainConsole.Instance.Output(String.Format("Shared region module: {0}", irm.Name));
-                        }
+                        //TODO: Convert to new region modules
                         break;
                     case "unload":
-                        if (cmdparams.Length > 1)
-                        {
-                            foreach (IRegionModule rm in new ArrayList(m_moduleLoader.GetLoadedSharedModules))
-                            {
-                                if (rm.Name.ToLower() == cmdparams[1].ToLower())
-                                {
-                                    MainConsole.Instance.Output(String.Format("Unloading module: {0}", rm.Name));
-                                    m_moduleLoader.UnloadModule(rm);
-                                }
-                            }
-                        }
+                        //TODO: Convert to new region modules
                         break;
                     case "load":
-                        if (cmdparams.Length > 1)
-                        {
-                            foreach (Scene s in new ArrayList(SceneManager.Scenes))
-                            {
-                                MainConsole.Instance.Output(String.Format("Loading module: {0}", cmdparams[1]));
-                                m_moduleLoader.LoadRegionModules(cmdparams[1], s);
-                            }
-                        }
+                        //TODO: Convert to new region modules
                         break;
                 }
             }
@@ -1018,28 +998,9 @@ namespace OpenSim
                     break;
 
                 case "modules":
-                    MainConsole.Instance.Output("The currently loaded shared modules are:");
-                    foreach (IRegionModule module in m_moduleLoader.GetLoadedSharedModules)
-                    {
-                        MainConsole.Instance.Output("Shared Module: " + module.Name);
-                    }
-
                     SceneManager.ForEachScene(
                         delegate(Scene scene) {
-                        m_log.Error("The currently loaded modules in " + scene.RegionInfo.RegionName + " are:");
-                        foreach (IRegionModule module in scene.Modules.Values)
-                        {
-                            if (!module.IsSharedModule)
-                            {
-                                m_log.Error("Region Module: " + module.Name);
-                            }
-                        }
-                    }
-                    );
-
-                    SceneManager.ForEachScene(
-                        delegate(Scene scene) {
-                        MainConsole.Instance.Output("Loaded new region modules in" + scene.RegionInfo.RegionName + " are:");
+                        MainConsole.Instance.Output("Loaded region modules in" + scene.RegionInfo.RegionName + " are:");
                         foreach (IRegionModuleBase module in scene.RegionModules.Values)
                         {
                             Type type = module.GetType().GetInterface("ISharedRegionModule");

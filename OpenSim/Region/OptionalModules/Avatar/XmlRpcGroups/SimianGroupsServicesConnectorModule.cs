@@ -176,7 +176,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         // private IUserAccountService m_accountService = null;
         
 
-        #region IRegionModuleBase Members
+        #region Region Module interfaceBase Members
 
         public string Name
         {

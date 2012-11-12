@@ -136,9 +136,6 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
                     }
                 }
             }
-
-            m_openSim.ModuleLoader.PostInitialise();
-            m_openSim.ModuleLoader.ClearCache();
         }
 
         public void Dispose()

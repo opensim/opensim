@@ -79,7 +79,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         private int m_usersOnlineCacheExpirySeconds = 20;
 
-        #region IRegionModuleBase Members
+        #region Region Module interfaceBase Members
 
         public void Initialise(IConfigSource config)
         {

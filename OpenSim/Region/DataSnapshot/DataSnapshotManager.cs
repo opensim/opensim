@@ -99,7 +99,7 @@ namespace OpenSim.Region.DataSnapshot
 
         #endregion
 
-        #region IRegionModule
+        #region Region Module interface
 
         public void Initialise(IConfigSource config)
         {

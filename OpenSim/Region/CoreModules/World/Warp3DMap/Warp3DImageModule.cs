@@ -66,7 +66,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
         private Bitmap lastImage = null;
         private DateTime lastImageTime = DateTime.MinValue;
 
-        #region IRegionModule Members
+        #region Region Module interface
 
         public void Initialise(IConfigSource source)
         {

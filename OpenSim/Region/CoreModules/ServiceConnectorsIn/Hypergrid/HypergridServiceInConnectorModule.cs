@@ -53,7 +53,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Hypergrid
         private GatekeeperServiceInConnector m_HypergridHandler;
         private UserAgentServerConnector m_UASHandler;
 
-        #region IRegionModule interface
+        #region Region Module interface
 
         public void Initialise(IConfigSource config)
         {

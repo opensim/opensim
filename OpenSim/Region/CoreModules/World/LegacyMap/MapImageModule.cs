@@ -131,7 +131,7 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
 
         #endregion
 
-        #region IRegionModule Members
+        #region Region Module interface
 
         public void Initialise(IConfigSource source)
         {
