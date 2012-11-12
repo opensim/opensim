@@ -43,15 +43,20 @@ using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using Mono.Data.SqliteClient;
+using Mono.Addins;
 
 using Caps = OpenSim.Framework.Capabilities.Caps;
 
 using OSD = OpenMetaverse.StructuredData.OSD;
 using OSDMap = OpenMetaverse.StructuredData.OSDMap;
 
+[assembly: Addin("WebStats", "1.0")]
+[assembly: AddinDependency("OpenSim", "0.5")]
+
 namespace OpenSim.Region.UserStatistics
 {
-    public class WebStatsModule : IRegionModule
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "WebStatsModule")]
+    public class WebStatsModule : ISharedRegionModule
     {
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -74,59 +79,69 @@ namespace OpenSim.Region.UserStatistics
         private string m_loglines = String.Empty;
         private volatile int lastHit = 12000;
 
-        public virtual void Initialise(Scene scene, IConfigSource config)
+        #region ISharedRegionModule
+
+        public virtual void Initialise(IConfigSource config)
         {
             IConfig cnfg = config.Configs["WebStats"];
 
             if (cnfg != null)
                 enabled = cnfg.GetBoolean("enabled", false);
-            
+        }
+
+        public virtual void PostInitialise()
+        {
+            if (!enabled)
+                return;
+
+            AddEventHandlers();
+
+            if (Util.IsWindows())
+                Util.LoadArchSpecificWindowsDll("sqlite3.dll");
+
+            //IConfig startupConfig = config.Configs["Startup"];
+
+            dbConn = new SqliteConnection("URI=file:LocalUserStatistics.db,version=3");
+            dbConn.Open();
+            CreateTables(dbConn);
+
+            Prototype_distributor protodep = new Prototype_distributor();
+            Updater_distributor updatedep = new Updater_distributor();
+            ActiveConnectionsAJAX ajConnections = new ActiveConnectionsAJAX();
+            SimStatsAJAX ajSimStats = new SimStatsAJAX();
+            LogLinesAJAX ajLogLines = new LogLinesAJAX();
+            Default_Report defaultReport = new Default_Report();
+            Clients_report clientReport = new Clients_report();
+            Sessions_Report sessionsReport = new Sessions_Report();
+
+            reports.Add("prototype.js", protodep);
+            reports.Add("updater.js", updatedep);
+            reports.Add("activeconnectionsajax.html", ajConnections);
+            reports.Add("simstatsajax.html", ajSimStats);
+            reports.Add("activelogajax.html", ajLogLines);
+            reports.Add("default.report", defaultReport);
+            reports.Add("clients.report", clientReport);
+            reports.Add("sessions.report", sessionsReport);
+
+            ////
+            // Add Your own Reports here (Do Not Modify Lines here Devs!)
+            ////
+
+            ////
+            // End Own reports section
+            ////
+
+            MainServer.Instance.AddHTTPHandler("/SStats/", HandleStatsRequest);
+            MainServer.Instance.AddHTTPHandler("/CAPS/VS/", HandleUnknownCAPSRequest);
+        }
+
+        public virtual void AddRegion(Scene scene)
+        {
             if (!enabled)
                 return;
 
             lock (m_scenes)
             {
-                if (m_scenes.Count == 0)
-                {
-                    if (Util.IsWindows())
-                        Util.LoadArchSpecificWindowsDll("sqlite3.dll");
-                    
-                    //IConfig startupConfig = config.Configs["Startup"];
-
-                    dbConn = new SqliteConnection("URI=file:LocalUserStatistics.db,version=3");
-                    dbConn.Open();
-                    CreateTables(dbConn);
-
-                    Prototype_distributor protodep = new Prototype_distributor();
-                    Updater_distributor updatedep = new Updater_distributor();
-                    ActiveConnectionsAJAX ajConnections = new ActiveConnectionsAJAX();
-                    SimStatsAJAX ajSimStats = new SimStatsAJAX();
-                    LogLinesAJAX ajLogLines = new LogLinesAJAX();
-                    Default_Report defaultReport = new Default_Report();
-                    Clients_report clientReport = new Clients_report();
-                    Sessions_Report sessionsReport = new Sessions_Report();
-
-                    reports.Add("prototype.js", protodep);
-                    reports.Add("updater.js", updatedep);
-                    reports.Add("activeconnectionsajax.html", ajConnections);
-                    reports.Add("simstatsajax.html", ajSimStats);
-                    reports.Add("activelogajax.html", ajLogLines);
-                    reports.Add("default.report", defaultReport);
-                    reports.Add("clients.report", clientReport);
-                    reports.Add("sessions.report", sessionsReport);
-
-                    ////
-                    // Add Your own Reports here (Do Not Modify Lines here Devs!)
-                    ////
-
-                    ////
-                    // End Own reports section
-                    ////
-
-                    MainServer.Instance.AddHTTPHandler("/SStats/", HandleStatsRequest);
-                    MainServer.Instance.AddHTTPHandler("/CAPS/VS/", HandleUnknownCAPSRequest);
-                }
-                
                 m_scenes.Add(scene);
                 if (m_simstatsCounters.ContainsKey(scene.RegionInfo.RegionID))
                     m_simstatsCounters.Remove(scene.RegionInfo.RegionID);
@@ -135,6 +150,39 @@ namespace OpenSim.Region.UserStatistics
                 scene.StatsReporter.OnSendStatsResult += ReceiveClassicSimStatsPacket;
             }
         }
+
+        public void RegionLoaded(Scene scene)
+        {
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+        }
+
+        public virtual void Close()
+        {
+            if (!enabled)
+                return;
+
+            dbConn.Close();
+            dbConn.Dispose();
+            m_sessions.Clear();
+            m_scenes.Clear();
+            reports.Clear();
+            m_simstatsCounters.Clear();
+        }
+
+        public virtual string Name
+        {
+            get { return "ViewerStatsModule"; }
+        }
+
+        public Type ReplaceableInterface
+        {
+            get { return null; }
+        }
+
+        #endregion
 
         private void ReceiveClassicSimStatsPacket(SimStats stats)
         {
@@ -251,37 +299,6 @@ namespace OpenSim.Region.UserStatistics
             }
         }
 
-        public virtual void PostInitialise()
-        {
-            if (!enabled)
-                return;
-
-            AddHandlers();
-        }
-
-        public virtual void Close()
-        {
-            if (!enabled)
-                return;
-
-            dbConn.Close();
-            dbConn.Dispose();
-            m_sessions.Clear();
-            m_scenes.Clear();
-            reports.Clear();
-            m_simstatsCounters.Clear(); 
-        }
-
-        public virtual string Name
-        {
-            get { return "ViewerStatsModule"; }
-        }
-
-        public bool IsSharedModule
-        {
-            get { return true; }
-        }
-
         private void OnRegisterCaps(UUID agentID, Caps caps)
         {
 //            m_log.DebugFormat("[WEB STATS MODULE]: OnRegisterCaps: agentID {0} caps {1}", agentID, caps);
@@ -302,7 +319,7 @@ namespace OpenSim.Region.UserStatistics
         {
         }
 
-        protected virtual void AddHandlers()
+        protected virtual void AddEventHandlers()
         {
             lock (m_scenes)
             {
