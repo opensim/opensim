@@ -49,21 +49,6 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
         private string m_name = "LoadImageURL";
         private Scene m_scene;
         private IDynamicTextureManager m_textureManager;
-        private IDynamicTextureManager TextureManager
-        {
-            get
-            {
-                if (m_textureManager == null && m_scene != null)
-                {
-                    m_textureManager = m_scene.RequestModuleInterface<IDynamicTextureManager>();
-                    if (m_textureManager != null)
-                    {
-                        m_textureManager.RegisterRender(GetContentType(), this);
-                    }
-                }
-                return m_textureManager;
-            }
-        }
 
         private string m_proxyurl = "";
         private string m_proxyexcepts = "";
@@ -146,6 +131,14 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
 
         public void RegionLoaded(Scene scene)
         {
+            if (m_textureManager == null && m_scene == scene)
+            {
+                m_textureManager = m_scene.RequestModuleInterface<IDynamicTextureManager>();
+                if (m_textureManager != null)
+                {
+                    m_textureManager.RegisterRender(GetContentType(), this);
+                }
+            }
         }
 
         public void Close()
@@ -191,6 +184,12 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
 
         private void HttpRequestReturn(IAsyncResult result)
         {
+            if (m_textureManager == null)
+            {
+                m_log.WarnFormat("[LOADIMAGEURLMODULE]: No texture manager. Can't function.");
+                return;
+            }
+
             RequestState state = (RequestState) result.AsyncState;
             WebRequest request = (WebRequest) state.Request;
             Stream stream = null;
@@ -271,7 +270,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
             m_log.DebugFormat("[LOADIMAGEURLMODULE]: Returning {0} bytes of image data for request {1}",
                                        imageJ2000.Length, state.RequestID);
 
-            TextureManager.ReturnData(
+            m_textureManager.ReturnData(
                 state.RequestID,
                 new OpenSim.Region.CoreModules.Scripting.DynamicTexture.DynamicTexture(
                     request.RequestUri, null, imageJ2000, newSize, false));

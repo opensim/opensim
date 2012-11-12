@@ -83,6 +83,16 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
         /// </remarks>
         private Cache m_reuseableDynamicTextures;
 
+        /// <summary>
+        /// This constructor is only here because of the Unit Tests...
+        /// Don't use it.
+        /// </summary>
+        public DynamicTextureModule()
+        {
+            m_reuseableDynamicTextures = new Cache(CacheMedium.Memory, CacheStrategy.Conservative);
+            m_reuseableDynamicTextures.DefaultTTL = new TimeSpan(24, 0, 0);
+        }
+
         #region IDynamicTextureManager Members
 
         public void RegisterRender(string handleType, IDynamicTextureRender render)

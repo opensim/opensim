@@ -58,21 +58,6 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
 
         private Scene m_scene;
         private IDynamicTextureManager m_textureManager;
-        private IDynamicTextureManager TextureManager
-        {
-            get
-            {
-                if (m_textureManager == null && m_scene != null)
-                {
-                    m_textureManager = m_scene.RequestModuleInterface<IDynamicTextureManager>();
-                    if (m_textureManager != null)
-                    {
-                        m_textureManager.RegisterRender(GetContentType(), this);
-                    }
-                }
-                return m_textureManager;
-            }
-        }
 
         private Graphics m_graph;
         private string m_fontName = "Arial";
@@ -121,8 +106,13 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
 
         public bool AsyncConvertData(UUID id, string bodyData, string extraParams)
         {
+            if (m_textureManager == null)
+            {
+                m_log.Warn("[VECTORRENDERMODULE]: No texture manager. Can't function");
+                return false;
+            }
             // XXX: This isn't actually being done asynchronously!
-            TextureManager.ReturnData(id, ConvertData(bodyData, extraParams));
+            m_textureManager.ReturnData(id, ConvertData(bodyData, extraParams));
 
             return true;
         }
@@ -180,6 +170,14 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
 
         public void RegionLoaded(Scene scene)
         {
+            if (m_textureManager == null && m_scene == scene)
+            {
+                m_textureManager = m_scene.RequestModuleInterface<IDynamicTextureManager>();
+                if (m_textureManager != null)
+                {
+                    m_textureManager.RegisterRender(GetContentType(), this);
+                }
+            }
         }
 
         public void RemoveRegion(Scene scene)

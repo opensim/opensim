@@ -385,16 +385,16 @@ namespace OpenSim.Tests.Common
 
             foreach (IRegionModuleBase module in newModules)
             {
+                if (module is ISharedRegionModule) ((ISharedRegionModule)module).PostInitialise();
+            }
+
+            foreach (IRegionModuleBase module in newModules)
+            {
                 foreach (Scene scene in scenes)
                 {
                     module.AddRegion(scene);
                     scene.AddRegionModule(module.Name, module);
                 }
-            }
-
-            foreach (IRegionModuleBase module in newModules)
-            {
-                if (module is ISharedRegionModule) ((ISharedRegionModule)module).PostInitialise();
             }
 
             // RegionLoaded is fired after all modules have been appropriately added to all scenes
