@@ -144,22 +144,6 @@ namespace OpenSim.Region.Framework.Scenes
             // collect known shared modules in sharedModules
             Dictionary<string, IRegionModule> sharedModules = new Dictionary<string, IRegionModule>();
 
-            lock (m_localScenes)
-            {
-                for (int i = 0; i < m_localScenes.Count; i++)
-                {
-                    // extract known shared modules from scene
-                    foreach (string k in m_localScenes[i].Modules.Keys)
-                    {
-                        if (m_localScenes[i].Modules[k].IsSharedModule &&
-                            !sharedModules.ContainsKey(k))
-                            sharedModules[k] = m_localScenes[i].Modules[k];
-                    }
-                    // close scene/region
-                    m_localScenes[i].Close();
-                }
-            }
-
             // all regions/scenes are now closed, we can now safely
             // close all shared modules
             foreach (IRegionModule mod in sharedModules.Values)
