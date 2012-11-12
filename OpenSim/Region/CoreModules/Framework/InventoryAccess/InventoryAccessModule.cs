@@ -180,12 +180,6 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             if (!m_Scene.Permissions.CanCreateUserInventory(invType, remoteClient.AgentId))
                 return;
 
-            InventoryFolderBase f = new InventoryFolderBase(folderID, remoteClient.AgentId);
-            InventoryFolderBase folder = m_Scene.InventoryService.GetFolder(f);
-
-            if (folder == null || folder.Owner != remoteClient.AgentId)
-                return;
-
             if (transactionID == UUID.Zero)
             {
                 ScenePresence presence;
