@@ -42,9 +42,11 @@ using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 using OpenMetaverse;
 using log4net;
 using Nini.Config;
+using Mono.Addins;
 
 namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "HGEntityTransferModule")]
     public class HGEntityTransferModule
         : EntityTransferModule, INonSharedRegionModule, IEntityTransferModule, IUserAgentVerificationModule
     {
