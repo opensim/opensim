@@ -42,6 +42,7 @@ using OpenMetaverse;
 using OpenMetaverse.Packets;
 using log4net;
 using Nini.Config;
+using Mono.Addins;
 
 namespace OpenSim.Region.CoreModules.Framework.UserManagement
 {
@@ -54,6 +55,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
         public Dictionary<string, object> ServerURLs { get; set; }
     }
 
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "UserManagementModule")]
     public class UserManagementModule : ISharedRegionModule, IUserManagement
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);

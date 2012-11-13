@@ -8,12 +8,6 @@
     </Dependencies>
 
     <Extension path = "/OpenSim/RegionModules">
-        <RegionModule id="UserManagementModule" type="OpenSim.Region.CoreModules.Framework.UserManagement.UserManagementModule" />
-        <RegionModule id="HGUserManagementModule" type="OpenSim.Region.CoreModules.Framework.UserManagement.HGUserManagementModule" />
-        <RegionModule id="EntityTransferModule" type="OpenSim.Region.CoreModules.Framework.EntityTransfer.EntityTransferModule" />
-        <RegionModule id="HGEntityTransferModule" type="OpenSim.Region.CoreModules.Framework.EntityTransfer.HGEntityTransferModule" />
-        <RegionModule id="InventoryAccessModule" type="OpenSim.Region.CoreModules.Framework.InventoryAccess.BasicInventoryAccessModule" />
-        <RegionModule id="HGInventoryAccessModule" type="OpenSim.Region.CoreModules.Framework.InventoryAccess.HGInventoryAccessModule" />
         <RegionModule id="LandManagementModule" type="OpenSim.Region.CoreModules.World.Land.LandManagementModule" />
         <RegionModule id="DwellModule" type="OpenSim.Region.CoreModules.World.Land.DwellModule" />
         <RegionModule id="PrimCountModule" type="OpenSim.Region.CoreModules.World.Land.PrimCountModule" />
