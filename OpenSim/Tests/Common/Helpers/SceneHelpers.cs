@@ -350,6 +350,10 @@ namespace OpenSim.Tests.Common
         /// </summary>
         /// <remarks>
         /// If called directly, then all the modules must be shared modules.
+        /// 
+        /// We are emulating here the normal calls made to setup region modules 
+        /// (Initialise(), PostInitialise(), AddRegion, RegionLoaded()).
+        /// TODO: Need to reuse normal runtime module code.
         /// </remarks>
         /// <param name="scenes"></param>
         /// <param name="config"></param>

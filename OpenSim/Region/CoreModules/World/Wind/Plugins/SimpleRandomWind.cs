@@ -29,11 +29,13 @@ using System;
 using System.Collections.Generic;
 
 using OpenMetaverse;
+using Mono.Addins;
 
 using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Region.CoreModules.World.Wind.Plugins
 {
+    [Extension(Path = "/OpenSim/WindModule", NodeName = "WindModel", Id = "SimpleRandomWind")]
     class SimpleRandomWind : Mono.Addins.TypeExtensionNode, IWindModelPlugin
     {
         private Vector2[] m_windSpeeds = new Vector2[16 * 16];

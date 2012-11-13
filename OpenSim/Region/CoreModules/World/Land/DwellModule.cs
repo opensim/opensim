@@ -36,6 +36,7 @@ using Nini.Config;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using OpenMetaverse.Messages.Linden;
+using Mono.Addins;
 using OpenSim.Framework;
 using OpenSim.Framework.Capabilities;
 using OpenSim.Framework.Console;
@@ -51,6 +52,7 @@ using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Region.CoreModules.World.Land
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "DwellModule")]
     public class DwellModule : IDwellModule, INonSharedRegionModule
     {
         private Scene m_scene;

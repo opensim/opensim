@@ -8,15 +8,6 @@
     </Dependencies>
 
     <Extension path = "/OpenSim/RegionModules">
-        <RegionModule id="LandManagementModule" type="OpenSim.Region.CoreModules.World.Land.LandManagementModule" />
-        <RegionModule id="DwellModule" type="OpenSim.Region.CoreModules.World.Land.DwellModule" />
-        <RegionModule id="PrimCountModule" type="OpenSim.Region.CoreModules.World.Land.PrimCountModule" />
-        <RegionModule id="ExportSerialisationModule" type="OpenSim.Region.CoreModules.World.Serialiser.SerialiserModule" />
-        <RegionModule id="ArchiverModule" type="OpenSim.Region.CoreModules.World.Archiver.ArchiverModule" />
-        <RegionModule id="TerrainModule" type="OpenSim.Region.CoreModules.World.Terrain.TerrainModule" />
-        <RegionModule id="WorldMapModule" type="OpenSim.Region.CoreModules.World.WorldMap.WorldMapModule" />
-        <RegionModule id="Warp3DImageModule" type="OpenSim.Region.CoreModules.World.Warp3DMap.Warp3DImageModule" />
-        <RegionModule id="HGWorldMapModule" type="OpenSim.Region.CoreModules.Hypergrid.HGWorldMapModule" />
         <RegionModule id="UrlModule" type="OpenSim.Region.CoreModules.Scripting.LSLHttp.UrlModule" />
         <RegionModule id="Chat" type="OpenSim.Region.CoreModules.Avatar.Chat.ChatModule" />
         <RegionModule id="FriendsModule" type="OpenSim.Region.CoreModules.Avatar.Friends.FriendsModule" />
@@ -33,8 +24,6 @@
         <RegionModule id="CenomeMemoryAssetCache" type="OpenSim.Region.CoreModules.Asset.CenomeMemoryAssetCache"/>
         <RegionModule id="LibraryModule" type="OpenSim.Region.CoreModules.Framework.Library.LibraryModule"/>
         <RegionModule id="SunModule" type="OpenSim.Region.CoreModules.SunModule"/>
-        <RegionModule id="WindModule" type="OpenSim.Region.CoreModules.WindModule"/>
-        <RegionModule id="MapSearchModule" type="OpenSim.Region.CoreModules.World.WorldMap.MapSearchModule"/>
         <RegionModule id="VegetationModule" type="OpenSim.Region.CoreModules.Avatar.Vegetation.VegetationModule"/>
         <RegionModule id="IPBanModule" type="OpenSim.Region.CoreModules.Agent.IPBan.IPBanModule"/>
         <RegionModule id="J2KDecoderModule" type="OpenSim.Region.CoreModules.Agent.TextureSender.J2KDecoderModule"/>
@@ -84,9 +73,5 @@
 
     </Extension>
 
-    <Extension path = "/OpenSim/WindModule">
-        <WindModel id="ConfigurableWind" type="OpenSim.Region.CoreModules.World.Wind.Plugins.ConfigurableWind" />
-        <WindModel id="SimpleRandomWind" type="OpenSim.Region.CoreModules.World.Wind.Plugins.SimpleRandomWind" />
-    </Extension>
 
 </Addin>
