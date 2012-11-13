@@ -47,7 +47,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
     /// Connects avatar presence information (for tracking current location and
     /// message routing) to the SimianGrid backend
     /// </summary>
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "SimianPresenceServiceConnector")]
     public class SimianPresenceServiceConnector : IPresenceService, IGridUserService, ISharedRegionModule
     {
         private static readonly ILog m_log =

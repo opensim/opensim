@@ -37,7 +37,7 @@ using Mono.Addins;
 
 namespace OpenSim.Region.CoreModules.Avatar.Combat.CombatModule
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "CombatModule")]
     public class CombatModule : ISharedRegionModule
     {
         //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);

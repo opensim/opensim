@@ -90,7 +90,7 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.Scripting.WorldComm
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "WorldCommModule")]
     public class WorldCommModule : IWorldComm, INonSharedRegionModule
     {
         // private static readonly ILog m_log =

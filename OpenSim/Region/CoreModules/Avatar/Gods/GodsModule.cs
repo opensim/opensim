@@ -55,7 +55,7 @@ using Mono.Addins;
 
 namespace OpenSim.Region.CoreModules.Avatar.Gods
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "GodsModule")]
     public class GodsModule : INonSharedRegionModule, IGodsModule
     {
         private static readonly ILog m_log =

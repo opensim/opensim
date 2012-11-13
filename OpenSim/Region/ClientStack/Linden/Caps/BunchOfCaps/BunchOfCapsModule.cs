@@ -45,7 +45,7 @@ using Caps = OpenSim.Framework.Capabilities.Caps;
 namespace OpenSim.Region.ClientStack.Linden
 {
 
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "BunchOfCapsModule")]
     public class BunchOfCapsModule : INonSharedRegionModule
     {
 //        private static readonly ILog m_log =

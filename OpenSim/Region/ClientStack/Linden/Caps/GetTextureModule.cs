@@ -47,9 +47,6 @@ using OpenSim.Framework.Monitoring;
 namespace OpenSim.Region.ClientStack.Linden
 {
 
-    /// <summary>
-    /// This module implements both WebFetchTextureDescendents and FetchTextureDescendents2 capabilities.
-    /// </summary>
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "GetTextureModule")]
     public class GetTextureModule : INonSharedRegionModule
     {

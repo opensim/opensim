@@ -47,7 +47,7 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.DataSnapshot
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "DataSnapshotManager")]
     public class DataSnapshotManager : ISharedRegionModule, IDataSnapshot
     {
         #region Class members
