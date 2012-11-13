@@ -8,35 +8,6 @@
     </Dependencies>
 
     <Extension path = "/OpenSim/RegionModules">
-      <!-- Service connectors OUT modules -->
-        <RegionModule id="LocalAssetServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset.LocalAssetServicesConnector" />
-        <RegionModule id="RemoteAssetServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset.RemoteAssetServicesConnector" />
-        <RegionModule id="LocalAvatarServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Avatar.LocalAvatarServicesConnector" />
-        <RegionModule id="RemoteAvatarServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Avatar.RemoteAvatarServicesConnector" />
-        <RegionModule id="LocalAuthenticationServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Authentication.LocalAuthenticationServicesConnector" />
-        <RegionModule id="RemoteAuthenticationServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Authentication.RemoteAuthenticationServicesConnector" />
-        <RegionModule id="LocalAuthorizationServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Authorization.LocalAuthorizationServicesConnector" />
-        <RegionModule id="RemoteAuthorizationServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Authorization.RemoteAuthorizationServicesConnector" />
-        <RegionModule id="HGAssetBroker" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset.HGAssetBroker" />
-        <RegionModule id="LocalInventoryServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory.LocalInventoryServicesConnector" />
-        <RegionModule id="RemoteXInventoryServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory.RemoteXInventoryServicesConnector" />
-        <RegionModule id="HGInventoryBroker" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory.HGInventoryBroker" />
-        <RegionModule id="LocalNeighbourServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Neighbour.LocalNeighbourServicesConnector" />
-        <RegionModule id="RemoteNeighbourServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Neighbour.RemoteNeighbourServicesConnector" />
-        <RegionModule id="LocalLandServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Land.LocalLandServicesConnector" />
-        <RegionModule id="RemoteLandServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Land.RemoteLandServicesConnector" />
-        <RegionModule id="LocalGridServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid.LocalGridServicesConnector" />
-        <RegionModule id="RemoteGridServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid.RemoteGridServicesConnector" />
-        <RegionModule id="LocalPresenceServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence.LocalPresenceServicesConnector" />
-        <RegionModule id="RemotePresenceServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence.RemotePresenceServicesConnector" />
-        <RegionModule id="LocalUserAccountServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts.LocalUserAccountServicesConnector" />
-        <RegionModule id="RemoteUserAccountServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts.RemoteUserAccountServicesConnector" />
-        
-        <RegionModule id="LocalGridUserServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.GridUser.LocalGridUserServicesConnector" />
-        <RegionModule id="RemoteGridUserServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.GridUser.RemoteGridUserServicesConnector" />
-
-        <RegionModule id="LocalSimulationConnectorModule" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation.LocalSimulationConnectorModule" />
-        <RegionModule id="RemoteSimulationConnectorModule" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation.RemoteSimulationConnectorModule" />
       
     </Extension>
 
