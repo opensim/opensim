@@ -38,19 +38,6 @@
         <RegionModule id="LocalSimulationConnectorModule" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation.LocalSimulationConnectorModule" />
         <RegionModule id="RemoteSimulationConnectorModule" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation.RemoteSimulationConnectorModule" />
       
-      <!-- Service connectors IN modules -->
-        <RegionModule id="AssetServiceInConnectorModule" type="OpenSim.Region.CoreModules.ServiceConnectorsIn.Asset.AssetServiceInConnectorModule" />
-        <RegionModule id="InventoryServiceInConnectorModule" type="OpenSim.Region.CoreModules.ServiceConnectorsIn.Inventory.InventoryServiceInConnectorModule" />
-        <RegionModule id="LandServiceInConnectorModule" type="OpenSim.Region.CoreModules.ServiceConnectorsIn.Land.LandServiceInConnectorModule" />
-        <RegionModule id="NeighbourServiceInConnectorModule" type="OpenSim.Region.CoreModules.ServiceConnectorsIn.Neighbour.NeighbourServiceInConnectorModule" />    \
-        <RegionModule id="HypergridServiceInConnectorModule" type="OpenSim.Region.CoreModules.ServiceConnectorsIn.Hypergrid.HypergridServiceInConnectorModule" />    \
-        <RegionModule id="LLLoginServiceInConnectorModule" type="OpenSim.Region.CoreModules.ServiceConnectorsIn.Login.LLLoginServiceInConnectorModule" />    \
-        <RegionModule id="SimulationServiceInConnectorModule" type="OpenSim.Region.CoreModules.ServiceConnectorsIn.Simulation.SimulationServiceInConnectorModule" />    \
-        <RegionModule id="GridInfoServiceInConnectorModule" type="OpenSim.Region.CoreModules.ServiceConnectorsIn.Grid.GridInfoServiceInConnectorModule" />    \
-        <RegionModule id="AuthenticationServiceInConnectorModule" type="OpenSim.Region.CoreModules.ServiceConnectorsIn.Authentication.AuthenticationServiceInConnectorModule" />
-        <RegionModule id="AccessModule" type="OpenSim.Region.CoreModules.World.AccessModule" />    \
-        <RegionModule id="MapImageModule" type="OpenSim.Region.CoreModules.World.LegacyMap.MapImageModule" />    \
-
     </Extension>
 
 
