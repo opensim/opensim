@@ -37,7 +37,7 @@ using Mono.Addins;
 
 namespace OpenSim.Region.CoreModules.Avatar.Gods
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "GodsModule")]
     public class GodsModule : INonSharedRegionModule, IGodsModule
     {
         /// <summary>Special UUID for actions that apply to all agents</summary>

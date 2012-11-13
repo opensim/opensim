@@ -47,7 +47,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
     /// <summary>
     /// Connects avatar appearance data to the SimianGrid backend
     /// </summary>
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "SimianAvatarServiceConnector")]
     public class SimianAvatarServiceConnector : IAvatarService, ISharedRegionModule
     {
         private static readonly ILog m_log =

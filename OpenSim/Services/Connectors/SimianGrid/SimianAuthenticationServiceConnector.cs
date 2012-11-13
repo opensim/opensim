@@ -43,7 +43,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
     /// <summary>
     /// Connects authentication/authorization to the SimianGrid backend
     /// </summary>
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "SimianAuthenticationServiceConnector")]
     public class SimianAuthenticationServiceConnector : IAuthenticationService, ISharedRegionModule
     {
         private static readonly ILog m_log =

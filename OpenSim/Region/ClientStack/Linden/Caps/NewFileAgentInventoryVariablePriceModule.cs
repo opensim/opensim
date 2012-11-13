@@ -47,7 +47,7 @@ using OpenSim.Framework.Capabilities;
 
 namespace OpenSim.Region.ClientStack.Linden
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "NewFileAgentInventoryVariablePriceModule")]
     public class NewFileAgentInventoryVariablePriceModule : INonSharedRegionModule
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);

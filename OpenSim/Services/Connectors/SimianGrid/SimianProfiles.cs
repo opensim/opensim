@@ -59,7 +59,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
     /// Connects avatar profile and classified queries to the SimianGrid
     /// backend
     /// </summary>
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "SimianProfiles")]
     public class SimianProfiles : INonSharedRegionModule
     {
         private static readonly ILog m_log =
