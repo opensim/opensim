@@ -27,14 +27,16 @@
 
 using System;
 using System.Collections.Generic;
+using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
-namespace OpenSim.Region.CoreModules
+namespace OpenSim.Region.CoreModules.World
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "CloudModule")]
     public class CloudModule : ICloudModule, INonSharedRegionModule
     {
 //        private static readonly log4net.ILog m_log 
