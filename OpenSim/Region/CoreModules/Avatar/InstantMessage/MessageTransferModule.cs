@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Reflection;
 using log4net;
+using Mono.Addins;
 using Nini.Config;
 using Nwc.XmlRpc;
 using OpenMetaverse;
@@ -43,6 +44,7 @@ using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "MessageTransferModule")]
     public class MessageTransferModule : ISharedRegionModule, IMessageTransferModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);

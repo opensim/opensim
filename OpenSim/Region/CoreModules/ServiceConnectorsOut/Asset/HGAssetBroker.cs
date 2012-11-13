@@ -26,6 +26,7 @@
  */
 
 using log4net;
+using Mono.Addins;
 using Nini.Config;
 using System;
 using System.Collections.Generic;
@@ -40,8 +41,8 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 {
-    public class HGAssetBroker :
-            ISharedRegionModule, IAssetService
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "HGAssetBroker")]
+    public class HGAssetBroker : ISharedRegionModule, IAssetService
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(

@@ -32,6 +32,7 @@ using System.Net;
 using System.Reflection;
 using System.Text;
 using log4net;
+using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
@@ -46,6 +47,7 @@ using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "RemoteSimulationConnectorModule")]
     public class RemoteSimulationConnectorModule : ISharedRegionModule, ISimulationService
     {
         private bool initialized = false;

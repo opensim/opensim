@@ -29,6 +29,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Timers;
 using log4net;
+using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -38,6 +39,7 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "InstantMessageModule")]
     public class InstantMessageModule : ISharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(

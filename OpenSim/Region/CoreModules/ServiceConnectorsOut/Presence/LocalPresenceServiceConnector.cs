@@ -36,10 +36,12 @@ using PresenceInfo = OpenSim.Services.Interfaces.PresenceInfo;
 
 using OpenMetaverse;
 using log4net;
+using Mono.Addins;
 using Nini.Config;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "LocalPresenceServicesConnector")]
     public class LocalPresenceServicesConnector : ISharedRegionModule, IPresenceService
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);

@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using log4net;
 using Nini.Config;
+using Mono.Addins;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
@@ -37,6 +38,7 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.Avatar.Chat
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "ChatModule")]
     public class ChatModule : ISharedRegionModule
     {
         private static readonly ILog m_log =
