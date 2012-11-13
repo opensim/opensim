@@ -40,7 +40,7 @@ using OpenSim.Region.ClientStack.LindenUDP;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
-namespace OpenSim.Region.CoreModules.UDP.Linden
+namespace OpenSim.Region.OptionalModules.UDP.Linden
 {
     /// <summary>
     /// A module that just holds commands for inspecting the current state of the Linden UDP stack.
