@@ -139,35 +139,41 @@ namespace OpenSim.Data.SQLite
 
         public bool MoveItem(string id, string newParent)
         {
-            SqliteCommand cmd = new SqliteCommand();
+            using (SqliteCommand cmd = new SqliteCommand())
+            {
+                cmd.CommandText = String.Format("update {0} set parentFolderID = :ParentFolderID where inventoryID = :InventoryID", m_Realm);
+                cmd.Parameters.Add(new SqliteParameter(":ParentFolderID", newParent));
+                cmd.Parameters.Add(new SqliteParameter(":InventoryID", id));
 
-            cmd.CommandText = String.Format("update {0} set parentFolderID = :ParentFolderID where inventoryID = :InventoryID", m_Realm);
-            cmd.Parameters.Add(new SqliteParameter(":ParentFolderID", newParent));
-            cmd.Parameters.Add(new SqliteParameter(":InventoryID", id));
-
-            return ExecuteNonQuery(cmd, m_Connection) == 0 ? false : true;
+                return ExecuteNonQuery(cmd, m_Connection) == 0 ? false : true;
+            }
         }
 
         public XInventoryItem[] GetActiveGestures(UUID principalID)
         {
-            SqliteCommand cmd  = new SqliteCommand();
-            cmd.CommandText = String.Format("select * from inventoryitems where avatarId = :uuid and assetType = :type and flags = 1", m_Realm);
+            using (SqliteCommand cmd  = new SqliteCommand())
+            {
+                cmd.CommandText = String.Format("select * from inventoryitems where avatarId = :uuid and assetType = :type and flags = 1", m_Realm);
 
-            cmd.Parameters.Add(new SqliteParameter(":uuid", principalID.ToString()));
-            cmd.Parameters.Add(new SqliteParameter(":type", (int)AssetType.Gesture));
+                cmd.Parameters.Add(new SqliteParameter(":uuid", principalID.ToString()));
+                cmd.Parameters.Add(new SqliteParameter(":type", (int)AssetType.Gesture));
 
-            return DoQuery(cmd);
+                return DoQuery(cmd);
+            }
         }
 
         public int GetAssetPermissions(UUID principalID, UUID assetID)
         {
-            SqliteCommand cmd = new SqliteCommand();
+            IDataReader reader;
 
-            cmd.CommandText = String.Format("select inventoryCurrentPermissions from inventoryitems where avatarID = :PrincipalID and assetID = :AssetID", m_Realm);
-            cmd.Parameters.Add(new SqliteParameter(":PrincipalID", principalID.ToString()));
-            cmd.Parameters.Add(new SqliteParameter(":AssetID", assetID.ToString()));
+            using (SqliteCommand cmd = new SqliteCommand())
+            {
+                cmd.CommandText = String.Format("select inventoryCurrentPermissions from inventoryitems where avatarID = :PrincipalID and assetID = :AssetID", m_Realm);
+                cmd.Parameters.Add(new SqliteParameter(":PrincipalID", principalID.ToString()));
+                cmd.Parameters.Add(new SqliteParameter(":AssetID", assetID.ToString()));
 
-            IDataReader reader = ExecuteReader(cmd, m_Connection);
+                reader = ExecuteReader(cmd, m_Connection);
+            }
 
             int perms = 0;
 
@@ -192,13 +198,14 @@ namespace OpenSim.Data.SQLite
 
         public bool MoveFolder(string id, string newParentFolderID)
         {
-            SqliteCommand cmd = new SqliteCommand();
+            using (SqliteCommand cmd = new SqliteCommand())
+            {
+                cmd.CommandText = String.Format("update {0} set parentFolderID = :ParentFolderID where folderID = :FolderID", m_Realm);
+                cmd.Parameters.Add(new SqliteParameter(":ParentFolderID", newParentFolderID));
+                cmd.Parameters.Add(new SqliteParameter(":FolderID", id));
 
-            cmd.CommandText = String.Format("update {0} set parentFolderID = :ParentFolderID where folderID = :FolderID", m_Realm);
-            cmd.Parameters.Add(new SqliteParameter(":ParentFolderID", newParentFolderID));
-            cmd.Parameters.Add(new SqliteParameter(":FolderID", id));
-
-            return ExecuteNonQuery(cmd, m_Connection) == 0 ? false : true;
+                return ExecuteNonQuery(cmd, m_Connection) == 0 ? false : true;
+            }
         }
     }
 }
