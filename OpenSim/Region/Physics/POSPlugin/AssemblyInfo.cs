@@ -39,7 +39,7 @@ using System.Runtime.InteropServices;
 [assembly : AssemblyConfiguration("")]
 [assembly : AssemblyCompany("http://opensimulator.org")]
 [assembly : AssemblyProduct("POSPlugin")]
-[assembly : AssemblyCopyright("Copyright (c) OpenSimulator.org Developers 2007-2009")]
+[assembly : AssemblyCopyright("Copyright (c) OpenSimulator.org Developers")]
 [assembly : AssemblyTrademark("")]
 [assembly : AssemblyCulture("")]
 
