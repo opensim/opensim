@@ -41,10 +41,12 @@ using OpenSim.Server.Base;
 
 using OpenMetaverse;
 using log4net;
+using Mono.Addins;
 using Nini.Config;
 
 namespace OpenSim.Region.CoreModules.Framework.Library
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "LibraryModule")]
     public class LibraryModule : ISharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);

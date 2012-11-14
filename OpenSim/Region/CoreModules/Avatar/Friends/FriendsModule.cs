@@ -35,6 +35,7 @@ using log4net;
 using Nini.Config;
 using Nwc.XmlRpc;
 using OpenMetaverse;
+using Mono.Addins;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Framework.Communications;
@@ -50,6 +51,7 @@ using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Region.CoreModules.Avatar.Friends
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "FriendsModule")]
     public class FriendsModule : ISharedRegionModule, IFriendsModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);

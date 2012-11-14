@@ -26,6 +26,7 @@
  */
 
 using log4net;
+using Mono.Addins;
 using Nini.Config;
 using System;
 using System.Collections.Generic;
@@ -42,6 +43,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "HGInventoryBroker")]
     public class HGInventoryBroker : ISharedRegionModule, IInventoryService
     {
         private static readonly ILog m_log =

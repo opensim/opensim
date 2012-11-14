@@ -30,6 +30,7 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Reflection;
+using Mono.Addins;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
@@ -38,6 +39,7 @@ using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.CoreModules.Asset
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "CoreAssetCache")]
     public class CoreAssetCache : ISharedRegionModule, IImprovedAssetCache
     {
         private static readonly ILog m_log =

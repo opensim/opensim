@@ -28,6 +28,7 @@
 using System;
 using System.Reflection;
 using log4net;
+using Mono.Addins;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
@@ -89,6 +90,7 @@ namespace OpenSim.Region.CoreModules.Asset
     /// ExpirationTime = 60
     /// </code>
     /// </example>
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "CenomeMemoryAssetCache")]
     public class CenomeMemoryAssetCache : IImprovedAssetCache, ISharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);

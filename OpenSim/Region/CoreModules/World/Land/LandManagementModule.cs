@@ -36,6 +36,7 @@ using Nini.Config;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using OpenMetaverse.Messages.Linden;
+using Mono.Addins;
 using OpenSim.Framework;
 using OpenSim.Framework.Capabilities;
 using OpenSim.Framework.Console;
@@ -60,6 +61,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         public byte RegionAccess;
     }
 
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "LandManagementModule")]
     public class LandManagementModule : INonSharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);

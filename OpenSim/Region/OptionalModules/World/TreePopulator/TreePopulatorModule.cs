@@ -31,6 +31,7 @@ using System.Reflection;
 using System.Timers;
 using OpenMetaverse;
 using log4net;
+using Mono.Addins;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Region.CoreModules.Framework.InterfaceCommander;
@@ -46,6 +47,7 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
     /// <summary>
     /// Version 2.02 - Still hacky 
     /// </summary>
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "TreePopulatorModule")]
     public class TreePopulatorModule : INonSharedRegionModule, ICommandableModule, IVegetationModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);

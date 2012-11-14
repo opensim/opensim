@@ -29,6 +29,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using log4net;
+using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -39,6 +40,7 @@ using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "LocalSimulationConnectorModule")]
     public class LocalSimulationConnectorModule : ISharedRegionModule, ISimulationService
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);

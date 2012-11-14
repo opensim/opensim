@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using log4net;
+using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -38,6 +39,7 @@ using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "InventoryTransferModule")]
     public class InventoryTransferModule : ISharedRegionModule
     {
         private static readonly ILog m_log
