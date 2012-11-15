@@ -120,12 +120,12 @@ namespace OpenSim.Data.SQLite
             }
         }
 
-        public T[] Get(string field, string key)
+        public virtual T[] Get(string field, string key)
         {
             return Get(new string[] { field }, new string[] { key });
         }
 
-        public T[] Get(string[] fields, string[] keys)
+        public virtual T[] Get(string[] fields, string[] keys)
         {
             if (fields.Length != keys.Length)
                 return new T[0];
@@ -213,7 +213,7 @@ namespace OpenSim.Data.SQLite
             return result.ToArray();
         }
 
-        public T[] Get(string where)
+        public virtual T[] Get(string where)
         {
             using (SqliteCommand cmd = new SqliteCommand())
             {
@@ -226,7 +226,7 @@ namespace OpenSim.Data.SQLite
             }
         }
 
-        public bool Store(T row)
+        public virtual bool Store(T row)
         {
             using (SqliteCommand cmd = new SqliteCommand())
             {
@@ -270,7 +270,7 @@ namespace OpenSim.Data.SQLite
             return Delete(new string[] { field }, new string[] { key });
         }        
 
-        public bool Delete(string[] fields, string[] keys)
+        public virtual bool Delete(string[] fields, string[] keys)
         {
             if (fields.Length != keys.Length)
                 return false;

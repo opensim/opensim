@@ -2257,10 +2257,11 @@
 
       <ReferencePath>../../../bin/</ReferencePath>
       <Reference name="System"/>
-      <Reference name="System.Xml"/>
+      <Reference name="System.Core"/>
       <Reference name="System.Data"/>
-      <Reference name="OpenSim.Data"/>
       <Reference name="System.Drawing"/>
+      <Reference name="System.Xml"/>
+      <Reference name="OpenSim.Data"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.Framework"/>

@@ -382,14 +382,20 @@ namespace OpenSim.Framework.Monitoring
 
     public class PercentageStat : Stat
     {
-        public int Antecedent { get; set; }
-        public int Consequent { get; set; }
+        public long Antecedent { get; set; }
+        public long Consequent { get; set; }
 
         public override double Value
         {
             get
             {
-                int c = Consequent;
+                // Asking for an update here means that the updater cannot access this value without infinite recursion.
+                // XXX: A slightly messy but simple solution may be to flick a flag so we can tell if this is being
+                // called by the pull action and just return the value.
+                if (StatType == StatType.Pull)
+                    PullAction(this);
+
+                long c = Consequent;
 
                 // Avoid any chance of a multi-threaded divide-by-zero
                 if (c == 0)
@@ -400,7 +406,7 @@ namespace OpenSim.Framework.Monitoring
 
             set
             {
-                throw new Exception("Cannot set value on a PercentageStat");
+                throw new InvalidOperationException("Cannot set value on a PercentageStat");
             }
         }
 

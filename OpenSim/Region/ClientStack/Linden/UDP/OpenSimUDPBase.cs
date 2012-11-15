@@ -61,14 +61,14 @@ namespace OpenMetaverse
         private bool m_asyncPacketHandling;
 
         /// <summary>
-        /// Pool to use for handling data.  May be null if UsePools = false;
-        /// </summary>
-        protected OpenSim.Framework.Pool<UDPPacketBuffer> m_pool;
-
-        /// <summary>
         /// Are we to use object pool(s) to reduce memory churn when receiving data?
         /// </summary>
         public bool UsePools { get; protected set; }
+
+        /// <summary>
+        /// Pool to use for handling data.  May be null if UsePools = false;
+        /// </summary>
+        protected OpenSim.Framework.Pool<UDPPacketBuffer> Pool { get; private set; }
 
         /// <summary>Returns true if the server is currently listening for inbound packets, otherwise false</summary>
         public bool IsRunningInbound { get; private set; }
@@ -76,8 +76,6 @@ namespace OpenMetaverse
         /// <summary>Returns true if the server is currently sending outbound packets, otherwise false</summary>
         /// <remarks>If IsRunningOut = false, then any request to send a packet is simply dropped.</remarks>
         public bool IsRunningOutbound { get; private set; }
-
-        private Stat m_poolCountStat;
 
         /// <summary>
         /// Default constructor
@@ -178,21 +176,7 @@ namespace OpenMetaverse
         {
             if (!UsePools)
             {
-                m_pool = new Pool<UDPPacketBuffer>(() => new UDPPacketBuffer(), 500);
-
-                m_poolCountStat
-                    = new Stat(
-                        "UDPPacketBufferPoolCount",
-                        "Objects within the UDPPacketBuffer pool",
-                        "The number of objects currently stored within the UDPPacketBuffer pool",
-                        "",
-                        "clientstack",
-                        "packetpool",
-                        StatType.Pull,
-                        stat => stat.Value = m_pool.Count,
-                        StatVerbosity.Debug);
-
-                StatsManager.RegisterStat(m_poolCountStat);
+                Pool = new Pool<UDPPacketBuffer>(() => new UDPPacketBuffer(), 500);
 
                 UsePools = true;
 
@@ -207,7 +191,6 @@ namespace OpenMetaverse
             if (UsePools)
             {
                 UsePools = false;
-                StatsManager.DeregisterStat(m_poolCountStat);
 
                 // We won't null out the pool to avoid a race condition with code that may be in the middle of using it.
 
@@ -222,7 +205,7 @@ namespace OpenMetaverse
             UDPPacketBuffer buf;
 
             if (UsePools)
-                buf = m_pool.GetObject();
+                buf = Pool.GetObject();
             else
                 buf = new UDPPacketBuffer();
 
@@ -305,7 +288,7 @@ namespace OpenMetaverse
                 finally
                 {
                     if (UsePools)
-                        m_pool.ReturnObject(buffer);
+                        Pool.ReturnObject(buffer);
 
                     // Synchronous mode waits until the packet callback completes
                     // before starting the receive to fetch another packet

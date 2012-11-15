@@ -131,6 +131,12 @@ namespace OpenSim.Data.MSSQL
 
         public bool MoveItem(string id, string newParent)
         {
+            XInventoryItem[] retrievedItems = Get(new string[] { "inventoryID" }, new string[] { id });
+            if (retrievedItems.Length == 0)
+                return false;
+
+            UUID oldParent = retrievedItems[0].parentFolderID;
+
             using (SqlConnection conn = new SqlConnection(m_ConnectionString))
             {
                 using (SqlCommand cmd = new SqlCommand())
@@ -141,9 +147,16 @@ namespace OpenSim.Data.MSSQL
                     cmd.Parameters.Add(m_database.CreateParameter("@InventoryID", id));
                     cmd.Connection = conn;
                     conn.Open();
-                    return cmd.ExecuteNonQuery() == 0 ? false : true;
+
+                    if (cmd.ExecuteNonQuery() == 0)
+                        return false;
                 }
             }
+
+            IncrementFolderVersion(oldParent);
+            IncrementFolderVersion(newParent);
+
+            return true;
         }
 
         public XInventoryItem[] GetActiveGestures(UUID principalID)
@@ -196,26 +209,43 @@ namespace OpenSim.Data.MSSQL
             if (!base.Store(item))
                 return false;
 
-            string sql = "update inventoryfolders set version=version+1 where folderID = @folderID";
+            IncrementFolderVersion(item.parentFolderID);
+
+            return true;
+        }
+
+        private bool IncrementFolderVersion(UUID folderID)
+        {
+            return IncrementFolderVersion(folderID.ToString());
+        }
+
+        private bool IncrementFolderVersion(string folderID)
+        {
+//            m_log.DebugFormat("[MYSQL ITEM HANDLER]: Incrementing version on folder {0}", folderID);
+//            Util.PrintCallStack();
+
+            string sql = "update inventoryfolders set version=version+1 where folderID = ?folderID";
+            
             using (SqlConnection conn = new SqlConnection(m_ConnectionString))
             {
                 using (SqlCommand cmd = new SqlCommand(sql, conn))
                 {
                     conn.Open();
 
-                        cmd.Parameters.AddWithValue("@folderID", item.parentFolderID.ToString());
-                        try
-                        {
-                            cmd.ExecuteNonQuery();
-                        }
-                        catch (Exception)
-                        {
-                            return false;
-                        }
-                }
+                    cmd.Parameters.AddWithValue("@folderID", folderID);
 
-                return true;
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                    }
+                    catch (Exception)
+                    {
+                        return false;
+                    }
+                }
             }
+
+            return true;
         }
     }
 
@@ -228,6 +258,13 @@ namespace OpenSim.Data.MSSQL
 
         public bool MoveFolder(string id, string newParentFolderID)
         {
+            XInventoryFolder[] folders = Get(new string[] { "folderID" }, new string[] { id });
+
+            if (folders.Length == 0)
+                return false;
+
+            UUID oldParentFolderUUID = folders[0].parentFolderID;
+
             using (SqlConnection conn = new SqlConnection(m_ConnectionString))
             {
                 using (SqlCommand cmd = new SqlCommand())
@@ -238,9 +275,60 @@ namespace OpenSim.Data.MSSQL
                     cmd.Parameters.Add(m_database.CreateParameter("@folderID", id));
                     cmd.Connection = conn;
                     conn.Open();
-                    return cmd.ExecuteNonQuery() == 0 ? false : true;
+
+                    if (cmd.ExecuteNonQuery() == 0)
+                        return false;
                 }
             }
+
+            IncrementFolderVersion(oldParentFolderUUID);
+            IncrementFolderVersion(newParentFolderID);
+
+            return true;
+        }
+
+        public override bool Store(XInventoryFolder folder)
+        {
+            if (!base.Store(folder))
+                return false;
+
+            IncrementFolderVersion(folder.parentFolderID);
+
+            return true;
+        }
+
+        private bool IncrementFolderVersion(UUID folderID)
+        {
+            return IncrementFolderVersion(folderID.ToString());
+        }
+
+        private bool IncrementFolderVersion(string folderID)
+        {
+//            m_log.DebugFormat("[MYSQL ITEM HANDLER]: Incrementing version on folder {0}", folderID);
+//            Util.PrintCallStack();
+
+            string sql = "update inventoryfolders set version=version+1 where folderID = ?folderID";
+            
+            using (SqlConnection conn = new SqlConnection(m_ConnectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(sql, conn))
+                {
+                    conn.Open();
+
+                    cmd.Parameters.AddWithValue("@folderID", folderID);
+
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                    }
+                    catch (Exception)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
         }
     }
 }
