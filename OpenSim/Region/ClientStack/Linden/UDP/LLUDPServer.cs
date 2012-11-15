@@ -70,6 +70,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void AddScene(IScene scene)
         {
             m_udpServer.AddScene(scene);
+
+            StatsManager.RegisterStat(
+                new Stat(
+                    "IncomingPacketsProcessedCount",
+                    "Number of inbound UDP packets processed",
+                    "Number of inbound UDP packets processed",
+                    "",
+                    "clientstack",
+                    scene.Name,
+                    StatType.Pull,
+                    stat => stat.Value = m_udpServer.IncomingPacketsProcessed,
+                    StatVerbosity.Debug));
         }
 
         public bool HandlesRegion(Location x)
@@ -170,6 +182,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private Pool<IncomingPacket> m_incomingPacketPool;
 
+        /// <summary>
+        /// Stat for number of packets in the main pool awaiting use.
+        /// </summary>
+        private Stat m_poolCountStat;
+
+        /// <summary>
+        /// Stat for number of packets in the inbound packet pool awaiting use.
+        /// </summary>
         private Stat m_incomingPacketPoolStat;
 
         private int m_defaultRTO = 0;
@@ -342,20 +362,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 m_incomingPacketPool = new Pool<IncomingPacket>(() => new IncomingPacket(), 500);
 
-                m_incomingPacketPoolStat
-                    = new Stat(
-                        "IncomingPacketPoolCount",
-                        "Objects within incoming packet pool",
-                        "The number of objects currently stored within the incoming packet pool",
-                        "",
-                        "clientstack",
-                        "packetpool",
-                        StatType.Pull,
-                        stat => stat.Value = m_incomingPacketPool.Count,
-                        StatVerbosity.Debug);
-
-                StatsManager.RegisterStat(m_incomingPacketPoolStat);
-
                 return true;
             }
 
@@ -376,6 +382,53 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// This is a seperate method so that it can be called once we have an m_scene to distinguish different scene
+        /// stats.
+        /// </summary>
+        private void EnablePoolStats()
+        {
+            m_poolCountStat
+                = new Stat(
+                    "UDPPacketBufferPoolCount",
+                    "Objects within the UDPPacketBuffer pool",
+                    "The number of objects currently stored within the UDPPacketBuffer pool",
+                    "",
+                    "clientstack",
+                    m_scene.Name,
+                    StatType.Pull,
+                    stat => stat.Value = Pool.Count,
+                    StatVerbosity.Debug);
+
+            StatsManager.RegisterStat(m_poolCountStat);
+
+            m_incomingPacketPoolStat
+                = new Stat(
+                    "IncomingPacketPoolCount",
+                    "Objects within incoming packet pool",
+                    "The number of objects currently stored within the incoming packet pool",
+                    "",
+                    "clientstack",
+                    m_scene.Name,
+                    StatType.Pull,
+                    stat => stat.Value = m_incomingPacketPool.Count,
+                    StatVerbosity.Debug);
+
+            StatsManager.RegisterStat(m_incomingPacketPoolStat);
+        }
+
+        /// <summary>
+        /// Disables pool stats.
+        /// </summary>
+        private void DisablePoolStats()
+        {
+            StatsManager.DeregisterStat(m_poolCountStat);
+            m_poolCountStat = null;
+
+            StatsManager.DeregisterStat(m_incomingPacketPoolStat);
+            m_incomingPacketPoolStat = null;
         }
 
         /// <summary>
@@ -416,6 +469,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             m_scene = (Scene)scene;
             m_location = new Location(m_scene.RegionInfo.RegionHandle);
+        
+            // We delay enabling pool stats to AddScene() instead of Initialize() so that we can distinguish pool stats by
+            // scene name
+            if (UsePools)
+                EnablePoolStats();
 
             MainConsole.Instance.Commands.AddCommand(
                 "Debug",
@@ -505,12 +563,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (enabled == "on")
             {
                 if (EnablePools())
+                {
+                    EnablePoolStats();
                     MainConsole.Instance.OutputFormat("Packet pools enabled on {0}", m_scene.Name);
+                }
             }
             else if (enabled == "off")
             {
                 if (DisablePools())
+                {
+                    DisablePoolStats();
                     MainConsole.Instance.OutputFormat("Packet pools disabled on {0}", m_scene.Name);
+                }
             }
             else
             {
@@ -1556,6 +1620,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private int npacksSent = 0;
         private int npackNotSent = 0;
 
+        /// <summary>
+        /// Number of inbound packets processed since startup.
+        /// </summary>
+        public long IncomingPacketsProcessed { get; private set; }
+
         private void MonitoredClientOutgoingPacketHandler(IClientAPI client)
         {
             nticks++;
@@ -1615,7 +1684,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             npacksSent++;
                         }
                         else
+                        {
                             npackNotSent++;
+                        }
 
                         watch2.Stop();
                         avgDequeueTicks = (nticks - 1) / (float)nticks * avgDequeueTicks + (watch2.ElapsedTicks / (float)nticks);
@@ -1623,7 +1694,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     }
                     else
+                    {
                         m_log.WarnFormat("[LLUDPSERVER]: Client is not connected");
+                    }
                 }
             }
             catch (Exception ex)
@@ -1687,6 +1760,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     "[LLUDPSERVER]: Dropped incoming {0} for dead client {1} in {2}",
                     packet.Type, client.Name, m_scene.RegionInfo.RegionName);
             }
+
+            IncomingPacketsProcessed++;
         }
 
         protected void LogoutHandler(IClientAPI client)
