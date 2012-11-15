@@ -115,19 +115,15 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 m_Clients.Add(remoteClient.AgentId);
             }
 
-            Util.FireAndForget(delegate
+            try
             {
-                try
-                {
-                    OnMapNameRequest(remoteClient, mapName, flags);
-                }
-                finally
-                {
-                    lock (m_Clients)
-                        m_Clients.Remove(remoteClient.AgentId);
-                }
-            });
-
+                OnMapNameRequest(remoteClient, mapName, flags);
+            }
+            finally
+            {
+                lock (m_Clients)
+                    m_Clients.Remove(remoteClient.AgentId);
+            }
         }
 
         private void OnMapNameRequest(IClientAPI remoteClient, string mapName, uint flags)

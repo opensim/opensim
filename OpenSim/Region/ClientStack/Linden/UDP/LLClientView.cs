@@ -5322,7 +5322,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AddLocalPacketHandler(PacketType.RezScript, HandleRezScript);
             AddLocalPacketHandler(PacketType.MapLayerRequest, HandleMapLayerRequest, false);
             AddLocalPacketHandler(PacketType.MapBlockRequest, HandleMapBlockRequest, false);
-            AddLocalPacketHandler(PacketType.MapNameRequest, HandleMapNameRequest, false);
+            AddLocalPacketHandler(PacketType.MapNameRequest, HandleMapNameRequest);
             AddLocalPacketHandler(PacketType.TeleportLandmarkRequest, HandleTeleportLandmarkRequest);
             AddLocalPacketHandler(PacketType.TeleportCancel, HandleTeleportCancel);
             AddLocalPacketHandler(PacketType.TeleportLocationRequest, HandleTeleportLocationRequest);
