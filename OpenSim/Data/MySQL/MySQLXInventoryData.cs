@@ -122,7 +122,7 @@ namespace OpenSim.Data.MySQL
         }
     }
 
-    public class MySqlItemHandler : MySQLGenericTableHandler<XInventoryItem>
+    public class MySqlItemHandler : MySqlInventoryHandler<XInventoryItem>
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -241,47 +241,9 @@ namespace OpenSim.Data.MySQL
 
             return true;
         }
-
-        private bool IncrementFolderVersion(UUID folderID)
-        {
-            return IncrementFolderVersion(folderID.ToString());
-        }
-
-        private bool IncrementFolderVersion(string folderID)
-        {
-//            m_log.DebugFormat("[MYSQL ITEM HANDLER]: Incrementing version on folder {0}", folderID);
-//            Util.PrintCallStack();
-            
-            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
-            {
-                dbcon.Open();
-
-                using (MySqlCommand cmd = new MySqlCommand())
-                {
-                    cmd.Connection = dbcon;
-
-                    cmd.CommandText = String.Format("update inventoryfolders set version=version+1 where folderID = ?folderID");
-                    cmd.Parameters.AddWithValue("?folderID", folderID);
-
-                    try
-                    {
-                        cmd.ExecuteNonQuery();
-                    }
-                    catch (Exception)
-                    {
-                        return false;
-                    }
-                    cmd.Dispose();
-                }
-
-                dbcon.Close();
-            }
-
-            return true;
-        }
     }
 
-    public class MySqlFolderHandler : MySQLGenericTableHandler<XInventoryFolder>
+    public class MySqlFolderHandler : MySqlInventoryHandler<XInventoryFolder>
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -326,13 +288,18 @@ namespace OpenSim.Data.MySQL
 
             return true;
         }
+    }
 
-        private bool IncrementFolderVersion(UUID folderID)
+    public class MySqlInventoryHandler<T> : MySQLGenericTableHandler<T> where T: class, new()
+    {
+        public MySqlInventoryHandler(string c, string t, string m) : base(c, t, m) {}
+
+        protected bool IncrementFolderVersion(UUID folderID)
         {
             return IncrementFolderVersion(folderID.ToString());
         }
 
-        private bool IncrementFolderVersion(string folderID)
+        protected bool IncrementFolderVersion(string folderID)
         {
 //            m_log.DebugFormat("[MYSQL FOLDER HANDLER]: Incrementing version on folder {0}", folderID);
 //            Util.PrintCallStack();

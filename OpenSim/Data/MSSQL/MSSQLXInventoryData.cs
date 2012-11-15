@@ -122,7 +122,7 @@ namespace OpenSim.Data.MSSQL
         }
     }
 
-    public class MSSQLItemHandler : MSSQLGenericTableHandler<XInventoryItem>
+    public class MSSQLItemHandler : MSSQLInventoryHandler<XInventoryItem>
     {
         public MSSQLItemHandler(string c, string t, string m) :
             base(c, t, m)
@@ -213,43 +213,9 @@ namespace OpenSim.Data.MSSQL
 
             return true;
         }
-
-        private bool IncrementFolderVersion(UUID folderID)
-        {
-            return IncrementFolderVersion(folderID.ToString());
-        }
-
-        private bool IncrementFolderVersion(string folderID)
-        {
-//            m_log.DebugFormat("[MYSQL ITEM HANDLER]: Incrementing version on folder {0}", folderID);
-//            Util.PrintCallStack();
-
-            string sql = "update inventoryfolders set version=version+1 where folderID = ?folderID";
-            
-            using (SqlConnection conn = new SqlConnection(m_ConnectionString))
-            {
-                using (SqlCommand cmd = new SqlCommand(sql, conn))
-                {
-                    conn.Open();
-
-                    cmd.Parameters.AddWithValue("@folderID", folderID);
-
-                    try
-                    {
-                        cmd.ExecuteNonQuery();
-                    }
-                    catch (Exception)
-                    {
-                        return false;
-                    }
-                }
-            }
-
-            return true;
-        }
     }
 
-    public class MSSQLFolderHandler : MSSQLGenericTableHandler<XInventoryFolder>
+    public class MSSQLFolderHandler : MSSQLInventoryHandler<XInventoryFolder>
     {
         public MSSQLFolderHandler(string c, string t, string m) :
             base(c, t, m)
@@ -296,13 +262,18 @@ namespace OpenSim.Data.MSSQL
 
             return true;
         }
+    }
 
-        private bool IncrementFolderVersion(UUID folderID)
+    public class MSSQLInventoryHandler<T> : MSSQLGenericTableHandler<T> where T: class, new()
+    {
+        public MSSQLInventoryHandler(string c, string t, string m) : base(c, t, m) {}
+
+        protected bool IncrementFolderVersion(UUID folderID)
         {
             return IncrementFolderVersion(folderID.ToString());
         }
 
-        private bool IncrementFolderVersion(string folderID)
+        protected bool IncrementFolderVersion(string folderID)
         {
 //            m_log.DebugFormat("[MYSQL ITEM HANDLER]: Incrementing version on folder {0}", folderID);
 //            Util.PrintCallStack();

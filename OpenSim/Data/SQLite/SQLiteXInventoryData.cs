@@ -130,7 +130,7 @@ namespace OpenSim.Data.SQLite
         }
     }
 
-    public class SqliteItemHandler : SQLiteGenericTableHandler<XInventoryItem>
+    public class SqliteItemHandler : SqliteInventoryHandler<XInventoryItem>
     {
         public SqliteItemHandler(string c, string t, string m) :
                 base(c, t, m)
@@ -243,37 +243,9 @@ namespace OpenSim.Data.SQLite
 
             return perms;
         }
-
-        private bool IncrementFolderVersion(UUID folderID)
-        {
-            return IncrementFolderVersion(folderID.ToString());
-        }
-
-        private bool IncrementFolderVersion(string folderID)
-        {
-//            m_log.DebugFormat("[MYSQL ITEM HANDLER]: Incrementing version on folder {0}", folderID);
-//            Util.PrintCallStack();
-            
-            using (SqliteCommand cmd = new SqliteCommand())
-            {
-                cmd.CommandText = "update inventoryfolders set version=version+1 where folderID = ?folderID";
-                cmd.Parameters.Add(new SqliteParameter(":folderID", folderID));
-
-                try
-                {
-                    cmd.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
     }
 
-    public class SqliteFolderHandler : SQLiteGenericTableHandler<XInventoryFolder>
+    public class SqliteFolderHandler : SqliteInventoryHandler<XInventoryFolder>
     {
         public SqliteFolderHandler(string c, string t, string m) :
                 base(c, t, m)
@@ -315,12 +287,18 @@ namespace OpenSim.Data.SQLite
             return true;
         }
 
-        private bool IncrementFolderVersion(UUID folderID)
+    }
+
+    public class SqliteInventoryHandler<T> : SQLiteGenericTableHandler<T> where T: class, new()
+    {
+        public SqliteInventoryHandler(string c, string t, string m) : base(c, t, m) {}
+
+        protected bool IncrementFolderVersion(UUID folderID)
         {
             return IncrementFolderVersion(folderID.ToString());
         }
 
-        private bool IncrementFolderVersion(string folderID)
+        protected bool IncrementFolderVersion(string folderID)
         {
 //            m_log.DebugFormat("[MYSQL ITEM HANDLER]: Incrementing version on folder {0}", folderID);
 //            Util.PrintCallStack();
