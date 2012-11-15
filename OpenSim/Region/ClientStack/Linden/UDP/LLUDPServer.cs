@@ -469,6 +469,60 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             m_scene = (Scene)scene;
             m_location = new Location(m_scene.RegionInfo.RegionHandle);
+
+            // XXX: These stats are also pool stats but we register them separately since they are currently not
+            // turned on and off by EnablePools()/DisablePools()
+            StatsManager.RegisterStat(
+                new PercentageStat(
+                    "PacketsReused",
+                    "Packets reused",
+                    "Number of packets reused out of all requests to the packet pool",
+                    "clientstack",
+                    m_scene.Name,
+                    StatType.Pull,
+                    stat => 
+                        { PercentageStat pstat = (PercentageStat)stat; 
+                          pstat.Consequent = PacketPool.Instance.PacketsRequested; 
+                          pstat.Antecedent = PacketPool.Instance.PacketsReused; },
+                    StatVerbosity.Debug));
+
+            StatsManager.RegisterStat(
+                new PercentageStat(
+                    "PacketDataBlocksReused",
+                    "Packet data blocks reused",
+                    "Number of data blocks reused out of all requests to the packet pool",
+                    "clientstack",
+                    m_scene.Name,
+                    StatType.Pull,
+                    stat =>
+                        { PercentageStat pstat = (PercentageStat)stat; 
+                          pstat.Consequent = PacketPool.Instance.BlocksRequested; 
+                          pstat.Antecedent = PacketPool.Instance.BlocksReused; },
+                    StatVerbosity.Debug));
+
+            StatsManager.RegisterStat(
+                new Stat(
+                    "PacketsPoolCount",
+                    "Objects within the packet pool",
+                    "The number of objects currently stored within the packet pool",
+                    "",
+                    "clientstack",
+                    m_scene.Name,
+                    StatType.Pull,
+                    stat => stat.Value = PacketPool.Instance.PacketsPooled,
+                    StatVerbosity.Debug));
+
+            StatsManager.RegisterStat(
+                new Stat(
+                    "PacketDataBlocksPoolCount",
+                    "Objects within the packet data block pool",
+                    "The number of objects currently stored within the packet data block pool",
+                    "",
+                    "clientstack",
+                    m_scene.Name,
+                    StatType.Pull,
+                    stat => stat.Value = PacketPool.Instance.BlocksPooled,
+                    StatVerbosity.Debug));
         
             // We delay enabling pool stats to AddScene() instead of Initialize() so that we can distinguish pool stats by
             // scene name
