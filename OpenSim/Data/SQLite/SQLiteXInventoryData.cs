@@ -137,16 +137,72 @@ namespace OpenSim.Data.SQLite
         {
         }
 
+        public override bool Store(XInventoryItem item)
+        {
+            if (!base.Store(item))
+                return false;
+
+            IncrementFolderVersion(item.parentFolderID);
+
+            return true;
+        }
+
+        public override bool Delete(string field, string val)
+        {
+            XInventoryItem[] retrievedItems = Get(new string[] { field }, new string[] { val });
+            if (retrievedItems.Length == 0)
+                return false;
+
+            if (!base.Delete(field, val))
+                return false;
+
+            // Don't increment folder version here since Delete(string, string) calls Delete(string[], string[])
+//            IncrementFolderVersion(retrievedItems[0].parentFolderID);
+
+            return true;
+        }
+
+        public override bool Delete(string[] fields, string[] vals)
+        {
+            XInventoryItem[] retrievedItems = Get(fields, vals);
+            if (retrievedItems.Length == 0)
+                return false;
+
+            if (!base.Delete(fields, vals))
+                return false;
+
+            HashSet<UUID> deletedItemFolderUUIDs = new HashSet<UUID>();
+
+            Array.ForEach<XInventoryItem>(retrievedItems, i => deletedItemFolderUUIDs.Add(i.parentFolderID));
+
+            foreach (UUID deletedItemFolderUUID in deletedItemFolderUUIDs)
+                IncrementFolderVersion(deletedItemFolderUUID);
+
+            return true;
+        }
+
         public bool MoveItem(string id, string newParent)
         {
+            XInventoryItem[] retrievedItems = Get(new string[] { "inventoryID" }, new string[] { id });
+            if (retrievedItems.Length == 0)
+                return false;
+
+            UUID oldParent = retrievedItems[0].parentFolderID;
+
             using (SqliteCommand cmd = new SqliteCommand())
             {
                 cmd.CommandText = String.Format("update {0} set parentFolderID = :ParentFolderID where inventoryID = :InventoryID", m_Realm);
                 cmd.Parameters.Add(new SqliteParameter(":ParentFolderID", newParent));
                 cmd.Parameters.Add(new SqliteParameter(":InventoryID", id));
 
-                return ExecuteNonQuery(cmd, m_Connection) == 0 ? false : true;
+                if (ExecuteNonQuery(cmd, m_Connection) == 0)
+                    return false;
             }
+
+            IncrementFolderVersion(oldParent);
+            IncrementFolderVersion(newParent);
+
+            return true;
         }
 
         public XInventoryItem[] GetActiveGestures(UUID principalID)
@@ -187,6 +243,34 @@ namespace OpenSim.Data.SQLite
 
             return perms;
         }
+
+        private bool IncrementFolderVersion(UUID folderID)
+        {
+            return IncrementFolderVersion(folderID.ToString());
+        }
+
+        private bool IncrementFolderVersion(string folderID)
+        {
+//            m_log.DebugFormat("[MYSQL ITEM HANDLER]: Incrementing version on folder {0}", folderID);
+//            Util.PrintCallStack();
+            
+            using (SqliteCommand cmd = new SqliteCommand())
+            {
+                cmd.CommandText = "update inventoryfolders set version=version+1 where folderID = ?folderID";
+                cmd.Parameters.Add(new SqliteParameter(":folderID", folderID));
+
+                try
+                {
+                    cmd.ExecuteNonQuery();
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
     }
 
     public class SqliteFolderHandler : SQLiteGenericTableHandler<XInventoryFolder>
@@ -196,16 +280,67 @@ namespace OpenSim.Data.SQLite
         {
         }
 
+        public override bool Store(XInventoryFolder folder)
+        {
+            if (!base.Store(folder))
+                return false;
+
+            IncrementFolderVersion(folder.parentFolderID);
+
+            return true;
+        }
+
         public bool MoveFolder(string id, string newParentFolderID)
         {
+            XInventoryFolder[] folders = Get(new string[] { "folderID" }, new string[] { id });
+
+            if (folders.Length == 0)
+                return false;
+
+            UUID oldParentFolderUUID = folders[0].parentFolderID;
+
             using (SqliteCommand cmd = new SqliteCommand())
             {
                 cmd.CommandText = String.Format("update {0} set parentFolderID = :ParentFolderID where folderID = :FolderID", m_Realm);
                 cmd.Parameters.Add(new SqliteParameter(":ParentFolderID", newParentFolderID));
                 cmd.Parameters.Add(new SqliteParameter(":FolderID", id));
 
-                return ExecuteNonQuery(cmd, m_Connection) == 0 ? false : true;
+                if (ExecuteNonQuery(cmd, m_Connection) == 0)
+                    return false;
             }
+
+            IncrementFolderVersion(oldParentFolderUUID);
+            IncrementFolderVersion(newParentFolderID);
+
+            return true;
+        }
+
+        private bool IncrementFolderVersion(UUID folderID)
+        {
+            return IncrementFolderVersion(folderID.ToString());
+        }
+
+        private bool IncrementFolderVersion(string folderID)
+        {
+//            m_log.DebugFormat("[MYSQL ITEM HANDLER]: Incrementing version on folder {0}", folderID);
+//            Util.PrintCallStack();
+            
+            using (SqliteCommand cmd = new SqliteCommand())
+            {
+                cmd.CommandText = "update inventoryfolders set version=version+1 where folderID = ?folderID";
+                cmd.Parameters.Add(new SqliteParameter(":folderID", folderID));
+
+                try
+                {
+                    cmd.ExecuteNonQuery();
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 }
