@@ -99,6 +99,7 @@ namespace OpenSim.Capabilities.Handlers
             responsedata["content_type"] = "text/plain";
             responsedata["keepalive"] = false;
             responsedata["str_response_string"] = "Request wasn't what was expected";
+            responsedata["reusecontext"] = false;
 
             string meshStr = string.Empty;
 
@@ -114,6 +115,7 @@ namespace OpenSim.Capabilities.Handlers
                     responsedata["content_type"] = "text/plain";
                     responsedata["keepalive"] = false;
                     responsedata["str_response_string"] = "The asset service is unavailable.  So is your mesh.";
+                    responsedata["reusecontext"] = false;
                     return responsedata;
                 }
 
@@ -149,6 +151,7 @@ namespace OpenSim.Capabilities.Handlers
                                     responsedata["content_type"] = "text/plain";
                                     responsedata["keepalive"] = false;
                                     responsedata["str_response_string"] = "This range doesnt exist.";
+                                    responsedata["reusecontext"] = false;
                                     return responsedata;
                                 }
                                 else
@@ -166,6 +169,7 @@ namespace OpenSim.Capabilities.Handlers
                                         responsedata["int_response_code"] = (int) System.Net.HttpStatusCode.OK;
                                         responsedata["bin_response_data"] = mesh.Data;
                                         responsedata["int_bytes"] = mesh.Data.Length;
+                                        responsedata["reusecontext"] = false;
                                     }
                                     else
                                     {
@@ -178,6 +182,7 @@ namespace OpenSim.Capabilities.Handlers
                                         Array.Copy(mesh.Data, start, d, 0, len);
                                         responsedata["bin_response_data"] = d;
                                         responsedata["int_bytes"] = len;
+                                        responsedata["reusecontext"] = false;
                                     }
                                 }
                             }
@@ -187,6 +192,7 @@ namespace OpenSim.Capabilities.Handlers
                                 responsedata["str_response_string"] = Convert.ToBase64String(mesh.Data);
                                 responsedata["content_type"] = "application/vnd.ll.mesh";
                                 responsedata["int_response_code"] = 200;
+                                responsedata["reusecontext"] = false;
                             }
                         }
                         else
@@ -194,6 +200,7 @@ namespace OpenSim.Capabilities.Handlers
                             responsedata["str_response_string"] = Convert.ToBase64String(mesh.Data);
                             responsedata["content_type"] = "application/vnd.ll.mesh";
                             responsedata["int_response_code"] = 200;
+                            responsedata["reusecontext"] = false;
                         }
                     }
                     // Optionally add additional mesh types here
@@ -203,6 +210,7 @@ namespace OpenSim.Capabilities.Handlers
                         responsedata["content_type"] = "text/plain";
                         responsedata["keepalive"] = false;
                         responsedata["str_response_string"] = "Unfortunately, this asset isn't a mesh.";
+                        responsedata["reusecontext"] = false;
                         return responsedata;
                     }
                 }
@@ -212,6 +220,7 @@ namespace OpenSim.Capabilities.Handlers
                     responsedata["content_type"] = "text/plain";
                     responsedata["keepalive"] = false;
                     responsedata["str_response_string"] = "Your Mesh wasn't found.  Sorry!";
+                    responsedata["reusecontext"] = false;
                     return responsedata;
                 }
             }
