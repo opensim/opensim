@@ -50,8 +50,40 @@ using OpenSim.Tests.Common.Mock;
 namespace OpenSim.Region.Framework.Tests
 {
     [TestFixture]
-    public class UserInventoryTests
+    public class UserInventoryTests : OpenSimTestCase
     {
+        [Test]
+        public void TestCreateInventoryFolders()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            // For this test both folders will have the same name which is legal in SL user inventories.
+            string foldersName = "f1";
+
+            Scene scene = new SceneHelpers().SetupScene();
+            UserAccount user1 = UserAccountHelpers.CreateUserWithInventory(scene, TestHelpers.ParseTail(1001));
+
+            UserInventoryHelpers.CreateInventoryFolder(scene.InventoryService, user1.PrincipalID, foldersName);
+
+            List<InventoryFolderBase> oneFolder
+                = UserInventoryHelpers.GetInventoryFolders(scene.InventoryService, user1.PrincipalID, foldersName);
+
+            Assert.That(oneFolder.Count, Is.EqualTo(1));
+            InventoryFolderBase firstRetrievedFolder = oneFolder[0];
+            Assert.That(firstRetrievedFolder.Name, Is.EqualTo(foldersName));
+
+            UserInventoryHelpers.CreateInventoryFolder(scene.InventoryService, user1.PrincipalID, foldersName);
+
+            List<InventoryFolderBase> twoFolders
+                = UserInventoryHelpers.GetInventoryFolders(scene.InventoryService, user1.PrincipalID, foldersName);
+
+            Assert.That(twoFolders.Count, Is.EqualTo(2));
+            Assert.That(twoFolders[0].Name, Is.EqualTo(foldersName));
+            Assert.That(twoFolders[1].Name, Is.EqualTo(foldersName));
+            Assert.That(twoFolders[0].ID, Is.Not.EqualTo(twoFolders[1].ID));
+        }
+
         [Test]
         public void TestGiveInventoryItem()
         {
@@ -83,7 +115,7 @@ namespace OpenSim.Region.Framework.Tests
         public void TestGiveInventoryFolder()
         {
             TestHelpers.InMethod();
-//            log4net.Config.XmlConfigurator.Configure();
+//            TestHelpers.EnableLogging();
             
             Scene scene = new SceneHelpers().SetupScene();
             UserAccount user1 = UserAccountHelpers.CreateUserWithInventory(scene, TestHelpers.ParseTail(1001));

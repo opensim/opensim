@@ -67,6 +67,14 @@ namespace OpenSim.Region.Physics.OdePlugin
         private int m_expectedCollisionContacts = 0;
 
         /// <summary>
+        /// Gets collide bits so that we can still perform land collisions if a mesh fails to load.
+        /// </summary>
+        private int BadMeshAssetCollideBits
+        {
+            get { return m_isphysical ? (int)CollisionCategories.Land : 0; }
+        }
+
+        /// <summary>
         /// Is this prim subject to physics?  Even if not, it's still solid for collision purposes.
         /// </summary>
         public override bool IsPhysical
@@ -156,7 +164,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private PrimitiveBaseShape _pbs;
         private OdeScene _parent_scene;
-
+        
         /// <summary>
         /// The physics space which contains prim geometries
         /// </summary>
@@ -3333,7 +3341,6 @@ Console.WriteLine(" JointCreateFixed");
             m_material = pMaterial;
         }
 
-
         private void CheckMeshAsset()
         {
             if (_pbs.SculptEntry && !m_assetFailed && _pbs.SculptTexture != UUID.Zero)
@@ -3343,14 +3350,14 @@ Console.WriteLine(" JointCreateFixed");
                     {
                         RequestAssetDelegate assetProvider = _parent_scene.RequestAssetMethod;
                         if (assetProvider != null)
-                            assetProvider(_pbs.SculptTexture, MeshAssetReveived);
+                            assetProvider(_pbs.SculptTexture, MeshAssetReceived);
                     });
             }
         }
 
-        void MeshAssetReveived(AssetBase asset)
+        private void MeshAssetReceived(AssetBase asset)
         {
-            if (asset.Data != null && asset.Data.Length > 0)
+            if (asset != null && asset.Data != null && asset.Data.Length > 0)
             {
                 if (!_pbs.SculptEntry)
                     return;
@@ -3362,6 +3369,12 @@ Console.WriteLine(" JointCreateFixed");
 //                m_assetFailed = false;
                 m_taintshape = true;
                _parent_scene.AddPhysicsActorTaint(this);
+            }
+            else
+            {
+                m_log.WarnFormat(
+                    "[ODE PRIM]: Could not get mesh/sculpt asset {0} for {1} at {2} in {3}",
+                    _pbs.SculptTexture, Name, _position, _parent_scene.Name);
             }
         }          
     }

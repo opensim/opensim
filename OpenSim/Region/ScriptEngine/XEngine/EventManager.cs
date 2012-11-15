@@ -96,9 +96,12 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             if (part == null)
                 return;
 
+            if ((part.ScriptEvents & scriptEvents.money) == 0)
+                part = part.ParentGroup.RootPart;
+
             m_log.Debug("Paid: " + objectID + " from " + agentID + ", amount " + amount);
 
-            part = part.ParentGroup.RootPart;
+//            part = part.ParentGroup.RootPart;
             money(part.LocalId, agentID, amount);
         }
 
@@ -152,9 +155,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             det[0] = new DetectParams();
             det[0].Key = remoteClient.AgentId;
             det[0].Populate(myScriptEngine.World);
-            det[0].OffsetPos = new LSL_Types.Vector3(offsetPos.X,
-                                                     offsetPos.Y,
-                                                     offsetPos.Z);
+            det[0].OffsetPos = offsetPos;
 
             if (originalID == 0)
             {
@@ -298,9 +299,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             foreach (DetectedObject detobj in col.Colliders)
             {
                 DetectParams d = new DetectParams();
-                d.Position = new LSL_Types.Vector3(detobj.posVector.X,
-                    detobj.posVector.Y,
-                    detobj.posVector.Z);
+                d.Position = detobj.posVector;
                 d.Populate(myScriptEngine.World);
                 det.Add(d);
                 myScriptEngine.PostObjectEvent(localID, new EventParams(
@@ -318,9 +317,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             foreach (DetectedObject detobj in col.Colliders)
             {
                 DetectParams d = new DetectParams();
-                d.Position = new LSL_Types.Vector3(detobj.posVector.X,
-                    detobj.posVector.Y,
-                    detobj.posVector.Z);
+                d.Position = detobj.posVector;
                 d.Populate(myScriptEngine.World);
                 det.Add(d);
                 myScriptEngine.PostObjectEvent(localID, new EventParams(
@@ -337,9 +334,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             foreach (DetectedObject detobj in col.Colliders)
             {
                 DetectParams d = new DetectParams();
-                d.Position = new LSL_Types.Vector3(detobj.posVector.X,
-                    detobj.posVector.Y,
-                    detobj.posVector.Z);
+                d.Position = detobj.posVector;
                 d.Populate(myScriptEngine.World);
                 det.Add(d);
                 myScriptEngine.PostObjectEvent(localID, new EventParams(
@@ -381,8 +376,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             myScriptEngine.PostObjectEvent(localID, new EventParams(
                     "at_target", new object[] {
                     new LSL_Types.LSLInteger(handle),
-                    new LSL_Types.Vector3(targetpos.X,targetpos.Y,targetpos.Z),
-                    new LSL_Types.Vector3(atpos.X,atpos.Y,atpos.Z) },
+                    new LSL_Types.Vector3(targetpos),
+                    new LSL_Types.Vector3(atpos) },
                     new DetectParams[0]));
         }
 
@@ -399,8 +394,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             myScriptEngine.PostObjectEvent(localID, new EventParams(
                     "at_rot_target", new object[] {
                     new LSL_Types.LSLInteger(handle),
-                    new LSL_Types.Quaternion(targetrot.X,targetrot.Y,targetrot.Z,targetrot.W),
-                    new LSL_Types.Quaternion(atrot.X,atrot.Y,atrot.Z,atrot.W) },
+                    new LSL_Types.Quaternion(targetrot),
+                    new LSL_Types.Quaternion(atrot) },
                     new DetectParams[0]));
         }
 

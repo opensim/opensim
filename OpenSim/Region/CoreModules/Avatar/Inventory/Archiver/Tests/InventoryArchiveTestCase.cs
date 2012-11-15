@@ -82,18 +82,30 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         
         protected string m_item1Name = "Ray Gun Item";
         protected string m_coaItemName = "Coalesced Item";
-        
+
+        [TestFixtureSetUp]
+        public void FixtureSetup()
+        {
+            // Don't allow tests to be bamboozled by asynchronous events.  Execute everything on the same thread.
+            Util.FireAndForgetMethod = FireAndForgetMethod.RegressionTest;
+
+            ConstructDefaultIarBytesForTestLoad();
+        }
+
+        [TestFixtureTearDown]
+        public void TearDown()
+        {
+            // We must set this back afterwards, otherwise later tests will fail since they're expecting multiple
+            // threads.  Possibly, later tests should be rewritten so none of them require async stuff (which regression
+            // tests really shouldn't).
+            Util.FireAndForgetMethod = Util.DefaultFireAndForgetMethod;
+        }
+
         [SetUp]
         public override void SetUp()
         {
             base.SetUp();
             m_iarStream = new MemoryStream(m_iarStreamBytes);
-        }
-        
-        [TestFixtureSetUp]
-        public void FixtureSetup()
-        {
-            ConstructDefaultIarBytesForTestLoad();
         }
         
         protected void ConstructDefaultIarBytesForTestLoad()

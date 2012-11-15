@@ -15,6 +15,7 @@
         <RegionModule id="InventoryAccessModule" type="OpenSim.Region.CoreModules.Framework.InventoryAccess.BasicInventoryAccessModule" />
         <RegionModule id="HGInventoryAccessModule" type="OpenSim.Region.CoreModules.Framework.InventoryAccess.HGInventoryAccessModule" />
         <RegionModule id="LandManagementModule" type="OpenSim.Region.CoreModules.World.Land.LandManagementModule" />
+        <RegionModule id="DwellModule" type="OpenSim.Region.CoreModules.World.Land.DwellModule" />
         <RegionModule id="PrimCountModule" type="OpenSim.Region.CoreModules.World.Land.PrimCountModule" />
         <RegionModule id="ExportSerialisationModule" type="OpenSim.Region.CoreModules.World.Serialiser.SerialiserModule" />
         <RegionModule id="ArchiverModule" type="OpenSim.Region.CoreModules.World.Archiver.ArchiverModule" />

@@ -327,6 +327,14 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     return;
                 }
 
+                // Validate assorted conditions
+                string reason = string.Empty;
+                if (!ValidateGenericConditions(sp, reg, finalDestination, teleportFlags, out reason))
+                {
+                    sp.ControllingClient.SendTeleportFailed(reason);
+                    return;
+                }
+
                 //
                 // This is it
                 //
@@ -356,6 +364,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 blocks.Add(block);
                 sp.ControllingClient.SendMapBlock(blocks, 0);
             }
+        }
+
+        // Nothing to validate here
+        protected virtual bool ValidateGenericConditions(ScenePresence sp, GridRegion reg, GridRegion finalDestination, uint teleportFlags, out string reason)
+        {
+            reason = String.Empty;
+            return true;
         }
 
         /// <summary>
@@ -473,10 +488,11 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // both regions
             if (sp.ParentID != (uint)0)
                 sp.StandUp();
-
             else if (sp.Flying)
                 teleportFlags |= (uint)TeleportFlags.IsFlying;
 
+            // At least on LL 3.3.4, this is not strictly necessary - a teleport will succeed without sending this to
+            // the viewer.  However, it might mean that the viewer does not see the black teleport screen (untested).
             sp.ControllingClient.SendTeleportStart(teleportFlags);
 
             // the avatar.Close below will clear the child region list. We need this below for (possibly)
@@ -552,8 +568,11 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     // So let's wait
                     Thread.Sleep(200);
 
+                    // At least on LL 3.3.4 for teleports between different regions on the same simulator this appears
+                    // unnecessary - teleport will succeed and SEED caps will be requested without it (though possibly
+                    // only on TeleportFinish).  This is untested for region teleport between different simulators
+                    // though this probably also works.
                     m_eqModule.EstablishAgentCommunication(sp.UUID, endPoint, capsPath);
-
                 }
                 else
                 {
@@ -574,7 +593,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             //sp.ControllingClient.SendTeleportProgress(teleportFlags, "Updating agent...");
 
-            if (!UpdateAgent(reg, finalDestination, agent))
+            if (!UpdateAgent(reg, finalDestination, agent, sp))
             {
                 // Region doesn't take it
                 m_log.WarnFormat(
@@ -650,7 +669,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 // an agent cannot teleport back to this region if it has teleported away.
                 Thread.Sleep(3000);
 
-                sp.Scene.IncomingCloseAgent(sp.UUID);
+                sp.Scene.IncomingCloseAgent(sp.UUID, false);
             }
             else
             {
@@ -658,13 +677,14 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 sp.Reset();
             }
 
-            // REFACTORING PROBLEM. Well, not a problem, but this method is HORRIBLE!
-            if (sp.Scene.NeedSceneCacheClear(sp.UUID))
-            {
-                m_log.DebugFormat(
-                    "[ENTITY TRANSFER MODULE]: User {0} is going to another region, profile cache removed",
-                    sp.UUID);
-            }
+            // Commented pending deletion since this method no longer appears to do anything at all
+//            // REFACTORING PROBLEM. Well, not a problem, but this method is HORRIBLE!
+//            if (sp.Scene.NeedSceneCacheClear(sp.UUID))
+//            {
+//                m_log.DebugFormat(
+//                    "[ENTITY TRANSFER MODULE]: User {0} is going to another region, profile cache removed",
+//                    sp.UUID);
+//            }
 
             m_entityTransferStateMachine.ResetFromTransit(sp.UUID);
         }
@@ -701,7 +721,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             return success;
         }
 
-        protected virtual bool UpdateAgent(GridRegion reg, GridRegion finalDestination, AgentData agent)
+        protected virtual bool UpdateAgent(GridRegion reg, GridRegion finalDestination, AgentData agent, ScenePresence sp)
         {
             return Scene.SimulationService.UpdateAgent(finalDestination, agent);
         }
@@ -1013,6 +1033,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             Scene initiatingScene)
         {
             Thread.Sleep(10000);
+            
             IMessageTransferModule im = initiatingScene.RequestModuleInterface<IMessageTransferModule>();
             if (im != null)
             {
@@ -1025,11 +1046,22 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     (uint)(int)position.X,
                     (uint)(int)position.Y,
                     (uint)(int)position.Z);
-                GridInstantMessage m = new GridInstantMessage(initiatingScene, UUID.Zero,
-                "Region", agent.UUID,
-                (byte)InstantMessageDialog.GodLikeRequestTeleport, false,
-                "", gotoLocation, false, new Vector3(127, 0, 0),
-                new Byte[0]);
+
+                GridInstantMessage m
+                    = new GridInstantMessage(
+                        initiatingScene,
+                        UUID.Zero,
+                        "Region",
+                        agent.UUID,
+                        (byte)InstantMessageDialog.GodLikeRequestTeleport,
+                        false,
+                        "",
+                        gotoLocation,
+                        false,
+                        new Vector3(127, 0, 0),
+                        new Byte[0],
+                        false);
+
                 im.SendInstantMessage(m, delegate(bool success)
                 {
                     m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Client Initiating Teleport sending IM success = {0}", success);
@@ -1191,11 +1223,11 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // the user may change their profile information in other region,
             // so the userinfo in UserProfileCache is not reliable any more, delete it
             // REFACTORING PROBLEM. Well, not a problem, but this method is HORRIBLE!
-            if (agent.Scene.NeedSceneCacheClear(agent.UUID))
-            {
-                m_log.DebugFormat(
-                    "[ENTITY TRANSFER MODULE]: User {0} is going to another region", agent.UUID);
-            }
+//            if (agent.Scene.NeedSceneCacheClear(agent.UUID))
+//            {
+//                m_log.DebugFormat(
+//                    "[ENTITY TRANSFER MODULE]: User {0} is going to another region", agent.UUID);
+//            }
 
             //m_log.Debug("AFTER CROSS");
             //Scene.DumpChildrenSeeds(UUID);

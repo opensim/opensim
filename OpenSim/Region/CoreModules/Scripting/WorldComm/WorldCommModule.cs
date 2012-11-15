@@ -28,6 +28,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -172,12 +173,42 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
         /// <param name="hostID">UUID of the SceneObjectPart</param>
         /// <param name="channel">channel to listen on</param>
         /// <param name="name">name to filter on</param>
-        /// <param name="id">key to filter on (user given, could be totally faked)</param>
+        /// <param name="id">
+        /// key to filter on (user given, could be totally faked)
+        /// </param>
         /// <param name="msg">msg to filter on</param>
         /// <returns>number of the scripts handle</returns>
-        public int Listen(uint localID, UUID itemID, UUID hostID, int channel, string name, UUID id, string msg)
+        public int Listen(uint localID, UUID itemID, UUID hostID, int channel,
+                string name, UUID id, string msg)
         {
-            return m_listenerManager.AddListener(localID, itemID, hostID, channel, name, id, msg);
+            return m_listenerManager.AddListener(localID, itemID, hostID,
+                channel, name, id, msg);
+        }
+
+        /// <summary>
+        /// Create a listen event callback with the specified filters.
+        /// The parameters localID,itemID are needed to uniquely identify
+        /// the script during 'peek' time. Parameter hostID is needed to
+        /// determine the position of the script.
+        /// </summary>
+        /// <param name="localID">localID of the script engine</param>
+        /// <param name="itemID">UUID of the script engine</param>
+        /// <param name="hostID">UUID of the SceneObjectPart</param>
+        /// <param name="channel">channel to listen on</param>
+        /// <param name="name">name to filter on</param>
+        /// <param name="id">
+        /// key to filter on (user given, could be totally faked)
+        /// </param>
+        /// <param name="msg">msg to filter on</param>
+        /// <param name="regexBitfield">
+        /// Bitfield indicating which strings should be processed as regex.
+        /// </param>
+        /// <returns>number of the scripts handle</returns>
+        public int Listen(uint localID, UUID itemID, UUID hostID, int channel,
+                string name, UUID id, string msg, int regexBitfield)
+        {
+            return m_listenerManager.AddListener(localID, itemID, hostID,
+                    channel, name, id, msg, regexBitfield);
         }
 
         /// <summary>
@@ -326,7 +357,7 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                 if (channel == 0)
                 {
                     // Channel 0 goes to viewer ONLY
-                    m_scene.SimChat(Utils.StringToBytes(msg), ChatTypeEnum.Broadcast, 0, pos, name, id, false, false, target);
+                    m_scene.SimChat(Utils.StringToBytes(msg), ChatTypeEnum.Broadcast, 0, pos, name, id, target, false, false);
                     return true;
                 }
 
@@ -470,15 +501,25 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
             m_curlisteners = 0;
         }
 
-        public int AddListener(uint localID, UUID itemID, UUID hostID, int channel, string name, UUID id, string msg)
+        public int AddListener(uint localID, UUID itemID, UUID hostID,
+                int channel, string name, UUID id, string msg)
+        {
+            return AddListener(localID, itemID, hostID, channel, name, id,
+                    msg, 0);
+        }
+
+        public int AddListener(uint localID, UUID itemID, UUID hostID,
+                int channel, string name, UUID id, string msg,
+                int regexBitfield)
         {
             // do we already have a match on this particular filter event?
-            List<ListenerInfo> coll = GetListeners(itemID, channel, name, id, msg);
+            List<ListenerInfo> coll = GetListeners(itemID, channel, name, id,
+                    msg);
 
             if (coll.Count > 0)
             {
-                // special case, called with same filter settings, return same handle
-                // (2008-05-02, tested on 1.21.1 server, still holds)
+                // special case, called with same filter settings, return same
+                // handle (2008-05-02, tested on 1.21.1 server, still holds)
                 return coll[0].GetHandle();
             }
 
@@ -490,7 +531,9 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
 
                     if (newHandle > 0)
                     {
-                        ListenerInfo li = new ListenerInfo(newHandle, localID, itemID, hostID, channel, name, id, msg);
+                        ListenerInfo li = new ListenerInfo(newHandle, localID,
+                                itemID, hostID, channel, name, id, msg,
+                                regexBitfield);
 
                             List<ListenerInfo> listeners;
                             if (!m_listeners.TryGetValue(channel,out listeners))
@@ -631,6 +674,22 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
             return -1;
         }
 
+        /// These are duplicated from ScriptBaseClass
+        /// http://opensimulator.org/mantis/view.php?id=6106#c21945
+        #region Constants for the bitfield parameter of osListenRegex
+
+        /// <summary>
+        /// process name parameter as regex
+        /// </summary>
+        public const int OS_LISTEN_REGEX_NAME = 0x1;
+
+        /// <summary>
+        /// process message parameter as regex
+        /// </summary>
+        public const int OS_LISTEN_REGEX_MESSAGE = 0x2;
+
+        #endregion
+
         // Theres probably a more clever and efficient way to
         // do this, maybe with regex.
         // PM2008: Ha, one could even be smart and define a specialized Enumerator.
@@ -656,7 +715,10 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                     {
                         continue;
                     }
-                    if (li.GetName().Length > 0 && !li.GetName().Equals(name))
+                    if (li.GetName().Length > 0 && (
+                        ((li.RegexBitfield & OS_LISTEN_REGEX_NAME) != OS_LISTEN_REGEX_NAME && !li.GetName().Equals(name)) ||
+                        ((li.RegexBitfield & OS_LISTEN_REGEX_NAME) == OS_LISTEN_REGEX_NAME && !Regex.IsMatch(name, li.GetName()))
+                    ))
                     {
                         continue;
                     }
@@ -664,7 +726,10 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                     {
                         continue;
                     }
-                    if (li.GetMessage().Length > 0 && !li.GetMessage().Equals(msg))
+                    if (li.GetMessage().Length > 0 && (
+                        ((li.RegexBitfield & OS_LISTEN_REGEX_MESSAGE) != OS_LISTEN_REGEX_MESSAGE && !li.GetMessage().Equals(msg)) ||
+                        ((li.RegexBitfield & OS_LISTEN_REGEX_MESSAGE) == OS_LISTEN_REGEX_MESSAGE && !Regex.IsMatch(msg, li.GetMessage()))
+                    ))
                     {
                         continue;
                     }
@@ -697,10 +762,13 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
         {
             int idx = 0;
             Object[] item = new Object[6];
+            int dataItemLength = 6;
 
             while (idx < data.Length)
             {
-                Array.Copy(data, idx, item, 0, 6);
+                dataItemLength = (idx + 7 == data.Length || (idx + 7 < data.Length && data[idx + 7] is bool)) ? 7 : 6;
+                item = new Object[dataItemLength];
+                Array.Copy(data, idx, item, 0, dataItemLength);
 
                 ListenerInfo info =
                         ListenerInfo.FromData(localID, itemID, hostID, item);
@@ -712,12 +780,12 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                     m_listeners[(int)item[2]].Add(info);
                 }
 
-                idx+=6;
+                idx+=dataItemLength;
             }
         }
     }
 
-    public class ListenerInfo: IWorldCommListenerInfo
+    public class ListenerInfo : IWorldCommListenerInfo
     {
         private bool m_active; // Listener is active or not
         private int m_handle; // Assigned handle of this listener
@@ -731,16 +799,29 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
 
         public ListenerInfo(int handle, uint localID, UUID ItemID, UUID hostID, int channel, string name, UUID id, string message)
         {
-            Initialise(handle, localID, ItemID, hostID, channel, name, id, message);
+            Initialise(handle, localID, ItemID, hostID, channel, name, id,
+                    message, 0);
+        }
+
+        public ListenerInfo(int handle, uint localID, UUID ItemID,
+                UUID hostID, int channel, string name, UUID id,
+                string message, int regexBitfield)
+        {
+            Initialise(handle, localID, ItemID, hostID, channel, name, id,
+                    message, regexBitfield);
         }
 
         public ListenerInfo(ListenerInfo li, string name, UUID id, string message)
         {
-            Initialise(li.m_handle, li.m_localID, li.m_itemID, li.m_hostID, li.m_channel, name, id, message);
+            Initialise(li.m_handle, li.m_localID, li.m_itemID, li.m_hostID, li.m_channel, name, id, message, 0);
         }
 
-        private void Initialise(int handle, uint localID, UUID ItemID, UUID hostID, int channel, string name,
-                                UUID id, string message)
+        public ListenerInfo(ListenerInfo li, string name, UUID id, string message, int regexBitfield)
+        {
+            Initialise(li.m_handle, li.m_localID, li.m_itemID, li.m_hostID, li.m_channel, name, id, message, regexBitfield);
+        }
+
+        private void Initialise(int handle, uint localID, UUID ItemID, UUID hostID, int channel, string name, UUID id, string message, int regexBitfield)
         {
             m_active = true;
             m_handle = handle;
@@ -751,11 +832,12 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
             m_name = name;
             m_id = id;
             m_message = message;
+            RegexBitfield = regexBitfield;
         }
 
         public Object[] GetSerializationData()
         {
-            Object[] data = new Object[6];
+            Object[] data = new Object[7];
 
             data[0] = m_active;
             data[1] = m_handle;
@@ -763,16 +845,19 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
             data[3] = m_name;
             data[4] = m_id;
             data[5] = m_message;
+            data[6] = RegexBitfield;
 
             return data;
         }
 
         public static ListenerInfo FromData(uint localID, UUID ItemID, UUID hostID, Object[] data)
         {
-            ListenerInfo linfo = new ListenerInfo((int)data[1], localID,
-                    ItemID, hostID, (int)data[2], (string)data[3],
-                    (UUID)data[4], (string)data[5]);
-            linfo.m_active=(bool)data[0];
+            ListenerInfo linfo = new ListenerInfo((int)data[1], localID, ItemID, hostID, (int)data[2], (string)data[3], (UUID)data[4], (string)data[5]);
+            linfo.m_active = (bool)data[0];
+            if (data.Length >= 7)
+            {
+                linfo.RegexBitfield = (int)data[6];
+            }
 
             return linfo;
         }
@@ -831,5 +916,7 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
         {
             return m_id;
         }
+
+        public int RegexBitfield { get; private set; }
     }
 }

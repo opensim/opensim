@@ -531,13 +531,9 @@ namespace OpenSim.Tests.Common.Mock
         {
         }
 
-        public virtual void SendChatMessage(string message, byte type, Vector3 fromPos, string fromName,
-                                            UUID fromAgentID, byte source, byte audible)
-        {
-        }
-
-        public virtual void SendChatMessage(byte[] message, byte type, Vector3 fromPos, string fromName,
-                                            UUID fromAgentID, byte source, byte audible)
+        public virtual void SendChatMessage(
+            string message, byte type, Vector3 fromPos, string fromName,
+            UUID fromAgentID, UUID ownerID, byte source, byte audible)
         {
         }
 
@@ -939,12 +935,12 @@ namespace OpenSim.Tests.Common.Mock
             Close();
         }
 
-        public void Close(bool c)
+        public void Close()
         {
-            Close();
+            Close(true, false);
         }
 
-        public void Close()
+        public void Close(bool sendStop, bool force)
         {
             // Fire the callback for this connection closing
             // This is necesary to get the presence detector to notice that a client has logged out.

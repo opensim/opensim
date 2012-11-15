@@ -429,8 +429,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
        LSL_Integer llGetLinkNumberOfSides(LSL_Integer link);
               void llSetPhysicsMaterial(int material_bits, float material_gravity_modifier, float material_restitution, float material_friction, float material_density);
 
-              void SetPrimitiveParamsEx(LSL_Key prim, LSL_List rules);
-          LSL_List GetLinkPrimitiveParamsEx(LSL_Key prim, LSL_List rules);
+              void SetPrimitiveParamsEx(LSL_Key prim, LSL_List rules, string originFunc);
               void llSetKeyframedMotion(LSL_List frames, LSL_List options);
+          LSL_List GetPrimitiveParamsEx(LSL_Key prim, LSL_List rules);
     }
 }

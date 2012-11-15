@@ -93,7 +93,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void StartScripts()
         {
-            m_log.InfoFormat("[SCENE]: Starting scripts in {0}, please wait.", RegionInfo.RegionName);
+//            m_log.InfoFormat("[SCENE]: Starting scripts in {0}, please wait.", RegionInfo.RegionName);
 
             IScriptModule[] engines = RequestModuleInterfaces<IScriptModule>();
 
@@ -1469,7 +1469,7 @@ namespace OpenSim.Region.Framework.Scenes
             return newFolderID;
         }
 
-        private void SendInventoryUpdate(IClientAPI client, InventoryFolderBase folder, bool fetchFolders, bool fetchItems)
+        public void SendInventoryUpdate(IClientAPI client, InventoryFolderBase folder, bool fetchFolders, bool fetchItems)
         {
             if (folder == null)
                 return;
@@ -1993,6 +1993,9 @@ namespace OpenSim.Region.Framework.Scenes
                     continue;
 
                 SceneObjectGroup grp = part.ParentGroup;
+
+                // If child prims have invalid perms, fix them
+                grp.AdjustChildPrimPermissions();
 
                 // If child prims have invalid perms, fix them
                 grp.AdjustChildPrimPermissions();

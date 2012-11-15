@@ -181,7 +181,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
             }
         }
 
-        void OnOarFileLoaded(Guid requestId, string message)
+        void OnOarFileLoaded(Guid requestId, List<UUID> loadedScenes, string message)
         {
             m_oarFileLoading = true;
 

@@ -222,6 +222,13 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                     bitmap = ImageUtils.ResizeImage(origBitmap, viewport.Width, viewport.Height);
             }
 
+            // XXX: It shouldn't really be necesary to force a GC here as one should occur anyway pretty shortly
+            // afterwards.  It's generally regarded as a bad idea to manually GC.  If Warp3D is using lots of memory
+            // then this may be some issue with the Warp3D code itself, though it's also quite possible that generating
+            // this map tile simply takes a lot of memory.
+            GC.Collect();
+            m_log.Debug("[WARP 3D IMAGE MODULE]: GC.Collect()");
+
             return bitmap;
         }
 

@@ -30,6 +30,8 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using log4net;
+using OpenSim.Framework;
+using OpenSim.Framework.Monitoring;
 
 namespace OpenMetaverse
 {
@@ -58,17 +60,31 @@ namespace OpenMetaverse
         /// <summary>Flag to process packets asynchronously or synchronously</summary>
         private bool m_asyncPacketHandling;
 
-        /// <summary>The all important shutdown flag</summary>
-        private volatile bool m_shutdownFlag = true;
+        /// <summary>
+        /// Pool to use for handling data.  May be null if UsePools = false;
+        /// </summary>
+        protected OpenSim.Framework.Pool<UDPPacketBuffer> m_pool;
 
-        /// <summary>Returns true if the server is currently listening, otherwise false</summary>
-        public bool IsRunning { get { return !m_shutdownFlag; } }
+        /// <summary>
+        /// Are we to use object pool(s) to reduce memory churn when receiving data?
+        /// </summary>
+        public bool UsePools { get; protected set; }
+
+        /// <summary>Returns true if the server is currently listening for inbound packets, otherwise false</summary>
+        public bool IsRunningInbound { get; private set; }
+
+        /// <summary>Returns true if the server is currently sending outbound packets, otherwise false</summary>
+        /// <remarks>If IsRunningOut = false, then any request to send a packet is simply dropped.</remarks>
+        public bool IsRunningOutbound { get; private set; }
+
+        private Stat m_poolCountStat;
 
         /// <summary>
         /// Default constructor
         /// </summary>
         /// <param name="bindAddress">Local IP address to bind the server to</param>
         /// <param name="port">Port to listening for incoming UDP packets on</param>
+        /// /// <param name="usePool">Are we to use an object pool to get objects for handing inbound data?</param>
         public OpenSimUDPBase(IPAddress bindAddress, int port)
         {
             m_localBindAddress = bindAddress;
@@ -76,7 +92,7 @@ namespace OpenMetaverse
         }
 
         /// <summary>
-        /// Start the UDP server
+        /// Start inbound UDP packet handling.
         /// </summary>
         /// <param name="recvBufferSize">The size of the receive buffer for 
         /// the UDP socket. This value is passed up to the operating system 
@@ -91,11 +107,11 @@ namespace OpenMetaverse
         /// manner (not throwing an exception when the remote side resets the
         /// connection). This call is ignored on Mono where the flag is not
         /// necessary</remarks>
-        public void Start(int recvBufferSize, bool asyncPacketHandling)
+        public void StartInbound(int recvBufferSize, bool asyncPacketHandling)
         {
             m_asyncPacketHandling = asyncPacketHandling;
 
-            if (m_shutdownFlag)
+            if (!IsRunningInbound)
             {
                 const int SIO_UDP_CONNRESET = -1744830452;
 
@@ -123,8 +139,7 @@ namespace OpenMetaverse
 
                 m_udpSocket.Bind(ipep);
 
-                // we're not shutting down, we're starting up
-                m_shutdownFlag = false;
+                IsRunningInbound = true;
 
                 // kick off an async receive.  The Start() method will return, the
                 // actual receives will occur asynchronously and will be caught in
@@ -134,28 +149,84 @@ namespace OpenMetaverse
         }
 
         /// <summary>
-        /// Stops the UDP server
+        /// Start outbound UDP packet handling.
         /// </summary>
-        public void Stop()
+        public void StartOutbound()
         {
-            if (!m_shutdownFlag)
+            IsRunningOutbound = true;
+        }
+
+        public void StopInbound()
+        {
+            if (IsRunningInbound)
             {
                 // wait indefinitely for a writer lock.  Once this is called, the .NET runtime
                 // will deny any more reader locks, in effect blocking all other send/receive
-                // threads.  Once we have the lock, we set shutdownFlag to inform the other
+                // threads.  Once we have the lock, we set IsRunningInbound = false to inform the other
                 // threads that the socket is closed.
-                m_shutdownFlag = true;
+                IsRunningInbound = false;
                 m_udpSocket.Close();
             }
         }
 
+        public void StopOutbound()
+        {
+            IsRunningOutbound = false;
+        }
+
+        protected virtual bool EnablePools()
+        {
+            if (!UsePools)
+            {
+                m_pool = new Pool<UDPPacketBuffer>(() => new UDPPacketBuffer(), 500);
+
+                m_poolCountStat
+                    = new Stat(
+                        "UDPPacketBufferPoolCount",
+                        "Objects within the UDPPacketBuffer pool",
+                        "The number of objects currently stored within the UDPPacketBuffer pool",
+                        "",
+                        "clientstack",
+                        "packetpool",
+                        StatType.Pull,
+                        stat => stat.Value = m_pool.Count,
+                        StatVerbosity.Debug);
+
+                StatsManager.RegisterStat(m_poolCountStat);
+
+                UsePools = true;
+
+                return true;
+            }
+
+            return false;
+        }
+
+        protected virtual bool DisablePools()
+        {
+            if (UsePools)
+            {
+                UsePools = false;
+                StatsManager.DeregisterStat(m_poolCountStat);
+
+                // We won't null out the pool to avoid a race condition with code that may be in the middle of using it.
+
+                return true;
+            }
+
+            return false;
+        }
+
         private void AsyncBeginReceive()
         {
-            // allocate a packet buffer
-            //WrappedObject<UDPPacketBuffer> wrappedBuffer = Pool.CheckOut();
-            UDPPacketBuffer buf = new UDPPacketBuffer();
+            UDPPacketBuffer buf;
 
-            if (!m_shutdownFlag)
+            if (UsePools)
+                buf = m_pool.GetObject();
+            else
+                buf = new UDPPacketBuffer();
+
+            if (IsRunningInbound)
             {
                 try
                 {
@@ -208,7 +279,7 @@ namespace OpenMetaverse
         {
             // Asynchronous receive operations will complete here through the call
             // to AsyncBeginReceive
-            if (!m_shutdownFlag)
+            if (IsRunningInbound)
             {
                 // Asynchronous mode will start another receive before the
                 // callback for this packet is even fired. Very parallel :-)
@@ -217,8 +288,6 @@ namespace OpenMetaverse
 
                 // get the buffer that was created in AsyncBeginReceive
                 // this is the received data
-                //WrappedObject<UDPPacketBuffer> wrappedBuffer = (WrappedObject<UDPPacketBuffer>)iar.AsyncState;
-                //UDPPacketBuffer buffer = wrappedBuffer.Instance;
                 UDPPacketBuffer buffer = (UDPPacketBuffer)iar.AsyncState;
 
                 try
@@ -235,7 +304,8 @@ namespace OpenMetaverse
                 catch (ObjectDisposedException) { }
                 finally
                 {
-                    //wrappedBuffer.Dispose();
+                    if (UsePools)
+                        m_pool.ReturnObject(buffer);
 
                     // Synchronous mode waits until the packet callback completes
                     // before starting the receive to fetch another packet
@@ -248,7 +318,7 @@ namespace OpenMetaverse
 
         public void AsyncBeginSend(UDPPacketBuffer buf)
         {
-            if (!m_shutdownFlag)
+            if (IsRunningOutbound)
             {
                 try
                 {

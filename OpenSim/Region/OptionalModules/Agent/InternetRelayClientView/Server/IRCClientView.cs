@@ -891,10 +891,10 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
         public void Close()
         {
-            Close(true);
+            Close(true, false);
         }
 
-        public void Close(bool sendStop)
+        public void Close(bool sendStop, bool force)
         {
             Disconnect();
         }
@@ -959,7 +959,8 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
             
         }
 
-        public void SendChatMessage(string message, byte type, Vector3 fromPos, string fromName, UUID fromAgentID, byte source, byte audible)
+        public void SendChatMessage(
+            string message, byte type, Vector3 fromPos, string fromName, UUID fromAgentID, UUID ownerID, byte source, byte audible)
         {
             if (audible > 0 && message.Length > 0)
                 IRC_SendChannelPrivmsg(fromName, message);

@@ -52,7 +52,7 @@ using OpenSim.Services.Interfaces;
 [assembly: Addin("FlotsamAssetCache", "1.1")]
 [assembly: AddinDependency("OpenSim", "0.5")]
 
-namespace Flotsam.RegionModules.AssetCache
+namespace OpenSim.Region.CoreModules.Asset
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
     public class FlotsamAssetCache : ISharedRegionModule, IImprovedAssetCache, IAssetService
@@ -106,8 +106,6 @@ namespace Flotsam.RegionModules.AssetCache
 
         private IAssetService m_AssetService;
         private List<Scene> m_Scenes = new List<Scene>();
-
-        private bool m_DeepScanBeforePurge;
 
         public FlotsamAssetCache()
         {
@@ -170,8 +168,6 @@ namespace Flotsam.RegionModules.AssetCache
                         m_CacheDirectoryTierLen = assetConfig.GetInt("CacheDirectoryTierLength", m_CacheDirectoryTierLen);
 
                         m_CacheWarnAt = assetConfig.GetInt("CacheWarnAt", m_CacheWarnAt);
-
-                        m_DeepScanBeforePurge = assetConfig.GetBoolean("DeepScanBeforePurge", m_DeepScanBeforePurge);
                     }
 
                     m_log.InfoFormat("[FLOTSAM ASSET CACHE]: Cache Directory {0}", m_CacheDirectory);
@@ -519,13 +515,10 @@ namespace Flotsam.RegionModules.AssetCache
             // Purge all files last accessed prior to this point
             DateTime purgeLine = DateTime.Now - m_FileExpiration;
 
-            // An optional deep scan at this point will ensure assets present in scenes,
-            // or referenced by objects in the scene, but not recently accessed 
-            // are not purged.
-            if (m_DeepScanBeforePurge)
-            {
-                CacheScenes();
-            }
+            // An asset cache may contain local non-temporary assets that are not in the asset service.  Therefore,
+            // before cleaning up expired files we must scan the objects in the scene to make sure that we retain
+            // such local assets if they have not been recently accessed.
+            TouchAllSceneAssets(false);
 
             foreach (string dir in Directory.GetDirectories(m_CacheDirectory))
             {
@@ -718,11 +711,14 @@ namespace Flotsam.RegionModules.AssetCache
 
         /// <summary>
         /// Iterates through all Scenes, doing a deep scan through assets 
-        /// to cache all assets present in the scene or referenced by assets 
-        /// in the scene
+        /// to update the access time of all assets present in the scene or referenced by assets
+        /// in the scene.
         /// </summary>
-        /// <returns></returns>
-        private int CacheScenes()
+        /// <param name="storeUncached">
+        /// If true, then assets scanned which are not found in cache are added to the cache.
+        /// </param>
+        /// <returns>Number of distinct asset references found in the scene.</returns>
+        private int TouchAllSceneAssets(bool storeUncached)
         {
             UuidGatherer gatherer = new UuidGatherer(m_AssetService);
 
@@ -745,7 +741,7 @@ namespace Flotsam.RegionModules.AssetCache
                 {
                     File.SetLastAccessTime(filename, DateTime.Now);
                 }
-                else
+                else if (storeUncached)
                 {
                     m_AssetService.Get(assetID.ToString());
                 }
@@ -873,13 +869,14 @@ namespace Flotsam.RegionModules.AssetCache
 
                         break;
 
-
                     case "assets":
-                        m_log.Info("[FLOTSAM ASSET CACHE]: Caching all assets, in all scenes.");
+                        m_log.Info("[FLOTSAM ASSET CACHE]: Ensuring assets are cached for all scenes.");
 
                         Util.FireAndForget(delegate {
-                            int assetsCached = CacheScenes();
-                            m_log.InfoFormat("[FLOTSAM ASSET CACHE]: Completed Scene Caching, {0} assets found.", assetsCached);
+                            int assetReferenceTotal = TouchAllSceneAssets(true);
+                            m_log.InfoFormat(
+                                "[FLOTSAM ASSET CACHE]: Completed check with {0} assets.",
+                                assetReferenceTotal);
                         });
 
                         break;

@@ -419,11 +419,11 @@ namespace OpenSim.Framework
 
         public void SetFromFlags(ulong regionFlags)
         {
-            ResetHomeOnTeleport = ((regionFlags & (ulong)RegionFlags.ResetHomeOnTeleport) == (ulong)RegionFlags.ResetHomeOnTeleport);
-            BlockDwell = ((regionFlags & (ulong)RegionFlags.BlockDwell) == (ulong)RegionFlags.BlockDwell);
-            AllowLandmark = ((regionFlags & (ulong)RegionFlags.AllowLandmark) == (ulong)RegionFlags.AllowLandmark);
-            AllowParcelChanges = ((regionFlags & (ulong)RegionFlags.AllowParcelChanges) == (ulong)RegionFlags.AllowParcelChanges);
-            AllowSetHome = ((regionFlags & (ulong)RegionFlags.AllowSetHome) == (ulong)RegionFlags.AllowSetHome);
+            ResetHomeOnTeleport = ((regionFlags & (ulong)OpenMetaverse.RegionFlags.ResetHomeOnTeleport) == (ulong)OpenMetaverse.RegionFlags.ResetHomeOnTeleport);
+            BlockDwell = ((regionFlags & (ulong)OpenMetaverse.RegionFlags.BlockDwell) == (ulong)OpenMetaverse.RegionFlags.BlockDwell);
+            AllowLandmark = ((regionFlags & (ulong)OpenMetaverse.RegionFlags.AllowLandmark) == (ulong)OpenMetaverse.RegionFlags.AllowLandmark);
+            AllowParcelChanges = ((regionFlags & (ulong)OpenMetaverse.RegionFlags.AllowParcelChanges) == (ulong)OpenMetaverse.RegionFlags.AllowParcelChanges);
+            AllowSetHome = ((regionFlags & (ulong)OpenMetaverse.RegionFlags.AllowSetHome) == (ulong)OpenMetaverse.RegionFlags.AllowSetHome);
         }
 
         public bool GroupAccess(UUID groupID)

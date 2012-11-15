@@ -197,6 +197,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
             string fromName = c.From;
             string fromNamePrefix = "";
             UUID fromID = UUID.Zero;
+            UUID ownerID = UUID.Zero;
             string message = c.Message;
             IScene scene = c.Scene;
             UUID destination = c.Destination;
@@ -224,10 +225,15 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                     fromNamePrefix = m_adminPrefix;
                 }
                 destination = UUID.Zero; // Avatars cant "SayTo"
+                ownerID = c.Sender.AgentId;
+
                 break;
 
             case ChatSourceType.Object:
                 fromID = c.SenderUUID;
+
+                if (c.SenderObject != null && c.SenderObject is SceneObjectPart)
+                    ownerID = ((SceneObjectPart)c.SenderObject).OwnerID;
 
                 break;
             }
@@ -262,8 +268,16 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                             // objects on a parcel with access restrictions
                             if (c.Sender == null || Presencecheck.IsEitherBannedOrRestricted(c.Sender.AgentId) != true)
                             {
-                                if (TrySendChatMessage(presence, fromPos, regionPos, fromID, fromNamePrefix + fromName, c.Type, message, sourceType))
-                                    receiverIDs.Add(presence.UUID);
+                                if (destination != UUID.Zero)
+                                {
+                                    if (TrySendChatMessage(presence, fromPos, regionPos, fromID, ownerID, fromNamePrefix + fromName, c.Type, message, sourceType, true))
+                                        receiverIDs.Add(presence.UUID);
+                                }
+                                else
+                                {
+                                    if (TrySendChatMessage(presence, fromPos, regionPos, fromID, ownerID, fromNamePrefix + fromName, c.Type, message, sourceType, false))
+                                        receiverIDs.Add(presence.UUID);
+                                }
                             }
                         }
                     }
@@ -324,7 +338,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                             (((SceneObjectPart)c.SenderObject).OwnerID != client.AgentId))
                             return;
                         
-                        client.SendChatMessage(c.Message, (byte)cType, CenterOfRegion, fromName, fromID, 
+                        client.SendChatMessage(c.Message, (byte)cType, CenterOfRegion, fromName, fromID, fromID,
                                                (byte)sourceType, (byte)ChatAudibleLevel.Fully);
                         receiverIDs.Add(client.AgentId);
                     }
@@ -341,15 +355,20 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
         /// <param name="fromPos"></param>
         /// <param name="regionPos">/param>
         /// <param name="fromAgentID"></param>
+        /// <param name='ownerID'>
+        /// Owner of the message.  For at least some messages from objects, this has to be correctly filled with the owner's UUID.
+        /// This is the case for script error messages in viewer 3 since LLViewer change EXT-7762
+        /// </param>
         /// <param name="fromName"></param>
         /// <param name="type"></param>
         /// <param name="message"></param>
         /// <param name="src"></param>
         /// <returns>true if the message was sent to the receiver, false if it was not sent due to failing a 
         /// precondition</returns>
-        protected virtual bool TrySendChatMessage(ScenePresence presence, Vector3 fromPos, Vector3 regionPos,
-                                                  UUID fromAgentID, string fromName, ChatTypeEnum type,
-                                                  string message, ChatSourceType src)
+        protected virtual bool TrySendChatMessage(
+            ScenePresence presence, Vector3 fromPos, Vector3 regionPos,
+            UUID fromAgentID, UUID ownerID, string fromName, ChatTypeEnum type,
+            string message, ChatSourceType src, bool ignoreDistance)
         {
             // don't send chat to child agents
             if (presence.IsChildAgent) return false;
@@ -369,8 +388,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
             }
 
             // TODO: should change so the message is sent through the avatar rather than direct to the ClientView
-            presence.ControllingClient.SendChatMessage(message, (byte) type, fromPos, fromName,
-                                                       fromAgentID, (byte)src, (byte)ChatAudibleLevel.Fully);
+            presence.ControllingClient.SendChatMessage(
+                message, (byte) type, fromPos, fromName,
+                fromAgentID, ownerID, (byte)src, (byte)ChatAudibleLevel.Fully);
             
             return true;
         }

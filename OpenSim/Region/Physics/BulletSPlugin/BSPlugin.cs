@@ -33,7 +33,7 @@ using OpenMetaverse;
 namespace OpenSim.Region.Physics.BulletSPlugin
 {
     /// <summary>
-    /// Entry for a port of Bullet (http://bulletphysics.org/) to OpenSim. 
+    /// Entry for a port of Bullet (http://bulletphysics.org/) to OpenSim.
     /// This module interfaces to an unmanaged C++ library which makes the
     /// actual calls into the Bullet physics engine.
     /// The unmanaged library is found in opensim-libs::trunk/unmanaged/BulletSim/.
@@ -62,7 +62,7 @@ public class BSPlugin : IPhysicsPlugin
             if (Util.IsWindows())
                 Util.LoadArchSpecificWindowsDll("BulletSim.dll");
             // If not Windows, loading is performed by the
-            // Mono loader as specified in 
+            // Mono loader as specified in
             // "bin/Physics/OpenSim.Region.Physics.BulletSPlugin.dll.config".
 
             _mScene = new BSScene(sceneIdentifier);

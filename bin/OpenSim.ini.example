@@ -1,19 +1,23 @@
-;; This is the main configuration file for OpenSimulator.  If it's named OpenSim.ini
-;; then it will be loaded by OpenSimulator.  If it's named OpenSim.ini.example then
-;; you will need to copy it to OpenSim.ini first (if that file does not already exist)
+;; This is the main configuration file for OpenSimulator.
+;; If it's named OpenSim.ini then it will be loaded by OpenSimulator.
+;; If it's named OpenSim.ini.example then you will need to copy it to 
+;; OpenSim.ini first (if that file does not already exist)
 ;;
-;; If you are copying, then once you have copied OpenSim.ini.example to OpenSim.ini you will
-;; need to pick an architecture in the [Architecture] section at the end of this file.
+;; If you are copying, then once you have copied OpenSim.ini.example to 
+;; OpenSim.ini you will need to pick an architecture in the [Architecture] 
+;; section at the end of this file.
 ;;
-;; The settings in this file are in the form "<key> = <value>".  For example, save_crashes = false
-;; in the [Startup] section below.
+;; The settings in this file are in the form "<key> = <value>".  For example, 
+;; save_crashes = false in the [Startup] section below.
 ;;
-;; All settings are initially commented out and the default value used, as found in
-;; OpenSimDefaults.ini.  To change a setting, first uncomment it by deleting the initial semicolon (;)
-;; and then change the value.  This will override the value in OpenSimDefaults.ini
+;; All settings are initially commented out and the default value used, as 
+;; found in OpenSimDefaults.ini.  To change a setting, first uncomment it by 
+;; deleting the initial semicolon (;) and then change the value.  This will
+;; override the value in OpenSimDefaults.ini
 ;; 
-;; If you want to find out what configuration OpenSimulator has finished with once all the configuration
-;; files are loaded then type "config show" on the region console command line.
+;; If you want to find out what configuration OpenSimulator has finished with
+;; once all the configuration files are loaded then type "config show" on the
+;; region console command line.
 ;;
 ;; 
 ;; NOTES FOR DEVELOPERS REGARDING THE FORMAT OF THIS FILE
@@ -26,13 +30,16 @@
 ;;    formatted as:
 ;;    {option} {depends on} {question to ask} {choices} default value
 ;;    Any text comments following the declaration, up to the next blank line.
-;;    will be copied to the generated file (NOTE: generation is not yet implemented)
+;;    will be copied to the generated file (NOTE: generation is not yet
+;;    implemented)
+;;
 ;;    A * in the choices list will allow an empty entry.
 ;;    An empty question will set the default if the dependencies are
 ;;    satisfied.
 ;;
 ;; ;  denotes a commented out option.
-;;    Any options added to OpenSim.ini.example should be initially commented out.
+;;    Any options added to OpenSim.ini.example should be initially commented 
+;;    out.
 
 
 [Startup]
@@ -47,9 +54,12 @@
     ;# {save_crashes} {} {Save crashes to disk?} {true false} false
     ;; Set this to true if you want to log crashes to disk
     ;; this can be useful when submitting bug reports.
-    ;; However, this will only log crashes within OpenSimulator that cause the entire program to exit
-    ;; It will not log crashes caused by virtual machine failures, which includes mono and ODE failures.
-    ;; You will need to capture these native stack traces by recording the session log itself.
+    ;; However, this will only log crashes within OpenSimulator that cause the
+    ;; entire program to exit
+    ;; It will not log crashes caused by virtual machine failures, which
+    ;; includes mono and ODE failures.
+    ;; You will need to capture these native stack traces by recording the
+    ;; session log itself.
     ; save_crashes = false
 
     ;# {crash_dir} {save_crashes:true} {Directory to save crashes to?} {} crashes
@@ -87,23 +97,47 @@
     ;; from the selected region_info_source.
     ; allow_regionless = false
 
+    ;# {NonPhysicalPrimMin} {} {Minimum size of nonphysical prims?} {} 0.001
+    ;; Minimum size for non-physical prims.  Affects resizing of existing 
+    ;; prims.  This can be overriden in the region config file (as 
+    ;; NonPhysicalPrimMin!).
+    ; NonPhysicalPrimMin = 0.001
+
     ;# {NonPhysicalPrimMax} {} {Maximum size of nonphysical prims?} {} 256
-    ;; Maximum size for non-physical prims.  Affects resizing of existing prims.  This can be overriden in the region config file (as NonphysicalPrimMax!).
-    ; NonphysicalPrimMax = 256
+    ;; Maximum size for non-physical prims.  Affects resizing of existing
+    ;; prims. This can be overriden in the region config file (as 
+    ;; NonPhysicalPrimMax!).
+    ; NonPhysicalPrimMax = 256
+
+    ;# {PhysicalPrimMin} {} {Minimum size of physical prims?} {} 10
+    ;; Maximum size where a prim can be physical.  Affects resizing of
+    ;; existing prims.  This can be overriden in the region config file.
+    ; PhysicalPrimMin = 0.01
 
     ;# {PhysicalPrimMax} {} {Maximum size of physical prims?} {} 10
-    ;; Maximum size where a prim can be physical.  Affects resizing of existing prims.  This can be overriden in the region config file.
+    ;; Maximum size where a prim can be physical.  Affects resizing of
+    ;; existing prims.  This can be overriden in the region config file.
     ; PhysicalPrimMax = 10
 
     ;# {ClampPrimSize} {} {Clamp viewer rezzed prims to max sizes?} {true false} false
-    ;; If a viewer attempts to rez a prim larger than the non-physical or physical prim max, clamp the dimensions to the appropriate maximum
+    ;; If a viewer attempts to rez a prim larger than the non-physical or
+    ;; physical prim max, clamp the dimensions to the appropriate maximum
     ;; This can be overriden in the region config file.
     ; ClampPrimSize = false
+	
+    ;# {LinksetPrims} {} {Max prims an object will hold?} {} 0
+    ;; Maximum number of prims allowable in a linkset. Affects creating new
+    ;; linksets. Ignored if less than or equal to zero.
+    ;; This can be overriden in the region config file.
+    ; LinksetPrims = 0
 
     ;# {AllowScriptCrossing} {} {Allow scripts to cross into this region} {true false} true
-    ;; Allow scripts to keep running when they cross region boundaries, rather than being restarted.  State is reloaded on the destination region.
-    ;; This only applies when crossing to a region running in a different simulator.  
-    ;; For crossings where the regions are on the same simulator the script is always kept running.
+    ;; Allow scripts to keep running when they cross region boundaries, rather
+    ;; than being restarted.  State is reloaded on the destination region.
+    ;; This only applies when crossing to a region running in a different
+    ;; simulator.  
+    ;; For crossings where the regions are on the same simulator the script is
+    ;; always kept running.
     ; AllowScriptCrossing = true
 
     ;# {TrustBinaries} {AllowScriptCrossing:true} {Accept compiled binary script code? (DANGEROUS!)} {true false} false
@@ -173,7 +207,8 @@
     ;# {physics} {} {Select physics engine} {OpenDynamicsEngine BulletSim basicphysics POS} OpenDynamicsEngine
     ;; OpenDynamicsEngine is by some distance the most developed physics engine
     ;; BulletSim is incomplete and experimental but in active development
-    ;; basicphysics effectively does not model physics at all, making all objects phantom
+    ;; basicphysics effectively does not model physics at all, making all
+    ;; objects phantom
     ;; Default is OpenDynamicsEngine
     ; physics = OpenDynamicsEngine
     ; physics = BulletSim
@@ -216,8 +251,9 @@
     ;# {simple_build_permissions} {} {Allow building in parcel by access list (no groups)} {true false} false
     ;; More control over permissions
     ;; This is definitely not SL!
-    ;; Provides a simple control for land owners to give build rights to specific avatars
-    ;; in publicly accessible parcels that disallow object creation in general. 
+    ;; Provides a simple control for land owners to give build rights to
+    ;; specific avatars in publicly accessible parcels that disallow object
+    ;; creation in general. 
     ;; Owners specific avatars by adding them to the Access List of the parcel
     ;; without having to use the Groups feature
     ; simple_build_permissions = false
@@ -253,11 +289,14 @@
     ; DrawPrimOnMapTile = true
 
     ;# {HttpProxy} {} {Proxy URL for llHTTPRequest and dynamic texture loading} {} http://proxy.com:8080
-    ;; Http proxy setting for llHTTPRequest and dynamic texture loading, if required
+    ;; Http proxy setting for llHTTPRequest and dynamic texture loading, if
+    ;; required
     ; HttpProxy = "http://proxy.com:8080"
 
     ;# {HttpProxyExceptions} {HttpProxy} {Set of regular expressions defining URL that should not be proxied} {}
-    ;; If you're using HttpProxy, then you can set HttpProxyExceptions to a list of regular expressions for URLs that you don't want to go through the proxy 
+    ;; If you're using HttpProxy, then you can set HttpProxyExceptions to a
+    ;; list of regular expressions for URLs that you don't want to go through
+    ;; the proxy.
     ;; For example, servers inside your firewall.
     ;; Separate patterns with a ';'
     ; HttpProxyExceptions = ".mydomain.com;localhost"
@@ -276,13 +315,15 @@
     ; SpawnPointRouting = closest
 
     ;# {TelehubAllowLandmark} {} {Allow users with landmarks to override telehub routing} {true false} false
-    ;; TelehubAllowLandmark allows users with landmarks to override telehub routing and land at the landmark coordinates when set to true
+    ;; TelehubAllowLandmark allows users with landmarks to override telehub
+    ;; routing and land at the landmark coordinates when set to true
     ;; default is false
     ; TelehubAllowLandmark = false
 
     ;# {AllowedClients} {} {Bar (|) separated list of allowed clients} {}
     ;; Bar (|) separated list of viewers which may gain access to the regions.
-    ;; One can use a substring of the viewer name to enable only certain versions
+    ;; One can use a substring of the viewer name to enable only certain
+    ;; versions
     ;; Example: Agent uses the viewer "Imprudence 1.3.2.0"
     ;; - "Imprudence" has access
     ;; - "Imprudence 1.3" has access
@@ -291,7 +332,8 @@
 
     ;# {BannedClients} {} {Bar (|) separated list of banned clients} {}
     ;# Bar (|) separated list of viewers which may not gain access to the regions.
-    ;; One can use a Substring of the viewer name to disable only certain versions
+    ;; One can use a Substring of the viewer name to disable only certain
+    ;; versions
     ;; Example: Agent uses the viewer "Imprudence 1.3.2.0"
     ;; - "Imprudence" has no access
     ;; - "Imprudence 1.3" has no access
@@ -437,7 +479,8 @@
 [SimulatorFeatures]
 
     ;# {MapImageServerURI} {} {URL for the map server} {}
-    ; Experimental new information sent in SimulatorFeatures cap for Kokua viewers 
+    ; Experimental new information sent in SimulatorFeatures cap for Kokua
+    ; viewers 
     ; meant to override the MapImage and search server url given at login, and varying 
     ; on a sim-basis.
     ; Viewers that don't understand it, will ignore it
@@ -675,7 +718,9 @@
     ;; Maximum number of events to queue for a script (excluding timers)
     ; MaxScriptEventQueue = 300
 
-    ;; Stack size per thread created
+    ;; Stack size per script engine thread in bytes.
+    ;; If you are experiencing StackOverflowExceptions you may want to increase this (e.g. double it).
+    ;; The trade-off may be increased memory usage by the script engine.
     ; ThreadStackSize = 262144
 
     ;# {DeleteScriptsOnStartup} {} {Delete previously compiled script DLLs on startup?} (true false) true

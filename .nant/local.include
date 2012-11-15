@@ -135,14 +135,25 @@
   <delete dir="%temp%"/>
 </target>
 
-<target name="torture" depends="build, find-nunit">
+<target name="test-stress" depends="build, find-nunit">
   <setenv name="MONO_THREADS_PER_CPU" value="100" />
 
-  <exec program="${nunitcmd}" failonerror="true" resultproperty="testresult.opensim.tests.torture">
-    <arg value="./bin/OpenSim.Tests.Torture.dll" />
+  <exec program="${nunitcmd}" failonerror="true" resultproperty="testresult.opensim.tests.stress">
+    <arg value="./bin/OpenSim.Tests.Stress.dll" />
   </exec>
 
-  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.tests.torture)==0}" /> 
+  <fail message="Failures reported in stress tests." unless="${int::parse(testresult.opensim.tests.stress)==0}" /> 
+  <delete dir="%temp%"/>
+</target>
+
+<target name="test-perf" depends="build, find-nunit">
+  <setenv name="MONO_THREADS_PER_CPU" value="100" />
+
+  <exec program="${nunitcmd}" failonerror="true" resultproperty="testresult.opensim.tests.performance">
+    <arg value="./bin/OpenSim.Tests.Performance.dll" />
+  </exec>
+
+  <fail message="Failures reported in performance tests." unless="${int::parse(testresult.opensim.tests.performance)==0}" /> 
   <delete dir="%temp%"/>
 </target>
 

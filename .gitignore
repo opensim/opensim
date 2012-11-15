@@ -29,9 +29,14 @@ addon-modules/
 bin/Debug/*.dll
 bin/*.dll.mdb
 bin/*.db
+bin/*.db-journal
 bin/addin-db-*
 bin/*.dll
 bin/OpenSim.vshost.exe.config
+bin/OpenSim.32BitLaunch.vshost.exe.config
+bin/OpenSim.32BitLaunch.log
+UpgradeLog.XML
+_UpgradeReport_Files/
 bin/ScriptEngines/*-*-*-*-*
 bin/ScriptEngines/*.dll
 bin/ScriptEngines/*/*.dll
@@ -64,6 +69,7 @@ Examples/*.dll
 OpenSim.build
 OpenSim.sln
 OpenSim.suo
+OpenSim.userprefs
 Prebuild/Prebuild.build
 Prebuild/Prebuild.sln
 TestResult.xml

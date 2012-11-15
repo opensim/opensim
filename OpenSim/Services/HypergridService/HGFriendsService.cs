@@ -397,7 +397,7 @@ namespace OpenSim.Services.HypergridService
                     if (region != null)
                     {
                         m_log.DebugFormat("[HGFRIENDS SERVICE]: Remote Notify to region {0}, user {1} is {2}", region.RegionName, foreignUserID, (online ? "online" : "offline"));
-                        m_FriendsSimConnector.StatusNotify(region, foreignUserID, userID, online);
+                        m_FriendsSimConnector.StatusNotify(region, foreignUserID, userID.ToString(), online);
                     }
                 }
             }

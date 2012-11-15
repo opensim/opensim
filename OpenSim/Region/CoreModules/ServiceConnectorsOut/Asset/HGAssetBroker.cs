@@ -56,6 +56,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 
         private bool m_Enabled = false;
 
+        private AssetPermissions m_AssetPerms;
+
         public Type ReplaceableInterface 
         {
             get { return null; }
@@ -127,6 +129,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 
                     if (m_LocalAssetServiceURI != string.Empty)
                         m_LocalAssetServiceURI = m_LocalAssetServiceURI.Trim('/');
+
+                    IConfig hgConfig = source.Configs["HGAssetService"];
+                    m_AssetPerms = new AssetPermissions(hgConfig); // it's ok if arg is null
 
                     m_Enabled = true;
                     m_log.Info("[HG ASSET CONNECTOR]: HG asset broker enabled");
@@ -206,14 +211,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
                 asset = m_HGService.Get(id);
                 if (asset != null)
                 {
-                    // Now store it locally
-                    // For now, let me just do it for textures and scripts
-                    if (((AssetType)asset.Type == AssetType.Texture) ||
-                        ((AssetType)asset.Type == AssetType.LSLBytecode) ||
-                        ((AssetType)asset.Type == AssetType.LSLText))
-                    {
+                    // Now store it locally, if allowed
+                    if (m_AssetPerms.AllowedImport(asset.Type))
                         m_GridService.Store(asset);
-                    }
+                    else
+                        return null;
                 }
             }
             else
@@ -328,7 +330,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 
             string id = string.Empty;
             if (IsHG(asset.ID))
-                id = m_HGService.Store(asset);
+            {
+                if (m_AssetPerms.AllowedExport(asset.Type))
+                    id = m_HGService.Store(asset);
+                else
+                    return String.Empty;
+            }
             else
                 id = m_GridService.Store(asset);
 

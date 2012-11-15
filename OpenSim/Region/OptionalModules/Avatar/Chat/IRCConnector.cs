@@ -231,12 +231,12 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
             if (m_server == null || m_baseNick == null || m_ircChannel == null || m_user == null)
                 throw new Exception("Invalid connector configuration");
 
-            // Generate an initial nickname if randomizing is enabled
+            // Generate an initial nickname
 
             if (m_randomizeNick)
-            {
                 m_nick = m_baseNick + Util.RandomClass.Next(1, 99);
-            }
+            else 
+                m_nick = m_baseNick;
 
             m_log.InfoFormat("[IRC-Connector-{0}]: Initialization complete", idn);
 

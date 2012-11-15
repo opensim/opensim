@@ -92,7 +92,11 @@ namespace OpenSim.Region.Framework.Scenes
         private static SceneManager m_instance = null;
         public static SceneManager Instance
         { 
-            get { return m_instance; } 
+            get {
+                if (m_instance == null)
+                    m_instance = new SceneManager();
+                return m_instance;
+            } 
         }
 
         private readonly DoubleDictionary<UUID, string, Scene> m_localScenes = new DoubleDictionary<UUID, string, Scene>();

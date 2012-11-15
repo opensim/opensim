@@ -34,11 +34,19 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 
 public abstract class BSConstraint : IDisposable
 {
+    private static string LogHeader = "[BULLETSIM CONSTRAINT]";
+
     protected BulletSim m_world;
     protected BulletBody m_body1;
     protected BulletBody m_body2;
     protected BulletConstraint m_constraint;
     protected bool m_enabled = false;
+
+    public BulletBody Body1 { get { return m_body1; } }
+    public BulletBody Body2 { get { return m_body2; } }
+    public BulletConstraint Constraint { get { return m_constraint; } }
+    public abstract ConstraintType Type { get; }
+    public bool IsEnabled { get { return m_enabled; } }
 
     public BSConstraint()
     {
@@ -48,22 +56,25 @@ public abstract class BSConstraint : IDisposable
     {
         if (m_enabled)
         {
-            // BulletSimAPI.RemoveConstraint(m_world.ID, m_body1.ID, m_body2.ID);
-            bool success = BulletSimAPI.DestroyConstraint2(m_world.Ptr, m_constraint.Ptr);
-            m_world.scene.DetailLog("{0},BSConstraint.Dispose,taint,body1={1},body2={2},success={3}", BSScene.DetailLogZero, m_body1.ID, m_body2.ID, success);
-            m_constraint.Ptr = System.IntPtr.Zero;
             m_enabled = false;
+            if (m_constraint.ptr != IntPtr.Zero)
+            {
+                bool success = BulletSimAPI.DestroyConstraint2(m_world.ptr, m_constraint.ptr);
+                m_world.physicsScene.DetailLog("{0},BSConstraint.Dispose,taint,id1={1},body1={2},id2={3},body2={4},success={5}",
+                                    BSScene.DetailLogZero,
+                                    m_body1.ID, m_body1.ptr.ToString("X"),
+                                    m_body2.ID, m_body2.ptr.ToString("X"),
+                                    success);
+                m_constraint.ptr = System.IntPtr.Zero;
+            }
         }
     }
-
-    public BulletBody Body1 { get { return m_body1; } }
-    public BulletBody Body2 { get { return m_body2; } }
 
     public virtual bool SetLinearLimits(Vector3 low, Vector3 high)
     {
         bool ret = false;
         if (m_enabled)
-            ret = BulletSimAPI.SetLinearLimits2(m_constraint.Ptr, low, high);
+            ret = BulletSimAPI.SetLinearLimits2(m_constraint.ptr, low, high);
         return ret;
     }
 
@@ -71,7 +82,18 @@ public abstract class BSConstraint : IDisposable
     {
         bool ret = false;
         if (m_enabled)
-            ret = BulletSimAPI.SetAngularLimits2(m_constraint.Ptr, low, high);
+            ret = BulletSimAPI.SetAngularLimits2(m_constraint.ptr, low, high);
+        return ret;
+    }
+
+    public virtual bool SetSolverIterations(float cnt)
+    {
+        bool ret = false;
+        if (m_enabled)
+        {
+            BulletSimAPI.SetConstraintNumSolverIterations2(m_constraint.ptr, cnt);
+            ret = true;
+        }
         return ret;
     }
 
@@ -81,7 +103,7 @@ public abstract class BSConstraint : IDisposable
         if (m_enabled)
         {
             // Recompute the internal transforms
-            BulletSimAPI.CalculateTransforms2(m_constraint.Ptr);
+            BulletSimAPI.CalculateTransforms2(m_constraint.ptr);
             ret = true;
         }
         return ret;
@@ -97,13 +119,14 @@ public abstract class BSConstraint : IDisposable
             ret = CalculateTransforms();
             if (ret)
             {
-                // m_world.scene.PhysicsLogging.Write("{0},BSConstraint.RecomputeConstraintVariables,taint,enabling,A={1},B={2}",
-                //                 BSScene.DetailLogZero, Body1.ID, Body2.ID);
-                BulletSimAPI.SetConstraintEnable2(m_constraint.Ptr, m_world.scene.NumericBool(true));
+                // Setting an object's mass to zero (making it static like when it's selected)
+                //     automatically disables the constraints.
+                // If the link is enabled, be sure to set the constraint itself to enabled.
+                BulletSimAPI.SetConstraintEnable2(m_constraint.ptr, m_world.physicsScene.NumericBool(true));
             }
             else
             {
-                m_world.scene.Logger.ErrorFormat("[BULLETSIM CONSTRAINT] CalculateTransforms failed. A={0}, B={1}", Body1.ID, Body2.ID);
+                m_world.physicsScene.Logger.ErrorFormat("{0} CalculateTransforms failed. A={1}, B={2}", LogHeader, Body1.ID, Body2.ID);
             }
         }
         return ret;
