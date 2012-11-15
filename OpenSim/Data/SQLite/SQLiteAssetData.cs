@@ -204,7 +204,8 @@ namespace OpenSim.Data.SQLite
         /// <returns>True if exist, or false.</returns>
         override public bool ExistsAsset(UUID uuid)
         {
-            lock (this) {
+            lock (this) 
+            {
                 using (SqliteCommand cmd = new SqliteCommand(SelectAssetSQL, m_conn))
                 {
                     cmd.Parameters.Add(new SqliteParameter(":UUID", uuid.ToString()));
@@ -355,12 +356,13 @@ namespace OpenSim.Data.SQLite
         {
             lock (this)
             {
-            using (SqliteCommand cmd = new SqliteCommand(DeleteAssetSQL, m_conn))
-            {
-                cmd.Parameters.Add(new SqliteParameter(":UUID", uuid.ToString()));
-                cmd.ExecuteNonQuery();
+                using (SqliteCommand cmd = new SqliteCommand(DeleteAssetSQL, m_conn))
+                {
+                    cmd.Parameters.Add(new SqliteParameter(":UUID", uuid.ToString()));
+                    cmd.ExecuteNonQuery();
+                }
             }
-            }
+
             return true;
         }
 

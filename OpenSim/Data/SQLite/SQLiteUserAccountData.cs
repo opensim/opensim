@@ -66,20 +66,21 @@ namespace OpenSim.Data.SQLite
             if (words.Length > 2)
                 return new UserAccountData[0];
 
-            SqliteCommand cmd = new SqliteCommand();
-
-            if (words.Length == 1)
+            using (SqliteCommand cmd = new SqliteCommand())
             {
-                cmd.CommandText = String.Format("select * from {0} where (ScopeID='{1}' or ScopeID='00000000-0000-0000-0000-000000000000') and (FirstName like '{2}%' or LastName like '{2}%')",
-                    m_Realm, scopeID.ToString(), words[0]);
-            }
-            else
-            {
-                cmd.CommandText = String.Format("select * from {0} where (ScopeID='{1}' or ScopeID='00000000-0000-0000-0000-000000000000') and (FirstName like '{2}%' or LastName like '{3}%')", 
-                    m_Realm, scopeID.ToString(), words[0], words[1]);
-            }
+                if (words.Length == 1)
+                {
+                    cmd.CommandText = String.Format("select * from {0} where (ScopeID='{1}' or ScopeID='00000000-0000-0000-0000-000000000000') and (FirstName like '{2}%' or LastName like '{2}%')",
+                        m_Realm, scopeID.ToString(), words[0]);
+                }
+                else
+                {
+                    cmd.CommandText = String.Format("select * from {0} where (ScopeID='{1}' or ScopeID='00000000-0000-0000-0000-000000000000') and (FirstName like '{2}%' or LastName like '{3}%')", 
+                        m_Realm, scopeID.ToString(), words[0], words[1]);
+                }
 
-            return DoQuery(cmd);
+                return DoQuery(cmd);
+            }
         }
 
         public UserAccountData[] GetUsersWhere(UUID scopeID, string where)

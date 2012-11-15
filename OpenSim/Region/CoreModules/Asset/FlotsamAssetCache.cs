@@ -222,10 +222,6 @@ namespace OpenSim.Region.CoreModules.Asset
                 scene.RegisterModuleInterface<IImprovedAssetCache>(this);
                 m_Scenes.Add(scene);
 
-                if (m_AssetService == null)
-                {
-                    m_AssetService = scene.RequestModuleInterface<IAssetService>();
-                }
             }
         }
 
@@ -240,6 +236,8 @@ namespace OpenSim.Region.CoreModules.Asset
 
         public void RegionLoaded(Scene scene)
         {
+            if (m_Enabled && m_AssetService == null)
+                m_AssetService = scene.RequestModuleInterface<IAssetService>();
         }
 
         ////////////////////////////////////////////////////////////
