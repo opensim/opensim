@@ -340,12 +340,6 @@ namespace OpenSim.Region.Physics.Manager
         /// Getting this returns the velocity calculated by physics scene updates, using factors such as target velocity,
         /// time to accelerate and collisions.
         /// </remarks>
-        public virtual Vector3 TargetVelocity
-        {
-            get { return Velocity; }
-            set { Velocity = value; }
-        }
-
         public abstract Vector3 Velocity { get; set; }
 
         public abstract Vector3 Torque { get; set; }

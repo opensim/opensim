@@ -73,26 +73,32 @@ namespace OpenSim.Framework
         {
         }
 
-        public InventoryFolderBase(UUID id) : this()
+        public InventoryFolderBase(UUID id)
         {
             ID = id;
         }
 
-        public InventoryFolderBase(UUID id, UUID owner) : this(id)
+        public InventoryFolderBase(UUID id, UUID owner)
         {
+            ID = id;
             Owner = owner;
         }
 
-        public InventoryFolderBase(UUID id, string name, UUID owner, UUID parent) : this(id, owner)
+        public InventoryFolderBase(UUID id, string name, UUID owner, UUID parent)
         {
+            ID = id;
             Name = name;
+            Owner = owner;
             ParentID = parent;
         }
 
-        public InventoryFolderBase(
-            UUID id, string name, UUID owner, short type, UUID parent, ushort version) : this(id, name, owner, parent)
+        public InventoryFolderBase(UUID id, string name, UUID owner, short type, UUID parent, ushort version)
         {
+            ID = id;
+            Name = name;
+            Owner = owner;
             Type = type;
+            ParentID = parent;
             Version = version;
         }
     }

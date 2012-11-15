@@ -38,15 +38,15 @@ using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
 {
-    public class InventoryTransferModule : ISharedRegionModule
+    public class InventoryTransferModule : IInventoryTransferModule, ISharedRegionModule
     {
         private static readonly ILog m_log
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
         private List<Scene> m_Scenelist = new List<Scene>();
-//        private Dictionary<UUID, Scene> m_AgentRegions =
-//                new Dictionary<UUID, Scene>();
+        private Dictionary<UUID, Scene> m_AgentRegions =
+                new Dictionary<UUID, Scene>();
 
         private IMessageTransferModule m_TransferModule = null;
         private bool m_Enabled = true;
@@ -76,12 +76,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
 
             m_Scenelist.Add(scene);
 
-//            scene.RegisterModuleInterface<IInventoryTransferModule>(this);
+            scene.RegisterModuleInterface<IInventoryTransferModule>(this);
 
             scene.EventManager.OnNewClient += OnNewClient;
-//            scene.EventManager.OnClientClosed += ClientLoggedOut;
+            scene.EventManager.OnClientClosed += ClientLoggedOut;
             scene.EventManager.OnIncomingInstantMessage += OnGridInstantMessage;
-//            scene.EventManager.OnSetRootAgentScene += OnSetRootAgentScene;
+            scene.EventManager.OnSetRootAgentScene += OnSetRootAgentScene;
         }
 
         public void RegionLoaded(Scene scene)
@@ -96,9 +96,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
 
                     m_Scenelist.Clear();
                     scene.EventManager.OnNewClient -= OnNewClient;
-//                    scene.EventManager.OnClientClosed -= ClientLoggedOut;
+                    scene.EventManager.OnClientClosed -= ClientLoggedOut;
                     scene.EventManager.OnIncomingInstantMessage -= OnGridInstantMessage;
-//                    scene.EventManager.OnSetRootAgentScene -= OnSetRootAgentScene;
+                    scene.EventManager.OnSetRootAgentScene -= OnSetRootAgentScene;
                 }
             }
         }
@@ -106,9 +106,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
         public void RemoveRegion(Scene scene)
         {
             scene.EventManager.OnNewClient -= OnNewClient;
-//            scene.EventManager.OnClientClosed -= ClientLoggedOut;
+            scene.EventManager.OnClientClosed -= ClientLoggedOut;
             scene.EventManager.OnIncomingInstantMessage -= OnGridInstantMessage;
-//            scene.EventManager.OnSetRootAgentScene -= OnSetRootAgentScene;
+            scene.EventManager.OnSetRootAgentScene -= OnSetRootAgentScene;
             m_Scenelist.Remove(scene);
         }
 
@@ -138,10 +138,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
             client.OnInstantMessage += OnInstantMessage;
         }
         
-//        protected void OnSetRootAgentScene(UUID id, Scene scene)
-//        {
-//            m_AgentRegions[id] = scene;
-//        }
+        protected void OnSetRootAgentScene(UUID id, Scene scene)
+        {
+            m_AgentRegions[id] = scene;
+        }
 
         private Scene FindClientScene(UUID agentId)
         {
@@ -313,11 +313,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                         m_TransferModule.SendInstantMessage(im, delegate(bool success) {});
                 }
             }
-
-            // XXX: This code was placed here to try and accomdate RLV which moves given folders named #RLV/~<name>
-            // to a folder called name in #RLV.  However, this approach may not be ultimately correct - from analysis
-            // of Firestorm 4.2.2 on sending an InventoryOffered instead of TaskInventoryOffered (as was previously
-            // done), the viewer itself would appear to move and rename the folder, rather than the simulator doing it here.
             else if (im.dialog == (byte) InstantMessageDialog.TaskInventoryAccepted)
             {
                 UUID destinationFolderID = UUID.Zero;
@@ -329,16 +324,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
 
                 if (destinationFolderID != UUID.Zero)
                 {
-                    InventoryFolderBase destinationFolder = new InventoryFolderBase(destinationFolderID, client.AgentId);
-                    if (destinationFolder == null)
-                    {
-                        m_log.WarnFormat(
-                            "[INVENTORY TRANSFER]: TaskInventoryAccepted message from {0} in {1} specified folder {2} which does not exist",
-                            client.Name, scene.Name, destinationFolderID);
-
-                        return;
-                    }
-
                     IInventoryService invService = scene.InventoryService;
 
                     UUID inventoryID = new UUID(im.imSessionID); // The inventory item/folder, back from it's trip
@@ -346,11 +331,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                     InventoryItemBase item = new InventoryItemBase(inventoryID, client.AgentId);
                     item = invService.GetItem(item);
                     InventoryFolderBase folder = null;
-                    UUID? previousParentFolderID = null;
 
                     if (item != null) // It's an item
                     {
-                        previousParentFolderID = item.Folder;
                         item.Folder = destinationFolderID;
 
                         invService.DeleteItems(item.Owner, new List<UUID>() { item.ID });
@@ -363,21 +346,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
 
                         if (folder != null) // It's a folder
                         {
-                            previousParentFolderID = folder.ParentID;
                             folder.ParentID = destinationFolderID;
                             invService.MoveFolder(folder);
                         }
-                    }
-
-                    // Tell client about updates to original parent and new parent (this should probably be factored with existing move item/folder code).
-                    if (previousParentFolderID != null)
-                    {
-                        InventoryFolderBase previousParentFolder
-                            = new InventoryFolderBase((UUID)previousParentFolderID, client.AgentId);
-                        previousParentFolder = invService.GetFolder(previousParentFolder);
-                        scene.SendInventoryUpdate(client, previousParentFolder, true, true);
-
-                        scene.SendInventoryUpdate(client, destinationFolder, true, true);
                     }
                 }
             }
@@ -399,11 +370,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                 InventoryItemBase item = new InventoryItemBase(inventoryID, client.AgentId);
                 item = invService.GetItem(item);
                 InventoryFolderBase folder = null;
-                UUID? previousParentFolderID = null;
                 
                 if (item != null && trashFolder != null)
                 {
-                    previousParentFolderID = item.Folder;
                     item.Folder = trashFolder.ID;
 
                     // Diva comment: can't we just update this item???
@@ -419,7 +388,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                     
                     if (folder != null & trashFolder != null)
                     {
-                        previousParentFolderID = folder.ParentID;
                         folder.ParentID = trashFolder.ID;
                         invService.MoveFolder(folder);
                         client.SendBulkUpdateInventory(folder);
@@ -440,16 +408,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                     client.SendAgentAlertMessage("Unable to delete "+
                             "received inventory" + reason, false);
                 }
-                // Tell client about updates to original parent and new parent (this should probably be factored with existing move item/folder code).
-                else if (previousParentFolderID != null)
-                {
-                    InventoryFolderBase previousParentFolder
-                        = new InventoryFolderBase((UUID)previousParentFolderID, client.AgentId);
-                    previousParentFolder = invService.GetFolder(previousParentFolder);
-                    scene.SendInventoryUpdate(client, previousParentFolder, true, true);
-
-                    scene.SendInventoryUpdate(client, trashFolder, true, true);
-                }
 
                 if (im.dialog == (byte)InstantMessageDialog.InventoryDeclined)
                 {
@@ -468,69 +426,69 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
             }
         }
 
-//        public bool NeedSceneCacheClear(UUID agentID, Scene scene)
-//        {
-//            if (!m_AgentRegions.ContainsKey(agentID))
-//            {
-//                // Since we can get here two ways, we need to scan
-//                // the scenes here. This is somewhat more expensive
-//                // but helps avoid a nasty bug
-//                //
-//
-//                foreach (Scene s in m_Scenelist)
-//                {
-//                    ScenePresence presence;
-//
-//                    if (s.TryGetScenePresence(agentID, out presence))
-//                    {
-//                        // If the agent is in this scene, then we
-//                        // are being called twice in a single
-//                        // teleport. This is wasteful of cycles
-//                        // but harmless due to this 2nd level check
-//                        //
-//                        // If the agent is found in another scene
-//                        // then the list wasn't current
-//                        //
-//                        // If the agent is totally unknown, then what
-//                        // are we even doing here??
-//                        //
-//                        if (s == scene)
-//                        {
-//                            //m_log.Debug("[INVTRANSFERMOD]: s == scene. Returning true in " + scene.RegionInfo.RegionName);
-//                            return true;
-//                        }
-//                        else
-//                        {
-//                            //m_log.Debug("[INVTRANSFERMOD]: s != scene. Returning false in " + scene.RegionInfo.RegionName);
-//                            return false;
-//                        }
-//                    }
-//                }
-//                //m_log.Debug("[INVTRANSFERMOD]: agent not in scene. Returning true in " + scene.RegionInfo.RegionName);
-//                return true;
-//            }
-//
-//            // The agent is left in current Scene, so we must be
-//            // going to another instance
-//            //
-//            if (m_AgentRegions[agentID] == scene)
-//            {
-//                //m_log.Debug("[INVTRANSFERMOD]: m_AgentRegions[agentID] == scene. Returning true in " + scene.RegionInfo.RegionName);
-//                m_AgentRegions.Remove(agentID);
-//                return true;
-//            }
-//
-//            // Another region has claimed the agent
-//            //
-//            //m_log.Debug("[INVTRANSFERMOD]: last resort. Returning false in " + scene.RegionInfo.RegionName);
-//            return false;
-//        }
-//
-//        public void ClientLoggedOut(UUID agentID, Scene scene)
-//        {
-//            if (m_AgentRegions.ContainsKey(agentID))
-//                m_AgentRegions.Remove(agentID);
-//        }
+        public bool NeedSceneCacheClear(UUID agentID, Scene scene)
+        {
+            if (!m_AgentRegions.ContainsKey(agentID))
+            {
+                // Since we can get here two ways, we need to scan
+                // the scenes here. This is somewhat more expensive
+                // but helps avoid a nasty bug
+                //
+
+                foreach (Scene s in m_Scenelist)
+                {
+                    ScenePresence presence;
+
+                    if (s.TryGetScenePresence(agentID, out presence))
+                    {
+                        // If the agent is in this scene, then we
+                        // are being called twice in a single
+                        // teleport. This is wasteful of cycles
+                        // but harmless due to this 2nd level check
+                        //
+                        // If the agent is found in another scene
+                        // then the list wasn't current
+                        //
+                        // If the agent is totally unknown, then what
+                        // are we even doing here??
+                        //
+                        if (s == scene)
+                        {
+                            //m_log.Debug("[INVTRANSFERMOD]: s == scene. Returning true in " + scene.RegionInfo.RegionName);
+                            return true;
+                        }
+                        else
+                        {
+                            //m_log.Debug("[INVTRANSFERMOD]: s != scene. Returning false in " + scene.RegionInfo.RegionName);
+                            return false;
+                        }
+                    }
+                }
+                //m_log.Debug("[INVTRANSFERMOD]: agent not in scene. Returning true in " + scene.RegionInfo.RegionName);
+                return true;
+            }
+
+            // The agent is left in current Scene, so we must be
+            // going to another instance
+            //
+            if (m_AgentRegions[agentID] == scene)
+            {
+                //m_log.Debug("[INVTRANSFERMOD]: m_AgentRegions[agentID] == scene. Returning true in " + scene.RegionInfo.RegionName);
+                m_AgentRegions.Remove(agentID);
+                return true;
+            }
+
+            // Another region has claimed the agent
+            //
+            //m_log.Debug("[INVTRANSFERMOD]: last resort. Returning false in " + scene.RegionInfo.RegionName);
+            return false;
+        }
+
+        public void ClientLoggedOut(UUID agentID, Scene scene)
+        {
+            if (m_AgentRegions.ContainsKey(agentID))
+                m_AgentRegions.Remove(agentID);
+        }
 
         /// <summary>
         ///

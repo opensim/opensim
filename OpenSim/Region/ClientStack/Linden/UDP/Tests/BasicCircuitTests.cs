@@ -43,7 +43,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
     /// This will contain basic tests for the LindenUDP client stack
     /// </summary>
     [TestFixture]
-    public class BasicCircuitTests : OpenSimTestCase
+    public class BasicCircuitTests
     {
         private Scene m_scene;
         private TestLLUDPServer m_udpServer;
@@ -65,9 +65,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         }
 
         [SetUp]
-        public override void SetUp()
+        public void SetUp()
         {
-            base.SetUp();
             m_scene = new SceneHelpers().SetupScene();
         }
         
@@ -144,7 +143,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         public void TestAddClient()
         {
             TestHelpers.InMethod();
-//            TestHelpers.EnableLogging();
+//            XmlConfigurator.Configure();
 
             AddUdpServer();
 

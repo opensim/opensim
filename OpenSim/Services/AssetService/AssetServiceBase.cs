@@ -84,7 +84,7 @@ namespace OpenSim.Services.AssetService
 
             m_Database = LoadPlugin<IAssetDataPlugin>(dllName);
             if (m_Database == null)
-                throw new Exception(string.Format("Could not find a storage interface in the module {0}", dllName));
+                throw new Exception("Could not find a storage interface in the given module");
 
             m_Database.Initialise(connString);
 
@@ -96,7 +96,7 @@ namespace OpenSim.Services.AssetService
                 m_AssetLoader = LoadPlugin<IAssetLoader>(loaderName);
 
                 if (m_AssetLoader == null)
-                    throw new Exception(string.Format("Asset loader could not be loaded from {0}", loaderName));
+                    throw new Exception("Asset loader could not be loaded");
             }
         }
     }

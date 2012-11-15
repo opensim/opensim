@@ -130,37 +130,37 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
             SendConsoleOutput(agentID, String.Format("auto_grant_attach_perms set to {0}", val));
         }
 
-        private int llAttachToAvatarTemp(UUID host, UUID script, int attachmentPoint)
+        private void llAttachToAvatarTemp(UUID host, UUID script, int attachmentPoint)
         {
             SceneObjectPart hostPart = m_scene.GetSceneObjectPart(host);
 
             if (hostPart == null)
-                return 0;
+                return;
 
             if (hostPart.ParentGroup.IsAttachment)
-                return 0;
+                return;
 
             IAttachmentsModule attachmentsModule = m_scene.RequestModuleInterface<IAttachmentsModule>();
             if (attachmentsModule == null)
-                return 0;
+                return;
 
             TaskInventoryItem item = hostPart.Inventory.GetInventoryItem(script);
             if (item == null)
-                return 0;
+                return;
 
             if ((item.PermsMask & 32) == 0) // PERMISSION_ATTACH
-                return 0;
+                return;
 
             ScenePresence target;
             if (!m_scene.TryGetScenePresence(item.PermsGranter, out target))
-                return 0;
+                return;
             
             if (target.UUID != hostPart.ParentGroup.OwnerID)
             {
                 uint effectivePerms = hostPart.ParentGroup.GetEffectivePermissions();
 
                 if ((effectivePerms & (uint)PermissionMask.Transfer) == 0)
-                    return 0;
+                    return;
 
                 hostPart.ParentGroup.SetOwnerId(target.UUID);
                 hostPart.ParentGroup.SetRootPartOwner(hostPart.ParentGroup.RootPart, target.UUID, target.ControllingClient.ActiveGroupId);
@@ -183,7 +183,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
                 hostPart.ParentGroup.RootPart.ScheduleFullUpdate();
             }
 
-            return attachmentsModule.AttachObject(target, hostPart.ParentGroup, (uint)attachmentPoint, false, true, true) ? 1 : 0;
+            attachmentsModule.AttachObject(target, hostPart.ParentGroup, (uint)attachmentPoint, false, true, true);
         }
     }
 }

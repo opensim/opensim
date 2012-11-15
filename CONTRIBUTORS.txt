@@ -1,5 +1,5 @@
-   <<<>>>>The following people have contributed to OpenSim (Thank you 
-for your effort!) 
+<<<>>>>The following people have contributed to OpenSim (Thank you 
+for your effort!)
 
 = Current OpenSim Developers (in very rough order of appearance) =
 These folks represent the current core team for OpenSim, and are the
@@ -16,7 +16,7 @@ people that make the day to day of OpenSim happen.
 * BlueWall (James Hughes)
 * Nebadon Izumi (Michael Cerquoni, OSgrid)
 * Snoopy Pfeffer
-* Robert Adams (Intel)
+* Richard Adams (Intel)
 
 = Core Developers Following the White Rabbit =
 Core developers who have temporarily (we hope) gone chasing the white rabbit. 
@@ -92,7 +92,6 @@ what it is today.
 * Flyte Xevious
 * Garmin Kawaguichi
 * Gryc Ueusp
-* Hiro Lecker
 * Imaze Rhiano
 * Intimidated
 * Jeremy Bongio (IBM)
@@ -182,14 +181,12 @@ what it is today.
 
 This software uses components from the following developers:
 * Sleepycat Software (Berkeley DB)
-* Aurora-Sim (http://aurora-sim.org)
 * SQLite (Public Domain)
 * XmlRpcCS (http://xmlrpccs.sf.net/)
 * MySQL, Inc. (MySQL Connector/NET)
 * NUnit (http://www.nunit.org)
 * AGEIA Inc. (PhysX)
 * Russel L. Smith (ODE)
-* Erwin Coumans (Bullet)
 * Prebuild (http://sourceforge.net/projects/dnpb/)
 * LibOpenMetaverse (http://lib.openmetaverse.org/)
 * DotNetOpenMail v0.5.8b (http://dotnetopenmail.sourceforge.net)
@@ -211,4 +208,3 @@ In addition, we would like to thank:
 * The NANT Developers
 * Microsoft (.NET, MSSQL-Adapters)
 *x
-  

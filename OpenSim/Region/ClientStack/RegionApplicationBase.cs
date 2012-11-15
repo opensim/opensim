@@ -76,7 +76,7 @@ namespace OpenSim.Region.ClientStack
 
         protected override void StartupSpecific()
         {
-            SceneManager = SceneManager.Instance;
+            SceneManager = new SceneManager();
             m_clientStackManager = CreateClientStackManager();
 
             Initialize();

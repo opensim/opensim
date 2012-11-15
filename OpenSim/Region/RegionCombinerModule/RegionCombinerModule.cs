@@ -39,8 +39,11 @@ using OpenSim.Framework.Console;
 using OpenSim.Region.Physics.Manager;
 using Mono.Addins;
 
+[assembly: Addin("RegionCombinerModule", "0.1")]
+[assembly: AddinDependency("OpenSim", "0.5")]
 namespace OpenSim.Region.RegionCombinerModule
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
     public class RegionCombinerModule : ISharedRegionModule, IRegionCombinerModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -719,21 +722,21 @@ namespace OpenSim.Region.RegionCombinerModule
                 rootConn.ClientEventForwarder = new RegionCombinerClientEventForwarder(rootConn);
     
                 // Sets up the CoarseLocationUpdate forwarder for this root region
-                scene.EventManager.OnNewPresence += SetCoarseLocationDelegate;
+                scene.EventManager.OnNewPresence += SetCourseLocationDelegate;
     
                 // Adds this root region to a dictionary of regions that are connectable
                 m_regions.Add(scene.RegionInfo.originRegionID, rootConn);
             }
         }
 
-        private void SetCoarseLocationDelegate(ScenePresence presence)
+        private void SetCourseLocationDelegate(ScenePresence presence)
         {
-            presence.SetSendCoarseLocationMethod(SendCoarseLocationUpdates);
+            presence.SetSendCourseLocationMethod(SendCourseLocationUpdates);
         }
 
         // This delegate was refactored for non-combined regions.
         // This combined region version will not use the pre-compiled lists of locations and ids
-        private void SendCoarseLocationUpdates(UUID sceneId, ScenePresence presence, List<Vector3> coarseLocations, List<UUID> avatarUUIDs)
+        private void SendCourseLocationUpdates(UUID sceneId, ScenePresence presence, List<Vector3> coarseLocations, List<UUID> avatarUUIDs)
         {
             RegionConnections connectiondata = null; 
             lock (m_regions)
@@ -756,18 +759,18 @@ namespace OpenSim.Region.RegionCombinerModule
                 }
             });
 
-            DistributeCoarseLocationUpdates(CoarseLocations, AvatarUUIDs, connectiondata, presence);
+            DistributeCourseLocationUpdates(CoarseLocations, AvatarUUIDs, connectiondata, presence);
         }
 
-        private void DistributeCoarseLocationUpdates(List<Vector3> locations, List<UUID> uuids, 
+        private void DistributeCourseLocationUpdates(List<Vector3> locations, List<UUID> uuids, 
                                                      RegionConnections connectiondata, ScenePresence rootPresence)
         {
             RegionData[] rdata = connectiondata.ConnectedRegions.ToArray();
             //List<IClientAPI> clients = new List<IClientAPI>();
-            Dictionary<Vector2, RegionCoarseLocationStruct> updates = new Dictionary<Vector2, RegionCoarseLocationStruct>();
+            Dictionary<Vector2, RegionCourseLocationStruct> updates = new Dictionary<Vector2, RegionCourseLocationStruct>();
             
             // Root Region entry
-            RegionCoarseLocationStruct rootupdatedata = new RegionCoarseLocationStruct();
+            RegionCourseLocationStruct rootupdatedata = new RegionCourseLocationStruct();
             rootupdatedata.Locations = new List<Vector3>();
             rootupdatedata.Uuids = new List<UUID>();
             rootupdatedata.Offset = Vector2.Zero;
@@ -781,7 +784,7 @@ namespace OpenSim.Region.RegionCombinerModule
             foreach (RegionData regiondata in rdata)
             {
                 Vector2 offset = new Vector2(regiondata.Offset.X, regiondata.Offset.Y);
-                RegionCoarseLocationStruct updatedata = new RegionCoarseLocationStruct();
+                RegionCourseLocationStruct updatedata = new RegionCourseLocationStruct();
                 updatedata.Locations = new List<Vector3>();
                 updatedata.Uuids = new List<UUID>();
                 updatedata.Offset = offset;
@@ -807,7 +810,7 @@ namespace OpenSim.Region.RegionCombinerModule
                 if (!updates.ContainsKey(offset))
                 {
                     // This shouldn't happen
-                    RegionCoarseLocationStruct updatedata = new RegionCoarseLocationStruct();
+                    RegionCourseLocationStruct updatedata = new RegionCourseLocationStruct();
                     updatedata.Locations = new List<Vector3>();
                     updatedata.Uuids = new List<UUID>();
                     updatedata.Offset = offset;

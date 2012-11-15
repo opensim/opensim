@@ -60,19 +60,11 @@ namespace OpenSim.Framework.Monitoring
         private static bool m_enabled;
 
         /// <summary>
-        /// Last memory churn in bytes per millisecond.
+        /// Average memory churn in bytes per millisecond.
         /// </summary>
         public static double AverageMemoryChurn
         {
             get { if (m_samples.Count > 0) return m_samples.Average(); else return 0; }
-        }
-
-        /// <summary>
-        /// Average memory churn in bytes per millisecond.
-        /// </summary>
-        public static double LastMemoryChurn
-        {
-            get { if (m_samples.Count > 0) return m_samples.Last(); else return 0; }
         }
 
         /// <summary>

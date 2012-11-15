@@ -141,16 +141,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         internal bool m_debuggerSafe = false;
         internal Dictionary<string, FunctionPerms > m_FunctionPerms = new Dictionary<string, FunctionPerms >();
 
-        protected IUrlModule m_UrlModule = null;
-
         public void Initialize(IScriptEngine ScriptEngine, SceneObjectPart host, TaskInventoryItem item)
         {
             m_ScriptEngine = ScriptEngine;
             m_host = host;
             m_item = item;
             m_debuggerSafe = m_ScriptEngine.Config.GetBoolean("DebuggerSafe", false);
-
-            m_UrlModule = m_ScriptEngine.World.RequestModuleInterface<IUrlModule>();
 
             if (m_ScriptEngine.Config.GetBoolean("AllowOSFunctions", false))
                 m_OSFunctionsEnabled = true;
@@ -218,7 +214,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else
             {
-                throw new ScriptException("OSSL Runtime Error: " + msg);
+                throw new Exception("OSSL Runtime Error: " + msg);
             }
         }
 
@@ -786,9 +782,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                         // We will launch the teleport on a new thread so that when the script threads are terminated
                         // before teleport in ScriptInstance.GetXMLState(), we don't end up aborting the one doing the teleporting.                        
-                        Util.FireAndForget(o => World.RequestTeleportLocation(
-                            presence.ControllingClient, regionName, position,
-                            lookat, (uint)TPFlags.ViaLocation));
+                        Util.FireAndForget(
+                            o => World.RequestTeleportLocation(presence.ControllingClient, regionName,
+                                new Vector3((float)position.x, (float)position.y, (float)position.z),
+                                new Vector3((float)lookat.x, (float)lookat.y, (float)lookat.z), (uint)TPFlags.ViaLocation));
 
                         ScriptSleep(5000);
 
@@ -831,9 +828,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                         // We will launch the teleport on a new thread so that when the script threads are terminated
                         // before teleport in ScriptInstance.GetXMLState(), we don't end up aborting the one doing the teleporting.
-                        Util.FireAndForget(o => World.RequestTeleportLocation(
-                            presence.ControllingClient, regionHandle, 
-                            position, lookat, (uint)TPFlags.ViaLocation));
+                        Util.FireAndForget(
+                            o => World.RequestTeleportLocation(presence.ControllingClient, regionHandle,
+                                new Vector3((float)position.x, (float)position.y, (float)position.z),
+                                new Vector3((float)lookat.x, (float)lookat.y, (float)lookat.z), (uint)TPFlags.ViaLocation));
 
                         ScriptSleep(5000);
 
@@ -1682,11 +1680,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
             }
 
-            MessageObject(objUUID, message);
-        }
-
-        private void MessageObject(UUID objUUID, string message)
-        {
             object[] resobj = new object[] { new LSL_Types.LSLString(m_host.UUID.ToString()), new LSL_Types.LSLString(message) };
 
             SceneObjectPart sceneOP = World.GetSceneObjectPart(objUUID);
@@ -1789,24 +1782,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected string LoadNotecard(string notecardNameOrUuid)
         {
             UUID assetID = CacheNotecard(notecardNameOrUuid);
+            StringBuilder notecardData = new StringBuilder();
 
-            if (assetID != UUID.Zero)
+            for (int count = 0; count < NotecardCache.GetLines(assetID); count++)
             {
-                StringBuilder notecardData = new StringBuilder();
-    
-                for (int count = 0; count < NotecardCache.GetLines(assetID); count++)
-                {
-                    string line = NotecardCache.GetLine(assetID, count) + "\n";
-    
-    //                m_log.DebugFormat("[OSSL]: From notecard {0} loading line {1}", notecardNameOrUuid, line);
-    
-                    notecardData.Append(line);
-                }
-    
-                return notecardData.ToString();
+                string line = NotecardCache.GetLine(assetID, count) + "\n";
+
+//                m_log.DebugFormat("[OSSL]: From notecard {0} loading line {1}", notecardNameOrUuid, line);
+
+                notecardData.Append(line);
             }
 
-            return null;
+            return notecardData.ToString();
         }
 
         /// <summary>
@@ -2272,25 +2259,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.High, "osGetLinkPrimitiveParams");
             m_host.AddScriptLPS(1);
             InitLSL();
-            // One needs to cast m_LSL_Api because we're using functions not
-            // on the ILSL_Api interface.
-            LSL_Api LSL_Api = (LSL_Api)m_LSL_Api;
             LSL_List retVal = new LSL_List();
-            LSL_List remaining = null;
-            List<SceneObjectPart> parts = LSL_Api.GetLinkParts(linknumber);
+            List<SceneObjectPart> parts = ((LSL_Api)m_LSL_Api).GetLinkParts(linknumber);
             foreach (SceneObjectPart part in parts)
             {
-                remaining = LSL_Api.GetPrimParams(part, rules, ref retVal);
-            }
-
-            while (remaining != null && remaining.Length > 2)
-            {
-                linknumber = remaining.GetLSLIntegerItem(0);
-                rules = remaining.GetSublist(1, -1);
-                parts = LSL_Api.GetLinkParts(linknumber);
-
-                foreach (SceneObjectPart part in parts)
-                    remaining = LSL_Api.GetPrimParams(part, rules, ref retVal);
+                retVal += ((LSL_Api)m_LSL_Api).GetLinkPrimitiveParams(part, rules);
             }
             return retVal;
         }
@@ -2379,18 +2352,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             return UUID.Zero.ToString();
                         }
                     }
-                    else
-                    {
-                        OSSLError(string.Format("osNpcCreate: Notecard reference '{0}' not found.", notecard));
-                    }
                 }
+
+                if (appearance == null)
+                    return new LSL_Key(UUID.Zero.ToString());
 
                 UUID ownerID = UUID.Zero;
                 if (owned)
                     ownerID = m_host.OwnerID;
                 UUID x = module.CreateNPC(firstname,
                                           lastname,
-                                          position,
+                                          new Vector3((float) position.x, (float) position.y, (float) position.z),
                                           ownerID,
                                           senseAsAgent,
                                           World,
@@ -2453,10 +2425,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return;
 
                 string appearanceSerialized = LoadNotecard(notecard);
-
-                if (appearanceSerialized == null)
-                    OSSLError(string.Format("osNpcCreate: Notecard reference '{0}' not found.", notecard));
-
                 OSDMap appearanceOsd = (OSDMap)OSDParser.DeserializeLLSDXml(appearanceSerialized);
 //                OSD a = OSDParser.DeserializeLLSDXml(appearanceSerialized);
 //                Console.WriteLine("appearanceSerialized {0}", appearanceSerialized);
@@ -2517,7 +2485,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return new LSL_Vector(0, 0, 0);
         }
 
-        public void osNpcMoveTo(LSL_Key npc, LSL_Vector pos)
+        public void osNpcMoveTo(LSL_Key npc, LSL_Vector position)
         {
             CheckThreatLevel(ThreatLevel.High, "osNpcMoveTo");
             m_host.AddScriptLPS(1);
@@ -2532,6 +2500,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (!module.CheckPermissions(npcId, m_host.OwnerID))
                     return;
                 
+                Vector3 pos = new Vector3((float) position.x, (float) position.y, (float) position.z);
                 module.MoveToTarget(npcId, World, pos, false, true, false);
             }
         }
@@ -2551,10 +2520,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (!module.CheckPermissions(npcId, m_host.OwnerID))
                     return;
 
+                Vector3 pos = new Vector3((float)target.x, (float)target.y, (float)target.z);
                 module.MoveToTarget(
                     new UUID(npc.m_string),
                     World,
-                    target,
+                    pos,
                     (options & ScriptBaseClass.OS_NPC_NO_FLY) != 0,
                     (options & ScriptBaseClass.OS_NPC_LAND_AT_TARGET) != 0,
                     (options & ScriptBaseClass.OS_NPC_RUNNING) != 0);
@@ -2606,7 +2576,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 ScenePresence sp = World.GetScenePresence(npcId);
 
                 if (sp != null)
-                    sp.Rotation = rotation;
+                    sp.Rotation = LSL_Api.Rot2Quaternion(rotation);
             }
         }
 
@@ -2966,7 +2936,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 avatar.SpeedModifier = (float)SpeedModifier;
         }
         
-        public void osKickAvatar(string FirstName, string SurName, string alert)
+        public void osKickAvatar(string FirstName,string SurName,string alert)
         {
             CheckThreatLevel(ThreatLevel.Severe, "osKickAvatar");
             m_host.AddScriptLPS(1);
@@ -2980,20 +2950,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         sp.ControllingClient.Kick(alert);
 
                     // ...and close on our side
-                    sp.Scene.IncomingCloseAgent(sp.UUID, false);
+                    sp.Scene.IncomingCloseAgent(sp.UUID);
                 }
             });
-        }
-
-        public LSL_Float osGetHealth(string avatar)
-        {
-            CheckThreatLevel(ThreatLevel.None, "osGetHealth");
-            m_host.AddScriptLPS(1);
-
-            LSL_Float health = new LSL_Float(-1);
-            ScenePresence presence = World.GetScenePresence(new UUID(avatar));
-            if (presence != null) health = presence.Health;
-            return health;
         }
         
         public void osCauseDamage(string avatar, double damage)
@@ -3007,7 +2966,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             ScenePresence presence = World.GetScenePresence(avatarId); 
             if (presence != null)
             {
-                LandData land = World.GetLandData(pos);
+                LandData land = World.GetLandData((float)pos.X, (float)pos.Y);
                 if ((land.Flags & (uint)ParcelFlags.AllowDamage) == (uint)ParcelFlags.AllowDamage)
                 {
                     float health = presence.Health;
@@ -3054,7 +3013,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             InitLSL();
             
-            return m_LSL_Api.GetPrimitiveParamsEx(prim, rules);
+            return m_LSL_Api.GetLinkPrimitiveParamsEx(prim, rules);
         }
 
         public void osSetPrimitiveParams(LSL_Key prim, LSL_List rules)
@@ -3063,7 +3022,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             InitLSL();
             
-            m_LSL_Api.SetPrimitiveParamsEx(prim, rules, "osSetPrimitiveParams");
+            m_LSL_Api.SetPrimitiveParamsEx(prim, rules);
         }
         
         /// <summary>
@@ -3295,8 +3254,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
-        #region Attachment commands
-
         public void osForceAttachToAvatar(int attachmentPoint)
         {
             CheckThreatLevel(ThreatLevel.High, "osForceAttachToAvatar");
@@ -3386,175 +3343,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             ((LSL_Api)m_LSL_Api).DetachFromAvatar();
         }
 
-        public LSL_List osGetNumberOfAttachments(LSL_Key avatar, LSL_List attachmentPoints)
-        {
-            CheckThreatLevel(ThreatLevel.Moderate, "osGetNumberOfAttachments");
-
-            m_host.AddScriptLPS(1);
-
-            UUID targetUUID;
-            ScenePresence target;
-            LSL_List resp = new LSL_List();
-
-            if (attachmentPoints.Length >= 1 && UUID.TryParse(avatar.ToString(), out targetUUID) && World.TryGetScenePresence(targetUUID, out target))
-            {
-                foreach (object point in attachmentPoints.Data)
-                {
-                    LSL_Integer ipoint = new LSL_Integer(
-                        (point is LSL_Integer || point is int || point is uint) ?
-                            (int)point :
-                            0
-                    );
-                    resp.Add(ipoint);
-                    if (ipoint == 0)
-                    {
-                        // indicates zero attachments
-                        resp.Add(new LSL_Integer(0));
-                    }
-                    else
-                    {
-                        // gets the number of attachments on the attachment point
-                        resp.Add(new LSL_Integer(target.GetAttachments((uint)ipoint).Count));
-                    }
-                }
-            }
-
-            return resp;
-        }
-
-        public void osMessageAttachments(LSL_Key avatar, string message, LSL_List attachmentPoints, int options)
-        {
-            CheckThreatLevel(ThreatLevel.Moderate, "osMessageAttachments");
-            m_host.AddScriptLPS(1);
-
-            UUID targetUUID;
-            ScenePresence target;
-
-            if (attachmentPoints.Length >= 1 && UUID.TryParse(avatar.ToString(), out targetUUID) && World.TryGetScenePresence(targetUUID, out target))
-            {
-                List<int> aps = new List<int>();
-                foreach (object point in attachmentPoints.Data)
-                {
-                    int ipoint;
-                    if (int.TryParse(point.ToString(), out ipoint))
-                    {
-                        aps.Add(ipoint);
-                    }
-                }
-
-                List<SceneObjectGroup> attachments = new List<SceneObjectGroup>();
-
-                bool msgAll = aps.Contains(ScriptBaseClass.OS_ATTACH_MSG_ALL);
-                bool invertPoints = (options & ScriptBaseClass.OS_ATTACH_MSG_INVERT_POINTS) != 0;
-
-                if (msgAll && invertPoints)
-                {
-                    return;
-                }
-                else if (msgAll || invertPoints)
-                {
-                    attachments = target.GetAttachments();
-                }
-                else
-                {
-                    foreach (int point in aps)
-                    {
-                        if (point > 0)
-                        {
-                            attachments.AddRange(target.GetAttachments((uint)point));
-                        }
-                    }
-                }
-
-                // if we have no attachments at this point, exit now
-                if (attachments.Count == 0)
-                {
-                    return;
-                }
-
-                List<SceneObjectGroup> ignoreThese = new List<SceneObjectGroup>();
-
-                if (invertPoints)
-                {
-                    foreach (SceneObjectGroup attachment in attachments)
-                    {
-                        if (aps.Contains((int)attachment.AttachmentPoint))
-                        {
-                            ignoreThese.Add(attachment);
-                        }
-                    }
-                }
-
-                foreach (SceneObjectGroup attachment in ignoreThese)
-                {
-                    attachments.Remove(attachment);
-                }
-                ignoreThese.Clear();
-
-                // if inverting removed all attachments to check, exit now
-                if (attachments.Count < 1)
-                {
-                    return;
-                }
-
-                if ((options & ScriptBaseClass.OS_ATTACH_MSG_OBJECT_CREATOR) != 0)
-                {
-                    foreach (SceneObjectGroup attachment in attachments)
-                    {
-                        if (attachment.RootPart.CreatorID != m_host.CreatorID)
-                        {
-                            ignoreThese.Add(attachment);
-                        }
-                    }
-
-                    foreach (SceneObjectGroup attachment in ignoreThese)
-                    {
-                        attachments.Remove(attachment);
-                    }
-                    ignoreThese.Clear();
-
-                    // if filtering by same object creator removed all
-                    //  attachments to check, exit now
-                    if (attachments.Count == 0)
-                    {
-                        return;
-                    }
-                }
-
-                if ((options & ScriptBaseClass.OS_ATTACH_MSG_SCRIPT_CREATOR) != 0)
-                {
-                    foreach (SceneObjectGroup attachment in attachments)
-                    {
-                        if (attachment.RootPart.CreatorID != m_item.CreatorID)
-                        {
-                            ignoreThese.Add(attachment);
-                        }
-                    }
-
-                    foreach (SceneObjectGroup attachment in ignoreThese)
-                    {
-                        attachments.Remove(attachment);
-                    }
-                    ignoreThese.Clear();
-
-                    // if filtering by object creator must match originating
-                    //  script creator removed all attachments to check,
-                    //  exit now
-                    if (attachments.Count == 0)
-                    {
-                        return;
-                    }
-                }
-
-                foreach (SceneObjectGroup attachment in attachments)
-                {
-                    MessageObject(attachment.RootPart.UUID, message);
-                }
-            }
-        }
-
-        #endregion
-
         /// <summary>
         /// Checks if thing is a UUID.
         /// </summary>
@@ -3603,167 +3391,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
 
             return new LSL_Key(m_host.ParentGroup.FromPartID.ToString());
-        }
-
-        /// <summary>
-        /// Sets the response type for an HTTP request/response
-        /// </summary>
-        /// <returns></returns>
-        public void osSetContentType(LSL_Key id, string type)
-        {
-            CheckThreatLevel(ThreatLevel.High, "osSetContentType");
-
-            if (m_UrlModule != null)
-                m_UrlModule.HttpContentType(new UUID(id),type);
-        }
-
-        /// Shout an error if the object owner did not grant the script the specified permissions.
-        /// </summary>
-        /// <param name="perms"></param>
-        /// <returns>boolean indicating whether an error was shouted.</returns>
-        protected bool ShoutErrorOnLackingOwnerPerms(int perms, string errorPrefix)
-        {
-            m_host.AddScriptLPS(1);
-            bool fail = false;
-            if (m_item.PermsGranter != m_host.OwnerID)
-            {
-                fail = true;
-                OSSLShoutError(string.Format("{0}. Permissions not granted to owner.", errorPrefix));
-            }
-            else if ((m_item.PermsMask & perms) == 0)
-            {
-                fail = true;
-                OSSLShoutError(string.Format("{0}. Permissions not granted.", errorPrefix));
-            }
-
-            return fail;
-        }
-
-        protected void DropAttachment(bool checkPerms)
-        {
-            if (checkPerms && ShoutErrorOnLackingOwnerPerms(ScriptBaseClass.PERMISSION_ATTACH, "Cannot drop attachment"))
-            {
-                return;
-            }
-
-            IAttachmentsModule attachmentsModule = m_ScriptEngine.World.AttachmentsModule;
-            ScenePresence sp = attachmentsModule == null ? null : m_host.ParentGroup.Scene.GetScenePresence(m_host.ParentGroup.OwnerID);
-
-            if (attachmentsModule != null && sp != null)
-            {
-                attachmentsModule.DetachSingleAttachmentToGround(sp, m_host.ParentGroup.LocalId);
-            }
-        }
-
-        protected void DropAttachmentAt(bool checkPerms, LSL_Vector pos, LSL_Rotation rot)
-        {
-            if (checkPerms && ShoutErrorOnLackingOwnerPerms(ScriptBaseClass.PERMISSION_ATTACH, "Cannot drop attachment"))
-            {
-                return;
-            }
-
-            IAttachmentsModule attachmentsModule = m_ScriptEngine.World.AttachmentsModule;
-            ScenePresence sp = attachmentsModule == null ? null : m_host.ParentGroup.Scene.GetScenePresence(m_host.ParentGroup.OwnerID);
-
-            if (attachmentsModule != null && sp != null)
-            {
-                attachmentsModule.DetachSingleAttachmentToGround(sp, m_host.ParentGroup.LocalId, pos, rot);
-            }
-        }
-
-        public void osDropAttachment()
-        {
-            CheckThreatLevel(ThreatLevel.Moderate, "osDropAttachment");
-            m_host.AddScriptLPS(1);
-
-            DropAttachment(true);
-        }
-
-        public void osForceDropAttachment()
-        {
-            CheckThreatLevel(ThreatLevel.High, "osForceDropAttachment");
-            m_host.AddScriptLPS(1);
-
-            DropAttachment(false);
-        }
-
-        public void osDropAttachmentAt(LSL_Vector pos, LSL_Rotation rot)
-        {
-            CheckThreatLevel(ThreatLevel.Moderate, "osDropAttachmentAt");
-            m_host.AddScriptLPS(1);
-
-            DropAttachmentAt(true, pos, rot);
-        }
-
-        public void osForceDropAttachmentAt(LSL_Vector pos, LSL_Rotation rot)
-        {
-            CheckThreatLevel(ThreatLevel.High, "osForceDropAttachmentAt");
-            m_host.AddScriptLPS(1);
-
-            DropAttachmentAt(false, pos, rot);
-        }
-
-        public LSL_Integer osListenRegex(int channelID, string name, string ID, string msg, int regexBitfield)
-        {
-            CheckThreatLevel(ThreatLevel.Low, "osListenRegex");
-            m_host.AddScriptLPS(1);
-            UUID keyID;
-            UUID.TryParse(ID, out keyID);
-
-            // if we want the name to be used as a regular expression, ensure it is valid first.
-            if ((regexBitfield & ScriptBaseClass.OS_LISTEN_REGEX_NAME) == ScriptBaseClass.OS_LISTEN_REGEX_NAME)
-            {
-                try
-                {
-                    Regex.IsMatch("", name);
-                }
-                catch (Exception)
-                {
-                    OSSLShoutError("Name regex is invalid.");
-                    return -1;
-                }
-            }
-
-            // if we want the msg to be used as a regular expression, ensure it is valid first.
-            if ((regexBitfield & ScriptBaseClass.OS_LISTEN_REGEX_MESSAGE) == ScriptBaseClass.OS_LISTEN_REGEX_MESSAGE)
-            {
-                try
-                {
-                    Regex.IsMatch("", msg);
-                }
-                catch (Exception)
-                {
-                    OSSLShoutError("Message regex is invalid.");
-                    return -1;
-                }
-            }
-
-            IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
-            return (wComm == null) ? -1 : wComm.Listen(
-                m_host.LocalId,
-                m_item.ItemID,
-                m_host.UUID,
-                channelID,
-                name,
-                keyID,
-                msg,
-                regexBitfield
-            );
-        }
-
-        public LSL_Integer osRegexIsMatch(string input, string pattern)
-        {
-            CheckThreatLevel(ThreatLevel.Low, "osRegexIsMatch");
-            m_host.AddScriptLPS(1);
-            try
-            {
-                return Regex.IsMatch(input, pattern) ? 1 : 0;
-            }
-            catch (Exception)
-            {
-                OSSLShoutError("Possible invalid regular expression detected.");
-                return 0;
-            }
         }
     }
 }

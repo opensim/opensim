@@ -447,7 +447,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                 // settings allow voice, then whether parcel allows
                 // voice, if all do retrieve or obtain the parcel
                 // voice channel
-                LandData land = scene.GetLandData(avatar.AbsolutePosition);
+                LandData land = scene.GetLandData(avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y);
 
                 //m_log.DebugFormat("[FreeSwitchVoice][PARCELVOICE]: region \"{0}\": Parcel \"{1}\" ({2}): avatar \"{3}\": request: {4}, path: {5}, param: {6}",
                 //                  scene.RegionInfo.RegionName, land.Name, land.LocalID, avatarName, request, path, param);

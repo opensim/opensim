@@ -656,19 +656,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 if (m_Assemblies.ContainsKey(instance.AssetID))
                 {
                     string assembly = m_Assemblies[instance.AssetID];
-
-                    try
-                    {
-                        instance.SaveState(assembly);
-                    }
-                    catch (Exception e)
-                    {
-                        m_log.Error(
-                            string.Format(
-                                "[XEngine]: Failed final state save for script {0}.{1}, item UUID {2}, prim UUID {3} in {4}.  Exception ",
-                                instance.PrimName, instance.ScriptName, instance.ItemID, instance.ObjectID, World.Name)
-                            , e);
-                    }
+                    instance.SaveState(assembly);
                 }
 
                 // Clear the event queue and abort the instance thread
@@ -790,18 +778,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     assembly = m_Assemblies[i.AssetID];
                 
 
-                try
-                {
-                    i.SaveState(assembly);
-                }
-                catch (Exception e)
-                {
-                    m_log.Error(
-                        string.Format(
-                            "[XEngine]: Failed to save state of script {0}.{1}, item UUID {2}, prim UUID {3} in {4}.  Exception ",
-                            i.PrimName, i.ScriptName, i.ItemID, i.ObjectID, World.Name)
-                        , e);
-                }
+                i.SaveState(assembly);
             }
 
             instances.Clear();
@@ -994,8 +971,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 // This delay exists to stop mono problems where script compilation and startup would stop the sim
                 // working properly for the session.
                 System.Threading.Thread.Sleep(m_StartDelay);
-
-                m_log.InfoFormat("[XEngine]: Performing initial script startup on {0}", m_Scene.Name);
             }
 
             object[] o;
@@ -1011,13 +986,13 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     if (m_InitialStartup)
                         if (scriptsStarted % 50 == 0)
                             m_log.InfoFormat(
-                                "[XEngine]: Started {0} scripts in {1}", scriptsStarted, m_Scene.Name);
+                                "[XEngine]: Started {0} scripts in {1}", scriptsStarted, m_Scene.RegionInfo.RegionName);
                 }
             }
 
             if (m_InitialStartup)
                 m_log.InfoFormat(
-                    "[XEngine]: Completed starting {0} scripts on {1}", scriptsStarted, m_Scene.Name);
+                    "[XEngine]: Completed starting {0} scripts on {1}", scriptsStarted, m_Scene.RegionInfo.RegionName);
 
             // NOTE: Despite having a lockless queue, this lock is required
             // to make sure there is never no compile thread while there
@@ -1078,12 +1053,10 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 return false;
             }
 
-            m_log.DebugFormat(
-                "[XEngine] Loading script {0}.{1}, item UUID {2}, prim UUID {3} @ {4}.{5}",
-                part.ParentGroup.RootPart.Name, item.Name, itemID, part.UUID,
-                part.ParentGroup.RootPart.AbsolutePosition, part.ParentGroup.Scene.RegionInfo.RegionName);
-
             UUID assetID = item.AssetID;
+
+            //m_log.DebugFormat("[XEngine] Compiling script {0} ({1} on object {2})",
+            //        item.Name, itemID.ToString(), part.ParentGroup.RootPart.Name);
 
             ScenePresence presence = m_Scene.GetScenePresence(item.OwnerID);
 
@@ -1262,10 +1235,10 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                                               item.Name, startParam, postOnRez,
                                               stateSource, m_MaxScriptQueue);
 
-//                m_log.DebugFormat(
-//                        "[XEngine] Loaded script {0}.{1}, script UUID {2}, prim UUID {3} @ {4}.{5}",
-//                        part.ParentGroup.RootPart.Name, item.Name, assetID, part.UUID, 
-//                        part.ParentGroup.RootPart.AbsolutePosition, part.ParentGroup.Scene.RegionInfo.RegionName);
+                m_log.DebugFormat(
+                        "[XEngine] Loaded script {0}.{1}, script UUID {2}, prim UUID {3} @ {4}.{5}",
+                        part.ParentGroup.RootPart.Name, item.Name, assetID, part.UUID, 
+                        part.ParentGroup.RootPart.AbsolutePosition, part.ParentGroup.Scene.RegionInfo.RegionName);
 
                 if (presence != null)
                 {
@@ -1581,9 +1554,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 else if (p[i] is string)
                     lsl_p[i] = new LSL_Types.LSLString((string)p[i]);
                 else if (p[i] is Vector3)
-                    lsl_p[i] = new LSL_Types.Vector3((Vector3)p[i]);
+                    lsl_p[i] = new LSL_Types.Vector3(((Vector3)p[i]).X, ((Vector3)p[i]).Y, ((Vector3)p[i]).Z);
                 else if (p[i] is Quaternion)
-                    lsl_p[i] = new LSL_Types.Quaternion((Quaternion)p[i]);
+                    lsl_p[i] = new LSL_Types.Quaternion(((Quaternion)p[i]).X, ((Quaternion)p[i]).Y, ((Quaternion)p[i]).Z, ((Quaternion)p[i]).W);
                 else if (p[i] is float)
                     lsl_p[i] = new LSL_Types.LSLFloat((float)p[i]);
                 else
@@ -1607,9 +1580,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 else if (p[i] is string)
                     lsl_p[i] = new LSL_Types.LSLString((string)p[i]);
                 else if (p[i] is Vector3)
-                    lsl_p[i] = new LSL_Types.Vector3((Vector3)p[i]);
+                    lsl_p[i] = new LSL_Types.Vector3(((Vector3)p[i]).X, ((Vector3)p[i]).Y, ((Vector3)p[i]).Z);
                 else if (p[i] is Quaternion)
-                    lsl_p[i] = new LSL_Types.Quaternion((Quaternion)p[i]);
+                    lsl_p[i] = new LSL_Types.Quaternion(((Quaternion)p[i]).X, ((Quaternion)p[i]).Y, ((Quaternion)p[i]).Z, ((Quaternion)p[i]).W);
                 else if (p[i] is float)
                     lsl_p[i] = new LSL_Types.LSLFloat((float)p[i]);
                 else

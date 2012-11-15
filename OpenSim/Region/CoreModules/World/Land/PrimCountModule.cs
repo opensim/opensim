@@ -69,7 +69,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         /// without recounting the whole sim.
         /// 
         /// We start out tainted so that the first get call resets the various prim counts.
-        /// </value>
+        /// <value>
         private bool m_Tainted = true;
         
         private Object m_TaintLock = new Object();

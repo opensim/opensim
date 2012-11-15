@@ -32,7 +32,6 @@ using System.Net;
 using Nini.Config;
 using OpenMetaverse;
 using OpenMetaverse.Imaging;
-using OpenSim.Region.CoreModules.Scripting.DynamicTexture;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using log4net;
@@ -68,18 +67,12 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
             return true;
         }
 
-//        public bool AlwaysIdenticalConversion(string bodyData, string extraParams)
-//        {
-//            // We don't support conversion of body data.
-//            return false;
-//        }
-
-        public IDynamicTexture ConvertUrl(string url, string extraParams)
+        public byte[] ConvertUrl(string url, string extraParams)
         {
             return null;
         }
 
-        public IDynamicTexture ConvertData(string bodyData, string extraParams)
+        public byte[] ConvertStream(Stream data, string extraParams)
         {
             return null;
         }
@@ -172,11 +165,11 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
 
         private void HttpRequestReturn(IAsyncResult result)
         {
+
             RequestState state = (RequestState) result.AsyncState;
             WebRequest request = (WebRequest) state.Request;
             Stream stream = null;
             byte[] imageJ2000 = new byte[0];
-            Size newSize = new Size(0, 0);
 
             try
             {
@@ -189,43 +182,37 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
                         try
                         {
                             Bitmap image = new Bitmap(stream);
+                            Size newsize;
 
                             // TODO: make this a bit less hard coded
                             if ((image.Height < 64) && (image.Width < 64))
                             {
-                                newSize.Width = 32;
-                                newSize.Height = 32;
+                                newsize = new Size(32, 32);
                             }
                             else if ((image.Height < 128) && (image.Width < 128))
                             {
-                                newSize.Width = 64;
-                                newSize.Height = 64;
+                                newsize = new Size(64, 64);
                             }
                             else if ((image.Height < 256) && (image.Width < 256))
                             {
-                                newSize.Width = 128;
-                                newSize.Height = 128;
+                                newsize = new Size(128, 128);
                             }
                             else if ((image.Height < 512 && image.Width < 512))
                             {
-                                newSize.Width = 256;
-                                newSize.Height = 256;
+                                newsize = new Size(256, 256);
                             }
                             else if ((image.Height < 1024 && image.Width < 1024))
                             {
-                                newSize.Width = 512;
-                                newSize.Height = 512;
+                                newsize = new Size(512, 512);
                             }
                             else
                             {
-                                newSize.Width = 1024;
-                                newSize.Height = 1024;
+                                newsize = new Size(1024, 1024);
                             }
 
-                            using (Bitmap resize = new Bitmap(image, newSize))
-                            {
-                                imageJ2000 = OpenJPEG.EncodeFromImage(resize, true);
-                            }
+                            Bitmap resize = new Bitmap(image, newsize);
+
+                            imageJ2000 = OpenJPEG.EncodeFromImage(resize, true);
                         } 
                         catch (Exception)
                         {
@@ -240,6 +227,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
             }
             catch (WebException)
             {
+                
             }
             finally
             {
@@ -248,14 +236,9 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
                     stream.Close();
                 }
             }
-
-            m_log.DebugFormat("[LOADIMAGEURLMODULE]: Returning {0} bytes of image data for request {1}",
+            m_log.DebugFormat("[LOADIMAGEURLMODULE] Returning {0} bytes of image data for request {1}",
                                        imageJ2000.Length, state.RequestID);
-
-            m_textureManager.ReturnData(
-                state.RequestID,
-                new OpenSim.Region.CoreModules.Scripting.DynamicTexture.DynamicTexture(
-                    request.RequestUri, null, imageJ2000, newSize, false));
+            m_textureManager.ReturnData(state.RequestID, imageJ2000);
         }
 
         #region Nested type: RequestState

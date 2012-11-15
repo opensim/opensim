@@ -546,8 +546,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                     "OpenSim.Region.ScriptEngine.Shared.dll"));
             parameters.ReferencedAssemblies.Add(Path.Combine(rootPath,
                     "OpenSim.Region.ScriptEngine.Shared.Api.Runtime.dll"));
-            parameters.ReferencedAssemblies.Add(Path.Combine(rootPath,
-                    "OpenMetaverseTypes.dll"));
 
             if (lang == enumCompileType.yp)
             {

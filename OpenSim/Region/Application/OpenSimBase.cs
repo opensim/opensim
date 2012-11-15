@@ -232,6 +232,8 @@ namespace OpenSim
 
             base.StartupSpecific();
 
+            m_stats = StatsManager.SimExtraStats;
+
             // Create a ModuleLoader instance
             m_moduleLoader = new ModuleLoader(m_config.Source);
 
@@ -247,51 +249,51 @@ namespace OpenSim
                 plugin.PostInitialise();
             }
 
-            if (m_console != null)
-            {
-                StatsManager.RegisterConsoleCommands(m_console);
-                AddPluginCommands(m_console);
-            }
+            AddPluginCommands();
         }
 
-        protected virtual void AddPluginCommands(CommandConsole console)
+        protected virtual void AddPluginCommands()
         {
-            List<string> topics = GetHelpTopics();
-
-            foreach (string topic in topics)
+            // If console exists add plugin commands.
+            if (m_console != null)
             {
-                string capitalizedTopic = char.ToUpper(topic[0]) + topic.Substring(1);
+                List<string> topics = GetHelpTopics();
 
-                // This is a hack to allow the user to enter the help command in upper or lowercase.  This will go
-                // away at some point.
-                console.Commands.AddCommand(capitalizedTopic, false, "help " + topic,
-                                              "help " + capitalizedTopic,
-                                              "Get help on plugin command '" + topic + "'",
-                                              HandleCommanderHelp);
-                console.Commands.AddCommand(capitalizedTopic, false, "help " + capitalizedTopic,
-                                              "help " + capitalizedTopic,
-                                              "Get help on plugin command '" + topic + "'",
-                                              HandleCommanderHelp);
-
-                ICommander commander = null;
-
-                Scene s = SceneManager.CurrentOrFirstScene;
-
-                if (s != null && s.GetCommanders() != null)
+                foreach (string topic in topics)
                 {
-                    if (s.GetCommanders().ContainsKey(topic))
-                        commander = s.GetCommanders()[topic];
-                }
+                    string capitalizedTopic = char.ToUpper(topic[0]) + topic.Substring(1);
 
-                if (commander == null)
-                    continue;
+                    // This is a hack to allow the user to enter the help command in upper or lowercase.  This will go
+                    // away at some point.
+                    m_console.Commands.AddCommand(capitalizedTopic, false, "help " + topic,
+                                                  "help " + capitalizedTopic,
+                                                  "Get help on plugin command '" + topic + "'",
+                                                  HandleCommanderHelp);
+                    m_console.Commands.AddCommand(capitalizedTopic, false, "help " + capitalizedTopic,
+                                                  "help " + capitalizedTopic,
+                                                  "Get help on plugin command '" + topic + "'",
+                                                  HandleCommanderHelp);
 
-                foreach (string command in commander.Commands.Keys)
-                {
-                    console.Commands.AddCommand(capitalizedTopic, false,
-                                                  topic + " " + command,
-                                                  topic + " " + commander.Commands[command].ShortHelp(),
-                                                  String.Empty, HandleCommanderCommand);
+                    ICommander commander = null;
+
+                    Scene s = SceneManager.CurrentOrFirstScene;
+
+                    if (s != null && s.GetCommanders() != null)
+                    {
+                        if (s.GetCommanders().ContainsKey(topic))
+                            commander = s.GetCommanders()[topic];
+                    }
+
+                    if (commander == null)
+                        continue;
+
+                    foreach (string command in commander.Commands.Keys)
+                    {
+                        m_console.Commands.AddCommand(capitalizedTopic, false,
+                                                      topic + " " + command,
+                                                      topic + " " + commander.Commands[command].ShortHelp(),
+                                                      String.Empty, HandleCommanderCommand);
+                    }
                 }
             }
         }
@@ -621,7 +623,7 @@ namespace OpenSim
             if (account == null)
             {
                 m_log.ErrorFormat(
-                    "[OPENSIM]: Unable to store account. If this simulator is connected to a grid, you must create the estate owner account first at the grid level.");
+                    "[OPENSIM]: Unable to store account. If this simulator is connected to a grid, you must create the estate owner account first.");
             }
             else
             {

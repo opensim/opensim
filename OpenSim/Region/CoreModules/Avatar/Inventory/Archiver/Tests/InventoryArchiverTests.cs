@@ -49,7 +49,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 {
     [TestFixture]
     public class InventoryArchiverTests : InventoryArchiveTestCase
-    {
+    {   
         protected TestScene m_scene;
         protected InventoryArchiverModule m_archiverModule;
             
@@ -69,7 +69,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         public void TestLoadCoalesecedItem()
         {
             TestHelpers.InMethod();
-//            TestHelpers.EnableLogging();
+//            log4net.Config.XmlConfigurator.Configure();
             
             UserAccountHelpers.CreateUserWithInventory(m_scene, m_uaLL1, "password");
             m_archiverModule.DearchiveInventory(m_uaLL1.FirstName, m_uaLL1.LastName, "/", "password", m_iarStream);            
@@ -350,38 +350,38 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             Assert.That(sog1.RootPart.CreatorID, Is.EqualTo(m_uaLL1.PrincipalID));            
         }
         
-//        /// <summary>
-//        /// Test loading a V0.1 OpenSim Inventory Archive (subject to change since there is no fixed format yet) where
-//        /// an account exists with the same name as the creator, though not the same id.
-//        /// </summary>
-//        [Test]
-//        public void TestLoadIarV0_1SameNameCreator()
-//        {
-//            TestHelpers.InMethod();
-//            TestHelpers.EnableLogging();
-//
-//            UserAccountHelpers.CreateUserWithInventory(m_scene, m_uaMT, "meowfood");
-//            UserAccountHelpers.CreateUserWithInventory(m_scene, m_uaLL2, "hampshire");
-//            
-//            m_archiverModule.DearchiveInventory(m_uaMT.FirstName, m_uaMT.LastName, "/", "meowfood", m_iarStream);            
-//            InventoryItemBase foundItem1
-//                = InventoryArchiveUtils.FindItemByPath(m_scene.InventoryService, m_uaMT.PrincipalID, m_item1Name);
-//
-//            Assert.That(
-//                foundItem1.CreatorId, Is.EqualTo(m_uaLL2.PrincipalID.ToString()), 
-//                "Loaded item non-uuid creator doesn't match original");            
-//            Assert.That(
-//                foundItem1.CreatorIdAsUuid, Is.EqualTo(m_uaLL2.PrincipalID), 
-//                "Loaded item uuid creator doesn't match original");
-//            Assert.That(foundItem1.Owner, Is.EqualTo(m_uaMT.PrincipalID),
-//                "Loaded item owner doesn't match inventory reciever");
-//            
-//            AssetBase asset1 = m_scene.AssetService.Get(foundItem1.AssetID.ToString());            
-//            string xmlData = Utils.BytesToString(asset1.Data);
-//            SceneObjectGroup sog1 = SceneObjectSerializer.FromOriginalXmlFormat(xmlData);
-//            
-//            Assert.That(sog1.RootPart.CreatorID, Is.EqualTo(m_uaLL2.PrincipalID));
-//        }
+        /// <summary>
+        /// Test loading a V0.1 OpenSim Inventory Archive (subject to change since there is no fixed format yet) where
+        /// an account exists with the same name as the creator, though not the same id.
+        /// </summary>
+        [Test]
+        public void TestLoadIarV0_1SameNameCreator()
+        {
+            TestHelpers.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+
+            UserAccountHelpers.CreateUserWithInventory(m_scene, m_uaMT, "meowfood");
+            UserAccountHelpers.CreateUserWithInventory(m_scene, m_uaLL2, "hampshire");
+            
+            m_archiverModule.DearchiveInventory(m_uaMT.FirstName, m_uaMT.LastName, "/", "meowfood", m_iarStream);            
+            InventoryItemBase foundItem1
+                = InventoryArchiveUtils.FindItemByPath(m_scene.InventoryService, m_uaMT.PrincipalID, m_item1Name);
+
+            Assert.That(
+                foundItem1.CreatorId, Is.EqualTo(m_uaLL2.PrincipalID.ToString()), 
+                "Loaded item non-uuid creator doesn't match original");            
+            Assert.That(
+                foundItem1.CreatorIdAsUuid, Is.EqualTo(m_uaLL2.PrincipalID), 
+                "Loaded item uuid creator doesn't match original");
+            Assert.That(foundItem1.Owner, Is.EqualTo(m_uaMT.PrincipalID),
+                "Loaded item owner doesn't match inventory reciever");
+            
+            AssetBase asset1 = m_scene.AssetService.Get(foundItem1.AssetID.ToString());            
+            string xmlData = Utils.BytesToString(asset1.Data);
+            SceneObjectGroup sog1 = SceneObjectSerializer.FromOriginalXmlFormat(xmlData);
+            
+            Assert.That(sog1.RootPart.CreatorID, Is.EqualTo(m_uaLL2.PrincipalID));
+        }
 
         /// <summary>
         /// Test loading a V0.1 OpenSim Inventory Archive (subject to change since there is no fixed format yet) where

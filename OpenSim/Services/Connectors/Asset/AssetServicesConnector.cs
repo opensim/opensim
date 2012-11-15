@@ -52,8 +52,6 @@ namespace OpenSim.Services.Connectors
         private int m_retryCounter;
         private Dictionary<int, List<AssetBase>> m_retryQueue = new Dictionary<int, List<AssetBase>>();
         private System.Timers.Timer m_retryTimer;
-        private int m_maxAssetRequestConcurrency = 30;
-        
         private delegate void AssetRetrievedEx(AssetBase asset);
 
         // Keeps track of concurrent requests for the same asset, so that it's only loaded once.
@@ -82,10 +80,6 @@ namespace OpenSim.Services.Connectors
 
         public virtual void Initialise(IConfigSource source)
         {
-            IConfig netconfig = source.Configs["Network"];
-            if (netconfig != null)
-                m_maxAssetRequestConcurrency = netconfig.GetInt("MaxRequestConcurrency",m_maxAssetRequestConcurrency);
-
             IConfig assetConfig = source.Configs["AssetService"];
             if (assetConfig == null)
             {
@@ -210,7 +204,7 @@ namespace OpenSim.Services.Connectors
             if (asset == null || asset.Data == null || asset.Data.Length == 0)
             {
                 asset = SynchronousRestObjectRequester.
-                        MakeRequest<int, AssetBase>("GET", uri, 0, m_maxAssetRequestConcurrency);
+                        MakeRequest<int, AssetBase>("GET", uri, 0, 30);
 
                 if (m_Cache != null)
                     m_Cache.Cache(asset);

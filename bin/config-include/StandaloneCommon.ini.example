@@ -47,6 +47,23 @@
     DefaultAssetLoader = "OpenSim.Framework.AssetLoader.Filesystem.dll"
     AssetLoaderArgs = "assets/AssetSets.xml"
 
+[HGInventoryService]
+    HomeURI = "http://127.0.0.1:9000"
+
+[HGAssetService]
+    HomeURI = "http://127.0.0.1:9000"
+
+[HGInventoryAccessModule]
+    HomeURI = "http://127.0.0.1:9000"
+	Gatekeeper = "http://127.0.0.1:9000"
+
+    ;; If you want to protect your assets from being copied by foreign visitors
+    ;; uncomment the next line. You may want to do this on sims that have licensed content.
+    ; OutboundPermission = False
+
+[HGFriendsModule]
+    ; User level required to be able to send friendship invitations to foreign users
+    ;LevelHGFriends = 0;
 
 [GridService]
     ;; For in-memory region storage (default)
@@ -66,6 +83,11 @@
     ; === HG ONLY ===
     ;; change this to the address of your simulator
     Gatekeeper="http://127.0.0.1:9000"
+
+[Messaging]
+    ; === HG ONLY ===
+    ;; change this to the address of your simulator
+    Gatekeeper = "http://127.0.0.1:9000"
 
 [LibraryModule]
     ; Set this if you want to change the name of the OpenSim Library
@@ -105,6 +127,32 @@
     ;AllowedClients = ""
     ;DeniedClients = ""
 
+[GatekeeperService]
+    ExternalName = "http://127.0.0.1:9000"
+
+    ; Does this grid allow incoming links to any region in it?
+    ; If false, HG TPs happen only to the  Default regions specified in [GridService] section
+    AllowTeleportsToAnyRegion = true
+
+	;; Regular expressions for controlling which client versions are accepted/denied.
+	;; An empty string means nothing is checked.
+	;;
+	;; Example 1: allow only these 3 types of clients (any version of them)
+	;; AllowedClients = "Imprudence|Hippo|Second Life"
+	;;
+	;; Example 2: allow all clients except these
+	;; DeniedClients = "Twisted|Crawler|Cryolife|FuckLife|StreetLife|GreenLife|AntiLife|KORE-Phaze|Synlyfe|Purple Second Life|SecondLi |Emerald"
+	;;
+	;; Note that these are regular expressions, so every character counts.
+	;; Also note that this is very weak security and should not be trusted as a reliable means
+	;; for keeping bad clients out; modified clients can fake their identifiers.
+	;;
+	;;
+    ;AllowedClients = ""
+    ;DeniedClients = ""
+
+    ;; Are foreign visitors allowed
+    ;ForeignAgentsAllowed = true
 
 [FreeswitchService]
     ;; If FreeSWITCH is not being used then you don't need to set any of these parameters
@@ -209,115 +257,6 @@
 	; Example:
 	; Region_Test_1 = "DisallowForeigners"
 
-;;
-;; HG configurations
-;;
-[GatekeeperService]
-    ExternalName = "http://127.0.0.1:9000"
-
-    ; Does this grid allow incoming links to any region in it?
-    ; If false, HG TPs happen only to the  Default regions specified in [GridService] section
-    AllowTeleportsToAnyRegion = true
-
-	;; Regular expressions for controlling which client versions are accepted/denied.
-	;; An empty string means nothing is checked.
-	;;
-	;; Example 1: allow only these 3 types of clients (any version of them)
-	;; AllowedClients = "Imprudence|Hippo|Second Life"
-	;;
-	;; Example 2: allow all clients except these
-	;; DeniedClients = "Twisted|Crawler|Cryolife|FuckLife|StreetLife|GreenLife|AntiLife|KORE-Phaze|Synlyfe|Purple Second Life|SecondLi |Emerald"
-	;;
-	;; Note that these are regular expressions, so every character counts.
-	;; Also note that this is very weak security and should not be trusted as a reliable means
-	;; for keeping bad clients out; modified clients can fake their identifiers.
-	;;
-	;;
-    ;AllowedClients = ""
-    ;DeniedClients = ""
-
-    ;; Are foreign visitors allowed?
-    ;ForeignAgentsAllowed = true
-    ;;
-    ;; If ForeignAgentsAllowed is true, make exceptions using AllowExcept.
-    ;; Leave blank or commented for no exceptions.
-    ; AllowExcept = "http://griefer.com:8002, http://enemy.com:8002"
-    ;;
-    ;; If ForeignAgentsAllowed is false, make exceptions using DisallowExcept
-    ;; Leave blank or commented for no exceptions.
-    ; DisallowExcept = "http://myfriendgrid.com:8002, http://myboss.com:8002"
-
 [UserAgentService]
-    ;; User level required to be contacted from other grids
+    ; User level required to be contacted from other grids
     ;LevelOutsideContacts = 0
-
-    ;; Restrictions on destinations of local users.
-    ;; Are local users allowed to visit other grids?
-    ;; What user level? Use variables of this forrm:
-    ;; ForeignTripsAllowed_Level_<UserLevel> = true | false
-	;; (the default is true)
-    ;; For example:
-    ; ForeignTripsAllowed_Level_0 = false
-    ; ForeignTripsAllowed_Level_200 = true ; true is default, no need to say it
-    ;;
-    ;; If ForeignTripsAllowed is false, make exceptions using DisallowExcept
-    ;; Leave blank or commented for no exceptions.
-    ; DisallowExcept_Level_0 = "http://myothergrid.com:8002, http://boss.com:8002"
-	;;
-    ;; If ForeignTripsAllowed is true, make exceptions using AllowExcept.
-    ;; Leave blank or commented for no exceptions.
-    ; AllowExcept_Level_200 = "http://griefer.com:8002, http://enemy.com:8002"
-
-[HGInventoryService]
-    HomeURI = "http://127.0.0.1:9000"
-
-[HGAssetService]
-    HomeURI = "http://127.0.0.1:9000"
-
-    ;; The asset types that this grid can export to / import from other grids.
-	;; Comma separated.
-	;; Valid values are all the asset types in OpenMetaverse.AssetType, namely:
-	;; Unknown, Texture, Sound, CallingCard, Landmark, Clothing, Object, Notecard, LSLText, 
-	;; LSLBytecode, TextureTGA, Bodypart, SoundWAV, ImageTGA, ImageJPEG, Animation, Gesture, Mesh 
-	;;
-	;; Leave blank or commented if you don't want to apply any restrictions.
-	;; A more strict, but still reasonable, policy may be to disallow the exchange 
-	;; of scripts, like so:
-    ; DisallowExport ="LSLText"
-    ; DisallowImport ="LSLBytecode"
-
-
-[HGInventoryAccessModule]
-    HomeURI = "http://127.0.0.1:9000"
-	Gatekeeper = "http://127.0.0.1:9000"
-
-    ;; If you want to protect your assets from being copied by foreign visitors
-    ;; uncomment the next line. You may want to do this on sims that have licensed content.
-	;; true = allow exports, false = disallow exports. True by default.
-    ; OutboundPermission = True
-
-	;; Send visual reminder to local users that their inventories are unavailable while they are traveling
-	;; and available when they return. True by default.
-	;RestrictInventoryAccessAbroad = True
-
-[HGFriendsModule]
-    ; User level required to be able to send friendship invitations to foreign users
-    ;LevelHGFriends = 0;
-
-[Messaging]
-    ; === HG ONLY ===
-    ;; change this to the address of your simulator
-    Gatekeeper = "http://127.0.0.1:9000"
-
-
-[EntityTransfer]
-	;; User level from which local users are allowed to HG teleport. Default 0 (all users)
-	;LevelHGTeleport = 0
-
-	;; Are local users restricted from taking their appearance abroad?
-	;; Default is no restrictions
-    ;RestrictAppearanceAbroad = false
-
-	;; If appearance is restricted, which accounts' appearances are allowed to be exported?
-	;; Comma-separated list of account names
-    AccountForAppearance = "Test User, Astronaut Smith"

@@ -227,7 +227,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         protected UUID JsonCreateStore(UUID hostID, UUID scriptID, string value)
         {
             UUID uuid = UUID.Zero;
-            if (! m_store.CreateStore(value, ref uuid))
+            if (! m_store.CreateStore(value, out uuid))
                 GenerateRuntimeError("Failed to create Json store");
             
             return uuid;

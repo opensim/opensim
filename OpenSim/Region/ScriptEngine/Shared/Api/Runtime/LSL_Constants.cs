@@ -237,58 +237,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int ATTACH_HUD_BOTTOM = 37;
         public const int ATTACH_HUD_BOTTOM_RIGHT = 38;
 
-        #region osMessageAttachments constants
-
-        /// <summary>
-        /// Instructs osMessageAttachements to send the message to attachments
-        ///     on every point.
-        /// </summary>
-        /// <remarks>
-        /// One might expect this to be named OS_ATTACH_ALL, but then one might
-        ///     also expect functions designed to attach or detach or get
-        ///     attachments to work with it too. Attaching a no-copy item to
-        ///     many attachments could be dangerous.
-        /// when combined with OS_ATTACH_MSG_INVERT_POINTS, will prevent the
-        ///     message from being sent.
-        /// if combined with OS_ATTACH_MSG_OBJECT_CREATOR or
-        ///     OS_ATTACH_MSG_SCRIPT_CREATOR, could result in no message being
-        ///     sent- this is expected behaviour.
-        /// </remarks>
-        public const int OS_ATTACH_MSG_ALL = -65535;
-
-        /// <summary>
-        /// Instructs osMessageAttachements to invert how the attachment points
-        ///     list should be treated (e.g. go from inclusive operation to
-        ///     exclusive operation).
-        /// </summary>
-        /// <remarks>
-        /// This might be used if you want to deliver a message to one set of
-        ///     attachments and a different message to everything else. With
-        ///     this flag, you only need to build one explicit list for both calls.
-        /// </remarks>
-        public const int OS_ATTACH_MSG_INVERT_POINTS = 1;
-
-        /// <summary>
-        /// Instructs osMessageAttachments to only send the message to
-        ///     attachments with a CreatorID that matches the host object CreatorID
-        /// </summary>
-        /// <remarks>
-        /// This would be used if distributed in an object vendor/updater server.
-        /// </remarks>
-        public const int OS_ATTACH_MSG_OBJECT_CREATOR = 2;
-
-        /// <summary>
-        /// Instructs osMessageAttachments to only send the message to
-        ///     attachments with a CreatorID that matches the sending script CreatorID
-        /// </summary>
-        /// <remarks>
-        /// This might be used if the script is distributed independently of a
-        ///     containing object.
-        /// </remarks>
-        public const int OS_ATTACH_MSG_SCRIPT_CREATOR = 4;
-
-        #endregion
-
         public const int LAND_LEVEL = 0;
         public const int LAND_RAISE = 1;
         public const int LAND_LOWER = 2;
@@ -381,7 +329,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int PRIM_OMEGA = 32;
         public const int PRIM_POS_LOCAL = 33;
         public const int PRIM_LINK_TARGET = 34;
-        public const int PRIM_SLICE = 35;
         public const int PRIM_TEXGEN_DEFAULT = 0;
         public const int PRIM_TEXGEN_PLANAR = 1;
 
@@ -613,7 +560,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int CLICK_ACTION_OPEN = 4;
         public const int CLICK_ACTION_PLAY = 5;
         public const int CLICK_ACTION_OPEN_MEDIA = 6;
-        public const int CLICK_ACTION_ZOOM = 7;
 
         // constants for the llDetectedTouch* functions
         public const int TOUCH_INVALID_FACE = -1;
@@ -741,15 +687,5 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int KFM_CMD_PLAY = 0;
         public const int KFM_CMD_STOP = 1;
         public const int KFM_CMD_PAUSE = 2;
-
-        /// <summary>
-        /// process name parameter as regex
-        /// </summary>
-        public const int OS_LISTEN_REGEX_NAME = 0x1;
-
-        /// <summary>
-        /// process message parameter as regex
-        /// </summary>
-        public const int OS_LISTEN_REGEX_MESSAGE = 0x2;
     }
 }

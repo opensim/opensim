@@ -38,20 +38,8 @@ namespace OpenSim.Region.Framework.Scenes
 {
     public partial class Scene
     {
-        /// <summary>
-        /// Send chat to listeners.
-        /// </summary>
-        /// <param name='message'></param>
-        /// <param name='type'>/param>
-        /// <param name='channel'></param>
-        /// <param name='fromPos'></param>
-        /// <param name='fromName'></param>
-        /// <param name='fromID'></param>
-        /// <param name='targetID'></param>
-        /// <param name='fromAgent'></param>
-        /// <param name='broadcast'></param>
         public void SimChat(byte[] message, ChatTypeEnum type, int channel, Vector3 fromPos, string fromName,
-                               UUID fromID, UUID targetID, bool fromAgent, bool broadcast)
+                               UUID fromID, bool fromAgent, bool broadcast, UUID destination)
         {
             OSChatMessage args = new OSChatMessage();
 
@@ -61,7 +49,7 @@ namespace OpenSim.Region.Framework.Scenes
             args.Position = fromPos;
             args.SenderUUID = fromID;
             args.Scene = this;
-            args.Destination = targetID;
+            args.Destination = destination;
 
             if (fromAgent)
             {
@@ -78,10 +66,6 @@ namespace OpenSim.Region.Framework.Scenes
             args.From = fromName;
             //args.
 
-//            m_log.DebugFormat(
-//                "[SCENE]: Sending message {0} on channel {1}, type {2} from {3}, broadcast {4}",
-//                args.Message.Replace("\n", "\\n"), args.Channel, args.Type, fromName, broadcast);
-
             if (broadcast)
                 EventManager.TriggerOnChatBroadcast(this, args);
             else
@@ -91,7 +75,7 @@ namespace OpenSim.Region.Framework.Scenes
         protected void SimChat(byte[] message, ChatTypeEnum type, int channel, Vector3 fromPos, string fromName,
                                UUID fromID, bool fromAgent, bool broadcast)
         {
-            SimChat(message, type, channel, fromPos, fromName, fromID, UUID.Zero, fromAgent, broadcast);
+            SimChat(message, type, channel, fromPos, fromName, fromID, fromAgent, broadcast, UUID.Zero);
         }
 
         /// <summary>
@@ -559,7 +543,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (!InventoryService.AddFolder(folder))
             {
                 m_log.WarnFormat(
-                     "[AGENT INVENTORY]: Failed to create folder for user {0} {1}",
+                     "[AGENT INVENTORY]: Failed to move create folder for user {0} {1}",
                      remoteClient.Name, remoteClient.AgentId);
             }
         }

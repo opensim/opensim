@@ -13,23 +13,7 @@
 ; * [[<ConfigName>@]<port>/]<dll name>[:<class name>]
 ; *
 [Startup]
-
-[ServiceList]
-AssetServiceConnector = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector"
-InventoryInConnector = "8003/OpenSim.Server.Handlers.dll:XInventoryInConnector"
-VoiceConnector = "8004/OpenSim.Server.Handlers.dll:FreeswitchServerConnector"
-GridServiceConnector = "8003/OpenSim.Server.Handlers.dll:GridServiceConnector"
-GridInfoServerInConnector = "8002/OpenSim.Server.Handlers.dll:GridInfoServerInConnector"
-AuthenticationServiceConnector = "8003/OpenSim.Server.Handlers.dll:AuthenticationServiceConnector"
-OpenIdServerConnector = "8002/OpenSim.Server.Handlers.dll:OpenIdServerConnector"
-AvatarServiceConnector = "8003/OpenSim.Server.Handlers.dll:AvatarServiceConnector"
-LLLoginServiceInConnector = "8002/OpenSim.Server.Handlers.dll:LLLoginServiceInConnector"
-PresenceServiceConnector = "8003/OpenSim.Server.Handlers.dll:PresenceServiceConnector"
-UserAccountServiceConnector = "8003/OpenSim.Server.Handlers.dll:UserAccountServiceConnector"
-GridUserServiceConnector = "8003/OpenSim.Server.Handlers.dll:GridUserServiceConnector"
-FriendsServiceConnector = "8003/OpenSim.Server.Handlers.dll:FriendsServiceConnector"
-MapAddServiceConnector = "8003/OpenSim.Server.Handlers.dll:MapAddServiceConnector"
-MapGetServiceConnector = "8002/OpenSim.Server.Handlers.dll:MapGetServiceConnector"
+ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003/OpenSim.Server.Handlers.dll:XInventoryInConnector,8004/OpenSim.Server.Handlers.dll:FreeswitchServerConnector,8003/OpenSim.Server.Handlers.dll:GridServiceConnector,8002/OpenSim.Server.Handlers.dll:GridInfoServerInConnector,8003/OpenSim.Server.Handlers.dll:AuthenticationServiceConnector,8002/OpenSim.Server.Handlers.dll:OpenIdServerConnector,8003/OpenSim.Server.Handlers.dll:AvatarServiceConnector,8002/OpenSim.Server.Handlers.dll:LLLoginServiceInConnector,8003/OpenSim.Server.Handlers.dll:PresenceServiceConnector,8003/OpenSim.Server.Handlers.dll:UserAccountServiceConnector,8003/OpenSim.Server.Handlers.dll:GridUserServiceConnector,8003/OpenSim.Server.Handlers.dll:FriendsServiceConnector,8003/OpenSim.Server.Handlers.dll:MapAddServiceConnector,8002/OpenSim.Server.Handlers.dll:MapGetServiceConnector"
 
 ; * This is common for all services, it's the network setup for the entire
 ; * server instance, if none is specified above
@@ -77,19 +61,7 @@ MapGetServiceConnector = "8002/OpenSim.Server.Handlers.dll:MapGetServiceConnecto
     LocalServiceModule = "OpenSim.Services.AssetService.dll:AssetService"
     DefaultAssetLoader = "OpenSim.Framework.AssetLoader.Filesystem.dll"
     AssetLoaderArgs = "./assets/AssetSets.xml"
-
-    ; Allow maptile assets to remotely deleted by remote calls to the asset service.
-    ; There is no harm in having this as false - it just means that historical maptile assets are not deleted.
-    ; This only applies to maptiles served via the version 1 viewer mechanisms
-    ; Default is false
-    AllowRemoteDelete = false
-
-    ; Allow all assets to be remotely deleted.
-    ; Only set this to true if you are operating a grid where you control all calls to the asset service
-    ; (where a necessary condition is that you control all simulators) and you need this for admin purposes.
-    ; If set to true, AllowRemoteDelete = true is required as well.
-    ; Default is false.
-    AllowRemoteDeleteAllTypes = false
+    AllowRemoteDelete = "false"
 
 ; * This configuration loads the inventory server modules. It duplicates
 ; * the function of the legacy inventory server

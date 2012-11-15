@@ -32,8 +32,6 @@ using System.Reflection;
 using log4net;
 using NDesk.Options;
 using Nini.Config;
-using OpenSim.Framework;
-using OpenSim.Framework.Console;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
@@ -119,7 +117,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 //
 //            foreach (string param in mainParams)
 //                m_log.DebugFormat("GOT PARAM [{0}]", param);
-
+            
             if (mainParams.Count > 2)
             {
                 DearchiveRegion(mainParams[2], mergeOar, skipAssets, Guid.Empty);
@@ -148,22 +146,17 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             ops.Add("noassets", delegate(string v) { options["noassets"] = v != null; });
             ops.Add("publish", v => options["wipe-owners"] = v != null);
             ops.Add("perm=", delegate(string v) { options["checkPermissions"] = v; });
-            ops.Add("all", delegate(string v) { options["all"] = v != null; });
 
             List<string> mainParams = ops.Parse(cmdparams);
 
-            string path;
             if (mainParams.Count > 2)
-                path = mainParams[2];
+            {
+                ArchiveRegion(mainParams[2], options);
+            }
             else
-                path = DEFAULT_OAR_BACKUP_FILENAME;
-
-            // Not doing this right now as this causes some problems with auto-backup systems.  Maybe a force flag is
-            // needed
-//            if (!ConsoleUtil.CheckFileDoesNotExist(MainConsole.Instance, path))
-//                return;
-
-            ArchiveRegion(path, options);
+            {
+                ArchiveRegion(DEFAULT_OAR_BACKUP_FILENAME, options);
+            }
         }
         
         public void ArchiveRegion(string savePath, Dictionary<string, object> options)
@@ -176,7 +169,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             m_log.InfoFormat(
                 "[ARCHIVER]: Writing archive for region {0} to {1}", Scene.RegionInfo.RegionName, savePath);
             
-            new ArchiveWriteRequest(Scene, savePath, requestId).ArchiveRegion(options);
+            new ArchiveWriteRequestPreparation(this, savePath, requestId).ArchiveRegion(options);
         }
 
         public void ArchiveRegion(Stream saveStream)
@@ -191,7 +184,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
         public void ArchiveRegion(Stream saveStream, Guid requestId, Dictionary<string, object> options)
         {
-            new ArchiveWriteRequest(Scene, saveStream, requestId).ArchiveRegion(options);
+            new ArchiveWriteRequestPreparation(this, saveStream, requestId).ArchiveRegion(options);
         }
 
         public void DearchiveRegion(string loadPath)

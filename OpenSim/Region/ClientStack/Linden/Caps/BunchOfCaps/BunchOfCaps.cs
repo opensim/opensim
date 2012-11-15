@@ -241,8 +241,8 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_HostCapsObj.RegisterHandler(
                     "SEED", new RestStreamHandler("POST", capsBase + m_requestPath, SeedCapRequest, "SEED", null));
 
-//                m_log.DebugFormat(
-//                    "[CAPS]: Registered seed capability {0} for {1}", capsBase + m_requestPath, m_HostCapsObj.AgentID);
+                m_log.DebugFormat(
+                    "[CAPS]: Registered seed capability {0} for {1}", capsBase + m_requestPath, m_HostCapsObj.AgentID);
 
                 //m_capsHandlers["MapLayer"] =
                 //    new LLSDStreamhandler<OSDMapRequest, OSDMapLayerResponse>("POST",
@@ -337,12 +337,11 @@ namespace OpenSim.Region.ClientStack.Linden
         public string SeedCapRequest(string request, string path, string param,
                                   IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
-            m_log.DebugFormat(
-                "[CAPS]: Received SEED caps request in {0} for agent {1}", m_regionName, m_HostCapsObj.AgentID);
+//            m_log.Debug("[CAPS]: Seed Caps Request in region: " + m_regionName);
 
             if (!m_Scene.CheckClient(m_HostCapsObj.AgentID, httpRequest.RemoteIPEndPoint))
             {
-                m_log.WarnFormat(
+                m_log.DebugFormat(
                     "[CAPS]: Unauthorized CAPS client {0} from {1}",
                     m_HostCapsObj.AgentID, httpRequest.RemoteIPEndPoint);
 

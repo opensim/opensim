@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -69,15 +69,14 @@ namespace OpenSim.Region.Framework.Scenes
         public ScriptControlled eventControls;
     }
 
-    public delegate void SendCoarseLocationsMethod(UUID scene, ScenePresence presence, List<Vector3> coarseLocations, List<UUID> avatarUUIDs);
+    public delegate void SendCourseLocationsMethod(UUID scene, ScenePresence presence, List<Vector3> coarseLocations, List<UUID> avatarUUIDs);
 
     public class ScenePresence : EntityBase, IScenePresence
     {
 //        ~ScenePresence()
 //        {
-//            m_log.DebugFormat("[SCENE PRESENCE]: Destructor called on {0}", Name);
+//            m_log.Debug("[SCENE PRESENCE] Destructor called");
 //        }
-
         private void TriggerScenePresenceUpdated()
         {
             if (m_scene != null)
@@ -189,7 +188,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public bool SitGround { get; private set; }
 
-        private SendCoarseLocationsMethod m_sendCoarseLocationsMethod;
+        private SendCourseLocationsMethod m_sendCourseLocationsMethod;
 
         //private Vector3 m_requestedSitOffset = new Vector3();
 
@@ -547,7 +546,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     try
                     {
-                        PhysicsActor.TargetVelocity = value;
+                        PhysicsActor.Velocity = value;
                     }
                     catch (Exception e)
                     {
@@ -712,7 +711,7 @@ namespace OpenSim.Region.Framework.Scenes
             AttachmentsSyncLock = new Object();
             AllowMovement = true;
             IsChildAgent = true;
-            m_sendCoarseLocationsMethod = SendCoarseLocationsDefault;
+            m_sendCourseLocationsMethod = SendCoarseLocationsDefault;
             Animator = new ScenePresenceAnimator(this);
             PresenceType = type;
             DrawDistance = world.DefaultDrawDistance;
@@ -976,9 +975,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (wasChild && HasAttachments())
                 {
-                    m_log.DebugFormat(
-                        "[SCENE PRESENCE]: Restarting scripts in attachments for {0} in {1}", Name, Scene.Name);
-                    
+                    m_log.DebugFormat("[SCENE PRESENCE]: Restarting scripts in attachments...");
                     // Resume scripts
                     Util.FireAndForget(delegate(object x) {
                         foreach (SceneObjectGroup sog in m_attachments)
@@ -1534,22 +1531,17 @@ namespace OpenSim.Region.Framework.Scenes
                 bool DCFlagKeyPressed = false;
                 Vector3 agent_control_v3 = Vector3.Zero;
 
-                bool newFlying = actor.Flying;
+                bool oldflying = Flying;
 
                 if (ForceFly)
-                    newFlying = true;
+                    actor.Flying = true;
                 else if (FlyDisabled)
-                    newFlying = false;
+                    actor.Flying = false;
                 else
-                    newFlying = ((flags & AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0);
+                    actor.Flying = ((flags & AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0);
 
-                if (actor.Flying != newFlying)
-                {
-                    // Note: ScenePresence.Flying is actually fetched from the physical actor
-                    //     so setting PhysActor.Flying here also sets the ScenePresence's value.
-                    actor.Flying = newFlying;
+                if (actor.Flying != oldflying)
                     update_movementflag = true;
-                }
 
                 if (ParentID == 0)
                 {
@@ -2631,17 +2623,17 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SendCoarseLocations(List<Vector3> coarseLocations, List<UUID> avatarUUIDs)
         {
-            SendCoarseLocationsMethod d = m_sendCoarseLocationsMethod;
+            SendCourseLocationsMethod d = m_sendCourseLocationsMethod;
             if (d != null)
             {
                 d.Invoke(m_scene.RegionInfo.originRegionID, this, coarseLocations, avatarUUIDs);
             }
         }
 
-        public void SetSendCoarseLocationMethod(SendCoarseLocationsMethod d)
+        public void SetSendCourseLocationMethod(SendCourseLocationsMethod d)
         {
             if (d != null)
-                m_sendCoarseLocationsMethod = d;
+                m_sendCourseLocationsMethod = d;
         }
 
         public void SendCoarseLocationsDefault(UUID sceneId, ScenePresence p, List<Vector3> coarseLocations, List<UUID> avatarUUIDs)
@@ -2845,7 +2837,7 @@ namespace OpenSim.Region.Framework.Scenes
         #region Significant Movement Method
 
         /// <summary>
-        /// This checks for a significant movement and sends a coarselocationchange update
+        /// This checks for a significant movement and sends a courselocationchange update
         /// </summary>
         protected void CheckForSignificantMovement()
         {
@@ -3282,7 +3274,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
             catch { }
             cAgent.DefaultAnim = Animator.Animations.DefaultAnimation;
-            cAgent.AnimState = Animator.Animations.ImplicitDefaultAnimation;
 
             if (Scene.AttachmentsModule != null)
                 Scene.AttachmentsModule.CopyAttachments(this, cAgent);
@@ -3359,8 +3350,6 @@ namespace OpenSim.Region.Framework.Scenes
                 Animator.Animations.FromArray(cAgent.Anims);
             if (cAgent.DefaultAnim != null)
                 Animator.Animations.SetDefaultAnimation(cAgent.DefaultAnim.AnimID, cAgent.DefaultAnim.SequenceNum, UUID.Zero);
-            if (cAgent.AnimState != null)
-                Animator.Animations.SetImplicitDefaultAnimation(cAgent.AnimState.AnimID, cAgent.AnimState.SequenceNum, UUID.Zero);
 
             if (Scene.AttachmentsModule != null)
                 Scene.AttachmentsModule.CopyAttachments(cAgent, this);
@@ -3643,16 +3632,13 @@ namespace OpenSim.Region.Framework.Scenes
         public List<SceneObjectGroup> GetAttachments(uint attachmentPoint)
         {
             List<SceneObjectGroup> attachments = new List<SceneObjectGroup>();
-
-            if (attachmentPoint >= 0)
+            
+            lock (m_attachments)
             {
-                lock (m_attachments)
+                foreach (SceneObjectGroup so in m_attachments)
                 {
-                    foreach (SceneObjectGroup so in m_attachments)
-                    {
-                        if (attachmentPoint == so.AttachmentPoint)
-                            attachments.Add(so);
-                    }
+                    if (attachmentPoint == so.AttachmentPoint)
+                        attachments.Add(so);
                 }
             }
             

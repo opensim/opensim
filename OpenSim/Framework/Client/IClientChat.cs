@@ -33,8 +33,7 @@ namespace OpenSim.Framework.Client
     {
         event ChatMessage OnChatFromClient;
 
-        void SendChatMessage(
-            string message, byte type, Vector3 fromPos, string fromName, UUID fromAgentID, UUID ownerID, byte source,
-            byte audible);
+        void SendChatMessage(string message, byte type, Vector3 fromPos, string fromName, UUID fromAgentID, byte source,
+                             byte audible);
     }
 }

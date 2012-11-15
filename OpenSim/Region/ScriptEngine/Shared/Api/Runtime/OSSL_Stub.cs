@@ -289,7 +289,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osAvatarStopAnimation(avatar, animation);
         }
 
-        #region Attachment commands
+        // Avatar functions
 
         public void osForceAttachToAvatar(int attachmentPoint)
         {
@@ -310,18 +310,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             m_OSSL_Functions.osForceDetachFromAvatar();
         }
-
-        public LSL_List osGetNumberOfAttachments(LSL_Key avatar, LSL_List attachmentPoints)
-        {
-            return m_OSSL_Functions.osGetNumberOfAttachments(avatar, attachmentPoints);
-        }
-
-        public void osMessageAttachments(LSL_Key avatar, string message, LSL_List attachmentPoints, int flags)
-        {
-            m_OSSL_Functions.osMessageAttachments(avatar, message, attachmentPoints, flags);
-        }
-
-        #endregion
 
         // Texture Draw functions
 
@@ -877,12 +865,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             m_OSSL_Functions.osSetSpeed(UUID, SpeedModifier);
         }
-
-        public LSL_Float osGetHealth(string avatar)
-        {
-            return m_OSSL_Functions.osGetHealth(avatar);
-        }
-
+        
         public void osCauseDamage(string avatar, double damage)
         {
             m_OSSL_Functions.osCauseDamage(avatar, damage);
@@ -966,41 +949,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public LSL_Key osGetRezzingObject()
         {
             return m_OSSL_Functions.osGetRezzingObject();
-        }
-
-        public void osSetContentType(LSL_Key id, string type)
-        {
-            m_OSSL_Functions.osSetContentType(id,type);
-        }
-
-        public void osDropAttachment()
-        {
-            m_OSSL_Functions.osDropAttachment();
-        }
-
-        public void osForceDropAttachment()
-        {
-            m_OSSL_Functions.osForceDropAttachment();
-        }
-
-        public void osDropAttachmentAt(vector pos, rotation rot)
-        {
-            m_OSSL_Functions.osDropAttachmentAt(pos, rot);
-        }
-
-        public void osForceDropAttachmentAt(vector pos, rotation rot)
-        {
-            m_OSSL_Functions.osForceDropAttachmentAt(pos, rot);
-        }
-
-        public LSL_Integer osListenRegex(int channelID, string name, string ID, string msg, int regexBitfield)
-        {
-            return m_OSSL_Functions.osListenRegex(channelID, name, ID, msg, regexBitfield);
-        }
-
-        public LSL_Integer osRegexIsMatch(string input, string pattern)
-        {
-            return m_OSSL_Functions.osRegexIsMatch(input, pattern);
         }
     }
 }

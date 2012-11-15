@@ -35,7 +35,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Timers;
 using log4net;
-using NDesk.Options;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -254,14 +253,8 @@ namespace OpenSim
             m_console.Commands.AddCommand("Debug", false, "debug teleport", "debug teleport", "Toggle teleport route debugging", Debug);
 
             m_console.Commands.AddCommand("Debug", false, "debug scene",
-                                          "debug scene active|collisions|physics|scripting|teleport true|false",
-                                          "Turn on scene debugging.",
-                                            "If active     is false then main scene update and maintenance loops are suspended.\n"
-                                          + "If collisions is false then collisions with other objects are turned off.\n"
-                                          + "If physics    is false then all physics objects are non-physical.\n"
-                                          + "If scripting  is false then no scripting operations happen.\n"
-                                          + "If teleport   is true  then some extra teleport debug information is logged.",
-                                          Debug);
+                                          "debug scene <scripting> <collisions> <physics>",
+                                          "Turn on scene debugging", Debug);
 
             m_console.Commands.AddCommand("General", false, "change region",
                                           "change region <region name>",
@@ -298,7 +291,7 @@ namespace OpenSim
 
             m_console.Commands.AddCommand("Archiving", false, "save oar",
                                           //"save oar [-v|--version=<N>] [-p|--profile=<url>] [<OAR path>]",
-                                          "save oar [-h|--home=<url>] [--noassets] [--publish] [--perm=<permissions>] [--all] [<OAR path>]",
+                                          "save oar [-h|--home=<url>] [--noassets] [--publish] [--perm=<permissions>] [<OAR path>]",
                                           "Save a region's data to an OAR archive.",
 //                                          "-v|--version=<N> generates scene objects as per older versions of the serialization (e.g. -v=0)" + Environment.NewLine
                                           "-h|--home=<url> adds the url of the profile service to the saved user information.\n"
@@ -308,7 +301,6 @@ namespace OpenSim
                                           + "   this is useful if you're making oars generally available that might be reloaded to the same grid from which you published\n"
                                           + "--perm=<permissions> stops objects with insufficient permissions from being saved to the OAR.\n"
                                           + "   <permissions> can contain one or more of these characters: \"C\" = Copy, \"T\" = Transfer\n"
-                                          + "--all saves all the regions in the simulator, instead of just the current region.\n"
                                           + "The OAR path must be a filesystem path."
                                           + " If this is not given then the oar is saved to region.oar in the current directory.",
                                           SaveOar);
@@ -318,11 +310,8 @@ namespace OpenSim
                                           "Change the scale of a named prim", HandleEditScale);
 
             m_console.Commands.AddCommand("Users", false, "kick user",
-                                          "kick user <first> <last> [--force] [message]",
-                                          "Kick a user off the simulator",
-                                          "The --force option will kick the user without any checks to see whether it's already in the process of closing\n"
-                                          + "Only use this option if you are sure the avatar is inactive and a normal kick user operation does not removed them",
-                                          KickUserCommand);
+                                          "kick user <first> <last> [message]",
+                                          "Kick a user off the simulator", KickUserCommand);
 
             m_console.Commands.AddCommand("Users", false, "show users",
                                           "show users [full]",
@@ -338,6 +327,10 @@ namespace OpenSim
             m_console.Commands.AddCommand("Comms", false, "show circuits",
                                           "show circuits",
                                           "Show agent circuit data", HandleShow);
+
+            m_console.Commands.AddCommand("Comms", false, "show http-handlers",
+                                          "show http-handlers",
+                                          "Show all registered http handlers", HandleShow);
 
             m_console.Commands.AddCommand("Comms", false, "show pending-objects",
                                           "show pending-objects",
@@ -423,7 +416,6 @@ namespace OpenSim
             {
                 RunCommandScript(m_shutdownCommandsFile);
             }
-            
             base.ShutdownSpecific();
         }
 
@@ -461,17 +453,11 @@ namespace OpenSim
         /// <param name="cmdparams">name of avatar to kick</param>
         private void KickUserCommand(string module, string[] cmdparams)
         {
-            bool force = false;
-            
-            OptionSet options = new OptionSet().Add("f|force", delegate (string v) { force = v != null; });
-
-            List<string> mainParams = options.Parse(cmdparams);
-
-            if (mainParams.Count < 4)
+            if (cmdparams.Length < 4)
                 return;
 
             string alert = null;
-            if (mainParams.Count > 4)
+            if (cmdparams.Length > 4)
                 alert = String.Format("\n{0}\n", String.Join(" ", cmdparams, 4, cmdparams.Length - 4));
 
             IList agents = SceneManager.GetCurrentSceneAvatars();
@@ -480,8 +466,8 @@ namespace OpenSim
             {
                 RegionInfo regionInfo = presence.Scene.RegionInfo;
 
-                if (presence.Firstname.ToLower().Contains(mainParams[2].ToLower()) &&
-                    presence.Lastname.ToLower().Contains(mainParams[3].ToLower()))
+                if (presence.Firstname.ToLower().Contains(cmdparams[2].ToLower()) &&
+                    presence.Lastname.ToLower().Contains(cmdparams[3].ToLower()))
                 {
                     MainConsole.Instance.Output(
                         String.Format(
@@ -494,7 +480,7 @@ namespace OpenSim
                     else
                         presence.ControllingClient.Kick("\nYou have been logged out by an administrator.\n");
 
-                    presence.Scene.IncomingCloseAgent(presence.UUID, force);
+                    presence.Scene.IncomingCloseAgent(presence.UUID);
                 }
             }
 
@@ -936,8 +922,7 @@ namespace OpenSim
                     }
                     else
                     {
-                        MainConsole.Instance.Output(
-                            "Usage: debug scene active|scripting|collisions|physics|teleport true|false");
+                        MainConsole.Instance.Output("Usage: debug scene scripting|collisions|physics|teleport true|false");
                     }
 
                     break;
@@ -1015,6 +1000,33 @@ namespace OpenSim
 
                 case "circuits":
                     HandleShowCircuits();
+                    break;
+
+                case "http-handlers":
+                    System.Text.StringBuilder handlers = new System.Text.StringBuilder("Registered HTTP Handlers:\n");
+
+                    handlers.AppendFormat("* XMLRPC:\n");
+                    foreach (String s in HttpServer.GetXmlRpcHandlerKeys())
+                        handlers.AppendFormat("\t{0}\n", s);
+
+                    handlers.AppendFormat("* HTTP:\n");
+                    List<String> poll = HttpServer.GetPollServiceHandlerKeys();
+                    foreach (String s in HttpServer.GetHTTPHandlerKeys())
+                        handlers.AppendFormat("\t{0} {1}\n", s, (poll.Contains(s) ? "(poll service)" : string.Empty));
+
+                    handlers.AppendFormat("* Agent:\n");
+                    foreach (String s in HttpServer.GetAgentHandlerKeys())
+                        handlers.AppendFormat("\t{0}\n", s);
+
+                    handlers.AppendFormat("* LLSD:\n");
+                    foreach (String s in HttpServer.GetLLSDHandlerKeys())
+                        handlers.AppendFormat("\t{0}\n", s);
+
+                    handlers.AppendFormat("* StreamHandlers ({0}):\n", HttpServer.GetStreamHandlerKeys().Count);
+                    foreach (String s in HttpServer.GetStreamHandlerKeys())
+                        handlers.AppendFormat("\t{0}\n", s);
+
+                    MainConsole.Instance.Output(handlers.ToString());
                     break;
 
                 case "modules":
@@ -1111,7 +1123,7 @@ namespace OpenSim
                             aCircuit.Name,
                             aCircuit.child ? "child" : "root",
                             aCircuit.circuitcode.ToString(),
-                            aCircuit.IPAddress != null ? aCircuit.IPAddress.ToString() : "not set",
+                            aCircuit.IPAddress.ToString(),
                             aCircuit.Viewer);
                 });
 

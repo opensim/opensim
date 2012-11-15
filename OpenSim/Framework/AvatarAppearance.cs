@@ -358,9 +358,6 @@ namespace OpenSim.Framework
             SetVisualParams(visualParams);
         }
 
-        /// <summary>
-        /// Set avatar height by a calculation based on their visual parameters.
-        /// </summary>
         public virtual void SetHeight()
         {
             // Start with shortest possible female avatar height

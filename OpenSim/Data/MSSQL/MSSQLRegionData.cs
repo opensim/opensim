@@ -37,7 +37,6 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using RegionFlags = OpenSim.Framework.RegionFlags;
 
 namespace OpenSim.Data.MSSQL
 {

@@ -31,7 +31,6 @@ namespace OpenSim.Framework
     public class Constants
     {
         public const uint RegionSize = 256;
-        public const uint RegionHeight = 4096;
         public const byte TerrainPatchSize = 16;
         public const string DefaultTexture = "89556747-24cb-43ed-920b-47caed15465f";
 

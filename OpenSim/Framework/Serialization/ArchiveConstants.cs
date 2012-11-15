@@ -53,11 +53,6 @@ namespace OpenSim.Framework.Serialization
         public const string INVENTORY_PATH = "inventory/";
 
         /// <value>
-        /// Path for regions in a multi-region archive
-        /// </value>
-        public const string REGIONS_PATH = "regions/";
-
-        /// <value>
         /// Path for the prims file
         /// </value>
         public const string OBJECTS_PATH = "objects/";

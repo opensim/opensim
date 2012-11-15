@@ -52,7 +52,7 @@ using OpenSim.Services.Interfaces;
 [assembly: Addin("FlotsamAssetCache", "1.1")]
 [assembly: AddinDependency("OpenSim", "0.5")]
 
-namespace OpenSim.Region.CoreModules.Asset
+namespace Flotsam.RegionModules.AssetCache
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
     public class FlotsamAssetCache : ISharedRegionModule, IImprovedAssetCache, IAssetService
@@ -106,6 +106,8 @@ namespace OpenSim.Region.CoreModules.Asset
 
         private IAssetService m_AssetService;
         private List<Scene> m_Scenes = new List<Scene>();
+
+        private bool m_DeepScanBeforePurge;
 
         public FlotsamAssetCache()
         {
@@ -168,6 +170,8 @@ namespace OpenSim.Region.CoreModules.Asset
                         m_CacheDirectoryTierLen = assetConfig.GetInt("CacheDirectoryTierLength", m_CacheDirectoryTierLen);
 
                         m_CacheWarnAt = assetConfig.GetInt("CacheWarnAt", m_CacheWarnAt);
+
+                        m_DeepScanBeforePurge = assetConfig.GetBoolean("DeepScanBeforePurge", m_DeepScanBeforePurge);
                     }
 
                     m_log.InfoFormat("[FLOTSAM ASSET CACHE]: Cache Directory {0}", m_CacheDirectory);
@@ -515,10 +519,13 @@ namespace OpenSim.Region.CoreModules.Asset
             // Purge all files last accessed prior to this point
             DateTime purgeLine = DateTime.Now - m_FileExpiration;
 
-            // An asset cache may contain local non-temporary assets that are not in the asset service.  Therefore,
-            // before cleaning up expired files we must scan the objects in the scene to make sure that we retain
-            // such local assets if they have not been recently accessed.
-            TouchAllSceneAssets(false);
+            // An optional deep scan at this point will ensure assets present in scenes,
+            // or referenced by objects in the scene, but not recently accessed 
+            // are not purged.
+            if (m_DeepScanBeforePurge)
+            {
+                CacheScenes();
+            }
 
             foreach (string dir in Directory.GetDirectories(m_CacheDirectory))
             {
@@ -711,14 +718,11 @@ namespace OpenSim.Region.CoreModules.Asset
 
         /// <summary>
         /// Iterates through all Scenes, doing a deep scan through assets 
-        /// to update the access time of all assets present in the scene or referenced by assets
-        /// in the scene.
+        /// to cache all assets present in the scene or referenced by assets 
+        /// in the scene
         /// </summary>
-        /// <param name="storeUncached">
-        /// If true, then assets scanned which are not found in cache are added to the cache.
-        /// </param>
-        /// <returns>Number of distinct asset references found in the scene.</returns>
-        private int TouchAllSceneAssets(bool storeUncached)
+        /// <returns></returns>
+        private int CacheScenes()
         {
             UuidGatherer gatherer = new UuidGatherer(m_AssetService);
 
@@ -741,7 +745,7 @@ namespace OpenSim.Region.CoreModules.Asset
                 {
                     File.SetLastAccessTime(filename, DateTime.Now);
                 }
-                else if (storeUncached)
+                else
                 {
                     m_AssetService.Get(assetID.ToString());
                 }
@@ -869,14 +873,13 @@ namespace OpenSim.Region.CoreModules.Asset
 
                         break;
 
+
                     case "assets":
-                        m_log.Info("[FLOTSAM ASSET CACHE]: Ensuring assets are cached for all scenes.");
+                        m_log.Info("[FLOTSAM ASSET CACHE]: Caching all assets, in all scenes.");
 
                         Util.FireAndForget(delegate {
-                            int assetReferenceTotal = TouchAllSceneAssets(true);
-                            m_log.InfoFormat(
-                                "[FLOTSAM ASSET CACHE]: Completed check with {0} assets.",
-                                assetReferenceTotal);
+                            int assetsCached = CacheScenes();
+                            m_log.InfoFormat("[FLOTSAM ASSET CACHE]: Completed Scene Caching, {0} assets found.", assetsCached);
                         });
 
                         break;

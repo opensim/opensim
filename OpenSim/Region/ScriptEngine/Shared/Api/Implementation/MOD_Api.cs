@@ -95,13 +95,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         internal void MODError(string msg)
         {
-            throw new ScriptException("MOD Runtime Error: " + msg);
+            throw new Exception("MOD Runtime Error: " + msg);
         }
 
-        /// <summary>
-        /// Dumps an error message on the debug console.
-        /// </summary>
-        /// <param name='message'></param>
+        //
+        //Dumps an error message on the debug console.
+        //
+
         internal void MODShoutError(string message) 
         {
             if (message.Length > 1023)
@@ -254,7 +254,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             
             object[] convertedParms = new object[parms.Length];
             for (int i = 0; i < parms.Length; i++)
-                convertedParms[i] = ConvertFromLSL(parms[i],signature[i], fname);
+                convertedParms[i] = ConvertFromLSL(parms[i],signature[i]);
 
             // now call the function, the contract with the function is that it will always return
             // non-null but don't trust it completely
@@ -294,7 +294,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         /// <summary>
         /// </summary>
-        protected object ConvertFromLSL(object lslparm, Type type, string fname)
+        protected object ConvertFromLSL(object lslparm, Type type)
         {
             // ---------- String ----------
             if (lslparm is LSL_String)
@@ -310,7 +310,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // ---------- Integer ----------
             else if (lslparm is LSL_Integer)
             {
-                if (type == typeof(int) || type == typeof(float))
+                if (type == typeof(int))
                     return (int)(LSL_Integer)lslparm;
             }
 
@@ -333,7 +333,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 if (type == typeof(OpenMetaverse.Quaternion))
                 {
-                    return (OpenMetaverse.Quaternion)((LSL_Rotation)lslparm);
+                    LSL_Rotation rot = (LSL_Rotation)lslparm;
+                    return new OpenMetaverse.Quaternion((float)rot.x,(float)rot.y,(float)rot.z,(float)rot.s);
                 }
             }
 
@@ -342,7 +343,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 if (type == typeof(OpenMetaverse.Vector3))
                 {
-                    return (OpenMetaverse.Vector3)((LSL_Vector)lslparm);
+                    LSL_Vector vect = (LSL_Vector)lslparm;
+                    return new OpenMetaverse.Vector3((float)vect.x,(float)vect.y,(float)vect.z);
                 }
             }
 
@@ -359,27 +361,29 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             result[i] = (string)(LSL_String)plist[i];                            
                         else if (plist[i] is LSL_Integer)
                             result[i] = (int)(LSL_Integer)plist[i];
-                        // The int check exists because of the many plain old int script constants in ScriptBase which
-                        // are not LSL_Integers.
-                        else if (plist[i] is int)
-                            result[i] = plist[i];
                         else if (plist[i] is LSL_Float)
                             result[i] = (float)(LSL_Float)plist[i];
                         else if (plist[i] is LSL_Key)
                             result[i] = new UUID((LSL_Key)plist[i]);
                         else if (plist[i] is LSL_Rotation)
-                            result[i] = (Quaternion)((LSL_Rotation)plist[i]);
+                        {
+                            LSL_Rotation rot = (LSL_Rotation)plist[i];
+                            result[i] = new OpenMetaverse.Quaternion((float)rot.x,(float)rot.y,(float)rot.z,(float)rot.s);
+                        }
                         else if (plist[i] is LSL_Vector)
-                            result[i] = (Vector3)((LSL_Vector)plist[i]);
+                        {
+                            LSL_Vector vect = (LSL_Vector)plist[i];
+                            result[i] = new OpenMetaverse.Vector3((float)vect.x,(float)vect.y,(float)vect.z);
+                        }
                         else
-                            MODError(String.Format("{0}: unknown LSL list element type", fname));
+                            MODError("unknown LSL list element type");
                     }
 
                     return result;
                 }
             }
             
-            MODError(String.Format("{1}: parameter type mismatch; expecting {0}",type.Name, fname));
+            MODError(String.Format("parameter type mismatch; expecting {0}",type.Name));
             return null;
         }
 

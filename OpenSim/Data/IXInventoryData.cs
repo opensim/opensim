@@ -40,11 +40,6 @@ namespace OpenSim.Data
         public UUID folderID;
         public UUID agentID;
         public UUID parentFolderID;
-
-        public XInventoryFolder Clone()
-        {
-            return (XInventoryFolder)MemberwiseClone();
-        }
     }
 
     public class XInventoryItem
@@ -69,11 +64,6 @@ namespace OpenSim.Data
         public UUID avatarID;
         public UUID parentFolderID;
         public int inventoryGroupPermissions;
-
-        public XInventoryItem Clone()
-        {
-            return (XInventoryItem)MemberwiseClone();
-        }
     }
 
     public interface IXInventoryData

@@ -342,7 +342,7 @@ namespace OpenSim.Region.Framework.Scenes
         public bool AddNewSceneObject(
             SceneObjectGroup sceneObject, bool attachToBackup, Vector3? pos, Quaternion? rot, Vector3 vel)
         {
-            AddNewSceneObject(sceneObject, attachToBackup, false);
+            AddNewSceneObject(sceneObject, true, false);
 
             if (pos != null)
                 sceneObject.AbsolutePosition = (Vector3)pos;
@@ -421,9 +421,12 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     Vector3 scale = part.Shape.Scale;
 
-                    scale.X = Math.Max(m_parentScene.m_minNonphys, Math.Min(m_parentScene.m_maxNonphys, scale.X));
-                    scale.Y = Math.Max(m_parentScene.m_minNonphys, Math.Min(m_parentScene.m_maxNonphys, scale.Y));
-                    scale.Z = Math.Max(m_parentScene.m_minNonphys, Math.Min(m_parentScene.m_maxNonphys, scale.Z));
+                    if (scale.X > m_parentScene.m_maxNonphys)
+                        scale.X = m_parentScene.m_maxNonphys;
+                    if (scale.Y > m_parentScene.m_maxNonphys)
+                        scale.Y = m_parentScene.m_maxNonphys;
+                    if (scale.Z > m_parentScene.m_maxNonphys)
+                        scale.Z = m_parentScene.m_maxNonphys;
 
                     part.Shape.Scale = scale;
                 }
@@ -1057,30 +1060,6 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (SceneObjectGroupsByFullID.ContainsKey(fullID))
                     return SceneObjectGroupsByFullID[fullID];
-            }
-
-            return null;
-        }
-
-        /// <summary>
-        /// Get a group in the scene
-        /// </summary>
-        /// <remarks>
-        /// This will only return a group if the local ID matches the root part, not other parts.
-        /// </remarks>
-        /// <param name="localID">Local id of the root part of the group</param>
-        /// <returns>null if no such group was found</returns>
-        protected internal SceneObjectGroup GetSceneObjectGroup(uint localID)
-        {
-            lock (SceneObjectGroupsByLocalPartID)
-            {
-                if (SceneObjectGroupsByLocalPartID.ContainsKey(localID))
-                {
-                    SceneObjectGroup so = SceneObjectGroupsByLocalPartID[localID];
-
-                    if (so.LocalId == localID)
-                        return so;
-                }
             }
 
             return null;

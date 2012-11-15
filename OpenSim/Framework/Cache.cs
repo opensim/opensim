@@ -199,14 +199,7 @@ namespace OpenSim.Framework
     //
     public class Cache
     {
-        /// <summary>
-        /// Must only be accessed under lock.
-        /// </summary>
         private List<CacheItemBase> m_Index = new List<CacheItemBase>();
-
-        /// <summary>
-        /// Must only be accessed under m_Index lock.
-        /// </summary>
         private Dictionary<string, CacheItemBase> m_Lookup =
             new Dictionary<string, CacheItemBase>();
 
@@ -327,18 +320,18 @@ namespace OpenSim.Framework
             {
                 if (m_Lookup.ContainsKey(index))
                     item = m_Lookup[index];
-
-                if (item == null)
-                {
-                    Expire(true);
-                    return null;
-                }
-    
-                item.hits++;
-                item.lastUsed = DateTime.Now;
-    
-                Expire(true);
             }
+
+            if (item == null)
+            {
+                Expire(true);
+                return null;
+            }
+
+            item.hits++;
+            item.lastUsed = DateTime.Now;
+
+            Expire(true);
 
             return item;
         }
@@ -392,10 +385,7 @@ namespace OpenSim.Framework
         //
         public Object Find(Predicate<CacheItemBase> d)
         {
-            CacheItemBase item;
-
-            lock (m_Index)
-                item = m_Index.Find(d);
+            CacheItemBase item = m_Index.Find(d);
 
             if (item == null)
                 return null;
@@ -429,12 +419,12 @@ namespace OpenSim.Framework
         public virtual void Store(string index, Object data, Type container,
                 Object[] parameters)
         {
+            Expire(false);
+
             CacheItemBase item;
 
             lock (m_Index)
             {
-                Expire(false);
-
                 if (m_Index.Contains(new CacheItemBase(index)))
                 {
                     if ((m_Flags & CacheFlags.AllowUpdate) != 0)
@@ -460,17 +450,9 @@ namespace OpenSim.Framework
                 m_Index.Add(item);
                 m_Lookup[index] = item;
             }
-
             item.Store(data);
         }
 
-        /// <summary>
-        /// Expire items as appropriate.
-        /// </summary>
-        /// <remarks>
-        /// Callers must lock m_Index.
-        /// </remarks>
-        /// <param name='getting'></param>
         protected virtual void Expire(bool getting)
         {
             if (getting && (m_Strategy == CacheStrategy.Aggressive))
@@ -493,10 +475,12 @@ namespace OpenSim.Framework
 
             switch (m_Strategy)
             {
-                case CacheStrategy.Aggressive:
-                    if (Count < Size)
-                        return;
+            case CacheStrategy.Aggressive:
+                if (Count < Size)
+                    return;
 
+                lock (m_Index)
+                {
                     m_Index.Sort(new SortLRU());
                     m_Index.Reverse();
 
@@ -506,7 +490,7 @@ namespace OpenSim.Framework
 
                     ExpireDelegate doExpire = OnExpire;
 
-                    if (doExpire != null)
+                if (doExpire != null)
                     {
                         List<CacheItemBase> candidates =
                                 m_Index.GetRange(target, Count - target);
@@ -529,34 +513,27 @@ namespace OpenSim.Framework
                         foreach (CacheItemBase item in m_Index)
                             m_Lookup[item.uuid] = item;
                     }
-
-                    break;
-
-                    default:
-                        break;
+                }
+                break;
+            default:
+                break;
             }
         }
 
         public void Invalidate(string uuid)
         {
-            lock (m_Index)
-            {
-                if (!m_Lookup.ContainsKey(uuid))
-                    return;
+            if (!m_Lookup.ContainsKey(uuid))
+                return;
 
-                CacheItemBase item = m_Lookup[uuid];
-                m_Lookup.Remove(uuid);
-                m_Index.Remove(item);
-            }
+            CacheItemBase item = m_Lookup[uuid];
+            m_Lookup.Remove(uuid);
+            m_Index.Remove(item);
         }
 
         public void Clear()
         {
-            lock (m_Index)
-            {
-                m_Index.Clear();
-                m_Lookup.Clear();
-            }
+            m_Index.Clear();
+            m_Lookup.Clear();
         }
     }
 }

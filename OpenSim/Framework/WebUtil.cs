@@ -54,17 +54,9 @@ namespace OpenSim.Framework
                 MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
-        /// Control the printing of certain debug messages.
-        /// </summary>
-        /// <remarks>
-        /// If DebugLevel >= 3 then short notices about outgoing HTTP requests are logged.
-        /// </remarks>
-        public static int DebugLevel { get; set; }
-
-        /// <summary>
         /// Request number for diagnostic purposes.
         /// </summary>
-        public static int RequestNumber { get; internal set; }
+        public static int RequestNumber = 0;
 
         /// <summary>
         /// this is the header field used to communicate the local request id
@@ -154,11 +146,7 @@ namespace OpenSim.Framework
         private static OSDMap ServiceOSDRequestWorker(string url, OSDMap data, string method, int timeout, bool compressed)
         {
             int reqnum = RequestNumber++;
-
-            if (DebugLevel >= 3)
-                m_log.DebugFormat(
-                    "[WEB UTIL]: HTTP OUT {0} ServiceOSD {1} {2} (timeout {3}, compressed {4})",
-                    reqnum, method, url, timeout, compressed);
+            // m_log.DebugFormat("[WEB UTIL]: <{0}> start osd request for {1}, method {2}",reqnum,url,method);
 
             string errorMessage = "unknown error";
             int tickstart = Util.EnvironmentTickCount();
@@ -242,7 +230,7 @@ namespace OpenSim.Framework
                 int tickdiff = Util.EnvironmentTickCountSubtract(tickstart);
                 if (tickdiff > LongCallTime)
                     m_log.InfoFormat(
-                        "[WEB UTIL]: Slow ServiceOSD request {0} {1} {2} took {3}ms, {4}ms writing, {5}",
+                        "[OSD REQUEST]: Slow request to <{0}> {1} {2} took {3}ms, {4}ms writing, {5}",
                         reqnum,
                         method,
                         url,
@@ -251,14 +239,10 @@ namespace OpenSim.Framework
                         strBuffer != null
                             ? (strBuffer.Length > MaxRequestDiagLength ? strBuffer.Remove(MaxRequestDiagLength) : strBuffer)
                             : "");
-                else if (DebugLevel >= 4)
-                    m_log.DebugFormat(
-                        "[WEB UTIL]: HTTP OUT {0} took {1}ms, {2}ms writing",
-                        reqnum, tickdiff, tickdata);
             }
            
             m_log.DebugFormat(
-                "[WEB UTIL]: ServiceOSD request {0} {1} {2} FAILED: {3}", reqnum, url, method, errorMessage);
+                "[WEB UTIL]: <{0}> osd request for {1}, method {2} FAILED: {3}", reqnum, url, method, errorMessage);
 
             return ErrorResponseMap(errorMessage);
         }
@@ -334,11 +318,7 @@ namespace OpenSim.Framework
         {
             int reqnum = RequestNumber++;
             string method = (data != null && data["RequestMethod"] != null) ? data["RequestMethod"] : "unknown";
-
-            if (DebugLevel >= 3)
-                m_log.DebugFormat(
-                    "[WEB UTIL]: HTTP OUT {0} ServiceForm {1} {2} (timeout {3})",
-                    reqnum, method, url, timeout);
+            // m_log.DebugFormat("[WEB UTIL]: <{0}> start form request for {1}, method {2}",reqnum,url,method);
             
             string errorMessage = "unknown error";
             int tickstart = Util.EnvironmentTickCount();
@@ -401,7 +381,7 @@ namespace OpenSim.Framework
                 int tickdiff = Util.EnvironmentTickCountSubtract(tickstart);
                 if (tickdiff > LongCallTime)
                     m_log.InfoFormat(
-                        "[WEB UTIL]: Slow ServiceForm request {0} {1} {2} took {3}ms, {4}ms writing, {5}",
+                        "[SERVICE FORM]: Slow request to <{0}> {1} {2} took {3}ms, {4}ms writing, {5}",
                         reqnum,
                         method,
                         url,
@@ -410,13 +390,9 @@ namespace OpenSim.Framework
                         queryString != null
                             ? (queryString.Length > MaxRequestDiagLength) ? queryString.Remove(MaxRequestDiagLength) : queryString
                             : "");
-                else if (DebugLevel >= 4)
-                    m_log.DebugFormat(
-                        "[WEB UTIL]: HTTP OUT {0} took {1}ms, {2}ms writing",
-                        reqnum, tickdiff, tickdata);
             }
 
-            m_log.WarnFormat("[WEB UTIL]: ServiceForm request {0} {1} {2} failed: {2}", reqnum, method, url, errorMessage);
+            m_log.WarnFormat("[SERVICE FORM]: <{0}> form request to {1} failed: {2}", reqnum, url, errorMessage);
 
             return ErrorResponseMap(errorMessage);
         }
@@ -668,6 +644,7 @@ namespace OpenSim.Framework
         /// <returns></returns>
         public static string[] GetPreferredImageTypes(string accept)
         {
+
             if (accept == null || accept == string.Empty)
                 return new string[0];
 
@@ -726,15 +703,13 @@ namespace OpenSim.Framework
                 int maxConnections)
         {
             int reqnum = WebUtil.RequestNumber++;
-
-            if (WebUtil.DebugLevel >= 3)
-                m_log.DebugFormat(
-                    "[WEB UTIL]: HTTP OUT {0} AsynchronousRequestObject {1} {2}",
-                    reqnum, verb, requestUrl);
+            // m_log.DebugFormat("[WEB UTIL]: <{0}> start osd request for {1}, method {2}",reqnum,url,method);
 
             int tickstart = Util.EnvironmentTickCount();
 //            int tickdata = 0;
             int tickdiff = 0;
+
+//            m_log.DebugFormat("[ASYNC REQUEST]: Starting {0} {1}", verb, requestUrl);
 
             Type type = typeof(TRequest);
 
@@ -893,7 +868,7 @@ namespace OpenSim.Framework
                 }
 
                 m_log.InfoFormat(
-                    "[ASYNC REQUEST]: Slow request {0} {1} {2} took {3}ms, {4}ms writing, {5}",
+                    "[ASYNC REQUEST]: Slow request to <{0}> {1} {2} took {3}ms, {4}ms writing, {5}",
                     reqnum,
                     verb,
                     requestUrl,
@@ -907,12 +882,6 @@ namespace OpenSim.Framework
                     verb,
                     requestUrl,
                     tickdiff);
-            }
-            else if (WebUtil.DebugLevel >= 4)
-            {
-                m_log.DebugFormat(
-                    "[WEB UTIL]: HTTP OUT {0} took {1}ms",
-                    reqnum, tickdiff);
             }
         }
     }
@@ -934,11 +903,7 @@ namespace OpenSim.Framework
         public static string MakeRequest(string verb, string requestUrl, string obj)
         {
             int reqnum = WebUtil.RequestNumber++;
-
-            if (WebUtil.DebugLevel >= 3)
-                m_log.DebugFormat(
-                    "[WEB UTIL]: HTTP OUT {0} SynchronousRestForms {1} {2}",
-                    reqnum, verb, requestUrl);
+            // m_log.DebugFormat("[WEB UTIL]: <{0}> start osd request for {1}, method {2}",reqnum,url,method);
 
             int tickstart = Util.EnvironmentTickCount();
             int tickdata = 0;
@@ -1025,7 +990,7 @@ namespace OpenSim.Framework
             int tickdiff = Util.EnvironmentTickCountSubtract(tickstart);
             if (tickdiff > WebUtil.LongCallTime)
                 m_log.InfoFormat(
-                    "[FORMS]: Slow request {0} {1} {2} took {3}ms, {4}ms writing, {5}",
+                    "[FORMS]: Slow request to <{0}> {1} {2} took {3}ms {4}ms writing {5}",
                     reqnum,
                     verb,
                     requestUrl,
@@ -1033,10 +998,6 @@ namespace OpenSim.Framework
                     tickset,
                     tickdata,
                     obj.Length > WebUtil.MaxRequestDiagLength ? obj.Remove(WebUtil.MaxRequestDiagLength) : obj);
-            else if (WebUtil.DebugLevel >= 4)
-                m_log.DebugFormat(
-                    "[WEB UTIL]: HTTP OUT {0} took {1}ms, {2}ms writing",
-                    reqnum, tickdiff, tickdata);
 
             return respstring;
         }
@@ -1071,11 +1032,7 @@ namespace OpenSim.Framework
         public static TResponse MakeRequest<TRequest, TResponse>(string verb, string requestUrl, TRequest obj, int pTimeout, int maxConnections)
         {
             int reqnum = WebUtil.RequestNumber++;
-
-            if (WebUtil.DebugLevel >= 3)
-                m_log.DebugFormat(
-                    "[WEB UTIL]: HTTP OUT {0} SynchronousRestObject {1} {2}",
-                    reqnum, verb, requestUrl);
+            // m_log.DebugFormat("[WEB UTIL]: <{0}> start osd request for {1}, method {2}",reqnum,url,method);
 
             int tickstart = Util.EnvironmentTickCount();
             int tickdata = 0;
@@ -1194,19 +1151,13 @@ namespace OpenSim.Framework
                 }
 
                 m_log.InfoFormat(
-                    "[SynchronousRestObjectRequester]: Slow request {0} {1} {2} took {3}ms, {4}ms writing, {5}",
+                    "[SynchronousRestObjectRequester]: Slow request to <{0}> {1} {2} took {3}ms, {4}ms writing, {5}",
                     reqnum,
                     verb,
                     requestUrl,
                     tickdiff,
                     tickdata,
                     originalRequest);
-            }
-            else if (WebUtil.DebugLevel >= 4)
-            {
-                m_log.DebugFormat(
-                    "[WEB UTIL]: HTTP OUT {0} took {1}ms, {2}ms writing",
-                    reqnum, tickdiff, tickdata);
             }
 
             return deserial;

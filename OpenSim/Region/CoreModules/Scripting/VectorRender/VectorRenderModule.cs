@@ -30,12 +30,10 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Net;
 using Nini.Config;
 using OpenMetaverse;
 using OpenMetaverse.Imaging;
-using OpenSim.Region.CoreModules.Scripting.DynamicTexture;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using log4net;
@@ -47,13 +45,9 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
 {
     public class VectorRenderModule : IRegionModule, IDynamicTextureRender
     {
-        // These fields exist for testing purposes, please do not remove.
-//        private static bool s_flipper;
-//        private static byte[] s_asset1Data;
-//        private static byte[] s_asset2Data;
-
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        private string m_name = "VectorRenderModule";
         private Scene m_scene;
         private IDynamicTextureManager m_textureManager;
         private Graphics m_graph;
@@ -67,12 +61,12 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
 
         public string GetContentType()
         {
-            return "vector";
+            return ("vector");
         }
 
         public string GetName()
         {
-            return Name;
+            return m_name;
         }
 
         public bool SupportsAsynchronous()
@@ -80,20 +74,14 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
             return true;
         }
 
-//        public bool AlwaysIdenticalConversion(string bodyData, string extraParams)
-//        {
-//            string[] lines = GetLines(bodyData);
-//            return lines.Any((str, r) => str.StartsWith("Image"));
-//        }
-
-        public IDynamicTexture ConvertUrl(string url, string extraParams)
+        public byte[] ConvertUrl(string url, string extraParams)
         {
             return null;
         }
 
-        public IDynamicTexture ConvertData(string bodyData, string extraParams)
+        public byte[] ConvertStream(Stream data, string extraParams)
         {
-            return Draw(bodyData, extraParams);
+            return null;
         }
 
         public bool AsyncConvertUrl(UUID id, string url, string extraParams)
@@ -103,28 +91,21 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
 
         public bool AsyncConvertData(UUID id, string bodyData, string extraParams)
         {
-            // XXX: This isn't actually being done asynchronously!
-            m_textureManager.ReturnData(id, ConvertData(bodyData, extraParams));
-
+            Draw(bodyData, id, extraParams);
             return true;
         }
 
         public void GetDrawStringSize(string text, string fontName, int fontSize, 
                                       out double xSize, out double ySize)
         {
-            lock (this)
+            using (Font myFont = new Font(fontName, fontSize))
             {
-                using (Font myFont = new Font(fontName, fontSize))
+                SizeF stringSize = new SizeF();
+                lock (m_graph)
                 {
-                    SizeF stringSize = new SizeF();
-
-                    // XXX: This lock may be unnecessary.
-                    lock (m_graph)
-                    {
-                        stringSize = m_graph.MeasureString(text, myFont);
-                        xSize = stringSize.Width;
-                        ySize = stringSize.Height;
-                    }
+                    stringSize = m_graph.MeasureString(text, myFont);
+                    xSize = stringSize.Width;
+                    ySize = stringSize.Height;
                 }
             }
         }
@@ -163,13 +144,6 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
             {
                 m_textureManager.RegisterRender(GetContentType(), this);
             }
-
-                // This code exists for testing purposes, please do not remove.
-//            s_asset1Data = m_scene.AssetService.Get("00000000-0000-1111-9999-000000000001").Data;
-//            s_asset1Data = m_scene.AssetService.Get("9f4acf0d-1841-4e15-bdb8-3a12efc9dd8f").Data;
-
-            // Terrain dirt - smallest bin/assets file (6004 bytes)
-//            s_asset2Data = m_scene.AssetService.Get("b8d3965a-ad78-bf43-699b-bff8eca6c975").Data;
         }
 
         public void Close()
@@ -178,7 +152,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
 
         public string Name
         {
-            get { return "VectorRenderModule"; }
+            get { return m_name; }
         }
 
         public bool IsSharedModule
@@ -188,7 +162,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
 
         #endregion
 
-        private IDynamicTexture Draw(string data, string extraParams)
+        private void Draw(string data, UUID id, string extraParams)
         {
             // We need to cater for old scripts that didnt use extraParams neatly, they use either an integer size which represents both width and height, or setalpha
             // we will now support multiple comma seperated params in the form  width:256,height:512,alpha:255
@@ -331,57 +305,40 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
 
             Bitmap bitmap = null;
             Graphics graph = null;
-            bool reuseable = false;
 
             try
             {
-                // XXX: In testing, it appears that if multiple threads dispose of separate GDI+ objects simultaneously,
-                // the native malloc heap can become corrupted, possibly due to a double free().  This may be due to
-                // bugs in the underlying libcairo used by mono's libgdiplus.dll on Linux/OSX.  These problems were
-                // seen with both libcario 1.10.2-6.1ubuntu3 and 1.8.10-2ubuntu1.  They go away if disposal is perfomed
-                // under lock.
-                lock (this)
-                {
-                    if (alpha == 256)
-                        bitmap = new Bitmap(width, height, PixelFormat.Format32bppRgb);
-                    else
-                        bitmap = new Bitmap(width, height, PixelFormat.Format32bppArgb);
+                if (alpha == 256)
+                    bitmap = new Bitmap(width, height, PixelFormat.Format32bppRgb);
+                else
+                    bitmap = new Bitmap(width, height, PixelFormat.Format32bppArgb);
+
+                graph = Graphics.FromImage(bitmap);
     
-                    graph = Graphics.FromImage(bitmap);
-        
-                    // this is really just to save people filling the 
-                    // background color in their scripts, only do when fully opaque
-                    if (alpha >= 255)
+                // this is really just to save people filling the 
+                // background color in their scripts, only do when fully opaque
+                if (alpha >= 255)
+                {
+                    using (SolidBrush bgFillBrush = new SolidBrush(bgColor))
                     {
-                        using (SolidBrush bgFillBrush = new SolidBrush(bgColor))
-                        {
-                            graph.FillRectangle(bgFillBrush, 0, 0, width, height);
-                        }
+                        graph.FillRectangle(bgFillBrush, 0, 0, width, height);
                     }
-        
-                    for (int w = 0; w < bitmap.Width; w++)
-                    {
-                        if (alpha <= 255) 
-                        {
-                            for (int h = 0; h < bitmap.Height; h++)
-                            {
-                                bitmap.SetPixel(w, h, Color.FromArgb(alpha, bitmap.GetPixel(w, h)));
-                            }
-                        }
-                    }
-        
-                    GDIDraw(data, graph, altDataDelim, out reuseable);
                 }
     
+                for (int w = 0; w < bitmap.Width; w++)
+                {
+                    if (alpha <= 255) 
+                    {
+                        for (int h = 0; h < bitmap.Height; h++)
+                        {
+                            bitmap.SetPixel(w, h, Color.FromArgb(alpha, bitmap.GetPixel(w, h)));
+                        }
+                    }
+                }
+    
+                GDIDraw(data, graph, altDataDelim);
+    
                 byte[] imageJ2000 = new byte[0];
-
-                // This code exists for testing purposes, please do not remove.
-//                if (s_flipper)
-//                    imageJ2000 = s_asset1Data;
-//                else
-//                    imageJ2000 = s_asset2Data;
-//
-//                s_flipper = !s_flipper;
     
                 try
                 {
@@ -394,24 +351,15 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                         e.Message, e.StackTrace);
                 }
 
-                return new OpenSim.Region.CoreModules.Scripting.DynamicTexture.DynamicTexture(
-                    data, extraParams, imageJ2000, new Size(width, height), reuseable);
+                m_textureManager.ReturnData(id, imageJ2000);
             }
             finally
             {
-                // XXX: In testing, it appears that if multiple threads dispose of separate GDI+ objects simultaneously,
-                // the native malloc heap can become corrupted, possibly due to a double free().  This may be due to
-                // bugs in the underlying libcairo used by mono's libgdiplus.dll on Linux/OSX.  These problems were
-                // seen with both libcario 1.10.2-6.1ubuntu3 and 1.8.10-2ubuntu1.  They go away if disposal is perfomed
-                // under lock.
-                lock (this)
-                {
-                    if (graph != null)
-                        graph.Dispose();
-    
-                    if (bitmap != null)
-                        bitmap.Dispose();
-                }
+                if (graph != null)
+                    graph.Dispose();
+
+                if (bitmap != null)
+                    bitmap.Dispose();
             }
         }
         
@@ -470,21 +418,8 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
         }
 */
 
-        /// <summary>
-        /// Split input data into discrete command lines.
-        /// </summary>
-        /// <returns></returns>
-        /// <param name='data'></param>
-        /// <param name='dataDelim'></param>
-        private string[] GetLines(string data, char dataDelim)
+        private void GDIDraw(string data, Graphics graph, char dataDelim)
         {
-            char[] lineDelimiter = { dataDelim };
-            return data.Split(lineDelimiter);
-        }
-
-        private void GDIDraw(string data, Graphics graph, char dataDelim, out bool reuseable)
-        {
-            reuseable = true;
             Point startPoint = new Point(0, 0);
             Point endPoint = new Point(0, 0);
             Pen drawPen = null;
@@ -499,9 +434,11 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                 myFont = new Font(fontName, fontSize);
                 myBrush = new SolidBrush(Color.Black);
 
+                char[] lineDelimiter = {dataDelim};
                 char[] partsDelimiter = {','};
+                string[] lines = data.Split(lineDelimiter);
 
-                foreach (string line in GetLines(data, dataDelim))
+                foreach (string line in lines)
                 {
                     string nextLine = line.Trim();
                     //replace with switch, or even better, do some proper parsing
@@ -532,10 +469,6 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                     }
                     else if (nextLine.StartsWith("Image"))
                     {
-                        // We cannot reuse any generated texture involving fetching an image via HTTP since that image
-                        // can change.
-                        reuseable = false;
-
                         float x = 0;
                         float y = 0;
                         GetParams(partsDelimiter, ref nextLine, 5, ref x, ref y);

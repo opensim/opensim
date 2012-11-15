@@ -89,17 +89,6 @@ namespace OpenSim.Framework.Monitoring
                 FirstTick = Environment.TickCount & Int32.MaxValue;
                 LastTick = FirstTick;
             }
-
-            public ThreadWatchdogInfo(ThreadWatchdogInfo previousTwi)
-            {
-                Thread = previousTwi.Thread;
-                FirstTick = previousTwi.FirstTick;
-                LastTick = previousTwi.LastTick;
-                Timeout = previousTwi.Timeout;
-                IsTimedOut = previousTwi.IsTimedOut;
-                AlarmIfTimeout = previousTwi.AlarmIfTimeout;
-                AlarmMethod = previousTwi.AlarmMethod;
-            }
         }
 
         /// <summary>
@@ -231,25 +220,7 @@ namespace OpenSim.Framework.Monitoring
         private static bool RemoveThread(int threadID)
         {
             lock (m_threads)
-            {
-                ThreadWatchdogInfo twi;
-                if (m_threads.TryGetValue(threadID, out twi))
-                {
-                    m_log.DebugFormat(
-                        "[WATCHDOG]: Removing thread {0}, ID {1}", twi.Thread.Name, twi.Thread.ManagedThreadId);
-
-                    m_threads.Remove(threadID);
-
-                    return true;
-                }
-                else
-                {
-                    m_log.WarnFormat(
-                        "[WATCHDOG]: Requested to remove thread with ID {0} but this is not being monitored", threadID);
-
-                    return false;
-                }
-            }
+                return m_threads.Remove(threadID);
         }
 
         public static bool AbortThread(int threadID)
@@ -364,9 +335,7 @@ namespace OpenSim.Framework.Monitoring
                                 if (callbackInfos == null)
                                     callbackInfos = new List<ThreadWatchdogInfo>();
 
-                                // Send a copy of the watchdog info to prevent race conditions where the watchdog
-                                // thread updates the monitoring info after an alarm has been sent out.
-                                callbackInfos.Add(new ThreadWatchdogInfo(threadInfo));
+                                callbackInfos.Add(threadInfo);
                             }
                         }
                     }

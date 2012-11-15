@@ -790,7 +790,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                     catch (Exception e)
                     {
-                        m_log.ErrorFormat("[SCENEOBJECTPART]: GROUP POSITION. {0}", e);
+                        m_log.Error("[SCENEOBJECTPART]: GROUP POSITION. " + e.Message);
                     }
                 }
             }
@@ -2864,35 +2864,6 @@ namespace OpenSim.Region.Framework.Scenes
                 SendLandCollisionEvent(scriptEvents.land_collision_end, ParentGroup.Scene.EventManager.TriggerScriptLandCollidingEnd);
         }
 
-        // The Collision sounds code calls this
-        public void SendCollisionSound(UUID soundID, double volume, Vector3 position)
-        {
-            if (soundID == UUID.Zero)
-                return;
-
-            ISoundModule soundModule = ParentGroup.Scene.RequestModuleInterface<ISoundModule>();
-            if (soundModule == null)
-                return;
-
-            if (volume > 1)
-                volume = 1;
-            if (volume < 0)
-                volume = 0;
-
-            int now = Util.EnvironmentTickCount();
-            if(Util.EnvironmentTickCountSubtract(now,LastColSoundSentTime) <200)
-                return;
-
-            LastColSoundSentTime = now;
-
-            UUID ownerID = OwnerID;
-            UUID objectID = ParentGroup.RootPart.UUID;
-            UUID parentID = ParentGroup.UUID;
-            ulong regionHandle = ParentGroup.Scene.RegionInfo.RegionHandle;
-
-            soundModule.TriggerSound(soundID, ownerID, objectID, parentID, volume, position, regionHandle, 0 );
-        }
-
         public void PhysicsOutOfBounds(Vector3 pos)
         {
             m_log.Error("[PHYSICS]: Physical Object went out of bounds.");
@@ -2922,6 +2893,38 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             ScheduleTerseUpdate();
+        }
+
+        public void PreloadSound(string sound)
+        {
+            // UUID ownerID = OwnerID;
+            UUID objectID = ParentGroup.RootPart.UUID;
+            UUID soundID = UUID.Zero;
+
+            if (!UUID.TryParse(sound, out soundID))
+            {
+                //Trys to fetch sound id from prim's inventory.
+                //Prim's inventory doesn't support non script items yet
+                
+                TaskInventory.LockItemsForRead(true);
+
+                foreach (KeyValuePair<UUID, TaskInventoryItem> item in TaskInventory)
+                {
+                    if (item.Value.Name == sound)
+                    {
+                        soundID = item.Value.ItemID;
+                        break;
+                    }
+                }
+
+                TaskInventory.LockItemsForRead(false);
+            }
+
+            ParentGroup.Scene.ForEachRootScenePresence(delegate(ScenePresence sp)
+            {
+                if (!(Util.GetDistanceTo(sp.AbsolutePosition, AbsolutePosition) >= 100))
+                    sp.ControllingClient.SendPreLoadSound(objectID, objectID, soundID);
+            });
         }
 
         public void RemFlag(PrimFlags flag)
@@ -2976,20 +2979,17 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="scale"></param>
         public void Resize(Vector3 scale)
         {
+            scale.X = Math.Min(scale.X, ParentGroup.Scene.m_maxNonphys);
+            scale.Y = Math.Min(scale.Y, ParentGroup.Scene.m_maxNonphys);
+            scale.Z = Math.Min(scale.Z, ParentGroup.Scene.m_maxNonphys);
+
             PhysicsActor pa = PhysActor;
 
-            if (ParentGroup.Scene != null)
+            if (pa != null && pa.IsPhysical)
             {
-                scale.X = Math.Max(ParentGroup.Scene.m_minNonphys, Math.Min(ParentGroup.Scene.m_maxNonphys, scale.X));
-                scale.Y = Math.Max(ParentGroup.Scene.m_minNonphys, Math.Min(ParentGroup.Scene.m_maxNonphys, scale.Y));
-                scale.Z = Math.Max(ParentGroup.Scene.m_minNonphys, Math.Min(ParentGroup.Scene.m_maxNonphys, scale.Z));
-    
-                if (pa != null && pa.IsPhysical)
-                {
-                    scale.X = Math.Max(ParentGroup.Scene.m_minPhys, Math.Min(ParentGroup.Scene.m_maxPhys, scale.X));
-                    scale.Y = Math.Max(ParentGroup.Scene.m_minPhys, Math.Min(ParentGroup.Scene.m_maxPhys, scale.Y));
-                    scale.Z = Math.Max(ParentGroup.Scene.m_minPhys, Math.Min(ParentGroup.Scene.m_maxPhys, scale.Z));
-                }
+                scale.X = Math.Min(scale.X, ParentGroup.Scene.m_maxPhys);
+                scale.Y = Math.Min(scale.Y, ParentGroup.Scene.m_maxPhys);
+                scale.Z = Math.Min(scale.Z, ParentGroup.Scene.m_maxPhys);
             }
 
 //            m_log.DebugFormat("[SCENE OBJECT PART]: Resizing {0} {1} to {2}", Name, LocalId, scale);
@@ -3086,7 +3086,7 @@ namespace OpenSim.Region.Framework.Scenes
             //                UUID, Name, TimeStampFull);
 
             if (ParentGroup.Scene != null)
-                ParentGroup.Scene.EventManager.TriggerSceneObjectPartUpdated(this, true);
+                ParentGroup.Scene.EventManager.TriggerSceneObjectPartUpdated(this);
         }
 
         /// <summary>
@@ -3120,7 +3120,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             if (ParentGroup.Scene != null)
-                ParentGroup.Scene.EventManager.TriggerSceneObjectPartUpdated(this, false);
+                ParentGroup.Scene.EventManager.TriggerSceneObjectPartUpdated(this);
         }
 
         public void ScriptSetPhysicsStatus(bool UsePhysics)
@@ -3295,6 +3295,126 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
+        /// Trigger or play an attached sound in this part's inventory.
+        /// </summary>
+        /// <param name="sound"></param>
+        /// <param name="volume"></param>
+        /// <param name="triggered"></param>
+        /// <param name="flags"></param>
+        public void SendSound(string sound, double volume, bool triggered, byte flags, float radius, bool useMaster, bool isMaster)
+        {
+            if (volume > 1)
+                volume = 1;
+            if (volume < 0)
+                volume = 0;
+
+            UUID ownerID = OwnerID;
+            UUID objectID = ParentGroup.RootPart.UUID;
+            UUID parentID = ParentGroup.UUID;
+
+            UUID soundID = UUID.Zero;
+            Vector3 position = AbsolutePosition; // region local
+            ulong regionHandle = ParentGroup.Scene.RegionInfo.RegionHandle;
+
+            if (!UUID.TryParse(sound, out soundID))
+            {
+                // search sound file from inventory
+                TaskInventory.LockItemsForRead(true);
+                foreach (KeyValuePair<UUID, TaskInventoryItem> item in TaskInventory)
+                {
+                    if (item.Value.Name == sound && item.Value.Type == (int)AssetType.Sound)
+                    {
+                        soundID = item.Value.ItemID;
+                        break;
+                    }
+                }
+                TaskInventory.LockItemsForRead(false);
+            }
+
+            if (soundID == UUID.Zero)
+                return;
+
+            ISoundModule soundModule = ParentGroup.Scene.RequestModuleInterface<ISoundModule>();
+            if (soundModule != null)
+            {
+                if (useMaster)
+                {
+                    if (isMaster)
+                    {
+                        if (triggered)
+                            soundModule.TriggerSound(soundID, ownerID, objectID, parentID, volume, position, regionHandle, radius);
+                        else
+                            soundModule.PlayAttachedSound(soundID, ownerID, objectID, volume, position, flags, radius);
+                        ParentGroup.PlaySoundMasterPrim = this;
+                        ownerID = OwnerID;
+                        objectID = ParentGroup.RootPart.UUID;
+                        parentID = ParentGroup.UUID;
+                        position = AbsolutePosition; // region local
+                        regionHandle = ParentGroup.Scene.RegionInfo.RegionHandle;
+                        if (triggered)
+                            soundModule.TriggerSound(soundID, ownerID, objectID, parentID, volume, position, regionHandle, radius);
+                        else
+                            soundModule.PlayAttachedSound(soundID, ownerID, objectID, volume, position, flags, radius);
+                        foreach (SceneObjectPart prim in ParentGroup.PlaySoundSlavePrims)
+                        {
+                            ownerID = prim.OwnerID;
+                            objectID = prim.ParentGroup.RootPart.UUID;
+                            parentID = prim.ParentGroup.UUID;
+                            position = prim.AbsolutePosition; // region local
+                            regionHandle = prim.ParentGroup.Scene.RegionInfo.RegionHandle;
+                            if (triggered)
+                                soundModule.TriggerSound(soundID, ownerID, objectID, parentID, volume, position, regionHandle, radius);
+                            else
+                                soundModule.PlayAttachedSound(soundID, ownerID, objectID, volume, position, flags, radius);
+                        }
+                        ParentGroup.PlaySoundSlavePrims.Clear();
+                        ParentGroup.PlaySoundMasterPrim = null;
+                    }
+                    else
+                    {
+                        ParentGroup.PlaySoundSlavePrims.Add(this);
+                    }
+                }
+                else
+                {
+                    if (triggered)
+                        soundModule.TriggerSound(soundID, ownerID, objectID, parentID, volume, position, regionHandle, radius);
+                    else
+                        soundModule.PlayAttachedSound(soundID, ownerID, objectID, volume, position, flags, radius);
+                }
+            }
+        }
+
+        public void SendCollisionSound(UUID soundID, double volume, Vector3 position)
+        {
+            if (soundID == UUID.Zero)
+                return;
+
+            ISoundModule soundModule = ParentGroup.Scene.RequestModuleInterface<ISoundModule>();
+            if (soundModule == null)
+                return;
+
+            if (volume > 1)
+                volume = 1;
+            if (volume < 0)
+                volume = 0;
+
+            int now = Util.EnvironmentTickCount();
+            if(Util.EnvironmentTickCountSubtract(now,LastColSoundSentTime) <200)
+                return;
+
+            LastColSoundSentTime = now;
+
+            UUID ownerID = OwnerID;
+            UUID objectID = ParentGroup.RootPart.UUID;
+            UUID parentID = ParentGroup.UUID;
+            ulong regionHandle = ParentGroup.Scene.RegionInfo.RegionHandle;
+
+            soundModule.TriggerSound(soundID, ownerID, objectID, parentID, volume, position, regionHandle, 0 );
+        }
+
+
+        /// <summary>
         /// Send a terse update to all clients
         /// </summary>
         public void SendTerseUpdateToAllClients()
@@ -3455,32 +3575,23 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Set the color & alpha of prim faces
+        /// Set the color of prim faces
         /// </summary>
-        /// <param name="face"></param>
         /// <param name="color"></param>
-        /// <param name="alpha"></param>
-        public void SetFaceColorAlpha(int face, Vector3 color, double ?alpha)
+        /// <param name="face"></param>
+        public void SetFaceColor(Vector3 color, int face)
         {
-            Vector3 clippedColor = Util.Clip(color, 0.0f, 1.0f);
-            float clippedAlpha = alpha.HasValue ?
-                Util.Clip((float)alpha.Value, 0.0f, 1.0f) : 0;
-
             // The only way to get a deep copy/ If we don't do this, we can
-            // never detect color changes further down.
+            // mever detect color changes further down.
             Byte[] buf = Shape.Textures.GetBytes();
             Primitive.TextureEntry tex = new Primitive.TextureEntry(buf, 0, buf.Length);
             Color4 texcolor;
             if (face >= 0 && face < GetNumberOfSides())
             {
                 texcolor = tex.CreateFace((uint)face).RGBA;
-                texcolor.R = clippedColor.X;
-                texcolor.G = clippedColor.Y;
-                texcolor.B = clippedColor.Z;
-                if (alpha.HasValue)
-                {
-                    texcolor.A = clippedAlpha;
-                }
+                texcolor.R = Util.Clip((float)color.X, 0.0f, 1.0f);
+                texcolor.G = Util.Clip((float)color.Y, 0.0f, 1.0f);
+                texcolor.B = Util.Clip((float)color.Z, 0.0f, 1.0f);
                 tex.FaceTextures[face].RGBA = texcolor;
                 UpdateTextureEntry(tex.GetBytes());
                 return;
@@ -3492,23 +3603,15 @@ namespace OpenSim.Region.Framework.Scenes
                     if (tex.FaceTextures[i] != null)
                     {
                         texcolor = tex.FaceTextures[i].RGBA;
-                        texcolor.R = clippedColor.X;
-                        texcolor.G = clippedColor.Y;
-                        texcolor.B = clippedColor.Z;
-                        if (alpha.HasValue)
-                        {
-                            texcolor.A = clippedAlpha;
-                        }
+                        texcolor.R = Util.Clip((float)color.X, 0.0f, 1.0f);
+                        texcolor.G = Util.Clip((float)color.Y, 0.0f, 1.0f);
+                        texcolor.B = Util.Clip((float)color.Z, 0.0f, 1.0f);
                         tex.FaceTextures[i].RGBA = texcolor;
                     }
                     texcolor = tex.DefaultTexture.RGBA;
-                    texcolor.R = clippedColor.X;
-                    texcolor.G = clippedColor.Y;
-                    texcolor.B = clippedColor.Z;
-                    if (alpha.HasValue)
-                    {
-                        texcolor.A = clippedAlpha;
-                    }
+                    texcolor.R = Util.Clip((float)color.X, 0.0f, 1.0f);
+                    texcolor.G = Util.Clip((float)color.Y, 0.0f, 1.0f);
+                    texcolor.B = Util.Clip((float)color.Z, 0.0f, 1.0f);
                     tex.DefaultTexture.RGBA = texcolor;
                 }
                 UpdateTextureEntry(tex.GetBytes());
@@ -4794,57 +4897,6 @@ namespace OpenSim.Region.Framework.Scenes
             ParentGroup.HasGroupChanged = true;
             TriggerScriptChangedEvent(Changed.SHAPE);
             ScheduleFullUpdate();
-        }
-
-        public void UpdateSlice(float begin, float end)
-        {
-            if (end < begin)
-            {
-                float temp = begin;
-                begin = end;
-                end = temp;
-            }
-            end = Math.Min(1f, Math.Max(0f, end));
-            begin = Math.Min(Math.Min(1f, Math.Max(0f, begin)), end - 0.02f);
-            if (begin < 0.02f && end < 0.02f)
-            {
-                begin = 0f;
-                end = 0.02f;
-            }
-
-            ushort uBegin = (ushort)(50000.0 * begin);
-            ushort uEnd = (ushort)(50000.0 * (1f - end));
-            bool updatePossiblyNeeded = false;
-            PrimType primType = GetPrimType();
-            if (primType == PrimType.SPHERE || primType == PrimType.TORUS || primType == PrimType.TUBE || primType == PrimType.RING)
-            {
-                if (m_shape.ProfileBegin != uBegin || m_shape.ProfileEnd != uEnd)
-                {
-                    m_shape.ProfileBegin = uBegin;
-                    m_shape.ProfileEnd = uEnd;
-                    updatePossiblyNeeded = true;
-                }
-            }
-            else if (m_shape.PathBegin != uBegin || m_shape.PathEnd != uEnd)
-            {
-                m_shape.PathBegin = uBegin;
-                m_shape.PathEnd = uEnd;
-                updatePossiblyNeeded = true;
-            }
-
-            if (updatePossiblyNeeded && ParentGroup != null)
-            {
-                ParentGroup.HasGroupChanged = true;
-            }
-            if (updatePossiblyNeeded && PhysActor != null)
-            {
-                PhysActor.Shape = m_shape;
-                ParentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
-            }
-            if (updatePossiblyNeeded)
-            {
-                ScheduleFullUpdate();
-            }
         }
 
         /// <summary>

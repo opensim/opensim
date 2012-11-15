@@ -300,7 +300,7 @@ namespace OpenSim.Services.LLLoginService
                 {
                     m_log.InfoFormat(
                         "[LLOGIN SERVICE]: Login failed for {0} {1}, reason: user level is {2} but minimum login level is {3}",
-                        firstName, lastName, account.UserLevel, m_MinLoginLevel);
+                        firstName, lastName, m_MinLoginLevel, account.UserLevel);
                     return LLFailedLoginResponse.LoginBlockedProblem;
                 }
 

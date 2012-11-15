@@ -43,15 +43,11 @@ using OpenSim.Tests.Common;
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid.Tests
 {
     [TestFixture]
-    public class GridConnectorsTests : OpenSimTestCase
+    public class GridConnectorsTests
     {
         LocalGridServicesConnector m_LocalConnector;
-
-        [SetUp]
-        public override void SetUp()
+        private void SetUp()
         {
-            base.SetUp();
-
             IConfigSource config = new IniConfigSource();
             config.AddConfig("Modules");
             config.AddConfig("GridService");
@@ -74,6 +70,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid.Tests
         {
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
+
+            SetUp();
 
             // Create 4 regions
             GridRegion r1 = new GridRegion();

@@ -148,7 +148,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             OnInstantMessage(this, new GridInstantMessage(m_scene,
                     m_uuid, m_firstname + " " + m_lastname,
                     target, 0, false, message,
-                    UUID.Zero, false, Position, new byte[0], true));
+                    UUID.Zero, false, Position, new byte[0]));
         }
 
         public void SendAgentOffline(UUID[] agentIDs)
@@ -607,15 +607,13 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         {
         }
 
-        public virtual void SendChatMessage(
-            string message, byte type, Vector3 fromPos, string fromName,
-            UUID fromAgentID, UUID ownerID, byte source, byte audible)
+        public virtual void SendChatMessage(string message, byte type, Vector3 fromPos, string fromName,
+                                            UUID fromAgentID, byte source, byte audible)
         {
         }
 
-        public virtual void SendChatMessage(
-            byte[] message, byte type, Vector3 fromPos, string fromName,
-            UUID fromAgentID, UUID ownerID, byte source, byte audible)
+        public virtual void SendChatMessage(byte[] message, byte type, Vector3 fromPos, string fromName,
+                                            UUID fromAgentID, byte source, byte audible)
         {
         }
 
@@ -911,13 +909,11 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 
         public void Close()
         {
-            Close(true, false);
+            Close(true);
         }
 
-        public void Close(bool sendStop, bool force)
+        public void Close(bool sendStop)
         {
-            // Remove ourselves from the scene
-            m_scene.RemoveClient(AgentId, false);
         }
 
         public void Start()

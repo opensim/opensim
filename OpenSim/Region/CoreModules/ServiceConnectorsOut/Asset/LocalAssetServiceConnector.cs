@@ -204,11 +204,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
         public byte[] GetData(string id)
         {
 //            m_log.DebugFormat("[LOCAL ASSET SERVICES CONNECTOR]: Requesting data for asset {0}", id);
-
-            AssetBase asset = null;
-
-            if (m_Cache != null)
-                asset = m_Cache.Get(id);
+            
+            AssetBase asset = m_Cache.Get(id);
 
             if (asset != null)
                 return asset.Data;
