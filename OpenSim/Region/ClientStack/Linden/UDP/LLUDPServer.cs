@@ -80,6 +80,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     "clientstack",
                     scene.Name,
                     StatType.Pull,
+                    MeasuresOfInterest.AverageChangeOverTime,
                     stat => stat.Value = m_udpServer.IncomingPacketsProcessed,
                     StatVerbosity.Debug));
         }

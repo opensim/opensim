@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace OpenSim.Framework.Monitoring
 {
@@ -246,6 +247,24 @@ namespace OpenSim.Framework.Monitoring
 
             return false;
         }
+
+        public static void RecordStats()
+        {
+            lock (RegisteredStats)
+            {
+                foreach (Dictionary<string, Dictionary<string, Stat>> category in RegisteredStats.Values)
+                {
+                    foreach (Dictionary<string, Stat> container in category.Values)
+                    {
+                        foreach (Stat stat in container.Values)
+                        {
+                            if (stat.MeasuresOfInterest != MeasuresOfInterest.None)
+                                stat.RecordValue();
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /// <summary>
@@ -259,6 +278,16 @@ namespace OpenSim.Framework.Monitoring
     {
         Push,
         Pull
+    }
+
+    /// <summary>
+    /// Measures of interest for this stat.
+    /// </summary>
+    [Flags]
+    public enum MeasuresOfInterest
+    {
+        None,
+        AverageChangeOverTime
     }
 
     /// <summary>
@@ -295,6 +324,8 @@ namespace OpenSim.Framework.Monitoring
 
         public StatType StatType { get; private set; }
 
+        public MeasuresOfInterest MeasuresOfInterest { get; private set; }
+
         /// <summary>
         /// Action used to update this stat when the value is requested if it's a pull type.
         /// </summary>
@@ -328,6 +359,47 @@ namespace OpenSim.Framework.Monitoring
         private double m_value;
 
         /// <summary>
+        /// Historical samples for calculating measures of interest average.
+        /// </summary>
+        /// <remarks>
+        /// Will be null if no measures of interest require samples.
+        /// </remarks>
+        private static Queue<double> m_samples;
+
+        /// <summary>
+        /// Maximum number of statistical samples.
+        /// </summary>
+        /// <remarks>
+        /// At the moment this corresponds to 1 minute since the sampling rate is every 2.5 seconds as triggered from
+        /// the main Watchdog.
+        /// </remarks>
+        private static int m_maxSamples = 24;
+
+        public Stat(
+            string shortName,
+            string name,
+            string description,
+            string unitName,
+            string category,
+            string container,
+            StatType type,
+            Action<Stat> pullAction,
+            StatVerbosity verbosity) 
+                : this(
+                    shortName, 
+                    name, 
+                    description, 
+                    unitName, 
+                    category, 
+                    container, 
+                    type, 
+                    MeasuresOfInterest.None, 
+                    pullAction, 
+                    verbosity)
+        {
+        }
+
+        /// <summary>
         /// Constructor
         /// </summary>
         /// <param name='shortName'>Short name for the stat.  Must not contain spaces.  e.g. "LongFrames"</param>
@@ -341,6 +413,7 @@ namespace OpenSim.Framework.Monitoring
         /// <param name='container'>Entity to which this stat relates.  e.g. scene name if this is a per scene stat.</param>
         /// <param name='type'>Push or pull</param>
         /// <param name='pullAction'>Pull stats need an action to update the stat on request.  Push stats should set null here.</param>
+        /// <param name='moi'>Measures of interest</param>
         /// <param name='verbosity'>Verbosity of stat.  Controls whether it will appear in short stat display or only full display.</param>
         public Stat(
             string shortName,
@@ -350,6 +423,7 @@ namespace OpenSim.Framework.Monitoring
             string category,
             string container,
             StatType type,
+            MeasuresOfInterest moi,
             Action<Stat> pullAction,
             StatVerbosity verbosity)
         {
@@ -370,13 +444,66 @@ namespace OpenSim.Framework.Monitoring
             else
                 PullAction = pullAction;
 
+            MeasuresOfInterest = moi;
+
+            if ((moi & MeasuresOfInterest.AverageChangeOverTime) == MeasuresOfInterest.AverageChangeOverTime)
+                m_samples = new Queue<double>(m_maxSamples);
+
             Verbosity = verbosity;
+        }
+
+        /// <summary>
+        /// Record a value in the sample set.
+        /// </summary>
+        /// <remarks>
+        /// Do not call this if MeasuresOfInterest.None
+        /// </remarks>
+        public void RecordValue()
+        {
+            double newValue = Value;
+
+            lock (m_samples)
+            {
+                if (m_samples.Count >= m_maxSamples)
+                    m_samples.Dequeue();
+
+                m_samples.Enqueue(newValue);
+            }
         }
 
         public virtual string ToConsoleString()
         {
-            return string.Format(
-                "{0}.{1}.{2} : {3}{4}", Category, Container, ShortName, Value, UnitName);
+            StringBuilder sb = new StringBuilder();
+            sb.AppendFormat("{0}.{1}.{2} : {3}{4}", Category, Container, ShortName, Value, UnitName);
+
+            AppendMeasuresOfInterest(sb);
+
+            return sb.ToString();
+        }
+
+        protected void AppendMeasuresOfInterest(StringBuilder sb)
+        {
+            if ((MeasuresOfInterest & MeasuresOfInterest.AverageChangeOverTime) 
+                == MeasuresOfInterest.AverageChangeOverTime)
+            {
+                double totalChange = 0;
+                double? lastSample = null;
+
+                lock (m_samples)
+                {
+                    foreach (double s in m_samples)
+                    {
+                        if (lastSample != null)
+                            totalChange += s - (double)lastSample;
+
+                        lastSample = s;
+                    }
+                }
+
+                int divisor = m_samples.Count <= 1 ? 1 : m_samples.Count - 1;
+
+                sb.AppendFormat(", {0:0.##}{1}/s", totalChange / divisor / (Watchdog.WATCHDOG_INTERVAL_MS / 1000), UnitName);
+            }
         }
     }
 
@@ -423,9 +550,15 @@ namespace OpenSim.Framework.Monitoring
 
         public override string ToConsoleString()
         {
-            return string.Format(
+            StringBuilder sb = new StringBuilder();
+
+            sb.AppendFormat(
                 "{0}.{1}.{2} : {3:0.##}{4} ({5}/{6})",
                 Category, Container, ShortName, Value, UnitName, Antecedent, Consequent);
+
+            AppendMeasuresOfInterest(sb);
+
+            return sb.ToString();
         }
     }
 }
