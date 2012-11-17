@@ -27,56 +27,62 @@
 
 using System;
 using System.Collections.Generic;
-using System.Reflection;
-using Nini.Config;
-using OpenSim.Framework;
-using OpenSim.Data;
-using OpenSim.Services.Interfaces;
-using OpenSim.Services.Base;
+using System.Text;
 
-namespace OpenSim.Services.InventoryService
+namespace OpenSim.Framework.Monitoring
 {
-    public class InventoryServiceBase : ServiceBase
+    public class PercentageStat : Stat
     {
-        protected IInventoryDataPlugin m_Database = null;
+        public long Antecedent { get; set; }
+        public long Consequent { get; set; }
 
-        public InventoryServiceBase(IConfigSource config) : base(config)
+        public override double Value
         {
-            string dllName = String.Empty;
-            string connString = String.Empty;
-
-            //
-            // Try reading the [DatabaseService] section first, if it exists
-            //
-            IConfig dbConfig = config.Configs["DatabaseService"];
-            if (dbConfig != null)
+            get
             {
-                dllName = dbConfig.GetString("StorageProvider", String.Empty);
-                connString = dbConfig.GetString("ConnectionString", String.Empty);
+                // Asking for an update here means that the updater cannot access this value without infinite recursion.
+                // XXX: A slightly messy but simple solution may be to flick a flag so we can tell if this is being
+                // called by the pull action and just return the value.
+                if (StatType == StatType.Pull)
+                    PullAction(this);
+
+                long c = Consequent;
+
+                // Avoid any chance of a multi-threaded divide-by-zero
+                if (c == 0)
+                    return 0;
+
+                return (double)Antecedent / c * 100;
             }
 
-            //
-            // Try reading the more specific [InventoryService] section, if it exists
-            //
-            IConfig inventoryConfig = config.Configs["InventoryService"];
-            if (inventoryConfig != null)
+            set
             {
-                dllName = inventoryConfig.GetString("StorageProvider", dllName);
-                connString = inventoryConfig.GetString("ConnectionString", connString);
+                throw new InvalidOperationException("Cannot set value on a PercentageStat");
             }
-
-            //
-            // We tried, but this doesn't exist. We can't proceed.
-            //
-            if (dllName.Equals(String.Empty))
-                throw new Exception("No InventoryService configuration");
-
-            m_Database = LoadPlugin<IInventoryDataPlugin>(dllName);
-            if (m_Database == null)
-                throw new Exception("Could not find a storage interface in the given module");
-
-            m_Database.Initialise(connString);
         }
 
+        public PercentageStat(
+            string shortName,
+            string name,
+            string description,
+            string category,
+            string container,
+            StatType type,
+            Action<Stat> pullAction,
+            StatVerbosity verbosity)
+            : base(shortName, name, description, "%", category, container, type, pullAction, verbosity) {}
+
+        public override string ToConsoleString()
+        {
+            StringBuilder sb = new StringBuilder();
+
+            sb.AppendFormat(
+                "{0}.{1}.{2} : {3:0.##}{4} ({5}/{6})",
+                Category, Container, ShortName, Value, UnitName, Antecedent, Consequent);
+
+            AppendMeasuresOfInterest(sb);
+
+            return sb.ToString();
+        }
     }
 }

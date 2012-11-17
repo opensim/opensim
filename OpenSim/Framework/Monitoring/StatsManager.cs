@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace OpenSim.Framework.Monitoring
 {
@@ -246,6 +247,24 @@ namespace OpenSim.Framework.Monitoring
 
             return false;
         }
+
+        public static void RecordStats()
+        {
+            lock (RegisteredStats)
+            {
+                foreach (Dictionary<string, Dictionary<string, Stat>> category in RegisteredStats.Values)
+                {
+                    foreach (Dictionary<string, Stat> container in category.Values)
+                    {
+                        foreach (Stat stat in container.Values)
+                        {
+                            if (stat.MeasuresOfInterest != MeasuresOfInterest.None)
+                                stat.RecordValue();
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /// <summary>
@@ -262,6 +281,16 @@ namespace OpenSim.Framework.Monitoring
     }
 
     /// <summary>
+    /// Measures of interest for this stat.
+    /// </summary>
+    [Flags]
+    public enum MeasuresOfInterest
+    {
+        None,
+        AverageChangeOverTime
+    }
+
+    /// <summary>
     /// Verbosity of stat.
     /// </summary>
     /// <remarks>
@@ -271,161 +300,5 @@ namespace OpenSim.Framework.Monitoring
     {
         Debug,
         Info
-    }
-
-    /// <summary>
-    /// Holds individual static details
-    /// </summary>
-    public class Stat
-    {
-        /// <summary>
-        /// Category of this stat (e.g. cache, scene, etc).
-        /// </summary>
-        public string Category { get; private set; }
-
-        /// <summary>
-        /// Containing name for this stat.
-        /// FIXME: In the case of a scene, this is currently the scene name (though this leaves
-        /// us with a to-be-resolved problem of non-unique region names).
-        /// </summary>
-        /// <value>
-        /// The container.
-        /// </value>
-        public string Container { get; private set; }
-
-        public StatType StatType { get; private set; }
-
-        /// <summary>
-        /// Action used to update this stat when the value is requested if it's a pull type.
-        /// </summary>
-        public Action<Stat> PullAction { get; private set; }
-
-        public StatVerbosity Verbosity { get; private set; }
-        public string ShortName { get; private set; }
-        public string Name { get; private set; }
-        public string Description { get; private set; }
-        public virtual string UnitName { get; private set; }
-
-        public virtual double Value
-        {
-            get
-            {
-                // Asking for an update here means that the updater cannot access this value without infinite recursion.
-                // XXX: A slightly messy but simple solution may be to flick a flag so we can tell if this is being
-                // called by the pull action and just return the value.
-                if (StatType == StatType.Pull)
-                    PullAction(this);
-
-                return m_value;
-            }
-
-            set
-            {
-                m_value = value;
-            }
-        }
-
-        private double m_value;
-
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name='shortName'>Short name for the stat.  Must not contain spaces.  e.g. "LongFrames"</param>
-        /// <param name='name'>Human readable name for the stat.  e.g. "Long frames"</param>
-        /// <param name='description'>Description of stat</param>
-        /// <param name='unitName'>
-        /// Unit name for the stat.  Should be preceeded by a space if the unit name isn't normally appeneded immediately to the value.
-        /// e.g. " frames"
-        /// </param>
-        /// <param name='category'>Category under which this stat should appear, e.g. "scene".  Do not capitalize.</param>
-        /// <param name='container'>Entity to which this stat relates.  e.g. scene name if this is a per scene stat.</param>
-        /// <param name='type'>Push or pull</param>
-        /// <param name='pullAction'>Pull stats need an action to update the stat on request.  Push stats should set null here.</param>
-        /// <param name='verbosity'>Verbosity of stat.  Controls whether it will appear in short stat display or only full display.</param>
-        public Stat(
-            string shortName,
-            string name,
-            string description,
-            string unitName,
-            string category,
-            string container,
-            StatType type,
-            Action<Stat> pullAction,
-            StatVerbosity verbosity)
-        {
-            if (StatsManager.SubCommands.Contains(category))
-                throw new Exception(
-                    string.Format("Stat cannot be in category '{0}' since this is reserved for a subcommand", category));
-
-            ShortName = shortName;
-            Name = name;
-            Description = description;
-            UnitName = unitName;
-            Category = category;
-            Container = container;
-            StatType = type;
-
-            if (StatType == StatType.Push && pullAction != null)
-                throw new Exception("A push stat cannot have a pull action");
-            else
-                PullAction = pullAction;
-
-            Verbosity = verbosity;
-        }
-
-        public virtual string ToConsoleString()
-        {
-            return string.Format(
-                "{0}.{1}.{2} : {3}{4}", Category, Container, ShortName, Value, UnitName);
-        }
-    }
-
-    public class PercentageStat : Stat
-    {
-        public long Antecedent { get; set; }
-        public long Consequent { get; set; }
-
-        public override double Value
-        {
-            get
-            {
-                // Asking for an update here means that the updater cannot access this value without infinite recursion.
-                // XXX: A slightly messy but simple solution may be to flick a flag so we can tell if this is being
-                // called by the pull action and just return the value.
-                if (StatType == StatType.Pull)
-                    PullAction(this);
-
-                long c = Consequent;
-
-                // Avoid any chance of a multi-threaded divide-by-zero
-                if (c == 0)
-                    return 0;
-
-                return (double)Antecedent / c * 100;
-            }
-
-            set
-            {
-                throw new InvalidOperationException("Cannot set value on a PercentageStat");
-            }
-        }
-
-        public PercentageStat(
-            string shortName,
-            string name,
-            string description,
-            string category,
-            string container,
-            StatType type,
-            Action<Stat> pullAction,
-            StatVerbosity verbosity)
-            : base(shortName, name, description, "%", category, container, type, pullAction, verbosity) {}
-
-        public override string ToConsoleString()
-        {
-            return string.Format(
-                "{0}.{1}.{2} : {3:0.##}{4} ({5}/{6})",
-                Category, Container, ShortName, Value, UnitName, Antecedent, Consequent);
-        }
     }
 }

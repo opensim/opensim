@@ -39,7 +39,7 @@ namespace OpenSim.Framework.Monitoring
     public static class Watchdog
     {
         /// <summary>Timer interval in milliseconds for the watchdog timer</summary>
-        const double WATCHDOG_INTERVAL_MS = 2500.0d;
+        public const double WATCHDOG_INTERVAL_MS = 2500.0d;
 
         /// <summary>Default timeout in milliseconds before a thread is considered dead</summary>
         public const int DEFAULT_WATCHDOG_TIMEOUT_MS = 5000;
@@ -379,6 +379,8 @@ namespace OpenSim.Framework.Monitoring
 
             if (MemoryWatchdog.Enabled)
                 MemoryWatchdog.Update();
+
+            StatsManager.RecordStats();
 
             m_watchdogTimer.Start();
         }
