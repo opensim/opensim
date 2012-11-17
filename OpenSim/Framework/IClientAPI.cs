@@ -1053,7 +1053,7 @@ namespace OpenSim.Framework
         event MuteListEntryRemove OnRemoveMuteListEntry;
         event GodlikeMessage onGodlikeMessage;
         event GodUpdateRegionInfoUpdate OnGodUpdateRegionInfoUpdate;
-
+        event GenericCall2 OnUpdateThrottles;
         /// <summary>
         /// Set the debug level at which packet output should be printed to console.
         /// </summary>

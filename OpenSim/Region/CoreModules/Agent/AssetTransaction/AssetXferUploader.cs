@@ -136,18 +136,27 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
 
             if (XferID == xferID)
             {
-                if (m_asset.Data.Length > 1)
+                lock (this)
                 {
-                    byte[] destinationArray = new byte[m_asset.Data.Length + data.Length];
-                    Array.Copy(m_asset.Data, 0, destinationArray, 0, m_asset.Data.Length);
-                    Array.Copy(data, 0, destinationArray, m_asset.Data.Length, data.Length);
-                    m_asset.Data = destinationArray;
-                }
-                else
-                {
-                    byte[] buffer2 = new byte[data.Length - 4];
-                    Array.Copy(data, 4, buffer2, 0, data.Length - 4);
-                    m_asset.Data = buffer2;
+                    int assetLength = m_asset.Data.Length;
+                    int dataLength = data.Length;
+
+                    if (m_asset.Data.Length > 1)
+                    {
+                        byte[] destinationArray = new byte[assetLength + dataLength];
+                        Array.Copy(m_asset.Data, 0, destinationArray, 0, assetLength);
+                        Array.Copy(data, 0, destinationArray, assetLength, dataLength);
+                        m_asset.Data = destinationArray;
+                    }
+                    else
+                    {
+                        if (dataLength > 4)
+                        {
+                            byte[] buffer2 = new byte[dataLength - 4];
+                            Array.Copy(data, 4, buffer2, 0, dataLength - 4);
+                            m_asset.Data = buffer2;
+                        }
+                    }
                 }
 
                 ourClient.SendConfirmXfer(xferID, packetID);
