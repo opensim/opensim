@@ -132,6 +132,11 @@
   </exec>
   <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.capabilities.handlers.tests)==0}" /> 
 
+  <exec program="${nunitcmd}" failonerror="true" resultproperty="testresult.opensim.services.inventoryservice.tests">
+    <arg value="./bin/OpenSim.Services.InventoryService.Tests.dll" />
+  </exec>
+  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.services.inventoryservice.tests)==0}" /> 
+
   <delete dir="%temp%"/>
 </target>
 
@@ -235,6 +240,11 @@
     <arg value="-xml=test-results/OpenSim.Capabilities.Handlers.Tests.dll-Results.xml" />
   </exec>
 
+ <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.services.inventoryservice.tests">
+    <arg value="./bin/OpenSim.Services.InventoryService.Tests.dll" />
+    <arg value="-xml=test-results/OpenSim.Services.InventoryService.Tests.dll-Results.xml" />
+  </exec>
+
  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.tests)==0}" /> 
  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.framework.tests)==0}" /> 
  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.framework.servers.tests)==0}" /> 
@@ -245,6 +255,7 @@
  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.region.framework.tests)==0}" /> 
  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.data.tests)==0}" /> 
  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.capabilities.handlers.tests)==0}" /> 
+ <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.services.inventoryservice.tests)==0}" /> 
 </target>
 
 <target name="doxygen">
