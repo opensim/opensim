@@ -134,7 +134,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             item1.ID = UUID.Parse("00000000-0000-0000-0000-000000000020");            
             item1.AssetID = asset1.FullID;
             item1.GroupID = UUID.Random();
-            item1.CreatorIdAsUuid = m_uaLL1.PrincipalID;
+            item1.CreatorId = m_uaLL1.PrincipalID.ToString();
             item1.Owner = m_uaLL1.PrincipalID;
             item1.Folder = scene.InventoryService.GetRootFolder(m_uaLL1.PrincipalID).ID;            
             scene.AddInventoryItem(item1);
@@ -157,7 +157,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             coaItem.ID = UUID.Parse("00000000-0000-0000-0000-000000000180");            
             coaItem.AssetID = coaAsset.FullID;
             coaItem.GroupID = UUID.Random();
-            coaItem.CreatorIdAsUuid = m_uaLL1.PrincipalID;
+            coaItem.CreatorId = m_uaLL1.PrincipalID.ToString();
             coaItem.Owner = m_uaLL1.PrincipalID;
             coaItem.Folder = scene.InventoryService.GetRootFolder(m_uaLL1.PrincipalID).ID;            
             scene.AddInventoryItem(coaItem);            

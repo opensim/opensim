@@ -781,7 +781,6 @@ namespace OpenSim.Services.Connectors.SimianGrid
                     invItem.CreationDate = item["CreationDate"].AsInteger();
                     invItem.CreatorId = item["CreatorID"].AsString();
                     invItem.CreatorData = item["CreatorData"].AsString();
-                    invItem.CreatorIdAsUuid = item["CreatorID"].AsUUID();
                     invItem.Description = item["Description"].AsString();
                     invItem.Folder = item["ParentID"].AsUUID();
                     invItem.ID = item["ID"].AsUUID();
