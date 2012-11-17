@@ -476,6 +476,46 @@ namespace OpenSim.Services.InventoryService
 //            m_log.InfoFormat(
 //                "[XINVENTORY SERVICE]: Updating item {0} {1} in folder {2}", item.Name, item.ID, item.Folder);
 
+            InventoryItemBase retrievedItem = GetItem(item);
+
+            if (retrievedItem == null)
+            {
+                m_log.WarnFormat(
+                    "[XINVENTORY SERVICE]: Tried to update item {0} {1}, owner {2} but no existing item found.", 
+                    item.Name, item.ID, item.Owner);
+
+                return false;
+            }
+
+            // Do not allow invariants to change.  Changes to folder ID occur in MoveItems()
+            if (retrievedItem.InvType != item.InvType 
+                || retrievedItem.AssetType != item.AssetType
+                || retrievedItem.Folder != item.Folder 
+                || retrievedItem.CreatorIdentification != item.CreatorIdentification 
+                || retrievedItem.Owner != item.Owner)
+            {
+                m_log.WarnFormat(
+                    "[XINVENTORY SERVICE]: Caller to UpdateItem() for {0} {1} tried to alter property(s) that should be invariant, (InvType, AssetType, Folder, CreatorIdentification, Owner), existing ({2}, {3}, {4}, {5}, {6}), update ({7}, {8}, {9}, {10}, {11})",
+                    retrievedItem.Name, 
+                    retrievedItem.ID, 
+                    retrievedItem.InvType, 
+                    retrievedItem.AssetType, 
+                    retrievedItem.Folder, 
+                    retrievedItem.CreatorIdentification, 
+                    retrievedItem.Owner,
+                    item.InvType,
+                    item.AssetType,
+                    item.Folder,
+                    item.CreatorIdentification,
+                    item.Owner);
+
+                item.InvType = retrievedItem.InvType;
+                item.AssetType = retrievedItem.AssetType;
+                item.Folder = retrievedItem.Folder;
+                item.CreatorIdentification = retrievedItem.CreatorIdentification;
+                item.Owner = retrievedItem.Owner;
+            }
+
             return m_Database.StoreItem(ConvertFromOpenSim(item));
         }
 

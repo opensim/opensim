@@ -43,8 +43,18 @@ namespace OpenSim.Services.InventoryService.Tests
     /// TODO: Fill out more tests.
     /// </remarks>
     [TestFixture]
-    public class XInventoryServiceTests
+    public class XInventoryServiceTests : OpenSimTestCase
     {
+        private IInventoryService CreateXInventoryService()
+        {
+            IConfigSource config = new IniConfigSource();            
+            config.AddConfig("InventoryService");
+            config.Configs["InventoryService"].Set("StorageProvider", "OpenSim.Tests.Common.dll");
+
+            return ServerUtils.LoadPlugin<IInventoryService>(
+                "OpenSim.Services.InventoryService.dll:XInventoryService", new Object[] { config });
+        }
+
         /// <summary>
         /// Tests add item operation.
         /// </summary>
@@ -54,25 +64,31 @@ namespace OpenSim.Services.InventoryService.Tests
         [Test]
         public void TestAddItem()
         {
+            TestHelpers.InMethod();
+
             string creatorId = TestHelpers.ParseTail(0x1).ToString();
             UUID ownerId = TestHelpers.ParseTail(0x2);
             UUID itemId = TestHelpers.ParseTail(0x10);
             UUID assetId = TestHelpers.ParseTail(0x20);
+            UUID folderId = TestHelpers.ParseTail(0x30);
+            int invType = (int)InventoryType.Animation;
+            int assetType = (int)AssetType.Animation;
             string itemName = "item1";           
 
-            IConfigSource config = new IniConfigSource();            
-            config.AddConfig("InventoryService");
-            config.Configs["InventoryService"].Set("StorageProvider", "OpenSim.Tests.Common.dll");
-
-            IInventoryService xis 
-                = ServerUtils.LoadPlugin<IInventoryService>(
-                    "OpenSim.Services.InventoryService.dll:XInventoryService", new Object[] { config });
+            IInventoryService xis = CreateXInventoryService();
 
             InventoryItemBase itemToStore 
                 = new InventoryItemBase(itemId, ownerId) 
-                    { CreatorId = creatorId.ToString(), AssetID = assetId, Name = itemName };
+                { 
+                    CreatorIdentification = creatorId.ToString(), 
+                    AssetID = assetId, 
+                    Name = itemName,  
+                    Folder = folderId, 
+                    InvType = invType, 
+                    AssetType = assetType 
+                };
 
-            xis.AddItem(itemToStore);
+            Assert.That(xis.AddItem(itemToStore), Is.True);
 
             InventoryItemBase itemRetrieved = new InventoryItemBase(itemId);
             itemRetrieved = xis.GetItem(itemRetrieved);
@@ -81,7 +97,81 @@ namespace OpenSim.Services.InventoryService.Tests
             Assert.That(itemRetrieved.CreatorId, Is.EqualTo(creatorId));
             Assert.That(itemRetrieved.Owner, Is.EqualTo(ownerId));
             Assert.That(itemRetrieved.AssetID, Is.EqualTo(assetId));
+            Assert.That(itemRetrieved.Folder, Is.EqualTo(folderId));
+            Assert.That(itemRetrieved.InvType, Is.EqualTo(invType));
+            Assert.That(itemRetrieved.AssetType, Is.EqualTo(assetType));
             Assert.That(itemRetrieved.Name, Is.EqualTo(itemName));
+        }
+
+        [Test]
+        public void TestUpdateItem()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            string creatorId = TestHelpers.ParseTail(0x1).ToString();
+            UUID ownerId = TestHelpers.ParseTail(0x2);
+            UUID itemId = TestHelpers.ParseTail(0x10);
+            UUID assetId = TestHelpers.ParseTail(0x20);
+            UUID folderId = TestHelpers.ParseTail(0x30);
+            int invType = (int)InventoryType.Animation;
+            int assetType = (int)AssetType.Animation;
+            string itemName = "item1";           
+            string itemName2 = "item2";
+
+            IInventoryService xis = CreateXInventoryService();
+
+            InventoryItemBase itemToStore 
+                = new InventoryItemBase(itemId, ownerId) 
+                { 
+                    CreatorIdentification = creatorId.ToString(), 
+                    AssetID = assetId, 
+                    Name = itemName,  
+                    Folder = folderId, 
+                    InvType = invType, 
+                    AssetType = assetType 
+                };
+
+            Assert.That(xis.AddItem(itemToStore), Is.True);
+
+            // Normal update
+            itemToStore.Name = itemName2;
+
+            Assert.That(xis.UpdateItem(itemToStore), Is.True);
+
+            InventoryItemBase itemRetrieved = new InventoryItemBase(itemId);
+            itemRetrieved = xis.GetItem(itemRetrieved);
+
+            Assert.That(itemRetrieved, Is.Not.Null);
+            Assert.That(itemRetrieved.Name, Is.EqualTo(itemName2));
+
+            // Attempt to update properties that should never change
+            string creatorId2 = TestHelpers.ParseTail(0x7).ToString();
+            UUID ownerId2 = TestHelpers.ParseTail(0x8);
+            UUID folderId2 = TestHelpers.ParseTail(0x70);
+            int invType2 = (int)InventoryType.CallingCard;
+            int assetType2 = (int)AssetType.CallingCard;
+            string itemName3 = "item3"; 
+
+            itemToStore.CreatorIdentification = creatorId2.ToString();
+            itemToStore.Owner = ownerId2;
+            itemToStore.Folder = folderId2;
+            itemToStore.InvType = invType2;
+            itemToStore.AssetType = assetType2;
+            itemToStore.Name = itemName3;
+
+            Assert.That(xis.UpdateItem(itemToStore), Is.True);
+
+            itemRetrieved = xis.GetItem(itemRetrieved);
+
+            Assert.That(itemRetrieved, Is.Not.Null);
+            Assert.That(itemRetrieved.CreatorId, Is.EqualTo(creatorId));
+            Assert.That(itemRetrieved.Owner, Is.EqualTo(ownerId));
+            Assert.That(itemRetrieved.AssetID, Is.EqualTo(assetId));
+            Assert.That(itemRetrieved.Folder, Is.EqualTo(folderId));
+            Assert.That(itemRetrieved.InvType, Is.EqualTo(invType));
+            Assert.That(itemRetrieved.AssetType, Is.EqualTo(assetType));
+            Assert.That(itemRetrieved.Name, Is.EqualTo(itemName3));
         }
     }
 }
