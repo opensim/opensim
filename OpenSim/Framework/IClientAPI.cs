@@ -1135,6 +1135,8 @@ namespace OpenSim.Framework
 
         void SetChildAgentThrottle(byte[] throttle);
 
+        void SetAgentThrottleSilent(int throttle, int setting);
+
         void SendAvatarDataImmediate(ISceneEntity avatar);
 
         /// <summary>

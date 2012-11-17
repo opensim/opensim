@@ -152,6 +152,7 @@ namespace OpenSim.Capabilities.Handlers
                                     responsedata["keepalive"] = false;
                                     responsedata["str_response_string"] = "This range doesnt exist.";
                                     responsedata["reusecontext"] = false;
+                                    responsedata["int_lod"] = 3;
                                     return responsedata;
                                 }
                                 else
@@ -162,14 +163,28 @@ namespace OpenSim.Capabilities.Handlers
 
                                     //m_log.Debug("Serving " + start + " to " + end + " of " + texture.Data.Length + " bytes for texture " + texture.ID);
 
-                                    
+                                    if (start > 20000)
+                                    {
+                                        responsedata["int_lod"] = 3;
+                                    }
+                                    else if (start < 4097)
+                                    {
+                                        responsedata["int_lod"] = 1;
+                                    }
+                                    else
+                                    {
+                                        responsedata["int_lod"] = 2;
+                                    }
 
+                                    
                                     if (start == 0 && len == mesh.Data.Length) // well redudante maybe
                                     {
                                         responsedata["int_response_code"] = (int) System.Net.HttpStatusCode.OK;
                                         responsedata["bin_response_data"] = mesh.Data;
                                         responsedata["int_bytes"] = mesh.Data.Length;
                                         responsedata["reusecontext"] = false;
+                                        responsedata["int_lod"] = 3;
+                                        
                                     }
                                     else
                                     {
@@ -193,6 +208,7 @@ namespace OpenSim.Capabilities.Handlers
                                 responsedata["content_type"] = "application/vnd.ll.mesh";
                                 responsedata["int_response_code"] = 200;
                                 responsedata["reusecontext"] = false;
+                                responsedata["int_lod"] = 3;
                             }
                         }
                         else
@@ -201,6 +217,7 @@ namespace OpenSim.Capabilities.Handlers
                             responsedata["content_type"] = "application/vnd.ll.mesh";
                             responsedata["int_response_code"] = 200;
                             responsedata["reusecontext"] = false;
+                            responsedata["int_lod"] = 3;
                         }
                     }
                     // Optionally add additional mesh types here
@@ -211,6 +228,7 @@ namespace OpenSim.Capabilities.Handlers
                         responsedata["keepalive"] = false;
                         responsedata["str_response_string"] = "Unfortunately, this asset isn't a mesh.";
                         responsedata["reusecontext"] = false;
+                        responsedata["int_lod"] = 1;
                         return responsedata;
                     }
                 }
@@ -221,6 +239,7 @@ namespace OpenSim.Capabilities.Handlers
                     responsedata["keepalive"] = false;
                     responsedata["str_response_string"] = "Your Mesh wasn't found.  Sorry!";
                     responsedata["reusecontext"] = false;
+                    responsedata["int_lod"] = 0;
                     return responsedata;
                 }
             }

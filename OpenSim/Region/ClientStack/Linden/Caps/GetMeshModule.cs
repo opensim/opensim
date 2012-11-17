@@ -60,6 +60,7 @@ namespace OpenSim.Region.ClientStack.Linden
         private IAssetService m_AssetService;
         private bool m_Enabled = true;
         private string m_URL;
+       
         struct aPollRequest
         {
             public PollServiceMeshEventArgs thepoll;
@@ -71,6 +72,7 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             public Hashtable response;
             public int bytes;
+            public int lod;
         }
 
 
@@ -112,6 +114,7 @@ namespace OpenSim.Region.ClientStack.Linden
             // Cap doesn't exist
             if (m_URL != string.Empty)
                 m_Enabled = true;
+         
         }
 
         public void AddRegion(Scene pScene)
@@ -192,7 +195,7 @@ namespace OpenSim.Region.ClientStack.Linden
             PollServiceMeshEventArgs args;
             if (m_pollservices.TryGetValue(user, out args))
             {
-                args.UpdateThrottle(imagethrottle);
+                args.UpdateThrottle(imagethrottle, p);
             }
         }
 
@@ -242,11 +245,12 @@ namespace OpenSim.Region.ClientStack.Linden
                     new Dictionary<UUID, aPollResponse>();
 
             private Scene m_scene;
-            private CapsDataThrottler m_throttler = new CapsDataThrottler(100000, 1400000, 10000);
+            private MeshCapsDataThrottler m_throttler;
             public PollServiceMeshEventArgs(UUID pId, Scene scene) :
                 base(null, null, null, null, pId, int.MaxValue)
             {
                 m_scene = scene;
+                m_throttler = new MeshCapsDataThrottler(100000, 1400000, 10000, scene);
                 // x is request id, y is userid
                 HasEvents = (x, y) =>
                 {
@@ -268,6 +272,7 @@ namespace OpenSim.Region.ClientStack.Linden
                         }
                         finally
                         {
+                            m_throttler.ProcessTime();
                             responses.Remove(x);
                         }
                     }
@@ -323,7 +328,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     response["reusecontext"] = false;
 
                     lock (responses)
-                        responses[requestID] = new aPollResponse() { bytes = 0, response = response };
+                        responses[requestID] = new aPollResponse() { bytes = 0, response = response, lod = 0 };
 
                     return;
                 }
@@ -334,6 +339,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     responses[requestID] = new aPollResponse()
                     {
                         bytes = (int)response["int_bytes"],
+                        lod = (int)response["int_lod"],
                         response = response
                     };
 
@@ -341,9 +347,9 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_throttler.ProcessTime();
             }
 
-            internal void UpdateThrottle(int pimagethrottle)
+            internal void UpdateThrottle(int pimagethrottle, ScenePresence p)
             {
-                m_throttler.ThrottleBytes = pimagethrottle;
+                m_throttler.UpdateThrottle(pimagethrottle, p);
             }
         }
 
@@ -398,18 +404,31 @@ namespace OpenSim.Region.ClientStack.Linden
             }
         }
 
-        internal sealed class CapsDataThrottler
+        internal sealed class MeshCapsDataThrottler
         {
 
             private volatile int currenttime = 0;
             private volatile int lastTimeElapsed = 0;
             private volatile int BytesSent = 0;
-            private int oversizedImages = 0;
-            public CapsDataThrottler(int pBytes, int max, int min)
+            private int Lod3 = 0;
+            private int Lod2 = 0;
+            private int Lod1 = 0;
+            private int UserSetThrottle = 0;
+            private int UDPSetThrottle = 0;
+            private int CapSetThrottle = 0;
+            private float CapThrottleDistributon = 0.30f;
+            private readonly Scene m_scene;
+            private ThrottleOutPacketType Throttle;
+            
+            public MeshCapsDataThrottler(int pBytes, int max, int min, Scene pScene)
             {
                 ThrottleBytes = pBytes;
                 lastTimeElapsed = Util.EnvironmentTickCount();
+                Throttle = ThrottleOutPacketType.Task;
+                m_scene = pScene;
             }
+
+
             public bool hasEvents(UUID key, Dictionary<UUID, aPollResponse> responses)
             {
                 PassTime();
@@ -427,17 +446,23 @@ namespace OpenSim.Region.ClientStack.Linden
                     if (BytesSent + response.bytes <= ThrottleBytes)
                     {
                         BytesSent += response.bytes;
-                        //TimeBasedAction timeBasedAction = new TimeBasedAction { byteRemoval = response.bytes, requestId = key, timeMS = currenttime + 1000, unlockyn = false };
-                        //m_actions.Add(timeBasedAction);
+                       
                         return true;
                     }
-                    // Big textures
-                    else if (response.bytes > ThrottleBytes && oversizedImages <= ((ThrottleBytes % 50000) + 1))
+                    // Lod3 Over
+                    else if (response.bytes > ThrottleBytes && Lod3 <= (((ThrottleBytes * .30f) % 50000) + 1))
                     {
-                        Interlocked.Increment(ref oversizedImages);
+                        Interlocked.Increment(ref Lod3);
                         BytesSent += response.bytes;
-                        //TimeBasedAction timeBasedAction = new TimeBasedAction { byteRemoval = response.bytes, requestId = key, timeMS = currenttime + (((response.bytes % ThrottleBytes)+1)*1000) , unlockyn = false };
-                        //m_actions.Add(timeBasedAction);
+                       
+                        return true;
+                    }
+                    // Lod2 Over
+                    else if (response.bytes > ThrottleBytes && Lod2 <= (((ThrottleBytes * .30f) % 10000) + 1))
+                    {
+                        Interlocked.Increment(ref Lod2);
+                        BytesSent += response.bytes;
+                       
                         return true;
                     }
                     else
@@ -448,6 +473,11 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 return haskey;
             }
+            public void SubtractBytes(int bytes,int lod)
+            {
+                BytesSent -= bytes;
+            }
+
             public void ProcessTime()
             {
                 PassTime();
@@ -459,18 +489,42 @@ namespace OpenSim.Region.ClientStack.Linden
                 currenttime = Util.EnvironmentTickCount();
                 int timeElapsed = Util.EnvironmentTickCountSubtract(currenttime, lastTimeElapsed);
                 //processTimeBasedActions(responses);
-                if (Util.EnvironmentTickCountSubtract(currenttime, timeElapsed) >= 1000)
+                if (currenttime - timeElapsed >= 1000)
                 {
                     lastTimeElapsed = Util.EnvironmentTickCount();
                     BytesSent -= ThrottleBytes;
                     if (BytesSent < 0) BytesSent = 0;
                     if (BytesSent < ThrottleBytes)
                     {
-                        oversizedImages = 0;
+                        Lod3 = 0;
+                        Lod2 = 0;
+                        Lod1 = 0;
                     }
                 }
             }
-            public int ThrottleBytes;
+            private void AlterThrottle(int setting, ScenePresence p)
+            {
+                p.ControllingClient.SetAgentThrottleSilent((int)Throttle,setting);
+            }
+
+            public int ThrottleBytes
+            {
+                get { return CapSetThrottle; }
+                set { CapSetThrottle = value; }
+            }
+
+            internal void UpdateThrottle(int pimagethrottle, ScenePresence p)
+            {
+                // Client set throttle !
+                UserSetThrottle = pimagethrottle;
+                CapSetThrottle = (int)(pimagethrottle*CapThrottleDistributon);
+                UDPSetThrottle = (int) (pimagethrottle*(100 - CapThrottleDistributon));
+                if (CapSetThrottle < 4068)
+                    CapSetThrottle = 4068;  // at least two discovery mesh
+                p.ControllingClient.SetAgentThrottleSilent((int) Throttle, UDPSetThrottle);
+                ProcessTime();
+
+            }
         }
 
     }
