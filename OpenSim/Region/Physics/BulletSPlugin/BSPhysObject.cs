@@ -47,7 +47,10 @@ namespace OpenSim.Region.Physics.BulletSPlugin
  */
 public abstract class BSPhysObject : PhysicsActor
 {
-    protected void BaseInitialize(BSScene parentScene, uint localID, string name, string typeName)
+    protected BSPhysObject()
+    {
+    }
+    protected BSPhysObject(BSScene parentScene, uint localID, string name, string typeName)
     {
         PhysicsScene = parentScene;
         LocalID = localID;

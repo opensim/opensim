@@ -88,9 +88,9 @@ public sealed class BSPrim : BSPhysObject
 
     public BSPrim(uint localID, String primName, BSScene parent_scene, OMV.Vector3 pos, OMV.Vector3 size,
                        OMV.Quaternion rotation, PrimitiveBaseShape pbs, bool pisPhysical)
+            : base(parent_scene, localID, primName, "BSPrim")
     {
         // m_log.DebugFormat("{0}: BSPrim creation of {1}, id={2}", LogHeader, primName, localID);
-        base.BaseInitialize(parent_scene, localID, primName, "BSPrim");
         _physicsActorType = (int)ActorTypes.Prim;
         _position = pos;
         _size = size;

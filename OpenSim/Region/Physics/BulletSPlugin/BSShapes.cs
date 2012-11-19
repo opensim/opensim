@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -40,7 +40,7 @@ public abstract class BSShape
     public int referenceCount { get; set; }
     public DateTime lastReferenced { get; set; }
 
-    protected void Initialize()
+    public BSShape()
     {
         ptr = IntPtr.Zero;
         type = ShapeData.PhysicsShapeType.SHAPE_UNKNOWN;
@@ -109,9 +109,8 @@ public abstract class BSShape
 
 public class BSShapeNull : BSShape
 {
-    public BSShapeNull()
+    public BSShapeNull() : base()
     {
-        base.Initialize();
     }
     public static BSShape GetReference() { return new BSShapeNull();  }
     public override void Dereference(BSScene physicsScene) { /* The magic of garbage collection will make this go away */ }
@@ -120,9 +119,8 @@ public class BSShapeNull : BSShape
 public class BSShapeNative : BSShape
 {
     private static string LogHeader = "[BULLETSIM SHAPE NATIVE]";
-    public BSShapeNative()
+    public BSShapeNative() : base()
     {
-        base.Initialize();
     }
     public static BSShape GetReference(BSScene physicsScene, BSPhysObject prim, 
                     ShapeData.PhysicsShapeType shapeType, ShapeData.FixedShapeKey shapeKey) 
@@ -176,9 +174,8 @@ public class BSShapeMesh : BSShape
     private static string LogHeader = "[BULLETSIM SHAPE MESH]";
     private static Dictionary<System.UInt64, BSShapeMesh> Meshes = new Dictionary<System.UInt64, BSShapeMesh>();
 
-    public BSShapeMesh()
+    public BSShapeMesh() : base()
     {
-        base.Initialize();
     }
     public static BSShape GetReference() { return new BSShapeNull();  }
     public override void Dereference(BSScene physicsScene) { }
@@ -189,9 +186,8 @@ public class BSShapeHull : BSShape
     private static string LogHeader = "[BULLETSIM SHAPE HULL]";
     private static Dictionary<System.UInt64, BSShapeHull> Hulls = new Dictionary<System.UInt64, BSShapeHull>();
 
-    public BSShapeHull()
+    public BSShapeHull() : base()
     {
-        base.Initialize();
     }
     public static BSShape GetReference() { return new BSShapeNull();  }
     public override void Dereference(BSScene physicsScene) { }
@@ -200,9 +196,8 @@ public class BSShapeHull : BSShape
 public class BSShapeCompound : BSShape
 {
     private static string LogHeader = "[BULLETSIM SHAPE COMPOUND]";
-    public BSShapeCompound()
+    public BSShapeCompound() : base()
     {
-        base.Initialize();
     }
     public static BSShape GetReference(BSPhysObject prim) 
     { 
