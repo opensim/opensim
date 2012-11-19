@@ -78,8 +78,8 @@ public sealed class BSCharacter : BSPhysObject
     private float _PIDHoverTao;
 
     public BSCharacter(uint localID, String avName, BSScene parent_scene, OMV.Vector3 pos, OMV.Vector3 size, bool isFlying)
+            : base(parent_scene, localID, avName, "BSCharacter")
     {
-        base.BaseInitialize(parent_scene, localID, avName, "BSCharacter");
         _physicsActorType = (int)ActorTypes.Agent;
         _position = pos;
         _size = size;
@@ -130,6 +130,10 @@ public sealed class BSCharacter : BSPhysObject
         ForcePosition = _position;
         // Set the velocity and compute the proper friction
         ForceVelocity = _velocity;
+
+        // This will enable or disable the flying buoyancy of the avatar.
+        // Needs to be reset especially when an avatar is recreated after crossing a region boundry.
+        Flying = _flying;
 
         BulletSimAPI.SetRestitution2(PhysBody.ptr, PhysicsScene.Params.avatarRestitution);
         BulletSimAPI.SetMargin2(PhysShape.ptr, PhysicsScene.Params.collisionMargin);
@@ -615,7 +619,7 @@ public sealed class BSCharacter : BSPhysObject
         newScale.Y = PhysicsScene.Params.avatarCapsuleRadius;
 
         // From the total height, remove the capsule half spheres that are at each end
-        newScale.Z = size.Z- (newScale.X + newScale.Y);
+        newScale.Z = size.Z - (newScale.X + newScale.Y);
         Scale = newScale;
     }
 

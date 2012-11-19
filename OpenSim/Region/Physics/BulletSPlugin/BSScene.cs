@@ -683,7 +683,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     #region Taints
 
     // Calls to the PhysicsActors can't directly call into the physics engine
-    // because it might be busy. We delay changes to a known time.
+    //       because it might be busy. We delay changes to a known time.
     // We rely on C#'s closure to save and restore the context for the delegate.
     public void TaintedObject(String ident, TaintCallback callback)
     {
