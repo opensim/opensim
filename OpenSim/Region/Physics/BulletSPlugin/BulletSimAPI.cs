@@ -181,7 +181,7 @@ public struct ConvexHull
 public enum PhysicsShapeType
 {
 	SHAPE_UNKNOWN   = 0,
-	SHAPE_AVATAR    = 1,
+	SHAPE_CAPSULE   = 1,
 	SHAPE_BOX       = 2,
 	SHAPE_CONE      = 3,
 	SHAPE_CYLINDER  = 4,

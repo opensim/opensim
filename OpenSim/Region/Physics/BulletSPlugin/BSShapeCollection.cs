@@ -405,10 +405,10 @@ public sealed class BSShapeCollection : IDisposable
         bool ret = false;
         bool haveShape = false;
 
-        if (!haveShape && prim.PreferredPhysicalShape == PhysicsShapeType.SHAPE_AVATAR)
+        if (!haveShape && prim.PreferredPhysicalShape == PhysicsShapeType.SHAPE_CAPSULE)
         {
             // an avatar capsule is close to a native shape (it is not shared)
-            ret = GetReferenceToNativeShape(prim, PhysicsShapeType.SHAPE_AVATAR,
+            ret = GetReferenceToNativeShape(prim, PhysicsShapeType.SHAPE_CAPSULE,
                             FixedShapeKey.KEY_CAPSULE, shapeCallback);
             DetailLog("{0},BSShapeCollection.CreateGeom,avatarCapsule,shape={1}", prim.LocalID, prim.PhysShape);
             ret = true;
@@ -551,7 +551,7 @@ public sealed class BSShapeCollection : IDisposable
         nativeShapeData.MeshKey = (ulong)shapeKey;
         nativeShapeData.HullKey = (ulong)shapeKey;
 
-        if (shapeType == PhysicsShapeType.SHAPE_AVATAR)
+        if (shapeType == PhysicsShapeType.SHAPE_CAPSULE)
         {
             newShape = new BulletShape(
                         BulletSimAPI.BuildCapsuleShape2(PhysicsScene.World.ptr, 1f, 1f, prim.Scale)

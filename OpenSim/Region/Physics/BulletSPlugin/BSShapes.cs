@@ -54,10 +54,10 @@ public abstract class BSShape
     {
         BSShape ret = null;
 
-        if (prim.PreferredPhysicalShape == PhysicsShapeType.SHAPE_AVATAR)
+        if (prim.PreferredPhysicalShape == PhysicsShapeType.SHAPE_CAPSULE)
         {
             // an avatar capsule is close to a native shape (it is not shared)
-            ret = BSShapeNative.GetReference(physicsScene, prim, PhysicsShapeType.SHAPE_AVATAR,
+            ret = BSShapeNative.GetReference(physicsScene, prim, PhysicsShapeType.SHAPE_CAPSULE,
                                         FixedShapeKey.KEY_CAPSULE);
             physicsScene.DetailLog("{0},BSShape.GetShapeReference,avatarCapsule,shape={1}", prim.LocalID, ret);
         }
@@ -141,7 +141,7 @@ public class BSShapeNative : BSShape
         nativeShapeData.HullKey = (ulong)shapeKey;
 
        
-        if (shapeType == PhysicsShapeType.SHAPE_AVATAR)
+        if (shapeType == PhysicsShapeType.SHAPE_CAPSULE)
         {
             ptr = BulletSimAPI.BuildCapsuleShape2(physicsScene.World.ptr, 1f, 1f, prim.Scale);
             physicsScene.DetailLog("{0},BSShapeCollection.BuiletPhysicalNativeShape,capsule,scale={1}", prim.LocalID, prim.Scale);
