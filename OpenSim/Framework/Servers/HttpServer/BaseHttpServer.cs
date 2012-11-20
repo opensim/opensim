@@ -720,8 +720,11 @@ namespace OpenSim.Framework.Servers.HttpServer
                 if (DebugLevel == 5)
                 {
                     const int sampleLength = 80;
-                    char[] sampleChars = new char[sampleLength];
+                    char[] sampleChars = new char[sampleLength + 3];
                     reader.Read(sampleChars, 0, sampleLength);
+                    sampleChars[80] = '.';
+                    sampleChars[81] = '.';
+                    sampleChars[82] = '.';
                     output = new string(sampleChars);
                 }
                 else
@@ -729,7 +732,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                     output = reader.ReadToEnd();
                 }
 
-                m_log.DebugFormat("[BASE HTTP SERVER]: {0}...", output.Replace("\n", @"\n"));
+                m_log.DebugFormat("[BASE HTTP SERVER]: {0}", output.Replace("\n", @"\n"));
             }
         }
 
