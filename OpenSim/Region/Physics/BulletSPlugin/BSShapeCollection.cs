@@ -940,7 +940,7 @@ public sealed class BSShapeCollection : IDisposable
             else
             {
                 bodyPtr = BulletSimAPI.CreateGhostFromShape2(sim.ptr, shape.ptr,
-                                        prim.LocalID, prim.ForcePosition, prim.ForceOrientation);
+                                        prim.LocalID, prim.RawPosition, prim.RawOrientation);
                 DetailLog("{0},BSShapeCollection.CreateBody,ghost,ptr={1}", prim.LocalID, bodyPtr.ToString("X"));
             }
             aBody = new BulletBody(prim.LocalID, bodyPtr);
