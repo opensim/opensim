@@ -89,7 +89,7 @@ public struct BulletShape
     {
         ptr = xx;
         type=PhysicsShapeType.SHAPE_UNKNOWN;
-        shapeKey = 0;
+        shapeKey = (System.UInt64)FixedShapeKey.KEY_NONE;
         isNativeShape = false;
     }
     public BulletShape(IntPtr xx, PhysicsShapeType typ)
@@ -194,6 +194,18 @@ public enum PhysicsShapeType
 	SHAPE_COMPOUND  = 22,
 	SHAPE_HEIGHTMAP = 23,
 };
+
+// The native shapes have predefined shape hash keys
+public enum FixedShapeKey : ulong
+{
+    KEY_NONE        = 0,
+    KEY_BOX         = 1,
+    KEY_SPHERE      = 2,
+    KEY_CONE        = 3,
+    KEY_CYLINDER    = 4,
+    KEY_CAPSULE     = 5,
+}
+
 [StructLayout(LayoutKind.Sequential)]
 public struct ShapeData
 {
@@ -217,16 +229,6 @@ public struct ShapeData
     // note that bools are passed as floats since bool size changes by language and architecture
     public const float numericTrue = 1f;
     public const float numericFalse = 0f;
-
-    // The native shapes have predefined shape hash keys
-    public enum FixedShapeKey : ulong
-    {
-        KEY_BOX         = 1,
-        KEY_SPHERE      = 2,
-        KEY_CONE        = 3,
-        KEY_CYLINDER    = 4,
-        KEY_CAPSULE     = 5,
-    }
 }
 [StructLayout(LayoutKind.Sequential)]
 public struct SweepHit

@@ -58,7 +58,7 @@ public abstract class BSShape
         {
             // an avatar capsule is close to a native shape (it is not shared)
             ret = BSShapeNative.GetReference(physicsScene, prim, PhysicsShapeType.SHAPE_AVATAR,
-                                        ShapeData.FixedShapeKey.KEY_CAPSULE);
+                                        FixedShapeKey.KEY_CAPSULE);
             physicsScene.DetailLog("{0},BSShape.GetShapeReference,avatarCapsule,shape={1}", prim.LocalID, ret);
         }
 
@@ -123,14 +123,14 @@ public class BSShapeNative : BSShape
     {
     }
     public static BSShape GetReference(BSScene physicsScene, BSPhysObject prim, 
-                    PhysicsShapeType shapeType, ShapeData.FixedShapeKey shapeKey) 
+                    PhysicsShapeType shapeType, FixedShapeKey shapeKey) 
     {
         // Native shapes are not shared and are always built anew.
         return new BSShapeNative(physicsScene, prim, shapeType, shapeKey);
     }
 
     private BSShapeNative(BSScene physicsScene, BSPhysObject prim,
-                    PhysicsShapeType shapeType, ShapeData.FixedShapeKey shapeKey)
+                    PhysicsShapeType shapeType, FixedShapeKey shapeKey)
     {
         ShapeData nativeShapeData = new ShapeData();
         nativeShapeData.Type = shapeType;

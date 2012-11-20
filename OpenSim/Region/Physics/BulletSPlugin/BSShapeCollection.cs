@@ -409,7 +409,7 @@ public sealed class BSShapeCollection : IDisposable
         {
             // an avatar capsule is close to a native shape (it is not shared)
             ret = GetReferenceToNativeShape(prim, PhysicsShapeType.SHAPE_AVATAR,
-                            ShapeData.FixedShapeKey.KEY_CAPSULE, shapeCallback);
+                            FixedShapeKey.KEY_CAPSULE, shapeCallback);
             DetailLog("{0},BSShapeCollection.CreateGeom,avatarCapsule,shape={1}", prim.LocalID, prim.PhysShape);
             ret = true;
             haveShape = true;
@@ -464,7 +464,7 @@ public sealed class BSShapeCollection : IDisposable
                         )
                 {
                     ret = GetReferenceToNativeShape(prim, PhysicsShapeType.SHAPE_SPHERE,
-                                            ShapeData.FixedShapeKey.KEY_SPHERE, shapeCallback);
+                                            FixedShapeKey.KEY_SPHERE, shapeCallback);
                     DetailLog("{0},BSShapeCollection.CreateGeom,sphere,force={1},shape={2}",
                                         prim.LocalID, forceRebuild, prim.PhysShape);
                 }
@@ -478,7 +478,7 @@ public sealed class BSShapeCollection : IDisposable
                         )
                 {
                     ret = GetReferenceToNativeShape( prim, PhysicsShapeType.SHAPE_BOX,
-                                            ShapeData.FixedShapeKey.KEY_BOX, shapeCallback);
+                                            FixedShapeKey.KEY_BOX, shapeCallback);
                     DetailLog("{0},BSShapeCollection.CreateGeom,box,force={1},shape={2}",
                                         prim.LocalID, forceRebuild, prim.PhysShape);
                 }
@@ -519,7 +519,7 @@ public sealed class BSShapeCollection : IDisposable
     // Creates a native shape and assignes it to prim.BSShape.
     // "Native" shapes are never shared. they are created here and destroyed in DereferenceShape().
     private bool GetReferenceToNativeShape(BSPhysObject prim,
-                            PhysicsShapeType shapeType, ShapeData.FixedShapeKey shapeKey,
+                            PhysicsShapeType shapeType, FixedShapeKey shapeKey,
                             ShapeDestructionCallback shapeCallback)
     {
         // release any previous shape
@@ -539,7 +539,7 @@ public sealed class BSShapeCollection : IDisposable
     }
 
     private BulletShape BuildPhysicalNativeShape(BSPhysObject prim, PhysicsShapeType shapeType,
-                                    ShapeData.FixedShapeKey shapeKey)
+                                    FixedShapeKey shapeKey)
     {
         BulletShape newShape;
         // Need to make sure the passed shape information is for the native type.
@@ -894,7 +894,7 @@ public sealed class BSShapeCollection : IDisposable
 
         // While we figure out the real problem, stick a simple native shape on the object.
         BulletShape fillinShape =
-            BuildPhysicalNativeShape(prim, PhysicsShapeType.SHAPE_BOX, ShapeData.FixedShapeKey.KEY_BOX);
+            BuildPhysicalNativeShape(prim, PhysicsShapeType.SHAPE_BOX, FixedShapeKey.KEY_BOX);
 
         return fillinShape;
     }
