@@ -125,6 +125,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
 
         public PresenceInfo[] GetAgents(string[] userIDs)
         {
+            // Don't bother potentially making a useless network call if we not going to ask for any users anyway.
+            if (userIDs.Length == 0)
+                return new PresenceInfo[0];
+
             return m_PresenceService.GetAgents(userIDs);
         }
 
