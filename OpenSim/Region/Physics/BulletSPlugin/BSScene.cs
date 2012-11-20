@@ -712,7 +712,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     // here just before the physics engine is called to step the simulation.
     public void ProcessTaints()
     {
-        InTaintTime = true;
+        InTaintTime = true; // Only used for debugging so locking is not necessary.
         ProcessRegularTaints();
         ProcessPostTaintTaints();
         InTaintTime = false;
@@ -758,6 +758,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
                 DetailLog("{0},BSScene.ProcessTaints,leftTaintsOnList,numNotProcessed={1}", DetailLogZero, _taintOperations.Count);
             }
              */
+
             // swizzle a new list into the list location so we can process what's there
             List<TaintCallbackEntry> oldList;
             lock (_taintLock)
@@ -787,8 +788,6 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     //     will replace any previous operation by the same object.
     public void PostTaintObject(String ident, uint ID, TaintCallback callback)
     {
-        if (!m_initialized) return;
-
         string uniqueIdent = ident + "-" + ID.ToString();
         lock (_taintLock)
         {
@@ -864,13 +863,14 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         }
     }
 
+    // Only used for debugging. Does not change state of anything so locking is not necessary.
     public bool AssertInTaintTime(string whereFrom)
     {
         if (!InTaintTime)
         {
             DetailLog("{0},BSScene.AssertInTaintTime,NOT IN TAINT TIME,Region={1},Where={2}", DetailLogZero, RegionName, whereFrom);
             m_log.ErrorFormat("{0} NOT IN TAINT TIME!! Region={1}, Where={2}", LogHeader, RegionName, whereFrom);
-            Util.PrintCallStack();
+            Util.PrintCallStack();  // Prints the stack into the DEBUG log file.
         }
         return InTaintTime;
     }
@@ -1186,7 +1186,8 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             (s) => { return s.m_params[0].avatarCapsuleRadius; },
             (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].avatarCapsuleRadius, p, l, v); } ),
         new ParameterDefn("AvatarCapsuleHeight", "Default height of space around avatar",
-            1.5f,
+            // 1.5f,
+            2.140599f,
             (s,cf,p,v) => { s.m_params[0].avatarCapsuleHeight = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].avatarCapsuleHeight; },
             (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].avatarCapsuleHeight, p, l, v); } ),

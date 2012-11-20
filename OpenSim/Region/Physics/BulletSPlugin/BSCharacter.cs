@@ -184,8 +184,8 @@ public sealed class BSCharacter : BSPhysObject
             _size = value;
             ComputeAvatarScale(_size);
             ComputeAvatarVolumeAndMass();
-            DetailLog("{0},BSCharacter.setSize,call,scale={1},density={2},volume={3},mass={4}",
-                            LocalID, Scale, _avatarDensity, _avatarVolume, RawMass);
+            DetailLog("{0},BSCharacter.setSize,call,size={1},scale={2},density={3},volume={4},mass={5}",
+                            LocalID, _size, Scale, _avatarDensity, _avatarVolume, RawMass);
 
             PhysicsScene.TaintedObject("BSCharacter.setSize", delegate()
             {
@@ -619,7 +619,8 @@ public sealed class BSCharacter : BSPhysObject
         newScale.Y = PhysicsScene.Params.avatarCapsuleRadius;
 
         // From the total height, remove the capsule half spheres that are at each end
-        newScale.Z = size.Z - (newScale.X + newScale.Y);
+        // The 1.15f came from ODE. Not sure what this factors in.
+        newScale.Z = (size.Z * 1.15f) - (newScale.X + newScale.Y);
         Scale = newScale;
     }
 
