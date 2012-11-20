@@ -1698,16 +1698,14 @@ namespace OpenSim.Region.Framework.Scenes
 //                "[SCENE PRESENCE]: Avatar {0} received request to move to position {1} in {2}",
 //                Name, pos, m_scene.RegionInfo.RegionName);
 
+            // Allow move to another sub-region within a megaregion
             Vector2 regionSize;
             IRegionCombinerModule regionCombinerModule = m_scene.RequestModuleInterface<IRegionCombinerModule>();
-            if(regionCombinerModule != null)
-            {
+            if (regionCombinerModule != null)
                 regionSize = regionCombinerModule.GetSizeOfMegaregion(m_scene.RegionInfo.RegionID);
-            }
             else
-            {
                 regionSize = new Vector2(Constants.RegionSize);
-            }
+
             if (pos.X < 0 || pos.X >= regionSize.X
                 || pos.Y < 0 || pos.Y >= regionSize.Y
                 || pos.Z < 0)
@@ -1723,14 +1721,15 @@ namespace OpenSim.Region.Framework.Scenes
 //                pos.Z = AbsolutePosition.Z;
 //            }
 
+            // Get terrain height for sub-region in a megaregion if necessary
             int X = (int)((m_scene.RegionInfo.RegionLocX * Constants.RegionSize) + pos.X);
             int Y = (int)((m_scene.RegionInfo.RegionLocY * Constants.RegionSize) + pos.Y);
             UUID target_regionID = m_scene.GridService.GetRegionByPosition(m_scene.RegionInfo.ScopeID, X, Y).RegionID;
             Scene targetScene = m_scene;
-            if(!SceneManager.Instance.TryGetScene(target_regionID, out targetScene))
-            {
+
+            if (!SceneManager.Instance.TryGetScene(target_regionID, out targetScene))
                 targetScene = m_scene;
-            }
+
             float terrainHeight = (float)targetScene.Heightmap[(int)(pos.X % Constants.RegionSize), (int)(pos.Y % Constants.RegionSize)];
             pos.Z = Math.Max(terrainHeight, pos.Z);
 
