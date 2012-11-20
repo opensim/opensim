@@ -152,7 +152,7 @@ public class BulletHeightMapInfo
         ID = id;
         Ptr = xx;
         heightMap = hm;
-        terrainRegionBase = new Vector2(0f, 0f);
+        terrainRegionBase = Vector3.Zero;
         minCoords = new Vector3(100f, 100f, 25f);
         maxCoords = new Vector3(101f, 101f, 26f);
         minZ = maxZ = 0f;
@@ -161,7 +161,7 @@ public class BulletHeightMapInfo
     public uint ID;
     public IntPtr Ptr;
     public float[] heightMap;
-    public Vector2 terrainRegionBase;
+    public Vector3 terrainRegionBase;
     public Vector3 minCoords;
     public Vector3 maxCoords;
     public float sizeX, sizeY;
