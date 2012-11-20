@@ -88,11 +88,11 @@ public struct BulletShape
     public BulletShape(IntPtr xx)
     {
         ptr = xx;
-        type=ShapeData.PhysicsShapeType.SHAPE_UNKNOWN;
+        type=PhysicsShapeType.SHAPE_UNKNOWN;
         shapeKey = 0;
         isNativeShape = false;
     }
-    public BulletShape(IntPtr xx, ShapeData.PhysicsShapeType typ)
+    public BulletShape(IntPtr xx, PhysicsShapeType typ)
     {
         ptr = xx;
         type = typ;
@@ -100,7 +100,7 @@ public struct BulletShape
         isNativeShape = false;
     }
     public IntPtr ptr;
-    public ShapeData.PhysicsShapeType type;
+    public PhysicsShapeType type;
     public System.UInt64 shapeKey;
     public bool isNativeShape;
     public override string ToString()
@@ -178,24 +178,25 @@ public struct ConvexHull
 	int VertexCount;
 	Vector3[] Vertices;
 }
+public enum PhysicsShapeType
+{
+	SHAPE_UNKNOWN   = 0,
+	SHAPE_AVATAR    = 1,
+	SHAPE_BOX       = 2,
+	SHAPE_CONE      = 3,
+	SHAPE_CYLINDER  = 4,
+	SHAPE_SPHERE    = 5,
+	SHAPE_MESH      = 6,
+	SHAPE_HULL      = 7,
+    // following defined by BulletSim
+	SHAPE_GROUNDPLANE  = 20,
+	SHAPE_TERRAIN   = 21,
+	SHAPE_COMPOUND  = 22,
+	SHAPE_HEIGHTMAP = 23,
+};
 [StructLayout(LayoutKind.Sequential)]
 public struct ShapeData
 {
-    public enum PhysicsShapeType
-    {
-		SHAPE_UNKNOWN   = 0,
-		SHAPE_AVATAR    = 1,
-		SHAPE_BOX       = 2,
-		SHAPE_CONE      = 3,
-		SHAPE_CYLINDER  = 4,
-		SHAPE_SPHERE    = 5,
-		SHAPE_MESH      = 6,
-		SHAPE_HULL      = 7,
-        // following defined by BulletSim
-		SHAPE_GROUNDPLANE  = 20,
-		SHAPE_TERRAIN   = 21,
-		SHAPE_COMPOUND  = 22,
-    };
     public uint ID;
     public PhysicsShapeType Type;
     public Vector3 Position;

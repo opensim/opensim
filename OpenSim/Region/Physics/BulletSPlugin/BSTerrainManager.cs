@@ -109,7 +109,7 @@ public sealed class BSTerrainManager
         // The ground plane is here to catch things that are trying to drop to negative infinity
         BulletShape groundPlaneShape = new BulletShape(
                     BulletSimAPI.CreateGroundPlaneShape2(BSScene.GROUNDPLANE_ID, 1f, TERRAIN_COLLISION_MARGIN),
-                    ShapeData.PhysicsShapeType.SHAPE_GROUNDPLANE);
+                    PhysicsShapeType.SHAPE_GROUNDPLANE);
         m_groundPlane = new BulletBody(BSScene.GROUNDPLANE_ID,
                         BulletSimAPI.CreateBodyWithDefaultMotionState2(groundPlaneShape.ptr, BSScene.GROUNDPLANE_ID,
                                                             Vector3.Zero, Quaternion.Identity));
@@ -299,7 +299,7 @@ public sealed class BSTerrainManager
 
                     // Create the terrain shape from the mapInfo
                     mapInfo.terrainShape = new BulletShape(BulletSimAPI.CreateTerrainShape2(mapInfo.Ptr),
-                                ShapeData.PhysicsShapeType.SHAPE_TERRAIN);
+                                PhysicsShapeType.SHAPE_TERRAIN);
 
                     // The terrain object initial position is at the center of the object
                     Vector3 centerPos;

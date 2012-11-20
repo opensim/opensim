@@ -42,12 +42,12 @@ public sealed class BSLinksetCompound : BSLinkset
     }
 
     // For compound implimented linksets, if there are children, use compound shape for the root.
-    public override ShapeData.PhysicsShapeType PreferredPhysicalShape(BSPhysObject requestor)
+    public override PhysicsShapeType PreferredPhysicalShape(BSPhysObject requestor)
     { 
-        ShapeData.PhysicsShapeType ret = ShapeData.PhysicsShapeType.SHAPE_UNKNOWN;
+        PhysicsShapeType ret = PhysicsShapeType.SHAPE_UNKNOWN;
         if (IsRoot(requestor) && HasAnyChildren)
         {
-            ret = ShapeData.PhysicsShapeType.SHAPE_COMPOUND;
+            ret = PhysicsShapeType.SHAPE_COMPOUND;
         }
         // DetailLog("{0},BSLinksetCompound.PreferredPhysicalShape,call,shape={1}", LinksetRoot.LocalID, ret);
         return ret;
