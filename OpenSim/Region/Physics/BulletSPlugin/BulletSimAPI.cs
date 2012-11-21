@@ -283,6 +283,7 @@ public struct ConfigurationParameters
 	public float ccdSweptSphereRadius;
     public float contactProcessingThreshold;
 
+    public float terrainImplementation;
     public float terrainFriction;
     public float terrainHitFraction;
     public float terrainRestitution;

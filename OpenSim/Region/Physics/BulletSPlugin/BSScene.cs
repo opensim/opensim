@@ -1145,6 +1145,11 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].contactProcessingThreshold, p, l, v); },
             (s,o,v) => { BulletSimAPI.SetContactProcessingThreshold2(o.PhysBody.ptr, v); } ),
 
+	    new ParameterDefn("TerrainImplementation", "Type of shape to use for terrain (0=heightmap, 1=mesh)",
+            (float)BSTerrainPhys.TerrainImplementation.Mesh,
+            (s,cf,p,v) => { s.m_params[0].terrainImplementation = cf.GetFloat(p,v); },
+            (s) => { return s.m_params[0].terrainImplementation; },
+            (s,p,l,v) => { s.m_params[0].terrainImplementation = v; } ),
         new ParameterDefn("TerrainFriction", "Factor to reduce movement against terrain surface" ,
             0.5f,
             (s,cf,p,v) => { s.m_params[0].terrainFriction = cf.GetFloat(p, v); },

@@ -44,6 +44,12 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 // The physical implementation of the terrain is wrapped in this class.
 public abstract class BSTerrainPhys : IDisposable
 {
+    public enum TerrainImplementation
+    {
+        Heightmap   = 0,
+        Mesh        = 1
+    }
+
     public BSScene PhysicsScene { get; private set; }
     // Base of the region in world coordinates. Coordinates inside the region are relative to this.
     public Vector3 TerrainBase { get; private set; }
@@ -246,12 +252,27 @@ public sealed class BSTerrainManager
                 // Release any physical memory it may be using.
                 terrainPhys.Dispose();
 
+                BSTerrainPhys newTerrainPhys = null; ;
                 if (MegaRegionParentPhysicsScene == null)
                 {
-                    // BSTerrainPhys newTerrainPhys = new BSTerrainHeightmap(PhysicsScene, terrainRegionBase, id,
-                    //                                     heightMap, minCoords, maxCoords);
-                    BSTerrainPhys newTerrainPhys = new BSTerrainMesh(PhysicsScene, terrainRegionBase, id,
+                    // TODO: redo terrain implementation selection to be centralized (there is another
+                    //     use below) and to accept an asset specification (for a mesh).
+                    switch ((int)PhysicsScene.Params.terrainImplementation)
+                    {
+                        case (int)BSTerrainPhys.TerrainImplementation.Heightmap:
+                            newTerrainPhys = new BSTerrainHeightmap(PhysicsScene, terrainRegionBase, id,
                                                         heightMap, minCoords, maxCoords);
+                            break;
+                        case (int)BSTerrainPhys.TerrainImplementation.Mesh:
+                            newTerrainPhys = new BSTerrainMesh(PhysicsScene, terrainRegionBase, id,
+                                                        heightMap, minCoords, maxCoords);
+                            break;
+                        default:
+                            PhysicsScene.Logger.ErrorFormat("{0} Bad terrain implementation specified. type={1}/{2}",
+                                    LogHeader, (int)PhysicsScene.Params.terrainImplementation, PhysicsScene.Params.terrainImplementation);
+                            break;
+                    }
+
                     m_terrains.Add(terrainRegionBase, newTerrainPhys);
 
                     m_terrainModified = true;
@@ -292,8 +313,22 @@ public sealed class BSTerrainManager
             {
                 DetailLog("{0},UpdateTerrain:NewTerrain,taint,baseX={1},baseY={2}", 
                                             BSScene.DetailLogZero, minCoordsX.X, minCoordsX.Y);
-                BSTerrainPhys newTerrainPhys = new BSTerrainHeightmap(PhysicsScene, terrainRegionBase, 
-                                                newTerrainID, heightMapX, minCoordsX, maxCoordsX);
+                BSTerrainPhys newTerrainPhys = null;
+                switch ((int)PhysicsScene.Params.terrainImplementation)
+                {
+                    case (int)BSTerrainPhys.TerrainImplementation.Heightmap:
+                        newTerrainPhys = new BSTerrainHeightmap(PhysicsScene, terrainRegionBase, id,
+                                                    heightMap, minCoords, maxCoords);
+                        break;
+                    case (int)BSTerrainPhys.TerrainImplementation.Mesh:
+                        newTerrainPhys = new BSTerrainMesh(PhysicsScene, terrainRegionBase, id,
+                                                    heightMap, minCoords, maxCoords);
+                        break;
+                    default:
+                        PhysicsScene.Logger.ErrorFormat("{0} Bad terrain implementation specified. type={1}/{2}",
+                                    LogHeader, (int)PhysicsScene.Params.terrainImplementation, PhysicsScene.Params.terrainImplementation);
+                        break;
+                }
                 m_terrains.Add(terrainRegionBase, newTerrainPhys);
 
                 m_terrainModified = true;
