@@ -44,10 +44,11 @@ public sealed class BSTerrainHeightmap : BSTerrainPhys
 {
     static string LogHeader = "[BULLETSIM TERRAIN HEIGHTMAP]";
 
-    BulletHeightMapInfo m_mapInfo;
+    BulletHeightMapInfo m_mapInfo = null;
 
-    public BSTerrainHeightmap(BSScene physicsScene, uint id, Vector3 regionSize)
-        : base(physicsScene)
+    // Constructor to build a default, flat heightmap terrain.
+    public BSTerrainHeightmap(BSScene physicsScene, Vector3 regionBase, uint id, Vector3 regionSize)
+        : base(physicsScene, regionBase, id)
     {
         Vector3 minTerrainCoords = new Vector3(0f, 0f, BSTerrainManager.HEIGHT_INITIALIZATION - BSTerrainManager.HEIGHT_EQUAL_FUDGE);
         Vector3 maxTerrainCoords = new Vector3(regionSize.X, regionSize.Y, BSTerrainManager.HEIGHT_INITIALIZATION);
@@ -60,21 +61,23 @@ public sealed class BSTerrainHeightmap : BSTerrainPhys
         m_mapInfo = new BulletHeightMapInfo(id, initialMap, IntPtr.Zero);
         m_mapInfo.minCoords = minTerrainCoords;
         m_mapInfo.maxCoords = maxTerrainCoords;
+        m_mapInfo.terrainRegionBase = TerrainBase;
         // Don't have to free any previous since we just got here.
         BuildHeightmapTerrain();
     }
 
     // This minCoords and maxCoords passed in give the size of the terrain (min and max Z
     //         are the high and low points of the heightmap).
-    public BSTerrainHeightmap(BSScene physicsScene, uint id, float[] initialMap, 
+    public BSTerrainHeightmap(BSScene physicsScene, Vector3 regionBase, uint id, float[] initialMap, 
                                                     Vector3 minCoords, Vector3 maxCoords)
-        : base(physicsScene)
+        : base(physicsScene, regionBase, id)
     {
         m_mapInfo = new BulletHeightMapInfo(id, initialMap, IntPtr.Zero);
         m_mapInfo.minCoords = minCoords;
         m_mapInfo.maxCoords = maxCoords;
         m_mapInfo.minZ = minCoords.Z;
         m_mapInfo.maxZ = maxCoords.Z;
+        m_mapInfo.terrainRegionBase = TerrainBase;
 
         // Don't have to free any previous since we just got here.
         BuildHeightmapTerrain();
@@ -135,12 +138,10 @@ public sealed class BSTerrainHeightmap : BSTerrainPhys
         {
             if (m_mapInfo.terrainBody.ptr != IntPtr.Zero)
             {
-                if (BulletSimAPI.RemoveObjectFromWorld2(PhysicsScene.World.ptr, m_mapInfo.terrainBody.ptr))
-                {
-                    // Frees both the body and the shape.
-                    BulletSimAPI.DestroyObject2(PhysicsScene.World.ptr, m_mapInfo.terrainBody.ptr);
-                    BulletSimAPI.ReleaseHeightMapInfo2(m_mapInfo.Ptr);
-                }
+                BulletSimAPI.RemoveObjectFromWorld2(PhysicsScene.World.ptr, m_mapInfo.terrainBody.ptr);
+                // Frees both the body and the shape.
+                BulletSimAPI.DestroyObject2(PhysicsScene.World.ptr, m_mapInfo.terrainBody.ptr);
+                BulletSimAPI.ReleaseHeightMapInfo2(m_mapInfo.Ptr);
             }
         }
         m_mapInfo = null;
@@ -164,11 +165,6 @@ public sealed class BSTerrainHeightmap : BSTerrainPhys
             ret = BSTerrainManager.HEIGHT_GETHEIGHT_RET;
         }
         return ret;
-    }
-
-    public override Vector3 TerrainBase
-    {
-        get { return m_mapInfo.terrainRegionBase; }
     }
 }
 }

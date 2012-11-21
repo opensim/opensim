@@ -391,13 +391,13 @@ public enum CollisionFilterGroups : uint
     ObjectFilter            = BSolidFilter,
     ObjectMask              = BAllFilter,
     StaticObjectFilter      = BStaticFilter,
-    StaticObjectMask        = BAllFilter,
+    StaticObjectMask        = BAllFilter & ~BStaticFilter,   // static objects don't collide with each other
     LinksetFilter           = BLinksetFilter,
-    LinksetMask             = BAllFilter & ~BLinksetFilter,
+    LinksetMask             = BAllFilter & ~BLinksetFilter, // linkset objects don't collide with each other
     VolumeDetectFilter      = BSensorTrigger,
     VolumeDetectMask        = ~BSensorTrigger,
     TerrainFilter           = BTerrainFilter,
-    TerrainMask             = BAllFilter & ~BStaticFilter,
+    TerrainMask             = BAllFilter & ~BStaticFilter,  // static objects on the ground don't collide
     GroundPlaneFilter       = BGroundPlaneFilter,
     GroundPlaneMask         = BAllFilter
 

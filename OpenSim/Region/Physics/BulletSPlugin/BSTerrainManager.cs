@@ -45,14 +45,18 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 public abstract class BSTerrainPhys : IDisposable
 {
     public BSScene PhysicsScene { get; private set; }
+    // Base of the region in world coordinates. Coordinates inside the region are relative to this.
+    public Vector3 TerrainBase { get; private set; }
+    public uint ID { get; private set; }
 
-    public BSTerrainPhys(BSScene physicsScene)
+    public BSTerrainPhys(BSScene physicsScene, Vector3 regionBase, uint id)
     {
         PhysicsScene = physicsScene;
+        TerrainBase = regionBase;
+        ID = id;
     }
     public abstract void Dispose();
     public abstract float GetHeightAtXYZ(Vector3 pos);
-    public abstract Vector3 TerrainBase { get; }
 }
 
 // ==========================================================================================
@@ -133,7 +137,7 @@ public sealed class BSTerrainManager
                         (uint)CollisionFilterGroups.GroundPlaneFilter, (uint)CollisionFilterGroups.GroundPlaneMask);
 
         // Build an initial terrain and put it in the world. This quickly gets replaced by the real region terrain.
-        BSTerrainPhys initialTerrain = new BSTerrainHeightmap(PhysicsScene, BSScene.TERRAIN_ID, DefaultRegionSize);
+        BSTerrainPhys initialTerrain = new BSTerrainHeightmap(PhysicsScene, Vector3.Zero, BSScene.TERRAIN_ID, DefaultRegionSize);
         m_terrains.Add(Vector3.Zero, initialTerrain);
     }
 
@@ -208,16 +212,20 @@ public sealed class BSTerrainManager
                             BSScene.DetailLogZero, minCoords, maxCoords, inTaintTime);
 
         // Find high and low points of passed heightmap.
-        // The min and max passed in are usually the region objects can exist in (maximum
+        // The min and max passed in is usually the area objects can be in (maximum
         //     object height, for instance). The terrain wants the bounding box for the
         //     terrain so we replace passed min and max Z with the actual terrain min/max Z.
-        //      limit, for 
         float minZ = float.MaxValue;
         float maxZ = float.MinValue;
         foreach (float height in heightMap)
         {
             if (height < minZ) minZ = height;
             if (height > maxZ) maxZ = height;
+        }
+        if (minZ == maxZ)
+        {
+            // If min and max are the same, reduce min a little bit so a good bounding box is created.
+            minZ -= BSTerrainManager.HEIGHT_EQUAL_FUDGE;
         }
         minCoords.Z = minZ;
         maxCoords.Z = maxZ;
@@ -240,7 +248,9 @@ public sealed class BSTerrainManager
 
                 if (MegaRegionParentPhysicsScene == null)
                 {
-                    BSTerrainPhys newTerrainPhys = new BSTerrainHeightmap(PhysicsScene, id,
+                    // BSTerrainPhys newTerrainPhys = new BSTerrainHeightmap(PhysicsScene, terrainRegionBase, id,
+                    //                                     heightMap, minCoords, maxCoords);
+                    BSTerrainPhys newTerrainPhys = new BSTerrainMesh(PhysicsScene, terrainRegionBase, id,
                                                         heightMap, minCoords, maxCoords);
                     m_terrains.Add(terrainRegionBase, newTerrainPhys);
 
@@ -282,8 +292,8 @@ public sealed class BSTerrainManager
             {
                 DetailLog("{0},UpdateTerrain:NewTerrain,taint,baseX={1},baseY={2}", 
                                             BSScene.DetailLogZero, minCoordsX.X, minCoordsX.Y);
-                BSTerrainPhys newTerrainPhys = new BSTerrainHeightmap(PhysicsScene, newTerrainID,
-                                                    heightMapX, minCoordsX, maxCoordsX);
+                BSTerrainPhys newTerrainPhys = new BSTerrainHeightmap(PhysicsScene, terrainRegionBase, 
+                                                newTerrainID, heightMapX, minCoordsX, maxCoordsX);
                 m_terrains.Add(terrainRegionBase, newTerrainPhys);
 
                 m_terrainModified = true;
