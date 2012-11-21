@@ -241,38 +241,20 @@ public sealed class BSTerrainManager
         BSTerrainPhys terrainPhys;
         if (m_terrains.TryGetValue(terrainRegionBase, out terrainPhys))
         {
-            // If this is terrain we know about, it's easy to update
-
-            DetailLog("{0},UpdateTerrain:UpdateExisting,call,terrainBase={1}", BSScene.DetailLogZero, terrainRegionBase);
+            // There is already a terrain in this spot. Free the old and build the new.
+            DetailLog("{0},UpdateTerrain:UpdateExisting,call,id={1},base={2},minC={3},maxC={4}",
+                            BSScene.DetailLogZero, id, terrainRegionBase, minCoords, minCoords);
 
             PhysicsScene.TaintedObject(inTaintTime, "BSScene.UpdateTerrain:UpdateExisting", delegate()
             {
                 // Remove old terrain from the collection
-                m_terrains.Remove(terrainPhys.TerrainBase);
+                m_terrains.Remove(terrainRegionBase);
                 // Release any physical memory it may be using.
                 terrainPhys.Dispose();
 
-                BSTerrainPhys newTerrainPhys = null; ;
                 if (MegaRegionParentPhysicsScene == null)
                 {
-                    // TODO: redo terrain implementation selection to be centralized (there is another
-                    //     use below) and to accept an asset specification (for a mesh).
-                    switch ((int)PhysicsScene.Params.terrainImplementation)
-                    {
-                        case (int)BSTerrainPhys.TerrainImplementation.Heightmap:
-                            newTerrainPhys = new BSTerrainHeightmap(PhysicsScene, terrainRegionBase, id,
-                                                        heightMap, minCoords, maxCoords);
-                            break;
-                        case (int)BSTerrainPhys.TerrainImplementation.Mesh:
-                            newTerrainPhys = new BSTerrainMesh(PhysicsScene, terrainRegionBase, id,
-                                                        heightMap, minCoords, maxCoords);
-                            break;
-                        default:
-                            PhysicsScene.Logger.ErrorFormat("{0} Bad terrain implementation specified. type={1}/{2}",
-                                    LogHeader, (int)PhysicsScene.Params.terrainImplementation, PhysicsScene.Params.terrainImplementation);
-                            break;
-                    }
-
+                    BSTerrainPhys newTerrainPhys = BuildPhysicalTerrain(terrainRegionBase, id, heightMap, minCoords, maxCoords);
                     m_terrains.Add(terrainRegionBase, newTerrainPhys);
 
                     m_terrainModified = true;
@@ -313,28 +295,42 @@ public sealed class BSTerrainManager
             {
                 DetailLog("{0},UpdateTerrain:NewTerrain,taint,baseX={1},baseY={2}", 
                                             BSScene.DetailLogZero, minCoordsX.X, minCoordsX.Y);
-                BSTerrainPhys newTerrainPhys = null;
-                switch ((int)PhysicsScene.Params.terrainImplementation)
-                {
-                    case (int)BSTerrainPhys.TerrainImplementation.Heightmap:
-                        newTerrainPhys = new BSTerrainHeightmap(PhysicsScene, terrainRegionBase, id,
-                                                    heightMap, minCoords, maxCoords);
-                        break;
-                    case (int)BSTerrainPhys.TerrainImplementation.Mesh:
-                        newTerrainPhys = new BSTerrainMesh(PhysicsScene, terrainRegionBase, id,
-                                                    heightMap, minCoords, maxCoords);
-                        break;
-                    default:
-                        PhysicsScene.Logger.ErrorFormat("{0} Bad terrain implementation specified. type={1}/{2}",
-                                    LogHeader, (int)PhysicsScene.Params.terrainImplementation, PhysicsScene.Params.terrainImplementation);
-                        break;
-                }
+                BSTerrainPhys newTerrainPhys = BuildPhysicalTerrain(terrainRegionBase, id, heightMap, minCoords, maxCoords);
                 m_terrains.Add(terrainRegionBase, newTerrainPhys);
 
                 m_terrainModified = true;
             });
         }
     }
+
+    // TODO: redo terrain implementation selection to allow other base types than heightMap.
+    private BSTerrainPhys BuildPhysicalTerrain(Vector3 terrainRegionBase, uint id, float[] heightMap, Vector3 minCoords, Vector3 maxCoords)
+    {
+        PhysicsScene.Logger.DebugFormat("{0} Terrain for {1}/{2} created with {3}", 
+                                            LogHeader, PhysicsScene.RegionName, terrainRegionBase, 
+                                            PhysicsScene.Params.terrainImplementation);
+        BSTerrainPhys newTerrainPhys = null;
+        switch ((int)PhysicsScene.Params.terrainImplementation)
+        {
+            case (int)BSTerrainPhys.TerrainImplementation.Heightmap:
+                newTerrainPhys = new BSTerrainHeightmap(PhysicsScene, terrainRegionBase, id,
+                                            heightMap, minCoords, maxCoords);
+                break;
+            case (int)BSTerrainPhys.TerrainImplementation.Mesh:
+                newTerrainPhys = new BSTerrainMesh(PhysicsScene, terrainRegionBase, id,
+                                            heightMap, minCoords, maxCoords);
+                break;
+            default:
+                PhysicsScene.Logger.ErrorFormat("{0} Bad terrain implementation specified. Type={1}/{2},Region={3}/{4}",
+                                            LogHeader, 
+                                            (int)PhysicsScene.Params.terrainImplementation, 
+                                            PhysicsScene.Params.terrainImplementation,
+                                            PhysicsScene.RegionName, terrainRegionBase);
+                break;
+        }
+        return newTerrainPhys;
+    }
+
 
     // Given an X and Y, find the height of the terrain.
     // Since we could be handling multiple terrains for a mega-region,

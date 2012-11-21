@@ -76,7 +76,8 @@ public sealed class BSTerrainMesh : BSTerrainPhys
         m_sizeX = (int)(maxCoords.X - minCoords.X);
         m_sizeY = (int)(maxCoords.Y - minCoords.Y);
 
-        if (!BSTerrainMesh.ConvertHeightmapToMesh(PhysicsScene, initialMap, m_sizeX, m_sizeY,
+        if (!BSTerrainMesh.ConvertHeightmapToMesh(PhysicsScene, initialMap,
+                            m_sizeX, m_sizeY,
                             (float)m_sizeX, (float)m_sizeY,
                             Vector3.Zero, 1.0f,
                             out indicesCount, out indices, out verticesCount, out vertices))
@@ -87,8 +88,6 @@ public sealed class BSTerrainMesh : BSTerrainPhys
             // Something is very messed up and a crash is in our future.
             return;
         }
-        PhysicsScene.DetailLog("{0},BSTerrainMesh.create,afterConvertHeightmapToMesh,ver={1},ind={2}", 
-                                        ID, verticesCount, indicesCount);
 
         m_terrainShape = new BulletShape(BulletSimAPI.CreateMeshShape2(PhysicsScene.World.ptr,
                                         indicesCount, indices, verticesCount, vertices),
@@ -101,18 +100,11 @@ public sealed class BSTerrainMesh : BSTerrainPhys
             // Something is very messed up and a crash is in our future.
             return;
         }
-        PhysicsScene.DetailLog("{0},BSTerrainMesh.create,afterCreateShape,shape={1}", ID, m_terrainShape);
 
-        // The terrain object initial position is at the center of the object
-        Vector3 centerPos;
-        centerPos.X = minCoords.X + (m_sizeX / 2f);
-        centerPos.Y = minCoords.Y + (m_sizeY / 2f);
-        centerPos.Z = minCoords.Z + ((maxCoords.Z - minCoords.Z) / 2f);
+        Vector3 pos = regionBase;
         Quaternion rot = Quaternion.Identity;
 
-        PhysicsScene.DetailLog("{0},BSTerrainMesh.create,creatingBody,centerPos={1},rot={2}", ID, centerPos, rot);
-        m_terrainBody = new BulletBody(id, BulletSimAPI.CreateBodyWithDefaultMotionState2(
-                                                        m_terrainShape.ptr, ID, centerPos, rot));
+        m_terrainBody = new BulletBody(id, BulletSimAPI.CreateBodyWithDefaultMotionState2( m_terrainShape.ptr, ID, pos, rot));
         if (m_terrainBody.ptr == IntPtr.Zero)
         {
             // DISASTER!!
@@ -120,7 +112,6 @@ public sealed class BSTerrainMesh : BSTerrainPhys
             // Something is very messed up and a crash is in our future.
             return;
         }
-        PhysicsScene.DetailLog("{0},BSTerrainMesh.create,afterCreateBody,body={1}", ID, m_terrainBody);
 
         // Set current terrain attributes
         BulletSimAPI.SetFriction2(m_terrainBody.ptr, PhysicsScene.Params.terrainFriction);
@@ -194,7 +185,7 @@ public sealed class BSTerrainMesh : BSTerrainPhys
         int[] indices = new int[0];
         float[] vertices = new float[0];
 
-        // Simple mesh creation which assumes magnification == 1, sizeX == extentX and sizeY == extentY.
+        // Simple mesh creation which assumes magnification == 1.
         // TODO: do a more general solution that scales, adds new vertices and smoothes the result.
 
         try
@@ -205,10 +196,10 @@ public sealed class BSTerrainMesh : BSTerrainPhys
             int totalIndices = sizeX * sizeY * 6;
             indices = new int[totalIndices];
 
-            physicsScene.DetailLog("{0},BSTerrainMesh.ConvertHeightMapToMesh,totVert={1},totInd={2}",
-                                    BSScene.DetailLogZero, totalVertices, totalIndices);
             float magX = (float)sizeX / extentX;
             float magY = (float)sizeY / extentY;
+            physicsScene.DetailLog("{0},BSTerrainMesh.ConvertHeightMapToMesh,totVert={1},totInd={2},extentBase={3},magX={4},magY={5}",
+                                    BSScene.DetailLogZero, totalVertices, totalIndices, extentBase, magX, magY);
             // Note that sizeX+1 vertices are created since there is land between this and the next region.
             for (int yy = 0; yy <= sizeY; yy++)
             {
@@ -222,15 +213,6 @@ public sealed class BSTerrainMesh : BSTerrainPhys
                     vertices[verticesCount + 0] = (float)xx * magX + extentBase.X;
                     vertices[verticesCount + 1] = (float)yy * magY + extentBase.Y;
                     vertices[verticesCount + 2] = height + extentBase.Z;
-                    if (physicsScene.PhysicsLogging.Enabled && verticesCount < 900)    // DEBUG DEBUG DEBUG
-                    {
-                        Vector3 genVertex = new Vector3(
-                                            vertices[verticesCount + 0],
-                                            vertices[verticesCount + 1],
-                                            vertices[verticesCount + 2]);
-                        physicsScene.DetailLog("{0},BSTerrainMesh.ConvertHeightMapToMesh,ii={1},vertex={2}", 
-                                                BSScene.DetailLogZero, verticesCount/3, genVertex);
-                    }
                     verticesCount += 3;
                 }
             }
@@ -250,16 +232,6 @@ public sealed class BSTerrainMesh : BSTerrainPhys
                     indices[indicesCount + 3] = offset + 1;
                     indices[indicesCount + 4] = offset + sizeX + 2;
                     indices[indicesCount + 5] = offset + sizeX + 1;
-                    if (indicesCount < (300 * 6))   // DEBUG DEBUG DEBUG
-                        physicsScene.DetailLog("{0},BSTerrainMesh.ConvertHeightMapToMesh,i0={1},i1={2},i2={3},i3={4},i4={5},i5={6}",   // DEEBUG DEBUG DEBUG
-                                                    BSScene.DetailLogZero, 
-                                                    indices[indicesCount + 0],
-                                                    indices[indicesCount + 1],
-                                                    indices[indicesCount + 2],
-                                                    indices[indicesCount + 3],
-                                                    indices[indicesCount + 4],
-                                                    indices[indicesCount + 5]
-                        );
                     indicesCount += 6;
                 }
             }
@@ -269,8 +241,8 @@ public sealed class BSTerrainMesh : BSTerrainPhys
         }
         catch (Exception e)
         {
-            physicsScene.Logger.ErrorFormat("{0} Failed conversion of heightmap to mesh. Base={1}, e={2}",
-                                                LogHeader, extentBase, e);
+            physicsScene.Logger.ErrorFormat("{0} Failed conversion of heightmap to mesh. For={1}/{2}, e={3}",
+                                                LogHeader, physicsScene.RegionName, extentBase, e);
         }
 
         indicesCountO = indicesCount;
