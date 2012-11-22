@@ -62,7 +62,6 @@ namespace OpenSim.Framework.Servers
         /// </summary>
         private Timer m_periodicDiagnosticsTimer = new Timer(60 * 60 * 1000);
 
-        protected CommandConsole m_console;
         protected OpenSimAppender m_consoleAppender;
         protected IAppender m_logFileAppender = null; 
 
@@ -139,7 +138,8 @@ namespace OpenSim.Framework.Servers
                 }
                 else
                 {
-                    m_consoleAppender.Console = m_console;
+                    // FIXME: This should be done through an interface rather than casting.
+                    m_consoleAppender.Console = (ConsoleBase)m_console;
                     
                     // If there is no threshold set then the threshold is effectively everything.
                     if (null == m_consoleAppender.Threshold)
@@ -367,8 +367,10 @@ namespace OpenSim.Framework.Servers
             }
         }
 
-        public virtual void HandleShow(string module, string[] cmd)
+        public override void HandleShow(string module, string[] cmd)
         {
+            base.HandleShow(module, cmd);
+
             List<string> args = new List<string>(cmd);
 
             args.RemoveAt(0);
@@ -383,10 +385,6 @@ namespace OpenSim.Framework.Servers
 
                 case "threads":
                     Notice(GetThreadsReport());
-                    break;
-
-                case "uptime":
-                    Notice(GetUptimeReport());
                     break;
 
                 case "version":
@@ -427,33 +425,6 @@ namespace OpenSim.Framework.Servers
         protected string GetVersionText()
         {
             return String.Format("Version: {0} (interface version {1})", m_version, VersionInfo.MajorInterfaceVersion);
-        }
-
-        /// <summary>
-        /// Console output is only possible if a console has been established.
-        /// That is something that cannot be determined within this class. So
-        /// all attempts to use the console MUST be verified.
-        /// </summary>
-        /// <param name="msg"></param>
-        protected void Notice(string msg)
-        {
-            if (m_console != null)
-            {
-                m_console.Output(msg);
-            }
-        }
-        
-        /// <summary>
-        /// Console output is only possible if a console has been established.
-        /// That is something that cannot be determined within this class. So
-        /// all attempts to use the console MUST be verified.
-        /// </summary>
-        /// <param name="format"></param>        
-        /// <param name="components"></param>
-        protected void Notice(string format, params string[] components)
-        {
-            if (m_console != null)
-                m_console.OutputFormat(format, components);
         }
 
         /// <summary>

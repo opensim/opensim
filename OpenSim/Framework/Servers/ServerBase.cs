@@ -26,12 +26,19 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Text;
+using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework.Servers
 {
     public class ServerBase
     {
+        /// <summary>
+        /// Console to be used for any command line output.  Can be null, in which case there should be no output.
+        /// </summary>
+        protected ICommandConsole m_console;
+
         /// <summary>
         /// Time at which this server was started
         /// </summary>
@@ -40,6 +47,22 @@ namespace OpenSim.Framework.Servers
         public ServerBase()
         {
             m_startuptime = DateTime.Now;
+        }
+
+        public virtual void HandleShow(string module, string[] cmd)
+        {
+            List<string> args = new List<string>(cmd);
+
+            args.RemoveAt(0);
+
+            string[] showParams = args.ToArray();
+
+            switch (showParams[0])
+            {
+                case "uptime":
+                    Notice(GetUptimeReport());
+                    break;
+            }
         }
 
         /// <summary>
@@ -53,6 +76,33 @@ namespace OpenSim.Framework.Servers
             sb.Append(String.Format("That is an elapsed time of {0}\n", DateTime.Now - m_startuptime));
 
             return sb.ToString();
+        }
+
+        /// <summary>
+        /// Console output is only possible if a console has been established.
+        /// That is something that cannot be determined within this class. So
+        /// all attempts to use the console MUST be verified.
+        /// </summary>
+        /// <param name="msg"></param>
+        protected void Notice(string msg)
+        {
+            if (m_console != null)
+            {
+                m_console.Output(msg);
+            }
+        }
+        
+        /// <summary>
+        /// Console output is only possible if a console has been established.
+        /// That is something that cannot be determined within this class. So
+        /// all attempts to use the console MUST be verified.
+        /// </summary>
+        /// <param name="format"></param>        
+        /// <param name="components"></param>
+        protected void Notice(string format, params string[] components)
+        {
+            if (m_console != null)
+                m_console.OutputFormat(format, components);
         }
     }
 }

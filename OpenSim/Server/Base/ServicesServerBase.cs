@@ -174,6 +174,8 @@ namespace OpenSim.Server.Base
                 MainConsole.Instance = new LocalConsole(prompt);
             }
 
+            m_console = MainConsole.Instance;
+
             // Configure the appenders for log4net
             //
             OpenSimAppender consoleAppender = null;
@@ -349,22 +351,6 @@ namespace OpenSim.Server.Base
             }
             catch (Exception)
             {
-            }
-        }
-
-        public virtual void HandleShow(string module, string[] cmd)
-        {
-            List<string> args = new List<string>(cmd);
-
-            args.RemoveAt(0);
-
-            string[] showParams = args.ToArray();
-
-            switch (showParams[0])
-            {
-                case "uptime":
-                    MainConsole.Instance.Output(GetUptimeReport());
-                    break;
             }
         }
     }

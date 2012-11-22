@@ -242,7 +242,7 @@ namespace OpenSim
             }
         }
 
-        protected virtual void AddPluginCommands(CommandConsole console)
+        protected virtual void AddPluginCommands(ICommandConsole console)
         {
             List<string> topics = GetHelpTopics();
 
