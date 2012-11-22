@@ -97,7 +97,7 @@ public sealed class BSTerrainHeightmap : BSTerrainPhys
 
         // Create the terrain shape from the mapInfo
         m_mapInfo.terrainShape = new BulletShape(BulletSimAPI.CreateTerrainShape2(m_mapInfo.Ptr),
-                                                    PhysicsShapeType.SHAPE_TERRAIN);
+                                                    BSPhysicsShapeType.SHAPE_TERRAIN);
 
         // The terrain object initial position is at the center of the object
         Vector3 centerPos;

@@ -178,7 +178,7 @@ public sealed class BSShapeCollection : IDisposable
         bool ret = false;
         switch (shape.type)
         {
-            case PhysicsShapeType.SHAPE_MESH:
+            case BSPhysicsShapeType.SHAPE_MESH:
                 MeshDesc meshDesc;
                 if (Meshes.TryGetValue(shape.shapeKey, out meshDesc))
                 {
@@ -201,7 +201,7 @@ public sealed class BSShapeCollection : IDisposable
                 meshDesc.lastReferenced = System.DateTime.Now;
                 Meshes[shape.shapeKey] = meshDesc;
                 break;
-            case PhysicsShapeType.SHAPE_HULL:
+            case BSPhysicsShapeType.SHAPE_HULL:
                 HullDesc hullDesc;
                 if (Hulls.TryGetValue(shape.shapeKey, out hullDesc))
                 {
@@ -224,7 +224,7 @@ public sealed class BSShapeCollection : IDisposable
                 hullDesc.lastReferenced = System.DateTime.Now;
                 Hulls[shape.shapeKey] = hullDesc;
                 break;
-            case PhysicsShapeType.SHAPE_UNKNOWN:
+            case BSPhysicsShapeType.SHAPE_UNKNOWN:
                 break;
             default:
                 // Native shapes are not tracked and they don't go into any list
@@ -255,16 +255,16 @@ public sealed class BSShapeCollection : IDisposable
                 {
                     switch (shape.type)
                     {
-                        case PhysicsShapeType.SHAPE_HULL:
+                        case BSPhysicsShapeType.SHAPE_HULL:
                             DereferenceHull(shape, shapeCallback);
                             break;
-                        case PhysicsShapeType.SHAPE_MESH:
+                        case BSPhysicsShapeType.SHAPE_MESH:
                             DereferenceMesh(shape, shapeCallback);
                             break;
-                        case PhysicsShapeType.SHAPE_COMPOUND:
+                        case BSPhysicsShapeType.SHAPE_COMPOUND:
                             DereferenceCompound(shape, shapeCallback);
                             break;
-                        case PhysicsShapeType.SHAPE_UNKNOWN:
+                        case BSPhysicsShapeType.SHAPE_UNKNOWN:
                             break;
                         default:
                             break;
@@ -352,28 +352,28 @@ public sealed class BSShapeCollection : IDisposable
         BulletShape shapeInfo = new BulletShape(cShape);
         if (TryGetMeshByPtr(cShape, out meshDesc))
         {
-            shapeInfo.type = PhysicsShapeType.SHAPE_MESH;
+            shapeInfo.type = BSPhysicsShapeType.SHAPE_MESH;
             shapeInfo.shapeKey = meshDesc.shapeKey;
         }
         else
         {
             if (TryGetHullByPtr(cShape, out hullDesc))
             {
-                shapeInfo.type = PhysicsShapeType.SHAPE_HULL;
+                shapeInfo.type = BSPhysicsShapeType.SHAPE_HULL;
                 shapeInfo.shapeKey = hullDesc.shapeKey;
             }
             else
             {
                 if (BulletSimAPI.IsCompound2(cShape))
                 {
-                    shapeInfo.type = PhysicsShapeType.SHAPE_COMPOUND;
+                    shapeInfo.type = BSPhysicsShapeType.SHAPE_COMPOUND;
                 }
                 else
                 {
                     if (BulletSimAPI.IsNativeShape2(cShape))
                     {
                         shapeInfo.isNativeShape = true;
-                        shapeInfo.type = PhysicsShapeType.SHAPE_BOX; // (technically, type doesn't matter)
+                        shapeInfo.type = BSPhysicsShapeType.SHAPE_BOX; // (technically, type doesn't matter)
                     }
                 }
             }
@@ -381,7 +381,7 @@ public sealed class BSShapeCollection : IDisposable
 
         DetailLog("{0},BSShapeCollection.DereferenceAnonCollisionShape,shape={1}", BSScene.DetailLogZero, shapeInfo);
 
-        if (shapeInfo.type != PhysicsShapeType.SHAPE_UNKNOWN)
+        if (shapeInfo.type != BSPhysicsShapeType.SHAPE_UNKNOWN)
         {
             DereferenceShape(shapeInfo, true, null);
         }
@@ -405,10 +405,10 @@ public sealed class BSShapeCollection : IDisposable
         bool ret = false;
         bool haveShape = false;
 
-        if (!haveShape && prim.PreferredPhysicalShape == PhysicsShapeType.SHAPE_CAPSULE)
+        if (!haveShape && prim.PreferredPhysicalShape == BSPhysicsShapeType.SHAPE_CAPSULE)
         {
             // an avatar capsule is close to a native shape (it is not shared)
-            ret = GetReferenceToNativeShape(prim, PhysicsShapeType.SHAPE_CAPSULE,
+            ret = GetReferenceToNativeShape(prim, BSPhysicsShapeType.SHAPE_CAPSULE,
                             FixedShapeKey.KEY_CAPSULE, shapeCallback);
             DetailLog("{0},BSShapeCollection.CreateGeom,avatarCapsule,shape={1}", prim.LocalID, prim.PhysShape);
             ret = true;
@@ -417,7 +417,7 @@ public sealed class BSShapeCollection : IDisposable
 
         // Compound shapes are handled special as they are rebuilt from scratch.
         // This isn't too great a hardship since most of the child shapes will already been created.
-        if (!haveShape && prim.PreferredPhysicalShape == PhysicsShapeType.SHAPE_COMPOUND)
+        if (!haveShape && prim.PreferredPhysicalShape == BSPhysicsShapeType.SHAPE_COMPOUND)
         {
             ret = GetReferenceToCompoundShape(prim, shapeCallback);
             DetailLog("{0},BSShapeCollection.CreateGeom,compoundShape,shape={1}", prim.LocalID, prim.PhysShape);
@@ -460,10 +460,10 @@ public sealed class BSShapeCollection : IDisposable
                 haveShape = true;
                 if (forceRebuild
                         || prim.Scale != prim.Size
-                        || prim.PhysShape.type != PhysicsShapeType.SHAPE_SPHERE
+                        || prim.PhysShape.type != BSPhysicsShapeType.SHAPE_SPHERE
                         )
                 {
-                    ret = GetReferenceToNativeShape(prim, PhysicsShapeType.SHAPE_SPHERE,
+                    ret = GetReferenceToNativeShape(prim, BSPhysicsShapeType.SHAPE_SPHERE,
                                             FixedShapeKey.KEY_SPHERE, shapeCallback);
                     DetailLog("{0},BSShapeCollection.CreateGeom,sphere,force={1},shape={2}",
                                         prim.LocalID, forceRebuild, prim.PhysShape);
@@ -474,10 +474,10 @@ public sealed class BSShapeCollection : IDisposable
                 haveShape = true;
                 if (forceRebuild
                         || prim.Scale != prim.Size
-                        || prim.PhysShape.type != PhysicsShapeType.SHAPE_BOX
+                        || prim.PhysShape.type != BSPhysicsShapeType.SHAPE_BOX
                         )
                 {
-                    ret = GetReferenceToNativeShape( prim, PhysicsShapeType.SHAPE_BOX,
+                    ret = GetReferenceToNativeShape( prim, BSPhysicsShapeType.SHAPE_BOX,
                                             FixedShapeKey.KEY_BOX, shapeCallback);
                     DetailLog("{0},BSShapeCollection.CreateGeom,box,force={1},shape={2}",
                                         prim.LocalID, forceRebuild, prim.PhysShape);
@@ -519,7 +519,7 @@ public sealed class BSShapeCollection : IDisposable
     // Creates a native shape and assignes it to prim.BSShape.
     // "Native" shapes are never shared. they are created here and destroyed in DereferenceShape().
     private bool GetReferenceToNativeShape(BSPhysObject prim,
-                            PhysicsShapeType shapeType, FixedShapeKey shapeKey,
+                            BSPhysicsShapeType shapeType, FixedShapeKey shapeKey,
                             ShapeDestructionCallback shapeCallback)
     {
         // release any previous shape
@@ -535,7 +535,7 @@ public sealed class BSShapeCollection : IDisposable
         return true;
     }
 
-    private BulletShape BuildPhysicalNativeShape(BSPhysObject prim, PhysicsShapeType shapeType,
+    private BulletShape BuildPhysicalNativeShape(BSPhysObject prim, BSPhysicsShapeType shapeType,
                                     FixedShapeKey shapeKey)
     {
         BulletShape newShape;
@@ -548,7 +548,7 @@ public sealed class BSShapeCollection : IDisposable
         nativeShapeData.MeshKey = (ulong)shapeKey;
         nativeShapeData.HullKey = (ulong)shapeKey;
 
-        if (shapeType == PhysicsShapeType.SHAPE_CAPSULE)
+        if (shapeType == BSPhysicsShapeType.SHAPE_CAPSULE)
         {
             // The proper scale has been calculated in the prim.
             newShape = new BulletShape(
@@ -586,7 +586,7 @@ public sealed class BSShapeCollection : IDisposable
         System.UInt64 newMeshKey = ComputeShapeKey(prim.Size, prim.BaseShape, out lod);
 
         // if this new shape is the same as last time, don't recreate the mesh
-        if (newMeshKey == prim.PhysShape.shapeKey && prim.PhysShape.type == PhysicsShapeType.SHAPE_MESH)
+        if (newMeshKey == prim.PhysShape.shapeKey && prim.PhysShape.type == BSPhysicsShapeType.SHAPE_MESH)
             return false;
 
         DetailLog("{0},BSShapeCollection.GetReferenceToMesh,create,oldKey={1},newKey={2}",
@@ -644,7 +644,7 @@ public sealed class BSShapeCollection : IDisposable
                                     indices.GetLength(0), indices, vertices.Count, verticesAsFloats);
             }
         }
-        BulletShape newShape = new BulletShape(meshPtr, PhysicsShapeType.SHAPE_MESH);
+        BulletShape newShape = new BulletShape(meshPtr, BSPhysicsShapeType.SHAPE_MESH);
         newShape.shapeKey = newMeshKey;
 
         return newShape;
@@ -660,7 +660,7 @@ public sealed class BSShapeCollection : IDisposable
         System.UInt64 newHullKey = ComputeShapeKey(prim.Size, prim.BaseShape, out lod);
 
         // if the hull hasn't changed, don't rebuild it
-        if (newHullKey == prim.PhysShape.shapeKey && prim.PhysShape.type == PhysicsShapeType.SHAPE_HULL)
+        if (newHullKey == prim.PhysShape.shapeKey && prim.PhysShape.type == BSPhysicsShapeType.SHAPE_HULL)
             return false;
 
         DetailLog("{0},BSShapeCollection.GetReferenceToHull,create,oldKey={1},newKey={2}",
@@ -781,7 +781,7 @@ public sealed class BSShapeCollection : IDisposable
             }
         }
 
-        BulletShape newShape = new BulletShape(hullPtr, PhysicsShapeType.SHAPE_HULL);
+        BulletShape newShape = new BulletShape(hullPtr, BSPhysicsShapeType.SHAPE_HULL);
         newShape.shapeKey = newHullKey;
 
         return newShape;        // 'true' means a new shape has been added to this prim
@@ -804,7 +804,7 @@ public sealed class BSShapeCollection : IDisposable
         // DereferenceShape(prim.PhysShape, true, shapeCallback);
 
         BulletShape cShape = new BulletShape(
-            BulletSimAPI.CreateCompoundShape2(PhysicsScene.World.ptr, false), PhysicsShapeType.SHAPE_COMPOUND);
+            BulletSimAPI.CreateCompoundShape2(PhysicsScene.World.ptr, false), BSPhysicsShapeType.SHAPE_COMPOUND);
 
         // Create the shape for the root prim and add it to the compound shape. Cannot be a native shape.
         CreateGeomMeshOrHull(prim, shapeCallback);
@@ -895,7 +895,7 @@ public sealed class BSShapeCollection : IDisposable
 
         // While we figure out the real problem, stick a simple native shape on the object.
         BulletShape fillinShape =
-            BuildPhysicalNativeShape(prim, PhysicsShapeType.SHAPE_BOX, FixedShapeKey.KEY_BOX);
+            BuildPhysicalNativeShape(prim, BSPhysicsShapeType.SHAPE_BOX, FixedShapeKey.KEY_BOX);
 
         return fillinShape;
     }
