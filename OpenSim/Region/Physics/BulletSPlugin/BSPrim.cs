@@ -47,7 +47,6 @@ public sealed class BSPrim : BSPhysObject
     // _size is what the user passed. Scale is what we pass to the physics engine with the mesh.
     // Often Scale is unity because the meshmerizer will apply _size when creating the mesh.
     private OMV.Vector3 _size;  // the multiplier for each mesh dimension as passed by the user
-    // private OMV.Vector3 _scale; // the multiplier for each mesh dimension for the mesh as created by the meshmerizer
 
     private bool _grabbed;
     private bool _isSelected;
@@ -94,7 +93,7 @@ public sealed class BSPrim : BSPhysObject
         _physicsActorType = (int)ActorTypes.Prim;
         _position = pos;
         _size = size;
-        Scale = new OMV.Vector3(1f, 1f, 1f);   // the scale will be set by CreateGeom depending on object type
+        Scale = size;   // the scale will be set by CreateGeom depending on object type
         _orientation = rotation;
         _buoyancy = 1f;
         _velocity = OMV.Vector3.Zero;
@@ -155,6 +154,8 @@ public sealed class BSPrim : BSPhysObject
     public override OMV.Vector3 Size {
         get { return _size; }
         set {
+            // We presume the scale and size are the same. If scale must be changed for
+            //     the physical shape, that is done when the geometry is built.
             _size = value;
             ForceBodyShapeRebuild(false);
         }
@@ -170,7 +171,7 @@ public sealed class BSPrim : BSPhysObject
         }
     }
     // Whatever the linkset wants is what I want.
-    public override ShapeData.PhysicsShapeType PreferredPhysicalShape
+    public override PhysicsShapeType PreferredPhysicalShape
         { get { return Linkset.PreferredPhysicalShape(this); } }
 
     public override bool ForceBodyShapeRebuild(bool inTaintTime)
@@ -274,19 +275,19 @@ public sealed class BSPrim : BSPhysObject
             if (!Linkset.IsRoot(this))
                 _position = Linkset.Position(this);
 
-            // don't do the GetObjectPosition for root elements because this function is called a zillion times
+            // don't do the GetObjectPosition for root elements because this function is called a zillion times.
             // _position = BulletSimAPI.GetObjectPosition2(PhysicsScene.World.ptr, BSBody.ptr);
             return _position;
         }
         set {
-            // If you must push the position into the physics engine, use ForcePosition.
+            // If the position must be forced into the physics engine, use ForcePosition.
             if (_position == value)
             {
                 return;
             }
             _position = value;
             // TODO: what does it mean to set the position of a child prim?? Rebuild the constraint?
-            PositionSanityCheck();
+            PositionSanityCheck(false);
             PhysicsScene.TaintedObject("BSPrim.setPosition", delegate()
             {
                 // DetailLog("{0},BSPrim.SetPosition,taint,pos={1},orient={2}", LocalID, _position, _orientation);
@@ -302,7 +303,7 @@ public sealed class BSPrim : BSPhysObject
         }
         set {
             _position = value;
-            PositionSanityCheck();
+            // PositionSanityCheck();   // Don't do this! Causes a loop and caller should know better.
             BulletSimAPI.SetTranslation2(PhysBody.ptr, _position, _orientation);
             ActivateIfPhysical(false);
         }
@@ -311,52 +312,43 @@ public sealed class BSPrim : BSPhysObject
     // Check that the current position is sane and, if not, modify the position to make it so.
     // Check for being below terrain and being out of bounds.
     // Returns 'true' of the position was made sane by some action.
-    private bool PositionSanityCheck()
+    private bool PositionSanityCheck(bool inTaintTime)
     {
         bool ret = false;
 
-        // If totally below the ground, move the prim up
-        // TODO: figure out the right solution for this... only for dynamic objects?
-        /*
         float terrainHeight = PhysicsScene.TerrainManager.GetTerrainHeightAtXYZ(_position);
+        OMV.Vector3 upForce = OMV.Vector3.Zero;
         if (Position.Z < terrainHeight)
         {
             DetailLog("{0},BSPrim.PositionAdjustUnderGround,call,pos={1},terrain={2}", LocalID, _position, terrainHeight);
-            _position.Z = terrainHeight + 2.0f;
+            float targetHeight = terrainHeight + (Size.Z / 2f);
+            // Upforce proportional to the distance away from the terrain. Correct the error in 1 sec.
+            upForce.Z = (terrainHeight - Position.Z) * 1f;
             ret = true;
         }
-         */
+
         if ((CurrentCollisionFlags & CollisionFlags.BS_FLOATS_ON_WATER) != 0)
         {
             float waterHeight = PhysicsScene.GetWaterLevelAtXYZ(_position);
             // TODO: a floating motor so object will bob in the water
-            if (Position.Z < waterHeight)
+            if (Math.Abs(Position.Z - waterHeight) > 0.1f)
             {
-                _position.Z = waterHeight;
+                // Upforce proportional to the distance away from the water. Correct the error in 1 sec.
+                upForce.Z = (waterHeight - Position.Z) * 1f;
                 ret = true;
             }
         }
 
         // TODO: check for out of bounds
-        return ret;
-    }
 
-    // A version of the sanity check that also makes sure a new position value is
-    //    pushed to the physics engine. This routine would be used by anyone
-    //    who is not already pushing the value.
-    private bool PositionSanityCheck(bool inTaintTime)
-    {
-        bool ret = false;
-        if (PositionSanityCheck())
+        // The above code computes a force to apply to correct any out-of-bounds problems. Apply same.
+        if (ret)
         {
-            // The new position value must be pushed into the physics engine but we can't
-            //    just assign to "Position" because of potential call loops.
-            PhysicsScene.TaintedObject(inTaintTime, "BSPrim.PositionSanityCheck", delegate()
+            PhysicsScene.TaintedObject(inTaintTime, "BSPrim.PositionSanityCheck:belowTerrain", delegate()
             {
-                DetailLog("{0},BSPrim.PositionSanityCheck,taint,pos={1},orient={2}", LocalID, _position, _orientation);
-                ForcePosition = _position;
+                // Apply upforce and overcome gravity.
+                ForceVelocity = ForceVelocity + upForce - PhysicsScene.DefaultGravity;
             });
-            ret = true;
         }
         return ret;
     }
@@ -940,6 +932,7 @@ public sealed class BSPrim : BSPhysObject
     public override void AddForce(OMV.Vector3 force, bool pushforce) {
         AddForce(force, pushforce, false);
     }
+    // Applying a force just adds this to the total force on the object.
     public void AddForce(OMV.Vector3 force, bool pushforce, bool inTaintTime) {
         // for an object, doesn't matter if force is a pushforce or not
         if (force.IsFinite())
@@ -971,6 +964,7 @@ public sealed class BSPrim : BSPhysObject
         });
     }
 
+    // An impulse force is scaled by the mass of the object.
     public void ApplyForceImpulse(OMV.Vector3 impulse, bool inTaintTime)
     {
         OMV.Vector3 applyImpulse = impulse;
@@ -1423,7 +1417,7 @@ public sealed class BSPrim : BSPhysObject
         if (changed != 0)
         {
             // Only update the position of single objects and linkset roots
-            if (this._parentPrim == null)
+            if (Linkset.IsRoot(this))
             {
                 base.RequestPhysicsterseUpdate();
             }
@@ -1435,18 +1429,23 @@ public sealed class BSPrim : BSPhysObject
         // Updates only for individual prims and for the root object of a linkset.
         if (Linkset.IsRoot(this))
         {
-            // Assign to the local variables so the normal set action does not happen
+            // Assign directly to the local variables so the normal set action does not happen
             _position = entprop.Position;
             _orientation = entprop.Rotation;
             _velocity = entprop.Velocity;
             _acceleration = entprop.Acceleration;
             _rotationalVelocity = entprop.RotationalVelocity;
 
+            // The sanity check can change the velocity and/or position.
+            if (PositionSanityCheck(true))
+            {
+                entprop.Position = _position;
+                entprop.Velocity = _velocity;
+            }
+
             // remember the current and last set values
             LastEntityProperties = CurrentEntityProperties;
             CurrentEntityProperties = entprop;
-
-            PositionSanityCheck(true);
 
             OMV.Vector3 direction = OMV.Vector3.UnitX * _orientation;
             DetailLog("{0},BSPrim.UpdateProperties,call,pos={1},orient={2},dir={3},vel={4},rotVel={5}",

@@ -712,7 +712,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     // here just before the physics engine is called to step the simulation.
     public void ProcessTaints()
     {
-        InTaintTime = true;
+        InTaintTime = true; // Only used for debugging so locking is not necessary.
         ProcessRegularTaints();
         ProcessPostTaintTaints();
         InTaintTime = false;
@@ -758,6 +758,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
                 DetailLog("{0},BSScene.ProcessTaints,leftTaintsOnList,numNotProcessed={1}", DetailLogZero, _taintOperations.Count);
             }
              */
+
             // swizzle a new list into the list location so we can process what's there
             List<TaintCallbackEntry> oldList;
             lock (_taintLock)
@@ -787,8 +788,6 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     //     will replace any previous operation by the same object.
     public void PostTaintObject(String ident, uint ID, TaintCallback callback)
     {
-        if (!m_initialized) return;
-
         string uniqueIdent = ident + "-" + ID.ToString();
         lock (_taintLock)
         {
@@ -864,13 +863,14 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         }
     }
 
+    // Only used for debugging. Does not change state of anything so locking is not necessary.
     public bool AssertInTaintTime(string whereFrom)
     {
         if (!InTaintTime)
         {
             DetailLog("{0},BSScene.AssertInTaintTime,NOT IN TAINT TIME,Region={1},Where={2}", DetailLogZero, RegionName, whereFrom);
             m_log.ErrorFormat("{0} NOT IN TAINT TIME!! Region={1}, Where={2}", LogHeader, RegionName, whereFrom);
-            Util.PrintCallStack();
+            Util.PrintCallStack();  // Prints the stack into the DEBUG log file.
         }
         return InTaintTime;
     }
@@ -1145,6 +1145,11 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].contactProcessingThreshold, p, l, v); },
             (s,o,v) => { BulletSimAPI.SetContactProcessingThreshold2(o.PhysBody.ptr, v); } ),
 
+	    new ParameterDefn("TerrainImplementation", "Type of shape to use for terrain (0=heightmap, 1=mesh)",
+            (float)BSTerrainPhys.TerrainImplementation.Mesh,
+            (s,cf,p,v) => { s.m_params[0].terrainImplementation = cf.GetFloat(p,v); },
+            (s) => { return s.m_params[0].terrainImplementation; },
+            (s,p,l,v) => { s.m_params[0].terrainImplementation = v; } ),
         new ParameterDefn("TerrainFriction", "Factor to reduce movement against terrain surface" ,
             0.5f,
             (s,cf,p,v) => { s.m_params[0].terrainFriction = cf.GetFloat(p, v); },
@@ -1180,11 +1185,16 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             (s,cf,p,v) => { s.m_params[0].avatarRestitution = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].avatarRestitution; },
             (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].avatarRestitution, p, l, v); } ),
-        new ParameterDefn("AvatarCapsuleRadius", "Radius of space around an avatar",
-            0.37f,
-            (s,cf,p,v) => { s.m_params[0].avatarCapsuleRadius = cf.GetFloat(p, v); },
-            (s) => { return s.m_params[0].avatarCapsuleRadius; },
-            (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].avatarCapsuleRadius, p, l, v); } ),
+        new ParameterDefn("AvatarCapsuleWidth", "The distance between the sides of the avatar capsule",
+            0.6f,
+            (s,cf,p,v) => { s.m_params[0].avatarCapsuleWidth = cf.GetFloat(p, v); },
+            (s) => { return s.m_params[0].avatarCapsuleWidth; },
+            (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].avatarCapsuleWidth, p, l, v); } ),
+        new ParameterDefn("AvatarCapsuleDepth", "The distance between the front and back of the avatar capsule",
+            0.45f,
+            (s,cf,p,v) => { s.m_params[0].avatarCapsuleDepth = cf.GetFloat(p, v); },
+            (s) => { return s.m_params[0].avatarCapsuleDepth; },
+            (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].avatarCapsuleDepth, p, l, v); } ),
         new ParameterDefn("AvatarCapsuleHeight", "Default height of space around avatar",
             1.5f,
             (s,cf,p,v) => { s.m_params[0].avatarCapsuleHeight = cf.GetFloat(p, v); },
