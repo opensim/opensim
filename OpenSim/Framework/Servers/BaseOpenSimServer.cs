@@ -250,27 +250,6 @@ namespace OpenSim.Framework.Servers
             Shutdown();
         }
 
-        /// <summary>
-        /// Show help information
-        /// </summary>
-        /// <param name="helpArgs"></param>
-        protected virtual void ShowHelp(string[] helpArgs)
-        {
-            Notice("");
-            
-            if (helpArgs.Length == 0)
-            {
-                Notice("set log level [level] - change the console logging level only.  For example, off or debug.");
-                Notice("show info - show server information (e.g. startup path).");
-                Notice("show threads - list tracked threads");
-                Notice("show uptime - show server startup time and uptime.");
-                Notice("show version - show server version.");
-                Notice("");
-
-                return;
-            }
-        }
-
         public override void HandleShow(string module, string[] cmd)
         {
             base.HandleShow(module, cmd);
