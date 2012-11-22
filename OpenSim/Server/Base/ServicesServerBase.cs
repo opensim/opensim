@@ -34,6 +34,7 @@ using System.Text;
 using System.Xml;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
+using OpenSim.Framework.Servers;
 using log4net;
 using log4net.Config;
 using log4net.Appender;
@@ -43,7 +44,7 @@ using Nini.Config;
 
 namespace OpenSim.Server.Base
 {
-    public class ServicesServerBase
+    public class ServicesServerBase : ServerBase
     {
         // Logger
         //
@@ -72,17 +73,10 @@ namespace OpenSim.Server.Base
         //
         private string m_pidFile = String.Empty;
 
-        /// <summary>
-        /// Time at which this server was started
-        /// </summary>
-        protected DateTime m_startuptime;
-
         // Handle all the automagical stuff
         //
-        public ServicesServerBase(string prompt, string[] args)
+        public ServicesServerBase(string prompt, string[] args) : base()
         {
-            m_startuptime = DateTime.Now;
-
             // Save raw arguments
             //
             m_Arguments = args;
@@ -372,19 +366,6 @@ namespace OpenSim.Server.Base
                     MainConsole.Instance.Output(GetUptimeReport());
                     break;
             }
-        }
-
-        /// <summary>
-        /// Return a report about the uptime of this server
-        /// </summary>
-        /// <returns></returns>
-        protected string GetUptimeReport()
-        {
-            StringBuilder sb = new StringBuilder(String.Format("Time now is {0}\n", DateTime.Now));
-            sb.Append(String.Format("Server has been running since {0}, {1}\n", m_startuptime.DayOfWeek, m_startuptime));
-            sb.Append(String.Format("That is an elapsed time of {0}\n", DateTime.Now - m_startuptime));
-
-            return sb.ToString();
         }
     }
 }
