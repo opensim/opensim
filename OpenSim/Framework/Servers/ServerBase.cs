@@ -128,8 +128,12 @@ namespace OpenSim.Framework.Servers
                 "General", false, "show uptime", "show uptime", "Show server uptime", HandleShow);
 
             m_console.Commands.AddCommand(
-                "General", false, "set log level", "set log level <level>", "Set the console logging level", 
-                HandleLogLevel);
+                "General", false, "get log level", "get log level", "Get the current console logging level", 
+                (mod, cmd) => ShowLogLevel());
+
+            m_console.Commands.AddCommand(
+                "General", false, "set log level", "set log level <level>", 
+                "Set the console logging level for this session.", HandleSetLogLevel);
         }
 
         public virtual void HandleShow(string module, string[] cmd)
@@ -152,30 +156,38 @@ namespace OpenSim.Framework.Servers
             }
         }
 
-        private void HandleLogLevel(string module, string[] cmd)
+        private void HandleSetLogLevel(string module, string[] cmd)
         {
+            if (cmd.Length != 4)
+            {
+                Notice("Usage: set log level <level>");
+                return;
+            }
+
             if (null == m_consoleAppender)
             {
                 Notice("No appender named Console found (see the log4net config file for this executable)!");
                 return;
             }
-      
-            if (cmd.Length > 3)
-            {
-                string rawLevel = cmd[3];
-                
-                ILoggerRepository repository = LogManager.GetRepository();
-                Level consoleLevel = repository.LevelMap[rawLevel];
-                
-                if (consoleLevel != null)
-                    m_consoleAppender.Threshold = consoleLevel;
-                else
-                    Notice(
-                        String.Format(
-                            "{0} is not a valid logging level.  Valid logging levels are ALL, DEBUG, INFO, WARN, ERROR, FATAL, OFF",
-                            rawLevel));
-            }
 
+            string rawLevel = cmd[3];
+            
+            ILoggerRepository repository = LogManager.GetRepository();
+            Level consoleLevel = repository.LevelMap[rawLevel];
+            
+            if (consoleLevel != null)
+                m_consoleAppender.Threshold = consoleLevel;
+            else
+                Notice(
+                    String.Format(
+                        "{0} is not a valid logging level.  Valid logging levels are ALL, DEBUG, INFO, WARN, ERROR, FATAL, OFF",
+                        rawLevel));
+
+            ShowLogLevel();
+        }
+
+        private void ShowLogLevel()
+        {
             Notice(String.Format("Console log level is {0}", m_consoleAppender.Threshold));
         }
 
