@@ -239,6 +239,8 @@ namespace OpenSim.Server.Base
                 CreatePIDFile(startupConfig.GetString("PIDFile"));
             }
 
+            RegisterCommonCommands();
+
             // Register the quit command
             //
             MainConsole.Instance.Commands.AddCommand("General", false, "quit",
@@ -253,11 +255,6 @@ namespace OpenSim.Server.Base
             MainConsole.Instance.Commands.AddCommand("General", false, "command-script",
                                           "command-script <script>",
                                           "Run a command script from file", HandleScript);
-
-            MainConsole.Instance.Commands.AddCommand("General", false, "show uptime",
-                        "show uptime",
-                        "Show server uptime", HandleShow);
-
 
             // Allow derived classes to perform initialization that
             // needs to be done after the console has opened

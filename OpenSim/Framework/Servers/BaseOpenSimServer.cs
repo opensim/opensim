@@ -118,78 +118,76 @@ namespace OpenSim.Framework.Servers
         /// </summary>
         protected virtual void StartupSpecific()
         {
-            if (m_console != null)
+            if (m_console == null)
+                return;
+
+            ILoggerRepository repository = LogManager.GetRepository();
+            IAppender[] appenders = repository.GetAppenders();
+
+            foreach (IAppender appender in appenders)
             {
-                ILoggerRepository repository = LogManager.GetRepository();
-                IAppender[] appenders = repository.GetAppenders();
-
-                foreach (IAppender appender in appenders)
+                if (appender.Name == "Console")
                 {
-                    if (appender.Name == "Console")
-                    {
-                        m_consoleAppender = (OpenSimAppender)appender;
-                        break;
-                    }
+                    m_consoleAppender = (OpenSimAppender)appender;
+                    break;
                 }
-
-                if (null == m_consoleAppender)
-                {
-                    Notice("No appender named Console found (see the log4net config file for this executable)!");
-                }
-                else
-                {
-                    // FIXME: This should be done through an interface rather than casting.
-                    m_consoleAppender.Console = (ConsoleBase)m_console;
-                    
-                    // If there is no threshold set then the threshold is effectively everything.
-                    if (null == m_consoleAppender.Threshold)
-                        m_consoleAppender.Threshold = Level.All;
-                    
-                    Notice(String.Format("Console log level is {0}", m_consoleAppender.Threshold));
-                }
-                
-                m_console.Commands.AddCommand("General", false, "quit",
-                        "quit",
-                        "Quit the application", HandleQuit);
-
-                m_console.Commands.AddCommand("General", false, "shutdown",
-                        "shutdown",
-                        "Quit the application", HandleQuit);
-
-                m_console.Commands.AddCommand("General", false, "set log level",
-                        "set log level <level>",
-                        "Set the console logging level", HandleLogLevel);
-
-                m_console.Commands.AddCommand("General", false, "show info",
-                        "show info",
-                        "Show general information about the server", HandleShow);
-
-                m_console.Commands.AddCommand("General", false, "show threads",
-                        "show threads",
-                        "Show thread status", HandleShow);
-
-                m_console.Commands.AddCommand("General", false, "show uptime",
-                        "show uptime",
-                        "Show server uptime", HandleShow);
-
-                m_console.Commands.AddCommand("General", false, "show version",
-                        "show version",
-                        "Show server version", HandleShow);
-
-                m_console.Commands.AddCommand("General", false, "threads abort",
-                        "threads abort <thread-id>",
-                        "Abort a managed thread.  Use \"show threads\" to find possible threads.", HandleThreadsAbort);
-
-                m_console.Commands.AddCommand("General", false, "threads show",
-                        "threads show",
-                        "Show thread status.  Synonym for \"show threads\"",
-                        (string module, string[] args) => Notice(GetThreadsReport()));
-
-                m_console.Commands.AddCommand("General", false, "force gc",
-                        "force gc",
-                        "Manually invoke runtime garbage collection.  For debugging purposes",
-                        HandleForceGc);
             }
+
+            if (null == m_consoleAppender)
+            {
+                Notice("No appender named Console found (see the log4net config file for this executable)!");
+            }
+            else
+            {
+                // FIXME: This should be done through an interface rather than casting.
+                m_consoleAppender.Console = (ConsoleBase)m_console;
+                
+                // If there is no threshold set then the threshold is effectively everything.
+                if (null == m_consoleAppender.Threshold)
+                    m_consoleAppender.Threshold = Level.All;
+                
+                Notice(String.Format("Console log level is {0}", m_consoleAppender.Threshold));
+            }
+
+            RegisterCommonCommands();
+            
+            m_console.Commands.AddCommand("General", false, "quit",
+                    "quit",
+                    "Quit the application", HandleQuit);
+
+            m_console.Commands.AddCommand("General", false, "shutdown",
+                    "shutdown",
+                    "Quit the application", HandleQuit);
+
+            m_console.Commands.AddCommand("General", false, "set log level",
+                    "set log level <level>",
+                    "Set the console logging level", HandleLogLevel);
+
+            m_console.Commands.AddCommand("General", false, "show info",
+                    "show info",
+                    "Show general information about the server", HandleShow);
+
+            m_console.Commands.AddCommand("General", false, "show threads",
+                    "show threads",
+                    "Show thread status", HandleShow);
+
+            m_console.Commands.AddCommand("General", false, "show version",
+                    "show version",
+                    "Show server version", HandleShow);
+
+            m_console.Commands.AddCommand("General", false, "threads abort",
+                    "threads abort <thread-id>",
+                    "Abort a managed thread.  Use \"show threads\" to find possible threads.", HandleThreadsAbort);
+
+            m_console.Commands.AddCommand("General", false, "threads show",
+                    "threads show",
+                    "Show thread status.  Synonym for \"show threads\"",
+                    (string module, string[] args) => Notice(GetThreadsReport()));
+
+            m_console.Commands.AddCommand("General", false, "force gc",
+                    "force gc",
+                    "Manually invoke runtime garbage collection.  For debugging purposes",
+                    HandleForceGc);
         }
 
         private void HandleForceGc(string module, string[] args)

@@ -49,6 +49,18 @@ namespace OpenSim.Framework.Servers
             m_startuptime = DateTime.Now;
         }
 
+        /// <summary>
+        /// Register common commands once m_console has been set if it is going to be set
+        /// </summary>
+        public void RegisterCommonCommands()
+        {
+            if (m_console == null)
+                return;
+
+            m_console.Commands.AddCommand(
+                "General", false, "show uptime", "show uptime", "Show server uptime", HandleShow);
+        }
+
         public virtual void HandleShow(string module, string[] cmd)
         {
             List<string> args = new List<string>(cmd);
