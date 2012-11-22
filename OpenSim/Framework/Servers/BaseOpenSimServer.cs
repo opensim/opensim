@@ -38,6 +38,8 @@ using log4net;
 using log4net.Appender;
 using log4net.Core;
 using log4net.Repository;
+using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Monitoring;
@@ -45,16 +47,12 @@ using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
 using Timer=System.Timers.Timer;
 
-using OpenMetaverse;
-using OpenMetaverse.StructuredData;
-
-
 namespace OpenSim.Framework.Servers
 {
     /// <summary>
     /// Common base for the main OpenSimServers (user, grid, inventory, region, etc)
     /// </summary>
-    public abstract class BaseOpenSimServer
+    public abstract class BaseOpenSimServer : ServerBase
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -67,11 +65,6 @@ namespace OpenSim.Framework.Servers
         protected CommandConsole m_console;
         protected OpenSimAppender m_consoleAppender;
         protected IAppender m_logFileAppender = null; 
-
-        /// <summary>
-        /// Time at which this server was started
-        /// </summary>
-        protected DateTime m_startuptime;
 
         /// <summary>
         /// Record the initial startup directory for info purposes
@@ -96,9 +89,8 @@ namespace OpenSim.Framework.Servers
             get { return m_httpServer; }
         }
 
-        public BaseOpenSimServer()
+        public BaseOpenSimServer() : base()
         {
-            m_startuptime = DateTime.Now;
             m_version = VersionInfo.Version;
             
             // Random uuid for private data
@@ -279,19 +271,6 @@ namespace OpenSim.Framework.Servers
 
             sb.Append("Main threadpool (excluding script engine pools)\n");
             sb.Append(Util.GetThreadPoolReport());
-
-            return sb.ToString();
-        }
-
-        /// <summary>
-        /// Return a report about the uptime of this server
-        /// </summary>
-        /// <returns></returns>
-        protected string GetUptimeReport()
-        {
-            StringBuilder sb = new StringBuilder(String.Format("Time now is {0}\n", DateTime.Now));
-            sb.Append(String.Format("Server has been running since {0}, {1}\n", m_startuptime.DayOfWeek, m_startuptime));
-            sb.Append(String.Format("That is an elapsed time of {0}\n", DateTime.Now - m_startuptime));
 
             return sb.ToString();
         }
