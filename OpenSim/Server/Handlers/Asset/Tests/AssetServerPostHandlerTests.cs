@@ -27,6 +27,7 @@
 
 using System;
 using System.IO;
+using System.Net;
 using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
@@ -38,6 +39,7 @@ using OpenSim.Server.Handlers.Asset;
 using OpenSim.Services.AssetService;
 using OpenSim.Services.Interfaces;
 using OpenSim.Tests.Common;
+using OpenSim.Tests.Common.Mock;
 
 namespace OpenSim.Server.Handlers.Asset.Test
 {
@@ -79,6 +81,30 @@ namespace OpenSim.Server.Handlers.Asset.Test
             AssetBase retrievedAsset = assetService.Get(assetId.ToString());
 
             Assert.That(retrievedAsset, Is.Not.Null);
+        }
+
+        [Test]
+        public void TestBadXmlAssetStoreRequest()
+        {
+            TestHelpers.InMethod();
+
+            IConfigSource config = new IniConfigSource();         
+            config.AddConfig("AssetService");           
+            config.Configs["AssetService"].Set("StorageProvider", "OpenSim.Tests.Common.dll");
+
+            AssetService assetService = new AssetService(config);
+
+            AssetServerPostHandler asph = new AssetServerPostHandler(assetService);          
+
+            MemoryStream buffer = new MemoryStream();
+            byte[] badData = new byte[] { 0x48, 0x65, 0x6c, 0x6c, 0x6f };
+            buffer.Write(badData, 0, badData.Length);
+            buffer.Position = 0;
+
+            TestOSHttpResponse response = new TestOSHttpResponse();
+            asph.Handle(null, buffer, null, response);
+
+            Assert.That(response.StatusCode, Is.EqualTo((int)HttpStatusCode.BadRequest));
         }
     }
 }
