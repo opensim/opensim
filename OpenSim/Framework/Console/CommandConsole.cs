@@ -711,7 +711,7 @@ namespace OpenSim.Framework.Console
         /// </summary>
         public void Prompt()
         {
-            string line = ReadLine(m_defaultPrompt + "# ", true, true);
+            string line = ReadLine(DefaultPrompt + "# ", true, true);
 
             if (line != String.Empty)
                 Output("Invalid command");

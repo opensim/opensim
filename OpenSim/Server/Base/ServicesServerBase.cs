@@ -56,22 +56,9 @@ namespace OpenSim.Server.Base
         //
         protected string[] m_Arguments;
 
-        // Configuration
-        //
-        protected IConfigSource m_Config = null;
-
-        public IConfigSource Config
-        {
-            get { return m_Config; }
-        }
-
         // Run flag
         //
         private bool m_Running = true;
-
-        // PID file
-        //
-        private string m_pidFile = String.Empty;
 
         // Handle all the automagical stuff
         //
@@ -122,11 +109,11 @@ namespace OpenSim.Server.Base
                     configUri.Scheme == Uri.UriSchemeHttp)
                 {
                     XmlReader r = XmlReader.Create(iniFile);
-                    m_Config = new XmlConfigSource(r);
+                    Config = new XmlConfigSource(r);
                 }
                 else
                 {
-                    m_Config = new IniConfigSource(iniFile);
+                    Config = new IniConfigSource(iniFile);
                 }
             }
             catch (Exception e)
@@ -138,13 +125,13 @@ namespace OpenSim.Server.Base
             // Merge the configuration from the command line into the
             // loaded file
             //
-            m_Config.Merge(argvConfig);
+            Config.Merge(argvConfig);
 
             // Refresh the startupConfig post merge
             //
-            if (m_Config.Configs["Startup"] != null)
+            if (Config.Configs["Startup"] != null)
             {
-                startupConfig = m_Config.Configs["Startup"];
+                startupConfig = Config.Configs["Startup"];
             }
 
             prompt = startupConfig.GetString("Prompt", prompt);
@@ -174,6 +161,8 @@ namespace OpenSim.Server.Base
                 MainConsole.Instance = new LocalConsole(prompt);
             }
 
+            m_console = MainConsole.Instance;
+
             // Configure the appenders for log4net
             //
             OpenSimAppender consoleAppender = null;
@@ -189,53 +178,14 @@ namespace OpenSim.Server.Base
                 XmlConfigurator.Configure();
             }
 
-            ILoggerRepository repository = LogManager.GetRepository();
-            IAppender[] appenders = repository.GetAppenders();
-
-            foreach (IAppender appender in appenders)
-            {
-                if (appender.Name == "Console")
-                {
-                    consoleAppender = (OpenSimAppender)appender;
-                }
-                if (appender.Name == "LogFileAppender")
-                {
-                    fileAppender = (FileAppender)appender;
-                }
-            }
-
-            if (consoleAppender == null)
-            {
-                System.Console.WriteLine("No console appender found. Server can't start");
-                Thread.CurrentThread.Abort();
-            }
-            else
-            {
-                consoleAppender.Console = (ConsoleBase)MainConsole.Instance;
-
-                if (null == consoleAppender.Threshold)
-                    consoleAppender.Threshold = Level.All;
-            }
-
-            // Set log file
-            //
-            if (fileAppender != null)
-            {
-                if (startupConfig != null)
-                {
-                    string cfgFileName = startupConfig.GetString("logfile", null);
-                    if (cfgFileName != null)
-                    {
-                        fileAppender.File = cfgFileName;
-                        fileAppender.ActivateOptions();
-                    }
-                }
-            }
+            RegisterCommonAppenders(startupConfig);
 
             if (startupConfig.GetString("PIDFile", String.Empty) != String.Empty)
             {
                 CreatePIDFile(startupConfig.GetString("PIDFile"));
             }
+
+            RegisterCommonCommands();
 
             // Register the quit command
             //
@@ -246,16 +196,6 @@ namespace OpenSim.Server.Base
             MainConsole.Instance.Commands.AddCommand("General", false, "shutdown",
                     "shutdown",
                     "Quit the application", HandleQuit);
-            
-            // Register a command to read other commands from a file
-            MainConsole.Instance.Commands.AddCommand("General", false, "command-script",
-                                          "command-script <script>",
-                                          "Run a command script from file", HandleScript);
-
-            MainConsole.Instance.Commands.AddCommand("General", false, "show uptime",
-                        "show uptime",
-                        "Show server uptime", HandleShow);
-
 
             // Allow derived classes to perform initialization that
             // needs to be done after the console has opened
@@ -282,8 +222,8 @@ namespace OpenSim.Server.Base
                 }
             }
 
-            if (m_pidFile != String.Empty)
-                File.Delete(m_pidFile);
+            RemovePIDFile();
+
             return 0;
         }
 
@@ -291,42 +231,8 @@ namespace OpenSim.Server.Base
         {
             m_Running = false;
             m_log.Info("[CONSOLE] Quitting");
+
         }
-
-        protected virtual void HandleScript(string module, string[] parms)
-        {
-            if (parms.Length != 2)
-            {
-                return;
-            }
-            RunCommandScript(parms[1]);
-        }
-
-        /// <summary>
-        /// Run an optional startup list of commands
-        /// </summary>
-        /// <param name="fileName"></param>
-        private void RunCommandScript(string fileName)
-        {
-            if (File.Exists(fileName))
-            {
-                m_log.Info("[COMMANDFILE]: Running " + fileName);
-
-                using (StreamReader readFile = File.OpenText(fileName))
-                {
-                    string currentCommand;
-                    while ((currentCommand = readFile.ReadLine()) != null)
-                    {
-                        if (currentCommand != String.Empty)
-                        {
-                            m_log.Info("[COMMANDFILE]: Running '" + currentCommand + "'");
-                            MainConsole.Instance.RunCommand(currentCommand);
-                        }
-                    }
-                }
-            }
-        }
-
 
         protected virtual void ReadConfig()
         {
@@ -334,38 +240,6 @@ namespace OpenSim.Server.Base
 
         protected virtual void Initialise()
         {
-        }
-
-        protected void CreatePIDFile(string path)
-        {
-            try
-            {
-                string pidstring = System.Diagnostics.Process.GetCurrentProcess().Id.ToString();
-                FileStream fs = File.Create(path);
-                Byte[] buf = Encoding.ASCII.GetBytes(pidstring);
-                fs.Write(buf, 0, buf.Length);
-                fs.Close();
-                m_pidFile = path;
-            }
-            catch (Exception)
-            {
-            }
-        }
-
-        public virtual void HandleShow(string module, string[] cmd)
-        {
-            List<string> args = new List<string>(cmd);
-
-            args.RemoveAt(0);
-
-            string[] showParams = args.ToArray();
-
-            switch (showParams[0])
-            {
-                case "uptime":
-                    MainConsole.Instance.Output(GetUptimeReport());
-                    break;
-            }
         }
     }
 }

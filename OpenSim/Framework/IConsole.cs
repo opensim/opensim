@@ -32,7 +32,7 @@ namespace OpenSim.Framework
 {
     public interface IConsole
     {
-        object ConsoleScene { get; }
+        object ConsoleScene { get; set; }
 
         void Output(string text, string level);
         void Output(string text);
