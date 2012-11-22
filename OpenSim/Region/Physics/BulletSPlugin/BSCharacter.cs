@@ -82,7 +82,13 @@ public sealed class BSCharacter : BSPhysObject
     {
         _physicsActorType = (int)ActorTypes.Agent;
         _position = pos;
+
+        // Old versions of ScenePresence passed only the height. If width and/or depth are zero,
+        //     replace with the default values.
         _size = size;
+        if (_size.X == 0f) _size.X = PhysicsScene.Params.avatarCapsuleDepth;
+        if (_size.Y == 0f) _size.Y = PhysicsScene.Params.avatarCapsuleWidth;
+
         _flying = isFlying;
         _orientation = OMV.Quaternion.Identity;
         _velocity = OMV.Vector3.Zero;
@@ -175,8 +181,7 @@ public sealed class BSCharacter : BSPhysObject
         get
         {
             // Avatar capsule size is kept in the scale parameter.
-            // return _size;
-            return new OMV.Vector3(Scale.X * 2f, Scale.Y * 2f, Scale.Z);
+            return _size;
         }
 
         set {
@@ -184,8 +189,8 @@ public sealed class BSCharacter : BSPhysObject
             _size = value;
             ComputeAvatarScale(_size);
             ComputeAvatarVolumeAndMass();
-            DetailLog("{0},BSCharacter.setSize,call,scale={1},density={2},volume={3},mass={4}",
-                            LocalID, Scale, _avatarDensity, _avatarVolume, RawMass);
+            DetailLog("{0},BSCharacter.setSize,call,size={1},scale={2},density={3},volume={4},mass={5}",
+                            LocalID, _size, Scale, _avatarDensity, _avatarVolume, RawMass);
 
             PhysicsScene.TaintedObject("BSCharacter.setSize", delegate()
             {
@@ -203,9 +208,9 @@ public sealed class BSCharacter : BSPhysObject
         set { BaseShape = value; }
     }
     // I want the physics engine to make an avatar capsule
-    public override ShapeData.PhysicsShapeType PreferredPhysicalShape
+    public override PhysicsShapeType PreferredPhysicalShape
     {
-        get {return ShapeData.PhysicsShapeType.SHAPE_AVATAR; }
+        get {return PhysicsShapeType.SHAPE_CAPSULE; }
     }
 
     public override bool Grabbed {
@@ -614,13 +619,19 @@ public sealed class BSCharacter : BSPhysObject
         // The 'size' given by the simulator is the mid-point of the avatar
         //    and X and Y are unspecified.
 
-        OMV.Vector3 newScale = OMV.Vector3.Zero;
-        newScale.X = PhysicsScene.Params.avatarCapsuleRadius;
-        newScale.Y = PhysicsScene.Params.avatarCapsuleRadius;
+        OMV.Vector3 newScale = size;
+        // newScale.X = PhysicsScene.Params.avatarCapsuleWidth;
+        // newScale.Y = PhysicsScene.Params.avatarCapsuleDepth;
 
         // From the total height, remove the capsule half spheres that are at each end
-        newScale.Z = size.Z - (newScale.X + newScale.Y);
-        Scale = newScale;
+        // The 1.15f came from ODE. Not sure what this factors in.
+        // newScale.Z = (size.Z * 1.15f) - (newScale.X + newScale.Y);
+
+        // The total scale height is the central cylindar plus the caps on the two ends.
+        newScale.Z = size.Z + (Math.Min(size.X, size.Y) * 2f);
+
+        // Convert diameters to radii and height to half height -- the way Bullet expects it.
+        Scale = newScale / 2f;
     }
 
     // set _avatarVolume and _mass based on capsule size, _density and Scale

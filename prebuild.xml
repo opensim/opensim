@@ -3421,6 +3421,52 @@
       </Files>
     </Project>
 
+    <Project frameworkVersion="v3_5" name="OpenSim.Server.Handlers.Tests" path="OpenSim/Server/Handlers" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../bin/</ReferencePath>
+      <Reference name="System"/>
+      <Reference name="System.Xml"/>
+      <Reference name="System.Web"/>
+      <Reference name="log4net" path="../../../bin/"/>
+      <Reference name="Nini" path="../../../bin/"/>
+      <Reference name="nunit.framework" path="../../../bin/"/>
+      <Reference name="OpenMetaverseTypes" path="../../../bin/"/>
+      <Reference name="OpenMetaverse" path="../../../bin/"/>
+      <Reference name="OpenMetaverse.StructuredData" path="../../../bin/"/>
+      <Reference name="XMLRPC" path="../../../bin/"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Framework.Servers.HttpServer"/>
+      <Reference name="OpenSim.Server.Base"/>
+      <Reference name="OpenSim.Server.Handlers"/>
+      <Reference name="OpenSim.Services.AssetService"/>
+      <Reference name="OpenSim.Services.Base"/>
+      <Reference name="OpenSim.Services.Interfaces"/>
+      <Reference name="OpenSim.Services.UserAccountService"/>
+      <Reference name="OpenSim.Tests.Common"/>
+
+      <!--
+           TODO: this is kind of lame, we basically build a duplicate
+           assembly but with tests added in, just so that we don't
+           need to hard code in a bunch of Test directories here.  If
+           pattern="Tests/*.cs" worked, we wouldn't need this.
+      -->
+      <Files>
+        <!-- SADLY the way this works means you need to keep adding these paths -->
+        <Match path="Asset/Tests" pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
     <Project frameworkVersion="v3_5" name="OpenSim.Tests.Stress" path="OpenSim/Tests/Stress" type="Library">
       <Configuration name="Debug">
         <Options>
