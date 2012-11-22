@@ -250,7 +250,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 base(null, null, null, null, pId, int.MaxValue)
             {
                 m_scene = scene;
-                m_throttler = new MeshCapsDataThrottler(100000, 1400000, 10000, scene);
+                m_throttler = new MeshCapsDataThrottler(100000, 1400000, 10000, scene, pId);
                 // x is request id, y is userid
                 HasEvents = (x, y) =>
                 {
@@ -419,21 +419,35 @@ namespace OpenSim.Region.ClientStack.Linden
             private float CapThrottleDistributon = 0.30f;
             private readonly Scene m_scene;
             private ThrottleOutPacketType Throttle;
+            private readonly UUID User;
             
-            public MeshCapsDataThrottler(int pBytes, int max, int min, Scene pScene)
+            public MeshCapsDataThrottler(int pBytes, int max, int min, Scene pScene, UUID puser)
             {
                 ThrottleBytes = pBytes;
                 lastTimeElapsed = Util.EnvironmentTickCount();
                 Throttle = ThrottleOutPacketType.Task;
                 m_scene = pScene;
+                User = puser;
             }
 
 
             public bool hasEvents(UUID key, Dictionary<UUID, aPollResponse> responses)
             {
+                const float ThirtyPercent = 0.30f;
+                const float FivePercent = 0.05f;
                 PassTime();
                 // Note, this is called IN LOCK
                 bool haskey = responses.ContainsKey(key);
+
+                if (responses.Count > 2)
+                {
+                    SplitThrottle(ThirtyPercent);
+                }
+                else
+                {
+                    SplitThrottle(FivePercent);
+                }
+
                 if (!haskey)
                 {
                     return false;
@@ -441,7 +455,8 @@ namespace OpenSim.Region.ClientStack.Linden
                 aPollResponse response;
                 if (responses.TryGetValue(key, out response))
                 {
-
+                    float LOD3Over = (((ThrottleBytes*CapThrottleDistributon)%50000) + 1);
+                    float LOD2Over = (((ThrottleBytes*CapThrottleDistributon)%10000) + 1);
                     // Normal
                     if (BytesSent + response.bytes <= ThrottleBytes)
                     {
@@ -449,16 +464,16 @@ namespace OpenSim.Region.ClientStack.Linden
                        
                         return true;
                     }
-                    // Lod3 Over
-                    else if (response.bytes > ThrottleBytes && Lod3 <= (((ThrottleBytes * .30f) % 50000) + 1))
+                    // Lod3 Over Throttle protection to keep things processing even when the throttle bandwidth is set too little.
+                    else if (response.bytes > ThrottleBytes && Lod3 <= ((LOD3Over < 1)? 1: LOD3Over) )
                     {
                         Interlocked.Increment(ref Lod3);
                         BytesSent += response.bytes;
                        
                         return true;
                     }
-                    // Lod2 Over
-                    else if (response.bytes > ThrottleBytes && Lod2 <= (((ThrottleBytes * .30f) % 10000) + 1))
+                    // Lod2 Over Throttle protection to keep things processing even when the throttle bandwidth is set too little.
+                    else if (response.bytes > ThrottleBytes && Lod2 <= ((LOD2Over < 1) ? 1 : LOD2Over))
                     {
                         Interlocked.Increment(ref Lod2);
                         BytesSent += response.bytes;
@@ -477,7 +492,20 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 BytesSent -= bytes;
             }
+            private void SplitThrottle(float percentMultiplier)
+            {
 
+                if (CapThrottleDistributon != percentMultiplier) // don't switch it if it's already set at the % multipler
+                {
+                    CapThrottleDistributon = percentMultiplier;
+                    ScenePresence p;
+                    if (m_scene.TryGetScenePresence(User, out p)) // If we don't get a user they're not here anymore.
+                    {
+                        AlterThrottle(UserSetThrottle, p);
+                    }
+                }
+            }
+           
             public void ProcessTime()
             {
                 PassTime();
