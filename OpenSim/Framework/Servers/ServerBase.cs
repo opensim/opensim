@@ -126,6 +126,10 @@ namespace OpenSim.Framework.Servers
 
             m_console.Commands.AddCommand(
                 "General", false, "show uptime", "show uptime", "Show server uptime", HandleShow);
+
+            m_console.Commands.AddCommand(
+                "General", false, "set log level", "set log level <level>", "Set the console logging level", 
+                HandleLogLevel);
         }
 
         public virtual void HandleShow(string module, string[] cmd)
@@ -146,6 +150,33 @@ namespace OpenSim.Framework.Servers
                     Notice(GetUptimeReport());
                     break;
             }
+        }
+
+        private void HandleLogLevel(string module, string[] cmd)
+        {
+            if (null == m_consoleAppender)
+            {
+                Notice("No appender named Console found (see the log4net config file for this executable)!");
+                return;
+            }
+      
+            if (cmd.Length > 3)
+            {
+                string rawLevel = cmd[3];
+                
+                ILoggerRepository repository = LogManager.GetRepository();
+                Level consoleLevel = repository.LevelMap[rawLevel];
+                
+                if (consoleLevel != null)
+                    m_consoleAppender.Threshold = consoleLevel;
+                else
+                    Notice(
+                        String.Format(
+                            "{0} is not a valid logging level.  Valid logging levels are ALL, DEBUG, INFO, WARN, ERROR, FATAL, OFF",
+                            rawLevel));
+            }
+
+            Notice(String.Format("Console log level is {0}", m_consoleAppender.Threshold));
         }
 
         /// <summary>

@@ -285,7 +285,6 @@ namespace OpenSim.Server.Base
             }
         }
 
-
         protected virtual void ReadConfig()
         {
         }
