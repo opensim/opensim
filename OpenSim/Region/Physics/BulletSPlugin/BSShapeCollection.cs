@@ -525,9 +525,6 @@ public sealed class BSShapeCollection : IDisposable
         // release any previous shape
         DereferenceShape(prim.PhysShape, true, shapeCallback);
 
-        // Bullet native objects are scaled by the Bullet engine so pass the size in
-        prim.Scale = prim.Size;
-
         BulletShape newShape = BuildPhysicalNativeShape(prim, shapeType, shapeKey);
 
         // Don't need to do a 'ReferenceShape()' here because native shapes are not shared.
@@ -547,12 +544,13 @@ public sealed class BSShapeCollection : IDisposable
         nativeShapeData.Type = shapeType;
         nativeShapeData.ID = prim.LocalID;
         nativeShapeData.Scale = prim.Scale;
-        nativeShapeData.Size = prim.Scale;
+        nativeShapeData.Size = prim.Scale;  // unneeded, I think.
         nativeShapeData.MeshKey = (ulong)shapeKey;
         nativeShapeData.HullKey = (ulong)shapeKey;
 
         if (shapeType == PhysicsShapeType.SHAPE_CAPSULE)
         {
+            // The proper scale has been calculated in the prim.
             newShape = new BulletShape(
                         BulletSimAPI.BuildCapsuleShape2(PhysicsScene.World.ptr, 1f, 1f, prim.Scale)
                         , shapeType);
@@ -560,6 +558,9 @@ public sealed class BSShapeCollection : IDisposable
         }
         else
         {
+            // Native shapes are scaled in Bullet so set the scaling to the size
+            prim.Scale = prim.Size;
+            nativeShapeData.Scale = prim.Scale;
             newShape = new BulletShape(BulletSimAPI.BuildNativeShape2(PhysicsScene.World.ptr, nativeShapeData), shapeType);
         }
         if (newShape.ptr == IntPtr.Zero)

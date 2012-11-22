@@ -291,7 +291,8 @@ public struct ConfigurationParameters
     public float avatarStandingFriction;
     public float avatarDensity;
     public float avatarRestitution;
-    public float avatarCapsuleRadius;
+    public float avatarCapsuleWidth;
+    public float avatarCapsuleDepth;
     public float avatarCapsuleHeight;
 	public float avatarContactProcessingThreshold;
 

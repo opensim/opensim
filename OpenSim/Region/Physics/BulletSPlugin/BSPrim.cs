@@ -93,7 +93,7 @@ public sealed class BSPrim : BSPhysObject
         _physicsActorType = (int)ActorTypes.Prim;
         _position = pos;
         _size = size;
-        Scale = new OMV.Vector3(1f, 1f, 1f);   // the scale will be set by CreateGeom depending on object type
+        Scale = size;   // the scale will be set by CreateGeom depending on object type
         _orientation = rotation;
         _buoyancy = 1f;
         _velocity = OMV.Vector3.Zero;
@@ -154,6 +154,8 @@ public sealed class BSPrim : BSPhysObject
     public override OMV.Vector3 Size {
         get { return _size; }
         set {
+            // We presume the scale and size are the same. If scale must be changed for
+            //     the physical shape, that is done when the geometry is built.
             _size = value;
             ForceBodyShapeRebuild(false);
         }

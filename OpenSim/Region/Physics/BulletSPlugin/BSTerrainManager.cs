@@ -308,7 +308,7 @@ public sealed class BSTerrainManager
     {
         PhysicsScene.Logger.DebugFormat("{0} Terrain for {1}/{2} created with {3}", 
                                             LogHeader, PhysicsScene.RegionName, terrainRegionBase, 
-                                            PhysicsScene.Params.terrainImplementation);
+                                            (BSTerrainPhys.TerrainImplementation)PhysicsScene.Params.terrainImplementation);
         BSTerrainPhys newTerrainPhys = null;
         switch ((int)PhysicsScene.Params.terrainImplementation)
         {
