@@ -61,8 +61,6 @@ namespace OpenSim.Framework.Servers
         /// server.
         /// </summary>
         private Timer m_periodicDiagnosticsTimer = new Timer(60 * 60 * 1000);
-
-        protected string m_pidFile = String.Empty;
         
         /// <summary>
         /// Random uuid for private data 
@@ -293,23 +291,6 @@ namespace OpenSim.Framework.Servers
                 MainConsole.Instance.OutputFormat("ERROR - Thread with id {0} not found in managed threads", threadId);
         }       
         
-        protected void CreatePIDFile(string path)
-        {
-            try
-            {
-                string pidstring = System.Diagnostics.Process.GetCurrentProcess().Id.ToString();
-                FileStream fs = File.Create(path);
-
-                Byte[] buf = Encoding.ASCII.GetBytes(pidstring);
-                fs.Write(buf, 0, buf.Length);
-                fs.Close();
-                m_pidFile = path;
-            }
-            catch (Exception)
-            {
-            }
-        }
-        
         public string osSecret {
             // Secret uuid for the simulator
             get { return m_osSecret; }            
@@ -325,21 +306,6 @@ namespace OpenSim.Framework.Servers
             else 
             {
                 return StatsManager.SimExtraStats.XReport((DateTime.Now - m_startuptime).ToString() , m_version);
-            }
-        }
-           
-        protected void RemovePIDFile()
-        {
-            if (m_pidFile != String.Empty)
-            {
-                try
-                {
-                    File.Delete(m_pidFile);
-                    m_pidFile = String.Empty;
-                }
-                catch (Exception)
-                {
-                }
             }
         }
     }

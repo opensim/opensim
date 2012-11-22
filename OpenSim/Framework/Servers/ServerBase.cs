@@ -55,6 +55,8 @@ namespace OpenSim.Framework.Servers
         protected DateTime m_startuptime;
         protected string m_startupDirectory = Environment.CurrentDirectory;
 
+        protected string m_pidFile = String.Empty;
+
         /// <summary>
         /// Server version information.  Usually VersionInfo + information about git commit, operating system, etc.
         /// </summary>
@@ -65,6 +67,45 @@ namespace OpenSim.Framework.Servers
             m_startuptime = DateTime.Now;
             m_version = VersionInfo.Version;
             EnhanceVersionInformation();
+        }
+
+        protected void CreatePIDFile(string path)
+        {
+            try
+            {
+                string pidstring = System.Diagnostics.Process.GetCurrentProcess().Id.ToString();
+
+                using (FileStream fs = File.Create(path))
+                {
+                    Byte[] buf = Encoding.ASCII.GetBytes(pidstring);
+                    fs.Write(buf, 0, buf.Length);
+                }
+
+                m_pidFile = path;
+
+                m_log.InfoFormat("[SERVER BASE]: Created pid file {0}", m_pidFile);
+            }
+            catch (Exception e)
+            {
+                m_log.Warn(string.Format("[SERVER BASE]: Could not create PID file at {0} ", path), e);
+            }
+        }
+           
+        protected void RemovePIDFile()
+        {
+            if (m_pidFile != String.Empty)
+            {
+                try
+                {
+                    File.Delete(m_pidFile);
+                }
+                catch (Exception e)
+                {
+                    m_log.Error(string.Format("[SERVER BASE]: Error whilst removing {0} ", m_pidFile), e);
+                }
+
+                m_pidFile = String.Empty;
+            }
         }
 
         public void RegisterCommonAppenders(IConfig startupConfig)
@@ -109,7 +150,7 @@ namespace OpenSim.Framework.Servers
                     m_logFileAppender.ActivateOptions();
                 }
 
-                m_log.InfoFormat("[LOGGING]: Logging started to file {0}", m_logFileAppender.File);
+                m_log.InfoFormat("[SERVER BASE]: Logging started to file {0}", m_logFileAppender.File);
             }
         }
 
@@ -243,26 +284,26 @@ namespace OpenSim.Framework.Servers
             }
             else if (File.Exists(gitRefPointerPath))
             {
-//                m_log.DebugFormat("[OPENSIM]: Found {0}", gitRefPointerPath);
+//                m_log.DebugFormat("[SERVER BASE]: Found {0}", gitRefPointerPath);
 
                 string rawPointer = "";
 
                 using (StreamReader pointerFile = File.OpenText(gitRefPointerPath))
                     rawPointer = pointerFile.ReadLine();
 
-//                m_log.DebugFormat("[OPENSIM]: rawPointer [{0}]", rawPointer);
+//                m_log.DebugFormat("[SERVER BASE]: rawPointer [{0}]", rawPointer);
 
                 Match m = Regex.Match(rawPointer, "^ref: (.+)$");
 
                 if (m.Success)
                 {
-//                    m_log.DebugFormat("[OPENSIM]: Matched [{0}]", m.Groups[1].Value);
+//                    m_log.DebugFormat("[SERVER BASE]: Matched [{0}]", m.Groups[1].Value);
 
                     string gitRef = m.Groups[1].Value;
                     string gitRefPath = gitDir + gitRef;
                     if (File.Exists(gitRefPath))
                     {
-//                        m_log.DebugFormat("[OPENSIM]: Found gitRefPath [{0}]", gitRefPath);
+//                        m_log.DebugFormat("[SERVER BASE]: Found gitRefPath [{0}]", gitRefPath);
 
                         using (StreamReader refFile = File.OpenText(gitRefPath))
                         {
