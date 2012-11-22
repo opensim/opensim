@@ -88,11 +88,11 @@ public struct BulletShape
     public BulletShape(IntPtr xx)
     {
         ptr = xx;
-        type=PhysicsShapeType.SHAPE_UNKNOWN;
+        type=BSPhysicsShapeType.SHAPE_UNKNOWN;
         shapeKey = (System.UInt64)FixedShapeKey.KEY_NONE;
         isNativeShape = false;
     }
-    public BulletShape(IntPtr xx, PhysicsShapeType typ)
+    public BulletShape(IntPtr xx, BSPhysicsShapeType typ)
     {
         ptr = xx;
         type = typ;
@@ -100,7 +100,7 @@ public struct BulletShape
         isNativeShape = false;
     }
     public IntPtr ptr;
-    public PhysicsShapeType type;
+    public BSPhysicsShapeType type;
     public System.UInt64 shapeKey;
     public bool isNativeShape;
     public override string ToString()
@@ -178,7 +178,7 @@ public struct ConvexHull
 	int VertexCount;
 	Vector3[] Vertices;
 }
-public enum PhysicsShapeType
+public enum BSPhysicsShapeType
 {
 	SHAPE_UNKNOWN   = 0,
 	SHAPE_CAPSULE   = 1,
@@ -210,7 +210,7 @@ public enum FixedShapeKey : ulong
 public struct ShapeData
 {
     public uint ID;
-    public PhysicsShapeType Type;
+    public BSPhysicsShapeType Type;
     public Vector3 Position;
     public Quaternion Rotation;
     public Vector3 Velocity;

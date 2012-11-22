@@ -171,7 +171,7 @@ public sealed class BSPrim : BSPhysObject
         }
     }
     // Whatever the linkset wants is what I want.
-    public override PhysicsShapeType PreferredPhysicalShape
+    public override BSPhysicsShapeType PreferredPhysicalShape
         { get { return Linkset.PreferredPhysicalShape(this); } }
 
     public override bool ForceBodyShapeRebuild(bool inTaintTime)

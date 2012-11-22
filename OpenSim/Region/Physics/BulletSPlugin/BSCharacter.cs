@@ -208,9 +208,9 @@ public sealed class BSCharacter : BSPhysObject
         set { BaseShape = value; }
     }
     // I want the physics engine to make an avatar capsule
-    public override PhysicsShapeType PreferredPhysicalShape
+    public override BSPhysicsShapeType PreferredPhysicalShape
     {
-        get {return PhysicsShapeType.SHAPE_CAPSULE; }
+        get {return BSPhysicsShapeType.SHAPE_CAPSULE; }
     }
 
     public override bool Grabbed {

@@ -35,7 +35,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 public abstract class BSShape
 {
     public IntPtr ptr { get; set; }
-    public PhysicsShapeType type { get; set; }
+    public BSPhysicsShapeType type { get; set; }
     public System.UInt64 key { get; set; }
     public int referenceCount { get; set; }
     public DateTime lastReferenced { get; set; }
@@ -43,7 +43,7 @@ public abstract class BSShape
     public BSShape()
     {
         ptr = IntPtr.Zero;
-        type = PhysicsShapeType.SHAPE_UNKNOWN;
+        type = BSPhysicsShapeType.SHAPE_UNKNOWN;
         key = 0;
         referenceCount = 0;
         lastReferenced = DateTime.Now;
@@ -54,17 +54,17 @@ public abstract class BSShape
     {
         BSShape ret = null;
 
-        if (prim.PreferredPhysicalShape == PhysicsShapeType.SHAPE_CAPSULE)
+        if (prim.PreferredPhysicalShape == BSPhysicsShapeType.SHAPE_CAPSULE)
         {
             // an avatar capsule is close to a native shape (it is not shared)
-            ret = BSShapeNative.GetReference(physicsScene, prim, PhysicsShapeType.SHAPE_CAPSULE,
+            ret = BSShapeNative.GetReference(physicsScene, prim, BSPhysicsShapeType.SHAPE_CAPSULE,
                                         FixedShapeKey.KEY_CAPSULE);
             physicsScene.DetailLog("{0},BSShape.GetShapeReference,avatarCapsule,shape={1}", prim.LocalID, ret);
         }
 
         // Compound shapes are handled special as they are rebuilt from scratch.
         // This isn't too great a hardship since most of the child shapes will already been created.
-        if (ret == null  && prim.PreferredPhysicalShape == PhysicsShapeType.SHAPE_COMPOUND)
+        if (ret == null  && prim.PreferredPhysicalShape == BSPhysicsShapeType.SHAPE_COMPOUND)
         {
             // Getting a reference to a compound shape gets you the compound shape with the root prim shape added
             ret = BSShapeCompound.GetReference(prim);
@@ -123,14 +123,14 @@ public class BSShapeNative : BSShape
     {
     }
     public static BSShape GetReference(BSScene physicsScene, BSPhysObject prim, 
-                    PhysicsShapeType shapeType, FixedShapeKey shapeKey) 
+                    BSPhysicsShapeType shapeType, FixedShapeKey shapeKey) 
     {
         // Native shapes are not shared and are always built anew.
         return new BSShapeNative(physicsScene, prim, shapeType, shapeKey);
     }
 
     private BSShapeNative(BSScene physicsScene, BSPhysObject prim,
-                    PhysicsShapeType shapeType, FixedShapeKey shapeKey)
+                    BSPhysicsShapeType shapeType, FixedShapeKey shapeKey)
     {
         ShapeData nativeShapeData = new ShapeData();
         nativeShapeData.Type = shapeType;
@@ -141,7 +141,7 @@ public class BSShapeNative : BSShape
         nativeShapeData.HullKey = (ulong)shapeKey;
 
        
-        if (shapeType == PhysicsShapeType.SHAPE_CAPSULE)
+        if (shapeType == BSPhysicsShapeType.SHAPE_CAPSULE)
         {
             ptr = BulletSimAPI.BuildCapsuleShape2(physicsScene.World.ptr, 1f, 1f, prim.Scale);
             physicsScene.DetailLog("{0},BSShapeCollection.BuiletPhysicalNativeShape,capsule,scale={1}", prim.LocalID, prim.Scale);

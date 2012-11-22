@@ -130,7 +130,7 @@ public sealed class BSTerrainManager
         // The ground plane is here to catch things that are trying to drop to negative infinity
         BulletShape groundPlaneShape = new BulletShape(
                     BulletSimAPI.CreateGroundPlaneShape2(BSScene.GROUNDPLANE_ID, 1f, TERRAIN_COLLISION_MARGIN),
-                    PhysicsShapeType.SHAPE_GROUNDPLANE);
+                    BSPhysicsShapeType.SHAPE_GROUNDPLANE);
         m_groundPlane = new BulletBody(BSScene.GROUNDPLANE_ID,
                         BulletSimAPI.CreateBodyWithDefaultMotionState2(groundPlaneShape.ptr, BSScene.GROUNDPLANE_ID,
                                                             Vector3.Zero, Quaternion.Identity));

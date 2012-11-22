@@ -91,7 +91,7 @@ public sealed class BSTerrainMesh : BSTerrainPhys
 
         m_terrainShape = new BulletShape(BulletSimAPI.CreateMeshShape2(PhysicsScene.World.ptr,
                                         indicesCount, indices, verticesCount, vertices),
-                                        PhysicsShapeType.SHAPE_MESH);
+                                        BSPhysicsShapeType.SHAPE_MESH);
         if (m_terrainShape.ptr == IntPtr.Zero)
         {
             // DISASTER!!
