@@ -44,6 +44,8 @@ namespace OpenSim.Framework.Servers
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        public IConfigSource Config { get; protected set; }
+
         /// <summary>
         /// Console to be used for any command line output.  Can be null, in which case there should be no output.
         /// </summary>
@@ -175,6 +177,30 @@ namespace OpenSim.Framework.Servers
             m_console.Commands.AddCommand(
                 "General", false, "set log level", "set log level <level>", 
                 "Set the console logging level for this session.", HandleSetLogLevel);
+
+            m_console.Commands.AddCommand(
+                "General", false, "config set",
+                "config set <section> <key> <value>",
+                "Set a config option.  In most cases this is not useful since changed parameters are not dynamically reloaded.  Neither do changed parameters persist - you will have to change a config file manually and restart.", HandleConfig);
+
+            m_console.Commands.AddCommand(
+                "General", false, "config get",
+                "config get [<section>] [<key>]",
+                "Synonym for config show",
+                HandleConfig);
+            
+            m_console.Commands.AddCommand(
+                "General", false, "config show",
+                "config show [<section>] [<key>]",
+                "Show config information", 
+                "If neither section nor field are specified, then the whole current configuration is printed." + Environment.NewLine
+                + "If a section is given but not a field, then all fields in that section are printed.",
+                HandleConfig);            
+
+            m_console.Commands.AddCommand(
+                "General", false, "config save",
+                "config save <path>",
+                "Save current configuration to a file at the given path", HandleConfig);
         }
 
         public virtual void HandleShow(string module, string[] cmd)
@@ -194,6 +220,115 @@ namespace OpenSim.Framework.Servers
                 case "uptime":
                     Notice(GetUptimeReport());
                     break;
+            }
+        }
+
+        /// <summary>
+        /// Change and load configuration file data.
+        /// </summary>
+        /// <param name="module"></param>
+        /// <param name="cmd"></param>
+        private void HandleConfig(string module, string[] cmd)
+        {
+            List<string> args = new List<string>(cmd);
+            args.RemoveAt(0);
+            string[] cmdparams = args.ToArray();
+
+            if (cmdparams.Length > 0)
+            {
+                string firstParam = cmdparams[0].ToLower();
+                
+                switch (firstParam)
+                {
+                    case "set":
+                        if (cmdparams.Length < 4)
+                        {
+                            Notice("Syntax: config set <section> <key> <value>");
+                            Notice("Example: config set ScriptEngine.DotNetEngine NumberOfScriptThreads 5");
+                        }
+                        else
+                        {
+                            IConfig c;
+                            IConfigSource source = new IniConfigSource();
+                            c = source.AddConfig(cmdparams[1]);
+                            if (c != null)
+                            {
+                                string _value = String.Join(" ", cmdparams, 3, cmdparams.Length - 3);
+                                c.Set(cmdparams[2], _value);
+                                Config.Merge(source);
+
+                                Notice("In section [{0}], set {1} = {2}", c.Name, cmdparams[2], _value);
+                            }
+                        }
+                        break;
+
+                    case "get":
+                    case "show":
+                        if (cmdparams.Length == 1)
+                        {
+                            foreach (IConfig config in Config.Configs)
+                            {
+                                Notice("[{0}]", config.Name);
+                                string[] keys = config.GetKeys();
+                                foreach (string key in keys)
+                                    Notice("  {0} = {1}", key, config.GetString(key));
+                            }
+                        }
+                        else if (cmdparams.Length == 2 || cmdparams.Length == 3)
+                        {
+                            IConfig config = Config.Configs[cmdparams[1]];
+                            if (config == null)
+                            {
+                                Notice("Section \"{0}\" does not exist.",cmdparams[1]);
+                                break;
+                            }
+                            else
+                            {
+                                if (cmdparams.Length == 2)
+                                {
+                                    Notice("[{0}]", config.Name);
+                                    foreach (string key in config.GetKeys())
+                                        Notice("  {0} = {1}", key, config.GetString(key));                                
+                                }
+                                else
+                                {
+                                    Notice(
+                                        "config get {0} {1} : {2}", 
+                                        cmdparams[1], cmdparams[2], config.GetString(cmdparams[2]));
+                                }
+                            }
+                        }
+                        else
+                        {
+                            Notice("Syntax: config {0} [<section>] [<key>]", firstParam);
+                            Notice("Example: config {0} ScriptEngine.DotNetEngine NumberOfScriptThreads", firstParam);
+                        }
+
+                        break;
+
+                    case "save":
+                        if (cmdparams.Length < 2)
+                        {
+                            Notice("Syntax: config save <path>");
+                            return;
+                        }
+
+                        string path = cmdparams[1];
+                        Notice("Saving configuration file: {0}", path);
+
+                        if (Config is IniConfigSource)
+                        {
+                            IniConfigSource iniCon = (IniConfigSource)Config;
+                            iniCon.Save(path);
+                        }
+                        else if (Config is XmlConfigSource)
+                        {
+                            XmlConfigSource xmlCon = (XmlConfigSource)Config;
+                            xmlCon.Save(path);
+                        }
+
+                        break;
+                }
             }
         }
 
@@ -220,9 +355,8 @@ namespace OpenSim.Framework.Servers
                 m_consoleAppender.Threshold = consoleLevel;
             else
                 Notice(
-                    String.Format(
-                        "{0} is not a valid logging level.  Valid logging levels are ALL, DEBUG, INFO, WARN, ERROR, FATAL, OFF",
-                        rawLevel));
+                    "{0} is not a valid logging level.  Valid logging levels are ALL, DEBUG, INFO, WARN, ERROR, FATAL, OFF",
+                    rawLevel);
 
             ShowLogLevel();
         }

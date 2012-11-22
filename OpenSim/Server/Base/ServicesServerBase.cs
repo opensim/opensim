@@ -56,15 +56,6 @@ namespace OpenSim.Server.Base
         //
         protected string[] m_Arguments;
 
-        // Configuration
-        //
-        protected IConfigSource m_Config = null;
-
-        public IConfigSource Config
-        {
-            get { return m_Config; }
-        }
-
         // Run flag
         //
         private bool m_Running = true;
@@ -118,11 +109,11 @@ namespace OpenSim.Server.Base
                     configUri.Scheme == Uri.UriSchemeHttp)
                 {
                     XmlReader r = XmlReader.Create(iniFile);
-                    m_Config = new XmlConfigSource(r);
+                    Config = new XmlConfigSource(r);
                 }
                 else
                 {
-                    m_Config = new IniConfigSource(iniFile);
+                    Config = new IniConfigSource(iniFile);
                 }
             }
             catch (Exception e)
@@ -134,13 +125,13 @@ namespace OpenSim.Server.Base
             // Merge the configuration from the command line into the
             // loaded file
             //
-            m_Config.Merge(argvConfig);
+            Config.Merge(argvConfig);
 
             // Refresh the startupConfig post merge
             //
-            if (m_Config.Configs["Startup"] != null)
+            if (Config.Configs["Startup"] != null)
             {
-                startupConfig = m_Config.Configs["Startup"];
+                startupConfig = Config.Configs["Startup"];
             }
 
             prompt = startupConfig.GetString("Prompt", prompt);

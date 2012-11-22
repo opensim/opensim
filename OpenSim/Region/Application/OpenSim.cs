@@ -82,8 +82,8 @@ namespace OpenSim
         {
             base.ReadExtraConfigSettings();
 
-            IConfig startupConfig = m_config.Source.Configs["Startup"];
-            IConfig networkConfig = m_config.Source.Configs["Network"];
+            IConfig startupConfig = Config.Configs["Startup"];
+            IConfig networkConfig = Config.Configs["Network"];
 
             int stpMaxThreads = 15;
 
@@ -148,7 +148,7 @@ namespace OpenSim
                     break;
                 case "rest":
                     m_console = new RemoteConsole("Region");
-                    ((RemoteConsole)m_console).ReadConfig(m_config.Source);
+                    ((RemoteConsole)m_console).ReadConfig(Config);
                     break;
                 default:
                     m_console = new LocalConsole("Region");
@@ -158,7 +158,7 @@ namespace OpenSim
 
             MainConsole.Instance = m_console;
 
-            RegisterCommonAppenders(m_config.Source.Configs["Startup"]);
+            RegisterCommonAppenders(Config.Configs["Startup"]);
             RegisterConsoleCommands();
 
             base.StartupSpecific();
@@ -356,26 +356,6 @@ namespace OpenSim
             m_console.Commands.AddCommand("Regions", false, "restart",
                                           "restart",
                                           "Restart all sims in this instance", RunCommand);
-
-            m_console.Commands.AddCommand("General", false, "config set",
-                                          "config set <section> <key> <value>",
-                                          "Set a config option.  In most cases this is not useful since changed parameters are not dynamically reloaded.  Neither do changed parameters persist - you will have to change a config file manually and restart.", HandleConfig);
-
-            m_console.Commands.AddCommand("General", false, "config get",
-                                          "config get [<section>] [<key>]",
-                                          "Synonym for config show",
-                                          HandleConfig);
-            
-            m_console.Commands.AddCommand("General", false, "config show",
-                                          "config show [<section>] [<key>]",
-                                          "Show config information", 
-                                          "If neither section nor field are specified, then the whole current configuration is printed." + Environment.NewLine
-                                          + "If a section is given but not a field, then all fields in that section are printed.",
-                                          HandleConfig);            
-
-            m_console.Commands.AddCommand("General", false, "config save",
-                                          "config save <path>",
-                                          "Save current configuration to a file at the given path", HandleConfig);
 
             m_console.Commands.AddCommand("General", false, "command-script",
                                           "command-script <script>",
@@ -619,111 +599,9 @@ namespace OpenSim
             bool changed = PopulateRegionEstateInfo(regInfo);
             IScene scene;
             CreateRegion(regInfo, true, out scene);
+
             if (changed)
-	      regInfo.EstateSettings.Save();
-        }
-
-        /// <summary>
-        /// Change and load configuration file data.
-        /// </summary>
-        /// <param name="module"></param>
-        /// <param name="cmd"></param>
-        private void HandleConfig(string module, string[] cmd)
-        {
-            List<string> args = new List<string>(cmd);
-            args.RemoveAt(0);
-            string[] cmdparams = args.ToArray();
-
-            if (cmdparams.Length > 0)
-            {
-                string firstParam = cmdparams[0].ToLower();
-                
-                switch (firstParam)
-                {
-                    case "set":
-                        if (cmdparams.Length < 4)
-                        {
-                            Notice("Syntax: config set <section> <key> <value>");
-                            Notice("Example: config set ScriptEngine.DotNetEngine NumberOfScriptThreads 5");
-                        }
-                        else
-                        {
-                            IConfig c;
-                            IConfigSource source = new IniConfigSource();
-                            c = source.AddConfig(cmdparams[1]);
-                            if (c != null)
-                            {
-                                string _value = String.Join(" ", cmdparams, 3, cmdparams.Length - 3);
-                                c.Set(cmdparams[2], _value);
-                                m_config.Source.Merge(source);
-
-                                Notice("In section [{0}], set {1} = {2}", c.Name, cmdparams[2], _value);
-                            }
-                        }
-                        break;
-
-                    case "get":
-                    case "show":
-                        if (cmdparams.Length == 1)
-                        {
-                            foreach (IConfig config in m_config.Source.Configs)
-                            {
-                                Notice("[{0}]", config.Name);
-                                string[] keys = config.GetKeys();
-                                foreach (string key in keys)
-                                    Notice("  {0} = {1}", key, config.GetString(key));
-                            }
-                        }
-                        else if (cmdparams.Length == 2 || cmdparams.Length == 3)
-                        {
-                            IConfig config = m_config.Source.Configs[cmdparams[1]];
-                            if (config == null)
-                            {
-                                Notice("Section \"{0}\" does not exist.",cmdparams[1]);
-                                break;
-                            }
-                            else
-                            {
-                                if (cmdparams.Length == 2)
-                                {
-                                    Notice("[{0}]", config.Name);
-                                    foreach (string key in config.GetKeys())
-                                        Notice("  {0} = {1}", key, config.GetString(key));                                
-                                }
-                                else
-                                {
-                                    Notice(
-                                        "config get {0} {1} : {2}", 
-                                        cmdparams[1], cmdparams[2], config.GetString(cmdparams[2]));
-                                }
-                            }
-                        }
-                        else
-                        {
-                            Notice("Syntax: config {0} [<section>] [<key>]", firstParam);
-                            Notice("Example: config {0} ScriptEngine.DotNetEngine NumberOfScriptThreads", firstParam);
-                        }
-
-                        break;
-
-                    case "save":
-                        if (cmdparams.Length < 2)
-                        {
-                            Notice("Syntax: config save <path>");
-                            return;
-                        }
-
-                        if (Application.iniFilePath == cmdparams[1])
-                        {
-                            Notice("Path can not be " + Application.iniFilePath);
-                            return;
-                        }
-
-                        Notice("Saving configuration file: " + cmdparams[1]);
-                        m_config.Save(cmdparams[1]);
-                        break;
-                }
-            }
+	            regInfo.EstateSettings.Save();
         }
 
         /// <summary>

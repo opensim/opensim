@@ -52,7 +52,7 @@ namespace OpenSim.Server.Base
 
         protected override void ReadConfig()
         {
-            IConfig networkConfig = m_Config.Configs["Network"];
+            IConfig networkConfig = Config.Configs["Network"];
 
             if (networkConfig == null)
             {
