@@ -62,19 +62,6 @@ namespace OpenSim.Framework.Servers
         /// </summary>
         private Timer m_periodicDiagnosticsTimer = new Timer(60 * 60 * 1000);
 
-        protected OpenSimAppender m_consoleAppender;
-        protected IAppender m_logFileAppender = null; 
-
-        /// <summary>
-        /// Record the initial startup directory for info purposes
-        /// </summary>
-        protected string m_startupDirectory = Environment.CurrentDirectory;
-
-        /// <summary>
-        /// Server version information.  Usually VersionInfo + information about git commit, operating system, etc.
-        /// </summary>
-        protected string m_version;
-
         protected string m_pidFile = String.Empty;
         
         /// <summary>
@@ -90,27 +77,11 @@ namespace OpenSim.Framework.Servers
 
         public BaseOpenSimServer() : base()
         {
-            m_version = VersionInfo.Version;
-            
             // Random uuid for private data
             m_osSecret = UUID.Random().ToString();
 
             m_periodicDiagnosticsTimer.Elapsed += new ElapsedEventHandler(LogDiagnostics);
             m_periodicDiagnosticsTimer.Enabled = true;
-
-            // This thread will go on to become the console listening thread
-            Thread.CurrentThread.Name = "ConsoleThread";
-
-            ILoggerRepository repository = LogManager.GetRepository();
-            IAppender[] appenders = repository.GetAppenders();
-
-            foreach (IAppender appender in appenders)
-            {
-                if (appender.Name == "LogFileAppender")
-                {
-                    m_logFileAppender = appender;
-                }
-            }
         }
         
         /// <summary>
@@ -120,34 +91,6 @@ namespace OpenSim.Framework.Servers
         {
             if (m_console == null)
                 return;
-
-            ILoggerRepository repository = LogManager.GetRepository();
-            IAppender[] appenders = repository.GetAppenders();
-
-            foreach (IAppender appender in appenders)
-            {
-                if (appender.Name == "Console")
-                {
-                    m_consoleAppender = (OpenSimAppender)appender;
-                    break;
-                }
-            }
-
-            if (null == m_consoleAppender)
-            {
-                Notice("No appender named Console found (see the log4net config file for this executable)!");
-            }
-            else
-            {
-                // FIXME: This should be done through an interface rather than casting.
-                m_consoleAppender.Console = (ConsoleBase)m_console;
-                
-                // If there is no threshold set then the threshold is effectively everything.
-                if (null == m_consoleAppender.Threshold)
-                    m_consoleAppender.Threshold = Level.All;
-                
-                Notice(String.Format("Console log level is {0}", m_consoleAppender.Threshold));
-            }
 
             RegisterCommonCommands();
             
@@ -162,10 +105,6 @@ namespace OpenSim.Framework.Servers
             m_console.Commands.AddCommand("General", false, "set log level",
                     "set log level <level>",
                     "Set the console logging level", HandleLogLevel);
-
-            m_console.Commands.AddCommand("General", false, "show info",
-                    "show info",
-                    "Show general information about the server", HandleShow);
 
             m_console.Commands.AddCommand("General", false, "show threads",
                     "show threads",
@@ -279,8 +218,6 @@ namespace OpenSim.Framework.Servers
         public virtual void Startup()
         {
             m_log.Info("[STARTUP]: Beginning startup processing");
-
-            EnhanceVersionInformation();
             
             m_log.Info("[STARTUP]: OpenSimulator version: " + m_version + Environment.NewLine);
             // clr version potentially is more confusing than helpful, since it doesn't tell us if we're running under Mono/MS .NET and
@@ -377,10 +314,6 @@ namespace OpenSim.Framework.Servers
 
             switch (showParams[0])
             {
-                case "info":
-                    ShowInfo();
-                    break;
-
                 case "threads":
                     Notice(GetThreadsReport());
                     break;
@@ -410,116 +343,7 @@ namespace OpenSim.Framework.Servers
                 MainConsole.Instance.OutputFormat("Aborted thread with id {0}", threadId);
             else
                 MainConsole.Instance.OutputFormat("ERROR - Thread with id {0} not found in managed threads", threadId);
-        }
-        
-        protected void ShowInfo()
-        {
-            Notice(GetVersionText());
-            Notice("Startup directory: " + m_startupDirectory);                
-            if (null != m_consoleAppender)
-                Notice(String.Format("Console log level: {0}", m_consoleAppender.Threshold));              
-        }
-        
-        protected string GetVersionText()
-        {
-            return String.Format("Version: {0} (interface version {1})", m_version, VersionInfo.MajorInterfaceVersion);
-        }
-
-        /// <summary>
-        /// Enhance the version string with extra information if it's available.
-        /// </summary>
-        protected void EnhanceVersionInformation()
-        {
-            string buildVersion = string.Empty;
-
-            // The subversion information is deprecated and will be removed at a later date
-            // Add subversion revision information if available
-            // Try file "svn_revision" in the current directory first, then the .svn info.
-            // This allows to make the revision available in simulators not running from the source tree.
-            // FIXME: Making an assumption about the directory we're currently in - we do this all over the place
-            // elsewhere as well
-            string gitDir = "../.git/";
-            string gitRefPointerPath = gitDir + "HEAD";
-
-            string svnRevisionFileName = "svn_revision";
-            string svnFileName = ".svn/entries";
-            string manualVersionFileName = ".version";
-            string inputLine;
-            int strcmp;
-
-            if (File.Exists(manualVersionFileName))
-            {
-                using (StreamReader CommitFile = File.OpenText(manualVersionFileName))
-                    buildVersion = CommitFile.ReadLine();
-
-                m_version += buildVersion ?? "";
-            }
-            else if (File.Exists(gitRefPointerPath))
-            {
-//                m_log.DebugFormat("[OPENSIM]: Found {0}", gitRefPointerPath);
-
-                string rawPointer = "";
-
-                using (StreamReader pointerFile = File.OpenText(gitRefPointerPath))
-                    rawPointer = pointerFile.ReadLine();
-
-//                m_log.DebugFormat("[OPENSIM]: rawPointer [{0}]", rawPointer);
-
-                Match m = Regex.Match(rawPointer, "^ref: (.+)$");
-
-                if (m.Success)
-                {
-//                    m_log.DebugFormat("[OPENSIM]: Matched [{0}]", m.Groups[1].Value);
-
-                    string gitRef = m.Groups[1].Value;
-                    string gitRefPath = gitDir + gitRef;
-                    if (File.Exists(gitRefPath))
-                    {
-//                        m_log.DebugFormat("[OPENSIM]: Found gitRefPath [{0}]", gitRefPath);
-
-                        using (StreamReader refFile = File.OpenText(gitRefPath))
-                        {
-                            string gitHash = refFile.ReadLine();
-                            m_version += gitHash.Substring(0, 7);
-                        }
-                    }
-                }
-            }
-            else
-            {
-                // Remove the else logic when subversion mirror is no longer used
-                if (File.Exists(svnRevisionFileName))
-                {
-                    StreamReader RevisionFile = File.OpenText(svnRevisionFileName);
-                    buildVersion = RevisionFile.ReadLine();
-                    buildVersion.Trim();
-                    RevisionFile.Close();
-                }
-
-                if (string.IsNullOrEmpty(buildVersion) && File.Exists(svnFileName))
-                {
-                    StreamReader EntriesFile = File.OpenText(svnFileName);
-                    inputLine = EntriesFile.ReadLine();
-                    while (inputLine != null)
-                    {
-                        // using the dir svn revision at the top of entries file
-                        strcmp = String.Compare(inputLine, "dir");
-                        if (strcmp == 0)
-                       {
-                            buildVersion = EntriesFile.ReadLine();
-                            break;
-                        }
-                        else
-                        {
-                            inputLine = EntriesFile.ReadLine();
-                        }
-                    }
-                    EntriesFile.Close();
-                }
-
-                m_version += string.IsNullOrEmpty(buildVersion) ? "      " : ("." + buildVersion + "     ").Substring(0, 6);
-            }
-        }
+        }       
         
         protected void CreatePIDFile(string path)
         {

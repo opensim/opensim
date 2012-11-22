@@ -191,48 +191,7 @@ namespace OpenSim.Server.Base
                 XmlConfigurator.Configure();
             }
 
-            ILoggerRepository repository = LogManager.GetRepository();
-            IAppender[] appenders = repository.GetAppenders();
-
-            foreach (IAppender appender in appenders)
-            {
-                if (appender.Name == "Console")
-                {
-                    consoleAppender = (OpenSimAppender)appender;
-                }
-                if (appender.Name == "LogFileAppender")
-                {
-                    fileAppender = (FileAppender)appender;
-                }
-            }
-
-            if (consoleAppender == null)
-            {
-                System.Console.WriteLine("No console appender found. Server can't start");
-                Thread.CurrentThread.Abort();
-            }
-            else
-            {
-                consoleAppender.Console = (ConsoleBase)MainConsole.Instance;
-
-                if (null == consoleAppender.Threshold)
-                    consoleAppender.Threshold = Level.All;
-            }
-
-            // Set log file
-            //
-            if (fileAppender != null)
-            {
-                if (startupConfig != null)
-                {
-                    string cfgFileName = startupConfig.GetString("logfile", null);
-                    if (cfgFileName != null)
-                    {
-                        fileAppender.File = cfgFileName;
-                        fileAppender.ActivateOptions();
-                    }
-                }
-            }
+            RegisterCommonAppenders(startupConfig);
 
             if (startupConfig.GetString("PIDFile", String.Empty) != String.Empty)
             {

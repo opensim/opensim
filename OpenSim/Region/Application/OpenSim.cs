@@ -106,22 +106,6 @@ namespace OpenSim
                     m_timeInterval = startupConfig.GetInt("timer_Interval", 1200);
                 }
 
-                if (m_logFileAppender != null)
-                {
-                    if (m_logFileAppender is log4net.Appender.FileAppender)
-                    {
-                        log4net.Appender.FileAppender appender =
-                                (log4net.Appender.FileAppender)m_logFileAppender;
-                        string fileName = startupConfig.GetString("LogFile", String.Empty);
-                        if (fileName != String.Empty)
-                        {
-                            appender.File = fileName;
-                            appender.ActivateOptions();
-                        }
-                        m_log.InfoFormat("[LOGGING]: Logging started to file {0}", appender.File);
-                    }
-                }
-
                 string asyncCallMethodStr = startupConfig.GetString("async_call_method", String.Empty);
                 FireAndForgetMethod asyncCallMethod;
                 if (!String.IsNullOrEmpty(asyncCallMethodStr) && Utils.EnumTryParse<FireAndForgetMethod>(asyncCallMethodStr, out asyncCallMethod))
@@ -174,6 +158,7 @@ namespace OpenSim
 
             MainConsole.Instance = m_console;
 
+            RegisterCommonAppenders(m_config.Source.Configs["Startup"]);
             RegisterConsoleCommands();
 
             base.StartupSpecific();
