@@ -308,6 +308,13 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
                 // Do any replacements in the parameters
                 m_physicsLoggingPrefix = m_physicsLoggingPrefix.Replace("%REGIONNAME%", RegionName);
             }
+
+            // The material characteristics.
+            BSMaterials.InitializeFromDefaults(Params);
+            if (pConfig != null)
+            {
+                BSMaterials.InitializefromParameters(pConfig);
+            }
         }
     }
 
