@@ -201,6 +201,11 @@ namespace OpenSim.Framework.Servers
                 "General", false, "config save",
                 "config save <path>",
                 "Save current configuration to a file at the given path", HandleConfig);
+
+            m_console.Commands.AddCommand(
+                "General", false, "command-script",
+                "command-script <script>",
+                "Run a command script from file", HandleScript);
         }
 
         public virtual void HandleShow(string module, string[] cmd)
@@ -363,7 +368,50 @@ namespace OpenSim.Framework.Servers
 
         private void ShowLogLevel()
         {
-            Notice(String.Format("Console log level is {0}", m_consoleAppender.Threshold));
+            Notice("Console log level is {0}", m_consoleAppender.Threshold);
+        }
+
+        protected virtual void HandleScript(string module, string[] parms)
+        {
+            if (parms.Length != 2)
+            {
+                Notice("Usage: command-script <path-to-script");
+                return;
+            }
+
+            RunCommandScript(parms[1]);
+        }
+
+        /// <summary>
+        /// Run an optional startup list of commands
+        /// </summary>
+        /// <param name="fileName"></param>
+        protected void RunCommandScript(string fileName)
+        {
+            if (m_console == null)
+                return;
+
+            if (File.Exists(fileName))
+            {
+                m_log.Info("[SERVER BASE]: Running " + fileName);
+
+                using (StreamReader readFile = File.OpenText(fileName))
+                {
+                    string currentCommand;
+                    while ((currentCommand = readFile.ReadLine()) != null)
+                    {
+                        currentCommand = currentCommand.Trim();
+                        if (!(currentCommand == ""
+                            || currentCommand.StartsWith(";")
+                            || currentCommand.StartsWith("//")
+                            || currentCommand.StartsWith("#")))
+                        {
+                            m_log.Info("[SERVER BASE]: Running '" + currentCommand + "'");
+                            m_console.RunCommand(currentCommand);
+                        }
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -509,7 +557,7 @@ namespace OpenSim.Framework.Servers
         /// </summary>
         /// <param name="format"></param>        
         /// <param name="components"></param>
-        protected void Notice(string format, params string[] components)
+        protected void Notice(string format, params object[] components)
         {
             if (m_console != null)
                 m_console.OutputFormat(format, components);

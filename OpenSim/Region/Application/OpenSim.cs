@@ -467,35 +467,6 @@ namespace OpenSim
         }
 
         /// <summary>
-        /// Run an optional startup list of commands
-        /// </summary>
-        /// <param name="fileName"></param>
-        private void RunCommandScript(string fileName)
-        {
-            if (File.Exists(fileName))
-            {
-                m_log.Info("[COMMANDFILE]: Running " + fileName);
-
-                using (StreamReader readFile = File.OpenText(fileName))
-                {
-                    string currentCommand;
-                    while ((currentCommand = readFile.ReadLine()) != null)
-                    {
-                        currentCommand = currentCommand.Trim();
-                        if (!(currentCommand == ""
-                            || currentCommand.StartsWith(";")
-                            || currentCommand.StartsWith("//")
-                            || currentCommand.StartsWith("#")))
-                        {
-                            m_log.Info("[COMMANDFILE]: Running '" + currentCommand + "'");
-                            m_console.RunCommand(currentCommand);
-                        }
-                    }
-                }
-            }
-        }
-
-        /// <summary>
         /// Opens a file and uses it as input to the console command parser.
         /// </summary>
         /// <param name="fileName">name of file to use as input to the console</param>
@@ -650,13 +621,6 @@ namespace OpenSim
 
             switch (command)
             {
-                case "command-script":
-                    if (cmdparams.Length > 0)
-                    {
-                        RunCommandScript(cmdparams[0]);
-                    }
-                    break;
-
                 case "backup":
                     MainConsole.Instance.Output("Triggering save of pending object updates to persistent store");
                     SceneManager.BackupCurrentScene();
