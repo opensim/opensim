@@ -266,10 +266,10 @@ namespace OpenSim
                                               "help " + capitalizedTopic,
                                               "Get help on plugin command '" + topic + "'",
                                               HandleCommanderHelp);
-                console.Commands.AddCommand(capitalizedTopic, false, "help " + capitalizedTopic,
-                                              "help " + capitalizedTopic,
-                                              "Get help on plugin command '" + topic + "'",
-                                              HandleCommanderHelp);
+//                console.Commands.AddCommand(capitalizedTopic, false, "help " + capitalizedTopic,
+//                                              "help " + capitalizedTopic,
+//                                              "Get help on plugin command '" + topic + "'",
+//                                              HandleCommanderHelp);
 
                 ICommander commander = null;
 
