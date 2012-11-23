@@ -141,6 +141,13 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void Close()
         {
+            lock (m_localScenes)
+            {
+                for (int i = 0; i < m_localScenes.Count; i++)
+                {
+                    m_localScenes[i].Close();
+                }
+            }
         }
 
         public void Close(Scene cscene)
