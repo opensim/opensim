@@ -113,6 +113,7 @@ namespace OpenSim.Framework.Console
             // General help
             if (helpParts.Count == 0)
             {
+                help.Add(""); // Will become a newline.
                 help.Add(GeneralHelpText);
                 help.AddRange(CollectAllCommandsHelp());
             }
