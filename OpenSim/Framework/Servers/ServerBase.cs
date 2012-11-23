@@ -209,6 +209,18 @@ namespace OpenSim.Framework.Servers
                 "General", false, "command-script",
                 "command-script <script>",
                 "Run a command script from file", HandleScript);
+
+            m_console.Commands.AddCommand(
+                "General", false, "force gc",
+                "force gc",
+                "Manually invoke runtime garbage collection.  For debugging purposes",
+                HandleForceGc);
+        }
+
+        private void HandleForceGc(string module, string[] args)
+        {
+            Notice("Manually invoking runtime garbage collection");
+            GC.Collect();
         }
 
         public virtual void HandleShow(string module, string[] cmd)
