@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Linq;
 using System.Reflection;
 using System.Timers;
 using System.IO;
@@ -304,6 +305,9 @@ namespace OpenSim.Region.CoreModules.World.Region
             List<int> times = new List<int>();
             for (int i = 4 ; i < args.Length ; i++)
                 times.Add(Convert.ToInt32(args[i]));
+
+            MainConsole.Instance.OutputFormat(
+                "Region {0} scheduled for restart in {1} seconds", m_Scene.Name, times.Sum());
 
             ScheduleRestart(UUID.Zero, args[3], times.ToArray(), notice);
         }
