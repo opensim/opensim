@@ -271,6 +271,10 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 }
 
                 restartModule.ScheduleRestart(UUID.Zero, "Region will restart in {0}", times.ToArray(), true);
+
+                m_log.InfoFormat(
+                    "User {0} requested restart of region {1} in {2} seconds", 
+                    remoteClient.Name, Scene.Name, times.Count != 0 ? times[0] : 0);
             }
         }
 
