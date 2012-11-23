@@ -104,10 +104,6 @@ namespace OpenSim.Framework.Servers
                     "show threads",
                     "Show thread status", HandleShow);
 
-            m_console.Commands.AddCommand("General", false, "show version",
-                    "show version",
-                    "Show server version", HandleShow);
-
             m_console.Commands.AddCommand("General", false, "threads abort",
                     "threads abort <thread-id>",
                     "Abort a managed thread.  Use \"show threads\" to find possible threads.", HandleThreadsAbort);
@@ -262,10 +258,6 @@ namespace OpenSim.Framework.Servers
             {
                 case "threads":
                     Notice(GetThreadsReport());
-                    break;
-
-                case "version":
-                    Notice(GetVersionText());
                     break;
             }
         }

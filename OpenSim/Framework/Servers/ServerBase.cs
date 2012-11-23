@@ -168,6 +168,9 @@ namespace OpenSim.Framework.Servers
                 "General", false, "show info", "show info", "Show general information about the server", HandleShow);
 
             m_console.Commands.AddCommand(
+                "General", false, "show version", "show version", "Show server version", HandleShow);
+
+            m_console.Commands.AddCommand(
                 "General", false, "show uptime", "show uptime", "Show server uptime", HandleShow);
 
             m_console.Commands.AddCommand(
@@ -220,6 +223,10 @@ namespace OpenSim.Framework.Servers
             {
                 case "info":
                     ShowInfo();
+                    break;
+
+                case "version":
+                    Notice(GetVersionText());
                     break;
 
                 case "uptime":
