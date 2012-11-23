@@ -107,16 +107,19 @@ namespace OpenSim.Region.Framework.Scenes
             get { return new List<Scene>(m_localScenes.FindAll(delegate(Scene s) { return true; })); }
         }
 
-        public Scene CurrentScene
-        {
-            get { return m_currentScene; }
-        }
+        /// <summary>
+        /// Scene selected from the console.
+        /// </summary>
+        /// <value>
+        /// If null, then all scenes are considered selected (signalled as "Root" on the console).
+        /// </value>
+        public Scene CurrentScene { get; private set; }
 
         public Scene CurrentOrFirstScene
         {
             get
             {
-                if (m_currentScene == null)
+                if (CurrentScene == null)
                 {
                     List<Scene> sceneList = Scenes;
                     if (sceneList.Count == 0)
@@ -125,7 +128,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 else
                 {
-                    return m_currentScene;
+                    return CurrentScene;
                 }
             }
         }
@@ -169,11 +172,18 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void HandleRestart(RegionInfo rdata)
         {
-            m_log.Error("[SCENEMANAGER]: Got Restart message for region:" + rdata.RegionName + " Sending up to main");
-            int RegionSceneElement = -1;
+            Scene restartedScene = null;
 
             lock (m_localScenes)
+            {
+                m_localScenes.TryGetValue(rdata.RegionID, out restartedScene);
                 m_localScenes.Remove(rdata.RegionID);
+            }
+
+            // If the currently selected scene has been restarted, then we can't reselect here since we the scene
+            // hasn't yet been recreated.  We will have to leave this to the caller.
+            if (CurrentScene == restartedScene)
+                CurrentScene = null;
 
             // Send signal to main that we're restarting this sim.
             OnRestartSim(rdata);
@@ -313,14 +323,14 @@ namespace OpenSim.Region.Framework.Scenes
 
         private void ForEachCurrentScene(Action<Scene> func)
         {
-            if (m_currentScene == null)
+            if (CurrentScene == null)
             {
                 List<Scene> sceneList = Scenes;
                 sceneList.ForEach(func);
             }
             else
             {
-                func(m_currentScene);
+                func(CurrentScene);
             }
         }
 
@@ -340,7 +350,7 @@ namespace OpenSim.Region.Framework.Scenes
                 || (String.Compare(regionName, "..") == 0)
                 || (String.Compare(regionName, "/") == 0))
             {
-                m_currentScene = null;
+                CurrentScene = null;
                 return true;
             }
             else
