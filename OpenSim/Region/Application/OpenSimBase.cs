@@ -299,7 +299,7 @@ namespace OpenSim
             // Called from base.StartUp()
 
             m_httpServerPort = m_networkServersInfo.HttpListenerPort;
-            SceneManager.OnRestartSim += handleRestartRegion;
+            SceneManager.OnRestartSim += HandleRestartRegion;
 
             // Only enable the watchdogs when all regions are ready.  Otherwise we get false positives when cpu is
             // heavily used during initial startup.
@@ -735,9 +735,11 @@ namespace OpenSim
             }
         }
         
-        public void handleRestartRegion(RegionInfo whichRegion)
+        protected virtual void HandleRestartRegion(RegionInfo whichRegion)
         {
-            m_log.Info("[OPENSIM]: Got restart signal from SceneManager");
+            m_log.InfoFormat(
+                "[OPENSIM]: Got restart signal from SceneManager for region {0} ({1},{2})", 
+                whichRegion.RegionName, whichRegion.RegionLocX, whichRegion.RegionLocY);
 
             ShutdownClientServer(whichRegion);
             IScene scene;
@@ -883,7 +885,6 @@ namespace OpenSim
             m_log.Info("[SHUTDOWN]: Closing all threads");
             m_log.Info("[SHUTDOWN]: Killing listener thread");
             m_log.Info("[SHUTDOWN]: Killing clients");
-            // TODO: implement this
             m_log.Info("[SHUTDOWN]: Closing console and terminating");
 
             try
@@ -892,7 +893,7 @@ namespace OpenSim
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[SHUTDOWN]: Ignoring failure during shutdown - {0}", e);
+                m_log.Error("[SHUTDOWN]: Ignoring failure during shutdown - ", e);
             }
         }
 
