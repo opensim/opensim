@@ -144,8 +144,11 @@ namespace OpenSim.Framework.Console
             {
                 foreach (List<CommandInfo> commands in m_modulesCommands.Values)
                 {
-                    var ourHelpText = commands.ConvertAll(c => string.Format("{0} - {1}", c.help_text, c.long_help));
-                    help.AddRange(ourHelpText);
+                    foreach (CommandInfo c in commands)
+                    {
+                        if (c.long_help != String.Empty)
+                            help.Add(string.Format("{0} - {1}", c.help_text, c.long_help));
+                    }
                 }
             }
 
