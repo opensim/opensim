@@ -557,9 +557,14 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
                 if (!ResolveGroupUuid(parcel.GroupID))
                 {
+//                    m_log.DebugFormat("[ARCHIVE READ REQUEST]: Could not find group {0}", parcel.GroupID);
                     parcel.GroupID = UUID.Zero;
                     parcel.IsGroupOwned = false;
                 }
+//                else
+//                {
+//                    m_log.DebugFormat("[ARCHIVE READ REQUEST]: Found group {0}", parcel.GroupID);
+//                }
 
                 List<LandAccessEntry> accessList = new List<LandAccessEntry>();
                 foreach (LandAccessEntry entry in parcel.ParcelAccessList)
