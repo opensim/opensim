@@ -48,8 +48,10 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         UUID m_ownerId = TestHelpers.ParseTail(0x1);
 
         [SetUp]
-        public void SetUp()
+        public override void SetUp()
         {
+            base.SetUp();
+
             m_scene = new SceneHelpers().SetupScene();
         }
 
