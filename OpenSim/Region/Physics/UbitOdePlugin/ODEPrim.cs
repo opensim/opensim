@@ -84,7 +84,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private Vector3 _position;
         private Vector3 _velocity;
-        private Vector3 _torque;
+        private Vector3 m_torque;
         private Vector3 m_lastVelocity;
         private Vector3 m_lastposition;
         private Vector3 m_rotationalVelocity;
@@ -597,7 +597,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (!IsPhysical || Body == IntPtr.Zero)
                     return Vector3.Zero;
 
-                return _torque;
+                return m_torque;
             }
 
             set
@@ -2425,10 +2425,10 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             if (!childPrim)
             {
-                m_force = Vector3.Zero;
+//                m_force = Vector3.Zero;
                 m_forceacc = Vector3.Zero;
                 m_angularForceacc = Vector3.Zero;
-                _torque = Vector3.Zero;
+//                m_torque = Vector3.Zero;
                 _velocity = Vector3.Zero;
                 _acceleration = Vector3.Zero;
                 m_rotationalVelocity = Vector3.Zero;
@@ -2968,7 +2968,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         d.BodyEnable(Body);
 
                 }
-                _torque = newtorque;
+                m_torque = newtorque;
             }
         }
 
@@ -3364,7 +3364,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 Vector3 trq;
 
-                trq = _torque;
+                trq = m_torque;
                 trq += m_angularForceacc;
                 m_angularForceacc = Vector3.Zero;
                 if (trq.X != 0 || trq.Y != 0 || trq.Z != 0)
