@@ -54,13 +54,62 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         private bool m_debugEnabled = false;
 
-        public const GroupPowers m_DefaultEveryonePowers = GroupPowers.AllowSetHome |
-            GroupPowers.Accountable |
-            GroupPowers.JoinChat |
-            GroupPowers.AllowVoiceChat |
-            GroupPowers.ReceiveNotices |
-            GroupPowers.StartProposal |
-            GroupPowers.VoteOnProposal;
+        public const GroupPowers DefaultEveryonePowers 
+            = GroupPowers.AllowSetHome 
+                | GroupPowers.Accountable 
+                | GroupPowers.JoinChat 
+                | GroupPowers.AllowVoiceChat 
+                | GroupPowers.ReceiveNotices 
+                | GroupPowers.StartProposal 
+                | GroupPowers.VoteOnProposal;
+
+        // Would this be cleaner as (GroupPowers)ulong.MaxValue?
+        public const GroupPowers DefaultOwnerPowers 
+            = GroupPowers.Accountable
+                | GroupPowers.AllowEditLand
+                | GroupPowers.AllowFly
+                | GroupPowers.AllowLandmark
+                | GroupPowers.AllowRez
+                | GroupPowers.AllowSetHome
+                | GroupPowers.AllowVoiceChat
+                | GroupPowers.AssignMember
+                | GroupPowers.AssignMemberLimited
+                | GroupPowers.ChangeActions
+                | GroupPowers.ChangeIdentity
+                | GroupPowers.ChangeMedia
+                | GroupPowers.ChangeOptions
+                | GroupPowers.CreateRole
+                | GroupPowers.DeedObject
+                | GroupPowers.DeleteRole
+                | GroupPowers.Eject
+                | GroupPowers.FindPlaces
+                | GroupPowers.Invite
+                | GroupPowers.JoinChat
+                | GroupPowers.LandChangeIdentity
+                | GroupPowers.LandDeed
+                | GroupPowers.LandDivideJoin
+                | GroupPowers.LandEdit
+                | GroupPowers.LandEjectAndFreeze
+                | GroupPowers.LandGardening
+                | GroupPowers.LandManageAllowed
+                | GroupPowers.LandManageBanned
+                | GroupPowers.LandManagePasses
+                | GroupPowers.LandOptions
+                | GroupPowers.LandRelease
+                | GroupPowers.LandSetSale
+                | GroupPowers.ModerateChat
+                | GroupPowers.ObjectManipulate
+                | GroupPowers.ObjectSetForSale
+                | GroupPowers.ReceiveNotices
+                | GroupPowers.RemoveMember
+                | GroupPowers.ReturnGroupOwned
+                | GroupPowers.ReturnGroupSet
+                | GroupPowers.ReturnNonGroup
+                | GroupPowers.RoleProperties
+                | GroupPowers.SendNotices
+                | GroupPowers.SetLandingPoint
+                | GroupPowers.StartProposal
+                | GroupPowers.VoteOnProposal;
 
         private bool m_connectorEnabled = false;
 
@@ -219,59 +268,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             param["AllowPublish"] = allowPublish == true ? 1 : 0;
             param["MaturePublish"] = maturePublish == true ? 1 : 0;
             param["FounderID"] = founderID.ToString();
-            param["EveryonePowers"] = ((ulong)m_DefaultEveryonePowers).ToString();
+            param["EveryonePowers"] = ((ulong)DefaultEveryonePowers).ToString();
             param["OwnerRoleID"] = OwnerRoleID.ToString();
-
-            // Would this be cleaner as (GroupPowers)ulong.MaxValue;
-            GroupPowers OwnerPowers = GroupPowers.Accountable
-                                    | GroupPowers.AllowEditLand
-                                    | GroupPowers.AllowFly
-                                    | GroupPowers.AllowLandmark
-                                    | GroupPowers.AllowRez
-                                    | GroupPowers.AllowSetHome
-                                    | GroupPowers.AllowVoiceChat
-                                    | GroupPowers.AssignMember
-                                    | GroupPowers.AssignMemberLimited
-                                    | GroupPowers.ChangeActions
-                                    | GroupPowers.ChangeIdentity
-                                    | GroupPowers.ChangeMedia
-                                    | GroupPowers.ChangeOptions
-                                    | GroupPowers.CreateRole
-                                    | GroupPowers.DeedObject
-                                    | GroupPowers.DeleteRole
-                                    | GroupPowers.Eject
-                                    | GroupPowers.FindPlaces
-                                    | GroupPowers.Invite
-                                    | GroupPowers.JoinChat
-                                    | GroupPowers.LandChangeIdentity
-                                    | GroupPowers.LandDeed
-                                    | GroupPowers.LandDivideJoin
-                                    | GroupPowers.LandEdit
-                                    | GroupPowers.LandEjectAndFreeze
-                                    | GroupPowers.LandGardening
-                                    | GroupPowers.LandManageAllowed
-                                    | GroupPowers.LandManageBanned
-                                    | GroupPowers.LandManagePasses
-                                    | GroupPowers.LandOptions
-                                    | GroupPowers.LandRelease
-                                    | GroupPowers.LandSetSale
-                                    | GroupPowers.ModerateChat
-                                    | GroupPowers.ObjectManipulate
-                                    | GroupPowers.ObjectSetForSale
-                                    | GroupPowers.ReceiveNotices
-                                    | GroupPowers.RemoveMember
-                                    | GroupPowers.ReturnGroupOwned
-                                    | GroupPowers.ReturnGroupSet
-                                    | GroupPowers.ReturnNonGroup
-                                    | GroupPowers.RoleProperties
-                                    | GroupPowers.SendNotices
-                                    | GroupPowers.SetLandingPoint
-                                    | GroupPowers.StartProposal
-                                    | GroupPowers.VoteOnProposal;
-            param["OwnersPowers"] = ((ulong)OwnerPowers).ToString();
-
-
-
+            param["OwnersPowers"] = ((ulong)DefaultOwnerPowers).ToString();
 
             Hashtable respData = XmlRpcCall(requestingAgentID, "groups.createGroup", param);
 
@@ -612,8 +611,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             }
 
             return Roles;
-
-
         }
 
         public List<GroupRolesData> GetGroupRoles(UUID requestingAgentID, UUID GroupID)
@@ -676,7 +673,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             }
 
             return members;
-
         }
 
         public List<GroupRoleMembersData> GetGroupRoleMembers(UUID requestingAgentID, UUID GroupID)
@@ -727,16 +723,16 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                     values.Add(data);
                 }
             }
-            return values;
 
+            return values;
         }
+
         public GroupNoticeInfo GetGroupNotice(UUID requestingAgentID, UUID noticeID)
         {
             Hashtable param = new Hashtable();
             param["NoticeID"] = noticeID.ToString();
 
             Hashtable respData = XmlRpcCall(requestingAgentID, "groups.getGroupNotice", param);
-
 
             if (respData.Contains("error"))
             {
@@ -761,6 +757,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
             return data;
         }
+
         public void AddGroupNotice(UUID requestingAgentID, UUID groupID, UUID noticeID, string fromName, string subject, string message, byte[] binaryBucket)
         {
             string binBucket = OpenMetaverse.Utils.BytesToHexString(binaryBucket, "");
@@ -776,8 +773,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
             XmlRpcCall(requestingAgentID, "groups.addGroupNotice", param);
         }
-
-
 
         #endregion
 
