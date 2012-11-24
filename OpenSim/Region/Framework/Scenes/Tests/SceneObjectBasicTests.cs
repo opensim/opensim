@@ -29,10 +29,12 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
+using Nini.Config;
 using NUnit.Framework;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
+using OpenSim.Region.CoreModules.Framework.InventoryAccess;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
 using OpenSim.Tests.Common;
@@ -239,27 +241,30 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         /// <summary>
         /// Test deleting an object asynchronously to user inventory.
         /// </summary>
-//        [Test]
+        [Test]
         public void TestDeleteSceneObjectAsyncToUserInventory()
         {
             TestHelpers.InMethod();
-            TestHelpers.EnableLogging();
+//            TestHelpers.EnableLogging();
 
             UUID agentId = UUID.Parse("00000000-0000-0000-0000-000000000001");
             string myObjectName = "Fred";
 
             TestScene scene = new SceneHelpers().SetupScene();
 
+            IConfigSource configSource = new IniConfigSource();
+            IConfig config = configSource.AddConfig("Modules");            
+            config.Set("InventoryAccessModule", "BasicInventoryAccessModule");
+            SceneHelpers.SetupSceneModules(
+                scene, configSource, new object[] { new BasicInventoryAccessModule() });
+
+            SceneHelpers.SetupSceneModules(scene, new object[] { });
+
             // Turn off the timer on the async sog deleter - we'll crank it by hand for this test.
             AsyncSceneObjectGroupDeleter sogd = scene.SceneObjectGroupDeleter;
             sogd.Enabled = false;
 
             SceneObjectGroup so = SceneHelpers.AddSceneObject(scene, myObjectName, agentId);
-
-//            Assert.That(
-//                scene.CommsManager.UserAdminService.AddUser(
-//                    "Bob", "Hoskins", "test", "test@test.com", 1000, 1000, agentId),
-//                Is.EqualTo(agentId));
 
             UserAccount ua = UserAccountHelpers.CreateUserWithInventory(scene, agentId);
             InventoryFolderBase folder1
