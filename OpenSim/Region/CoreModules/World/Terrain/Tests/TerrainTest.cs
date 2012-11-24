@@ -30,11 +30,12 @@ using NUnit.Framework;
 using OpenSim.Framework;
 using OpenSim.Region.CoreModules.World.Terrain.PaintBrushes;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Tests.Common;
 
 namespace OpenSim.Region.CoreModules.World.Terrain.Tests
 {
     [TestFixture]
-    public class TerrainTest
+    public class TerrainTest : OpenSimTestCase
     {
         [Test]
         public void BrushTest()

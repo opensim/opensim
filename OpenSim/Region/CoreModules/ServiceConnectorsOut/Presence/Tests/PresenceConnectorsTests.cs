@@ -35,7 +35,6 @@ using NUnit.Framework;
 using OpenMetaverse;
 using OpenSim.Framework;
 using Nini.Config;
-
 using OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence;
 using OpenSim.Region.Framework.Scenes;
 using PresenceInfo = OpenSim.Services.Interfaces.PresenceInfo;
@@ -44,7 +43,7 @@ using OpenSim.Tests.Common;
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence.Tests
 {
     [TestFixture]
-    public class PresenceConnectorsTests
+    public class PresenceConnectorsTests : OpenSimTestCase
     {
         LocalPresenceServicesConnector m_LocalConnector;
         private void SetUp()

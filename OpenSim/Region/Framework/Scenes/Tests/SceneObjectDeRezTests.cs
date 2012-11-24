@@ -48,7 +48,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
     /// TODO: These tests are very incomplete - they only test for a few conditions.
     /// </remarks>
     [TestFixture]
-    public class SceneObjectDeRezTests
+    public class SceneObjectDeRezTests : OpenSimTestCase
     {
         /// <summary>
         /// Test deleting an object from a scene.

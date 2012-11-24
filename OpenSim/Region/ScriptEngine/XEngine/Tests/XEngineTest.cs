@@ -44,7 +44,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine.Tests
     /// XEngine tests.
     /// </summary>
     [TestFixture]
-    public class XEngineTest
+    public class XEngineTest : OpenSimTestCase
     {
         private TestScene m_scene;
         private XEngine m_xEngine;

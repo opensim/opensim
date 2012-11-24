@@ -51,7 +51,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
     /// Scene presence animation tests
     /// </summary>
     [TestFixture]
-    public class ScenePresenceAnimationTests
+    public class ScenePresenceAnimationTests : OpenSimTestCase
     {
         [Test]
         public void TestFlyingAnimation()
