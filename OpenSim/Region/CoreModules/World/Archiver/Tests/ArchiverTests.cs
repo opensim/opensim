@@ -72,9 +72,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
         {
             base.SetUp();
 
-            // FIXME: Do something about this - relying on statics in unit tests causes trouble sooner or later
-            new SceneManager();
-
             m_archiverModule = new ArchiverModule();
             m_serialiserModule = new SerialiserModule();
             TerrainModule terrainModule = new TerrainModule();
@@ -518,8 +515,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
                 SerialiserModule serialiserModule = new SerialiserModule();
                 TerrainModule terrainModule = new TerrainModule();
 
-                m_sceneHelpers = new SceneHelpers();
-                TestScene scene2 = m_sceneHelpers.SetupScene();
+                SceneHelpers m_sceneHelpers2 = new SceneHelpers();
+                TestScene scene2 = m_sceneHelpers2.SetupScene();
                 SceneHelpers.SetupSceneModules(scene2, archiverModule, serialiserModule, terrainModule);
 
                 // Make sure there's a valid owner for the owner we saved (this should have been wiped if the code is
@@ -552,7 +549,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
         public void TestLoadOarDeededLand()
         {
             TestHelpers.InMethod();
-            TestHelpers.EnableLogging();
+//            TestHelpers.EnableLogging();
 
             UUID landID = TestHelpers.ParseTail(0x10);
 
@@ -581,17 +578,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
                 new ArchiveWriteRequest(m_scene, (Stream)null, Guid.Empty).CreateControlFile(new ArchiveScenesGroup()));
 
             LandObject lo = new LandObject(groupID, true, null);
-
-            // FIXME: We set directly rather than call SetLandBitmap in order not to do an AABB value update, which
-            // requests the terrain heightmap from an active scene.  This is confusing and not a long-term solution.
-            //lo.LandBitmap = lo.BasicFullRegionLandBitmap();
             lo.SetLandBitmap(lo.BasicFullRegionLandBitmap());
-
-            // FIXME: We have to make a separate call to update the LandData's copy of the land bitmap, even though this is 
-            // identical to the LandObject copy.  This should be changed so there's only one copy of the data if at all
-            // possible
-            //lo.UpdateLandBitmapByteArray();
-
             LandData ld = lo.LandData;
             ld.GlobalID = landID;
 
@@ -944,7 +931,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             }
 
             ArchiveScenesGroup scenesGroup = new ArchiveScenesGroup();
-            SceneManager.Instance.ForEachScene(delegate(Scene scene)
+            m_sceneHelpers.SceneManager.ForEachScene(delegate(Scene scene)
             {
                 scenesGroup.AddScene(scene);
             });
@@ -1002,13 +989,13 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             
             // Delete the current objects, to test that they're loaded from the OAR and didn't
             // just remain in the scene.
-            SceneManager.Instance.ForEachScene(delegate(Scene scene)
+            m_sceneHelpers.SceneManager.ForEachScene(delegate(Scene scene)
             {
                 scene.DeleteAllSceneObjects();
             });
 
             // Create a "hole", to test that that the corresponding region isn't loaded from the OAR
-            SceneManager.Instance.CloseScene(SceneManager.Instance.Scenes[1]);
+            m_sceneHelpers.SceneManager.CloseScene(SceneManager.Instance.Scenes[1]);
 
 
             // Check thay the OAR file contains the expected data
@@ -1023,7 +1010,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
 
             Assert.That(m_lastErrorMessage, Is.Null);
 
-            Assert.AreEqual(3, SceneManager.Instance.Scenes.Count);
+            Assert.AreEqual(3, m_sceneHelpers.SceneManager.Scenes.Count);
 
             TestLoadedRegion(part1, soundItemName, soundData);
         }
