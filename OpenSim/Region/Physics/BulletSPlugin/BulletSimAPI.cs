@@ -287,6 +287,8 @@ public struct ConfigurationParameters
     public float terrainFriction;
     public float terrainHitFraction;
     public float terrainRestitution;
+    public float terrainCollisionMargin;
+
     public float avatarFriction;
     public float avatarStandingFriction;
     public float avatarDensity;
@@ -295,6 +297,8 @@ public struct ConfigurationParameters
     public float avatarCapsuleDepth;
     public float avatarCapsuleHeight;
 	public float avatarContactProcessingThreshold;
+
+    public float vehicleAngularDamping;
 
 	public float maxPersistantManifoldPoolSize;
 	public float maxCollisionAlgorithmPoolSize;
@@ -480,6 +484,9 @@ public static extern IntPtr BuildNativeShape2(IntPtr world, ShapeData shapeData)
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern bool IsNativeShape2(IntPtr shape);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern void SetShapeCollisionMargin(IntPtr shape, float margin);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern IntPtr BuildCapsuleShape2(IntPtr world, float radius, float height, Vector3 scale);
