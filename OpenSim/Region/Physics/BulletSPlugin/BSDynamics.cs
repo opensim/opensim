@@ -518,13 +518,18 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         {
             if (IsActive)
             {
+                VDetailLog("{0},BSDynamics.Refresh", Prim.LocalID);
+                m_vehicleMass = Prim.Linkset.LinksetMass;
+
                 // Friction effects are handled by this vehicle code
                 BulletSimAPI.SetFriction2(Prim.PhysBody.ptr, 0f);
                 BulletSimAPI.SetHitFraction2(Prim.PhysBody.ptr, 0f);
 
-                // BulletSimAPI.SetAngularDamping2(Prim.PhysBody.ptr, 0.8f);
+                BulletSimAPI.SetAngularDamping2(Prim.PhysBody.ptr, 0.8f);
 
-                VDetailLog("{0},BSDynamics.Refresh,zeroingFriction and adding damping", Prim.LocalID);
+                BulletSimAPI.SetMassProps2(Prim.PhysBody.ptr, m_vehicleMass, new Vector3(1f, 1f, 1f));
+
+
             }
         }
 
@@ -559,8 +564,6 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             // m_lastAngularVelocity = Prim.ForceRotationalVelocity;   // DEBUG: account for what Bullet did last time
             // m_lastLinearVelocityVector = Prim.ForceVelocity * Quaternion.Inverse(Prim.ForceOrientation);        // DEBUG:
             // END DEBUG
-
-            m_vehicleMass = Prim.Linkset.LinksetMass;
 
             MoveLinear(pTimestep);
             // Commented out for debug
@@ -650,6 +653,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             // if (rotatedSize.Z < terrainHeight)
             if (pos.Z < terrainHeight)
             {
+                // TODO: correct position by applying force rather than forcing position.
                 pos.Z = terrainHeight + 2;
                 Prim.ForcePosition = pos;
                 VDetailLog("{0},MoveLinear,terrainHeight,terrainHeight={1},pos={2}", Prim.LocalID, terrainHeight, pos);
@@ -810,9 +814,8 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         private void MoveAngular(float pTimestep)
         {
             // m_angularMotorDirection         // angular velocity requested by LSL motor
-            // m_angularMotorApply             // application frame counter
             // m_angularMotorVelocity          // current angular motor velocity (ramps up and down)
-            // m_angularMotorTimescale         // motor angular velocity ramp up rate
+            // m_angularMotorTimescale         // motor angular velocity ramp up time
             // m_angularMotorDecayTimescale    // motor angular velocity decay rate
             // m_angularFrictionTimescale      // body angular velocity  decay rate
             // m_lastAngularVelocity           // what was last applied to body
@@ -847,7 +850,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             {
                 float VAservo = pTimestep * 0.2f / m_verticalAttractionTimescale;
                 if (Prim.IsColliding)
-                    VAservo = pTimestep * 0.05f / (m_verticalAttractionTimescale);
+                    VAservo = pTimestep * 0.05f / m_verticalAttractionTimescale;
 
                 VAservo *= (m_verticalAttractionEfficiency * m_verticalAttractionEfficiency);
 
@@ -925,6 +928,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 float mix = Math.Abs(m_bankingMix);
                 if (m_angularMotorVelocity.X == 0)
                 {
+                    // The vehicle is stopped
                     /*if (!parent.Orientation.ApproxEquals(this.m_referenceFrame, 0.25f))
                     {
                         Vector3 axisAngle;
@@ -938,9 +942,12 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     }*/
                 }
                 else
-                    banking.Z += (effSquared*(mult*mix))*(m_angularMotorVelocity.X) * 4;
+                {
+                    banking.Z += (effSquared * (mult * mix)) * (m_angularMotorVelocity.X) * 4;
+                }
+
+                //If they are colliding, we probably shouldn't shove the prim around... probably
                 if (!Prim.IsColliding && Math.Abs(m_angularMotorVelocity.X) > mix)
-                    //If they are colliding, we probably shouldn't shove the prim around... probably
                 {
                     float angVelZ = m_angularMotorVelocity.X*-1;
                     /*if(angVelZ > mix)
@@ -957,8 +964,8 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     banking += bankingRot;
                 }
                 m_angularMotorVelocity.X *= m_bankingEfficiency == 1 ? 0.0f : 1 - m_bankingEfficiency;
-                VDetailLog("{0},MoveAngular,Banking,bEff={1},angMotVel={2},banking={3}", 
-                                Prim.LocalID, m_bankingEfficiency, m_angularMotorVelocity, banking);
+                VDetailLog("{0},MoveAngular,Banking,bEff={1},angMotVel={2},effSq={3},mult={4},mix={5},banking={6}", 
+                                Prim.LocalID, m_bankingEfficiency, m_angularMotorVelocity, effSquared, mult, mix, banking);
             }
 
             #endregion
