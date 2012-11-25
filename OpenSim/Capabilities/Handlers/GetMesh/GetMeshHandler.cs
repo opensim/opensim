@@ -100,6 +100,8 @@ namespace OpenSim.Capabilities.Handlers
             responsedata["keepalive"] = false;
             responsedata["str_response_string"] = "Request wasn't what was expected";
             responsedata["reusecontext"] = false;
+            responsedata["int_lod"] = 0;
+            responsedata["int_bytes"] = 0;
 
             string meshStr = string.Empty;
 
