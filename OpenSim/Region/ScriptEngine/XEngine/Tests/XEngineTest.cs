@@ -44,7 +44,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine.Tests
     /// XEngine tests.
     /// </summary>
     [TestFixture]
-    public class XEngineTest
+    public class XEngineTest : OpenSimTestCase
     {
         private TestScene m_scene;
         private XEngine m_xEngine;
@@ -90,7 +90,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine.Tests
 //            log4net.Config.XmlConfigurator.Configure();
 
             UUID userId = TestHelpers.ParseTail(0x1);
-//            UUID objectId = TestHelpers.ParseTail(0x2);
+//            UUID objectId = TestHelpers.ParseTail(0x100);
 //            UUID itemId = TestHelpers.ParseTail(0x3);
             string itemName = "TestStartScript() Item";
 
@@ -105,12 +105,18 @@ namespace OpenSim.Region.ScriptEngine.XEngine.Tests
 
             m_scene.EventManager.OnChatFromWorld += OnChatFromWorld;
 
-            m_scene.RezNewScript(userId, itemTemplate);
+            SceneObjectPart partWhereRezzed = m_scene.RezNewScript(userId, itemTemplate);
 
             m_chatEvent.WaitOne(60000);
 
             Assert.That(m_osChatMessageReceived, Is.Not.Null, "No chat message received in TestStartScript()");
             Assert.That(m_osChatMessageReceived.Message, Is.EqualTo("Script running"));
+
+            bool running;
+            TaskInventoryItem scriptItem = partWhereRezzed.Inventory.GetInventoryItem(itemName);
+            Assert.That(
+                SceneObjectPartInventory.TryGetScriptInstanceRunning(m_scene, scriptItem, out running), Is.True);
+            Assert.That(running, Is.True);
         }
 
         private void OnChatFromWorld(object sender, OSChatMessage oscm)

@@ -150,6 +150,19 @@ namespace OpenSim.Region.Framework.Interfaces
         void StopScriptInstance(UUID itemId);
 
         /// <summary>
+        /// Try to get the script running status.
+        /// </summary>
+        /// <returns>
+        /// Returns true if a script for the item was found in one of the simulator's script engines.  In this case,
+        /// the running parameter will reflect the running status.
+        /// Returns false if the item could not be found, if the item is not a script or if a script instance for the
+        /// item was not found in any of the script engines.  In this case, running status is irrelevant.
+        /// </returns>
+        /// <param name='itemId'></param>
+        /// <param name='running'></param>
+        bool TryGetScriptInstanceRunning(UUID itemId, out bool running);
+
+        /// <summary>
         /// Add an item to this entity's inventory.  If an item with the same name already exists, then an alternative
         /// name is chosen.
         /// </summary>

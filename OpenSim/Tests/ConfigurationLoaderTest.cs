@@ -29,11 +29,12 @@ using System.IO;
 using Nini.Config;
 using NUnit.Framework;
 using OpenSim.Framework;
+using OpenSim.Tests.Common;
 
 namespace OpenSim.Tests
 {
     [TestFixture]
-    public class ConfigurationLoaderTests
+    public class ConfigurationLoaderTests : OpenSimTestCase
     {
         private const string m_testSubdirectory = "test";
         private string m_basePath;

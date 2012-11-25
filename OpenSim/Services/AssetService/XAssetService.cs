@@ -194,21 +194,7 @@ namespace OpenSim.Services.AssetService
             if (!UUID.TryParse(id, out assetID))
                 return false;
 
-            AssetBase asset = m_Database.GetAsset(assetID);
-            if (asset == null)
-                return false;
-
-            if ((int)(asset.Flags & AssetFlags.Maptile) != 0)
-            {
-                return m_Database.Delete(id);
-            }
-            else
-            {
-                m_log.DebugFormat("[XASSET SERVICE]: Request to delete asset {0}, but flags are not Maptile", id);
-            }
-
-            return false;
+            return m_Database.Delete(id);
         }
     }
 }
-

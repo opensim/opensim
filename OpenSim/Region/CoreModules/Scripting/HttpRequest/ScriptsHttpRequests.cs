@@ -41,6 +41,7 @@ using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using Mono.Addins;
 
 /*****************************************************
  *
@@ -87,7 +88,8 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
 {
-    public class HttpRequestModule : IRegionModule, IHttpRequestModule
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "HttpRequestModule")]
+    public class HttpRequestModule : ISharedRegionModule, IHttpRequestModule
     {
         private object HttpListLock = new object();
         private int httpTimeout = 30000;
@@ -270,21 +272,35 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
 
         #endregion
 
-        #region IRegionModule Members
+        #region ISharedRegionModule Members
 
-        public void Initialise(Scene scene, IConfigSource config)
+        public void Initialise(IConfigSource config)
         {
-            m_scene = scene;
-
-            m_scene.RegisterModuleInterface<IHttpRequestModule>(this);
-
             m_proxyurl = config.Configs["Startup"].GetString("HttpProxy");
             m_proxyexcepts = config.Configs["Startup"].GetString("HttpProxyExceptions");
 
             m_pendingRequests = new Dictionary<UUID, HttpRequestClass>();
         }
 
+        public void AddRegion(Scene scene)
+        {
+            m_scene = scene;
+
+            m_scene.RegisterModuleInterface<IHttpRequestModule>(this);
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+            scene.UnregisterModuleInterface<IHttpRequestModule>(this);
+            if (scene == m_scene)
+                m_scene = null;
+        }
+
         public void PostInitialise()
+        {
+        }
+
+        public void RegionLoaded(Scene scene)
         {
         }
 
@@ -297,9 +313,9 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
             get { return m_name; }
         }
 
-        public bool IsSharedModule
+        public Type ReplaceableInterface
         {
-            get { return true; }
+            get { return null; }
         }
 
         #endregion

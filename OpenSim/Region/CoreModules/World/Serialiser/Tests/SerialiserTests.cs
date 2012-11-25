@@ -39,7 +39,7 @@ using OpenSim.Tests.Common;
 namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
 {
     [TestFixture]
-    public class SerialiserTests
+    public class SerialiserTests : OpenSimTestCase
     {
         private string xml = @"
         <SceneObjectGroup>

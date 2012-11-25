@@ -716,5 +716,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public static readonly LSLInteger RCERR_UNKNOWN = -1;        
         public static readonly LSLInteger RCERR_SIM_PERF_LOW = -2;
         public static readonly LSLInteger RCERR_CAST_TIME_EXCEEDED = 3;
+
+        /// <summary>
+        /// process name parameter as regex
+        /// </summary>
+        public const int OS_LISTEN_REGEX_NAME = 0x1;
+
+        /// <summary>
+        /// process message parameter as regex
+        /// </summary>
+        public const int OS_LISTEN_REGEX_MESSAGE = 0x2;
     }
 }

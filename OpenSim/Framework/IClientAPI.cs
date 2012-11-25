@@ -1099,8 +1099,20 @@ namespace OpenSim.Framework
         void SendAnimations(UUID[] animID, int[] seqs, UUID sourceAgentId, UUID[] objectIDs);
         void SendRegionHandshake(RegionInfo regionInfo, RegionHandshakeArgs args);
 
-        void SendChatMessage(string message, byte type, Vector3 fromPos, string fromName, UUID fromAgentID, byte source,
-                             byte audible);
+        /// <summary>
+        /// Send chat to the viewer.
+        /// </summary>
+        /// <param name='message'></param>
+        /// <param name='type'></param>
+        /// <param name='fromPos'></param>
+        /// <param name='fromName'></param>
+        /// <param name='fromAgentID'></param>
+        /// <param name='ownerID'></param>
+        /// <param name='source'></param>
+        /// <param name='audible'></param>
+        void SendChatMessage(
+            string message, byte type, Vector3 fromPos, string fromName, UUID fromAgentID, UUID ownerID, byte source,
+            byte audible);
 
         void SendInstantMessage(GridInstantMessage im);
 

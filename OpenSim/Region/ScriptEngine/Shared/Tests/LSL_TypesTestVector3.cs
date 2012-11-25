@@ -36,7 +36,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
     /// Tests for Vector3
     /// </summary>
     [TestFixture]
-    public class LSL_TypesTestVector3
+    public class LSL_TypesTestVector3 : OpenSimTestCase
     {
         [Test]
         public void TestDotProduct()

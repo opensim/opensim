@@ -32,6 +32,9 @@ using System.Reflection;
 using log4net;
 using NDesk.Options;
 using Nini.Config;
+using Mono.Addins;
+using OpenSim.Framework;
+using OpenSim.Framework.Console;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
@@ -40,6 +43,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
     /// <summary>
     /// This module loads and saves OpenSimulator region archives
     /// </summary>
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "ArchiverModule")]
     public class ArchiverModule : INonSharedRegionModule, IRegionArchiverModule
     {
         private static readonly ILog m_log = 
@@ -117,7 +121,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 //
 //            foreach (string param in mainParams)
 //                m_log.DebugFormat("GOT PARAM [{0}]", param);
-            
+
             if (mainParams.Count > 2)
             {
                 DearchiveRegion(mainParams[2], mergeOar, skipAssets, Guid.Empty);
@@ -150,14 +154,18 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
             List<string> mainParams = ops.Parse(cmdparams);
 
+            string path;
             if (mainParams.Count > 2)
-            {
-                ArchiveRegion(mainParams[2], options);
-            }
+                path = mainParams[2];
             else
-            {
-                ArchiveRegion(DEFAULT_OAR_BACKUP_FILENAME, options);
-            }
+                path = DEFAULT_OAR_BACKUP_FILENAME;
+
+            // Not doing this right now as this causes some problems with auto-backup systems.  Maybe a force flag is
+            // needed
+//            if (!ConsoleUtil.CheckFileDoesNotExist(MainConsole.Instance, path))
+//                return;
+
+            ArchiveRegion(path, options);
         }
         
         public void ArchiveRegion(string savePath, Dictionary<string, object> options)

@@ -53,13 +53,13 @@ namespace OpenSim.Data.SQLite
 
         public FriendsData[] GetFriends(string userID)
         {
-            SqliteCommand cmd = new SqliteCommand();
+            using (SqliteCommand cmd = new SqliteCommand())
+            {
+                cmd.CommandText = String.Format("select a.*,case when b.Flags is null then -1 else b.Flags end as TheirFlags from {0} as a left join {0} as b on a.PrincipalID = b.Friend and a.Friend = b.PrincipalID where a.PrincipalID = :PrincipalID", m_Realm);
+                cmd.Parameters.AddWithValue(":PrincipalID", userID.ToString());
 
-            cmd.CommandText = String.Format("select a.*,case when b.Flags is null then -1 else b.Flags end as TheirFlags from {0} as a left join {0} as b on a.PrincipalID = b.Friend and a.Friend = b.PrincipalID where a.PrincipalID = :PrincipalID", m_Realm);
-            cmd.Parameters.AddWithValue(":PrincipalID", userID.ToString());
-
-            return DoQuery(cmd);
-
+                return DoQuery(cmd);
+            }
         }
 
         public bool Delete(UUID principalID, string friend)
@@ -69,13 +69,14 @@ namespace OpenSim.Data.SQLite
 
         public bool Delete(string principalID, string friend)
         {
-            SqliteCommand cmd = new SqliteCommand();
+            using (SqliteCommand cmd = new SqliteCommand())
+            {
+                cmd.CommandText = String.Format("delete from {0} where PrincipalID = :PrincipalID and Friend = :Friend", m_Realm);
+                cmd.Parameters.AddWithValue(":PrincipalID", principalID.ToString());
+                cmd.Parameters.AddWithValue(":Friend", friend);
 
-            cmd.CommandText = String.Format("delete from {0} where PrincipalID = :PrincipalID and Friend = :Friend", m_Realm);
-            cmd.Parameters.AddWithValue(":PrincipalID", principalID.ToString());
-            cmd.Parameters.AddWithValue(":Friend", friend);
-
-            ExecuteNonQuery(cmd, m_Connection);
+                ExecuteNonQuery(cmd, m_Connection);
+            }
 
             return true;
         }

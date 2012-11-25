@@ -209,49 +209,6 @@ namespace Prebuild.Core.Targets
 				ss.WriteLine("	  <target name=\"{0}\">", "build");
 				ss.WriteLine("		  <echo message=\"Build Directory is ${project::get-base-directory()}/${build.dir}\" />");
 				ss.WriteLine("		  <mkdir dir=\"${project::get-base-directory()}/${build.dir}\" />");
-				ss.WriteLine("		  <copy todir=\"${project::get-base-directory()}/${build.dir}\" flatten=\"true\">");
-				ss.WriteLine("			  <fileset basedir=\"${project::get-base-directory()}\">");
-				foreach (ReferenceNode refr in project.References)
-				{
-					if (refr.LocalCopy)
-					{
-						ss.WriteLine("				  <include name=\"{0}", Helper.NormalizePath(Helper.MakePathRelativeTo(project.FullPath, BuildReference(solution, project, refr)) + "\" />", '/'));
-					}
-				}
-				
-				ss.WriteLine("			  </fileset>");
-				ss.WriteLine("		  </copy>");
-				if (project.ConfigFile != null && project.ConfigFile.Length!=0)
-				{
-					ss.Write("		  <copy file=\"" + project.ConfigFile + "\" tofile=\"${project::get-base-directory()}/${build.dir}/${project::get-name()}");
-
-					if (project.Type == ProjectType.Library)
-					{
-						ss.Write(".dll.config\"");
-					}
-					else
-					{
-						ss.Write(".exe.config\"");
-					}
-					ss.WriteLine(" />");
-				}
-
-				// Add the content files to just be copied
-				ss.WriteLine("		  {0}", "<copy todir=\"${project::get-base-directory()}/${build.dir}\">");
-				ss.WriteLine("			  {0}", "<fileset basedir=\".\">");
-				
-				foreach (string file in project.Files)
-				{
-					// Ignore if we aren't content
-					if (project.Files.GetBuildAction(file) != BuildAction.Content)
-							continue;
-
-					// Create a include tag
-					ss.WriteLine("				  {0}", "<include name=\"" + Helper.NormalizePath(PrependPath(file), '/') + "\" />");
-				}
-
-				ss.WriteLine("			  {0}", "</fileset>");
-				ss.WriteLine("		  {0}", "</copy>");
 
 				ss.Write("		  <csc ");
 				ss.Write(" target=\"{0}\"", project.Type.ToString().ToLower());

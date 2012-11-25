@@ -116,7 +116,22 @@ namespace OpenSim.Data
         /// <returns>true if the delete was successful, false if it was not</returns>
         bool DeleteItems(string[] fields, string[] vals);
 
-        bool MoveItem(string id, string newParent);
+        /// <summary>
+        /// Move an item to another folder.
+        /// </summary>
+        /// <returns>/returns>
+        /// <param name='id'>UUID of the item</param>
+        /// <param name='newParent'>UUID of the new parent folder.</param>
+        bool MoveItem(string id, string newParentFolderID);
+
+        /// <summary>
+        /// Move a folder to another folder.
+        /// </summary>
+        /// <returns>/returns>
+        /// <param name='id'>UUID of the item</param>
+        /// <param name='newParent'>UUID of the new parent folder.</param>
+        bool MoveFolder(string id, string newParentFolderID);
+
         XInventoryItem[] GetActiveGestures(UUID principalID);
         int GetAssetPermissions(UUID principalID, UUID assetID);
     }

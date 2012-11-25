@@ -603,13 +603,15 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         {
         }
 
-        public virtual void SendChatMessage(string message, byte type, Vector3 fromPos, string fromName,
-                                            UUID fromAgentID, byte source, byte audible)
+        public virtual void SendChatMessage(
+            string message, byte type, Vector3 fromPos, string fromName,
+            UUID fromAgentID, UUID ownerID, byte source, byte audible)
         {
         }
 
-        public virtual void SendChatMessage(byte[] message, byte type, Vector3 fromPos, string fromName,
-                                            UUID fromAgentID, byte source, byte audible)
+        public virtual void SendChatMessage(
+            byte[] message, byte type, Vector3 fromPos, string fromName,
+            UUID fromAgentID, UUID ownerID, byte source, byte audible)
         {
         }
 

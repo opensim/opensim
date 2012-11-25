@@ -52,7 +52,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
     /// <remarks>
     /// </remarks>
 
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "MapImageServiceModule")]
     public class MapImageServiceModule : ISharedRegionModule
     {
         private static readonly ILog m_log =

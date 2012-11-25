@@ -176,7 +176,6 @@ namespace OpenSim.Region.Framework.Scenes
         protected List<RegionInfo> m_regionRestartNotifyList = new List<RegionInfo>();
         protected List<RegionInfo> m_neighbours = new List<RegionInfo>();
         protected string m_simulatorVersion = "OpenSimulator Server";
-        protected ModuleLoader m_moduleLoader;
         protected AgentCircuitManager m_authenticateHandler;
         protected SceneCommunicationService m_sceneGridService;
 
@@ -659,7 +658,7 @@ namespace OpenSim.Region.Framework.Scenes
         public Scene(RegionInfo regInfo, AgentCircuitManager authen,
                      SceneCommunicationService sceneGridService,
                      ISimulationDataService simDataService, IEstateDataService estateDataService,
-                     ModuleLoader moduleLoader, bool dumpAssetsToFile,
+                     bool dumpAssetsToFile,
                      IConfigSource config, string simulatorVersion)
             : this(regInfo)
         {
@@ -670,7 +669,6 @@ namespace OpenSim.Region.Framework.Scenes
             Random random = new Random();
 
             m_lastAllocatedLocalId = (uint)(random.NextDouble() * (double)(uint.MaxValue / 2)) + (uint)(uint.MaxValue / 4);
-            m_moduleLoader = moduleLoader;
             m_authenticateHandler = authen;
             m_sceneGridService = sceneGridService;
             m_SimulationDataService = simDataService;
@@ -742,7 +740,12 @@ namespace OpenSim.Region.Framework.Scenes
             //
             // Out of memory
             // Operating system has killed the plugin
-            m_sceneGraph.UnRecoverableError += RestartNow;
+            m_sceneGraph.UnRecoverableError 
+                += () => 
+                    { 
+                        m_log.ErrorFormat("[SCENE]: Restarting region {0} due to unrecoverable physics crash", Name); 
+                        RestartNow(); 
+                    };
 
             RegisterDefaultSceneEvents();
 
@@ -1136,15 +1139,9 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            m_log.Error("[REGION]: Closing");
+            m_log.InfoFormat("[REGION]: Restarting region {0}", Name);
+
             Close();
-
-            if (PhysicsScene != null)
-            {
-                PhysicsScene.Dispose();
-            }            
-
-            m_log.Error("[REGION]: Firing Region Restart Message");
 
             base.Restart();
         }
@@ -1267,6 +1264,12 @@ namespace OpenSim.Region.Framework.Scenes
         // This is the method that shuts down the scene.
         public override void Close()
         {
+            if (m_shuttingDown)
+            {
+                m_log.WarnFormat("[SCENE]: Ignoring close request because already closing {0}", Name);
+                return;
+            }
+
             m_log.InfoFormat("[SCENE]: Closing down the single simulator: {0}", RegionInfo.RegionName);
 
             StatsReporter.Close();
@@ -1310,6 +1313,14 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_sceneGraph.Close();
 
+            if (!GridService.DeregisterRegion(RegionInfo.RegionID))
+                m_log.WarnFormat("[SCENE]: Deregister from grid failed for region {0}", Name);
+
+            base.Close();
+
+            // XEngine currently listens to the EventManager.OnShutdown event to trigger script stop and persistence.
+            // Therefore. we must dispose of the PhysicsScene after this to prevent a window where script code can
+            // attempt to reference a null or disposed physics scene.
             if (PhysicsScene != null)
             {
                 PhysicsScene phys = PhysicsScene;
@@ -1318,12 +1329,6 @@ namespace OpenSim.Region.Framework.Scenes
                 phys.Dispose();
                 phys = null;
             }
-
-            if (!GridService.DeregisterRegion(RegionInfo.RegionID))
-                m_log.WarnFormat("[SCENE]: Deregister from grid failed for region {0}", Name);
-
-            // call the base class Close method.
-            base.Close();
         }
 
         /// <summary>
@@ -1684,12 +1689,19 @@ namespace OpenSim.Region.Framework.Scenes
 
         private void CheckAtTargets()
         {
-            Dictionary<UUID, SceneObjectGroup>.ValueCollection objs;
-            lock (m_groupsWithTargets)
-                objs = m_groupsWithTargets.Values;
+            List<SceneObjectGroup> objs = null;
 
-            foreach (SceneObjectGroup entry in objs)
-                entry.checkAtTargets();
+            lock (m_groupsWithTargets)
+            {
+                if (m_groupsWithTargets.Count != 0)
+                    objs = new List<SceneObjectGroup>(m_groupsWithTargets.Values);
+            }
+
+            if (objs != null)
+            {
+                foreach (SceneObjectGroup entry in objs)
+                    entry.checkAtTargets();
+            }
         }
 
         /// <summary>
@@ -3373,9 +3385,10 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 else
                 {
-                    // We remove the acd up here to avoid later raec conditions if two RemoveClient() calls occurred
+                    // We remove the acd up here to avoid later race conditions if two RemoveClient() calls occurred
                     // simultaneously.
-                    m_authenticateHandler.RemoveCircuit(acd.circuitcode);
+                    // We also need to remove by agent ID since NPCs will have no circuit code.
+                    m_authenticateHandler.RemoveCircuit(agentID);
                 }
             }
 
@@ -3427,9 +3440,10 @@ namespace OpenSim.Region.Framework.Scenes
                     if (closeChildAgents && CapsModule != null)
                         CapsModule.RemoveCaps(agentID);
     
-                    // REFACTORING PROBLEM -- well not really a problem, but just to point out that whatever
-                    // this method is doing is HORRIBLE!!!
-                    avatar.Scene.NeedSceneCacheClear(avatar.UUID);
+//                    // REFACTORING PROBLEM -- well not really a problem, but just to point out that whatever
+//                    // this method is doing is HORRIBLE!!!
+                    // Commented pending deletion since this method no longer appears to do anything at all
+//                    avatar.Scene.NeedSceneCacheClear(avatar.UUID);
     
                     if (closeChildAgents && !isChildAgent)
                     {
@@ -4688,10 +4702,21 @@ namespace OpenSim.Region.Framework.Scenes
         /// Get a group via its UUID
         /// </summary>
         /// <param name="fullID"></param>
-        /// <returns>null if no group with that name exists</returns>
+        /// <returns>null if no group with that id exists</returns>
         public SceneObjectGroup GetSceneObjectGroup(UUID fullID)
         {
             return m_sceneGraph.GetSceneObjectGroup(fullID);
+        }
+
+        /// <summary>
+        /// Get a group via its local ID
+        /// </summary>
+        /// <remarks>This will only return a group if the local ID matches a root part</remarks>
+        /// <param name="localID"></param>
+        /// <returns>null if no group with that id exists</returns>
+        public SceneObjectGroup GetSceneObjectGroup(uint localID)
+        {
+            return m_sceneGraph.GetSceneObjectGroup(localID);
         }
 
         /// <summary>
@@ -4854,14 +4879,15 @@ namespace OpenSim.Region.Framework.Scenes
                 client.SendRegionHandle(regionID, handle);
         }
 
-        public bool NeedSceneCacheClear(UUID agentID)
-        {
-            IInventoryTransferModule inv = RequestModuleInterface<IInventoryTransferModule>();
-            if (inv == null)
-                return true;
-
-            return inv.NeedSceneCacheClear(agentID, this);
-        }
+// Commented pending deletion since this method no longer appears to do anything at all
+//        public bool NeedSceneCacheClear(UUID agentID)
+//        {
+//            IInventoryTransferModule inv = RequestModuleInterface<IInventoryTransferModule>();
+//            if (inv == null)
+//                return true;
+//
+//            return inv.NeedSceneCacheClear(agentID, this);
+//        }
 
         public void CleanTempObjects()
         {

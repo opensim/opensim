@@ -3335,7 +3335,6 @@ Console.WriteLine(" JointCreateFixed");
             m_material = pMaterial;
         }
 
-
         private void CheckMeshAsset()
         {
             if (_pbs.SculptEntry && !m_assetFailed && _pbs.SculptTexture != UUID.Zero)
@@ -3345,14 +3344,14 @@ Console.WriteLine(" JointCreateFixed");
                     {
                         RequestAssetDelegate assetProvider = _parent_scene.RequestAssetMethod;
                         if (assetProvider != null)
-                            assetProvider(_pbs.SculptTexture, MeshAssetReveived);
+                            assetProvider(_pbs.SculptTexture, MeshAssetReceived);
                     });
             }
         }
 
-        void MeshAssetReveived(AssetBase asset)
+        private void MeshAssetReceived(AssetBase asset)
         {
-            if (asset.Data != null && asset.Data.Length > 0)
+            if (asset != null && asset.Data != null && asset.Data.Length > 0)
             {
                 if (!_pbs.SculptEntry)
                     return;
@@ -3364,6 +3363,12 @@ Console.WriteLine(" JointCreateFixed");
 //                m_assetFailed = false;
                 m_taintshape = true;
                _parent_scene.AddPhysicsActorTaint(this);
+            }
+            else
+            {
+                m_log.WarnFormat(
+                    "[ODE PRIM]: Could not get mesh/sculpt asset {0} for {1} at {2} in {3}",
+                    _pbs.SculptTexture, Name, _position, _parent_scene.Name);
             }
         }          
     }

@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using log4net;
+using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -37,6 +38,7 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "SunModule")]
     public class SunModule : ISunModule
     {
         /// <summary>
@@ -267,25 +269,16 @@ namespace OpenSim.Region.CoreModules
             return GetCurrentSunHour() + 6.0f;
         }
 
-        #region IRegion Methods
+        #region INonSharedRegion Methods
 
         // Called immediately after the module is loaded for a given region
         // i.e. Immediately after instance creation.
-        public void Initialise(Scene scene, IConfigSource config)
+        public void Initialise(IConfigSource config)
         {
-            m_scene = scene;
             m_frame = 0;
 
             // This one puts an entry in the main help screen
 //            m_scene.AddCommand("Regions", this, "sun", "sun", "Usage: sun [param] [value] - Get or Update Sun module paramater", null);
-
-            // This one enables the ability to type just "sun" without any parameters
-//            m_scene.AddCommand("Regions", this, "sun", "", "", HandleSunConsoleCommand);
-            foreach (KeyValuePair<string, string> kvp in GetParamList())
-            {
-                string sunCommand = string.Format("sun {0}", kvp.Key);
-                m_scene.AddCommand("Regions", this, sunCommand, string.Format("{0} [<value>]", sunCommand), kvp.Value, "", HandleSunConsoleCommand);
-            }
 
             TimeZone local = TimeZone.CurrentTimeZone;
             TicksUTCOffset = local.GetUtcOffset(local.ToLocalTime(DateTime.Now)).Ticks;
@@ -358,15 +351,6 @@ namespace OpenSim.Region.CoreModules
                     HorizonShift      = m_HorizonShift; // Z axis translation
                     // HoursToRadians    = (SunCycle/24)*VWTimeRatio;
 
-                    //  Insert our event handling hooks
-
-                    scene.EventManager.OnFrame     += SunUpdate;
-                    scene.EventManager.OnAvatarEnteringNewParcel += AvatarEnteringParcel;
-                    scene.EventManager.OnEstateToolsSunUpdate += EstateToolsSunUpdate;
-                    scene.EventManager.OnGetCurrentTimeAsLindenSunHour += GetCurrentTimeAsLindenSunHour;
-
-                    ready = true;
-
                     m_log.Debug("[SUN]: Mode is " + m_RegionMode);
                     m_log.Debug("[SUN]: Initialization completed. Day is " + SecondsPerSunCycle + " seconds, and year is " + m_YearLengthDays + " days");
                     m_log.Debug("[SUN]: Axis offset is " + m_HorizonShift);
@@ -376,14 +360,37 @@ namespace OpenSim.Region.CoreModules
                     break;
             }
 
-            scene.RegisterModuleInterface<ISunModule>(this);
         }
 
-        public void PostInitialise()
+        public Type ReplaceableInterface 
         {
+            get { return null; }
         }
 
-        public void Close()
+        public void AddRegion(Scene scene)
+        {
+            m_scene = scene;
+            //  Insert our event handling hooks
+
+            scene.EventManager.OnFrame += SunUpdate;
+            scene.EventManager.OnAvatarEnteringNewParcel += AvatarEnteringParcel;
+            scene.EventManager.OnEstateToolsSunUpdate += EstateToolsSunUpdate;
+            scene.EventManager.OnGetCurrentTimeAsLindenSunHour += GetCurrentTimeAsLindenSunHour;
+
+            scene.RegisterModuleInterface<ISunModule>(this);
+
+            // This one enables the ability to type just "sun" without any parameters
+            //            m_scene.AddCommand("Regions", this, "sun", "", "", HandleSunConsoleCommand);
+            foreach (KeyValuePair<string, string> kvp in GetParamList())
+            {
+                string sunCommand = string.Format("sun {0}", kvp.Key);
+                m_scene.AddCommand("Regions", this, sunCommand, string.Format("{0} [<value>]", sunCommand), kvp.Value, "", HandleSunConsoleCommand);
+            }
+
+            ready = true;
+        }
+
+        public void RemoveRegion(Scene scene)
         {
             ready = false;
 
@@ -394,14 +401,17 @@ namespace OpenSim.Region.CoreModules
             m_scene.EventManager.OnGetCurrentTimeAsLindenSunHour -= GetCurrentTimeAsLindenSunHour;
         }
 
+        public void RegionLoaded(Scene scene)
+        {
+        }
+
+        public void Close()
+        {
+        }
+
         public string Name
         {
             get { return "SunModule"; }
-        }
-
-        public bool IsSharedModule
-        {
-            get { return false; }
         }
 
         #endregion

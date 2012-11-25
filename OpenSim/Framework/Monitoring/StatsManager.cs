@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace OpenSim.Framework.Monitoring
 {
@@ -207,7 +208,7 @@ namespace OpenSim.Framework.Monitoring
                     return false;
 
                 newContainer = new Dictionary<string, Stat>(container);
-                newContainer.Remove(stat.UniqueName);
+                newContainer.Remove(stat.ShortName);
 
                 newCategory = new Dictionary<string, Dictionary<string, Stat>>(category);
                 newCategory.Remove(stat.Container);
@@ -246,6 +247,47 @@ namespace OpenSim.Framework.Monitoring
 
             return false;
         }
+
+        public static void RecordStats()
+        {
+            lock (RegisteredStats)
+            {
+                foreach (Dictionary<string, Dictionary<string, Stat>> category in RegisteredStats.Values)
+                {
+                    foreach (Dictionary<string, Stat> container in category.Values)
+                    {
+                        foreach (Stat stat in container.Values)
+                        {
+                            if (stat.MeasuresOfInterest != MeasuresOfInterest.None)
+                                stat.RecordValue();
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Stat type.
+    /// </summary>
+    /// <remarks>
+    /// A push stat is one which is continually updated and so it's value can simply by read.
+    /// A pull stat is one where reading the value triggers a collection method - the stat is not continually updated.
+    /// </remarks>
+    public enum StatType
+    {
+        Push,
+        Pull
+    }
+
+    /// <summary>
+    /// Measures of interest for this stat.
+    /// </summary>
+    [Flags]
+    public enum MeasuresOfInterest
+    {
+        None,
+        AverageChangeOverTime
     }
 
     /// <summary>
@@ -258,117 +300,5 @@ namespace OpenSim.Framework.Monitoring
     {
         Debug,
         Info
-    }
-
-    /// <summary>
-    /// Holds individual static details
-    /// </summary>
-    public class Stat
-    {
-        /// <summary>
-        /// Unique stat name used for indexing.  Each ShortName in a Category must be unique.
-        /// </summary>
-        public string UniqueName { get; private set; }
-
-        /// <summary>
-        /// Category of this stat (e.g. cache, scene, etc).
-        /// </summary>
-        public string Category { get; private set; }
-
-        /// <summary>
-        /// Containing name for this stat.
-        /// FIXME: In the case of a scene, this is currently the scene name (though this leaves
-        /// us with a to-be-resolved problem of non-unique region names).
-        /// </summary>
-        /// <value>
-        /// The container.
-        /// </value>
-        public string Container { get; private set; }
-
-        public StatVerbosity Verbosity { get; private set; }
-        public string ShortName { get; private set; }
-        public string Name { get; private set; }
-        public string Description { get; private set; }
-        public virtual string UnitName { get; private set; }
-
-        public virtual double Value { get; set; }
-
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name='shortName'>Short name for the stat.  Must not contain spaces.  e.g. "LongFrames"</param>
-        /// <param name='name'>Human readable name for the stat.  e.g. "Long frames"</param>
-        /// <param name='unitName'>
-        /// Unit name for the stat.  Should be preceeded by a space if the unit name isn't normally appeneded immediately to the value.
-        /// e.g. " frames"
-        /// </param>
-        /// <param name='category'>Category under which this stat should appear, e.g. "scene".  Do not capitalize.</param>
-        /// <param name='container'>Entity to which this stat relates.  e.g. scene name if this is a per scene stat.</param>
-        /// <param name='verbosity'>Verbosity of stat.  Controls whether it will appear in short stat display or only full display.</param>
-        /// <param name='description'>Description of stat</param>
-        public Stat(
-            string shortName, string name, string unitName, string category, string container, StatVerbosity verbosity, string description)
-        {
-            if (StatsManager.SubCommands.Contains(category))
-                throw new Exception(
-                    string.Format("Stat cannot be in category '{0}' since this is reserved for a subcommand", category));
-
-            ShortName = shortName;
-            Name = name;
-            UnitName = unitName;
-            Category = category;
-            Container = container;
-            Verbosity = verbosity;
-            Description = description;
-
-            UniqueName = GenUniqueName(Container, Category, ShortName);
-        }
-
-        public static string GenUniqueName(string container, string category, string shortName)
-        {
-            return string.Format("{0}+{1}+{2}", container, category, shortName);
-        }
-
-        public virtual string ToConsoleString()
-        {
-            return string.Format(
-                "{0}.{1}.{2} : {3}{4}", Category, Container, ShortName, Value, UnitName);
-        }
-    }
-
-    public class PercentageStat : Stat
-    {
-        public int Antecedent { get; set; }
-        public int Consequent { get; set; }
-
-        public override double Value
-        {
-            get
-            {
-                int c = Consequent;
-
-                // Avoid any chance of a multi-threaded divide-by-zero
-                if (c == 0)
-                    return 0;
-
-                return (double)Antecedent / c * 100;
-            }
-
-            set
-            {
-                throw new Exception("Cannot set value on a PercentageStat");
-            }
-        }
-
-        public PercentageStat(
-            string shortName, string name, string category, string container, StatVerbosity verbosity, string description)
-            : base(shortName, name, "%", category, container, verbosity, description) {}
-
-        public override string ToConsoleString()
-        {
-            return string.Format(
-                "{0}.{1}.{2} : {3:0.##}{4} ({5}/{6})",
-                Category, Container, ShortName, Value, UnitName, Antecedent, Consequent);
-        }
     }
 }

@@ -56,7 +56,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
     /// OpenSim.Region.Framework.Scenes.Tests.SceneObjectLinkingTests.
     /// </remarks>
     [TestFixture]
-    public class LSL_ApiLinkingTests
+    public class LSL_ApiLinkingTests : OpenSimTestCase
     {
         protected Scene m_scene;
         protected XEngine.XEngine m_engine;

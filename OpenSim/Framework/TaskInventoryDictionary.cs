@@ -35,10 +35,12 @@ using OpenMetaverse;
 namespace OpenSim.Framework
 {
     /// <summary>
-    /// A dictionary for task inventory.
+    /// A dictionary containing task inventory items.  Indexed by item UUID.
     /// </summary>
+    /// <remarks>
     /// This class is not thread safe.  Callers must synchronize on Dictionary methods or Clone() this object before
     /// iterating over it.
+    /// </remarks>
     public class TaskInventoryDictionary : Dictionary<UUID, TaskInventoryItem>,
                                            ICloneable, IXmlSerializable
     {

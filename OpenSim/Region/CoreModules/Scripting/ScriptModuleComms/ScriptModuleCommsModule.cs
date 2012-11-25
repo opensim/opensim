@@ -38,7 +38,7 @@ using OpenMetaverse;
 using System.Linq;
 using System.Linq.Expressions;
 
-namespace OpenSim.Region.OptionalModules.Scripting.ScriptModuleComms
+namespace OpenSim.Region.CoreModules.Scripting.ScriptModuleComms
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "ScriptModuleCommsModule")]
     class ScriptModuleCommsModule : INonSharedRegionModule, IScriptModuleComms
@@ -359,6 +359,22 @@ namespace OpenSim.Region.OptionalModules.Scripting.ScriptModuleComms
             }
             
             return null;
+        }
+
+        /// <summary>
+        /// Get all registered constants
+        /// </summary>
+        public Dictionary<string, object> GetConstants()
+        {
+            Dictionary<string, object> ret = new Dictionary<string, object>();
+
+            lock (m_constants)
+            {
+                foreach (KeyValuePair<string, object> kvp in m_constants)
+                    ret[kvp.Key] = kvp.Value;
+            }
+
+            return ret;
         }
 
 #endregion

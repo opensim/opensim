@@ -42,9 +42,11 @@ using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 using OpenMetaverse;
 using log4net;
 using Nini.Config;
+using Mono.Addins;
 
 namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "HGEntityTransferModule")]
     public class HGEntityTransferModule
         : EntityTransferModule, INonSharedRegionModule, IEntityTransferModule, IUserAgentVerificationModule
     {
@@ -259,8 +261,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if (flags == -1 /* no region in DB */ || (flags & (int)OpenSim.Framework.RegionFlags.Hyperlink) != 0)
             {
                 // this user is going to another grid
-                // check if HyperGrid teleport is allowed, based on user level
-                if (sp.UserLevel < m_levelHGTeleport)
+                // for local users, check if HyperGrid teleport is allowed, based on user level
+                if (Scene.UserManagementModule.IsLocalGridUser(sp.UUID) && sp.UserLevel < m_levelHGTeleport)
                 {
                     m_log.WarnFormat("[HG ENTITY TRANSFER MODULE]: Unable to HG teleport agent due to insufficient UserLevel.");
                     reason = "Hypergrid teleport not allowed";

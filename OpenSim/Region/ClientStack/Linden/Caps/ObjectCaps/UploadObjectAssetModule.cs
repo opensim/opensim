@@ -51,14 +51,14 @@ using ExtraParamType = OpenMetaverse.ExtraParamType;
 
 namespace OpenSim.Region.ClientStack.Linden
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "UploadObjectAssetModule")]
     public class UploadObjectAssetModule : INonSharedRegionModule
     {
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private Scene m_scene;
 
-        #region IRegionModuleBase Members
+        #region Region Module interfaceBase Members
 
 
         public Type ReplaceableInterface
@@ -92,7 +92,7 @@ namespace OpenSim.Region.ClientStack.Linden
         #endregion
 
 
-        #region IRegionModule Members
+        #region Region Module interface
 
 
 

@@ -37,10 +37,12 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using log4net;
 using System.Reflection;
+using Mono.Addins;
 
 namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
 {
-    public class LoadImageURLModule : IRegionModule, IDynamicTextureRender
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "LoadImageURLModule")]
+    public class LoadImageURLModule : ISharedRegionModule, IDynamicTextureRender
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -104,22 +106,32 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
 
         #endregion
 
-        #region IRegionModule Members
+        #region ISharedRegionModule Members
 
-        public void Initialise(Scene scene, IConfigSource config)
+        public void Initialise(IConfigSource config)
         {
-            if (m_scene == null)
-            {
-                m_scene = scene;
-            }
-            
             m_proxyurl = config.Configs["Startup"].GetString("HttpProxy");
             m_proxyexcepts = config.Configs["Startup"].GetString("HttpProxyExceptions");
         }
 
         public void PostInitialise()
         {
-            if (m_scene != null)
+        }
+
+        public void AddRegion(Scene scene)
+        {
+            if (m_scene == null)
+                m_scene = scene;
+            
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+        }
+
+        public void RegionLoaded(Scene scene)
+        {
+            if (m_textureManager == null && m_scene == scene)
             {
                 m_textureManager = m_scene.RequestModuleInterface<IDynamicTextureManager>();
                 if (m_textureManager != null)
@@ -138,9 +150,9 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
             get { return m_name; }
         }
 
-        public bool IsSharedModule
+        public Type ReplaceableInterface
         {
-            get { return true; }
+            get { return null; }
         }
 
         #endregion
@@ -172,6 +184,12 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
 
         private void HttpRequestReturn(IAsyncResult result)
         {
+            if (m_textureManager == null)
+            {
+                m_log.WarnFormat("[LOADIMAGEURLMODULE]: No texture manager. Can't function.");
+                return;
+            }
+
             RequestState state = (RequestState) result.AsyncState;
             WebRequest request = (WebRequest) state.Request;
             Stream stream = null;

@@ -983,6 +983,30 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
+        /// Get a group in the scene
+        /// </summary>
+        /// <remarks>
+        /// This will only return a group if the local ID matches the root part, not other parts.
+        /// </remarks>
+        /// <param name="localID">Local id of the root part of the group</param>
+        /// <returns>null if no such group was found</returns>
+        protected internal SceneObjectGroup GetSceneObjectGroup(uint localID)
+        {
+            lock (SceneObjectGroupsByLocalPartID)
+            {
+                if (SceneObjectGroupsByLocalPartID.ContainsKey(localID))
+                {
+                    SceneObjectGroup so = SceneObjectGroupsByLocalPartID[localID];
+
+                    if (so.LocalId == localID)
+                        return so;
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
         /// Get a group by name from the scene (will return the first
         /// found, if there are more than one prim with the same name)
         /// </summary>

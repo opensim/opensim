@@ -33,6 +33,7 @@ using NUnit.Framework;
 using NUnit.Framework.Constraints;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Tests.Common;
 using log4net;
 using System.Data;
 using System.Data.Common;
@@ -45,7 +46,7 @@ namespace OpenSim.Data.Tests
     /// </summary>
     /// <typeparam name="TConn"></typeparam>
     /// <typeparam name="TService"></typeparam>
-    public class BasicDataServiceTest<TConn, TService>
+    public class BasicDataServiceTest<TConn, TService> : OpenSimTestCase
         where TConn : DbConnection, new()
         where TService : class, new()
     {

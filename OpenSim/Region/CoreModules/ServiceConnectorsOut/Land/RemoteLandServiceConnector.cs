@@ -26,6 +26,7 @@
  */
 
 using log4net;
+using Mono.Addins;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -41,6 +42,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Land
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "RemoteLandServicesConnector")]
     public class RemoteLandServicesConnector :
             LandServicesConnector, ISharedRegionModule, ILandService
     {

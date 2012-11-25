@@ -54,7 +54,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         private Dictionary<UUID, AgentAssetTransactions> AgentTransactions =
             new Dictionary<UUID, AgentAssetTransactions>();
         
-        #region IRegionModule Members
+        #region Region Module interface
 
         public void Initialise(IConfigSource source)
         {

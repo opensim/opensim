@@ -2239,7 +2239,15 @@ namespace OpenSim.Region.Framework.Scenes
 
             // play the sound.
             if (startedColliders.Count > 0 && CollisionSound != UUID.Zero && CollisionSoundVolume > 0.0f)
-                SendSound(CollisionSound.ToString(), CollisionSoundVolume, true, (byte)0, 0, false, false);
+            {
+                ISoundModule soundModule = ParentGroup.Scene.RequestModuleInterface<ISoundModule>();
+                if (soundModule != null)
+                {
+                    soundModule.SendSound(UUID, CollisionSound,
+                            CollisionSoundVolume, true, (byte)0, 0, false,
+                            false);
+                }
+            }
 
             SendCollisionEvent(scriptEvents.collision_start, startedColliders, ParentGroup.Scene.EventManager.TriggerScriptCollidingStart);
             SendCollisionEvent(scriptEvents.collision      , m_lastColliders , ParentGroup.Scene.EventManager.TriggerScriptColliding);
@@ -2285,37 +2293,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             ScheduleTerseUpdate();
-        }
-
-        public void PreloadSound(string sound)
-        {
-            // UUID ownerID = OwnerID;
-            UUID objectID = ParentGroup.RootPart.UUID;
-            UUID soundID = UUID.Zero;
-
-            if (!UUID.TryParse(sound, out soundID))
-            {
-                //Trys to fetch sound id from prim's inventory.
-                //Prim's inventory doesn't support non script items yet
-                
-                lock (TaskInventory)
-                {
-                    foreach (KeyValuePair<UUID, TaskInventoryItem> item in TaskInventory)
-                    {
-                        if (item.Value.Name == sound)
-                        {
-                            soundID = item.Value.ItemID;
-                            break;
-                        }
-                    }
-                }
-            }
-
-            ParentGroup.Scene.ForEachRootScenePresence(delegate(ScenePresence sp)
-            {
-                if (!(Util.GetDistanceTo(sp.AbsolutePosition, AbsolutePosition) >= 100))
-                    sp.ControllingClient.SendPreLoadSound(objectID, objectID, soundID);
-            });
         }
 
         public void RemFlag(PrimFlags flag)
@@ -2671,98 +2648,6 @@ namespace OpenSim.Region.Framework.Scenes
                     ClearUpdateSchedule();
                     SendFullUpdateToAllClients();
                     break;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Trigger or play an attached sound in this part's inventory.
-        /// </summary>
-        /// <param name="sound"></param>
-        /// <param name="volume"></param>
-        /// <param name="triggered"></param>
-        /// <param name="flags"></param>
-        public void SendSound(string sound, double volume, bool triggered, byte flags, float radius, bool useMaster, bool isMaster)
-        {
-            if (volume > 1)
-                volume = 1;
-            if (volume < 0)
-                volume = 0;
-
-            UUID ownerID = OwnerID;
-            UUID objectID = ParentGroup.RootPart.UUID;
-            UUID parentID = ParentGroup.UUID;
-
-            UUID soundID = UUID.Zero;
-            Vector3 position = AbsolutePosition; // region local
-            ulong regionHandle = ParentGroup.Scene.RegionInfo.RegionHandle;
-
-            if (!UUID.TryParse(sound, out soundID))
-            {
-                // search sound file from inventory
-                lock (TaskInventory)
-                {
-                    foreach (KeyValuePair<UUID, TaskInventoryItem> item in TaskInventory)
-                    {
-                        if (item.Value.Name == sound && item.Value.Type == (int)AssetType.Sound)
-                        {
-                            soundID = item.Value.ItemID;
-                            break;
-                        }
-                    }
-                }
-            }
-
-            if (soundID == UUID.Zero)
-                return;
-
-            ISoundModule soundModule = ParentGroup.Scene.RequestModuleInterface<ISoundModule>();
-            if (soundModule != null)
-            {
-                if (useMaster)
-                {
-                    if (isMaster)
-                    {
-                        if (triggered)
-                            soundModule.TriggerSound(soundID, ownerID, objectID, parentID, volume, position, regionHandle, radius);
-                        else
-                            soundModule.PlayAttachedSound(soundID, ownerID, objectID, volume, position, flags, radius);
-                        ParentGroup.PlaySoundMasterPrim = this;
-                        ownerID = OwnerID;
-                        objectID = ParentGroup.RootPart.UUID;
-                        parentID = ParentGroup.UUID;
-                        position = AbsolutePosition; // region local
-                        regionHandle = ParentGroup.Scene.RegionInfo.RegionHandle;
-                        if (triggered)
-                            soundModule.TriggerSound(soundID, ownerID, objectID, parentID, volume, position, regionHandle, radius);
-                        else
-                            soundModule.PlayAttachedSound(soundID, ownerID, objectID, volume, position, flags, radius);
-                        foreach (SceneObjectPart prim in ParentGroup.PlaySoundSlavePrims)
-                        {
-                            ownerID = prim.OwnerID;
-                            objectID = prim.ParentGroup.RootPart.UUID;
-                            parentID = prim.ParentGroup.UUID;
-                            position = prim.AbsolutePosition; // region local
-                            regionHandle = prim.ParentGroup.Scene.RegionInfo.RegionHandle;
-                            if (triggered)
-                                soundModule.TriggerSound(soundID, ownerID, objectID, parentID, volume, position, regionHandle, radius);
-                            else
-                                soundModule.PlayAttachedSound(soundID, ownerID, objectID, volume, position, flags, radius);
-                        }
-                        ParentGroup.PlaySoundSlavePrims.Clear();
-                        ParentGroup.PlaySoundMasterPrim = null;
-                    }
-                    else
-                    {
-                        ParentGroup.PlaySoundSlavePrims.Add(this);
-                    }
-                }
-                else
-                {
-                    if (triggered)
-                        soundModule.TriggerSound(soundID, ownerID, objectID, parentID, volume, position, regionHandle, radius);
-                    else
-                        soundModule.PlayAttachedSound(soundID, ownerID, objectID, volume, position, flags, radius);
                 }
             }
         }

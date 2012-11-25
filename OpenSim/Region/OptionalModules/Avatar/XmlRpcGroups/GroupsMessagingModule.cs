@@ -42,7 +42,7 @@ using PresenceInfo = OpenSim.Services.Interfaces.PresenceInfo;
 
 namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "GroupsMessagingModule")]
     public class GroupsMessagingModule : ISharedRegionModule, IGroupsMessagingModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -79,7 +79,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         private int m_usersOnlineCacheExpirySeconds = 20;
 
-        #region IRegionModuleBase Members
+        #region Region Module interfaceBase Members
 
         public void Initialise(IConfigSource config)
         {

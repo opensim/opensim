@@ -571,9 +571,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             if (grp.HasGroupChanged)
             {
-//                m_log.DebugFormat(
-//                    "[ATTACHMENTS MODULE]: Updating asset for attachment {0}, attachpoint {1}",
-//                    grp.UUID, grp.AttachmentPoint);
+                m_log.DebugFormat(
+                    "[ATTACHMENTS MODULE]: Updating asset for attachment {0}, attachpoint {1}",
+                    grp.UUID, grp.AttachmentPoint);
 
                 string sceneObjectXml = SceneObjectSerializer.ToOriginalXmlFormat(grp, scriptedState);
 

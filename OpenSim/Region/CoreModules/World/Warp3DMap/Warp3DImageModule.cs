@@ -35,6 +35,7 @@ using CSJ2K;
 using Nini.Config;
 using log4net;
 using Rednettle.Warp3D;
+using Mono.Addins;
 using OpenMetaverse;
 using OpenMetaverse.Imaging;
 using OpenMetaverse.Rendering;
@@ -49,6 +50,7 @@ using WarpRenderer = global::Warp3D.Warp3D;
 
 namespace OpenSim.Region.CoreModules.World.Warp3DMap
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "Warp3DImageModule")]
     public class Warp3DImageModule : IMapImageGenerator, INonSharedRegionModule
     {
         private static readonly UUID TEXTURE_METADATA_MAGIC = new UUID("802dc0e0-f080-4931-8b57-d1be8611c4f3");
@@ -63,7 +65,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
         private bool m_useAntiAliasing = false; // TODO: Make this a config option
         private bool m_Enabled = false;
 
-        #region IRegionModule Members
+        #region Region Module interface
 
         public void Initialise(IConfigSource source)
         {

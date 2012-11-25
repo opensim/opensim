@@ -39,7 +39,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
     /// Tests for the LL packet handler
     /// </summary>
     [TestFixture]
-    public class PacketHandlerTests
+    public class PacketHandlerTests : OpenSimTestCase
     {
 //        [Test]
 //        /// <summary>

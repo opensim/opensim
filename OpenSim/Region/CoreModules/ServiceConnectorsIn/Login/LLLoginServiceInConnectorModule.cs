@@ -29,6 +29,7 @@ using System;
 using System.Reflection;
 using System.Collections.Generic;
 using log4net;
+using Mono.Addins;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
@@ -42,6 +43,7 @@ using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Login
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "LLLoginServiceInConnectorModule")]
     public class LLLoginServiceInConnectorModule : ISharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -51,7 +53,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Login
         private IConfigSource m_Config;
         private List<Scene> m_Scenes = new List<Scene>();
 
-        #region IRegionModule interface
+        #region Region Module interface
 
         public void Initialise(IConfigSource config)
         {

@@ -44,7 +44,7 @@ using OpenSim.Tests.Common.Mock;
 namespace OpenSim.Region.ClientStack.Linden.Tests
 {
     [TestFixture]
-    public class EventQueueTests
+    public class EventQueueTests : OpenSimTestCase
     {
         private TestScene m_scene;
 

@@ -90,12 +90,5 @@ namespace OpenSim.Data.SQLite
                 return cmd.ExecuteReader();
             }
         }
-
-        protected void CloseCommand(SqliteCommand cmd)
-        {
-            cmd.Connection.Close();
-            cmd.Connection.Dispose();
-            cmd.Dispose();
-        }
     }
 }

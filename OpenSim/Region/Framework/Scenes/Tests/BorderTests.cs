@@ -37,7 +37,7 @@ using OpenSim.Tests.Common;
 namespace OpenSim.Region.Framework.Scenes.Tests
 {
     [TestFixture]
-    public class BorderTests
+    public class BorderTests : OpenSimTestCase
     {
         [Test]
         public void TestCross()

@@ -31,6 +31,7 @@ using System.Net.Sockets;
 using System.Threading;
 using log4net;
 using OpenSim.Framework;
+using OpenSim.Framework.Monitoring;
 
 namespace OpenMetaverse
 {
@@ -60,14 +61,14 @@ namespace OpenMetaverse
         private bool m_asyncPacketHandling;
 
         /// <summary>
-        /// Pool to use for handling data.  May be null if UsePools = false;
-        /// </summary>
-        protected OpenSim.Framework.Pool<UDPPacketBuffer> m_pool;
-
-        /// <summary>
         /// Are we to use object pool(s) to reduce memory churn when receiving data?
         /// </summary>
         public bool UsePools { get; protected set; }
+
+        /// <summary>
+        /// Pool to use for handling data.  May be null if UsePools = false;
+        /// </summary>
+        protected OpenSim.Framework.Pool<UDPPacketBuffer> Pool { get; private set; }
 
         /// <summary>Returns true if the server is currently listening for inbound packets, otherwise false</summary>
         public bool IsRunningInbound { get; private set; }
@@ -106,11 +107,6 @@ namespace OpenMetaverse
         /// necessary</remarks>
         public void StartInbound(int recvBufferSize, bool asyncPacketHandling)
         {
-            if (UsePools)
-                m_pool = new Pool<UDPPacketBuffer>(() => new UDPPacketBuffer(), 500);
-            else
-                m_pool = null;
-
             m_asyncPacketHandling = asyncPacketHandling;
 
             if (!IsRunningInbound)
@@ -180,12 +176,40 @@ namespace OpenMetaverse
             IsRunningOutbound = false;
         }
 
+        protected virtual bool EnablePools()
+        {
+            if (!UsePools)
+            {
+                Pool = new Pool<UDPPacketBuffer>(() => new UDPPacketBuffer(), 500);
+
+                UsePools = true;
+
+                return true;
+            }
+
+            return false;
+        }
+
+        protected virtual bool DisablePools()
+        {
+            if (UsePools)
+            {
+                UsePools = false;
+
+                // We won't null out the pool to avoid a race condition with code that may be in the middle of using it.
+
+                return true;
+            }
+
+            return false;
+        }
+
         private void AsyncBeginReceive()
         {
             UDPPacketBuffer buf;
 
             if (UsePools)
-                buf = m_pool.GetObject();
+                buf = Pool.GetObject();
             else
                 buf = new UDPPacketBuffer();
 
@@ -268,7 +292,7 @@ namespace OpenMetaverse
                 finally
                 {
                     if (UsePools)
-                        m_pool.ReturnObject(buffer);
+                        Pool.ReturnObject(buffer);
 
                     // Synchronous mode waits until the packet callback completes
                     // before starting the receive to fetch another packet

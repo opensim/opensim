@@ -47,7 +47,7 @@ namespace OpenSim.Data.SQLite
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private SQLiteGenericTableHandler<XInventoryFolder> m_Folders;
+        private SqliteFolderHandler m_Folders;
         private SqliteItemHandler m_Items;
 
         public SQLiteXInventoryData(string conn, string realm)
@@ -55,7 +55,7 @@ namespace OpenSim.Data.SQLite
             if (Util.IsWindows())
                 Util.LoadArchSpecificWindowsDll("sqlite3.dll");
 
-            m_Folders = new SQLiteGenericTableHandler<XInventoryFolder>(
+            m_Folders = new SqliteFolderHandler(
                     conn, "inventoryfolders", "XInventoryStore");
             m_Items = new SqliteItemHandler(
                     conn, "inventoryitems", String.Empty);
@@ -114,6 +114,11 @@ namespace OpenSim.Data.SQLite
             return m_Items.MoveItem(id, newParent);
         }
 
+        public bool MoveFolder(string id, string newParent)
+        {
+            return m_Folders.MoveFolder(id, newParent);
+        }
+
         public XInventoryItem[] GetActiveGestures(UUID principalID)
         {
             return m_Items.GetActiveGestures(principalID);
@@ -125,44 +130,106 @@ namespace OpenSim.Data.SQLite
         }
     }
 
-    public class SqliteItemHandler : SQLiteGenericTableHandler<XInventoryItem>
+    public class SqliteItemHandler : SqliteInventoryHandler<XInventoryItem>
     {
         public SqliteItemHandler(string c, string t, string m) :
                 base(c, t, m)
         {
         }
 
+        public override bool Store(XInventoryItem item)
+        {
+            if (!base.Store(item))
+                return false;
+
+            IncrementFolderVersion(item.parentFolderID);
+
+            return true;
+        }
+
+        public override bool Delete(string field, string val)
+        {
+            XInventoryItem[] retrievedItems = Get(new string[] { field }, new string[] { val });
+            if (retrievedItems.Length == 0)
+                return false;
+
+            if (!base.Delete(field, val))
+                return false;
+
+            // Don't increment folder version here since Delete(string, string) calls Delete(string[], string[])
+//            IncrementFolderVersion(retrievedItems[0].parentFolderID);
+
+            return true;
+        }
+
+        public override bool Delete(string[] fields, string[] vals)
+        {
+            XInventoryItem[] retrievedItems = Get(fields, vals);
+            if (retrievedItems.Length == 0)
+                return false;
+
+            if (!base.Delete(fields, vals))
+                return false;
+
+            HashSet<UUID> deletedItemFolderUUIDs = new HashSet<UUID>();
+
+            Array.ForEach<XInventoryItem>(retrievedItems, i => deletedItemFolderUUIDs.Add(i.parentFolderID));
+
+            foreach (UUID deletedItemFolderUUID in deletedItemFolderUUIDs)
+                IncrementFolderVersion(deletedItemFolderUUID);
+
+            return true;
+        }
+
         public bool MoveItem(string id, string newParent)
         {
-            SqliteCommand cmd = new SqliteCommand();
+            XInventoryItem[] retrievedItems = Get(new string[] { "inventoryID" }, new string[] { id });
+            if (retrievedItems.Length == 0)
+                return false;
 
-            cmd.CommandText = String.Format("update {0} set parentFolderID = :ParentFolderID where inventoryID = :InventoryID", m_Realm);
-            cmd.Parameters.Add(new SqliteParameter(":ParentFolderID", newParent));
-            cmd.Parameters.Add(new SqliteParameter(":InventoryID", id));
+            UUID oldParent = retrievedItems[0].parentFolderID;
 
-            return ExecuteNonQuery(cmd, m_Connection) == 0 ? false : true;
+            using (SqliteCommand cmd = new SqliteCommand())
+            {
+                cmd.CommandText = String.Format("update {0} set parentFolderID = :ParentFolderID where inventoryID = :InventoryID", m_Realm);
+                cmd.Parameters.Add(new SqliteParameter(":ParentFolderID", newParent));
+                cmd.Parameters.Add(new SqliteParameter(":InventoryID", id));
+
+                if (ExecuteNonQuery(cmd, m_Connection) == 0)
+                    return false;
+            }
+
+            IncrementFolderVersion(oldParent);
+            IncrementFolderVersion(newParent);
+
+            return true;
         }
 
         public XInventoryItem[] GetActiveGestures(UUID principalID)
         {
-            SqliteCommand cmd  = new SqliteCommand();
-            cmd.CommandText = String.Format("select * from inventoryitems where avatarId = :uuid and assetType = :type and flags = 1", m_Realm);
+            using (SqliteCommand cmd  = new SqliteCommand())
+            {
+                cmd.CommandText = String.Format("select * from inventoryitems where avatarId = :uuid and assetType = :type and flags = 1", m_Realm);
 
-            cmd.Parameters.Add(new SqliteParameter(":uuid", principalID.ToString()));
-            cmd.Parameters.Add(new SqliteParameter(":type", (int)AssetType.Gesture));
+                cmd.Parameters.Add(new SqliteParameter(":uuid", principalID.ToString()));
+                cmd.Parameters.Add(new SqliteParameter(":type", (int)AssetType.Gesture));
 
-            return DoQuery(cmd);
+                return DoQuery(cmd);
+            }
         }
 
         public int GetAssetPermissions(UUID principalID, UUID assetID)
         {
-            SqliteCommand cmd = new SqliteCommand();
+            IDataReader reader;
 
-            cmd.CommandText = String.Format("select inventoryCurrentPermissions from inventoryitems where avatarID = :PrincipalID and assetID = :AssetID", m_Realm);
-            cmd.Parameters.Add(new SqliteParameter(":PrincipalID", principalID.ToString()));
-            cmd.Parameters.Add(new SqliteParameter(":AssetID", assetID.ToString()));
+            using (SqliteCommand cmd = new SqliteCommand())
+            {
+                cmd.CommandText = String.Format("select inventoryCurrentPermissions from inventoryitems where avatarID = :PrincipalID and assetID = :AssetID", m_Realm);
+                cmd.Parameters.Add(new SqliteParameter(":PrincipalID", principalID.ToString()));
+                cmd.Parameters.Add(new SqliteParameter(":AssetID", assetID.ToString()));
 
-            IDataReader reader = ExecuteReader(cmd, m_Connection);
+                reader = ExecuteReader(cmd, m_Connection);
+            }
 
             int perms = 0;
 
@@ -175,6 +242,83 @@ namespace OpenSim.Data.SQLite
             //CloseCommand(cmd);
 
             return perms;
+        }
+    }
+
+    public class SqliteFolderHandler : SqliteInventoryHandler<XInventoryFolder>
+    {
+        public SqliteFolderHandler(string c, string t, string m) :
+                base(c, t, m)
+        {
+        }
+
+        public override bool Store(XInventoryFolder folder)
+        {
+            if (!base.Store(folder))
+                return false;
+
+            IncrementFolderVersion(folder.parentFolderID);
+
+            return true;
+        }
+
+        public bool MoveFolder(string id, string newParentFolderID)
+        {
+            XInventoryFolder[] folders = Get(new string[] { "folderID" }, new string[] { id });
+
+            if (folders.Length == 0)
+                return false;
+
+            UUID oldParentFolderUUID = folders[0].parentFolderID;
+
+            using (SqliteCommand cmd = new SqliteCommand())
+            {
+                cmd.CommandText = String.Format("update {0} set parentFolderID = :ParentFolderID where folderID = :FolderID", m_Realm);
+                cmd.Parameters.Add(new SqliteParameter(":ParentFolderID", newParentFolderID));
+                cmd.Parameters.Add(new SqliteParameter(":FolderID", id));
+
+                if (ExecuteNonQuery(cmd, m_Connection) == 0)
+                    return false;
+            }
+
+            IncrementFolderVersion(oldParentFolderUUID);
+            IncrementFolderVersion(newParentFolderID);
+
+            return true;
+        }
+
+    }
+
+    public class SqliteInventoryHandler<T> : SQLiteGenericTableHandler<T> where T: class, new()
+    {
+        public SqliteInventoryHandler(string c, string t, string m) : base(c, t, m) {}
+
+        protected bool IncrementFolderVersion(UUID folderID)
+        {
+            return IncrementFolderVersion(folderID.ToString());
+        }
+
+        protected bool IncrementFolderVersion(string folderID)
+        {
+//            m_log.DebugFormat("[MYSQL ITEM HANDLER]: Incrementing version on folder {0}", folderID);
+//            Util.PrintCallStack();
+            
+            using (SqliteCommand cmd = new SqliteCommand())
+            {
+                cmd.CommandText = "update inventoryfolders set version=version+1 where folderID = ?folderID";
+                cmd.Parameters.Add(new SqliteParameter(":folderID", folderID));
+
+                try
+                {
+                    cmd.ExecuteNonQuery();
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 }

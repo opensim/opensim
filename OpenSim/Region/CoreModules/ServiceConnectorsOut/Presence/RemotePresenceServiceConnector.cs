@@ -37,25 +37,17 @@ using PresenceInfo = OpenSim.Services.Interfaces.PresenceInfo;
 
 using OpenMetaverse;
 using log4net;
+using Mono.Addins;
 using Nini.Config;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
 {
-    public class RemotePresenceServicesConnector : ISharedRegionModule, IPresenceService
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "RemotePresenceServicesConnector")]
+    public class RemotePresenceServicesConnector : BasePresenceServiceConnector, ISharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         #region ISharedRegionModule
-
-        private bool m_Enabled = false;
-
-        private PresenceDetector m_PresenceDetector;
-        private IPresenceService m_RemoteConnector;
-
-        public Type ReplaceableInterface
-        {
-            get { return null; }
-        }
 
         public string Name
         {
@@ -70,7 +62,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
                 string name = moduleConfig.GetString("PresenceServices", "");
                 if (name == Name)
                 {
-                    m_RemoteConnector = new PresenceServicesConnector(source);
+                    m_PresenceService = new PresenceServicesConnector(source);
 
                     m_Enabled = true;
 
@@ -79,81 +71,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
                     m_log.Info("[REMOTE PRESENCE CONNECTOR]: Remote presence enabled");
                 }
             }
-
-        }
-
-        public void PostInitialise()
-        {
-        }
-
-        public void Close()
-        {
-        }
-
-        public void AddRegion(Scene scene)
-        {
-            if (!m_Enabled)
-                return;
-
-            scene.RegisterModuleInterface<IPresenceService>(this);
-            m_PresenceDetector.AddRegion(scene);
-
-            m_log.InfoFormat("[REMOTE PRESENCE CONNECTOR]: Enabled remote presence for region {0}", scene.RegionInfo.RegionName);
-
-        }
-
-        public void RemoveRegion(Scene scene)
-        {
-            if (!m_Enabled)
-                return;
-
-            m_PresenceDetector.RemoveRegion(scene);
-        }
-
-        public void RegionLoaded(Scene scene)
-        {
-            if (!m_Enabled)
-                return;
-
         }
 
         #endregion
-
-        #region IPresenceService
-
-        public bool LoginAgent(string userID, UUID sessionID, UUID secureSessionID)
-        {
-            m_log.Warn("[REMOTE PRESENCE CONNECTOR]: LoginAgent connector not implemented at the simulators");
-            return false;
-        }
-
-        public bool LogoutAgent(UUID sessionID)
-        {
-            return m_RemoteConnector.LogoutAgent(sessionID);
-        }
-
-
-        public bool LogoutRegionAgents(UUID regionID)
-        {
-            return m_RemoteConnector.LogoutRegionAgents(regionID);
-        }
-
-        public bool ReportAgent(UUID sessionID, UUID regionID)
-        {
-            return m_RemoteConnector.ReportAgent(sessionID, regionID);
-        }
-
-        public PresenceInfo GetAgent(UUID sessionID)
-        {
-            return m_RemoteConnector.GetAgent(sessionID);
-        }
-
-        public PresenceInfo[] GetAgents(string[] userIDs)
-        {
-            return m_RemoteConnector.GetAgents(userIDs);
-        }
-
-        #endregion
-
     }
 }

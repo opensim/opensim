@@ -37,7 +37,7 @@ using OpenSim.Tests.Common;
 namespace OpenSim.Framework.Serialization.Tests
 {
     [TestFixture]
-    public class LandDataSerializerTest
+    public class LandDataSerializerTest : OpenSimTestCase
     {
         private LandData land;
         private LandData landWithParcelAccessList;

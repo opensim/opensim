@@ -42,14 +42,16 @@ namespace OpenSim.Region.Framework.Scenes.Tests
     /// Spatial scene object tests (will eventually cover root and child part position, rotation properties, etc.)
     /// </summary>
     [TestFixture]
-    public class SceneObjectSpatialTests
+    public class SceneObjectSpatialTests : OpenSimTestCase
     {
         TestScene m_scene;
         UUID m_ownerId = TestHelpers.ParseTail(0x1);
 
         [SetUp]
-        public void SetUp()
+        public override void SetUp()
         {
+            base.SetUp();
+
             m_scene = new SceneHelpers().SetupScene();
         }
 

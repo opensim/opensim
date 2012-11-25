@@ -47,7 +47,7 @@ using OpenSim.Framework.Capabilities;
 
 namespace OpenSim.Region.ClientStack.Linden
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "NewFileAgentInventoryVariablePriceModule")]
     public class NewFileAgentInventoryVariablePriceModule : INonSharedRegionModule
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -58,7 +58,7 @@ namespace OpenSim.Region.ClientStack.Linden
         private bool m_enabled = true;
         private int  m_levelUpload = 0;
 
-        #region IRegionModuleBase Members
+        #region Region Module interfaceBase Members
 
 
         public Type ReplaceableInterface
@@ -98,7 +98,7 @@ namespace OpenSim.Region.ClientStack.Linden
         #endregion
 
 
-        #region IRegionModule Members
+        #region Region Module interface
 
        
 

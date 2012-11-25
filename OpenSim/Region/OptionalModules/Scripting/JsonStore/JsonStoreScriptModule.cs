@@ -58,7 +58,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         private IScriptModuleComms m_comms;
         private IJsonStoreModule m_store;
         
-#region IRegionModule Members
+#region Region Module interface
 
         // -----------------------------------------------------------------
         /// <summary>

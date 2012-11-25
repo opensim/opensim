@@ -37,10 +37,12 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using log4net;
 using System.Reflection;
+using Mono.Addins;
 
 namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
 {
-    public class DynamicTextureModule : IRegionModule, IDynamicTextureManager
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "DynamicTextureModule")]
+    public class DynamicTextureModule : ISharedRegionModule, IDynamicTextureManager
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -80,6 +82,16 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
         /// Key is string.Format("{0}{1}", data
         /// </remarks>
         private Cache m_reuseableDynamicTextures;
+
+        /// <summary>
+        /// This constructor is only here because of the Unit Tests...
+        /// Don't use it.
+        /// </summary>
+        public DynamicTextureModule()
+        {
+            m_reuseableDynamicTextures = new Cache(CacheMedium.Memory, CacheStrategy.Conservative);
+            m_reuseableDynamicTextures.DefaultTTL = new TimeSpan(24, 0, 0);
+        }
 
         #region IDynamicTextureManager Members
 
@@ -323,17 +335,30 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
 
         #endregion
 
-        #region IRegionModule Members
+        #region ISharedRegionModule Members
 
-        public void Initialise(Scene scene, IConfigSource config)
+        public void Initialise(IConfigSource config)
         {
             IConfig texturesConfig = config.Configs["Textures"];
             if (texturesConfig != null)
             {
                 ReuseTextures = texturesConfig.GetBoolean("ReuseDynamicTextures", false);
                 ReuseLowDataTextures = texturesConfig.GetBoolean("ReuseDynamicLowDataTextures", false);
-            }
 
+                if (ReuseTextures)
+                {
+                    m_reuseableDynamicTextures = new Cache(CacheMedium.Memory, CacheStrategy.Conservative);
+                    m_reuseableDynamicTextures.DefaultTTL = new TimeSpan(24, 0, 0);
+                }
+            }
+        }
+
+        public void PostInitialise()
+        {
+        }
+
+        public void AddRegion(Scene scene)
+        {
             if (!RegisteredScenes.ContainsKey(scene.RegionInfo.RegionID))
             {
                 RegisteredScenes.Add(scene.RegionInfo.RegionID, scene);
@@ -341,13 +366,14 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
             }
         }
 
-        public void PostInitialise()
+        public void RegionLoaded(Scene scene)
         {
-            if (ReuseTextures)
-            {
-                m_reuseableDynamicTextures = new Cache(CacheMedium.Memory, CacheStrategy.Conservative);
-                m_reuseableDynamicTextures.DefaultTTL = new TimeSpan(24, 0, 0);
-            }
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+            if (RegisteredScenes.ContainsKey(scene.RegionInfo.RegionID))
+                RegisteredScenes.Remove(scene.RegionInfo.RegionID);
         }
 
         public void Close()
@@ -359,9 +385,9 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
             get { return "DynamicTextureModule"; }
         }
 
-        public bool IsSharedModule
+        public Type ReplaceableInterface
         {
-            get { return true; }
+            get { return null; }
         }
 
         #endregion

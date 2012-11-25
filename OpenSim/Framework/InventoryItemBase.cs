@@ -87,16 +87,7 @@ namespace OpenSim.Framework
         protected string m_creatorId;
 
         /// <value>
-        /// The UUID for the creator.  This may be different from the canonical CreatorId.  This property is used
-        /// for communication with the client over the Second Life protocol, since that protocol can only understand
-        /// UUIDs.  As this is a basic framework class, this means that both the string creator id and the uuid
-        /// reference have to be settable separately
-        ///
-        /// Database plugins don't need to set this, it will be set by
-        /// upstream code (or set by the get accessor if left unset).
-        ///
-        /// XXX: An alternative to having a separate uuid property would be to hash the CreatorId appropriately
-        /// every time there was communication with a UUID-only client.  This may be much more expensive.
+        /// The CreatorId expressed as a UUID.tely
         /// </value>
         public UUID CreatorIdAsUuid 
         {
@@ -109,20 +100,18 @@ namespace OpenSim.Framework
 
                 return m_creatorIdAsUuid;
             }
-            
-            set
-            {
-                m_creatorIdAsUuid = value;
-            }
         }
         protected UUID m_creatorIdAsUuid = UUID.Zero;
 
-        protected string m_creatorData = string.Empty;
+        /// <summary>
+        /// Extended creator information of the form <profile url>;<name>
+        /// </summary>
         public string CreatorData // = <profile url>;<name>
         {
             get { return m_creatorData; }
             set { m_creatorData = value; }
         }
+        protected string m_creatorData = string.Empty;
 
         /// <summary>
         /// Used by the DB layer to retrieve / store the entire user identification.
@@ -162,7 +151,6 @@ namespace OpenSim.Framework
                         name = parts[2];
 
                     m_creatorData += ';' + name;
-
                 }
             }
         }

@@ -43,7 +43,7 @@ using DirFindFlags = OpenMetaverse.DirectoryManager.DirFindFlags;
 
 namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "GroupsModule")]
     public class GroupsModule : ISharedRegionModule, IGroupsModule
     {
         /// <summary>
@@ -86,7 +86,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         private bool m_debugEnabled = false;
         private int  m_levelGroupCreate = 0;
 
-        #region IRegionModuleBase Members
+        #region Region Module interfaceBase Members
 
         public void Initialise(IConfigSource config)
         {

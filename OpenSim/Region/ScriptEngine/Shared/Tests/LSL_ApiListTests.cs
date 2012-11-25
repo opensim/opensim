@@ -46,7 +46,7 @@ using LSL_String = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
 namespace OpenSim.Region.ScriptEngine.Shared.Tests
 {
     [TestFixture]
-    public class LSL_ApiListTests
+    public class LSL_ApiListTests : OpenSimTestCase
     {
         private LSL_Api m_lslApi;
 

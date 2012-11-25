@@ -100,13 +100,7 @@ namespace OpenSim
         /// <value>
         /// The config information passed into the OpenSimulator region server.
         /// </value>
-        public OpenSimConfigSource ConfigSource
-        {
-            get { return m_config; }
-            set { m_config = value; }
-        }
-
-        protected OpenSimConfigSource m_config;
+        public OpenSimConfigSource ConfigSource { get; private set; }
 
         public List<IClientNetworkServer> ClientServers
         {
@@ -127,14 +121,6 @@ namespace OpenSim
             get { return m_httpServerPort; }
         }
 
-        public ModuleLoader ModuleLoader
-        {
-            get { return m_moduleLoader; }
-            set { m_moduleLoader = value; }
-        }
-
-        protected ModuleLoader m_moduleLoader;
-
         protected IRegistryCore m_applicationRegistry = new RegistryCore();
 
         public IRegistryCore ApplicationRegistry
@@ -154,13 +140,14 @@ namespace OpenSim
         protected virtual void LoadConfigSettings(IConfigSource configSource)
         {
             m_configLoader = new ConfigurationLoader();
-            m_config = m_configLoader.LoadConfigSettings(configSource, envConfigSource, out m_configSettings, out m_networkServersInfo);
+            ConfigSource = m_configLoader.LoadConfigSettings(configSource, envConfigSource, out m_configSettings, out m_networkServersInfo);
+            Config = ConfigSource.Source;
             ReadExtraConfigSettings();
         }
 
         protected virtual void ReadExtraConfigSettings()
         {
-            IConfig networkConfig = m_config.Source.Configs["Network"];
+            IConfig networkConfig = Config.Configs["Network"];
             if (networkConfig != null)
             {
                 proxyUrl = networkConfig.GetString("proxy_url", "");
@@ -193,7 +180,7 @@ namespace OpenSim
         /// </summary>
         protected override void StartupSpecific()
         {
-            IConfig startupConfig = m_config.Source.Configs["Startup"];
+            IConfig startupConfig = Config.Configs["Startup"];
             if (startupConfig != null)
             {
                 string pidFile = startupConfig.GetString("PIDFile", String.Empty);
@@ -204,27 +191,38 @@ namespace OpenSim
             }
 
             // Load the simulation data service
-            IConfig simDataConfig = m_config.Source.Configs["SimulationDataStore"];
+            IConfig simDataConfig = Config.Configs["SimulationDataStore"];
             if (simDataConfig == null)
                 throw new Exception("Configuration file is missing the [SimulationDataStore] section.  Have you copied OpenSim.ini.example to OpenSim.ini to reference config-include/ files?");
+
             string module = simDataConfig.GetString("LocalServiceModule", String.Empty);
             if (String.IsNullOrEmpty(module))
                 throw new Exception("Configuration file is missing the LocalServiceModule parameter in the [SimulationDataStore] section.");
-            m_simulationDataService = ServerUtils.LoadPlugin<ISimulationDataService>(module, new object[] { m_config.Source });
+
+            m_simulationDataService = ServerUtils.LoadPlugin<ISimulationDataService>(module, new object[] { Config });
+            if (m_simulationDataService == null)
+                throw new Exception(
+                    string.Format(
+                        "Could not load an ISimulationDataService implementation from {0}, as configured in the LocalServiceModule parameter of the [SimulationDataStore] config section.", 
+                        module));
 
             // Load the estate data service
-            IConfig estateDataConfig = m_config.Source.Configs["EstateDataStore"];
+            IConfig estateDataConfig = Config.Configs["EstateDataStore"];
             if (estateDataConfig == null)
                 throw new Exception("Configuration file is missing the [EstateDataStore] section.  Have you copied OpenSim.ini.example to OpenSim.ini to reference config-include/ files?");
+
             module = estateDataConfig.GetString("LocalServiceModule", String.Empty);
             if (String.IsNullOrEmpty(module))
                 throw new Exception("Configuration file is missing the LocalServiceModule parameter in the [EstateDataStore] section");
-            m_estateDataService = ServerUtils.LoadPlugin<IEstateDataService>(module, new object[] { m_config.Source });
+
+            m_estateDataService = ServerUtils.LoadPlugin<IEstateDataService>(module, new object[] { Config });
+            if (m_estateDataService == null)
+                throw new Exception(
+                    string.Format(
+                        "Could not load an IEstateDataService implementation from {0}, as configured in the LocalServiceModule parameter of the [EstateDataStore] config section.", 
+                        module));
 
             base.StartupSpecific();
-
-            // Create a ModuleLoader instance
-            m_moduleLoader = new ModuleLoader(m_config.Source);
 
             LoadPlugins();
             foreach (IApplicationPlugin plugin in m_plugins)
@@ -239,7 +237,7 @@ namespace OpenSim
             }
         }
 
-        protected virtual void AddPluginCommands(CommandConsole console)
+        protected virtual void AddPluginCommands(ICommandConsole console)
         {
             List<string> topics = GetHelpTopics();
 
@@ -301,7 +299,7 @@ namespace OpenSim
             // Called from base.StartUp()
 
             m_httpServerPort = m_networkServersInfo.HttpListenerPort;
-            SceneManager.OnRestartSim += handleRestartRegion;
+            SceneManager.OnRestartSim += HandleRestartRegion;
 
             // Only enable the watchdogs when all regions are ready.  Otherwise we get false positives when cpu is
             // heavily used during initial startup.
@@ -366,15 +364,9 @@ namespace OpenSim
             }
 
             IClientNetworkServer clientServer;
-            Scene scene = SetupScene(regionInfo, proxyOffset, m_config.Source, out clientServer);
+            Scene scene = SetupScene(regionInfo, proxyOffset, Config, out clientServer);
 
             m_log.Info("[MODULES]: Loading Region's modules (old style)");
-
-            List<IRegionModule> modules = m_moduleLoader.PickupModules(scene, ".");
-
-            // This needs to be ahead of the script engine load, so the
-            // script module can pick up events exposed by a module
-            m_moduleLoader.InitialiseSharedModules(scene);
 
             // Use this in the future, the line above will be deprecated soon
             m_log.Info("[REGIONMODULES]: Loading Region's modules (new style)");
@@ -426,13 +418,6 @@ namespace OpenSim
                 clientServer.Start();
             }
 
-            if (do_post_init)
-            {
-                foreach (IRegionModule module in modules)
-                {
-                    module.PostInitialise();
-                }
-            }
             scene.EventManager.OnShutdown += delegate() { ShutdownRegion(scene); };
 
             mscene = scene;
@@ -461,10 +446,10 @@ namespace OpenSim
             string estateOwnerPassword = null;
             string rawEstateOwnerUuid = null;
 
-            if (m_config.Source.Configs[ESTATE_SECTION_NAME] != null)
+            if (Config.Configs[ESTATE_SECTION_NAME] != null)
             {
                 string defaultEstateOwnerName
-                    = m_config.Source.Configs[ESTATE_SECTION_NAME].GetString("DefaultEstateOwnerName", "").Trim();
+                    = Config.Configs[ESTATE_SECTION_NAME].GetString("DefaultEstateOwnerName", "").Trim();
                 string[] ownerNames = defaultEstateOwnerName.Split(' ');
 
                 if (ownerNames.Length >= 2)
@@ -474,9 +459,9 @@ namespace OpenSim
                 }
 
                 // Info to be used only on Standalone Mode
-                rawEstateOwnerUuid = m_config.Source.Configs[ESTATE_SECTION_NAME].GetString("DefaultEstateOwnerUUID", null);
-                estateOwnerEMail = m_config.Source.Configs[ESTATE_SECTION_NAME].GetString("DefaultEstateOwnerEMail", null);
-                estateOwnerPassword = m_config.Source.Configs[ESTATE_SECTION_NAME].GetString("DefaultEstateOwnerPassword", null);
+                rawEstateOwnerUuid = Config.Configs[ESTATE_SECTION_NAME].GetString("DefaultEstateOwnerUUID", null);
+                estateOwnerEMail = Config.Configs[ESTATE_SECTION_NAME].GetString("DefaultEstateOwnerEMail", null);
+                estateOwnerPassword = Config.Configs[ESTATE_SECTION_NAME].GetString("DefaultEstateOwnerPassword", null);
             }
 
             MainConsole.Instance.OutputFormat("Estate {0} has no owner set.", regionInfo.EstateSettings.EstateName);
@@ -543,7 +528,7 @@ namespace OpenSim
             if (account == null)
             {
                 m_log.ErrorFormat(
-                    "[OPENSIM]: Unable to store account. If this simulator is connected to a grid, you must create the estate owner account first.");
+                    "[OPENSIM]: Unable to store account. If this simulator is connected to a grid, you must create the estate owner account first at the grid level.");
             }
             else
             {
@@ -722,8 +707,8 @@ namespace OpenSim
 
             return new Scene(
                 regionInfo, circuitManager, sceneGridService,
-                simDataService, estateDataService, m_moduleLoader, false,
-                m_config.Source, m_version);
+                simDataService, estateDataService, false,
+                Config, m_version);
         }
         
         protected void ShutdownClientServer(RegionInfo whichRegion)
@@ -750,9 +735,11 @@ namespace OpenSim
             }
         }
         
-        public void handleRestartRegion(RegionInfo whichRegion)
+        protected virtual void HandleRestartRegion(RegionInfo whichRegion)
         {
-            m_log.Info("[OPENSIM]: Got restart signal from SceneManager");
+            m_log.InfoFormat(
+                "[OPENSIM]: Got restart signal from SceneManager for region {0} ({1},{2})", 
+                whichRegion.RegionName, whichRegion.RegionLocX, whichRegion.RegionLocY);
 
             ShutdownClientServer(whichRegion);
             IScene scene;
@@ -764,7 +751,7 @@ namespace OpenSim
         protected override PhysicsScene GetPhysicsScene(string osSceneIdentifier)
         {
             return GetPhysicsScene(
-                m_configSettings.PhysicsEngine, m_configSettings.MeshEngineName, m_config.Source, osSceneIdentifier);
+                m_configSettings.PhysicsEngine, m_configSettings.MeshEngineName, Config, osSceneIdentifier);
         }
 
         /// <summary>
@@ -898,7 +885,6 @@ namespace OpenSim
             m_log.Info("[SHUTDOWN]: Closing all threads");
             m_log.Info("[SHUTDOWN]: Killing listener thread");
             m_log.Info("[SHUTDOWN]: Killing clients");
-            // TODO: implement this
             m_log.Info("[SHUTDOWN]: Closing console and terminating");
 
             try
@@ -907,7 +893,7 @@ namespace OpenSim
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[SHUTDOWN]: Ignoring failure during shutdown - {0}", e);
+                m_log.Error("[SHUTDOWN]: Ignoring failure during shutdown - ", e);
             }
         }
 
@@ -1001,9 +987,9 @@ namespace OpenSim
 
             string defaultEstateName = null;
 
-            if (m_config.Source.Configs[ESTATE_SECTION_NAME] != null)
+            if (Config.Configs[ESTATE_SECTION_NAME] != null)
             {
-                defaultEstateName = m_config.Source.Configs[ESTATE_SECTION_NAME].GetString("DefaultEstateName", null);
+                defaultEstateName = Config.Configs[ESTATE_SECTION_NAME].GetString("DefaultEstateName", null);
 
                 if (defaultEstateName != null)
                 {
@@ -1086,28 +1072,14 @@ namespace OpenSim
                         MainConsole.Instance.Output("Joining the estate failed. Please try again.");
                     }
                 }
-	    }
+    	    }
 
-	    return true;	// need to update the database
-	}
+    	    return true;	// need to update the database
+    	}
     }
     
     public class OpenSimConfigSource
     {
         public IConfigSource Source;
-
-        public void Save(string path)
-        {
-            if (Source is IniConfigSource)
-            {
-                IniConfigSource iniCon = (IniConfigSource) Source;
-                iniCon.Save(path);
-            }
-            else if (Source is XmlConfigSource)
-            {
-                XmlConfigSource xmlCon = (XmlConfigSource) Source;
-                xmlCon.Save(path);
-            }
-        }
     }
 }

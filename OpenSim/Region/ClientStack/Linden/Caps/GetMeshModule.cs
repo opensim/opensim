@@ -47,7 +47,7 @@ using Caps = OpenSim.Framework.Capabilities.Caps;
 
 namespace OpenSim.Region.ClientStack.Linden
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "GetMeshModule")]
     public class GetMeshModule : INonSharedRegionModule
     {
 //        private static readonly ILog m_log =
@@ -58,7 +58,7 @@ namespace OpenSim.Region.ClientStack.Linden
         private bool m_Enabled = true;
         private string m_URL;
 
-        #region IRegionModuleBase Members
+        #region Region Module interfaceBase Members
 
         public Type ReplaceableInterface
         {

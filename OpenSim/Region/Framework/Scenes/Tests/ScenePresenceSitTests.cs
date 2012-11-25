@@ -43,7 +43,7 @@ using System.Threading;
 namespace OpenSim.Region.Framework.Scenes.Tests
 {
     [TestFixture]
-    public class ScenePresenceSitTests
+    public class ScenePresenceSitTests : OpenSimTestCase
     {
         private TestScene m_scene;
         private ScenePresence m_sp;

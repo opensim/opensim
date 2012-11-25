@@ -46,9 +46,11 @@ using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 using OpenMetaverse;
 using log4net;
 using Nini.Config;
+using Mono.Addins;
 
 namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "BasicInventoryAccessModule")]
     public class BasicInventoryAccessModule : INonSharedRegionModule, IInventoryAccessModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -178,12 +180,6 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             m_log.DebugFormat("[INVENTORY ACCESS MODULE]: Received request to create inventory item {0} in folder {1}", name, folderID);
 
             if (!m_Scene.Permissions.CanCreateUserInventory(invType, remoteClient.AgentId))
-                return;
-
-            InventoryFolderBase f = new InventoryFolderBase(folderID, remoteClient.AgentId);
-            InventoryFolderBase folder = m_Scene.InventoryService.GetFolder(f);
-
-            if (folder == null || folder.Owner != remoteClient.AgentId)
                 return;
 
             if (transactionID == UUID.Zero)

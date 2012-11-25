@@ -34,19 +34,30 @@ using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.Physics.BulletSPlugin
 {
-// Class to wrap all objects.
-// The rest of BulletSim doesn't need to keep checking for avatars or prims
-// unless the difference is significant.
+/*
+ * Class to wrap all objects.
+ * The rest of BulletSim doesn't need to keep checking for avatars or prims
+ *        unless the difference is significant.
+ * 
+ *  Variables in the physicsl objects are in three forms:
+ *      VariableName: used by the simulator and performs taint operations, etc
+ *      RawVariableName: direct reference to the BulletSim storage for the variable value
+ *      ForceVariableName: direct reference (store and fetch) to the value in the physics engine.
+ *  The last two (and certainly the last one) should be referenced only in taint-time.
+ */
 public abstract class BSPhysObject : PhysicsActor
 {
-    protected void BaseInitialize(BSScene parentScene, uint localID, string name, string typeName)
+    protected BSPhysObject()
+    {
+    }
+    protected BSPhysObject(BSScene parentScene, uint localID, string name, string typeName)
     {
         PhysicsScene = parentScene;
         LocalID = localID;
         PhysObjectName = name;
         TypeName = typeName;
 
-        Linkset = new BSLinkset(PhysicsScene, this);
+        Linkset = BSLinkset.Factory(PhysicsScene, this);
         LastAssetBuildFailed = false;
 
         CollisionCollection = new CollisionEventUpdate();
@@ -63,12 +74,17 @@ public abstract class BSPhysObject : PhysicsActor
     public BSLinkset Linkset { get; set; }
 
     // Return the object mass without calculating it or having side effects
-    public abstract float MassRaw { get; }
+    public abstract float RawMass { get; }
+    // Set the raw mass but also update physical mass properties (inertia, ...)
+    public abstract void UpdatePhysicalMassProperties(float mass);
+
+    // The last value calculated for the prim's inertia
+    public OMV.Vector3 Inertia { get; set; }
 
     // Reference to the physical body (btCollisionObject) of this object
-    public BulletBody BSBody;
+    public BulletBody PhysBody;
     // Reference to the physical shape (btCollisionShape) of this object
-    public BulletShape BSShape;
+    public BulletShape PhysShape;
 
     // 'true' if the mesh's underlying asset failed to build.
     // This will keep us from looping after the first time the build failed.
@@ -76,9 +92,15 @@ public abstract class BSPhysObject : PhysicsActor
 
     // The objects base shape information. Null if not a prim type shape.
     public PrimitiveBaseShape BaseShape { get; protected set; }
+    // Some types of objects have preferred physical representations.
+    // Returns SHAPE_UNKNOWN if there is no preference.
+    public virtual BSPhysicsShapeType PreferredPhysicalShape
+    {
+        get { return BSPhysicsShapeType.SHAPE_UNKNOWN; }
+    }
 
     // When the physical properties are updated, an EntityProperty holds the update values.
-    // Keep the current and last EntityProperties to enable computation of differences 
+    // Keep the current and last EntityProperties to enable computation of differences
     //      between the current update and the previous values.
     public EntityProperties CurrentEntityProperties { get; set; }
     public EntityProperties LastEntityProperties { get; set; }
@@ -88,7 +110,8 @@ public abstract class BSPhysObject : PhysicsActor
     public abstract bool IsStatic { get; }
 
     // Stop all physical motion.
-    public abstract void ZeroMotion();
+    public abstract void ZeroMotion(bool inTaintTime);
+    public abstract void ZeroAngularMotion(bool inTaintTime);
 
     // Step the vehicle simulation for this object. A NOOP if the vehicle was not configured.
     public virtual void StepVehicle(float timeStep) { }
@@ -99,8 +122,10 @@ public abstract class BSPhysObject : PhysicsActor
     // Tell the object to clean up.
     public abstract void Destroy();
 
+    public abstract OMV.Vector3 RawPosition { get; set; }
     public abstract OMV.Vector3 ForcePosition { get; set; }
 
+    public abstract OMV.Quaternion RawOrientation { get; set; }
     public abstract OMV.Quaternion ForceOrientation { get; set; }
 
     public abstract OMV.Vector3 ForceVelocity { get; set; }
@@ -204,7 +229,7 @@ public abstract class BSPhysObject : PhysicsActor
 
             PhysicsScene.TaintedObject(TypeName+".SubscribeEvents", delegate()
             {
-                CurrentCollisionFlags = BulletSimAPI.AddToCollisionFlags2(BSBody.ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
+                CurrentCollisionFlags = BulletSimAPI.AddToCollisionFlags2(PhysBody.ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
             });
         }
         else
@@ -213,16 +238,16 @@ public abstract class BSPhysObject : PhysicsActor
             UnSubscribeEvents();
         }
     }
-    public override void UnSubscribeEvents() { 
+    public override void UnSubscribeEvents() {
         // DetailLog("{0},{1}.UnSubscribeEvents,unsubscribing", LocalID, TypeName);
         SubscribedEventsMs = 0;
         PhysicsScene.TaintedObject(TypeName+".UnSubscribeEvents", delegate()
         {
-            CurrentCollisionFlags = BulletSimAPI.RemoveFromCollisionFlags2(BSBody.ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
+            CurrentCollisionFlags = BulletSimAPI.RemoveFromCollisionFlags2(PhysBody.ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
         });
     }
     // Return 'true' if the simulator wants collision events
-    public override bool SubscribedEvents() { 
+    public override bool SubscribedEvents() {
         return (SubscribedEventsMs > 0);
     }
 

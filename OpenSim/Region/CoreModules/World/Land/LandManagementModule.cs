@@ -36,6 +36,7 @@ using Nini.Config;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using OpenMetaverse.Messages.Linden;
+using Mono.Addins;
 using OpenSim.Framework;
 using OpenSim.Framework.Capabilities;
 using OpenSim.Framework.Console;
@@ -60,6 +61,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         public byte RegionAccess;
     }
 
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "LandManagementModule")]
     public class LandManagementModule : INonSharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -207,7 +209,6 @@ namespace OpenSim.Region.CoreModules.World.Land
             client.OnParcelInfoRequest += ClientOnParcelInfoRequest;
             client.OnParcelDeedToGroup += ClientOnParcelDeedToGroup;
             client.OnPreAgentUpdate += ClientOnPreAgentUpdate;
-            client.OnParcelDwellRequest += ClientOnParcelDwellRequest;
 
             EntityBase presenceEntity;
             if (m_scene.Entities.TryGetValue(client.AgentId, out presenceEntity) && presenceEntity is ScenePresence)
@@ -799,17 +800,6 @@ namespace OpenSim.Region.CoreModules.World.Land
             }
         }
 
-        private void ClientOnParcelDwellRequest(int localID, IClientAPI client)
-        {
-            ILandObject parcel = null;
-            lock (m_landList)
-            {
-                if (!m_landList.TryGetValue(localID, out parcel))
-                    return;
-            }
-            client.SendParcelDwellReply(localID, parcel.LandData.GlobalID, parcel.LandData.Dwell);
-        }
-
         #endregion
 
         #region Parcel Modification
@@ -962,6 +952,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             ILandObject newLand = startLandObject.Copy();
             newLand.LandData.Name = newLand.LandData.Name;
             newLand.LandData.GlobalID = UUID.Random();
+            newLand.LandData.Dwell = 0;
 
             newLand.SetLandBitmap(newLand.GetSquareLandBitmap(start_x, start_y, end_x, end_y));
 
@@ -1387,10 +1378,11 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public void EventManagerOnIncomingLandDataFromStorage(List<LandData> data)
         {
+//            m_log.DebugFormat(
+//                "[LAND MANAGMENT MODULE]: Processing {0} incoming parcels on {1}", data.Count, m_scene.Name);
+
             for (int i = 0; i < data.Count; i++)
-            {
                 IncomingLandObjectFromStorage(data[i]);
-            }
         }
 
         public void IncomingLandObjectFromStorage(LandData data)

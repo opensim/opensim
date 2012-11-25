@@ -82,11 +82,14 @@ namespace OpenSim.Data.SQLite
         {
             AuthenticationData ret = new AuthenticationData();
             ret.Data = new Dictionary<string, object>();
+            IDataReader result;
 
-            SqliteCommand cmd = new SqliteCommand("select * from `" + m_Realm + "` where UUID = :PrincipalID");
-            cmd.Parameters.Add(new SqliteParameter(":PrincipalID", principalID.ToString()));
+            using (SqliteCommand cmd = new SqliteCommand("select * from `" + m_Realm + "` where UUID = :PrincipalID"))
+            {
+                cmd.Parameters.Add(new SqliteParameter(":PrincipalID", principalID.ToString()));
 
-            IDataReader result = ExecuteReader(cmd, m_Connection);
+                result = ExecuteReader(cmd, m_Connection);
+            }
 
             try
             {
@@ -121,10 +124,6 @@ namespace OpenSim.Data.SQLite
             catch
             {
             }
-            finally
-            {
-                //CloseCommand(cmd);
-            }
 
             return null;
         }
@@ -140,84 +139,81 @@ namespace OpenSim.Data.SQLite
             foreach (object o in data.Data.Values)
                 values[i++] = o.ToString();
 
-            SqliteCommand cmd = new SqliteCommand();
-
-            if (Get(data.PrincipalID) != null)
+            using (SqliteCommand cmd = new SqliteCommand())
             {
-
-
-                string update = "update `" + m_Realm + "` set ";
-                bool first = true;
-                foreach (string field in fields)
+                if (Get(data.PrincipalID) != null)
                 {
-                    if (!first)
-                        update += ", ";
-                    update += "`" + field + "` = :" + field;
-                    cmd.Parameters.Add(new SqliteParameter(":" + field, data.Data[field]));
 
-                    first = false;
-                }
 
-                update += " where UUID = :UUID";
-                cmd.Parameters.Add(new SqliteParameter(":UUID", data.PrincipalID.ToString()));
-
-                cmd.CommandText = update;
-                try
-                {
-                    if (ExecuteNonQuery(cmd, m_Connection) < 1)
+                    string update = "update `" + m_Realm + "` set ";
+                    bool first = true;
+                    foreach (string field in fields)
                     {
+                        if (!first)
+                            update += ", ";
+                        update += "`" + field + "` = :" + field;
+                        cmd.Parameters.Add(new SqliteParameter(":" + field, data.Data[field]));
+
+                        first = false;
+                    }
+
+                    update += " where UUID = :UUID";
+                    cmd.Parameters.Add(new SqliteParameter(":UUID", data.PrincipalID.ToString()));
+
+                    cmd.CommandText = update;
+                    try
+                    {
+                        if (ExecuteNonQuery(cmd, m_Connection) < 1)
+                        {
+                            //CloseCommand(cmd);
+                            return false;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.Error("[SQLITE]: Exception storing authentication data", e);
                         //CloseCommand(cmd);
                         return false;
                     }
                 }
-                catch (Exception e)
+                else
                 {
-                    m_log.Error("[SQLITE]: Exception storing authentication data", e);
-                    //CloseCommand(cmd);
-                    return false;
-                }
-            }
+                    string insert = "insert into `" + m_Realm + "` (`UUID`, `" +
+                            String.Join("`, `", fields) +
+                            "`) values (:UUID, :" + String.Join(", :", fields) + ")";
 
-            else
-            {
-                string insert = "insert into `" + m_Realm + "` (`UUID`, `" +
-                        String.Join("`, `", fields) +
-                        "`) values (:UUID, :" + String.Join(", :", fields) + ")";
+                    cmd.Parameters.Add(new SqliteParameter(":UUID", data.PrincipalID.ToString()));
+                    foreach (string field in fields)
+                        cmd.Parameters.Add(new SqliteParameter(":" + field, data.Data[field]));
 
-                cmd.Parameters.Add(new SqliteParameter(":UUID", data.PrincipalID.ToString()));
-                foreach (string field in fields)
-                    cmd.Parameters.Add(new SqliteParameter(":" + field, data.Data[field]));
+                    cmd.CommandText = insert;
 
-                cmd.CommandText = insert;
-
-                try
-                {
-                    if (ExecuteNonQuery(cmd, m_Connection) < 1)
+                    try
                     {
-                        //CloseCommand(cmd);
+                        if (ExecuteNonQuery(cmd, m_Connection) < 1)
+                        {
+                            return false;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.ToString());
                         return false;
                     }
                 }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e.ToString());
-                    //CloseCommand(cmd);
-                    return false;
-                }
             }
-
-            //CloseCommand(cmd);
 
             return true;
         }
 
         public bool SetDataItem(UUID principalID, string item, string value)
         {
-            SqliteCommand cmd = new SqliteCommand("update `" + m_Realm +
-                    "` set `" + item + "` = " + value + " where UUID = '" + principalID.ToString() + "'");
-
-            if (ExecuteNonQuery(cmd, m_Connection) > 0)
-                return true;
+            using (SqliteCommand cmd = new SqliteCommand("update `" + m_Realm +
+                    "` set `" + item + "` = " + value + " where UUID = '" + principalID.ToString() + "'"))
+            {
+                if (ExecuteNonQuery(cmd, m_Connection) > 0)
+                    return true;
+            }
 
             return false;
         }
@@ -227,16 +223,13 @@ namespace OpenSim.Data.SQLite
             if (System.Environment.TickCount - m_LastExpire > 30000)
                 DoExpire();
 
-            SqliteCommand cmd = new SqliteCommand("insert into tokens (UUID, token, validity) values ('" + principalID.ToString() + 
-                "', '" + token + "', datetime('now', 'localtime', '+" + lifetime.ToString() + " minutes'))");
-
-            if (ExecuteNonQuery(cmd, m_Connection) > 0)
+            using (SqliteCommand cmd = new SqliteCommand("insert into tokens (UUID, token, validity) values ('" + principalID.ToString() + 
+                "', '" + token + "', datetime('now', 'localtime', '+" + lifetime.ToString() + " minutes'))"))
             {
-                cmd.Dispose();
-                return true;
+                if (ExecuteNonQuery(cmd, m_Connection) > 0)
+                    return true;
             }
 
-            cmd.Dispose();
             return false;
         }
 
@@ -245,26 +238,20 @@ namespace OpenSim.Data.SQLite
             if (System.Environment.TickCount - m_LastExpire > 30000)
                 DoExpire();
 
-            SqliteCommand cmd = new SqliteCommand("update tokens set validity = datetime('now', 'localtime', '+" + lifetime.ToString() + 
-                " minutes') where UUID = '" + principalID.ToString() + "' and token = '" + token + "' and validity > datetime('now', 'localtime')");
-
-            if (ExecuteNonQuery(cmd, m_Connection) > 0)
+            using (SqliteCommand cmd = new SqliteCommand("update tokens set validity = datetime('now', 'localtime', '+" + lifetime.ToString() + 
+                " minutes') where UUID = '" + principalID.ToString() + "' and token = '" + token + "' and validity > datetime('now', 'localtime')"))
             {
-                cmd.Dispose();
-                return true;
+                if (ExecuteNonQuery(cmd, m_Connection) > 0)
+                    return true;
             }
-
-            cmd.Dispose();
 
             return false;
         }
 
         private void DoExpire()
         {
-            SqliteCommand cmd = new SqliteCommand("delete from tokens where validity < datetime('now', 'localtime')");
-            ExecuteNonQuery(cmd, m_Connection);
-
-            cmd.Dispose();
+            using (SqliteCommand cmd = new SqliteCommand("delete from tokens where validity < datetime('now', 'localtime')"))
+                ExecuteNonQuery(cmd, m_Connection);
 
             m_LastExpire = System.Environment.TickCount;
         }

@@ -43,13 +43,17 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using Mono.Addins;
 
 namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
-    public class MRMModule : IRegionModule, IMRMModule
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "MRMModule")]
+    public class MRMModule : INonSharedRegionModule, IMRMModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private Scene m_scene;
+        private bool m_Enabled;
+        private bool m_Hidden;
 
         private readonly Dictionary<UUID,MRMBase> m_scripts = new Dictionary<UUID, MRMBase>();
 
@@ -67,7 +71,9 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             m_extensions[typeof (T)] = instance;
         }
 
-        public void Initialise(Scene scene, IConfigSource source)
+        #region INonSharedRegionModule
+
+        public void Initialise(IConfigSource source)
         {
             if (source.Configs["MRM"] != null)
             {
@@ -76,22 +82,59 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
                 if (source.Configs["MRM"].GetBoolean("Enabled", false))
                 {
                     m_log.Info("[MRM]: Enabling MRM Module");
-                    m_scene = scene;
-
-                    // when hidden, we don't listen for client initiated script events
-                    // only making the MRM engine available for region modules
-                    if (!source.Configs["MRM"].GetBoolean("Hidden", false))
-                    {
-                        scene.EventManager.OnRezScript += EventManager_OnRezScript;
-                        scene.EventManager.OnStopScript += EventManager_OnStopScript;
-                    }
-
-                    scene.EventManager.OnFrame += EventManager_OnFrame;
-
-                    scene.RegisterModuleInterface<IMRMModule>(this);
+                    m_Enabled = true;
+                    m_Hidden = source.Configs["MRM"].GetBoolean("Hidden", false);
                 }
             }
         }
+
+        public void AddRegion(Scene scene)
+        {
+            if (!m_Enabled)
+                return;
+
+            m_scene = scene;
+
+            // when hidden, we don't listen for client initiated script events
+            // only making the MRM engine available for region modules
+            if (!m_Hidden)
+            {
+                scene.EventManager.OnRezScript += EventManager_OnRezScript;
+                scene.EventManager.OnStopScript += EventManager_OnStopScript;
+            }
+
+            scene.EventManager.OnFrame += EventManager_OnFrame;
+
+            scene.RegisterModuleInterface<IMRMModule>(this);
+        }
+
+        public void RegionLoaded(Scene scene)
+        {
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+        }
+
+        public void Close()
+        {
+            foreach (KeyValuePair<UUID, MRMBase> pair in m_scripts)
+            {
+                pair.Value.Stop();
+            }
+        }
+
+        public string Name
+        {
+            get { return "MiniRegionModule"; }
+        }
+
+        public Type ReplaceableInterface
+        {
+            get { return null; }
+        }
+
+        #endregion
 
         void EventManager_OnStopScript(uint localID, UUID itemID)
         {
@@ -291,28 +334,6 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             GetGlobalEnvironment(localID, out world, out host);
 
             mmb.InitMiniModule(world, host, itemID);
-        }
-
-        public void PostInitialise()
-        {
-        }
-
-        public void Close()
-        {
-            foreach (KeyValuePair<UUID, MRMBase> pair in m_scripts)
-            {
-                pair.Value.Stop();
-            }
-        }
-
-        public string Name
-        {
-            get { return "MiniRegionModule"; }
-        }
-
-        public bool IsSharedModule
-        {
-            get { return false; }
         }
 
         /// <summary>

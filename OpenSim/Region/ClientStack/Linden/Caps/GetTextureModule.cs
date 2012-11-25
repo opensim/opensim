@@ -51,7 +51,7 @@ using OpenSim.Capabilities.Handlers;
 namespace OpenSim.Region.ClientStack.Linden
 {
 
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "GetTextureModule")]
     public class GetTextureModule : INonSharedRegionModule
     {
 //        private static readonly ILog m_log =

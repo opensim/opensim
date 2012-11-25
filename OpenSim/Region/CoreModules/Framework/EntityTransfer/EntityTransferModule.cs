@@ -43,9 +43,11 @@ using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 using OpenMetaverse;
 using log4net;
 using Nini.Config;
+using Mono.Addins;
 
 namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "EntityTransferModule")]
     public class EntityTransferModule : INonSharedRegionModule, IEntityTransferModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -672,13 +674,14 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 sp.Reset();
             }
 
-            // REFACTORING PROBLEM. Well, not a problem, but this method is HORRIBLE!
-            if (sp.Scene.NeedSceneCacheClear(sp.UUID))
-            {
-                m_log.DebugFormat(
-                    "[ENTITY TRANSFER MODULE]: User {0} is going to another region, profile cache removed",
-                    sp.UUID);
-            }
+            // Commented pending deletion since this method no longer appears to do anything at all
+//            // REFACTORING PROBLEM. Well, not a problem, but this method is HORRIBLE!
+//            if (sp.Scene.NeedSceneCacheClear(sp.UUID))
+//            {
+//                m_log.DebugFormat(
+//                    "[ENTITY TRANSFER MODULE]: User {0} is going to another region, profile cache removed",
+//                    sp.UUID);
+//            }
 
             m_entityTransferStateMachine.ResetFromTransit(sp.UUID);
         }
@@ -1237,14 +1240,14 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
                 AgentHasMovedAway(agent, false);
 
-                // the user may change their profile information in other region,
-                // so the userinfo in UserProfileCache is not reliable any more, delete it
-                // REFACTORING PROBLEM. Well, not a problem, but this method is HORRIBLE!
-                if (agent.Scene.NeedSceneCacheClear(agent.UUID))
-                {
-                    m_log.DebugFormat(
-                        "[ENTITY TRANSFER MODULE]: User {0} is going to another region", agent.UUID);
-                }
+//                // the user may change their profile information in other region,
+//                // so the userinfo in UserProfileCache is not reliable any more, delete it
+//                // REFACTORING PROBLEM. Well, not a problem, but this method is HORRIBLE!
+//                if (agent.Scene.NeedSceneCacheClear(agent.UUID))
+//                {
+//                    m_log.DebugFormat(
+//                        "[ENTITY TRANSFER MODULE]: User {0} is going to another region", agent.UUID);
+//                }
     
                 //m_log.Debug("AFTER CROSS");
                 //Scene.DumpChildrenSeeds(UUID);

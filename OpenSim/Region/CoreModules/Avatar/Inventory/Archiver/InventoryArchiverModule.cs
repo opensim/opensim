@@ -35,22 +35,21 @@ using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
+using OpenSim.Framework.Console;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
+using Mono.Addins;
 
 namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 {
     /// <summary>
     /// This module loads and saves OpenSimulator inventory archives
     /// </summary>
-    public class InventoryArchiverModule : IRegionModule, IInventoryArchiverModule
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "InventoryArchiverModule")]
+    public class InventoryArchiverModule : ISharedRegionModule, IInventoryArchiverModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
-        public string Name { get { return "Inventory Archiver Module"; } }
-
-        public bool IsSharedModule { get { return true; } }
 
         /// <value>
         /// Enable or disable checking whether the iar user is actually logged in
@@ -98,9 +97,15 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 //        public InventoryArchiverModule(bool disablePresenceChecks)
 //        {
 //            DisablePresenceChecks = disablePresenceChecks;
-//        }
+        //        }
 
-        public void Initialise(Scene scene, IConfigSource source)
+        #region ISharedRegionModule
+
+        public void Initialise(IConfigSource source)
+        {
+        }
+
+        public void AddRegion(Scene scene)
         {
             if (m_scenes.Count == 0)
             {
@@ -143,9 +148,28 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             m_scenes[scene.RegionInfo.RegionID] = scene;
         }
 
-        public void PostInitialise() {}
+        public void RemoveRegion(Scene scene)
+        {
+        }
 
         public void Close() {}
+
+        public void RegionLoaded(Scene scene)
+        {
+        }
+
+        public void PostInitialise()
+        {
+        }
+
+        public Type ReplaceableInterface
+        {
+            get { return null; }
+        }
+
+        public string Name { get { return "Inventory Archiver Module"; } }
+
+        #endregion 
 
         /// <summary>
         /// Trigger the inventory archive saved event.
@@ -209,6 +233,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             Guid id, string firstName, string lastName, string invPath, string pass, string savePath,
             Dictionary<string, object> options)
         {
+//            if (!ConsoleUtil.CheckFileDoesNotExist(MainConsole.Instance, savePath))
+//                return false;
+
             if (m_scenes.Count > 0)
             {
                 UserAccount userInfo = GetUserInfo(firstName, lastName, pass);

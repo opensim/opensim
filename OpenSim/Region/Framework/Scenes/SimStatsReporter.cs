@@ -245,11 +245,13 @@ namespace OpenSim.Region.Framework.Scenes
                 = new Stat(
                     "SlowFrames",
                     "Slow Frames",
+                    "Number of frames where frame time has been significantly longer than the desired frame time.",
                     " frames",
                     "scene",
                     m_scene.Name,
-                    StatVerbosity.Info,
-                    "Number of frames where frame time has been significantly longer than the desired frame time.");
+                    StatType.Push,
+                    null,
+                    StatVerbosity.Info);
 
             StatsManager.RegisterStat(SlowFramesStat);
         }

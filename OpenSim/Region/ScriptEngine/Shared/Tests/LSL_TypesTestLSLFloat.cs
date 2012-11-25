@@ -33,7 +33,7 @@ using OpenSim.Region.ScriptEngine.Shared;
 namespace OpenSim.Region.ScriptEngine.Shared.Tests
 {
     [TestFixture]
-    public class LSL_TypesTestLSLFloat
+    public class LSL_TypesTestLSLFloat : OpenSimTestCase
     {
         // Used for testing equality of two floats.
         private double _lowPrecisionTolerance = 0.000001;

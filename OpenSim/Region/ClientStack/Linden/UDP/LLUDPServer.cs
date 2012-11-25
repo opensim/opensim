@@ -70,6 +70,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void AddScene(IScene scene)
         {
             m_udpServer.AddScene(scene);
+
+            StatsManager.RegisterStat(
+                new Stat(
+                    "IncomingPacketsProcessedCount",
+                    "Number of inbound UDP packets processed",
+                    "Number of inbound UDP packets processed",
+                    "",
+                    "clientstack",
+                    scene.Name,
+                    StatType.Pull,
+                    MeasuresOfInterest.AverageChangeOverTime,
+                    stat => stat.Value = m_udpServer.IncomingPacketsProcessed,
+                    StatVerbosity.Debug));
         }
 
         public bool HandlesRegion(Location x)
@@ -170,6 +183,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private Pool<IncomingPacket> m_incomingPacketPool;
 
+        /// <summary>
+        /// Stat for number of packets in the main pool awaiting use.
+        /// </summary>
+        private Stat m_poolCountStat;
+
+        /// <summary>
+        /// Stat for number of packets in the inbound packet pool awaiting use.
+        /// </summary>
+        private Stat m_incomingPacketPoolStat;
+
         private int m_defaultRTO = 0;
         private int m_maxRTO = 0;
         private int m_ackTimeout = 0;
@@ -214,6 +237,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             m_circuitManager = circuitManager;
             int sceneThrottleBps = 0;
+            bool usePools = false;
 
             IConfig config = configSource.Configs["ClientStack.LindenUDP"];
             if (config != null)
@@ -246,7 +270,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 PacketPool.Instance.RecyclePackets = packetConfig.GetBoolean("RecyclePackets", true);
                 PacketPool.Instance.RecycleDataBlocks = packetConfig.GetBoolean("RecycleDataBlocks", true);
-                UsePools = packetConfig.GetBoolean("RecycleBaseUDPPackets", false);
+                usePools = packetConfig.GetBoolean("RecycleBaseUDPPackets", usePools);
             }
 
             #region BinaryStats
@@ -277,8 +301,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_throttle = new TokenBucket(null, sceneThrottleBps);
             ThrottleRates = new ThrottleRates(configSource);
 
-            if (UsePools)
-                m_incomingPacketPool = new Pool<IncomingPacket>(() => new IncomingPacket(), 500);
+            if (usePools)
+                EnablePools();
         }
 
         public void Start()
@@ -331,6 +355,83 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             base.StopInbound();
         }
 
+        protected override bool EnablePools()
+        {
+            if (!UsePools)
+            {
+                base.EnablePools();
+
+                m_incomingPacketPool = new Pool<IncomingPacket>(() => new IncomingPacket(), 500);
+
+                return true;
+            }
+
+            return false;
+        }
+
+        protected override bool DisablePools()
+        {
+            if (UsePools)
+            {
+                base.DisablePools();
+
+                StatsManager.DeregisterStat(m_incomingPacketPoolStat);
+
+                // We won't null out the pool to avoid a race condition with code that may be in the middle of using it.
+
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// This is a seperate method so that it can be called once we have an m_scene to distinguish different scene
+        /// stats.
+        /// </summary>
+        private void EnablePoolStats()
+        {
+            m_poolCountStat
+                = new Stat(
+                    "UDPPacketBufferPoolCount",
+                    "Objects within the UDPPacketBuffer pool",
+                    "The number of objects currently stored within the UDPPacketBuffer pool",
+                    "",
+                    "clientstack",
+                    m_scene.Name,
+                    StatType.Pull,
+                    stat => stat.Value = Pool.Count,
+                    StatVerbosity.Debug);
+
+            StatsManager.RegisterStat(m_poolCountStat);
+
+            m_incomingPacketPoolStat
+                = new Stat(
+                    "IncomingPacketPoolCount",
+                    "Objects within incoming packet pool",
+                    "The number of objects currently stored within the incoming packet pool",
+                    "",
+                    "clientstack",
+                    m_scene.Name,
+                    StatType.Pull,
+                    stat => stat.Value = m_incomingPacketPool.Count,
+                    StatVerbosity.Debug);
+
+            StatsManager.RegisterStat(m_incomingPacketPoolStat);
+        }
+
+        /// <summary>
+        /// Disables pool stats.
+        /// </summary>
+        private void DisablePoolStats()
+        {
+            StatsManager.DeregisterStat(m_poolCountStat);
+            m_poolCountStat = null;
+
+            StatsManager.DeregisterStat(m_incomingPacketPoolStat);
+            m_incomingPacketPoolStat = null;
+        }
+
         /// <summary>
         /// If the outgoing UDP thread times out, then return client that was being processed to help with debugging.
         /// </summary>
@@ -370,6 +471,65 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_scene = (Scene)scene;
             m_location = new Location(m_scene.RegionInfo.RegionHandle);
 
+            // XXX: These stats are also pool stats but we register them separately since they are currently not
+            // turned on and off by EnablePools()/DisablePools()
+            StatsManager.RegisterStat(
+                new PercentageStat(
+                    "PacketsReused",
+                    "Packets reused",
+                    "Number of packets reused out of all requests to the packet pool",
+                    "clientstack",
+                    m_scene.Name,
+                    StatType.Pull,
+                    stat => 
+                        { PercentageStat pstat = (PercentageStat)stat; 
+                          pstat.Consequent = PacketPool.Instance.PacketsRequested; 
+                          pstat.Antecedent = PacketPool.Instance.PacketsReused; },
+                    StatVerbosity.Debug));
+
+            StatsManager.RegisterStat(
+                new PercentageStat(
+                    "PacketDataBlocksReused",
+                    "Packet data blocks reused",
+                    "Number of data blocks reused out of all requests to the packet pool",
+                    "clientstack",
+                    m_scene.Name,
+                    StatType.Pull,
+                    stat =>
+                        { PercentageStat pstat = (PercentageStat)stat; 
+                          pstat.Consequent = PacketPool.Instance.BlocksRequested; 
+                          pstat.Antecedent = PacketPool.Instance.BlocksReused; },
+                    StatVerbosity.Debug));
+
+            StatsManager.RegisterStat(
+                new Stat(
+                    "PacketsPoolCount",
+                    "Objects within the packet pool",
+                    "The number of objects currently stored within the packet pool",
+                    "",
+                    "clientstack",
+                    m_scene.Name,
+                    StatType.Pull,
+                    stat => stat.Value = PacketPool.Instance.PacketsPooled,
+                    StatVerbosity.Debug));
+
+            StatsManager.RegisterStat(
+                new Stat(
+                    "PacketDataBlocksPoolCount",
+                    "Objects within the packet data block pool",
+                    "The number of objects currently stored within the packet data block pool",
+                    "",
+                    "clientstack",
+                    m_scene.Name,
+                    StatType.Pull,
+                    stat => stat.Value = PacketPool.Instance.BlocksPooled,
+                    StatVerbosity.Debug));
+        
+            // We delay enabling pool stats to AddScene() instead of Initialize() so that we can distinguish pool stats by
+            // scene name
+            if (UsePools)
+                EnablePoolStats();
+
             MainConsole.Instance.Commands.AddCommand(
                 "Debug",
                 false,
@@ -393,6 +553,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     + "out - stop outbound processing.\n"
                     + "all - stop in and outbound processing.\n",
                 HandleStopCommand);
+
+            MainConsole.Instance.Commands.AddCommand(
+                "Debug",
+                false,
+                "debug lludp pool",
+                "debug lludp pool <on|off>",
+                "Turn object pooling within the lludp component on or off.",
+                HandlePoolCommand);
 
             MainConsole.Instance.Commands.AddCommand(
                 "Debug",
@@ -437,6 +605,38 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 StopOutbound();
         }
 
+        private void HandlePoolCommand(string module, string[] args)
+        {
+            if (args.Length != 4)
+            {
+                MainConsole.Instance.Output("Usage: debug lludp pool <on|off>");
+                return;
+            }
+
+            string enabled = args[3];
+
+            if (enabled == "on")
+            {
+                if (EnablePools())
+                {
+                    EnablePoolStats();
+                    MainConsole.Instance.OutputFormat("Packet pools enabled on {0}", m_scene.Name);
+                }
+            }
+            else if (enabled == "off")
+            {
+                if (DisablePools())
+                {
+                    DisablePoolStats();
+                    MainConsole.Instance.OutputFormat("Packet pools disabled on {0}", m_scene.Name);
+                }
+            }
+            else
+            {
+                MainConsole.Instance.Output("Usage: debug lludp pool <on|off>");
+            }
+        }
+
         private void HandleStatusCommand(string module, string[] args)
         {
             MainConsole.Instance.OutputFormat(
@@ -444,6 +644,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             MainConsole.Instance.OutputFormat(
                 "OUT LLUDP packet processing for {0} is {1}", m_scene.Name, IsRunningOutbound ? "enabled" : "disabled");
+
+            MainConsole.Instance.OutputFormat("LLUDP pools in {0} are {1}", m_scene.Name, UsePools ? "on" : "off");
         }
 
         public bool HandlesRegion(Location x)
@@ -1473,6 +1675,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private int npacksSent = 0;
         private int npackNotSent = 0;
 
+        /// <summary>
+        /// Number of inbound packets processed since startup.
+        /// </summary>
+        public long IncomingPacketsProcessed { get; private set; }
+
         private void MonitoredClientOutgoingPacketHandler(IClientAPI client)
         {
             nticks++;
@@ -1532,7 +1739,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             npacksSent++;
                         }
                         else
+                        {
                             npackNotSent++;
+                        }
 
                         watch2.Stop();
                         avgDequeueTicks = (nticks - 1) / (float)nticks * avgDequeueTicks + (watch2.ElapsedTicks / (float)nticks);
@@ -1540,7 +1749,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     }
                     else
+                    {
                         m_log.WarnFormat("[LLUDPSERVER]: Client is not connected");
+                    }
                 }
             }
             catch (Exception ex)
@@ -1604,6 +1815,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     "[LLUDPSERVER]: Dropped incoming {0} for dead client {1} in {2}",
                     packet.Type, client.Name, m_scene.RegionInfo.RegionName);
             }
+
+            IncomingPacketsProcessed++;
         }
 
         protected void LogoutHandler(IClientAPI client)
