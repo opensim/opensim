@@ -33,22 +33,24 @@ using NUnit.Framework;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
+using OpenSim.Region.CoreModules.Framework.InventoryAccess;
 using OpenSim.Region.CoreModules.World.Permissions;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Services.Interfaces;
 using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Mock;
 
 namespace OpenSim.Region.Framework.Scenes.Tests
 {
     /// <summary>
-    /// Tests derez of scene objects by users.
+    /// Tests derez of scene objects.
     /// </summary>
     /// <remarks>
     /// This is at a level above the SceneObjectBasicTests, which act on the scene directly.
-    /// TODO: These tests are very incomplete - they only test for a few conditions.
+    /// TODO: These tests are incomplete - need to test more kinds of derez (e.g. return object).
     /// </remarks>
     [TestFixture]
-    public class SceneObjectDeRezTests
+    public class SceneObjectDeRezTests : OpenSimTestCase
     {
         /// <summary>
         /// Test deleting an object from a scene.
@@ -76,14 +78,20 @@ namespace OpenSim.Region.Framework.Scenes.Tests
                 = new SceneObjectPart(userId, PrimitiveBaseShape.Default, Vector3.Zero, Quaternion.Identity, Vector3.Zero);
             part.Name = "obj1";
             scene.AddNewSceneObject(new SceneObjectGroup(part), false);
+
             List<uint> localIds = new List<uint>();
             localIds.Add(part.LocalId);
-
             scene.DeRezObjects(client, localIds, UUID.Zero, DeRezAction.Delete, UUID.Zero);
+
+            // Check that object isn't deleted until we crank the sogd handle.
+            SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);
+            Assert.That(retrievedPart, Is.Not.Null);
+            Assert.That(retrievedPart.ParentGroup.IsDeleted, Is.False);
+
             sogd.InventoryDeQueueAndDelete();
             
-            SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);
-            Assert.That(retrievedPart, Is.Null);
+            SceneObjectPart retrievedPart2 = scene.GetSceneObjectPart(part.LocalId);
+            Assert.That(retrievedPart2, Is.Null);
         }
         
         /// <summary>
@@ -124,6 +132,67 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             // Object should still be in the scene.
             SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);
             Assert.That(retrievedPart.UUID, Is.EqualTo(part.UUID));
-        }        
+        }   
+ 
+        /// <summary>
+        /// Test deleting an object asynchronously to user inventory.
+        /// </summary>
+        [Test]
+        public void TestDeleteSceneObjectAsyncToUserInventory()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            UUID agentId = UUID.Parse("00000000-0000-0000-0000-000000000001");
+            string myObjectName = "Fred";
+
+            TestScene scene = new SceneHelpers().SetupScene();
+
+            IConfigSource configSource = new IniConfigSource();
+            IConfig config = configSource.AddConfig("Modules");            
+            config.Set("InventoryAccessModule", "BasicInventoryAccessModule");
+            SceneHelpers.SetupSceneModules(
+                scene, configSource, new object[] { new BasicInventoryAccessModule() });
+
+            SceneHelpers.SetupSceneModules(scene, new object[] { });
+
+            // Turn off the timer on the async sog deleter - we'll crank it by hand for this test.
+            AsyncSceneObjectGroupDeleter sogd = scene.SceneObjectGroupDeleter;
+            sogd.Enabled = false;
+
+            SceneObjectGroup so = SceneHelpers.AddSceneObject(scene, myObjectName, agentId);
+
+            UserAccount ua = UserAccountHelpers.CreateUserWithInventory(scene, agentId);
+            InventoryFolderBase folder1
+                = UserInventoryHelpers.CreateInventoryFolder(scene.InventoryService, ua.PrincipalID, "folder1");
+
+            IClientAPI client = SceneHelpers.AddScenePresence(scene, agentId).ControllingClient;
+            scene.DeRezObjects(client, new List<uint>() { so.LocalId }, UUID.Zero, DeRezAction.Take, folder1.ID);
+
+            SceneObjectPart retrievedPart = scene.GetSceneObjectPart(so.LocalId);
+
+            Assert.That(retrievedPart, Is.Not.Null);
+            Assert.That(so.IsDeleted, Is.False);
+
+            sogd.InventoryDeQueueAndDelete();
+
+            Assert.That(so.IsDeleted, Is.True);
+
+            SceneObjectPart retrievedPart2 = scene.GetSceneObjectPart(so.LocalId);
+            Assert.That(retrievedPart2, Is.Null);
+
+//            SceneSetupHelpers.DeleteSceneObjectAsync(scene, part, DeRezAction.Take, userInfo.RootFolder.ID, client);
+
+            InventoryItemBase retrievedItem
+                = UserInventoryHelpers.GetInventoryItem(
+                    scene.InventoryService, ua.PrincipalID, "folder1/" + myObjectName);
+
+            // Check that we now have the taken part in our inventory
+            Assert.That(retrievedItem, Is.Not.Null);
+
+            // Check that the taken part has actually disappeared
+//            SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);
+//            Assert.That(retrievedPart, Is.Null);
+        }
     }
 }

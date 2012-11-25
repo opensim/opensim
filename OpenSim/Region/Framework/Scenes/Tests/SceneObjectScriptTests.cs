@@ -40,7 +40,7 @@ using OpenSim.Tests.Common.Mock;
 namespace OpenSim.Region.Framework.Scenes.Tests
 {
     [TestFixture]
-    public class SceneObjectScriptTests
+    public class SceneObjectScriptTests : OpenSimTestCase
     {
         [Test]
         public void TestAddScript()

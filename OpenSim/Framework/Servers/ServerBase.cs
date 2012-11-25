@@ -27,16 +27,19 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using log4net;
 using log4net.Appender;
 using log4net.Core;
 using log4net.Repository;
 using Nini.Config;
 using OpenSim.Framework.Console;
+using OpenSim.Framework.Monitoring;
 
 namespace OpenSim.Framework.Servers
 {
@@ -168,6 +171,9 @@ namespace OpenSim.Framework.Servers
                 "General", false, "show info", "show info", "Show general information about the server", HandleShow);
 
             m_console.Commands.AddCommand(
+                "General", false, "show version", "show version", "Show server version", HandleShow);
+
+            m_console.Commands.AddCommand(
                 "General", false, "show uptime", "show uptime", "Show server uptime", HandleShow);
 
             m_console.Commands.AddCommand(
@@ -206,6 +212,34 @@ namespace OpenSim.Framework.Servers
                 "General", false, "command-script",
                 "command-script <script>",
                 "Run a command script from file", HandleScript);
+
+            m_console.Commands.AddCommand(
+                "General", false, "show threads",
+                "show threads",
+                "Show thread status", HandleShow);
+
+            m_console.Commands.AddCommand(
+                "General", false, "threads abort",
+                "threads abort <thread-id>",
+                "Abort a managed thread.  Use \"show threads\" to find possible threads.", HandleThreadsAbort);
+
+            m_console.Commands.AddCommand(
+                "General", false, "threads show",
+                "threads show",
+                "Show thread status.  Synonym for \"show threads\"",
+                (string module, string[] args) => Notice(GetThreadsReport()));
+
+            m_console.Commands.AddCommand(
+                "General", false, "force gc",
+                "force gc",
+                "Manually invoke runtime garbage collection.  For debugging purposes",
+                HandleForceGc);
+        }
+
+        private void HandleForceGc(string module, string[] args)
+        {
+            Notice("Manually invoking runtime garbage collection");
+            GC.Collect();
         }
 
         public virtual void HandleShow(string module, string[] cmd)
@@ -222,8 +256,16 @@ namespace OpenSim.Framework.Servers
                     ShowInfo();
                     break;
 
+                case "version":
+                    Notice(GetVersionText());
+                    break;
+
                 case "uptime":
                     Notice(GetUptimeReport());
+                    break;
+
+                case "threads":
+                    Notice(GetThreadsReport());
                     break;
             }
         }
@@ -535,6 +577,75 @@ namespace OpenSim.Framework.Servers
         {
             return String.Format("Version: {0} (interface version {1})", m_version, VersionInfo.MajorInterfaceVersion);
         }
+
+        /// <summary>
+        /// Get a report about the registered threads in this server.
+        /// </summary>
+        protected string GetThreadsReport()
+        {
+            // This should be a constant field.
+            string reportFormat = "{0,6}   {1,35}   {2,16}   {3,13}   {4,10}   {5,30}";
+
+            StringBuilder sb = new StringBuilder();
+            Watchdog.ThreadWatchdogInfo[] threads = Watchdog.GetThreadsInfo();
+
+            sb.Append(threads.Length + " threads are being tracked:" + Environment.NewLine);
+
+            int timeNow = Environment.TickCount & Int32.MaxValue;
+
+            sb.AppendFormat(reportFormat, "ID", "NAME", "LAST UPDATE (MS)", "LIFETIME (MS)", "PRIORITY", "STATE");
+            sb.Append(Environment.NewLine);
+
+            foreach (Watchdog.ThreadWatchdogInfo twi in threads)
+            {
+                Thread t = twi.Thread;
+                
+                sb.AppendFormat(
+                    reportFormat,
+                    t.ManagedThreadId,
+                    t.Name,
+                    timeNow - twi.LastTick,
+                    timeNow - twi.FirstTick,
+                    t.Priority,
+                    t.ThreadState);
+
+                sb.Append("\n");
+            }
+
+            sb.Append("\n");
+
+            // For some reason mono 2.6.7 returns an empty threads set!  Not going to confuse people by reporting
+            // zero active threads.
+            int totalThreads = Process.GetCurrentProcess().Threads.Count;
+            if (totalThreads > 0)
+                sb.AppendFormat("Total threads active: {0}\n\n", totalThreads);
+
+            sb.Append("Main threadpool (excluding script engine pools)\n");
+            sb.Append(Util.GetThreadPoolReport());
+
+            return sb.ToString();
+        }
+
+        public virtual void HandleThreadsAbort(string module, string[] cmd)
+        {
+            if (cmd.Length != 3)
+            {
+                MainConsole.Instance.Output("Usage: threads abort <thread-id>");
+                return;
+            }
+
+            int threadId;
+            if (!int.TryParse(cmd[2], out threadId))
+            {
+                MainConsole.Instance.Output("ERROR: Thread id must be an integer");
+                return;
+            }
+
+            if (Watchdog.AbortThread(threadId))
+                MainConsole.Instance.OutputFormat("Aborted thread with id {0}", threadId);
+            else
+                MainConsole.Instance.OutputFormat("ERROR - Thread with id {0} not found in managed threads", threadId);
+        } 
 
         /// <summary>
         /// Console output is only possible if a console has been established.

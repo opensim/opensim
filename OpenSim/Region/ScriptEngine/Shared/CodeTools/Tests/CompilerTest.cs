@@ -41,7 +41,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests
     /// the LSL source.
     /// </summary>
     [TestFixture]
-    public class CompilerTest
+    public class CompilerTest : OpenSimTestCase
     {
         private string m_testDir;
         private CSharpCodeProvider m_CSCodeProvider;

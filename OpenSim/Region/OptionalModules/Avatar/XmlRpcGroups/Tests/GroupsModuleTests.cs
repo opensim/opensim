@@ -42,7 +42,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups.Tests
     /// Basic groups module tests
     /// </summary>
     [TestFixture]
-    public class GroupsModuleTests
+    public class GroupsModuleTests : OpenSimTestCase
     {
         [Test]
         public void TestBasic()

@@ -40,7 +40,7 @@ using OpenSim.Tests.Common.Mock;
 namespace OpenSim.Region.CoreModules.Avatar.Friends.Tests
 {
     [TestFixture]
-    public class FriendsModuleTests
+    public class FriendsModuleTests : OpenSimTestCase
     {
         private FriendsModule m_fm;
         private TestScene m_scene;

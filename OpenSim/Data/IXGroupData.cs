@@ -25,39 +25,47 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Collections.Generic;
-using NUnit.Framework;
-using OpenSim.Tests.Common;
-using OpenSim.Region.ScriptEngine.Shared;
+using OpenMetaverse;
+using OpenSim.Framework;
 
-namespace OpenSim.Region.ScriptEngine.Shared.Tests
+namespace OpenSim.Data
 {
-    /// <summary>
-    /// Tests for Vector3
-    /// </summary>
-    [TestFixture]
-    public class LSL_TypesTestVector3 : OpenSimTestCase
+    public class XGroup
     {
-        [Test]
-        public void TestDotProduct()
+        public UUID groupID;
+        public UUID ownerRoleID;
+        public string name;
+        public string charter;
+        public bool showInList; 
+        public UUID insigniaID; 
+        public int membershipFee;
+        public bool openEnrollment;
+        public bool allowPublish;
+        public bool maturePublish; 
+        public UUID founderID;
+        public ulong everyonePowers;
+        public ulong ownersPowers;
+
+        public XGroup Clone()
         {
-            TestHelpers.InMethod();
-
-            // The numbers we test for.
-            Dictionary<string, double> expectsSet = new Dictionary<string, double>();
-            expectsSet.Add("<1, 2, 3> * <2, 3, 4>", 20.0);
-            expectsSet.Add("<1, 2, 3> * <0, 0, 0>", 0.0);
-
-            double result;
-            string[] parts;
-            string[] delim = { "*" };
-
-            foreach (KeyValuePair<string, double> ex in expectsSet)
-            {
-                parts = ex.Key.Split(delim, System.StringSplitOptions.None);
-                result = new LSL_Types.Vector3(parts[0]) * new LSL_Types.Vector3(parts[1]);
-                Assert.AreEqual(ex.Value, result);
-            }
+            return (XGroup)MemberwiseClone();
         }
+    }
+
+    /// <summary>
+    /// Early stub interface for groups data, not final.
+    /// </summary>
+    /// <remarks>
+    /// Currently in-use only for regression test purposes.  Needs to be filled out over time.
+    /// </remarks>
+    public interface IXGroupData
+    {
+        bool StoreGroup(XGroup group);
+        XGroup[] GetGroups(string field, string val);
+        XGroup[] GetGroups(string[] fields, string[] vals);
+        bool DeleteGroups(string field, string val);
+        bool DeleteGroups(string[] fields, string[] vals);
     }
 }

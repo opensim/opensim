@@ -50,7 +50,7 @@ using OpenSim.Tests.Common.Mock;
 namespace OpenSim.Region.Framework.Tests
 {
     [TestFixture]
-    public class TaskInventoryTests
+    public class TaskInventoryTests : OpenSimTestCase
     {
         [Test]
         public void TestAddTaskInventoryItem()

@@ -31,16 +31,19 @@ using System.IO;
 using System.Reflection;
 using System.Threading;
 using log4net.Config;
+using Nini.Config;
 using NUnit.Framework;
 using OpenMetaverse;
 using OpenMetaverse.Assets;
 using OpenSim.Framework;
 using OpenSim.Framework.Serialization;
 using OpenSim.Framework.Serialization.External;
+using OpenSim.Region.CoreModules.World.Land;
 using OpenSim.Region.CoreModules.World.Serialiser;
 using OpenSim.Region.CoreModules.World.Terrain;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Scenes.Serialization;
+using OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups;
 using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Mock;
 using ArchiveConstants = OpenSim.Framework.Serialization.ArchiveConstants;
@@ -68,9 +71,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
         public override void SetUp()
         {
             base.SetUp();
-
-            // FIXME: Do something about this - relying on statics in unit tests causes trouble sooner or later
-            new SceneManager();
 
             m_archiverModule = new ArchiverModule();
             m_serialiserModule = new SerialiserModule();
@@ -126,6 +126,53 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             Vector3 offsetPosition = new Vector3(20, 25, 30);
 
             return new SceneObjectPart(ownerId, shape, groupPosition, rotationOffset, offsetPosition) { Name = partName };
+        }
+       
+        private void CreateTestObjects(Scene scene, out SceneObjectGroup sog1, out SceneObjectGroup sog2, out UUID ncAssetUuid)
+        {
+            SceneObjectPart part1 = CreateSceneObjectPart1();
+            sog1 = new SceneObjectGroup(part1);
+            scene.AddNewSceneObject(sog1, false);
+
+            AssetNotecard nc = new AssetNotecard();
+            nc.BodyText = "Hello World!";
+            nc.Encode();
+            ncAssetUuid = UUID.Random();
+            UUID ncItemUuid = UUID.Random();
+            AssetBase ncAsset
+                = AssetHelpers.CreateAsset(ncAssetUuid, AssetType.Notecard, nc.AssetData, UUID.Zero);
+            m_scene.AssetService.Store(ncAsset);
+
+            TaskInventoryItem ncItem
+                = new TaskInventoryItem { Name = "ncItem", AssetID = ncAssetUuid, ItemID = ncItemUuid };
+            SceneObjectPart part2 = CreateSceneObjectPart2();
+            sog2 = new SceneObjectGroup(part2);
+            part2.Inventory.AddInventoryItem(ncItem, true);
+
+            scene.AddNewSceneObject(sog2, false);
+        }
+
+        private static void CreateSoundAsset(TarArchiveWriter tar, Assembly assembly, string soundDataResourceName, out byte[] soundData, out UUID soundUuid)
+        {
+            using (Stream resource = assembly.GetManifestResourceStream(soundDataResourceName))
+            {
+                using (BinaryReader br = new BinaryReader(resource))
+                {
+                    // FIXME: Use the inspector instead
+                    soundData = br.ReadBytes(99999999);
+                    soundUuid = UUID.Parse("00000000-0000-0000-0000-000000000001");
+                    string soundAssetFileName
+                       = ArchiveConstants.ASSETS_PATH + soundUuid
+                            + ArchiveConstants.ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.SoundWAV];
+                    tar.WriteFile(soundAssetFileName, soundData);
+
+                    /*
+                    AssetBase soundAsset = AssetHelpers.CreateAsset(soundUuid, soundData);
+                    scene.AssetService.Store(soundAsset);
+                    asset1FileName = ArchiveConstants.ASSETS_PATH + soundUuid + ".wav";
+                    */
+                }
+            }
         }
 
         /// <summary>
@@ -202,30 +249,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             Assert.That(foundPaths, Is.EquivalentTo(expectedPaths));
 
             // TODO: Test presence of more files and contents of files.
-        }
-
-        private void CreateTestObjects(Scene scene, out SceneObjectGroup sog1, out SceneObjectGroup sog2, out UUID ncAssetUuid)
-        {
-            SceneObjectPart part1 = CreateSceneObjectPart1();
-            sog1 = new SceneObjectGroup(part1);
-            scene.AddNewSceneObject(sog1, false);
-
-            AssetNotecard nc = new AssetNotecard();
-            nc.BodyText = "Hello World!";
-            nc.Encode();
-            ncAssetUuid = UUID.Random();
-            UUID ncItemUuid = UUID.Random();
-            AssetBase ncAsset
-                = AssetHelpers.CreateAsset(ncAssetUuid, AssetType.Notecard, nc.AssetData, UUID.Zero);
-            m_scene.AssetService.Store(ncAsset);
-
-            TaskInventoryItem ncItem
-                = new TaskInventoryItem { Name = "ncItem", AssetID = ncAssetUuid, ItemID = ncItemUuid };
-            SceneObjectPart part2 = CreateSceneObjectPart2();
-            sog2 = new SceneObjectGroup(part2);
-            part2.Inventory.AddInventoryItem(ncItem, true);
-
-            scene.AddNewSceneObject(sog2, false);
         }
 
         /// <summary>
@@ -309,59 +332,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
         }
 
         /// <summary>
-        /// Test loading an OpenSim Region Archive where the scene object parts are not ordered by link number (e.g.
-        /// 2 can come after 3).
-        /// </summary>
-        [Test]
-        public void TestLoadOarUnorderedParts()
-        {
-            TestHelpers.InMethod();
-
-            UUID ownerId = TestHelpers.ParseTail(0xaaaa);
-
-            MemoryStream archiveWriteStream = new MemoryStream();
-            TarArchiveWriter tar = new TarArchiveWriter(archiveWriteStream);
-
-            tar.WriteFile(
-                ArchiveConstants.CONTROL_FILE_PATH,
-                new ArchiveWriteRequest(m_scene, (Stream)null, Guid.Empty).CreateControlFile(new ArchiveScenesGroup()));
-
-            SceneObjectGroup sog1 = SceneHelpers.CreateSceneObject(1, ownerId, "obj1-", 0x11);
-            SceneObjectPart sop2
-                = SceneHelpers.CreateSceneObjectPart("obj1-Part2", TestHelpers.ParseTail(0x12), ownerId);
-            SceneObjectPart sop3
-                = SceneHelpers.CreateSceneObjectPart("obj1-Part3", TestHelpers.ParseTail(0x13), ownerId);
-
-            // Add the parts so they will be written out in reverse order to the oar
-            sog1.AddPart(sop3);
-            sop3.LinkNum = 3;
-            sog1.AddPart(sop2);
-            sop2.LinkNum = 2;
-
-            tar.WriteFile(
-                ArchiveConstants.CreateOarObjectPath(sog1.Name, sog1.UUID, sog1.AbsolutePosition),
-                SceneObjectSerializer.ToXml2Format(sog1));
-
-            tar.Close();
-
-            MemoryStream archiveReadStream = new MemoryStream(archiveWriteStream.ToArray());
-
-            lock (this)
-            {
-                m_scene.EventManager.OnOarFileLoaded += LoadCompleted;
-                m_archiverModule.DearchiveRegion(archiveReadStream);
-            }
-
-            Assert.That(m_lastErrorMessage, Is.Null);
-
-            SceneObjectPart part2 = m_scene.GetSceneObjectPart("obj1-Part2");
-            Assert.That(part2.LinkNum, Is.EqualTo(2));
-
-            SceneObjectPart part3 = m_scene.GetSceneObjectPart("obj1-Part3");
-            Assert.That(part3.LinkNum, Is.EqualTo(3));
-        }
-
-        /// <summary>
         /// Test loading an OpenSim Region Archive.
         /// </summary>
         [Test]
@@ -435,50 +405,57 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             TestLoadedRegion(part1, soundItemName, soundData);
         }
 
-        private static void CreateSoundAsset(TarArchiveWriter tar, Assembly assembly, string soundDataResourceName, out byte[] soundData, out UUID soundUuid)
+        /// <summary>
+        /// Test loading an OpenSim Region Archive where the scene object parts are not ordered by link number (e.g.
+        /// 2 can come after 3).
+        /// </summary>
+        [Test]
+        public void TestLoadOarUnorderedParts()
         {
-            using (Stream resource = assembly.GetManifestResourceStream(soundDataResourceName))
+            TestHelpers.InMethod();
+
+            UUID ownerId = TestHelpers.ParseTail(0xaaaa);
+
+            MemoryStream archiveWriteStream = new MemoryStream();
+            TarArchiveWriter tar = new TarArchiveWriter(archiveWriteStream);
+
+            tar.WriteFile(
+                ArchiveConstants.CONTROL_FILE_PATH,
+                new ArchiveWriteRequest(m_scene, (Stream)null, Guid.Empty).CreateControlFile(new ArchiveScenesGroup()));
+
+            SceneObjectGroup sog1 = SceneHelpers.CreateSceneObject(1, ownerId, "obj1-", 0x11);
+            SceneObjectPart sop2
+                = SceneHelpers.CreateSceneObjectPart("obj1-Part2", TestHelpers.ParseTail(0x12), ownerId);
+            SceneObjectPart sop3
+                = SceneHelpers.CreateSceneObjectPart("obj1-Part3", TestHelpers.ParseTail(0x13), ownerId);
+
+            // Add the parts so they will be written out in reverse order to the oar
+            sog1.AddPart(sop3);
+            sop3.LinkNum = 3;
+            sog1.AddPart(sop2);
+            sop2.LinkNum = 2;
+
+            tar.WriteFile(
+                ArchiveConstants.CreateOarObjectPath(sog1.Name, sog1.UUID, sog1.AbsolutePosition),
+                SceneObjectSerializer.ToXml2Format(sog1));
+
+            tar.Close();
+
+            MemoryStream archiveReadStream = new MemoryStream(archiveWriteStream.ToArray());
+
+            lock (this)
             {
-                using (BinaryReader br = new BinaryReader(resource))
-                {
-                    // FIXME: Use the inspector instead
-                    soundData = br.ReadBytes(99999999);
-                    soundUuid = UUID.Parse("00000000-0000-0000-0000-000000000001");
-                    string soundAssetFileName
-                       = ArchiveConstants.ASSETS_PATH + soundUuid
-                            + ArchiveConstants.ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.SoundWAV];
-                    tar.WriteFile(soundAssetFileName, soundData);
-
-                    /*
-                    AssetBase soundAsset = AssetHelpers.CreateAsset(soundUuid, soundData);
-                    scene.AssetService.Store(soundAsset);
-                    asset1FileName = ArchiveConstants.ASSETS_PATH + soundUuid + ".wav";
-                    */
-                }
+                m_scene.EventManager.OnOarFileLoaded += LoadCompleted;
+                m_archiverModule.DearchiveRegion(archiveReadStream);
             }
-        }
 
-        private void TestLoadedRegion(SceneObjectPart part1, string soundItemName, byte[] soundData)
-        {
-            SceneObjectPart object1PartLoaded = m_scene.GetSceneObjectPart(part1.Name);
+            Assert.That(m_lastErrorMessage, Is.Null);
 
-            Assert.That(object1PartLoaded, Is.Not.Null, "object1 was not loaded");
-            Assert.That(object1PartLoaded.Name, Is.EqualTo(part1.Name), "object1 names not identical");
-            Assert.That(object1PartLoaded.GroupPosition, Is.EqualTo(part1.GroupPosition), "object1 group position not equal");
-            Assert.That(
-                object1PartLoaded.RotationOffset, Is.EqualTo(part1.RotationOffset), "object1 rotation offset not equal");
-            Assert.That(
-                object1PartLoaded.OffsetPosition, Is.EqualTo(part1.OffsetPosition), "object1 offset position not equal");
-            Assert.That(object1PartLoaded.SitTargetOrientation, Is.EqualTo(part1.SitTargetOrientation));
-            Assert.That(object1PartLoaded.SitTargetPosition, Is.EqualTo(part1.SitTargetPosition));
+            SceneObjectPart part2 = m_scene.GetSceneObjectPart("obj1-Part2");
+            Assert.That(part2.LinkNum, Is.EqualTo(2));
 
-            TaskInventoryItem loadedSoundItem = object1PartLoaded.Inventory.GetInventoryItems(soundItemName)[0];
-            Assert.That(loadedSoundItem, Is.Not.Null, "loaded sound item was null");
-            AssetBase loadedSoundAsset = m_scene.AssetService.Get(loadedSoundItem.AssetID.ToString());
-            Assert.That(loadedSoundAsset, Is.Not.Null, "loaded sound asset was null");
-            Assert.That(loadedSoundAsset.Data, Is.EqualTo(soundData), "saved and loaded sound data do not match");
-
-            Assert.Greater(m_scene.LandChannel.AllParcels().Count, 0, "incorrect number of parcels");
+            SceneObjectPart part3 = m_scene.GetSceneObjectPart("obj1-Part3");
+            Assert.That(part3.LinkNum, Is.EqualTo(3));
         }
 
         /// <summary>
@@ -538,8 +515,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
                 SerialiserModule serialiserModule = new SerialiserModule();
                 TerrainModule terrainModule = new TerrainModule();
 
-                m_sceneHelpers = new SceneHelpers();
-                TestScene scene2 = m_sceneHelpers.SetupScene();
+                SceneHelpers m_sceneHelpers2 = new SceneHelpers();
+                TestScene scene2 = m_sceneHelpers2.SetupScene();
                 SceneHelpers.SetupSceneModules(scene2, archiverModule, serialiserModule, terrainModule);
 
                 // Make sure there's a valid owner for the owner we saved (this should have been wiped if the code is
@@ -560,6 +537,71 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
                 Assert.That(loadedSog.OwnerID, Is.EqualTo(estateOwner));
                 Assert.That(loadedSog.LastOwnerID, Is.EqualTo(estateOwner));
             }
+        }
+
+        /// <summary>
+        /// Test OAR loading where the land parcel is group deeded.
+        /// </summary>
+        /// <remarks>
+        /// In this situation, the owner ID is set to the group ID.
+        /// </remarks>
+        [Test]
+        public void TestLoadOarDeededLand()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            UUID landID = TestHelpers.ParseTail(0x10);
+
+            MockGroupsServicesConnector groupsService = new MockGroupsServicesConnector();
+
+            IConfigSource configSource = new IniConfigSource();
+            IConfig config = configSource.AddConfig("Groups");            
+            config.Set("Enabled", true);
+            config.Set("Module", "GroupsModule");            
+            config.Set("DebugEnabled", true);
+            SceneHelpers.SetupSceneModules(
+                m_scene, configSource, new object[] { new GroupsModule(), groupsService, new LandManagementModule() });
+
+            // Create group in scene for loading
+            // FIXME: For now we'll put up with the issue that we'll get a group ID that varies across tests.
+            UUID groupID 
+                = groupsService.CreateGroup(UUID.Zero, "group1", "", true, UUID.Zero, 3, true, true, true, UUID.Zero);
+
+            // Construct OAR
+            MemoryStream oarStream = new MemoryStream();
+            TarArchiveWriter tar = new TarArchiveWriter(oarStream);
+
+            tar.WriteDir(ArchiveConstants.LANDDATA_PATH);
+            tar.WriteFile(
+                ArchiveConstants.CONTROL_FILE_PATH,
+                new ArchiveWriteRequest(m_scene, (Stream)null, Guid.Empty).CreateControlFile(new ArchiveScenesGroup()));
+
+            LandObject lo = new LandObject(groupID, true, null);
+            lo.SetLandBitmap(lo.BasicFullRegionLandBitmap());
+            LandData ld = lo.LandData;
+            ld.GlobalID = landID;
+
+            string ldPath = ArchiveConstants.CreateOarLandDataPath(ld);
+            tar.WriteFile(ldPath, LandDataSerializer.Serialize(ld, null));
+            tar.Close();
+
+            oarStream = new MemoryStream(oarStream.ToArray());
+
+            // Load OAR
+            lock (this)
+            {
+                m_scene.EventManager.OnOarFileLoaded += LoadCompleted;
+                m_archiverModule.DearchiveRegion(oarStream);
+            }
+
+            ILandObject rLo = m_scene.LandChannel.GetLandObject(16, 16);
+            LandData rLd = rLo.LandData;
+
+            Assert.That(rLd.GlobalID, Is.EqualTo(landID));
+            Assert.That(rLd.OwnerID, Is.EqualTo(groupID));
+            Assert.That(rLd.GroupID, Is.EqualTo(groupID));
+            Assert.That(rLd.IsGroupOwned, Is.EqualTo(true));
         }
 
         /// <summary>
@@ -781,9 +823,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
                 }
             }
 
-
             // Save OAR
-
             MemoryStream archiveWriteStream = new MemoryStream();
             m_scene.EventManager.OnOarFileSaved += SaveCompleted;
 
@@ -800,7 +840,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
 
 
             // Check that the OAR contains the expected data
-
             Assert.That(m_lastRequestId, Is.EqualTo(requestId));
 
             byte[] archive = archiveWriteStream.ToArray();
@@ -892,7 +931,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             }
 
             ArchiveScenesGroup scenesGroup = new ArchiveScenesGroup();
-            SceneManager.Instance.ForEachScene(delegate(Scene scene)
+            m_sceneHelpers.SceneManager.ForEachScene(delegate(Scene scene)
             {
                 scenesGroup.AddScene(scene);
             });
@@ -950,13 +989,13 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             
             // Delete the current objects, to test that they're loaded from the OAR and didn't
             // just remain in the scene.
-            SceneManager.Instance.ForEachScene(delegate(Scene scene)
+            m_sceneHelpers.SceneManager.ForEachScene(delegate(Scene scene)
             {
                 scene.DeleteAllSceneObjects();
             });
 
             // Create a "hole", to test that that the corresponding region isn't loaded from the OAR
-            SceneManager.Instance.CloseScene(SceneManager.Instance.Scenes[1]);
+            m_sceneHelpers.SceneManager.CloseScene(SceneManager.Instance.Scenes[1]);
 
 
             // Check thay the OAR file contains the expected data
@@ -971,10 +1010,32 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
 
             Assert.That(m_lastErrorMessage, Is.Null);
 
-            Assert.AreEqual(3, SceneManager.Instance.Scenes.Count);
+            Assert.AreEqual(3, m_sceneHelpers.SceneManager.Scenes.Count);
 
             TestLoadedRegion(part1, soundItemName, soundData);
         }
 
+        private void TestLoadedRegion(SceneObjectPart part1, string soundItemName, byte[] soundData)
+        {
+            SceneObjectPart object1PartLoaded = m_scene.GetSceneObjectPart(part1.Name);
+
+            Assert.That(object1PartLoaded, Is.Not.Null, "object1 was not loaded");
+            Assert.That(object1PartLoaded.Name, Is.EqualTo(part1.Name), "object1 names not identical");
+            Assert.That(object1PartLoaded.GroupPosition, Is.EqualTo(part1.GroupPosition), "object1 group position not equal");
+            Assert.That(
+                object1PartLoaded.RotationOffset, Is.EqualTo(part1.RotationOffset), "object1 rotation offset not equal");
+            Assert.That(
+                object1PartLoaded.OffsetPosition, Is.EqualTo(part1.OffsetPosition), "object1 offset position not equal");
+            Assert.That(object1PartLoaded.SitTargetOrientation, Is.EqualTo(part1.SitTargetOrientation));
+            Assert.That(object1PartLoaded.SitTargetPosition, Is.EqualTo(part1.SitTargetPosition));
+
+            TaskInventoryItem loadedSoundItem = object1PartLoaded.Inventory.GetInventoryItems(soundItemName)[0];
+            Assert.That(loadedSoundItem, Is.Not.Null, "loaded sound item was null");
+            AssetBase loadedSoundAsset = m_scene.AssetService.Get(loadedSoundItem.AssetID.ToString());
+            Assert.That(loadedSoundAsset, Is.Not.Null, "loaded sound asset was null");
+            Assert.That(loadedSoundAsset.Data, Is.EqualTo(soundData), "saved and loaded sound data do not match");
+
+            Assert.Greater(m_scene.LandChannel.AllParcels().Count, 0, "incorrect number of parcels");
+        }
     }
 }

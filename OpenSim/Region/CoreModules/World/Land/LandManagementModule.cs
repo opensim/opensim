@@ -1384,9 +1384,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             }
 
             for (int i = 0; i < data.Count; i++)
-            {
                 IncomingLandObjectFromStorage(data[i]);
-            }
         }
 
         public void IncomingLandObjectFromStorage(LandData data)

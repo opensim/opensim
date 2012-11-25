@@ -570,13 +570,22 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 
                 // Validate User and Group UUID's
 
-                if (!ResolveUserUuid(scene, parcel.OwnerID))
-                    parcel.OwnerID = m_rootScene.RegionInfo.EstateSettings.EstateOwner;
-
-                if (!ResolveGroupUuid(parcel.GroupID))
+                if (parcel.IsGroupOwned)
                 {
-                    parcel.GroupID = UUID.Zero;
-                    parcel.IsGroupOwned = false;
+                    if (!ResolveGroupUuid(parcel.GroupID))
+                    {
+                        parcel.OwnerID = m_rootScene.RegionInfo.EstateSettings.EstateOwner;
+                        parcel.GroupID = UUID.Zero;
+                        parcel.IsGroupOwned = false;
+                    }
+                }
+                else
+                {
+                    if (!ResolveUserUuid(scene, parcel.OwnerID))
+                        parcel.OwnerID = m_rootScene.RegionInfo.EstateSettings.EstateOwner;
+
+                    if (!ResolveGroupUuid(parcel.GroupID))
+                        parcel.GroupID = UUID.Zero;
                 }
 
                 List<LandAccessEntry> accessList = new List<LandAccessEntry>();
@@ -589,8 +598,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 parcel.ParcelAccessList = accessList;
 
 //                m_log.DebugFormat(
-//                    "[ARCHIVER]: Adding parcel {0}, local id {1}, area {2}", 
-//                    parcel.Name, parcel.LocalID, parcel.Area);
+//                    "[ARCHIVER]: Adding parcel {0}, local id {1}, owner {2}, group {3}, isGroupOwned {4}, area {5}", 
+//                    parcel.Name, parcel.LocalID, parcel.OwnerID, parcel.GroupID, parcel.IsGroupOwned, parcel.Area);
                 
                 landData.Add(parcel);
             }

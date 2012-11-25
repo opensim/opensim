@@ -36,6 +36,7 @@ using NUnit.Framework;
 using NUnit.Framework.Constraints;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Tests.Common;
 
 namespace OpenSim.Data.Tests
 {
@@ -254,7 +255,7 @@ namespace OpenSim.Data.Tests
     }
 
     [TestFixture]
-    public class PropertyCompareConstraintTest
+    public class PropertyCompareConstraintTest : OpenSimTestCase
     {
         public class HasInt
         {

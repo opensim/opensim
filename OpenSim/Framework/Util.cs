@@ -1753,12 +1753,16 @@ namespace OpenSim.Framework
             StringBuilder sb = new StringBuilder();
             if (FireAndForgetMethod == FireAndForgetMethod.SmartThreadPool)
             {
-                threadPoolUsed = "SmartThreadPool";
-                maxThreads = m_ThreadPool.MaxThreads;
-                minThreads = m_ThreadPool.MinThreads;
-                inUseThreads = m_ThreadPool.InUseThreads;
-                allocatedThreads = m_ThreadPool.ActiveThreads;
-                waitingCallbacks = m_ThreadPool.WaitingCallbacks;
+                // ROBUST currently leaves this the FireAndForgetMethod but never actually initializes the threadpool.
+                if (m_ThreadPool != null)
+                {
+                    threadPoolUsed = "SmartThreadPool";
+                    maxThreads = m_ThreadPool.MaxThreads;
+                    minThreads = m_ThreadPool.MinThreads;
+                    inUseThreads = m_ThreadPool.InUseThreads;
+                    allocatedThreads = m_ThreadPool.ActiveThreads;
+                    waitingCallbacks = m_ThreadPool.WaitingCallbacks;
+                }
             }
             else if (
                 FireAndForgetMethod == FireAndForgetMethod.UnsafeQueueUserWorkItem

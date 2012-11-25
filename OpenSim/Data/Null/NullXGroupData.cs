@@ -25,39 +25,66 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
+using System.Collections;
 using System.Collections.Generic;
-using NUnit.Framework;
-using OpenSim.Tests.Common;
-using OpenSim.Region.ScriptEngine.Shared;
+using System.Linq;
+using System.Reflection;
+using System.Threading;
+using log4net;
+using OpenMetaverse;
+using OpenSim.Framework;
+using OpenSim.Data;
 
-namespace OpenSim.Region.ScriptEngine.Shared.Tests
+namespace OpenSim.Data.Null
 {
-    /// <summary>
-    /// Tests for Vector3
-    /// </summary>
-    [TestFixture]
-    public class LSL_TypesTestVector3 : OpenSimTestCase
+    public class NullXGroupData : NullGenericDataHandler, IXGroupData
     {
-        [Test]
-        public void TestDotProduct()
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        private Dictionary<UUID, XGroup> m_groups = new Dictionary<UUID, XGroup>();
+
+        public NullXGroupData(string connectionString, string realm) {}
+
+        public bool StoreGroup(XGroup group)
         {
-            TestHelpers.InMethod();
-
-            // The numbers we test for.
-            Dictionary<string, double> expectsSet = new Dictionary<string, double>();
-            expectsSet.Add("<1, 2, 3> * <2, 3, 4>", 20.0);
-            expectsSet.Add("<1, 2, 3> * <0, 0, 0>", 0.0);
-
-            double result;
-            string[] parts;
-            string[] delim = { "*" };
-
-            foreach (KeyValuePair<string, double> ex in expectsSet)
+            lock (m_groups)
             {
-                parts = ex.Key.Split(delim, System.StringSplitOptions.None);
-                result = new LSL_Types.Vector3(parts[0]) * new LSL_Types.Vector3(parts[1]);
-                Assert.AreEqual(ex.Value, result);
+                m_groups[group.groupID] = group.Clone();
             }
+
+            return true;
+        }
+
+        public XGroup[] GetGroups(string field, string val)
+        {
+            return GetGroups(new string[] { field }, new string[] { val });
+        }
+
+        public XGroup[] GetGroups(string[] fields, string[] vals)
+        {
+            lock (m_groups)
+            {
+                List<XGroup> origGroups = Get<XGroup>(fields, vals, m_groups.Values.ToList());
+
+                return origGroups.Select(g => g.Clone()).ToArray();
+            }
+        }
+
+        public bool DeleteGroups(string field, string val)
+        {
+            return DeleteGroups(new string[] { field }, new string[] { val });
+        }
+
+        public bool DeleteGroups(string[] fields, string[] vals)
+        {
+            lock (m_groups)
+            {
+                XGroup[] groupsToDelete = GetGroups(fields, vals);
+                Array.ForEach(groupsToDelete, g => m_groups.Remove(g.groupID));
+            }
+
+            return true;
         }
     }
 }

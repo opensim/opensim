@@ -55,6 +55,11 @@ namespace OpenSim.Region.CoreModules.World.Estate
         
         protected EstateManagementCommands m_commands;                
 
+        /// <summary>
+        /// If false, region restart requests from the client are blocked even if they are otherwise legitimate.
+        /// </summary>
+        public bool AllowRegionRestartFromClient { get; set; }
+
         private EstateTerrainXferHandler TerrainUploader;
         public TelehubManager m_Telehub;
 
@@ -63,6 +68,53 @@ namespace OpenSim.Region.CoreModules.World.Estate
         public event MessageDelegate OnEstateMessage;
 
         private int m_delayCount = 0;
+
+        #region Region Module interface
+        
+        public string Name { get { return "EstateManagementModule"; } }
+        
+        public Type ReplaceableInterface { get { return null; } }        
+
+        public void Initialise(IConfigSource source) 
+        {
+            AllowRegionRestartFromClient = true;
+
+            IConfig config = source.Configs["EstateManagement"];
+
+            if (config != null)
+                AllowRegionRestartFromClient = config.GetBoolean("AllowRegionRestartFromClient", true);
+        }
+        
+        public void AddRegion(Scene scene)
+        {
+            Scene = scene;
+            Scene.RegisterModuleInterface<IEstateModule>(this);
+            Scene.EventManager.OnNewClient += EventManager_OnNewClient;
+            Scene.EventManager.OnRequestChangeWaterHeight += changeWaterHeight;
+
+            m_Telehub = new TelehubManager(scene);
+
+            m_commands = new EstateManagementCommands(this);
+            m_commands.Initialise();
+        }
+        
+        public void RemoveRegion(Scene scene) {}            
+        
+        public void RegionLoaded(Scene scene)
+        {
+            // Sets up the sun module based no the saved Estate and Region Settings
+            // DO NOT REMOVE or the sun will stop working
+            scene.TriggerEstateSunUpdate();
+            
+            UserManager = scene.RequestModuleInterface<IUserManagement>();            
+        }
+
+        public void Close() 
+        {
+            m_commands.Close();
+        }
+
+        #endregion
 
         #region Packet Data Responders
 
@@ -197,6 +249,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                     Scene.RegionInfo.RegionSettings.TerrainTexture4 = texture;
                     break;
             }
+
             Scene.RegionInfo.RegionSettings.Save();
             TriggerRegionInfoChange();
             sendRegionInfoPacketToAll();
@@ -228,6 +281,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                     Scene.RegionInfo.RegionSettings.Elevation2NE = highValue;
                     break;
             }
+
             Scene.RegionInfo.RegionSettings.Save();
             TriggerRegionInfoChange();
             sendRegionHandshakeToAll();
@@ -268,6 +322,12 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         private void handleEstateRestartSimRequest(IClientAPI remoteClient, int timeInSeconds)
         {
+            if (!AllowRegionRestartFromClient)
+            {
+                remoteClient.SendAlertMessage("Region restart has been disabled on this simulator.");
+                return;
+            }
+
             IRestartModule restartModule = Scene.RequestModuleInterface<IRestartModule>();
             if (restartModule != null)
             {
@@ -352,6 +412,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 }
 
             }
+
             if ((estateAccessType & 8) != 0) // User remove
             {
                 if (Scene.Permissions.CanIssueEstateCommand(remote_client.AgentId, true))
@@ -383,6 +444,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                     remote_client.SendAlertMessage("Method EstateAccessDelta Failed, you don't have permissions");
                 }
             }
+
             if ((estateAccessType & 16) != 0) // Group add
             {
                 if (Scene.Permissions.CanIssueEstateCommand(remote_client.AgentId, true))
@@ -650,7 +712,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             }
         }
 
-        public void handleOnEstateManageTelehub (IClientAPI client, UUID invoice, UUID senderID, string cmd, uint param1)
+        public void handleOnEstateManageTelehub(IClientAPI client, UUID invoice, UUID senderID, string cmd, uint param1)
         {
             SceneObjectPart part;
 
@@ -1114,49 +1176,6 @@ namespace OpenSim.Region.CoreModules.World.Estate
             Scene.TriggerEstateSunUpdate();
 
             sendDetailedEstateData(remoteClient, invoice);
-        }
-
-        #endregion
-
-        #region Region Module interface
-        
-        public string Name { get { return "EstateManagementModule"; } }
-        
-        public Type ReplaceableInterface { get { return null; } }        
-
-        public void Initialise(IConfigSource source) {}
-        
-        public void AddRegion(Scene scene)
-        {
-            m_regionChangeTimer.AutoReset = false;
-            m_regionChangeTimer.Interval = 2000;
-            m_regionChangeTimer.Elapsed += RaiseRegionInfoChange;
-
-            Scene = scene;
-            Scene.RegisterModuleInterface<IEstateModule>(this);
-            Scene.EventManager.OnNewClient += EventManager_OnNewClient;
-            Scene.EventManager.OnRequestChangeWaterHeight += changeWaterHeight;
-
-            m_Telehub = new TelehubManager(scene);
-
-            m_commands = new EstateManagementCommands(this);
-            m_commands.Initialise();
-        }
-        
-        public void RemoveRegion(Scene scene) {}            
-        
-        public void RegionLoaded(Scene scene)
-        {
-            // Sets up the sun module based no the saved Estate and Region Settings
-            // DO NOT REMOVE or the sun will stop working
-            scene.TriggerEstateSunUpdate();
-            
-            UserManager = scene.RequestModuleInterface<IUserManagement>();            
-        }
-
-        public void Close() 
-        {
-            m_commands.Close();
         }
 
         #endregion

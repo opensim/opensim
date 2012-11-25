@@ -25,39 +25,43 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Collections.Generic;
-using NUnit.Framework;
-using OpenSim.Tests.Common;
-using OpenSim.Region.ScriptEngine.Shared;
+using System.Linq;
+using System.Reflection;
+using log4net;
+using OpenMetaverse;
+using OpenSim.Framework;
+using OpenSim.Data;
 
-namespace OpenSim.Region.ScriptEngine.Shared.Tests
+namespace OpenSim.Data.Null
 {
     /// <summary>
-    /// Tests for Vector3
+    /// Not a proper generic data handler yet - probably needs to actually store the data as well instead of relying
+    /// on descendent classes
     /// </summary>
-    [TestFixture]
-    public class LSL_TypesTestVector3 : OpenSimTestCase
+    public class NullGenericDataHandler
     {
-        [Test]
-        public void TestDotProduct()
+        protected List<T> Get<T>(string[] fields, string[] vals, List<T> inputEntities)
         {
-            TestHelpers.InMethod();
+            List<T> entities = inputEntities;
 
-            // The numbers we test for.
-            Dictionary<string, double> expectsSet = new Dictionary<string, double>();
-            expectsSet.Add("<1, 2, 3> * <2, 3, 4>", 20.0);
-            expectsSet.Add("<1, 2, 3> * <0, 0, 0>", 0.0);
-
-            double result;
-            string[] parts;
-            string[] delim = { "*" };
-
-            foreach (KeyValuePair<string, double> ex in expectsSet)
+            for (int i = 0; i < fields.Length; i++)
             {
-                parts = ex.Key.Split(delim, System.StringSplitOptions.None);
-                result = new LSL_Types.Vector3(parts[0]) * new LSL_Types.Vector3(parts[1]);
-                Assert.AreEqual(ex.Value, result);
+                entities
+                    = entities.Where(
+                        e =>
+                        {
+                            FieldInfo fi = typeof(T).GetField(fields[i]);
+                            if (fi == null)
+                                throw new NotImplementedException(string.Format("No field {0} for val {1}", fields[i], vals[i]));
+
+                            return fi.GetValue(e).ToString() == vals[i];
+                        }
+                    ).ToList();
             }
+
+            return entities;
         }
     }
 }

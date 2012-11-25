@@ -24,16 +24,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 using System.Collections.Generic;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using NUnit.Framework;
-
+using OpenSim.Tests.Common;
 
 namespace OpenSim.Framework.Tests
 {
     [TestFixture]
-    public class AgentCircuitDataTest
+    public class AgentCircuitDataTest : OpenSimTestCase
     {
         private UUID AgentId;
         private AvatarAppearance AvAppearance;

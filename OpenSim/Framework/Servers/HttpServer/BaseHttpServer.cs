@@ -1283,59 +1283,6 @@ namespace OpenSim.Framework.Servers.HttpServer
             map["login"] = OSD.FromString("false");
             return map;
         }
-        /// <summary>
-        /// A specific agent handler was provided. Such a handler is expecetd to have an
-        /// intimate, and highly specific relationship with the client. Consequently,
-        /// nothing is done here.
-        /// </summary>
-        /// <param name="handler"></param>
-        /// <param name="request"></param>
-        /// <param name="response"></param>
-
-        private bool HandleAgentRequest(IHttpAgentHandler handler, OSHttpRequest request, OSHttpResponse response)
-        {
-            // In the case of REST, then handler is responsible for ALL aspects of
-            // the request/response handling. Nothing is done here, not even encoding.
-
-            try
-            {
-                return handler.Handle(request, response);
-            }
-            catch (Exception e)
-            {
-                // If the handler did in fact close the stream, then this will blow
-                // chunks. So that that doesn't disturb anybody we throw away any
-                // and all exceptions raised. We've done our best to release the
-                // client.
-                try
-                {
-                    m_log.Warn("[HTTP-AGENT]: Error - " + e.Message);
-                    response.SendChunked   = false;
-                    response.KeepAlive     = true;
-                    response.StatusCode    = (int)OSHttpStatusCode.ServerErrorInternalError;
-                    //response.OutputStream.Close();
-                    try
-                    {
-                        response.Send();
-                        //response.FreeContext();
-                    }
-                    catch (SocketException f)
-                    {
-                        // This has to be here to prevent a Linux/Mono crash
-                        m_log.Warn(
-                            String.Format("[BASE HTTP SERVER]: XmlRpcRequest issue {0}.\nNOTE: this may be spurious on Linux. ", f.Message), f);
-                    }
-                }
-                catch(Exception)
-                {
-                }
-            }
-
-            // Indicate that the request has been "handled"
-
-            return true;
-
-        }
 
         public byte[] HandleHTTPRequest(OSHttpRequest request, OSHttpResponse response)
         {

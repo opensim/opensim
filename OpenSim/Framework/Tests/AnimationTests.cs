@@ -38,7 +38,7 @@ using Animation = OpenSim.Framework.Animation;
 namespace OpenSim.Framework.Tests
 {
     [TestFixture]
-    public class AnimationTests
+    public class AnimationTests : OpenSimTestCase
     {
         private Animation anim1 = null;
         private Animation anim2 = null;

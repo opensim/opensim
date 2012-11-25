@@ -35,11 +35,12 @@ using HttpServer;
 using HttpServer.FormDecoders;
 using NUnit.Framework;
 using OpenSim.Framework.Servers.HttpServer;
+using OpenSim.Tests.Common;
 
 namespace OpenSim.Framework.Servers.Tests
 {
     [TestFixture]
-    public class OSHttpTests
+    public class OSHttpTests : OpenSimTestCase
     {
         // we need an IHttpClientContext for our tests
         public class TestHttpClientContext: IHttpClientContext
