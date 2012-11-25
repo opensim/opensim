@@ -525,7 +525,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 BulletSimAPI.SetFriction2(Prim.PhysBody.ptr, 0f);
                 BulletSimAPI.SetHitFraction2(Prim.PhysBody.ptr, 0f);
 
-                BulletSimAPI.SetAngularDamping2(Prim.PhysBody.ptr, 0.8f);
+                BulletSimAPI.SetAngularDamping2(Prim.PhysBody.ptr, PhysicsScene.Params.vehicleAngularDamping);
 
                 BulletSimAPI.SetMassProps2(Prim.PhysBody.ptr, m_vehicleMass, new Vector3(1f, 1f, 1f));
 

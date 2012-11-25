@@ -39,23 +39,10 @@ using log4net;
 using OpenMetaverse;
 
 // TODOs for BulletSim (for BSScene, BSPrim, BSCharacter and BulletSim)
-// Test sculpties (verified that they don't work)
-// Compute physics FPS reasonably
 // Based on material, set density and friction
-// Don't use constraints in linksets of non-physical objects. Means having to move children manually.
-// Four states of prim: Physical, regular, phantom and selected. Are we modeling these correctly?
-//     In SL one can set both physical and phantom (gravity, does not effect others, makes collisions with ground)
-//     At the moment, physical and phantom causes object to drop through the terrain
-// Physical phantom objects and related typing (collision options )
-// Check out llVolumeDetect. Must do something for that.
-// Use collision masks for collision with terrain and phantom objects
 // More efficient memory usage when passing hull information from BSPrim to BulletSim
-// Should prim.link() and prim.delink() membership checking happen at taint time?
-// Mesh sharing. Use meshHash to tell if we already have a hull of that shape and only create once.
 // Do attachments need to be handled separately? Need collision events. Do not collide with VolumeDetect
 // Implement LockAngularMotion
-// Decide if clearing forces is the right thing to do when setting position (BulletSim::SetObjectTranslation)
-// Remove mesh and Hull stuff. Use mesh passed to bullet and use convexdecom from bullet.
 // Add PID movement operations. What does ScenePresence.MoveToTarget do?
 // Check terrain size. 128 or 127?
 // Raycast
@@ -234,6 +221,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         if (m_physicsLoggingEnabled)
         {
             PhysicsLogging = new Logging.LogWriter(m_physicsLoggingDir, m_physicsLoggingPrefix, m_physicsLoggingFileMinutes);
+            PhysicsLogging.ErrorLogger = m_log; // for DEBUG. Let's the logger output error messages.
         }
         else
         {
@@ -1076,7 +1064,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             (s,p,l,v) => { s.PID_P = v; } ),
 
         new ParameterDefn("DefaultFriction", "Friction factor used on new objects",
-            0.5f,
+            0.2f,
             (s,cf,p,v) => { s.m_params[0].defaultFriction = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].defaultFriction; },
             (s,p,l,v) => { s.m_params[0].defaultFriction = v; } ),
@@ -1091,7 +1079,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             (s) => { return s.m_params[0].defaultRestitution; },
             (s,p,l,v) => { s.m_params[0].defaultRestitution = v; } ),
         new ParameterDefn("CollisionMargin", "Margin around objects before collisions are calculated (must be zero!)",
-            0f,
+            0.04f,
             (s,cf,p,v) => { s.m_params[0].collisionMargin = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].collisionMargin; },
             (s,p,l,v) => { s.m_params[0].collisionMargin = v; } ),
@@ -1158,7 +1146,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             (s) => { return s.m_params[0].terrainImplementation; },
             (s,p,l,v) => { s.m_params[0].terrainImplementation = v; } ),
         new ParameterDefn("TerrainFriction", "Factor to reduce movement against terrain surface" ,
-            0.5f,
+            0.3f,
             (s,cf,p,v) => { s.m_params[0].terrainFriction = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].terrainFriction; },
             (s,p,l,v) => { s.m_params[0].terrainFriction = v;  /* TODO: set on real terrain */} ),
@@ -1172,13 +1160,19 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             (s,cf,p,v) => { s.m_params[0].terrainRestitution = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].terrainRestitution; },
             (s,p,l,v) => { s.m_params[0].terrainRestitution = v;  /* TODO: set on real terrain */ } ),
+        new ParameterDefn("TerrainCollisionMargin", "Margin where collision checking starts" ,
+            0.04f,
+            (s,cf,p,v) => { s.m_params[0].terrainCollisionMargin = cf.GetFloat(p, v); },
+            (s) => { return s.m_params[0].terrainCollisionMargin; },
+            (s,p,l,v) => { s.m_params[0].terrainCollisionMargin = v;  /* TODO: set on real terrain */ } ),
+
         new ParameterDefn("AvatarFriction", "Factor to reduce movement against an avatar. Changed on avatar recreation.",
             0.2f,
             (s,cf,p,v) => { s.m_params[0].avatarFriction = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].avatarFriction; },
             (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].avatarFriction, p, l, v); } ),
         new ParameterDefn("AvatarStandingFriction", "Avatar friction when standing. Changed on avatar recreation.",
-            10f,
+            0.99f,
             (s,cf,p,v) => { s.m_params[0].avatarStandingFriction = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].avatarStandingFriction; },
             (s,p,l,v) => { s.m_params[0].avatarStandingFriction = v; } ),
@@ -1213,6 +1207,11 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             (s) => { return s.m_params[0].avatarContactProcessingThreshold; },
             (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].avatarContactProcessingThreshold, p, l, v); } ),
 
+        new ParameterDefn("vehicleAngularDamping", "Factor to damp vehicle angular movement per second (0.0 - 1.0)",
+            0.8f,
+            (s,cf,p,v) => { s.m_params[0].vehicleAngularDamping = cf.GetFloat(p, v); },
+            (s) => { return s.m_params[0].vehicleAngularDamping; },
+            (s,p,l,v) => { s.m_params[0].vehicleAngularDamping = v; } ),
 
 	    new ParameterDefn("MaxPersistantManifoldPoolSize", "Number of manifolds pooled (0 means default of 4096)",
             0f,
