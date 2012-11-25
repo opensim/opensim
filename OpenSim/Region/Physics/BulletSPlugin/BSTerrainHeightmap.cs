@@ -93,7 +93,7 @@ public sealed class BSTerrainHeightmap : BSTerrainPhys
     {
         m_mapInfo.Ptr = BulletSimAPI.CreateHeightMapInfo2(PhysicsScene.World.ptr, m_mapInfo.ID,
                                 m_mapInfo.minCoords, m_mapInfo.maxCoords, 
-                                m_mapInfo.heightMap, BSTerrainManager.TERRAIN_COLLISION_MARGIN);
+                                m_mapInfo.heightMap, PhysicsScene.Params.terrainCollisionMargin);
 
         // Create the terrain shape from the mapInfo
         m_mapInfo.terrainShape = new BulletShape(BulletSimAPI.CreateTerrainShape2(m_mapInfo.Ptr),

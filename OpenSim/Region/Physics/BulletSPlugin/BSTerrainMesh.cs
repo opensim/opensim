@@ -217,8 +217,6 @@ public sealed class BSTerrainMesh : BSTerrainPhys
                 }
             }
             verticesCount = verticesCount / 3;
-            physicsScene.DetailLog("{0},BSTerrainMesh.ConvertHeightMapToMesh,completeVerts,verCount={1}", 
-                                            BSScene.DetailLogZero, verticesCount);
 
             for (int yy = 0; yy < sizeY; yy++)
             {
@@ -235,8 +233,6 @@ public sealed class BSTerrainMesh : BSTerrainPhys
                     indicesCount += 6;
                 }
             }
-            physicsScene.DetailLog("{0},BSTerrainMesh.ConvertHeightMapToMesh,completeIndices,indCount={1}",   // DEEBUG DEBUG DEBUG
-                                                        LogHeader, indicesCount);                        // DEBUG
             ret = true;
         }
         catch (Exception e)
