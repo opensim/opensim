@@ -1207,8 +1207,8 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             (s) => { return s.m_params[0].avatarContactProcessingThreshold; },
             (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].avatarContactProcessingThreshold, p, l, v); } ),
 
-        new ParameterDefn("vehicleAngularDamping", "Factor to damp vehicle angular movement per second (0.0 - 1.0)",
-            0.8f,
+        new ParameterDefn("VehicleAngularDamping", "Factor to damp vehicle angular movement per second (0.0 - 1.0)",
+            0.95f,
             (s,cf,p,v) => { s.m_params[0].vehicleAngularDamping = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].vehicleAngularDamping; },
             (s,p,l,v) => { s.m_params[0].vehicleAngularDamping = v; } ),
