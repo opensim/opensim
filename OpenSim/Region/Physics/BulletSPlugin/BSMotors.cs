@@ -75,7 +75,7 @@ public class BSVMotor : BSMotor
             Vector3 origTarget = TargetValue;       // DEBUG
             Vector3 origCurrVal = CurrentValue;   // DEBUG
 
-            // Add (desiredVector - currentAppliedVector) / howLongItShouldTakeToComplete
+            // Addition =  (desiredVector - currentAppliedVector) / secondsItShouldTakeToComplete
             Vector3 addAmount = (TargetValue - CurrentValue)/TimeScale * timeStep;
             CurrentValue += addAmount;
             returnCurrent = CurrentValue;
@@ -108,6 +108,11 @@ public class BSVMotor : BSMotor
 
         }
         return returnCurrent;
+    }
+    public override string ToString()
+    {
+        return String.Format("<{0},curr={1},targ={2},decayTS={3},frictTS={4}>",
+            UseName, CurrentValue, TargetValue, TargetValueDecayTimeScale, FrictionTimescale);
     }
 }
 
