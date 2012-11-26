@@ -7,13 +7,15 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 {
 public abstract class BSMotor
 {
-    public BSMotor()
+    public BSMotor(string useName)
     {
+        UseName = useName;
         PhysicsScene = null;
     }
     public virtual void Reset() { }
     public virtual void Zero() { }
 
+    public string UseName { get; private set; }
     // Used only for outputting debug information. Might not be set so check for null.
     public BSScene PhysicsScene { get; set; }
     protected void MDetailLog(string msg, params Object[] parms)
@@ -35,17 +37,25 @@ public class BSVMotor : BSMotor
 
     public float TimeScale { get; set; }
     public float TargetValueDecayTimeScale { get; set; }
-    public Vector3 CurrentValueReductionTimescale { get; set; }
+    public Vector3 FrictionTimescale { get; set; }
     public float Efficiency { get; set; }
 
     public Vector3 TargetValue { get; private set; }
     public Vector3 CurrentValue { get; private set; }
 
-    BSVMotor(float timeScale, float decayTimeScale, Vector3 frictionTimeScale, float efficiency) : base()
+    public BSVMotor(string useName)
+        : base(useName)
+    {
+        TimeScale = TargetValueDecayTimeScale = Efficiency = 1f;
+        FrictionTimescale = Vector3.Zero;
+        CurrentValue = TargetValue = Vector3.Zero;
+    }
+    public BSVMotor(string useName, float timeScale, float decayTimeScale, Vector3 frictionTimeScale, float efficiency) 
+        : this(useName)
     {
         TimeScale = timeScale;
         TargetValueDecayTimeScale = decayTimeScale;
-        CurrentValueReductionTimescale = frictionTimeScale;
+        FrictionTimescale = frictionTimeScale;
         Efficiency = efficiency;
         CurrentValue = TargetValue = Vector3.Zero;
     }
@@ -60,10 +70,10 @@ public class BSVMotor : BSMotor
     public Vector3 Step(float timeStep)
     {
         Vector3 returnCurrent = Vector3.Zero;
-        if (CurrentValue.LengthSquared() > 0.001f)
+        if (!CurrentValue.ApproxEquals(TargetValue, 0.01f))
         {
-            // Vector3 origDir = Target;       // DEBUG
-            // Vector3 origVel = CurrentValue;   // DEBUG
+            Vector3 origTarget = TargetValue;       // DEBUG
+            Vector3 origCurrVal = CurrentValue;   // DEBUG
 
             // Add (desiredVector - currentAppliedVector) / howLongItShouldTakeToComplete
             Vector3 addAmount = (TargetValue - CurrentValue)/TimeScale * timeStep;
@@ -74,11 +84,17 @@ public class BSVMotor : BSMotor
             float decayFactor = (1.0f / TargetValueDecayTimeScale) * timeStep;
             TargetValue *= (1f - decayFactor);
 
-            Vector3 frictionFactor = (Vector3.One / CurrentValueReductionTimescale) * timeStep;
+            Vector3 frictionFactor = Vector3.Zero;
+            frictionFactor = (Vector3.One / FrictionTimescale) * timeStep;
             CurrentValue *= (Vector3.One - frictionFactor);
 
-            MDetailLog("{0},BSVMotor.Step,nonZero,curr={1},target={2},add={3},decay={4},frict={5},ret={6}",
-                                    BSScene.DetailLogZero, TargetValue, CurrentValue, 
+            MDetailLog("{0},BSVMotor.Step,nonZero,{1},origTarget={2},origCurr={3},timeStep={4},timeScale={5},addAmnt={6},targetDecay={7},decayFact={8},fricTS={9},frictFact={10}",
+                                BSScene.DetailLogZero, UseName, origTarget, origCurrVal,
+                                timeStep, TimeScale, addAmount,
+                                TargetValueDecayTimeScale, decayFactor,
+                                FrictionTimescale, frictionFactor);
+            MDetailLog("{0},BSVMotor.Step,nonZero,{1},curr={2},target={3},add={4},decay={5},frict={6},ret={7}",
+                                    BSScene.DetailLogZero, UseName, TargetValue, CurrentValue, 
                                     addAmount, decayFactor, frictionFactor, returnCurrent);
         }
         else
@@ -87,8 +103,8 @@ public class BSVMotor : BSMotor
             CurrentValue = Vector3.Zero;
             TargetValue = Vector3.Zero;
 
-            MDetailLog("{0},BSVMotor.Step,zero,curr={1},target={2},ret={3}",
-                                    BSScene.DetailLogZero, TargetValue, CurrentValue, returnCurrent);
+            MDetailLog("{0},BSVMotor.Step,zero,{1},curr={2},target={3},ret={4}",
+                                    BSScene.DetailLogZero, UseName, TargetValue, CurrentValue, returnCurrent);
 
         }
         return returnCurrent;
@@ -105,7 +121,8 @@ public class BSFMotor : BSMotor
     public float Target { get; private set; }
     public float CurrentValue { get; private set; }
 
-    BSFMotor(float timeScale, float decayTimescale, float friction, float efficiency) : base()
+    public BSFMotor(string useName, float timeScale, float decayTimescale, float friction, float efficiency)
+        : base(useName)
     {
     }
     public void SetCurrent(float target)
@@ -122,7 +139,8 @@ public class BSFMotor : BSMotor
 public class BSPIDMotor : BSMotor
 {
     // TODO: write and use this one
-    BSPIDMotor() : base()
+    public BSPIDMotor(string useName)
+        : base(useName)
     {
     }
 }

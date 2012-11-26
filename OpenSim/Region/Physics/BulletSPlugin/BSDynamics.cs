@@ -80,6 +80,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         private Quaternion m_referenceFrame = Quaternion.Identity;
 
         // Linear properties
+        private BSVMotor m_linearMotor = new BSVMotor("LinearMotor");
         private Vector3 m_linearMotorDirection = Vector3.Zero;          // velocity requested by LSL, decayed by time
         private Vector3 m_linearMotorOffset = Vector3.Zero;             // the point of force can be offset from the center
         private Vector3 m_linearMotorDirectionLASTSET = Vector3.Zero;   // velocity requested by LSL
@@ -152,7 +153,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     m_angularDeflectionTimescale = Math.Max(pValue, 0.01f);
                     break;
                 case Vehicle.ANGULAR_MOTOR_DECAY_TIMESCALE:
-                    m_angularMotorDecayTimescale = Math.Max(pValue, 0.01f);
+                    m_angularMotorDecayTimescale = Math.Max(0.01f, Math.Min(pValue,120));
                     break;
                 case Vehicle.ANGULAR_MOTOR_TIMESCALE:
                     m_angularMotorTimescale = Math.Max(pValue, 0.01f);
@@ -185,10 +186,12 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     m_linearDeflectionTimescale = Math.Max(pValue, 0.01f);
                     break;
                 case Vehicle.LINEAR_MOTOR_DECAY_TIMESCALE:
-                    m_linearMotorDecayTimescale = Math.Max(pValue, 0.01f);
+                    m_linearMotorDecayTimescale = Math.Max(0.01f, Math.Min(pValue,120));
+                    m_linearMotor.TargetValueDecayTimeScale = m_linearMotorDecayTimescale;
                     break;
                 case Vehicle.LINEAR_MOTOR_TIMESCALE:
                     m_linearMotorTimescale = Math.Max(pValue, 0.01f);
+                    m_linearMotor.TimeScale = m_linearMotorTimescale;
                     break;
                 case Vehicle.VERTICAL_ATTRACTION_EFFICIENCY:
                     m_verticalAttractionEfficiency = Math.Max(0.1f, Math.Min(pValue, 1f));
@@ -208,10 +211,12 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     break;
                 case Vehicle.LINEAR_FRICTION_TIMESCALE:
                     m_linearFrictionTimescale = new Vector3(pValue, pValue, pValue);
+                    m_linearMotor.FrictionTimescale = m_linearFrictionTimescale;
                     break;
                 case Vehicle.LINEAR_MOTOR_DIRECTION:
                     m_linearMotorDirection = new Vector3(pValue, pValue, pValue);
                     m_linearMotorDirectionLASTSET = new Vector3(pValue, pValue, pValue);
+                    m_linearMotor.SetTarget(m_linearMotorDirection);
                     break;
                 case Vehicle.LINEAR_MOTOR_OFFSET:
                     m_linearMotorOffset = new Vector3(pValue, pValue, pValue);
@@ -238,10 +243,12 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     break;
                 case Vehicle.LINEAR_FRICTION_TIMESCALE:
                     m_linearFrictionTimescale = new Vector3(pValue.X, pValue.Y, pValue.Z);
+                    m_linearMotor.FrictionTimescale = m_linearFrictionTimescale;
                     break;
                 case Vehicle.LINEAR_MOTOR_DIRECTION:
                     m_linearMotorDirection = new Vector3(pValue.X, pValue.Y, pValue.Z);
                     m_linearMotorDirectionLASTSET = new Vector3(pValue.X, pValue.Y, pValue.Z);
+                    m_linearMotor.SetTarget(m_linearMotorDirection);
                     break;
                 case Vehicle.LINEAR_MOTOR_OFFSET:
                     m_linearMotorOffset = new Vector3(pValue.X, pValue.Y, pValue.Z);
@@ -319,6 +326,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 
                     m_referenceFrame = Quaternion.Identity;
                     m_flags = (VehicleFlag)0;
+
                     break;
 
                 case Vehicle.TYPE_SLED:
@@ -510,6 +518,12 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                                     | VehicleFlag.HOVER_GLOBAL_HEIGHT);
                     break;
             }
+
+            // Update any physical parameters based on this type.
+            Refresh();
+
+            m_linearMotor = new BSVMotor("LinearMotor", m_linearMotorTimescale, m_linearMotorDecayTimescale, m_linearFrictionTimescale, 1f);
+            m_linearMotor.PhysicsScene = PhysicsScene;  // DEBUG DEBUG DEBUG (enables detail logging)
         }
 
         // Some of the properties of this prim may have changed.
@@ -518,18 +532,25 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         {
             if (IsActive)
             {
-                VDetailLog("{0},BSDynamics.Refresh", Prim.LocalID);
                 m_vehicleMass = Prim.Linkset.LinksetMass;
 
                 // Friction effects are handled by this vehicle code
-                BulletSimAPI.SetFriction2(Prim.PhysBody.ptr, 0f);
-                BulletSimAPI.SetHitFraction2(Prim.PhysBody.ptr, 0f);
+                float friction = 0f;
+                BulletSimAPI.SetFriction2(Prim.PhysBody.ptr, friction);
 
-                BulletSimAPI.SetAngularDamping2(Prim.PhysBody.ptr, PhysicsScene.Params.vehicleAngularDamping);
+                // Moderate angular movement introduced by Bullet.
+                // TODO: possibly set AngularFactor and LinearFactor for the type of vehicle.
+                //     Maybe compute linear and angular factor and damping from params.
+                float angularDamping = PhysicsScene.Params.vehicleAngularDamping;
+                BulletSimAPI.SetAngularDamping2(Prim.PhysBody.ptr, angularDamping);
 
-                BulletSimAPI.SetMassProps2(Prim.PhysBody.ptr, m_vehicleMass, new Vector3(1f, 1f, 1f));
+                // DEBUG DEBUG DEBUG: use uniform inertia to smooth movement added by Bullet
+                // Vector3 localInertia = new Vector3(1f, 1f, 1f);
+                Vector3 localInertia = new Vector3(m_vehicleMass, m_vehicleMass, m_vehicleMass);
+                BulletSimAPI.SetMassProps2(Prim.PhysBody.ptr, m_vehicleMass, localInertia);
 
-
+                VDetailLog("{0},BSDynamics.Refresh,frict={1},inert={2},aDamp={3}", 
+                                Prim.LocalID, friction, localInertia, angularDamping);
             }
         }
 
@@ -591,6 +612,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         // Also does hover and float.
         private void MoveLinear(float pTimestep)
         {
+            /*
             // m_linearMotorDirection is the target direction we are moving relative to the vehicle coordinates
             // m_lastLinearVelocityVector is the current speed we are moving in that direction
             if (m_linearMotorDirection.LengthSquared() > 0.001f)
@@ -627,6 +649,12 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 
                 VDetailLog("{0},MoveLinear,zeroed", Prim.LocalID);
             }
+            */
+
+            m_newVelocity = m_linearMotor.Step(pTimestep);
+
+            // Rotate new object velocity from vehicle relative to world coordinates
+            m_newVelocity *= Prim.ForceOrientation;
 
             // m_newVelocity is velocity computed from linear motor in world coordinates
 
@@ -785,12 +813,13 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 m_newVelocity.Z = 0;
 
             // Clamp REALLY high or low velocities
-            if (m_newVelocity.LengthSquared() > 1e6f)
+            float newVelocityLengthSq = m_newVelocity.LengthSquared();
+            if (newVelocityLengthSq > 1e6f)
             {
                 m_newVelocity /= m_newVelocity.Length();
                 m_newVelocity *= 1000f;
             }
-            else if (m_newVelocity.LengthSquared() < 1e-6f)
+            else if (newVelocityLengthSq < 1e-6f)
                 m_newVelocity = Vector3.Zero;
 
             // Stuff new linear velocity into the vehicle
