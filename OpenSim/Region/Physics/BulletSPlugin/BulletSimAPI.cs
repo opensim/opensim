@@ -357,7 +357,7 @@ public enum CollisionFlags : uint
     CF_CHARACTER_OBJECT              = 1 << 4,
     CF_DISABLE_VISUALIZE_OBJECT      = 1 << 5,
     CF_DISABLE_SPU_COLLISION_PROCESS = 1 << 6,
-    // Following used by BulletSim to control collisions
+    // Following used by BulletSim to control collisions and updates
     BS_SUBSCRIBE_COLLISION_EVENTS    = 1 << 10,
     BS_FLOATS_ON_WATER               = 1 << 11,
     BS_NONE                          = 0,

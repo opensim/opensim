@@ -515,9 +515,9 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             collidersCount = 0;
         }
 
-        // Don't have to use the pointers passed back since we know it is the same pinned memory we passed in
+        // Don't have to use the pointers passed back since we know it is the same pinned memory we passed in.
 
-        // Get a value for 'now' so all the collision and update routines don't have to get their own
+        // Get a value for 'now' so all the collision and update routines don't have to get their own.
         SimulationNowTime = Util.EnvironmentTickCount();
 
         // If there were collisions, process them by sending the event to the prim.
@@ -563,6 +563,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
                 ObjectsWithCollisions.Remove(po);
             ObjectsWithNoMoreCollisions.Clear();
         }
+        // Done with collisions.
 
         // If any of the objects had updated properties, tell the object it has been changed by the physics engine
         if (updatedEntityCount > 0)
@@ -586,9 +587,8 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
         // The physics engine returns the number of milliseconds it simulated this call.
         // These are summed and normalized to one second and divided by 1000 to give the reported physics FPS.
-        // We multiply by 55 to give a recognizable running rate (55 or less).
-        return numSubSteps * m_fixedTimeStep * 1000 * 55;
-        // return timeStep * 1000 * 55;
+        // Multiply by 55 to give a nominal frame rate of 55.
+        return (float)numSubSteps * m_fixedTimeStep * 1000f * 55f;
     }
 
     // Something has collided
@@ -1172,7 +1172,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             (s) => { return s.m_params[0].avatarFriction; },
             (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].avatarFriction, p, l, v); } ),
         new ParameterDefn("AvatarStandingFriction", "Avatar friction when standing. Changed on avatar recreation.",
-            0.99f,
+            10.0f,
             (s,cf,p,v) => { s.m_params[0].avatarStandingFriction = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].avatarStandingFriction; },
             (s,p,l,v) => { s.m_params[0].avatarStandingFriction = v; } ),

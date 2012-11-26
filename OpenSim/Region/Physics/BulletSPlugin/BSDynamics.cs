@@ -805,6 +805,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             // m_angularFrictionTimescale      // body angular velocity  decay rate
             // m_lastAngularVelocity           // what was last applied to body
 
+            /*
             if (m_angularMotorDirection.LengthSquared() > 0.0001)
             {
                 Vector3 origVel = m_angularMotorVelocity;
@@ -823,6 +824,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             {
                 m_angularMotorVelocity = Vector3.Zero;
             }
+            */
 
             Vector3 angularMotorContribution = m_angularMotor.Step(pTimestep);
 
@@ -842,15 +844,13 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 // verticalError.X and .Y are the World error amounts. They are 0 when there is no
                 //      error (Vehicle Body is 'vertical'), and .Z will be 1. As the body leans to its
                 //      side |.X| will increase to 1 and .Z fall to 0. As body inverts |.X| will fall
-                //      and .Z will go // negative. Similar for tilt and |.Y|. .X and .Y must be
+                //      and .Z will go negative. Similar for tilt and |.Y|. .X and .Y must be
                 //      modulated to prevent a stable inverted body.
 
                 // Error is 0 (no error) to +/- 2 (max error)
-                if (verticalError.Z < 0.0f)
-                {
-                    verticalError.X = 2.0f - verticalError.X;
-                    verticalError.Y = 2.0f - verticalError.Y;
-                }
+                verticalError.X = Math.Max(-2f, Math.Min(verticalError.X, 2f));
+                verticalError.Y = Math.Max(-2f, Math.Min(verticalError.Y, 2f));
+
                 // scale it by VAservo (timestep and timescale)
                 verticalError = verticalError * VAservo;
 
@@ -1013,10 +1013,15 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 // Also remove any motion that is on the object so added motion is only from vehicle.
                 Vector3 applyAngularForce = ((m_lastAngularVelocity * pTimestep) 
                                                 - Prim.ForceRotationalVelocity);
+                // Unscale the force by the angular factor so it overwhelmes the Bullet additions.
                 Prim.ForceRotationalVelocity = applyAngularForce;
 
-                VDetailLog("{0},MoveAngular,done,newRotVel={1},lastAngular={2}", 
-                                    Prim.LocalID, applyAngularForce, m_lastAngularVelocity);
+                VDetailLog("{0},MoveAngular,done,angMotor={1},vertAttr={2},bank={3},deflect={4},newAngForce={5},lastAngular={6}",
+                                    Prim.LocalID,
+                                    angularMotorContribution, verticalAttractionContribution,
+                                    bankingContribution, deflectionContribution,
+                                    applyAngularForce, m_lastAngularVelocity
+                                    );
             }
         }
 
