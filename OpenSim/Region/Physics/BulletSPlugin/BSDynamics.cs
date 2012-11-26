@@ -80,10 +80,10 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         private Quaternion m_referenceFrame = Quaternion.Identity;
 
         // Linear properties
+        private BSVMotor m_linearMotor = new BSVMotor("LinearMotor");
         private Vector3 m_linearMotorDirection = Vector3.Zero;          // velocity requested by LSL, decayed by time
         private Vector3 m_linearMotorOffset = Vector3.Zero;             // the point of force can be offset from the center
         private Vector3 m_linearMotorDirectionLASTSET = Vector3.Zero;   // velocity requested by LSL
-        private Vector3 m_newVelocity = Vector3.Zero;                   // velocity computed to be applied to body
         private Vector3 m_linearFrictionTimescale = Vector3.Zero;
         private float m_linearMotorDecayTimescale = 0;
         private float m_linearMotorTimescale = 0;
@@ -93,6 +93,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         // private Vector3 m_linearMotorOffset = Vector3.Zero;
 
         //Angular properties
+        private BSVMotor m_angularMotor = new BSVMotor("AngularMotor");
         private Vector3 m_angularMotorDirection = Vector3.Zero;         // angular velocity requested by LSL motor
         // private int m_angularMotorApply = 0;                            // application frame counter
         private Vector3 m_angularMotorVelocity = Vector3.Zero;          // current angular motor velocity
@@ -152,10 +153,12 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     m_angularDeflectionTimescale = Math.Max(pValue, 0.01f);
                     break;
                 case Vehicle.ANGULAR_MOTOR_DECAY_TIMESCALE:
-                    m_angularMotorDecayTimescale = Math.Max(pValue, 0.01f);
+                    m_angularMotorDecayTimescale = Math.Max(0.01f, Math.Min(pValue,120));
+                    m_angularMotor.TargetValueDecayTimeScale = m_angularMotorDecayTimescale;
                     break;
                 case Vehicle.ANGULAR_MOTOR_TIMESCALE:
                     m_angularMotorTimescale = Math.Max(pValue, 0.01f);
+                    m_angularMotor.TimeScale = m_angularMotorTimescale;
                     break;
                 case Vehicle.BANKING_EFFICIENCY:
                     m_bankingEfficiency = Math.Max(-1f, Math.Min(pValue, 1f));
@@ -185,10 +188,12 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     m_linearDeflectionTimescale = Math.Max(pValue, 0.01f);
                     break;
                 case Vehicle.LINEAR_MOTOR_DECAY_TIMESCALE:
-                    m_linearMotorDecayTimescale = Math.Max(pValue, 0.01f);
+                    m_linearMotorDecayTimescale = Math.Max(0.01f, Math.Min(pValue,120));
+                    m_linearMotor.TargetValueDecayTimeScale = m_linearMotorDecayTimescale;
                     break;
                 case Vehicle.LINEAR_MOTOR_TIMESCALE:
                     m_linearMotorTimescale = Math.Max(pValue, 0.01f);
+                    m_linearMotor.TimeScale = m_linearMotorTimescale;
                     break;
                 case Vehicle.VERTICAL_ATTRACTION_EFFICIENCY:
                     m_verticalAttractionEfficiency = Math.Max(0.1f, Math.Min(pValue, 1f));
@@ -201,17 +206,20 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 // set all of the components to the same value
                 case Vehicle.ANGULAR_FRICTION_TIMESCALE:
                     m_angularFrictionTimescale = new Vector3(pValue, pValue, pValue);
+                    m_angularMotor.FrictionTimescale = m_angularFrictionTimescale;
                     break;
                 case Vehicle.ANGULAR_MOTOR_DIRECTION:
                     m_angularMotorDirection = new Vector3(pValue, pValue, pValue);
-                    // m_angularMotorApply = 100;
+                    m_angularMotor.SetTarget(m_angularMotorDirection);
                     break;
                 case Vehicle.LINEAR_FRICTION_TIMESCALE:
                     m_linearFrictionTimescale = new Vector3(pValue, pValue, pValue);
+                    m_linearMotor.FrictionTimescale = m_linearFrictionTimescale;
                     break;
                 case Vehicle.LINEAR_MOTOR_DIRECTION:
                     m_linearMotorDirection = new Vector3(pValue, pValue, pValue);
                     m_linearMotorDirectionLASTSET = new Vector3(pValue, pValue, pValue);
+                    m_linearMotor.SetTarget(m_linearMotorDirection);
                     break;
                 case Vehicle.LINEAR_MOTOR_OFFSET:
                     m_linearMotorOffset = new Vector3(pValue, pValue, pValue);
@@ -227,6 +235,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             {
                 case Vehicle.ANGULAR_FRICTION_TIMESCALE:
                     m_angularFrictionTimescale = new Vector3(pValue.X, pValue.Y, pValue.Z);
+                    m_angularMotor.FrictionTimescale = m_angularFrictionTimescale;
                     break;
                 case Vehicle.ANGULAR_MOTOR_DIRECTION:
                     // Limit requested angular speed to 2 rps= 4 pi rads/sec
@@ -234,14 +243,16 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     pValue.Y = Math.Max(-12.56f, Math.Min(pValue.Y, 12.56f));
                     pValue.Z = Math.Max(-12.56f, Math.Min(pValue.Z, 12.56f));
                     m_angularMotorDirection = new Vector3(pValue.X, pValue.Y, pValue.Z);
-                    // m_angularMotorApply = 100;
+                    m_angularMotor.SetTarget(m_angularMotorDirection);
                     break;
                 case Vehicle.LINEAR_FRICTION_TIMESCALE:
                     m_linearFrictionTimescale = new Vector3(pValue.X, pValue.Y, pValue.Z);
+                    m_linearMotor.FrictionTimescale = m_linearFrictionTimescale;
                     break;
                 case Vehicle.LINEAR_MOTOR_DIRECTION:
                     m_linearMotorDirection = new Vector3(pValue.X, pValue.Y, pValue.Z);
                     m_linearMotorDirectionLASTSET = new Vector3(pValue.X, pValue.Y, pValue.Z);
+                    m_linearMotor.SetTarget(m_linearMotorDirection);
                     break;
                 case Vehicle.LINEAR_MOTOR_OFFSET:
                     m_linearMotorOffset = new Vector3(pValue.X, pValue.Y, pValue.Z);
@@ -319,6 +330,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 
                     m_referenceFrame = Quaternion.Identity;
                     m_flags = (VehicleFlag)0;
+
                     break;
 
                 case Vehicle.TYPE_SLED:
@@ -351,10 +363,13 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     m_bankingMix = 1;
 
                     m_referenceFrame = Quaternion.Identity;
-                    m_flags |= (VehicleFlag.NO_DEFLECTION_UP | VehicleFlag.LIMIT_ROLL_ONLY | VehicleFlag.LIMIT_MOTOR_UP);
-                    m_flags &=
-                         ~(VehicleFlag.HOVER_WATER_ONLY | VehicleFlag.HOVER_TERRAIN_ONLY |
-                           VehicleFlag.HOVER_GLOBAL_HEIGHT | VehicleFlag.HOVER_UP_ONLY);
+                    m_flags &= ~(VehicleFlag.HOVER_WATER_ONLY 
+                                | VehicleFlag.HOVER_TERRAIN_ONLY 
+                                | VehicleFlag.HOVER_GLOBAL_HEIGHT
+                                | VehicleFlag.HOVER_UP_ONLY);
+                    m_flags |= (VehicleFlag.NO_DEFLECTION_UP
+                            | VehicleFlag.LIMIT_ROLL_ONLY
+                            | VehicleFlag.LIMIT_MOTOR_UP);
                     break;
                 case Vehicle.TYPE_CAR:
                     m_linearMotorDirection = Vector3.Zero;
@@ -510,6 +525,18 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                                     | VehicleFlag.HOVER_GLOBAL_HEIGHT);
                     break;
             }
+
+            // Update any physical parameters based on this type.
+            Refresh();
+
+            m_linearMotor = new BSVMotor("LinearMotor", m_linearMotorTimescale,
+                                m_linearMotorDecayTimescale, m_linearFrictionTimescale, 1f);
+            m_linearMotor.PhysicsScene = PhysicsScene;  // DEBUG DEBUG DEBUG (enables detail logging)
+            m_angularMotor = new BSVMotor("AngularMotor", m_angularMotorTimescale,
+                                m_angularMotorDecayTimescale, m_angularFrictionTimescale, 1f);
+            m_angularMotor.PhysicsScene = PhysicsScene;  // DEBUG DEBUG DEBUG (enables detail logging)
+
+            // m_bankingMotor = new BSVMotor("BankingMotor", ...);
         }
 
         // Some of the properties of this prim may have changed.
@@ -518,13 +545,25 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         {
             if (IsActive)
             {
+                m_vehicleMass = Prim.Linkset.LinksetMass;
+
                 // Friction effects are handled by this vehicle code
-                BulletSimAPI.SetFriction2(Prim.PhysBody.ptr, 0f);
-                BulletSimAPI.SetHitFraction2(Prim.PhysBody.ptr, 0f);
+                float friction = 0f;
+                BulletSimAPI.SetFriction2(Prim.PhysBody.ptr, friction);
 
-                // BulletSimAPI.SetAngularDamping2(Prim.PhysBody.ptr, 0.8f);
+                // Moderate angular movement introduced by Bullet.
+                // TODO: possibly set AngularFactor and LinearFactor for the type of vehicle.
+                //     Maybe compute linear and angular factor and damping from params.
+                float angularDamping = PhysicsScene.Params.vehicleAngularDamping;
+                BulletSimAPI.SetAngularDamping2(Prim.PhysBody.ptr, angularDamping);
 
-                VDetailLog("{0},BSDynamics.Refresh,zeroingFriction and adding damping", Prim.LocalID);
+                // DEBUG DEBUG DEBUG: use uniform inertia to smooth movement added by Bullet
+                // Vector3 localInertia = new Vector3(1f, 1f, 1f);
+                Vector3 localInertia = new Vector3(m_vehicleMass, m_vehicleMass, m_vehicleMass);
+                BulletSimAPI.SetMassProps2(Prim.PhysBody.ptr, m_vehicleMass, localInertia);
+
+                VDetailLog("{0},BSDynamics.Refresh,frict={1},inert={2},aDamp={3}", 
+                                Prim.LocalID, friction, localInertia, angularDamping);
             }
         }
 
@@ -551,97 +590,38 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         {
             if (!IsActive) return;
 
-            // DEBUG
-            // Because Bullet does apply forces to the vehicle, our last computed
-            //     linear and angular velocities are not what is happening now.
-            // Vector3 externalAngularVelocity = Prim.ForceRotationalVelocity - m_lastAngularVelocity;
-            // m_lastAngularVelocity += (externalAngularVelocity * 0.5f) * pTimestep;
-            // m_lastAngularVelocity = Prim.ForceRotationalVelocity;   // DEBUG: account for what Bullet did last time
-            // m_lastLinearVelocityVector = Prim.ForceVelocity * Quaternion.Inverse(Prim.ForceOrientation);        // DEBUG:
-            // END DEBUG
-
-            m_vehicleMass = Prim.Linkset.LinksetMass;
-
             MoveLinear(pTimestep);
-            // Commented out for debug
             MoveAngular(pTimestep);
-            // Prim.ApplyTorqueImpulse(-Prim.RotationalVelocity * m_vehicleMass, false);    // DEBUG DEBUG
-            // Prim.ForceRotationalVelocity = -Prim.RotationalVelocity;    // DEBUG DEBUG
 
             LimitRotation(pTimestep);
 
             // remember the position so next step we can limit absolute movement effects
             m_lastPositionVector = Prim.ForcePosition;
 
-            VDetailLog("{0},BSDynamics.Step,frict={1},grav={2},inertia={3},mass={4}",        // DEBUG DEBUG
-                                    Prim.LocalID, 
-                                    BulletSimAPI.GetFriction2(Prim.PhysBody.ptr),
-                                    BulletSimAPI.GetGravity2(Prim.PhysBody.ptr),
-                                    Prim.Inertia,
-                                    m_vehicleMass
-                                    );
             VDetailLog("{0},BSDynamics.Step,done,pos={1},force={2},velocity={3},angvel={4}",
                     Prim.LocalID, Prim.ForcePosition, Prim.Force, Prim.ForceVelocity, Prim.RotationalVelocity);
-        }// end Step
+        }
 
         // Apply the effect of the linear motor.
         // Also does hover and float.
         private void MoveLinear(float pTimestep)
         {
-            // m_linearMotorDirection is the target direction we are moving relative to the vehicle coordinates
-            // m_lastLinearVelocityVector is the current speed we are moving in that direction
-            if (m_linearMotorDirection.LengthSquared() > 0.001f)
-            {
-                Vector3 origDir = m_linearMotorDirection;       // DEBUG
-                Vector3 origVel = m_lastLinearVelocityVector;   // DEBUG
-                // DEBUG: the vehicle velocity rotated to be relative to vehicle coordinates for comparison
-                Vector3 vehicleVelocity = Prim.ForceVelocity * Quaternion.Inverse(Prim.ForceOrientation);   // DEBUG
+            Vector3 linearMotorContribution = m_linearMotor.Step(pTimestep);
 
-                // Add (desiredVelocity - lastAppliedVelocity) / howLongItShouldTakeToComplete
-                Vector3 addAmount = (m_linearMotorDirection - m_lastLinearVelocityVector)/(m_linearMotorTimescale) * pTimestep;
-                m_lastLinearVelocityVector += addAmount;
+            // Rotate new object velocity from vehicle relative to world coordinates
+            linearMotorContribution *= Prim.ForceOrientation;
 
-                float decayFactor = (1.0f / m_linearMotorDecayTimescale) * pTimestep;
-                m_linearMotorDirection *= (1f - decayFactor);
-
-                // Rotate new object velocity from vehicle relative to world coordinates
-                m_newVelocity = m_lastLinearVelocityVector * Prim.ForceOrientation;
-
-                // Apply friction for next time
-                Vector3 frictionFactor = (Vector3.One / m_linearFrictionTimescale) * pTimestep;
-                m_lastLinearVelocityVector *= (Vector3.One - frictionFactor);
-
-                VDetailLog("{0},MoveLinear,nonZero,origlmDir={1},origlvVel={2},vehVel={3},add={4},decay={5},frict={6},lmDir={7},lvVec={8},newVel={9}",
-                                Prim.LocalID, origDir, origVel, vehicleVelocity, addAmount, decayFactor, frictionFactor, 
-                                m_linearMotorDirection, m_lastLinearVelocityVector, m_newVelocity);
-            }
-            else
-            {
-                // if what remains of direction is very small, zero it.
-                m_linearMotorDirection = Vector3.Zero;
-                m_lastLinearVelocityVector = Vector3.Zero;
-                m_newVelocity = Vector3.Zero;
-
-                VDetailLog("{0},MoveLinear,zeroed", Prim.LocalID);
-            }
-
-            // m_newVelocity is velocity computed from linear motor in world coordinates
-
+            // ==================================================================
             // Gravity and Buoyancy
             // There is some gravity, make a gravity force vector that is applied after object velocity.
             // m_VehicleBuoyancy: -1=2g; 0=1g; 1=0g;
             Vector3 grav = Prim.PhysicsScene.DefaultGravity * (1f - m_VehicleBuoyancy);
 
-            /*
-             * RA: Not sure why one would do this unless we are hoping external forces are doing gravity, ...
-            // Preserve the current Z velocity
-            Vector3 vel_now = m_prim.Velocity;
-            m_dir.Z = vel_now.Z;        // Preserve the accumulated falling velocity
-             */
-
+            // Current vehicle position
             Vector3 pos = Prim.ForcePosition;
-//            Vector3 accel = new Vector3(-(m_dir.X - m_lastLinearVelocityVector.X / 0.1f), -(m_dir.Y - m_lastLinearVelocityVector.Y / 0.1f), m_dir.Z - m_lastLinearVelocityVector.Z / 0.1f);
 
+            // ==================================================================
+            Vector3 terrainHeightContribution = Vector3.Zero;
             // If below the terrain, move us above the ground a little.
             float terrainHeight = Prim.PhysicsScene.TerrainManager.GetTerrainHeightAtXYZ(pos);
             // Taking the rotated size doesn't work here because m_prim.Size is the size of the root prim and not the linkset.
@@ -650,11 +630,14 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             // if (rotatedSize.Z < terrainHeight)
             if (pos.Z < terrainHeight)
             {
+                // TODO: correct position by applying force rather than forcing position.
                 pos.Z = terrainHeight + 2;
                 Prim.ForcePosition = pos;
                 VDetailLog("{0},MoveLinear,terrainHeight,terrainHeight={1},pos={2}", Prim.LocalID, terrainHeight, pos);
             }
 
+            // ==================================================================
+            Vector3 hoverContribution = Vector3.Zero;
             // Check if hovering
             // m_VhoverEfficiency: 0=bouncy, 1=totally damped
             // m_VhoverTimescale: time to achieve height
@@ -694,24 +677,22 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     // RA: where does the 50 come from?
                     float verticalCorrectionVelocity = pTimestep * ((verticalError * 50.0f) / m_VhoverTimescale);
                     // Replace Vertical speed with correction figure if significant
-                    if (Math.Abs(verticalError) > 0.01f)
+                    if (verticalError > 0.01f)
                     {
-                        m_newVelocity.Z += verticalCorrectionVelocity;
+                        hoverContribution = new Vector3(0f, 0f, verticalCorrectionVelocity);
                         //KF: m_VhoverEfficiency is not yet implemented
                     }
                     else if (verticalError < -0.01)
                     {
-                        m_newVelocity.Z -= verticalCorrectionVelocity;
-                    }
-                    else
-                    {
-                        m_newVelocity.Z = 0f;
+                        hoverContribution = new Vector3(0f, 0f, -verticalCorrectionVelocity);
                     }
                 }
 
-                VDetailLog("{0},MoveLinear,hover,pos={1},dir={2},height={3},target={4}", Prim.LocalID, pos, m_newVelocity, m_VhoverHeight, m_VhoverTargetHeight);
+                VDetailLog("{0},MoveLinear,hover,pos={1},dir={2},height={3},target={4}",
+                                Prim.LocalID, pos, hoverContribution, m_VhoverHeight, m_VhoverTargetHeight);
             }
 
+            // ==================================================================
             Vector3 posChange = pos - m_lastPositionVector;
             if (m_BlockingEndPoint != Vector3.Zero)
             {
@@ -749,70 +730,77 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 }
             }
 
-            #region downForce
-            Vector3 downForce = Vector3.Zero;
-
+            // ==================================================================
+            Vector3 limitMotorUpContribution = Vector3.Zero;
             if ((m_flags & (VehicleFlag.LIMIT_MOTOR_UP)) != 0)
             {
                 // If the vehicle is motoring into the sky, get it going back down.
-                // Is this an angular force or both linear and angular??
                 float distanceAboveGround = pos.Z - terrainHeight;
-                if (distanceAboveGround > 2f)
+                if (distanceAboveGround > 1f)
                 {
                     // downForce = new Vector3(0, 0, (-distanceAboveGround / m_bankingTimescale) * pTimestep);
                     // downForce = new Vector3(0, 0, -distanceAboveGround / m_bankingTimescale);
-                    downForce = new Vector3(0, 0, -distanceAboveGround);
+                    limitMotorUpContribution = new Vector3(0, 0, -distanceAboveGround);
                 }
                 // TODO: this calculation is all wrong. From the description at
                 //     (http://wiki.secondlife.com/wiki/Category:LSL_Vehicle), the downForce
                 //     has a decay factor. This says this force should
                 //     be computed with a motor.
                 VDetailLog("{0},MoveLinear,limitMotorUp,distAbove={1},downForce={2}", 
-                                    Prim.LocalID, distanceAboveGround, downForce);
+                                    Prim.LocalID, distanceAboveGround, limitMotorUpContribution);
             }
-            #endregion // downForce
+
+            // ==================================================================
+            Vector3 newVelocity = linearMotorContribution 
+                            + terrainHeightContribution 
+                            + hoverContribution
+                            + limitMotorUpContribution;
 
             // If not changing some axis, reduce out velocity
             if ((m_flags & (VehicleFlag.NO_X)) != 0)
-                m_newVelocity.X = 0;
+                newVelocity.X = 0;
             if ((m_flags & (VehicleFlag.NO_Y)) != 0)
-                m_newVelocity.Y = 0;
+                newVelocity.Y = 0;
             if ((m_flags & (VehicleFlag.NO_Z)) != 0)
-                m_newVelocity.Z = 0;
+                newVelocity.Z = 0;
 
+            // ==================================================================
             // Clamp REALLY high or low velocities
-            if (m_newVelocity.LengthSquared() > 1e6f)
+            float newVelocityLengthSq = newVelocity.LengthSquared();
+            if (newVelocityLengthSq > 1e6f)
             {
-                m_newVelocity /= m_newVelocity.Length();
-                m_newVelocity *= 1000f;
+                newVelocity /= newVelocity.Length();
+                newVelocity *= 1000f;
             }
-            else if (m_newVelocity.LengthSquared() < 1e-6f)
-                m_newVelocity = Vector3.Zero;
+            else if (newVelocityLengthSq < 1e-6f)
+                newVelocity = Vector3.Zero;
 
+            // ==================================================================
             // Stuff new linear velocity into the vehicle
-            Prim.ForceVelocity = m_newVelocity;
+            Prim.ForceVelocity = newVelocity;
             // Prim.ApplyForceImpulse((m_newVelocity - Prim.Velocity) * m_vehicleMass, false);    // DEBUG DEBUG
 
-            Vector3 totalDownForce = downForce + grav;
+            // Other linear forces are applied as forces.
+            Vector3 totalDownForce = grav * m_vehicleMass;
             if (totalDownForce != Vector3.Zero)
             {
-                Prim.AddForce(totalDownForce * m_vehicleMass, false);
-                // Prim.ApplyForceImpulse(totalDownForce * m_vehicleMass, false);
+                Prim.AddForce(totalDownForce, false);
             }
 
             VDetailLog("{0},MoveLinear,done,lmDir={1},lmVel={2},newVel={3},primVel={4},totalDown={5}",
-                    Prim.LocalID, m_linearMotorDirection, m_lastLinearVelocityVector, m_newVelocity, Prim.Velocity, totalDownForce);
+                                Prim.LocalID, m_linearMotorDirection, m_lastLinearVelocityVector, 
+                                newVelocity, Prim.Velocity, totalDownForce);
 
         } // end MoveLinear()
 
+        // =======================================================================
         // =======================================================================
         // Apply the effect of the angular motor.
         private void MoveAngular(float pTimestep)
         {
             // m_angularMotorDirection         // angular velocity requested by LSL motor
-            // m_angularMotorApply             // application frame counter
             // m_angularMotorVelocity          // current angular motor velocity (ramps up and down)
-            // m_angularMotorTimescale         // motor angular velocity ramp up rate
+            // m_angularMotorTimescale         // motor angular velocity ramp up time
             // m_angularMotorDecayTimescale    // motor angular velocity decay rate
             // m_angularFrictionTimescale      // body angular velocity  decay rate
             // m_lastAngularVelocity           // what was last applied to body
@@ -836,18 +824,16 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 m_angularMotorVelocity = Vector3.Zero;
             }
 
-            #region Vertical attactor
+            Vector3 angularMotorContribution = m_angularMotor.Step(pTimestep);
 
-            Vector3 vertattr = Vector3.Zero;
-            Vector3 deflection = Vector3.Zero;
-            Vector3 banking = Vector3.Zero;
-
+            // ==================================================================
+            Vector3 verticalAttractionContribution = Vector3.Zero;
             // If vertical attaction timescale is reasonable and we applied an angular force last time...
             if (m_verticalAttractionTimescale < 300 && m_lastAngularVelocity != Vector3.Zero)
             {
                 float VAservo = pTimestep * 0.2f / m_verticalAttractionTimescale;
                 if (Prim.IsColliding)
-                    VAservo = pTimestep * 0.05f / (m_verticalAttractionTimescale);
+                    VAservo = pTimestep * 0.05f / m_verticalAttractionTimescale;
 
                 VAservo *= (m_verticalAttractionEfficiency * m_verticalAttractionEfficiency);
 
@@ -871,24 +857,23 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 // As the body rotates around the X axis, then verticalError.Y increases; Rotated around Y
                 //     then .X increases, so change  Body angular velocity  X based on Y, and Y based on X.
                 //     Z is not changed.
-                vertattr.X =    verticalError.Y;
-                vertattr.Y =  - verticalError.X;
-                vertattr.Z = 0f;
+                verticalAttractionContribution.X =    verticalError.Y;
+                verticalAttractionContribution.Y =  - verticalError.X;
+                verticalAttractionContribution.Z = 0f;
 
                 // scaling appears better usingsquare-law
                 Vector3 angularVelocity = Prim.ForceRotationalVelocity;
                 float bounce = 1.0f - (m_verticalAttractionEfficiency * m_verticalAttractionEfficiency);
-                vertattr.X += bounce * angularVelocity.X;
-                vertattr.Y += bounce * angularVelocity.Y;
+                verticalAttractionContribution.X += bounce * angularVelocity.X;
+                verticalAttractionContribution.Y += bounce * angularVelocity.Y;
 
                 VDetailLog("{0},MoveAngular,verticalAttraction,VAservo={1},effic={2},verticalError={3},bounce={4},vertattr={5}",
-                            Prim.LocalID, VAservo, m_verticalAttractionEfficiency, verticalError, bounce, vertattr);
+                            Prim.LocalID, VAservo, m_verticalAttractionEfficiency, verticalError, bounce, verticalAttractionContribution);
 
             }
-            #endregion // Vertical attactor
 
-            #region Deflection
-
+            // ==================================================================
+            Vector3 deflectionContribution = Vector3.Zero;
             if (m_angularDeflectionEfficiency != 0)
             {
                 // Compute a scaled vector that points in the preferred axis (X direction)
@@ -899,18 +884,16 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 Vector3 preferredAxisOfMotion = scaledDefaultDirection * Quaternion.Add(Prim.ForceOrientation, m_referenceFrame);
 
                 // Scale by efficiency and timescale
-                deflection = (preferredAxisOfMotion * (m_angularDeflectionEfficiency) / m_angularDeflectionTimescale) * pTimestep;
+                deflectionContribution = (preferredAxisOfMotion * (m_angularDeflectionEfficiency) / m_angularDeflectionTimescale) * pTimestep;
 
                 VDetailLog("{0},MoveAngular,Deflection,perfAxis={1},deflection={2}", 
-                                        Prim.LocalID, preferredAxisOfMotion, deflection);
+                                        Prim.LocalID, preferredAxisOfMotion, deflectionContribution);
                 // This deflection computation is not correct.
-                deflection = Vector3.Zero;
+                deflectionContribution = Vector3.Zero;
             }
 
-            #endregion
-
-            #region Banking
-
+            // ==================================================================
+            Vector3 bankingContribution = Vector3.Zero;
             if (m_bankingEfficiency != 0)
             {
                 Vector3 dir = Vector3.One * Prim.ForceOrientation;
@@ -925,6 +908,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 float mix = Math.Abs(m_bankingMix);
                 if (m_angularMotorVelocity.X == 0)
                 {
+                    // The vehicle is stopped
                     /*if (!parent.Orientation.ApproxEquals(this.m_referenceFrame, 0.25f))
                     {
                         Vector3 axisAngle;
@@ -938,9 +922,12 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     }*/
                 }
                 else
-                    banking.Z += (effSquared*(mult*mix))*(m_angularMotorVelocity.X) * 4;
+                {
+                    bankingContribution.Z += (effSquared * (mult * mix)) * (m_angularMotorVelocity.X) * 4;
+                }
+
+                //If they are colliding, we probably shouldn't shove the prim around... probably
                 if (!Prim.IsColliding && Math.Abs(m_angularMotorVelocity.X) > mix)
-                    //If they are colliding, we probably shouldn't shove the prim around... probably
                 {
                     float angVelZ = m_angularMotorVelocity.X*-1;
                     /*if(angVelZ > mix)
@@ -954,22 +941,23 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     else if (bankingRot.X < -3)
                         bankingRot.X = -3;
                     bankingRot *= Prim.ForceOrientation;
-                    banking += bankingRot;
+                    bankingContribution += bankingRot;
                 }
                 m_angularMotorVelocity.X *= m_bankingEfficiency == 1 ? 0.0f : 1 - m_bankingEfficiency;
-                VDetailLog("{0},MoveAngular,Banking,bEff={1},angMotVel={2},banking={3}", 
-                                Prim.LocalID, m_bankingEfficiency, m_angularMotorVelocity, banking);
+                VDetailLog("{0},MoveAngular,Banking,bEff={1},angMotVel={2},effSq={3},mult={4},mix={5},banking={6}", 
+                                Prim.LocalID, m_bankingEfficiency, m_angularMotorVelocity, effSquared, mult, mix, bankingContribution);
             }
 
-            #endregion
-
-            m_lastVertAttractor = vertattr;
+            // ==================================================================
+            m_lastVertAttractor = verticalAttractionContribution;
 
             // Sum velocities
-            m_lastAngularVelocity = m_angularMotorVelocity + vertattr + banking + deflection;
+            m_lastAngularVelocity = angularMotorContribution 
+                                    + verticalAttractionContribution
+                                    + bankingContribution
+                                    + deflectionContribution;
 
-            #region Linear Motor Offset
-
+            // ==================================================================
             //Offset section
             if (m_linearMotorOffset != Vector3.Zero)
             {
@@ -985,8 +973,8 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 //
                 // The torque created is the linear velocity crossed with the offset
 
-                // NOTE: this computation does should be in the linear section
-                //    because there we know the impulse being applied.
+                // TODO: this computation should be in the linear section
+                //    because that is where we know the impulse being applied.
                 Vector3 torqueFromOffset = Vector3.Zero;
                 // torqueFromOffset = Vector3.Cross(m_linearMotorOffset, appliedImpulse);
                 if (float.IsNaN(torqueFromOffset.X))
@@ -1000,8 +988,8 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 VDetailLog("{0},BSDynamic.MoveAngular,motorOffset,applyTorqueImpulse={1}", Prim.LocalID, torqueFromOffset);
             }
 
-            #endregion
-
+            // ==================================================================
+            // NO_DEFLECTION_UP says angular motion should not add any pitch or roll movement
             if ((m_flags & (VehicleFlag.NO_DEFLECTION_UP)) != 0)
             {
                 m_lastAngularVelocity.X = 0;
@@ -1009,6 +997,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 VDetailLog("{0},MoveAngular,noDeflectionUp,lastAngular={1}", Prim.LocalID, m_lastAngularVelocity);
             }
 
+            // ==================================================================
             if (m_lastAngularVelocity.ApproxEquals(Vector3.Zero, 0.01f))
             {
                 m_lastAngularVelocity = Vector3.Zero; // Reduce small value to zero.
@@ -1021,18 +1010,20 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 // The above calculates the absolute angular velocity needed. Angular velocity is massless.
                 // Since we are stuffing the angular velocity directly into the object, the computed
                 //     velocity needs to be scaled by the timestep.
-                Vector3 applyAngularForce = ((m_lastAngularVelocity * pTimestep) - Prim.ForceRotationalVelocity);
+                // Also remove any motion that is on the object so added motion is only from vehicle.
+                Vector3 applyAngularForce = ((m_lastAngularVelocity * pTimestep) 
+                                                - Prim.ForceRotationalVelocity);
                 Prim.ForceRotationalVelocity = applyAngularForce;
 
-                // Decay the angular movement for next time
-                Vector3 decayamount = (Vector3.One / m_angularFrictionTimescale) * pTimestep;
-                m_lastAngularVelocity *= Vector3.One - decayamount;
-
-                VDetailLog("{0},MoveAngular,done,newRotVel={1},decay={2},lastAngular={3}", 
-                                    Prim.LocalID, applyAngularForce, decayamount, m_lastAngularVelocity);
+                VDetailLog("{0},MoveAngular,done,newRotVel={1},lastAngular={2}", 
+                                    Prim.LocalID, applyAngularForce, m_lastAngularVelocity);
             }
-        } //end MoveAngular
+        }
 
+        // This is from previous instantiations of XXXDynamics.cs.
+        // Applies roll reference frame.
+        // TODO: is this the right way to separate the code to do this operation?
+        //    Should this be in MoveAngular()?
         internal void LimitRotation(float timestep)
         {
             Quaternion rotq = Prim.ForceOrientation;

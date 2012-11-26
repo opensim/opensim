@@ -342,13 +342,12 @@ public sealed class BSPrim : BSPhysObject
         // TODO: check for out of bounds
 
         // The above code computes a force to apply to correct any out-of-bounds problems. Apply same.
+        // TODO: This should be intergrated with a geneal physics action mechanism.
+        // TODO: This should be moderated with PID'ness.
         if (ret)
         {
-            PhysicsScene.TaintedObject(inTaintTime, "BSPrim.PositionSanityCheck:belowTerrain", delegate()
-            {
-                // Apply upforce and overcome gravity.
-                ForceVelocity = ForceVelocity + upForce - PhysicsScene.DefaultGravity;
-            });
+            // Apply upforce and overcome gravity.
+            AddForce(upForce - PhysicsScene.DefaultGravity, false, inTaintTime);
         }
         return ret;
     }
