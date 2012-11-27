@@ -125,6 +125,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     // Therefore only m_VehicleBuoyancy=1 (0g) will use the script-requested .Z velocity.
 
         //Attractor properties
+        private BSVMotor m_verticalAttractionMotor = new BSVMotor("VerticalAttraction");
         private float m_verticalAttractionEfficiency = 1.0f;        // damped
         private float m_verticalAttractionTimescale = 500f;         // Timescale > 300  means no vert attractor.
 
@@ -197,9 +198,11 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     break;
                 case Vehicle.VERTICAL_ATTRACTION_EFFICIENCY:
                     m_verticalAttractionEfficiency = Math.Max(0.1f, Math.Min(pValue, 1f));
+                    m_verticalAttractionMotor.Efficiency = m_verticalAttractionEfficiency;
                     break;
                 case Vehicle.VERTICAL_ATTRACTION_TIMESCALE:
                     m_verticalAttractionTimescale = Math.Max(pValue, 0.01f);
+                    m_verticalAttractionMotor.TimeScale = m_verticalAttractionTimescale;
                     break;
 
                 // These are vector properties but the engine lets you use a single float value to
@@ -530,11 +533,21 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             Refresh();
 
             m_linearMotor = new BSVMotor("LinearMotor", m_linearMotorTimescale,
-                                m_linearMotorDecayTimescale, m_linearFrictionTimescale, 1f);
+                                m_linearMotorDecayTimescale, m_linearFrictionTimescale,
+                                1f);
             m_linearMotor.PhysicsScene = PhysicsScene;  // DEBUG DEBUG DEBUG (enables detail logging)
+
             m_angularMotor = new BSVMotor("AngularMotor", m_angularMotorTimescale,
-                                m_angularMotorDecayTimescale, m_angularFrictionTimescale, 1f);
+                                m_angularMotorDecayTimescale, m_angularFrictionTimescale,
+                                1f);
             m_angularMotor.PhysicsScene = PhysicsScene;  // DEBUG DEBUG DEBUG (enables detail logging)
+
+            m_verticalAttractionMotor = new BSVMotor("VerticalAttraction", m_verticalAttractionTimescale,
+                                BSMotor.Infinite, BSMotor.InfiniteVector,
+                                m_verticalAttractionEfficiency);
+            // Z goes away and we keep X and Y
+            m_verticalAttractionMotor.FrictionTimescale = new Vector3(BSMotor.Infinite, BSMotor.Infinite, 0.1f);
+            m_verticalAttractionMotor.PhysicsScene = PhysicsScene;  // DEBUG DEBUG DEBUG (enables detail logging)
 
             // m_bankingMotor = new BSVMotor("BankingMotor", ...);
         }
@@ -829,46 +842,63 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             Vector3 angularMotorContribution = m_angularMotor.Step(pTimestep);
 
             // ==================================================================
+            // NO_DEFLECTION_UP says angular motion should not add any pitch or roll movement
+            if ((m_flags & (VehicleFlag.NO_DEFLECTION_UP)) != 0)
+            {
+                angularMotorContribution.X = 0f;
+                angularMotorContribution.Y = 0f;
+                VDetailLog("{0},MoveAngular,noDeflectionUp,angularMotorContrib={1}", Prim.LocalID, angularMotorContribution);
+            }
+
+            // ==================================================================
             Vector3 verticalAttractionContribution = Vector3.Zero;
             // If vertical attaction timescale is reasonable and we applied an angular force last time...
-            if (m_verticalAttractionTimescale < 300 && m_lastAngularVelocity != Vector3.Zero)
+            if (m_verticalAttractionTimescale < 500)
             {
-                float VAservo = pTimestep * 0.2f / m_verticalAttractionTimescale;
-                if (Prim.IsColliding)
-                    VAservo = pTimestep * 0.05f / m_verticalAttractionTimescale;
-
-                VAservo *= (m_verticalAttractionEfficiency * m_verticalAttractionEfficiency);
-
-                // Create a vector of the vehicle "up" in world coordinates
                 Vector3 verticalError = Vector3.UnitZ * Prim.ForceOrientation;
-                // verticalError.X and .Y are the World error amounts. They are 0 when there is no
-                //      error (Vehicle Body is 'vertical'), and .Z will be 1. As the body leans to its
-                //      side |.X| will increase to 1 and .Z fall to 0. As body inverts |.X| will fall
-                //      and .Z will go negative. Similar for tilt and |.Y|. .X and .Y must be
-                //      modulated to prevent a stable inverted body.
+                verticalError.Normalize();
+                m_verticalAttractionMotor.SetCurrent(verticalError);
+                m_verticalAttractionMotor.SetTarget(Vector3.UnitZ);
+                verticalAttractionContribution = m_verticalAttractionMotor.Step(pTimestep);
+                /*
+                // Take a vector pointing up and convert it from world to vehicle relative coords.
+                Vector3 verticalError = Vector3.UnitZ * Prim.ForceOrientation;
+                verticalError.Normalize();
 
-                // Error is 0 (no error) to +/- 2 (max error)
-                verticalError.X = Math.Max(-2f, Math.Min(verticalError.X, 2f));
-                verticalError.Y = Math.Max(-2f, Math.Min(verticalError.Y, 2f));
+                // If vertical attraction correction is needed, the vector that was pointing up (UnitZ)
+                //    is now leaning to one side (rotated around the X axis) and the Y value will
+                //    go from zero (nearly straight up) to one (completely to the side) or leaning
+                //    front-to-back (rotated around the Y axis) and the value of X will be between
+                //    zero and one.
+                // The value of Z is how far the rotation is off with 1 meaning none and 0 being 90 degrees.
 
-                // scale it by VAservo (timestep and timescale)
-                verticalError = verticalError * VAservo;
+                // If verticalError.Z is negative, the vehicle is upside down. Add additional push.
+                if (verticalError.Z < 0f)
+                {
+                    verticalError.X = 2f - verticalError.X;
+                    verticalError.Y = 2f - verticalError.Y;
+                }
 
-                // As the body rotates around the X axis, then verticalError.Y increases; Rotated around Y
-                //     then .X increases, so change  Body angular velocity  X based on Y, and Y based on X.
-                //     Z is not changed.
+                // Y error means needed rotation around X axis and visa versa.
                 verticalAttractionContribution.X =    verticalError.Y;
                 verticalAttractionContribution.Y =  - verticalError.X;
                 verticalAttractionContribution.Z = 0f;
 
-                // scaling appears better usingsquare-law
-                Vector3 angularVelocity = Prim.ForceRotationalVelocity;
-                float bounce = 1.0f - (m_verticalAttractionEfficiency * m_verticalAttractionEfficiency);
-                verticalAttractionContribution.X += bounce * angularVelocity.X;
-                verticalAttractionContribution.Y += bounce * angularVelocity.Y;
+                // scale by the time scale and timestep
+                Vector3 unscaledContrib = verticalAttractionContribution;
+                verticalAttractionContribution /= m_verticalAttractionTimescale;
+                verticalAttractionContribution *= pTimestep;
 
-                VDetailLog("{0},MoveAngular,verticalAttraction,VAservo={1},effic={2},verticalError={3},bounce={4},vertattr={5}",
-                            Prim.LocalID, VAservo, m_verticalAttractionEfficiency, verticalError, bounce, verticalAttractionContribution);
+                // apply efficiency
+                Vector3 preEfficiencyContrib = verticalAttractionContribution;
+                float efficencySquared = m_verticalAttractionEfficiency * m_verticalAttractionEfficiency;
+                verticalAttractionContribution *= (m_verticalAttractionEfficiency * m_verticalAttractionEfficiency);
+
+                VDetailLog("{0},MoveAngular,verticalAttraction,,verticalError={1},unscaled={2},preEff={3},eff={4},effSq={5},vertAttr={6}",
+                                            Prim.LocalID, verticalError, unscaledContrib, preEfficiencyContrib, 
+                                            m_verticalAttractionEfficiency, efficencySquared,
+                                            verticalAttractionContribution);
+                 */
 
             }
 
@@ -986,15 +1016,6 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 torqueFromOffset *= m_vehicleMass;
                 Prim.ApplyTorqueImpulse(torqueFromOffset, true);
                 VDetailLog("{0},BSDynamic.MoveAngular,motorOffset,applyTorqueImpulse={1}", Prim.LocalID, torqueFromOffset);
-            }
-
-            // ==================================================================
-            // NO_DEFLECTION_UP says angular motion should not add any pitch or roll movement
-            if ((m_flags & (VehicleFlag.NO_DEFLECTION_UP)) != 0)
-            {
-                m_lastAngularVelocity.X = 0;
-                m_lastAngularVelocity.Y = 0;
-                VDetailLog("{0},MoveAngular,noDeflectionUp,lastAngular={1}", Prim.LocalID, m_lastAngularVelocity);
             }
 
             // ==================================================================
