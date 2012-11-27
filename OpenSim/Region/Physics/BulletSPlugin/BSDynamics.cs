@@ -630,138 +630,16 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             // m_VehicleBuoyancy: -1=2g; 0=1g; 1=0g;
             Vector3 grav = Prim.PhysicsScene.DefaultGravity * (1f - m_VehicleBuoyancy);
 
-            // Current vehicle position
             Vector3 pos = Prim.ForcePosition;
-
-            // ==================================================================
-            Vector3 terrainHeightContribution = Vector3.Zero;
-            // If below the terrain, move us above the ground a little.
             float terrainHeight = Prim.PhysicsScene.TerrainManager.GetTerrainHeightAtXYZ(pos);
-            // Taking the rotated size doesn't work here because m_prim.Size is the size of the root prim and not the linkset.
-            //     TODO: Add a m_prim.LinkSet.Size similar to m_prim.LinkSet.Mass.
-            // Vector3 rotatedSize = m_prim.Size * m_prim.ForceOrientation;
-            // if (rotatedSize.Z < terrainHeight)
-            if (pos.Z < terrainHeight)
-            {
-                // TODO: correct position by applying force rather than forcing position.
-                pos.Z = terrainHeight + 2;
-                Prim.ForcePosition = pos;
-                VDetailLog("{0},MoveLinear,terrainHeight,terrainHeight={1},pos={2}", Prim.LocalID, terrainHeight, pos);
-            }
 
-            // ==================================================================
-            Vector3 hoverContribution = Vector3.Zero;
-            // Check if hovering
-            // m_VhoverEfficiency: 0=bouncy, 1=totally damped
-            // m_VhoverTimescale: time to achieve height
-            if ((m_flags & (VehicleFlag.HOVER_WATER_ONLY | VehicleFlag.HOVER_TERRAIN_ONLY | VehicleFlag.HOVER_GLOBAL_HEIGHT)) != 0)
-            {
-                // We should hover, get the target height
-                if ((m_flags & VehicleFlag.HOVER_WATER_ONLY) != 0)
-                {
-                    m_VhoverTargetHeight = Prim.PhysicsScene.GetWaterLevelAtXYZ(pos) + m_VhoverHeight;
-                }
-                if ((m_flags & VehicleFlag.HOVER_TERRAIN_ONLY) != 0)
-                {
-                    m_VhoverTargetHeight = terrainHeight + m_VhoverHeight;
-                }
-                if ((m_flags & VehicleFlag.HOVER_GLOBAL_HEIGHT) != 0)
-                {
-                    m_VhoverTargetHeight = m_VhoverHeight;
-                }
+            Vector3 terrainHeightContribution = ComputeLinearTerrainHeightCorrection(pTimestep, ref pos, terrainHeight);
 
-                if ((m_flags & VehicleFlag.HOVER_UP_ONLY) != 0)
-                {
-                    // If body is already heigher, use its height as target height
-                    if (pos.Z > m_VhoverTargetHeight)
-                        m_VhoverTargetHeight = pos.Z;
-                }
-                if ((m_flags & VehicleFlag.LOCK_HOVER_HEIGHT) != 0)
-                {
-                    if (Math.Abs(pos.Z - m_VhoverTargetHeight) > 0.2f)
-                    {
-                        pos.Z = m_VhoverTargetHeight;
-                        Prim.ForcePosition = pos;
-                    }
-                }
-                else
-                {
-                    float verticalError = pos.Z - m_VhoverTargetHeight;
-                    // RA: where does the 50 come from?
-                    float verticalCorrectionVelocity = pTimestep * ((verticalError * 50.0f) / m_VhoverTimescale);
-                    // Replace Vertical speed with correction figure if significant
-                    if (verticalError > 0.01f)
-                    {
-                        hoverContribution = new Vector3(0f, 0f, verticalCorrectionVelocity);
-                        //KF: m_VhoverEfficiency is not yet implemented
-                    }
-                    else if (verticalError < -0.01)
-                    {
-                        hoverContribution = new Vector3(0f, 0f, -verticalCorrectionVelocity);
-                    }
-                }
+            Vector3 hoverContribution = ComputeLinearHover(pTimestep, ref pos, terrainHeight);
 
-                VDetailLog("{0},MoveLinear,hover,pos={1},dir={2},height={3},target={4}",
-                                Prim.LocalID, pos, hoverContribution, m_VhoverHeight, m_VhoverTargetHeight);
-            }
+            ComputeLinearBlockingEndPoint(pTimestep, ref pos);
 
-            // ==================================================================
-            Vector3 posChange = pos - m_lastPositionVector;
-            if (m_BlockingEndPoint != Vector3.Zero)
-            {
-                bool changed = false;
-                if (pos.X >= (m_BlockingEndPoint.X - (float)1))
-                {
-                    pos.X -= posChange.X + 1;
-                    changed = true;
-                }
-                if (pos.Y >= (m_BlockingEndPoint.Y - (float)1))
-                {
-                    pos.Y -= posChange.Y + 1;
-                    changed = true;
-                }
-                if (pos.Z >= (m_BlockingEndPoint.Z - (float)1))
-                {
-                    pos.Z -= posChange.Z + 1;
-                    changed = true;
-                }
-                if (pos.X <= 0)
-                {
-                    pos.X += posChange.X + 1;
-                    changed = true;
-                }
-                if (pos.Y <= 0)
-                {
-                    pos.Y += posChange.Y + 1;
-                    changed = true;
-                }
-                if (changed)
-                {
-                    Prim.ForcePosition = pos;
-                    VDetailLog("{0},MoveLinear,blockingEndPoint,block={1},origPos={2},pos={3}",
-                                Prim.LocalID, m_BlockingEndPoint, posChange, pos);
-                }
-            }
-
-            // ==================================================================
-            Vector3 limitMotorUpContribution = Vector3.Zero;
-            if ((m_flags & (VehicleFlag.LIMIT_MOTOR_UP)) != 0)
-            {
-                // If the vehicle is motoring into the sky, get it going back down.
-                float distanceAboveGround = pos.Z - terrainHeight;
-                if (distanceAboveGround > 1f)
-                {
-                    // downForce = new Vector3(0, 0, (-distanceAboveGround / m_bankingTimescale) * pTimestep);
-                    // downForce = new Vector3(0, 0, -distanceAboveGround / m_bankingTimescale);
-                    limitMotorUpContribution = new Vector3(0, 0, -distanceAboveGround);
-                }
-                // TODO: this calculation is all wrong. From the description at
-                //     (http://wiki.secondlife.com/wiki/Category:LSL_Vehicle), the downForce
-                //     has a decay factor. This says this force should
-                //     be computed with a motor.
-                VDetailLog("{0},MoveLinear,limitMotorUp,distAbove={1},downForce={2}",
-                                    Prim.LocalID, distanceAboveGround, limitMotorUpContribution);
-            }
+            Vector3 limitMotorUpContribution = ComputeLinearMotorUp(pTimestep, pos, terrainHeight);
 
             // ==================================================================
             Vector3 newVelocity = linearMotorContribution
@@ -805,6 +683,149 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                                 newVelocity, Prim.Velocity, totalDownForce);
 
         } // end MoveLinear()
+
+        public Vector3 ComputeLinearTerrainHeightCorrection(float pTimestep, ref Vector3 pos, float terrainHeight)
+        {
+            Vector3 ret = Vector3.Zero;
+            // If below the terrain, move us above the ground a little.
+            // Taking the rotated size doesn't work here because m_prim.Size is the size of the root prim and not the linkset.
+            //     TODO: Add a m_prim.LinkSet.Size similar to m_prim.LinkSet.Mass.
+            // Vector3 rotatedSize = m_prim.Size * m_prim.ForceOrientation;
+            // if (rotatedSize.Z < terrainHeight)
+            if (pos.Z < terrainHeight)
+            {
+                // TODO: correct position by applying force rather than forcing position.
+                pos.Z = terrainHeight + 2;
+                Prim.ForcePosition = pos;
+                VDetailLog("{0},MoveLinear,terrainHeight,terrainHeight={1},pos={2}", Prim.LocalID, terrainHeight, pos);
+            }
+            return ret;
+        }
+
+        public Vector3 ComputeLinearHover(float pTimestep, ref Vector3 pos, float terrainHeight)
+        {
+            Vector3 ret = Vector3.Zero;
+
+            // m_VhoverEfficiency: 0=bouncy, 1=totally damped
+            // m_VhoverTimescale: time to achieve height
+            if ((m_flags & (VehicleFlag.HOVER_WATER_ONLY | VehicleFlag.HOVER_TERRAIN_ONLY | VehicleFlag.HOVER_GLOBAL_HEIGHT)) != 0)
+            {
+                // We should hover, get the target height
+                if ((m_flags & VehicleFlag.HOVER_WATER_ONLY) != 0)
+                {
+                    m_VhoverTargetHeight = Prim.PhysicsScene.GetWaterLevelAtXYZ(pos) + m_VhoverHeight;
+                }
+                if ((m_flags & VehicleFlag.HOVER_TERRAIN_ONLY) != 0)
+                {
+                    m_VhoverTargetHeight = terrainHeight + m_VhoverHeight;
+                }
+                if ((m_flags & VehicleFlag.HOVER_GLOBAL_HEIGHT) != 0)
+                {
+                    m_VhoverTargetHeight = m_VhoverHeight;
+                }
+
+                if ((m_flags & VehicleFlag.HOVER_UP_ONLY) != 0)
+                {
+                    // If body is already heigher, use its height as target height
+                    if (pos.Z > m_VhoverTargetHeight)
+                        m_VhoverTargetHeight = pos.Z;
+                }
+                if ((m_flags & VehicleFlag.LOCK_HOVER_HEIGHT) != 0)
+                {
+                    if (Math.Abs(pos.Z - m_VhoverTargetHeight) > 0.2f)
+                    {
+                        pos.Z = m_VhoverTargetHeight;
+                        Prim.ForcePosition = pos;
+                    }
+                }
+                else
+                {
+                    float verticalError = pos.Z - m_VhoverTargetHeight;
+                    // RA: where does the 50 come from?
+                    float verticalCorrectionVelocity = pTimestep * ((verticalError * 50.0f) / m_VhoverTimescale);
+                    // Replace Vertical speed with correction figure if significant
+                    if (verticalError > 0.01f)
+                    {
+                        ret = new Vector3(0f, 0f, verticalCorrectionVelocity);
+                        //KF: m_VhoverEfficiency is not yet implemented
+                    }
+                    else if (verticalError < -0.01)
+                    {
+                        ret = new Vector3(0f, 0f, -verticalCorrectionVelocity);
+                    }
+                }
+
+                VDetailLog("{0},MoveLinear,hover,pos={1},dir={2},height={3},target={4}",
+                                Prim.LocalID, pos, ret, m_VhoverHeight, m_VhoverTargetHeight);
+            }
+
+            return ret;
+        }
+
+        public bool ComputeLinearBlockingEndPoint(float pTimestep, ref Vector3 pos)
+        {
+            bool changed = false;
+
+            Vector3 posChange = pos - m_lastPositionVector;
+            if (m_BlockingEndPoint != Vector3.Zero)
+            {
+                if (pos.X >= (m_BlockingEndPoint.X - (float)1))
+                {
+                    pos.X -= posChange.X + 1;
+                    changed = true;
+                }
+                if (pos.Y >= (m_BlockingEndPoint.Y - (float)1))
+                {
+                    pos.Y -= posChange.Y + 1;
+                    changed = true;
+                }
+                if (pos.Z >= (m_BlockingEndPoint.Z - (float)1))
+                {
+                    pos.Z -= posChange.Z + 1;
+                    changed = true;
+                }
+                if (pos.X <= 0)
+                {
+                    pos.X += posChange.X + 1;
+                    changed = true;
+                }
+                if (pos.Y <= 0)
+                {
+                    pos.Y += posChange.Y + 1;
+                    changed = true;
+                }
+                if (changed)
+                {
+                    Prim.ForcePosition = pos;
+                    VDetailLog("{0},MoveLinear,blockingEndPoint,block={1},origPos={2},pos={3}",
+                                Prim.LocalID, m_BlockingEndPoint, posChange, pos);
+                }
+            }
+            return changed;
+        }
+
+        public Vector3 ComputeLinearMotorUp(float pTimestep, Vector3 pos, float terrainHeight)
+        {
+            Vector3 ret = Vector3.Zero;
+            if ((m_flags & (VehicleFlag.LIMIT_MOTOR_UP)) != 0)
+            {
+                // If the vehicle is motoring into the sky, get it going back down.
+                float distanceAboveGround = pos.Z - terrainHeight;
+                if (distanceAboveGround > 1f)
+                {
+                    // downForce = new Vector3(0, 0, (-distanceAboveGround / m_bankingTimescale) * pTimestep);
+                    // downForce = new Vector3(0, 0, -distanceAboveGround / m_bankingTimescale);
+                    ret = new Vector3(0, 0, -distanceAboveGround);
+                }
+                // TODO: this calculation is all wrong. From the description at
+                //     (http://wiki.secondlife.com/wiki/Category:LSL_Vehicle), the downForce
+                //     has a decay factor. This says this force should
+                //     be computed with a motor.
+                VDetailLog("{0},MoveLinear,limitMotorUp,distAbove={1},downForce={2}",
+                                    Prim.LocalID, distanceAboveGround, ret);
+            }
+            return ret;
+        }
 
         // =======================================================================
         // =======================================================================
