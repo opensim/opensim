@@ -81,7 +81,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Groups
                 }
 
                 if (groupsConfig.GetString("Module", "Default") != "Default")
+                {
+                    m_Enabled = false;
                     return;
+                }
             }
 
         }
