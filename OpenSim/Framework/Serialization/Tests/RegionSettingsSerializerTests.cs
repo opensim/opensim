@@ -37,7 +37,7 @@ using OpenSim.Tests.Common;
 namespace OpenSim.Framework.Serialization.Tests
 {
     [TestFixture]
-    public class RegionSettingsSerializerTests
+    public class RegionSettingsSerializerTests : OpenSimTestCase
     {
         private string m_serializedRs = @"<?xml version=""1.0"" encoding=""utf-16""?>
 <RegionSettings>

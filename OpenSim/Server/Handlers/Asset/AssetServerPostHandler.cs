@@ -57,14 +57,23 @@ namespace OpenSim.Server.Handlers.Asset
         public override byte[] Handle(string path, Stream request,
                 IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
+            AssetBase asset;
             XmlSerializer xs = new XmlSerializer(typeof (AssetBase));
-            AssetBase asset = (AssetBase) xs.Deserialize(request);
+
+            try
+            {
+                asset = (AssetBase)xs.Deserialize(request);
+            }
+            catch (XmlException)
+            {
+                httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
+                return null;
+            }
 
             string[] p = SplitParams(path);
             if (p.Length > 1)
             {
-                bool result =
-                        m_AssetService.UpdateContent(p[1], asset.Data);
+                bool result = m_AssetService.UpdateContent(p[1], asset.Data);
 
                 xs = new XmlSerializer(typeof(bool));
                 return ServerUtils.SerializeResult(xs, result);

@@ -49,7 +49,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
     /// Teleport tests in a standalone OpenSim
     /// </summary>
     [TestFixture]
-    public class ScenePresenceTeleportTests
+    public class ScenePresenceTeleportTests : OpenSimTestCase
     {
         [TestFixtureSetUp]
         public void FixtureInit()

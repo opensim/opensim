@@ -24,52 +24,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-
+using log4net;
+using Mono.Addins;
+using Nini.Config;
+using OpenMetaverse;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
 using PresenceInfo = OpenSim.Services.Interfaces.PresenceInfo;
 
-using OpenMetaverse;
-using log4net;
-using Mono.Addins;
-using Nini.Config;
-
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "LocalPresenceServicesConnector")]
-    public class LocalPresenceServicesConnector : ISharedRegionModule, IPresenceService
+    public class LocalPresenceServicesConnector : BasePresenceServiceConnector, ISharedRegionModule, IPresenceService
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private bool m_Enabled = false;
-
-        private PresenceDetector m_PresenceDetector;
-
-        /// <summary>
-        /// Underlying presence service.  Do not use directly.
-        /// </summary>
-        public IPresenceService m_PresenceService;
-
-        public LocalPresenceServicesConnector()
-        {
-        }
-
-        public LocalPresenceServicesConnector(IConfigSource source)
-        {
-            Initialise(source);
-        }
-
         #region ISharedRegionModule
-
-        public Type ReplaceableInterface
-        {
-            get { return null; }
-        }
 
         public string Name
         {
@@ -121,81 +97,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
             }
         }
 
-        public void PostInitialise()
-        {
-        }
-
-        public void Close()
-        {
-        }
-
-        public void AddRegion(Scene scene)
-        {
-            if (!m_Enabled)
-                return;
-
-            //            m_log.DebugFormat(
-            //                "[LOCAL PRESENCE CONNECTOR]: Registering IPresenceService to scene {0}", scene.RegionInfo.RegionName);
-
-            scene.RegisterModuleInterface<IPresenceService>(this);
-            m_PresenceDetector.AddRegion(scene);
-
-            m_log.InfoFormat("[LOCAL PRESENCE CONNECTOR]: Enabled local presence for region {0}", scene.RegionInfo.RegionName);
-
-        }
-
-        public void RemoveRegion(Scene scene)
-        {
-            if (!m_Enabled)
-                return;
-
-            m_PresenceDetector.RemoveRegion(scene);
-        }
-
-        public void RegionLoaded(Scene scene)
-        {
-            if (!m_Enabled)
-                return;
-
-        }
-
         #endregion
-
-        #region IPresenceService
-
-        public bool LoginAgent(string userID, UUID sessionID, UUID secureSessionID)
-        {
-            m_log.Warn("[LOCAL PRESENCE CONNECTOR]: LoginAgent connector not implemented at the simulators");
-            return false;
-        }
-
-        public bool LogoutAgent(UUID sessionID)
-        {
-            return m_PresenceService.LogoutAgent(sessionID);
-        }
-
-
-        public bool LogoutRegionAgents(UUID regionID)
-        {
-            return m_PresenceService.LogoutRegionAgents(regionID);
-        }
-
-        public bool ReportAgent(UUID sessionID, UUID regionID)
-        {
-            return m_PresenceService.ReportAgent(sessionID, regionID);
-        }
-
-        public PresenceInfo GetAgent(UUID sessionID)
-        {
-            return m_PresenceService.GetAgent(sessionID);
-        }
-
-        public PresenceInfo[] GetAgents(string[] userIDs)
-        {
-            return m_PresenceService.GetAgents(userIDs);
-        }
-
-        #endregion
-
     }
 }

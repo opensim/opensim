@@ -82,9 +82,9 @@ public abstract class BSLinkset
 
     // Some linksets have a preferred physical shape.
     // Returns SHAPE_UNKNOWN if there is no preference. Causes the correct shape to be selected.
-    public virtual ShapeData.PhysicsShapeType PreferredPhysicalShape(BSPhysObject requestor)
+    public virtual BSPhysicsShapeType PreferredPhysicalShape(BSPhysObject requestor)
     {
-        return ShapeData.PhysicsShapeType.SHAPE_UNKNOWN;
+        return BSPhysicsShapeType.SHAPE_UNKNOWN;
     }
 
     // Linksets move around the children so the linkset might need to compute the child position

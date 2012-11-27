@@ -47,7 +47,10 @@ namespace OpenSim.Region.Physics.BulletSPlugin
  */
 public abstract class BSPhysObject : PhysicsActor
 {
-    protected void BaseInitialize(BSScene parentScene, uint localID, string name, string typeName)
+    protected BSPhysObject()
+    {
+    }
+    protected BSPhysObject(BSScene parentScene, uint localID, string name, string typeName)
     {
         PhysicsScene = parentScene;
         LocalID = localID;
@@ -91,9 +94,9 @@ public abstract class BSPhysObject : PhysicsActor
     public PrimitiveBaseShape BaseShape { get; protected set; }
     // Some types of objects have preferred physical representations.
     // Returns SHAPE_UNKNOWN if there is no preference.
-    public virtual ShapeData.PhysicsShapeType PreferredPhysicalShape
+    public virtual BSPhysicsShapeType PreferredPhysicalShape
     {
-        get { return ShapeData.PhysicsShapeType.SHAPE_UNKNOWN; }
+        get { return BSPhysicsShapeType.SHAPE_UNKNOWN; }
     }
 
     // When the physical properties are updated, an EntityProperty holds the update values.

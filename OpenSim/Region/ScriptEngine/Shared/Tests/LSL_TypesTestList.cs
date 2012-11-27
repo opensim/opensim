@@ -36,7 +36,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
     /// Tests the LSL_Types.list class.
     /// </summary>
     [TestFixture]
-    public class LSL_TypesTestList
+    public class LSL_TypesTestList : OpenSimTestCase
     {
         /// <summary>
         /// Tests concatenating a string to a list.

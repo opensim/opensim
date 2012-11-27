@@ -58,7 +58,7 @@ namespace OpenSim.Tests.Performance
     /// earlier tests.
     /// </remarks>
     [TestFixture]
-    public class NPCPerformanceTests
+    public class NPCPerformanceTests : OpenSimTestCase
     {
         private TestScene scene;
         private AvatarFactoryModule afm;

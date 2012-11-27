@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
+using Nini.Config;
 using NUnit.Framework;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -182,6 +183,10 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         /// <summary>
         /// Test deleting an object from a scene.
         /// </summary>
+        /// <remarks>
+        /// This is the most basic form of delete.  For all more sophisticated forms of derez (done asynchrnously
+        /// and where object can be taken to user inventory, etc.), see SceneObjectDeRezTests.
+        /// </remarks>
         [Test]
         public void TestDeleteSceneObject()
         {
@@ -198,100 +203,6 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
             SceneObjectPart retrievedPart = scene.GetSceneObjectPart(so.LocalId);
             Assert.That(retrievedPart, Is.Null);
-        }
-        
-        /// <summary>
-        /// Test deleting an object asynchronously
-        /// </summary>
-        [Test]
-        public void TestDeleteSceneObjectAsync()
-        {
-            TestHelpers.InMethod();
-            //log4net.Config.XmlConfigurator.Configure();
-
-            UUID agentId = UUID.Parse("00000000-0000-0000-0000-000000000001");
-
-            TestScene scene = new SceneHelpers().SetupScene();
-
-            // Turn off the timer on the async sog deleter - we'll crank it by hand for this test.
-            AsyncSceneObjectGroupDeleter sogd = scene.SceneObjectGroupDeleter;
-            sogd.Enabled = false;
-
-            SceneObjectGroup so = SceneHelpers.AddSceneObject(scene);
-
-            IClientAPI client = SceneHelpers.AddScenePresence(scene, agentId).ControllingClient;
-            scene.DeRezObjects(client, new System.Collections.Generic.List<uint>() { so.LocalId }, UUID.Zero, DeRezAction.Delete, UUID.Zero);
-
-            SceneObjectPart retrievedPart = scene.GetSceneObjectPart(so.LocalId);
-
-            Assert.That(retrievedPart, Is.Not.Null);
-
-            Assert.That(so.IsDeleted, Is.False);
-
-            sogd.InventoryDeQueueAndDelete();
-
-            Assert.That(so.IsDeleted, Is.True);
-
-            SceneObjectPart retrievedPart2 = scene.GetSceneObjectPart(so.LocalId);
-            Assert.That(retrievedPart2, Is.Null);
-        }
- 
-        /// <summary>
-        /// Test deleting an object asynchronously to user inventory.
-        /// </summary>
-//        [Test]
-        public void TestDeleteSceneObjectAsyncToUserInventory()
-        {
-            TestHelpers.InMethod();
-            TestHelpers.EnableLogging();
-
-            UUID agentId = UUID.Parse("00000000-0000-0000-0000-000000000001");
-            string myObjectName = "Fred";
-
-            TestScene scene = new SceneHelpers().SetupScene();
-
-            // Turn off the timer on the async sog deleter - we'll crank it by hand for this test.
-            AsyncSceneObjectGroupDeleter sogd = scene.SceneObjectGroupDeleter;
-            sogd.Enabled = false;
-
-            SceneObjectGroup so = SceneHelpers.AddSceneObject(scene, myObjectName, agentId);
-
-//            Assert.That(
-//                scene.CommsManager.UserAdminService.AddUser(
-//                    "Bob", "Hoskins", "test", "test@test.com", 1000, 1000, agentId),
-//                Is.EqualTo(agentId));
-
-            UserAccount ua = UserAccountHelpers.CreateUserWithInventory(scene, agentId);
-            InventoryFolderBase folder1
-                = UserInventoryHelpers.CreateInventoryFolder(scene.InventoryService, ua.PrincipalID, "folder1");
-
-            IClientAPI client = SceneHelpers.AddScenePresence(scene, agentId).ControllingClient;
-            scene.DeRezObjects(client, new List<uint>() { so.LocalId }, UUID.Zero, DeRezAction.Take, folder1.ID);
-
-            SceneObjectPart retrievedPart = scene.GetSceneObjectPart(so.LocalId);
-
-            Assert.That(retrievedPart, Is.Not.Null);
-            Assert.That(so.IsDeleted, Is.False);
-
-            sogd.InventoryDeQueueAndDelete();
-
-            Assert.That(so.IsDeleted, Is.True);
-
-            SceneObjectPart retrievedPart2 = scene.GetSceneObjectPart(so.LocalId);
-            Assert.That(retrievedPart2, Is.Null);
-
-//            SceneSetupHelpers.DeleteSceneObjectAsync(scene, part, DeRezAction.Take, userInfo.RootFolder.ID, client);
-
-            InventoryItemBase retrievedItem
-                = UserInventoryHelpers.GetInventoryItem(
-                    scene.InventoryService, ua.PrincipalID, "folder1/" + myObjectName);
-
-            // Check that we now have the taken part in our inventory
-            Assert.That(retrievedItem, Is.Not.Null);
-
-            // Check that the taken part has actually disappeared
-//            SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);
-//            Assert.That(retrievedPart, Is.Null);
         }
         
         /// <summary>

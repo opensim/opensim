@@ -51,7 +51,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
     /// Tests for inventory functions in LSL
     /// </summary>
     [TestFixture]
-    public class LSL_ApiInventoryTests
+    public class LSL_ApiInventoryTests : OpenSimTestCase
     {
         protected Scene m_scene;
         protected XEngine.XEngine m_engine;

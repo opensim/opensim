@@ -46,13 +46,18 @@ namespace OpenSim.Framework.Console
 
         public ICommands Commands { get { return m_commands; } }
 
+        public string DefaultPrompt { get; set; }
+
         public void Prompt() {}
 
         public void RunCommand(string cmd) {}
 
         public string ReadLine(string p, bool isCommand, bool e) { return ""; }
 
-        public object ConsoleScene { get { return null; } }
+        public object ConsoleScene { 
+            get { return null; }
+            set {}
+        }
 
         public void Output(string text, string level) {}
         public void Output(string text) {}

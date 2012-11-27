@@ -53,7 +53,7 @@ namespace OpenSim.Tests.Performance
     /// earlier tests.
     /// </remarks>
     [TestFixture]
-    public class ScriptPerformanceTests
+    public class ScriptPerformanceTests : OpenSimTestCase
     {
         private TestScene m_scene;
         private XEngine m_xEngine;

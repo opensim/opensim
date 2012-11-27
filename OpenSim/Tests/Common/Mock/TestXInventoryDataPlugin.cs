@@ -33,10 +33,11 @@ using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Data;
+using OpenSim.Data.Null;
 
 namespace OpenSim.Tests.Common.Mock
 {
-    public class TestXInventoryDataPlugin : IXInventoryData
+    public class TestXInventoryDataPlugin : NullGenericDataHandler, IXInventoryData
     {
         private Dictionary<UUID, XInventoryFolder> m_allFolders = new Dictionary<UUID, XInventoryFolder>();
         private Dictionary<UUID, XInventoryItem> m_allItems = new Dictionary<UUID, XInventoryItem>();
@@ -56,28 +57,6 @@ namespace OpenSim.Tests.Common.Mock
                 = Get<XInventoryFolder>(fields, vals, m_allFolders.Values.ToList());
 
             return origFolders.Select(f => f.Clone()).ToArray();
-        }
-
-        private List<T> Get<T>(string[] fields, string[] vals, List<T> inputEntities)
-        {
-            List<T> entities = inputEntities;
-
-            for (int i = 0; i < fields.Length; i++)
-            {
-                entities
-                    = entities.Where(
-                        e =>
-                        {
-                            FieldInfo fi = typeof(T).GetField(fields[i]);
-                            if (fi == null)
-                                throw new NotImplementedException(string.Format("No field {0} for val {1}", fields[i], vals[i]));
-
-                            return fi.GetValue(e).ToString() == vals[i];
-                        }
-                    ).ToList();
-            }
-
-            return entities;
         }
 
         public bool StoreFolder(XInventoryFolder folder)

@@ -33,6 +33,7 @@ using NUnit.Framework;
 using NUnit.Framework.Constraints;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Tests.Common;
 using log4net;
 using System.Data;
 using System.Data.Common;
@@ -43,6 +44,12 @@ namespace OpenSim.Data.Tests
     /// <summary>This is a base class for testing any Data service for any DBMS. 
     /// Requires NUnit 2.5 or better (to support the generics).
     /// </summary>
+    /// <remarks>
+    /// FIXME: Should extend OpenSimTestCase but compile on mono 2.4.3 currently fails with 
+    /// AssetTests`2 : System.MemberAccessException : Cannot create an instance of OpenSim.Data.Tests.AssetTests`2[TConn,TAssetData] because Type.ContainsGenericParameters is true.
+    /// and similar on EstateTests, InventoryTests and RegionTests.
+    /// Runs fine with mono 2.10.8.1, so easiest thing is to wait until min Mono version uplifts.
+    /// </remarks>
     /// <typeparam name="TConn"></typeparam>
     /// <typeparam name="TService"></typeparam>
     public class BasicDataServiceTest<TConn, TService>

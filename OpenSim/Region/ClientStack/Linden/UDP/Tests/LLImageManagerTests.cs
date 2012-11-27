@@ -43,7 +43,7 @@ using OpenSim.Tests.Common.Mock;
 namespace OpenSim.Region.ClientStack.LindenUDP.Tests
 {
     [TestFixture]
-    public class LLImageManagerTests
+    public class LLImageManagerTests : OpenSimTestCase
     {
         private AssetBase m_testImageAsset;
         private Scene scene;

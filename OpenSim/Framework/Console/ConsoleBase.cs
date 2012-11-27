@@ -43,15 +43,7 @@ namespace OpenSim.Framework.Console
 
         public object ConsoleScene { get; set; }
 
-        /// <summary>
-        /// The default prompt text.
-        /// </summary>
-        public string DefaultPrompt
-        {
-            set { m_defaultPrompt = value; }
-            get { return m_defaultPrompt; }
-        }
-        protected string m_defaultPrompt;
+        public string DefaultPrompt { get; set; }
 
         public ConsoleBase(string defaultPrompt)
         {

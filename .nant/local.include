@@ -132,6 +132,11 @@
   </exec>
   <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.capabilities.handlers.tests)==0}" /> 
 
+  <exec program="${nunitcmd}" failonerror="true" resultproperty="testresult.opensim.server.handlers.tests">
+    <arg value="./bin/OpenSim.Server.Handlers.Tests.dll" />
+  </exec>
+  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.server.handlers.tests)==0}" /> 
+
   <exec program="${nunitcmd}" failonerror="true" resultproperty="testresult.opensim.services.inventoryservice.tests">
     <arg value="./bin/OpenSim.Services.InventoryService.Tests.dll" />
   </exec>
@@ -238,6 +243,11 @@
  <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.capabilities.handlers.tests">
     <arg value="./bin/OpenSim.Capabilities.Handlers.Tests.dll" />
     <arg value="-xml=test-results/OpenSim.Capabilities.Handlers.Tests.dll-Results.xml" />
+  </exec>
+
+ <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.server.handlers.tests">
+    <arg value="./bin/OpenSim.Server.Handlers.Tests.dll" />
+    <arg value="-xml=test-results/OpenSim.Server.Handlers.Tests.dll-Results.xml" />
   </exec>
 
  <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.services.inventoryservice.tests">

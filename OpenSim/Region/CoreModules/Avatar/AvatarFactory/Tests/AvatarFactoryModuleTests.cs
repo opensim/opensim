@@ -39,7 +39,7 @@ using OpenSim.Tests.Common.Mock;
 namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 {
     [TestFixture]
-    public class AvatarFactoryModuleTests
+    public class AvatarFactoryModuleTests : OpenSimTestCase
     {
         /// <summary>
         /// Only partial right now since we don't yet test that it's ended up in the avatar appearance service.

@@ -740,7 +740,12 @@ namespace OpenSim.Region.Framework.Scenes
             //
             // Out of memory
             // Operating system has killed the plugin
-            m_sceneGraph.UnRecoverableError += RestartNow;
+            m_sceneGraph.UnRecoverableError 
+                += () => 
+                    { 
+                        m_log.ErrorFormat("[SCENE]: Restarting region {0} due to unrecoverable physics crash", Name); 
+                        RestartNow(); 
+                    };
 
             RegisterDefaultSceneEvents();
 
@@ -1134,15 +1139,9 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            m_log.Error("[REGION]: Closing");
+            m_log.InfoFormat("[REGION]: Restarting region {0}", Name);
+
             Close();
-
-            if (PhysicsScene != null)
-            {
-                PhysicsScene.Dispose();
-            }            
-
-            m_log.Error("[REGION]: Firing Region Restart Message");
 
             base.Restart();
         }

@@ -28,11 +28,12 @@
 using System;
 using NUnit.Framework;
 using OpenMetaverse;
+using OpenSim.Tests.Common;
 
 namespace OpenSim.Framework.Tests
 {
     [TestFixture]
-    public class CacheTests
+    public class CacheTests : OpenSimTestCase
     {
         private Cache cache;
         private UUID cacheItemUUID;

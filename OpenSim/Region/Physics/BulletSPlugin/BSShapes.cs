@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -35,15 +35,15 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 public abstract class BSShape
 {
     public IntPtr ptr { get; set; }
-    public ShapeData.PhysicsShapeType type { get; set; }
+    public BSPhysicsShapeType type { get; set; }
     public System.UInt64 key { get; set; }
     public int referenceCount { get; set; }
     public DateTime lastReferenced { get; set; }
 
-    protected void Initialize()
+    public BSShape()
     {
         ptr = IntPtr.Zero;
-        type = ShapeData.PhysicsShapeType.SHAPE_UNKNOWN;
+        type = BSPhysicsShapeType.SHAPE_UNKNOWN;
         key = 0;
         referenceCount = 0;
         lastReferenced = DateTime.Now;
@@ -54,17 +54,17 @@ public abstract class BSShape
     {
         BSShape ret = null;
 
-        if (prim.PreferredPhysicalShape == ShapeData.PhysicsShapeType.SHAPE_AVATAR)
+        if (prim.PreferredPhysicalShape == BSPhysicsShapeType.SHAPE_CAPSULE)
         {
             // an avatar capsule is close to a native shape (it is not shared)
-            ret = BSShapeNative.GetReference(physicsScene, prim, ShapeData.PhysicsShapeType.SHAPE_AVATAR,
-                                        ShapeData.FixedShapeKey.KEY_CAPSULE);
+            ret = BSShapeNative.GetReference(physicsScene, prim, BSPhysicsShapeType.SHAPE_CAPSULE,
+                                        FixedShapeKey.KEY_CAPSULE);
             physicsScene.DetailLog("{0},BSShape.GetShapeReference,avatarCapsule,shape={1}", prim.LocalID, ret);
         }
 
         // Compound shapes are handled special as they are rebuilt from scratch.
         // This isn't too great a hardship since most of the child shapes will already been created.
-        if (ret == null  && prim.PreferredPhysicalShape == ShapeData.PhysicsShapeType.SHAPE_COMPOUND)
+        if (ret == null  && prim.PreferredPhysicalShape == BSPhysicsShapeType.SHAPE_COMPOUND)
         {
             // Getting a reference to a compound shape gets you the compound shape with the root prim shape added
             ret = BSShapeCompound.GetReference(prim);
@@ -109,9 +109,8 @@ public abstract class BSShape
 
 public class BSShapeNull : BSShape
 {
-    public BSShapeNull()
+    public BSShapeNull() : base()
     {
-        base.Initialize();
     }
     public static BSShape GetReference() { return new BSShapeNull();  }
     public override void Dereference(BSScene physicsScene) { /* The magic of garbage collection will make this go away */ }
@@ -120,19 +119,18 @@ public class BSShapeNull : BSShape
 public class BSShapeNative : BSShape
 {
     private static string LogHeader = "[BULLETSIM SHAPE NATIVE]";
-    public BSShapeNative()
+    public BSShapeNative() : base()
     {
-        base.Initialize();
     }
     public static BSShape GetReference(BSScene physicsScene, BSPhysObject prim, 
-                    ShapeData.PhysicsShapeType shapeType, ShapeData.FixedShapeKey shapeKey) 
+                    BSPhysicsShapeType shapeType, FixedShapeKey shapeKey) 
     {
         // Native shapes are not shared and are always built anew.
         return new BSShapeNative(physicsScene, prim, shapeType, shapeKey);
     }
 
     private BSShapeNative(BSScene physicsScene, BSPhysObject prim,
-                    ShapeData.PhysicsShapeType shapeType, ShapeData.FixedShapeKey shapeKey)
+                    BSPhysicsShapeType shapeType, FixedShapeKey shapeKey)
     {
         ShapeData nativeShapeData = new ShapeData();
         nativeShapeData.Type = shapeType;
@@ -143,7 +141,7 @@ public class BSShapeNative : BSShape
         nativeShapeData.HullKey = (ulong)shapeKey;
 
        
-        if (shapeType == ShapeData.PhysicsShapeType.SHAPE_AVATAR)
+        if (shapeType == BSPhysicsShapeType.SHAPE_CAPSULE)
         {
             ptr = BulletSimAPI.BuildCapsuleShape2(physicsScene.World.ptr, 1f, 1f, prim.Scale);
             physicsScene.DetailLog("{0},BSShapeCollection.BuiletPhysicalNativeShape,capsule,scale={1}", prim.LocalID, prim.Scale);
@@ -176,9 +174,8 @@ public class BSShapeMesh : BSShape
     private static string LogHeader = "[BULLETSIM SHAPE MESH]";
     private static Dictionary<System.UInt64, BSShapeMesh> Meshes = new Dictionary<System.UInt64, BSShapeMesh>();
 
-    public BSShapeMesh()
+    public BSShapeMesh() : base()
     {
-        base.Initialize();
     }
     public static BSShape GetReference() { return new BSShapeNull();  }
     public override void Dereference(BSScene physicsScene) { }
@@ -189,9 +186,8 @@ public class BSShapeHull : BSShape
     private static string LogHeader = "[BULLETSIM SHAPE HULL]";
     private static Dictionary<System.UInt64, BSShapeHull> Hulls = new Dictionary<System.UInt64, BSShapeHull>();
 
-    public BSShapeHull()
+    public BSShapeHull() : base()
     {
-        base.Initialize();
     }
     public static BSShape GetReference() { return new BSShapeNull();  }
     public override void Dereference(BSScene physicsScene) { }
@@ -200,9 +196,8 @@ public class BSShapeHull : BSShape
 public class BSShapeCompound : BSShape
 {
     private static string LogHeader = "[BULLETSIM SHAPE COMPOUND]";
-    public BSShapeCompound()
+    public BSShapeCompound() : base()
     {
-        base.Initialize();
     }
     public static BSShape GetReference(BSPhysObject prim) 
     { 

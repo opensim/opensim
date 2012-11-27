@@ -39,23 +39,10 @@ using log4net;
 using OpenMetaverse;
 
 // TODOs for BulletSim (for BSScene, BSPrim, BSCharacter and BulletSim)
-// Test sculpties (verified that they don't work)
-// Compute physics FPS reasonably
 // Based on material, set density and friction
-// Don't use constraints in linksets of non-physical objects. Means having to move children manually.
-// Four states of prim: Physical, regular, phantom and selected. Are we modeling these correctly?
-//     In SL one can set both physical and phantom (gravity, does not effect others, makes collisions with ground)
-//     At the moment, physical and phantom causes object to drop through the terrain
-// Physical phantom objects and related typing (collision options )
-// Check out llVolumeDetect. Must do something for that.
-// Use collision masks for collision with terrain and phantom objects
 // More efficient memory usage when passing hull information from BSPrim to BulletSim
-// Should prim.link() and prim.delink() membership checking happen at taint time?
-// Mesh sharing. Use meshHash to tell if we already have a hull of that shape and only create once.
 // Do attachments need to be handled separately? Need collision events. Do not collide with VolumeDetect
 // Implement LockAngularMotion
-// Decide if clearing forces is the right thing to do when setting position (BulletSim::SetObjectTranslation)
-// Remove mesh and Hull stuff. Use mesh passed to bullet and use convexdecom from bullet.
 // Add PID movement operations. What does ScenePresence.MoveToTarget do?
 // Check terrain size. 128 or 127?
 // Raycast
@@ -234,6 +221,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         if (m_physicsLoggingEnabled)
         {
             PhysicsLogging = new Logging.LogWriter(m_physicsLoggingDir, m_physicsLoggingPrefix, m_physicsLoggingFileMinutes);
+            PhysicsLogging.ErrorLogger = m_log; // for DEBUG. Let's the logger output error messages.
         }
         else
         {
@@ -307,6 +295,13 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
                 // Do any replacements in the parameters
                 m_physicsLoggingPrefix = m_physicsLoggingPrefix.Replace("%REGIONNAME%", RegionName);
+            }
+
+            // The material characteristics.
+            BSMaterials.InitializeFromDefaults(Params);
+            if (pConfig != null)
+            {
+                BSMaterials.InitializefromParameters(pConfig);
             }
         }
     }
@@ -520,9 +515,9 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             collidersCount = 0;
         }
 
-        // Don't have to use the pointers passed back since we know it is the same pinned memory we passed in
+        // Don't have to use the pointers passed back since we know it is the same pinned memory we passed in.
 
-        // Get a value for 'now' so all the collision and update routines don't have to get their own
+        // Get a value for 'now' so all the collision and update routines don't have to get their own.
         SimulationNowTime = Util.EnvironmentTickCount();
 
         // If there were collisions, process them by sending the event to the prim.
@@ -568,6 +563,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
                 ObjectsWithCollisions.Remove(po);
             ObjectsWithNoMoreCollisions.Clear();
         }
+        // Done with collisions.
 
         // If any of the objects had updated properties, tell the object it has been changed by the physics engine
         if (updatedEntityCount > 0)
@@ -591,9 +587,8 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
         // The physics engine returns the number of milliseconds it simulated this call.
         // These are summed and normalized to one second and divided by 1000 to give the reported physics FPS.
-        // We multiply by 55 to give a recognizable running rate (55 or less).
-        return numSubSteps * m_fixedTimeStep * 1000 * 55;
-        // return timeStep * 1000 * 55;
+        // Multiply by 55 to give a nominal frame rate of 55.
+        return (float)numSubSteps * m_fixedTimeStep * 1000f * 55f;
     }
 
     // Something has collided
@@ -683,7 +678,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     #region Taints
 
     // Calls to the PhysicsActors can't directly call into the physics engine
-    // because it might be busy. We delay changes to a known time.
+    //       because it might be busy. We delay changes to a known time.
     // We rely on C#'s closure to save and restore the context for the delegate.
     public void TaintedObject(String ident, TaintCallback callback)
     {
@@ -712,7 +707,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     // here just before the physics engine is called to step the simulation.
     public void ProcessTaints()
     {
-        InTaintTime = true;
+        InTaintTime = true; // Only used for debugging so locking is not necessary.
         ProcessRegularTaints();
         ProcessPostTaintTaints();
         InTaintTime = false;
@@ -758,6 +753,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
                 DetailLog("{0},BSScene.ProcessTaints,leftTaintsOnList,numNotProcessed={1}", DetailLogZero, _taintOperations.Count);
             }
              */
+
             // swizzle a new list into the list location so we can process what's there
             List<TaintCallbackEntry> oldList;
             lock (_taintLock)
@@ -787,8 +783,6 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     //     will replace any previous operation by the same object.
     public void PostTaintObject(String ident, uint ID, TaintCallback callback)
     {
-        if (!m_initialized) return;
-
         string uniqueIdent = ident + "-" + ID.ToString();
         lock (_taintLock)
         {
@@ -864,13 +858,14 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         }
     }
 
+    // Only used for debugging. Does not change state of anything so locking is not necessary.
     public bool AssertInTaintTime(string whereFrom)
     {
         if (!InTaintTime)
         {
             DetailLog("{0},BSScene.AssertInTaintTime,NOT IN TAINT TIME,Region={1},Where={2}", DetailLogZero, RegionName, whereFrom);
             m_log.ErrorFormat("{0} NOT IN TAINT TIME!! Region={1}, Where={2}", LogHeader, RegionName, whereFrom);
-            Util.PrintCallStack();
+            Util.PrintCallStack();  // Prints the stack into the DEBUG log file.
         }
         return InTaintTime;
     }
@@ -1069,7 +1064,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             (s,p,l,v) => { s.PID_P = v; } ),
 
         new ParameterDefn("DefaultFriction", "Friction factor used on new objects",
-            0.5f,
+            0.2f,
             (s,cf,p,v) => { s.m_params[0].defaultFriction = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].defaultFriction; },
             (s,p,l,v) => { s.m_params[0].defaultFriction = v; } ),
@@ -1084,7 +1079,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             (s) => { return s.m_params[0].defaultRestitution; },
             (s,p,l,v) => { s.m_params[0].defaultRestitution = v; } ),
         new ParameterDefn("CollisionMargin", "Margin around objects before collisions are calculated (must be zero!)",
-            0f,
+            0.04f,
             (s,cf,p,v) => { s.m_params[0].collisionMargin = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].collisionMargin; },
             (s,p,l,v) => { s.m_params[0].collisionMargin = v; } ),
@@ -1145,8 +1140,13 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].contactProcessingThreshold, p, l, v); },
             (s,o,v) => { BulletSimAPI.SetContactProcessingThreshold2(o.PhysBody.ptr, v); } ),
 
+	    new ParameterDefn("TerrainImplementation", "Type of shape to use for terrain (0=heightmap, 1=mesh)",
+            (float)BSTerrainPhys.TerrainImplementation.Mesh,
+            (s,cf,p,v) => { s.m_params[0].terrainImplementation = cf.GetFloat(p,v); },
+            (s) => { return s.m_params[0].terrainImplementation; },
+            (s,p,l,v) => { s.m_params[0].terrainImplementation = v; } ),
         new ParameterDefn("TerrainFriction", "Factor to reduce movement against terrain surface" ,
-            0.5f,
+            0.3f,
             (s,cf,p,v) => { s.m_params[0].terrainFriction = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].terrainFriction; },
             (s,p,l,v) => { s.m_params[0].terrainFriction = v;  /* TODO: set on real terrain */} ),
@@ -1160,13 +1160,19 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             (s,cf,p,v) => { s.m_params[0].terrainRestitution = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].terrainRestitution; },
             (s,p,l,v) => { s.m_params[0].terrainRestitution = v;  /* TODO: set on real terrain */ } ),
+        new ParameterDefn("TerrainCollisionMargin", "Margin where collision checking starts" ,
+            0.04f,
+            (s,cf,p,v) => { s.m_params[0].terrainCollisionMargin = cf.GetFloat(p, v); },
+            (s) => { return s.m_params[0].terrainCollisionMargin; },
+            (s,p,l,v) => { s.m_params[0].terrainCollisionMargin = v;  /* TODO: set on real terrain */ } ),
+
         new ParameterDefn("AvatarFriction", "Factor to reduce movement against an avatar. Changed on avatar recreation.",
             0.2f,
             (s,cf,p,v) => { s.m_params[0].avatarFriction = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].avatarFriction; },
             (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].avatarFriction, p, l, v); } ),
         new ParameterDefn("AvatarStandingFriction", "Avatar friction when standing. Changed on avatar recreation.",
-            10f,
+            10.0f,
             (s,cf,p,v) => { s.m_params[0].avatarStandingFriction = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].avatarStandingFriction; },
             (s,p,l,v) => { s.m_params[0].avatarStandingFriction = v; } ),
@@ -1180,11 +1186,16 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             (s,cf,p,v) => { s.m_params[0].avatarRestitution = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].avatarRestitution; },
             (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].avatarRestitution, p, l, v); } ),
-        new ParameterDefn("AvatarCapsuleRadius", "Radius of space around an avatar",
-            0.37f,
-            (s,cf,p,v) => { s.m_params[0].avatarCapsuleRadius = cf.GetFloat(p, v); },
-            (s) => { return s.m_params[0].avatarCapsuleRadius; },
-            (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].avatarCapsuleRadius, p, l, v); } ),
+        new ParameterDefn("AvatarCapsuleWidth", "The distance between the sides of the avatar capsule",
+            0.6f,
+            (s,cf,p,v) => { s.m_params[0].avatarCapsuleWidth = cf.GetFloat(p, v); },
+            (s) => { return s.m_params[0].avatarCapsuleWidth; },
+            (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].avatarCapsuleWidth, p, l, v); } ),
+        new ParameterDefn("AvatarCapsuleDepth", "The distance between the front and back of the avatar capsule",
+            0.45f,
+            (s,cf,p,v) => { s.m_params[0].avatarCapsuleDepth = cf.GetFloat(p, v); },
+            (s) => { return s.m_params[0].avatarCapsuleDepth; },
+            (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].avatarCapsuleDepth, p, l, v); } ),
         new ParameterDefn("AvatarCapsuleHeight", "Default height of space around avatar",
             1.5f,
             (s,cf,p,v) => { s.m_params[0].avatarCapsuleHeight = cf.GetFloat(p, v); },
@@ -1196,6 +1207,11 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             (s) => { return s.m_params[0].avatarContactProcessingThreshold; },
             (s,p,l,v) => { s.UpdateParameterObject(ref s.m_params[0].avatarContactProcessingThreshold, p, l, v); } ),
 
+        new ParameterDefn("VehicleAngularDamping", "Factor to damp vehicle angular movement per second (0.0 - 1.0)",
+            0.95f,
+            (s,cf,p,v) => { s.m_params[0].vehicleAngularDamping = cf.GetFloat(p, v); },
+            (s) => { return s.m_params[0].vehicleAngularDamping; },
+            (s,p,l,v) => { s.m_params[0].vehicleAngularDamping = v; } ),
 
 	    new ParameterDefn("MaxPersistantManifoldPoolSize", "Number of manifolds pooled (0 means default of 4096)",
             0f,

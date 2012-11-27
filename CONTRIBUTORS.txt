@@ -93,6 +93,7 @@ what it is today.
 * Garmin Kawaguichi
 * Gryc Ueusp
 * Hiro Lecker
+* Iain Oliver
 * Imaze Rhiano
 * Intimidated
 * Jeremy Bongio (IBM)

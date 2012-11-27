@@ -48,7 +48,7 @@ using OpenSim.Tests.Common.Mock;
 namespace OpenSim.Region.OptionalModules.World.NPC.Tests
 {
     [TestFixture]
-    public class NPCModuleTests
+    public class NPCModuleTests : OpenSimTestCase
     {
         private TestScene m_scene;
         private AvatarFactoryModule m_afMod;

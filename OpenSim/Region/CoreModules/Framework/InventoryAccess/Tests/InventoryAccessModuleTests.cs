@@ -49,7 +49,7 @@ using OpenSim.Tests.Common.Mock;
 namespace OpenSim.Region.CoreModules.Framework.InventoryAccess.Tests
 {
     [TestFixture]
-    public class InventoryAccessModuleTests
+    public class InventoryAccessModuleTests : OpenSimTestCase
     {      
         protected TestScene m_scene;
         protected BasicInventoryAccessModule m_iam;

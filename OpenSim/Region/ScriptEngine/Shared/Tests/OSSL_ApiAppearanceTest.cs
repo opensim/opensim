@@ -51,7 +51,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
     /// Tests for OSSL_Api
     /// </summary>
     [TestFixture]
-    public class OSSL_ApiAppearanceTest
+    public class OSSL_ApiAppearanceTest : OpenSimTestCase
     {
         protected Scene m_scene;
         protected XEngine.XEngine m_engine;

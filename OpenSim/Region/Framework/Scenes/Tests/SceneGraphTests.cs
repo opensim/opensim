@@ -40,7 +40,7 @@ using OpenSim.Tests.Common.Mock;
 namespace OpenSim.Region.Framework.Scenes.Tests
 {
     [TestFixture]
-    public class SceneGraphTests
+    public class SceneGraphTests : OpenSimTestCase
     {
         [Test]
         public void TestDuplicateObject()
