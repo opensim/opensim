@@ -365,7 +365,8 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
             if (mainParams.Count < 4)
             {
-                m_console.OutputFormat("Usage: show part id [--full] <UUID-or-localID>");
+                //m_console.OutputFormat("Usage: show part id [--full] <UUID-or-localID>");
+                m_console.OutputFormat("Usage: show part id <UUID-or-localID>");
                 return;
             }
 
@@ -405,6 +406,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
             if (mainParams.Count < 5)
             {
+                //m_console.OutputFormat("Usage: show part pos <start-coord> to <end-coord>");
                 m_console.OutputFormat("Usage: show part pos [--full] <start-coord> to <end-coord>");
                 return;
             }
@@ -445,7 +447,8 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
             if (mainParams.Count < 4)
             {
-                m_console.OutputFormat("Usage: show part name [--full] [--regex] <name>");
+                m_console.OutputFormat("Usage: show part name [--regex] <name>");
+                //m_console.OutputFormat("Usage: show part name [--full] [--regex] <name>");
                 return;
             }
 
@@ -577,6 +580,58 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             cdl.AddRow("Link number", sop.LinkNum);
             cdl.AddRow("Flags", sop.Flags);
 
+            if (showFull)
+            {
+                PrimitiveBaseShape s = sop.Shape;
+                cdl.AddRow("FlexiDrag", s.FlexiDrag);
+                cdl.AddRow("FlexiEntry", s.FlexiEntry);
+                cdl.AddRow("FlexiForce", string.Format("<{0},{1},{2}>", s.FlexiForceX, s.FlexiForceY, s.FlexiForceZ));
+                cdl.AddRow("FlexiGravity", s.FlexiGravity);
+                cdl.AddRow("FlexiSoftness", s.FlexiSoftness);
+                cdl.AddRow("HollowShape", s.HollowShape);
+                cdl.AddRow(
+                    "LightColor", 
+                    string.Format("<{0},{1},{2},{3}>", s.LightColorR, s.LightColorB, s.LightColorG, s.LightColorA));
+                cdl.AddRow("FlexiDrag", s.LightCutoff);
+                cdl.AddRow("FlexiDrag", s.LightEntry);
+                cdl.AddRow("FlexiDrag", s.LightFalloff);
+                cdl.AddRow("FlexiDrag", s.LightIntensity);
+                cdl.AddRow("FlexiDrag", s.LightRadius);
+                cdl.AddRow("Media", string.Format("{0} entries", s.Media != null ? s.Media.Count.ToString() : "n/a"));
+                cdl.AddRow("PathBegin", s.PathBegin);
+                cdl.AddRow("PathEnd", s.PathEnd);
+                cdl.AddRow("PathCurve", s.PathCurve);
+                cdl.AddRow("PathRadiusOffset", s.PathRadiusOffset);
+                cdl.AddRow("PathRevolutions", s.PathRevolutions);
+                cdl.AddRow("PathScale", string.Format("<{0},{1}>", s.PathScaleX, s.PathScaleY));
+                cdl.AddRow("PathSkew", string.Format("<{0},{1}>", s.PathShearX, s.PathShearY));
+                cdl.AddRow("FlexiDrag", s.PathSkew);
+                cdl.AddRow("PathTaper", string.Format("<{0},{1}>", s.PathTaperX, s.PathTaperY));
+                cdl.AddRow("PathTwist", s.PathTwist);
+                cdl.AddRow("PathTwistBegin", s.PathTwistBegin);
+                cdl.AddRow("PCode", s.PCode);
+                cdl.AddRow("ProfileBegin", s.ProfileBegin);
+                cdl.AddRow("ProfileEnd", s.ProfileEnd);
+                cdl.AddRow("ProfileHollow", s.ProfileHollow);
+                cdl.AddRow("ProfileShape", s.ProfileShape);
+                cdl.AddRow("ProjectionAmbiance", s.ProjectionAmbiance);
+                cdl.AddRow("ProjectionEntry", s.ProjectionEntry);
+                cdl.AddRow("ProjectionFocus", s.ProjectionFocus);
+                cdl.AddRow("ProjectionFOV", s.ProjectionFOV);
+                cdl.AddRow("ProjectionTextureUUID", s.ProjectionTextureUUID);
+                cdl.AddRow("Scale", s.Scale);
+                cdl.AddRow(
+                    "SculptData", 
+                    string.Format("{0} bytes", s.SculptData != null ? s.SculptData.Length.ToString() : "n/a"));
+                cdl.AddRow("SculptEntry", s.SculptEntry);
+                cdl.AddRow("SculptTexture", s.SculptTexture);
+                cdl.AddRow("SculptType", s.SculptType);
+                cdl.AddRow("State", s.State);
+
+                // TODO, unpack and display texture entries
+                //cdl.AddRow("Textures", string.Format("{0} entries", s.Textures.
+            }
+
             object itemsOutput;
             if (showFull)
             {
@@ -587,7 +642,6 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             {
                 itemsOutput = sop.Inventory.Count;
             }
-
 
             cdl.AddRow("Items", itemsOutput);
 
