@@ -186,17 +186,21 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
                 foreach (GridInstantMessage im in msglist)
                 {
-                    // client.SendInstantMessage(im);
-
-                    // Send through scene event manager so all modules get a chance
-                    // to look at this message before it gets delivered.
-                    //
-                    // Needed for proper state management for stored group
-                    // invitations
-                    //
-                    Scene s = FindScene(client.AgentId);
-                    if (s != null)
-                        s.EventManager.TriggerIncomingInstantMessage(im);
+                    if (im.dialog == (byte)InstantMessageDialog.InventoryOffered)
+                        // send it directly or else the item will be given twice
+                        client.SendInstantMessage(im);
+                    else
+                    {
+                        // Send through scene event manager so all modules get a chance
+                        // to look at this message before it gets delivered.
+                        //
+                        // Needed for proper state management for stored group
+                        // invitations
+                        //
+                        Scene s = FindScene(client.AgentId);
+                        if (s != null)
+                            s.EventManager.TriggerIncomingInstantMessage(im);
+                    }
                 }
             }
         }
