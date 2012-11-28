@@ -7,6 +7,10 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 {
 public abstract class BSMotor
 {
+    // Timescales and other things can be turned off by setting them to 'infinite'.
+    public const float Infinite = 10000f;
+    public readonly static Vector3 InfiniteVector = new Vector3(BSMotor.Infinite, BSMotor.Infinite, BSMotor.Infinite);
+
     public BSMotor(string useName)
     {
         UseName = useName;
@@ -46,8 +50,9 @@ public class BSVMotor : BSMotor
     public BSVMotor(string useName)
         : base(useName)
     {
-        TimeScale = TargetValueDecayTimeScale = Efficiency = 1f;
-        FrictionTimescale = Vector3.Zero;
+        TimeScale = TargetValueDecayTimeScale = BSMotor.Infinite;
+        Efficiency = 1f;
+        FrictionTimescale = BSMotor.InfiniteVector;
         CurrentValue = TargetValue = Vector3.Zero;
     }
     public BSVMotor(string useName, float timeScale, float decayTimeScale, Vector3 frictionTimeScale, float efficiency) 
@@ -78,23 +83,35 @@ public class BSVMotor : BSMotor
             // Addition =  (desiredVector - currentAppliedVector) / secondsItShouldTakeToComplete
             Vector3 addAmount = (TargetValue - CurrentValue)/TimeScale * timeStep;
             CurrentValue += addAmount;
+
             returnCurrent = CurrentValue;
 
-            // The desired value reduces to zero when also reduces the difference with current.
-            float decayFactor = (1.0f / TargetValueDecayTimeScale) * timeStep;
-            TargetValue *= (1f - decayFactor);
+            // The desired value reduces to zero which also reduces the difference with current.
+            // If the decay time is infinite, don't decay at all.
+            float decayFactor = 0f;
+            if (TargetValueDecayTimeScale != BSMotor.Infinite)
+            {
+                decayFactor = (1.0f / TargetValueDecayTimeScale) * timeStep;
+                TargetValue *= (1f - decayFactor);
+            }
 
             Vector3 frictionFactor = Vector3.Zero;
-            frictionFactor = (Vector3.One / FrictionTimescale) * timeStep;
-            CurrentValue *= (Vector3.One - frictionFactor);
+            if (FrictionTimescale != BSMotor.InfiniteVector)
+            {
+                // frictionFactor = (Vector3.One / FrictionTimescale) * timeStep;
+                frictionFactor.X = FrictionTimescale.X == BSMotor.Infinite ? 0f : (1f / FrictionTimescale.X) * timeStep;
+                frictionFactor.Y = FrictionTimescale.Y == BSMotor.Infinite ? 0f : (1f / FrictionTimescale.Y) * timeStep;
+                frictionFactor.Z = FrictionTimescale.Z == BSMotor.Infinite ? 0f : (1f / FrictionTimescale.Z) * timeStep;
+                CurrentValue *= (Vector3.One - frictionFactor);
+            }
 
-            MDetailLog("{0},BSVMotor.Step,nonZero,{1},origTarget={2},origCurr={3},timeStep={4},timeScale={5},addAmnt={6},targetDecay={7},decayFact={8},fricTS={9},frictFact={10}",
-                                BSScene.DetailLogZero, UseName, origTarget, origCurrVal,
+            MDetailLog("{0},BSVMotor.Step,nonZero,{1},origCurr={2},origTarget={3},timeStep={4},timeScale={5},addAmnt={6},targetDecay={7},decayFact={8},fricTS={9},frictFact={10}",
+                                BSScene.DetailLogZero, UseName, origCurrVal, origTarget,
                                 timeStep, TimeScale, addAmount,
                                 TargetValueDecayTimeScale, decayFactor,
                                 FrictionTimescale, frictionFactor);
             MDetailLog("{0},BSVMotor.Step,nonZero,{1},curr={2},target={3},add={4},decay={5},frict={6},ret={7}",
-                                    BSScene.DetailLogZero, UseName, TargetValue, CurrentValue, 
+                                    BSScene.DetailLogZero, UseName, CurrentValue, TargetValue,
                                     addAmount, decayFactor, frictionFactor, returnCurrent);
         }
         else
