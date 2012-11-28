@@ -713,7 +713,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 // We should hover, get the target height
                 if ((m_flags & VehicleFlag.HOVER_WATER_ONLY) != 0)
                 {
-                    m_VhoverTargetHeight = Prim.PhysicsScene.GetWaterLevelAtXYZ(pos) + m_VhoverHeight;
+                    m_VhoverTargetHeight = Prim.PhysicsScene.TerrainManager.GetWaterLevelAtXYZ(pos) + m_VhoverHeight;
                 }
                 if ((m_flags & VehicleFlag.HOVER_TERRAIN_ONLY) != 0)
                 {
@@ -730,6 +730,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     if (pos.Z > m_VhoverTargetHeight)
                         m_VhoverTargetHeight = pos.Z;
                 }
+                
                 if ((m_flags & VehicleFlag.LOCK_HOVER_HEIGHT) != 0)
                 {
                     if (Math.Abs(pos.Z - m_VhoverTargetHeight) > 0.2f)
@@ -883,8 +884,8 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             // Sum velocities
             m_lastAngularVelocity = angularMotorContribution
                                     + verticalAttractionContribution
-                                    + bankingContribution
-                                    + deflectionContribution;
+                                    + deflectionContribution
+                                    + bankingContribution;
 
             // ==================================================================
             //Offset section
@@ -921,8 +922,9 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             if (m_lastAngularVelocity.ApproxEquals(Vector3.Zero, 0.01f))
             {
                 m_lastAngularVelocity = Vector3.Zero; // Reduce small value to zero.
-                Prim.ZeroAngularMotion(true);
+                // TODO: zeroing is good but it also sets values in unmanaged code. Remove the stores when idle.
                 VDetailLog("{0},MoveAngular,zeroAngularMotion,lastAngular={1}", Prim.LocalID, m_lastAngularVelocity);
+                Prim.ZeroAngularMotion(true);
             }
             else
             {

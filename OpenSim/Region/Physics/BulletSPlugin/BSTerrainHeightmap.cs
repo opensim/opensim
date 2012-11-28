@@ -148,7 +148,7 @@ public sealed class BSTerrainHeightmap : BSTerrainPhys
     }
 
     // The passed position is relative to the base of the region.
-    public override float GetHeightAtXYZ(Vector3 pos)
+    public override float GetTerrainHeightAtXYZ(Vector3 pos)
     {
         float ret = BSTerrainManager.HEIGHT_GETHEIGHT_RET;
 
@@ -165,6 +165,12 @@ public sealed class BSTerrainHeightmap : BSTerrainPhys
             ret = BSTerrainManager.HEIGHT_GETHEIGHT_RET;
         }
         return ret;
+    }
+
+    // The passed position is relative to the base of the region.
+    public override float GetWaterLevelAtXYZ(Vector3 pos)
+    {
+        return PhysicsScene.SimpleWaterLevel;
     }
 }
 }

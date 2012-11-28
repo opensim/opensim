@@ -62,7 +62,8 @@ public abstract class BSTerrainPhys : IDisposable
         ID = id;
     }
     public abstract void Dispose();
-    public abstract float GetHeightAtXYZ(Vector3 pos);
+    public abstract float GetTerrainHeightAtXYZ(Vector3 pos);
+    public abstract float GetWaterLevelAtXYZ(Vector3 pos);
 }
 
 // ==========================================================================================
@@ -75,6 +76,7 @@ public sealed class BSTerrainManager
     public const float HEIGHT_INITIALIZATION = 24.987f;
     public const float HEIGHT_INITIAL_LASTHEIGHT = 24.876f;
     public const float HEIGHT_GETHEIGHT_RET = 24.765f;
+    public const float WATER_HEIGHT_GETHEIGHT_RET = 19.998f;
 
     // If the min and max height are equal, we reduce the min by this
     //    amount to make sure that a bounding box is built for the terrain.
@@ -358,7 +360,7 @@ public sealed class BSTerrainManager
             BSTerrainPhys physTerrain;
             if (m_terrains.TryGetValue(terrainBaseXYZ, out physTerrain))
             {
-                ret = physTerrain.GetHeightAtXYZ(loc - terrainBaseXYZ);
+                ret = physTerrain.GetTerrainHeightAtXYZ(loc - terrainBaseXYZ);
             }
             else
             {
@@ -367,6 +369,33 @@ public sealed class BSTerrainManager
             }
         }
         lastHeight = ret;
+        return ret;
+    }
+
+    public float GetWaterLevelAtXYZ(Vector3 pos)
+    {
+        float ret = WATER_HEIGHT_GETHEIGHT_RET;
+
+        float tX = pos.X;
+        float tY = pos.Y;
+
+        Vector3 terrainBaseXYZ = Vector3.Zero;
+        terrainBaseXYZ.X = ((int)(tX / (int)DefaultRegionSize.X)) * (int)DefaultRegionSize.X;
+        terrainBaseXYZ.Y = ((int)(tY / (int)DefaultRegionSize.Y)) * (int)DefaultRegionSize.Y;
+
+        lock (m_terrains)
+        {
+            BSTerrainPhys physTerrain;
+            if (m_terrains.TryGetValue(terrainBaseXYZ, out physTerrain))
+            {
+                ret = physTerrain.GetWaterLevelAtXYZ(pos);
+            }
+            else
+            {
+                PhysicsScene.Logger.ErrorFormat("{0} GetWaterHeightAtXY: terrain not found: region={1}, x={2}, y={3}",
+                        LogHeader, PhysicsScene.RegionName, tX, tY);
+            }
+        }
         return ret;
     }
 

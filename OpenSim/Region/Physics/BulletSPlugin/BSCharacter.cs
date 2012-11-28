@@ -307,7 +307,7 @@ public sealed class BSCharacter : BSPhysObject
         }
         if ((CurrentCollisionFlags & CollisionFlags.BS_FLOATS_ON_WATER) != 0)
         {
-            float waterHeight = PhysicsScene.GetWaterLevelAtXYZ(_position);
+            float waterHeight = PhysicsScene.TerrainManager.GetWaterLevelAtXYZ(_position);
             if (Position.Z < waterHeight)
             {
                 _position.Z = waterHeight;

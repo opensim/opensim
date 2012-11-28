@@ -127,7 +127,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     public const uint GROUNDPLANE_ID = 1;
     public const uint CHILDTERRAIN_ID = 2;  // Terrain allocated based on our mega-prim childre start here
 
-    private float m_waterLevel;
+    public float SimpleWaterLevel { get; set; }
     public BSTerrainManager TerrainManager { get; private set; }
 
     public ConfigurationParameters Params
@@ -182,6 +182,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     private string m_physicsLoggingDir;
     private string m_physicsLoggingPrefix;
     private int m_physicsLoggingFileMinutes;
+    private bool m_physicsLoggingDoFlush;
     // 'true' of the vehicle code is to log lots of details
     public bool VehicleLoggingEnabled { get; private set; }
 
@@ -290,6 +291,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
                 m_physicsLoggingDir = pConfig.GetString("PhysicsLoggingDir", ".");
                 m_physicsLoggingPrefix = pConfig.GetString("PhysicsLoggingPrefix", "physics-%REGIONNAME%-");
                 m_physicsLoggingFileMinutes = pConfig.GetInt("PhysicsLoggingFileMinutes", 5);
+                m_physicsLoggingDoFlush = pConfig.GetBoolean("PhysicsLoggingDoFlush", false);
                 // Very detailed logging for vehicle debugging
                 VehicleLoggingEnabled = pConfig.GetBoolean("VehicleLoggingEnabled", false);
 
@@ -494,7 +496,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
         try
         {
-            if (VehicleLoggingEnabled) DumpVehicles();  // DEBUG
+            // if (VehicleLoggingEnabled) DumpVehicles();  // DEBUG
             if (PhysicsLogging.Enabled) beforeTime = Util.EnvironmentTickCount();
 
             numSubSteps = BulletSimAPI.PhysicsStep2(World.ptr, timeStep, m_maxSubSteps, m_fixedTimeStep,
@@ -503,7 +505,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             if (PhysicsLogging.Enabled) simTime = Util.EnvironmentTickCountSubtract(beforeTime);
             DetailLog("{0},Simulate,call, frame={1}, nTaints={2}, simTime={3}, substeps={4}, updates={5}, colliders={6}",
                         DetailLogZero, m_simulationStep, numTaints, simTime, numSubSteps, updatedEntityCount, collidersCount);
-            if (VehicleLoggingEnabled) DumpVehicles();  // DEBUG
+            // if (VehicleLoggingEnabled) DumpVehicles();  // DEBUG
         }
         catch (Exception e)
         {
@@ -634,12 +636,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
     public override void SetWaterLevel(float baseheight)
     {
-        m_waterLevel = baseheight;
-    }
-    // Someday....
-    public float GetWaterLevelAtXYZ(Vector3 loc)
-    {
-        return m_waterLevel;
+        SimpleWaterLevel = baseheight;
     }
 
     public override void DeleteTerrain()
@@ -1493,7 +1490,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     {
         PhysicsLogging.Write(msg, args);
         // Add the Flush() if debugging crashes. Gets all the messages written out.
-        // PhysicsLogging.Flush();
+        if (m_physicsLoggingDoFlush) PhysicsLogging.Flush();
     }
     // Used to fill in the LocalID when there isn't one. It's the correct number of characters.
     public const string DetailLogZero = "0000000000";

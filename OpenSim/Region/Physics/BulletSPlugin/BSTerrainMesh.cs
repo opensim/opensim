@@ -148,7 +148,7 @@ public sealed class BSTerrainMesh : BSTerrainPhys
         }
     }
 
-    public override float GetHeightAtXYZ(Vector3 pos)
+    public override float GetTerrainHeightAtXYZ(Vector3 pos)
     {
         // For the moment use the saved heightmap to get the terrain height.
         // TODO: raycast downward to find the true terrain below the position.
@@ -167,6 +167,12 @@ public sealed class BSTerrainMesh : BSTerrainPhys
             ret = BSTerrainManager.HEIGHT_GETHEIGHT_RET;
         }
         return ret;
+    }
+
+    // The passed position is relative to the base of the region.
+    public override float GetWaterLevelAtXYZ(Vector3 pos)
+    {
+        return PhysicsScene.SimpleWaterLevel;
     }
 
     // Convert the passed heightmap to mesh information suitable for CreateMeshShape2().

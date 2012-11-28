@@ -253,8 +253,9 @@ public sealed class BSPrim : BSPhysObject
         // Zero some other properties in the physics engine
         PhysicsScene.TaintedObject(inTaintTime, "BSPrim.ZeroMotion", delegate()
         {
-            BulletSimAPI.SetInterpolationAngularVelocity2(PhysBody.ptr, OMV.Vector3.Zero);
-            BulletSimAPI.SetAngularVelocity2(PhysBody.ptr, OMV.Vector3.Zero);
+            // DetailLog("{0},BSPrim.ZeroAngularMotion,call,rotVel={1}", LocalID, _rotationalVelocity);
+            BulletSimAPI.SetInterpolationAngularVelocity2(PhysBody.ptr, _rotationalVelocity);
+            BulletSimAPI.SetAngularVelocity2(PhysBody.ptr, _rotationalVelocity);
         });
     }
 
@@ -329,7 +330,7 @@ public sealed class BSPrim : BSPhysObject
 
         if ((CurrentCollisionFlags & CollisionFlags.BS_FLOATS_ON_WATER) != 0)
         {
-            float waterHeight = PhysicsScene.GetWaterLevelAtXYZ(_position);
+            float waterHeight = PhysicsScene.TerrainManager.GetWaterLevelAtXYZ(_position);
             // TODO: a floating motor so object will bob in the water
             if (Math.Abs(Position.Z - waterHeight) > 0.1f)
             {
