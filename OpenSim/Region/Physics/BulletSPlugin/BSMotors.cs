@@ -101,6 +101,14 @@ public class BSVMotor : BSMotor
     {
         TargetValue = target;
     }
+
+    // A form of stepping that does not take the time quantum into account.
+    // The caller must do the right thing later.
+    public Vector3 Step()
+    {
+        return Step(1f);
+    }
+
     public Vector3 Step(float timeStep)
     {
         Vector3 returnCurrent = Vector3.Zero;

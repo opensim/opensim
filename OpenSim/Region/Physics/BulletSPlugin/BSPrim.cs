@@ -348,7 +348,9 @@ public sealed class BSPrim : BSPhysObject
         if (ret)
         {
             // Apply upforce and overcome gravity.
-            AddForce(upForce - PhysicsScene.DefaultGravity, false, inTaintTime);
+            OMV.Vector3 correctionForce = upForce - PhysicsScene.DefaultGravity;
+            DetailLog("{0},BSPrim.PositionSanityCheck,applyForce,pos={1},upForce={2},correctionForce={3}", LocalID, _position, upForce, correctionForce);
+            AddForce(correctionForce, false, inTaintTime);
         }
         return ret;
     }
@@ -839,15 +841,6 @@ public sealed class BSPrim : BSPhysObject
     }
     public override OMV.Vector3 RotationalVelocity {
         get {
-            /*
-            OMV.Vector3 pv = OMV.Vector3.Zero;
-            // if close to zero, report zero
-            // This is copied from ODE but I'm not sure why it returns zero but doesn't
-            //    zero the property in the physics engine.
-            if (_rotationalVelocity.ApproxEquals(pv, 0.2f))
-                return pv;
-             */
-
             return _rotationalVelocity;
         }
         set {
@@ -1409,7 +1402,7 @@ public sealed class BSPrim : BSPhysObject
             LastEntityProperties = CurrentEntityProperties;
             CurrentEntityProperties = entprop;
 
-            OMV.Vector3 direction = OMV.Vector3.UnitX * _orientation;
+            OMV.Vector3 direction = OMV.Vector3.UnitX * _orientation;   // DEBUG DEBUG DEBUG
             DetailLog("{0},BSPrim.UpdateProperties,call,pos={1},orient={2},dir={3},vel={4},rotVel={5}",
                     LocalID, _position, _orientation, direction, _velocity, _rotationalVelocity);
 

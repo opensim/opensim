@@ -127,6 +127,10 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         private float m_verticalAttractionEfficiency = 1.0f;        // damped
         private float m_verticalAttractionTimescale = 500f;         // Timescale > 300  means no vert attractor.
 
+        // Local
+        private float m_knownTerrainHeight;
+        private float m_knownWaterLevel;
+
         public BSDynamics(BSScene myScene, BSPrim myPrim)
         {
             PhysicsScene = myScene;
@@ -443,9 +447,9 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     m_flags &= ~(VehicleFlag.HOVER_TERRAIN_ONLY
                                     | VehicleFlag.HOVER_GLOBAL_HEIGHT
                                     | VehicleFlag.LIMIT_ROLL_ONLY
-                                    | VehicleFlag.LIMIT_MOTOR_UP
                                     | VehicleFlag.HOVER_UP_ONLY);
                     m_flags |= (VehicleFlag.NO_DEFLECTION_UP
+                                    | VehicleFlag.LIMIT_MOTOR_UP
                                     | VehicleFlag.HOVER_WATER_ONLY);
                     break;
                 case Vehicle.TYPE_AIRPLANE:
@@ -596,10 +600,31 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             Refresh();
         }
 
+        // Since the computation of terrain height can be a little involved, this routine
+        //    is used ot fetch the height only once for each vehicle simulation step.
+        private float GetTerrainHeight(Vector3 pos)
+        {
+            if (m_knownTerrainHeight == float.MinValue)
+                m_knownTerrainHeight = Prim.PhysicsScene.TerrainManager.GetTerrainHeightAtXYZ(pos);
+            return m_knownTerrainHeight;
+        }
+
+        // Since the computation of water level can be a little involved, this routine
+        //    is used ot fetch the level only once for each vehicle simulation step.
+        private float GetWaterLevel(Vector3 pos)
+        {
+            if (m_knownWaterLevel == float.MinValue)
+                m_knownWaterLevel = Prim.PhysicsScene.TerrainManager.GetWaterLevelAtXYZ(pos);
+            return m_knownWaterLevel;
+        }
+
         // One step of the vehicle properties for the next 'pTimestep' seconds.
         internal void Step(float pTimestep)
         {
             if (!IsActive) return;
+
+            // zap values so they will be fetched when needed
+            m_knownTerrainHeight = m_knownWaterLevel = float.MinValue;
 
             MoveLinear(pTimestep);
             MoveAngular(pTimestep);
@@ -608,6 +633,11 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 
             // remember the position so next step we can limit absolute movement effects
             m_lastPositionVector = Prim.ForcePosition;
+
+            // Force the physics engine to decide whether values have updated.
+            // TODO: this is only necessary if pos, velocity, ... were updated. Is it quicker
+            //      to check for changes here or just push the update?
+            BulletSimAPI.PushUpdate2(Prim.PhysBody.ptr);
 
             VDetailLog("{0},BSDynamics.Step,done,pos={1},force={2},velocity={3},angvel={4}",
                     Prim.LocalID, Prim.ForcePosition, Prim.Force, Prim.ForceVelocity, Prim.RotationalVelocity);
@@ -629,15 +659,14 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             Vector3 grav = Prim.PhysicsScene.DefaultGravity * (1f - m_VehicleBuoyancy);
 
             Vector3 pos = Prim.ForcePosition;
-            float terrainHeight = Prim.PhysicsScene.TerrainManager.GetTerrainHeightAtXYZ(pos);
 
-            Vector3 terrainHeightContribution = ComputeLinearTerrainHeightCorrection(pTimestep, ref pos, terrainHeight);
+            Vector3 terrainHeightContribution = ComputeLinearTerrainHeightCorrection(ref pos);
 
-            Vector3 hoverContribution = ComputeLinearHover(pTimestep, ref pos, terrainHeight);
+            Vector3 hoverContribution = ComputeLinearHover(ref pos);
 
-            ComputeLinearBlockingEndPoint(pTimestep, ref pos);
+            ComputeLinearBlockingEndPoint(ref pos);
 
-            Vector3 limitMotorUpContribution = ComputeLinearMotorUp(pTimestep, pos, terrainHeight);
+            Vector3 limitMotorUpContribution = ComputeLinearMotorUp(pos);
 
             // ==================================================================
             Vector3 newVelocity = linearMotorContribution
@@ -665,42 +694,40 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 newVelocity = Vector3.Zero;
 
             // ==================================================================
-            // Stuff new linear velocity into the vehicle
+            // Stuff new linear velocity into the vehicle.
+            // Since the velocity is just being set, it is not scaled by pTimeStep. Bullet will do that for us.
             Prim.ForceVelocity = newVelocity;
-            // Prim.ApplyForceImpulse((m_newVelocity - Prim.Velocity) * m_vehicleMass, false);    // DEBUG DEBUG
 
             // Other linear forces are applied as forces.
-            Vector3 totalDownForce = grav * m_vehicleMass;
+            Vector3 totalDownForce = grav * m_vehicleMass * pTimestep;
             if (totalDownForce != Vector3.Zero)
             {
                 Prim.AddForce(totalDownForce, false);
             }
 
-            VDetailLog("{0},MoveLinear,done,lmDir={1},lmVel={2},newVel={3},primVel={4},totalDown={5}",
-                                Prim.LocalID, m_linearMotorDirection, m_lastLinearVelocityVector,
-                                newVelocity, Prim.Velocity, totalDownForce);
+            VDetailLog("{0},MoveLinear,done,newVel={1},totDown={2},linContrib={3},terrContrib={4},hoverContrib={5},limitContrib={6}",
+                                Prim.LocalID, newVelocity, totalDownForce,
+                                linearMotorContribution, terrainHeightContribution, hoverContribution, limitMotorUpContribution
+            );
 
         } // end MoveLinear()
 
-        public Vector3 ComputeLinearTerrainHeightCorrection(float pTimestep, ref Vector3 pos, float terrainHeight)
+        public Vector3 ComputeLinearTerrainHeightCorrection(ref Vector3 pos)
         {
             Vector3 ret = Vector3.Zero;
             // If below the terrain, move us above the ground a little.
-            // Taking the rotated size doesn't work here because m_prim.Size is the size of the root prim and not the linkset.
-            //     TODO: Add a m_prim.LinkSet.Size similar to m_prim.LinkSet.Mass.
-            // Vector3 rotatedSize = m_prim.Size * m_prim.ForceOrientation;
-            // if (rotatedSize.Z < terrainHeight)
-            if (pos.Z < terrainHeight)
+            // TODO: Consider taking the rotated size of the object or possibly casting a ray.
+            if (pos.Z < GetTerrainHeight(pos))
             {
                 // TODO: correct position by applying force rather than forcing position.
-                pos.Z = terrainHeight + 2;
+                pos.Z = GetTerrainHeight(pos) + 2;
                 Prim.ForcePosition = pos;
-                VDetailLog("{0},MoveLinear,terrainHeight,terrainHeight={1},pos={2}", Prim.LocalID, terrainHeight, pos);
+                VDetailLog("{0},MoveLinear,terrainHeight,terrainHeight={1},pos={2}", Prim.LocalID, GetTerrainHeight(pos), pos);
             }
             return ret;
         }
 
-        public Vector3 ComputeLinearHover(float pTimestep, ref Vector3 pos, float terrainHeight)
+        public Vector3 ComputeLinearHover(ref Vector3 pos)
         {
             Vector3 ret = Vector3.Zero;
 
@@ -711,11 +738,11 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 // We should hover, get the target height
                 if ((m_flags & VehicleFlag.HOVER_WATER_ONLY) != 0)
                 {
-                    m_VhoverTargetHeight = Prim.PhysicsScene.TerrainManager.GetWaterLevelAtXYZ(pos) + m_VhoverHeight;
+                    m_VhoverTargetHeight = GetWaterLevel(pos) + m_VhoverHeight;
                 }
                 if ((m_flags & VehicleFlag.HOVER_TERRAIN_ONLY) != 0)
                 {
-                    m_VhoverTargetHeight = terrainHeight + m_VhoverHeight;
+                    m_VhoverTargetHeight = GetTerrainHeight(pos) + m_VhoverHeight;
                 }
                 if ((m_flags & VehicleFlag.HOVER_GLOBAL_HEIGHT) != 0)
                 {
@@ -739,16 +766,12 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 }
                 else
                 {
-                    float verticalError = pos.Z - m_VhoverTargetHeight;
-                    float verticalCorrectionVelocity = pTimestep * (verticalError / m_VhoverTimescale);
+                    // Error is positive if below the target and negative if above.
+                    float verticalError = m_VhoverTargetHeight - pos.Z;
+                    float verticalCorrectionVelocity = verticalError / m_VhoverTimescale;
 
-                    // TODO: implement m_VhoverEfficiency
-                    if (verticalError > 0.01f)
-                    {
-                        // If error is positive (we're above the target height), push down
-                        ret = new Vector3(0f, 0f, -verticalCorrectionVelocity);
-                    }
-                    else if (verticalError < -0.01)
+                    // TODO: implement m_VhoverEfficiency correctly
+                    if (Math.Abs(verticalError) > m_VhoverEfficiency)
                     {
                         ret = new Vector3(0f, 0f, verticalCorrectionVelocity);
                     }
@@ -761,7 +784,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             return ret;
         }
 
-        public bool ComputeLinearBlockingEndPoint(float pTimestep, ref Vector3 pos)
+        public bool ComputeLinearBlockingEndPoint(ref Vector3 pos)
         {
             bool changed = false;
 
@@ -810,13 +833,14 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         //    VEHICLE_BANKING_TIMESCALE. This is to help prevent ground vehicles from steering
         //    when they are in mid jump. 
         // TODO: this code is wrong. Also, what should it do for boats?
-        public Vector3 ComputeLinearMotorUp(float pTimestep, Vector3 pos, float terrainHeight)
+        public Vector3 ComputeLinearMotorUp(Vector3 pos)
         {
             Vector3 ret = Vector3.Zero;
             if ((m_flags & (VehicleFlag.LIMIT_MOTOR_UP)) != 0)
             {
                 // If the vehicle is motoring into the sky, get it going back down.
-                float distanceAboveGround = pos.Z - terrainHeight;
+                // float distanceAboveGround = pos.Z - Math.Max(GetTerrainHeight(pos), GetWaterLevel(pos));
+                float distanceAboveGround = pos.Z - GetTerrainHeight(pos);
                 if (distanceAboveGround > 1f)
                 {
                     // downForce = new Vector3(0, 0, (-distanceAboveGround / m_bankingTimescale) * pTimestep);
@@ -933,7 +957,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             {
                 m_lastAngularVelocity = Vector3.Zero; // Reduce small value to zero.
                 // TODO: zeroing is good but it also sets values in unmanaged code. Remove the stores when idle.
-                VDetailLog("{0},MoveAngular,zeroAngularMotion,lastAngular={1}", Prim.LocalID, m_lastAngularVelocity);
+                VDetailLog("{0},MoveAngular,done,zero,lastAngular={1}", Prim.LocalID, m_lastAngularVelocity);
                 Prim.ZeroAngularMotion(true);
             }
             else
@@ -948,7 +972,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 // Unscale the force by the angular factor so it overwhelmes the Bullet additions.
                 Prim.ForceRotationalVelocity = applyAngularForce;
 
-                VDetailLog("{0},MoveAngular,done,angMotor={1},vertAttr={2},bank={3},deflect={4},newAngForce={5},lastAngular={6}",
+                VDetailLog("{0},MoveAngular,done,nonZero,angMotor={1},vertAttr={2},bank={3},deflect={4},newAngForce={5},lastAngular={6}",
                                     Prim.LocalID,
                                     angularMotorContribution, verticalAttractionContribution,
                                     bankingContribution, deflectionContribution,
