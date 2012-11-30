@@ -742,22 +742,22 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 else
                 {
                     float verticalError = pos.Z - m_VhoverTargetHeight;
-                    // RA: where does the 50 come from?
-                    float verticalCorrectionVelocity = pTimestep * ((verticalError * 50.0f) / m_VhoverTimescale);
-                    // Replace Vertical speed with correction figure if significant
+                    float verticalCorrectionVelocity = pTimestep * (verticalError / m_VhoverTimescale);
+
+                    // TODO: implement m_VhoverEfficiency
                     if (verticalError > 0.01f)
                     {
-                        ret = new Vector3(0f, 0f, verticalCorrectionVelocity);
-                        //KF: m_VhoverEfficiency is not yet implemented
+                        // If error is positive (we're above the target height), push down
+                        ret = new Vector3(0f, 0f, -verticalCorrectionVelocity);
                     }
                     else if (verticalError < -0.01)
                     {
-                        ret = new Vector3(0f, 0f, -verticalCorrectionVelocity);
+                        ret = new Vector3(0f, 0f, verticalCorrectionVelocity);
                     }
                 }
 
-                VDetailLog("{0},MoveLinear,hover,pos={1},dir={2},height={3},target={4}",
-                                Prim.LocalID, pos, ret, m_VhoverHeight, m_VhoverTargetHeight);
+                VDetailLog("{0},MoveLinear,hover,pos={1},ret={2},hoverTS={3},height={4},target={5}",
+                                Prim.LocalID, pos, ret, m_VhoverTimescale, m_VhoverHeight, m_VhoverTargetHeight);
             }
 
             return ret;

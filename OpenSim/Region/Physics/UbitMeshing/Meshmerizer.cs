@@ -1031,12 +1031,12 @@ namespace OpenSim.Region.Physics.Meshing
 
         public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod)
         {
-            return CreateMesh(primName, primShape, size, lod, false,false,false);
+            return CreateMesh(primName, primShape, size, lod, false,false,false,false);
         }
 
         public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical)
         {
-            return CreateMesh(primName, primShape, size, lod, false,false,false);
+            return CreateMesh(primName, primShape, size, lod, false,false,false,false);
         }
 
         public IMesh GetMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical, bool convex)
@@ -1080,7 +1080,7 @@ namespace OpenSim.Region.Physics.Meshing
 
         private static Vector3 m_MeshUnitSize = new Vector3(1.0f, 1.0f, 1.0f);
         
-        public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical, bool convex, bool forOde)
+        public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical, bool shouldCache, bool convex, bool forOde)
         {
 #if SPAM
             m_log.DebugFormat("[MESH]: Creating mesh for {0}", primName);

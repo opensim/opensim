@@ -702,15 +702,20 @@ namespace OpenSim.Region.Physics.Meshing
 
         public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod)
         {
-            return CreateMesh(primName, primShape, size, lod, false);
+            return CreateMesh(primName, primShape, size, lod, false, true);
         }
 
-        public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical, bool convex, bool forOde)
+        public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical, bool shouldCache, bool convex, bool forOde)
         {
             return CreateMesh(primName, primShape, size, lod, false);
         }
 
         public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical)
+        {
+            return CreateMesh(primName, primShape, size, lod, isPhysical, true);
+        }
+
+        public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical, bool shouldCache)
         {
 #if SPAM
             m_log.DebugFormat("[MESH]: Creating mesh for {0}", primName);
@@ -721,9 +726,12 @@ namespace OpenSim.Region.Physics.Meshing
 
             // If this mesh has been created already, return it instead of creating another copy
             // For large regions with 100k+ prims and hundreds of copies of each, this can save a GB or more of memory
-            key = primShape.GetMeshKey(size, lod);
-            if (m_uniqueMeshes.TryGetValue(key, out mesh))
-                return mesh;
+            if (shouldCache)
+            {
+                key = primShape.GetMeshKey(size, lod);
+                if (m_uniqueMeshes.TryGetValue(key, out mesh))
+                    return mesh;
+            }
 
             if (size.X < 0.01f) size.X = 0.01f;
             if (size.Y < 0.01f) size.Y = 0.01f;
@@ -746,7 +754,10 @@ namespace OpenSim.Region.Physics.Meshing
                 // trim the vertex and triangle lists to free up memory
                 mesh.TrimExcess();
 
-                m_uniqueMeshes.Add(key, mesh);
+                if (shouldCache)
+                {
+                    m_uniqueMeshes.Add(key, mesh);
+                }
             }
 
             return mesh;

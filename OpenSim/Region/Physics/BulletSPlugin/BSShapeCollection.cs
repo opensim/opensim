@@ -620,8 +620,7 @@ public sealed class BSShapeCollection : IDisposable
         }
         else
         {
-            // Pass false for physicalness as this creates some sort of bounding box which we don't need
-            meshData = PhysicsScene.mesher.CreateMesh(objName, pbs, size, lod, false);
+            meshData = PhysicsScene.mesher.CreateMesh(objName, pbs, size, lod, true, false, false, false);
 
             if (meshData != null)
             {
@@ -694,8 +693,8 @@ public sealed class BSShapeCollection : IDisposable
         else
         {
             // Build a new hull in the physical world
-            // Pass false for physicalness as this creates some sort of bounding box which we don't need
-            IMesh meshData = PhysicsScene.mesher.CreateMesh(objName, pbs, size, lod, false);
+            // Pass true for physicalness as this creates some sort of bounding box which we don't need
+            IMesh meshData = PhysicsScene.mesher.CreateMesh(objName, pbs, size, lod, true, false, false, false);
             if (meshData != null)
             {
 
