@@ -62,7 +62,8 @@ public abstract class BSTerrainPhys : IDisposable
         ID = id;
     }
     public abstract void Dispose();
-    public abstract float GetHeightAtXYZ(Vector3 pos);
+    public abstract float GetTerrainHeightAtXYZ(Vector3 pos);
+    public abstract float GetWaterLevelAtXYZ(Vector3 pos);
 }
 
 // ==========================================================================================
@@ -75,12 +76,11 @@ public sealed class BSTerrainManager
     public const float HEIGHT_INITIALIZATION = 24.987f;
     public const float HEIGHT_INITIAL_LASTHEIGHT = 24.876f;
     public const float HEIGHT_GETHEIGHT_RET = 24.765f;
+    public const float WATER_HEIGHT_GETHEIGHT_RET = 19.998f;
 
     // If the min and max height are equal, we reduce the min by this
     //    amount to make sure that a bounding box is built for the terrain.
     public const float HEIGHT_EQUAL_FUDGE = 0.2f;
-
-    public const float TERRAIN_COLLISION_MARGIN = 0.0f;
 
     // Until the whole simulator is changed to pass us the region size, we rely on constants.
     public Vector3 DefaultRegionSize = new Vector3(Constants.RegionSize, Constants.RegionSize, Constants.RegionHeight);
@@ -129,7 +129,8 @@ public sealed class BSTerrainManager
     {
         // The ground plane is here to catch things that are trying to drop to negative infinity
         BulletShape groundPlaneShape = new BulletShape(
-                    BulletSimAPI.CreateGroundPlaneShape2(BSScene.GROUNDPLANE_ID, 1f, TERRAIN_COLLISION_MARGIN),
+                    BulletSimAPI.CreateGroundPlaneShape2(BSScene.GROUNDPLANE_ID, 1f, 
+                                    PhysicsScene.Params.terrainCollisionMargin),
                     BSPhysicsShapeType.SHAPE_GROUNDPLANE);
         m_groundPlane = new BulletBody(BSScene.GROUNDPLANE_ID,
                         BulletSimAPI.CreateBodyWithDefaultMotionState2(groundPlaneShape.ptr, BSScene.GROUNDPLANE_ID,
@@ -165,17 +166,22 @@ public sealed class BSTerrainManager
     // Release all the terrain we have allocated
     public void ReleaseTerrain()
     {
-        foreach (KeyValuePair<Vector3, BSTerrainPhys> kvp in m_terrains)
+        lock (m_terrains)
         {
-            kvp.Value.Dispose();
+            foreach (KeyValuePair<Vector3, BSTerrainPhys> kvp in m_terrains)
+            {
+                kvp.Value.Dispose();
+            }
+            m_terrains.Clear();
         }
-        m_terrains.Clear();
     }
 
     // The simulator wants to set a new heightmap for the terrain.
     public void SetTerrain(float[] heightMap) {
         float[] localHeightMap = heightMap;
-        PhysicsScene.TaintedObject("TerrainManager.SetTerrain", delegate()
+        // If there are multiple requests for changes to the same terrain between ticks,
+        //      only do that last one.
+        PhysicsScene.PostTaintObject("TerrainManager.SetTerrain-"+ m_worldOffset.ToString(), 0, delegate()
         {
             if (m_worldOffset != Vector3.Zero && MegaRegionParentPhysicsScene != null)
             {
@@ -211,6 +217,7 @@ public sealed class BSTerrainManager
     //     terrain shape is created and added to the body.
     //     This call is most often used to update the heightMap and parameters of the terrain.
     // (The above does suggest that some simplification/refactoring is in order.)
+    // Called during taint-time.
     private void UpdateTerrain(uint id, float[] heightMap, 
                             Vector3 minCoords, Vector3 maxCoords, bool inTaintTime)
     {
@@ -220,7 +227,7 @@ public sealed class BSTerrainManager
         // Find high and low points of passed heightmap.
         // The min and max passed in is usually the area objects can be in (maximum
         //     object height, for instance). The terrain wants the bounding box for the
-        //     terrain so we replace passed min and max Z with the actual terrain min/max Z.
+        //     terrain so replace passed min and max Z with the actual terrain min/max Z.
         float minZ = float.MaxValue;
         float maxZ = float.MinValue;
         foreach (float height in heightMap)
@@ -238,15 +245,15 @@ public sealed class BSTerrainManager
 
         Vector3 terrainRegionBase = new Vector3(minCoords.X, minCoords.Y, 0f);
 
-        BSTerrainPhys terrainPhys;
-        if (m_terrains.TryGetValue(terrainRegionBase, out terrainPhys))
+        lock (m_terrains)
         {
-            // There is already a terrain in this spot. Free the old and build the new.
-            DetailLog("{0},UpdateTerrain:UpdateExisting,call,id={1},base={2},minC={3},maxC={4}",
-                            BSScene.DetailLogZero, id, terrainRegionBase, minCoords, minCoords);
-
-            PhysicsScene.TaintedObject(inTaintTime, "BSScene.UpdateTerrain:UpdateExisting", delegate()
+            BSTerrainPhys terrainPhys;
+            if (m_terrains.TryGetValue(terrainRegionBase, out terrainPhys))
             {
+                // There is already a terrain in this spot. Free the old and build the new.
+                DetailLog("{0},UpdateTerrain:UpdateExisting,call,id={1},base={2},minC={3},maxC={4}",
+                                BSScene.DetailLogZero, id, terrainRegionBase, minCoords, minCoords);
+
                 // Remove old terrain from the collection
                 m_terrains.Remove(terrainRegionBase);
                 // Release any physical memory it may be using.
@@ -271,35 +278,24 @@ public sealed class BSTerrainManager
                     // I hate doing this, but just bail
                     return;
                 }
-            });
-        }
-        else
-        {
-            // We don't know about this terrain so either we are creating a new terrain or
-            //    our mega-prim child is giving us a new terrain to add to the phys world
-
-            // if this is a child terrain, calculate a unique terrain id
-            uint newTerrainID = id;
-            if (newTerrainID >= BSScene.CHILDTERRAIN_ID)
-                newTerrainID = ++m_terrainCount;
-
-            float[] heightMapX = heightMap;
-            Vector3 minCoordsX = minCoords;
-            Vector3 maxCoordsX = maxCoords;
-
-            DetailLog("{0},UpdateTerrain:NewTerrain,call,id={1}, minC={2}, maxC={3}",
-                            BSScene.DetailLogZero, newTerrainID, minCoords, minCoords);
-
-            // Code that must happen at taint-time
-            PhysicsScene.TaintedObject(inTaintTime, "BSScene.UpdateTerrain:NewTerrain", delegate()
+            }
+            else
             {
-                DetailLog("{0},UpdateTerrain:NewTerrain,taint,baseX={1},baseY={2}", 
-                                            BSScene.DetailLogZero, minCoordsX.X, minCoordsX.Y);
+                // We don't know about this terrain so either we are creating a new terrain or
+                //    our mega-prim child is giving us a new terrain to add to the phys world
+
+                // if this is a child terrain, calculate a unique terrain id
+                uint newTerrainID = id;
+                if (newTerrainID >= BSScene.CHILDTERRAIN_ID)
+                    newTerrainID = ++m_terrainCount;
+
+                DetailLog("{0},UpdateTerrain:NewTerrain,taint,newID={1},minCoord={2},maxCoord={3}",
+                                            BSScene.DetailLogZero, newTerrainID, minCoords, minCoords);
                 BSTerrainPhys newTerrainPhys = BuildPhysicalTerrain(terrainRegionBase, id, heightMap, minCoords, maxCoords);
                 m_terrains.Add(terrainRegionBase, newTerrainPhys);
 
                 m_terrainModified = true;
-            });
+            }
         }
     }
 
@@ -349,6 +345,7 @@ public sealed class BSTerrainManager
         //    with the same parameters as last time.
         if (!m_terrainModified && lastHeightTX == tX && lastHeightTY == tY)
             return lastHeight;
+        m_terrainModified = false;
 
         lastHeightTX = tX;
         lastHeightTY = tY;
@@ -358,20 +355,47 @@ public sealed class BSTerrainManager
         int offsetY = ((int)(tY / (int)DefaultRegionSize.Y)) * (int)DefaultRegionSize.Y;
         Vector3 terrainBaseXYZ = new Vector3(offsetX, offsetY, 0f);
 
-        BSTerrainPhys physTerrain;
-        if (m_terrains.TryGetValue(terrainBaseXYZ, out physTerrain))
+        lock (m_terrains)
         {
-            ret = physTerrain.GetHeightAtXYZ(loc - terrainBaseXYZ);
-            DetailLog("{0},BSTerrainManager.GetTerrainHeightAtXYZ,loc={1},base={2},height={3}",
-                                             BSScene.DetailLogZero, loc, terrainBaseXYZ, ret);
+            BSTerrainPhys physTerrain;
+            if (m_terrains.TryGetValue(terrainBaseXYZ, out physTerrain))
+            {
+                ret = physTerrain.GetTerrainHeightAtXYZ(loc - terrainBaseXYZ);
+            }
+            else
+            {
+                PhysicsScene.Logger.ErrorFormat("{0} GetTerrainHeightAtXY: terrain not found: region={1}, x={2}, y={3}",
+                        LogHeader, PhysicsScene.RegionName, tX, tY);
+            }
         }
-        else
-        {
-            PhysicsScene.Logger.ErrorFormat("{0} GetTerrainHeightAtXY: terrain not found: region={1}, x={2}, y={3}",
-                    LogHeader, PhysicsScene.RegionName, tX, tY);
-        }
-        m_terrainModified = false;
         lastHeight = ret;
+        return ret;
+    }
+
+    public float GetWaterLevelAtXYZ(Vector3 pos)
+    {
+        float ret = WATER_HEIGHT_GETHEIGHT_RET;
+
+        float tX = pos.X;
+        float tY = pos.Y;
+
+        Vector3 terrainBaseXYZ = Vector3.Zero;
+        terrainBaseXYZ.X = ((int)(tX / (int)DefaultRegionSize.X)) * (int)DefaultRegionSize.X;
+        terrainBaseXYZ.Y = ((int)(tY / (int)DefaultRegionSize.Y)) * (int)DefaultRegionSize.Y;
+
+        lock (m_terrains)
+        {
+            BSTerrainPhys physTerrain;
+            if (m_terrains.TryGetValue(terrainBaseXYZ, out physTerrain))
+            {
+                ret = physTerrain.GetWaterLevelAtXYZ(pos);
+            }
+            else
+            {
+                PhysicsScene.Logger.ErrorFormat("{0} GetWaterHeightAtXY: terrain not found: region={1}, x={2}, y={3}",
+                        LogHeader, PhysicsScene.RegionName, tX, tY);
+            }
+        }
         return ret;
     }
 

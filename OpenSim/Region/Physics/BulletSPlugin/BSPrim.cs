@@ -253,8 +253,9 @@ public sealed class BSPrim : BSPhysObject
         // Zero some other properties in the physics engine
         PhysicsScene.TaintedObject(inTaintTime, "BSPrim.ZeroMotion", delegate()
         {
-            BulletSimAPI.SetInterpolationAngularVelocity2(PhysBody.ptr, OMV.Vector3.Zero);
-            BulletSimAPI.SetAngularVelocity2(PhysBody.ptr, OMV.Vector3.Zero);
+            // DetailLog("{0},BSPrim.ZeroAngularMotion,call,rotVel={1}", LocalID, _rotationalVelocity);
+            BulletSimAPI.SetInterpolationAngularVelocity2(PhysBody.ptr, _rotationalVelocity);
+            BulletSimAPI.SetAngularVelocity2(PhysBody.ptr, _rotationalVelocity);
         });
     }
 
@@ -329,7 +330,7 @@ public sealed class BSPrim : BSPhysObject
 
         if ((CurrentCollisionFlags & CollisionFlags.BS_FLOATS_ON_WATER) != 0)
         {
-            float waterHeight = PhysicsScene.GetWaterLevelAtXYZ(_position);
+            float waterHeight = PhysicsScene.TerrainManager.GetWaterLevelAtXYZ(_position);
             // TODO: a floating motor so object will bob in the water
             if (Math.Abs(Position.Z - waterHeight) > 0.1f)
             {
@@ -342,13 +343,12 @@ public sealed class BSPrim : BSPhysObject
         // TODO: check for out of bounds
 
         // The above code computes a force to apply to correct any out-of-bounds problems. Apply same.
+        // TODO: This should be intergrated with a geneal physics action mechanism.
+        // TODO: This should be moderated with PID'ness.
         if (ret)
         {
-            PhysicsScene.TaintedObject(inTaintTime, "BSPrim.PositionSanityCheck:belowTerrain", delegate()
-            {
-                // Apply upforce and overcome gravity.
-                ForceVelocity = ForceVelocity + upForce - PhysicsScene.DefaultGravity;
-            });
+            // Apply upforce and overcome gravity.
+            AddForce(upForce - PhysicsScene.DefaultGravity, false, inTaintTime);
         }
         return ret;
     }
@@ -1381,54 +1381,16 @@ public sealed class BSPrim : BSPhysObject
 
     public override void UpdateProperties(EntityProperties entprop)
     {
-        /*
-        UpdatedProperties changed = 0;
-        // assign to the local variables so the normal set action does not happen
-        // if (_position != entprop.Position)
-        if (!_position.ApproxEquals(entprop.Position, POSITION_TOLERANCE))
-        {
-            _position = entprop.Position;
-            changed |= UpdatedProperties.Position;
-        }
-        // if (_orientation != entprop.Rotation)
-        if (!_orientation.ApproxEquals(entprop.Rotation, ROTATION_TOLERANCE))
-        {
-            _orientation = entprop.Rotation;
-            changed |= UpdatedProperties.Rotation;
-        }
-        // if (_velocity != entprop.Velocity)
-        if (!_velocity.ApproxEquals(entprop.Velocity, VELOCITY_TOLERANCE))
-        {
-            _velocity = entprop.Velocity;
-            changed |= UpdatedProperties.Velocity;
-        }
-        // if (_acceleration != entprop.Acceleration)
-        if (!_acceleration.ApproxEquals(entprop.Acceleration, ACCELERATION_TOLERANCE))
-        {
-            _acceleration = entprop.Acceleration;
-            changed |= UpdatedProperties.Acceleration;
-        }
-        // if (_rotationalVelocity != entprop.RotationalVelocity)
-        if (!_rotationalVelocity.ApproxEquals(entprop.RotationalVelocity, ROTATIONAL_VELOCITY_TOLERANCE))
-        {
-            _rotationalVelocity = entprop.RotationalVelocity;
-            changed |= UpdatedProperties.RotationalVel;
-        }
-        if (changed != 0)
-        {
-            // Only update the position of single objects and linkset roots
-            if (Linkset.IsRoot(this))
-            {
-                base.RequestPhysicsterseUpdate();
-            }
-        }
-        */
-
-        // Don't check for damping here -- it's done in BulletSim and SceneObjectPart.
-
         // Updates only for individual prims and for the root object of a linkset.
         if (Linkset.IsRoot(this))
         {
+            // A temporary kludge to suppress the rotational effects introduced on vehicles by Bullet
+            // TODO: handle physics introduced by Bullet with computed vehicle physics.
+            if (_vehicle.IsActive)
+            {
+                entprop.RotationalVelocity = OMV.Vector3.Zero;
+            }
+
             // Assign directly to the local variables so the normal set action does not happen
             _position = entprop.Position;
             _orientation = entprop.Rotation;

@@ -321,6 +321,9 @@ namespace OpenSim.Region.Physics.Meshing
 
             if (primShape.SculptData.Length <= 0)
             {
+                // XXX: At the moment we can not log here since ODEPrim, for instance, ends up triggering this
+                // method twice - once before it has loaded sculpt data from the asset service and once afterwards.
+                // The first time will always call with unloaded SculptData if this needs to be uploaded.
 //                m_log.ErrorFormat("[MESH]: asset data for {0} is zero length", primName);
                 return false;
             }

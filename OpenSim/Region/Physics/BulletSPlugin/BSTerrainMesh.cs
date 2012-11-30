@@ -88,9 +88,11 @@ public sealed class BSTerrainMesh : BSTerrainPhys
             // Something is very messed up and a crash is in our future.
             return;
         }
+        PhysicsScene.DetailLog("{0},BSTerrainMesh.create,meshed,indices={1},indSz={2},vertices={3},vertSz={4}", 
+                                ID, indicesCount, indices.Length, verticesCount, vertices.Length);
 
         m_terrainShape = new BulletShape(BulletSimAPI.CreateMeshShape2(PhysicsScene.World.ptr,
-                                        indicesCount, indices, verticesCount, vertices),
+                                                    indicesCount, indices, verticesCount, vertices),
                                         BSPhysicsShapeType.SHAPE_MESH);
         if (m_terrainShape.ptr == IntPtr.Zero)
         {
@@ -122,10 +124,10 @@ public sealed class BSTerrainMesh : BSTerrainPhys
         // Static objects are not very massive.
         BulletSimAPI.SetMassProps2(m_terrainBody.ptr, 0f, Vector3.Zero);
 
-        // Return the new terrain to the world of physical objects
+        // Put the new terrain to the world of physical objects
         BulletSimAPI.AddObjectToWorld2(PhysicsScene.World.ptr, m_terrainBody.ptr);
 
-        // redo its bounding box now that it is in the world
+        // Redo its bounding box now that it is in the world
         BulletSimAPI.UpdateSingleAabb2(PhysicsScene.World.ptr, m_terrainBody.ptr);
 
         BulletSimAPI.SetCollisionFilterMask2(m_terrainBody.ptr,
@@ -146,7 +148,7 @@ public sealed class BSTerrainMesh : BSTerrainPhys
         }
     }
 
-    public override float GetHeightAtXYZ(Vector3 pos)
+    public override float GetTerrainHeightAtXYZ(Vector3 pos)
     {
         // For the moment use the saved heightmap to get the terrain height.
         // TODO: raycast downward to find the true terrain below the position.
@@ -165,6 +167,12 @@ public sealed class BSTerrainMesh : BSTerrainPhys
             ret = BSTerrainManager.HEIGHT_GETHEIGHT_RET;
         }
         return ret;
+    }
+
+    // The passed position is relative to the base of the region.
+    public override float GetWaterLevelAtXYZ(Vector3 pos)
+    {
+        return PhysicsScene.SimpleWaterLevel;
     }
 
     // Convert the passed heightmap to mesh information suitable for CreateMeshShape2().
@@ -188,6 +196,11 @@ public sealed class BSTerrainMesh : BSTerrainPhys
         // Simple mesh creation which assumes magnification == 1.
         // TODO: do a more general solution that scales, adds new vertices and smoothes the result.
 
+        // Create an array of vertices that is sizeX+1 by sizeY+1 (note the loop
+        //    from zero to <= sizeX). The triangle indices are then generated as two triangles
+        //    per heightmap point. There are sizeX by sizeY of these squares. The extra row and
+        //    column of vertices are used to complete the triangles of the last row and column
+        //    of the heightmap.
         try
         {
             // One vertice per heightmap value plus the vertices off the top and bottom edge.
@@ -200,16 +213,18 @@ public sealed class BSTerrainMesh : BSTerrainPhys
             float magY = (float)sizeY / extentY;
             physicsScene.DetailLog("{0},BSTerrainMesh.ConvertHeightMapToMesh,totVert={1},totInd={2},extentBase={3},magX={4},magY={5}",
                                     BSScene.DetailLogZero, totalVertices, totalIndices, extentBase, magX, magY);
+            float minHeight = float.MaxValue;
             // Note that sizeX+1 vertices are created since there is land between this and the next region.
             for (int yy = 0; yy <= sizeY; yy++)
             {
-                for (int xx = 0; xx <= sizeX; xx++)     // Hint: the "<=" means we got through sizeX + 1 times
+                for (int xx = 0; xx <= sizeX; xx++)     // Hint: the "<=" means we go around sizeX + 1 times
                 {
                     int offset = yy * sizeX + xx;
-                    // Extend the height from the height from the last row or column
+                    // Extend the height with the height from the last row or column
                     if (yy == sizeY) offset -= sizeX;
                     if (xx == sizeX) offset -= 1;
                     float height = heightMap[offset];
+                    minHeight = Math.Min(minHeight, height);
                     vertices[verticesCount + 0] = (float)xx * magX + extentBase.X;
                     vertices[verticesCount + 1] = (float)yy * magY + extentBase.Y;
                     vertices[verticesCount + 2] = height + extentBase.Z;
@@ -217,14 +232,12 @@ public sealed class BSTerrainMesh : BSTerrainPhys
                 }
             }
             verticesCount = verticesCount / 3;
-            physicsScene.DetailLog("{0},BSTerrainMesh.ConvertHeightMapToMesh,completeVerts,verCount={1}", 
-                                            BSScene.DetailLogZero, verticesCount);
 
             for (int yy = 0; yy < sizeY; yy++)
             {
                 for (int xx = 0; xx < sizeX; xx++)
                 {
-                    int offset = yy * sizeX + xx;
+                    int offset = yy * (sizeX + 1) + xx;
                     // Each vertices is presumed to be the upper left corner of a box of two triangles
                     indices[indicesCount + 0] = offset;
                     indices[indicesCount + 1] = offset + 1;
@@ -235,8 +248,7 @@ public sealed class BSTerrainMesh : BSTerrainPhys
                     indicesCount += 6;
                 }
             }
-            physicsScene.DetailLog("{0},BSTerrainMesh.ConvertHeightMapToMesh,completeIndices,indCount={1}",   // DEEBUG DEBUG DEBUG
-                                                        LogHeader, indicesCount);                        // DEBUG
+
             ret = true;
         }
         catch (Exception e)
