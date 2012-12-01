@@ -85,8 +85,12 @@ namespace OpenSim.Region.Physics.OdePlugin
         public float PID_D = 800.0f;
         public float PID_P = 900.0f;
         //private static float POSTURE_SERVO = 10000.0f;
+
         public float CAPSULE_RADIUS = 0.37f;
         public float CAPSULE_LENGTH = 2.140599f;
+
+        const float CAP_OFFSET = -.2f;  // compensation of SL size offset plus spheric collision shape bottom
+
         public float walkDivisor = 1.3f;
         public float runDivisor = 0.8f;
         private bool flying = false;
@@ -139,6 +143,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         float mu;
 
+        
+
         public OdeCharacter(String avName, OdeScene parent_scene, Vector3 pos, Vector3 size, float pid_d, float pid_p, float capsule_radius, float density, float walk_divisor, float rundivisor)
         {
             m_uuid = UUID.Random();
@@ -177,7 +183,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             walkDivisor = walk_divisor;
             runDivisor = rundivisor;
 
-            CAPSULE_LENGTH = size.Z * 1.15f - CAPSULE_RADIUS * 2.0f;
+            CAPSULE_LENGTH = size.Z - CAPSULE_RADIUS + CAP_OFFSET;
             //m_log.Info("[SIZE]: " + CAPSULE_LENGTH.ToString());
 
             m_isPhysical = false; // current status: no ODE information exists
@@ -422,7 +428,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             get {
                 float d = CAPSULE_RADIUS * 2;
-                return new Vector3(d, d, (CAPSULE_LENGTH +d)/1.15f); }
+                return new Vector3(d, d, (CAPSULE_LENGTH + CAPSULE_RADIUS - CAP_OFFSET));
+            }
             set
             {
                 if (value.IsFinite())
@@ -837,8 +844,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             // colide with land
             d.AABB aabb;
             d.GeomGetAABB(Shell, out aabb);
-            float chrminZ = aabb.MinZ;
-
+            float chrminZ = aabb.MinZ - 0.04f; // move up a bit
             Vector3 posch = localpos;
 
             float ftmp;
@@ -1224,7 +1230,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 float caplen = Size.Z;
 
-                caplen = caplen * 1.15f - CAPSULE_RADIUS * 2.0f;
+                caplen = caplen - CAPSULE_RADIUS + CAP_OFFSET;
 
                 if (caplen != CAPSULE_LENGTH)
                 {
