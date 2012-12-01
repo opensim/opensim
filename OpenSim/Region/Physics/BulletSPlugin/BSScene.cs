@@ -971,6 +971,8 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     //          Should handle fetching the right type from the ini file and converting it.
     //    -- a delegate for getting the value as a float
     //    -- a delegate for setting the value from a float
+    //    -- an optional delegate to update the value in the world. Most often used to
+    //          push the new value to an in-world object.
     //
     // The single letter parameters for the delegates are:
     //    s = BSScene

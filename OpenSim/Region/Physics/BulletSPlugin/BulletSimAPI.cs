@@ -1007,13 +1007,16 @@ public static extern void DumpRigidBody2(IntPtr sim, IntPtr collisionObject);
 public static extern void DumpCollisionShape2(IntPtr sim, IntPtr collisionShape);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern void DumpMapInfo2(IntPtr sim, IntPtr manInfo);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern void DumpConstraint2(IntPtr sim, IntPtr constrain);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern void DumpAllInfo2(IntPtr sim);
+public static extern void DumpActivationInfo2(IntPtr sim);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern void DumpMapInfo2(IntPtr sim, IntPtr manInfo);
+public static extern void DumpAllInfo2(IntPtr sim);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern void DumpPhysicsStatistics2(IntPtr sim);

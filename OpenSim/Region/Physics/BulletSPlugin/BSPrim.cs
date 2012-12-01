@@ -687,9 +687,9 @@ public sealed class BSPrim : BSPhysObject
             // There can be special things needed for implementing linksets
             Linkset.MakeStatic(this);
             // The activation state is 'disabled' so Bullet will not try to act on it.
-            BulletSimAPI.ForceActivationState2(PhysBody.ptr, ActivationState.DISABLE_SIMULATION);
+            // BulletSimAPI.ForceActivationState2(PhysBody.ptr, ActivationState.DISABLE_SIMULATION);
             // Start it out sleeping and physical actions could wake it up.
-            // BulletSimAPI.ForceActivationState2(BSBody.ptr, ActivationState.ISLAND_SLEEPING);
+            BulletSimAPI.ForceActivationState2(PhysBody.ptr, ActivationState.ISLAND_SLEEPING);
 
             PhysBody.collisionFilter = CollisionFilterGroups.StaticObjectFilter;
             PhysBody.collisionMask = CollisionFilterGroups.StaticObjectMask;

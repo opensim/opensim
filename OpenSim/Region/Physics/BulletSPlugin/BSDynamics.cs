@@ -623,7 +623,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         {
             if (!IsActive) return;
 
-            // zap values so they will be fetched when needed
+            // Zap values so they will be fetched if needed
             m_knownTerrainHeight = m_knownWaterLevel = float.MinValue;
 
             MoveLinear(pTimestep);
@@ -634,8 +634,8 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             // remember the position so next step we can limit absolute movement effects
             m_lastPositionVector = Prim.ForcePosition;
 
-            // Force the physics engine to decide whether values have updated.
-            // TODO: this is only necessary if pos, velocity, ... were updated. Is it quicker
+            // Force the physics engine to decide whether values were updated.
+            // TODO: this is only necessary if pos, velocity, etc were updated. Is it quicker
             //      to check for changes here or just push the update?
             BulletSimAPI.PushUpdate2(Prim.PhysBody.ptr);
 
@@ -643,13 +643,13 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     Prim.LocalID, Prim.ForcePosition, Prim.Force, Prim.ForceVelocity, Prim.RotationalVelocity);
         }
 
-        // Apply the effect of the linear motor.
-        // Also does hover and float.
+        // Apply the effect of the linear motor and other linear motions (like hover and float).
         private void MoveLinear(float pTimestep)
         {
             Vector3 linearMotorContribution = m_linearMotor.Step(pTimestep);
 
-            // Rotate new object velocity from vehicle relative to world coordinates
+            // The movement computed in the linear motor is relative to the vehicle
+            //     coordinates. Rotate the movement to world coordinates.
             linearMotorContribution *= Prim.ForceOrientation;
 
             // ==================================================================
