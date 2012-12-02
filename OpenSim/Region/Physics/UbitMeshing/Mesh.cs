@@ -205,11 +205,27 @@ namespace OpenSim.Region.Physics.Meshing
 
         }
 
+        private float fRound(float f)
+        {
+            int i = (int)(1e5f * f +0.5f);
+            return ((float)i * 1e-5f);
+        }
 
         public void Add(Triangle triangle)
         {
             if (m_indicesPtr != IntPtr.Zero || m_verticesPtr != IntPtr.Zero)
                 throw new NotSupportedException("Attempt to Add to a pinned Mesh");
+
+            // round down
+            triangle.v1.X = fRound(triangle.v1.X);
+            triangle.v1.Y = fRound(triangle.v1.Y);
+            triangle.v1.Z = fRound(triangle.v1.Z);
+            triangle.v2.X = fRound(triangle.v2.X);
+            triangle.v2.Y = fRound(triangle.v2.Y);
+            triangle.v2.Z = fRound(triangle.v2.Z);
+            triangle.v3.X = fRound(triangle.v3.X);
+            triangle.v3.Y = fRound(triangle.v3.Y);
+            triangle.v3.Z = fRound(triangle.v3.Z);
 
             if ((triangle.v1.X == triangle.v2.X && triangle.v1.Y == triangle.v2.Y && triangle.v1.Z == triangle.v2.Z)
                 || (triangle.v1.X == triangle.v3.X && triangle.v1.Y == triangle.v3.Y && triangle.v1.Z == triangle.v3.Z)
