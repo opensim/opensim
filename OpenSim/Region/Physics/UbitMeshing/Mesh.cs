@@ -207,7 +207,14 @@ namespace OpenSim.Region.Physics.Meshing
 
         private float fRound(float f)
         {
-            int i = (int)(1e5f * f +0.5f);
+            int i;
+            if (f == 0f)
+                return f;
+            else if (f > 0f)
+                i = (int)(1e5f * f + 0.5f);
+            else
+                i = (int)(1e5f * f - 0.5f);
+
             return ((float)i * 1e-5f);
         }
 
