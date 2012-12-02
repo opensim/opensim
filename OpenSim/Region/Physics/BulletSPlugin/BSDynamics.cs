@@ -800,7 +800,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 Prim.AddForce(totalDownForce, false);
             }
 
-            VDetailLog("{0},MoveLinear,done,newVel={1},totDown={2},linContrib={3},terrContrib={4},hoverContrib={5},limitContrib={6}",
+            VDetailLog("{0},  MoveLinear,done,newVel={1},totDown={2},linContrib={3},terrContrib={4},hoverContrib={5},limitContrib={6}",
                                 Prim.LocalID, newVelocity, totalDownForce,
                                 linearMotorContribution, terrainHeightContribution, hoverContribution, limitMotorUpContribution
             );
@@ -817,7 +817,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 // TODO: correct position by applying force rather than forcing position.
                 pos.Z = GetTerrainHeight(pos) + 2;
                 VehiclePosition = pos;
-                VDetailLog("{0},MoveLinear,terrainHeight,terrainHeight={1},pos={2}", Prim.LocalID, GetTerrainHeight(pos), pos);
+                VDetailLog("{0},  MoveLinear,terrainHeight,terrainHeight={1},pos={2}", Prim.LocalID, GetTerrainHeight(pos), pos);
             }
             return ret;
         }
@@ -872,7 +872,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     }
                 }
 
-                VDetailLog("{0},MoveLinear,hover,pos={1},ret={2},hoverTS={3},height={4},target={5}",
+                VDetailLog("{0},  MoveLinear,hover,pos={1},ret={2},hoverTS={3},height={4},target={5}",
                                 Prim.LocalID, pos, ret, m_VhoverTimescale, m_VhoverHeight, m_VhoverTargetHeight);
             }
 
@@ -914,7 +914,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 if (changed)
                 {
                     VehiclePosition = pos;
-                    VDetailLog("{0},MoveLinear,blockingEndPoint,block={1},origPos={2},pos={3}",
+                    VDetailLog("{0},  MoveLinear,blockingEndPoint,block={1},origPos={2},pos={3}",
                                 Prim.LocalID, m_BlockingEndPoint, posChange, pos);
                 }
             }
@@ -947,7 +947,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 //     has a decay factor. This says this force should
                 //     be computed with a motor.
                 // TODO: add interaction with banking.
-                VDetailLog("{0},MoveLinear,limitMotorUp,distAbove={1},downForce={2}",
+                VDetailLog("{0},  MoveLinear,limitMotorUp,distAbove={1},downForce={2}",
                                     Prim.LocalID, distanceAboveGround, ret);
             }
             return ret;
@@ -977,7 +977,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 // decay requested direction
                 m_angularMotorDirection *= (1.0f - (pTimestep * 1.0f/m_angularMotorDecayTimescale));
 
-                VDetailLog("{0},MoveAngular,angularMotorApply,angTScale={1},timeStep={2},origvel={3},origDir={4},vel={5}",
+                VDetailLog("{0},  MoveAngular,angularMotorApply,angTScale={1},timeStep={2},origvel={3},origDir={4},vel={5}",
                         Prim.LocalID, m_angularMotorTimescale, pTimestep, origVel, origDir, m_angularMotorVelocity);
             }
             else
@@ -998,7 +998,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             {
                 angularMotorContribution.X = 0f;
                 angularMotorContribution.Y = 0f;
-                VDetailLog("{0},MoveAngular,noDeflectionUp,angularMotorContrib={1}", Prim.LocalID, angularMotorContribution);
+                VDetailLog("{0},  MoveAngular,noDeflectionUp,angularMotorContrib={1}", Prim.LocalID, angularMotorContribution);
             }
 
             Vector3 verticalAttractionContribution = ComputeAngularVerticalAttraction(pTimestep);
@@ -1044,7 +1044,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     torqueFromOffset.Z = 0;
                 torqueFromOffset *= m_vehicleMass;
                 Prim.ApplyTorqueImpulse(torqueFromOffset, true);
-                VDetailLog("{0},BSDynamic.MoveAngular,motorOffset,applyTorqueImpulse={1}", Prim.LocalID, torqueFromOffset);
+                VDetailLog("{0},  BSDynamic.MoveAngular,motorOffset,applyTorqueImpulse={1}", Prim.LocalID, torqueFromOffset);
             }
 
             // ==================================================================
@@ -1052,7 +1052,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             {
                 m_lastAngularVelocity = Vector3.Zero; // Reduce small value to zero.
                 // TODO: zeroing is good but it also sets values in unmanaged code. Remove the stores when idle.
-                VDetailLog("{0},MoveAngular,done,zero,lastAngular={1}", Prim.LocalID, m_lastAngularVelocity);
+                VDetailLog("{0},  MoveAngular,done,zero,lastAngular={1}", Prim.LocalID, m_lastAngularVelocity);
                 VehicleRotationalVelocity = Vector3.Zero;
                 Prim.ZeroAngularMotion(true);
             }
@@ -1067,7 +1067,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 // Unscale the force by the angular factor so it overwhelmes the Bullet additions.
                 VehicleRotationalVelocity = applyAngularForce;
 
-                VDetailLog("{0},MoveAngular,done,nonZero,angMotor={1},vertAttr={2},bank={3},deflect={4},newAngForce={5},lastAngular={6}",
+                VDetailLog("{0},  MoveAngular,done,nonZero,angMotor={1},vertAttr={2},bank={3},deflect={4},newAngForce={5},lastAngular={6}",
                                     Prim.LocalID,
                                     angularMotorContribution, verticalAttractionContribution,
                                     bankingContribution, deflectionContribution,
@@ -1122,7 +1122,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 float efficencySquared = m_verticalAttractionEfficiency * m_verticalAttractionEfficiency;
                 verticalAttractionContribution *= (m_verticalAttractionEfficiency * m_verticalAttractionEfficiency);
 
-                VDetailLog("{0},MoveAngular,verticalAttraction,,verticalError={1},unscaled={2},preEff={3},eff={4},effSq={5},vertAttr={6}",
+                VDetailLog("{0},  MoveAngular,verticalAttraction,,verticalError={1},unscaled={2},preEff={3},eff={4},effSq={5},vertAttr={6}",
                                             Prim.LocalID, verticalError, unscaledContrib, preEfficiencyContrib,
                                             m_verticalAttractionEfficiency, efficencySquared,
                                             verticalAttractionContribution);
@@ -1148,7 +1148,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 // Scale by efficiency and timescale
                 ret = (preferredAxisOfMotion * (m_angularDeflectionEfficiency) / m_angularDeflectionTimescale) * pTimestep;
 
-                VDetailLog("{0},MoveAngular,Deflection,perfAxis={1},deflection={2}", Prim.LocalID, preferredAxisOfMotion, ret);
+                VDetailLog("{0},  MoveAngular,Deflection,perfAxis={1},deflection={2}", Prim.LocalID, preferredAxisOfMotion, ret);
 
                 // This deflection computation is not correct.
                 ret = Vector3.Zero;
@@ -1210,7 +1210,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     ret += bankingRot;
                 }
                 m_angularMotorVelocity.X *= m_bankingEfficiency == 1 ? 0.0f : 1 - m_bankingEfficiency;
-                VDetailLog("{0},MoveAngular,Banking,bEff={1},angMotVel={2},effSq={3},mult={4},mix={5},banking={6}",
+                VDetailLog("{0},  MoveAngular,Banking,bEff={1},angMotVel={2},effSq={3},mult={4},mix={5},banking={6}",
                                 Prim.LocalID, m_bankingEfficiency, m_angularMotorVelocity, effSquared, mult, mix, ret);
             }
             return ret;
@@ -1252,7 +1252,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             if (rotq != m_rot)
             {
                 VehicleOrientation = m_rot;
-                VDetailLog("{0},LimitRotation,done,orig={1},new={2}", Prim.LocalID, rotq, m_rot);
+                VDetailLog("{0},  LimitRotation,done,orig={1},new={2}", Prim.LocalID, rotq, m_rot);
             }
 
         }

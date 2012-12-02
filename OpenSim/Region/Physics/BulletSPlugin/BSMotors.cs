@@ -143,12 +143,12 @@ public class BSVMotor : BSMotor
                 CurrentValue *= (Vector3.One - frictionFactor);
             }
 
-            MDetailLog("{0},BSVMotor.Step,nonZero,{1},origCurr={2},origTarget={3},timeStep={4},timeScale={5},addAmnt={6},targetDecay={7},decayFact={8},fricTS={9},frictFact={10}",
+            MDetailLog("{0},  BSVMotor.Step,nonZero,{1},origCurr={2},origTarget={3},timeStep={4},timeScale={5},addAmnt={6},targetDecay={7},decayFact={8},fricTS={9},frictFact={10}",
                                 BSScene.DetailLogZero, UseName, origCurrVal, origTarget,
                                 timeStep, TimeScale, addAmount,
                                 TargetValueDecayTimeScale, decayFactor,
                                 FrictionTimescale, frictionFactor);
-            MDetailLog("{0},BSVMotor.Step,nonZero,{1},curr={2},target={3},add={4},decay={5},frict={6},ret={7}",
+            MDetailLog("{0},  BSVMotor.Step,nonZero,{1},curr={2},target={3},add={4},decay={5},frict={6},ret={7}",
                                     BSScene.DetailLogZero, UseName, CurrentValue, TargetValue,
                                     addAmount, decayFactor, frictionFactor, returnCurrent);
         }
@@ -158,7 +158,7 @@ public class BSVMotor : BSMotor
             CurrentValue = Vector3.Zero;
             TargetValue = Vector3.Zero;
 
-            MDetailLog("{0},BSVMotor.Step,zero,{1},curr={2},target={3},ret={4}",
+            MDetailLog("{0},  BSVMotor.Step,zero,{1},curr={2},target={3},ret={4}",
                                     BSScene.DetailLogZero, UseName, TargetValue, CurrentValue, returnCurrent);
 
         }
