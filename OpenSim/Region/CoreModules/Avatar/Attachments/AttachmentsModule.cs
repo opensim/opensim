@@ -286,6 +286,20 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         
         public bool AttachObject(IScenePresence sp, SceneObjectGroup group, uint attachmentPt, bool silent, bool useAttachData, bool temp)
         {
+            if (!Enabled)
+                return false;
+
+            if (AttachObjectInternal(sp, group, attachmentPt, silent, useAttachData, temp))
+            {
+                m_scene.EventManager.TriggerOnAttach(group.LocalId, group.FromItemID, sp.UUID);
+                return true;
+            }
+
+            return false;
+        }
+        
+        private bool AttachObjectInternal(IScenePresence sp, SceneObjectGroup group, uint attachmentPt, bool silent, bool useAttachData, bool temp)
+        {
             lock (sp.AttachmentsSyncLock)
             {
 //                m_log.DebugFormat(
@@ -461,6 +475,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
         public void DetachSingleAttachmentToGround(IScenePresence sp, uint soLocalId)
         {
+            DetachSingleAttachmentToGround(sp, soLocalId, sp.AbsolutePosition, Quaternion.Identity);
+        }
+
+        public void DetachSingleAttachmentToGround(IScenePresence sp, uint soLocalId, Vector3 absolutePos, Quaternion absoluteRot)
+        {
             if (!Enabled)
                 return;
 
@@ -502,7 +521,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 so.FromItemID = UUID.Zero;
 
                 SceneObjectPart rootPart = so.RootPart;
-                so.AbsolutePosition = sp.AbsolutePosition;
+                so.AbsolutePosition = absolutePos;
+                if (absoluteRot != Quaternion.Identity)
+                {
+                    so.UpdateGroupRotationR(absoluteRot);
+                }
                 so.AttachedAvatar = UUID.Zero;
                 rootPart.SetParentLocalId(0);
                 so.ClearPartAttachmentData();
@@ -616,9 +639,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             if (grp.HasGroupChanged)
             {
-//                m_log.DebugFormat(
-//                    "[ATTACHMENTS MODULE]: Updating asset for attachment {0}, attachpoint {1}",
-//                    grp.UUID, grp.AttachmentPoint);
+                m_log.DebugFormat(
+                    "[ATTACHMENTS MODULE]: Updating asset for attachment {0}, attachpoint {1}",
+                    grp.UUID, grp.AttachmentPoint);
 
                 string sceneObjectXml = SceneObjectSerializer.ToOriginalXmlFormat(grp, scriptedState);
 
@@ -862,7 +885,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     // This will throw if the attachment fails
                     try
                     {
-                        AttachObject(sp, objatt, attachmentPt, false, false, false);
+                        AttachObjectInternal(sp, objatt, attachmentPt, false, false, false);
                     }
                     catch (Exception e)
                     {
@@ -933,6 +956,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             InventoryItemBase item = new InventoryItemBase(itemID, sp.UUID);
             item = m_scene.InventoryService.GetItem(item);
+            if (item == null)
+                return;
+
             bool changed = sp.Appearance.SetAttachment((int)AttachmentPt, itemID, item.AssetID);
             if (changed && m_scene.AvatarFactory != null)
             {

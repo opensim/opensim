@@ -58,6 +58,8 @@ namespace OpenSim.Services.HypergridService
 
         private UserAccountCache m_Cache;
 
+        private AssetPermissions m_AssetPerms;
+
         public HGAssetService(IConfigSource config, string configName) : base(config, configName)
         {
             m_log.Debug("[HGAsset Service]: Starting");
@@ -80,6 +82,10 @@ namespace OpenSim.Services.HypergridService
             m_HomeURL = assetConfig.GetString("HomeURI", m_HomeURL);
 
             m_Cache = UserAccountCache.CreateUserAccountCache(m_UserAccountService);
+
+            // Permissions
+            m_AssetPerms = new AssetPermissions(assetConfig);
+
         }
 
         #region IAssetService overrides
@@ -88,6 +94,9 @@ namespace OpenSim.Services.HypergridService
             AssetBase asset = base.Get(id);
 
             if (asset == null)
+                return null;
+
+            if (!m_AssetPerms.AllowedExport(asset.Type))
                 return null;
 
             if (asset.Metadata.Type == (sbyte)AssetType.Object)
@@ -112,15 +121,26 @@ namespace OpenSim.Services.HypergridService
 
         public override byte[] GetData(string id)
         {
-            byte[] data = base.GetData(id);
+            AssetBase asset = Get(id);
 
-            if (data == null)
+            if (asset == null)
                 return null;
 
-            return AdjustIdentifiers(data);
+            if (!m_AssetPerms.AllowedExport(asset.Type))
+                return null;
+
+            return asset.Data;
         }
 
         //public virtual bool Get(string id, Object sender, AssetRetrieved handler)
+
+        public override string Store(AssetBase asset)
+        {
+            if (!m_AssetPerms.AllowedImport(asset.Type))
+                return string.Empty;
+
+            return base.Store(asset);
+        }
 
         public override bool Delete(string id)
         {

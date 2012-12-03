@@ -40,6 +40,7 @@ using OpenSim.Region.CoreModules.World.Wind;
 
 namespace OpenSim.Region.CoreModules
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "WindModule")]
     public class WindModule : IWindModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -52,31 +53,31 @@ namespace OpenSim.Region.CoreModules
         private bool m_ready = false;
 
         private bool m_enabled = false;
-
+        private IConfig m_windConfig;
         private IWindModelPlugin m_activeWindPlugin = null;
-        private const string m_dWindPluginName = "SimpleRandomWind";
+        private string m_dWindPluginName = "SimpleRandomWind";
         private Dictionary<string, IWindModelPlugin> m_availableWindPlugins = new Dictionary<string, IWindModelPlugin>();
 
         // Simplified windSpeeds based on the fact that the client protocal tracks at a resolution of 16m
         private Vector2[] windSpeeds = new Vector2[16 * 16];
 
-        #region IRegion Methods
+        #region INonSharedRegionModule Methods
 
-        public void Initialise(Scene scene, IConfigSource config)
+        public void Initialise(IConfigSource config)
         {
-            IConfig windConfig = config.Configs["Wind"];
+            m_windConfig = config.Configs["Wind"];
             string desiredWindPlugin = m_dWindPluginName;
 
-            if (windConfig != null)
+            if (m_windConfig != null)
             {
-                m_enabled = windConfig.GetBoolean("enabled", true);
+                m_enabled = m_windConfig.GetBoolean("enabled", true);
 
-                m_frameUpdateRate = windConfig.GetInt("wind_update_rate", 150);
+                m_frameUpdateRate = m_windConfig.GetInt("wind_update_rate", 150);
 
                 // Determine which wind model plugin is desired
-                if (windConfig.Contains("wind_plugin"))
+                if (m_windConfig.Contains("wind_plugin"))
                 {
-                    desiredWindPlugin = windConfig.GetString("wind_plugin");
+                    m_dWindPluginName = m_windConfig.GetString("wind_plugin", m_dWindPluginName);
                 }
             }
 
@@ -84,104 +85,111 @@ namespace OpenSim.Region.CoreModules
             {
                 m_log.InfoFormat("[WIND] Enabled with an update rate of {0} frames.", m_frameUpdateRate);
 
-                m_scene = scene;
-                m_frame = 0;
-
-                // Register all the Wind Model Plug-ins
-                foreach (IWindModelPlugin windPlugin in AddinManager.GetExtensionObjects("/OpenSim/WindModule", false))
-                {
-                    m_log.InfoFormat("[WIND] Found Plugin: {0}", windPlugin.Name);
-                    m_availableWindPlugins.Add(windPlugin.Name, windPlugin);
-                }
-
-                // Check for desired plugin
-                if (m_availableWindPlugins.ContainsKey(desiredWindPlugin))
-                {
-                    m_activeWindPlugin = m_availableWindPlugins[desiredWindPlugin];
-
-                    m_log.InfoFormat("[WIND] {0} plugin found, initializing.", desiredWindPlugin);
-
-                    if (windConfig != null)
-                    {
-                        m_activeWindPlugin.Initialise();
-                        m_activeWindPlugin.WindConfig(m_scene, windConfig);
-                    }
-                } 
-
-
-                // if the plug-in wasn't found, default to no wind.
-                if (m_activeWindPlugin == null)
-                {
-                    m_log.ErrorFormat("[WIND] Could not find specified wind plug-in: {0}", desiredWindPlugin);
-                    m_log.ErrorFormat("[WIND] Defaulting to no wind.");
-                }
-
-                // This one puts an entry in the main help screen
-//                m_scene.AddCommand("Regions", this, "wind", "wind", "Usage: wind <plugin> <param> [value] - Get or Update Wind paramaters", null);
-                
-                // This one enables the ability to type just the base command without any parameters
-//                m_scene.AddCommand("Regions", this, "wind", "", "", HandleConsoleCommand);
-
-                // Get a list of the parameters for each plugin
-                foreach (IWindModelPlugin windPlugin in m_availableWindPlugins.Values)
-                {
-//                    m_scene.AddCommand("Regions", this, String.Format("wind base wind_plugin {0}", windPlugin.Name), String.Format("{0} - {1}", windPlugin.Name, windPlugin.Description), "", HandleConsoleBaseCommand);
-                    m_scene.AddCommand(
-                        "Regions",
-                        this,
-                        "wind base wind_update_rate",
-                        "wind base wind_update_rate [<value>]",
-                        "Get or set the wind update rate.",
-                        "",
-                        HandleConsoleBaseCommand);
-                    
-                    foreach (KeyValuePair<string, string> kvp in windPlugin.WindParams())
-                    {
-                        string windCommand = String.Format("wind {0} {1}", windPlugin.Name, kvp.Key);
-                        m_scene.AddCommand("Regions", this, windCommand, string.Format("{0} [<value>]", windCommand), kvp.Value, "", HandleConsoleParamCommand);
-                    }
-                }
-
-                // Register event handlers for when Avatars enter the region, and frame ticks
-                m_scene.EventManager.OnFrame += WindUpdate;
-                m_scene.EventManager.OnMakeRootAgent += OnAgentEnteredRegion;
-
-                // Register the wind module 
-                m_scene.RegisterModuleInterface<IWindModule>(this);
-
-                // Generate initial wind values
-                GenWindPos();
-
-                // Mark Module Ready for duty
-                m_ready = true;
-
             }
 
         }
 
-        public void PostInitialise()
+        public void AddRegion(Scene scene)
         {
+            if (!m_enabled)
+                return;
+
+            m_scene = scene;
+            m_frame = 0;
+
+            // Register all the Wind Model Plug-ins
+            foreach (IWindModelPlugin windPlugin in AddinManager.GetExtensionObjects("/OpenSim/WindModule", false))
+            {
+                m_log.InfoFormat("[WIND] Found Plugin: {0}", windPlugin.Name);
+                m_availableWindPlugins.Add(windPlugin.Name, windPlugin);
+            }
+
+            // Check for desired plugin
+            if (m_availableWindPlugins.ContainsKey(m_dWindPluginName))
+            {
+                m_activeWindPlugin = m_availableWindPlugins[m_dWindPluginName];
+
+                m_log.InfoFormat("[WIND] {0} plugin found, initializing.", m_dWindPluginName);
+
+                if (m_windConfig != null)
+                {
+                    m_activeWindPlugin.Initialise();
+                    m_activeWindPlugin.WindConfig(m_scene, m_windConfig);
+                }
+            }
+
+
+            // if the plug-in wasn't found, default to no wind.
+            if (m_activeWindPlugin == null)
+            {
+                m_log.ErrorFormat("[WIND] Could not find specified wind plug-in: {0}", m_dWindPluginName);
+                m_log.ErrorFormat("[WIND] Defaulting to no wind.");
+            }
+
+            // This one puts an entry in the main help screen
+            //                m_scene.AddCommand("Regions", this, "wind", "wind", "Usage: wind <plugin> <param> [value] - Get or Update Wind paramaters", null);
+
+            // This one enables the ability to type just the base command without any parameters
+            //                m_scene.AddCommand("Regions", this, "wind", "", "", HandleConsoleCommand);
+
+            // Get a list of the parameters for each plugin
+            foreach (IWindModelPlugin windPlugin in m_availableWindPlugins.Values)
+            {
+                //                    m_scene.AddCommand("Regions", this, String.Format("wind base wind_plugin {0}", windPlugin.Name), String.Format("{0} - {1}", windPlugin.Name, windPlugin.Description), "", HandleConsoleBaseCommand);
+                m_scene.AddCommand(
+                    "Regions",
+                    this,
+                    "wind base wind_update_rate",
+                    "wind base wind_update_rate [<value>]",
+                    "Get or set the wind update rate.",
+                    "",
+                    HandleConsoleBaseCommand);
+
+                foreach (KeyValuePair<string, string> kvp in windPlugin.WindParams())
+                {
+                    string windCommand = String.Format("wind {0} {1}", windPlugin.Name, kvp.Key);
+                    m_scene.AddCommand("Regions", this, windCommand, string.Format("{0} [<value>]", windCommand), kvp.Value, "", HandleConsoleParamCommand);
+                }
+            }
+
+            // Register event handlers for when Avatars enter the region, and frame ticks
+            m_scene.EventManager.OnFrame += WindUpdate;
+            m_scene.EventManager.OnMakeRootAgent += OnAgentEnteredRegion;
+
+            // Register the wind module 
+            m_scene.RegisterModuleInterface<IWindModule>(this);
+
+            // Generate initial wind values
+            GenWindPos();
+
+            // Mark Module Ready for duty
+            m_ready = true;
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+            if (!m_enabled)
+                return;
+
+            m_ready = false;
+
+            // REVIEW: If a region module is closed, is there a possibility that it'll re-open/initialize ??
+            m_activeWindPlugin = null;
+            foreach (IWindModelPlugin windPlugin in m_availableWindPlugins.Values)
+            {
+                windPlugin.Dispose();
+            }
+
+            m_availableWindPlugins.Clear();
+
+            //  Remove our hooks
+            m_scene.EventManager.OnFrame -= WindUpdate;
+            m_scene.EventManager.OnMakeRootAgent -= OnAgentEnteredRegion;
+
         }
 
         public void Close()
         {
-            if (m_enabled)
-            {
-                m_ready = false;
-
-                // REVIEW: If a region module is closed, is there a possibility that it'll re-open/initialize ??
-                m_activeWindPlugin = null;
-                foreach (IWindModelPlugin windPlugin in m_availableWindPlugins.Values)
-                {
-                    windPlugin.Dispose();
-                }
-
-                m_availableWindPlugins.Clear();
-
-                //  Remove our hooks
-                m_scene.EventManager.OnFrame -= WindUpdate;
-                m_scene.EventManager.OnMakeRootAgent -= OnAgentEnteredRegion;
-            }
         }
 
         public string Name
@@ -189,11 +197,14 @@ namespace OpenSim.Region.CoreModules
             get { return "WindModule"; }
         }
 
-        public bool IsSharedModule
+        public Type ReplaceableInterface
         {
-            get { return false; }
+            get { return null; }
         }
 
+        public void RegionLoaded(Scene scene)
+        {
+        }
 
         #endregion
 

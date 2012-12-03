@@ -55,8 +55,8 @@ namespace OpenSim.Region.ClientStack.Linden
         public OSDMap body;
     }
 
-    //[Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class EventQueueGetModule : IEventQueue, IRegionModule
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "EventQueueGetModule")]
+    public class EventQueueGetModule : IEventQueue, INonSharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -66,8 +66,6 @@ namespace OpenSim.Region.ClientStack.Linden
         public int DebugLevel { get; set; }
 
         protected Scene m_scene;
-        private IConfigSource m_gConfig;
-        bool enabledYN;
         
         private Dictionary<UUID, int> m_ids = new Dictionary<UUID, int>();
 
@@ -75,59 +73,46 @@ namespace OpenSim.Region.ClientStack.Linden
         private Dictionary<UUID, UUID> m_QueueUUIDAvatarMapping = new Dictionary<UUID, UUID>();
         private Dictionary<UUID, UUID> m_AvatarQueueUUIDMapping = new Dictionary<UUID, UUID>();
             
-        #region IRegionModule methods
-        public virtual void Initialise(Scene scene, IConfigSource config)
+        #region INonSharedRegionModule methods
+        public virtual void Initialise(IConfigSource config)
         {
-            m_gConfig = config;
-
-            IConfig startupConfig = m_gConfig.Configs["Startup"];
-
-            ReadConfigAndPopulate(scene, startupConfig, "Startup");
-
-            if (enabledYN)
-            {
-                m_scene = scene;
-                scene.RegisterModuleInterface<IEventQueue>(this);
-                
-                // Register fallback handler
-                // Why does EQG Fail on region crossings!
-                
-                //scene.CommsManager.HttpServer.AddLLSDHandler("/CAPS/EQG/", EventQueueFallBack);
-
-                scene.EventManager.OnNewClient += OnNewClient;
-
-                // TODO: Leaving these open, or closing them when we
-                // become a child is incorrect. It messes up TP in a big
-                // way. CAPS/EQ need to be active as long as the UDP
-                // circuit is there.
-
-                scene.EventManager.OnClientClosed += ClientClosed;
-                scene.EventManager.OnMakeChildAgent += MakeChildAgent;
-                scene.EventManager.OnRegisterCaps += OnRegisterCaps;
-
-                MainConsole.Instance.Commands.AddCommand(
-                    "Debug",
-                    false,
-                    "debug eq",
-                    "debug eq [0|1|2]",
-                    "Turn on event queue debugging"
-                        + "<= 0 - turns off all event queue logging"
-                        + ">= 1 - turns on outgoing event logging"
-                        + ">= 2 - turns on poll notification",
-                    HandleDebugEq);
-            }
-            else
-            {
-                m_gConfig = null;
-            }
         }
 
-        private void ReadConfigAndPopulate(Scene scene, IConfig startupConfig, string p)
+        public void AddRegion(Scene scene)
         {
-            enabledYN = startupConfig.GetBoolean("EventQueue", true);
+            m_scene = scene;
+            scene.RegisterModuleInterface<IEventQueue>(this);
+
+            scene.EventManager.OnClientClosed += ClientClosed;
+            scene.EventManager.OnMakeChildAgent += MakeChildAgent;
+            scene.EventManager.OnRegisterCaps += OnRegisterCaps;
+
+            MainConsole.Instance.Commands.AddCommand(
+                "Debug",
+                false,
+                "debug eq",
+                "debug eq [0|1|2]",
+                "Turn on event queue debugging\n"
+                    + "  <= 0 - turns off all event queue logging\n"
+                    + "  >= 1 - turns on outgoing event logging\n"
+                    + "  >= 2 - turns on poll notification",
+                HandleDebugEq);
         }
 
-        public void PostInitialise()
+        public void RemoveRegion(Scene scene)
+        {
+            if (m_scene != scene)
+                return;
+
+            scene.EventManager.OnClientClosed -= ClientClosed;
+            scene.EventManager.OnMakeChildAgent -= MakeChildAgent;
+            scene.EventManager.OnRegisterCaps -= OnRegisterCaps;
+
+            scene.UnregisterModuleInterface<IEventQueue>(this);
+            m_scene = null;
+        }
+
+        public void RegionLoaded(Scene scene)
         {
         }
 
@@ -140,10 +125,11 @@ namespace OpenSim.Region.ClientStack.Linden
             get { return "EventQueueGetModule"; }
         }
 
-        public bool IsSharedModule
+        public Type ReplaceableInterface
         {
-            get { return false; }
+            get { return null; }
         }
+
         #endregion
 
         protected void HandleDebugEq(string module, string[] args)
@@ -225,16 +211,6 @@ namespace OpenSim.Region.ClientStack.Linden
         }
 
         #endregion
-
-        private void OnNewClient(IClientAPI client)
-        {
-            //client.OnLogout += ClientClosed;
-        }
-
-//        private void ClientClosed(IClientAPI client)
-//        {
-//            ClientClosed(client.AgentId);
-//        }
 
         private void ClientClosed(UUID agentID, Scene scene)
         {

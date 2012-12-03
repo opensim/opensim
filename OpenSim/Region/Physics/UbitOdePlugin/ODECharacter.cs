@@ -79,14 +79,27 @@ namespace OpenSim.Region.Physics.OdePlugin
         private Vector3 _target_velocity;
         private Vector3 _acceleration;
         private Vector3 m_rotationalVelocity;
+        private Vector3 m_size;
+        private Quaternion m_orientation;
         private float m_mass = 80f;
         public float m_density = 60f;
         private bool m_pidControllerActive = true;
         public float PID_D = 800.0f;
         public float PID_P = 900.0f;
         //private static float POSTURE_SERVO = 10000.0f;
-        public float CAPSULE_RADIUS = 0.37f;
-        public float CAPSULE_LENGTH = 2.140599f;
+
+
+        private float m_invElipSizeX;
+        private float m_invElipSizeY;
+
+        private float feetOff = 0;
+        private float feetSZ = 0.5f;
+        const float feetScale = 0.9f;
+        const float invFeetScale = 1.0f / 0.9f;
+        const float sizeZAdjust = 0.15f;
+        private float boneOff = 0;
+
+
         public float walkDivisor = 1.3f;
         public float runDivisor = 0.8f;
         private bool flying = false;
@@ -123,10 +136,16 @@ namespace OpenSim.Region.Physics.OdePlugin
         // we do land collisions not ode                | CollisionCategories.Land);
         public IntPtr Body = IntPtr.Zero;
         private OdeScene _parent_scene;
-        public IntPtr Shell = IntPtr.Zero;
+        public IntPtr topbox = IntPtr.Zero;
+        public IntPtr midbox = IntPtr.Zero;
+        public IntPtr feetbox = IntPtr.Zero;
+        public IntPtr bonebox = IntPtr.Zero;
+
         public IntPtr Amotor = IntPtr.Zero;
+
         public d.Mass ShellMass;
-//        public bool collidelock = false;
+
+
 
         public int m_eventsubscription = 0;
         private int m_cureventsubscription = 0;
@@ -139,7 +158,9 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         float mu;
 
-        public OdeCharacter(String avName, OdeScene parent_scene, Vector3 pos, Vector3 size, float pid_d, float pid_p, float capsule_radius, float density, float walk_divisor, float rundivisor)
+        
+
+        public OdeCharacter(String avName, OdeScene parent_scene, Vector3 pos, Vector3 pSize, float pid_d, float pid_p, float density, float walk_divisor, float rundivisor)
         {
             m_uuid = UUID.Random();
 
@@ -165,9 +186,20 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             PID_D = pid_d;
             PID_P = pid_p;
-            CAPSULE_RADIUS = capsule_radius;
+
+            m_size.X = pSize.X;
+            m_size.Y = pSize.Y;
+            m_size.Z = pSize.Z;
+
+            if(m_size.X <0.01f)
+                m_size.X = 0.01f;
+            if(m_size.Y <0.01f)
+                m_size.Y = 0.01f;
+            if(m_size.Z <0.01f)
+                m_size.Z = 0.01f;
+
+            m_orientation = Quaternion.Identity;
             m_density = density;
-            m_mass = 80f; // sure we have a default
 
             // force lower density for testing
             m_density = 3.0f;
@@ -177,8 +209,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             walkDivisor = walk_divisor;
             runDivisor = rundivisor;
 
-            CAPSULE_LENGTH = size.Z * 1.15f - CAPSULE_RADIUS * 2.0f;
-            //m_log.Info("[SIZE]: " + CAPSULE_LENGTH.ToString());
+            m_mass = m_density * m_size.X * m_size.Y * m_size.Z; ; // sure we have a default           
 
             m_isPhysical = false; // current status: no ODE information exists
 
@@ -420,13 +451,21 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// </summary>
         public override Vector3 Size
         {
-            get {
-                float d = CAPSULE_RADIUS * 2;
-                return new Vector3(d, d, (CAPSULE_LENGTH +d)/1.15f); }
+            get
+            {
+                return m_size;
+            }
             set
             {
                 if (value.IsFinite())
                 {
+                    if(value.X <0.01f)
+                        value.X = 0.01f;
+                    if(value.Y <0.01f)
+                        value.Y = 0.01f;
+                    if(value.Z <0.01f)
+                        value.Z = 0.01f;
+
                     AddChange(changes.Size, value);
                 }
                 else
@@ -452,8 +491,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             get
             {
-                float AVvolume = (float)(Math.PI * CAPSULE_RADIUS * CAPSULE_RADIUS * (1.3333333333f * CAPSULE_RADIUS + CAPSULE_LENGTH));
-                return m_density * AVvolume;
+                return m_density * m_size.X * m_size.Y * m_size.Z;
             }
         }
         public override void link(PhysicsActor obj)
@@ -571,9 +609,14 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override Quaternion Orientation
         {
-            get { return Quaternion.Identity; }
+            get { return m_orientation; }
             set
             {
+                //                fakeori = value;
+                //                givefakeori++;
+
+                value.Normalize();
+                AddChange(changes.Orientation, value);
             }
         }
 
@@ -625,32 +668,65 @@ namespace OpenSim.Region.Physics.OdePlugin
                 AddChange(changes.Momentum, momentum);
         }
 
-
-        // WARNING: This MUST NOT be called outside of ProcessTaints, else we can have unsynchronized access
-        // to ODE internals. ProcessTaints is called from within thread-locked Simulate(), so it is the only 
-        // place that is safe to call this routine AvatarGeomAndBodyCreation.
         private void AvatarGeomAndBodyCreation(float npositionX, float npositionY, float npositionZ)
         {
+            // sizes  one day should came from visual parameters
+            float sz = m_size.Z + sizeZAdjust;
+
+            m_invElipSizeX = 1.0f / m_size.X;
+            m_invElipSizeY = 1.0f / m_size.Y;
+
+            float topsx = m_size.X;
+            float midsx = m_size.X;
+            float feetsx = m_size.X * feetScale;
+            float bonesx = feetsx * 0.2f; 
+
+            float topsy = m_size.Y * 0.5f;
+            float midsy = m_size.Y;
+            float feetsy = m_size.Y * feetScale;
+            float bonesy = feetsy * 0.2f;
+
+            float topsz = sz * 0.15f;
+            float feetsz = sz * 0.3f;
+            if (feetsz > 0.6f)
+                feetsz = 0.6f;
+
+            float midsz = sz - topsz - feetsz;
+            float bonesz = sz;
+
+            float bot = -sz * 0.5f;
+
+            boneOff = bot + 0.3f;
+
+            float feetz = bot + feetsz * 0.5f;
+            bot += feetsz;
+
+            feetOff = bot;
+            feetSZ = feetsz;
+
+            float midz = bot + midsz * 0.5f;
+            bot += midsz;
+            float topz = bot + topsz * 0.5f;
+
             _parent_scene.waitForSpaceUnlock(_parent_scene.ActiveSpace);
-            if (CAPSULE_LENGTH <= 0)
-            {
-                m_log.Warn("[PHYSICS]: The capsule size you specified in opensim.ini is invalid!  Setting it to the smallest possible size!");
-                CAPSULE_LENGTH = 0.01f;
 
-            }
+            feetbox = d.CreateBox(_parent_scene.ActiveSpace, feetsx, feetsy, feetsz);
+            d.GeomSetCategoryBits(feetbox, (uint)m_collisionCategories);
+            d.GeomSetCollideBits(feetbox, (uint)m_collisionFlags);
 
-            if (CAPSULE_RADIUS <= 0)
-            {
-                m_log.Warn("[PHYSICS]: The capsule size you specified in opensim.ini is invalid!  Setting it to the smallest possible size!");
-                CAPSULE_RADIUS = 0.01f;
+            midbox = d.CreateBox(_parent_scene.ActiveSpace, midsx, midsy, midsz);
+            d.GeomSetCategoryBits(midbox, (uint)m_collisionCategories);
+            d.GeomSetCollideBits(midbox, (uint)m_collisionFlags);
 
-            }
-            Shell = d.CreateCapsule(_parent_scene.ActiveSpace, CAPSULE_RADIUS, CAPSULE_LENGTH);
+            topbox = d.CreateBox(_parent_scene.ActiveSpace, topsx, topsy, topsz);
+            d.GeomSetCategoryBits(topbox, (uint)m_collisionCategories);
+            d.GeomSetCollideBits(topbox, (uint)m_collisionFlags);
 
-            d.GeomSetCategoryBits(Shell, (uint)m_collisionCategories);
-            d.GeomSetCollideBits(Shell, (uint)m_collisionFlags);
+            bonebox = d.CreateBox(_parent_scene.ActiveSpace, bonesx, bonesy, bonesz);
+            d.GeomSetCategoryBits(bonebox, (uint)m_collisionCategories);
+            d.GeomSetCollideBits(bonebox, (uint)m_collisionFlags);
 
-            d.MassSetCapsule(out ShellMass, m_density, 3, CAPSULE_RADIUS, CAPSULE_LENGTH);
+            d.MassSetBox(out ShellMass, m_density, m_size.X , m_size.Y, m_size.Z);
 
             m_mass = ShellMass.mass;  // update mass
 
@@ -681,7 +757,14 @@ namespace OpenSim.Region.Physics.OdePlugin
             _position.Z = npositionZ;
 
             d.BodySetMass(Body, ref ShellMass);
-            d.GeomSetBody(Shell, Body);
+            d.GeomSetBody(feetbox, Body);
+            d.GeomSetBody(midbox, Body);
+            d.GeomSetBody(topbox, Body);
+            d.GeomSetBody(bonebox, Body);
+
+            d.GeomSetOffsetPosition(feetbox, 0, 0, feetz);
+            d.GeomSetOffsetPosition(midbox, 0, 0, midz);
+            d.GeomSetOffsetPosition(topbox, 0, 0, topz);
 
             // The purpose of the AMotor here is to keep the avatar's physical
             // surrogate from rotating while moving
@@ -741,15 +824,152 @@ namespace OpenSim.Region.Physics.OdePlugin
                 Body = IntPtr.Zero;
             }
 
-            //kill the Geometry
-            if (Shell != IntPtr.Zero)
+            //kill the Geoms
+            if (topbox != IntPtr.Zero)
             {
-//                _parent_scene.geom_name_map.Remove(Shell);
-                _parent_scene.actor_name_map.Remove(Shell);
+                _parent_scene.actor_name_map.Remove(topbox);
                 _parent_scene.waitForSpaceUnlock(_parent_scene.ActiveSpace);
-                d.GeomDestroy(Shell);
-                Shell = IntPtr.Zero;
+                d.GeomDestroy(topbox);
+                topbox = IntPtr.Zero;
             }
+            if (midbox != IntPtr.Zero)
+            {
+                _parent_scene.actor_name_map.Remove(midbox);
+                _parent_scene.waitForSpaceUnlock(_parent_scene.ActiveSpace);
+                d.GeomDestroy(midbox);
+                midbox = IntPtr.Zero;
+            }
+            if (feetbox != IntPtr.Zero)
+            {
+                _parent_scene.actor_name_map.Remove(feetbox);
+                _parent_scene.waitForSpaceUnlock(_parent_scene.ActiveSpace);
+                d.GeomDestroy(feetbox);
+                feetbox = IntPtr.Zero;
+            }
+
+            if (bonebox != IntPtr.Zero)
+            {
+                _parent_scene.actor_name_map.Remove(bonebox);
+                _parent_scene.waitForSpaceUnlock(_parent_scene.ActiveSpace);
+                d.GeomDestroy(bonebox);
+                bonebox = IntPtr.Zero;
+            }
+
+        }
+
+        public bool Collide(IntPtr me, bool reverse, ref d.ContactGeom contact)
+        {
+
+            if (me == bonebox) // inner bone
+            {
+                if (contact.pos.Z - _position.Z < boneOff)
+                    IsColliding = true;
+                return true;
+            }
+
+            if (me == topbox) // keep a box head
+                return true;
+
+            // rotate elipsoide assuming only rotation around Z
+            float ca = m_orientation.W * m_orientation.W - m_orientation.Z * m_orientation.Z;
+            float sa = 2 * m_orientation.W * m_orientation.Z;
+
+            float isx;
+            float isy;
+
+            if (me == feetbox) // feet have narrow bounds
+            {
+
+                isx = m_invElipSizeX * invFeetScale;
+                isy = m_invElipSizeY * invFeetScale;
+            }
+            else
+            {
+                isx = m_invElipSizeX;
+                isy = m_invElipSizeY;
+            }
+
+            float a = isx * ca - isy * sa;
+            float b = isx * sa + isy * ca;
+
+            float offx = contact.pos.X - _position.X;
+            float er = offx * a;
+            er *= er;
+
+            float offy = contact.pos.Y - _position.Y;
+            float ty = offy * b;
+            er += ty * ty;
+
+            if (me == midbox)
+            {
+                if (er > 4.0f) // no collision
+                    return false;
+                if (er < 0.2f)
+                    return true;               
+
+                float t = offx * offx + offy * offy;
+                t = (float)Math.Sqrt(t);
+                t = 1 / t;
+                offx *= t;
+                offy *= t;
+
+                if (reverse)
+                {
+                    contact.normal.X = offx;
+                    contact.normal.Y = offy;
+                }
+                else
+                {
+                    contact.normal.X = -offx;
+                    contact.normal.Y = -offy;
+                }
+
+                contact.normal.Z = 0;
+                return true;
+            }
+
+            else if (me == feetbox)
+            {
+                float c = feetSZ * 2;
+                float h = contact.pos.Z - _position.Z;
+                float offz = h - feetOff; // distance from top of feetbox
+
+                float tz = offz / c;
+                er += tz * tz;
+
+                if (er > 4.0f) // no collision
+                    return false;
+
+                if (er > 0.2f)
+                {
+                    float t = offx * offx + offy * offy + offz * offz;
+                    t = (float)Math.Sqrt(t);
+                    t = 1 / t;
+                    offx *= t;
+                    offy *= t;
+                    offz *= t;
+
+                    if (reverse)
+                    {
+                        contact.normal.X = offx;
+                        contact.normal.Y = offy;
+                        contact.normal.Z = offz;
+                    }
+                    else
+                    {
+                        contact.normal.X = -offx;
+                        contact.normal.Y = -offy;
+                        contact.normal.Z = -offz;
+                    }
+                }
+
+                if(h < boneOff)
+                    IsColliding = true;
+            }
+            else
+                return false;
+
+            return true;
         }
 
         /// <summary>
@@ -769,10 +989,10 @@ namespace OpenSim.Region.Physics.OdePlugin
             // so force it back to identity
 
             d.Quaternion qtmp;
-            qtmp.W = 1;
-            qtmp.X = 0;
-            qtmp.Y = 0;
-            qtmp.Z = 0;
+            qtmp.W = m_orientation.W;
+            qtmp.X = m_orientation.X;
+            qtmp.Y = m_orientation.Y;
+            qtmp.Z = m_orientation.Z;
             d.BodySetQuaternion(Body, ref qtmp);
 
             if (m_pidControllerActive == false)
@@ -836,9 +1056,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             //******************************************
             // colide with land
             d.AABB aabb;
-            d.GeomGetAABB(Shell, out aabb);
-            float chrminZ = aabb.MinZ;
-
+            d.GeomGetAABB(feetbox, out aabb);
+            float chrminZ = aabb.MinZ - 0.04f; // move up a bit
             Vector3 posch = localpos;
 
             float ftmp;
@@ -1176,20 +1395,14 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 if (NewStatus)
                 {
-                    // Create avatar capsule and related ODE data
-                    if ((Shell != IntPtr.Zero))
-                    {
-                        // a lost shell ?
-                        m_log.Warn("[PHYSICS]: re-creating the following avatar ODE data, even though it already exists - "
-                            + (Shell != IntPtr.Zero ? "Shell " : "")
-                            + (Body != IntPtr.Zero ? "Body " : "")
-                            + (Amotor != IntPtr.Zero ? "Amotor " : ""));
-                        AvatarGeomAndBodyDestroy();
-                    }
+                    AvatarGeomAndBodyDestroy();
 
                     AvatarGeomAndBodyCreation(_position.X, _position.Y, _position.Z);
 
-                    _parent_scene.actor_name_map[Shell] = (PhysicsActor)this;
+                    _parent_scene.actor_name_map[topbox] = (PhysicsActor)this;
+                    _parent_scene.actor_name_map[midbox] = (PhysicsActor)this;
+                    _parent_scene.actor_name_map[feetbox] = (PhysicsActor)this;
+                    _parent_scene.actor_name_map[bonebox] = (PhysicsActor)this;
                     _parent_scene.AddCharacter(this);
                 }
                 else
@@ -1218,37 +1431,29 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
         }
 
-        private void changeSize(Vector3 Size)
+        private void changeSize(Vector3 pSize)
         {
-            if (Size.IsFinite())
+            if (pSize.IsFinite())
             {
-                float caplen = Size.Z;
-
-                caplen = caplen * 1.15f - CAPSULE_RADIUS * 2.0f;
-
-                if (caplen != CAPSULE_LENGTH)
+                // for now only look to Z changes since viewers also don't change X and Y
+                if (pSize.Z != m_size.Z)
                 {
-                    if (Shell != IntPtr.Zero && Body != IntPtr.Zero && Amotor != IntPtr.Zero)
-                    {
-                        AvatarGeomAndBodyDestroy();
+                    AvatarGeomAndBodyDestroy();
 
-                        float prevCapsule = CAPSULE_LENGTH;
-                        CAPSULE_LENGTH = caplen;
 
-                        AvatarGeomAndBodyCreation(_position.X, _position.Y,
-                                          _position.Z + (CAPSULE_LENGTH - prevCapsule) * 0.5f);
+                    float oldsz = m_size.Z;
+                    m_size = pSize;
 
-                        Velocity = Vector3.Zero;
 
-                        _parent_scene.actor_name_map[Shell] = (PhysicsActor)this;
-                    }
-                    else
-                    {
-                        m_log.Warn("[PHYSICS]: trying to change capsule size, but the following ODE data is missing - "
-                            + (Shell == IntPtr.Zero ? "Shell " : "")
-                            + (Body == IntPtr.Zero ? "Body " : "")
-                            + (Amotor == IntPtr.Zero ? "Amotor " : ""));
-                    }
+                    AvatarGeomAndBodyCreation(_position.X, _position.Y,
+                                      _position.Z + (m_size.Z - oldsz) * 0.5f);
+
+                    Velocity = Vector3.Zero;
+
+                    _parent_scene.actor_name_map[topbox] = (PhysicsActor)this;
+                    _parent_scene.actor_name_map[midbox] = (PhysicsActor)this;
+                    _parent_scene.actor_name_map[feetbox] = (PhysicsActor)this;
+                    _parent_scene.actor_name_map[bonebox] = (PhysicsActor)this;
                 }
                 m_freemove = false;
                 m_pidControllerActive = true;
@@ -1270,6 +1475,14 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private void changeOrientation(Quaternion newOri)
         {
+            d.Quaternion myrot = new d.Quaternion();
+            myrot.X = newOri.X;
+            myrot.Y = newOri.Y;
+            myrot.Z = newOri.Z;
+            myrot.W = newOri.W;
+            float t = d.JointGetAMotorAngle(Amotor, 2);
+            d.BodySetQuaternion(Body,ref myrot);
+            m_orientation = newOri;
         }
 
         private void changeVelocity(Vector3 newVel)
@@ -1359,7 +1572,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public bool DoAChange(changes what, object arg)
         {
-            if (Shell == IntPtr.Zero && what != changes.Add && what != changes.Remove)
+            if (topbox == IntPtr.Zero && what != changes.Add && what != changes.Remove)
             {
                 return false;
             }

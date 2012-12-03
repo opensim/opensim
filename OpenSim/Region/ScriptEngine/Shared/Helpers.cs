@@ -164,11 +164,11 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 else
                 {
                     // Set the values from the touch data provided by the client
-                    touchST = new LSL_Types.Vector3(value.STCoord.X, value.STCoord.Y, value.STCoord.Z);
-                    touchUV = new LSL_Types.Vector3(value.UVCoord.X, value.UVCoord.Y, value.UVCoord.Z);
-                    touchNormal = new LSL_Types.Vector3(value.Normal.X, value.Normal.Y, value.Normal.Z);
-                    touchBinormal = new LSL_Types.Vector3(value.Binormal.X, value.Binormal.Y, value.Binormal.Z);
-                    touchPos = new LSL_Types.Vector3(value.Position.X, value.Position.Y, value.Position.Z);
+                    touchST = new LSL_Types.Vector3(value.STCoord);
+                    touchUV = new LSL_Types.Vector3(value.UVCoord);
+                    touchNormal = new LSL_Types.Vector3(value.Normal);
+                    touchBinormal = new LSL_Types.Vector3(value.Binormal);
+                    touchPos = new LSL_Types.Vector3(value.Position);
                     touchFace = value.FaceIndex;
                 }
             }
@@ -189,19 +189,13 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     Country = account.UserCountry;
 
                 Owner = Key;
-                Position = new LSL_Types.Vector3(
-                        presence.AbsolutePosition.X,
-                        presence.AbsolutePosition.Y,
-                        presence.AbsolutePosition.Z);
+                Position = new LSL_Types.Vector3(presence.AbsolutePosition);
                 Rotation = new LSL_Types.Quaternion(
                         presence.Rotation.X,
                         presence.Rotation.Y,
                         presence.Rotation.Z,
                         presence.Rotation.W);
-                Velocity = new LSL_Types.Vector3(
-                        presence.Velocity.X,
-                        presence.Velocity.Y,
-                        presence.Velocity.Z);
+                Velocity = new LSL_Types.Vector3(presence.Velocity);
 
                 Type = 0x01; // Avatar
                 if (presence.PresenceType == PresenceType.Npc)
@@ -254,16 +248,12 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 }
             }
 
-            Position = new LSL_Types.Vector3(part.AbsolutePosition.X,
-                                             part.AbsolutePosition.Y,
-                                             part.AbsolutePosition.Z);
+            Position = new LSL_Types.Vector3(part.AbsolutePosition);
 
             Quaternion wr = part.ParentGroup.GroupRotation;
             Rotation = new LSL_Types.Quaternion(wr.X, wr.Y, wr.Z, wr.W);
 
-            Velocity = new LSL_Types.Vector3(part.Velocity.X,
-                                             part.Velocity.Y,
-                                             part.Velocity.Z);
+            Velocity = new LSL_Types.Vector3(part.Velocity);
         }
     }
 

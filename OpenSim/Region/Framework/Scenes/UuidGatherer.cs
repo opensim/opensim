@@ -52,26 +52,23 @@ namespace OpenSim.Region.Framework.Scenes
     public class UuidGatherer
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
-        /// <summary>
-        /// Asset cache used for gathering assets
-        /// </summary>
-        protected IAssetService m_assetCache;
-        
-        /// <summary>
-        /// Used as a temporary store of an asset which represents an object.  This can be a null if no appropriate
-        /// asset was found by the asset service.
-        /// </summary>
-        private AssetBase m_requestedObjectAsset;
 
-        /// <summary>
-        /// Signal whether we are currently waiting for the asset service to deliver an asset.
-        /// </summary>
-        private bool m_waitingForObjectAsset;
+        protected IAssetService m_assetService;
+
+//        /// <summary>
+//        /// Used as a temporary store of an asset which represents an object.  This can be a null if no appropriate
+//        /// asset was found by the asset service.
+//        /// </summary>
+//        private AssetBase m_requestedObjectAsset;
+//
+//        /// <summary>
+//        /// Signal whether we are currently waiting for the asset service to deliver an asset.
+//        /// </summary>
+//        private bool m_waitingForObjectAsset;
                 
-        public UuidGatherer(IAssetService assetCache)
+        public UuidGatherer(IAssetService assetService)
         {
-            m_assetCache = assetCache;
+            m_assetService = assetService;
         }
                 
         /// <summary>
@@ -191,18 +188,18 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
         
-        /// <summary>
-        /// The callback made when we request the asset for an object from the asset service.
-        /// </summary>
-        private void AssetReceived(string id, Object sender, AssetBase asset)
-        {
-            lock (this)
-            {
-                m_requestedObjectAsset = asset;
-                m_waitingForObjectAsset = false;
-                Monitor.Pulse(this);
-            }
-        }
+//        /// <summary>
+//        /// The callback made when we request the asset for an object from the asset service.
+//        /// </summary>
+//        private void AssetReceived(string id, Object sender, AssetBase asset)
+//        {
+//            lock (this)
+//            {
+//                m_requestedObjectAsset = asset;
+//                m_waitingForObjectAsset = false;
+//                Monitor.Pulse(this);
+//            }
+//        }
 
         /// <summary>
         /// Get an asset synchronously, potentially using an asynchronous callback.  If the
@@ -212,25 +209,29 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns></returns>
         protected virtual AssetBase GetAsset(UUID uuid)
         {
-            m_waitingForObjectAsset = true;
-            m_assetCache.Get(uuid.ToString(), this, AssetReceived);
+            return m_assetService.Get(uuid.ToString());
 
-            // The asset cache callback can either
-            //
-            // 1. Complete on the same thread (if the asset is already in the cache) or
-            // 2. Come in via a different thread (if we need to go fetch it).
-            //
-            // The code below handles both these alternatives.
-            lock (this)
-            {
-                if (m_waitingForObjectAsset)
-                {
-                    Monitor.Wait(this);
-                    m_waitingForObjectAsset = false;
-                }
-            }
-
-            return m_requestedObjectAsset;
+            // XXX: Switching to do this synchronously where the call was async before but we always waited for it
+            // to complete anyway!
+//            m_waitingForObjectAsset = true;
+//            m_assetCache.Get(uuid.ToString(), this, AssetReceived);
+//
+//            // The asset cache callback can either
+//            //
+//            // 1. Complete on the same thread (if the asset is already in the cache) or
+//            // 2. Come in via a different thread (if we need to go fetch it).
+//            //
+//            // The code below handles both these alternatives.
+//            lock (this)
+//            {
+//                if (m_waitingForObjectAsset)
+//                {
+//                    Monitor.Wait(this);
+//                    m_waitingForObjectAsset = false;
+//                }
+//            }
+//
+//            return m_requestedObjectAsset;
         }
 
         /// <summary>
@@ -359,6 +360,49 @@ namespace OpenSim.Region.Framework.Scenes
                 if (UUID.TryParse(id, out uuid))
                     assetUuids[uuid] = AssetType.Animation;
             }
+        }
+    }
+
+    public class HGUuidGatherer : UuidGatherer
+    {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        protected string m_assetServerURL;
+
+        public HGUuidGatherer(IAssetService assetService, string assetServerURL)
+            : base(assetService)
+        {
+            m_assetServerURL = assetServerURL;
+            if (!m_assetServerURL.EndsWith("/") && !m_assetServerURL.EndsWith("="))
+                m_assetServerURL = m_assetServerURL + "/";
+        }
+
+        protected override AssetBase GetAsset(UUID uuid)
+        {
+            if (string.Empty == m_assetServerURL)
+                return base.GetAsset(uuid);
+            else
+                return FetchAsset(uuid);
+        }
+
+        public AssetBase FetchAsset(UUID assetID)
+        {
+
+            // Test if it's already here
+            AssetBase asset = m_assetService.Get(assetID.ToString());
+            if (asset == null)
+            {
+                // It's not, so fetch it from abroad
+                asset = m_assetService.Get(m_assetServerURL + assetID.ToString());
+                if (asset != null)
+                    m_log.DebugFormat("[HGUUIDGatherer]: Copied asset {0} from {1} to local asset server", assetID, m_assetServerURL);
+                else
+                    m_log.DebugFormat("[HGUUIDGatherer]: Failed to fetch asset {0} from {1}", assetID, m_assetServerURL);
+            }
+            //else
+            //    m_log.DebugFormat("[HGUUIDGatherer]: Asset {0} from {1} was already here", assetID, m_assetServerURL);
+
+            return asset;
         }
     }
 }

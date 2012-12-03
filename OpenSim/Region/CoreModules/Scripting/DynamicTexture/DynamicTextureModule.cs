@@ -37,17 +37,35 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using log4net;
 using System.Reflection;
+using Mono.Addins;
 
 namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
 {
-    public class DynamicTextureModule : IRegionModule, IDynamicTextureManager
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "DynamicTextureModule")]
+    public class DynamicTextureModule : ISharedRegionModule, IDynamicTextureManager
     {
-        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private const int ALL_SIDES = -1;
 
         public const int DISP_EXPIRE = 1;
         public const int DISP_TEMP   = 2;
+
+        /// <summary>
+        /// If true then where possible dynamic textures are reused.
+        /// </summary>
+        public bool ReuseTextures { get; set; }
+
+        /// <summary>
+        /// If false, then textures which have a low data size are not reused when ReuseTextures = true.
+        /// </summary>
+        /// <remarks>
+        /// LL viewers 3.3.4 and before appear to not fully render textures pulled from the viewer cache if those
+        /// textures have a relatively high pixel surface but a small data size.  Typically, this appears to happen
+        /// if the data size is smaller than the viewer's discard level 2 size estimate.  So if this is setting is
+        /// false, textures smaller than the calculation in IsSizeReuseable are always regenerated rather than reused
+        /// to work around this problem.</remarks>
+        public bool ReuseLowDataTextures { get; set; }
 
         private Dictionary<UUID, Scene> RegisteredScenes = new Dictionary<UUID, Scene>();
 
@@ -55,6 +73,25 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
             new Dictionary<string, IDynamicTextureRender>();
 
         private Dictionary<UUID, DynamicTextureUpdater> Updaters = new Dictionary<UUID, DynamicTextureUpdater>();
+
+        /// <summary>
+        /// Record dynamic textures that we can reuse for a given data and parameter combination rather than
+        /// regenerate.
+        /// </summary>
+        /// <remarks>
+        /// Key is string.Format("{0}{1}", data
+        /// </remarks>
+        private Cache m_reuseableDynamicTextures;
+
+        /// <summary>
+        /// This constructor is only here because of the Unit Tests...
+        /// Don't use it.
+        /// </summary>
+        public DynamicTextureModule()
+        {
+            m_reuseableDynamicTextures = new Cache(CacheMedium.Memory, CacheStrategy.Conservative);
+            m_reuseableDynamicTextures.DefaultTTL = new TimeSpan(24, 0, 0);
+        }
 
         #region IDynamicTextureManager Members
 
@@ -69,17 +106,17 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
         /// <summary>
         /// Called by code which actually renders the dynamic texture to supply texture data.
         /// </summary>
-        /// <param name="id"></param>
-        /// <param name="data"></param>
-        public void ReturnData(UUID id, byte[] data)
+        /// <param name="updaterId"></param>
+        /// <param name="texture"></param>
+        public void ReturnData(UUID updaterId, IDynamicTexture texture)
         {
             DynamicTextureUpdater updater = null;
 
             lock (Updaters)
             {
-                if (Updaters.ContainsKey(id))
+                if (Updaters.ContainsKey(updaterId))
                 {
-                    updater = Updaters[id];
+                    updater = Updaters[updaterId];
                 }
             }
 
@@ -88,7 +125,16 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
                 if (RegisteredScenes.ContainsKey(updater.SimUUID))
                 {
                     Scene scene = RegisteredScenes[updater.SimUUID];
-                    updater.DataReceived(data, scene);
+                    UUID newTextureID = updater.DataReceived(texture.Data, scene);
+
+                    if (ReuseTextures
+                        && !updater.BlendWithOldTexture
+                        && texture.IsReuseable
+                        && (ReuseLowDataTextures || IsDataSizeReuseable(texture)))
+                    {
+                        m_reuseableDynamicTextures.Store(
+                            GenerateReusableTextureKey(texture.InputCommands, texture.InputParams), newTextureID);
+                    }
                 }
             }
 
@@ -102,6 +148,27 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Determines whether the texture is reuseable based on its data size.
+        /// </summary>
+        /// <remarks>
+        /// This is a workaround for a viewer bug where very small data size textures relative to their pixel size
+        /// are not redisplayed properly when pulled from cache.  The calculation here is based on the typical discard
+        /// level of 2, a 'rate' of 0.125 and 4 components (which makes for a factor of 0.5).
+        /// </remarks>
+        /// <returns></returns>
+        private bool IsDataSizeReuseable(IDynamicTexture texture)
+        {
+//            Console.WriteLine("{0} {1}", texture.Size.Width, texture.Size.Height);
+            int discardLevel2DataThreshold = (int)Math.Ceiling((texture.Size.Width >> 2) * (texture.Size.Height >> 2) * 0.5);
+
+//            m_log.DebugFormat(
+//                "[DYNAMIC TEXTURE MODULE]: Discard level 2 threshold {0}, texture data length {1}",
+//                discardLevel2DataThreshold, texture.Data.Length);
+
+            return discardLevel2DataThreshold < texture.Data.Length;
         }
 
         public UUID AddDynamicTextureURL(UUID simID, UUID primID, string contentType, string url,
@@ -167,22 +234,61 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
         public UUID AddDynamicTextureData(UUID simID, UUID primID, string contentType, string data,
                                           string extraParams, int updateTimer, bool SetBlending, int disp, byte AlphaValue, int face)
         {
-            if (RenderPlugins.ContainsKey(contentType))
-            {
-                DynamicTextureUpdater updater = new DynamicTextureUpdater();
-                updater.SimUUID = simID;
-                updater.PrimID = primID;
-                updater.ContentType = contentType;
-                updater.BodyData = data;
-                updater.UpdateTimer = updateTimer;
-                updater.UpdaterID = UUID.Random();
-                updater.Params = extraParams;
-                updater.BlendWithOldTexture = SetBlending;
-                updater.FrontAlpha = AlphaValue;
-                updater.Face = face;
-                updater.Url = "Local image";
-                updater.Disp = disp;
+            if (!RenderPlugins.ContainsKey(contentType))
+                return UUID.Zero;
 
+            Scene scene;
+            RegisteredScenes.TryGetValue(simID, out scene);
+
+            if (scene == null)
+                return UUID.Zero;
+
+            SceneObjectPart part = scene.GetSceneObjectPart(primID);
+
+            if (part == null)
+                return UUID.Zero;
+
+            // If we want to reuse dynamic textures then we have to ignore any request from the caller to expire
+            // them.
+            if (ReuseTextures)
+                disp = disp & ~DISP_EXPIRE;
+
+            DynamicTextureUpdater updater = new DynamicTextureUpdater();
+            updater.SimUUID = simID;
+            updater.PrimID = primID;
+            updater.ContentType = contentType;
+            updater.BodyData = data;
+            updater.UpdateTimer = updateTimer;
+            updater.UpdaterID = UUID.Random();
+            updater.Params = extraParams;
+            updater.BlendWithOldTexture = SetBlending;
+            updater.FrontAlpha = AlphaValue;
+            updater.Face = face;
+            updater.Url = "Local image";
+            updater.Disp = disp;
+
+            object objReusableTextureUUID = null;
+
+            if (ReuseTextures && !updater.BlendWithOldTexture)
+            {
+                string reuseableTextureKey = GenerateReusableTextureKey(data, extraParams);
+                objReusableTextureUUID = m_reuseableDynamicTextures.Get(reuseableTextureKey);
+
+                if (objReusableTextureUUID != null)
+                {
+                    // If something else has removed this temporary asset from the cache, detect and invalidate
+                    // our cached uuid.
+                    if (scene.AssetService.GetMetadata(objReusableTextureUUID.ToString()) == null)
+                    {
+                        m_reuseableDynamicTextures.Invalidate(reuseableTextureKey);
+                        objReusableTextureUUID = null;
+                    }
+                }
+            }
+
+            // We cannot reuse a dynamic texture if the data is going to be blended with something already there.
+            if (objReusableTextureUUID == null)
+            {
                 lock (Updaters)
                 {
                     if (!Updaters.ContainsKey(updater.UpdaterID))
@@ -191,11 +297,29 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
                     }
                 }
 
+//                m_log.DebugFormat(
+//                    "[DYNAMIC TEXTURE MODULE]: Requesting generation of new dynamic texture for {0} in {1}",
+//                    part.Name, part.ParentGroup.Scene.Name);
+
                 RenderPlugins[contentType].AsyncConvertData(updater.UpdaterID, data, extraParams);
-                return updater.UpdaterID;
             }
-            
-            return UUID.Zero;
+            else
+            {
+//                m_log.DebugFormat(
+//                    "[DYNAMIC TEXTURE MODULE]: Reusing cached texture {0} for {1} in {2}",
+//                    objReusableTextureUUID, part.Name, part.ParentGroup.Scene.Name);
+
+                // No need to add to updaters as the texture is always the same.  Not that this functionality
+                // apppears to be implemented anyway.
+                updater.UpdatePart(part, (UUID)objReusableTextureUUID);
+            }
+
+            return updater.UpdaterID;
+        }
+
+        private string GenerateReusableTextureKey(string data, string extraParams)
+        {
+            return string.Format("{0}{1}", data, extraParams);
         }
 
         public void GetDrawStringSize(string contentType, string text, string fontName, int fontSize,
@@ -211,9 +335,29 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
 
         #endregion
 
-        #region IRegionModule Members
+        #region ISharedRegionModule Members
 
-        public void Initialise(Scene scene, IConfigSource config)
+        public void Initialise(IConfigSource config)
+        {
+            IConfig texturesConfig = config.Configs["Textures"];
+            if (texturesConfig != null)
+            {
+                ReuseTextures = texturesConfig.GetBoolean("ReuseDynamicTextures", false);
+                ReuseLowDataTextures = texturesConfig.GetBoolean("ReuseDynamicLowDataTextures", false);
+
+                if (ReuseTextures)
+                {
+                    m_reuseableDynamicTextures = new Cache(CacheMedium.Memory, CacheStrategy.Conservative);
+                    m_reuseableDynamicTextures.DefaultTTL = new TimeSpan(24, 0, 0);
+                }
+            }
+        }
+
+        public void PostInitialise()
+        {
+        }
+
+        public void AddRegion(Scene scene)
         {
             if (!RegisteredScenes.ContainsKey(scene.RegionInfo.RegionID))
             {
@@ -222,8 +366,14 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
             }
         }
 
-        public void PostInitialise()
+        public void RegionLoaded(Scene scene)
         {
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+            if (RegisteredScenes.ContainsKey(scene.RegionInfo.RegionID))
+                RegisteredScenes.Remove(scene.RegionInfo.RegionID);
         }
 
         public void Close()
@@ -235,9 +385,9 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
             get { return "DynamicTextureModule"; }
         }
 
-        public bool IsSharedModule
+        public Type ReplaceableInterface
         {
-            get { return true; }
+            get { return null; }
         }
 
         #endregion
@@ -269,9 +419,60 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
             }
 
             /// <summary>
+            /// Update the given part with the new texture.
+            /// </summary>
+            /// <returns>
+            /// The old texture UUID.
+            /// </returns>
+            public UUID UpdatePart(SceneObjectPart part, UUID textureID)
+            {
+                UUID oldID;
+
+                lock (part)
+                {
+                    // mostly keep the values from before
+                    Primitive.TextureEntry tmptex = part.Shape.Textures;
+
+                    // FIXME: Need to return the appropriate ID if only a single face is replaced.
+                    oldID = tmptex.DefaultTexture.TextureID;
+
+                    if (Face == ALL_SIDES)
+                    {
+                        oldID = tmptex.DefaultTexture.TextureID;
+                        tmptex.DefaultTexture.TextureID = textureID;
+                    }
+                    else
+                    {
+                        try
+                        {
+                            Primitive.TextureEntryFace texface = tmptex.CreateFace((uint)Face);
+                            texface.TextureID = textureID;
+                            tmptex.FaceTextures[Face] = texface;
+                        }
+                        catch (Exception)
+                        {
+                            tmptex.DefaultTexture.TextureID = textureID;
+                        }
+                    }
+
+                    // I'm pretty sure we always want to force this to true
+                    // I'm pretty sure noone whats to set fullbright true if it wasn't true before.
+                    // tmptex.DefaultTexture.Fullbright = true;
+
+                    part.UpdateTextureEntry(tmptex.GetBytes());
+                }
+
+                return oldID;
+            }
+
+            /// <summary>
             /// Called once new texture data has been received for this updater.
             /// </summary>
-            public void DataReceived(byte[] data, Scene scene)
+            /// <param name="data"></param>
+            /// <param name="scene"></param>
+            /// <param name="isReuseable">True if the data given is reuseable.</param>
+            /// <returns>The asset UUID given to the incoming data.</returns>
+            public UUID DataReceived(byte[] data, Scene scene)
             {
                 SceneObjectPart part = scene.GetSceneObjectPart(PrimID);
 
@@ -281,7 +482,8 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
                         String.Format("DynamicTextureModule: Error preparing image using URL {0}", Url);
                     scene.SimChat(Utils.StringToBytes(msg), ChatTypeEnum.Say,
                                   0, part.ParentGroup.RootPart.AbsolutePosition, part.Name, part.UUID, false);
-                    return;
+                    
+                    return UUID.Zero;
                 }
 
                 byte[] assetData = null;
@@ -319,56 +521,29 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
                 IJ2KDecoder cacheLayerDecode = scene.RequestModuleInterface<IJ2KDecoder>();
                 if (cacheLayerDecode != null)
                 {
-                    cacheLayerDecode.Decode(asset.FullID, asset.Data);
-                    cacheLayerDecode = null;
+                    if (!cacheLayerDecode.Decode(asset.FullID, asset.Data))
+                        m_log.WarnFormat(
+                            "[DYNAMIC TEXTURE MODULE]: Decoding of dynamically generated asset {0} for {1} in {2} failed",
+                            asset.ID, part.Name, part.ParentGroup.Scene.Name);
                 }
 
-                UUID oldID = UUID.Zero;
-
-                lock (part)
-                {
-                    // mostly keep the values from before
-                    Primitive.TextureEntry tmptex = part.Shape.Textures;
-
-                    // remove the old asset from the cache
-                    oldID = tmptex.DefaultTexture.TextureID;
-                    
-                    if (Face == ALL_SIDES)
-                    {
-                        tmptex.DefaultTexture.TextureID = asset.FullID;
-                    }
-                    else
-                    {
-                        try
-                        {
-                            Primitive.TextureEntryFace texface = tmptex.CreateFace((uint)Face);
-                            texface.TextureID = asset.FullID;
-                            tmptex.FaceTextures[Face] = texface;
-                        }
-                        catch (Exception)
-                        {
-                            tmptex.DefaultTexture.TextureID = asset.FullID;
-                        }
-                    }
-
-                    // I'm pretty sure we always want to force this to true
-                    // I'm pretty sure noone whats to set fullbright true if it wasn't true before.
-                    // tmptex.DefaultTexture.Fullbright = true;
-
-                    part.UpdateTextureEntry(tmptex.GetBytes());
-                }
+                UUID oldID = UpdatePart(part, asset.FullID);
 
                 if (oldID != UUID.Zero && ((Disp & DISP_EXPIRE) != 0))
                 {
-                    if (oldAsset == null) oldAsset = scene.AssetService.Get(oldID.ToString());
+                    if (oldAsset == null)
+                        oldAsset = scene.AssetService.Get(oldID.ToString());
+
                     if (oldAsset != null)
                     {
-                        if (oldAsset.Temporary == true)
+                        if (oldAsset.Temporary)
                         {
                             scene.AssetService.Delete(oldID.ToString());
                         }
                     }
                 }
+
+                return asset.FullID;
             }
 
             private byte[] BlendTextures(byte[] frontImage, byte[] backImage, bool setNewAlpha, byte newAlpha)

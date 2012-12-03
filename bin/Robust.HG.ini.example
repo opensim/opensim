@@ -21,7 +21,38 @@
 ; * [[<ConfigName>@]<port>/]<dll name>[:<class name>]
 ; *
 [Startup]
-ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003/OpenSim.Server.Handlers.dll:XInventoryInConnector,8004/OpenSim.Server.Handlers.dll:FreeswitchServerConnector,8003/OpenSim.Server.Handlers.dll:GridServiceConnector,8002/OpenSim.Server.Handlers.dll:GridInfoServerInConnector,8003/OpenSim.Server.Handlers.dll:AuthenticationServiceConnector,8002/OpenSim.Server.Handlers.dll:OpenIdServerConnector,8003/OpenSim.Server.Handlers.dll:AvatarServiceConnector,8002/OpenSim.Server.Handlers.dll:LLLoginServiceInConnector,8003/OpenSim.Server.Handlers.dll:PresenceServiceConnector,8003/OpenSim.Server.Handlers.dll:UserAccountServiceConnector,8003/OpenSim.Server.Handlers.dll:GridUserServiceConnector,8003/OpenSim.Server.Handlers.dll:FriendsServiceConnector,8002/OpenSim.Server.Handlers.dll:GatekeeperServiceInConnector,8002/OpenSim.Server.Handlers.dll:UserAgentServerConnector,HGInventoryService@8002/OpenSim.Server.Handlers.dll:XInventoryInConnector,HGAssetService@8002/OpenSim.Server.Handlers.dll:AssetServiceConnector,8002/OpenSim.Server.Handlers.dll:HeloServiceInConnector,8002/OpenSim.Server.Handlers.dll:HGFriendsServerConnector,8002/OpenSim.Server.Handlers.dll:InstantMessageServerConnector,8003/OpenSim.Server.Handlers.dll:MapAddServiceConnector,8002/OpenSim.Server.Handlers.dll:MapGetServiceConnector"
+
+[ServiceList]
+
+AssetServiceConnector = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector"
+InventoryInConnector = "8003/OpenSim.Server.Handlers.dll:XInventoryInConnector"
+VoiceConnector = "8004/OpenSim.Server.Handlers.dll:FreeswitchServerConnector"
+GridServiceConnector = "8003/OpenSim.Server.Handlers.dll:GridServiceConnector"
+GridInfoServerInConnector = "8002/OpenSim.Server.Handlers.dll:GridInfoServerInConnector"
+AuthenticationServiceConnector = "8003/OpenSim.Server.Handlers.dll:AuthenticationServiceConnector"
+OpenIdServerConnector = "8002/OpenSim.Server.Handlers.dll:OpenIdServerConnector"
+AvatarServiceConnector = "8003/OpenSim.Server.Handlers.dll:AvatarServiceConnector"
+LLLoginServiceInConnector = "8002/OpenSim.Server.Handlers.dll:LLLoginServiceInConnector"
+PresenceServiceConnector = "8003/OpenSim.Server.Handlers.dll:PresenceServiceConnector"
+UserAccountServiceConnector = "8003/OpenSim.Server.Handlers.dll:UserAccountServiceConnector"
+GridUserServiceConnector = "8003/OpenSim.Server.Handlers.dll:GridUserServiceConnector"
+FriendsServiceConnector = "8003/OpenSim.Server.Handlers.dll:FriendsServiceConnector"
+MapAddServiceConnector = "8003/OpenSim.Server.Handlers.dll:MapAddServiceConnector"
+MapGetServiceConnector = "8002/OpenSim.Server.Handlers.dll:MapGetServiceConnector"
+
+;; Additions for Hypergrid
+
+GatekeeperServiceInConnector = "8002/OpenSim.Server.Handlers.dll:GatekeeperServiceInConnector"
+UserAgentServerConnector = "8002/OpenSim.Server.Handlers.dll:UserAgentServerConnector"
+HeloServiceInConnector = "8002/OpenSim.Server.Handlers.dll:HeloServiceInConnector"
+HGFriendsServerConnector = "8002/OpenSim.Server.Handlers.dll:HGFriendsServerConnector"
+InstantMessageServerConnector = "8002/OpenSim.Server.Handlers.dll:InstantMessageServerConnector"
+HGInventoryServiceConnector = "HGInventoryService@8002/OpenSim.Server.Handlers.dll:XInventoryInConnector"
+HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:AssetServiceConnector"
+
+;; Additions for other add-on modules. For example:
+;; WifiServerConnector = "8002/Diva.Wifi.dll:WifiServerConnector"
+
 
 ; * This is common for all services, it's the network setup for the entire
 ; * server instance, if none is specified above
@@ -103,6 +134,12 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     ;; For example: 
     ; Region_Welcome_Area = "DefaultRegion, FallbackRegion"
     ; (replace spaces with underscore)
+
+	;; Allow Hyperlinks to be created at the console
+    HypergridLinker = true
+
+	Gatekeeper = "http://127.0.0.1:8002"
+
 
 ; * This is the configuration for the freeswitch server in grid mode
 [FreeswitchService]
@@ -390,6 +427,18 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     ;AllowedClients = ""
     ;DeniedClients = ""
 
+    ;; Are foreign visitors allowed?
+    ;ForeignAgentsAllowed = true
+    ;;
+    ;; If ForeignAgentsAllowed is true, make exceptions using AllowExcept.
+    ;; Leave blank or commented for no exceptions.
+    ; AllowExcept = "http://griefer.com:8002, http://enemy.com:8002"
+    ;;
+    ;; If ForeignAgentsAllowed is false, make exceptions using DisallowExcept
+    ;; Leave blank or commented for no exceptions.
+    ; DisallowExcept = "http://myfriendgrid.com:8002, http://myboss.com:8002"
+
+
 [UserAgentService]
     LocalServiceModule = "OpenSim.Services.HypergridService.dll:UserAgentService"
     ;; for the service
@@ -410,6 +459,24 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     ; User level required to be contacted from other grids
     ;LevelOutsideContacts = 0
 
+    ;; Restrictions on destinations of local users.
+    ;; Are local users allowed to visit other grids?
+    ;; What user level? Use variables of this forrm:
+    ;; ForeignTripsAllowed_Level_<UserLevel> = true | false
+	;; (the default is true)
+    ;; For example:
+    ; ForeignTripsAllowed_Level_0 = false
+    ; ForeignTripsAllowed_Level_200 = true ; true is default, no need to say it
+    ;;
+    ;; If ForeignTripsAllowed is false, make exceptions using DisallowExcept
+    ;; Leave blank or commented for no exceptions.
+    ; DisallowExcept_Level_0 = "http://myothergrid.com:8002, http://boss.com:8002"
+	;;
+    ;; If ForeignTripsAllowed is true, make exceptions using AllowExcept.
+    ;; Leave blank or commented for no exceptions.
+    ; AllowExcept_Level_200 = "http://griefer.com:8002, http://enemy.com:8002"
+
+
 ; * The interface that local users get when they are in other grids.
 ; * This restricts the inventory operations while in other grids.
 ; * Still not completely safe, especially if users perform inventory operations 
@@ -418,8 +485,15 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
 ; * 
 [HGInventoryService]
     ; For the InventoryServiceInConnector
-    LocalServiceModule = "OpenSim.Services.HypergridService.dll:HGInventoryService"
+    LocalServiceModule    = "OpenSim.Services.HypergridService.dll:HGSuitcaseInventoryService"
+	;; alternatives:
+	;;  HG1.5, more permissive, not recommended, but still supported
+    ;LocalServiceModule    = "OpenSim.Services.HypergridService.dll:HGInventoryService"
+	;;  HG1.0, totally permissive, not recommended, but OK for grids with 100% trust
+    ;LocalServiceModule    = "OpenSim.Services.InventoryService.dll:XInventoryService"
+
 	UserAccountsService = "OpenSim.Services.UserAccountService.dll:UserAccountService"
+	AvatarService = "OpenSim.Services.AvatarService.dll:AvatarService"
 	HomeURI = "http://127.0.0.1:8002"
 
 ; * The interface that local users get when they are in other grids.
@@ -430,6 +504,18 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     LocalServiceModule = "OpenSim.Services.HypergridService.dll:HGAssetService"
     UserAccountsService = "OpenSim.Services.UserAccountService.dll:UserAccountService"
     HomeURI = "http://127.0.0.1:8002"
+
+    ;; The asset types that this grid can export to / import from other grids.
+	;; Comma separated.
+	;; Valid values are all the asset types in OpenMetaverse.AssetType, namely:
+	;; Unknown, Texture, Sound, CallingCard, Landmark, Clothing, Object, Notecard, LSLText, 
+	;; LSLBytecode, TextureTGA, Bodypart, SoundWAV, ImageTGA, ImageJPEG, Animation, Gesture, Mesh 
+	;;
+	;; Leave blank or commented if you don't want to apply any restrictions.
+	;; A more strict, but still reasonable, policy may be to disallow the exchange 
+	;; of scripts, like so:
+    ; DisallowExport ="LSLText"
+    ; DisallowImport ="LSLBytecode"
 
 [HGFriendsService]
 	LocalServiceModule = "OpenSim.Services.HypergridService.dll:HGFriendsService"

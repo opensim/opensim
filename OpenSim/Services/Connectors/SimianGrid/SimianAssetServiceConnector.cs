@@ -45,7 +45,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
     /// <summary>
     /// Connects to the SimianGrid asset service
     /// </summary>
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "SimianAssetServiceConnector")]
     public class SimianAssetServiceConnector : IAssetService, ISharedRegionModule
     {
         private static readonly ILog m_log =

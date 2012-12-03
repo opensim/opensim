@@ -139,11 +139,11 @@ namespace OpenSim.Tests.Common
             SceneCommunicationService scs = new SceneCommunicationService();
 
             TestScene testScene = new TestScene(
-                regInfo, m_acm, scs, m_simDataService, m_estateDataService, null, false, configSource, null);
+                regInfo, m_acm, scs, m_simDataService, m_estateDataService, false, configSource, null);
 
-            IRegionModule godsModule = new GodsModule();
-            godsModule.Initialise(testScene, new IniConfigSource());
-            testScene.AddModule(godsModule.Name, godsModule);
+            INonSharedRegionModule godsModule = new GodsModule();
+            godsModule.Initialise(new IniConfigSource());
+            godsModule.AddRegion(testScene);
 
             // Add scene to services
             m_assetService.AddRegion(testScene);
@@ -245,7 +245,7 @@ namespace OpenSim.Tests.Common
             config.AddConfig("Modules");
             config.AddConfig("InventoryService");
             config.Configs["Modules"].Set("InventoryServices", "LocalInventoryServicesConnector");
-            config.Configs["InventoryService"].Set("LocalServiceModule", "OpenSim.Services.InventoryService.dll:InventoryService");
+            config.Configs["InventoryService"].Set("LocalServiceModule", "OpenSim.Services.InventoryService.dll:XInventoryService");
             config.Configs["InventoryService"].Set("StorageProvider", "OpenSim.Tests.Common.dll");
 
             LocalInventoryServicesConnector inventoryService = new LocalInventoryServicesConnector();
@@ -350,6 +350,10 @@ namespace OpenSim.Tests.Common
         /// </summary>
         /// <remarks>
         /// If called directly, then all the modules must be shared modules.
+        /// 
+        /// We are emulating here the normal calls made to setup region modules 
+        /// (Initialise(), PostInitialise(), AddRegion, RegionLoaded()).
+        /// TODO: Need to reuse normal runtime module code.
         /// </remarks>
         /// <param name="scenes"></param>
         /// <param name="config"></param>
@@ -359,28 +363,10 @@ namespace OpenSim.Tests.Common
             List<IRegionModuleBase> newModules = new List<IRegionModuleBase>();
             foreach (object module in modules)
             {
-//                Console.WriteLine("MODULE RAW {0}", module);
-                if (module is IRegionModule)
-                {
-                    IRegionModule m = (IRegionModule)module;
-
-                    foreach (Scene scene in scenes)
-                    {
-                        m.Initialise(scene, config);
-                        scene.AddModule(m.Name, m);
-                    }
-
-                    m.PostInitialise();
-                }
-                else if (module is IRegionModuleBase)
-                {
-                    // for the new system, everything has to be initialised first,
-                    // shared modules have to be post-initialised, then all get an AddRegion with the scene
-                    IRegionModuleBase m = (IRegionModuleBase)module;
-//                    Console.WriteLine("MODULE {0}", m.Name);
-                    m.Initialise(config);
-                    newModules.Add(m);
-                }
+                IRegionModuleBase m = (IRegionModuleBase)module;
+//                Console.WriteLine("MODULE {0}", m.Name);
+                m.Initialise(config);
+                newModules.Add(m);
             }
 
             foreach (IRegionModuleBase module in newModules)
@@ -396,7 +382,7 @@ namespace OpenSim.Tests.Common
                     scene.AddRegionModule(module.Name, module);
                 }
             }
-            
+
             // RegionLoaded is fired after all modules have been appropriately added to all scenes
             foreach (IRegionModuleBase module in newModules)
                 foreach (Scene scene in scenes)

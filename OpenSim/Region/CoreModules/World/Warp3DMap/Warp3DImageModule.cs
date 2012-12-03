@@ -35,6 +35,7 @@ using CSJ2K;
 using Nini.Config;
 using log4net;
 using Rednettle.Warp3D;
+using Mono.Addins;
 using OpenMetaverse;
 using OpenMetaverse.Imaging;
 using OpenMetaverse.Rendering;
@@ -49,6 +50,7 @@ using WarpRenderer = global::Warp3D.Warp3D;
 
 namespace OpenSim.Region.CoreModules.World.Warp3DMap
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "Warp3DImageModule")]
     public class Warp3DImageModule : IMapImageGenerator, INonSharedRegionModule
     {
         private static readonly UUID TEXTURE_METADATA_MAGIC = new UUID("802dc0e0-f080-4931-8b57-d1be8611c4f3");
@@ -66,7 +68,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
         private Bitmap lastImage = null;
         private DateTime lastImageTime = DateTime.MinValue;
 
-        #region IRegionModule Members
+        #region Region Module interface
 
         public void Initialise(IConfigSource source)
         {
@@ -221,6 +223,13 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                 using (Bitmap origBitmap = bitmap)
                     bitmap = ImageUtils.ResizeImage(origBitmap, viewport.Width, viewport.Height);
             }
+
+            // XXX: It shouldn't really be necesary to force a GC here as one should occur anyway pretty shortly
+            // afterwards.  It's generally regarded as a bad idea to manually GC.  If Warp3D is using lots of memory
+            // then this may be some issue with the Warp3D code itself, though it's also quite possible that generating
+            // this map tile simply takes a lot of memory.
+            GC.Collect();
+            m_log.Debug("[WARP 3D IMAGE MODULE]: GC.Collect()");
 
             return bitmap;
         }

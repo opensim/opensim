@@ -188,7 +188,6 @@ namespace OpenSim
             // Make sure command line options take precedence
             m_config.Source.Merge(argvSource);
 
-
             IConfig enVars = m_config.Source.Configs["Environment"];
 
             if( enVars != null )

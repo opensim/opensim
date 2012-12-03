@@ -55,7 +55,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
     ///
     /// </summary>
 
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "SampleMoneyModule")]
     public class SampleMoneyModule : IMoneyModule, ISharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -199,7 +199,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
         {
         }
 
-        public bool ObjectGiveMoney(UUID objectID, UUID fromID, UUID toID, int amount)
+        public bool ObjectGiveMoney(UUID objectID, UUID fromID, UUID toID, int amount, UUID txn)
         {
             string description = String.Format("Object {0} pays {1}", resolveObjectName(objectID), resolveAgentName(toID));
 

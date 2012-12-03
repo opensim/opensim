@@ -320,7 +320,7 @@ namespace OpenSim.Tests.Common.Mock
         public event MuteListEntryRemove OnRemoveMuteListEntry;
         public event GodlikeMessage onGodlikeMessage;
         public event GodUpdateRegionInfoUpdate OnGodUpdateRegionInfoUpdate;
-
+        public event GenericCall2 OnUpdateThrottles;
 #pragma warning restore 67
 
         /// <value>
@@ -521,6 +521,12 @@ namespace OpenSim.Tests.Common.Mock
         public virtual void SetChildAgentThrottle(byte[] throttle)
         {
         }
+
+        public void SetAgentThrottleSilent(int throttle, int setting)
+        {
+
+
+        }
         public byte[] GetThrottlesPacked(float multiplier)
         {
             return new byte[0];
@@ -531,13 +537,9 @@ namespace OpenSim.Tests.Common.Mock
         {
         }
 
-        public virtual void SendChatMessage(string message, byte type, Vector3 fromPos, string fromName,
-                                            UUID fromAgentID, byte source, byte audible)
-        {
-        }
-
-        public virtual void SendChatMessage(byte[] message, byte type, Vector3 fromPos, string fromName,
-                                            UUID fromAgentID, byte source, byte audible)
+        public virtual void SendChatMessage(
+            string message, byte type, Vector3 fromPos, string fromName,
+            UUID fromAgentID, UUID ownerID, byte source, byte audible)
         {
         }
 
@@ -939,12 +941,12 @@ namespace OpenSim.Tests.Common.Mock
             Close();
         }
 
-        public void Close(bool c)
+        public void Close()
         {
-            Close();
+            Close(true, false);
         }
 
-        public void Close()
+        public void Close(bool sendStop, bool force)
         {
             // Fire the callback for this connection closing
             // This is necesary to get the presence detector to notice that a client has logged out.

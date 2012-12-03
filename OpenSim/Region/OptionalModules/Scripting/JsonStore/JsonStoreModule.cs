@@ -59,7 +59,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         private Dictionary<UUID,JsonStore> m_JsonValueStore;
         private UUID m_sharedStore;
 
-#region IRegionModule Members
+#region Region Module interface
 
         // -----------------------------------------------------------------
         /// <summary>
@@ -175,14 +175,15 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         /// 
         /// </summary>
         // -----------------------------------------------------------------
-        public bool CreateStore(string value, out UUID result)
+        public bool CreateStore(string value, ref UUID result)
         {
-            result = UUID.Zero;
+            if (result == UUID.Zero)
+                result = UUID.Random();
+
+            JsonStore map = null;
             
             if (! m_enabled) return false;
             
-            UUID uuid = UUID.Random();
-            JsonStore map = null;
 
             try
             { 
@@ -195,9 +196,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             }
 
             lock (m_JsonValueStore)
-                m_JsonValueStore.Add(uuid,map);
+                m_JsonValueStore.Add(result,map);
             
-            result = uuid;
             return true;
         }
 
@@ -231,7 +231,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
                 if (! m_JsonValueStore.TryGetValue(storeID,out map))
                 {
                     m_log.InfoFormat("[JsonStore] Missing store {0}",storeID);
-                    return true;
+                    return false;
                 }
             }
             

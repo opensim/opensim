@@ -31,6 +31,11 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 using OpenSim.Framework;
 
+using OpenMetaverse;
+using OMV_Vector3 = OpenMetaverse.Vector3;
+using OMV_Vector3d = OpenMetaverse.Vector3d;
+using OMV_Quaternion = OpenMetaverse.Quaternion;
+
 namespace OpenSim.Region.ScriptEngine.Shared
 {
     [Serializable]
@@ -52,6 +57,20 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 x = (float)vector.x;
                 y = (float)vector.y;
                 z = (float)vector.z;
+            }
+
+            public Vector3(OMV_Vector3 vector)
+            {
+                x = vector.X;
+                y = vector.Y;
+                z = vector.Z;
+            }
+
+            public Vector3(OMV_Vector3d vector)
+            {
+                x = vector.X;
+                y = vector.Y;
+                z = vector.Z;
             }
 
             public Vector3(double X, double Y, double Z)
@@ -107,6 +126,26 @@ namespace OpenSim.Region.ScriptEngine.Shared
             public static implicit operator list(Vector3 vec)
             {
                 return new list(new object[] { vec });
+            }
+
+            public static implicit operator OMV_Vector3(Vector3 vec)
+            {
+                return new OMV_Vector3((float)vec.x, (float)vec.y, (float)vec.z);
+            }
+
+            public static implicit operator Vector3(OMV_Vector3 vec)
+            {
+                return new Vector3(vec);
+            }
+
+            public static implicit operator OMV_Vector3d(Vector3 vec)
+            {
+                return new OMV_Vector3d(vec.x, vec.y, vec.z);
+            }
+
+            public static implicit operator Vector3(OMV_Vector3d vec)
+            {
+                return new Vector3(vec);
             }
 
             public static bool operator ==(Vector3 lhs, Vector3 rhs)
@@ -322,6 +361,14 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     s = 1;
             }
 
+            public Quaternion(OMV_Quaternion rot)
+            {
+                x = rot.X;
+                y = rot.Y;
+                z = rot.Z;
+                s = rot.W;
+            }
+
             #endregion
 
             #region Overriders
@@ -366,6 +413,21 @@ namespace OpenSim.Region.ScriptEngine.Shared
             public static implicit operator list(Quaternion r)
             {
                 return new list(new object[] { r });
+            }
+
+            public static implicit operator OMV_Quaternion(Quaternion rot)
+            {
+                // LSL quaternions can normalize to 0, normal Quaternions can't.
+                if (rot.s == 0 && rot.x == 0 && rot.y == 0 && rot.z == 0)
+                    rot.z = 1; // ZERO_ROTATION = 0,0,0,1
+                OMV_Quaternion omvrot = new OMV_Quaternion((float)rot.x, (float)rot.y, (float)rot.z, (float)rot.s);
+                omvrot.Normalize();
+                return omvrot;
+            }
+
+            public static implicit operator Quaternion(OMV_Quaternion rot)
+            {
+                return new Quaternion(rot);
             }
 
             public static bool operator ==(Quaternion lhs, Quaternion rhs)
@@ -562,12 +624,23 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 else if (m_data[itemIndex] is LSL_Types.LSLString)
                     return new LSLInteger(m_data[itemIndex].ToString());
                 else
-                    throw new InvalidCastException();
+                    throw new InvalidCastException(string.Format(
+                        "{0} expected but {1} given",
+                        typeof(LSL_Types.LSLInteger).Name,
+                        m_data[itemIndex] != null ?
+                        m_data[itemIndex].GetType().Name : "null"));
             }
 
             public LSL_Types.Vector3 GetVector3Item(int itemIndex)
             {
-              return (LSL_Types.Vector3)m_data[itemIndex];
+                if(m_data[itemIndex] is LSL_Types.Vector3)
+                    return (LSL_Types.Vector3)m_data[itemIndex];
+                else
+                    throw new InvalidCastException(string.Format(
+                        "{0} expected but {1} given",
+                        typeof(LSL_Types.Vector3).Name,
+                        m_data[itemIndex] != null ?
+                        m_data[itemIndex].GetType().Name : "null"));
             }
 
             public LSL_Types.Quaternion GetQuaternionItem(int itemIndex)

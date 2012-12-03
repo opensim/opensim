@@ -58,7 +58,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         private IScriptModuleComms m_comms;
         private IJsonStoreModule m_store;
         
-#region IRegionModule Members
+#region Region Module interface
 
         // -----------------------------------------------------------------
         /// <summary>
@@ -227,7 +227,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         protected UUID JsonCreateStore(UUID hostID, UUID scriptID, string value)
         {
             UUID uuid = UUID.Zero;
-            if (! m_store.CreateStore(value, out uuid))
+            if (! m_store.CreateStore(value, ref uuid))
                 GenerateRuntimeError("Failed to create Json store");
             
             return uuid;

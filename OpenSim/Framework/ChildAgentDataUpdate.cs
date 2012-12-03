@@ -312,6 +312,7 @@ namespace OpenSim.Framework
         public AgentGroupData[] Groups;
         public Animation[] Anims;
         public Animation DefaultAnim = null;
+        public Animation AnimState = null;
 
         public UUID GranterID;
         public UUID ParentPart;
@@ -401,6 +402,11 @@ namespace OpenSim.Framework
             if (DefaultAnim != null)
             {
                 args["default_animation"] = DefaultAnim.PackUpdateMessage();
+            }
+
+            if (AnimState != null)
+            {
+                args["animation_state"] = AnimState.PackUpdateMessage();
             }
 
             if (Appearance != null)
@@ -609,6 +615,18 @@ namespace OpenSim.Framework
                 catch
                 {
                     DefaultAnim = null;
+                }
+            }
+
+            if (args["animation_state"] != null)
+            {
+                try
+                {
+                    AnimState = new Animation((OSDMap)args["animation_state"]);
+                }
+                catch
+                {
+                    AnimState = null;
                 }
             }
 

@@ -40,6 +40,7 @@ using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using Mono.Addins;
 
 /*****************************************************
  *
@@ -76,7 +77,8 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.Scripting.XMLRPC
 {
-    public class XMLRPCModule : IRegionModule, IXMLRPC
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "XMLRPCModule")]
+    public class XMLRPCModule : ISharedRegionModule, IXMLRPC
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -86,6 +88,10 @@ namespace OpenSim.Region.CoreModules.Scripting.XMLRPC
         private Dictionary<UUID, RPCChannelInfo> m_openChannels;
         private Dictionary<UUID, SendRemoteDataRequest> m_pendingSRDResponses;
         private int m_remoteDataPort = 0;
+        public int Port
+        {
+            get { return m_remoteDataPort; }
+        }
 
         private Dictionary<UUID, RPCRequestInfo> m_rpcPending;
         private Dictionary<UUID, RPCRequestInfo> m_rpcPendingResponses;
@@ -94,34 +100,24 @@ namespace OpenSim.Region.CoreModules.Scripting.XMLRPC
         private int RemoteReplyScriptWait = 300;
         private object XMLRPCListLock = new object();
 
-        #region IRegionModule Members
+        #region ISharedRegionModule Members
 
-        public void Initialise(Scene scene, IConfigSource config)
+        public void Initialise(IConfigSource config)
         {
             // We need to create these early because the scripts might be calling
             // But since this gets called for every region, we need to make sure they
             // get called only one time (or we lose any open channels)
-            if (null == m_openChannels)
-            {
-                m_openChannels = new Dictionary<UUID, RPCChannelInfo>();
-                m_rpcPending = new Dictionary<UUID, RPCRequestInfo>();
-                m_rpcPendingResponses = new Dictionary<UUID, RPCRequestInfo>();
-                m_pendingSRDResponses = new Dictionary<UUID, SendRemoteDataRequest>();
+            m_openChannels = new Dictionary<UUID, RPCChannelInfo>();
+            m_rpcPending = new Dictionary<UUID, RPCRequestInfo>();
+            m_rpcPendingResponses = new Dictionary<UUID, RPCRequestInfo>();
+            m_pendingSRDResponses = new Dictionary<UUID, SendRemoteDataRequest>();
 
-                try
-                {
-                    m_remoteDataPort = config.Configs["XMLRPC"].GetInt("XmlRpcPort", m_remoteDataPort);
-                }
-                catch (Exception)
-                {
-                }
+            try
+            {
+                m_remoteDataPort = config.Configs["XMLRPC"].GetInt("XmlRpcPort", m_remoteDataPort);
             }
-
-            if (!m_scenes.Contains(scene))
+            catch (Exception)
             {
-                m_scenes.Add(scene);
-
-                scene.RegisterModuleInterface<IXMLRPC>(this);
             }
         }
 
@@ -131,12 +127,41 @@ namespace OpenSim.Region.CoreModules.Scripting.XMLRPC
             {
                 // Start http server
                 // Attach xmlrpc handlers
-//                m_log.InfoFormat(
-//                    "[XML RPC MODULE]: Starting up XMLRPC Server on port {0} for llRemoteData commands.",
-//                    m_remoteDataPort);
+                //                m_log.InfoFormat(
+                //                    "[XML RPC MODULE]: Starting up XMLRPC Server on port {0} for llRemoteData commands.",
+                //                    m_remoteDataPort);
 
                 IHttpServer httpServer = MainServer.GetHttpServer((uint)m_remoteDataPort);
                 httpServer.AddXmlRPCHandler("llRemoteData", XmlRpcRemoteData);
+            }
+        }
+
+        public void AddRegion(Scene scene)
+        {
+            if (!IsEnabled())
+                return;
+
+            if (!m_scenes.Contains(scene))
+            {
+                m_scenes.Add(scene);
+
+                scene.RegisterModuleInterface<IXMLRPC>(this);
+            }
+        }
+
+        public void RegionLoaded(Scene scene)
+        {
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+            if (!IsEnabled())
+                return;
+
+            if (m_scenes.Contains(scene))
+            {
+                scene.UnregisterModuleInterface<IXMLRPC>(this);
+                m_scenes.Remove(scene);
             }
         }
 
@@ -149,14 +174,9 @@ namespace OpenSim.Region.CoreModules.Scripting.XMLRPC
             get { return m_name; }
         }
 
-        public bool IsSharedModule
+        public Type ReplaceableInterface
         {
-            get { return true; }
-        }
-
-        public int Port
-        {
-            get { return m_remoteDataPort; }
+            get { return null; }
         }
 
         #endregion

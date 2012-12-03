@@ -38,10 +38,12 @@ using OpenSim.Region.CoreModules.Framework.Monitoring.Alerts;
 using OpenSim.Region.CoreModules.Framework.Monitoring.Monitors;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using Mono.Addins;
 
 namespace OpenSim.Region.CoreModules.Framework.Monitoring
 {
-    public class MonitorModule : IRegionModule 
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "MonitorModule")]
+    public class MonitorModule : INonSharedRegionModule 
     {
         /// <summary>
         /// Is this module enabled?
@@ -62,20 +64,27 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
         private readonly List<IAlert> m_alerts = new List<IAlert>();
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        #region Implementation of IRegionModule
-
         public MonitorModule()
         {
             Enabled = true;
         }
 
-        public void Initialise(Scene scene, IConfigSource source)
+        #region Implementation of INonSharedRegionModule
+
+        public void Initialise(IConfigSource source)
         {
             IConfig cnfg = source.Configs["Monitoring"];
 
             if (cnfg != null)
                 Enabled = cnfg.GetBoolean("Enabled", true);
             
+            if (!Enabled)
+                return;
+
+        }
+
+        public void AddRegion(Scene scene)
+        {
             if (!Enabled)
                 return;
 
@@ -89,101 +98,42 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
             MainServer.Instance.AddHTTPHandler("/monitorstats/" + m_scene.RegionInfo.RegionID, StatsPage);
             MainServer.Instance.AddHTTPHandler(
                 "/monitorstats/" + Uri.EscapeDataString(m_scene.RegionInfo.RegionName), StatsPage);
+
+            AddMonitors();
         }
 
-        public void DebugMonitors(string module, string[] args)
-        {
-            foreach (IMonitor monitor in m_staticMonitors)
-            {
-                m_log.InfoFormat(
-                    "[MONITOR MODULE]: {0} reports {1} = {2}",
-                    m_scene.RegionInfo.RegionName, monitor.GetFriendlyName(), monitor.GetFriendlyValue());
-            }
-
-            foreach (KeyValuePair<string, float> tuple in m_scene.StatsReporter.GetExtraSimStats())
-            {
-                m_log.InfoFormat(
-                    "[MONITOR MODULE]: {0} reports {1} = {2}",
-                    m_scene.RegionInfo.RegionName, tuple.Key, tuple.Value);
-            }
-        }
-
-        public void TestAlerts()
-        {
-            foreach (IAlert alert in m_alerts)
-            {
-                alert.Test();
-            }
-        }
-
-        public Hashtable StatsPage(Hashtable request)
-        {
-            // If request was for a specific monitor
-            // eg url/?monitor=Monitor.Name
-            if (request.ContainsKey("monitor"))
-            {
-                string monID = (string) request["monitor"];
-
-                foreach (IMonitor monitor in m_staticMonitors)
-                {
-                    string elemName = monitor.ToString();
-                    if (elemName.StartsWith(monitor.GetType().Namespace))
-                        elemName = elemName.Substring(monitor.GetType().Namespace.Length + 1);
-
-                    if (elemName == monID || monitor.ToString() == monID)
-                    {
-                        Hashtable ereply3 = new Hashtable();
-
-                        ereply3["int_response_code"] = 404; // 200 OK
-                        ereply3["str_response_string"] = monitor.GetValue().ToString();
-                        ereply3["content_type"] = "text/plain";
-
-                        return ereply3;
-                    }
-                }
-
-                // FIXME: Arguably this should also be done with dynamic monitors but I'm not sure what the above code
-                // is even doing.  Why are we inspecting the type of the monitor???
-
-                // No monitor with that name
-                Hashtable ereply2 = new Hashtable();
-
-                ereply2["int_response_code"] = 404; // 200 OK
-                ereply2["str_response_string"] = "No such monitor";
-                ereply2["content_type"] = "text/plain";
-
-                return ereply2;
-            }
-
-            string xml = "<data>";
-            foreach (IMonitor monitor in m_staticMonitors)
-            {
-                string elemName = monitor.GetName();
-                xml += "<" + elemName + ">" + monitor.GetValue().ToString() + "</" + elemName + ">";
-//                m_log.DebugFormat("[MONITOR MODULE]: {0} = {1}", elemName, monitor.GetValue());
-            }
-
-            foreach (KeyValuePair<string, float> tuple in m_scene.StatsReporter.GetExtraSimStats())
-            {
-                xml += "<" + tuple.Key + ">" + tuple.Value + "</" + tuple.Key + ">";
-            }
-
-            xml += "</data>";
-
-            Hashtable ereply = new Hashtable();
-
-            ereply["int_response_code"] = 200; // 200 OK
-            ereply["str_response_string"] = xml;
-            ereply["content_type"] = "text/xml";
-
-            return ereply;
-        }
-
-        public void PostInitialise()
+        public void RemoveRegion(Scene scene)
         {
             if (!Enabled)
                 return;
 
+            MainServer.Instance.RemoveHTTPHandler("GET", "/monitorstats/" + m_scene.RegionInfo.RegionID);
+            MainServer.Instance.RemoveHTTPHandler("GET", "/monitorstats/" + Uri.EscapeDataString(m_scene.RegionInfo.RegionName));
+            m_scene = null;
+        }
+
+        public void Close()
+        {
+        }
+
+        public string Name
+        {
+            get { return "Region Health Monitoring Module"; }
+        }
+
+        public void RegionLoaded(Scene scene)
+        {
+        }
+
+        public Type ReplaceableInterface
+        {
+            get { return null; }
+        }
+
+        #endregion
+
+        public void AddMonitors()
+        {
             m_staticMonitors.Add(new AgentCountMonitor(m_scene));
             m_staticMonitors.Add(new ChildAgentCountMonitor(m_scene));
             m_staticMonitors.Add(new GCMemoryMonitor());
@@ -196,7 +146,7 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
             m_staticMonitors.Add(new EventFrameMonitor(m_scene));
             m_staticMonitors.Add(new LandFrameMonitor(m_scene));
             m_staticMonitors.Add(new LastFrameTimeMonitor(m_scene));
-            
+
             m_staticMonitors.Add(
                 new GenericMonitor(
                     m_scene,
@@ -357,25 +307,98 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
             }
         }
 
+        public void DebugMonitors(string module, string[] args)
+        {
+            foreach (IMonitor monitor in m_staticMonitors)
+            {
+                MainConsole.Instance.OutputFormat(
+                    "[MONITOR MODULE]: {0} reports {1} = {2}",
+                    m_scene.RegionInfo.RegionName, monitor.GetFriendlyName(), monitor.GetFriendlyValue());
+            }
+
+            foreach (KeyValuePair<string, float> tuple in m_scene.StatsReporter.GetExtraSimStats())
+            {
+                MainConsole.Instance.OutputFormat(
+                    "[MONITOR MODULE]: {0} reports {1} = {2}",
+                    m_scene.RegionInfo.RegionName, tuple.Key, tuple.Value);
+            }
+        }
+
+        public void TestAlerts()
+        {
+            foreach (IAlert alert in m_alerts)
+            {
+                alert.Test();
+            }
+        }
+
+        public Hashtable StatsPage(Hashtable request)
+        {
+            // If request was for a specific monitor
+            // eg url/?monitor=Monitor.Name
+            if (request.ContainsKey("monitor"))
+            {
+                string monID = (string) request["monitor"];
+
+                foreach (IMonitor monitor in m_staticMonitors)
+                {
+                    string elemName = monitor.ToString();
+                    if (elemName.StartsWith(monitor.GetType().Namespace))
+                        elemName = elemName.Substring(monitor.GetType().Namespace.Length + 1);
+
+                    if (elemName == monID || monitor.ToString() == monID)
+                    {
+                        Hashtable ereply3 = new Hashtable();
+
+                        ereply3["int_response_code"] = 404; // 200 OK
+                        ereply3["str_response_string"] = monitor.GetValue().ToString();
+                        ereply3["content_type"] = "text/plain";
+
+                        return ereply3;
+                    }
+                }
+
+                // FIXME: Arguably this should also be done with dynamic monitors but I'm not sure what the above code
+                // is even doing.  Why are we inspecting the type of the monitor???
+
+                // No monitor with that name
+                Hashtable ereply2 = new Hashtable();
+
+                ereply2["int_response_code"] = 404; // 200 OK
+                ereply2["str_response_string"] = "No such monitor";
+                ereply2["content_type"] = "text/plain";
+
+                return ereply2;
+            }
+
+            string xml = "<data>";
+            foreach (IMonitor monitor in m_staticMonitors)
+            {
+                string elemName = monitor.GetName();
+                xml += "<" + elemName + ">" + monitor.GetValue().ToString() + "</" + elemName + ">";
+//                m_log.DebugFormat("[MONITOR MODULE]: {0} = {1}", elemName, monitor.GetValue());
+            }
+
+            foreach (KeyValuePair<string, float> tuple in m_scene.StatsReporter.GetExtraSimStats())
+            {
+                xml += "<" + tuple.Key + ">" + tuple.Value + "</" + tuple.Key + ">";
+            }
+
+            xml += "</data>";
+
+            Hashtable ereply = new Hashtable();
+
+            ereply["int_response_code"] = 200; // 200 OK
+            ereply["str_response_string"] = xml;
+            ereply["content_type"] = "text/xml";
+
+            return ereply;
+        }
+
         void OnTriggerAlert(System.Type reporter, string reason, bool fatal)
         {
             m_log.Error("[Monitor] " + reporter.Name + " for " + m_scene.RegionInfo.RegionName + " reports " + reason + " (Fatal: " + fatal + ")");
         }
-
-        public void Close()
-        {
-        }
-
-        public string Name
-        {
-            get { return "Region Health Monitoring Module"; }
-        }
-
-        public bool IsSharedModule
-        {
-            get { return false; }
-        }
-
-        #endregion
+        
     }
 }

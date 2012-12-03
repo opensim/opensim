@@ -35,7 +35,6 @@ using Nini.Config;
 using NUnit.Framework;
 using OpenMetaverse;
 using OpenMetaverse.Assets;
-using Flotsam.RegionModules.AssetCache;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Scenes.Serialization;

@@ -41,9 +41,11 @@ using OpenMetaverse;
 using OpenMetaverse.Packets;
 using log4net;
 using Nini.Config;
+using Mono.Addins;
 
 namespace OpenSim.Region.CoreModules.Framework.UserManagement
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "HGUserManagementModule")]
     public class HGUserManagementModule : UserManagementModule, ISharedRegionModule, IUserManagement
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -137,6 +139,9 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                             ud.FirstName = words[0];
                             ud.LastName = "@" + words[1];
                             users.Add(ud);
+                            // WARNING! that uriStr is not quite right... it may be missing the / at the end,
+                            // which will cause trouble (duplicate entries on some tables). We should
+                            // get the UUI instead from the UAS. TO BE FIXED.
                             AddUser(userID, names[0], names[1], uriStr);
                             m_log.DebugFormat("[USER MANAGEMENT MODULE]: User {0}@{1} found", words[0], words[1]);
                         }

@@ -83,6 +83,11 @@ namespace OpenSim.Framework
         ICommands Commands { get; }
 
         /// <summary>
+        /// The default prompt text.
+        /// </summary>
+        string DefaultPrompt { get; set; }
+
+        /// <summary>
         /// Display a command prompt on the console and wait for user input
         /// </summary>
         void Prompt();

@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Reflection;
 using log4net;
 using Nini.Config;
@@ -35,26 +36,46 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
 
+using Mono.Addins;
+
 namespace OpenSim.Region.CoreModules.Avatar.Gestures
 {
-    public class GesturesModule : IRegionModule
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "GesturesModule")]
+    public class GesturesModule : INonSharedRegionModule
     { 
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         protected Scene m_scene;
         
-        public void Initialise(Scene scene, IConfigSource source)
+        public void Initialise(IConfigSource source)
+        {
+        }
+
+        public void AddRegion(Scene scene)
         {
             m_scene = scene;
-            
+
             m_scene.EventManager.OnNewClient += OnNewClient;
         }
+
+        public void RegionLoaded(Scene scene)
+        {
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+            m_scene.EventManager.OnNewClient -= OnNewClient;
+            m_scene = null;
+        }
         
-        public void PostInitialise() {}
         public void Close() {}
         public string Name { get { return "Gestures Module"; } }
-        public bool IsSharedModule { get { return false; } }
-        
+
+        public Type ReplaceableInterface
+        {
+            get { return null; }
+        }
+
         private void OnNewClient(IClientAPI client)
         {
             client.OnActivateGesture += ActivateGesture;

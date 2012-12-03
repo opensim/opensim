@@ -1366,6 +1366,13 @@ namespace OpenSim.Data.SQLite
             createCol(land, "UserLookAtZ", typeof(Double));
             createCol(land, "AuthbuyerID", typeof(String));
             createCol(land, "OtherCleanTime", typeof(Int32));
+            createCol(land, "Dwell", typeof(Int32));
+            createCol(land, "MediaType", typeof(String));
+            createCol(land, "MediaDescription", typeof(String));
+            createCol(land, "MediaSize", typeof(String));
+            createCol(land, "MediaLoop", typeof(Boolean));
+            createCol(land, "ObscureMedia", typeof(Boolean));
+            createCol(land, "ObscureMusic", typeof(Boolean));
 
             land.PrimaryKey = new DataColumn[] { land.Columns["UUID"] };
 
@@ -1781,9 +1788,16 @@ namespace OpenSim.Data.SQLite
             newData.PassHours = Convert.ToSingle(row["PassHours"]);
             newData.PassPrice = Convert.ToInt32(row["PassPrice"]);
             newData.SnapshotID = (UUID)(String)row["SnapshotUUID"];
+            newData.Dwell = Convert.ToInt32(row["Dwell"]);
+            newData.MediaType = (String)row["MediaType"];
+            newData.MediaDescription = (String)row["MediaDescription"];
+            newData.MediaWidth = Convert.ToInt32((((string)row["MediaSize"]).Split(','))[0]);
+            newData.MediaHeight = Convert.ToInt32((((string)row["MediaSize"]).Split(','))[1]);
+            newData.MediaLoop = Convert.ToBoolean(row["MediaLoop"]);
+            newData.ObscureMedia = Convert.ToBoolean(row["ObscureMedia"]);
+            newData.ObscureMusic = Convert.ToBoolean(row["ObscureMusic"]);
             try
             {
-
                 newData.UserLocation =
                     new Vector3(Convert.ToSingle(row["UserLocationX"]), Convert.ToSingle(row["UserLocationY"]),
                                   Convert.ToSingle(row["UserLocationZ"]));
@@ -2195,12 +2209,13 @@ namespace OpenSim.Data.SQLite
             row["UserLookAtZ"] = land.UserLookAt.Z;
             row["AuthbuyerID"] = land.AuthBuyerID.ToString();
             row["OtherCleanTime"] = land.OtherCleanTime;
+            row["Dwell"] = land.Dwell;
             row["MediaType"] = land.MediaType;
             row["MediaDescription"] = land.MediaDescription;
-            row["MediaSize"] = land.MediaWidth.ToString() + "," + land.MediaHeight.ToString();
-            row["MediaLoop"] = land.MediaLoop.ToString();
-            row["ObscureMusic"] = land.ObscureMusic.ToString();
-            row["ObscureMedia"] = land.ObscureMedia.ToString();
+            row["MediaSize"] = String.Format("{0},{1}", land.MediaWidth, land.MediaHeight);
+            row["MediaLoop"] = land.MediaLoop;
+            row["ObscureMusic"] = land.ObscureMusic;
+            row["ObscureMedia"] = land.ObscureMedia;
         }
 
         /// <summary>

@@ -68,7 +68,7 @@ namespace OpenSim.Capabilities.Handlers
             ret["content_type"] = "text/plain";
             ret["keepalive"] = false;
             ret["reusecontext"] = false;
-
+            ret["int_bytes"] = 0;
             string textureStr = (string)request["texture_id"];
             string format = (string)request["format"];
 
@@ -200,11 +200,25 @@ namespace OpenSim.Capabilities.Handlers
                 int start, end;
                 if (TryParseRange(range, out start, out end))
                 {
-
                     // Before clamping start make sure we can satisfy it in order to avoid
                     // sending back the last byte instead of an error status
                     if (start >= texture.Data.Length)
                     {
+//                        m_log.DebugFormat(
+//                            "[GETTEXTURE]: Client requested range for texture {0} starting at {1} but texture has end of {2}",
+//                            texture.ID, start, texture.Data.Length);
+
+                        // Stricly speaking, as per http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html, we should be sending back
+                        // Requested Range Not Satisfiable (416) here.  However, it appears that at least recent implementations
+                        // of the Linden Lab viewer (3.2.1 and 3.3.4 and probably earlier), a viewer that has previously
+                        // received a very small texture  may attempt to fetch bytes from the server past the
+                        // range of data that it received originally.  Whether this happens appears to depend on whether
+                        // the viewer's estimation of how large a request it needs to make for certain discard levels
+                        // (http://wiki.secondlife.com/wiki/Image_System#Discard_Level_and_Mip_Mapping), chiefly discard
+                        // level 2.  If this estimate is greater than the total texture size, returning a RequestedRangeNotSatisfiable
+                        // here will cause the viewer to treat the texture as bad and never display the full resolution
+                        // However, if we return PartialContent (or OK) instead, the viewer will display that resolution.
+
 //                        response.StatusCode = (int)System.Net.HttpStatusCode.RequestedRangeNotSatisfiable;
                         // viewers don't seem to handle RequestedRangeNotSatisfiable and keep retrying with same parameters
                         response["int_response_code"] = (int)System.Net.HttpStatusCode.NotFound;
@@ -215,7 +229,7 @@ namespace OpenSim.Capabilities.Handlers
                         start = Utils.Clamp(start, 0, end);
                         int len = end - start + 1;
 
-                        //m_log.Debug("Serving " + start + " to " + end + " of " + texture.Data.Length + " bytes for texture " + texture.ID);
+//                        m_log.Debug("Serving " + start + " to " + end + " of " + texture.Data.Length + " bytes for texture " + texture.ID);
 
                         response["content-type"] = texture.Metadata.ContentType;
 
@@ -223,6 +237,7 @@ namespace OpenSim.Capabilities.Handlers
                         {
                             response["int_response_code"] = (int)System.Net.HttpStatusCode.OK;
                             response["bin_response_data"] = texture.Data;
+                            response["int_bytes"] = texture.Data.Length;
                         }
                         else
                         {
@@ -232,6 +247,7 @@ namespace OpenSim.Capabilities.Handlers
                             byte[] d = new byte[len];
                             Array.Copy(texture.Data, start, d, 0, len);
                             response["bin_response_data"] = d;
+                            response["int_bytes"] = len;
                         }
 //                        response.Body.Write(texture.Data, start, len);
                     }
@@ -252,6 +268,8 @@ namespace OpenSim.Capabilities.Handlers
                     response["content_type"] = "image/" + format;
                 
                 response["bin_response_data"] = texture.Data;
+                response["int_bytes"] = texture.Data.Length;
+
 //                response.Body.Write(texture.Data, 0, texture.Data.Length);
             }
 

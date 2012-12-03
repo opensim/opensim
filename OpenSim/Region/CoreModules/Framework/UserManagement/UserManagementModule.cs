@@ -31,6 +31,7 @@ using System.Reflection;
 
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
+using OpenSim.Region.ClientStack.LindenUDP;
 using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -41,6 +42,7 @@ using OpenMetaverse;
 using OpenMetaverse.Packets;
 using log4net;
 using Nini.Config;
+using Mono.Addins;
 
 namespace OpenSim.Region.CoreModules.Framework.UserManagement
 {
@@ -53,6 +55,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
         public Dictionary<string, object> ServerURLs { get; set; }
     }
 
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "UserManagementModule")]
     public class UserManagementModule : ISharedRegionModule, IUserManagement
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -429,8 +432,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
         public void AddUser(UUID uuid, string first, string last, string homeURL)
         {
-            // m_log.DebugFormat("[USER MANAGEMENT MODULE]: Adding user with id {0}, first {1}, last {2}, url {3}", uuid, first, last, homeURL);
-
+            //m_log.DebugFormat("[USER MANAGEMENT MODULE]: Adding user with id {0}, first {1}, last {2}, url {3}", uuid, first, last, homeURL);
             AddUser(uuid, homeURL + ";" + first + " " + last);
         }
 
@@ -553,8 +555,8 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                 MainConsole.Instance.Output("-----------------------------------------------------------------------------");
                 foreach (KeyValuePair<UUID, UserData> kvp in m_UserCache)
                 {
-                    MainConsole.Instance.Output(String.Format("{0} {1} {2}",
-                           kvp.Key, kvp.Value.FirstName, kvp.Value.LastName));
+                    MainConsole.Instance.Output(String.Format("{0} {1} {2} ({3})",
+                           kvp.Key, kvp.Value.FirstName, kvp.Value.LastName, kvp.Value.HomeURL));
                 }
     
                 return;

@@ -29,6 +29,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using log4net;
+using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -39,6 +40,7 @@ using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "LocalSimulationConnectorModule")]
     public class LocalSimulationConnectorModule : ISharedRegionModule, ISimulationService
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -58,7 +60,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
         /// </summary>
         private bool m_ModuleEnabled = false;
 
-        #region IRegionModule
+        #region Region Module interface
 
         public void Initialise(IConfigSource config)
         {
@@ -156,7 +158,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
             }
         }
 
-        #endregion /* IRegionModule */
+        #endregion
 
         #region ISimulation
 
@@ -313,7 +315,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
 
             if (m_scenes.ContainsKey(destination.RegionID))
             {
-                Util.FireAndForget(delegate { m_scenes[destination.RegionID].IncomingCloseAgent(id); });
+//                    m_log.DebugFormat(
+//                        "[LOCAL SIMULATION CONNECTOR]: Found region {0} {1} to send AgentUpdate",
+//                        s.RegionInfo.RegionName, destination.RegionHandle);
+
+                Util.FireAndForget(delegate { m_scenes[destination.RegionID].IncomingCloseAgent(id, false); });
                 return true;
             }
             //m_log.Debug("[LOCAL COMMS]: region not found in SendCloseAgent");

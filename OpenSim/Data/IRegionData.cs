@@ -85,21 +85,6 @@ namespace OpenSim.Data
         List<RegionData> GetHyperlinks(UUID scopeID);
     }
 
-    [Flags]
-    public enum RegionFlags : int
-    {
-        DefaultRegion = 1, // Used for new Rez. Random if multiple defined
-        FallbackRegion = 2, // Regions we redirect to when the destination is down
-        RegionOnline = 4, // Set when a region comes online, unset when it unregisters and DeleteOnUnregister is false
-        NoDirectLogin = 8, // Region unavailable for direct logins (by name)
-        Persistent = 16, // Don't remove on unregister
-        LockedOut = 32, // Don't allow registration
-        NoMove = 64, // Don't allow moving this region
-        Reservation = 128, // This is an inactive reservation
-        Authenticate = 256, // Require authentication
-        Hyperlink = 512 // Record represents a HG link
-    }
-    
     public class RegionDataDistanceCompare : IComparer<RegionData>
     {
         private Vector2 m_origin;

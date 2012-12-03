@@ -33,9 +33,12 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenMetaverse;
 
+using Mono.Addins;
+
 namespace OpenSim.Region.CoreModules.Avatar.Combat.CombatModule
 {
-    public class CombatModule : IRegionModule
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "CombatModule")]
+    public class CombatModule : ISharedRegionModule
     {
         //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -54,7 +57,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Combat.CombatModule
         /// </summary>
         /// <param name="scene"></param>
         /// <param name="config"></param>
-        public void Initialise(Scene scene, IConfigSource config)
+        public void Initialise(IConfigSource config)
+        {
+        }
+
+        public void AddRegion(Scene scene)
         {
             lock (m_scenel)
             {
@@ -72,6 +79,19 @@ namespace OpenSim.Region.CoreModules.Avatar.Combat.CombatModule
             scene.EventManager.OnAvatarEnteringNewParcel += AvatarEnteringParcel;
         }
 
+        public void RemoveRegion(Scene scene)
+        {
+            if (m_scenel.ContainsKey(scene.RegionInfo.RegionHandle))
+                m_scenel.Remove(scene.RegionInfo.RegionHandle);
+
+            scene.EventManager.OnAvatarKilled -= KillAvatar;
+            scene.EventManager.OnAvatarEnteringNewParcel -= AvatarEnteringParcel;
+        }
+
+        public void RegionLoaded(Scene scene)
+        {
+        }
+
         public void PostInitialise()
         {
         }
@@ -85,10 +105,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Combat.CombatModule
             get { return "CombatModule"; }
         }
 
-        public bool IsSharedModule
+        public Type ReplaceableInterface
         {
-            get { return true; }
+            get { return null; }
         }
+
 
         private void KillAvatar(uint killerObjectLocalID, ScenePresence deadAvatar)
         {

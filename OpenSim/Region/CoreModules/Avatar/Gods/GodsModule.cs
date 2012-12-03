@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Collections.Generic;
 using Nini.Config;
 using OpenMetaverse;
@@ -50,9 +51,12 @@ using Caps = OpenSim.Framework.Capabilities.Caps;
 using OSDArray = OpenMetaverse.StructuredData.OSDArray;
 using OSDMap = OpenMetaverse.StructuredData.OSDMap;
 
+using Mono.Addins;
+
 namespace OpenSim.Region.CoreModules.Avatar.Gods
 {
-    public class GodsModule : IRegionModule, IGodsModule
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "GodsModule")]
+    public class GodsModule : INonSharedRegionModule, IGodsModule
     {
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -66,10 +70,24 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
         protected Dictionary<UUID, string> m_capsDict =
                 new Dictionary<UUID, string>();
         
-        public void Initialise(Scene scene, IConfigSource source)
+        protected IDialogModule DialogModule
+        {
+            get
+            {
+                if (m_dialogModule == null)
+                    m_dialogModule = m_scene.RequestModuleInterface<IDialogModule>();
+
+                return m_dialogModule;
+            }
+        }
+
+        public void Initialise(IConfigSource source)
+        {
+        }
+
+        public void AddRegion(Scene scene)
         {
             m_scene = scene;
-            m_dialogModule = m_scene.RequestModuleInterface<IDialogModule>();
             m_scene.RegisterModuleInterface<IGodsModule>(this);
             m_scene.EventManager.OnNewClient += SubscribeToClientEvents;
             m_scene.EventManager.OnRegisterCaps += OnRegisterCaps;
@@ -77,12 +95,26 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
             scene.EventManager.OnIncomingInstantMessage +=
                     OnIncomingInstantMessage;
         }
-        
-        public void PostInitialise() {}
+
+        public void RemoveRegion(Scene scene)
+        {
+            m_scene.UnregisterModuleInterface<IGodsModule>(this);
+            m_scene.EventManager.OnNewClient -= SubscribeToClientEvents;
+            m_scene = null;
+        }
+
+        public void RegionLoaded(Scene scene)
+        {
+        }
+
         public void Close() {}
         public string Name { get { return "Gods Module"; } }
-        public bool IsSharedModule { get { return false; } }
-        
+
+        public Type ReplaceableInterface
+        {
+            get { return null; }
+        }
+
         public void SubscribeToClientEvents(IClientAPI client)
         {
             client.OnGodKickUser += KickUser;
@@ -172,8 +204,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
                 }
                 else
                 {
-                    if (m_dialogModule != null)
-                        m_dialogModule.SendAlertToUser(agentID, "Request for god powers denied");
+                    if (DialogModule != null)
+                        DialogModule.SendAlertToUser(agentID, "Request for god powers denied");
                 }
             }
         }
@@ -206,7 +238,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
                     transferModule.SendInstantMessage(new GridInstantMessage(
                             m_scene, godID, "God", agentID, (byte)250, false,
                             Utils.BytesToString(reason), UUID.Zero, true,
-                            new Vector3(), new byte[] {(byte)kickflags}),
+                            new Vector3(), new byte[] {(byte)kickflags}, true),
                             delegate(bool success) {} );
                 }
                 return;

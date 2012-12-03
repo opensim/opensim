@@ -546,6 +546,19 @@ namespace OpenSim.Framework
         }
 
         /// <summary>
+        /// Determines whether a point is inside a bounding box.
+        /// </summary>
+        /// <param name='v'></param>
+        /// <param name='min'></param>
+        /// <param name='max'></param>
+        /// <returns></returns>
+        public static bool IsInsideBox(Vector3 v, Vector3 min, Vector3 max)
+        {
+            return v.X >= min.X & v.Y >= min.Y && v.Z >= min.Z
+                && v.X <= max.X && v.Y <= max.Y && v.Z <= max.Z;
+        }
+
+        /// <summary>
         /// Are the co-ordinates of the new region visible from the old region?
         /// </summary>
         /// <param name="oldx">Old region x-coord</param>
@@ -862,6 +875,12 @@ namespace OpenSim.Framework
             return Math.Min(Math.Max(x, min), max);
         }
 
+        public static Vector3 Clip(Vector3 vec, float min, float max)
+        {
+            return new Vector3(Clip(vec.X, min, max), Clip(vec.Y, min, max),
+                Clip(vec.Z, min, max));
+        }
+
         /// <summary>
         /// Convert an UUID to a raw uuid string.  Right now this is a string without hyphens.
         /// </summary>
@@ -1011,6 +1030,38 @@ namespace OpenSim.Framework
 
                 return Util.UTF8.GetString(buffer);
             }
+        }
+
+        /// <summary>
+        /// Copy data from one stream to another, leaving the read position of both streams at the beginning.
+        /// </summary>
+        /// <param name='inputStream'>
+        /// Input stream.  Must be seekable.
+        /// </param>
+        /// <exception cref='ArgumentException'>
+        /// Thrown if the input stream is not seekable.
+        /// </exception>
+        public static Stream Copy(Stream inputStream)
+        {
+            if (!inputStream.CanSeek)
+                throw new ArgumentException("Util.Copy(Stream inputStream) must receive an inputStream that can seek");
+
+            const int readSize = 256;
+            byte[] buffer = new byte[readSize];
+            MemoryStream ms = new MemoryStream();
+        
+            int count = inputStream.Read(buffer, 0, readSize);
+
+            while (count > 0)
+            {
+                ms.Write(buffer, 0, count);
+                count = inputStream.Read(buffer, 0, readSize);
+            }
+
+            ms.Position = 0;
+            inputStream.Position = 0;
+
+            return ms;
         }
 
         public static XmlRpcResponse XmlRpcCommand(string url, string methodName, params object[] args)

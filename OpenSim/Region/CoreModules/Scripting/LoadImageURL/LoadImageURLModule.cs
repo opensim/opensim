@@ -32,14 +32,17 @@ using System.Net;
 using Nini.Config;
 using OpenMetaverse;
 using OpenMetaverse.Imaging;
+using OpenSim.Region.CoreModules.Scripting.DynamicTexture;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using log4net;
 using System.Reflection;
+using Mono.Addins;
 
 namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
 {
-    public class LoadImageURLModule : IRegionModule, IDynamicTextureRender
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "LoadImageURLModule")]
+    public class LoadImageURLModule : ISharedRegionModule, IDynamicTextureRender
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -67,12 +70,18 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
             return true;
         }
 
-        public byte[] ConvertUrl(string url, string extraParams)
+//        public bool AlwaysIdenticalConversion(string bodyData, string extraParams)
+//        {
+//            // We don't support conversion of body data.
+//            return false;
+//        }
+
+        public IDynamicTexture ConvertUrl(string url, string extraParams)
         {
             return null;
         }
 
-        public byte[] ConvertStream(Stream data, string extraParams)
+        public IDynamicTexture ConvertData(string bodyData, string extraParams)
         {
             return null;
         }
@@ -97,22 +106,32 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
 
         #endregion
 
-        #region IRegionModule Members
+        #region ISharedRegionModule Members
 
-        public void Initialise(Scene scene, IConfigSource config)
+        public void Initialise(IConfigSource config)
         {
-            if (m_scene == null)
-            {
-                m_scene = scene;
-            }
-            
             m_proxyurl = config.Configs["Startup"].GetString("HttpProxy");
             m_proxyexcepts = config.Configs["Startup"].GetString("HttpProxyExceptions");
         }
 
         public void PostInitialise()
         {
-            if (m_scene != null)
+        }
+
+        public void AddRegion(Scene scene)
+        {
+            if (m_scene == null)
+                m_scene = scene;
+            
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+        }
+
+        public void RegionLoaded(Scene scene)
+        {
+            if (m_textureManager == null && m_scene == scene)
             {
                 m_textureManager = m_scene.RequestModuleInterface<IDynamicTextureManager>();
                 if (m_textureManager != null)
@@ -131,9 +150,9 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
             get { return m_name; }
         }
 
-        public bool IsSharedModule
+        public Type ReplaceableInterface
         {
-            get { return true; }
+            get { return null; }
         }
 
         #endregion
@@ -165,11 +184,17 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
 
         private void HttpRequestReturn(IAsyncResult result)
         {
+            if (m_textureManager == null)
+            {
+                m_log.WarnFormat("[LOADIMAGEURLMODULE]: No texture manager. Can't function.");
+                return;
+            }
 
             RequestState state = (RequestState) result.AsyncState;
             WebRequest request = (WebRequest) state.Request;
             Stream stream = null;
             byte[] imageJ2000 = new byte[0];
+            Size newSize = new Size(0, 0);
 
             try
             {
@@ -182,37 +207,43 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
                         try
                         {
                             Bitmap image = new Bitmap(stream);
-                            Size newsize;
 
                             // TODO: make this a bit less hard coded
                             if ((image.Height < 64) && (image.Width < 64))
                             {
-                                newsize = new Size(32, 32);
+                                newSize.Width = 32;
+                                newSize.Height = 32;
                             }
                             else if ((image.Height < 128) && (image.Width < 128))
                             {
-                                newsize = new Size(64, 64);
+                                newSize.Width = 64;
+                                newSize.Height = 64;
                             }
                             else if ((image.Height < 256) && (image.Width < 256))
                             {
-                                newsize = new Size(128, 128);
+                                newSize.Width = 128;
+                                newSize.Height = 128;
                             }
                             else if ((image.Height < 512 && image.Width < 512))
                             {
-                                newsize = new Size(256, 256);
+                                newSize.Width = 256;
+                                newSize.Height = 256;
                             }
                             else if ((image.Height < 1024 && image.Width < 1024))
                             {
-                                newsize = new Size(512, 512);
+                                newSize.Width = 512;
+                                newSize.Height = 512;
                             }
                             else
                             {
-                                newsize = new Size(1024, 1024);
+                                newSize.Width = 1024;
+                                newSize.Height = 1024;
                             }
 
-                            Bitmap resize = new Bitmap(image, newsize);
-
-                            imageJ2000 = OpenJPEG.EncodeFromImage(resize, true);
+                            using (Bitmap resize = new Bitmap(image, newSize))
+                            {
+                                imageJ2000 = OpenJPEG.EncodeFromImage(resize, true);
+                            }
                         } 
                         catch (Exception)
                         {
@@ -227,7 +258,6 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
             }
             catch (WebException)
             {
-                
             }
             finally
             {
@@ -236,9 +266,14 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
                     stream.Close();
                 }
             }
-            m_log.DebugFormat("[LOADIMAGEURLMODULE] Returning {0} bytes of image data for request {1}",
+
+            m_log.DebugFormat("[LOADIMAGEURLMODULE]: Returning {0} bytes of image data for request {1}",
                                        imageJ2000.Length, state.RequestID);
-            m_textureManager.ReturnData(state.RequestID, imageJ2000);
+
+            m_textureManager.ReturnData(
+                state.RequestID,
+                new OpenSim.Region.CoreModules.Scripting.DynamicTexture.DynamicTexture(
+                    request.RequestUri, null, imageJ2000, newSize, false));
         }
 
         #region Nested type: RequestState

@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using log4net;
+using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -37,6 +38,7 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.Avatar.Lure
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "LureModule")]
     public class LureModule : ISharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(
@@ -173,7 +175,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
                         client.FirstName+" "+client.LastName, targetid,
                         (byte)InstantMessageDialog.GodLikeRequestTeleport, false,
                         message, dest, false, presence.AbsolutePosition,
-                        new Byte[0]);
+                        new Byte[0], true);
             }
             else
             {
@@ -181,7 +183,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
                         client.FirstName+" "+client.LastName, targetid,
                         (byte)InstantMessageDialog.RequestTeleport, false,
                         message, dest, false, presence.AbsolutePosition,
-                        new Byte[0]);
+                        new Byte[0], true);
             }
 
             if (m_TransferModule != null)

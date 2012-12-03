@@ -32,6 +32,7 @@ using System.Net;
 using System.IO;
 using System.Text;
 using log4net;
+using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
@@ -42,6 +43,7 @@ using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "RegionReadyModule")]
     public class RegionReadyModule : IRegionReadyModule, INonSharedRegionModule
     {
         private static readonly ILog m_log = 
@@ -181,7 +183,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
             }
         }
 
-        void OnOarFileLoaded(Guid requestId, string message)
+        void OnOarFileLoaded(Guid requestId, List<UUID> loadedScenes, string message)
         {
             m_oarFileLoading = true;
 

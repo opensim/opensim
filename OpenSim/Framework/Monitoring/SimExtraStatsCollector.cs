@@ -355,10 +355,25 @@ Asset service request failures: {3}" + Environment.NewLine,
             sb.Append(Environment.NewLine);
             sb.Append(
                 string.Format(
-                    "{0,6:0}  {1,6:0}  {2,6:0}  {3,6:0}  {4,6:0}  {5,6:0.0}  {6,6:0.0}  {7,6:0.0}  {8,6:0.0}  {9,6:0.0}  {10,6:0.0}",
+                    "{0,6:0}  {1,6:0}  {2,6:0}  {3,6:0}  {4,6:0}  {5,6:0.0}  {6,6:0.0}  {7,6:0.0}  {8,6:0.0}  {9,6:0.0}  {10,6:0.0}\n\n",
                     inPacketsPerSecond, outPacketsPerSecond, pendingDownloads, pendingUploads, unackedBytes, totalFrameTime,
                     netFrameTime, physicsFrameTime, otherFrameTime, agentFrameTime, imageFrameTime));
-            sb.Append(Environment.NewLine);
+
+            Dictionary<string, Dictionary<string, Stat>> sceneStats;
+
+            if (StatsManager.TryGetStats("scene", out sceneStats))
+            {
+                foreach (KeyValuePair<string, Dictionary<string, Stat>> kvp in sceneStats)
+                {
+                    foreach (Stat stat in kvp.Value.Values)
+                    {
+                        if (stat.Verbosity == StatVerbosity.Info)
+                        {
+                            sb.AppendFormat("{0} ({1}): {2}{3}\n", stat.Name, stat.Container, stat.Value, stat.UnitName);
+                        }
+                    }
+                }
+            }
 
             /*
             sb.Append(Environment.NewLine);

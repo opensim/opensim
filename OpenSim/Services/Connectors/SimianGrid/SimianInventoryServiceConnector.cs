@@ -59,7 +59,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
     /// <summary>
     /// Connects avatar inventories to the SimianGrid backend
     /// </summary>
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "SimianInventoryServiceConnector")]
     public class SimianInventoryServiceConnector : IInventoryService, ISharedRegionModule
     {
         private static readonly ILog m_log =
@@ -781,7 +781,6 @@ namespace OpenSim.Services.Connectors.SimianGrid
                     invItem.CreationDate = item["CreationDate"].AsInteger();
                     invItem.CreatorId = item["CreatorID"].AsString();
                     invItem.CreatorData = item["CreatorData"].AsString();
-                    invItem.CreatorIdAsUuid = item["CreatorID"].AsUUID();
                     invItem.Description = item["Description"].AsString();
                     invItem.Folder = item["ParentID"].AsUUID();
                     invItem.ID = item["ID"].AsUUID();

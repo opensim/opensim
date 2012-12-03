@@ -117,6 +117,12 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
             Assert.That(npc, Is.Not.Null);
             Assert.That(npc.Appearance.Texture.FaceTextures[8].TextureID, Is.EqualTo(originalFace8TextureId));
             Assert.That(m_umMod.GetUserName(npc.UUID), Is.EqualTo(string.Format("{0} {1}", npc.Firstname, npc.Lastname)));
+
+            IClientAPI client;
+            Assert.That(m_scene.TryGetClient(npcId, out client), Is.True);
+
+            // Have to account for both SP and NPC.
+            Assert.That(m_scene.AuthenticateHandler.GetAgentCircuits().Count, Is.EqualTo(2));
         }
 
         [Test]
@@ -136,6 +142,11 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
             ScenePresence deletedNpc = m_scene.GetScenePresence(npcId);
 
             Assert.That(deletedNpc, Is.Null);
+            IClientAPI client;
+            Assert.That(m_scene.TryGetClient(npcId, out client), Is.False);
+
+            // Have to account for SP still present.
+            Assert.That(m_scene.AuthenticateHandler.GetAgentCircuits().Count, Is.EqualTo(1));
         }
 
         [Test]

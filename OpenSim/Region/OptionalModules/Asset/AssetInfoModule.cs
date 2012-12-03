@@ -127,6 +127,9 @@ namespace OpenSim.Region.OptionalModules.Asset
             }
             
             string fileName = rawAssetId;
+
+            if (!ConsoleUtil.CheckFileDoesNotExist(MainConsole.Instance, fileName))
+                return;
             
             using (FileStream fs = new FileStream(fileName, FileMode.CreateNew))
             {

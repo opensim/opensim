@@ -67,10 +67,25 @@ namespace OpenSim.Server.Handlers.Asset
                 throw new Exception(String.Format("Failed to load AssetService from {0}; config is {1}", assetService, m_ConfigName));
 
             bool allowDelete = serverConfig.GetBoolean("AllowRemoteDelete", false);
+            bool allowDeleteAllTypes = serverConfig.GetBoolean("AllowRemoteDeleteAllTypes", false);
+
+            AllowedRemoteDeleteTypes allowedRemoteDeleteTypes;
+
+            if (!allowDelete)
+            {
+                allowedRemoteDeleteTypes = AllowedRemoteDeleteTypes.None;
+            }
+            else
+            {
+                if (allowDeleteAllTypes)
+                    allowedRemoteDeleteTypes = AllowedRemoteDeleteTypes.All;
+                else
+                    allowedRemoteDeleteTypes = AllowedRemoteDeleteTypes.MapTile;
+            }
 
             server.AddStreamHandler(new AssetServerGetHandler(m_AssetService));
             server.AddStreamHandler(new AssetServerPostHandler(m_AssetService));
-            server.AddStreamHandler(new AssetServerDeleteHandler(m_AssetService, allowDelete));
+            server.AddStreamHandler(new AssetServerDeleteHandler(m_AssetService, allowedRemoteDeleteTypes));
 
             MainConsole.Instance.Commands.AddCommand("Assets", false,
                     "show asset",
@@ -141,6 +156,9 @@ namespace OpenSim.Server.Handlers.Asset
             }
             
             string fileName = rawAssetId;
+
+            if (!ConsoleUtil.CheckFileDoesNotExist(MainConsole.Instance, fileName))
+                return;
             
             using (FileStream fs = new FileStream(fileName, FileMode.CreateNew))
             {

@@ -57,14 +57,18 @@ namespace OpenSim.Services.HypergridService
         private static IUserAccountService m_UserAccountService;
         private static IUserAgentService m_UserAgentService;
         private static ISimulationService m_SimulationService;
+        private static IGridUserService m_GridUserService;
 
-        protected string m_AllowedClients = string.Empty;
-        protected string m_DeniedClients = string.Empty;
+        private static string m_AllowedClients = string.Empty;
+        private static string m_DeniedClients = string.Empty;
         private static bool m_ForeignAgentsAllowed = true;
+        private static List<string> m_ForeignsAllowedExceptions = new List<string>();
+        private static List<string> m_ForeignsDisallowedExceptions = new List<string>();
 
         private static UUID m_ScopeID;
         private static bool m_AllowTeleportsToAnyRegion;
         private static string m_ExternalName;
+        private static Uri m_Uri;
         private static GridRegion m_DefaultGatewayRegion;
 
         public GatekeeperService(IConfigSource config, ISimulationService simService)
@@ -82,8 +86,9 @@ namespace OpenSim.Services.HypergridService
                 string gridService = serverConfig.GetString("GridService", String.Empty);
                 string presenceService = serverConfig.GetString("PresenceService", String.Empty);
                 string simulationService = serverConfig.GetString("SimulationService", String.Empty);
+                string gridUserService = serverConfig.GetString("GridUserService", String.Empty);
 
-                // These 3 are mandatory, the others aren't
+                // These are mandatory, the others aren't
                 if (gridService == string.Empty || presenceService == string.Empty)
                     throw new Exception("Incomplete specifications, Gatekeeper Service cannot function.");
                 
@@ -95,6 +100,15 @@ namespace OpenSim.Services.HypergridService
                 if (m_ExternalName != string.Empty && !m_ExternalName.EndsWith("/"))
                     m_ExternalName = m_ExternalName + "/";
 
+                try
+                {
+                    m_Uri = new Uri(m_ExternalName);
+                }
+                catch
+                {
+                    m_log.WarnFormat("[GATEKEEPER SERVICE]: Malformed gatekeeper address {0}", m_ExternalName);
+                }
+
                 Object[] args = new Object[] { config };
                 m_GridService = ServerUtils.LoadPlugin<IGridService>(gridService, args);
                 m_PresenceService = ServerUtils.LoadPlugin<IPresenceService>(presenceService, args);
@@ -103,6 +117,8 @@ namespace OpenSim.Services.HypergridService
                     m_UserAccountService = ServerUtils.LoadPlugin<IUserAccountService>(accountService, args);
                 if (homeUsersService != string.Empty)
                     m_UserAgentService = ServerUtils.LoadPlugin<IUserAgentService>(homeUsersService, args);
+                if (gridUserService != string.Empty)
+                    m_GridUserService = ServerUtils.LoadPlugin<IGridUserService>(gridUserService, args);
 
                 if (simService != null)
                     m_SimulationService = simService;
@@ -112,6 +128,9 @@ namespace OpenSim.Services.HypergridService
                 m_AllowedClients = serverConfig.GetString("AllowedClients", string.Empty);
                 m_DeniedClients = serverConfig.GetString("DeniedClients", string.Empty);
                 m_ForeignAgentsAllowed = serverConfig.GetBoolean("ForeignAgentsAllowed", true);
+
+                LoadDomainExceptionsFromConfig(serverConfig, "AllowExcept", m_ForeignsAllowedExceptions);
+                LoadDomainExceptionsFromConfig(serverConfig, "DisallowExcept", m_ForeignsDisallowedExceptions);
 
                 if (m_GridService == null || m_PresenceService == null || m_SimulationService == null)
                     throw new Exception("Unable to load a required plugin, Gatekeeper Service cannot function.");
@@ -123,6 +142,15 @@ namespace OpenSim.Services.HypergridService
         public GatekeeperService(IConfigSource config)
             : this(config, null)
         {
+        }
+
+        protected void LoadDomainExceptionsFromConfig(IConfig config, string variable, List<string> exceptions)
+        {
+            string value = config.GetString(variable, string.Empty);
+            string[] parts = value.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (string s in parts)
+                exceptions.Add(s.Trim());
         }
 
         public bool LinkRegion(string regionName, out UUID regionID, out ulong regionHandle, out string externalName, out string imageURL, out string reason)
@@ -260,17 +288,26 @@ namespace OpenSim.Services.HypergridService
             m_log.DebugFormat("[GATEKEEPER SERVICE]: User is ok");
 
             //
-            // Foreign agents allowed
+            // Foreign agents allowed? Exceptions?
             //
-            if (account == null && !m_ForeignAgentsAllowed)
+            if (account == null) 
             {
-                reason = "Unauthorized";
-                m_log.InfoFormat("[GATEKEEPER SERVICE]: Foreign agents are not permitted {0} {1}. Refusing service.",
-                    aCircuit.firstname, aCircuit.lastname);
-                return false;
-            }
+                bool allowed = m_ForeignAgentsAllowed;
 
-            // May want to authorize
+                if (m_ForeignAgentsAllowed && IsException(aCircuit, m_ForeignsAllowedExceptions))
+                        allowed = false;
+
+                if (!m_ForeignAgentsAllowed && IsException(aCircuit, m_ForeignsDisallowedExceptions))
+                    allowed = true;
+
+                if (!allowed)
+                {
+                    reason = "Destination does not allow visitors from your world";
+                    m_log.InfoFormat("[GATEKEEPER SERVICE]: Foreign agents are not permitted {0} {1} @ {2}. Refusing service.",
+                        aCircuit.firstname, aCircuit.lastname, aCircuit.ServiceURLs["HomeURI"]);
+                    return false;
+                }
+            }
 
             bool isFirstLogin = false;
             //
@@ -280,7 +317,8 @@ namespace OpenSim.Services.HypergridService
             if (presence != null) // it has been placed there by the login service
                 isFirstLogin = true;
 
-            else 
+            else
+            {
                 if (!m_PresenceService.LoginAgent(aCircuit.AgentID.ToString(), aCircuit.SessionID, aCircuit.SecureSessionID))
                 {
                     reason = "Unable to login presence";
@@ -289,6 +327,26 @@ namespace OpenSim.Services.HypergridService
                     return false;
                 }
                 m_log.DebugFormat("[GATEKEEPER SERVICE]: Login presence ok");
+
+                // Also login foreigners with GridUser service
+                if (m_GridUserService != null && account == null)
+                {
+                    string userId = aCircuit.AgentID.ToString();
+                    string first = aCircuit.firstname, last = aCircuit.lastname;
+                    if (last.StartsWith("@"))
+                    {
+                        string[] parts = aCircuit.firstname.Split('.');
+                        if (parts.Length >= 2)
+                        {
+                            first = parts[0];
+                            last = parts[1];
+                        }
+                    }
+
+                    userId += ";" + aCircuit.ServiceURLs["HomeURI"] + ";" + first + " " + last;
+                    m_GridUserService.LoggedIn(userId);
+                }
+            }
 
             //
             // Get the region
@@ -385,7 +443,18 @@ namespace OpenSim.Services.HypergridService
             string externalname = m_ExternalName.TrimEnd(trailing_slash);
             m_log.DebugFormat("[GATEKEEPER SERVICE]: Verifying {0} against {1}", addressee, externalname);
 
-            return string.Equals(addressee, externalname, StringComparison.OrdinalIgnoreCase);
+            Uri uri;
+            try
+            {
+                uri = new Uri(addressee);
+            }
+            catch
+            {
+                m_log.DebugFormat("[GATEKEEPER SERVICE]: Visitor provided malformed service address {0}", addressee);
+                return false;
+            }
+
+            return string.Equals(uri.GetLeftPart(UriPartial.Authority), m_Uri.GetLeftPart(UriPartial.Authority), StringComparison.OrdinalIgnoreCase) ;
         }
 
         #endregion
@@ -393,6 +462,27 @@ namespace OpenSim.Services.HypergridService
 
         #region Misc
 
+        private bool IsException(AgentCircuitData aCircuit, List<string> exceptions)
+        {
+            bool exception = false;
+            if (exceptions.Count > 0) // we have exceptions
+            {
+                // Retrieve the visitor's origin
+                string userURL = aCircuit.ServiceURLs["HomeURI"].ToString();
+                if (!userURL.EndsWith("/"))
+                    userURL += "/";
+
+                if (exceptions.Find(delegate(string s)
+                {
+                    if (!s.EndsWith("/"))
+                        s += "/";
+                    return s == userURL;
+                }) != null)
+                    exception = true;
+            }
+
+            return exception;
+        }
 
         #endregion
     }

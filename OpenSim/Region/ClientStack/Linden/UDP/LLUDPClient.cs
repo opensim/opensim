@@ -682,6 +682,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (m_nextOnQueueEmpty == 0)
                 m_nextOnQueueEmpty = 1;
         }
+        internal void ForceThrottleSetting(int throttle, int setting)
+        {
+            m_throttleCategories[throttle].RequestedDripRate = Math.Max(setting, LLUDPServer.MTU); ;
+        }
 
         /// <summary>
         /// Converts a <seealso cref="ThrottleOutPacketType"/> integer to a

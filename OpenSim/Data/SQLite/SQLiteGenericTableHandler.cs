@@ -120,34 +120,35 @@ namespace OpenSim.Data.SQLite
             }
         }
 
-        public T[] Get(string field, string key)
+        public virtual T[] Get(string field, string key)
         {
             return Get(new string[] { field }, new string[] { key });
         }
 
-        public T[] Get(string[] fields, string[] keys)
+        public virtual T[] Get(string[] fields, string[] keys)
         {
             if (fields.Length != keys.Length)
                 return new T[0];
 
             List<string> terms = new List<string>();
 
-            SqliteCommand cmd = new SqliteCommand();
-
-            for (int i = 0 ; i < fields.Length ; i++)
+            using (SqliteCommand cmd = new SqliteCommand())
             {
-                cmd.Parameters.Add(new SqliteParameter(":" + fields[i], keys[i]));
-                terms.Add("`" + fields[i] + "` = :" + fields[i]);
+                for (int i = 0 ; i < fields.Length ; i++)
+                {
+                    cmd.Parameters.Add(new SqliteParameter(":" + fields[i], keys[i]));
+                    terms.Add("`" + fields[i] + "` = :" + fields[i]);
+                }
+
+                string where = String.Join(" and ", terms.ToArray());
+
+                string query = String.Format("select * from {0} where {1}",
+                        m_Realm, where);
+
+                cmd.CommandText = query;
+
+                return DoQuery(cmd);
             }
-
-            string where = String.Join(" and ", terms.ToArray());
-
-            string query = String.Format("select * from {0} where {1}",
-                    m_Realm, where);
-
-            cmd.CommandText = query;
-
-            return DoQuery(cmd);
         }
 
         protected T[] DoQuery(SqliteCommand cmd)
@@ -212,52 +213,54 @@ namespace OpenSim.Data.SQLite
             return result.ToArray();
         }
 
-        public T[] Get(string where)
+        public virtual T[] Get(string where)
         {
-            SqliteCommand cmd = new SqliteCommand();
+            using (SqliteCommand cmd = new SqliteCommand())
+            {
+                string query = String.Format("select * from {0} where {1}",
+                        m_Realm, where);
 
-            string query = String.Format("select * from {0} where {1}",
-                    m_Realm, where);
+                cmd.CommandText = query;
 
-            cmd.CommandText = query;
-
-            return DoQuery(cmd);
+                return DoQuery(cmd);
+            }
         }
 
-        public bool Store(T row)
+        public virtual bool Store(T row)
         {
-            SqliteCommand cmd = new SqliteCommand();
-
-            string query = "";
-            List<String> names = new List<String>();
-            List<String> values = new List<String>();
-
-            foreach (FieldInfo fi in m_Fields.Values)
+            using (SqliteCommand cmd = new SqliteCommand())
             {
-                names.Add(fi.Name);
-                values.Add(":" + fi.Name);
-                cmd.Parameters.Add(new SqliteParameter(":" + fi.Name, fi.GetValue(row).ToString()));
-            }
+                string query = "";
+                List<String> names = new List<String>();
+                List<String> values = new List<String>();
 
-            if (m_DataField != null)
-            {
-                Dictionary<string, string> data =
-                        (Dictionary<string, string>)m_DataField.GetValue(row);
-
-                foreach (KeyValuePair<string, string> kvp in data)
+                foreach (FieldInfo fi in m_Fields.Values)
                 {
-                    names.Add(kvp.Key);
-                    values.Add(":" + kvp.Key);
-                    cmd.Parameters.Add(new SqliteParameter(":" + kvp.Key, kvp.Value));
+                    names.Add(fi.Name);
+                    values.Add(":" + fi.Name);
+                    cmd.Parameters.Add(new SqliteParameter(":" + fi.Name, fi.GetValue(row).ToString()));
                 }
+
+                if (m_DataField != null)
+                {
+                    Dictionary<string, string> data =
+                            (Dictionary<string, string>)m_DataField.GetValue(row);
+
+                    foreach (KeyValuePair<string, string> kvp in data)
+                    {
+                        names.Add(kvp.Key);
+                        values.Add(":" + kvp.Key);
+                        cmd.Parameters.Add(new SqliteParameter(":" + kvp.Key, kvp.Value));
+                    }
+                }
+
+                query = String.Format("replace into {0} (`", m_Realm) + String.Join("`,`", names.ToArray()) + "`) values (" + String.Join(",", values.ToArray()) + ")";
+
+                cmd.CommandText = query;
+
+                if (ExecuteNonQuery(cmd, m_Connection) > 0)
+                    return true;
             }
-
-            query = String.Format("replace into {0} (`", m_Realm) + String.Join("`,`", names.ToArray()) + "`) values (" + String.Join(",", values.ToArray()) + ")";
-
-            cmd.CommandText = query;
-
-            if (ExecuteNonQuery(cmd, m_Connection) > 0)
-                return true;
 
             return false;
         }
@@ -267,28 +270,29 @@ namespace OpenSim.Data.SQLite
             return Delete(new string[] { field }, new string[] { key });
         }        
 
-        public bool Delete(string[] fields, string[] keys)
+        public virtual bool Delete(string[] fields, string[] keys)
         {
             if (fields.Length != keys.Length)
                 return false;
 
             List<string> terms = new List<string>();
 
-            SqliteCommand cmd = new SqliteCommand();
-
-            for (int i = 0 ; i < fields.Length ; i++)
+            using (SqliteCommand cmd = new SqliteCommand())
             {
-                cmd.Parameters.Add(new SqliteParameter(":" + fields[i], keys[i]));
-                terms.Add("`" + fields[i] + "` = :" + fields[i]);
+                for (int i = 0 ; i < fields.Length ; i++)
+                {
+                    cmd.Parameters.Add(new SqliteParameter(":" + fields[i], keys[i]));
+                    terms.Add("`" + fields[i] + "` = :" + fields[i]);
+                }
+
+                string where = String.Join(" and ", terms.ToArray());
+
+                string query = String.Format("delete from {0} where {1}", m_Realm, where);
+
+                cmd.CommandText = query;
+
+                return ExecuteNonQuery(cmd, m_Connection) > 0;
             }
-
-            string where = String.Join(" and ", terms.ToArray());
-
-            string query = String.Format("delete from {0} where {1}", m_Realm, where);
-
-            cmd.CommandText = query;
-
-            return ExecuteNonQuery(cmd, m_Connection) > 0;
         }
     }
 }

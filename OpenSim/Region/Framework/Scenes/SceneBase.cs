@@ -67,12 +67,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// <value>
         /// All the region modules attached to this scene.
         /// </value>
-        public Dictionary<string, IRegionModule> Modules
-        {
-            get { return m_modules; }
-        }
-        protected Dictionary<string, IRegionModule> m_modules = new Dictionary<string, IRegionModule>();
-
         public Dictionary<string, IRegionModuleBase> RegionModules
         {
             get { return m_regionModules; }
@@ -273,16 +267,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public virtual void Close()
         {
-            // Shut down all non shared modules.
-            foreach (IRegionModule module in Modules.Values)
-            {
-                if (!module.IsSharedModule)
-                {
-                    module.Close();
-                }
-            }
-            Modules.Clear();
-
             try
             {
                 EventManager.TriggerShutdown();
@@ -311,19 +295,6 @@ namespace OpenSim.Region.Framework.Scenes
         }
         
         #region Module Methods
-
-        /// <summary>
-        /// Add a module to this scene.
-        /// </summary>
-        /// <param name="name"></param>
-        /// <param name="module"></param>
-        public void AddModule(string name, IRegionModule module)
-        {
-            if (!Modules.ContainsKey(name))
-            {
-                Modules.Add(name, module);
-            }
-        }
 
         /// <summary>
         /// Add a region-module to this scene. TODO: This will replace AddModule in the future.
@@ -509,9 +480,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="shorthelp"></param>
         /// <param name="longhelp"></param>
         /// <param name="callback"></param>
-        public void AddCommand(object mod, string command, string shorthelp, string longhelp, CommandDelegate callback)
+        public void AddCommand(IRegionModuleBase module, string command, string shorthelp, string longhelp, CommandDelegate callback)
         {
-            AddCommand(mod, command, shorthelp, longhelp, string.Empty, callback);
+            AddCommand(module, command, shorthelp, longhelp, string.Empty, callback);
         }
 
         /// <summary>
@@ -529,9 +500,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="longhelp"></param>
         /// <param name="callback"></param>
         public void AddCommand(
-            string category, object mod, string command, string shorthelp, string longhelp, CommandDelegate callback)
+            string category, IRegionModuleBase module, string command, string shorthelp, string longhelp, CommandDelegate callback)
         {
-            AddCommand(category, mod, command, shorthelp, longhelp, string.Empty, callback);
+            AddCommand(category, module, command, shorthelp, longhelp, string.Empty, callback);
         }
 
         /// <summary>
@@ -543,29 +514,14 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="longhelp"></param>
         /// <param name="descriptivehelp"></param>
         /// <param name="callback"></param>
-        public void AddCommand(object mod, string command, string shorthelp, string longhelp, string descriptivehelp, CommandDelegate callback)
+        public void AddCommand(IRegionModuleBase module, string command, string shorthelp, string longhelp, string descriptivehelp, CommandDelegate callback)
         {
             string moduleName = "";
 
-            if (mod != null)
-            {
-                if (mod is IRegionModule)
-                {
-                    IRegionModule module = (IRegionModule)mod;
-                    moduleName = module.Name;
-                }
-                else if (mod is IRegionModuleBase)
-                {
-                    IRegionModuleBase module = (IRegionModuleBase)mod;
-                    moduleName = module.Name;
-                }
-                else
-                {
-                    throw new Exception("AddCommand module parameter must be IRegionModule or IRegionModuleBase");
-                }
-            }
+            if (module != null)
+                moduleName = module.Name;
 
-            AddCommand(moduleName, mod, command, shorthelp, longhelp, descriptivehelp, callback);
+            AddCommand(moduleName, module, command, shorthelp, longhelp, descriptivehelp, callback);
         }
 
         /// <summary>
@@ -581,7 +537,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="descriptivehelp"></param>
         /// <param name="callback"></param>
         public void AddCommand(
-            string category, object mod, string command,
+            string category, IRegionModuleBase module, string command,
             string shorthelp, string longhelp, string descriptivehelp, CommandDelegate callback)
         {
             if (MainConsole.Instance == null)
@@ -589,22 +545,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             bool shared = false;
 
-            if (mod != null)
-            {
-                if (mod is IRegionModule)
-                {
-                    IRegionModule module = (IRegionModule)mod;
-                    shared = module.IsSharedModule;
-                }
-                else if (mod is IRegionModuleBase)
-                {
-                    shared = mod is ISharedRegionModule;
-                }
-                else
-                {
-                    throw new Exception("AddCommand module parameter must be IRegionModule or IRegionModuleBase");
-                }
-            }
+            if (module != null)
+                shared = module is ISharedRegionModule;
 
             MainConsole.Instance.Commands.AddCommand(
                 category, shared, command, shorthelp, longhelp, descriptivehelp, callback);

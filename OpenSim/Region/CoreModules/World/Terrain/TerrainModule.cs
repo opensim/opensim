@@ -33,6 +33,7 @@ using System.Net;
 using log4net;
 using Nini.Config;
 using OpenMetaverse;
+using Mono.Addins;
 using OpenSim.Framework;
 using OpenSim.Region.CoreModules.Framework.InterfaceCommander;
 using OpenSim.Region.CoreModules.World.Terrain.FileLoaders;
@@ -43,6 +44,7 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.World.Terrain
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "TerrainModule")]
     public class TerrainModule : INonSharedRegionModule, ICommandableModule, ITerrainModule
     {
         #region StandardTerrainEffects enum
@@ -414,6 +416,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         private void LoadPlugins()
         {
             m_plugineffects = new Dictionary<string, ITerrainEffect>();
+            LoadPlugins(Assembly.GetCallingAssembly());
             string plugineffectsPath = "Terrain";
             
             // Load the files in the Terrain/ dir
@@ -427,34 +430,39 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 try
                 {
                     Assembly library = Assembly.LoadFrom(file);
-                    foreach (Type pluginType in library.GetTypes())
-                    {
-                        try
-                        {
-                            if (pluginType.IsAbstract || pluginType.IsNotPublic)
-                                continue;
-
-                            string typeName = pluginType.Name;
-
-                            if (pluginType.GetInterface("ITerrainEffect", false) != null)
-                            {
-                                ITerrainEffect terEffect = (ITerrainEffect) Activator.CreateInstance(library.GetType(pluginType.ToString()));
-
-                                InstallPlugin(typeName, terEffect);
-                            }
-                            else if (pluginType.GetInterface("ITerrainLoader", false) != null)
-                            {
-                                ITerrainLoader terLoader = (ITerrainLoader) Activator.CreateInstance(library.GetType(pluginType.ToString()));
-                                m_loaders[terLoader.FileExtension] = terLoader;
-                                m_log.Info("L ... " + typeName);
-                            }
-                        }
-                        catch (AmbiguousMatchException)
-                        {
-                        }
-                    }
+                    LoadPlugins(library);
                 }
                 catch (BadImageFormatException)
+                {
+                }
+            }
+        }
+
+        private void LoadPlugins(Assembly library)
+        {
+            foreach (Type pluginType in library.GetTypes())
+            {
+                try
+                {
+                    if (pluginType.IsAbstract || pluginType.IsNotPublic)
+                        continue;
+
+                    string typeName = pluginType.Name;
+
+                    if (pluginType.GetInterface("ITerrainEffect", false) != null)
+                    {
+                        ITerrainEffect terEffect = (ITerrainEffect)Activator.CreateInstance(library.GetType(pluginType.ToString()));
+
+                        InstallPlugin(typeName, terEffect);
+                    }
+                    else if (pluginType.GetInterface("ITerrainLoader", false) != null)
+                    {
+                        ITerrainLoader terLoader = (ITerrainLoader)Activator.CreateInstance(library.GetType(pluginType.ToString()));
+                        m_loaders[terLoader.FileExtension] = terLoader;
+                        m_log.Info("L ... " + typeName);
+                    }
+                }
+                catch (AmbiguousMatchException)
                 {
                 }
             }
@@ -1178,7 +1186,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain
 
         private void InterfaceRunPluginEffect(Object[] args)
         {
-            if ((string) args[0] == "list")
+            string firstArg = (string)args[0];
+            if (firstArg == "list")
             {
                 m_log.Info("List of loaded plugins");
                 foreach (KeyValuePair<string, ITerrainEffect> kvp in m_plugineffects)
@@ -1187,14 +1196,14 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 }
                 return;
             }
-            if ((string) args[0] == "reload")
+            if (firstArg == "reload")
             {
                 LoadPlugins();
                 return;
             }
-            if (m_plugineffects.ContainsKey((string) args[0]))
+            if (m_plugineffects.ContainsKey(firstArg))
             {
-                m_plugineffects[(string) args[0]].RunEffect(m_channel);
+                m_plugineffects[firstArg].RunEffect(m_channel);
                 CheckForTerrainUpdates();
             }
             else

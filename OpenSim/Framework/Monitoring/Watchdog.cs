@@ -39,7 +39,7 @@ namespace OpenSim.Framework.Monitoring
     public static class Watchdog
     {
         /// <summary>Timer interval in milliseconds for the watchdog timer</summary>
-        const double WATCHDOG_INTERVAL_MS = 2500.0d;
+        public const double WATCHDOG_INTERVAL_MS = 2500.0d;
 
         /// <summary>Default timeout in milliseconds before a thread is considered dead</summary>
         public const int DEFAULT_WATCHDOG_TIMEOUT_MS = 5000;
@@ -88,6 +88,17 @@ namespace OpenSim.Framework.Monitoring
                 Timeout = timeout;
                 FirstTick = Environment.TickCount & Int32.MaxValue;
                 LastTick = FirstTick;
+            }
+
+            public ThreadWatchdogInfo(ThreadWatchdogInfo previousTwi)
+            {
+                Thread = previousTwi.Thread;
+                FirstTick = previousTwi.FirstTick;
+                LastTick = previousTwi.LastTick;
+                Timeout = previousTwi.Timeout;
+                IsTimedOut = previousTwi.IsTimedOut;
+                AlarmIfTimeout = previousTwi.AlarmIfTimeout;
+                AlarmMethod = previousTwi.AlarmMethod;
             }
         }
 
@@ -220,7 +231,25 @@ namespace OpenSim.Framework.Monitoring
         private static bool RemoveThread(int threadID)
         {
             lock (m_threads)
-                return m_threads.Remove(threadID);
+            {
+                ThreadWatchdogInfo twi;
+                if (m_threads.TryGetValue(threadID, out twi))
+                {
+                    m_log.DebugFormat(
+                        "[WATCHDOG]: Removing thread {0}, ID {1}", twi.Thread.Name, twi.Thread.ManagedThreadId);
+
+                    m_threads.Remove(threadID);
+
+                    return true;
+                }
+                else
+                {
+                    m_log.WarnFormat(
+                        "[WATCHDOG]: Requested to remove thread with ID {0} but this is not being monitored", threadID);
+
+                    return false;
+                }
+            }
         }
 
         public static bool AbortThread(int threadID)
@@ -335,7 +364,9 @@ namespace OpenSim.Framework.Monitoring
                                 if (callbackInfos == null)
                                     callbackInfos = new List<ThreadWatchdogInfo>();
 
-                                callbackInfos.Add(threadInfo);
+                                // Send a copy of the watchdog info to prevent race conditions where the watchdog
+                                // thread updates the monitoring info after an alarm has been sent out.
+                                callbackInfos.Add(new ThreadWatchdogInfo(threadInfo));
                             }
                         }
                     }
@@ -348,6 +379,8 @@ namespace OpenSim.Framework.Monitoring
 
             if (MemoryWatchdog.Enabled)
                 MemoryWatchdog.Update();
+
+            StatsManager.RecordStats();
 
             m_watchdogTimer.Start();
         }

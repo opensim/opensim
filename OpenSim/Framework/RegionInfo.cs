@@ -122,10 +122,13 @@ namespace OpenSim.Framework
         public UUID lastMapUUID = UUID.Zero;
         public string lastMapRefresh = "0";
 
+        private float m_nonphysPrimMin = 0;
         private int m_nonphysPrimMax = 0;
+        private float m_physPrimMin = 0;
         private int m_physPrimMax = 0;
         private bool m_clampPrimSize = false;
         private int m_objectCapacity = 0;
+        private int m_linksetCapacity = 0;
         private int m_agentCapacity = 0;
         private string m_regionType = String.Empty;
         private RegionLightShareData m_windlight = new RegionLightShareData();
@@ -287,9 +290,19 @@ namespace OpenSim.Framework
             set { m_windlight = value; }
         }
 
+        public float NonphysPrimMin
+        {
+            get { return m_nonphysPrimMin; }
+        }
+
         public int NonphysPrimMax
         {
             get { return m_nonphysPrimMax; }
+        }
+
+        public float PhysPrimMin
+        {
+            get { return m_physPrimMin; }
         }
 
         public int PhysPrimMax
@@ -305,6 +318,11 @@ namespace OpenSim.Framework
         public int ObjectCapacity
         {
             get { return m_objectCapacity; }
+        }
+
+        public int LinksetCapacity
+        {
+            get { return m_linksetCapacity; }
         }
 
         public int AgentCapacity
@@ -625,16 +643,31 @@ namespace OpenSim.Framework
             m_regionType = config.GetString("RegionType", String.Empty);
             allKeys.Remove("RegionType");
 
-            // Prim stuff
-            //
-            m_nonphysPrimMax = config.GetInt("NonphysicalPrimMax", 0);
-            allKeys.Remove("NonphysicalPrimMax");
+            #region Prim stuff
+
+            m_nonphysPrimMin = config.GetFloat("NonPhysicalPrimMin", 0);
+            allKeys.Remove("NonPhysicalPrimMin");
+
+            m_nonphysPrimMax = config.GetInt("NonPhysicalPrimMax", 0);
+            allKeys.Remove("NonPhysicalPrimMax");
+
+            m_physPrimMin = config.GetFloat("PhysicalPrimMin", 0);
+            allKeys.Remove("PhysicalPrimMin");
+
             m_physPrimMax = config.GetInt("PhysicalPrimMax", 0);
             allKeys.Remove("PhysicalPrimMax");
+            
             m_clampPrimSize = config.GetBoolean("ClampPrimSize", false);
             allKeys.Remove("ClampPrimSize");
+            
             m_objectCapacity = config.GetInt("MaxPrims", 15000);
             allKeys.Remove("MaxPrims");
+
+            m_linksetCapacity = config.GetInt("LinksetPrims", 0);
+            allKeys.Remove("LinksetPrims");
+            
+            #endregion
+
             m_agentCapacity = config.GetInt("MaxAgents", 100);
             allKeys.Remove("MaxAgents");
 
@@ -673,16 +706,27 @@ namespace OpenSim.Framework
 
             config.Set("ExternalHostName", m_externalHostName);
 
-            if (m_nonphysPrimMax != 0)
+            if (m_nonphysPrimMin > 0)
+                config.Set("NonphysicalPrimMax", m_nonphysPrimMin);
+
+            if (m_nonphysPrimMax > 0)
                 config.Set("NonphysicalPrimMax", m_nonphysPrimMax);
-            if (m_physPrimMax != 0)
+
+            if (m_physPrimMin > 0)
+                config.Set("PhysicalPrimMax", m_physPrimMin);
+            
+            if (m_physPrimMax > 0)
                 config.Set("PhysicalPrimMax", m_physPrimMax);
+                        
             config.Set("ClampPrimSize", m_clampPrimSize.ToString());
 
-            if (m_objectCapacity != 0)
+            if (m_objectCapacity > 0)
                 config.Set("MaxPrims", m_objectCapacity);
 
-            if (m_agentCapacity != 0)
+            if (m_linksetCapacity > 0)
+                config.Set("LinksetPrims", m_linksetCapacity);
+
+            if (m_agentCapacity > 0)
                 config.Set("MaxAgents", m_agentCapacity);
 
             if (ScopeID != UUID.Zero)
@@ -759,8 +803,14 @@ namespace OpenSim.Framework
             configMember.addConfigurationOption("lastmap_refresh", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "Last Map Refresh", Util.UnixTimeSinceEpoch().ToString(), true);
 
+            configMember.addConfigurationOption("nonphysical_prim_min", ConfigurationOption.ConfigurationTypes.TYPE_FLOAT,
+                                                "Minimum size for nonphysical prims", m_nonphysPrimMin.ToString(), true);
+
             configMember.addConfigurationOption("nonphysical_prim_max", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
                                                 "Maximum size for nonphysical prims", m_nonphysPrimMax.ToString(), true);
+
+            configMember.addConfigurationOption("physical_prim_min", ConfigurationOption.ConfigurationTypes.TYPE_FLOAT,
+                                                "Minimum size for nonphysical prims", m_physPrimMin.ToString(), true);
 
             configMember.addConfigurationOption("physical_prim_max", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
                                                 "Maximum size for physical prims", m_physPrimMax.ToString(), true);
@@ -770,6 +820,9 @@ namespace OpenSim.Framework
 
             configMember.addConfigurationOption("object_capacity", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
                                                 "Max objects this sim will hold", m_objectCapacity.ToString(), true);
+
+            configMember.addConfigurationOption("linkset_capacity", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
+                                                "Max prims an object will hold", m_linksetCapacity.ToString(), true);
 
             configMember.addConfigurationOption("agent_capacity", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
                                                 "Max avatars this sim will hold", m_agentCapacity.ToString(), true);
@@ -891,6 +944,9 @@ namespace OpenSim.Framework
                     break;
                 case "object_capacity":
                     m_objectCapacity = (int)configuration_result;
+                    break;
+                case "linkset_capacity":
+                    m_linksetCapacity = (int)configuration_result;
                     break;
                 case "agent_capacity":
                     m_agentCapacity = (int)configuration_result;

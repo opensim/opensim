@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Reflection;
 using log4net;
+using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenMetaverse.Imaging;
@@ -59,6 +60,7 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
         public face[] trns;
     }
 
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "MapImageModule")]
     public class MapImageModule : IMapImageGenerator, INonSharedRegionModule
     {
         private static readonly ILog m_log =
@@ -131,7 +133,7 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
 
         #endregion
 
-        #region IRegionModule Members
+        #region Region Module interface
 
         public void Initialise(IConfigSource source)
         {

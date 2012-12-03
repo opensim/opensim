@@ -815,8 +815,23 @@ namespace OpenSim.Framework
         event Action<IClientAPI> OnRegionHandShakeReply;
         event GenericCall1 OnRequestWearables;
         event Action<IClientAPI, bool> OnCompleteMovementToRegion;
+
+        /// <summary>
+        /// Called when an AgentUpdate message is received and before OnAgentUpdate.
+        /// </summary>
+        /// <remarks>
+        /// Listeners must not retain a reference to AgentUpdateArgs since this object may be reused for subsequent AgentUpdates.
+        /// </remarks>
         event UpdateAgent OnPreAgentUpdate;
+
+        /// <summary>
+        /// Called when an AgentUpdate message is received and after OnPreAgentUpdate.
+        /// </summary>
+        /// <remarks>
+        /// Listeners must not retain a reference to AgentUpdateArgs since this object may be reused for subsequent AgentUpdates.
+        /// </remarks>
         event UpdateAgent OnAgentUpdate;
+
         event AgentRequestSit OnAgentRequestSit;
         event AgentSit OnAgentSit;
         event AvatarPickerRequest OnAvatarPickerRequest;
@@ -1038,7 +1053,7 @@ namespace OpenSim.Framework
         event MuteListEntryRemove OnRemoveMuteListEntry;
         event GodlikeMessage onGodlikeMessage;
         event GodUpdateRegionInfoUpdate OnGodUpdateRegionInfoUpdate;
-
+        event GenericCall2 OnUpdateThrottles;
         /// <summary>
         /// Set the debug level at which packet output should be printed to console.
         /// </summary>
@@ -1046,8 +1061,21 @@ namespace OpenSim.Framework
 
         void InPacket(object NewPack);
         void ProcessInPacket(Packet NewPack);
+
+        /// <summary>
+        /// Close this client
+        /// </summary>
         void Close();
-        void Close(bool sendStop);
+
+        /// <summary>
+        /// Close this client
+        /// </summary>
+        /// <param name='force'>
+        /// If true, attempts the close without checking active status.  You do not want to try this except as a last
+        /// ditch attempt where Active == false but the ScenePresence still exists.
+        /// </param>
+        void Close(bool sendStop, bool force);
+
         void Kick(string message);
         
         /// <summary>
@@ -1084,8 +1112,20 @@ namespace OpenSim.Framework
         void SendAnimations(UUID[] animID, int[] seqs, UUID sourceAgentId, UUID[] objectIDs);
         void SendRegionHandshake(RegionInfo regionInfo, RegionHandshakeArgs args);
 
-        void SendChatMessage(string message, byte type, Vector3 fromPos, string fromName, UUID fromAgentID, byte source,
-                             byte audible);
+        /// <summary>
+        /// Send chat to the viewer.
+        /// </summary>
+        /// <param name='message'></param>
+        /// <param name='type'></param>
+        /// <param name='fromPos'></param>
+        /// <param name='fromName'></param>
+        /// <param name='fromAgentID'></param>
+        /// <param name='ownerID'></param>
+        /// <param name='source'></param>
+        /// <param name='audible'></param>
+        void SendChatMessage(
+            string message, byte type, Vector3 fromPos, string fromName, UUID fromAgentID, UUID ownerID, byte source,
+            byte audible);
 
         void SendInstantMessage(GridInstantMessage im);
 
@@ -1134,6 +1174,8 @@ namespace OpenSim.Framework
         void SendCoarseLocationUpdate(List<UUID> users, List<Vector3> CoarseLocations);
 
         void SetChildAgentThrottle(byte[] throttle);
+
+        void SetAgentThrottleSilent(int throttle, int setting);
 
         void SendAvatarDataImmediate(ISceneEntity avatar);
 

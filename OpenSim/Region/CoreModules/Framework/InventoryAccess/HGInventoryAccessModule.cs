@@ -42,9 +42,11 @@ using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 using OpenMetaverse;
 using log4net;
 using Nini.Config;
+using Mono.Addins;
 
 namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "HGInventoryAccessModule")]
     public class HGInventoryAccessModule : BasicInventoryAccessModule, INonSharedRegionModule, IInventoryAccessModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -92,7 +94,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                         m_HomeURI = thisModuleConfig.GetString("HomeURI", m_HomeURI);
                         m_OutboundPermission = thisModuleConfig.GetBoolean("OutboundPermission", true);
                         m_ThisGatekeeper = thisModuleConfig.GetString("Gatekeeper", string.Empty);
-                        m_RestrictInventoryAccessAbroad = thisModuleConfig.GetBoolean("RestrictInventoryAccessAbroad", false);
+                        m_RestrictInventoryAccessAbroad = thisModuleConfig.GetBoolean("RestrictInventoryAccessAbroad", true);
                     }
                     else
                         m_log.Warn("[HG INVENTORY ACCESS MODULE]: HGInventoryAccessModule configs not found. ProfileServerURI not set!");
@@ -263,8 +265,13 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             //}
 
             // OK, we're done fetching. Pass it up to the default RezObject
-            return base.RezObject(remoteClient, itemID, RayEnd, RayStart, RayTargetID, BypassRayCast, RayEndIsIntersection,
-                                  RezSelected, RemoveItem, fromTaskID, attachment);
+            SceneObjectGroup sog = base.RezObject(remoteClient, itemID, RayEnd, RayStart, RayTargetID, BypassRayCast, RayEndIsIntersection,
+                                   RezSelected, RemoveItem, fromTaskID, attachment);
+
+            if (sog == null)
+                remoteClient.SendAgentAlertMessage("Unable to rez: problem accessing inventory or locating assets", false);
+
+            return sog;
 
         }
 
@@ -308,6 +315,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         protected override InventoryItemBase GetItem(UUID agentID, UUID itemID)
         {
             InventoryItemBase item = base.GetItem(agentID, itemID);
+            if (item == null)
+                return null;
 
             string userAssetServer = string.Empty;
             if (IsForeignUser(agentID, out userAssetServer))
@@ -344,6 +353,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
         private void ProcessInventoryForArriving(IClientAPI client)
         {
+            // No-op for now, but we may need to do something for freign users inventory
         }
 
         //
@@ -390,6 +400,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
         private void ProcessInventoryForLeaving(IClientAPI client)
         {
+            // No-op for now
         }
 
         #endregion

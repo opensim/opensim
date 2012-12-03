@@ -43,27 +43,32 @@ namespace OpenSim.Framework.Monitoring
             StringBuilder sb = new StringBuilder(Environment.NewLine);
             sb.Append("MEMORY STATISTICS");
             sb.Append(Environment.NewLine);
-            sb.Append(
-                string.Format(
+            sb.AppendFormat(
                     "Allocated to OpenSim objects: {0} MB\n",
-                    Math.Round(GC.GetTotalMemory(false) / 1024.0 / 1024.0)));
+                    Math.Round(GC.GetTotalMemory(false) / 1024.0 / 1024.0));
+
+            sb.AppendFormat(
+                "OpenSim last object memory churn    : {0} MB/s\n",
+                Math.Round((MemoryWatchdog.LastMemoryChurn * 1000) / 1024.0 / 1024, 3));
+
+            sb.AppendFormat(
+                "OpenSim average object memory churn : {0} MB/s\n",
+                Math.Round((MemoryWatchdog.AverageMemoryChurn * 1000) / 1024.0 / 1024, 3));
 
             Process myprocess = Process.GetCurrentProcess();
             if (!myprocess.HasExited)
             {
                 myprocess.Refresh();
-                sb.Append(
-                    string.Format(
+                sb.AppendFormat(
                         "Process memory:      Physical {0} MB \t Paged {1} MB \t Virtual {2} MB\n",
                         Math.Round(Process.GetCurrentProcess().WorkingSet64 / 1024.0 / 1024.0),
                         Math.Round(Process.GetCurrentProcess().PagedMemorySize64 / 1024.0 / 1024.0),
-                        Math.Round(Process.GetCurrentProcess().VirtualMemorySize64 / 1024.0 / 1024.0)));
-                sb.Append(
-                    string.Format(
+                        Math.Round(Process.GetCurrentProcess().VirtualMemorySize64 / 1024.0 / 1024.0));
+                sb.AppendFormat(
                         "Peak process memory: Physical {0} MB \t Paged {1} MB \t Virtual {2} MB\n",
                         Math.Round(Process.GetCurrentProcess().PeakWorkingSet64 / 1024.0 / 1024.0),
                         Math.Round(Process.GetCurrentProcess().PeakPagedMemorySize64 / 1024.0 / 1024.0),
-                        Math.Round(Process.GetCurrentProcess().PeakVirtualMemorySize64 / 1024.0 / 1024.0)));
+                        Math.Round(Process.GetCurrentProcess().PeakVirtualMemorySize64 / 1024.0 / 1024.0));
             }
             else
                 sb.Append("Process reported as Exited \n");

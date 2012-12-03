@@ -39,9 +39,12 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
 
+using Mono.Addins;
+
 namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 {
-    public class AvatarFactoryModule : IAvatarFactoryModule, IRegionModule
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "AvatarFactoryModule")]
+    public class AvatarFactoryModule : IAvatarFactoryModule, INonSharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -59,12 +62,10 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
         private object m_setAppearanceLock = new object();
 
-        #region IRegionModule
+        #region Region Module interface
 
-        public void Initialise(Scene scene, IConfigSource config)
+        public void Initialise(IConfigSource config)
         {
-            scene.RegisterModuleInterface<IAvatarFactoryModule>(this);
-            scene.EventManager.OnNewClient += SubscribeToClientEvents;
 
             IConfig appearanceConfig = config.Configs["Appearance"];
             if (appearanceConfig != null)
@@ -74,11 +75,29 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 // m_log.InfoFormat("[AVFACTORY] configured for {0} save and {1} send",m_savetime,m_sendtime);
             }
 
-            if (m_scene == null)
-                m_scene = scene;          
         }
 
-        public void PostInitialise()
+        public void AddRegion(Scene scene)
+        {
+            if (m_scene == null)
+                m_scene = scene;
+
+            scene.RegisterModuleInterface<IAvatarFactoryModule>(this);
+            scene.EventManager.OnNewClient += SubscribeToClientEvents;
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+            if (scene == m_scene)
+            {
+                scene.UnregisterModuleInterface<IAvatarFactoryModule>(this);
+                scene.EventManager.OnNewClient -= SubscribeToClientEvents;
+            }
+
+            m_scene = null;
+        }
+
+        public void RegionLoaded(Scene scene)
         {
             m_updateTimer.Enabled = false;
             m_updateTimer.AutoReset = true;
@@ -99,6 +118,12 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
         {
             get { return false; }
         }
+
+        public Type ReplaceableInterface
+        {
+            get { return null; }
+        }
+
 
         private void SubscribeToClientEvents(IClientAPI client)
         {
@@ -533,6 +558,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                         // Ignore ruth's assets
                         if (appearance.Wearables[i][j].ItemID == AvatarWearable.DefaultWearables[i][0].ItemID)
                             continue;
+
                         InventoryItemBase baseItem = new InventoryItemBase(appearance.Wearables[i][j].ItemID, userID);
                         baseItem = invService.GetItem(baseItem);
 

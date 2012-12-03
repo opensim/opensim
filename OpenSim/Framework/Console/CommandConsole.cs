@@ -83,7 +83,8 @@ namespace OpenSim.Framework.Console
             = "To enter an argument that contains spaces, surround the argument with double quotes.\nFor example, show object name \"My long object name\"\n";
 
         public const string ItemHelpText
-                = "For more information, type 'help <item>' where <item> is one of the following:";
+= @"For more information, type 'help' to get a list of all commands, 
+  or type help <item>' where <item> is one of the following:";
 
         /// <value>
         /// Commands organized by keyword in a tree
@@ -114,6 +115,12 @@ namespace OpenSim.Framework.Console
             {
                 help.Add(""); // Will become a newline.
                 help.Add(GeneralHelpText);
+                help.AddRange(CollectAllCommandsHelp());
+            }
+            else if (helpParts.Count == 1 && helpParts[0] == "categories")
+            {
+                help.Add(""); // Will become a newline.
+                help.Add(GeneralHelpText);
                 help.Add(ItemHelpText);
                 help.AddRange(CollectModulesHelp(tree));
             }
@@ -121,6 +128,31 @@ namespace OpenSim.Framework.Console
             {
                 help.AddRange(CollectHelp(helpParts));
             }
+
+            return help;
+        }
+
+        /// <summary>
+        /// Collects the help from all commands and return in alphabetical order.
+        /// </summary>
+        /// <returns></returns>
+        private List<string> CollectAllCommandsHelp()
+        {
+            List<string> help = new List<string>();
+
+            lock (m_modulesCommands)
+            {
+                foreach (List<CommandInfo> commands in m_modulesCommands.Values)
+                {
+                    foreach (CommandInfo c in commands)
+                    {
+                        if (c.long_help != String.Empty)
+                            help.Add(string.Format("{0} - {1}", c.help_text, c.long_help));
+                    }
+                }
+            }
+
+            help.Sort();
 
             return help;
         }
@@ -711,7 +743,7 @@ namespace OpenSim.Framework.Console
         /// </summary>
         public void Prompt()
         {
-            string line = ReadLine(m_defaultPrompt + "# ", true, true);
+            string line = ReadLine(DefaultPrompt + "# ", true, true);
 
             if (line != String.Empty)
                 Output("Invalid command");

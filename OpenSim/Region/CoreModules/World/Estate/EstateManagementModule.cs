@@ -40,6 +40,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using RegionFlags = OpenMetaverse.RegionFlags;
 
 namespace OpenSim.Region.CoreModules.World.Estate
 {
@@ -293,6 +294,10 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 }
 
                 restartModule.ScheduleRestart(UUID.Zero, "Region will restart in {0}", times.ToArray(), false);
+
+                m_log.InfoFormat(
+                    "User {0} requested restart of region {1} in {2} seconds", 
+                    remoteClient.Name, Scene.Name, times.Count != 0 ? times[0] : 0);
             }
         }
 
@@ -317,7 +322,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
             if ((estateAccessType & 4) != 0) // User add
             {
-                if (Scene.Permissions.CanIssueEstateCommand(remote_client.AgentId, true) || Scene.Permissions.BypassPermissions())
+                if (Scene.Permissions.CanIssueEstateCommand(remote_client.AgentId, true))
                 {
                     if ((estateAccessType & 1) != 0) // All estates
                     {
@@ -349,7 +354,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             }
             if ((estateAccessType & 8) != 0) // User remove
             {
-                if (Scene.Permissions.CanIssueEstateCommand(remote_client.AgentId, true) || Scene.Permissions.BypassPermissions())
+                if (Scene.Permissions.CanIssueEstateCommand(remote_client.AgentId, true))
                 {
                     if ((estateAccessType & 1) != 0) // All estates
                     {
@@ -380,7 +385,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             }
             if ((estateAccessType & 16) != 0) // Group add
             {
-                if (Scene.Permissions.CanIssueEstateCommand(remote_client.AgentId, true) || Scene.Permissions.BypassPermissions())
+                if (Scene.Permissions.CanIssueEstateCommand(remote_client.AgentId, true))
                 {
                     if ((estateAccessType & 1) != 0) // All estates
                     {
@@ -409,9 +414,10 @@ namespace OpenSim.Region.CoreModules.World.Estate
                     remote_client.SendAlertMessage("Method EstateAccessDelta Failed, you don't have permissions");
                 }
             }
+
             if ((estateAccessType & 32) != 0) // Group remove
             {
-                if (Scene.Permissions.CanIssueEstateCommand(remote_client.AgentId, true) || Scene.Permissions.BypassPermissions())
+                if (Scene.Permissions.CanIssueEstateCommand(remote_client.AgentId, true))
                 {
                     if ((estateAccessType & 1) != 0) // All estates
                     {
@@ -440,9 +446,10 @@ namespace OpenSim.Region.CoreModules.World.Estate
                     remote_client.SendAlertMessage("Method EstateAccessDelta Failed, you don't have permissions");
                 }
             }
+
             if ((estateAccessType & 64) != 0) // Ban add
             {
-                if (Scene.Permissions.CanIssueEstateCommand(remote_client.AgentId, false) || Scene.Permissions.BypassPermissions())
+                if (Scene.Permissions.CanIssueEstateCommand(remote_client.AgentId, false))
                 {
                     EstateBan[] banlistcheck = Scene.RegionInfo.EstateSettings.EstateBans;
 
@@ -521,9 +528,10 @@ namespace OpenSim.Region.CoreModules.World.Estate
                     remote_client.SendAlertMessage("Method EstateAccessDelta Failed, you don't have permissions");
                 }
             }
+
             if ((estateAccessType & 128) != 0) // Ban remove
             {
-                if (Scene.Permissions.CanIssueEstateCommand(remote_client.AgentId, false) || Scene.Permissions.BypassPermissions())
+                if (Scene.Permissions.CanIssueEstateCommand(remote_client.AgentId, false))
                 {
                     EstateBan[] banlistcheck = Scene.RegionInfo.EstateSettings.EstateBans;
 
@@ -576,9 +584,10 @@ namespace OpenSim.Region.CoreModules.World.Estate
                     remote_client.SendAlertMessage("Method EstateAccessDelta Failed, you don't have permissions");
                 }
             }
+
             if ((estateAccessType & 256) != 0) // Manager add
             {
-                if (Scene.Permissions.CanIssueEstateCommand(remote_client.AgentId, true) || Scene.Permissions.BypassPermissions())
+                if (Scene.Permissions.CanIssueEstateCommand(remote_client.AgentId, true))
                 {
                     if ((estateAccessType & 1) != 0) // All estates
                     {
@@ -607,9 +616,10 @@ namespace OpenSim.Region.CoreModules.World.Estate
                     remote_client.SendAlertMessage("Method EstateAccessDelta Failed, you don't have permissions");
                 }
             }
+
             if ((estateAccessType & 512) != 0) // Manager remove
             {
-                if (Scene.Permissions.CanIssueEstateCommand(remote_client.AgentId, true) || Scene.Permissions.BypassPermissions())
+                if (Scene.Permissions.CanIssueEstateCommand(remote_client.AgentId, true))
                 {
                     if ((estateAccessType & 1) != 0) // All estates
                     {
@@ -1108,7 +1118,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         #endregion
 
-        #region IRegionModule Members
+        #region Region Module interface
         
         public string Name { get { return "EstateManagementModule"; } }
         
