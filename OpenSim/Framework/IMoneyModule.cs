@@ -33,7 +33,7 @@ namespace OpenSim.Framework
     public interface IMoneyModule
     {
         bool ObjectGiveMoney(UUID objectID, UUID fromID, UUID toID,
-                int amount);
+                int amount, UUID txn);
 
         int GetBalance(UUID agentID);
         bool UploadCovered(UUID agentID, int amount);
