@@ -840,6 +840,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 case (int)ActorTypes.Agent:
                     {
+                        dop1foot = true;
+
                         AvanormOverride = true;
                         Vector3 tmp = p2.Position - p1.Position;
                         normoverride = p2.Velocity - p1.Velocity;
@@ -883,6 +885,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                     switch (p2.PhysicsActorType)
                     {
                         case (int)ActorTypes.Agent:
+
+
+                            dop2foot = true;
+
                             AvanormOverride = true;
 
                             Vector3 tmp = p2.Position - p1.Position;
@@ -1017,6 +1023,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             IntPtr Joint;
 
             int i = 0;
+            int ncontacts = 0;
             while(true)
             {
 
@@ -1031,7 +1038,28 @@ namespace OpenSim.Region.Physics.OdePlugin
                 else
 
                 {
+                    if(dop1foot)
+                    {
+                        if (!(((OdeCharacter)p1).Collide(g1,false, ref curContact)))
+                        {
+                            if (++i >= count)
+                                break;
+                            else
+                                continue;
+                        }
+                    }
+                    else if(dop2foot)
+                    {
+                        if(!(((OdeCharacter) p2).Collide(g2,true,ref curContact)))
+                        {
+                            if (++i >= count)
+                                break;
+                            else
+                                continue;
+                        }
+                    }
 
+/*
                     if (AvanormOverride)
                     {
                         if (curContact.depth > 0.3f)
@@ -1081,34 +1109,31 @@ namespace OpenSim.Region.Physics.OdePlugin
                             {
                                 float sz = p2.Size.Z;
                                 Vector3 vtmp = p2.Position;
-                                float ppos = curContact.pos.Z - vtmp.Z + (sz - avCapRadius) * 0.5f;
+                                vtmp.Z -= sz * 0.5f;
+                                vtmp.Z += 0.5f;
+                                float ppos = vtmp.Z - curContact.pos.Z;
                                 if (ppos > 0f)
                                 {
                                     if (!p2.Flying)
                                     {
-                                        d.AABB aabb;
-                                        d.GeomGetAABB(g1, out aabb);
                                         float tmp = vtmp.Z - sz * .18f;
-
-                                        if (aabb.MaxZ < tmp)
-                                        {
-                                            vtmp.X = curContact.pos.X - vtmp.X;
-                                            vtmp.Y = curContact.pos.Y - vtmp.Y;
-                                            vtmp.Z = -0.2f;
-                                            vtmp.Normalize();
-                                            curContact.normal.X = vtmp.X;
-                                            curContact.normal.Y = vtmp.Y;
-                                            curContact.normal.Z = vtmp.Z;
-                                        }
+                                        vtmp.X = curContact.pos.X - vtmp.X;
+                                        vtmp.Y = curContact.pos.Y - vtmp.Y;
+                                        vtmp.Z = curContact.pos.Z - vtmp.Z;
+                                        vtmp.Normalize();
+                                        curContact.normal.X = vtmp.X;
+                                        curContact.normal.Y = vtmp.Y;
+                                        curContact.normal.Z = vtmp.Z;
                                     }
                                 }
-                                else
+//                                else
                                     p2.IsColliding = true;
 
                             }
                         }
                     }
-
+*/
+                    ncontacts++;
                     Joint = CreateContacJoint(ref curContact, mu, bounce, cfm, erpscale, dscale);
                     d.JointAttach(Joint, b1, b2);
 
@@ -1134,7 +1159,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
             }
 
-            collision_accounting_events(p1, p2, maxDepthContact);
+            if(ncontacts > 0)
+                collision_accounting_events(p1, p2, maxDepthContact);
 
 /*
             if (notskipedcount > geomContactPointsStartthrottle)
@@ -1234,14 +1260,17 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     foreach (OdeCharacter chr in _characters)
                     {
-                        if (chr == null || chr.Shell == IntPtr.Zero || chr.Body == IntPtr.Zero)
+                        if (chr == null || chr.Body == IntPtr.Zero)
                             continue;
 
                         chr.IsColliding = false;
                         //                    chr.CollidingGround = false; not done here
                         chr.CollidingObj = false;
                         // do colisions with static space
-                        d.SpaceCollide2(StaticSpace, chr.Shell, IntPtr.Zero, nearCallback);
+                        d.SpaceCollide2(StaticSpace, chr.topbox, IntPtr.Zero, nearCallback);
+                        d.SpaceCollide2(StaticSpace, chr.midbox, IntPtr.Zero, nearCallback);
+                        d.SpaceCollide2(StaticSpace, chr.feetbox, IntPtr.Zero, nearCallback);
+                        d.SpaceCollide2(StaticSpace, chr.bonebox, IntPtr.Zero, nearCallback);
                         // no coll with gnd
                     }
                 }
@@ -1334,7 +1363,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             pos.X = position.X;
             pos.Y = position.Y;
             pos.Z = position.Z;
-            OdeCharacter newAv = new OdeCharacter(avName, this, pos, size, avPIDD, avPIDP, avCapRadius, avDensity, avMovementDivisorWalk, avMovementDivisorRun);
+            OdeCharacter newAv = new OdeCharacter(avName, this, pos, size, avPIDD, avPIDP, avDensity, avMovementDivisorWalk, avMovementDivisorRun);
             newAv.Flying = isFlying;
             newAv.MinimumGroundFlightOffset = minimumGroundFlightOffset;
             

@@ -571,7 +571,18 @@ namespace OpenSim.Region.Framework.Scenes
             set
             {
                 m_bodyRot = value;
-//                m_log.DebugFormat("[SCENE PRESENCE]: Body rot for {0} set to {1}", Name, m_bodyRot);
+                //                m_log.DebugFormat("[SCENE PRESENCE]: Body rot for {0} set to {1}", Name, m_bodyRot);
+                if (PhysicsActor != null)
+                {
+                    try
+                    {
+                        PhysicsActor.Orientation = value;
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.Error("[SCENE PRESENCE]: Orientation " + e.Message);
+                    }
+                }
             }
         }
 
@@ -3435,7 +3446,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             PhysicsActor = scene.AddAvatar(
                 LocalId, Firstname + "." + Lastname, pVec,
-                new Vector3(0f, 0f, Appearance.AvatarHeight), isFlying);
+                new Vector3(0.45f, 0.6f, Appearance.AvatarHeight), isFlying);
 
             //PhysicsActor.OnRequestTerseUpdate += SendTerseUpdateToAllClients;
             PhysicsActor.OnCollisionUpdate += PhysicsCollisionUpdate;
