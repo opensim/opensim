@@ -125,7 +125,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         //Attractor properties
         private BSVMotor m_verticalAttractionMotor = new BSVMotor("VerticalAttraction");
         private float m_verticalAttractionEfficiency = 1.0f;        // damped
-        private float m_verticalAttractionTimescale = 500f;         // Timescale > 300  means no vert attractor.
+        private float m_verticalAttractionTimescale = 600f;         // Timescale > 500  means no vert attractor.
 
         public BSDynamics(BSScene myScene, BSPrim myPrim)
         {
@@ -573,6 +573,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 // Vector3 localInertia = new Vector3(1f, 1f, 1f);
                 Vector3 localInertia = new Vector3(m_vehicleMass, m_vehicleMass, m_vehicleMass);
                 BulletSimAPI.SetMassProps2(Prim.PhysBody.ptr, m_vehicleMass, localInertia);
+                BulletSimAPI.UpdateInertiaTensor2(Prim.PhysBody.ptr);
 
                 VDetailLog("{0},BSDynamics.Refresh,frict={1},inert={2},aDamp={3}",
                                 Prim.LocalID, friction, localInertia, angularDamping);
@@ -958,34 +959,6 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         // Apply the effect of the angular motor.
         private void MoveAngular(float pTimestep)
         {
-            // m_angularMotorDirection         // angular velocity requested by LSL motor
-            // m_angularMotorVelocity          // current angular motor velocity (ramps up and down)
-            // m_angularMotorTimescale         // motor angular velocity ramp up time
-            // m_angularMotorDecayTimescale    // motor angular velocity decay rate
-            // m_angularFrictionTimescale      // body angular velocity  decay rate
-            // m_lastAngularVelocity           // what was last applied to body
-
-            /*
-            if (m_angularMotorDirection.LengthSquared() > 0.0001)
-            {
-                Vector3 origVel = m_angularMotorVelocity;
-                Vector3 origDir = m_angularMotorDirection;
-
-                //       new velocity    +=                      error                       /  (  time to get there   / step interval)
-                //                           requested direction   - current vehicle direction
-                m_angularMotorVelocity += (m_angularMotorDirection - m_angularMotorVelocity) /  (m_angularMotorTimescale / pTimestep);
-                // decay requested direction
-                m_angularMotorDirection *= (1.0f - (pTimestep * 1.0f/m_angularMotorDecayTimescale));
-
-                VDetailLog("{0},  MoveAngular,angularMotorApply,angTScale={1},timeStep={2},origvel={3},origDir={4},vel={5}",
-                        Prim.LocalID, m_angularMotorTimescale, pTimestep, origVel, origDir, m_angularMotorVelocity);
-            }
-            else
-            {
-                m_angularMotorVelocity = Vector3.Zero;
-            }
-            */
-
             Vector3 angularMotorContribution = m_angularMotor.Step(pTimestep);
 
             // ==================================================================
@@ -1050,9 +1023,8 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             // ==================================================================
             if (m_lastAngularVelocity.ApproxEquals(Vector3.Zero, 0.01f))
             {
-                m_lastAngularVelocity = Vector3.Zero; // Reduce small value to zero.
                 // TODO: zeroing is good but it also sets values in unmanaged code. Remove the stores when idle.
-                VDetailLog("{0},  MoveAngular,done,zero,lastAngular={1}", Prim.LocalID, m_lastAngularVelocity);
+                VDetailLog("{0},  MoveAngular,done,zero", Prim.LocalID);
                 VehicleRotationalVelocity = Vector3.Zero;
                 Prim.ZeroAngularMotion(true);
             }
@@ -1063,15 +1035,14 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 // Since we are stuffing the angular velocity directly into the object, the computed
                 //     velocity needs to be scaled by the timestep.
                 // Also remove any motion that is on the object so added motion is only from vehicle.
-                Vector3 applyAngularForce = ((m_lastAngularVelocity * pTimestep) - VehicleRotationalVelocity);
-                // Unscale the force by the angular factor so it overwhelmes the Bullet additions.
-                VehicleRotationalVelocity = applyAngularForce;
+                Vector3 setAngularVelocity = ((m_lastAngularVelocity * pTimestep) - VehicleRotationalVelocity);
+                VehicleRotationalVelocity = setAngularVelocity;
 
-                VDetailLog("{0},  MoveAngular,done,nonZero,angMotor={1},vertAttr={2},bank={3},deflect={4},newAngForce={5},lastAngular={6}",
+                VDetailLog("{0},  MoveAngular,done,nonZero,angMotorContrib={1},vertAttrContrib={2},bankContrib={3},deflectContrib={4},totalContrib={5},setAngVelocity={6}",
                                     Prim.LocalID,
                                     angularMotorContribution, verticalAttractionContribution,
                                     bankingContribution, deflectionContribution,
-                                    applyAngularForce, m_lastAngularVelocity
+                                    m_lastAngularVelocity, setAngularVelocity
                                     );
             }
         }
@@ -1083,12 +1054,13 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             // If vertical attaction timescale is reasonable and we applied an angular force last time...
             if (m_verticalAttractionTimescale < 500)
             {
+                /*
                 Vector3 verticalError = Vector3.UnitZ * VehicleOrientation;
                 verticalError.Normalize();
                 m_verticalAttractionMotor.SetCurrent(verticalError);
                 m_verticalAttractionMotor.SetTarget(Vector3.UnitZ);
                 ret = m_verticalAttractionMotor.Step(pTimestep);
-                /*
+                 */
                 // Take a vector pointing up and convert it from world to vehicle relative coords.
                 Vector3 verticalError = Vector3.UnitZ * VehicleOrientation;
                 verticalError.Normalize();
@@ -1108,25 +1080,25 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 }
 
                 // Y error means needed rotation around X axis and visa versa.
-                verticalAttractionContribution.X =    verticalError.Y;
-                verticalAttractionContribution.Y =  - verticalError.X;
-                verticalAttractionContribution.Z = 0f;
+                ret.X =    verticalError.Y;
+                ret.Y =  - verticalError.X;
+                ret.Z = 0f;
 
                 // scale by the time scale and timestep
-                Vector3 unscaledContrib = verticalAttractionContribution;
-                verticalAttractionContribution /= m_verticalAttractionTimescale;
-                verticalAttractionContribution *= pTimestep;
+                Vector3 unscaledContrib = ret;
+                ret /= m_verticalAttractionTimescale;
+                ret *= pTimestep;
 
                 // apply efficiency
-                Vector3 preEfficiencyContrib = verticalAttractionContribution;
+                Vector3 preEfficiencyContrib = ret;
+                // Effenciency squared seems to give a more realistic effect
                 float efficencySquared = m_verticalAttractionEfficiency * m_verticalAttractionEfficiency;
-                verticalAttractionContribution *= (m_verticalAttractionEfficiency * m_verticalAttractionEfficiency);
+                ret *= efficencySquared;
 
                 VDetailLog("{0},  MoveAngular,verticalAttraction,,verticalError={1},unscaled={2},preEff={3},eff={4},effSq={5},vertAttr={6}",
                                             Prim.LocalID, verticalError, unscaledContrib, preEfficiencyContrib,
                                             m_verticalAttractionEfficiency, efficencySquared,
-                                            verticalAttractionContribution);
-                 */
+                                            ret);
 
             }
             return ret;
