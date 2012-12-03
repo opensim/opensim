@@ -98,7 +98,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         private float m_angularMotorTimescale = 0;                      // motor angular velocity ramp up rate
         private float m_angularMotorDecayTimescale = 0;                 // motor angular velocity decay rate
         private Vector3 m_angularFrictionTimescale = Vector3.Zero;      // body angular velocity  decay rate
-        private Vector3 m_lastAngularVelocity = Vector3.Zero;           // what was last applied to body
+        private Vector3 m_lastAngularCorrection = Vector3.Zero;
         private Vector3 m_lastVertAttractor = Vector3.Zero;             // what VA was last applied to body
 
         //Deflection properties
@@ -111,6 +111,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         private float m_bankingEfficiency = 0;
         private float m_bankingMix = 0;
         private float m_bankingTimescale = 0;
+        private Vector3 m_lastBanking = Vector3.Zero;
 
         //Hover and Buoyancy properties
         private float m_VhoverHeight = 0f;
@@ -152,7 +153,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     m_angularDeflectionTimescale = Math.Max(pValue, 0.01f);
                     break;
                 case Vehicle.ANGULAR_MOTOR_DECAY_TIMESCALE:
-                    m_angularMotorDecayTimescale = Math.Max(0.01f, Math.Min(pValue,120));
+                    m_angularMotorDecayTimescale = ClampInRange(0.01f, pValue, 120);
                     m_angularMotor.TargetValueDecayTimeScale = m_angularMotorDecayTimescale;
                     break;
                 case Vehicle.ANGULAR_MOTOR_TIMESCALE:
@@ -240,9 +241,9 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     break;
                 case Vehicle.ANGULAR_MOTOR_DIRECTION:
                     // Limit requested angular speed to 2 rps= 4 pi rads/sec
-                    pValue.X = Math.Max(-12.56f, Math.Min(pValue.X, 12.56f));
-                    pValue.Y = Math.Max(-12.56f, Math.Min(pValue.Y, 12.56f));
-                    pValue.Z = Math.Max(-12.56f, Math.Min(pValue.Z, 12.56f));
+                    pValue.X = ClampInRange(-12.56f, pValue.X, 12.56f);
+                    pValue.Y = ClampInRange(-12.56f, pValue.Y, 12.56f);
+                    pValue.Z = ClampInRange(-12.56f, pValue.Z, 12.56f);
                     m_angularMotorDirection = new Vector3(pValue.X, pValue.Y, pValue.Z);
                     m_angularMotor.SetTarget(m_angularMotorDirection);
                     break;
@@ -328,6 +329,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     m_bankingEfficiency = 0;
                     m_bankingTimescale = 1000;
                     m_bankingMix = 1;
+                    m_lastBanking = Vector3.Zero;
 
                     m_referenceFrame = Quaternion.Identity;
                     m_flags = (VehicleFlag)0;
@@ -362,6 +364,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     m_bankingEfficiency = 0;
                     m_bankingTimescale = 10;
                     m_bankingMix = 1;
+                    m_lastBanking = Vector3.Zero;
 
                     m_referenceFrame = Quaternion.Identity;
                     m_flags &= ~(VehicleFlag.HOVER_WATER_ONLY
@@ -400,6 +403,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     m_bankingEfficiency = -0.2f;
                     m_bankingMix = 1;
                     m_bankingTimescale = 1;
+                    m_lastBanking = Vector3.Zero;
 
                     m_referenceFrame = Quaternion.Identity;
                     m_flags &= ~(VehicleFlag.HOVER_WATER_ONLY
@@ -438,6 +442,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     m_bankingEfficiency = -0.3f;
                     m_bankingMix = 0.8f;
                     m_bankingTimescale = 1;
+                    m_lastBanking = Vector3.Zero;
 
                     m_referenceFrame = Quaternion.Identity;
                     m_flags &= ~(VehicleFlag.HOVER_TERRAIN_ONLY
@@ -476,6 +481,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     m_bankingEfficiency = 1;
                     m_bankingMix = 0.7f;
                     m_bankingTimescale = 2;
+                    m_lastBanking = Vector3.Zero;
 
                     m_referenceFrame = Quaternion.Identity;
                     m_flags &= ~(VehicleFlag.HOVER_WATER_ONLY
@@ -514,6 +520,8 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     m_bankingEfficiency = 0;
                     m_bankingMix = 0.7f;
                     m_bankingTimescale = 5;
+                    m_lastBanking = Vector3.Zero;
+
                     m_referenceFrame = Quaternion.Identity;
 
                     m_referenceFrame = Quaternion.Identity;
@@ -627,12 +635,16 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         {
             if (m_knownChanged != 0)
             {
-                if ((m_knownChanged & m_knownChangedPosition) != 0) Prim.ForcePosition = VehiclePosition;
-                if ((m_knownChanged & m_knownChangedOrientation) != 0) Prim.ForceOrientation = VehicleOrientation;
-                if ((m_knownChanged & m_knownChangedVelocity) != 0) Prim.ForceVelocity = VehicleVelocity;
-                if ((m_knownChanged & m_knownChangedRotationalVelocity) != 0) Prim.ForceRotationalVelocity = VehicleRotationalVelocity;
-                // If we set one of the values (ie, the physics engine doesn't do it) we must make sure there
-                //      is an UpdateProperties event to send the changes up to the simulator.
+                if ((m_knownChanged & m_knownChangedPosition) != 0)
+                    Prim.ForcePosition = VehiclePosition;
+                if ((m_knownChanged & m_knownChangedOrientation) != 0)
+                    Prim.ForceOrientation = VehicleOrientation;
+                if ((m_knownChanged & m_knownChangedVelocity) != 0)
+                    Prim.ForceVelocity = VehicleVelocity;
+                if ((m_knownChanged & m_knownChangedRotationalVelocity) != 0)
+                    Prim.ForceRotationalVelocity = VehicleRotationalVelocity;
+                // If we set one of the values (ie, the physics engine didn't do it) we must force
+                //      an UpdateProperties event to send the changes up to the simulator.
                 BulletSimAPI.PushUpdate2(Prim.PhysBody.ptr);
             }
         }
@@ -957,9 +969,12 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         // =======================================================================
         // =======================================================================
         // Apply the effect of the angular motor.
+        // The 'contribution' is how much angular correction each function wants.
+        //     All the contributions are added together and the orientation of the vehicle
+        //     is changed by all the contributed corrections.
         private void MoveAngular(float pTimestep)
         {
-            Vector3 angularMotorContribution = m_angularMotor.Step(pTimestep);
+            Vector3 angularMotorContribution = m_angularMotor.Step();
 
             // ==================================================================
             // From http://wiki.secondlife.com/wiki/LlSetVehicleFlags :
@@ -974,20 +989,39 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 VDetailLog("{0},  MoveAngular,noDeflectionUp,angularMotorContrib={1}", Prim.LocalID, angularMotorContribution);
             }
 
-            Vector3 verticalAttractionContribution = ComputeAngularVerticalAttraction(pTimestep);
+            Vector3 verticalAttractionContribution = ComputeAngularVerticalAttraction();
 
-            Vector3 deflectionContribution = ComputeAngularDeflection(pTimestep);
+            Vector3 deflectionContribution = ComputeAngularDeflection();
 
-            Vector3 bankingContribution = ComputeAngularBanking(pTimestep);
+            Vector3 bankingContribution = ComputeAngularBanking(angularMotorContribution.Z);
 
             // ==================================================================
             m_lastVertAttractor = verticalAttractionContribution;
 
-            // Sum velocities
-            m_lastAngularVelocity = angularMotorContribution
+            // Sum corrections
+            m_lastAngularCorrection = angularMotorContribution
                                     + verticalAttractionContribution
                                     + deflectionContribution
                                     + bankingContribution;
+
+            // ==================================================================
+            // The correction is applied to the current orientation.
+            // Any angular velocity on the vehicle is not us so zero the current value.
+            VehicleRotationalVelocity = Vector3.Zero;
+            if (!m_lastAngularCorrection.ApproxEquals(Vector3.Zero, 0.01f))
+            {
+                Vector3 scaledCorrection = m_lastAngularCorrection * pTimestep;
+                Quaternion quatCorrection = Quaternion.CreateFromEulers(scaledCorrection);
+
+                VehicleOrientation = Quaternion.Add(VehicleOrientation, quatCorrection);
+
+                VDetailLog("{0},  MoveAngular,done,nonZero,angMotorContrib={1},vertAttrContrib={2},bankContrib={3},deflectContrib={4},totalContrib={5},scaledCorr={6}",
+                                    Prim.LocalID,
+                                    angularMotorContribution, verticalAttractionContribution,
+                                    bankingContribution, deflectionContribution,
+                                    m_lastAngularCorrection, scaledCorrection
+                                    );
+            }
 
             // ==================================================================
             //Offset section
@@ -1020,50 +1054,18 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 VDetailLog("{0},  BSDynamic.MoveAngular,motorOffset,applyTorqueImpulse={1}", Prim.LocalID, torqueFromOffset);
             }
 
-            // ==================================================================
-            if (m_lastAngularVelocity.ApproxEquals(Vector3.Zero, 0.01f))
-            {
-                // TODO: zeroing is good but it also sets values in unmanaged code. Remove the stores when idle.
-                VDetailLog("{0},  MoveAngular,done,zero", Prim.LocalID);
-                VehicleRotationalVelocity = Vector3.Zero;
-                Prim.ZeroAngularMotion(true);
-            }
-            else
-            {
-                // Apply to the body.
-                // The above calculates the absolute angular velocity needed. Angular velocity is massless.
-                // Since we are stuffing the angular velocity directly into the object, the computed
-                //     velocity needs to be scaled by the timestep.
-                // Also remove any motion that is on the object so added motion is only from vehicle.
-                Vector3 setAngularVelocity = ((m_lastAngularVelocity * pTimestep) - VehicleRotationalVelocity);
-                VehicleRotationalVelocity = setAngularVelocity;
-
-                VDetailLog("{0},  MoveAngular,done,nonZero,angMotorContrib={1},vertAttrContrib={2},bankContrib={3},deflectContrib={4},totalContrib={5},setAngVelocity={6}",
-                                    Prim.LocalID,
-                                    angularMotorContribution, verticalAttractionContribution,
-                                    bankingContribution, deflectionContribution,
-                                    m_lastAngularVelocity, setAngularVelocity
-                                    );
-            }
         }
 
-        public Vector3 ComputeAngularVerticalAttraction(float pTimestep)
+        public Vector3 ComputeAngularVerticalAttraction()
         {
             Vector3 ret = Vector3.Zero;
 
             // If vertical attaction timescale is reasonable and we applied an angular force last time...
             if (m_verticalAttractionTimescale < 500)
             {
-                /*
-                Vector3 verticalError = Vector3.UnitZ * VehicleOrientation;
-                verticalError.Normalize();
-                m_verticalAttractionMotor.SetCurrent(verticalError);
-                m_verticalAttractionMotor.SetTarget(Vector3.UnitZ);
-                ret = m_verticalAttractionMotor.Step(pTimestep);
-                 */
                 // Take a vector pointing up and convert it from world to vehicle relative coords.
                 Vector3 verticalError = Vector3.UnitZ * VehicleOrientation;
-                verticalError.Normalize();
+                // verticalError.Normalize();
 
                 // If vertical attraction correction is needed, the vector that was pointing up (UnitZ)
                 //    is now leaning to one side (rotated around the X axis) and the Y value will
@@ -1087,56 +1089,63 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 // scale by the time scale and timestep
                 Vector3 unscaledContrib = ret;
                 ret /= m_verticalAttractionTimescale;
-                ret *= pTimestep;
+                // This returns the angular correction desired. Timestep is added later.
+                // ret *= pTimestep;
 
                 // apply efficiency
                 Vector3 preEfficiencyContrib = ret;
+                // TODO: implement efficiency.
                 // Effenciency squared seems to give a more realistic effect
                 float efficencySquared = m_verticalAttractionEfficiency * m_verticalAttractionEfficiency;
-                ret *= efficencySquared;
+                // ret *= efficencySquared;
 
                 VDetailLog("{0},  MoveAngular,verticalAttraction,,verticalError={1},unscaled={2},preEff={3},eff={4},effSq={5},vertAttr={6}",
                                             Prim.LocalID, verticalError, unscaledContrib, preEfficiencyContrib,
                                             m_verticalAttractionEfficiency, efficencySquared,
                                             ret);
-
             }
             return ret;
         }
 
-        public Vector3 ComputeAngularDeflection(float pTimestep)
+        // Return the angular correction to correct the direction the vehicle is pointing to be
+        //      the direction is should want to be pointing.
+        public Vector3 ComputeAngularDeflection()
         {
             Vector3 ret = Vector3.Zero;
 
             if (m_angularDeflectionEfficiency != 0)
             {
-                // Compute a scaled vector that points in the preferred axis (X direction)
-                Vector3 scaledDefaultDirection =
-                    new Vector3((pTimestep * 10 * (m_angularDeflectionEfficiency / m_angularDeflectionTimescale)), 0, 0);
-                // Adding the current vehicle orientation and reference frame displaces the orientation to the frame.
-                // Rotate the scaled default axix relative to the actual vehicle direction giving where it should point.
-                Vector3 preferredAxisOfMotion = scaledDefaultDirection * Quaternion.Add(VehicleOrientation, m_referenceFrame);
+                // Where the vehicle should want to point relative to the vehicle
+                Vector3 preferredDirection = Vector3.UnitX * m_referenceFrame;
 
-                // Scale by efficiency and timescale
-                ret = (preferredAxisOfMotion * (m_angularDeflectionEfficiency) / m_angularDeflectionTimescale) * pTimestep;
+                // Where the vehicle is pointing relative to the vehicle.
+                Vector3 currentDirection = Vector3.UnitX * Quaternion.Add(VehicleOrientation, m_referenceFrame);
 
-                VDetailLog("{0},  MoveAngular,Deflection,perfAxis={1},deflection={2}", Prim.LocalID, preferredAxisOfMotion, ret);
+                // Difference between where vehicle is pointing and where it should wish to point
+                Vector3 directionCorrection = preferredDirection - currentDirection;
 
-                // This deflection computation is not correct.
-                ret = Vector3.Zero;
+                // Scale the correction by recovery timescale and efficiency
+                ret = directionCorrection * m_angularDeflectionEfficiency / m_angularDeflectionTimescale;
+
+                VDetailLog("{0},  MoveAngular,Deflection,perfDir={1},currentDir={2},dirCorrection={3},ret={4}",
+                    Prim.LocalID, preferredDirection, currentDirection, directionCorrection, ret);
             }
             return ret;
         }
 
-        public Vector3 ComputeAngularBanking(float pTimestep)
+        // Return an angular change to tip the vehicle (around X axis) when turning (turned around Z).
+        // Remembers the last banking value calculated and returns the difference needed this tick.
+        // TurningFactor is rate going left or right (pos=left, neg=right, scale=0..1).
+        public Vector3 ComputeAngularBanking(float turningFactor)
         {
             Vector3 ret = Vector3.Zero;
+            Vector3 computedBanking = Vector3.Zero;
 
             if (m_bankingEfficiency != 0)
             {
-                Vector3 dir = Vector3.One * VehicleOrientation;
+                Vector3 currentDirection = Vector3.UnitX * VehicleOrientation;
+
                 float mult = (m_bankingMix * m_bankingMix) * -1 * (m_bankingMix < 0 ? -1 : 1);
-                //Changes which way it banks in and out of turns
 
                 //Use the square of the efficiency, as it looks much more how SL banking works
                 float effSquared = (m_bankingEfficiency * m_bankingEfficiency);
@@ -1144,50 +1153,26 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     effSquared *= -1; //Keep the negative!
 
                 float mix = Math.Abs(m_bankingMix);
-                if (m_angularMotorVelocity.X == 0)
+                // TODO: Must include reference frame.
+                float forwardSpeed = VehicleVelocity.X;
+
+                if (!Prim.IsColliding && forwardSpeed > mix)
                 {
-                    // The vehicle is stopped
-                    /*if (!parent.Orientation.ApproxEquals(this.m_referenceFrame, 0.25f))
-                    {
-                        Vector3 axisAngle;
-                        float angle;
-                        parent.Orientation.GetAxisAngle(out axisAngle, out angle);
-                        Vector3 rotatedVel = parent.Velocity * parent.Orientation;
-                        if ((rotatedVel.X < 0 && axisAngle.Y > 0) || (rotatedVel.X > 0 && axisAngle.Y < 0))
-                            m_angularMotorVelocity.X += (effSquared * (mult * mix)) * (1f) * 10;
-                        else
-                            m_angularMotorVelocity.X += (effSquared * (mult * mix)) * (-1f) * 10;
-                    }*/
-                }
-                else
-                {
-                    ret.Z += (effSquared * (mult * mix)) * (m_angularMotorVelocity.X) * 4;
+                    computedBanking.X = ClampInRange(-3f, turningFactor * (effSquared * mult), 3f);
                 }
 
-                //If they are colliding, we probably shouldn't shove the prim around... probably
-                if (!Prim.IsColliding && Math.Abs(m_angularMotorVelocity.X) > mix)
-                {
-                    float angVelZ = m_angularMotorVelocity.X * -1;
-                    /*if(angVelZ > mix)
-                        angVelZ = mix;
-                    else if(angVelZ < -mix)
-                        angVelZ = -mix;*/
-                    //This controls how fast and how far the banking occurs
-                    Vector3 bankingRot = new Vector3(angVelZ * (effSquared * mult), 0, 0);
-                    if (bankingRot.X > 3)
-                        bankingRot.X = 3;
-                    else if (bankingRot.X < -3)
-                        bankingRot.X = -3;
-                    bankingRot *= VehicleOrientation;
-                    ret += bankingRot;
-                }
-                m_angularMotorVelocity.X *= m_bankingEfficiency == 1 ? 0.0f : 1 - m_bankingEfficiency;
-                VDetailLog("{0},  MoveAngular,Banking,bEff={1},angMotVel={2},effSq={3},mult={4},mix={5},banking={6}",
-                                Prim.LocalID, m_bankingEfficiency, m_angularMotorVelocity, effSquared, mult, mix, ret);
+                // 'computedBanking' is now how much banking that should be happening.
+                ret = computedBanking - m_lastBanking;
+
+                // Scale the correction by timescale and efficiency
+                ret /= m_bankingTimescale * m_bankingEfficiency;
+
+                VDetailLog("{0},  MoveAngular,Banking,computedB={1},lastB={2},bEff={3},effSq={4},mult={5},mix={6},banking={7}",
+                                Prim.LocalID, computedBanking, m_lastBanking, m_bankingEfficiency, effSquared, mult, mix, ret);
             }
+            m_lastBanking = computedBanking;
             return ret;
         }
-
 
         // This is from previous instantiations of XXXDynamics.cs.
         // Applies roll reference frame.
@@ -1227,6 +1212,11 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 VDetailLog("{0},  LimitRotation,done,orig={1},new={2}", Prim.LocalID, rotq, m_rot);
             }
 
+        }
+
+        private float ClampInRange(float low, float val, float high)
+        {
+            return Math.Max(low, Math.Min(val, high));
         }
 
         // Invoke the detailed logger and output something if it's enabled.

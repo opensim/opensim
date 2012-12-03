@@ -63,10 +63,23 @@ public abstract class BSMotor
     }
 }
 // Can all the incremental stepping be replaced with motor classes?
+
+// Motor which moves CurrentValue to TargetValue over TimeScale seconds.
+// The TargetValue is decays in TargetValueDecayTimeScale and
+//     the CurrentValue will be held back by FrictionTimeScale.
+// TimeScale and TargetDelayTimeScale may be 'infinite' which means go decay.
+
+// For instance, if something is moving at speed X and the desired speed is Y,
+//    CurrentValue is X and TargetValue is Y. As the motor is stepped, new
+//    values of CurrentValue are returned that approach the TargetValue.
+// The feature of decaying TargetValue is so vehicles will eventually
+//    come to a stop rather than run forever. This can be disabled by
+//    setting TargetValueDecayTimescale to 'infinite'.
+// The change from CurrentValue to TargetValue is linear over TimeScale seconds.
 public class BSVMotor : BSMotor
 {
-    public Vector3 FrameOfReference { get; set; }
-    public Vector3 Offset { get; set; }
+    // public Vector3 FrameOfReference { get; set; }
+    // public Vector3 Offset { get; set; }
 
     public float TimeScale { get; set; }
     public float TargetValueDecayTimeScale { get; set; }

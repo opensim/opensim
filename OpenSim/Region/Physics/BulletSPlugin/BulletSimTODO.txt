@@ -28,6 +28,7 @@ Small physical objects do not interact correctly
 Add material type linkage and input all the material property definitions.
 	Skeleton classes and table are in the sources but are not filled or used.
 Add PID motor for avatar movement (slow to stop, ...)
+Implement function efficiency for lineaar and angular motion.
 
 After getting off a vehicle, the root prim is phantom (can be walked through)
     Need to force a position update for the root prim after compound shape destruction
