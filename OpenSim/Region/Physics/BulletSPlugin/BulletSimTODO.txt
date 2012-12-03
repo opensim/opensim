@@ -27,6 +27,7 @@ Small physical objects do not interact correctly
     Chains above 2x2x.4 are move stable and get stablier as torui get larger.
 Add material type linkage and input all the material property definitions.
 	Skeleton classes and table are in the sources but are not filled or used.
+Add PID motor for avatar movement (slow to stop, ...)
 
 After getting off a vehicle, the root prim is phantom (can be walked through)
     Need to force a position update for the root prim after compound shape destruction
@@ -78,7 +79,10 @@ Breakout code for mesh/hull/compound/native into separate BSShape* classes
 Generalize Dynamics and PID with standardized motors.
 Generalize Linkset and vehicles into PropertyManagers
     Methods for Refresh, RemoveBodyDependencies, RestoreBodyDependencies
-	Possibly generalized a 'per step action' registration.
+	Possibly generalized a 'pre step action' registration.
+Complete implemention of preStepActions
+	Replace vehicle step call with prestep event.
+	Is there a need for postStepActions? postStepTaints?
 Implement linkset by setting position of children when root updated. (LinksetManual)
 LinkablePrim class? Would that simplify/centralize the linkset logic?
 Linkset implementation using manual prim movement.

@@ -96,6 +96,9 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     public long SimulationStep { get { return m_simulationStep; } }
     private int m_taintsToProcessPerStep;
 
+    public delegate void PreStepAction(float timeStep);
+    public event PreStepAction BeforeStep;
+
     // A value of the time now so all the collision and update routines do not have to get their own
     // Set to 'now' just before all the prims and actors are called for collisions and updates
     public int SimulationNowTime { get; private set; }
@@ -487,8 +490,10 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         ProcessTaints();
 
         // Some of the prims operate with special vehicle properties
-        ProcessVehicles(timeStep);
-        ProcessTaints();    // the vehicles might have added taints
+        DoPreStepActions(timeStep);
+
+        // the prestep actions might have added taints
+        ProcessTaints();
 
         // step the physical world one interval
         m_simulationStep++;
@@ -905,6 +910,16 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
                 m_vehicles.Remove(vehicle);
             }
         }
+    }
+
+    private void DoPreStepActions(float timeStep)
+    {
+        ProcessVehicles(timeStep);
+
+        PreStepAction actions = BeforeStep;
+        if (actions != null)
+            actions(timeStep);
+
     }
 
     // Some prims have extra vehicle actions
