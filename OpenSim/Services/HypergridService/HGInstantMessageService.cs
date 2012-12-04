@@ -61,13 +61,13 @@ namespace OpenSim.Services.HypergridService
         protected static IGridService m_GridService;
         protected static IPresenceService m_PresenceService;
         protected static IUserAgentService m_UserAgentService;
+        protected static IOfflineIMService m_OfflineIMService;
 
         protected static IInstantMessageSimConnector m_IMSimConnector;
 
         protected static Dictionary<UUID, object> m_UserLocationMap = new Dictionary<UUID, object>();
         private static ExpiringCache<UUID, GridRegion> m_RegionCache;
 
-        private static string m_RestURL;
         private static bool m_ForwardOfflineGroupMessages;
         private static bool m_InGatekeeper;
 
@@ -111,9 +111,14 @@ namespace OpenSim.Services.HypergridService
                     return;
                 }
 
-                m_RestURL = cnf.GetString("OfflineMessageURL", string.Empty);
                 m_ForwardOfflineGroupMessages = cnf.GetBoolean("ForwardOfflineGroupMessages", false);
 
+                if (m_InGatekeeper)
+                {
+                    string offlineIMService = cnf.GetString("OfflineIMService", string.Empty);
+                    if (offlineIMService != string.Empty)
+                        m_OfflineIMService = ServerUtils.LoadPlugin<IOfflineIMService>(offlineIMService, args);
+                }
             }
         }
 
@@ -329,18 +334,28 @@ namespace OpenSim.Services.HypergridService
 
         private bool UndeliveredMessage(GridInstantMessage im)
         {
-            if (m_RestURL != string.Empty && (im.offline != 0)
-                && (!im.fromGroup || (im.fromGroup && m_ForwardOfflineGroupMessages)))
-            {
-//                m_log.DebugFormat("[HG IM SERVICE]: Message saved");
+            if (m_OfflineIMService == null)
+                return false;
 
-                return SynchronousRestObjectRequester.MakeRequest<GridInstantMessage, bool>(
-                         "POST", m_RestURL + "/SaveMessage/", im);
-            }
-            else
+            if (im.dialog != (byte)InstantMessageDialog.MessageFromObject &&
+                im.dialog != (byte)InstantMessageDialog.MessageFromAgent &&
+                im.dialog != (byte)InstantMessageDialog.GroupNotice &&
+                im.dialog != (byte)InstantMessageDialog.GroupInvitation &&
+                im.dialog != (byte)InstantMessageDialog.InventoryOffered)
             {
                 return false;
             }
+
+            if (!m_ForwardOfflineGroupMessages)
+            {
+                if (im.dialog == (byte)InstantMessageDialog.GroupNotice ||
+                    im.dialog == (byte)InstantMessageDialog.GroupInvitation)
+                    return false;
+            }
+
+//                m_log.DebugFormat("[HG IM SERVICE]: Message saved");
+            string reason = string.Empty;
+            return m_OfflineIMService.StoreMessage(im, out reason);
         }
     }
 }
