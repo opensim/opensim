@@ -96,6 +96,9 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     public long SimulationStep { get { return m_simulationStep; } }
     private int m_taintsToProcessPerStep;
 
+    public delegate void PreStepAction(float timeStep);
+    public event PreStepAction BeforeStep;
+
     // A value of the time now so all the collision and update routines do not have to get their own
     // Set to 'now' just before all the prims and actors are called for collisions and updates
     public int SimulationNowTime { get; private set; }
@@ -487,8 +490,10 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         ProcessTaints();
 
         // Some of the prims operate with special vehicle properties
-        ProcessVehicles(timeStep);
-        ProcessTaints();    // the vehicles might have added taints
+        DoPreStepActions(timeStep);
+
+        // the prestep actions might have added taints
+        ProcessTaints();
 
         // step the physical world one interval
         m_simulationStep++;
@@ -496,7 +501,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
         try
         {
-            // if (VehicleLoggingEnabled) DumpVehicles();  // DEBUG
+            if (VehicleLoggingEnabled) DumpVehicles();  // DEBUG
             if (PhysicsLogging.Enabled) beforeTime = Util.EnvironmentTickCount();
 
             numSubSteps = BulletSimAPI.PhysicsStep2(World.ptr, timeStep, m_maxSubSteps, m_fixedTimeStep,
@@ -505,7 +510,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             if (PhysicsLogging.Enabled) simTime = Util.EnvironmentTickCountSubtract(beforeTime);
             DetailLog("{0},Simulate,call, frame={1}, nTaints={2}, simTime={3}, substeps={4}, updates={5}, colliders={6}",
                         DetailLogZero, m_simulationStep, numTaints, simTime, numSubSteps, updatedEntityCount, collidersCount);
-            // if (VehicleLoggingEnabled) DumpVehicles();  // DEBUG
+            if (VehicleLoggingEnabled) DumpVehicles();  // DEBUG
         }
         catch (Exception e)
         {
@@ -907,6 +912,16 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         }
     }
 
+    private void DoPreStepActions(float timeStep)
+    {
+        ProcessVehicles(timeStep);
+
+        PreStepAction actions = BeforeStep;
+        if (actions != null)
+            actions(timeStep);
+
+    }
+
     // Some prims have extra vehicle actions
     // Called at taint time!
     private void ProcessVehicles(float timeStep)
@@ -971,6 +986,8 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     //          Should handle fetching the right type from the ini file and converting it.
     //    -- a delegate for getting the value as a float
     //    -- a delegate for setting the value from a float
+    //    -- an optional delegate to update the value in the world. Most often used to
+    //          push the new value to an in-world object.
     //
     // The single letter parameters for the delegates are:
     //    s = BSScene

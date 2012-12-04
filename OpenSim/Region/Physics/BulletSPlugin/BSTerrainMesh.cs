@@ -130,8 +130,8 @@ public sealed class BSTerrainMesh : BSTerrainPhys
         // Redo its bounding box now that it is in the world
         BulletSimAPI.UpdateSingleAabb2(PhysicsScene.World.ptr, m_terrainBody.ptr);
 
-        BulletSimAPI.SetCollisionFilterMask2(m_terrainBody.ptr,
-                            (uint)CollisionFilterGroups.TerrainFilter,
+        BulletSimAPI.SetCollisionGroupMask2(m_terrainBody.ptr,
+                            (uint)CollisionFilterGroups.TerrainGroup,
                             (uint)CollisionFilterGroups.TerrainMask);
 
         // Make it so the terrain will not move or be considered for movement.
