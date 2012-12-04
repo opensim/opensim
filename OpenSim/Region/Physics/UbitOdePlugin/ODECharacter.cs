@@ -96,7 +96,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private float feetSZ = 0.5f;
         const float feetScale = 0.9f;
         const float invFeetScale = 1.0f / 0.9f;
-        const float sizeZAdjust = 0.15f;
+        const float sizeZAdjust = 0.18f;
         private float boneOff = 0;
 
 
@@ -676,12 +676,12 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_invElipSizeX = 1.0f / m_size.X;
             m_invElipSizeY = 1.0f / m_size.Y;
 
-            float topsx = m_size.X;
+            float topsx = m_size.X * 0.9f;
             float midsx = m_size.X;
             float feetsx = m_size.X * feetScale;
             float bonesx = feetsx * 0.2f; 
 
-            float topsy = m_size.Y * 0.5f;
+            float topsy = m_size.Y * 0.4f;
             float midsy = m_size.Y;
             float feetsy = m_size.Y * feetScale;
             float bonesy = feetsy * 0.2f;
@@ -1057,7 +1057,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             // colide with land
             d.AABB aabb;
             d.GeomGetAABB(feetbox, out aabb);
-            float chrminZ = aabb.MinZ - 0.04f; // move up a bit
+            float chrminZ = aabb.MinZ - 0.02f; // move up a bit
             Vector3 posch = localpos;
 
             float ftmp;
