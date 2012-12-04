@@ -165,8 +165,8 @@ public sealed class BSCharacter : BSPhysObject
         BulletSimAPI.UpdateSingleAabb2(PhysicsScene.World.ptr, PhysBody.ptr);
 
         // Do this after the object has been added to the world
-        BulletSimAPI.SetCollisionFilterMask2(PhysBody.ptr,
-                        (uint)CollisionFilterGroups.AvatarFilter,
+        BulletSimAPI.SetCollisionGroupMask2(PhysBody.ptr,
+                        (uint)CollisionFilterGroups.AvatarGroup,
                         (uint)CollisionFilterGroups.AvatarMask);
     }
 
@@ -307,7 +307,7 @@ public sealed class BSCharacter : BSPhysObject
         }
         if ((CurrentCollisionFlags & CollisionFlags.BS_FLOATS_ON_WATER) != 0)
         {
-            float waterHeight = PhysicsScene.GetWaterLevelAtXYZ(_position);
+            float waterHeight = PhysicsScene.TerrainManager.GetWaterLevelAtXYZ(_position);
             if (Position.Z < waterHeight)
             {
                 _position.Z = waterHeight;

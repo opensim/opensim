@@ -57,12 +57,12 @@ public struct BulletBody
     {
         ID = id;
         ptr = xx;
-        collisionFilter = 0;
+        collisionGroup = 0;
         collisionMask = 0;
     }
     public IntPtr ptr;
     public uint ID;
-    public CollisionFilterGroups collisionFilter;
+    public CollisionFilterGroups collisionGroup;
     public CollisionFilterGroups collisionMask;
     public override string ToString()
     {
@@ -71,10 +71,10 @@ public struct BulletBody
         buff.Append(ID.ToString());
         buff.Append(",p=");
         buff.Append(ptr.ToString("X"));
-        if (collisionFilter != 0 || collisionMask != 0)
+        if (collisionGroup != 0 || collisionMask != 0)
         {
-            buff.Append(",f=");
-            buff.Append(collisionFilter.ToString("X"));
+            buff.Append(",g=");
+            buff.Append(collisionGroup.ToString("X"));
             buff.Append(",m=");
             buff.Append(collisionMask.ToString("X"));
         }
@@ -376,36 +376,36 @@ public enum CollisionFilterGroups : uint
     // Don't use the bit definitions!!  Define the use in a
     //   filter/mask definition below. This way collision interactions
     //   are more easily debugged.
-    BNoneFilter              = 0,
-    BDefaultFilter           = 1 << 0,
-    BStaticFilter            = 1 << 1,
-    BKinematicFilter         = 1 << 2,
-    BDebrisFilter            = 1 << 3,
-    BSensorTrigger           = 1 << 4,
-    BCharacterFilter         = 1 << 5,
-    BAllFilter               = 0xFFFFFFFF,
+    BNoneGroup              = 0,
+    BDefaultGroup           = 1 << 0,
+    BStaticGroup            = 1 << 1,
+    BKinematicGroup         = 1 << 2,
+    BDebrisGroup            = 1 << 3,
+    BSensorTrigger          = 1 << 4,
+    BCharacterGroup         = 1 << 5,
+    BAllGroup               = 0xFFFFFFFF,
     // Filter groups defined by BulletSim
-    BGroundPlaneFilter       = 1 << 10,
-    BTerrainFilter           = 1 << 11,
-    BRaycastFilter           = 1 << 12,
-    BSolidFilter             = 1 << 13,
-    BLinksetFilter           = 1 << 14,
+    BGroundPlaneGroup       = 1 << 10,
+    BTerrainGroup           = 1 << 11,
+    BRaycastGroup           = 1 << 12,
+    BSolidGroup             = 1 << 13,
+    BLinksetGroup           = 1 << 14,
 
     // The collsion filters and masked are defined in one place -- don't want them scattered
-    AvatarFilter            = BCharacterFilter,
-    AvatarMask              = BAllFilter,
-    ObjectFilter            = BSolidFilter,
-    ObjectMask              = BAllFilter,
-    StaticObjectFilter      = BStaticFilter,
-    StaticObjectMask        = BAllFilter & ~BStaticFilter,   // static objects don't collide with each other
-    LinksetFilter           = BLinksetFilter,
-    LinksetMask             = BAllFilter & ~BLinksetFilter, // linkset objects don't collide with each other
-    VolumeDetectFilter      = BSensorTrigger,
+    AvatarGroup             = BCharacterGroup,
+    AvatarMask              = BAllGroup,
+    ObjectGroup             = BSolidGroup,
+    ObjectMask              = BAllGroup,
+    StaticObjectGroup       = BStaticGroup,
+    StaticObjectMask        = AvatarGroup | ObjectGroup,    // static things don't interact with much
+    LinksetGroup            = BLinksetGroup,
+    LinksetMask             = BAllGroup & ~BLinksetGroup, // linkset objects don't collide with each other
+    VolumeDetectGroup       = BSensorTrigger,
     VolumeDetectMask        = ~BSensorTrigger,
-    TerrainFilter           = BTerrainFilter,
-    TerrainMask             = BAllFilter & ~BStaticFilter,  // static objects on the ground don't collide
-    GroundPlaneFilter       = BGroundPlaneFilter,
-    GroundPlaneMask         = BAllFilter
+    TerrainGroup            = BTerrainGroup,
+    TerrainMask             = BAllGroup & ~BStaticGroup,  // static objects on the ground don't collide
+    GroundPlaneGroup        = BGroundPlaneGroup,
+    GroundPlaneMask         = BAllGroup
 
 };
 
@@ -945,7 +945,7 @@ public static extern IntPtr GetConstraintRef2(IntPtr obj, int index);
 public static extern int GetNumConstraintRefs2(IntPtr obj);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern void SetCollisionFilterMask2(IntPtr body, uint filter, uint mask);
+public static extern bool SetCollisionGroupMask2(IntPtr body, uint filter, uint mask);
 
 // =====================================================================================
 // btCollisionShape entries
@@ -1007,13 +1007,16 @@ public static extern void DumpRigidBody2(IntPtr sim, IntPtr collisionObject);
 public static extern void DumpCollisionShape2(IntPtr sim, IntPtr collisionShape);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern void DumpMapInfo2(IntPtr sim, IntPtr manInfo);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern void DumpConstraint2(IntPtr sim, IntPtr constrain);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern void DumpAllInfo2(IntPtr sim);
+public static extern void DumpActivationInfo2(IntPtr sim);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern void DumpMapInfo2(IntPtr sim, IntPtr manInfo);
+public static extern void DumpAllInfo2(IntPtr sim);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern void DumpPhysicsStatistics2(IntPtr sim);

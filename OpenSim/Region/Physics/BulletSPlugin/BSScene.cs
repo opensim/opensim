@@ -96,6 +96,9 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     public long SimulationStep { get { return m_simulationStep; } }
     private int m_taintsToProcessPerStep;
 
+    public delegate void PreStepAction(float timeStep);
+    public event PreStepAction BeforeStep;
+
     // A value of the time now so all the collision and update routines do not have to get their own
     // Set to 'now' just before all the prims and actors are called for collisions and updates
     public int SimulationNowTime { get; private set; }
@@ -127,7 +130,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     public const uint GROUNDPLANE_ID = 1;
     public const uint CHILDTERRAIN_ID = 2;  // Terrain allocated based on our mega-prim childre start here
 
-    private float m_waterLevel;
+    public float SimpleWaterLevel { get; set; }
     public BSTerrainManager TerrainManager { get; private set; }
 
     public ConfigurationParameters Params
@@ -182,6 +185,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     private string m_physicsLoggingDir;
     private string m_physicsLoggingPrefix;
     private int m_physicsLoggingFileMinutes;
+    private bool m_physicsLoggingDoFlush;
     // 'true' of the vehicle code is to log lots of details
     public bool VehicleLoggingEnabled { get; private set; }
 
@@ -290,6 +294,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
                 m_physicsLoggingDir = pConfig.GetString("PhysicsLoggingDir", ".");
                 m_physicsLoggingPrefix = pConfig.GetString("PhysicsLoggingPrefix", "physics-%REGIONNAME%-");
                 m_physicsLoggingFileMinutes = pConfig.GetInt("PhysicsLoggingFileMinutes", 5);
+                m_physicsLoggingDoFlush = pConfig.GetBoolean("PhysicsLoggingDoFlush", false);
                 // Very detailed logging for vehicle debugging
                 VehicleLoggingEnabled = pConfig.GetBoolean("VehicleLoggingEnabled", false);
 
@@ -485,8 +490,10 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         ProcessTaints();
 
         // Some of the prims operate with special vehicle properties
-        ProcessVehicles(timeStep);
-        ProcessTaints();    // the vehicles might have added taints
+        DoPreStepActions(timeStep);
+
+        // the prestep actions might have added taints
+        ProcessTaints();
 
         // step the physical world one interval
         m_simulationStep++;
@@ -634,12 +641,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
     public override void SetWaterLevel(float baseheight)
     {
-        m_waterLevel = baseheight;
-    }
-    // Someday....
-    public float GetWaterLevelAtXYZ(Vector3 loc)
-    {
-        return m_waterLevel;
+        SimpleWaterLevel = baseheight;
     }
 
     public override void DeleteTerrain()
@@ -910,6 +912,16 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         }
     }
 
+    private void DoPreStepActions(float timeStep)
+    {
+        ProcessVehicles(timeStep);
+
+        PreStepAction actions = BeforeStep;
+        if (actions != null)
+            actions(timeStep);
+
+    }
+
     // Some prims have extra vehicle actions
     // Called at taint time!
     private void ProcessVehicles(float timeStep)
@@ -974,6 +986,8 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     //          Should handle fetching the right type from the ini file and converting it.
     //    -- a delegate for getting the value as a float
     //    -- a delegate for setting the value from a float
+    //    -- an optional delegate to update the value in the world. Most often used to
+    //          push the new value to an in-world object.
     //
     // The single letter parameters for the delegates are:
     //    s = BSScene
@@ -1493,7 +1507,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     {
         PhysicsLogging.Write(msg, args);
         // Add the Flush() if debugging crashes. Gets all the messages written out.
-        // PhysicsLogging.Flush();
+        if (m_physicsLoggingDoFlush) PhysicsLogging.Flush();
     }
     // Used to fill in the LocalID when there isn't one. It's the correct number of characters.
     public const string DetailLogZero = "0000000000";

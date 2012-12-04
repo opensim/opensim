@@ -121,8 +121,8 @@ public sealed class BSTerrainHeightmap : BSTerrainPhys
         // redo its bounding box now that it is in the world
         BulletSimAPI.UpdateSingleAabb2(PhysicsScene.World.ptr, m_mapInfo.terrainBody.ptr);
 
-        BulletSimAPI.SetCollisionFilterMask2(m_mapInfo.terrainBody.ptr,
-                            (uint)CollisionFilterGroups.TerrainFilter,
+        BulletSimAPI.SetCollisionGroupMask2(m_mapInfo.terrainBody.ptr,
+                            (uint)CollisionFilterGroups.TerrainGroup,
                             (uint)CollisionFilterGroups.TerrainMask);
 
         // Make it so the terrain will not move or be considered for movement.
@@ -148,7 +148,7 @@ public sealed class BSTerrainHeightmap : BSTerrainPhys
     }
 
     // The passed position is relative to the base of the region.
-    public override float GetHeightAtXYZ(Vector3 pos)
+    public override float GetTerrainHeightAtXYZ(Vector3 pos)
     {
         float ret = BSTerrainManager.HEIGHT_GETHEIGHT_RET;
 
@@ -165,6 +165,12 @@ public sealed class BSTerrainHeightmap : BSTerrainPhys
             ret = BSTerrainManager.HEIGHT_GETHEIGHT_RET;
         }
         return ret;
+    }
+
+    // The passed position is relative to the base of the region.
+    public override float GetWaterLevelAtXYZ(Vector3 pos)
+    {
+        return PhysicsScene.SimpleWaterLevel;
     }
 }
 }
