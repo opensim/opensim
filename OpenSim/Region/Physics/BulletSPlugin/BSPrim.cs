@@ -646,9 +646,13 @@ public sealed class BSPrim : BSPhysObject
         BulletSimAPI.UpdateSingleAabb2(PhysicsScene.World.ptr, PhysBody.ptr);
 
         // Collision filter can be set only when the object is in the world
-        if (PhysBody.collisionFilter != 0 || PhysBody.collisionMask != 0)
+        if (PhysBody.collisionGroup != 0 || PhysBody.collisionMask != 0)
         {
-            BulletSimAPI.SetCollisionFilterMask2(PhysBody.ptr, (uint)PhysBody.collisionFilter, (uint)PhysBody.collisionMask);
+            if (!BulletSimAPI.SetCollisionGroupMask2(PhysBody.ptr, (uint)PhysBody.collisionGroup, (uint)PhysBody.collisionMask))
+            {
+                PhysicsScene.Logger.ErrorFormat("{0} Failure setting prim collision mask. localID={1}, grp={2:X}, mask={3:X}",
+                                LogHeader, LocalID, PhysBody.collisionGroup, PhysBody.collisionMask);
+            }
         }
 
         // Recompute any linkset parameters.
@@ -691,7 +695,7 @@ public sealed class BSPrim : BSPhysObject
             // Start it out sleeping and physical actions could wake it up.
             BulletSimAPI.ForceActivationState2(PhysBody.ptr, ActivationState.ISLAND_SLEEPING);
 
-            PhysBody.collisionFilter = CollisionFilterGroups.StaticObjectFilter;
+            PhysBody.collisionGroup = CollisionFilterGroups.StaticObjectGroup;
             PhysBody.collisionMask = CollisionFilterGroups.StaticObjectMask;
         }
         else
@@ -737,7 +741,7 @@ public sealed class BSPrim : BSPhysObject
             BulletSimAPI.ForceActivationState2(PhysBody.ptr, ActivationState.ACTIVE_TAG);
             // BulletSimAPI.Activate2(BSBody.ptr, true);
 
-            PhysBody.collisionFilter = CollisionFilterGroups.ObjectFilter;
+            PhysBody.collisionGroup = CollisionFilterGroups.ObjectGroup;
             PhysBody.collisionMask = CollisionFilterGroups.ObjectMask;
         }
     }
@@ -765,7 +769,7 @@ public sealed class BSPrim : BSPhysObject
                 m_log.ErrorFormat("{0} MakeSolid: physical body of wrong type for non-solidness. id={1}, type={2}", LogHeader, LocalID, bodyType);
             }
             CurrentCollisionFlags = BulletSimAPI.AddToCollisionFlags2(PhysBody.ptr, CollisionFlags.CF_NO_CONTACT_RESPONSE);
-            PhysBody.collisionFilter = CollisionFilterGroups.VolumeDetectFilter;
+            PhysBody.collisionGroup = CollisionFilterGroups.VolumeDetectGroup;
             PhysBody.collisionMask = CollisionFilterGroups.VolumeDetectMask;
         }
     }
