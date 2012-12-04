@@ -708,21 +708,21 @@ namespace OpenSim.Region.Physics.OdePlugin
             bot += midsz;
             float topz = bot + topsz * 0.5f;
 
-            _parent_scene.waitForSpaceUnlock(_parent_scene.ActiveSpace);
+            _parent_scene.waitForSpaceUnlock(_parent_scene.CharsSpace);
 
-            feetbox = d.CreateBox(_parent_scene.ActiveSpace, feetsx, feetsy, feetsz);
+            feetbox = d.CreateBox(_parent_scene.CharsSpace, feetsx, feetsy, feetsz);
             d.GeomSetCategoryBits(feetbox, (uint)m_collisionCategories);
             d.GeomSetCollideBits(feetbox, (uint)m_collisionFlags);
 
-            midbox = d.CreateBox(_parent_scene.ActiveSpace, midsx, midsy, midsz);
+            midbox = d.CreateBox(_parent_scene.CharsSpace, midsx, midsy, midsz);
             d.GeomSetCategoryBits(midbox, (uint)m_collisionCategories);
             d.GeomSetCollideBits(midbox, (uint)m_collisionFlags);
 
-            topbox = d.CreateBox(_parent_scene.ActiveSpace, topsx, topsy, topsz);
+            topbox = d.CreateBox(_parent_scene.CharsSpace, topsx, topsy, topsz);
             d.GeomSetCategoryBits(topbox, (uint)m_collisionCategories);
             d.GeomSetCollideBits(topbox, (uint)m_collisionFlags);
 
-            bonebox = d.CreateBox(_parent_scene.ActiveSpace, bonesx, bonesy, bonesz);
+            bonebox = d.CreateBox(_parent_scene.CharsSpace, bonesx, bonesy, bonesz);
             d.GeomSetCategoryBits(bonebox, (uint)m_collisionCategories);
             d.GeomSetCollideBits(bonebox, (uint)m_collisionFlags);
 
@@ -828,21 +828,21 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (topbox != IntPtr.Zero)
             {
                 _parent_scene.actor_name_map.Remove(topbox);
-                _parent_scene.waitForSpaceUnlock(_parent_scene.ActiveSpace);
+                _parent_scene.waitForSpaceUnlock(_parent_scene.CharsSpace);
                 d.GeomDestroy(topbox);
                 topbox = IntPtr.Zero;
             }
             if (midbox != IntPtr.Zero)
             {
                 _parent_scene.actor_name_map.Remove(midbox);
-                _parent_scene.waitForSpaceUnlock(_parent_scene.ActiveSpace);
+                _parent_scene.waitForSpaceUnlock(_parent_scene.CharsSpace);
                 d.GeomDestroy(midbox);
                 midbox = IntPtr.Zero;
             }
             if (feetbox != IntPtr.Zero)
             {
                 _parent_scene.actor_name_map.Remove(feetbox);
-                _parent_scene.waitForSpaceUnlock(_parent_scene.ActiveSpace);
+                _parent_scene.waitForSpaceUnlock(_parent_scene.CharsSpace);
                 d.GeomDestroy(feetbox);
                 feetbox = IntPtr.Zero;
             }
@@ -850,7 +850,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (bonebox != IntPtr.Zero)
             {
                 _parent_scene.actor_name_map.Remove(bonebox);
-                _parent_scene.waitForSpaceUnlock(_parent_scene.ActiveSpace);
+                _parent_scene.waitForSpaceUnlock(_parent_scene.CharsSpace);
                 d.GeomDestroy(bonebox);
                 bonebox = IntPtr.Zero;
             }

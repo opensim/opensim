@@ -299,6 +299,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public IntPtr TopSpace; // the global space
         public IntPtr ActiveSpace; // space for active prims
+        public IntPtr CharsSpace; // space for active prims
         public IntPtr StaticSpace; // space for the static things around
         public IntPtr GroundSpace; // space for ground
 
@@ -372,21 +373,25 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                     // now the major subspaces
                     ActiveSpace = d.HashSpaceCreate(TopSpace);
+                    CharsSpace = d.HashSpaceCreate(TopSpace);
                     StaticSpace = d.HashSpaceCreate(TopSpace);
                     GroundSpace = d.HashSpaceCreate(TopSpace);
                     }
                 catch
                     {
                     // i must RtC#FM 
+                    // i did!
                     }
 
                 d.HashSpaceSetLevels(TopSpace, -2, 8);
                 d.HashSpaceSetLevels(ActiveSpace, -2, 8);
+                d.HashSpaceSetLevels(CharsSpace, -4, 3);
                 d.HashSpaceSetLevels(StaticSpace, -2, 8);
                 d.HashSpaceSetLevels(GroundSpace, 0, 8);
 
                 // demote to second level
                 d.SpaceSetSublevel(ActiveSpace, 1);
+                d.SpaceSetSublevel(CharsSpace, 1);
                 d.SpaceSetSublevel(StaticSpace, 1);
                 d.SpaceSetSublevel(GroundSpace, 1);
 
@@ -396,11 +401,24 @@ namespace OpenSim.Region.Physics.OdePlugin
                                                         CollisionCategories.Phantom |
                                                         CollisionCategories.VolumeDtc
                                                         ));
-                d.GeomSetCollideBits(ActiveSpace, 0);
+                d.GeomSetCollideBits(ActiveSpace, (uint)(CollisionCategories.Space |
+                                                        CollisionCategories.Geom |
+                                                        CollisionCategories.Character |
+                                                        CollisionCategories.Phantom |
+                                                        CollisionCategories.VolumeDtc
+                                                        ));
+                d.GeomSetCategoryBits(CharsSpace, (uint)(CollisionCategories.Space |
+                                        CollisionCategories.Geom |
+                                        CollisionCategories.Character |
+                                        CollisionCategories.Phantom |
+                                        CollisionCategories.VolumeDtc
+                                        ));
+                d.GeomSetCollideBits(CharsSpace, 0);
+
                 d.GeomSetCategoryBits(StaticSpace, (uint)(CollisionCategories.Space |
                                                         CollisionCategories.Geom |
-                                                        CollisionCategories.Land |
-                                                        CollisionCategories.Water |
+//                                                        CollisionCategories.Land |
+//                                                        CollisionCategories.Water |
                                                         CollisionCategories.Phantom |
                                                         CollisionCategories.VolumeDtc
                                                         ));
@@ -1271,6 +1289,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                         d.SpaceCollide2(StaticSpace, chr.midbox, IntPtr.Zero, nearCallback);
                         d.SpaceCollide2(StaticSpace, chr.feetbox, IntPtr.Zero, nearCallback);
                         d.SpaceCollide2(StaticSpace, chr.bonebox, IntPtr.Zero, nearCallback);
+
+                        // chars with chars
+                        d.SpaceCollide(CharsSpace, IntPtr.Zero, nearCallback);
                         // no coll with gnd
                     }
                 }
@@ -1312,16 +1333,25 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_log.Warn("[PHYSICS]: Unable to collide Active prim to static space");
                 }
             }
-            // finally colide active things amoung them
+            // colide active amoung them
             try
             {
                 d.SpaceCollide(ActiveSpace, IntPtr.Zero, nearCallback);
             }
             catch (AccessViolationException)
             {
+                m_log.Warn("[PHYSICS]: Unable to collide Active with Characters space");
+            }
+            // and with chars
+            try
+            {
+                d.SpaceCollide2(ActiveSpace, CharsSpace,IntPtr.Zero, nearCallback);
+            }
+            catch (AccessViolationException)
+            {
                 m_log.Warn("[PHYSICS]: Unable to collide in Active space");
             }
-//            _perloopContact.Clear();
+            //            _perloopContact.Clear();
         }
 
         #endregion
