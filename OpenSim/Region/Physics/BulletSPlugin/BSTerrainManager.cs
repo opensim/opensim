@@ -140,8 +140,8 @@ public sealed class BSTerrainManager
         // Ground plane does not move
         BulletSimAPI.ForceActivationState2(m_groundPlane.ptr, ActivationState.DISABLE_SIMULATION);
         // Everything collides with the ground plane.
-        BulletSimAPI.SetCollisionFilterMask2(m_groundPlane.ptr,
-                        (uint)CollisionFilterGroups.GroundPlaneFilter, (uint)CollisionFilterGroups.GroundPlaneMask);
+        BulletSimAPI.SetCollisionGroupMask2(m_groundPlane.ptr,
+                        (uint)CollisionFilterGroups.GroundPlaneGroup, (uint)CollisionFilterGroups.GroundPlaneMask);
 
         // Build an initial terrain and put it in the world. This quickly gets replaced by the real region terrain.
         BSTerrainPhys initialTerrain = new BSTerrainHeightmap(PhysicsScene, Vector3.Zero, BSScene.TERRAIN_ID, DefaultRegionSize);

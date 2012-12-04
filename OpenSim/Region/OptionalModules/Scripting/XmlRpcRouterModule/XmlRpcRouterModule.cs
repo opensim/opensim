@@ -104,12 +104,18 @@ namespace OpenSim.Region.OptionalModules.Scripting.XmlRpcRouterModule
             }
         }
 
+        public void UnRegisterReceiver(string channelID, UUID itemID)
+        {
+        }
+
         public void ScriptRemoved(UUID itemID)
         {
+            System.Console.WriteLine("TEST Script Removed!");
         }
 
         public void ObjectRemoved(UUID objectID)
         {
+            System.Console.WriteLine("TEST Obj Removed!");
         }
     }
 }

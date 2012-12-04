@@ -7332,6 +7332,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llCloseRemoteDataChannel(string channel)
         {
             m_host.AddScriptLPS(1);
+
+            IXmlRpcRouter xmlRpcRouter = m_ScriptEngine.World.RequestModuleInterface<IXmlRpcRouter>();
+            if (xmlRpcRouter != null)
+            {
+                xmlRpcRouter.UnRegisterReceiver(channel, m_item.ItemID);
+            }
+
             IXMLRPC xmlrpcMod = m_ScriptEngine.World.RequestModuleInterface<IXMLRPC>();
             xmlrpcMod.CloseXMLRPCChannel((UUID)channel);
             ScriptSleep(1000);

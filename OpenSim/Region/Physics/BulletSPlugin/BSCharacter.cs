@@ -165,8 +165,8 @@ public sealed class BSCharacter : BSPhysObject
         BulletSimAPI.UpdateSingleAabb2(PhysicsScene.World.ptr, PhysBody.ptr);
 
         // Do this after the object has been added to the world
-        BulletSimAPI.SetCollisionFilterMask2(PhysBody.ptr,
-                        (uint)CollisionFilterGroups.AvatarFilter,
+        BulletSimAPI.SetCollisionGroupMask2(PhysBody.ptr,
+                        (uint)CollisionFilterGroups.AvatarGroup,
                         (uint)CollisionFilterGroups.AvatarMask);
     }
 
