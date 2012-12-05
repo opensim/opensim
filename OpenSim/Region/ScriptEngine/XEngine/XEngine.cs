@@ -455,9 +455,20 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             StringBuilder sb = new StringBuilder();
             sb.AppendFormat("Status of XEngine instance for {0}\n", m_Scene.RegionInfo.RegionName);
 
-            lock (m_Scripts)
-                sb.AppendFormat("Scripts loaded             : {0}\n", m_Scripts.Count);
+            long scriptsLoaded, eventsQueued = 0, eventsProcessed = 0;
 
+            lock (m_Scripts)
+            {
+                scriptsLoaded = m_Scripts.Count;
+
+                foreach (IScriptInstance si in m_Scripts.Values)
+                {
+                    eventsQueued += si.EventsQueued;
+                    eventsProcessed += si.EventsProcessed;
+                }
+            }
+
+            sb.AppendFormat("Scripts loaded             : {0}\n", scriptsLoaded);
             sb.AppendFormat("Unique scripts             : {0}\n", m_uniqueScripts.Count);
             sb.AppendFormat("Scripts waiting for load   : {0}\n", m_CompileQueue.Count);
             sb.AppendFormat("Max threads                : {0}\n", m_ThreadPool.MaxThreads);
@@ -466,6 +477,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             sb.AppendFormat("In use threads             : {0}\n", m_ThreadPool.InUseThreads);
             sb.AppendFormat("Work items waiting         : {0}\n", m_ThreadPool.WaitingCallbacks);
 //            sb.AppendFormat("Assemblies loaded          : {0}\n", m_Assemblies.Count);
+            sb.AppendFormat("Events queued              : {0}\n", eventsQueued);
+            sb.AppendFormat("Events processed           : {0}\n", eventsProcessed);
 
             SensorRepeat sr = AsyncCommandManager.GetSensorRepeatPlugin(this);
             sb.AppendFormat("Sensors                    : {0}\n", sr != null ? sr.SensorsCount : 0);
