@@ -192,15 +192,6 @@ namespace OpenSim.Framework
 
         public PrimitiveBaseShape()
         {
-            PCode = (byte) PCodeEnum.Primitive;
-            m_textureEntry = DEFAULT_TEXTURE;
-        }
-
-        public PrimitiveBaseShape(bool noShape)
-        {
-            if (noShape)
-                return;
-
             PCode = (byte)PCodeEnum.Primitive;
             m_textureEntry = DEFAULT_TEXTURE;
         }
@@ -245,7 +236,10 @@ namespace OpenSim.Framework
                 SculptTexture = prim.Sculpt.SculptTexture;
                 SculptType = (byte)prim.Sculpt.Type;
             }
-            else SculptType = (byte)OpenMetaverse.SculptType.None;
+            else 
+            {  
+                SculptType = (byte)OpenMetaverse.SculptType.None;
+            }
         }
 
         [XmlIgnore]
@@ -337,9 +331,9 @@ namespace OpenSim.Framework
             _scale = new Vector3(side, side, side);
         }
 
-        public void SetHeigth(float heigth)
+        public void SetHeigth(float height)
         {
-            _scale.Z = heigth;
+            _scale.Z = height;
         }
 
         public void SetRadius(float radius)
