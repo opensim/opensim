@@ -1018,8 +1018,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             string assembly = "";
 
-            CultureInfo USCulture = new CultureInfo("en-US");
-            Thread.CurrentThread.CurrentCulture = USCulture;
+            Culture.SetCurrentCulture();
 
             Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> linemap;
 
