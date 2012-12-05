@@ -193,7 +193,6 @@ namespace OpenSim.Framework
         public PrimitiveBaseShape()
         {
             PCode = (byte) PCodeEnum.Primitive;
-            ExtraParams = new byte[1];
             m_textureEntry = DEFAULT_TEXTURE;
         }
 
@@ -203,7 +202,6 @@ namespace OpenSim.Framework
                 return;
 
             PCode = (byte)PCodeEnum.Primitive;
-            ExtraParams = new byte[1];
             m_textureEntry = DEFAULT_TEXTURE;
         }
 
@@ -216,7 +214,6 @@ namespace OpenSim.Framework
 //            m_log.DebugFormat("[PRIMITIVE BASE SHAPE]: Creating from {0}", prim.ID);
 
             PCode = (byte)prim.PrimData.PCode;
-            ExtraParams = new byte[1];
 
             State = prim.PrimData.State;
             PathBegin = Primitive.PackBeginCut(prim.PrimData.PathBegin);
