@@ -114,6 +114,11 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         UUID AssetID { get; }
         Queue EventQueue { get; }
 
+        /// <summary>
+        /// Number of events processed by this script instance.
+        /// </summary>
+        long EventsProcessed { get; }
+
         void ClearQueue();
         int StartParam { get; set; }
 

@@ -173,6 +173,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
         public Queue EventQueue { get; private set; }
 
+        public long EventsProcessed { get; private set; }
+
         public int StartParam { get; set; }
 
         public TaskInventoryItem ScriptTask { get; private set; }
@@ -808,6 +810,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                 // script engine to run the next event.
                 lock (EventQueue)
                 {
+                    EventsProcessed++;
+
                     if (EventQueue.Count > 0 && Running && !ShuttingDown)
                     {
                         m_CurrentWorkItem = Engine.QueueEventHandler(this);
