@@ -303,10 +303,6 @@ namespace OpenSim.Framework.Tests
             Culture.SetCurrentCulture();
             Assert.That(Thread.CurrentThread.CurrentCulture.Name == ci.Name, "SetCurrentCulture failed to set thread culture to en-US");
 
-        }
-
-       
-
+        }     
     }
 }
-
