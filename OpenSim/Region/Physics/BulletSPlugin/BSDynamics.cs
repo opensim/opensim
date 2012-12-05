@@ -618,15 +618,17 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         private float? m_knownWaterLevel;
         private Vector3? m_knownPosition;
         private Vector3? m_knownVelocity;
+        private Vector3? m_knownForce;
         private Quaternion? m_knownOrientation;
         private Vector3? m_knownRotationalVelocity;
         private Vector3? m_knownRotationalForce;
 
         private const int m_knownChangedPosition           = 1 << 0;
         private const int m_knownChangedVelocity           = 1 << 1;
-        private const int m_knownChangedOrientation        = 1 << 2;
-        private const int m_knownChangedRotationalVelocity = 1 << 3;
-        private const int m_knownChangedRotationalForce    = 1 << 4;
+        private const int m_knownChangedForce              = 1 << 2;
+        private const int m_knownChangedOrientation        = 1 << 3;
+        private const int m_knownChangedRotationalVelocity = 1 << 4;
+        private const int m_knownChangedRotationalForce    = 1 << 5;
 
         private void ForgetKnownVehicleProperties()
         {
@@ -634,6 +636,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             m_knownWaterLevel = null;
             m_knownPosition = null;
             m_knownVelocity = null;
+            m_knownForce = null;
             m_knownOrientation = null;
             m_knownRotationalVelocity = null;
             m_knownRotationalForce = null;
@@ -652,6 +655,9 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     Prim.ForceVelocity = VehicleVelocity;
                     BulletSimAPI.SetInterpolationLinearVelocity2(Prim.PhysBody.ptr, VehicleVelocity);
                 }
+                if ((m_knownChanged & m_knownChangedForce) != 0)
+                    Prim.AddForce((Vector3)m_knownForce, false, true);
+
                 if ((m_knownChanged & m_knownChangedRotationalVelocity) != 0)
                 {
                     Prim.ForceRotationalVelocity = VehicleRotationalVelocity;
@@ -730,6 +736,12 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             }
         }
 
+        private void VehicleAddForce(Vector3 aForce)
+        {
+            m_knownForce += aForce;
+            m_knownChanged |= m_knownChangedForce;
+        }
+
         private Vector3 VehicleRotationalVelocity
         {
             get
@@ -784,10 +796,9 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             linearMotorContribution *= VehicleOrientation;
 
             // ==================================================================
-            // Gravity and Buoyancy
-            // There is some gravity, make a gravity force vector that is applied after object velocity.
+            // Buoyancy: force to overcome gravity.
             // m_VehicleBuoyancy: -1=2g; 0=1g; 1=0g;
-            Vector3 grav = Prim.PhysicsScene.DefaultGravity * (1f - m_VehicleBuoyancy);
+            Vector3 buoyancyContribution =  Prim.PhysicsScene.DefaultGravity * (m_VehicleBuoyancy - 1f);
 
             Vector3 terrainHeightContribution = ComputeLinearTerrainHeightCorrection(pTimestep);
 
@@ -812,14 +823,16 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 newVelocity.Z = 0;
 
             // ==================================================================
-            // Clamp REALLY high or low velocities
+            // Clamp high or low velocities
             float newVelocityLengthSq = newVelocity.LengthSquared();
-            if (newVelocityLengthSq > 1e6f)
+            // if (newVelocityLengthSq > 1e6f)
+            if (newVelocityLengthSq > 1000f)
             {
                 newVelocity /= newVelocity.Length();
                 newVelocity *= 1000f;
             }
-            else if (newVelocityLengthSq < 1e-6f)
+            // else if (newVelocityLengthSq < 1e-6f)
+            else if (newVelocityLengthSq < 0.001f)
                 newVelocity = Vector3.Zero;
 
             // ==================================================================
@@ -828,15 +841,16 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             VehicleVelocity = newVelocity;
 
             // Other linear forces are applied as forces.
-            Vector3 totalDownForce = grav * m_vehicleMass * pTimestep;
-            if (totalDownForce != Vector3.Zero)
+            Vector3 totalDownForce = buoyancyContribution * m_vehicleMass;
+            if (!totalDownForce.ApproxEquals(Vector3.Zero, 0.01f))
             {
-                Prim.AddForce(totalDownForce, false);
+                VehicleAddForce(totalDownForce);
             }
 
-            VDetailLog("{0},  MoveLinear,done,newVel={1},totDown={2},linContrib={3},terrContrib={4},hoverContrib={5},limitContrib={6}",
+            VDetailLog("{0},  MoveLinear,done,newVel={1},totDown={2},linContrib={3},terrContrib={4},hoverContrib={5},limitContrib={6},buoyContrib={7}",
                                 Prim.LocalID, newVelocity, totalDownForce,
-                                linearMotorContribution, terrainHeightContribution, hoverContribution, limitMotorUpContribution
+                                linearMotorContribution, terrainHeightContribution, hoverContribution, 
+                                limitMotorUpContribution, buoyancyContribution
             );
 
         } // end MoveLinear()
