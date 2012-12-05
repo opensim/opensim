@@ -526,10 +526,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             sb.AppendFormat("Script name         : {0}\n", instance.ScriptName);
             sb.AppendFormat("Status              : {0}\n", status);
-
-            lock (eq)
-                sb.AppendFormat("Queued events       : {0}\n", eq.Count);
-
+            sb.AppendFormat("Queued events       : {0}\n", instance.EventsQueued);
             sb.AppendFormat("Processed events    : {0}\n", instance.EventsProcessed);
             sb.AppendFormat("Item UUID           : {0}\n", instance.ItemID);
             sb.AppendFormat("Containing part name: {0}\n", instance.PrimName);

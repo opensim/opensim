@@ -173,6 +173,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
         public Queue EventQueue { get; private set; }
 
+        public long EventsQueued
+        {
+            get 
+            {
+                lock (EventQueue)
+                    return EventQueue.Count;
+            }   
+        }
+
         public long EventsProcessed { get; private set; }
 
         public int StartParam { get; set; }
