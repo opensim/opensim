@@ -3465,6 +3465,7 @@ namespace OpenSim.Region.Framework.Scenes
                 ControllingClient.SendAgentAlertMessage("Physics is having a problem with your avatar.  You may not be able to move until you relog.", true);
         }
 
+
         /// <summary>
         /// Event called by the physics plugin to tell the avatar about a collision.
         /// </summary>
@@ -3494,7 +3495,6 @@ namespace OpenSim.Region.Framework.Scenes
             CollisionEventUpdate collisionData = (CollisionEventUpdate)e;
             Dictionary<uint, ContactPoint> coldata = collisionData.m_objCollisionList;
 
-            CollisionPlane = Vector4.UnitW;
 
 //            // No collisions at all means we may be flying. Update always
 //            // to make falling work
@@ -3503,6 +3503,8 @@ namespace OpenSim.Region.Framework.Scenes
 //                m_updateCount = UPDATE_COUNT;
 //                m_lastColCount = coldata.Count;
 //            }
+
+            CollisionPlane = Vector4.UnitW;
 
             if (coldata.Count != 0)
             {
@@ -3517,17 +3519,22 @@ namespace OpenSim.Region.Framework.Scenes
                             ContactPoint lowest;
                             lowest.SurfaceNormal = Vector3.Zero;
                             lowest.Position = Vector3.Zero;
-                            lowest.Position.Z = Single.NaN;
+                            lowest.Position.Z = float.MaxValue;
 
                             foreach (ContactPoint contact in coldata.Values)
                             {
-                                if (Single.IsNaN(lowest.Position.Z) || contact.Position.Z < lowest.Position.Z)
+                                
+                                if (contact.CharacterFeet && contact.Position.Z < lowest.Position.Z)
                                 {
                                     lowest = contact;
                                 }
                             }
 
-                            CollisionPlane = new Vector4(-lowest.SurfaceNormal, -Vector3.Dot(lowest.Position, lowest.SurfaceNormal));
+                            if (lowest.Position.Z != float.MaxValue)
+                            {
+                                lowest.SurfaceNormal = -lowest.SurfaceNormal;
+                                CollisionPlane = new Vector4(lowest.SurfaceNormal, Vector3.Dot(lowest.Position, lowest.SurfaceNormal));
+                            }
                         }
                         break;
                 }

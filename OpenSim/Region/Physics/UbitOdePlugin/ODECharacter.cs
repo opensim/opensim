@@ -84,18 +84,15 @@ namespace OpenSim.Region.Physics.OdePlugin
         private float m_mass = 80f;
         public float m_density = 60f;
         private bool m_pidControllerActive = true;
-        public float PID_D = 800.0f;
-        public float PID_P = 900.0f;
-        //private static float POSTURE_SERVO = 10000.0f;
 
-
-        private float m_invElipSizeX;
-        private float m_invElipSizeY;
+        const float basePID_D = 0.55f; // scaled for unit mass unit time (2200 /(50*80))
+        const float basePID_P = 0.225f; // scaled for unit mass unit time (900 /(50*80))
+        public float PID_D;
+        public float PID_P;
 
         private float feetOff = 0;
         private float feetSZ = 0.5f;
-        const float feetScale = 0.9f;
-        const float invFeetScale = 1.0f / 0.9f;
+        const float feetScale = 0.8f;
         const float sizeZAdjust = 0.18f;
         private float boneOff = 0;
 
@@ -160,7 +157,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         
 
-        public OdeCharacter(String avName, OdeScene parent_scene, Vector3 pos, Vector3 pSize, float pid_d, float pid_p, float density, float walk_divisor, float rundivisor)
+        public OdeCharacter(String avName, OdeScene parent_scene, Vector3 pos, Vector3 pSize, float density, float walk_divisor, float rundivisor)
         {
             m_uuid = UUID.Random();
 
@@ -184,8 +181,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             _parent_scene = parent_scene;
 
-            PID_D = pid_d;
-            PID_P = pid_p;
 
             m_size.X = pSize.X;
             m_size.Y = pSize.Y;
@@ -204,12 +199,17 @@ namespace OpenSim.Region.Physics.OdePlugin
             // force lower density for testing
             m_density = 3.0f;
 
+            m_density *= 1.4f; // scale to have mass similar to capsule
+
             mu = parent_scene.AvatarFriction;
 
             walkDivisor = walk_divisor;
             runDivisor = rundivisor;
 
             m_mass = m_density * m_size.X * m_size.Y * m_size.Z; ; // sure we have a default           
+
+            PID_D = basePID_D * m_mass / parent_scene.ODE_STEPSIZE;
+            PID_P = basePID_P * m_mass / parent_scene.ODE_STEPSIZE;
 
             m_isPhysical = false; // current status: no ODE information exists
 
@@ -491,7 +491,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             get
             {
-                return m_density * m_size.X * m_size.Y * m_size.Z;
+                return m_mass;
             }
         }
         public override void link(PhysicsActor obj)
@@ -671,23 +671,22 @@ namespace OpenSim.Region.Physics.OdePlugin
         private void AvatarGeomAndBodyCreation(float npositionX, float npositionY, float npositionZ)
         {
             // sizes  one day should came from visual parameters
+            float sx = m_size.X;
+            float sy = m_size.Y;
             float sz = m_size.Z + sizeZAdjust;
 
-            m_invElipSizeX = 1.0f / m_size.X;
-            m_invElipSizeY = 1.0f / m_size.Y;
+            float topsx = sx * 0.9f;
+            float midsx = sx;
+            float feetsx = sx * feetScale;
+            float bonesx = sx * 0.2f;
 
-            float topsx = m_size.X * 0.9f;
-            float midsx = m_size.X;
-            float feetsx = m_size.X * feetScale;
-            float bonesx = feetsx * 0.2f; 
-
-            float topsy = m_size.Y * 0.4f;
-            float midsy = m_size.Y;
-            float feetsy = m_size.Y * feetScale;
+            float topsy = sy * 0.4f;
+            float midsy = sy;
+            float feetsy = sy * feetScale * 0.8f;
             float bonesy = feetsy * 0.2f;
 
             float topsz = sz * 0.15f;
-            float feetsz = sz * 0.3f;
+            float feetsz = sz * 0.45f;
             if (feetsz > 0.6f)
                 feetsz = 0.6f;
 
@@ -726,22 +725,12 @@ namespace OpenSim.Region.Physics.OdePlugin
             d.GeomSetCategoryBits(bonebox, (uint)m_collisionCategories);
             d.GeomSetCollideBits(bonebox, (uint)m_collisionFlags);
 
-            d.MassSetBox(out ShellMass, m_density, m_size.X , m_size.Y, m_size.Z);
+            m_mass = m_density * m_size.X * m_size.Y * m_size.Z;  // update mass
 
-            m_mass = ShellMass.mass;  // update mass
+            d.MassSetBoxTotal(out ShellMass, m_mass, m_size.X, m_size.Y, m_size.Z);
 
-            // rescale PID parameters 
-            PID_D = _parent_scene.avPIDD;
-            PID_P = _parent_scene.avPIDP;
-
-            // rescale PID parameters so that this aren't affected by mass
-            // and so don't get unstable for some masses
-            // also scale by ode time step so you don't need to refix them
-
-            PID_D /= 50 * 80; //scale to original mass of around 80 and 50 ODE fps
-            PID_D *= m_mass / _parent_scene.ODE_STEPSIZE;
-            PID_P /= 50 * 80;
-            PID_P *= m_mass / _parent_scene.ODE_STEPSIZE;
+            PID_D = basePID_D * m_mass / _parent_scene.ODE_STEPSIZE;
+            PID_P = basePID_P * m_mass / _parent_scene.ODE_STEPSIZE;
             
             Body = d.BodyCreate(_parent_scene.world);
 
@@ -857,8 +846,9 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         }
 
-        public bool Collide(IntPtr me, bool reverse, ref d.ContactGeom contact)
+        public bool Collide(IntPtr me, bool reverse, ref d.ContactGeom contact, ref bool feetcollision)
         {
+            feetcollision = false;
 
             if (me == bonebox) // inner bone
             {
@@ -870,44 +860,13 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (me == topbox) // keep a box head
                 return true;
 
-            // rotate elipsoide assuming only rotation around Z
-            float ca = m_orientation.W * m_orientation.W - m_orientation.Z * m_orientation.Z;
-            float sa = 2 * m_orientation.W * m_orientation.Z;
-
-            float isx;
-            float isy;
-
-            if (me == feetbox) // feet have narrow bounds
-            {
-
-                isx = m_invElipSizeX * invFeetScale;
-                isy = m_invElipSizeY * invFeetScale;
-            }
-            else
-            {
-                isx = m_invElipSizeX;
-                isy = m_invElipSizeY;
-            }
-
-            float a = isx * ca - isy * sa;
-            float b = isx * sa + isy * ca;
-
+            float t;
             float offx = contact.pos.X - _position.X;
-            float er = offx * a;
-            er *= er;
-
             float offy = contact.pos.Y - _position.Y;
-            float ty = offy * b;
-            er += ty * ty;
 
             if (me == midbox)
             {
-                if (er > 4.0f) // no collision
-                    return false;
-                if (er < 0.2f)
-                    return true;               
-
-                float t = offx * offx + offy * offy;
+                t = offx * offx + offy * offy;
                 t = (float)Math.Sqrt(t);
                 t = 1 / t;
                 offx *= t;
@@ -930,40 +889,51 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             else if (me == feetbox)
             {
-                float c = feetSZ * 2;
                 float h = contact.pos.Z - _position.Z;
+
+                if (Math.Abs(contact.normal.Z) > 0.95f)
+                {
+                    feetcollision = true;
+                    if (h < boneOff)
+                        IsColliding = true;
+                    return true;
+                }
+
                 float offz = h - feetOff; // distance from top of feetbox
 
-                float tz = offz / c;
-                er += tz * tz;
-
-                if (er > 4.0f) // no collision
+                if (offz > 0)
                     return false;
 
-                if (er > 0.2f)
+                if (offz > -0.01)
                 {
-                    float t = offx * offx + offy * offy + offz * offz;
+                    offx = 0;
+                    offy = 0;
+                    offz = -1.0f;
+                }
+                else
+                {
+                    t = offx * offx + offy * offy + offz * offz;
                     t = (float)Math.Sqrt(t);
                     t = 1 / t;
                     offx *= t;
                     offy *= t;
                     offz *= t;
-
-                    if (reverse)
-                    {
-                        contact.normal.X = offx;
-                        contact.normal.Y = offy;
-                        contact.normal.Z = offz;
-                    }
-                    else
-                    {
-                        contact.normal.X = -offx;
-                        contact.normal.Y = -offy;
-                        contact.normal.Z = -offz;
-                    }
                 }
 
-                if(h < boneOff)
+                if (reverse)
+                {
+                    contact.normal.X = offx;
+                    contact.normal.Y = offy;
+                    contact.normal.Z = offz;
+                }
+                else
+                {
+                    contact.normal.X = -offx;
+                    contact.normal.Y = -offy;
+                    contact.normal.Z = -offz;
+                }
+                feetcollision = true;
+                if (h < boneOff)
                     IsColliding = true;
             }
             else
@@ -1105,6 +1075,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         contact.SurfaceNormal.Y = 0f;
                         contact.SurfaceNormal.Z = -1f;
                         contact.RelativeSpeed = -vel.Z;
+                        contact.CharacterFeet = true;
                         AddCollisionEvent(0, contact);
 
                         vec.Z *= 0.5f;

@@ -224,9 +224,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 //        private IntPtr WaterHeightmapData = IntPtr.Zero;
 //        private GCHandle WaterMapHandler = new GCHandle();
 
-        public float avPIDD = 2200f; // make it visible
-        public float avPIDP = 900f; // make it visible
-        private float avCapRadius = 0.37f;
         private float avDensity = 3f;
         private float avMovementDivisorWalk = 1.3f;
         private float avMovementDivisorRun = 0.8f;
@@ -486,7 +483,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                     avDensity = physicsconfig.GetFloat("av_density", avDensity);
                     avMovementDivisorWalk = physicsconfig.GetFloat("av_movement_divisor_walk", avMovementDivisorWalk);
                     avMovementDivisorRun = physicsconfig.GetFloat("av_movement_divisor_run", avMovementDivisorRun);
-                    avCapRadius = physicsconfig.GetFloat("av_capsule_radius", avCapRadius);
 
                     contactsPerCollision = physicsconfig.GetInt("contacts_per_collision", contactsPerCollision);
 
@@ -1040,6 +1036,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             IntPtr Joint;
 
+            bool FeetCollision = false;
+
             int i = 0;
             int ncontacts = 0;
             while(true)
@@ -1058,7 +1056,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     if(dop1foot)
                     {
-                        if (!(((OdeCharacter)p1).Collide(g1,false, ref curContact)))
+                        if (!(((OdeCharacter)p1).Collide(g1, false, ref curContact, ref FeetCollision)))
                         {
                             if (++i >= count)
                                 break;
@@ -1068,7 +1066,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                     else if(dop2foot)
                     {
-                        if(!(((OdeCharacter) p2).Collide(g2,true,ref curContact)))
+                        if (!(((OdeCharacter)p2).Collide(g2, true, ref curContact, ref FeetCollision)))
                         {
                             if (++i >= count)
                                 break;
@@ -1177,9 +1175,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
             }
 
-            if(ncontacts > 0)
+            if (ncontacts > 0)
+            {
+                maxDepthContact.CharacterFeet = FeetCollision;
                 collision_accounting_events(p1, p2, maxDepthContact);
-
+            }
 /*
             if (notskipedcount > geomContactPointsStartthrottle)
             {
@@ -1393,7 +1393,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             pos.X = position.X;
             pos.Y = position.Y;
             pos.Z = position.Z;
-            OdeCharacter newAv = new OdeCharacter(avName, this, pos, size, avPIDD, avPIDP, avDensity, avMovementDivisorWalk, avMovementDivisorRun);
+            OdeCharacter newAv = new OdeCharacter(avName, this, pos, size, avDensity, avMovementDivisorWalk, avMovementDivisorRun);
             newAv.Flying = isFlying;
             newAv.MinimumGroundFlightOffset = minimumGroundFlightOffset;
             
