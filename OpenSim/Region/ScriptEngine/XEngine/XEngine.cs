@@ -1415,8 +1415,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         /// <returns></returns>
         private object ProcessEventHandler(object parms)
         {
-            CultureInfo USCulture = new CultureInfo("en-US");
-            Thread.CurrentThread.CurrentCulture = USCulture;
+            Culture.SetCurrentCulture();
 
             IScriptInstance instance = (ScriptInstance) parms;
             
