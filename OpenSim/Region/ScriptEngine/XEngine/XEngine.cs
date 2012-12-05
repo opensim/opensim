@@ -30,6 +30,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Security;
 using System.Security.Policy;
@@ -377,8 +378,20 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         /// </summary>
         /// <param name="cmdparams"></param>
         /// <param name="instance"></param>
-        /// <returns>true if we're okay to proceed, false if not.</returns>
+        /// <param name="comparer">Basis on which to sort output.  Can be null if no sort needs to take place</param>
         private void HandleScriptsAction(string[] cmdparams, Action<IScriptInstance> action)
+        {
+            HandleScriptsAction<object>(cmdparams, action, null);
+        }
+
+        /// <summary>
+        /// Parse the raw item id into a script instance from the command params if it's present.
+        /// </summary>
+        /// <param name="cmdparams"></param>
+        /// <param name="instance"></param>
+        /// <param name="keySelector">Basis on which to sort output.  Can be null if no sort needs to take place</param>
+        private void HandleScriptsAction<TKey>(
+            string[] cmdparams, Action<IScriptInstance> action, Func<IScriptInstance, TKey> keySelector)
         {
             if (!(MainConsole.Instance.ConsoleScene == null || MainConsole.Instance.ConsoleScene == m_Scene))
                 return;
@@ -390,7 +403,12 @@ namespace OpenSim.Region.ScriptEngine.XEngine
     
                 if (cmdparams.Length == 2)
                 {
-                    foreach (IScriptInstance instance in m_Scripts.Values)
+                    IEnumerable<IScriptInstance> scripts = m_Scripts.Values;
+
+                    if (keySelector != null)
+                        scripts = scripts.OrderBy<IScriptInstance, TKey>(keySelector);
+
+                    foreach (IScriptInstance instance in scripts)
                         action(instance);
 
                     return;
@@ -478,7 +496,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 }
             }
 
-            HandleScriptsAction(cmdparams, HandleShowScript);
+            HandleScriptsAction<long>(cmdparams, HandleShowScript, si => si.EventsProcessed);
         }
 
         private void HandleShowScript(IScriptInstance instance)
