@@ -1010,6 +1010,9 @@ public sealed class BSPrim : BSPhysObject
         });
     }
     // A torque impulse.
+    // ApplyTorqueImpulse adds torque directly to the angularVelocity.
+    // AddAngularForce accumulates the force and applied it to the angular velocity all at once.
+    // Computed as: angularVelocity += impulse * inertia;
     public void ApplyTorqueImpulse(OMV.Vector3 impulse, bool inTaintTime)
     {
         OMV.Vector3 applyImpulse = impulse;

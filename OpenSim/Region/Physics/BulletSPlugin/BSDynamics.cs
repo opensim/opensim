@@ -620,11 +620,13 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         private Vector3? m_knownVelocity;
         private Quaternion? m_knownOrientation;
         private Vector3? m_knownRotationalVelocity;
+        private Vector3? m_knownRotationalForce;
 
         private const int m_knownChangedPosition           = 1 << 0;
         private const int m_knownChangedVelocity           = 1 << 1;
         private const int m_knownChangedOrientation        = 1 << 2;
         private const int m_knownChangedRotationalVelocity = 1 << 3;
+        private const int m_knownChangedRotationalForce    = 1 << 4;
 
         private void ForgetKnownVehicleProperties()
         {
@@ -634,6 +636,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             m_knownVelocity = null;
             m_knownOrientation = null;
             m_knownRotationalVelocity = null;
+            m_knownRotationalForce = null;
             m_knownChanged = 0;
         }
         private void PushKnownChanged()
@@ -645,12 +648,19 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 if ((m_knownChanged & m_knownChangedOrientation) != 0)
                     Prim.ForceOrientation = VehicleOrientation;
                 if ((m_knownChanged & m_knownChangedVelocity) != 0)
+                {
                     Prim.ForceVelocity = VehicleVelocity;
+                    BulletSimAPI.SetInterpolationLinearVelocity2(Prim.PhysBody.ptr, VehicleVelocity);
+                }
                 if ((m_knownChanged & m_knownChangedRotationalVelocity) != 0)
                 {
                     Prim.ForceRotationalVelocity = VehicleRotationalVelocity;
+                    // Fake out Bullet by making it think the velocity is the same as last time.
                     BulletSimAPI.SetInterpolationAngularVelocity2(Prim.PhysBody.ptr, VehicleRotationalVelocity);
                 }
+                if ((m_knownChanged & m_knownChangedRotationalForce) != 0)
+                    Prim.AddAngularForce((Vector3)m_knownRotationalForce, false, true);
+
                 // If we set one of the values (ie, the physics engine didn't do it) we must force
                 //      an UpdateProperties event to send the changes up to the simulator.
                 BulletSimAPI.PushUpdate2(Prim.PhysBody.ptr);
@@ -733,6 +743,11 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 m_knownRotationalVelocity = value;
                 m_knownChanged |= m_knownChangedRotationalVelocity;
             }
+        }
+        private void VehicleAddAngularForce(Vector3 aForce)
+        {
+            m_knownRotationalForce += aForce;
+            m_knownChanged |= m_knownChangedRotationalForce;
         }
         #endregion // Known vehicle value functions
 
@@ -1013,11 +1028,11 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                                     + bankingContribution;
 
             // ==================================================================
-            // The correction is applied to the current orientation.
+            // Apply the correction velocity.
+            // TODO: Should this be applied as an angular force (torque)?
             if (!m_lastAngularCorrection.ApproxEquals(Vector3.Zero, 0.01f))
             {
                 Vector3 scaledCorrection = m_lastAngularCorrection * pTimestep;
-
                 VehicleRotationalVelocity = scaledCorrection;
 
                 VDetailLog("{0},  MoveAngular,done,nonZero,angMotorContrib={1},vertAttrContrib={2},bankContrib={3},deflectContrib={4},totalContrib={5},scaledCorr={6}",
@@ -1029,7 +1044,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             }
             else
             {
-                // The vehicle is not adding anything velocity wise.
+                // The vehicle is not adding anything angular wise.
                 VehicleRotationalVelocity = Vector3.Zero;
                 VDetailLog("{0},  MoveAngular,done,zero", Prim.LocalID);
             }
@@ -1060,8 +1075,8 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     torqueFromOffset.Y = 0;
                 if (float.IsNaN(torqueFromOffset.Z))
                     torqueFromOffset.Z = 0;
-                torqueFromOffset *= m_vehicleMass;
-                Prim.ApplyTorqueImpulse(torqueFromOffset, true);
+
+                VehicleAddAngularForce(torqueFromOffset * m_vehicleMass);
                 VDetailLog("{0},  BSDynamic.MoveAngular,motorOffset,applyTorqueImpulse={1}", Prim.LocalID, torqueFromOffset);
             }
 
@@ -1097,23 +1112,21 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 ret.Y =  - verticalError.X;
                 ret.Z = 0f;
 
-                // scale by the time scale and timestep
+                // Scale the correction force by how far we're off from vertical.
+                // Z error of one says little error. As Z gets smaller, the vehicle is leaning farther over.
+                // float clampedZError = ClampInRange(0.1f, Math.Abs(verticalError.Z), 1f);
+                float clampedSqrZError = ClampInRange(0.01f, verticalError.Z * verticalError.Z, 1f);
+                // float vertForce = 1f / clampedSqrZError * m_verticalAttractionEfficiency;
+                float vertForce = 1f / clampedSqrZError;
+
+                ret *= vertForce;
+
+                // Correction happens over a number of seconds.
                 Vector3 unscaledContrib = ret;
                 ret /= m_verticalAttractionTimescale;
-                // This returns the angular correction desired. Timestep is added later.
-                // ret *= pTimestep;
 
-                // apply efficiency
-                Vector3 preEfficiencyContrib = ret;
-                // TODO: implement efficiency.
-                // Effenciency squared seems to give a more realistic effect
-                float efficencySquared = m_verticalAttractionEfficiency * m_verticalAttractionEfficiency;
-                // ret *= efficencySquared;
-
-                VDetailLog("{0},  MoveAngular,verticalAttraction,,verticalError={1},unscaled={2},preEff={3},eff={4},effSq={5},vertAttr={6}",
-                                            Prim.LocalID, verticalError, unscaledContrib, preEfficiencyContrib,
-                                            m_verticalAttractionEfficiency, efficencySquared,
-                                            ret);
+                VDetailLog("{0},  MoveAngular,verticalAttraction,,verticalError={1},unscaled={2},vertForce={3},eff={4},vertAttr={5}",
+                                Prim.LocalID, verticalError, unscaledContrib, vertForce, m_verticalAttractionEfficiency, ret);
             }
             return ret;
         }
@@ -1123,6 +1136,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         public Vector3 ComputeAngularDeflection()
         {
             Vector3 ret = Vector3.Zero;
+            return ret;     // DEBUG DEBUG DEBUG  debug the other contributors first
 
             if (m_angularDeflectionEfficiency != 0)
             {
@@ -1151,6 +1165,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         {
             Vector3 ret = Vector3.Zero;
             Vector3 computedBanking = Vector3.Zero;
+            return ret;     // DEBUG DEBUG DEBUG  debug the other contributors first
 
             if (m_bankingEfficiency != 0)
             {
