@@ -785,6 +785,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                                                            ChatTypeEnum.DebugChannel, 2147483647,
                                                            part.AbsolutePosition,
                                                            part.Name, part.UUID, false);
+
+
+                                    m_log.DebugFormat(
+                                        "[SCRIPT INSTANCE]: Runtime error in script {0}, part {1} {2} at {3} in {4}, displayed error {5}, actual exception {6}", 
+                                        ScriptName, 
+                                        PrimName, 
+                                        part.UUID,
+                                        part.AbsolutePosition,
+                                        part.ParentGroup.Scene.Name, 
+                                        text.Replace("\n", "\\n"), 
+                                        e.InnerException);
                                 }
                                 catch (Exception)
                                 {
@@ -1026,7 +1037,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                                     "({0}): {1}", scriptLine - 1,
                                     e.InnerException.Message);
 
-                            System.Console.WriteLine(e.ToString()+"\n");
                             return message;
                         }
                     }
