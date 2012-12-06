@@ -1399,7 +1399,7 @@ public sealed class BSPrim : BSPhysObject
             _rotationalVelocity = entprop.RotationalVelocity;
 
             // The sanity check can change the velocity and/or position.
-            if (PositionSanityCheck(true))
+            if (IsPhysical && PositionSanityCheck(true))
             {
                 entprop.Position = _position;
                 entprop.Velocity = _velocity;
@@ -1412,8 +1412,6 @@ public sealed class BSPrim : BSPhysObject
             OMV.Vector3 direction = OMV.Vector3.UnitX * _orientation;   // DEBUG DEBUG DEBUG
             DetailLog("{0},BSPrim.UpdateProperties,call,pos={1},orient={2},dir={3},vel={4},rotVel={5}",
                     LocalID, _position, _orientation, direction, _velocity, _rotationalVelocity);
-
-            // BulletSimAPI.DumpRigidBody2(PhysicsScene.World.ptr, BSBody.ptr);   // DEBUG DEBUG DEBUG
 
             base.RequestPhysicsterseUpdate();
         }
