@@ -315,8 +315,8 @@ namespace OpenSim.Capabilities.Handlers
         /// for start.</remarks>
         /// <returns></returns>
         /// <param name='header'></param>
-        /// <param name='start'>Undefined if the parse fails.</param>
-        /// <param name='end'>Undefined if the parse fails.</param>
+        /// <param name='start'>Start of the range.  Undefined if this was not a number.</param>
+        /// <param name='end'>End of the range.  Will be -1 if no end specified.  Undefined if there was a raw string but this was not a number.</param>
         private bool TryParseRange(string header, out int start, out int end)
         {
             start = end = 0;
