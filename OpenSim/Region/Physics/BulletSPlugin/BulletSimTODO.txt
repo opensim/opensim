@@ -6,14 +6,34 @@ CRASHES
     Causes many errors. Doesn't stop after first error with box shape.
     Eventually crashes when deleting the object.
 
-BULLETSIM TODO LIST:
+VEHICLES TODO LIST:
 =================================================
 Neb car jiggling left and right
+	Happens on terrain and any other mesh object. Flat cubes are much smoother.
 Vehicles (Move smoothly)
-Light cycle falling over when driving
-Light cycle not banking
-Do single prim vehicles don't seem to properly vehiclize.
-Gun sending shooter flying
+Add vehicle collisions so IsColliding is properly reported.
+	Needed for banking, limitMotorUp, movementLimiting, ...
+Some vehicles should not be able to turn if no speed or off ground.
+For limitMotorUp, use raycast down to find if vehicle is in the air.
+Implement function efficiency for lineaar and angular motion.
+Should vehicle angular/linear movement friction happen after all the components
+	or does it only apply to the basic movement?
+After getting off a vehicle, the root prim is phantom (can be walked through)
+    Need to force a position update for the root prim after compound shape destruction
+Linkset explosion after three "rides" on Nebadon lite vehicle (LinksetConstraint)
+Implement referenceFrame for all the motion routines.
+Cannot edit/move a vehicle being ridden: it jumps back to the origional position.
+
+BULLETSIM TODO LIST:
+=================================================
+Disable activity of passive linkset children.
+	Since the linkset is a compound object, the old prims are left lying
+	around and need to be phantomized so they don't collide, ...
+Scenes with hundred of thousands of static objects take a lot of physics CPU time.
+BSPrim.Force should set a continious force on the prim. The force should be
+	applied each tick.  Some limits?
+Single prim vehicles don't seem to properly vehiclize.
+Gun sending shooter flying.
 Collision margin (gap between physical objects lying on each other)
 Boundry checking (crashes related to crossing boundry)
     Add check for border edge position for avatars and objects.
@@ -28,10 +48,11 @@ Small physical objects do not interact correctly
 Add material type linkage and input all the material property definitions.
 	Skeleton classes and table are in the sources but are not filled or used.
 Add PID motor for avatar movement (slow to stop, ...)
-Implement function efficiency for lineaar and angular motion.
+setForce should set a constant force. Different than AddImpulse.
+Implement raycast.
+Implement ShapeCollection.Dispose()
+Implement water as a plain so raycasting and collisions can happen with same.
 
-After getting off a vehicle, the root prim is phantom (can be walked through)
-    Need to force a position update for the root prim after compound shape destruction
 Find/remove avatar collision with ID=0.
 Test avatar walking up stairs. How does compare with SL.
     Radius of the capsule affects ability to climb edges.
@@ -39,19 +60,16 @@ Tune terrain/object friction to be closer to SL.
 Debounce avatar contact so legs don't keep folding up when standing.
 Implement LSL physics controls. Like STATUS_ROTATE_X.
 Add border extensions to terrain to help region crossings and objects leaving region.
-Linkset explosion after three "rides" on Nebadon lite vehicle (LinksetConstraint)
 
 Speed up creation of large physical linksets
 	For instance, sitting in Neb's car (130 prims) takes several seconds to become physical
 Performance test with lots of avatars. Can BulletSim support a thousand?
 Optimize collisions in C++: only send up to the object subscribed to collisions.
     Use collision subscription and remove the collsion(A,B) and collision(B,A)
-Check wheter SimMotionState needs large if statement (see TODO).
+Check whether SimMotionState needs large if statement (see TODO).
 
 Implement 'top colliders' info.
 Avatar jump
-Implement meshes or just verify that they work.
-Do prim hash codes work for sculpties and meshes?
 Performance measurement and changes to make quicker.
 Implement detailed physics stats (GetStats()).
 
@@ -66,8 +84,6 @@ Performance of closures and delegates for taint processing
 	Is any slowdown introduced by the existing implementation significant?
 Is there are more efficient method of implementing pre and post step actions?
 	See http://www.codeproject.com/Articles/29922/Weak-Events-in-C
-
-Package Bullet source mods for Bullet internal stats output
 
 Physics Arena central pyramid: why is one side permiable?
 
@@ -85,33 +101,42 @@ Complete implemention of preStepActions
 	Replace vehicle step call with prestep event.
 	Is there a need for postStepActions? postStepTaints?
 Implement linkset by setting position of children when root updated. (LinksetManual)
+	Linkset implementation using manual prim movement.
 LinkablePrim class? Would that simplify/centralize the linkset logic?
-Linkset implementation using manual prim movement.
-Linkset implementation using compound shapes.
-    Compound shapes will need the LocalID in the shapes and collision
-    processing to get it from there.
 BSScene.UpdateParameterSet() is broken. How to set params on objects?
 Remove HeightmapInfo from terrain specification.
     Since C++ code does not need terrain height, this structure et al are not needed.
 Add floating motor for BS_FLOATS_ON_WATER so prim and avatar will
     bob at the water level. BSPrim.PositionSanityCheck().
 
+THREADING
+=================================================
+Do taint action immediately if not actually executing Bullet.
+	Add lock around Bullet execution and just do taint actions if simulation is not happening.
+
 DONE DONE DONE DONE
 =================================================
-Cleanup code in BSDynamics by using motors.
-Consider implementing terrain with a mesh rather than heightmap.
+Cleanup code in BSDynamics by using motors. (Resolution: started)
+Consider implementing terrain with a mesh rather than heightmap. (Resolution: done)
     Would have better and adjustable resolution.
-NOTDONE: Build terrain mesh so heighmap is height of the center of the square meter.
-    SL and ODE define meter square as being at one corner with one diagional.
-Terrain as mesh.
+Build terrain mesh so heighmap is height of the center of the square meter.
+    Resolution: NOT DONE: SL and ODE define meter square as being at one corner with one diagional.
+Terrain as mesh. (Resolution: done)
 How are static linksets seen by the physics engine?
-    A: they are not linked in physics. When moved, all the children are repositioned.
-Remember to remove BSScene.DetailLog Refresh call.
-Convert BSCharacter to use all API2
+    Resolution: they are not linked in physics. When moved, all the children are repositioned.
+Convert BSCharacter to use all API2 (Resolution: done)
 Avatar pushing difficult (too heavy?)
-Use asset service passed to BulletSim to get sculptie bodies, etc.
-Vehicles (fix bouncing on terrain)
-Remove old code in DLL (all non-API2 stuff).
-Measurements of mega-physical prim performance (with graph)
+Use asset service passed to BulletSim to get sculptie bodies, etc. (Resolution: done)
+Remove old code in DLL (all non-API2 stuff). (Resolution: done)
+Measurements of mega-physical prim performance (with graph) (Resolution: done, email)
 Debug Bullet internal stats output (why is timing all wrong?)
-	Bullet stats logging only works with a single instance of Bullet (one region).
+	Resolution: Bullet stats logging only works with a single instance of Bullet (one region).
+Implement meshes or just verify that they work. (Resolution: they do!)
+Do prim hash codes work for sculpties and meshes? (Resolution: yes)
+Linkset implementation using compound shapes. (Resolution: implemented LinksetCompound)
+    Compound shapes will need the LocalID in the shapes and collision
+    processing to get it from there.
+Light cycle falling over when driving (Resolution: implemented VerticalAttractor)
+Light cycle not banking	(Resolution: It doesn't. Banking is roll adding yaw.)
+Package Bullet source mods for Bullet internal stats output
+	(Resolution: move code into WorldData.h rather than relying on patches)
