@@ -59,7 +59,7 @@ public sealed class BSLinksetCompound : BSLinkset
     //   refresh will happen once after all the other taints are applied.
     public override void Refresh(BSPhysObject requestor)
     {
-        // External request for Refresh (from BSPrim) is not necessary
+        // External request for Refresh (from BSPrim) doesn't need to do anything
         // InternalRefresh(requestor);
     }
 
@@ -86,7 +86,7 @@ public sealed class BSLinksetCompound : BSLinkset
         DetailLog("{0},BSLinksetCompound.MakeDynamic,call,IsRoot={1}", child.LocalID, IsRoot(child));
         if (!IsRoot(child))
         {
-            // Physical children are removed from the world as the shape ofthe root compound
+            // The origional prims are removed from the world as the shape of the root compound
             //     shape takes over.
             BulletSimAPI.AddToCollisionFlags2(child.PhysBody.ptr, CollisionFlags.CF_NO_CONTACT_RESPONSE);
             BulletSimAPI.ForceActivationState2(child.PhysBody.ptr, ActivationState.DISABLE_SIMULATION);
@@ -118,7 +118,7 @@ public sealed class BSLinksetCompound : BSLinkset
     // Called at taint-time!!
     public override void UpdateProperties(BSPhysObject updated)
     {
-        // Nothing to do for constraints on property updates
+        // Nothing to do for compound linksets on property updates
     }
 
     // The children move around in relationship to the root.

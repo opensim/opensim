@@ -5,6 +5,9 @@ CRASHES
 20121128.1600: mesh object not rezzing (no physics mesh).
     Causes many errors. Doesn't stop after first error with box shape.
     Eventually crashes when deleting the object.
+20121206.1434: rez Sam-pan into OSGrid BulletSim11 region
+	Immediate simulator crash. Mono does not output any stacktrace and
+	log just stops after reporting taint-time linking of the linkset.
 
 VEHICLES TODO LIST:
 =================================================
@@ -23,9 +26,12 @@ After getting off a vehicle, the root prim is phantom (can be walked through)
 Linkset explosion after three "rides" on Nebadon lite vehicle (LinksetConstraint)
 Implement referenceFrame for all the motion routines.
 Cannot edit/move a vehicle being ridden: it jumps back to the origional position.
+Border crossing with linked vehicle causes crash
 
 BULLETSIM TODO LIST:
 =================================================
+Duplicating a physical prim causes old prim to jump away
+	Dup a phys prim and the original become unselected and thus interacts w/ selected prim.
 Disable activity of passive linkset children.
 	Since the linkset is a compound object, the old prims are left lying
 	around and need to be phantomized so they don't collide, ...
@@ -96,7 +102,7 @@ Breakout code for mesh/hull/compound/native into separate BSShape* classes
 Generalize Dynamics and PID with standardized motors.
 Generalize Linkset and vehicles into PropertyManagers
     Methods for Refresh, RemoveBodyDependencies, RestoreBodyDependencies
-	Possibly generalized a 'pre step action' registration.
+	Potentially add events for shape destruction, etc.
 Complete implemention of preStepActions
 	Replace vehicle step call with prestep event.
 	Is there a need for postStepActions? postStepTaints?
