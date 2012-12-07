@@ -55,6 +55,13 @@ namespace OpenSim.Framework
         protected AvatarWearable[] m_wearables;
         protected Dictionary<int, List<AvatarAttachment>> m_attachments;
         protected float m_avatarHeight = 0;
+        protected Vector3 m_avatarSize = new Vector3(0.45f, 0.6f, 1.9f);
+        protected Vector3 m_avatarBoxSize = new Vector3(0.45f, 0.6f, 1.9f);
+        protected float m_avatarFeetOffset = 0;
+        protected float m_avatarAnimOffset = 0;
+
+
+        private AvatarSkeleton skeleton = new AvatarSkeleton();
 
         public virtual int Serial
         {
@@ -66,6 +73,21 @@ namespace OpenSim.Framework
         {
             get { return m_visualparams; }
             set { m_visualparams = value; }
+        }
+
+        public virtual Vector3 AvatarSize
+        {
+            get { return m_avatarSize; }
+        }
+
+        public virtual Vector3 AvatarBoxSize
+        {
+            get { return m_avatarBoxSize; }
+        }
+
+        public virtual float AvatarFeetOffset
+        {
+            get { return m_avatarFeetOffset + m_avatarAnimOffset; }
         }
 
         public virtual Primitive.TextureEntry Texture
@@ -363,6 +385,7 @@ namespace OpenSim.Framework
         /// </summary>
         public virtual void SetHeight()
         {
+/*
             // Start with shortest possible female avatar height
             m_avatarHeight = 1.14597f;
             // Add offset for male avatars
@@ -375,6 +398,13 @@ namespace OpenSim.Framework
                             + 0.07f     * (float)m_visualparams[(int)VPElement.SHOES_PLATFORM_HEIGHT] / 255.0f
                             + 0.08f     * (float)m_visualparams[(int)VPElement.SHOES_HEEL_HEIGHT]     / 255.0f
                             + 0.076f    * (float)m_visualparams[(int)VPElement.SHAPE_NECK_LENGTH]     / 255.0f;
+*/
+            
+            skeleton.ApplyVisualParameters(m_visualparams);
+            m_avatarSize = skeleton.StandSize;
+            m_avatarBoxSize = skeleton.StandBoxSize;
+            m_avatarFeetOffset = skeleton.FeetOffset;
+            m_avatarHeight = m_avatarSize.Z;
         }
 
         public virtual void SetWearable(int wearableId, AvatarWearable wearable)
