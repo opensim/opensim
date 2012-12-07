@@ -156,7 +156,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         
 
-        public OdeCharacter(String avName, OdeScene parent_scene, Vector3 pos, Vector3 pSize, float density, float walk_divisor, float rundivisor)
+        public OdeCharacter(String avName, OdeScene parent_scene, Vector3 pos, Vector3 pSize, float pfeetOffset, float density, float walk_divisor, float rundivisor)
         {
             m_uuid = UUID.Random();
 
@@ -192,6 +192,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             if(m_size.Z <0.01f)
                 m_size.Z = 0.01f;
 
+            m_feetOffset = pfeetOffset;
             m_orientation = Quaternion.Identity;
             m_density = density;
 
