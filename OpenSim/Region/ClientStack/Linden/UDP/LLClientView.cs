@@ -6248,6 +6248,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // Temporarily protect ourselves from the mantis #951 failure.
                 // However, we could do this for several other handlers where a failure isn't terminal
                 // for the client session anyway, in order to protect ourselves against bad code in plugins
+                Vector3 avSize = appear.AgentData.Size;
                 try
                 {
                     byte[] visualparams = new byte[appear.VisualParam.Length];
@@ -6258,7 +6259,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (appear.ObjectData.TextureEntry.Length > 1)
                         te = new Primitive.TextureEntry(appear.ObjectData.TextureEntry, 0, appear.ObjectData.TextureEntry.Length);
 
-                    handlerSetAppearance(sender, te, visualparams);
+                    handlerSetAppearance(sender, te, visualparams,avSize);
                 }
                 catch (Exception e)
                 {
