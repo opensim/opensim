@@ -57,8 +57,10 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess.Tests
         protected TestClient m_tc;
             
         [SetUp]
-        public void SetUp()
+        public override void SetUp()
         {
+            base.SetUp();
+
             m_iam = new BasicInventoryAccessModule();
 
             IConfigSource config = new IniConfigSource();

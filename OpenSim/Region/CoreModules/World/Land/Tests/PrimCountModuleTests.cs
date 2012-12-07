@@ -60,8 +60,10 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
         protected ILandObject m_lo2;        
             
         [SetUp]
-        public void SetUp()
+        public override void SetUp()
         {
+            base.SetUp();
+
             m_pcm = new PrimCountModule();
             LandManagementModule lmm = new LandManagementModule();
             m_scene = new SceneHelpers().SetupScene();            

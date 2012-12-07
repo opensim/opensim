@@ -50,8 +50,10 @@ namespace OpenSim.Region.CoreModules.World.Media.Moap.Tests
         protected MoapModule m_module;
             
         [SetUp]
-        public void SetUp()
+        public override void SetUp()
         {
+            base.SetUp();
+
             m_module = new MoapModule();
             m_scene = new SceneHelpers().SetupScene();
             SceneHelpers.SetupSceneModules(m_scene, m_module);            
