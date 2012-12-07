@@ -31,6 +31,7 @@ using System.Collections.Generic;
 using System.Diagnostics; //for [DebuggerNonUserCode]
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Security;
 using System.Security.Policy;
@@ -445,8 +446,20 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         /// </summary>
         /// <param name="cmdparams"></param>
         /// <param name="instance"></param>
-        /// <returns>true if we're okay to proceed, false if not.</returns>
+        /// <param name="comparer">Basis on which to sort output.  Can be null if no sort needs to take place</param>
         private void HandleScriptsAction(string[] cmdparams, Action<IScriptInstance> action)
+        {
+            HandleScriptsAction<object>(cmdparams, action, null);
+        }
+
+        /// <summary>
+        /// Parse the raw item id into a script instance from the command params if it's present.
+        /// </summary>
+        /// <param name="cmdparams"></param>
+        /// <param name="instance"></param>
+        /// <param name="keySelector">Basis on which to sort output.  Can be null if no sort needs to take place</param>
+        private void HandleScriptsAction<TKey>(
+            string[] cmdparams, Action<IScriptInstance> action, Func<IScriptInstance, TKey> keySelector)
         {
             if (!(MainConsole.Instance.ConsoleScene == null || MainConsole.Instance.ConsoleScene == m_Scene))
                 return;
@@ -458,7 +471,12 @@ namespace OpenSim.Region.ScriptEngine.XEngine
     
                 if (cmdparams.Length == 2)
                 {
-                    foreach (IScriptInstance instance in m_Scripts.Values)
+                    IEnumerable<IScriptInstance> scripts = m_Scripts.Values;
+
+                    if (keySelector != null)
+                        scripts = scripts.OrderBy<IScriptInstance, TKey>(keySelector);
+
+                    foreach (IScriptInstance instance in scripts)
                         action(instance);
 
                     return;
@@ -505,9 +523,20 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             StringBuilder sb = new StringBuilder();
             sb.AppendFormat("Status of XEngine instance for {0}\n", m_Scene.RegionInfo.RegionName);
 
-            lock (m_Scripts)
-                sb.AppendFormat("Scripts loaded             : {0}\n", m_Scripts.Count);
+            long scriptsLoaded, eventsQueued = 0, eventsProcessed = 0;
 
+            lock (m_Scripts)
+            {
+                scriptsLoaded = m_Scripts.Count;
+
+                foreach (IScriptInstance si in m_Scripts.Values)
+                {
+                    eventsQueued += si.EventsQueued;
+                    eventsProcessed += si.EventsProcessed;
+                }
+            }
+
+            sb.AppendFormat("Scripts loaded             : {0}\n", scriptsLoaded);
             sb.AppendFormat("Unique scripts             : {0}\n", m_uniqueScripts.Count);
             sb.AppendFormat("Scripts waiting for load   : {0}\n", m_CompileQueue.Count);
             sb.AppendFormat("Max threads                : {0}\n", m_ThreadPool.MaxThreads);
@@ -516,6 +545,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             sb.AppendFormat("In use threads             : {0}\n", m_ThreadPool.InUseThreads);
             sb.AppendFormat("Work items waiting         : {0}\n", m_ThreadPool.WaitingCallbacks);
 //            sb.AppendFormat("Assemblies loaded          : {0}\n", m_Assemblies.Count);
+            sb.AppendFormat("Events queued              : {0}\n", eventsQueued);
+            sb.AppendFormat("Events processed           : {0}\n", eventsProcessed);
 
             SensorRepeat sr = AsyncCommandManager.GetSensorRepeatPlugin(this);
             sb.AppendFormat("Sensors                    : {0}\n", sr != null ? sr.SensorsCount : 0);
@@ -546,7 +577,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 }
             }
 
-            HandleScriptsAction(cmdparams, HandleShowScript);
+            HandleScriptsAction<long>(cmdparams, HandleShowScript, si => si.EventsProcessed);
         }
 
         private void HandleShowScript(IScriptInstance instance)
@@ -576,10 +607,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             sb.AppendFormat("Script name         : {0}\n", instance.ScriptName);
             sb.AppendFormat("Status              : {0}\n", status);
-
-            lock (eq)
-                sb.AppendFormat("Queued events       : {0}\n", eq.Count);
-
+            sb.AppendFormat("Queued events       : {0}\n", instance.EventsQueued);
+            sb.AppendFormat("Processed events    : {0}\n", instance.EventsProcessed);
             sb.AppendFormat("Item UUID           : {0}\n", instance.ItemID);
             sb.AppendFormat("Containing part name: {0}\n", instance.PrimName);
             sb.AppendFormat("Containing part UUID: {0}\n", instance.ObjectID);
@@ -1089,8 +1118,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             string assembly = "";
 
-            CultureInfo USCulture = new CultureInfo("en-US");
-            Thread.CurrentThread.CurrentCulture = USCulture;
+            Culture.SetCurrentCulture();
 
             Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> linemap;
 
@@ -1504,8 +1532,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         /// <returns></returns>
         private object ProcessEventHandler(object parms)
         {
-            CultureInfo USCulture = new CultureInfo("en-US");
-            Thread.CurrentThread.CurrentCulture = USCulture;
+            Culture.SetCurrentCulture();
 
             IScriptInstance instance = (ScriptInstance) parms;
             

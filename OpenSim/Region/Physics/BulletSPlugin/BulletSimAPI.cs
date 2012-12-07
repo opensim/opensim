@@ -360,6 +360,7 @@ public enum CollisionFlags : uint
     // Following used by BulletSim to control collisions and updates
     BS_SUBSCRIBE_COLLISION_EVENTS    = 1 << 10,
     BS_FLOATS_ON_WATER               = 1 << 11,
+    BS_VEHICLE_COLLISIONS            = 1 << 12,
     BS_NONE                          = 0,
     BS_ALL                           = 0xFFFFFFFF,
 

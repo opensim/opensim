@@ -2168,7 +2168,7 @@
       <Reference name="OpenMetaverseTypes" path="../../../bin/"/>
       <Reference name="OpenMetaverse" path="../../../bin/"/>
       <Reference name="Nini" path="../../../bin/"/>
-      <Reference name="Mono.Addins"/>
+      <Reference name="Mono.Addins" path="../../../bin/"/>
       <Reference name="log4net" path="../../../bin/"/>
       <Files>
         <Match pattern="*.cs" recurse="true"/>
@@ -2577,7 +2577,7 @@
       <Reference name="OpenSim.Framework.Servers.HttpServer"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>
       <Reference name="Mono.Data.SqliteClient" path="../../../bin/"/>
-      <Reference name="Mono.Addins"/>
+      <Reference name="Mono.Addins" path="../../../bin/"/>
 
       <!-- For scripting in funny languages by default -->
       <Reference name="XMLRPC" path="../../../bin/"/>

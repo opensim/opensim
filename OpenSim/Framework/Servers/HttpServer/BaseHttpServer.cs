@@ -437,7 +437,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 //                    reqnum = String.Format("{0}:{1}",request.RemoteIPEndPoint,request.Headers["opensim-request-id"]);
                  //m_log.DebugFormat("[BASE HTTP SERVER]: <{0}> handle request for {1}",reqnum,request.RawUrl);
 
-                Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US", true);
+                Culture.SetCurrentCulture();
 
 //                //  This is the REST agent interface. We require an agent to properly identify
 //                //  itself. If the REST handler recognizes the prefix it will attempt to
