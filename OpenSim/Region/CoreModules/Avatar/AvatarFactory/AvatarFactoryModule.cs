@@ -174,12 +174,21 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                     //                    m_log.DebugFormat(
                     //                        "[AVFACTORY]: Setting visual params for {0} to {1}",
                     //                        client.Name, string.Join(", ", visualParamsStrings));
-
+/*
                     float oldHeight = sp.Appearance.AvatarHeight;
                     changed = sp.Appearance.SetVisualParams(visualParams);
 
                     if (sp.Appearance.AvatarHeight != oldHeight && sp.Appearance.AvatarHeight > 0)
                         ((ScenePresence)sp).SetHeight(sp.Appearance.AvatarHeight);
+ */
+                    float oldoff = sp.Appearance.AvatarFeetOffset;
+                    Vector3 oldbox = sp.Appearance.AvatarBoxSize;
+                    changed = sp.Appearance.SetVisualParams(visualParams);
+                    float off = sp.Appearance.AvatarFeetOffset;
+                    Vector3 box = sp.Appearance.AvatarBoxSize;
+                    if(oldoff != off || oldbox != box)
+                        ((ScenePresence)sp).SetSize(box,off);
+
                 }
 
                 // Process the baked texture array

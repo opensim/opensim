@@ -1260,6 +1260,12 @@ namespace OpenSim.Region.Framework.Scenes
                 PhysicsActor.Size = new Vector3(0.45f, 0.6f, height);
         }
 
+        public void SetSize(Vector3 size, float feetoffset)
+        {
+            if (PhysicsActor != null && !IsChildAgent)
+                PhysicsActor.setAvatarSize(size, feetoffset);
+        }
+
         /// <summary>
         /// Complete Avatar's movement into the region.
         /// </summary>
