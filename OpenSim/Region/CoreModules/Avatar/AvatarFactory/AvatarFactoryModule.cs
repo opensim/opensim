@@ -145,6 +145,21 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             SetAppearance(sp, appearance.Texture, appearance.VisualParams);
         }
 
+
+        public void SetAppearance(IScenePresence sp, Primitive.TextureEntry textureEntry, byte[] visualParams, Vector3 avSize)
+        {
+            float oldoff = sp.Appearance.AvatarFeetOffset;
+            Vector3 oldbox = sp.Appearance.AvatarBoxSize;
+
+            SetAppearance(sp, textureEntry, visualParams);
+            sp.Appearance.SetSize(avSize);
+
+            float off = sp.Appearance.AvatarFeetOffset;
+            Vector3 box = sp.Appearance.AvatarBoxSize;
+            if (oldoff != off || oldbox != box)
+                ((ScenePresence)sp).SetSize(box, off);
+        }
+
         /// <summary>
         /// Set appearance data (texture asset IDs and slider settings) 
         /// </summary>
@@ -181,13 +196,13 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                     if (sp.Appearance.AvatarHeight != oldHeight && sp.Appearance.AvatarHeight > 0)
                         ((ScenePresence)sp).SetHeight(sp.Appearance.AvatarHeight);
  */
-                    float oldoff = sp.Appearance.AvatarFeetOffset;
-                    Vector3 oldbox = sp.Appearance.AvatarBoxSize;
+//                    float oldoff = sp.Appearance.AvatarFeetOffset;
+//                    Vector3 oldbox = sp.Appearance.AvatarBoxSize;
                     changed = sp.Appearance.SetVisualParams(visualParams);
-                    float off = sp.Appearance.AvatarFeetOffset;
-                    Vector3 box = sp.Appearance.AvatarBoxSize;
-                    if(oldoff != off || oldbox != box)
-                        ((ScenePresence)sp).SetSize(box,off);
+//                    float off = sp.Appearance.AvatarFeetOffset;
+//                    Vector3 box = sp.Appearance.AvatarBoxSize;
+//                    if(oldoff != off || oldbox != box)
+//                        ((ScenePresence)sp).SetSize(box,off);
 
                 }
 
@@ -620,12 +635,12 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
         /// <param name="client"></param>
         /// <param name="texture"></param>
         /// <param name="visualParam"></param>
-        private void Client_OnSetAppearance(IClientAPI client, Primitive.TextureEntry textureEntry, byte[] visualParams)
+        private void Client_OnSetAppearance(IClientAPI client, Primitive.TextureEntry textureEntry, byte[] visualParams, Vector3 avSize)
         {
             // m_log.WarnFormat("[AVFACTORY]: Client_OnSetAppearance called for {0} ({1})", client.Name, client.AgentId);
             ScenePresence sp = m_scene.GetScenePresence(client.AgentId);
             if (sp != null)
-                SetAppearance(sp, textureEntry, visualParams);
+                SetAppearance(sp, textureEntry, visualParams,avSize);
             else
                 m_log.WarnFormat("[AVFACTORY]: Client_OnSetAppearance unable to find presence for {0}", client.AgentId);
         }

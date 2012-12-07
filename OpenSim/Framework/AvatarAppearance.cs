@@ -40,6 +40,11 @@ namespace OpenSim.Framework
     /// </summary>
     public class AvatarAppearance
     {
+        const float AVBOXAJUST = 0.2f;
+        const float AVBOXMINX = 0.2f;
+        const float AVBOXMINY = 0.3f;
+        const float AVBOXMINZ = 0.5f;
+
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         // this is viewer capabilities and weared things dependent
@@ -59,9 +64,6 @@ namespace OpenSim.Framework
         protected Vector3 m_avatarBoxSize = new Vector3(0.45f, 0.6f, 1.9f);
         protected float m_avatarFeetOffset = 0;
         protected float m_avatarAnimOffset = 0;
-
-
-        private AvatarSkeleton skeleton = new AvatarSkeleton();
 
         public virtual int Serial
         {
@@ -120,7 +122,8 @@ namespace OpenSim.Framework
             SetDefaultWearables();
             SetDefaultTexture();
             SetDefaultParams();
-            SetHeight();
+//            SetHeight();
+            SetSize(new Vector3(0.45f,0.6f,1.9f));
             m_attachments = new Dictionary<int, List<AvatarAttachment>>();
         }
 
@@ -129,7 +132,7 @@ namespace OpenSim.Framework
 //            m_log.WarnFormat("[AVATAR APPEARANCE]: create appearance from OSDMap");
 
             Unpack(map);
-            SetHeight();
+//            SetHeight(); done in Unpack
         }
 
         public AvatarAppearance(AvatarWearable[] wearables, Primitive.TextureEntry textureEntry, byte[] visualParams)
@@ -153,7 +156,7 @@ namespace OpenSim.Framework
             else
                 SetDefaultParams();
 
-            SetHeight();
+//            SetHeight();
 
             m_attachments = new Dictionary<int, List<AvatarAttachment>>();
         }
@@ -172,7 +175,8 @@ namespace OpenSim.Framework
                 SetDefaultWearables();
                 SetDefaultTexture();
                 SetDefaultParams();
-                SetHeight();
+//                SetHeight();
+                SetSize(new Vector3(0.45f, 0.6f, 1.9f));
                 m_attachments = new Dictionary<int, List<AvatarAttachment>>();
 
                 return;
@@ -201,7 +205,8 @@ namespace OpenSim.Framework
             if (appearance.VisualParams != null)
                 m_visualparams = (byte[])appearance.VisualParams.Clone();
 
-            m_avatarHeight = appearance.m_avatarHeight;
+//            m_avatarHeight = appearance.m_avatarHeight;
+            SetSize(appearance.AvatarSize);
 
             // Copy the attachment, force append mode since that ensures consistency
             m_attachments = new Dictionary<int, List<AvatarAttachment>>();
@@ -368,8 +373,8 @@ namespace OpenSim.Framework
                 }
             }
             // Reset the height if the visual parameters actually changed
-            if (changed)
-                SetHeight();
+//           if (changed)
+//                SetHeight();
 
             return changed;
         }
@@ -399,11 +404,19 @@ namespace OpenSim.Framework
                             + 0.08f     * (float)m_visualparams[(int)VPElement.SHOES_HEEL_HEIGHT]     / 255.0f
                             + 0.076f    * (float)m_visualparams[(int)VPElement.SHAPE_NECK_LENGTH]     / 255.0f;
 */
-            
-            skeleton.ApplyVisualParameters(m_visualparams);
-            m_avatarSize = skeleton.StandSize;
-            m_avatarBoxSize = skeleton.StandBoxSize;
-            m_avatarFeetOffset = skeleton.FeetOffset;
+        }
+
+        public void SetSize(Vector3 avSize)
+        {
+            m_avatarSize = avSize;
+            m_avatarBoxSize = avSize;
+            m_avatarBoxSize.Z += AVBOXAJUST;
+            if (m_avatarBoxSize.X < AVBOXMINX)
+                m_avatarBoxSize.X = AVBOXMINX;
+            if (m_avatarBoxSize.Y < AVBOXMINY)
+                m_avatarBoxSize.Y = AVBOXMINY;
+            if (m_avatarBoxSize.Z < AVBOXMINZ)
+                m_avatarBoxSize.Z = AVBOXMINZ;
             m_avatarHeight = m_avatarSize.Z;
         }
 
@@ -678,8 +691,9 @@ namespace OpenSim.Framework
         {
             if ((data != null) && (data["serial"] != null))
                 m_serial = data["serial"].AsInteger();
-//            if ((data != null) && (data["height"] != null))
+            if ((data != null) && (data["height"] != null))
 //                m_avatarHeight = (float)data["height"].AsReal();
+                SetSize(new Vector3(0.45f,0.6f, (float)data["height"].AsReal()));
 
             try
             {
@@ -741,7 +755,6 @@ namespace OpenSim.Framework
 //                            att.ItemID, att.AssetID, att.AttachPoint);
                     }
                 }
-                SetHeight();
             }
             catch (Exception e)
             {

@@ -201,7 +201,8 @@ namespace OpenSim.Services.Interfaces
                     appearance.Serial = Int32.Parse(Data["Serial"]);
 
                 if (Data.ContainsKey("AvatarHeight"))
-                    appearance.AvatarHeight = float.Parse(Data["AvatarHeight"]);
+                    appearance.SetSize(new Vector3(0.45f, 0.6f, float.Parse(Data["AvatarHeight"])));
+//                    appearance.AvatarHeight = float.Parse(Data["AvatarHeight"]);
 
                 // Legacy Wearables
                 if (Data.ContainsKey("BodyItem"))
@@ -339,6 +340,7 @@ namespace OpenSim.Services.Interfaces
                     appearance.Wearables[AvatarWearable.EYES].Wear(
                             AvatarWearable.DefaultWearables[
                             AvatarWearable.EYES][0]);
+
             }
             catch
             {
