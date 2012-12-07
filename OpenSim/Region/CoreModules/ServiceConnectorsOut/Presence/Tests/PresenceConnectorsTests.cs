@@ -46,8 +46,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence.Tests
     public class PresenceConnectorsTests : OpenSimTestCase
     {
         LocalPresenceServicesConnector m_LocalConnector;
-        private void SetUp()
+
+        public override void SetUp()
         {
+            base.SetUp();
+
             IConfigSource config = new IniConfigSource();
             config.AddConfig("Modules");
             config.AddConfig("PresenceService");

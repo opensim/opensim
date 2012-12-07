@@ -127,12 +127,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             OSSL_Api osslApi = new OSSL_Api();
             osslApi.Initialize(m_engine, so.RootPart, null);
 
-            string npcRaw;
             bool gotExpectedException = false;
             try
             {
-                npcRaw
-                    = osslApi.osNpcCreate("Jane", "Doe", new LSL_Types.Vector3(128, 128, 128), "not existing notecard name");
+                osslApi.osNpcCreate("Jane", "Doe", new LSL_Types.Vector3(128, 128, 128), "not existing notecard name");
             }
             catch (ScriptException)
             {

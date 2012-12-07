@@ -53,8 +53,10 @@ namespace OpenSim.Region.CoreModules.Asset.Tests
         protected FlotsamAssetCache m_cache;
 
         [SetUp]
-        public void SetUp()
+        public override void SetUp()
         {
+            base.SetUp();
+
             IConfigSource config = new IniConfigSource();
 
             config.AddConfig("Modules");

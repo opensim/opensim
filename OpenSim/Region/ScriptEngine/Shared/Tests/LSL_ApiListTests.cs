@@ -51,8 +51,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         private LSL_Api m_lslApi;
 
         [SetUp]
-        public void SetUp()
+        public override void SetUp()
         {
+            base.SetUp();
+
             IConfigSource initConfigSource = new IniConfigSource();
             IConfig config = initConfigSource.AddConfig("XEngine");
             config.Set("Enabled", "true");

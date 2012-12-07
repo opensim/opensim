@@ -253,8 +253,9 @@ public sealed class BSPrim : BSPhysObject
         // Zero some other properties in the physics engine
         PhysicsScene.TaintedObject(inTaintTime, "BSPrim.ZeroMotion", delegate()
         {
-            BulletSimAPI.SetInterpolationAngularVelocity2(PhysBody.ptr, OMV.Vector3.Zero);
-            BulletSimAPI.SetAngularVelocity2(PhysBody.ptr, OMV.Vector3.Zero);
+            // DetailLog("{0},BSPrim.ZeroAngularMotion,call,rotVel={1}", LocalID, _rotationalVelocity);
+            BulletSimAPI.SetInterpolationAngularVelocity2(PhysBody.ptr, _rotationalVelocity);
+            BulletSimAPI.SetAngularVelocity2(PhysBody.ptr, _rotationalVelocity);
         });
     }
 
@@ -329,7 +330,7 @@ public sealed class BSPrim : BSPhysObject
 
         if ((CurrentCollisionFlags & CollisionFlags.BS_FLOATS_ON_WATER) != 0)
         {
-            float waterHeight = PhysicsScene.GetWaterLevelAtXYZ(_position);
+            float waterHeight = PhysicsScene.TerrainManager.GetWaterLevelAtXYZ(_position);
             // TODO: a floating motor so object will bob in the water
             if (Math.Abs(Position.Z - waterHeight) > 0.1f)
             {
@@ -347,7 +348,9 @@ public sealed class BSPrim : BSPhysObject
         if (ret)
         {
             // Apply upforce and overcome gravity.
-            AddForce(upForce - PhysicsScene.DefaultGravity, false, inTaintTime);
+            OMV.Vector3 correctionForce = upForce - PhysicsScene.DefaultGravity;
+            DetailLog("{0},BSPrim.PositionSanityCheck,applyForce,pos={1},upForce={2},correctionForce={3}", LocalID, _position, upForce, correctionForce);
+            AddForce(correctionForce, false, inTaintTime);
         }
         return ret;
     }
@@ -643,9 +646,13 @@ public sealed class BSPrim : BSPhysObject
         BulletSimAPI.UpdateSingleAabb2(PhysicsScene.World.ptr, PhysBody.ptr);
 
         // Collision filter can be set only when the object is in the world
-        if (PhysBody.collisionFilter != 0 || PhysBody.collisionMask != 0)
+        if (PhysBody.collisionGroup != 0 || PhysBody.collisionMask != 0)
         {
-            BulletSimAPI.SetCollisionFilterMask2(PhysBody.ptr, (uint)PhysBody.collisionFilter, (uint)PhysBody.collisionMask);
+            if (!BulletSimAPI.SetCollisionGroupMask2(PhysBody.ptr, (uint)PhysBody.collisionGroup, (uint)PhysBody.collisionMask))
+            {
+                PhysicsScene.Logger.ErrorFormat("{0} Failure setting prim collision mask. localID={1}, grp={2:X}, mask={3:X}",
+                                LogHeader, LocalID, PhysBody.collisionGroup, PhysBody.collisionMask);
+            }
         }
 
         // Recompute any linkset parameters.
@@ -684,11 +691,11 @@ public sealed class BSPrim : BSPhysObject
             // There can be special things needed for implementing linksets
             Linkset.MakeStatic(this);
             // The activation state is 'disabled' so Bullet will not try to act on it.
-            BulletSimAPI.ForceActivationState2(PhysBody.ptr, ActivationState.DISABLE_SIMULATION);
+            // BulletSimAPI.ForceActivationState2(PhysBody.ptr, ActivationState.DISABLE_SIMULATION);
             // Start it out sleeping and physical actions could wake it up.
-            // BulletSimAPI.ForceActivationState2(BSBody.ptr, ActivationState.ISLAND_SLEEPING);
+            BulletSimAPI.ForceActivationState2(PhysBody.ptr, ActivationState.ISLAND_SLEEPING);
 
-            PhysBody.collisionFilter = CollisionFilterGroups.StaticObjectFilter;
+            PhysBody.collisionGroup = CollisionFilterGroups.StaticObjectGroup;
             PhysBody.collisionMask = CollisionFilterGroups.StaticObjectMask;
         }
         else
@@ -734,7 +741,7 @@ public sealed class BSPrim : BSPhysObject
             BulletSimAPI.ForceActivationState2(PhysBody.ptr, ActivationState.ACTIVE_TAG);
             // BulletSimAPI.Activate2(BSBody.ptr, true);
 
-            PhysBody.collisionFilter = CollisionFilterGroups.ObjectFilter;
+            PhysBody.collisionGroup = CollisionFilterGroups.ObjectGroup;
             PhysBody.collisionMask = CollisionFilterGroups.ObjectMask;
         }
     }
@@ -762,7 +769,7 @@ public sealed class BSPrim : BSPhysObject
                 m_log.ErrorFormat("{0} MakeSolid: physical body of wrong type for non-solidness. id={1}, type={2}", LogHeader, LocalID, bodyType);
             }
             CurrentCollisionFlags = BulletSimAPI.AddToCollisionFlags2(PhysBody.ptr, CollisionFlags.CF_NO_CONTACT_RESPONSE);
-            PhysBody.collisionFilter = CollisionFilterGroups.VolumeDetectFilter;
+            PhysBody.collisionGroup = CollisionFilterGroups.VolumeDetectGroup;
             PhysBody.collisionMask = CollisionFilterGroups.VolumeDetectMask;
         }
     }
@@ -838,15 +845,6 @@ public sealed class BSPrim : BSPhysObject
     }
     public override OMV.Vector3 RotationalVelocity {
         get {
-            /*
-            OMV.Vector3 pv = OMV.Vector3.Zero;
-            // if close to zero, report zero
-            // This is copied from ODE but I'm not sure why it returns zero but doesn't
-            //    zero the property in the physics engine.
-            if (_rotationalVelocity.ApproxEquals(pv, 0.2f))
-                return pv;
-             */
-
             return _rotationalVelocity;
         }
         set {
@@ -1012,6 +1010,9 @@ public sealed class BSPrim : BSPhysObject
         });
     }
     // A torque impulse.
+    // ApplyTorqueImpulse adds torque directly to the angularVelocity.
+    // AddAngularForce accumulates the force and applied it to the angular velocity all at once.
+    // Computed as: angularVelocity += impulse * inertia;
     public void ApplyTorqueImpulse(OMV.Vector3 impulse, bool inTaintTime)
     {
         OMV.Vector3 applyImpulse = impulse;
@@ -1380,54 +1381,16 @@ public sealed class BSPrim : BSPhysObject
 
     public override void UpdateProperties(EntityProperties entprop)
     {
-        /*
-        UpdatedProperties changed = 0;
-        // assign to the local variables so the normal set action does not happen
-        // if (_position != entprop.Position)
-        if (!_position.ApproxEquals(entprop.Position, POSITION_TOLERANCE))
-        {
-            _position = entprop.Position;
-            changed |= UpdatedProperties.Position;
-        }
-        // if (_orientation != entprop.Rotation)
-        if (!_orientation.ApproxEquals(entprop.Rotation, ROTATION_TOLERANCE))
-        {
-            _orientation = entprop.Rotation;
-            changed |= UpdatedProperties.Rotation;
-        }
-        // if (_velocity != entprop.Velocity)
-        if (!_velocity.ApproxEquals(entprop.Velocity, VELOCITY_TOLERANCE))
-        {
-            _velocity = entprop.Velocity;
-            changed |= UpdatedProperties.Velocity;
-        }
-        // if (_acceleration != entprop.Acceleration)
-        if (!_acceleration.ApproxEquals(entprop.Acceleration, ACCELERATION_TOLERANCE))
-        {
-            _acceleration = entprop.Acceleration;
-            changed |= UpdatedProperties.Acceleration;
-        }
-        // if (_rotationalVelocity != entprop.RotationalVelocity)
-        if (!_rotationalVelocity.ApproxEquals(entprop.RotationalVelocity, ROTATIONAL_VELOCITY_TOLERANCE))
-        {
-            _rotationalVelocity = entprop.RotationalVelocity;
-            changed |= UpdatedProperties.RotationalVel;
-        }
-        if (changed != 0)
-        {
-            // Only update the position of single objects and linkset roots
-            if (Linkset.IsRoot(this))
-            {
-                base.RequestPhysicsterseUpdate();
-            }
-        }
-        */
-
-        // Don't check for damping here -- it's done in BulletSim and SceneObjectPart.
-
         // Updates only for individual prims and for the root object of a linkset.
         if (Linkset.IsRoot(this))
         {
+            // A temporary kludge to suppress the rotational effects introduced on vehicles by Bullet
+            // TODO: handle physics introduced by Bullet with computed vehicle physics.
+            if (_vehicle.IsActive)
+            {
+                entprop.RotationalVelocity = OMV.Vector3.Zero;
+            }
+
             // Assign directly to the local variables so the normal set action does not happen
             _position = entprop.Position;
             _orientation = entprop.Rotation;
@@ -1436,7 +1399,7 @@ public sealed class BSPrim : BSPhysObject
             _rotationalVelocity = entprop.RotationalVelocity;
 
             // The sanity check can change the velocity and/or position.
-            if (PositionSanityCheck(true))
+            if (IsPhysical && PositionSanityCheck(true))
             {
                 entprop.Position = _position;
                 entprop.Velocity = _velocity;
@@ -1446,11 +1409,9 @@ public sealed class BSPrim : BSPhysObject
             LastEntityProperties = CurrentEntityProperties;
             CurrentEntityProperties = entprop;
 
-            OMV.Vector3 direction = OMV.Vector3.UnitX * _orientation;
+            OMV.Vector3 direction = OMV.Vector3.UnitX * _orientation;   // DEBUG DEBUG DEBUG
             DetailLog("{0},BSPrim.UpdateProperties,call,pos={1},orient={2},dir={3},vel={4},rotVel={5}",
                     LocalID, _position, _orientation, direction, _velocity, _rotationalVelocity);
-
-            // BulletSimAPI.DumpRigidBody2(PhysicsScene.World.ptr, BSBody.ptr);   // DEBUG DEBUG DEBUG
 
             base.RequestPhysicsterseUpdate();
         }
