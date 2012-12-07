@@ -175,6 +175,11 @@ namespace OpenSim.Region.Physics.Manager
 
         public abstract Vector3 Size { get; set; }
 
+        public virtual void setAvatarSize(Vector3 size, float feetOffset)
+        {
+            Size = size;
+        }
+
         public virtual bool Phantom { get; set; }
 
         public virtual bool IsVolumeDtc

@@ -275,7 +275,8 @@ namespace OpenSim.Framework
             size += pelvisToFoot;
 
             m_standSize = new Vector3(0.45f, 0.6f, size);
-            m_feetOffset = 0.5f * size - pelvisToFoot;
+            //            m_feetOffset = 0.5f * size - pelvisToFoot;
+            m_feetOffset = 0.0f;
         }
     }
 }

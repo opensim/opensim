@@ -90,12 +90,11 @@ namespace OpenSim.Region.Physics.OdePlugin
         public float PID_D;
         public float PID_P;
 
+        private float m_feetOffset = 0;
         private float feetOff = 0;
         private float feetSZ = 0.5f;
         const float feetScale = 0.8f;
-        const float sizeZAdjust = 0.18f;
         private float boneOff = 0;
-
 
         public float walkDivisor = 1.3f;
         public float runDivisor = 0.8f;
@@ -475,6 +474,28 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
+        public override void setAvatarSize(Vector3 size, float feetOffset)
+        {
+            if (size.IsFinite())
+            {
+                if (size.X < 0.01f)
+                    size.X = 0.01f;
+                if (size.Y < 0.01f)
+                    size.Y = 0.01f;
+                if (size.Z < 0.01f)
+                    size.Z = 0.01f;
+
+                strAvatarSize st = new strAvatarSize();
+                st.size = size;
+                st.offset = feetOffset;
+                AddChange(changes.AvatarSize, st);
+            }
+            else
+            {
+                m_log.Warn("[PHYSICS]: Got a NaN AvatarSize from Scene on a Character");
+            }
+            
+        }
         /// <summary>
         /// This creates the Avatar's physical Surrogate at the position supplied
         /// </summary>
@@ -673,7 +694,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             // sizes  one day should came from visual parameters
             float sx = m_size.X;
             float sy = m_size.Y;
-            float sz = m_size.Z + sizeZAdjust;
+            float sz = m_size.Z;
+
 
             float topsx = sx * 0.9f;
             float midsx = sx;
@@ -693,7 +715,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             float midsz = sz - topsz - feetsz;
             float bonesz = sz;
 
-            float bot = -sz * 0.5f;
+            float bot = -sz * 0.5f + m_feetOffset;
 
             boneOff = bot + 0.3f;
 
@@ -754,6 +776,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             d.GeomSetOffsetPosition(feetbox, 0, 0, feetz);
             d.GeomSetOffsetPosition(midbox, 0, 0, midz);
             d.GeomSetOffsetPosition(topbox, 0, 0, topz);
+            d.GeomSetOffsetPosition(bonebox, 0, 0, m_feetOffset);
 
             // The purpose of the AMotor here is to keep the avatar's physical
             // surrogate from rotating while moving
@@ -1402,6 +1425,12 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
         }
 
+        private void changeAvatarSize(strAvatarSize st)
+        {
+            m_feetOffset = st.offset;
+            changeSize(st.size);
+        }
+
         private void changeSize(Vector3 pSize)
         {
             if (pSize.IsFinite())
@@ -1609,6 +1638,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                     changeSize((Vector3)arg);
                     break;
 
+                case changes.AvatarSize:
+                    changeAvatarSize((strAvatarSize)arg);
+                    break;
+
                 case changes.Momentum:
                     changeMomentum((Vector3)arg);
                     break;
@@ -1656,5 +1689,12 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             _parent_scene.AddChange((PhysicsActor)this, what, arg);
         }
+
+        private struct strAvatarSize
+        {
+            public Vector3 size;
+            public float offset;
+        }
+
     }
 }

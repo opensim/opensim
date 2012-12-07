@@ -147,6 +147,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         PIDHoverActive,
 
         Size,
+        AvatarSize,
         Shape,
         PhysRepData,
         AddPhysRep,
