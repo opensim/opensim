@@ -137,6 +137,11 @@
     ;; uncomment the next line. You may want to do this on sims that have licensed content.
     ; OutboundPermission = False
 
+	;; Send visual reminder to local users that their inventories are unavailable while they are traveling
+	;; and available when they return. True by default.
+	;RestrictInventoryAccessAbroad = True
+
+
 [HGAssetService]
     ;
     ; === HG ONLY ===
