@@ -3443,8 +3443,9 @@ namespace OpenSim.Region.Framework.Scenes
                     Name, Scene.RegionInfo.RegionName);
             }
 
-//            if (Appearance.AvatarHeight == 0)
+            if (Appearance.AvatarHeight == 0)
 //                Appearance.SetHeight();
+                Appearance.SetSize(new Vector3(0.45f,0.6f,1.9f));
 
             PhysicsScene scene = m_scene.PhysicsScene;
 
