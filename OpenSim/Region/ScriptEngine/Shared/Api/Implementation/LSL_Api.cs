@@ -3013,7 +3013,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             bool result = money.ObjectGiveMoney(
-                m_host.ParentGroup.RootPart.UUID, m_host.ParentGroup.RootPart.OwnerID, toID, amount);
+                m_host.ParentGroup.RootPart.UUID, m_host.ParentGroup.RootPart.OwnerID, toID, amount,UUID.Zero);
 
             if (result)
                 return 1;
@@ -12547,7 +12547,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     }
 
                     bool result = money.ObjectGiveMoney(
-                        m_host.ParentGroup.RootPart.UUID, m_host.ParentGroup.RootPart.OwnerID, toID, amount);
+                        m_host.ParentGroup.RootPart.UUID, m_host.ParentGroup.RootPart.OwnerID, toID, amount,UUID.Zero);
 
                     if (result)
                     {
