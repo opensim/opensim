@@ -678,8 +678,8 @@ namespace OpenSim.Framework
         {
             if ((data != null) && (data["serial"] != null))
                 m_serial = data["serial"].AsInteger();
-            if ((data != null) && (data["height"] != null))
-                m_avatarHeight = (float)data["height"].AsReal();
+//            if ((data != null) && (data["height"] != null))
+//                m_avatarHeight = (float)data["height"].AsReal();
 
             try
             {
@@ -741,6 +741,7 @@ namespace OpenSim.Framework
 //                            att.ItemID, att.AssetID, att.AttachPoint);
                     }
                 }
+                SetHeight();
             }
             catch (Exception e)
             {
