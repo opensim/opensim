@@ -54,7 +54,7 @@ namespace OpenSim.Framework
 
 		}
 
-		        /// <summary>
+		/// <summary>
         /// Installs the plugin.
         /// </summary>
         /// <returns>
