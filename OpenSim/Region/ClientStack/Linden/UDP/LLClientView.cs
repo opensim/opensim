@@ -459,7 +459,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         public bool SendLogoutPacketWhenClosing { set { m_SendLogoutPacketWhenClosing = value; } }
-        private Dictionary<UUID,UUID> agentWearables = new Dictionary<UUID, UUID>();
+       
 
         #endregion Properties
 
@@ -585,6 +585,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Disable UDP handling for this client
             m_udpClient.Shutdown();
 
+            
             //m_log.InfoFormat("[CLIENTVIEW] Memory pre  GC {0}", System.GC.GetTotalMemory(false));
             //GC.Collect();
             //m_log.InfoFormat("[CLIENTVIEW] Memory post GC {0}", System.GC.GetTotalMemory(true));
@@ -2750,10 +2751,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     req.AssetInf.ID, req.AssetInf.Metadata.ContentType);
                 return;
             }
-            UUID WearableOut = UUID.Zero;
+            int WearableOut = 0;
             bool isWearable = false;
-            isWearable = agentWearables.TryGetValue(req.RequestAssetID, out WearableOut);
-           // m_log.Debug("sending asset " + req.RequestAssetID + ", iswearable: " + isWearable);
+
+            if (req.AssetInf != null)
+                isWearable =
+                    ((AssetType) req.AssetInf.Type ==
+                     AssetType.Bodypart || (AssetType) req.AssetInf.Type == AssetType.Clothing);
+
+            
+            //m_log.Debug("sending asset " + req.RequestAssetID + ", iswearable: " + isWearable);
+           
+            
+            //if (isWearable) 
+            //    m_log.Debug((AssetType)req.AssetInf.Type);
+            
             TransferInfoPacket Transfer = new TransferInfoPacket();
             Transfer.TransferInfo.ChannelType = 2;
             Transfer.TransferInfo.Status = 0;
@@ -3574,27 +3586,23 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             aw.WearableData = new AgentWearablesUpdatePacket.WearableDataBlock[count];
             AgentWearablesUpdatePacket.WearableDataBlock awb;
             int idx = 0;
-            lock (agentWearables)
-            {
-                agentWearables.Clear();
-                for (int i = 0; i < wearables.Length; i++)
-                {
-                    for (int j = 0; j < wearables[i].Count; j++)
+           
+                    for (int i = 0; i < wearables.Length; i++)
                     {
-                        awb = new AgentWearablesUpdatePacket.WearableDataBlock();
-                        awb.WearableType = (byte) i;
-                        awb.AssetID = wearables[i][j].AssetID;
-                        awb.ItemID = wearables[i][j].ItemID;
-                        agentWearables.Add(awb.AssetID, awb.ItemID);
-                        aw.WearableData[idx] = awb;
-                        idx++;
+                        for (int j = 0; j < wearables[i].Count; j++)
+                        {
+                            awb = new AgentWearablesUpdatePacket.WearableDataBlock();
+                            awb.WearableType = (byte) i;
+                            awb.AssetID = wearables[i][j].AssetID;
+                            awb.ItemID = wearables[i][j].ItemID;
+                            aw.WearableData[idx] = awb;
+                            idx++;
 
-                        //                                m_log.DebugFormat(
-                        //                                    "[APPEARANCE]: Sending wearable item/asset {0} {1} (index {2}) for {3}",
-                        //                                    awb.ItemID, awb.AssetID, i, Name);
-                    }
-                }
-            }
+                            //                                m_log.DebugFormat(
+                            //                                    "[APPEARANCE]: Sending wearable item/asset {0} {1} (index {2}) for {3}",
+                            //                                    awb.ItemID, awb.AssetID, i, Name);
+                        }
+                    }    
 
             OutPacket(aw, ThrottleOutPacketType.State);
         }
@@ -7777,12 +7785,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // surrounding scene
                 if ((ImageType)block.Type == ImageType.Baked)
                     args.Priority *= 2.0f;
-
-                UUID wearableout = UUID.Zero;
-                if (agentWearables.TryGetValue(block.Image, out wearableout))
-                {
-                    args.Priority *= 2.0f;
-                }
+                int wearableout = 0;
 
                 ImageManager.EnqueueReq(args);
             }
