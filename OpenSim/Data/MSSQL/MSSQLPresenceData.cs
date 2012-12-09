@@ -100,16 +100,18 @@ namespace OpenSim.Data.MSSQL
             return true;
         }
 
-        public PresenceData VerifyAgent(UUID secureSessionID)
+        public bool VerifyAgent(UUID agentId, UUID secureSessionID)
         {
             PresenceData[] ret = Get("SecureSessionID",
                     secureSessionID.ToString());
-
+            
             if (ret.Length == 0)
-                return null;
+                return false;
 
-            return ret[0];
+            if(ret[0].UserID != agentId.ToString())
+                return false;
+
+            return true;
         }
-
     }
 }

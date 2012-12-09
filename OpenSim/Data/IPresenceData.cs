@@ -53,6 +53,6 @@ namespace OpenSim.Data
         bool ReportAgent(UUID sessionID, UUID regionID);
         PresenceData[] Get(string field, string data);
         bool Delete(string field, string val);
-        PresenceData VerifyAgent(UUID secureSessionID);
+        bool VerifyAgent(UUID agentId, UUID secureSessionID);
     }
 }
