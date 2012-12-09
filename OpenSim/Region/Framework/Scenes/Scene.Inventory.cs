@@ -692,7 +692,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 IInventoryAccessModule invAccess = RequestModuleInterface<IInventoryAccessModule>();
                 if (invAccess != null)
-                    Util.FireAndForget(delegate { invAccess.TransferInventoryAssets(itemCopy, senderId, recipient); });
+                    invAccess.TransferInventoryAssets(itemCopy, senderId, recipient); 
             }
 
             if (!Permissions.BypassPermissions())
