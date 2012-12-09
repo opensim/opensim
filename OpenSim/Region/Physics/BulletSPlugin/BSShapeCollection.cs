@@ -415,7 +415,7 @@ public sealed class BSShapeCollection : IDisposable
         if (!haveShape && prim.PreferredPhysicalShape == BSPhysicsShapeType.SHAPE_CAPSULE)
         {
             // an avatar capsule is close to a native shape (it is not shared)
-            ret = GetReferenceToNativeShape(prim, BSPhysicsShapeType.SHAPE_CAPSULE,
+            GetReferenceToNativeShape(prim, BSPhysicsShapeType.SHAPE_CAPSULE,
                             FixedShapeKey.KEY_CAPSULE, shapeCallback);
             if (DDetail) DetailLog("{0},BSShapeCollection.CreateGeom,avatarCapsule,shape={1}", prim.LocalID, prim.PhysShape);
             ret = true;
@@ -423,7 +423,7 @@ public sealed class BSShapeCollection : IDisposable
         }
 
         // Compound shapes are handled special as they are rebuilt from scratch.
-        // This isn't too great a hardship since most of the child shapes will already been created.
+        // This isn't too great a hardship since most of the child shapes will have already been created.
         if (!haveShape && prim.PreferredPhysicalShape == BSPhysicsShapeType.SHAPE_COMPOUND)
         {
             ret = GetReferenceToCompoundShape(prim, shapeCallback);
@@ -460,6 +460,9 @@ public sealed class BSShapeCollection : IDisposable
                         && pbs.PathScaleX == 100 && pbs.PathScaleY == 100
                         && pbs.PathShearX == 0 && pbs.PathShearY == 0) ) )
         {
+            if (DDetail) DetailLog("{0},BSShapeCollection.CreateGeom,maybeNative,force={1},primScale={2},primSize={3},primShape={4}",
+                        prim.LocalID, forceRebuild, prim.Scale, prim.Size, prim.PhysShape.type);
+
             // It doesn't look like Bullet scales spheres so make sure the scales are all equal
             if ((pbs.ProfileShape == ProfileShape.HalfCircle && pbs.PathCurve == (byte)Extrusion.Curve1)
                                 && pbs.Scale.X == pbs.Scale.Y && pbs.Scale.Y == pbs.Scale.Z)
@@ -538,6 +541,8 @@ public sealed class BSShapeCollection : IDisposable
         if (DDetail) DetailLog("{0},BSShapeCollection.AddNativeShapeToPrim,create,newshape={1},scale={2}",
                                 prim.LocalID, newShape, prim.Scale);
 
+        // native shapes are scaled by Bullet
+        prim.Scale = prim.Size;
         prim.PhysShape = newShape;
         return true;
     }
@@ -550,8 +555,8 @@ public sealed class BSShapeCollection : IDisposable
         ShapeData nativeShapeData = new ShapeData();
         nativeShapeData.Type = shapeType;
         nativeShapeData.ID = prim.LocalID;
-        nativeShapeData.Scale = prim.Scale;
-        nativeShapeData.Size = prim.Scale;  // unneeded, I think.
+        nativeShapeData.Scale = prim.Size;
+        nativeShapeData.Size = prim.Size;  // unneeded, I think.
         nativeShapeData.MeshKey = (ulong)shapeKey;
         nativeShapeData.HullKey = (ulong)shapeKey;
 
@@ -566,8 +571,6 @@ public sealed class BSShapeCollection : IDisposable
         else
         {
             // Native shapes are scaled in Bullet so set the scaling to the size
-            prim.Scale = prim.Size;
-            nativeShapeData.Scale = prim.Scale;
             newShape = new BulletShape(BulletSimAPI.BuildNativeShape2(PhysicsScene.World.ptr, nativeShapeData), shapeType);
         }
         if (newShape.ptr == IntPtr.Zero)

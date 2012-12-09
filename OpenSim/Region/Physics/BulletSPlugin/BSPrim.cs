@@ -190,12 +190,15 @@ public sealed class BSPrim : BSPhysObject
     }
     public override bool Selected {
         set {
-            _isSelected = value;
-            PhysicsScene.TaintedObject("BSPrim.setSelected", delegate()
+            if (value != _isSelected)
             {
-                DetailLog("{0},BSPrim.selected,taint,selected={1}", LocalID, _isSelected);
-                SetObjectDynamic(false);
-            });
+                _isSelected = value;
+                PhysicsScene.TaintedObject("BSPrim.setSelected", delegate()
+                {
+                    DetailLog("{0},BSPrim.selected,taint,selected={1}", LocalID, _isSelected);
+                    SetObjectDynamic(false);
+                });
+            }
         }
     }
     public override void CrossingFailure() { return; }
@@ -678,8 +681,11 @@ public sealed class BSPrim : BSPhysObject
             CurrentCollisionFlags = BulletSimAPI.AddToCollisionFlags2(PhysBody.ptr, CollisionFlags.CF_STATIC_OBJECT);
             // Stop all movement
             ZeroMotion(true);
-            // Center of mass is at the center of the object
-            // DEBUG DEBUG BulletSimAPI.SetCenterOfMassByPosRot2(Linkset.LinksetRoot.PhysBody.ptr, _position, _orientation);
+
+            // Set various physical properties so other object interact properly
+            BulletSimAPI.SetFriction2(PhysBody.ptr, PhysicsScene.Params.defaultFriction);
+            BulletSimAPI.SetRestitution2(PhysBody.ptr, PhysicsScene.Params.defaultRestitution);
+
             // Mass is zero which disables a bunch of physics stuff in Bullet
             UpdatePhysicalMassProperties(0f);
             // Set collision detection parameters
@@ -688,12 +694,14 @@ public sealed class BSPrim : BSPhysObject
                 BulletSimAPI.SetCcdMotionThreshold2(PhysBody.ptr, PhysicsScene.Params.ccdMotionThreshold);
                 BulletSimAPI.SetCcdSweptSphereRadius2(PhysBody.ptr, PhysicsScene.Params.ccdSweptSphereRadius);
             }
-            // There can be special things needed for implementing linksets
-            Linkset.MakeStatic(this);
+
             // The activation state is 'disabled' so Bullet will not try to act on it.
             // BulletSimAPI.ForceActivationState2(PhysBody.ptr, ActivationState.DISABLE_SIMULATION);
             // Start it out sleeping and physical actions could wake it up.
             BulletSimAPI.ForceActivationState2(PhysBody.ptr, ActivationState.ISLAND_SLEEPING);
+
+            // There can be special things needed for implementing linksets
+            Linkset.MakeStatic(this);
 
             PhysBody.collisionGroup = CollisionFilterGroups.StaticObjectGroup;
             PhysBody.collisionMask = CollisionFilterGroups.StaticObjectMask;
@@ -1326,7 +1334,7 @@ public sealed class BSPrim : BSPhysObject
     // Rebuild the geometry and object.
     // This is called when the shape changes so we need to recreate the mesh/hull.
     // Called at taint-time!!!
-    private void CreateGeomAndObject(bool forceRebuild)
+    public void CreateGeomAndObject(bool forceRebuild)
     {
         // If this prim is part of a linkset, we must remove and restore the physical
         //    links if the body is rebuilt.
@@ -1341,7 +1349,7 @@ public sealed class BSPrim : BSPhysObject
         {
             // Called if the current prim body is about to be destroyed.
             // Remove all the physical dependencies on the old body.
-            // (Maybe someday make the changing of BSShape an event handled by BSLinkset.)
+            // (Maybe someday make the changing of BSShape an event to be subscribed to by BSLinkset, ...)
             needToRestoreLinkset = Linkset.RemoveBodyDependencies(this);
             needToRestoreVehicle = _vehicle.RemoveBodyDependencies(this);
         });

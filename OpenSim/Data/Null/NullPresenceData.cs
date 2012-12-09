@@ -222,5 +222,13 @@ namespace OpenSim.Data.Null
             return true;
         }
 
+        public bool VerifyAgent(UUID agentId, UUID secureSessionID)
+        {
+            if (Instance != this)
+                return Instance.VerifyAgent(agentId, secureSessionID);
+
+            return false;
+        }
+
     }
 }

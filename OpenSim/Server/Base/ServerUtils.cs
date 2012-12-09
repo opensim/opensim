@@ -33,11 +33,137 @@ using System.Xml.Serialization;
 using System.Text;
 using System.Collections.Generic;
 using log4net;
+using Nini.Config;
 using OpenSim.Framework;
 using OpenMetaverse;
+using Mono.Addins;
+using OpenSim.Framework.Servers.HttpServer;
+using OpenSim.Framework.Servers;
 
+
+[assembly:AddinRoot("Robust", "0.1")]
 namespace OpenSim.Server.Base
 {
+    [TypeExtensionPoint(Path="/Robust/Connector", Name="RobustConnector")]
+    public interface IRobustConnector
+    {
+        string ConfigName
+        {
+            get;
+        }
+
+        bool Enabled
+        {
+            get;
+        }
+
+        string PluginPath
+        {
+            get;
+            set;
+        }
+
+        uint Configure(IConfigSource config);
+        void Initialize(IHttpServer server);
+        void Unload();
+    }
+
+    public class PluginLoader
+    {
+        static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        public AddinRegistry Registry
+        {
+            get;
+            private set;
+        }
+
+        public IConfigSource Config
+        {
+            get;
+            private set;
+        }
+
+        public PluginLoader(IConfigSource config, string registryPath)
+        {
+            Config = config;
+
+            Registry = new AddinRegistry(registryPath, ".");
+            AddinManager.Initialize(registryPath);
+            AddinManager.Registry.Update();
+            CommandManager commandmanager = new CommandManager(Registry);
+            AddinManager.AddExtensionNodeHandler("/Robust/Connector", OnExtensionChanged);
+        }
+
+        private void OnExtensionChanged(object s, ExtensionNodeEventArgs args)
+        {
+            IRobustConnector connector = (IRobustConnector)args.ExtensionObject;
+            Addin a = Registry.GetAddin(args.ExtensionNode.Addin.Id);
+
+            if(a == null)
+            {
+                Registry.Rebuild(null);
+                a = Registry.GetAddin(args.ExtensionNode.Addin.Id);
+            }
+
+            switch(args.Change)
+            {
+                case ExtensionChange.Add:
+                    if (a.AddinFile.Contains(Registry.DefaultAddinsFolder))
+                    {
+                        m_log.InfoFormat("[SERVER]: Adding {0} from registry", a.Name);
+                        connector.PluginPath = String.Format("{0}/{1}", Registry.DefaultAddinsFolder, a.Name.Replace(',', '.'));
+                    }
+                    else
+                    {
+                        m_log.InfoFormat("[SERVER]: Adding {0} from ./bin", a.Name);
+                        connector.PluginPath = a.AddinFile;
+                    }
+                    LoadPlugin(connector);
+                    break;
+                case ExtensionChange.Remove:
+                    m_log.InfoFormat("[SERVER]: Removing {0}", a.Name);
+                    UnloadPlugin(connector);
+                    break;
+            }
+        }
+
+        private void LoadPlugin(IRobustConnector connector)
+        {
+            IHttpServer server = null;
+            uint port = connector.Configure(Config);
+
+            if(connector.Enabled)
+            {
+                server = GetServer(connector, port);
+                connector.Initialize(server);
+            }
+            else
+            {
+                m_log.InfoFormat("[SERVER]: {0} Disabled.", connector.ConfigName);
+            }
+        }
+
+        private void UnloadPlugin(IRobustConnector connector)
+        {
+            m_log.InfoFormat("[Server]: Unloading {0}", connector.ConfigName);
+
+            connector.Unload();
+        }
+
+        private IHttpServer GetServer(IRobustConnector connector, uint port)
+        {
+            IHttpServer server;
+
+            if(port != 0)
+                server = MainServer.GetHttpServer(port);
+            else    
+                server = MainServer.Instance;
+
+            return server;
+        }
+    }
+
     public static class ServerUtils
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -332,6 +458,43 @@ namespace OpenSim.Server.Base
             }
 
             return ret;
+        }
+
+        public static IConfig GetConfig(string configFile, string configName)
+        {
+            IConfig config;
+
+            if (File.Exists(configFile))
+            {
+                IConfigSource configsource = new IniConfigSource(configFile);
+                config = configsource.Configs[configName];
+            }
+            else
+                config = null;
+
+            return config;
+        }
+
+        public static IConfigSource LoadInitialConfig(string url)
+        {
+            IConfigSource source = new XmlConfigSource();
+            m_log.InfoFormat("[CONFIG]: {0} is a http:// URI, fetching ...", url);
+
+            // The ini file path is a http URI
+            // Try to read it
+            try
+            {
+                XmlReader r = XmlReader.Create(url);
+                IConfigSource cs = new XmlConfigSource(r);
+                source.Merge(cs);
+            }
+            catch (Exception e)
+            {
+                m_log.FatalFormat("[CONFIG]: Exception reading config from URI {0}\n" + e.ToString(), url);
+                Environment.Exit(1);
+            }
+
+            return source;
         }
     }
 }
