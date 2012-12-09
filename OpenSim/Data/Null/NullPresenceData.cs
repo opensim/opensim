@@ -222,17 +222,12 @@ namespace OpenSim.Data.Null
             return true;
         }
 
-        public PresenceData VerifyAgent(UUID secureSessionID)
+        public bool VerifyAgent(UUID agentId, UUID secureSessionID)
         {
             if (Instance != this)
-                return Instance.VerifyAgent(secureSessionID);
+                return Instance.VerifyAgent(agentId, secureSessionID);
 
-            if (m_presenceData.ContainsKey(secureSessionID))
-            {
-                return m_presenceData[secureSessionID];
-            }
-
-            return null;
+            return false;
         }
 
     }
