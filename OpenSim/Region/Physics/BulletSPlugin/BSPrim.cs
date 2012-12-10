@@ -108,8 +108,8 @@ public sealed class BSPrim : BSPhysObject
         _mass = CalculateMass();
 
         // No body or shape yet
-        PhysBody = new BulletBody(LocalID, IntPtr.Zero);
-        PhysShape = new BulletShape(IntPtr.Zero);
+        PhysBody = new BulletBody(LocalID);
+        PhysShape = new BulletShape();
 
         DetailLog("{0},BSPrim.constructor,call", LocalID);
         // do the actual object creation at taint time
@@ -143,7 +143,9 @@ public sealed class BSPrim : BSPhysObject
             DetailLog("{0},BSPrim.Destroy,taint,", LocalID);
             // If there are physical body and shape, release my use of same.
             PhysicsScene.Shapes.DereferenceBody(PhysBody, true, null);
+            PhysBody.Clear();
             PhysicsScene.Shapes.DereferenceShape(PhysShape, true, null);
+            PhysShape.Clear();
         });
     }
 

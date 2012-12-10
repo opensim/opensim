@@ -57,7 +57,7 @@ public abstract class BSConstraint : IDisposable
         if (m_enabled)
         {
             m_enabled = false;
-            if (m_constraint.ptr != IntPtr.Zero)
+            if (m_constraint.HasPhysicalConstraint)
             {
                 bool success = BulletSimAPI.DestroyConstraint2(m_world.ptr, m_constraint.ptr);
                 m_world.physicsScene.DetailLog("{0},BSConstraint.Dispose,taint,id1={1},body1={2},id2={3},body2={4},success={5}",
@@ -65,7 +65,7 @@ public abstract class BSConstraint : IDisposable
                                     m_body1.ID, m_body1.ptr.ToString("X"),
                                     m_body2.ID, m_body2.ptr.ToString("X"),
                                     success);
-                m_constraint.ptr = System.IntPtr.Zero;
+                m_constraint.Clear();
             }
         }
     }

@@ -75,6 +75,7 @@ public abstract class BSPhysObject : PhysicsActor
     public string TypeName { get; protected set; }
 
     public BSLinkset Linkset { get; set; }
+    public BSLinksetInfo LinksetInfo { get; set; }
 
     // Return the object mass without calculating it or having side effects
     public abstract float RawMass { get; }
@@ -253,7 +254,9 @@ public abstract class BSPhysObject : PhysicsActor
         SubscribedEventsMs = 0;
         PhysicsScene.TaintedObject(TypeName+".UnSubscribeEvents", delegate()
         {
-            CurrentCollisionFlags = BulletSimAPI.RemoveFromCollisionFlags2(PhysBody.ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
+            // Make sure there is a body there because sometimes destruction happens in an un-ideal order.
+            if (PhysBody.HasPhysicalBody)
+                CurrentCollisionFlags = BulletSimAPI.RemoveFromCollisionFlags2(PhysBody.ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
         });
     }
     // Return 'true' if the simulator wants collision events

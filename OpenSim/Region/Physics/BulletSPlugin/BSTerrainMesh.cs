@@ -94,7 +94,7 @@ public sealed class BSTerrainMesh : BSTerrainPhys
         m_terrainShape = new BulletShape(BulletSimAPI.CreateMeshShape2(PhysicsScene.World.ptr,
                                                     indicesCount, indices, verticesCount, vertices),
                                         BSPhysicsShapeType.SHAPE_MESH);
-        if (m_terrainShape.ptr == IntPtr.Zero)
+        if (!m_terrainShape.HasPhysicalShape)
         {
             // DISASTER!!
             PhysicsScene.DetailLog("{0},BSTerrainMesh.create,failedCreationOfShape", ID);
@@ -107,7 +107,7 @@ public sealed class BSTerrainMesh : BSTerrainPhys
         Quaternion rot = Quaternion.Identity;
 
         m_terrainBody = new BulletBody(id, BulletSimAPI.CreateBodyWithDefaultMotionState2( m_terrainShape.ptr, ID, pos, rot));
-        if (m_terrainBody.ptr == IntPtr.Zero)
+        if (!m_terrainBody.HasPhysicalBody)
         {
             // DISASTER!!
             physicsScene.Logger.ErrorFormat("{0} Failed creation of terrain body! base={1}", LogHeader, TerrainBase);
@@ -140,7 +140,7 @@ public sealed class BSTerrainMesh : BSTerrainPhys
 
     public override void Dispose()
     {
-        if (m_terrainBody.ptr != IntPtr.Zero)
+        if (m_terrainBody.HasPhysicalBody)
         {
             BulletSimAPI.RemoveObjectFromWorld2(PhysicsScene.World.ptr, m_terrainBody.ptr);
             // Frees both the body and the shape.

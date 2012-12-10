@@ -149,7 +149,7 @@ public sealed class BSShapeCollection : IDisposable
     // Called when releasing use of a BSBody. BSShape is handled separately.
     public void DereferenceBody(BulletBody body, bool inTaintTime, BodyDestructionCallback bodyCallback )
     {
-        if (body.ptr == IntPtr.Zero)
+        if (!body.HasPhysicalBody)
             return;
 
         lock (m_collectionActivityLock)
@@ -243,12 +243,12 @@ public sealed class BSShapeCollection : IDisposable
     // Release the usage of a shape.
     public void DereferenceShape(BulletShape shape, bool inTaintTime, ShapeDestructionCallback shapeCallback)
     {
-        if (shape.ptr == IntPtr.Zero)
+        if (!shape.HasPhysicalShape)
             return;
 
         PhysicsScene.TaintedObject(inTaintTime, "BSShapeCollection.DereferenceShape", delegate()
         {
-            if (shape.ptr != IntPtr.Zero)
+            if (shape.HasPhysicalShape)
             {
                 if (shape.isNativeShape)
                 {
@@ -440,7 +440,7 @@ public sealed class BSShapeCollection : IDisposable
     }
 
     // Create a mesh/hull shape or a native shape if 'nativeShapePossible' is 'true'.
-    private bool CreateGeomNonSpecial(bool forceRebuild, BSPhysObject prim, ShapeDestructionCallback shapeCallback)
+    public bool CreateGeomNonSpecial(bool forceRebuild, BSPhysObject prim, ShapeDestructionCallback shapeCallback)
     {
         bool ret = false;
         bool haveShape = false;
@@ -573,7 +573,7 @@ public sealed class BSShapeCollection : IDisposable
             // Native shapes are scaled in Bullet so set the scaling to the size
             newShape = new BulletShape(BulletSimAPI.BuildNativeShape2(PhysicsScene.World.ptr, nativeShapeData), shapeType);
         }
-        if (newShape.ptr == IntPtr.Zero)
+        if (!newShape.HasPhysicalShape)
         {
             PhysicsScene.Logger.ErrorFormat("{0} BuildPhysicalNativeShape failed. ID={1}, shape={2}",
                                     LogHeader, prim.LocalID, shapeType);
@@ -590,7 +590,7 @@ public sealed class BSShapeCollection : IDisposable
     // Called at taint-time!
     private bool GetReferenceToMesh(BSPhysObject prim, ShapeDestructionCallback shapeCallback)
     {
-        BulletShape newShape = new BulletShape(IntPtr.Zero);
+        BulletShape newShape = new BulletShape();
 
         float lod;
         System.UInt64 newMeshKey = ComputeShapeKey(prim.Size, prim.BaseShape, out lod);
@@ -860,7 +860,7 @@ public sealed class BSShapeCollection : IDisposable
     private BulletShape VerifyMeshCreated(BulletShape newShape, BSPhysObject prim)
     {
         // If the shape was successfully created, nothing more to do
-        if (newShape.ptr != IntPtr.Zero)
+        if (newShape.HasPhysicalShape)
             return newShape;
 
         // If this mesh has an underlying asset and we have not failed getting it before, fetch the asset
@@ -919,7 +919,7 @@ public sealed class BSShapeCollection : IDisposable
         bool ret = false;
 
         // the mesh, hull or native shape must have already been created in Bullet
-        bool mustRebuild = (prim.PhysBody.ptr == IntPtr.Zero);
+        bool mustRebuild = !prim.PhysBody.HasPhysicalBody;
 
         // If there is an existing body, verify it's of an acceptable type.
         // If not a solid object, body is a GhostObject. Otherwise a RigidBody.

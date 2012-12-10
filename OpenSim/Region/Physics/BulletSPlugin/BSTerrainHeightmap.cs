@@ -136,7 +136,7 @@ public sealed class BSTerrainHeightmap : BSTerrainPhys
     {
         if (m_mapInfo != null)
         {
-            if (m_mapInfo.terrainBody.ptr != IntPtr.Zero)
+            if (m_mapInfo.terrainBody.HasPhysicalBody)
             {
                 BulletSimAPI.RemoveObjectFromWorld2(PhysicsScene.World.ptr, m_mapInfo.terrainBody.ptr);
                 // Frees both the body and the shape.

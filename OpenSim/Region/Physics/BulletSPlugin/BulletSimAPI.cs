@@ -53,6 +53,9 @@ public struct BulletSim
 // An allocated Bullet btRigidBody
 public struct BulletBody
 {
+    public BulletBody(uint id) : this(id, IntPtr.Zero)
+    {
+    }
     public BulletBody(uint id, IntPtr xx)
     {
         ID = id;
@@ -64,6 +67,13 @@ public struct BulletBody
     public uint ID;
     public CollisionFilterGroups collisionGroup;
     public CollisionFilterGroups collisionMask;
+
+    public void Clear()
+    {
+        ptr = IntPtr.Zero;
+    }
+    public bool HasPhysicalBody { get { return ptr != IntPtr.Zero; } }
+
     public override string ToString()
     {
         StringBuilder buff = new StringBuilder();
@@ -103,6 +113,13 @@ public struct BulletShape
     public BSPhysicsShapeType type;
     public System.UInt64 shapeKey;
     public bool isNativeShape;
+
+    public void Clear()
+    {
+        ptr = IntPtr.Zero;
+    }
+    public bool HasPhysicalShape { get { return ptr != IntPtr.Zero; } }
+
     public override string ToString()
     {
         StringBuilder buff = new StringBuilder();
@@ -140,6 +157,12 @@ public struct BulletConstraint
         ptr = xx;
     }
     public IntPtr ptr;
+
+    public void Clear()
+    {
+        ptr = IntPtr.Zero;
+    }
+    public bool HasPhysicalConstraint { get { return ptr != IntPtr.Zero; } }
 }
 
 // An allocated HeightMapThing which holds various heightmap info.
