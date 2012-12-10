@@ -683,8 +683,9 @@ public sealed class BSPrim : BSPhysObject
             ZeroMotion(true);
 
             // Set various physical properties so other object interact properly
-            BulletSimAPI.SetFriction2(PhysBody.ptr, PhysicsScene.Params.defaultFriction);
-            BulletSimAPI.SetRestitution2(PhysBody.ptr, PhysicsScene.Params.defaultRestitution);
+            MaterialAttributes matAttrib = BSMaterials.GetAttributes(Material, false);
+            BulletSimAPI.SetFriction2(PhysBody.ptr, matAttrib.friction);
+            BulletSimAPI.SetRestitution2(PhysBody.ptr, matAttrib.restitution);
 
             // Mass is zero which disables a bunch of physics stuff in Bullet
             UpdatePhysicalMassProperties(0f);
@@ -711,9 +712,10 @@ public sealed class BSPrim : BSPhysObject
             // Not a Bullet static object
             CurrentCollisionFlags = BulletSimAPI.RemoveFromCollisionFlags2(PhysBody.ptr, CollisionFlags.CF_STATIC_OBJECT);
 
-            // Set various physical properties so internal dynamic properties will get computed correctly as they are set
-            BulletSimAPI.SetFriction2(PhysBody.ptr, PhysicsScene.Params.defaultFriction);
-            BulletSimAPI.SetRestitution2(PhysBody.ptr, PhysicsScene.Params.defaultRestitution);
+            // Set various physical properties so other object interact properly
+            MaterialAttributes matAttrib = BSMaterials.GetAttributes(Material, true);
+            BulletSimAPI.SetFriction2(PhysBody.ptr, matAttrib.friction);
+            BulletSimAPI.SetRestitution2(PhysBody.ptr, matAttrib.restitution);
 
             // per http://www.bulletphysics.org/Bullet/phpBB3/viewtopic.php?t=3382
             // Since this can be called multiple times, only zero forces when becoming physical

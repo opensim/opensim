@@ -60,6 +60,9 @@ public abstract class BSPhysObject : PhysicsActor
         Linkset = BSLinkset.Factory(PhysicsScene, this);
         LastAssetBuildFailed = false;
 
+        // Default material type
+        Material = MaterialAttributes.Material.Wood;
+
         CollisionCollection = new CollisionEventUpdate();
         SubscribedEventsMs = 0;
         CollidingStep = 0;
@@ -108,6 +111,13 @@ public abstract class BSPhysObject : PhysicsActor
     public abstract OMV.Vector3 Scale { get; set; }
     public abstract bool IsSolid { get; }
     public abstract bool IsStatic { get; }
+
+    // Materialness
+    public MaterialAttributes.Material Material { get; private set; }
+    public override void SetMaterial(int material)
+    {
+        Material = (MaterialAttributes.Material)material;
+    }
 
     // Stop all physical motion.
     public abstract void ZeroMotion(bool inTaintTime);
