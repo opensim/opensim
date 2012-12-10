@@ -192,6 +192,8 @@ public sealed class BSLinksetCompound : BSLinkset
                             child.LocalID, child.PhysBody.ptr.ToString("X"));
 
             // Cause the child's body to be rebuilt and thus restored to normal operation
+            // TODO: position and rotation must be restored because the child could have moved
+            //    based on the linkset.
             child.ForceBodyShapeRebuild(false);
 
             if (!HasAnyChildren)
@@ -236,9 +238,10 @@ public sealed class BSLinksetCompound : BSLinkset
 
                 if (cPrim.PhysShape.isNativeShape)
                 {
-                    // Native shapes are not shared so we need to create a new one.
-                    // A mesh or hull is created because scale is not available on a native shape.
-                    //     (TODO: Bullet does have a btScaledCollisionShape. Can that be used?)
+                    // A native shape is turning into a null collision shape because native
+                    //    shapes are not shared so we have to hullify it so it will be tracked
+                    //    and freed at the correct time. This also solves the scaling problem
+                    //    (native shapes scaled but hull/meshes are assumed to not be).
                     BulletShape saveShape = cPrim.PhysShape;
                     cPrim.PhysShape.ptr = IntPtr.Zero;  // Don't let the create free the child's shape
                     PhysicsScene.Shapes.CreateGeomMeshOrHull(cPrim, null);
