@@ -3992,6 +3992,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     
             const float TIME_DILATION = 1.0f;
             ushort timeDilation = Utils.FloatToUInt16(avgTimeDilation, 0.0f, 1.0f);
+            
     
             if (terseAgentUpdateBlocks.IsValueCreated)
             {
@@ -4972,7 +4973,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // in that direction, even though we don't model this on the server.  Implementing this in the future
                 // may improve movement smoothness.
 //                acceleration = new Vector3(1, 0, 0);
-                
+
                 angularVelocity = Vector3.Zero;
 
                 if (sendTexture)
@@ -5844,7 +5845,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private bool HandleVelocityInterpolateOn(IClientAPI sender, Packet Pack)
         {
-            VelocityInterpolateOffPacket p = (VelocityInterpolateOffPacket)Pack;
+            VelocityInterpolateOnPacket p = (VelocityInterpolateOnPacket)Pack;
             if (p.AgentData.SessionID != SessionId ||
                 p.AgentData.AgentID != AgentId)
                 return true;
