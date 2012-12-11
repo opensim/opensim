@@ -89,10 +89,37 @@ namespace OpenSim.Server.Base
             Config = config;
 
             Registry = new AddinRegistry(registryPath, ".");
+            suppress_console_output_(true);
             AddinManager.Initialize(registryPath);
+            suppress_console_output_(false);
             AddinManager.Registry.Update();
             CommandManager commandmanager = new CommandManager(Registry);
             AddinManager.AddExtensionNodeHandler("/Robust/Connector", OnExtensionChanged);
+        }
+
+        private static TextWriter prev_console_;
+        // Temporarily masking the errors reported on start
+        // This is caused by a non-managed dll in the ./bin dir
+        // when the registry is initialized. The dll belongs to
+        // libomv, which has a hard-coded path to "." for pinvoke
+        // to load the openjpeg dll
+        //
+        // Will look for a way to fix, but for now this keeps the 
+        // confusion to a minimum. this was copied from our region
+        // plugin loader, we have been doing this in there for a long time.
+        //
+        public void suppress_console_output_(bool save)
+        {
+            if (save)
+            {
+                prev_console_ = System.Console.Out;
+                System.Console.SetOut(new StreamWriter(Stream.Null));
+            }
+            else
+            {
+                if (prev_console_ != null)
+                    System.Console.SetOut(prev_console_);
+            }
         }
 
         private void OnExtensionChanged(object s, ExtensionNodeEventArgs args)

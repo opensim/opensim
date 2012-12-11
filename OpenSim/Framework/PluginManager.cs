@@ -92,6 +92,7 @@ namespace OpenSim.Framework
             // Attempt to install the plugin disabled
             if (Install(ps, pack) == true)
             {
+                MainConsole.Instance.Output("Ignore the following error...");
                 PluginRegistry.Update(ps);
                 Addin addin = PluginRegistry.GetAddin(aentry.Addin.Id);
                 PluginRegistry.DisableAddin(addin.Id);
@@ -479,6 +480,7 @@ namespace OpenSim.Framework
                 ConsoleProgressStatus ps = new ConsoleProgressStatus(false);
                 if (!AddinManager.AddinEngine.IsAddinLoaded(addin.Id))
                 {
+                    MainConsole.Instance.Output("Ignore the following error...");
                     AddinManager.Registry.Rebuild(ps);
                     AddinManager.AddinEngine.LoadAddin(ps, addin.Id);
                 }
