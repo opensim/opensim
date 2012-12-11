@@ -38,7 +38,8 @@ Disable activity of passive linkset children.
 Scenes with hundred of thousands of static objects take a lot of physics CPU time.
 BSPrim.Force should set a continious force on the prim. The force should be
 	applied each tick.  Some limits?
-Single prim vehicles don't seem to properly vehiclize.
+Linksets should allow collisions to individual children
+	Add LocalID to children shapes in LinksetCompound and create events for individuals
 Gun sending shooter flying.
 Collision margin (gap between physical objects lying on each other)
 Boundry checking (crashes related to crossing boundry)
@@ -146,3 +147,5 @@ Light cycle falling over when driving (Resolution: implemented VerticalAttractor
 Light cycle not banking	(Resolution: It doesn't. Banking is roll adding yaw.)
 Package Bullet source mods for Bullet internal stats output
 	(Resolution: move code into WorldData.h rather than relying on patches)
+Single prim vehicles don't seem to properly vehiclize.
+	(Resolution: mass was not getting set properly for single prim linksets)

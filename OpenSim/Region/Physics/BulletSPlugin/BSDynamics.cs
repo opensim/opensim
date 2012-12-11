@@ -570,8 +570,8 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 BulletSimAPI.SetMassProps2(Prim.PhysBody.ptr, m_vehicleMass, localInertia);
                 BulletSimAPI.UpdateInertiaTensor2(Prim.PhysBody.ptr);
 
-                VDetailLog("{0},BSDynamics.Refresh,frict={1},inert={2},aDamp={3}",
-                                Prim.LocalID, friction, localInertia, angularDamping);
+                VDetailLog("{0},BSDynamics.Refresh,mass={1},frict={2},inert={3},aDamp={4}",
+                                Prim.LocalID, m_vehicleMass, friction, localInertia, angularDamping);
             }
             else
             {
@@ -1057,7 +1057,10 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             // TODO: Should this be applied as an angular force (torque)?
             if (!m_lastAngularCorrection.ApproxEquals(Vector3.Zero, 0.01f))
             {
-                Vector3 scaledCorrection = m_lastAngularCorrection * pTimestep;
+                // DEBUG DEBUG DEBUG: optionally scale the angular velocity. Debugging SL vs ODE turning functions.
+                Vector3 scaledCorrection = m_lastAngularCorrection;
+                if (PhysicsScene.VehicleScaleAngularVelocityByTimestep)
+                    scaledCorrection *= pTimestep;
                 VehicleRotationalVelocity = scaledCorrection;
 
                 VDetailLog("{0},  MoveAngular,done,nonZero,angMotorContrib={1},vertAttrContrib={2},bankContrib={3},deflectContrib={4},totalContrib={5},scaledCorr={6}",

@@ -793,7 +793,7 @@ public sealed class BSShapeCollection : IDisposable
         BulletShape newShape = new BulletShape(hullPtr, BSPhysicsShapeType.SHAPE_HULL);
         newShape.shapeKey = newHullKey;
 
-        return newShape;        // 'true' means a new shape has been added to this prim
+        return newShape;
     }
 
     // Callback from convex hull creater with a newly created hull.
