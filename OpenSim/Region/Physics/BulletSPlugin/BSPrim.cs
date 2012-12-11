@@ -249,7 +249,8 @@ public sealed class BSPrim : BSPhysObject
         // Zero some other properties in the physics engine
         PhysicsScene.TaintedObject(inTaintTime, "BSPrim.ZeroMotion", delegate()
         {
-            BulletSimAPI.ClearAllForces2(PhysBody.ptr);
+            if (PhysBody.HasPhysicalBody)
+                BulletSimAPI.ClearAllForces2(PhysBody.ptr);
         });
     }
     public override void ZeroAngularMotion(bool inTaintTime)
@@ -259,8 +260,11 @@ public sealed class BSPrim : BSPhysObject
         PhysicsScene.TaintedObject(inTaintTime, "BSPrim.ZeroMotion", delegate()
         {
             // DetailLog("{0},BSPrim.ZeroAngularMotion,call,rotVel={1}", LocalID, _rotationalVelocity);
-            BulletSimAPI.SetInterpolationAngularVelocity2(PhysBody.ptr, _rotationalVelocity);
-            BulletSimAPI.SetAngularVelocity2(PhysBody.ptr, _rotationalVelocity);
+            if (PhysBody.HasPhysicalBody)
+            {
+                BulletSimAPI.SetInterpolationAngularVelocity2(PhysBody.ptr, _rotationalVelocity);
+                BulletSimAPI.SetAngularVelocity2(PhysBody.ptr, _rotationalVelocity);
+            }
         });
     }
 
@@ -297,8 +301,11 @@ public sealed class BSPrim : BSPhysObject
             PhysicsScene.TaintedObject("BSPrim.setPosition", delegate()
             {
                 // DetailLog("{0},BSPrim.SetPosition,taint,pos={1},orient={2}", LocalID, _position, _orientation);
-                BulletSimAPI.SetTranslation2(PhysBody.ptr, _position, _orientation);
-                ActivateIfPhysical(false);
+                if (PhysBody.HasPhysicalBody)
+                {
+                    BulletSimAPI.SetTranslation2(PhysBody.ptr, _position, _orientation);
+                    ActivateIfPhysical(false);
+                }
             });
         }
     }
@@ -415,7 +422,8 @@ public sealed class BSPrim : BSPhysObject
             PhysicsScene.TaintedObject("BSPrim.setForce", delegate()
             {
                 // DetailLog("{0},BSPrim.setForce,taint,force={1}", LocalID, _force);
-                BulletSimAPI.SetObjectForce2(PhysBody.ptr, _force);
+                if (PhysBody.HasPhysicalBody)
+                    BulletSimAPI.SetObjectForce2(PhysBody.ptr, _force);
             });
         }
     }
@@ -509,7 +517,8 @@ public sealed class BSPrim : BSPhysObject
             PhysicsScene.TaintedObject("BSPrim.setVelocity", delegate()
             {
                 // DetailLog("{0},BSPrim.SetVelocity,taint,vel={1}", LocalID, _velocity);
-                BulletSimAPI.SetLinearVelocity2(PhysBody.ptr, _velocity);
+                if (PhysBody.HasPhysicalBody)
+                    BulletSimAPI.SetLinearVelocity2(PhysBody.ptr, _velocity);
             });
         }
     }
@@ -558,9 +567,12 @@ public sealed class BSPrim : BSPhysObject
             // TODO: what does it mean if a child in a linkset changes its orientation? Rebuild the constraint?
             PhysicsScene.TaintedObject("BSPrim.setOrientation", delegate()
             {
-                // _position = BulletSimAPI.GetObjectPosition2(PhysicsScene.World.ptr, BSBody.ptr);
-                // DetailLog("{0},BSPrim.setOrientation,taint,pos={1},orient={2}", LocalID, _position, _orientation);
-                BulletSimAPI.SetTranslation2(PhysBody.ptr, _position, _orientation);
+                if (PhysBody.HasPhysicalBody)
+                {
+                    // _position = BulletSimAPI.GetObjectPosition2(PhysicsScene.World.ptr, BSBody.ptr);
+                    // DetailLog("{0},BSPrim.setOrientation,taint,pos={1},orient={2}", LocalID, _position, _orientation);
+                    BulletSimAPI.SetTranslation2(PhysBody.ptr, _position, _orientation);
+                }
             });
         }
     }
@@ -865,7 +877,8 @@ public sealed class BSPrim : BSPhysObject
             PhysicsScene.TaintedObject("BSPrim.setRotationalVelocity", delegate()
             {
                 DetailLog("{0},BSPrim.SetRotationalVel,taint,rotvel={1}", LocalID, _rotationalVelocity);
-                BulletSimAPI.SetAngularVelocity2(PhysBody.ptr, _rotationalVelocity);
+                if (PhysBody.HasPhysicalBody)
+                    BulletSimAPI.SetAngularVelocity2(PhysBody.ptr, _rotationalVelocity);
             });
         }
     }
@@ -900,8 +913,11 @@ public sealed class BSPrim : BSPhysObject
             _buoyancy = value;
             // DetailLog("{0},BSPrim.setForceBuoyancy,taint,buoy={1}", LocalID, _buoyancy);
             // Buoyancy is faked by changing the gravity applied to the object
-            float grav = PhysicsScene.Params.gravity * (1f - _buoyancy);
-            BulletSimAPI.SetGravity2(PhysBody.ptr, new OMV.Vector3(0f, 0f, grav));
+            if (PhysBody.HasPhysicalBody)
+            {
+                float grav = PhysicsScene.Params.gravity * (1f - _buoyancy);
+                BulletSimAPI.SetGravity2(PhysBody.ptr, new OMV.Vector3(0f, 0f, grav));
+            }
         }
     }
 
@@ -969,7 +985,8 @@ public sealed class BSPrim : BSPhysObject
             }
             DetailLog("{0},BSPrim.AddForce,taint,force={1}", LocalID, fSum);
             if (fSum != OMV.Vector3.Zero)
-                BulletSimAPI.ApplyCentralForce2(PhysBody.ptr, fSum);
+                if (PhysBody.HasPhysicalBody)
+                    BulletSimAPI.ApplyCentralForce2(PhysBody.ptr, fSum);
         });
     }
 
@@ -980,7 +997,8 @@ public sealed class BSPrim : BSPhysObject
         PhysicsScene.TaintedObject(inTaintTime, "BSPrim.ApplyForceImpulse", delegate()
         {
             DetailLog("{0},BSPrim.ApplyForceImpulse,taint,tImpulse={1}", LocalID, applyImpulse);
-            BulletSimAPI.ApplyCentralImpulse2(PhysBody.ptr, applyImpulse);
+            if (PhysBody.HasPhysicalBody)
+                BulletSimAPI.ApplyCentralImpulse2(PhysBody.ptr, applyImpulse);
         });
     }
 
@@ -1016,7 +1034,8 @@ public sealed class BSPrim : BSPhysObject
             DetailLog("{0},BSPrim.AddAngularForce,taint,aForce={1}", LocalID, fSum);
             if (fSum != OMV.Vector3.Zero)
             {
-                BulletSimAPI.ApplyTorque2(PhysBody.ptr, fSum);
+                if (PhysBody.HasPhysicalBody)
+                    BulletSimAPI.ApplyTorque2(PhysBody.ptr, fSum);
                 _torque = fSum;
             }
         });
@@ -1030,7 +1049,8 @@ public sealed class BSPrim : BSPhysObject
         OMV.Vector3 applyImpulse = impulse;
         PhysicsScene.TaintedObject(inTaintTime, "BSPrim.ApplyTorqueImpulse", delegate()
         {
-            BulletSimAPI.ApplyTorqueImpulse2(PhysBody.ptr, applyImpulse);
+            if (PhysBody.HasPhysicalBody)
+                BulletSimAPI.ApplyTorqueImpulse2(PhysBody.ptr, applyImpulse);
         });
     }
 
