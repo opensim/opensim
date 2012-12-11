@@ -165,9 +165,10 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         
 
-        public OdeCharacter(String avName, OdeScene parent_scene, Vector3 pos, Vector3 pSize, float pfeetOffset, float density, float walk_divisor, float rundivisor)
+        public OdeCharacter(uint localID, String avName, OdeScene parent_scene, Vector3 pos, Vector3 pSize, float pfeetOffset, float density, float walk_divisor, float rundivisor)
         {
             m_uuid = UUID.Random();
+            m_localID = localID;
 
             timeStep = parent_scene.ODE_STEPSIZE;
             invtimeStep = 1 / timeStep;
@@ -1209,7 +1210,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             d.AABB aabb;
             d.GeomGetAABB(feetbox, out aabb);
-            float chrminZ = aabb.MinZ - 0.02f; // move up a bit
+            float chrminZ = aabb.MinZ; ; // move up a bit
             Vector3 posch = localpos;
 
             float ftmp;
@@ -1252,7 +1253,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         contact.PenetrationDepth = depth;
                         contact.Position.X = localpos.X;
                         contact.Position.Y = localpos.Y;
-                        contact.Position.Z = chrminZ;
+                        contact.Position.Z = terrainheight;
                         contact.SurfaceNormal.X = 0.0f;
                         contact.SurfaceNormal.Y = 0.0f;
                         contact.SurfaceNormal.Z = -1f;
