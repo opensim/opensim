@@ -993,8 +993,8 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 
             if ((m_flags & (VehicleFlag.LIMIT_MOTOR_UP)) != 0)
             {
-                // If the vehicle is motoring into the sky, get it going back down.
-                float distanceAboveGround = VehiclePosition.Z - GetTerrainHeight(VehiclePosition);
+                float targetHeight = Type == Vehicle.TYPE_BOAT ? GetWaterLevel(VehiclePosition) : GetTerrainHeight(VehiclePosition);
+                float distanceAboveGround = VehiclePosition.Z - targetHeight;
                 // Not colliding if the vehicle is off the ground
                 if (!Prim.IsColliding)
                 {
