@@ -970,78 +970,86 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (m_collisionException)
                 return false;
 
+            Vector3 offset;
+
             if (me == bbox) // if moving fast
             {
                 // force a full inelastic collision
                 m_collisionException = true;
 
-                Vector3 off = m_size * 0.5f;
-                off.X += contact.depth;
-                off.Y += contact.depth;
-                off.Z += contact.depth;
+                offset = m_size * m_orientation;
+
+                offset.X = (float)Math.Abs(offset.X) * 0.5f + contact.depth;
+                offset.Y = (float)Math.Abs(offset.Y) * 0.5f + contact.depth;
+                offset.Z = (float)Math.Abs(offset.Z) * 0.5f + contact.depth;
+
                 if (reverse)
                 {
-                    off.X *= -contact.normal.X;
-                    off.Y *= -contact.normal.Y;
-                    off.Z *= -contact.normal.Z;
+                    offset.X *= -contact.normal.X;
+                    offset.Y *= -contact.normal.Y;
+                    offset.Z *= -contact.normal.Z;
                 }
                 else
                 {
-                    off.X *= contact.normal.X;
-                    off.Y *= contact.normal.Y;
-                    off.Z *= contact.normal.Z;
+                    offset.X *= contact.normal.X;
+                    offset.Y *= contact.normal.Y;
+                    offset.Z *= contact.normal.Z;
                 }
 
-                off.X += contact.pos.X;
-                off.Y += contact.pos.Y;
-                off.Z += contact.pos.Z;
+                offset.X += contact.pos.X;
+                offset.Y += contact.pos.Y;
+                offset.Z += contact.pos.Z;
 
-                _position = off;
+                _position = offset;
                 return false;
             }
 
-            if (me == topbox) // keep a box head
-                return true;
+            offset.X = contact.pos.X - _position.X;
+            offset.Y = contact.pos.Y - _position.Y;
 
-            float t;
-            float offx = contact.pos.X - _position.X;
-            float offy = contact.pos.Y - _position.Y;
+            if (me == topbox)
+            {
+                offset.Z = contact.pos.Z - _position.Z;
+
+                offset.Normalize();
+
+                if (reverse)
+                {
+                    contact.normal.X = offset.X;
+                    contact.normal.Y = offset.Y;
+                    contact.normal.Z = offset.Z;
+                }
+                else
+                {
+                    contact.normal.X = -offset.X;
+                    contact.normal.Y = -offset.Y;
+                    contact.normal.Z = -offset.Z;
+                }
+                return true;
+            }
 
             if (me == midbox)
             {
                 if (Math.Abs(contact.normal.Z) > 0.95f)
-                {
-                    float nz = contact.normal.Z;
-                    if (!reverse)
-                        nz = -nz;
+                    offset.Z = contact.pos.Z - _position.Z;
+                else
+                    offset.Z = contact.normal.Z;
 
-                    if (nz > 0)
-                        return true; // missed head TODO
-
-                    // missed feet collision?
-
-
-                    return true;
-                }
-
-                t = offx * offx + offy * offy;
-                t = (float)Math.Sqrt(t);
-                t = 1 / t;
-                offx *= t;
-                offy *= t;
+                offset.Normalize();
 
                 if (reverse)
                 {
-                    contact.normal.X = offx;
-                    contact.normal.Y = offy;
+                    contact.normal.X = offset.X;
+                    contact.normal.Y = offset.Y;
+                    contact.normal.Z = offset.Z;
                 }
                 else
                 {
-                    contact.normal.X = -offx;
-                    contact.normal.Y = -offy;
+                    contact.normal.X = -offset.X;
+                    contact.normal.Y = -offset.Y;
+                    contact.normal.Z = -offset.Z;
                 }
 
-                contact.normal.Z = 0;
                 return true;
             }
 
@@ -1063,39 +1071,33 @@ namespace OpenSim.Region.Physics.OdePlugin
                     return true;
                 }
 
+                offset.Z = h - feetOff; // distance from top of feetbox
 
-                float offz = h - feetOff; // distance from top of feetbox
-
-                if (offz > 0)
+                if (offset.Z > 0)
                     return false;
 
-                if (offz > -0.01)
+                if (offset.Z > -0.01)
                 {
-                    offx = 0;
-                    offy = 0;
-                    offz = -1.0f;
+                    offset.X = 0;
+                    offset.Y = 0;
+                    offset.Z = -1.0f;
                 }
                 else
                 {
-                    t = offx * offx + offy * offy + offz * offz;
-                    t = (float)Math.Sqrt(t);
-                    t = 1 / t;
-                    offx *= t;
-                    offy *= t;
-                    offz *= t;
+                    offset.Normalize();
                 }
 
                 if (reverse)
                 {
-                    contact.normal.X = offx;
-                    contact.normal.Y = offy;
-                    contact.normal.Z = offz;
+                    contact.normal.X = offset.X;
+                    contact.normal.Y = offset.Y;
+                    contact.normal.Z = offset.Z;
                 }
                 else
                 {
-                    contact.normal.X = -offx;
-                    contact.normal.Y = -offy;
-                    contact.normal.Z = -offz;
+                    contact.normal.X = -offset.X;
+                    contact.normal.Y = -offset.Y;
+                    contact.normal.Z = -offset.Z;
                 }
                 feetcollision = true;
                 if (h < boneOff)
@@ -1125,7 +1127,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 float v = _velocity.Length();
                 if (v != 0)
                 {
-                    v = 6.0f / v;
+                    v = 5.0f / v;
                     _velocity = _velocity * v;
                     d.BodySetLinearVel(Body, _velocity.X, _velocity.Y, _velocity.Z);
                 }
