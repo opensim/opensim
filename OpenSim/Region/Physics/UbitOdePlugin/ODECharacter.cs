@@ -80,6 +80,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private Vector3 m_rotationalVelocity;
         private Vector3 m_size;
         private Quaternion m_orientation;
+        private Quaternion m_orientation2D;
         private float m_mass = 80f;
         public float m_density = 60f;
         private bool m_pidControllerActive = true;
@@ -165,9 +166,10 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         
 
-        public OdeCharacter(String avName, OdeScene parent_scene, Vector3 pos, Vector3 pSize, float pfeetOffset, float density, float walk_divisor, float rundivisor)
+        public OdeCharacter(uint localID, String avName, OdeScene parent_scene, Vector3 pos, Vector3 pSize, float pfeetOffset, float density, float walk_divisor, float rundivisor)
         {
             m_uuid = UUID.Random();
+            m_localID = localID;
 
             timeStep = parent_scene.ODE_STEPSIZE;
             invtimeStep = 1 / timeStep;
@@ -206,6 +208,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             m_feetOffset = pfeetOffset;
             m_orientation = Quaternion.Identity;
+            m_orientation2D = Quaternion.Identity;
             m_density = density;
 
             // force lower density for testing
@@ -648,7 +651,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
 //                fakeori = value;
 //                givefakeori++;
-
                 value.Normalize();
                 AddChange(changes.Orientation, value);
             }
@@ -969,78 +971,86 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (m_collisionException)
                 return false;
 
+            Vector3 offset;
+
             if (me == bbox) // if moving fast
             {
                 // force a full inelastic collision
                 m_collisionException = true;
 
-                Vector3 off = m_size * 0.5f;
-                off.X += contact.depth;
-                off.Y += contact.depth;
-                off.Z += contact.depth;
+                offset = m_size * m_orientation2D;
+
+                offset.X = (float)Math.Abs(offset.X) * 0.5f + contact.depth;
+                offset.Y = (float)Math.Abs(offset.Y) * 0.5f + contact.depth;
+                offset.Z = (float)Math.Abs(offset.Z) * 0.5f + contact.depth;
+
                 if (reverse)
                 {
-                    off.X *= -contact.normal.X;
-                    off.Y *= -contact.normal.Y;
-                    off.Z *= -contact.normal.Z;
+                    offset.X *= -contact.normal.X;
+                    offset.Y *= -contact.normal.Y;
+                    offset.Z *= -contact.normal.Z;
                 }
                 else
                 {
-                    off.X *= contact.normal.X;
-                    off.Y *= contact.normal.Y;
-                    off.Z *= contact.normal.Z;
+                    offset.X *= contact.normal.X;
+                    offset.Y *= contact.normal.Y;
+                    offset.Z *= contact.normal.Z;
                 }
 
-                off.X += contact.pos.X;
-                off.Y += contact.pos.Y;
-                off.Z += contact.pos.Z;
+                offset.X += contact.pos.X;
+                offset.Y += contact.pos.Y;
+                offset.Z += contact.pos.Z;
 
-                _position = off;
+                _position = offset;
                 return false;
             }
 
-            if (me == topbox) // keep a box head
-                return true;
+            offset.X = contact.pos.X - _position.X;
+            offset.Y = contact.pos.Y - _position.Y;
 
-            float t;
-            float offx = contact.pos.X - _position.X;
-            float offy = contact.pos.Y - _position.Y;
+            if (me == topbox)
+            {
+                offset.Z = contact.pos.Z - _position.Z;
+
+                offset.Normalize();
+
+                if (reverse)
+                {
+                    contact.normal.X = offset.X;
+                    contact.normal.Y = offset.Y;
+                    contact.normal.Z = offset.Z;
+                }
+                else
+                {
+                    contact.normal.X = -offset.X;
+                    contact.normal.Y = -offset.Y;
+                    contact.normal.Z = -offset.Z;
+                }
+                return true;
+            }
 
             if (me == midbox)
             {
                 if (Math.Abs(contact.normal.Z) > 0.95f)
-                {
-                    float nz = contact.normal.Z;
-                    if (!reverse)
-                        nz = -nz;
+                    offset.Z = contact.pos.Z - _position.Z;
+                else
+                    offset.Z = contact.normal.Z;
 
-                    if (nz > 0)
-                        return true; // missed head TODO
-
-                    // missed feet collision?
-
-
-                    return true;
-                }
-
-                t = offx * offx + offy * offy;
-                t = (float)Math.Sqrt(t);
-                t = 1 / t;
-                offx *= t;
-                offy *= t;
+                offset.Normalize();
 
                 if (reverse)
                 {
-                    contact.normal.X = offx;
-                    contact.normal.Y = offy;
+                    contact.normal.X = offset.X;
+                    contact.normal.Y = offset.Y;
+                    contact.normal.Z = offset.Z;
                 }
                 else
                 {
-                    contact.normal.X = -offx;
-                    contact.normal.Y = -offy;
+                    contact.normal.X = -offset.X;
+                    contact.normal.Y = -offset.Y;
+                    contact.normal.Z = -offset.Z;
                 }
 
-                contact.normal.Z = 0;
                 return true;
             }
 
@@ -1062,39 +1072,33 @@ namespace OpenSim.Region.Physics.OdePlugin
                     return true;
                 }
 
+                offset.Z = h - feetOff; // distance from top of feetbox
 
-                float offz = h - feetOff; // distance from top of feetbox
-
-                if (offz > 0)
+                if (offset.Z > 0)
                     return false;
 
-                if (offz > -0.01)
+                if (offset.Z > -0.01)
                 {
-                    offx = 0;
-                    offy = 0;
-                    offz = -1.0f;
+                    offset.X = 0;
+                    offset.Y = 0;
+                    offset.Z = -1.0f;
                 }
                 else
                 {
-                    t = offx * offx + offy * offy + offz * offz;
-                    t = (float)Math.Sqrt(t);
-                    t = 1 / t;
-                    offx *= t;
-                    offy *= t;
-                    offz *= t;
+                    offset.Normalize();
                 }
 
                 if (reverse)
                 {
-                    contact.normal.X = offx;
-                    contact.normal.Y = offy;
-                    contact.normal.Z = offz;
+                    contact.normal.X = offset.X;
+                    contact.normal.Y = offset.Y;
+                    contact.normal.Z = offset.Z;
                 }
                 else
                 {
-                    contact.normal.X = -offx;
-                    contact.normal.Y = -offy;
-                    contact.normal.Z = -offz;
+                    contact.normal.X = -offset.X;
+                    contact.normal.Y = -offset.Y;
+                    contact.normal.Z = -offset.Z;
                 }
                 feetcollision = true;
                 if (h < boneOff)
@@ -1124,7 +1128,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 float v = _velocity.Length();
                 if (v != 0)
                 {
-                    v = 6.0f / v;
+                    v = 5.0f / v;
                     _velocity = _velocity * v;
                     d.BodySetLinearVel(Body, _velocity.X, _velocity.Y, _velocity.Z);
                 }
@@ -1140,10 +1144,10 @@ namespace OpenSim.Region.Physics.OdePlugin
             // so force it back to identity
 
             d.Quaternion qtmp;
-            qtmp.W = m_orientation.W;
-            qtmp.X = m_orientation.X;
-            qtmp.Y = m_orientation.Y;
-            qtmp.Z = m_orientation.Z;
+            qtmp.W = m_orientation2D.W;
+            qtmp.X = m_orientation2D.X;
+            qtmp.Y = m_orientation2D.Y;
+            qtmp.Z = m_orientation2D.Z;
             d.BodySetQuaternion(Body, ref qtmp);
 
             if (m_pidControllerActive == false)
@@ -1209,7 +1213,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             d.AABB aabb;
             d.GeomGetAABB(feetbox, out aabb);
-            float chrminZ = aabb.MinZ - 0.02f; // move up a bit
+            float chrminZ = aabb.MinZ; ; // move up a bit
             Vector3 posch = localpos;
 
             float ftmp;
@@ -1252,7 +1256,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         contact.PenetrationDepth = depth;
                         contact.Position.X = localpos.X;
                         contact.Position.Y = localpos.Y;
-                        contact.Position.Z = chrminZ;
+                        contact.Position.Z = terrainheight;
                         contact.SurfaceNormal.X = 0.0f;
                         contact.SurfaceNormal.Y = 0.0f;
                         contact.SurfaceNormal.Z = -1f;
@@ -1676,14 +1680,36 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private void changeOrientation(Quaternion newOri)
         {
-            d.Quaternion myrot = new d.Quaternion();
-            myrot.X = newOri.X;
-            myrot.Y = newOri.Y;
-            myrot.Z = newOri.Z;
-            myrot.W = newOri.W;
-            float t = d.JointGetAMotorAngle(Amotor, 2);
-            d.BodySetQuaternion(Body,ref myrot);
-            m_orientation = newOri;
+            if (m_orientation != newOri)
+            {
+                m_orientation = newOri; // keep a copy for core use
+                // but only use rotations around Z
+
+                m_orientation2D.W = newOri.W;
+                m_orientation2D.Z = newOri.Z;
+
+                float t = m_orientation2D.W * m_orientation2D.W + m_orientation2D.Z * m_orientation2D.Z;
+                if (t > 0)
+                {
+                    t = 1.0f / (float)Math.Sqrt(t);
+                    m_orientation2D.W *= t;
+                    m_orientation2D.Z *= t;
+                }
+                else
+                {
+                    m_orientation2D.W = 1.0f;
+                    m_orientation2D.Z = 0f;
+                }
+                m_orientation2D.Y = 0f;
+                m_orientation2D.X = 0f;
+
+                d.Quaternion myrot = new d.Quaternion();
+                myrot.X = m_orientation2D.X;
+                myrot.Y = m_orientation2D.Y;
+                myrot.Z = m_orientation2D.Z;
+                myrot.W = m_orientation2D.W;
+                d.BodySetQuaternion(Body, ref myrot);
+            }
         }
 
         private void changeVelocity(Vector3 newVel)
