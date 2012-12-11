@@ -331,6 +331,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private Prioritizer m_prioritizer;
         private bool m_disableFacelights = false;
 
+        private bool m_VelocityInterpolate = false;
         private const uint MaxTransferBytesPerPacket = 600;
 
 
@@ -3991,6 +3992,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     
             const float TIME_DILATION = 1.0f;
             ushort timeDilation = Utils.FloatToUInt16(avgTimeDilation, 0.0f, 1.0f);
+            
     
             if (terseAgentUpdateBlocks.IsValueCreated)
             {
@@ -4971,7 +4973,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // in that direction, even though we don't model this on the server.  Implementing this in the future
                 // may improve movement smoothness.
 //                acceleration = new Vector3(1, 0, 0);
-                
+
                 angularVelocity = Vector3.Zero;
 
                 if (sendTexture)
@@ -5309,8 +5311,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // If AgentUpdate is ever handled asynchronously, then we will also need to construct a new AgentUpdateArgs
             // for each AgentUpdate packet.
             AddLocalPacketHandler(PacketType.AgentUpdate, HandleAgentUpdate, false);
-            
+
             AddLocalPacketHandler(PacketType.ViewerEffect, HandleViewerEffect, false);
+            AddLocalPacketHandler(PacketType.VelocityInterpolateOff, HandleVelocityInterpolateOff, false);
+            AddLocalPacketHandler(PacketType.VelocityInterpolateOn, HandleVelocityInterpolateOn, false);
             AddLocalPacketHandler(PacketType.AgentCachedTexture, HandleAgentTextureCached, false);
             AddLocalPacketHandler(PacketType.MultipleObjectUpdate, HandleMultipleObjUpdate, false);
             AddLocalPacketHandler(PacketType.MoneyTransferRequest, HandleMoneyTransferRequest, false);
@@ -5827,6 +5831,29 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             return true;
         }
+
+        private bool HandleVelocityInterpolateOff(IClientAPI sender, Packet Pack)
+        {
+            VelocityInterpolateOffPacket p = (VelocityInterpolateOffPacket)Pack;
+            if (p.AgentData.SessionID != SessionId ||
+                p.AgentData.AgentID != AgentId)
+                return true;
+
+            m_VelocityInterpolate = false;
+            return true;
+        }
+
+        private bool HandleVelocityInterpolateOn(IClientAPI sender, Packet Pack)
+        {
+            VelocityInterpolateOnPacket p = (VelocityInterpolateOnPacket)Pack;
+            if (p.AgentData.SessionID != SessionId ||
+                p.AgentData.AgentID != AgentId)
+                return true;
+
+            m_VelocityInterpolate = true;
+            return true;
+        }
+
 
         private bool HandleAvatarPropertiesRequest(IClientAPI sender, Packet Pack)
         {
