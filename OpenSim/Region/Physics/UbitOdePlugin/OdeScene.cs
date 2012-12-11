@@ -178,7 +178,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         public changes what;
         public Object arg;
     }
-     
+
+    
+
     public class OdeScene : PhysicsScene
     {
         private readonly ILog m_log;
@@ -300,6 +302,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         public IntPtr CharsSpace; // space for active prims
         public IntPtr StaticSpace; // space for the static things around
         public IntPtr GroundSpace; // space for ground
+
+        public IntPtr SharedRay;
 
         // some speedup variables
         private int spaceGridMaxX;
@@ -427,6 +431,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 contactgroup = d.JointGroupCreate(0);
                 //contactgroup
+
+                SharedRay = d.CreateRay(TopSpace, 1.0f);
 
                 d.WorldSetAutoDisableFlag(world, false);
             }
@@ -733,35 +739,35 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 if (b1 != IntPtr.Zero && b2 != IntPtr.Zero && d.AreConnectedExcluding(b1, b2, d.JointType.Contact))
                     return;
-/*
-// debug
-                PhysicsActor dp2;
-                if (d.GeomGetClass(g1) == d.GeomClassID.HeightfieldClass)
-                {
-                    d.AABB aabb;
-                    d.GeomGetAABB(g2, out aabb);
-                    float x = aabb.MaxX - aabb.MinX;
-                    float y = aabb.MaxY - aabb.MinY;
-                    float z = aabb.MaxZ - aabb.MinZ;
-                    if (x > 60.0f || y > 60.0f || z > 60.0f)
-                    {
-                        if (!actor_name_map.TryGetValue(g2, out dp2))
-                            m_log.WarnFormat("[PHYSICS]: failed actor mapping for geom 2");
-                        else
-                            m_log.WarnFormat("[PHYSICS]: land versus large prim geo {0},size {1}, AABBsize <{2},{3},{4}>, at {5} ori {6},({7})",
-                                dp2.Name, dp2.Size, x, y, z,
-                                dp2.Position.ToString(),
-                                dp2.Orientation.ToString(),
-                                dp2.Orientation.Length());
-                        return;
-                    }
-                }
-//
-*/
+                /*
+                // debug
+                                PhysicsActor dp2;
+                                if (d.GeomGetClass(g1) == d.GeomClassID.HeightfieldClass)
+                                {
+                                    d.AABB aabb;
+                                    d.GeomGetAABB(g2, out aabb);
+                                    float x = aabb.MaxX - aabb.MinX;
+                                    float y = aabb.MaxY - aabb.MinY;
+                                    float z = aabb.MaxZ - aabb.MinZ;
+                                    if (x > 60.0f || y > 60.0f || z > 60.0f)
+                                    {
+                                        if (!actor_name_map.TryGetValue(g2, out dp2))
+                                            m_log.WarnFormat("[PHYSICS]: failed actor mapping for geom 2");
+                                        else
+                                            m_log.WarnFormat("[PHYSICS]: land versus large prim geo {0},size {1}, AABBsize <{2},{3},{4}>, at {5} ori {6},({7})",
+                                                dp2.Name, dp2.Size, x, y, z,
+                                                dp2.Position.ToString(),
+                                                dp2.Orientation.ToString(),
+                                                dp2.Orientation.Length());
+                                        return;
+                                    }
+                                }
+                //
+                */
 
 
-                if(d.GeomGetCategoryBits(g1) == (uint)CollisionCategories.VolumeDtc ||
-                    d.GeomGetCategoryBits(g1) == (uint)CollisionCategories.VolumeDtc)
+                if (d.GeomGetCategoryBits(g1) == (uint)CollisionCategories.VolumeDtc ||
+                    d.GeomGetCategoryBits(g2) == (uint)CollisionCategories.VolumeDtc)
                 {
                     int cflags;
                     unchecked
@@ -776,7 +782,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             catch (SEHException)
             {
                 m_log.Error("[PHYSICS]: The Operating system shut down ODE because of corrupt memory.  This could be a result of really irregular terrain.  If this repeats continuously, restart using Basic Physics and terrain fill your terrain.  Restarting the sim.");
-//                ode.drelease(world);
+                //                ode.drelease(world);
                 base.TriggerPhysicsBasedRestart();
             }
             catch (Exception e)
@@ -816,25 +822,24 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             // get first contact
             d.ContactGeom curContact = new d.ContactGeom();
+
             if (!GetCurContactGeom(0, ref curContact))
                 return;
-            // for now it's the one with max depth
-            ContactPoint maxDepthContact = new ContactPoint(
-                        new Vector3(curContact.pos.X, curContact.pos.Y, curContact.pos.Z),
-                        new Vector3(curContact.normal.X, curContact.normal.Y, curContact.normal.Z),
-                        curContact.depth
-                        );
+
             // do volume detection case
-            if (
-                (p1.IsVolumeDtc || p2.IsVolumeDtc))
+            if ((p1.IsVolumeDtc || p2.IsVolumeDtc))
             {
+                ContactPoint maxDepthContact = new ContactPoint(
+                    new Vector3(curContact.pos.X, curContact.pos.Y, curContact.pos.Z),
+                    new Vector3(curContact.normal.X, curContact.normal.Y, curContact.normal.Z),
+                    curContact.depth, false
+                    );
+
                 collision_accounting_events(p1, p2, maxDepthContact);
                 return;
             }
 
             // big messy collision analises
-
-            Vector3 normoverride = Vector3.Zero; //damm c#
 
             float mu = 0;
             float bounce = 0;
@@ -846,36 +851,15 @@ namespace OpenSim.Region.Physics.OdePlugin
             ContactData contactdata1 = new ContactData(0, 0, false);
             ContactData contactdata2 = new ContactData(0, 0, false);
 
-            bool dop1foot = false;
-            bool dop2foot = false;
+            bool dop1ava = false;
+            bool dop2ava = false;
             bool ignore = false;
-            bool AvanormOverride = false;
 
             switch (p1.PhysicsActorType)
             {
                 case (int)ActorTypes.Agent:
                     {
-                        dop1foot = true;
-
-                        AvanormOverride = true;
-                        Vector3 tmp = p2.Position - p1.Position;
-                        normoverride = p2.Velocity - p1.Velocity;
-                        mu = normoverride.LengthSquared();
-
-                        if (mu > 1e-6)
-                        {
-                            mu = 1.0f / (float)Math.Sqrt(mu);
-                            normoverride *= mu;
-                            mu = Vector3.Dot(tmp, normoverride);
-                            if (mu > 0)
-                                normoverride *= -1;
-                        }
-                        else
-                        {
-                            tmp.Normalize();
-                            normoverride = -tmp;
-                        }
-
+                        dop1ava = true;
                         switch (p2.PhysicsActorType)
                         {
                             case (int)ActorTypes.Agent:
@@ -886,7 +870,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                             case (int)ActorTypes.Prim:
                                 if (p2.Velocity.LengthSquared() > 0.0f)
                                     p2.CollidingObj = true;
-                                dop1foot = true;
                                 break;
 
                             default:
@@ -901,33 +884,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                     {
                         case (int)ActorTypes.Agent:
 
+                            dop2ava = true;
 
-                            dop2foot = true;
-
-                            AvanormOverride = true;
-
-                            Vector3 tmp = p2.Position - p1.Position;
-                            normoverride = p2.Velocity - p1.Velocity;
-                            mu = normoverride.LengthSquared();
-                            if (mu > 1e-6)
-                            {
-                                mu = 1.0f / (float)Math.Sqrt(mu);
-                                normoverride *= mu;
-                                mu = Vector3.Dot(tmp, normoverride);
-                                if (mu > 0)
-                                    normoverride *= -1;
-                            }
-                            else
-                            {
-                                tmp.Normalize();
-                                normoverride = -tmp;
-                            }
-
-                            bounce = 0;
-                            mu = 0;
-                            cfm = 0.0001f;
-
-                            dop2foot = true;
                             if (p1.Velocity.LengthSquared() > 0.0f)
                                 p1.CollidingObj = true;
                             break;
@@ -1032,170 +990,78 @@ namespace OpenSim.Region.Physics.OdePlugin
                 default:
                     break;
             }
+
             if (ignore)
                 return;
 
+
+            d.ContactGeom maxContact = curContact;
+//            if (IgnoreNegSides && curContact.side1 < 0)
+//                maxContact.depth = float.MinValue;
+
+            d.ContactGeom minContact = curContact;
+//            if (IgnoreNegSides && curContact.side1 < 0)
+//                minContact.depth = float.MaxValue;
+
             IntPtr Joint;
-
             bool FeetCollision = false;
-
-            int i = 0;
             int ncontacts = 0;
-            while(true)
-            {
 
-                if (IgnoreNegSides && curContact.side1 < 0)
+
+                int i = 0;
+
+                while (true)
                 {
+                    if (m_global_contactcount >= maxContactsbeforedeath)
+                        break;
+
+//                    if (!(IgnoreNegSides && curContact.side1 < 0))
+                    {
+                        bool noskip = true;
+                        if (dop1ava)
+                        {
+                            if (!(((OdeCharacter)p1).Collide(g1,false, ref curContact, ref FeetCollision)))
+
+                                noskip = false;
+                        }
+                        else if (dop2ava)
+                        {
+                            if (!(((OdeCharacter)p2).Collide(g2,true, ref curContact, ref FeetCollision)))
+                                noskip = false;
+                        }
+
+                        if (noskip)
+                        {
+                            m_global_contactcount++;
+                            ncontacts++;
+
+                            Joint = CreateContacJoint(ref curContact, mu, bounce, cfm, erpscale, dscale);
+                            d.JointAttach(Joint, b1, b2);
+
+                            if (curContact.depth > maxContact.depth)
+                                maxContact = curContact;
+
+                            if (curContact.depth < minContact.depth)
+                                minContact = curContact;
+                        }
+                    }
+
                     if (++i >= count)
                         break;
 
                     if (!GetCurContactGeom(i, ref curContact))
                         break;
                 }
-                else
-
-                {
-                    if(dop1foot)
-                    {
-                        if (!(((OdeCharacter)p1).Collide(g1, false, ref curContact, ref FeetCollision)))
-                        {
-                            if (++i >= count)
-                                break;
-                            else
-                                continue;
-                        }
-                    }
-                    else if(dop2foot)
-                    {
-                        if (!(((OdeCharacter)p2).Collide(g2, true, ref curContact, ref FeetCollision)))
-                        {
-                            if (++i >= count)
-                                break;
-                            else
-                                continue;
-                        }
-                    }
-
-/*
-                    if (AvanormOverride)
-                    {
-                        if (curContact.depth > 0.3f)
-                        {
-                            if (dop1foot && (p1.Position.Z - curContact.pos.Z) > (p1.Size.Z - avCapRadius) * 0.5f)
-                                p1.IsColliding = true;
-                            if (dop2foot && (p2.Position.Z - curContact.pos.Z) > (p2.Size.Z - avCapRadius) * 0.5f)
-                                p2.IsColliding = true;
-                            curContact.normal.X = normoverride.X;
-                            curContact.normal.Y = normoverride.Y;
-                            curContact.normal.Z = normoverride.Z;
-                        }
-
-                        else
-                        {
-                            if (dop1foot)
-                            {
-                                float sz = p1.Size.Z;
-                                Vector3 vtmp = p1.Position;
-                                float ppos = curContact.pos.Z - vtmp.Z + (sz - avCapRadius) * 0.5f;
-                                if (ppos > 0f)
-                                {
-                                    if (!p1.Flying)
-                                    {
-                                        d.AABB aabb;
-                                        d.GeomGetAABB(g2, out aabb);
-                                        float tmp = vtmp.Z - sz * .18f;
-
-                                        if (aabb.MaxZ < tmp)
-                                        {
-                                            vtmp.X = curContact.pos.X - vtmp.X;
-                                            vtmp.Y = curContact.pos.Y - vtmp.Y;
-                                            vtmp.Z = -0.2f;
-                                            vtmp.Normalize();
-                                            curContact.normal.X = vtmp.X;
-                                            curContact.normal.Y = vtmp.Y;
-                                            curContact.normal.Z = vtmp.Z;
-                                        }
-                                    }
-                                }
-                                else
-                                    p1.IsColliding = true;
-
-                            }
-
-                            if (dop2foot)
-                            {
-                                float sz = p2.Size.Z;
-                                Vector3 vtmp = p2.Position;
-                                vtmp.Z -= sz * 0.5f;
-                                vtmp.Z += 0.5f;
-                                float ppos = vtmp.Z - curContact.pos.Z;
-                                if (ppos > 0f)
-                                {
-                                    if (!p2.Flying)
-                                    {
-                                        float tmp = vtmp.Z - sz * .18f;
-                                        vtmp.X = curContact.pos.X - vtmp.X;
-                                        vtmp.Y = curContact.pos.Y - vtmp.Y;
-                                        vtmp.Z = curContact.pos.Z - vtmp.Z;
-                                        vtmp.Normalize();
-                                        curContact.normal.X = vtmp.X;
-                                        curContact.normal.Y = vtmp.Y;
-                                        curContact.normal.Z = vtmp.Z;
-                                    }
-                                }
-//                                else
-                                    p2.IsColliding = true;
-
-                            }
-                        }
-                    }
-*/
-                    ncontacts++;
-                    Joint = CreateContacJoint(ref curContact, mu, bounce, cfm, erpscale, dscale);
-                    d.JointAttach(Joint, b1, b2);
-
-                    if (++m_global_contactcount >= maxContactsbeforedeath)
-                        break;
-
-                    if (++i >= count)
-                        break;
-
-                    if (!GetCurContactGeom(i, ref curContact))
-                        break;
-
-                    if (curContact.depth > maxDepthContact.PenetrationDepth)
-                    {
-                        maxDepthContact.Position.X = curContact.pos.X;
-                        maxDepthContact.Position.Y = curContact.pos.Y;
-                        maxDepthContact.Position.Z = curContact.pos.Z;
-                        maxDepthContact.SurfaceNormal.X = curContact.normal.X;
-                        maxDepthContact.SurfaceNormal.Y = curContact.normal.Y;
-                        maxDepthContact.SurfaceNormal.Z = curContact.normal.Z;
-                        maxDepthContact.PenetrationDepth = curContact.depth;
-                    }
-                }
-            }
 
             if (ncontacts > 0)
             {
-                maxDepthContact.CharacterFeet = FeetCollision;
+                ContactPoint maxDepthContact = new ContactPoint(
+                            new Vector3(maxContact.pos.X, maxContact.pos.Y, maxContact.pos.Z),
+                            new Vector3(minContact.normal.X, minContact.normal.Y, minContact.normal.Z),
+                            maxContact.depth, FeetCollision
+                            );
                 collision_accounting_events(p1, p2, maxDepthContact);
             }
-/*
-            if (notskipedcount > geomContactPointsStartthrottle)
-            {
-                // If there are more then 3 contact points, it's likely
-                // that we've got a pile of objects, so ...
-                // We don't want to send out hundreds of terse updates over and over again
-                // so lets throttle them and send them again after it's somewhat sorted out.
-                 this needs checking so out for now
-                                if (b1 != IntPtr.Zero)
-                                    p1.ThrottleUpdates = true;
-                                if (b2 != IntPtr.Zero)
-                                    p2.ThrottleUpdates = true;
-                
-            }
- */
         }
 
         private void collision_accounting_events(PhysicsActor p1, PhysicsActor p2, ContactPoint contact)
@@ -1286,10 +1152,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         //                    chr.CollidingGround = false; not done here
                         chr.CollidingObj = false;
                         // do colisions with static space
-                        d.SpaceCollide2(StaticSpace, chr.topbox, IntPtr.Zero, nearCallback);
-                        d.SpaceCollide2(StaticSpace, chr.midbox, IntPtr.Zero, nearCallback);
-                        d.SpaceCollide2(StaticSpace, chr.feetbox, IntPtr.Zero, nearCallback);
-                        d.SpaceCollide2(StaticSpace, chr.bonebox, IntPtr.Zero, nearCallback);
+                        d.SpaceCollide2(chr.collider, StaticSpace, IntPtr.Zero, nearCallback);
 
                         // chars with chars
                         d.SpaceCollide(CharsSpace, IntPtr.Zero, nearCallback);
@@ -1346,7 +1209,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             // and with chars
             try
             {
-                d.SpaceCollide2(ActiveSpace, CharsSpace,IntPtr.Zero, nearCallback);
+                d.SpaceCollide2(CharsSpace,ActiveSpace, IntPtr.Zero, nearCallback);
             }
             catch (AccessViolationException)
             {
@@ -1837,7 +1700,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             foreach (OdeCharacter actor in _characters)
                             {
                                 if (actor != null)
-                                    actor.Move(ODE_STEPSIZE, defects);
+                                    actor.Move(defects);
                             }
                             if (defects.Count != 0)
                             {
