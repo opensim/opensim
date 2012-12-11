@@ -332,12 +332,12 @@ public sealed class BSPrim : BSPhysObject
 
         float terrainHeight = PhysicsScene.TerrainManager.GetTerrainHeightAtXYZ(_position);
         OMV.Vector3 upForce = OMV.Vector3.Zero;
-        if (Position.Z < terrainHeight)
+        if (RawPosition.Z < terrainHeight)
         {
             DetailLog("{0},BSPrim.PositionAdjustUnderGround,call,pos={1},terrain={2}", LocalID, _position, terrainHeight);
             float targetHeight = terrainHeight + (Size.Z / 2f);
             // Upforce proportional to the distance away from the terrain. Correct the error in 1 sec.
-            upForce.Z = (terrainHeight - Position.Z) * 1f;
+            upForce.Z = (terrainHeight - RawPosition.Z) * 1f;
             ret = true;
         }
 
@@ -345,10 +345,10 @@ public sealed class BSPrim : BSPhysObject
         {
             float waterHeight = PhysicsScene.TerrainManager.GetWaterLevelAtXYZ(_position);
             // TODO: a floating motor so object will bob in the water
-            if (Math.Abs(Position.Z - waterHeight) > 0.1f)
+            if (Math.Abs(RawPosition.Z - waterHeight) > 0.1f)
             {
                 // Upforce proportional to the distance away from the water. Correct the error in 1 sec.
-                upForce.Z = (waterHeight - Position.Z) * 1f;
+                upForce.Z = (waterHeight - RawPosition.Z) * 1f;
                 ret = true;
             }
         }
