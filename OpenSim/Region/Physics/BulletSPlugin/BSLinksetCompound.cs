@@ -110,12 +110,19 @@ public sealed class BSLinksetCompound : BSLinkset
     {
         bool ret = false;
         DetailLog("{0},BSLinksetCompound.MakeDynamic,call,IsRoot={1}", child.LocalID, IsRoot(child));
-        if (!IsRoot(child))
+        if (IsRoot(child))
+        {
+            // The root is going dynamic. Make sure mass is properly set.
+            m_mass = ComputeLinksetMass();
+        }
+        else
         {
             // The origional prims are removed from the world as the shape of the root compound
             //     shape takes over.
             BulletSimAPI.AddToCollisionFlags2(child.PhysBody.ptr, CollisionFlags.CF_NO_CONTACT_RESPONSE);
             BulletSimAPI.ForceActivationState2(child.PhysBody.ptr, ActivationState.DISABLE_SIMULATION);
+            // We don't want collisions from the old linkset children.
+            BulletSimAPI.RemoveFromCollisionFlags2(child.PhysBody.ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
             ret = true;
         }
         return ret;
