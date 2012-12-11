@@ -818,6 +818,8 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                             + hoverContribution
                             + limitMotorUpContribution;
 
+            Vector3 newForce = buoyancyContribution;
+
             // If not changing some axis, reduce out velocity
             if ((m_flags & (VehicleFlag.NO_X)) != 0)
                 newVelocity.X = 0;
@@ -845,7 +847,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             VehicleVelocity = newVelocity;
 
             // Other linear forces are applied as forces.
-            Vector3 totalDownForce = buoyancyContribution * m_vehicleMass;
+            Vector3 totalDownForce = newForce * m_vehicleMass;
             if (!totalDownForce.ApproxEquals(Vector3.Zero, 0.01f))
             {
                 VehicleAddForce(totalDownForce);
@@ -1005,8 +1007,8 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 //     has a decay factor. This says this force should
                 //     be computed with a motor.
                 // TODO: add interaction with banking.
-                VDetailLog("{0},  MoveLinear,limitMotorUp,distAbove={1},downForce={2}",
-                                    Prim.LocalID, distanceAboveGround, ret);
+                VDetailLog("{0},  MoveLinear,limitMotorUp,distAbove={1},colliding={2},ret={3}",
+                                    Prim.LocalID, distanceAboveGround, Prim.IsColliding, ret);
             }
             return ret;
         }

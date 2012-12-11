@@ -501,7 +501,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
         try
         {
-            if (VehicleLoggingEnabled) DumpVehicles();  // DEBUG
+            // if (VehicleLoggingEnabled) DumpVehicles();  // DEBUG
             if (PhysicsLogging.Enabled) beforeTime = Util.EnvironmentTickCount();
 
             numSubSteps = BulletSimAPI.PhysicsStep2(World.ptr, timeStep, m_maxSubSteps, m_fixedTimeStep,
@@ -510,7 +510,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             if (PhysicsLogging.Enabled) simTime = Util.EnvironmentTickCountSubtract(beforeTime);
             DetailLog("{0},Simulate,call, frame={1}, nTaints={2}, simTime={3}, substeps={4}, updates={5}, colliders={6}",
                         DetailLogZero, m_simulationStep, numTaints, simTime, numSubSteps, updatedEntityCount, collidersCount);
-            if (VehicleLoggingEnabled) DumpVehicles();  // DEBUG
+            // if (VehicleLoggingEnabled) DumpVehicles();  // DEBUG
         }
         catch (Exception e)
         {
