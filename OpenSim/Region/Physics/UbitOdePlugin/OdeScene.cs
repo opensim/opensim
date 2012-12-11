@@ -515,7 +515,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             odetimestepMS = (int)(1000.0f * ODE_STEPSIZE +0.5f);
 
             ContactgeomsArray = Marshal.AllocHGlobal(contactsPerCollision * d.ContactGeom.unmanagedSizeOf);
-            GlobalContactsArray = GlobalContactsArray = Marshal.AllocHGlobal(maxContactsbeforedeath * d.Contact.unmanagedSizeOf);
+            GlobalContactsArray = Marshal.AllocHGlobal(maxContactsbeforedeath * d.Contact.unmanagedSizeOf);
 
             m_materialContactsData[(int)Material.Stone].mu = 0.8f;
             m_materialContactsData[(int)Material.Stone].bounce = 0.4f;

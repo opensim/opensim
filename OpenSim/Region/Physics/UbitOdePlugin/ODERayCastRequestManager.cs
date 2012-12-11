@@ -555,7 +555,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                         break;
 
                     default:
-                        return;
                         break;
                 }
             }
