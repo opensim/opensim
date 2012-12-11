@@ -80,6 +80,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private Vector3 m_rotationalVelocity;
         private Vector3 m_size;
         private Quaternion m_orientation;
+        private Quaternion m_orientation2D;
         private float m_mass = 80f;
         public float m_density = 60f;
         private bool m_pidControllerActive = true;
@@ -207,6 +208,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             m_feetOffset = pfeetOffset;
             m_orientation = Quaternion.Identity;
+            m_orientation2D = Quaternion.Identity;
             m_density = density;
 
             // force lower density for testing
@@ -649,7 +651,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
 //                fakeori = value;
 //                givefakeori++;
-
                 value.Normalize();
                 AddChange(changes.Orientation, value);
             }
@@ -977,7 +978,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 // force a full inelastic collision
                 m_collisionException = true;
 
-                offset = m_size * m_orientation;
+                offset = m_size * m_orientation2D;
 
                 offset.X = (float)Math.Abs(offset.X) * 0.5f + contact.depth;
                 offset.Y = (float)Math.Abs(offset.Y) * 0.5f + contact.depth;
@@ -1143,10 +1144,10 @@ namespace OpenSim.Region.Physics.OdePlugin
             // so force it back to identity
 
             d.Quaternion qtmp;
-            qtmp.W = m_orientation.W;
-            qtmp.X = m_orientation.X;
-            qtmp.Y = m_orientation.Y;
-            qtmp.Z = m_orientation.Z;
+            qtmp.W = m_orientation2D.W;
+            qtmp.X = m_orientation2D.X;
+            qtmp.Y = m_orientation2D.Y;
+            qtmp.Z = m_orientation2D.Z;
             d.BodySetQuaternion(Body, ref qtmp);
 
             if (m_pidControllerActive == false)
@@ -1679,14 +1680,36 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private void changeOrientation(Quaternion newOri)
         {
-            d.Quaternion myrot = new d.Quaternion();
-            myrot.X = newOri.X;
-            myrot.Y = newOri.Y;
-            myrot.Z = newOri.Z;
-            myrot.W = newOri.W;
-            float t = d.JointGetAMotorAngle(Amotor, 2);
-            d.BodySetQuaternion(Body,ref myrot);
-            m_orientation = newOri;
+            if (m_orientation != newOri)
+            {
+                m_orientation = newOri; // keep a copy for core use
+                // but only use rotations around Z
+
+                m_orientation2D.W = newOri.W;
+                m_orientation2D.Z = newOri.Z;
+
+                float t = m_orientation2D.W * m_orientation2D.W + m_orientation2D.Z * m_orientation2D.Z;
+                if (t > 0)
+                {
+                    t = 1.0f / (float)Math.Sqrt(t);
+                    m_orientation2D.W *= t;
+                    m_orientation2D.Z *= t;
+                }
+                else
+                {
+                    m_orientation2D.W = 1.0f;
+                    m_orientation2D.Z = 0f;
+                }
+                m_orientation2D.Y = 0f;
+                m_orientation2D.X = 0f;
+
+                d.Quaternion myrot = new d.Quaternion();
+                myrot.X = m_orientation2D.X;
+                myrot.Y = m_orientation2D.Y;
+                myrot.Z = m_orientation2D.Z;
+                myrot.W = m_orientation2D.W;
+                d.BodySetQuaternion(Body, ref myrot);
+            }
         }
 
         private void changeVelocity(Vector3 newVel)
