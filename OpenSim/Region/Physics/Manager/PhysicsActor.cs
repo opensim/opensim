@@ -71,6 +71,15 @@ namespace OpenSim.Region.Physics.Manager
             RelativeSpeed = 0f; // for now let this one be set explicity
             CharacterFeet = true;  // keep other plugins work as before
         }
+
+        public ContactPoint(Vector3 position, Vector3 surfaceNormal, float penetrationDepth, bool feet)
+        {
+            Position = position;
+            SurfaceNormal = surfaceNormal;
+            PenetrationDepth = penetrationDepth;
+            RelativeSpeed = 0f; // for now let this one be set explicity
+            CharacterFeet = feet;  // keep other plugins work as before
+        }
     }
 
     public struct ContactData

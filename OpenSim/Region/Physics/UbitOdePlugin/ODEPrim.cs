@@ -2521,7 +2521,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             prm.m_collisionCategories = m_collisionCategories;
                             prm.m_collisionFlags = m_collisionFlags;
 
-                            if (prm.prim_geom != null)
+                            if (prm.prim_geom != IntPtr.Zero)
                             {
 
                                 if (prm.m_NoColide)
@@ -2542,7 +2542,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 //                        ((OdePrim)_parent).ChildSelectedChange(true);
 
 
-                    if (prim_geom != null)
+                    if (prim_geom != IntPtr.Zero)
                     {
                         if (m_NoColide)
                         {
