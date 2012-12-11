@@ -191,7 +191,8 @@ public sealed class BSPrim : BSPhysObject
         }
     }
     public override bool Selected {
-        set {
+        set
+        {
             if (value != _isSelected)
             {
                 _isSelected = value;
