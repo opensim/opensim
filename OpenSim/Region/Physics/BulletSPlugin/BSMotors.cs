@@ -65,7 +65,7 @@ public abstract class BSMotor
 // Can all the incremental stepping be replaced with motor classes?
 
 // Motor which moves CurrentValue to TargetValue over TimeScale seconds.
-// The TargetValue is decays in TargetValueDecayTimeScale and
+// The TargetValue decays in TargetValueDecayTimeScale and
 //     the CurrentValue will be held back by FrictionTimeScale.
 // TimeScale and TargetDelayTimeScale may be 'infinite' which means go decay.
 

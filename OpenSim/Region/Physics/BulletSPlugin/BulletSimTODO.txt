@@ -11,12 +11,14 @@ CRASHES
 
 VEHICLES TODO LIST:
 =================================================
-Neb car jiggling left and right
-	Happens on terrain and any other mesh object. Flat cubes are much smoother.
+Neb vehicle taking > 25ms of physics time!!
 Vehicles (Move smoothly)
 Add vehicle collisions so IsColliding is properly reported.
 	Needed for banking, limitMotorUp, movementLimiting, ...
 Some vehicles should not be able to turn if no speed or off ground.
+Neb car jiggling left and right
+	Happens on terrain and any other mesh object. Flat cubes are much smoother.
+	This has been reduced but not eliminated.
 For limitMotorUp, use raycast down to find if vehicle is in the air.
 Implement function efficiency for lineaar and angular motion.
 Should vehicle angular/linear movement friction happen after all the components
@@ -30,6 +32,9 @@ Border crossing with linked vehicle causes crash
 
 BULLETSIM TODO LIST:
 =================================================
+Avatar height off after unsitting (float off ground)
+	Editting appearance then moving restores.
+	Must not be initializing height when recreating capsule after unsit.
 Duplicating a physical prim causes old prim to jump away
 	Dup a phys prim and the original become unselected and thus interacts w/ selected prim.
 Disable activity of passive linkset children.
@@ -38,7 +43,8 @@ Disable activity of passive linkset children.
 Scenes with hundred of thousands of static objects take a lot of physics CPU time.
 BSPrim.Force should set a continious force on the prim. The force should be
 	applied each tick.  Some limits?
-Single prim vehicles don't seem to properly vehiclize.
+Linksets should allow collisions to individual children
+	Add LocalID to children shapes in LinksetCompound and create events for individuals
 Gun sending shooter flying.
 Collision margin (gap between physical objects lying on each other)
 Boundry checking (crashes related to crossing boundry)
@@ -146,3 +152,5 @@ Light cycle falling over when driving (Resolution: implemented VerticalAttractor
 Light cycle not banking	(Resolution: It doesn't. Banking is roll adding yaw.)
 Package Bullet source mods for Bullet internal stats output
 	(Resolution: move code into WorldData.h rather than relying on patches)
+Single prim vehicles don't seem to properly vehiclize.
+	(Resolution: mass was not getting set properly for single prim linksets)

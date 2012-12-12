@@ -151,13 +151,13 @@ public sealed class BSTerrainManager
     // Release all the terrain structures we might have allocated
     public void ReleaseGroundPlaneAndTerrain()
     {
-        if (m_groundPlane.ptr != IntPtr.Zero)
+        if (m_groundPlane.HasPhysicalBody)
         {
             if (BulletSimAPI.RemoveObjectFromWorld2(PhysicsScene.World.ptr, m_groundPlane.ptr))
             {
                 BulletSimAPI.DestroyObject2(PhysicsScene.World.ptr, m_groundPlane.ptr);
             }
-            m_groundPlane.ptr = IntPtr.Zero;
+            m_groundPlane.Clear();
         }
 
         ReleaseTerrain();
