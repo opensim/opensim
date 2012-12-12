@@ -542,6 +542,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             sb.AppendFormat("Queued events       : {0}\n", instance.EventsQueued);
             sb.AppendFormat("Processed events    : {0}\n", instance.EventsProcessed);
             sb.AppendFormat("Item UUID           : {0}\n", instance.ItemID);
+            sb.AppendFormat("Asset UUID          : {0}\n", instance.AssetID);
             sb.AppendFormat("Containing part name: {0}\n", instance.PrimName);
             sb.AppendFormat("Containing part UUID: {0}\n", instance.ObjectID);
             sb.AppendFormat("Position            : {0}\n", sop.AbsolutePosition);
