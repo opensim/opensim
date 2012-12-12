@@ -139,6 +139,17 @@ public abstract class BSPhysObject : PhysicsActor
     public abstract OMV.Quaternion RawOrientation { get; set; }
     public abstract OMV.Quaternion ForceOrientation { get; set; }
 
+    // The system is telling us the velocity it wants to move at.
+    protected OMV.Vector3 m_targetVelocity;
+    public override OMV.Vector3 TargetVelocity
+    {
+        get { return m_targetVelocity; }
+        set
+        {
+            m_targetVelocity = value;
+            Velocity = value;
+        }
+    }
     public abstract OMV.Vector3 ForceVelocity { get; set; }
 
     public abstract OMV.Vector3 ForceRotationalVelocity { get; set; }
