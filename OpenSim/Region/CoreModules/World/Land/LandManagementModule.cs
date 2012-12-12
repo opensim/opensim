@@ -1395,15 +1395,65 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public void ReturnObjectsInParcel(int localID, uint returnType, UUID[] agentIDs, UUID[] taskIDs, IClientAPI remoteClient)
         {
-            ILandObject selectedParcel = null;
-            lock (m_landList)
+            if (localID != -1)
             {
-                m_landList.TryGetValue(localID, out selectedParcel);
+                ILandObject selectedParcel = null;
+                lock (m_landList)
+                {
+                    m_landList.TryGetValue(localID, out selectedParcel);
+                }
+
+                if (selectedParcel == null) return;
+
+                selectedParcel.ReturnLandObjects(returnType, agentIDs, taskIDs, remoteClient);
             }
+            else
+            {
+                if (returnType != 1)
+                {
+                    m_log.WarnFormat("[LAND MANAGEMENT MODULE] ReturnObjectsInParcel: unknown return type {0}", returnType);
+                    return;
+                }
 
-            if (selectedParcel == null) return;
+                // We get here when the user returns objects from the list of Top Colliders or Top Scripts.
+                // In that case we receive specific object UUID's, but no parcel ID.
 
-            selectedParcel.ReturnLandObjects(returnType, agentIDs, taskIDs, remoteClient);
+                Dictionary<UUID, HashSet<SceneObjectGroup>> returns = new Dictionary<UUID, HashSet<SceneObjectGroup>>();
+
+                foreach (UUID groupID in taskIDs)
+                {
+                    SceneObjectGroup obj = m_scene.GetSceneObjectGroup(groupID);
+                    if (obj != null)
+                    {
+                        if (!returns.ContainsKey(obj.OwnerID))
+                            returns[obj.OwnerID] = new HashSet<SceneObjectGroup>();
+                        returns[obj.OwnerID].Add(obj);
+                    }
+                    else
+                    {
+                        m_log.WarnFormat("[LAND MANAGEMENT MODULE] ReturnObjectsInParcel: unknown object {0}", groupID);
+                    }
+                }
+
+                int num = 0;
+                foreach (HashSet<SceneObjectGroup> objs in returns.Values)
+                    num += objs.Count;
+                m_log.DebugFormat("[LAND MANAGEMENT MODULE] Returning {0} specific object(s)", num);
+
+                foreach (HashSet<SceneObjectGroup> objs in returns.Values)
+                {
+                    List<SceneObjectGroup> objs2 = new List<SceneObjectGroup>(objs);
+                    if (m_scene.Permissions.CanReturnObjects(null, remoteClient.AgentId, objs2))
+                    {
+                        m_scene.returnObjects(objs2.ToArray(), remoteClient.AgentId);
+                    }
+                    else
+                    {
+                        m_log.WarnFormat("[LAND MANAGEMENT MODULE] ReturnObjectsInParcel: not permitted to return {0} object(s) belonging to user {1}",
+                            objs2.Count, objs2[0].OwnerID);
+                    }
+                }
+            }
         }
 
         public void EventManagerOnNoLandDataFromStorage()
