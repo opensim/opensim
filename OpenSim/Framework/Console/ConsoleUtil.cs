@@ -97,7 +97,7 @@ namespace OpenSim.Framework.Console
             if (!UUID.TryParse(rawUuid, out uuid))
             {
                 if (console != null)
-                    console.OutputFormat("{0} is not a valid uuid", rawUuid);
+                    console.OutputFormat("ERROR: {0} is not a valid uuid", rawUuid);
 
                 return false;
             }
@@ -110,7 +110,7 @@ namespace OpenSim.Framework.Console
             if (!uint.TryParse(rawLocalId, out localId))
             {
                 if (console != null)
-                    console.OutputFormat("{0} is not a valid local id", localId);
+                    console.OutputFormat("ERROR: {0} is not a valid local id", localId);
 
                 return false;
             }
@@ -118,7 +118,7 @@ namespace OpenSim.Framework.Console
             if (localId == 0)
             {
                 if (console != null)
-                    console.OutputFormat("{0} is not a valid local id - it must be greater than 0", localId);
+                    console.OutputFormat("ERROR: {0} is not a valid local id - it must be greater than 0", localId);
 
                 return false;
             }
@@ -150,9 +150,29 @@ namespace OpenSim.Framework.Console
             }
 
             if (console != null)
-                console.OutputFormat("{0} is not a valid UUID or local id", rawId);
+                console.OutputFormat("ERROR: {0} is not a valid UUID or local id", rawId);
 
             return false;
+        }
+
+        /// <summary>
+        /// Convert a minimum vector input from the console to an OpenMetaverse.Vector3
+        /// </summary>
+        /// <param name='console'>Can be null if no console is available.</param>
+        /// <param name='rawConsoleVector'>/param>
+        /// <param name='vector'></param>
+        /// <returns></returns>
+        public static bool TryParseConsoleInt(ICommandConsole console, string rawConsoleInt, out int i)
+        {
+            if (!int.TryParse(rawConsoleInt, out i))
+            {
+                if (console != null)
+                    console.OutputFormat("ERROR: {0} is not a valid integer", rawConsoleInt);
+
+                return false;
+            }
+
+            return true;
         }
     
         /// <summary>
