@@ -550,9 +550,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             // forcibly abort the work item (this aborts the underlying thread).
             if (!m_InSelfDelete)
             {
-//                m_log.ErrorFormat(
-//                    "[SCRIPT INSTANCE]: Aborting script {0} {1} in prim {2} {3} {4} {5}",
-//                    ScriptName, ItemID, PrimName, ObjectID, m_InSelfDelete, DateTime.Now.Ticks);
+                m_log.DebugFormat(
+                    "[SCRIPT INSTANCE]: Aborting unstopped script {0} {1} in prim {2}, localID {3}, timeout was {4} ms", 
+                    ScriptName, ItemID, PrimName, LocalID, timeout);
 
                 workItem.Abort();
             }
