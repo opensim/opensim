@@ -5122,7 +5122,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             update.PCode = (byte)PCode.Avatar;
             update.ProfileCurve = 1;
             update.PSBlock = Utils.EmptyBytes;
-            update.Scale = new Vector3(0.45f, 0.6f, 1.9f);
+            update.Scale = data.Appearance.AvatarSize;
+//            update.Scale.Z -= 0.2f;
+
             update.Text = Utils.EmptyBytes;
             update.TextColor = new byte[4];
 
