@@ -581,7 +581,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return m_rotationalvelocity;
             }
         }
-/*
+*/
         private Quaternion m_bodyRot = Quaternion.Identity;
 
         public Quaternion Rotation
