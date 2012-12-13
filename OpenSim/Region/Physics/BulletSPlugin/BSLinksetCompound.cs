@@ -114,6 +114,12 @@ public sealed class BSLinksetCompound : BSLinkset
         {
             // The root is going dynamic. Make sure mass is properly set.
             m_mass = ComputeLinksetMass();
+            if (HasAnyChildren)
+            {
+                // Schedule a rebuilding as this will construct the complete compound shape
+                //   and set all the properties correctly.
+                InternalRefresh(LinksetRoot);
+            }
         }
         else
         {
@@ -123,6 +129,9 @@ public sealed class BSLinksetCompound : BSLinkset
             BulletSimAPI.ForceActivationState2(child.PhysBody.ptr, ActivationState.DISABLE_SIMULATION);
             // We don't want collisions from the old linkset children.
             BulletSimAPI.RemoveFromCollisionFlags2(child.PhysBody.ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
+
+            child.PhysBody.collisionType = CollisionType.LinksetChild;
+
             ret = true;
         }
         return ret;
@@ -137,10 +146,21 @@ public sealed class BSLinksetCompound : BSLinkset
     {
         bool ret = false;
         DetailLog("{0},BSLinksetCompound.MakeStatic,call,IsRoot={1}", child.LocalID, IsRoot(child));
-        if (!IsRoot(child))
+        if (IsRoot(child))
+        {
+            if (HasAnyChildren)
+            {
+                // Schedule a rebuilding as this will construct the complete compound shape
+                //   and set all the properties correctly.
+                InternalRefresh(LinksetRoot);
+            }
+        }
+        else
         {
             // The non-physical children can come back to life.
             BulletSimAPI.RemoveFromCollisionFlags2(child.PhysBody.ptr, CollisionFlags.CF_NO_CONTACT_RESPONSE);
+            child.PhysBody.collisionType = CollisionType.LinksetChild;
+
             // Don't force activation so setting of DISABLE_SIMULATION can stay if used.
             BulletSimAPI.Activate2(child.PhysBody.ptr, false);
             ret = true;
@@ -182,19 +202,25 @@ public sealed class BSLinksetCompound : BSLinkset
             // Because it is a convenient time, recompute child world position and rotation based on
             //    its position in the linkset.
             RecomputeChildWorldPosition(child, true);
-
-            // Cause the current shape to be freed and the new one to be built.
-            InternalRefresh(LinksetRoot);
-            ret = true;
         }
+
+        // Cannot schedule a refresh/rebuild here because this routine is called when
+        //     the linkset is being rebuilt.
+        // InternalRefresh(LinksetRoot);
 
         return ret;
     }
 
-    // When the linkset is built, the child shape is added
-    //    to the compound shape relative to the root shape. The linkset then moves around but
-    //    this does not move the actual child prim. The child prim's location must be recomputed
-    //    based on the location of the root shape.
+    // Companion to RemoveBodyDependencies(). If RemoveBodyDependencies() returns 'true',
+    //     this routine will restore the removed constraints.
+    // Called at taint-time!!
+    public override void RestoreBodyDependencies(BSPrim child)
+    {
+    }
+
+    // When the linkset is built, the child shape is added to the compound shape relative to the
+    //    root shape. The linkset then moves around but this does not move the actual child
+    //    prim. The child prim's location must be recomputed based on the location of the root shape.
     private void RecomputeChildWorldPosition(BSPhysObject child, bool inTaintTime)
     {
         BSLinksetCompoundInfo lci = child.LinksetInfo as BSLinksetCompoundInfo;
@@ -227,14 +253,6 @@ public sealed class BSLinksetCompound : BSLinkset
         }
     }
 
-    // Companion to RemoveBodyDependencies(). If RemoveBodyDependencies() returns 'true',
-    // this routine will restore the removed constraints.
-    // Called at taint-time!!
-    public override void RestoreBodyDependencies(BSPrim child)
-    {
-        // The Refresh operation queued by RemoveBodyDependencies() will build any missing constraints.
-    }
-
     // ================================================================
 
     // Add a new child to the linkset.
@@ -254,7 +272,7 @@ public sealed class BSLinksetCompound : BSLinkset
     }
 
     // Remove the specified child from the linkset.
-    // Safe to call even if the child is not really in my linkset.
+    // Safe to call even if the child is not really in the linkset.
     protected override void RemoveChildFromLinkset(BSPhysObject child)
     {
         if (m_children.Remove(child))
