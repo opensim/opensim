@@ -109,7 +109,7 @@ public abstract class BSPhysObject : PhysicsActor
     public EntityProperties CurrentEntityProperties { get; set; }
     public EntityProperties LastEntityProperties { get; set; }
 
-    public abstract OMV.Vector3 Scale { get; set; }
+    public virtual OMV.Vector3 Scale { get; set; }
     public abstract bool IsSolid { get; }
     public abstract bool IsStatic { get; }
 

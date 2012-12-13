@@ -126,6 +126,11 @@ public sealed class BSShapeCollection : IDisposable
         return ret;
     }
 
+    public bool GetBodyAndShape(bool forceRebuild, BulletSim sim, BSPhysObject prim)
+    {
+        return GetBodyAndShape(forceRebuild, sim, prim, null, null);
+    }
+
     // Track another user of a body.
     // We presume the caller has allocated the body.
     // Bodies only have one user so the body is just put into the world if not already there.
@@ -460,6 +465,11 @@ public sealed class BSShapeCollection : IDisposable
                         && pbs.PathScaleX == 100 && pbs.PathScaleY == 100
                         && pbs.PathShearX == 0 && pbs.PathShearY == 0) ) )
         {
+            // Get the scale of any existing shape so we can see if the new shape is same native type and same size.
+            OMV.Vector3 scaleOfExistingShape = OMV.Vector3.Zero;
+            if (prim.PhysShape.HasPhysicalShape)
+                scaleOfExistingShape = BulletSimAPI.GetLocalScaling2(prim.PhysShape.ptr);
+
             if (DDetail) DetailLog("{0},BSShapeCollection.CreateGeom,maybeNative,force={1},primScale={2},primSize={3},primShape={4}",
                         prim.LocalID, forceRebuild, prim.Scale, prim.Size, prim.PhysShape.type);
 
@@ -469,7 +479,7 @@ public sealed class BSShapeCollection : IDisposable
             {
                 haveShape = true;
                 if (forceRebuild
-                        || prim.Scale != prim.Size
+                        || prim.Scale != scaleOfExistingShape
                         || prim.PhysShape.type != BSPhysicsShapeType.SHAPE_SPHERE
                         )
                 {
@@ -483,7 +493,7 @@ public sealed class BSShapeCollection : IDisposable
             {
                 haveShape = true;
                 if (forceRebuild
-                        || prim.Scale != prim.Size
+                        || prim.Scale != scaleOfExistingShape
                         || prim.PhysShape.type != BSPhysicsShapeType.SHAPE_BOX
                         )
                 {
@@ -542,7 +552,6 @@ public sealed class BSShapeCollection : IDisposable
                                 prim.LocalID, newShape, prim.Scale);
 
         // native shapes are scaled by Bullet
-        prim.Scale = prim.Size;
         prim.PhysShape = newShape;
         return true;
     }
@@ -555,8 +564,8 @@ public sealed class BSShapeCollection : IDisposable
         ShapeData nativeShapeData = new ShapeData();
         nativeShapeData.Type = shapeType;
         nativeShapeData.ID = prim.LocalID;
-        nativeShapeData.Scale = prim.Size;
-        nativeShapeData.Size = prim.Size;  // unneeded, I think.
+        nativeShapeData.Scale = prim.Scale;
+        nativeShapeData.Size = prim.Scale;  // unneeded, I think.
         nativeShapeData.MeshKey = (ulong)shapeKey;
         nativeShapeData.HullKey = (ulong)shapeKey;
 
@@ -611,8 +620,6 @@ public sealed class BSShapeCollection : IDisposable
 
         ReferenceShape(newShape);
 
-        // meshes are already scaled by the meshmerizer
-        prim.Scale = new OMV.Vector3(1f, 1f, 1f);
         prim.PhysShape = newShape;
 
         return true;        // 'true' means a new shape has been added to this prim
@@ -683,8 +690,6 @@ public sealed class BSShapeCollection : IDisposable
 
         ReferenceShape(newShape);
 
-        // hulls are already scaled by the meshmerizer
-        prim.Scale = new OMV.Vector3(1f, 1f, 1f);
         prim.PhysShape = newShape;
         return true;        // 'true' means a new shape has been added to this prim
     }
