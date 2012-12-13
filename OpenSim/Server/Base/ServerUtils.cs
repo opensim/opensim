@@ -139,7 +139,7 @@ namespace OpenSim.Server.Base
                     if (a.AddinFile.Contains(Registry.DefaultAddinsFolder))
                     {
                         m_log.InfoFormat("[SERVER]: Adding {0} from registry", a.Name);
-						connector.PluginPath = System.IO.Path.Combine(Registry.DefaultAddinsFolder,a.Name.Replace(',', '.'));                    }
+                        connector.PluginPath = System.IO.Path.Combine(Registry.DefaultAddinsFolder,a.Name.Replace(',', '.'));                    }
                     else
                     {
                         m_log.InfoFormat("[SERVER]: Adding {0} from ./bin", a.Name);
@@ -216,26 +216,29 @@ namespace OpenSim.Server.Base
         /// <param name="args">The arguments which control which constructor is invoked on the plugin</param>
         /// <returns></returns>
         public static T LoadPlugin<T> (string dllName, Object[] args) where T:class
-		{
-			// This is good to debug configuration problems
-			//if (dllName == string.Empty)
-			//    Util.PrintCallStack();
-			
-			string className = String.Empty;
+        {
+            // This is good to debug configuration problems
+            //if (dllName == string.Empty)
+            //    Util.PrintCallStack();
+            
+            string className = String.Empty;
 
-			// The path for a dynamic plugin will contain ":" on Windows
-			string[] parts = dllName.Split (new char[] {':'});
+            // The path for a dynamic plugin will contain ":" on Windows
+            string[] parts = dllName.Split (new char[] {':'});
 
-			if (parts [0].Length > 1) {
-				dllName = parts [0];
-				if (parts.Length > 1)
-					className = parts[1];
-			} else {
-				// This is Windows - we must replace the ":" in the path
-				dllName = String.Format ("{0}:{1}", parts [0], parts [1]);
-				if (parts.Length > 2)
-					className = parts[2];
-			}
+            if (parts [0].Length > 1) 
+            {
+                dllName = parts [0];
+                if (parts.Length > 1)
+                    className = parts[1];
+            } 
+            else 
+            {
+                // This is Windows - we must replace the ":" in the path
+                dllName = String.Format ("{0}:{1}", parts [0], parts [1]);
+                if (parts.Length > 2)
+                    className = parts[2];
+            }
 
             return LoadPlugin<T>(dllName, className, args);
         }
