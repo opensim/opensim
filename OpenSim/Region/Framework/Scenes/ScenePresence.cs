@@ -564,7 +564,7 @@ namespace OpenSim.Region.Framework.Scenes
 //                    Scene.RegionInfo.RegionName, Name, m_velocity);
             }
         }
-
+//
         public override Vector3 AngularVelocity
         {
             get
@@ -581,7 +581,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return m_rotationalvelocity;
             }
         }
-
+//
         private Quaternion m_bodyRot = Quaternion.Identity;
 
         public Quaternion Rotation
