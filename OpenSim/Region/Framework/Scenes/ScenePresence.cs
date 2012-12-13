@@ -140,6 +140,8 @@ namespace OpenSim.Region.Framework.Scenes
         private Vector3 m_lastPosition;
         private Quaternion m_lastRotation;
         private Vector3 m_lastVelocity;
+        private Vector3 m_lastSize = new Vector3(0.45f,0.6f,1.9f);
+
 
         private Vector3? m_forceToApply;
         private int m_userFlags;
@@ -560,6 +562,23 @@ namespace OpenSim.Region.Framework.Scenes
 //                m_log.DebugFormat(
 //                    "[SCENE PRESENCE]: In {0} set velocity of {1} to {2}",
 //                    Scene.RegionInfo.RegionName, Name, m_velocity);
+            }
+        }
+
+        public override Vector3 AngularVelocity
+        {
+            get
+            {
+                if (PhysicsActor != null)
+                {
+                    m_rotationalvelocity = PhysicsActor.RotationalVelocity;
+
+                    //                    m_log.DebugFormat(
+                    //                        "[SCENE PRESENCE]: Set velocity {0} for {1} in {2} via getting Velocity!",
+                    //                        m_velocity, Name, Scene.RegionInfo.RegionName);
+                }
+
+                return m_rotationalvelocity;
             }
         }
 
@@ -1264,6 +1283,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (PhysicsActor != null && !IsChildAgent)
                 PhysicsActor.setAvatarSize(size, feetoffset);
+            
         }
 
         /// <summary>
@@ -2572,9 +2592,13 @@ namespace OpenSim.Region.Framework.Scenes
                 // NOTE: Velocity is not the same as m_velocity. Velocity will attempt to
                 // grab the latest PhysicsActor velocity, whereas m_velocity is often
                 // storing a requested force instead of an actual traveling velocity
+                if (Appearance.AvatarSize != m_lastSize)
+                {
+                    m_lastSize = Appearance.AvatarSize;
+                    SendAvatarDataToAllAgents();
+                }
 
-                // Throw away duplicate or insignificant updates
-                if (!Rotation.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE) ||
+                else if (!Rotation.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE) ||
                     !Velocity.ApproxEquals(m_lastVelocity, VELOCITY_TOLERANCE) ||
                     !m_pos.ApproxEquals(m_lastPosition, POSITION_TOLERANCE))
                 {
@@ -2872,6 +2896,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             avatar.ControllingClient.SendAppearance(
                 UUID, Appearance.VisualParams, Appearance.Texture.GetBytes());
+
+            
         }
 
         #endregion
@@ -3517,10 +3543,9 @@ namespace OpenSim.Region.Framework.Scenes
 //                m_lastColCount = coldata.Count;
 //            }
 
-            CollisionPlane = Vector4.UnitW;
-
             if (coldata.Count != 0)
             {
+/*
                 switch (Animator.CurrentMovementAnimation)
                 {
                     case "STAND":
@@ -3529,6 +3554,7 @@ namespace OpenSim.Region.Framework.Scenes
                     case "CROUCH":
                     case "CROUCHWALK":
                         {
+ */
                             ContactPoint lowest;
                             lowest.SurfaceNormal = Vector3.Zero;
                             lowest.Position = Vector3.Zero;
@@ -3548,10 +3574,16 @@ namespace OpenSim.Region.Framework.Scenes
                                 lowest.SurfaceNormal = -lowest.SurfaceNormal;
                                 CollisionPlane = new Vector4(lowest.SurfaceNormal, Vector3.Dot(lowest.Position, lowest.SurfaceNormal));
                             }
+                            else
+                                CollisionPlane = Vector4.UnitW;
+/*
                         }
                         break;
                 }
+*/
             }
+            else
+                CollisionPlane = Vector4.UnitW;
 
             RaiseCollisionScriptEvents(coldata);
 
