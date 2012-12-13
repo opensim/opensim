@@ -309,6 +309,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             BSMaterials.InitializeFromDefaults(Params);
             if (pConfig != null)
             {
+                // Let the user add new and interesting material property values.
                 BSMaterials.InitializefromParameters(pConfig);
             }
         }

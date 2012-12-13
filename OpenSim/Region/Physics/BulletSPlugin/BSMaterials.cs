@@ -50,10 +50,11 @@ public struct MaterialAttributes
         Avatar,
         NumberOfTypes   // the count of types in the enum.
     }
+
     // Names must be in the order of the above enum.
-    public static string[] MaterialNames = { "Stone", "Metal", "Glass", "Wood", 
-                                     "Flesh", "Plastic", "Rubber", "Light", "Avatar" };
-    public static string[] MaterialAttribs = { "Density", "Friction", "Restitution"};
+    // These names must coorespond to the lower case field names in the MaterialAttributes
+    //     structure as reflection is used to select the field to put the value in.
+    public static readonly string[] MaterialAttribs = { "Density", "Friction", "Restitution"};
 
     public MaterialAttributes(string t, float d, float f, float r)
     {
@@ -70,60 +71,74 @@ public struct MaterialAttributes
 
 public static class BSMaterials
 {
-    public static MaterialAttributes[] Attributes;
+    // Attributes for each material type
+    private static readonly MaterialAttributes[] Attributes;
+
+    // Map of material name to material type code
+    public static readonly Dictionary<string, MaterialAttributes.Material> MaterialMap;
 
     static BSMaterials()
     {
         // Attribute sets for both the non-physical and physical instances of materials.
         Attributes = new MaterialAttributes[(int)MaterialAttributes.Material.NumberOfTypes * 2];
+
+        // Map of name to type code.
+        MaterialMap = new Dictionary<string, MaterialAttributes.Material>();
+        MaterialMap.Add("Stone", MaterialAttributes.Material.Stone);
+        MaterialMap.Add("Metal", MaterialAttributes.Material.Metal);
+        MaterialMap.Add("Glass", MaterialAttributes.Material.Glass);
+        MaterialMap.Add("Wood", MaterialAttributes.Material.Wood);
+        MaterialMap.Add("Flesh", MaterialAttributes.Material.Flesh);
+        MaterialMap.Add("Plastic", MaterialAttributes.Material.Plastic);
+        MaterialMap.Add("Rubber", MaterialAttributes.Material.Rubber);
+        MaterialMap.Add("Light", MaterialAttributes.Material.Light);
+        MaterialMap.Add("Avatar", MaterialAttributes.Material.Avatar);
     }
 
     // This is where all the default material attributes are defined.
     public static void InitializeFromDefaults(ConfigurationParameters parms)
     {
         // Values from http://wiki.secondlife.com/wiki/PRIM_MATERIAL
-        // public static string[] MaterialNames = { "Stone", "Metal", "Glass", "Wood", 
-      //                                "Flesh", "Plastic", "Rubber", "Light", "Avatar" };
+        float dDensity = parms.defaultDensity;
         float dFriction = parms.defaultFriction;
         float dRestitution = parms.defaultRestitution;
-        float dDensity = parms.defaultDensity;
         Attributes[(int)MaterialAttributes.Material.Stone] =
-            new MaterialAttributes("stone",dDensity, 0.8f, 0.4f);
+                    new MaterialAttributes("stone",dDensity, 0.8f, 0.4f);
         Attributes[(int)MaterialAttributes.Material.Metal] =
-            new MaterialAttributes("metal",dDensity, 0.3f, 0.4f);
+                    new MaterialAttributes("metal",dDensity, 0.3f, 0.4f);
         Attributes[(int)MaterialAttributes.Material.Glass] =
-            new MaterialAttributes("glass",dDensity, 0.2f, 0.7f);
+                    new MaterialAttributes("glass",dDensity, 0.2f, 0.7f);
         Attributes[(int)MaterialAttributes.Material.Wood] =
-            new MaterialAttributes("wood",dDensity, 0.6f, 0.5f);
+                    new MaterialAttributes("wood",dDensity, 0.6f, 0.5f);
         Attributes[(int)MaterialAttributes.Material.Flesh] =
-            new MaterialAttributes("flesh",dDensity, 0.9f, 0.3f);
+                    new MaterialAttributes("flesh",dDensity, 0.9f, 0.3f);
         Attributes[(int)MaterialAttributes.Material.Plastic] =
-            new MaterialAttributes("plastic",dDensity, 0.4f, 0.7f);
+                    new MaterialAttributes("plastic",dDensity, 0.4f, 0.7f);
         Attributes[(int)MaterialAttributes.Material.Rubber] =
-            new MaterialAttributes("rubber",dDensity, 0.9f, 0.9f);
+                    new MaterialAttributes("rubber",dDensity, 0.9f, 0.9f);
         Attributes[(int)MaterialAttributes.Material.Light] =
-            new MaterialAttributes("light",dDensity, dFriction, dRestitution);
+                    new MaterialAttributes("light",dDensity, dFriction, dRestitution);
         Attributes[(int)MaterialAttributes.Material.Avatar] =
-            new MaterialAttributes("avatar",60f, 0.2f, 0f);
+                    new MaterialAttributes("avatar",60f, 0.2f, 0f);
 
         Attributes[(int)MaterialAttributes.Material.Stone + (int)MaterialAttributes.Material.NumberOfTypes] =
-            new MaterialAttributes("stonePhysical",dDensity, 0.8f, 0.4f);
+                    new MaterialAttributes("stonePhysical",dDensity, 0.8f, 0.4f);
         Attributes[(int)MaterialAttributes.Material.Metal + (int)MaterialAttributes.Material.NumberOfTypes] =
-            new MaterialAttributes("metalPhysical",dDensity, 0.8f, 0.4f);
+                    new MaterialAttributes("metalPhysical",dDensity, 0.8f, 0.4f);
         Attributes[(int)MaterialAttributes.Material.Glass + (int)MaterialAttributes.Material.NumberOfTypes] =
-            new MaterialAttributes("glassPhysical",dDensity, 0.8f, 0.7f);
+                    new MaterialAttributes("glassPhysical",dDensity, 0.8f, 0.7f);
         Attributes[(int)MaterialAttributes.Material.Wood + (int)MaterialAttributes.Material.NumberOfTypes] =
-            new MaterialAttributes("woodPhysical",dDensity, 0.8f, 0.5f);
+                    new MaterialAttributes("woodPhysical",dDensity, 0.8f, 0.5f);
         Attributes[(int)MaterialAttributes.Material.Flesh + (int)MaterialAttributes.Material.NumberOfTypes] =
-            new MaterialAttributes("fleshPhysical",dDensity, 0.8f, 0.3f);
+                    new MaterialAttributes("fleshPhysical",dDensity, 0.8f, 0.3f);
         Attributes[(int)MaterialAttributes.Material.Plastic + (int)MaterialAttributes.Material.NumberOfTypes] =
-            new MaterialAttributes("plasticPhysical",dDensity, 0.8f, 0.7f);
+                    new MaterialAttributes("plasticPhysical",dDensity, 0.8f, 0.7f);
         Attributes[(int)MaterialAttributes.Material.Rubber + (int)MaterialAttributes.Material.NumberOfTypes] =
-            new MaterialAttributes("rubberPhysical",dDensity, 0.8f, 0.9f);
+                    new MaterialAttributes("rubberPhysical",dDensity, 0.8f, 0.9f);
         Attributes[(int)MaterialAttributes.Material.Light + (int)MaterialAttributes.Material.NumberOfTypes] =
-            new MaterialAttributes("lightPhysical",dDensity, dFriction, dRestitution);
+                    new MaterialAttributes("lightPhysical",dDensity, dFriction, dRestitution);
         Attributes[(int)MaterialAttributes.Material.Avatar + (int)MaterialAttributes.Material.NumberOfTypes] =
-            new MaterialAttributes("avatarPhysical",60f, 0.2f, 0f);
+                    new MaterialAttributes("avatarPhysical",60f, 0.2f, 0f);
     }
 
     // Under the [BulletSim] section, one can change the individual material
@@ -139,34 +154,34 @@ public static class BSMaterials
     //    the physical value.
     public static void InitializefromParameters(IConfig pConfig)
     {
-        int matType = 0;
-        foreach (string matName in MaterialAttributes.MaterialNames)
+        foreach (KeyValuePair<string, MaterialAttributes.Material> kvp in MaterialMap)
         {
+            string matName = kvp.Key;
             foreach (string attribName in MaterialAttributes.MaterialAttribs)
             {
                 string paramName = matName + attribName;
                 if (pConfig.Contains(paramName))
                 {
                     float paramValue = pConfig.GetFloat(paramName);
-                    SetAttributeValue(matType, attribName, paramValue);
+                    SetAttributeValue((int)kvp.Value, attribName, paramValue);
                     // set the physical value also
-                    SetAttributeValue(matType + (int)MaterialAttributes.Material.NumberOfTypes, attribName, paramValue);
+                    SetAttributeValue((int)kvp.Value + (int)MaterialAttributes.Material.NumberOfTypes, attribName, paramValue);
                 }
                 paramName += "Physical";
                 if (pConfig.Contains(paramName))
                 {
                     float paramValue = pConfig.GetFloat(paramName);
-                    SetAttributeValue(matType + (int)MaterialAttributes.Material.NumberOfTypes, attribName, paramValue);
+                    SetAttributeValue((int)kvp.Value + (int)MaterialAttributes.Material.NumberOfTypes, attribName, paramValue);
                 }
             }
-            matType++;
         }
     }
 
+    // Use reflection to set the value in the attribute structure.
     private static void SetAttributeValue(int matType, string attribName, float val)
     {
         MaterialAttributes thisAttrib = Attributes[matType];
-        FieldInfo fieldInfo = thisAttrib.GetType().GetField(attribName);
+        FieldInfo fieldInfo = thisAttrib.GetType().GetField(attribName.ToLower());
         if (fieldInfo != null)
         {
             fieldInfo.SetValue(thisAttrib, val);
@@ -174,12 +189,12 @@ public static class BSMaterials
         }
     }
 
+    // Given a material type, return a structure of attributes.
     public static MaterialAttributes GetAttributes(MaterialAttributes.Material type, bool isPhysical)
     {
         int ind = (int)type;
         if (isPhysical) ind += (int)MaterialAttributes.Material.NumberOfTypes;
         return Attributes[ind];
     }
-
 }
 }

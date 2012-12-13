@@ -76,7 +76,7 @@ namespace OpenSim.Region.CoreModules.World.Sound
 
         public void RemoveRegion(Scene scene)
         {
-            m_scene.EventManager.OnClientLogin -= OnNewClient;
+            m_scene.EventManager.OnNewClient -= OnNewClient;
         }
 
         public void RegionLoaded(Scene scene)
@@ -85,7 +85,7 @@ namespace OpenSim.Region.CoreModules.World.Sound
                 return;
 
             m_scene = scene;
-            m_scene.EventManager.OnClientLogin += OnNewClient;
+            m_scene.EventManager.OnNewClient += OnNewClient;
 
             m_scene.RegisterModuleInterface<ISoundModule>(this);
         }
