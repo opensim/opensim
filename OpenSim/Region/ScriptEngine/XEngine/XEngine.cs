@@ -107,6 +107,24 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         private IXmlRpcRouter m_XmlRpcRouter;
         private int m_EventLimit;
         private bool m_KillTimedOutScripts;
+
+        /// <summary>
+        /// Number of milliseconds we will wait for a script event to complete on script stop before we forcibly abort
+        /// its thread.
+        /// </summary>
+        /// <remarks>
+        /// It appears that if a script thread is aborted whilst it is holding ReaderWriterLockSlim (possibly the write
+        /// lock) then the lock is not properly released.  This causes mono 2.6, 2.10 and possibly
+        /// later to crash, sometimes with symptoms such as a leap to 100% script usage and a vm thead dump showing
+        /// all threads waiting on release of ReaderWriterLockSlim write thread which none of the threads listed 
+        /// actually hold.
+        /// 
+        /// Pausing for event completion reduces the risk of this happening.  However, it may be that aborting threads
+        /// is not a mono issue per se but rather a risky activity in itself in an AppDomain that is not immediately
+        /// shutting down.
+        /// </remarks>
+        private int m_WaitForEventCompletionOnScriptStop = 1000;
+
         private string m_ScriptEnginesPath = null;
 
         private ExpiringCache<UUID, bool> m_runFlags = new ExpiringCache<UUID, bool>();
@@ -249,6 +267,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             m_EventLimit = m_ScriptConfig.GetInt("EventLimit", 30);
             m_KillTimedOutScripts = m_ScriptConfig.GetBoolean("KillTimedOutScripts", false);
             m_SaveTime = m_ScriptConfig.GetInt("SaveInterval", 120) * 1000;
+            m_WaitForEventCompletionOnScriptStop 
+                = m_ScriptConfig.GetInt("WaitForEventCompletionOnScriptStop", m_WaitForEventCompletionOnScriptStop);
+
             m_ScriptEnginesPath = m_ScriptConfig.GetString("ScriptEnginesPath", "ScriptEngines");
 
             m_Prio = ThreadPriority.BelowNormal;
@@ -1335,9 +1356,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             instance.ClearQueue();
 
-            // Give the script some time to finish processing its last event.  Simply aborting the script thread can
-            // cause issues on mono 2.6, 2.10 and possibly later where locks are not released properly on abort.
-            instance.Stop(1000);
+            instance.Stop(m_WaitForEventCompletionOnScriptStop);
 
 //                bool objectRemoved = false;
 
@@ -1687,16 +1706,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         public void StopScript(UUID itemID)
         {
             IScriptInstance instance = GetInstance(itemID);
+
             if (instance != null)
-            {
-                // Give the script some time to finish processing its last event.  Simply aborting the script thread can
-                // cause issues on mono 2.6, 2.10 and possibly later where locks are not released properly on abort.
-                instance.Stop(1000);
-            }
+                instance.Stop(m_WaitForEventCompletionOnScriptStop);
             else
-            {
                 m_runFlags.AddOrUpdate(itemID, false, 240);
-            }
         }
 
         public DetectParams GetDetectParams(UUID itemID, int idx)
