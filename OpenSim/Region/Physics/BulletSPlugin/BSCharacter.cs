@@ -105,12 +105,12 @@ public sealed class BSCharacter : BSPhysObject
         DetailLog("{0},BSCharacter.create,call,size={1},scale={2},density={3},volume={4},mass={5}",
                             LocalID, _size, Scale, _avatarDensity, _avatarVolume, RawMass);
 
-        // do actual create at taint time
+        // do actual creation in taint time
         PhysicsScene.TaintedObject("BSCharacter.create", delegate()
         {
             DetailLog("{0},BSCharacter.create,taint", LocalID);
             // New body and shape into PhysBody and PhysShape
-            PhysicsScene.Shapes.GetBodyAndShape(true, PhysicsScene.World, this, null, null);
+            PhysicsScene.Shapes.GetBodyAndShape(true, PhysicsScene.World, this);
 
             SetPhysicalProperties();
         });
@@ -189,6 +189,11 @@ public sealed class BSCharacter : BSPhysObject
         set {
             // When an avatar's size is set, only the height is changed.
             _size = value;
+            // Old versions of ScenePresence passed only the height. If width and/or depth are zero,
+            //     replace with the default values.
+            if (_size.X == 0f) _size.X = PhysicsScene.Params.avatarCapsuleDepth;
+            if (_size.Y == 0f) _size.Y = PhysicsScene.Params.avatarCapsuleWidth;
+
             ComputeAvatarScale(_size);
             ComputeAvatarVolumeAndMass();
             DetailLog("{0},BSCharacter.setSize,call,size={1},scale={2},density={3},volume={4},mass={5}",
@@ -196,17 +201,17 @@ public sealed class BSCharacter : BSPhysObject
 
             PhysicsScene.TaintedObject("BSCharacter.setSize", delegate()
             {
-                if (PhysShape.HasPhysicalShape)
+                if (PhysBody.HasPhysicalBody && PhysShape.HasPhysicalShape)
                 {
                     BulletSimAPI.SetLocalScaling2(PhysShape.ptr, Scale);
                     UpdatePhysicalMassProperties(RawMass);
+                    // Make sure this change appears as a property update event
+                    BulletSimAPI.PushUpdate2(PhysBody.ptr);
                 }
             });
 
         }
     }
-
-    public override OMV.Vector3 Scale { get; set; }
 
     public override PrimitiveBaseShape Shape
     {
@@ -638,9 +643,6 @@ public sealed class BSCharacter : BSPhysObject
 
     private void ComputeAvatarScale(OMV.Vector3 size)
     {
-        // The 'size' given by the simulator is the mid-point of the avatar
-        //    and X and Y are unspecified.
-
         OMV.Vector3 newScale = size;
         // newScale.X = PhysicsScene.Params.avatarCapsuleWidth;
         // newScale.Y = PhysicsScene.Params.avatarCapsuleDepth;

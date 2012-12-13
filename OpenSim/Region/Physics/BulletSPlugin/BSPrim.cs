@@ -45,7 +45,6 @@ public sealed class BSPrim : BSPhysObject
     private static readonly string LogHeader = "[BULLETS PRIM]";
 
     // _size is what the user passed. Scale is what we pass to the physics engine with the mesh.
-    // Often Scale is unity because the meshmerizer will apply _size when creating the mesh.
     private OMV.Vector3 _size;  // the multiplier for each mesh dimension as passed by the user
 
     private bool _grabbed;
@@ -93,7 +92,7 @@ public sealed class BSPrim : BSPhysObject
         _physicsActorType = (int)ActorTypes.Prim;
         _position = pos;
         _size = size;
-        Scale = size;   // the scale will be set by CreateGeom depending on object type
+        Scale = size;   // prims are the size the user wants them to be (different for BSCharactes).
         _orientation = rotation;
         _buoyancy = 1f;
         _velocity = OMV.Vector3.Zero;
@@ -159,12 +158,10 @@ public sealed class BSPrim : BSPhysObject
             // We presume the scale and size are the same. If scale must be changed for
             //     the physical shape, that is done when the geometry is built.
             _size = value;
+            Scale = _size;
             ForceBodyShapeRebuild(false);
         }
     }
-    // Scale is what we set in the physics engine. It is different than 'size' in that
-    //     'size' can be encorporated into the mesh. In that case, the scale is <1,1,1>.
-    public override OMV.Vector3 Scale { get; set; }
 
     public override PrimitiveBaseShape Shape {
         set {
@@ -1369,7 +1366,6 @@ public sealed class BSPrim : BSPhysObject
         // Create the correct physical representation for this type of object.
         // Updates PhysBody and PhysShape with the new information.
         // Ignore 'forceRebuild'. This routine makes the right choices and changes of necessary.
-        // Returns 'true' if either the body or the shape was changed.
         PhysicsScene.Shapes.GetBodyAndShape(false, PhysicsScene.World, this, null, delegate(BulletBody dBody)
         {
             // Called if the current prim body is about to be destroyed.
