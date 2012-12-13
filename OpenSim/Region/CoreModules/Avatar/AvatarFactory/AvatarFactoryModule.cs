@@ -361,6 +361,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
         public bool ValidateBakedTextureCache(IScenePresence sp)
         {
             bool defonly = true; // are we only using default textures
+            IImprovedAssetCache cache = m_scene.RequestModuleInterface<IImprovedAssetCache>();
 
             // Process the texture entry
             for (int i = 0; i < AvatarAppearance.BAKE_INDICES.Length; i++)
@@ -385,8 +386,16 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 
                 defonly = false; // found a non-default texture reference
 
-                if (m_scene.AssetService.Get(face.TextureID.ToString()) == null)
-                    return false;
+                if (cache != null)
+                {
+                    if (!cache.Check(face.TextureID.ToString()))
+                        return false;
+                }
+                else
+                {
+                    if (m_scene.AssetService.Get(face.TextureID.ToString()) == null)
+                        return false;
+                }
             }
 
 //            m_log.DebugFormat("[AVFACTORY]: Completed texture check for {0} {1}", sp.Name, sp.UUID);
@@ -398,6 +407,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
         public int RequestRebake(IScenePresence sp, bool missingTexturesOnly)
         {
             int texturesRebaked = 0;
+            IImprovedAssetCache cache = m_scene.RequestModuleInterface<IImprovedAssetCache>();
 
             for (int i = 0; i < AvatarAppearance.BAKE_INDICES.Length; i++)
             {
@@ -421,21 +431,36 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
                 if (missingTexturesOnly)
                 {
-                    if (m_scene.AssetService.Get(face.TextureID.ToString()) != null)
+                    if (cache != null)
                     {
-                        continue;
+                        if (cache.Check(face.TextureID.ToString()))
+                            continue;
+                        else
+                        {
+                            m_log.DebugFormat(
+                                "[AVFACTORY]: Missing baked texture {0} ({1}) for {2}, requesting rebake.",
+                                face.TextureID, idx, sp.Name);
+                        }
                     }
                     else
                     {
-                        // On inter-simulator teleports, this occurs if baked textures are not being stored by the
-                        // grid asset service (which means that they are not available to the new region and so have
-                        // to be re-requested from the client).
-                        //
-                        // The only available core OpenSimulator behaviour right now
-                        // is not to store these textures, temporarily or otherwise.
-                        m_log.DebugFormat(
-                            "[AVFACTORY]: Missing baked texture {0} ({1}) for {2}, requesting rebake.",
-                            face.TextureID, idx, sp.Name);
+                        if (m_scene.AssetService.Get(face.TextureID.ToString()) != null)
+                        {
+                            continue;
+                        }
+
+                        else
+                        {
+                            // On inter-simulator teleports, this occurs if baked textures are not being stored by the
+                            // grid asset service (which means that they are not available to the new region and so have
+                            // to be re-requested from the client).
+                            //
+                            // The only available core OpenSimulator behaviour right now
+                            // is not to store these textures, temporarily or otherwise.
+                            m_log.DebugFormat(
+                                "[AVFACTORY]: Missing baked texture {0} ({1}) for {2}, requesting rebake.",
+                                face.TextureID, idx, sp.Name);
+                        }
                     }
                 }
                 else

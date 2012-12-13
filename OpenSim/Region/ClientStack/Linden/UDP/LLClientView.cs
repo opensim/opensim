@@ -3992,7 +3992,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     
             const float TIME_DILATION = 1.0f;
             ushort timeDilation = Utils.FloatToUInt16(avgTimeDilation, 0.0f, 1.0f);
-            
     
             if (terseAgentUpdateBlocks.IsValueCreated)
             {
@@ -11695,14 +11694,30 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             cachedresp.WearableData =
                 new AgentCachedTextureResponsePacket.WearableDataBlock[cachedtex.WearableData.Length];
 
-            for (int i = 0; i < cachedtex.WearableData.Length; i++)
+            IImprovedAssetCache cache = m_scene.RequestModuleInterface<IImprovedAssetCache>();
+            if (cache == null)
             {
-                cachedresp.WearableData[i] = new AgentCachedTextureResponsePacket.WearableDataBlock();
-                cachedresp.WearableData[i].TextureIndex = cachedtex.WearableData[i].TextureIndex;
-                cachedresp.WearableData[i].TextureID = UUID.Zero;
-                cachedresp.WearableData[i].HostName = new byte[0];
+                for (int i = 0; i < cachedtex.WearableData.Length; i++)
+                {
+                    cachedresp.WearableData[i] = new AgentCachedTextureResponsePacket.WearableDataBlock();
+                    cachedresp.WearableData[i].TextureIndex = cachedtex.WearableData[i].TextureIndex;
+                    cachedresp.WearableData[i].TextureID = UUID.Zero;
+                    cachedresp.WearableData[i].HostName = new byte[0];
+                }
             }
-
+            else
+            {
+                for (int i = 0; i < cachedtex.WearableData.Length; i++)
+                {
+                    cachedresp.WearableData[i] = new AgentCachedTextureResponsePacket.WearableDataBlock();
+                    cachedresp.WearableData[i].TextureIndex = cachedtex.WearableData[i].TextureIndex;
+                    if(cache.Check(cachedtex.WearableData[i].ID.ToString()))
+                        cachedresp.WearableData[i].TextureID = UUID.Zero;
+                    else
+                        cachedresp.WearableData[i].TextureID = UUID.Zero;
+                    cachedresp.WearableData[i].HostName = new byte[0];
+                }
+            }
             cachedresp.Header.Zerocoded = true;
             OutPacket(cachedresp, ThrottleOutPacketType.Task);
 

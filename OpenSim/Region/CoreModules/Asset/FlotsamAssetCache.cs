@@ -348,6 +348,17 @@ namespace OpenSim.Region.CoreModules.Asset
             return asset;
         }
 
+        private bool CheckFromMemoryCache(string id)
+        {
+            AssetBase asset = null;
+
+            if (m_MemoryCache.TryGetValue(id, out asset))
+                return true;
+
+            return false;
+        }
+
+
         /// <summary>
         /// Try to get an asset from the file cache.
         /// </summary>
@@ -420,6 +431,50 @@ namespace OpenSim.Region.CoreModules.Asset
             return asset;
         }
 
+        private bool CheckFromFileCache(string id)
+        {
+            bool found = false;
+
+            string filename = GetFileName(id);
+            if (File.Exists(filename))
+            {
+                // actually check if we can open it, and so update expire
+                FileStream stream = null;
+                try
+                {
+                    stream = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.Read);
+                    if (stream != null)
+                    {
+                        found = true;
+                        stream.Close();
+                    }
+
+                }
+                catch (System.Runtime.Serialization.SerializationException e)
+                {
+                    found = false;
+                    m_log.ErrorFormat(
+                        "[FLOTSAM ASSET CACHE]: Failed to check file {0} for asset {1}.  Exception {2} {3}",
+                        filename, id, e.Message, e.StackTrace);
+
+                    // If there was a problem deserializing the asset, the asset may
+                    // either be corrupted OR was serialized under an old format
+                    // {different version of AssetBase} -- we should attempt to
+                    // delete it and re-cache
+                    File.Delete(filename);
+                }
+                catch (Exception e)
+                {
+                    found = false;
+                    m_log.ErrorFormat(
+                        "[FLOTSAM ASSET CACHE]: Failed to check file {0} for asset {1}.  Exception {2} {3}",
+                        filename, id, e.Message, e.StackTrace);
+                }
+            }
+
+            return found;
+        }
+
         public AssetBase Get(string id)
         {
             m_Requests++;
@@ -456,7 +511,22 @@ namespace OpenSim.Region.CoreModules.Asset
             return asset;
         }
 
+        public bool Check(string id)
+        {
+            if (m_MemoryCacheEnabled && CheckFromMemoryCache(id))
+                return true;
+
+            if (m_FileCacheEnabled && CheckFromFileCache(id))
+                return true;
+            return false;
+        }
+
         public AssetBase GetCached(string id)
+        {
+            return Get(id);
+        }
+
+        public AssetBase CheckCached(string id)
         {
             return Get(id);
         }
@@ -939,6 +1009,11 @@ namespace OpenSim.Region.CoreModules.Asset
         {
             AssetBase asset = Get(id);
             return asset.Data;
+        }
+
+        public bool CheckData(string id)
+        {
+            return Check(id); ;
         }
 
         public bool Get(string id, object sender, AssetRetrieved handler)
