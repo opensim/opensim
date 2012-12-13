@@ -121,9 +121,8 @@ public sealed class BSTerrainHeightmap : BSTerrainPhys
         // redo its bounding box now that it is in the world
         BulletSimAPI.UpdateSingleAabb2(PhysicsScene.World.ptr, m_mapInfo.terrainBody.ptr);
 
-        BulletSimAPI.SetCollisionGroupMask2(m_mapInfo.terrainBody.ptr,
-                            (uint)CollisionFilterGroups.TerrainGroup,
-                            (uint)CollisionFilterGroups.TerrainMask);
+        m_mapInfo.terrainBody.collisionType = CollisionType.Terrain;
+        m_mapInfo.terrainBody.ApplyCollisionMask();
 
         // Make it so the terrain will not move or be considered for movement.
         BulletSimAPI.ForceActivationState2(m_mapInfo.terrainBody.ptr, ActivationState.DISABLE_SIMULATION);
