@@ -145,6 +145,21 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             SetAppearance(sp, appearance.Texture, appearance.VisualParams);
         }
 
+
+        public void SetAppearance(IScenePresence sp, Primitive.TextureEntry textureEntry, byte[] visualParams, Vector3 avSize)
+        {
+            float oldoff = sp.Appearance.AvatarFeetOffset;
+            Vector3 oldbox = sp.Appearance.AvatarBoxSize;
+
+            SetAppearance(sp, textureEntry, visualParams);
+            sp.Appearance.SetSize(avSize);
+
+            float off = sp.Appearance.AvatarFeetOffset;
+            Vector3 box = sp.Appearance.AvatarBoxSize;
+            if (oldoff != off || oldbox != box)
+                ((ScenePresence)sp).SetSize(box, off);
+        }
+
         /// <summary>
         /// Set appearance data (texture asset IDs and slider settings) 
         /// </summary>
@@ -174,12 +189,21 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                     //                    m_log.DebugFormat(
                     //                        "[AVFACTORY]: Setting visual params for {0} to {1}",
                     //                        client.Name, string.Join(", ", visualParamsStrings));
-
+/*
                     float oldHeight = sp.Appearance.AvatarHeight;
                     changed = sp.Appearance.SetVisualParams(visualParams);
 
                     if (sp.Appearance.AvatarHeight != oldHeight && sp.Appearance.AvatarHeight > 0)
                         ((ScenePresence)sp).SetHeight(sp.Appearance.AvatarHeight);
+ */
+//                    float oldoff = sp.Appearance.AvatarFeetOffset;
+//                    Vector3 oldbox = sp.Appearance.AvatarBoxSize;
+                    changed = sp.Appearance.SetVisualParams(visualParams);
+//                    float off = sp.Appearance.AvatarFeetOffset;
+//                    Vector3 box = sp.Appearance.AvatarBoxSize;
+//                    if(oldoff != off || oldbox != box)
+//                        ((ScenePresence)sp).SetSize(box,off);
+
                 }
 
                 // Process the baked texture array
@@ -337,6 +361,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
         public bool ValidateBakedTextureCache(IScenePresence sp)
         {
             bool defonly = true; // are we only using default textures
+            IImprovedAssetCache cache = m_scene.RequestModuleInterface<IImprovedAssetCache>();
 
             // Process the texture entry
             for (int i = 0; i < AvatarAppearance.BAKE_INDICES.Length; i++)
@@ -361,8 +386,16 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 
                 defonly = false; // found a non-default texture reference
 
-                if (m_scene.AssetService.Get(face.TextureID.ToString()) == null)
-                    return false;
+                if (cache != null)
+                {
+                    if (!cache.Check(face.TextureID.ToString()))
+                        return false;
+                }
+                else
+                {
+                    if (m_scene.AssetService.Get(face.TextureID.ToString()) == null)
+                        return false;
+                }
             }
 
 //            m_log.DebugFormat("[AVFACTORY]: Completed texture check for {0} {1}", sp.Name, sp.UUID);
@@ -374,6 +407,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
         public int RequestRebake(IScenePresence sp, bool missingTexturesOnly)
         {
             int texturesRebaked = 0;
+            IImprovedAssetCache cache = m_scene.RequestModuleInterface<IImprovedAssetCache>();
 
             for (int i = 0; i < AvatarAppearance.BAKE_INDICES.Length; i++)
             {
@@ -397,21 +431,36 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
                 if (missingTexturesOnly)
                 {
-                    if (m_scene.AssetService.Get(face.TextureID.ToString()) != null)
+                    if (cache != null)
                     {
-                        continue;
+                        if (cache.Check(face.TextureID.ToString()))
+                            continue;
+                        else
+                        {
+                            m_log.DebugFormat(
+                                "[AVFACTORY]: Missing baked texture {0} ({1}) for {2}, requesting rebake.",
+                                face.TextureID, idx, sp.Name);
+                        }
                     }
                     else
                     {
-                        // On inter-simulator teleports, this occurs if baked textures are not being stored by the
-                        // grid asset service (which means that they are not available to the new region and so have
-                        // to be re-requested from the client).
-                        //
-                        // The only available core OpenSimulator behaviour right now
-                        // is not to store these textures, temporarily or otherwise.
-                        m_log.DebugFormat(
-                            "[AVFACTORY]: Missing baked texture {0} ({1}) for {2}, requesting rebake.",
-                            face.TextureID, idx, sp.Name);
+                        if (m_scene.AssetService.Get(face.TextureID.ToString()) != null)
+                        {
+                            continue;
+                        }
+
+                        else
+                        {
+                            // On inter-simulator teleports, this occurs if baked textures are not being stored by the
+                            // grid asset service (which means that they are not available to the new region and so have
+                            // to be re-requested from the client).
+                            //
+                            // The only available core OpenSimulator behaviour right now
+                            // is not to store these textures, temporarily or otherwise.
+                            m_log.DebugFormat(
+                                "[AVFACTORY]: Missing baked texture {0} ({1}) for {2}, requesting rebake.",
+                                face.TextureID, idx, sp.Name);
+                        }
                     }
                 }
                 else
@@ -611,12 +660,12 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
         /// <param name="client"></param>
         /// <param name="texture"></param>
         /// <param name="visualParam"></param>
-        private void Client_OnSetAppearance(IClientAPI client, Primitive.TextureEntry textureEntry, byte[] visualParams)
+        private void Client_OnSetAppearance(IClientAPI client, Primitive.TextureEntry textureEntry, byte[] visualParams, Vector3 avSize)
         {
             // m_log.WarnFormat("[AVFACTORY]: Client_OnSetAppearance called for {0} ({1})", client.Name, client.AgentId);
             ScenePresence sp = m_scene.GetScenePresence(client.AgentId);
             if (sp != null)
-                SetAppearance(sp, textureEntry, visualParams);
+                SetAppearance(sp, textureEntry, visualParams,avSize);
             else
                 m_log.WarnFormat("[AVFACTORY]: Client_OnSetAppearance unable to find presence for {0}", client.AgentId);
         }

@@ -324,7 +324,10 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             // Collide tests
             if ((CurrentRayFilter & FilterActiveSpace) != 0)
+            {
                 d.SpaceCollide2(ray, m_scene.ActiveSpace, IntPtr.Zero, nearCallback);
+                d.SpaceCollide2(ray, m_scene.CharsSpace, IntPtr.Zero, nearCallback);
+            }
             if ((CurrentRayFilter & FilterStaticSpace) != 0 && (m_contactResults.Count < CurrentMaxCount))
                 d.SpaceCollide2(ray, m_scene.StaticSpace, IntPtr.Zero, nearCallback);
             if ((CurrentRayFilter & RayFilterFlags.land) != 0 && (m_contactResults.Count < CurrentMaxCount))
@@ -552,7 +555,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                         break;
 
                     default:
-                        return;
                         break;
                 }
             }

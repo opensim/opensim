@@ -112,6 +112,10 @@ namespace OpenSim.Region.CoreModules.Asset
         ////////////////////////////////////////////////////////////
         // IImprovedAssetCache
         //
+        public bool Check(string id)
+        {
+            return false;
+        }
 
         public void Cache(AssetBase asset)
         {

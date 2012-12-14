@@ -127,8 +127,10 @@ namespace OpenSim.Region.Physics.Manager
         /// <param name="size"></param>
         /// <param name="isFlying"></param>
         /// <returns></returns>
-        public abstract PhysicsActor AddAvatar(string avName, Vector3 position, Vector3 size, bool isFlying);
-
+        public virtual PhysicsActor AddAvatar(string avName, Vector3 position, Vector3 size, bool isFlying)
+        {
+            return null;
+        }
         /// <summary>
         /// Add an avatar
         /// </summary>
@@ -142,6 +144,12 @@ namespace OpenSim.Region.Physics.Manager
         {
             PhysicsActor ret = AddAvatar(avName, position, size, isFlying);
             if (ret != null) ret.LocalID = localID;
+            return ret;
+        }
+
+        public virtual PhysicsActor AddAvatar(uint localID, string avName, Vector3 position, Vector3 size, float feetOffset, bool isFlying)
+        {
+            PhysicsActor ret = AddAvatar(localID, avName, position, size, isFlying);
             return ret;
         }
 

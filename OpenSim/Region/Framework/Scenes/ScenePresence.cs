@@ -140,6 +140,8 @@ namespace OpenSim.Region.Framework.Scenes
         private Vector3 m_lastPosition;
         private Quaternion m_lastRotation;
         private Vector3 m_lastVelocity;
+        private Vector3 m_lastSize = new Vector3(0.45f,0.6f,1.9f);
+
 
         private Vector3? m_forceToApply;
         private int m_userFlags;
@@ -562,7 +564,24 @@ namespace OpenSim.Region.Framework.Scenes
 //                    Scene.RegionInfo.RegionName, Name, m_velocity);
             }
         }
+/*
+        public override Vector3 AngularVelocity
+        {
+            get
+            {
+                if (PhysicsActor != null)
+                {
+                    m_rotationalvelocity = PhysicsActor.RotationalVelocity;
 
+                    //                    m_log.DebugFormat(
+                    //                        "[SCENE PRESENCE]: Set velocity {0} for {1} in {2} via getting Velocity!",
+                    //                        m_velocity, Name, Scene.RegionInfo.RegionName);
+                }
+
+                return m_rotationalvelocity;
+            }
+        }
+*/
         private Quaternion m_bodyRot = Quaternion.Identity;
 
         public Quaternion Rotation
@@ -1258,6 +1277,13 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (PhysicsActor != null && !IsChildAgent)
                 PhysicsActor.Size = new Vector3(0.45f, 0.6f, height);
+        }
+
+        public void SetSize(Vector3 size, float feetoffset)
+        {
+            if (PhysicsActor != null && !IsChildAgent)
+                PhysicsActor.setAvatarSize(size, feetoffset);
+            
         }
 
         /// <summary>
@@ -2566,9 +2592,13 @@ namespace OpenSim.Region.Framework.Scenes
                 // NOTE: Velocity is not the same as m_velocity. Velocity will attempt to
                 // grab the latest PhysicsActor velocity, whereas m_velocity is often
                 // storing a requested force instead of an actual traveling velocity
+                if (Appearance.AvatarSize != m_lastSize)
+                {
+                    m_lastSize = Appearance.AvatarSize;
+                    SendAvatarDataToAllAgents();
+                }
 
-                // Throw away duplicate or insignificant updates
-                if (!Rotation.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE) ||
+                else if (!Rotation.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE) ||
                     !Velocity.ApproxEquals(m_lastVelocity, VELOCITY_TOLERANCE) ||
                     !m_pos.ApproxEquals(m_lastPosition, POSITION_TOLERANCE))
                 {
@@ -2866,6 +2896,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             avatar.ControllingClient.SendAppearance(
                 UUID, Appearance.VisualParams, Appearance.Texture.GetBytes());
+
+            
         }
 
         #endregion
@@ -3438,15 +3470,22 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             if (Appearance.AvatarHeight == 0)
-                Appearance.SetHeight();
+//                Appearance.SetHeight();
+                Appearance.SetSize(new Vector3(0.45f,0.6f,1.9f));
 
             PhysicsScene scene = m_scene.PhysicsScene;
 
             Vector3 pVec = AbsolutePosition;
 
+/*
             PhysicsActor = scene.AddAvatar(
                 LocalId, Firstname + "." + Lastname, pVec,
                 new Vector3(0.45f, 0.6f, Appearance.AvatarHeight), isFlying);
+*/
+
+            PhysicsActor = scene.AddAvatar(
+                LocalId, Firstname + "." + Lastname, pVec,
+                Appearance.AvatarBoxSize,Appearance.AvatarFeetOffset, isFlying);
 
             //PhysicsActor.OnRequestTerseUpdate += SendTerseUpdateToAllClients;
             PhysicsActor.OnCollisionUpdate += PhysicsCollisionUpdate;
@@ -3464,6 +3503,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (ControllingClient != null)
                 ControllingClient.SendAgentAlertMessage("Physics is having a problem with your avatar.  You may not be able to move until you relog.", true);
         }
+
 
         /// <summary>
         /// Event called by the physics plugin to tell the avatar about a collision.
@@ -3494,7 +3534,6 @@ namespace OpenSim.Region.Framework.Scenes
             CollisionEventUpdate collisionData = (CollisionEventUpdate)e;
             Dictionary<uint, ContactPoint> coldata = collisionData.m_objCollisionList;
 
-            CollisionPlane = Vector4.UnitW;
 
 //            // No collisions at all means we may be flying. Update always
 //            // to make falling work
@@ -3506,6 +3545,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (coldata.Count != 0)
             {
+/*
                 switch (Animator.CurrentMovementAnimation)
                 {
                     case "STAND":
@@ -3514,24 +3554,36 @@ namespace OpenSim.Region.Framework.Scenes
                     case "CROUCH":
                     case "CROUCHWALK":
                         {
+ */
                             ContactPoint lowest;
                             lowest.SurfaceNormal = Vector3.Zero;
                             lowest.Position = Vector3.Zero;
-                            lowest.Position.Z = Single.NaN;
+                            lowest.Position.Z = float.MaxValue;
 
                             foreach (ContactPoint contact in coldata.Values)
                             {
-                                if (Single.IsNaN(lowest.Position.Z) || contact.Position.Z < lowest.Position.Z)
+                                
+                                if (contact.CharacterFeet && contact.Position.Z < lowest.Position.Z)
                                 {
                                     lowest = contact;
                                 }
                             }
 
-                            CollisionPlane = new Vector4(-lowest.SurfaceNormal, -Vector3.Dot(lowest.Position, lowest.SurfaceNormal));
+                            if (lowest.Position.Z != float.MaxValue)
+                            {
+                                lowest.SurfaceNormal = -lowest.SurfaceNormal;
+                                CollisionPlane = new Vector4(lowest.SurfaceNormal, Vector3.Dot(lowest.Position, lowest.SurfaceNormal));
+                            }
+                            else
+                                CollisionPlane = Vector4.UnitW;
+/*
                         }
                         break;
                 }
+*/
             }
+            else
+                CollisionPlane = Vector4.UnitW;
 
             RaiseCollisionScriptEvents(coldata);
 
