@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -236,8 +236,8 @@ public static class BulletSimData
 
 // Map of collisionTypes to flags for collision groups and masks.
 // As mentioned above, don't use the CollisionFilterGroups definitions directly in the code
-//     but, instead, user references to this dictionary. This makes finding and debugging
-//     collision flag usage easier.
+//     but, instead, use references to this dictionary. Finding and debugging
+//     collision flag problems will be made easier.
 public static Dictionary<CollisionType, CollisionTypeFilterGroup> CollisionTypeMasks 
             = new Dictionary<CollisionType, CollisionTypeFilterGroup>()
 {
