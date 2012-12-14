@@ -98,18 +98,14 @@ public struct BulletBody
 
 public struct BulletShape
 {
-    public BulletShape(IntPtr xx)
+    public BulletShape(IntPtr xx) : this(xx, BSPhysicsShapeType.SHAPE_UNKNOWN)
     {
-        ptr = xx;
-        type=BSPhysicsShapeType.SHAPE_UNKNOWN;
-        shapeKey = (System.UInt64)FixedShapeKey.KEY_NONE;
-        isNativeShape = false;
     }
     public BulletShape(IntPtr xx, BSPhysicsShapeType typ)
     {
         ptr = xx;
         type = typ;
-        shapeKey = 0;
+        shapeKey = (System.UInt64)FixedShapeKey.KEY_NONE;
         isNativeShape = false;
     }
     public IntPtr ptr;
@@ -192,7 +188,7 @@ public enum CollisionType
     Static,
     Dynamic,
     VolumeDetect,
-    // Linkset, // A linkset proper should be either Static or Dynamic
+    // Linkset, // A linkset should be either Static or Dynamic
     LinksetChild,
     Unknown
 };
@@ -211,7 +207,7 @@ public struct CollisionTypeFilterGroup
     public uint mask;
 };
 
-    /*
+    /* NOTE: old definitions kept for reference. Delete when things are working.
     // The collsion filters and masked are defined in one place -- don't want them scattered
     AvatarGroup             = BCharacterGroup,
     AvatarMask              = BAllGroup,
