@@ -36,9 +36,8 @@ public sealed class BSLinksetConstraints : BSLinkset
 {
     // private static string LogHeader = "[BULLETSIM LINKSET CONSTRAINTS]";
 
-    public BSLinksetConstraints(BSScene scene, BSPhysObject parent)
+    public BSLinksetConstraints(BSScene scene, BSPhysObject parent) : base(scene, parent)
     {
-        base.Initialize(scene, parent);
     }
 
     // When physical properties are changed the linkset needs to recalculate

@@ -661,14 +661,7 @@ public sealed class BSPrim : BSPhysObject
         BulletSimAPI.UpdateSingleAabb2(PhysicsScene.World.ptr, PhysBody.ptr);
 
         // Collision filter can be set only when the object is in the world
-        if (PhysBody.collisionGroup != 0 || PhysBody.collisionMask != 0)
-        {
-            if (!BulletSimAPI.SetCollisionGroupMask2(PhysBody.ptr, (uint)PhysBody.collisionGroup, (uint)PhysBody.collisionMask))
-            {
-                PhysicsScene.Logger.ErrorFormat("{0} Failure setting prim collision mask. localID={1}, grp={2:X}, mask={3:X}",
-                                LogHeader, LocalID, PhysBody.collisionGroup, PhysBody.collisionMask);
-            }
-        }
+        PhysBody.ApplyCollisionMask();
 
         // Recompute any linkset parameters.
         // When going from non-physical to physical, this re-enables the constraints that
@@ -713,11 +706,11 @@ public sealed class BSPrim : BSPhysObject
             // Start it out sleeping and physical actions could wake it up.
             BulletSimAPI.ForceActivationState2(PhysBody.ptr, ActivationState.ISLAND_SLEEPING);
 
+            // This collides like a static object
+            PhysBody.collisionType = CollisionType.Static;
+
             // There can be special things needed for implementing linksets
             Linkset.MakeStatic(this);
-
-            PhysBody.collisionGroup = CollisionFilterGroups.StaticObjectGroup;
-            PhysBody.collisionMask = CollisionFilterGroups.StaticObjectMask;
         }
         else
         {
@@ -755,16 +748,15 @@ public sealed class BSPrim : BSPhysObject
             BulletSimAPI.SetSleepingThresholds2(PhysBody.ptr, PhysicsScene.Params.linearSleepingThreshold, PhysicsScene.Params.angularSleepingThreshold);
             BulletSimAPI.SetContactProcessingThreshold2(PhysBody.ptr, PhysicsScene.Params.contactProcessingThreshold);
 
-            // There might be special things needed for implementing linksets.
-            Linkset.MakeDynamic(this);
+            // This collides like an object.
+            PhysBody.collisionType = CollisionType.Dynamic;
 
             // Force activation of the object so Bullet will act on it.
             // Must do the ForceActivationState2() to overcome the DISABLE_SIMULATION from static objects.
             BulletSimAPI.ForceActivationState2(PhysBody.ptr, ActivationState.ACTIVE_TAG);
-            // BulletSimAPI.Activate2(BSBody.ptr, true);
 
-            PhysBody.collisionGroup = CollisionFilterGroups.ObjectGroup;
-            PhysBody.collisionMask = CollisionFilterGroups.ObjectMask;
+            // There might be special things needed for implementing linksets.
+            Linkset.MakeDynamic(this);
         }
     }
 
@@ -791,8 +783,9 @@ public sealed class BSPrim : BSPhysObject
                 m_log.ErrorFormat("{0} MakeSolid: physical body of wrong type for non-solidness. id={1}, type={2}", LogHeader, LocalID, bodyType);
             }
             CurrentCollisionFlags = BulletSimAPI.AddToCollisionFlags2(PhysBody.ptr, CollisionFlags.CF_NO_CONTACT_RESPONSE);
-            PhysBody.collisionGroup = CollisionFilterGroups.VolumeDetectGroup;
-            PhysBody.collisionMask = CollisionFilterGroups.VolumeDetectMask;
+
+            // Change collision info from a static object to a ghosty collision object
+            PhysBody.collisionType = CollisionType.VolumeDetect;
         }
     }
 
