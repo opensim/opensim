@@ -94,8 +94,6 @@ namespace OpenSim.Region.UserStatistics
             if (!enabled)
                 return;
 
-            AddEventHandlers();
-
             if (Util.IsWindows())
                 Util.LoadArchSpecificWindowsDll("sqlite3.dll");
 
@@ -143,10 +141,14 @@ namespace OpenSim.Region.UserStatistics
             lock (m_scenes)
             {
                 m_scenes.Add(scene);
-                if (m_simstatsCounters.ContainsKey(scene.RegionInfo.RegionID))
-                    m_simstatsCounters.Remove(scene.RegionInfo.RegionID);
+                updateLogMod = m_scenes.Count * 2;
 
                 m_simstatsCounters.Add(scene.RegionInfo.RegionID, new USimStatsData(scene.RegionInfo.RegionID));
+
+                scene.EventManager.OnRegisterCaps += OnRegisterCaps;
+                scene.EventManager.OnDeregisterCaps += OnDeRegisterCaps;
+                scene.EventManager.OnClientClosed += OnClientClosed;
+                scene.EventManager.OnMakeRootAgent += OnMakeRootAgent;
                 scene.StatsReporter.OnSendStatsResult += ReceiveClassicSimStatsPacket;
             }
         }
@@ -157,6 +159,15 @@ namespace OpenSim.Region.UserStatistics
 
         public void RemoveRegion(Scene scene)
         {
+            if (!enabled)
+                return;
+
+            lock (m_scenes)
+            {
+                m_scenes.Remove(scene);
+                updateLogMod = m_scenes.Count * 2;
+                m_simstatsCounters.Remove(scene.RegionInfo.RegionID);
+            }
         }
 
         public virtual void Close()
@@ -187,9 +198,7 @@ namespace OpenSim.Region.UserStatistics
         private void ReceiveClassicSimStatsPacket(SimStats stats)
         {
             if (!enabled)
-            {
                 return;
-            }
 
             try
             {
@@ -198,17 +207,25 @@ namespace OpenSim.Region.UserStatistics
                 if (concurrencyCounter > 0 || System.Environment.TickCount - lastHit > 30000)
                     return;
 
-                if ((updateLogCounter++ % updateLogMod) == 0)
+                // We will conduct this under lock so that fields such as updateLogCounter do not potentially get
+                // confused if a scene is removed.
+                // XXX: Possibly the scope of this lock could be reduced though it's not critical.
+                lock (m_scenes)
                 {
-                    m_loglines = readLogLines(10);
-                    if (updateLogCounter > 10000) updateLogCounter = 1;
-                }
+                    if (updateLogMod != 0 && updateLogCounter++ % updateLogMod == 0)
+                    {
+                        m_loglines = readLogLines(10);
 
-                USimStatsData ss = m_simstatsCounters[stats.RegionUUID];
+                        if (updateLogCounter > 10000) 
+                            updateLogCounter = 1;
+                    }
 
-                if ((++ss.StatsCounter % updateStatsMod) == 0)
-                {
-                    ss.ConsumeSimStats(stats);
+                    USimStatsData ss = m_simstatsCounters[stats.RegionUUID];
+
+                    if ((++ss.StatsCounter % updateStatsMod) == 0)
+                    {
+                        ss.ConsumeSimStats(stats);
+                    }
                 }
             } 
             catch (KeyNotFoundException)
