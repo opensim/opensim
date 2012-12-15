@@ -37,6 +37,7 @@ Border crossing with linked vehicle causes crash
 
 BULLETSIM TODO LIST:
 =================================================
+Revisit CollisionMargin. Builders notice the 0.04 spacing between prims.
 Avatar height off after unsitting (floats off ground)
 	Editting appearance then moving restores.
 	Must not be initializing height when recreating capsule after unsit.
@@ -64,6 +65,8 @@ Implement ShapeCollection.Dispose()
 Implement water as a plain so raycasting and collisions can happen with same.
 Add osGetPhysicsEngineName() so scripters can tell whether BulletSim or ODE
 	Also osGetPhysicsEngineVerion() maybe.
+Linkset.Position and Linkset.Orientation requre rewrite to properly return
+	child position. LinksetConstraint acts like it's at taint time!!
 
 LINKSETS
 ======================================================

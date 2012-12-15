@@ -279,9 +279,12 @@ public sealed class BSPrim : BSPhysObject
     }
     public override OMV.Vector3 Position {
         get {
+            /* NOTE: this refetch is not necessary. The simulator knows about linkset children
+             *    and does not fetch this position info for children. Thus this is commented out.
             // child prims move around based on their parent. Need to get the latest location
             if (!Linkset.IsRoot(this))
-                _position = Linkset.Position(this);
+                _position = Linkset.PositionGet(this);
+            */
 
             // don't do the GetObjectPosition for root elements because this function is called a zillion times.
             // _position = BulletSimAPI.GetObjectPosition2(PhysicsScene.World.ptr, BSBody.ptr);
@@ -289,21 +292,18 @@ public sealed class BSPrim : BSPhysObject
         }
         set {
             // If the position must be forced into the physics engine, use ForcePosition.
+            // All positions are given in world positions.
             if (_position == value)
             {
+                DetailLog("{0},BSPrim.setPosition,taint,positionNotChanging,pos={1},orient={2}", LocalID, _position, _orientation);
                 return;
             }
             _position = value;
-            // TODO: what does it mean to set the position of a child prim?? Rebuild the constraint?
             PositionSanityCheck(false);
             PhysicsScene.TaintedObject("BSPrim.setPosition", delegate()
             {
-                // DetailLog("{0},BSPrim.SetPosition,taint,pos={1},orient={2}", LocalID, _position, _orientation);
-                if (PhysBody.HasPhysicalBody)
-                {
-                    BulletSimAPI.SetTranslation2(PhysBody.ptr, _position, _orientation);
-                    ActivateIfPhysical(false);
-                }
+                DetailLog("{0},BSPrim.SetPosition,taint,pos={1},orient={2}", LocalID, _position, _orientation);
+                ForcePosition = _position;
             });
         }
     }
@@ -314,9 +314,11 @@ public sealed class BSPrim : BSPhysObject
         }
         set {
             _position = value;
-            // PositionSanityCheck();   // Don't do this! Causes a loop and caller should know better.
-            BulletSimAPI.SetTranslation2(PhysBody.ptr, _position, _orientation);
-            ActivateIfPhysical(false);
+            if (PhysBody.HasPhysicalBody)
+            {
+                BulletSimAPI.SetTranslation2(PhysBody.ptr, _position, _orientation);
+                ActivateIfPhysical(false);
+            }
         }
     }
 
@@ -551,11 +553,14 @@ public sealed class BSPrim : BSPhysObject
     }
     public override OMV.Quaternion Orientation {
         get {
+            /* NOTE: this refetch is not necessary. The simulator knows about linkset children
+             *    and does not fetch this position info for children. Thus this is commented out.
             // Children move around because tied to parent. Get a fresh value.
             if (!Linkset.IsRoot(this))
             {
-                _orientation = Linkset.Orientation(this);
+                _orientation = Linkset.OrientationGet(this);
             }
+             */
             return _orientation;
         }
         set {

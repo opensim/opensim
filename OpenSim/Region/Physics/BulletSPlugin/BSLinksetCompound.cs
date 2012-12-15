@@ -45,6 +45,11 @@ sealed class BSLinksetCompoundInfo : BSLinksetInfo
         OffsetPos = p;
         OffsetRot = r;
     }
+    public override void Clear()
+    {
+        OffsetPos = OMV.Vector3.Zero;
+        OffsetRot = OMV.Quaternion.Identity;
+    }
     public override string ToString()
     {
         StringBuilder buff = new StringBuilder();
@@ -82,8 +87,11 @@ public sealed class BSLinksetCompound : BSLinkset
     //   its internal properties.
     public override void Refresh(BSPhysObject requestor)
     {
-        // External request for Refresh (from BSPrim) doesn't need to do anything
-        // InternalRefresh(requestor);
+        if (!IsRoot(requestor))
+        {
+        }
+        // Something changed so do the rebuilding thing
+        InternalRefresh(requestor);
     }
 
     // Schedule a refresh to happen after all the other taint processing.
@@ -168,18 +176,6 @@ public sealed class BSLinksetCompound : BSLinkset
     public override void UpdateProperties(BSPhysObject updated)
     {
         // Nothing to do for compound linksets on property updates
-    }
-
-    // The children move around in relationship to the root.
-    // Just grab the current values of wherever it is right now.
-    public override OMV.Vector3 Position(BSPhysObject member)
-    {
-        return BulletSimAPI.GetPosition2(member.PhysBody.ptr);
-    }
-
-    public override OMV.Quaternion Orientation(BSPhysObject member)
-    {
-        return BulletSimAPI.GetOrientation2(member.PhysBody.ptr);
     }
 
     // Routine called when rebuilding the body of some member of the linkset.

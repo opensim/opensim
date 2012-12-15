@@ -83,18 +83,6 @@ public sealed class BSLinksetConstraints : BSLinkset
         // Nothing to do for constraints on property updates
     }
 
-    // The children of the linkset are moved around by the constraints.
-    // Just grab the current values of wherever it is right now.
-    public override OMV.Vector3 Position(BSPhysObject member)
-    {
-        return BulletSimAPI.GetPosition2(member.PhysBody.ptr);
-    }
-
-    public override OMV.Quaternion Orientation(BSPhysObject member)
-    {
-        return BulletSimAPI.GetOrientation2(member.PhysBody.ptr);
-    }
-
     // Routine called when rebuilding the body of some member of the linkset.
     // Destroy all the constraints have have been made to root and set
     //     up to rebuild the constraints before the next simulation step.
