@@ -67,7 +67,7 @@ public abstract class BSTerrainPhys : IDisposable
 }
 
 // ==========================================================================================
-public sealed class BSTerrainManager
+public sealed class BSTerrainManager : IDisposable
 {
     static string LogHeader = "[BULLETSIM TERRAIN MANAGER]";
 
@@ -120,6 +120,11 @@ public sealed class BSTerrainManager
         m_worldOffset = Vector3.Zero;
         m_worldMax = new Vector3(DefaultRegionSize);
         MegaRegionParentPhysicsScene = null;
+    }
+
+    public void Dispose()
+    {
+        ReleaseGroundPlaneAndTerrain();
     }
 
     // Create the initial instance of terrain and the underlying ground plane.
@@ -366,6 +371,9 @@ public sealed class BSTerrainManager
             {
                 PhysicsScene.Logger.ErrorFormat("{0} GetTerrainHeightAtXY: terrain not found: region={1}, x={2}, y={3}",
                         LogHeader, PhysicsScene.RegionName, tX, tY);
+                DetailLog("{0},BSTerrainManager.GetTerrainHeightAtXYZ,terrainNotFound,loc={1},base={2}",
+                                    BSScene.DetailLogZero, loc, terrainBaseXYZ);
+                Util.PrintCallStack();      // DEBUG DEBUG DEBUG
             }
         }
         lastHeight = ret;

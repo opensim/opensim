@@ -349,8 +349,6 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         // make sure no stepping happens while we're deleting stuff
         m_initialized = false;
 
-        TerrainManager.ReleaseGroundPlaneAndTerrain();
-
         foreach (KeyValuePair<uint, BSPhysObject> kvp in PhysObjects)
         {
             kvp.Value.Destroy();
@@ -368,6 +366,13 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         {
             Shapes.Dispose();
             Shapes = null;
+        }
+
+        if (TerrainManager != null)
+        {
+            TerrainManager.ReleaseGroundPlaneAndTerrain();
+            TerrainManager.Dispose();
+            TerrainManager = null;
         }
 
         // Anything left in the unmanaged code should be cleaned out
