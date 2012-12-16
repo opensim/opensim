@@ -94,6 +94,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         private UUID m_CurrentStateHash;
         private UUID m_RegionID;
 
+        public int DebugLevel { get; set; }
+
         public Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> LineMap { get; set; }
 
         private Dictionary<string,IScriptApi> m_Apis = new Dictionary<string,IScriptApi>();
@@ -549,9 +551,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             // forcibly abort the work item (this aborts the underlying thread).
             if (!m_InSelfDelete)
             {
-//                m_log.ErrorFormat(
-//                    "[SCRIPT INSTANCE]: Aborting script {0} {1} in prim {2} {3} {4} {5}",
-//                    ScriptName, ItemID, PrimName, ObjectID, m_InSelfDelete, DateTime.Now.Ticks);
+                m_log.DebugFormat(
+                    "[SCRIPT INSTANCE]: Aborting unstopped script {0} {1} in prim {2}, localID {3}, timeout was {4} ms", 
+                    ScriptName, ItemID, PrimName, LocalID, timeout);
 
                 workItem.Abort();
             }
@@ -707,19 +709,41 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             {
                 
 //                m_log.DebugFormat("[XEngine]: Processing event {0} for {1}", data.EventName, this);
+                SceneObjectPart part = Engine.World.GetSceneObjectPart(LocalID);
+
+                if (DebugLevel >= 2)
+                    m_log.DebugFormat(
+                        "[SCRIPT INSTANCE]: Processing event {0} for {1}/{2}({3})/{4}({5}) @ {6}/{7}", 
+                        data.EventName, 
+                        ScriptName, 
+                        part.Name, 
+                        part.LocalId, 
+                        part.ParentGroup.Name, 
+                        part.ParentGroup.UUID, 
+                        part.AbsolutePosition, 
+                        part.ParentGroup.Scene.Name);
 
                 m_DetectParams = data.DetectParams;
 
                 if (data.EventName == "state") // Hardcoded state change
                 {
-    //                m_log.DebugFormat("[Script] Script {0}.{1} state set to {2}",
-    //                        PrimName, ScriptName, data.Params[0].ToString());
                     State = data.Params[0].ToString();
+
+                    if (DebugLevel >= 1)
+                        m_log.DebugFormat(
+                            "[SCRIPT INSTANCE]: Changing state to {0} for {1}/{2}({3})/{4}({5}) @ {6}/{7}", 
+                            State, 
+                            ScriptName, 
+                            part.Name, 
+                            part.LocalId, 
+                            part.ParentGroup.Name, 
+                            part.ParentGroup.UUID, 
+                            part.AbsolutePosition, 
+                            part.ParentGroup.Scene.Name);
+
                     AsyncCommandManager.RemoveScript(Engine,
                         LocalID, ItemID);
 
-                    SceneObjectPart part = Engine.World.GetSceneObjectPart(
-                        LocalID);
                     if (part != null)
                     {
                         part.SetScriptEvents(ItemID,
@@ -731,8 +755,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                     if (Engine.World.PipeEventsForScript(LocalID) ||
                         data.EventName == "control") // Don't freeze avies!
                     {
-                        SceneObjectPart part = Engine.World.GetSceneObjectPart(
-                            LocalID);
         //                m_log.DebugFormat("[Script] Delivered event {2} in state {3} to {0}.{1}",
         //                        PrimName, ScriptName, data.EventName, State);
 

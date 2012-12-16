@@ -188,6 +188,8 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     private bool m_physicsLoggingDoFlush;
     // 'true' of the vehicle code is to log lots of details
     public bool VehicleLoggingEnabled { get; private set; }
+    public bool VehiclePhysicalLoggingEnabled { get; private set; }
+    public bool VehicleScaleAngularVelocityByTimestep { get; private set; }
 
     #region Construction and Initialization
     public BSScene(string identifier)
@@ -297,6 +299,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
                 m_physicsLoggingDoFlush = pConfig.GetBoolean("PhysicsLoggingDoFlush", false);
                 // Very detailed logging for vehicle debugging
                 VehicleLoggingEnabled = pConfig.GetBoolean("VehicleLoggingEnabled", false);
+                VehiclePhysicalLoggingEnabled = pConfig.GetBoolean("VehiclePhysicalLoggingEnabled", false);
 
                 // Do any replacements in the parameters
                 m_physicsLoggingPrefix = m_physicsLoggingPrefix.Replace("%REGIONNAME%", RegionName);
@@ -306,6 +309,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             BSMaterials.InitializeFromDefaults(Params);
             if (pConfig != null)
             {
+                // Let the user add new and interesting material property values.
                 BSMaterials.InitializefromParameters(pConfig);
             }
         }
@@ -501,7 +505,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
         try
         {
-            if (VehicleLoggingEnabled) DumpVehicles();  // DEBUG
+            if (VehiclePhysicalLoggingEnabled) DumpVehicles();  // DEBUG
             if (PhysicsLogging.Enabled) beforeTime = Util.EnvironmentTickCount();
 
             numSubSteps = BulletSimAPI.PhysicsStep2(World.ptr, timeStep, m_maxSubSteps, m_fixedTimeStep,
@@ -510,7 +514,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             if (PhysicsLogging.Enabled) simTime = Util.EnvironmentTickCountSubtract(beforeTime);
             DetailLog("{0},Simulate,call, frame={1}, nTaints={2}, simTime={3}, substeps={4}, updates={5}, colliders={6}",
                         DetailLogZero, m_simulationStep, numTaints, simTime, numSubSteps, updatedEntityCount, collidersCount);
-            if (VehicleLoggingEnabled) DumpVehicles();  // DEBUG
+            if (VehiclePhysicalLoggingEnabled) DumpVehicles();  // DEBUG
         }
         catch (Exception e)
         {
@@ -1226,6 +1230,11 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             (s,cf,p,v) => { s.m_params[0].vehicleAngularDamping = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].vehicleAngularDamping; },
             (s,p,l,v) => { s.m_params[0].vehicleAngularDamping = v; } ),
+        new ParameterDefn("VehicleScaleAngularVelocityByTimestep", "If true, scale angular turning by timestep",
+            ConfigurationParameters.numericFalse,
+            (s,cf,p,v) => { s.VehicleScaleAngularVelocityByTimestep = cf.GetBoolean(p, s.BoolNumeric(v)); },
+            (s) => { return s.NumericBool(s.VehicleScaleAngularVelocityByTimestep); },
+            (s,p,l,v) => { s.VehicleScaleAngularVelocityByTimestep = s.BoolNumeric(v); } ),
 
 	    new ParameterDefn("MaxPersistantManifoldPoolSize", "Number of manifolds pooled (0 means default of 4096)",
             0f,

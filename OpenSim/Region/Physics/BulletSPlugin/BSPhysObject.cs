@@ -60,6 +60,9 @@ public abstract class BSPhysObject : PhysicsActor
         Linkset = BSLinkset.Factory(PhysicsScene, this);
         LastAssetBuildFailed = false;
 
+        // Default material type
+        Material = MaterialAttributes.Material.Wood;
+
         CollisionCollection = new CollisionEventUpdate();
         SubscribedEventsMs = 0;
         CollidingStep = 0;
@@ -72,6 +75,7 @@ public abstract class BSPhysObject : PhysicsActor
     public string TypeName { get; protected set; }
 
     public BSLinkset Linkset { get; set; }
+    public BSLinksetInfo LinksetInfo { get; set; }
 
     // Return the object mass without calculating it or having side effects
     public abstract float RawMass { get; }
@@ -105,9 +109,16 @@ public abstract class BSPhysObject : PhysicsActor
     public EntityProperties CurrentEntityProperties { get; set; }
     public EntityProperties LastEntityProperties { get; set; }
 
-    public abstract OMV.Vector3 Scale { get; set; }
+    public virtual OMV.Vector3 Scale { get; set; }
     public abstract bool IsSolid { get; }
     public abstract bool IsStatic { get; }
+
+    // Materialness
+    public MaterialAttributes.Material Material { get; private set; }
+    public override void SetMaterial(int material)
+    {
+        Material = (MaterialAttributes.Material)material;
+    }
 
     // Stop all physical motion.
     public abstract void ZeroMotion(bool inTaintTime);
@@ -128,6 +139,17 @@ public abstract class BSPhysObject : PhysicsActor
     public abstract OMV.Quaternion RawOrientation { get; set; }
     public abstract OMV.Quaternion ForceOrientation { get; set; }
 
+    // The system is telling us the velocity it wants to move at.
+    protected OMV.Vector3 m_targetVelocity;
+    public override OMV.Vector3 TargetVelocity
+    {
+        get { return m_targetVelocity; }
+        set
+        {
+            m_targetVelocity = value;
+            Velocity = value;
+        }
+    }
     public abstract OMV.Vector3 ForceVelocity { get; set; }
 
     public abstract OMV.Vector3 ForceRotationalVelocity { get; set; }
@@ -243,7 +265,9 @@ public abstract class BSPhysObject : PhysicsActor
         SubscribedEventsMs = 0;
         PhysicsScene.TaintedObject(TypeName+".UnSubscribeEvents", delegate()
         {
-            CurrentCollisionFlags = BulletSimAPI.RemoveFromCollisionFlags2(PhysBody.ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
+            // Make sure there is a body there because sometimes destruction happens in an un-ideal order.
+            if (PhysBody.HasPhysicalBody)
+                CurrentCollisionFlags = BulletSimAPI.RemoveFromCollisionFlags2(PhysBody.ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
         });
     }
     // Return 'true' if the simulator wants collision events

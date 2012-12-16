@@ -214,8 +214,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         private Quaternion m_headrotation = Quaternion.Identity;
 
-        private string m_nextSitAnimation = String.Empty;
-
         //PauPaw:Proper PID Controler for autopilot************
         public bool MovingToTarget { get; private set; }
         public Vector3 MoveToPositionTarget { get; private set; }
@@ -2120,25 +2118,10 @@ namespace OpenSim.Region.Framework.Scenes
                 StandUp();
             }
 
-//            if (!String.IsNullOrEmpty(sitAnimation))
-//            {
-//                m_nextSitAnimation = sitAnimation;
-//            }
-//            else
-//            {
-            m_nextSitAnimation = "SIT";
-//            }
-
-            //SceneObjectPart part = m_scene.GetSceneObjectPart(targetID);
             SceneObjectPart part = FindNextAvailableSitTarget(targetID);
 
             if (part != null)
             {
-                if (!String.IsNullOrEmpty(part.SitAnimation))
-                {
-                    m_nextSitAnimation = part.SitAnimation;
-                }
-
                 m_requestedSitTargetID = part.LocalId;
                 m_requestedSitTargetUUID = targetID;
 
@@ -2353,18 +2336,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void HandleAgentSit(IClientAPI remoteClient, UUID agentID)
         {
-            if (!String.IsNullOrEmpty(m_nextSitAnimation))
-            {
-                HandleAgentSit(remoteClient, agentID, m_nextSitAnimation);
-            }
-            else
-            {
-                HandleAgentSit(remoteClient, agentID, "SIT");
-            }
-        }
-
-        public void HandleAgentSit(IClientAPI remoteClient, UUID agentID, string sitAnimation)
-        {
             SceneObjectPart part = m_scene.GetSceneObjectPart(m_requestedSitTargetID);
 
             if (part != null)
@@ -2436,7 +2407,12 @@ namespace OpenSim.Region.Framework.Scenes
 
                 Velocity = Vector3.Zero;
                 RemoveFromPhysicalScene();
-        
+
+                String sitAnimation = "SIT";
+                if (!String.IsNullOrEmpty(part.SitAnimation))
+                {
+                    sitAnimation = part.SitAnimation;
+                }
                 Animator.TrySetMovementAnimation(sitAnimation);
                 SendAvatarDataToAllAgents();
             }

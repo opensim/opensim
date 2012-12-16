@@ -570,8 +570,8 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 BulletSimAPI.SetMassProps2(Prim.PhysBody.ptr, m_vehicleMass, localInertia);
                 BulletSimAPI.UpdateInertiaTensor2(Prim.PhysBody.ptr);
 
-                VDetailLog("{0},BSDynamics.Refresh,frict={1},inert={2},aDamp={3}",
-                                Prim.LocalID, friction, localInertia, angularDamping);
+                VDetailLog("{0},BSDynamics.Refresh,mass={1},frict={2},inert={3},aDamp={4}",
+                                Prim.LocalID, m_vehicleMass, friction, localInertia, angularDamping);
             }
             else
             {
@@ -818,6 +818,8 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                             + hoverContribution
                             + limitMotorUpContribution;
 
+            Vector3 newForce = buoyancyContribution;
+
             // If not changing some axis, reduce out velocity
             if ((m_flags & (VehicleFlag.NO_X)) != 0)
                 newVelocity.X = 0;
@@ -845,7 +847,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             VehicleVelocity = newVelocity;
 
             // Other linear forces are applied as forces.
-            Vector3 totalDownForce = buoyancyContribution * m_vehicleMass;
+            Vector3 totalDownForce = newForce * m_vehicleMass;
             if (!totalDownForce.ApproxEquals(Vector3.Zero, 0.01f))
             {
                 VehicleAddForce(totalDownForce);
@@ -991,8 +993,8 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 
             if ((m_flags & (VehicleFlag.LIMIT_MOTOR_UP)) != 0)
             {
-                // If the vehicle is motoring into the sky, get it going back down.
-                float distanceAboveGround = VehiclePosition.Z - GetTerrainHeight(VehiclePosition);
+                float targetHeight = Type == Vehicle.TYPE_BOAT ? GetWaterLevel(VehiclePosition) : GetTerrainHeight(VehiclePosition);
+                float distanceAboveGround = VehiclePosition.Z - targetHeight;
                 // Not colliding if the vehicle is off the ground
                 if (!Prim.IsColliding)
                 {
@@ -1005,8 +1007,8 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 //     has a decay factor. This says this force should
                 //     be computed with a motor.
                 // TODO: add interaction with banking.
-                VDetailLog("{0},  MoveLinear,limitMotorUp,distAbove={1},downForce={2}",
-                                    Prim.LocalID, distanceAboveGround, ret);
+                VDetailLog("{0},  MoveLinear,limitMotorUp,distAbove={1},colliding={2},ret={3}",
+                                    Prim.LocalID, distanceAboveGround, Prim.IsColliding, ret);
             }
             return ret;
         }
@@ -1055,7 +1057,10 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             // TODO: Should this be applied as an angular force (torque)?
             if (!m_lastAngularCorrection.ApproxEquals(Vector3.Zero, 0.01f))
             {
-                Vector3 scaledCorrection = m_lastAngularCorrection * pTimestep;
+                // DEBUG DEBUG DEBUG: optionally scale the angular velocity. Debugging SL vs ODE turning functions.
+                Vector3 scaledCorrection = m_lastAngularCorrection;
+                if (PhysicsScene.VehicleScaleAngularVelocityByTimestep)
+                    scaledCorrection *= pTimestep;
                 VehicleRotationalVelocity = scaledCorrection;
 
                 VDetailLog("{0},  MoveAngular,done,nonZero,angMotorContrib={1},vertAttrContrib={2},bankContrib={3},deflectContrib={4},totalContrib={5},scaledCorr={6}",

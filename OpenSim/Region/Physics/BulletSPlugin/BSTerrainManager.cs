@@ -140,8 +140,8 @@ public sealed class BSTerrainManager
         // Ground plane does not move
         BulletSimAPI.ForceActivationState2(m_groundPlane.ptr, ActivationState.DISABLE_SIMULATION);
         // Everything collides with the ground plane.
-        BulletSimAPI.SetCollisionGroupMask2(m_groundPlane.ptr,
-                        (uint)CollisionFilterGroups.GroundPlaneGroup, (uint)CollisionFilterGroups.GroundPlaneMask);
+        m_groundPlane.collisionType = CollisionType.Groundplane;
+        m_groundPlane.ApplyCollisionMask();
 
         // Build an initial terrain and put it in the world. This quickly gets replaced by the real region terrain.
         BSTerrainPhys initialTerrain = new BSTerrainHeightmap(PhysicsScene, Vector3.Zero, BSScene.TERRAIN_ID, DefaultRegionSize);
@@ -151,13 +151,13 @@ public sealed class BSTerrainManager
     // Release all the terrain structures we might have allocated
     public void ReleaseGroundPlaneAndTerrain()
     {
-        if (m_groundPlane.ptr != IntPtr.Zero)
+        if (m_groundPlane.HasPhysicalBody)
         {
             if (BulletSimAPI.RemoveObjectFromWorld2(PhysicsScene.World.ptr, m_groundPlane.ptr))
             {
                 BulletSimAPI.DestroyObject2(PhysicsScene.World.ptr, m_groundPlane.ptr);
             }
-            m_groundPlane.ptr = IntPtr.Zero;
+            m_groundPlane.Clear();
         }
 
         ReleaseTerrain();

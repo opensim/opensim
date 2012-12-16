@@ -25,99 +25,13 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
 using OpenMetaverse;
 
 namespace OpenSim.Region.Physics.BulletSPlugin {
-
-// Classes to allow some type checking for the API
-// These hold pointers to allocated objects in the unmanaged space.
-
-// The physics engine controller class created at initialization
-public struct BulletSim
-{
-    public BulletSim(uint worldId, BSScene bss, IntPtr xx)
-    {
-        ptr = xx;
-        worldID = worldId;
-        physicsScene = bss;
-    }
-    public IntPtr ptr;
-    public uint worldID;
-    // The scene is only in here so very low level routines have a handle to print debug/error messages
-    public BSScene physicsScene;
-}
-
-// An allocated Bullet btRigidBody
-public struct BulletBody
-{
-    public BulletBody(uint id, IntPtr xx)
-    {
-        ID = id;
-        ptr = xx;
-        collisionGroup = 0;
-        collisionMask = 0;
-    }
-    public IntPtr ptr;
-    public uint ID;
-    public CollisionFilterGroups collisionGroup;
-    public CollisionFilterGroups collisionMask;
-    public override string ToString()
-    {
-        StringBuilder buff = new StringBuilder();
-        buff.Append("<id=");
-        buff.Append(ID.ToString());
-        buff.Append(",p=");
-        buff.Append(ptr.ToString("X"));
-        if (collisionGroup != 0 || collisionMask != 0)
-        {
-            buff.Append(",g=");
-            buff.Append(collisionGroup.ToString("X"));
-            buff.Append(",m=");
-            buff.Append(collisionMask.ToString("X"));
-        }
-        buff.Append(">");
-        return buff.ToString();
-    }
-}
-
-public struct BulletShape
-{
-    public BulletShape(IntPtr xx)
-    {
-        ptr = xx;
-        type=BSPhysicsShapeType.SHAPE_UNKNOWN;
-        shapeKey = (System.UInt64)FixedShapeKey.KEY_NONE;
-        isNativeShape = false;
-    }
-    public BulletShape(IntPtr xx, BSPhysicsShapeType typ)
-    {
-        ptr = xx;
-        type = typ;
-        shapeKey = 0;
-        isNativeShape = false;
-    }
-    public IntPtr ptr;
-    public BSPhysicsShapeType type;
-    public System.UInt64 shapeKey;
-    public bool isNativeShape;
-    public override string ToString()
-    {
-        StringBuilder buff = new StringBuilder();
-        buff.Append("<p=");
-        buff.Append(ptr.ToString("X"));
-        buff.Append(",s=");
-        buff.Append(type.ToString());
-        buff.Append(",k=");
-        buff.Append(shapeKey.ToString("X"));
-        buff.Append(",n=");
-        buff.Append(isNativeShape.ToString());
-        buff.Append(">");
-        return buff.ToString();
-    }
-}
 
     // Constraint type values as defined by Bullet
 public enum ConstraintType : int
@@ -130,44 +44,6 @@ public enum ConstraintType : int
 	CONTACT_CONSTRAINT_TYPE,
 	D6_SPRING_CONSTRAINT_TYPE,
 	MAX_CONSTRAINT_TYPE
-}
-
-// An allocated Bullet btConstraint
-public struct BulletConstraint
-{
-    public BulletConstraint(IntPtr xx)
-    {
-        ptr = xx;
-    }
-    public IntPtr ptr;
-}
-
-// An allocated HeightMapThing which holds various heightmap info.
-// Made a class rather than a struct so there would be only one
-//      instance of this and C# will pass around pointers rather
-//      than making copies.
-public class BulletHeightMapInfo
-{
-    public BulletHeightMapInfo(uint id, float[] hm, IntPtr xx) {
-        ID = id;
-        Ptr = xx;
-        heightMap = hm;
-        terrainRegionBase = Vector3.Zero;
-        minCoords = new Vector3(100f, 100f, 25f);
-        maxCoords = new Vector3(101f, 101f, 26f);
-        minZ = maxZ = 0f;
-        sizeX = sizeY = 256f;
-    }
-    public uint ID;
-    public IntPtr Ptr;
-    public float[] heightMap;
-    public Vector3 terrainRegionBase;
-    public Vector3 minCoords;
-    public Vector3 maxCoords;
-    public float sizeX, sizeY;
-    public float minZ, maxZ;
-    public BulletShape terrainShape;
-    public BulletBody terrainBody;
 }
 
 // ===============================================================================
@@ -362,21 +238,15 @@ public enum CollisionFlags : uint
     BS_FLOATS_ON_WATER               = 1 << 11,
     BS_VEHICLE_COLLISIONS            = 1 << 12,
     BS_NONE                          = 0,
-    BS_ALL                           = 0xFFFFFFFF,
-
-    // These are the collision flags switched depending on physical state.
-    // The other flags are used for other things and should not be fooled with.
-    BS_ACTIVE = CF_STATIC_OBJECT
-                | CF_KINEMATIC_OBJECT
-                | CF_NO_CONTACT_RESPONSE
+    BS_ALL                           = 0xFFFFFFFF
 };
 
-// Values for collisions groups and masks
+// Values f collisions groups and masks
 public enum CollisionFilterGroups : uint
 {
     // Don't use the bit definitions!!  Define the use in a
     //   filter/mask definition below. This way collision interactions
-    //   are more easily debugged.
+    //   are more easily found and debugged.
     BNoneGroup              = 0,
     BDefaultGroup           = 1 << 0,
     BStaticGroup            = 1 << 1,
@@ -390,24 +260,8 @@ public enum CollisionFilterGroups : uint
     BTerrainGroup           = 1 << 11,
     BRaycastGroup           = 1 << 12,
     BSolidGroup             = 1 << 13,
-    BLinksetGroup           = 1 << 14,
-
-    // The collsion filters and masked are defined in one place -- don't want them scattered
-    AvatarGroup             = BCharacterGroup,
-    AvatarMask              = BAllGroup,
-    ObjectGroup             = BSolidGroup,
-    ObjectMask              = BAllGroup,
-    StaticObjectGroup       = BStaticGroup,
-    StaticObjectMask        = AvatarGroup | ObjectGroup,    // static things don't interact with much
-    LinksetGroup            = BLinksetGroup,
-    LinksetMask             = BAllGroup & ~BLinksetGroup, // linkset objects don't collide with each other
-    VolumeDetectGroup       = BSensorTrigger,
-    VolumeDetectMask        = ~BSensorTrigger,
-    TerrainGroup            = BTerrainGroup,
-    TerrainMask             = BAllGroup & ~BStaticGroup,  // static objects on the ground don't collide
-    GroundPlaneGroup        = BGroundPlaneGroup,
-    GroundPlaneMask         = BAllGroup
-
+    // BLinksetGroup        = xx  // a linkset proper is either static or dynamic
+    BLinksetChildGroup      = 1 << 14,
 };
 
 // CFM controls the 'hardness' of the constraint. 0=fixed, 0..1=violatable. Default=0
@@ -434,7 +288,7 @@ public enum ConstraintParamAxis : int
 
 // ===============================================================================
 static class BulletSimAPI {
-
+// ===============================================================================
 // Link back to the managed code for outputting log messages
 [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
 public delegate void DebugLogCallback([MarshalAs(UnmanagedType.LPStr)]string msg);

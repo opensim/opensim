@@ -45,7 +45,6 @@ public sealed class BSPrim : BSPhysObject
     private static readonly string LogHeader = "[BULLETS PRIM]";
 
     // _size is what the user passed. Scale is what we pass to the physics engine with the mesh.
-    // Often Scale is unity because the meshmerizer will apply _size when creating the mesh.
     private OMV.Vector3 _size;  // the multiplier for each mesh dimension as passed by the user
 
     private bool _grabbed;
@@ -93,7 +92,7 @@ public sealed class BSPrim : BSPhysObject
         _physicsActorType = (int)ActorTypes.Prim;
         _position = pos;
         _size = size;
-        Scale = size;   // the scale will be set by CreateGeom depending on object type
+        Scale = size;   // prims are the size the user wants them to be (different for BSCharactes).
         _orientation = rotation;
         _buoyancy = 1f;
         _velocity = OMV.Vector3.Zero;
@@ -108,8 +107,8 @@ public sealed class BSPrim : BSPhysObject
         _mass = CalculateMass();
 
         // No body or shape yet
-        PhysBody = new BulletBody(LocalID, IntPtr.Zero);
-        PhysShape = new BulletShape(IntPtr.Zero);
+        PhysBody = new BulletBody(LocalID);
+        PhysShape = new BulletShape();
 
         DetailLog("{0},BSPrim.constructor,call", LocalID);
         // do the actual object creation at taint time
@@ -143,7 +142,9 @@ public sealed class BSPrim : BSPhysObject
             DetailLog("{0},BSPrim.Destroy,taint,", LocalID);
             // If there are physical body and shape, release my use of same.
             PhysicsScene.Shapes.DereferenceBody(PhysBody, true, null);
+            PhysBody.Clear();
             PhysicsScene.Shapes.DereferenceShape(PhysShape, true, null);
+            PhysShape.Clear();
         });
     }
 
@@ -157,12 +158,10 @@ public sealed class BSPrim : BSPhysObject
             // We presume the scale and size are the same. If scale must be changed for
             //     the physical shape, that is done when the geometry is built.
             _size = value;
+            Scale = _size;
             ForceBodyShapeRebuild(false);
         }
     }
-    // Scale is what we set in the physics engine. It is different than 'size' in that
-    //     'size' can be encorporated into the mesh. In that case, the scale is <1,1,1>.
-    public override OMV.Vector3 Scale { get; set; }
 
     public override PrimitiveBaseShape Shape {
         set {
@@ -189,7 +188,8 @@ public sealed class BSPrim : BSPhysObject
         }
     }
     public override bool Selected {
-        set {
+        set
+        {
             if (value != _isSelected)
             {
                 _isSelected = value;
@@ -247,7 +247,8 @@ public sealed class BSPrim : BSPhysObject
         // Zero some other properties in the physics engine
         PhysicsScene.TaintedObject(inTaintTime, "BSPrim.ZeroMotion", delegate()
         {
-            BulletSimAPI.ClearAllForces2(PhysBody.ptr);
+            if (PhysBody.HasPhysicalBody)
+                BulletSimAPI.ClearAllForces2(PhysBody.ptr);
         });
     }
     public override void ZeroAngularMotion(bool inTaintTime)
@@ -257,8 +258,11 @@ public sealed class BSPrim : BSPhysObject
         PhysicsScene.TaintedObject(inTaintTime, "BSPrim.ZeroMotion", delegate()
         {
             // DetailLog("{0},BSPrim.ZeroAngularMotion,call,rotVel={1}", LocalID, _rotationalVelocity);
-            BulletSimAPI.SetInterpolationAngularVelocity2(PhysBody.ptr, _rotationalVelocity);
-            BulletSimAPI.SetAngularVelocity2(PhysBody.ptr, _rotationalVelocity);
+            if (PhysBody.HasPhysicalBody)
+            {
+                BulletSimAPI.SetInterpolationAngularVelocity2(PhysBody.ptr, _rotationalVelocity);
+                BulletSimAPI.SetAngularVelocity2(PhysBody.ptr, _rotationalVelocity);
+            }
         });
     }
 
@@ -295,8 +299,11 @@ public sealed class BSPrim : BSPhysObject
             PhysicsScene.TaintedObject("BSPrim.setPosition", delegate()
             {
                 // DetailLog("{0},BSPrim.SetPosition,taint,pos={1},orient={2}", LocalID, _position, _orientation);
-                BulletSimAPI.SetTranslation2(PhysBody.ptr, _position, _orientation);
-                ActivateIfPhysical(false);
+                if (PhysBody.HasPhysicalBody)
+                {
+                    BulletSimAPI.SetTranslation2(PhysBody.ptr, _position, _orientation);
+                    ActivateIfPhysical(false);
+                }
             });
         }
     }
@@ -322,12 +329,12 @@ public sealed class BSPrim : BSPhysObject
 
         float terrainHeight = PhysicsScene.TerrainManager.GetTerrainHeightAtXYZ(_position);
         OMV.Vector3 upForce = OMV.Vector3.Zero;
-        if (Position.Z < terrainHeight)
+        if (RawPosition.Z < terrainHeight)
         {
             DetailLog("{0},BSPrim.PositionAdjustUnderGround,call,pos={1},terrain={2}", LocalID, _position, terrainHeight);
             float targetHeight = terrainHeight + (Size.Z / 2f);
             // Upforce proportional to the distance away from the terrain. Correct the error in 1 sec.
-            upForce.Z = (terrainHeight - Position.Z) * 1f;
+            upForce.Z = (terrainHeight - RawPosition.Z) * 1f;
             ret = true;
         }
 
@@ -335,10 +342,10 @@ public sealed class BSPrim : BSPhysObject
         {
             float waterHeight = PhysicsScene.TerrainManager.GetWaterLevelAtXYZ(_position);
             // TODO: a floating motor so object will bob in the water
-            if (Math.Abs(Position.Z - waterHeight) > 0.1f)
+            if (Math.Abs(RawPosition.Z - waterHeight) > 0.1f)
             {
                 // Upforce proportional to the distance away from the water. Correct the error in 1 sec.
-                upForce.Z = (waterHeight - Position.Z) * 1f;
+                upForce.Z = (waterHeight - RawPosition.Z) * 1f;
                 ret = true;
             }
         }
@@ -413,7 +420,8 @@ public sealed class BSPrim : BSPhysObject
             PhysicsScene.TaintedObject("BSPrim.setForce", delegate()
             {
                 // DetailLog("{0},BSPrim.setForce,taint,force={1}", LocalID, _force);
-                BulletSimAPI.SetObjectForce2(PhysBody.ptr, _force);
+                if (PhysBody.HasPhysicalBody)
+                    BulletSimAPI.SetObjectForce2(PhysBody.ptr, _force);
             });
         }
     }
@@ -507,7 +515,8 @@ public sealed class BSPrim : BSPhysObject
             PhysicsScene.TaintedObject("BSPrim.setVelocity", delegate()
             {
                 // DetailLog("{0},BSPrim.SetVelocity,taint,vel={1}", LocalID, _velocity);
-                BulletSimAPI.SetLinearVelocity2(PhysBody.ptr, _velocity);
+                if (PhysBody.HasPhysicalBody)
+                    BulletSimAPI.SetLinearVelocity2(PhysBody.ptr, _velocity);
             });
         }
     }
@@ -556,9 +565,12 @@ public sealed class BSPrim : BSPhysObject
             // TODO: what does it mean if a child in a linkset changes its orientation? Rebuild the constraint?
             PhysicsScene.TaintedObject("BSPrim.setOrientation", delegate()
             {
-                // _position = BulletSimAPI.GetObjectPosition2(PhysicsScene.World.ptr, BSBody.ptr);
-                // DetailLog("{0},BSPrim.setOrientation,taint,pos={1},orient={2}", LocalID, _position, _orientation);
-                BulletSimAPI.SetTranslation2(PhysBody.ptr, _position, _orientation);
+                if (PhysBody.HasPhysicalBody)
+                {
+                    // _position = BulletSimAPI.GetObjectPosition2(PhysicsScene.World.ptr, BSBody.ptr);
+                    // DetailLog("{0},BSPrim.setOrientation,taint,pos={1},orient={2}", LocalID, _position, _orientation);
+                    BulletSimAPI.SetTranslation2(PhysBody.ptr, _position, _orientation);
+                }
             });
         }
     }
@@ -649,14 +661,7 @@ public sealed class BSPrim : BSPhysObject
         BulletSimAPI.UpdateSingleAabb2(PhysicsScene.World.ptr, PhysBody.ptr);
 
         // Collision filter can be set only when the object is in the world
-        if (PhysBody.collisionGroup != 0 || PhysBody.collisionMask != 0)
-        {
-            if (!BulletSimAPI.SetCollisionGroupMask2(PhysBody.ptr, (uint)PhysBody.collisionGroup, (uint)PhysBody.collisionMask))
-            {
-                PhysicsScene.Logger.ErrorFormat("{0} Failure setting prim collision mask. localID={1}, grp={2:X}, mask={3:X}",
-                                LogHeader, LocalID, PhysBody.collisionGroup, PhysBody.collisionMask);
-            }
-        }
+        PhysBody.ApplyCollisionMask();
 
         // Recompute any linkset parameters.
         // When going from non-physical to physical, this re-enables the constraints that
@@ -683,8 +688,9 @@ public sealed class BSPrim : BSPhysObject
             ZeroMotion(true);
 
             // Set various physical properties so other object interact properly
-            BulletSimAPI.SetFriction2(PhysBody.ptr, PhysicsScene.Params.defaultFriction);
-            BulletSimAPI.SetRestitution2(PhysBody.ptr, PhysicsScene.Params.defaultRestitution);
+            MaterialAttributes matAttrib = BSMaterials.GetAttributes(Material, false);
+            BulletSimAPI.SetFriction2(PhysBody.ptr, matAttrib.friction);
+            BulletSimAPI.SetRestitution2(PhysBody.ptr, matAttrib.restitution);
 
             // Mass is zero which disables a bunch of physics stuff in Bullet
             UpdatePhysicalMassProperties(0f);
@@ -700,20 +706,21 @@ public sealed class BSPrim : BSPhysObject
             // Start it out sleeping and physical actions could wake it up.
             BulletSimAPI.ForceActivationState2(PhysBody.ptr, ActivationState.ISLAND_SLEEPING);
 
+            // This collides like a static object
+            PhysBody.collisionType = CollisionType.Static;
+
             // There can be special things needed for implementing linksets
             Linkset.MakeStatic(this);
-
-            PhysBody.collisionGroup = CollisionFilterGroups.StaticObjectGroup;
-            PhysBody.collisionMask = CollisionFilterGroups.StaticObjectMask;
         }
         else
         {
             // Not a Bullet static object
             CurrentCollisionFlags = BulletSimAPI.RemoveFromCollisionFlags2(PhysBody.ptr, CollisionFlags.CF_STATIC_OBJECT);
 
-            // Set various physical properties so internal dynamic properties will get computed correctly as they are set
-            BulletSimAPI.SetFriction2(PhysBody.ptr, PhysicsScene.Params.defaultFriction);
-            BulletSimAPI.SetRestitution2(PhysBody.ptr, PhysicsScene.Params.defaultRestitution);
+            // Set various physical properties so other object interact properly
+            MaterialAttributes matAttrib = BSMaterials.GetAttributes(Material, true);
+            BulletSimAPI.SetFriction2(PhysBody.ptr, matAttrib.friction);
+            BulletSimAPI.SetRestitution2(PhysBody.ptr, matAttrib.restitution);
 
             // per http://www.bulletphysics.org/Bullet/phpBB3/viewtopic.php?t=3382
             // Since this can be called multiple times, only zero forces when becoming physical
@@ -741,16 +748,15 @@ public sealed class BSPrim : BSPhysObject
             BulletSimAPI.SetSleepingThresholds2(PhysBody.ptr, PhysicsScene.Params.linearSleepingThreshold, PhysicsScene.Params.angularSleepingThreshold);
             BulletSimAPI.SetContactProcessingThreshold2(PhysBody.ptr, PhysicsScene.Params.contactProcessingThreshold);
 
-            // There might be special things needed for implementing linksets.
-            Linkset.MakeDynamic(this);
+            // This collides like an object.
+            PhysBody.collisionType = CollisionType.Dynamic;
 
             // Force activation of the object so Bullet will act on it.
             // Must do the ForceActivationState2() to overcome the DISABLE_SIMULATION from static objects.
             BulletSimAPI.ForceActivationState2(PhysBody.ptr, ActivationState.ACTIVE_TAG);
-            // BulletSimAPI.Activate2(BSBody.ptr, true);
 
-            PhysBody.collisionGroup = CollisionFilterGroups.ObjectGroup;
-            PhysBody.collisionMask = CollisionFilterGroups.ObjectMask;
+            // There might be special things needed for implementing linksets.
+            Linkset.MakeDynamic(this);
         }
     }
 
@@ -777,8 +783,9 @@ public sealed class BSPrim : BSPhysObject
                 m_log.ErrorFormat("{0} MakeSolid: physical body of wrong type for non-solidness. id={1}, type={2}", LogHeader, LocalID, bodyType);
             }
             CurrentCollisionFlags = BulletSimAPI.AddToCollisionFlags2(PhysBody.ptr, CollisionFlags.CF_NO_CONTACT_RESPONSE);
-            PhysBody.collisionGroup = CollisionFilterGroups.VolumeDetectGroup;
-            PhysBody.collisionMask = CollisionFilterGroups.VolumeDetectMask;
+
+            // Change collision info from a static object to a ghosty collision object
+            PhysBody.collisionType = CollisionType.VolumeDetect;
         }
     }
 
@@ -861,7 +868,8 @@ public sealed class BSPrim : BSPhysObject
             PhysicsScene.TaintedObject("BSPrim.setRotationalVelocity", delegate()
             {
                 DetailLog("{0},BSPrim.SetRotationalVel,taint,rotvel={1}", LocalID, _rotationalVelocity);
-                BulletSimAPI.SetAngularVelocity2(PhysBody.ptr, _rotationalVelocity);
+                if (PhysBody.HasPhysicalBody)
+                    BulletSimAPI.SetAngularVelocity2(PhysBody.ptr, _rotationalVelocity);
             });
         }
     }
@@ -896,8 +904,11 @@ public sealed class BSPrim : BSPhysObject
             _buoyancy = value;
             // DetailLog("{0},BSPrim.setForceBuoyancy,taint,buoy={1}", LocalID, _buoyancy);
             // Buoyancy is faked by changing the gravity applied to the object
-            float grav = PhysicsScene.Params.gravity * (1f - _buoyancy);
-            BulletSimAPI.SetGravity2(PhysBody.ptr, new OMV.Vector3(0f, 0f, grav));
+            if (PhysBody.HasPhysicalBody)
+            {
+                float grav = PhysicsScene.Params.gravity * (1f - _buoyancy);
+                BulletSimAPI.SetGravity2(PhysBody.ptr, new OMV.Vector3(0f, 0f, grav));
+            }
         }
     }
 
@@ -965,7 +976,8 @@ public sealed class BSPrim : BSPhysObject
             }
             DetailLog("{0},BSPrim.AddForce,taint,force={1}", LocalID, fSum);
             if (fSum != OMV.Vector3.Zero)
-                BulletSimAPI.ApplyCentralForce2(PhysBody.ptr, fSum);
+                if (PhysBody.HasPhysicalBody)
+                    BulletSimAPI.ApplyCentralForce2(PhysBody.ptr, fSum);
         });
     }
 
@@ -976,7 +988,8 @@ public sealed class BSPrim : BSPhysObject
         PhysicsScene.TaintedObject(inTaintTime, "BSPrim.ApplyForceImpulse", delegate()
         {
             DetailLog("{0},BSPrim.ApplyForceImpulse,taint,tImpulse={1}", LocalID, applyImpulse);
-            BulletSimAPI.ApplyCentralImpulse2(PhysBody.ptr, applyImpulse);
+            if (PhysBody.HasPhysicalBody)
+                BulletSimAPI.ApplyCentralImpulse2(PhysBody.ptr, applyImpulse);
         });
     }
 
@@ -1012,7 +1025,8 @@ public sealed class BSPrim : BSPhysObject
             DetailLog("{0},BSPrim.AddAngularForce,taint,aForce={1}", LocalID, fSum);
             if (fSum != OMV.Vector3.Zero)
             {
-                BulletSimAPI.ApplyTorque2(PhysBody.ptr, fSum);
+                if (PhysBody.HasPhysicalBody)
+                    BulletSimAPI.ApplyTorque2(PhysBody.ptr, fSum);
                 _torque = fSum;
             }
         });
@@ -1026,7 +1040,8 @@ public sealed class BSPrim : BSPhysObject
         OMV.Vector3 applyImpulse = impulse;
         PhysicsScene.TaintedObject(inTaintTime, "BSPrim.ApplyTorqueImpulse", delegate()
         {
-            BulletSimAPI.ApplyTorqueImpulse2(PhysBody.ptr, applyImpulse);
+            if (PhysBody.HasPhysicalBody)
+                BulletSimAPI.ApplyTorqueImpulse2(PhysBody.ptr, applyImpulse);
         });
     }
 
@@ -1344,7 +1359,6 @@ public sealed class BSPrim : BSPhysObject
         // Create the correct physical representation for this type of object.
         // Updates PhysBody and PhysShape with the new information.
         // Ignore 'forceRebuild'. This routine makes the right choices and changes of necessary.
-        // Returns 'true' if either the body or the shape was changed.
         PhysicsScene.Shapes.GetBodyAndShape(false, PhysicsScene.World, this, null, delegate(BulletBody dBody)
         {
             // Called if the current prim body is about to be destroyed.

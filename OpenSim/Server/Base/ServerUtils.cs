@@ -89,10 +89,37 @@ namespace OpenSim.Server.Base
             Config = config;
 
             Registry = new AddinRegistry(registryPath, ".");
+            suppress_console_output_(true);
             AddinManager.Initialize(registryPath);
+            suppress_console_output_(false);
             AddinManager.Registry.Update();
             CommandManager commandmanager = new CommandManager(Registry);
             AddinManager.AddExtensionNodeHandler("/Robust/Connector", OnExtensionChanged);
+        }
+
+        private static TextWriter prev_console_;
+        // Temporarily masking the errors reported on start
+        // This is caused by a non-managed dll in the ./bin dir
+        // when the registry is initialized. The dll belongs to
+        // libomv, which has a hard-coded path to "." for pinvoke
+        // to load the openjpeg dll
+        //
+        // Will look for a way to fix, but for now this keeps the 
+        // confusion to a minimum. this was copied from our region
+        // plugin loader, we have been doing this in there for a long time.
+        //
+        public void suppress_console_output_(bool save)
+        {
+            if (save)
+            {
+                prev_console_ = System.Console.Out;
+                System.Console.SetOut(new StreamWriter(Stream.Null));
+            }
+            else
+            {
+                if (prev_console_ != null)
+                    System.Console.SetOut(prev_console_);
+            }
         }
 
         private void OnExtensionChanged(object s, ExtensionNodeEventArgs args)
@@ -112,8 +139,7 @@ namespace OpenSim.Server.Base
                     if (a.AddinFile.Contains(Registry.DefaultAddinsFolder))
                     {
                         m_log.InfoFormat("[SERVER]: Adding {0} from registry", a.Name);
-                        connector.PluginPath = String.Format("{0}/{1}", Registry.DefaultAddinsFolder, a.Name.Replace(',', '.'));
-                    }
+                        connector.PluginPath = System.IO.Path.Combine(Registry.DefaultAddinsFolder,a.Name.Replace(',', '.'));                    }
                     else
                     {
                         m_log.InfoFormat("[SERVER]: Adding {0} from ./bin", a.Name);
@@ -189,20 +215,30 @@ namespace OpenSim.Server.Base
         /// <param name="dllName"></param>
         /// <param name="args">The arguments which control which constructor is invoked on the plugin</param>
         /// <returns></returns>
-        public static T LoadPlugin<T>(string dllName, Object[] args) where T:class
+        public static T LoadPlugin<T> (string dllName, Object[] args) where T:class
         {
             // This is good to debug configuration problems
             //if (dllName == string.Empty)
             //    Util.PrintCallStack();
-
-            string[] parts = dllName.Split(new char[] {':'});
-
-            dllName = parts[0];
-
+            
             string className = String.Empty;
 
-            if (parts.Length > 1)
-                className = parts[1];
+            // The path for a dynamic plugin will contain ":" on Windows
+            string[] parts = dllName.Split (new char[] {':'});
+
+            if (parts [0].Length > 1) 
+            {
+                dllName = parts [0];
+                if (parts.Length > 1)
+                    className = parts[1];
+            } 
+            else 
+            {
+                // This is Windows - we must replace the ":" in the path
+                dllName = String.Format ("{0}:{1}", parts [0], parts [1]);
+                if (parts.Length > 2)
+                    className = parts[2];
+            }
 
             return LoadPlugin<T>(dllName, className, args);
         }

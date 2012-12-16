@@ -32,6 +32,14 @@ using OMV = OpenMetaverse;
 
 namespace OpenSim.Region.Physics.BulletSPlugin
 {
+
+// A BSPrim can get individual information about its linkedness attached
+//    to it through an instance of a subclass of LinksetInfo.
+// Each type of linkset will define the information needed for its type.
+public abstract class BSLinksetInfo
+{
+}
+
 public abstract class BSLinkset
 {
     // private static string LogHeader = "[BULLETSIM LINKSET]";
@@ -116,7 +124,7 @@ public abstract class BSLinkset
         get { return ComputeLinksetGeometricCenter(); }
     }
 
-    protected void Initialize(BSScene scene, BSPhysObject parent)
+    protected BSLinkset(BSScene scene, BSPhysObject parent)
     {
         // A simple linkset of one (no children)
         LinksetID = m_nextLinksetID++;
@@ -127,6 +135,7 @@ public abstract class BSLinkset
         LinksetRoot = parent;
         m_children = new HashSet<BSPhysObject>();
         m_mass = parent.RawMass;
+        Rebuilding = false;
     }
 
     // Link to a linkset where the child knows the parent.
@@ -219,7 +228,7 @@ public abstract class BSLinkset
     // I am the root of a linkset and a new child is being added
     // Called while LinkActivity is locked.
     protected abstract void AddChildToLinkset(BSPhysObject child);
-
+    
     // I am the root of a linkset and one of my children is being removed.
     // Safe to call even if the child is not really in my linkset.
     protected abstract void RemoveChildFromLinkset(BSPhysObject child);
@@ -228,6 +237,10 @@ public abstract class BSLinkset
     //   its internal properties.
     // May be called at runtime or taint-time.
     public abstract void Refresh(BSPhysObject requestor);
+
+    // Flag denoting the linkset is in the process of being rebuilt.
+    // Used to know not the schedule a rebuild in the middle of a rebuild.
+    protected bool Rebuilding { get; set; }
 
     // The object is going dynamic (physical). Do any setup necessary
     //     for a dynamic linkset.

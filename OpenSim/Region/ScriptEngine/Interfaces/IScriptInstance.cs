@@ -59,6 +59,18 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
     public interface IScriptInstance
     {
         /// <summary>
+        /// Debug level for this script instance.
+        /// </summary>
+        /// <remarks>
+        /// Level == 0, no extra data is logged.
+        /// Level >= 1, state changes are logged.
+        /// Level >= 2, event firing is logged.
+        /// <value>
+        /// The debug level.
+        /// </value>
+        int DebugLevel { get; set; }
+
+        /// <summary>
         /// Is the script currently running?
         /// </summary>
         bool Running { get; set; }

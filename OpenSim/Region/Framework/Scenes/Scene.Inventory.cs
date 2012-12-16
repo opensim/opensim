@@ -683,12 +683,10 @@ namespace OpenSim.Region.Framework.Scenes
             itemCopy.SalePrice = item.SalePrice;
             itemCopy.SaleType = item.SaleType;
 
-            if (AddInventoryItem(itemCopy))
-            {
-                IInventoryAccessModule invAccess = RequestModuleInterface<IInventoryAccessModule>();
-                if (invAccess != null)
-                    Util.FireAndForget(delegate { invAccess.TransferInventoryAssets(itemCopy, senderId, recipient); });
-            }
+            IInventoryAccessModule invAccess = RequestModuleInterface<IInventoryAccessModule>();
+            if (invAccess != null)
+                invAccess.TransferInventoryAssets(itemCopy, senderId, recipient);
+            AddInventoryItem(itemCopy);
 
             if (!Permissions.BypassPermissions())
             {

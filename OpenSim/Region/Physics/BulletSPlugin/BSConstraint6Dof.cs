@@ -65,7 +65,7 @@ public sealed class BSConstraint6Dof : BSConstraint
         m_world = world;
         m_body1 = obj1;
         m_body2 = obj2;
-        if (obj1.ptr == IntPtr.Zero || obj2.ptr == IntPtr.Zero)
+        if (!obj1.HasPhysicalBody || !obj2.HasPhysicalBody)
         {
             world.physicsScene.DetailLog("{0},BS6DOFConstraint,badBodyPtr,wID={1}, rID={2}, rBody={3}, cID={4}, cBody={5}",
                             BSScene.DetailLogZero, world.worldID,
@@ -83,7 +83,7 @@ public sealed class BSConstraint6Dof : BSConstraint
             world.physicsScene.DetailLog("{0},BS6DofConstraint,createMidPoint,wID={1}, csrt={2}, rID={3}, rBody={4}, cID={5}, cBody={6}",
                                 BSScene.DetailLogZero, world.worldID, m_constraint.ptr.ToString("X"),
                                 obj1.ID, obj1.ptr.ToString("X"), obj2.ID, obj2.ptr.ToString("X"));
-            if (m_constraint.ptr == IntPtr.Zero)
+            if (!m_constraint.HasPhysicalConstraint)
             {
                 world.physicsScene.Logger.ErrorFormat("{0} Failed creation of 6Dof constraint. rootID={1}, childID={2}",
                                 LogHeader, obj1.ID, obj2.ID);

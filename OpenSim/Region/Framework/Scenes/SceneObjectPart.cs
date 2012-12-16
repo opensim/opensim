@@ -2895,11 +2895,14 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void PhysicsOutOfBounds(Vector3 pos)
         {
-            m_log.Error("[PHYSICS]: Physical Object went out of bounds.");
+            // Note: This is only being called on the root prim at this time.
+
+            m_log.ErrorFormat(
+                "[SCENE OBJECT PART]: Physical object {0}, localID {1} went out of bounds at {2} in {3}.  Stopping at {4} and making non-physical.", 
+                Name, LocalId, pos, ParentGroup.Scene.Name, AbsolutePosition);
             
             RemFlag(PrimFlags.Physics);
             DoPhysicsPropertyUpdate(false, true);
-            //ParentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
         }
 
         public void PhysicsRequestingTerseUpdate()
@@ -4549,7 +4552,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (ParentGroup.RootPart == this)
                     AngularVelocity = new Vector3(0, 0, 0);
             }
-            else
+            else if (SetVD != wasVD)
             {
                 if (ParentGroup.Scene.CollidablePrims)
                 {

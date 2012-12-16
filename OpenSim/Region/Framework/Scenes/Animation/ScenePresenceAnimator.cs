@@ -26,9 +26,10 @@
  */
 
 using System;
-using System.Threading;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
+using System.Threading;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -112,6 +113,8 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         {
             if (m_scenePresence.IsChildAgent)
                 return;
+
+//            m_log.DebugFormat("[SCENE PRESENCE ANIMATOR]: Removing animation {0} for {1}", animID, m_scenePresence.Name);
 
             if (m_animations.Remove(animID))
                 SendAnimPack();
@@ -518,6 +521,12 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         {
             if (m_scenePresence.IsChildAgent)
                 return;
+
+//            m_log.DebugFormat(
+//                "[SCENE PRESENCE ANIMATOR]: Sending anim pack with animations '{0}', sequence '{1}', uuids '{2}'", 
+//                string.Join(",", Array.ConvertAll<UUID, string>(animations, a => a.ToString())), 
+//                string.Join(",", Array.ConvertAll<int, string>(seqs, s => s.ToString())),
+//                string.Join(",", Array.ConvertAll<UUID, string>(objectIDs, o => o.ToString())));
 
             m_scenePresence.Scene.ForEachClient(
                 delegate(IClientAPI client) 

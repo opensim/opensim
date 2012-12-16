@@ -11,13 +11,20 @@ CRASHES
 
 VEHICLES TODO LIST:
 =================================================
-Neb car jiggling left and right
-	Happens on terrain and any other mesh object. Flat cubes are much smoother.
+Neb vehicle taking > 25ms of physics time!!
 Vehicles (Move smoothly)
 Add vehicle collisions so IsColliding is properly reported.
 	Needed for banking, limitMotorUp, movementLimiting, ...
 Some vehicles should not be able to turn if no speed or off ground.
+Neb car jiggling left and right
+	Happens on terrain and any other mesh object. Flat cubes are much smoother.
+	This has been reduced but not eliminated.
+Light cycle falling over when driving
 For limitMotorUp, use raycast down to find if vehicle is in the air.
+Angular motion around Z moves the vehicle in world Z and not vehicle Z in ODE.
+	Verify that angular motion specified around Z moves in the vehicle coordinates.
+Verify llGetVel() is returning a smooth and good value for vehicle movement.
+llGetVel() should return the root's velocity if requested in a child prim.
 Implement function efficiency for lineaar and angular motion.
 Should vehicle angular/linear movement friction happen after all the components
 	or does it only apply to the basic movement?
@@ -30,15 +37,14 @@ Border crossing with linked vehicle causes crash
 
 BULLETSIM TODO LIST:
 =================================================
+Avatar height off after unsitting (floats off ground)
+	Editting appearance then moving restores.
+	Must not be initializing height when recreating capsule after unsit.
 Duplicating a physical prim causes old prim to jump away
 	Dup a phys prim and the original become unselected and thus interacts w/ selected prim.
-Disable activity of passive linkset children.
-	Since the linkset is a compound object, the old prims are left lying
-	around and need to be phantomized so they don't collide, ...
 Scenes with hundred of thousands of static objects take a lot of physics CPU time.
 BSPrim.Force should set a continious force on the prim. The force should be
 	applied each tick.  Some limits?
-Single prim vehicles don't seem to properly vehiclize.
 Gun sending shooter flying.
 Collision margin (gap between physical objects lying on each other)
 Boundry checking (crashes related to crossing boundry)
@@ -51,14 +57,34 @@ Small physical objects do not interact correctly
         The chain will fall apart and pairs will dance around on ground
     Chains of 1x1x.2 will stay connected but will dance.
     Chains above 2x2x.4 are move stable and get stablier as torui get larger.
-Add material type linkage and input all the material property definitions.
-	Skeleton classes and table are in the sources but are not filled or used.
 Add PID motor for avatar movement (slow to stop, ...)
 setForce should set a constant force. Different than AddImpulse.
 Implement raycast.
 Implement ShapeCollection.Dispose()
 Implement water as a plain so raycasting and collisions can happen with same.
+Add osGetPhysicsEngineName() so scripters can tell whether BulletSim or ODE
+	Also osGetPhysicsEngineVerion() maybe.
 
+LINKSETS
+======================================================
+Linksets should allow collisions to individual children
+	Add LocalID to children shapes in LinksetCompound and create events for individuals
+Verify/think through scripts in children of linksets. What do they reference
+	and return when getting position, velocity, ...
+Confirm constraint linksets still work after making all the changes for compound linksets.
+Add 'changed' flag or similar to reduce the number of times a linkset is rebuilt.
+	For compound linksets, add ability to remove or reposition individual child shapes.
+Disable activity of passive linkset children.
+	Since the linkset is a compound object, the old prims are left lying
+	around and need to be phantomized so they don't collide, ...
+Speed up creation of large physical linksets
+	For instance, sitting in Neb's car (130 prims) takes several seconds to become physical
+Eliminate collisions between objects in a linkset. (LinksetConstraint)
+    Have UserPointer point to struct with localID and linksetID?
+    Objects in original linkset still collide with each other?
+
+MORE
+======================================================
 Find/remove avatar collision with ID=0.
 Test avatar walking up stairs. How does compare with SL.
     Radius of the capsule affects ability to climb edges.
@@ -67,8 +93,6 @@ Debounce avatar contact so legs don't keep folding up when standing.
 Implement LSL physics controls. Like STATUS_ROTATE_X.
 Add border extensions to terrain to help region crossings and objects leaving region.
 
-Speed up creation of large physical linksets
-	For instance, sitting in Neb's car (130 prims) takes several seconds to become physical
 Performance test with lots of avatars. Can BulletSim support a thousand?
 Optimize collisions in C++: only send up to the object subscribed to collisions.
     Use collision subscription and remove the collsion(A,B) and collision(B,A)
@@ -78,10 +102,6 @@ Implement 'top colliders' info.
 Avatar jump
 Performance measurement and changes to make quicker.
 Implement detailed physics stats (GetStats()).
-
-Eliminate collisions between objects in a linkset. (LinksetConstraint)
-    Have UserPointer point to struct with localID and linksetID?
-    Objects in original linkset still collide with each other?
 
 Measure performance improvement from hulls
 Test not using ghost objects for volume detect implementation.
@@ -95,10 +115,16 @@ Physics Arena central pyramid: why is one side permiable?
 
 INTERNAL IMPROVEMENT/CLEANUP
 =================================================
+Consider moving prim/character body and shape destruction in destroy()
+	to postTimeTime rather than protecting all the potential sets that
+	might have been queued up.
 Remove unused fields from ShapeData (not used in API2)
 Breakout code for mesh/hull/compound/native into separate BSShape* classes
     Standardize access to building and reference code.
 	The skeleton classes are in the sources but are not complete or linked in.
+Make BSBody and BSShape real classes to centralize creation/changin/destruction
+	Convert state and parameter calls from BulletSimAPI direct calls to
+		calls on BSBody and BSShape
 Generalize Dynamics and PID with standardized motors.
 Generalize Linkset and vehicles into PropertyManagers
     Methods for Refresh, RemoveBodyDependencies, RestoreBodyDependencies
@@ -110,7 +136,7 @@ Implement linkset by setting position of children when root updated. (LinksetMan
 	Linkset implementation using manual prim movement.
 LinkablePrim class? Would that simplify/centralize the linkset logic?
 BSScene.UpdateParameterSet() is broken. How to set params on objects?
-Remove HeightmapInfo from terrain specification.
+Remove HeightmapInfo from terrain specification
     Since C++ code does not need terrain height, this structure et al are not needed.
 Add floating motor for BS_FLOATS_ON_WATER so prim and avatar will
     bob at the water level. BSPrim.PositionSanityCheck().
@@ -142,7 +168,11 @@ Do prim hash codes work for sculpties and meshes? (Resolution: yes)
 Linkset implementation using compound shapes. (Resolution: implemented LinksetCompound)
     Compound shapes will need the LocalID in the shapes and collision
     processing to get it from there.
-Light cycle falling over when driving (Resolution: implemented VerticalAttractor)
 Light cycle not banking	(Resolution: It doesn't. Banking is roll adding yaw.)
 Package Bullet source mods for Bullet internal stats output
 	(Resolution: move code into WorldData.h rather than relying on patches)
+Single prim vehicles don't seem to properly vehiclize.
+	(Resolution: mass was not getting set properly for single prim linksets)
+Add material type linkage and input all the material property definitions.
+	Skeleton classes and table are in the sources but are not filled or used.
+	(Resolution: 
