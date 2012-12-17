@@ -93,7 +93,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             rayDir.Y *= t;
             rayDir.Z *= t;
 
-            raylen += 0.5f;
+            raylen += 30f; // focal point may be far
             List<ContactResult> rayResults;
 
             rayResults = m_scene.RaycastActor(actor, avCameraPosition, rayDir , raylen, 1);
