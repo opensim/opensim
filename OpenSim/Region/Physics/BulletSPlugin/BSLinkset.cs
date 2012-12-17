@@ -252,8 +252,9 @@ public abstract class BSLinkset
 
     // Called when a parameter update comes from the physics engine for any object
     //      of the linkset is received.
+    // Passed flag is update came from physics engine (true) or the user (false).
     // Called at taint-time!!
-    public abstract void UpdateProperties(BSPhysObject physObject);
+    public abstract void UpdateProperties(BSPhysObject physObject, bool physicalUpdate);
 
     // Routine used when rebuilding the body of the root of the linkset
     // Destroy all the constraints have have been made to root.

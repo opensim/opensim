@@ -300,6 +300,10 @@ public sealed class BSPrim : BSPhysObject
             }
             _position = value;
             PositionSanityCheck(false);
+
+            // A linkset might need to know if a component information changed.
+            Linkset.UpdateProperties(this, false);
+
             PhysicsScene.TaintedObject("BSPrim.setPosition", delegate()
             {
                 DetailLog("{0},BSPrim.SetPosition,taint,pos={1},orient={2}", LocalID, _position, _orientation);
@@ -329,6 +333,14 @@ public sealed class BSPrim : BSPhysObject
     {
         bool ret = false;
 
+        if (!PhysicsScene.TerrainManager.IsWithinKnownTerrain(_position))
+        {
+            // The physical object is out of the known/simulated area.
+            // Upper levels of code will handle the transition to other areas so, for
+            //     the time, we just ignore the position.
+            return ret;
+        }
+
         float terrainHeight = PhysicsScene.TerrainManager.GetTerrainHeightAtXYZ(_position);
         OMV.Vector3 upForce = OMV.Vector3.Zero;
         if (RawPosition.Z < terrainHeight)
@@ -351,8 +363,6 @@ public sealed class BSPrim : BSPhysObject
                 ret = true;
             }
         }
-
-        // TODO: check for out of bounds
 
         // The above code computes a force to apply to correct any out-of-bounds problems. Apply same.
         // TODO: This should be intergrated with a geneal physics action mechanism.
@@ -567,7 +577,10 @@ public sealed class BSPrim : BSPhysObject
             if (_orientation == value)
                 return;
             _orientation = value;
-            // TODO: what does it mean if a child in a linkset changes its orientation? Rebuild the constraint?
+
+            // A linkset might need to know if a component information changed.
+            Linkset.UpdateProperties(this, false);
+
             PhysicsScene.TaintedObject("BSPrim.setOrientation", delegate()
             {
                 if (PhysBody.HasPhysicalBody)
@@ -1432,13 +1445,13 @@ public sealed class BSPrim : BSPhysObject
                 entprop.Velocity = _velocity;
             }
 
-            // remember the current and last set values
-            LastEntityProperties = CurrentEntityProperties;
-            CurrentEntityProperties = entprop;
-
             OMV.Vector3 direction = OMV.Vector3.UnitX * _orientation;   // DEBUG DEBUG DEBUG
             DetailLog("{0},BSPrim.UpdateProperties,call,pos={1},orient={2},dir={3},vel={4},rotVel={5}",
                     LocalID, _position, _orientation, direction, _velocity, _rotationalVelocity);
+
+            // remember the current and last set values
+            LastEntityProperties = CurrentEntityProperties;
+            CurrentEntityProperties = entprop;
 
             base.RequestPhysicsterseUpdate();
         }
@@ -1453,7 +1466,7 @@ public sealed class BSPrim : BSPhysObject
              */
 
         // The linkset implimentation might want to know about this.
-        Linkset.UpdateProperties(this);
+        Linkset.UpdateProperties(this, true);
     }
 }
 }
