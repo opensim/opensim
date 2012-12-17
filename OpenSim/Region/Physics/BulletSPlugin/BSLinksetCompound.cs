@@ -94,10 +94,10 @@ public sealed class BSLinksetCompound : BSLinkset
     }
 
     // Schedule a refresh to happen after all the other taint processing.
-    private void ScheduleRebuild()
+    private void ScheduleRebuild(BSPhysObject requestor)
     {
         DetailLog("{0},BSLinksetCompound.Refresh,schedulingRefresh,rebuilding={1}", 
-                            LinksetRoot.LocalID, Rebuilding);
+                            requestor.LocalID, Rebuilding);
         // When rebuilding, it is possible to set properties that would normally require a rebuild.
         //    If already rebuilding, don't request another rebuild.
         if (!Rebuilding)
@@ -124,7 +124,7 @@ public sealed class BSLinksetCompound : BSLinkset
         {
             // The root is going dynamic. Make sure mass is properly set.
             m_mass = ComputeLinksetMass();
-            ScheduleRebuild();
+            ScheduleRebuild(LinksetRoot);
         }
         else
         {
@@ -153,7 +153,7 @@ public sealed class BSLinksetCompound : BSLinkset
         DetailLog("{0},BSLinksetCompound.MakeStatic,call,IsRoot={1}", child.LocalID, IsRoot(child));
         if (IsRoot(child))
         {
-            ScheduleRebuild();
+            ScheduleRebuild(LinksetRoot);
         }
         else
         {
@@ -182,7 +182,7 @@ public sealed class BSLinksetCompound : BSLinkset
                 && PhysicsScene.TerrainManager.IsWithinKnownTerrain(LinksetRoot.RawPosition))
         {
             updated.LinksetInfo = null;
-            ScheduleRebuild();
+            ScheduleRebuild(updated);
         }
     }
 
@@ -266,7 +266,7 @@ public sealed class BSLinksetCompound : BSLinkset
             DetailLog("{0},BSLinksetCompound.AddChildToLinkset,call,child={1}", LinksetRoot.LocalID, child.LocalID);
 
             // Rebuild the compound shape with the new child shape included
-            ScheduleRebuild();
+            ScheduleRebuild(child);
         }
         return;
     }
@@ -294,7 +294,7 @@ public sealed class BSLinksetCompound : BSLinkset
             else
             {
                 // Rebuild the compound shape with the child removed
-                ScheduleRebuild();
+                ScheduleRebuild(child);
             }
         }
         return;

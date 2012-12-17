@@ -1240,7 +1240,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             (s) => { return s.m_params[0].vehicleAngularDamping; },
             (s,p,l,v) => { s.m_params[0].vehicleAngularDamping = v; } ),
         new ParameterDefn("VehicleScaleAngularVelocityByTimestep", "If true, scale angular turning by timestep",
-            ConfigurationParameters.numericFalse,
+            ConfigurationParameters.numericTrue,
             (s,cf,p,v) => { s.VehicleScaleAngularVelocityByTimestep = cf.GetBoolean(p, s.BoolNumeric(v)); },
             (s) => { return s.NumericBool(s.VehicleScaleAngularVelocityByTimestep); },
             (s,p,l,v) => { s.VehicleScaleAngularVelocityByTimestep = s.BoolNumeric(v); } ),
