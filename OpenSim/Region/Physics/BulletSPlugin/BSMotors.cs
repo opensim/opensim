@@ -134,8 +134,6 @@ public class BSVMotor : BSMotor
             Vector3 addAmount = (TargetValue - CurrentValue)/TimeScale * timeStep;
             CurrentValue += addAmount;
 
-            returnCurrent = CurrentValue;
-
             // The desired value reduces to zero which also reduces the difference with current.
             // If the decay time is infinite, don't decay at all.
             float decayFactor = 0f;
@@ -155,6 +153,8 @@ public class BSVMotor : BSMotor
                 frictionFactor.Z = FrictionTimescale.Z == BSMotor.Infinite ? 0f : (1f / FrictionTimescale.Z) * timeStep;
                 CurrentValue *= (Vector3.One - frictionFactor);
             }
+
+            returnCurrent = CurrentValue;
 
             MDetailLog("{0},  BSVMotor.Step,nonZero,{1},origCurr={2},origTarget={3},timeStep={4},timeScale={5},addAmnt={6},targetDecay={7},decayFact={8},fricTS={9},frictFact={10}",
                                 BSScene.DetailLogZero, UseName, origCurrVal, origTarget,

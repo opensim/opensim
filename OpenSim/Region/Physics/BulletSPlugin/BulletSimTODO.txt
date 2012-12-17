@@ -5,7 +5,7 @@ Eliminate all crashes (DONEish)
 	Border crossing of physical linkset (DONE)
 Enable vehicle border crossings (at least as poorly as ODE)
 	Avatar created in previous region and not new region when crossing border
-	Vehicle recreated in new sim at small Z value (offset from root value?)
+	Vehicle recreated in new sim at small Z value (offset from root value?) (DONE)
 Calibrate turning radius
 limitMotorUp calibration (more down?)
 study PID motors (include 'efficiency' implementation
