@@ -362,8 +362,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             nearCallback = near;
 
-            m_rayCastManager = new ODERayCastRequestManager(this);
-            
+            m_rayCastManager = new ODERayCastRequestManager(this);         
 
             lock (OdeLock)
                 {
@@ -2711,5 +2710,17 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             return new List<ContactResult>();
         }
+
+        public override int SitAvatar(PhysicsActor actor, Vector3 AbsolutePosition, Vector3 CameraPosition, Vector3 offset, Vector3 AvatarSize, SitAvatarCallback PhysicsSitResponse)
+        {
+            Util.FireAndForget( delegate
+            {
+                ODESitAvatar sitAvatar = new ODESitAvatar(this, m_rayCastManager);
+                if(sitAvatar != null)
+                    sitAvatar.Sit(actor, AbsolutePosition, CameraPosition, offset, AvatarSize, PhysicsSitResponse);
+            });
+            return 1;
+        }
+
     }
 }
