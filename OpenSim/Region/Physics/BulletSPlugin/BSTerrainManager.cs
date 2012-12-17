@@ -332,6 +332,13 @@ public sealed class BSTerrainManager : IDisposable
         return newTerrainPhys;
     }
 
+    // Return 'true' of this position is somewhere in known physical terrain space
+    public bool IsWithinKnownTerrain(Vector3 pos)
+    {
+        Vector3 terrainBaseXYZ;
+        BSTerrainPhys physTerrain;
+        return GetTerrainPhysicalAtXYZ(pos, out physTerrain, out terrainBaseXYZ);
+    }
 
     // Given an X and Y, find the height of the terrain.
     // Since we could be handling multiple terrains for a mega-region,
@@ -342,13 +349,13 @@ public sealed class BSTerrainManager : IDisposable
     private float lastHeightTX = 999999f;
     private float lastHeightTY = 999999f;
     private float lastHeight = HEIGHT_INITIAL_LASTHEIGHT;
-    public float GetTerrainHeightAtXYZ(Vector3 loc)
+    public float GetTerrainHeightAtXYZ(Vector3 pos)
     {
-        float tX = loc.X;
-        float tY = loc.Y;
+        float tX = pos.X;
+        float tY = pos.Y;
         // You'd be surprized at the number of times this routine is called
         //    with the same parameters as last time.
-        if (!m_terrainModified && lastHeightTX == tX && lastHeightTY == tY)
+        if (!m_terrainModified && (lastHeightTX == tX) && (lastHeightTY == tY))
             return lastHeight;
         m_terrainModified = false;
 
@@ -356,26 +363,20 @@ public sealed class BSTerrainManager : IDisposable
         lastHeightTY = tY;
         float ret = HEIGHT_GETHEIGHT_RET;
 
-        int offsetX = ((int)(tX / (int)DefaultRegionSize.X)) * (int)DefaultRegionSize.X;
-        int offsetY = ((int)(tY / (int)DefaultRegionSize.Y)) * (int)DefaultRegionSize.Y;
-        Vector3 terrainBaseXYZ = new Vector3(offsetX, offsetY, 0f);
-
-        lock (m_terrains)
+        Vector3 terrainBaseXYZ;
+        BSTerrainPhys physTerrain;
+        if (GetTerrainPhysicalAtXYZ(pos, out physTerrain, out terrainBaseXYZ))
         {
-            BSTerrainPhys physTerrain;
-            if (m_terrains.TryGetValue(terrainBaseXYZ, out physTerrain))
-            {
-                ret = physTerrain.GetTerrainHeightAtXYZ(loc - terrainBaseXYZ);
-            }
-            else
-            {
-                PhysicsScene.Logger.ErrorFormat("{0} GetTerrainHeightAtXY: terrain not found: region={1}, x={2}, y={3}",
-                        LogHeader, PhysicsScene.RegionName, tX, tY);
-                DetailLog("{0},BSTerrainManager.GetTerrainHeightAtXYZ,terrainNotFound,loc={1},base={2}",
-                                    BSScene.DetailLogZero, loc, terrainBaseXYZ);
-                Util.PrintCallStack();      // DEBUG DEBUG DEBUG
-            }
+            ret = physTerrain.GetTerrainHeightAtXYZ(pos - terrainBaseXYZ);
         }
+        else
+        {
+            PhysicsScene.Logger.ErrorFormat("{0} GetTerrainHeightAtXY: terrain not found: region={1}, x={2}, y={3}",
+                    LogHeader, PhysicsScene.RegionName, tX, tY);
+            DetailLog("{0},BSTerrainManager.GetTerrainHeightAtXYZ,terrainNotFound,pos={1},base={2}",
+                                BSScene.DetailLogZero, pos, terrainBaseXYZ);
+        }
+
         lastHeight = ret;
         return ret;
     }
@@ -384,27 +385,36 @@ public sealed class BSTerrainManager : IDisposable
     {
         float ret = WATER_HEIGHT_GETHEIGHT_RET;
 
-        float tX = pos.X;
-        float tY = pos.Y;
-
-        Vector3 terrainBaseXYZ = Vector3.Zero;
-        terrainBaseXYZ.X = ((int)(tX / (int)DefaultRegionSize.X)) * (int)DefaultRegionSize.X;
-        terrainBaseXYZ.Y = ((int)(tY / (int)DefaultRegionSize.Y)) * (int)DefaultRegionSize.Y;
-
-        lock (m_terrains)
+        Vector3 terrainBaseXYZ;
+        BSTerrainPhys physTerrain;
+        if (GetTerrainPhysicalAtXYZ(pos, out physTerrain, out terrainBaseXYZ))
         {
-            BSTerrainPhys physTerrain;
-            if (m_terrains.TryGetValue(terrainBaseXYZ, out physTerrain))
-            {
-                ret = physTerrain.GetWaterLevelAtXYZ(pos);
-            }
-            else
-            {
-                PhysicsScene.Logger.ErrorFormat("{0} GetWaterHeightAtXY: terrain not found: region={1}, x={2}, y={3}",
-                        LogHeader, PhysicsScene.RegionName, tX, tY);
-            }
+            ret = physTerrain.GetWaterLevelAtXYZ(pos);
+        }
+        else
+        {
+            PhysicsScene.Logger.ErrorFormat("{0} GetWaterHeightAtXY: terrain not found: pos={1}, terrainBase={2}, height={3}",
+                    LogHeader, PhysicsScene.RegionName, pos, terrainBaseXYZ, ret);
         }
         return ret;
+    }
+
+    // Given an address, return 'true' of there is a description of that terrain and output
+    //    the descriptor class and the 'base' fo the addresses therein.
+    private bool GetTerrainPhysicalAtXYZ(Vector3 pos, out BSTerrainPhys outPhysTerrain, out Vector3 outTerrainBase)
+    {
+        int offsetX = ((int)(pos.X / (int)DefaultRegionSize.X)) * (int)DefaultRegionSize.X;
+        int offsetY = ((int)(pos.Y / (int)DefaultRegionSize.Y)) * (int)DefaultRegionSize.Y;
+        Vector3 terrainBaseXYZ = new Vector3(offsetX, offsetY, 0f);
+
+        BSTerrainPhys physTerrain = null;
+        lock (m_terrains)
+        {
+            m_terrains.TryGetValue(terrainBaseXYZ, out physTerrain);
+        }
+        outTerrainBase = terrainBaseXYZ;
+        outPhysTerrain = physTerrain;
+        return (physTerrain != null);
     }
 
     // Although no one seems to check this, I do support combining.
