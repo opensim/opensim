@@ -38,6 +38,7 @@ namespace OpenSim.Region.Physics.Manager
 
     public delegate void RaycastCallback(bool hitYN, Vector3 collisionPoint, uint localid, float distance, Vector3 normal);
     public delegate void RayCallback(List<ContactResult> list);
+    public delegate void SitAvatarCallback(int status, uint partID, Vector3 offset, Quaternion Orientation);
 
     public delegate void JointMoved(PhysicsJoint joint);
     public delegate void JointDeactivated(PhysicsJoint joint);
@@ -357,5 +358,9 @@ namespace OpenSim.Region.Physics.Manager
             return new List<ContactResult>();
         }
 
+        public virtual int SitAvatar(PhysicsActor actor, Vector3 AbsolutePosition, Vector3 CameraPosition, Vector3 offset, Vector3 AvatarSize, SitAvatarCallback PhysicsSitResponse)
+        {
+            return 0;
+        }
     }
 }

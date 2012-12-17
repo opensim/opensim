@@ -411,6 +411,7 @@ namespace OpenSim.Region.Physics.Manager
         // Warning in a parent part it returns itself, not null
         public virtual PhysicsActor ParentActor { get { return this; } }
         
+
     }
 
     public class NullPhysicsActor : PhysicsActor
