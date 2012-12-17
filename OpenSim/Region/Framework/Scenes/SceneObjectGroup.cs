@@ -430,8 +430,19 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (Scene != null)
                 {
-                    if ((Scene.TestBorderCross(val - Vector3.UnitX, Cardinals.E) || Scene.TestBorderCross(val + Vector3.UnitX, Cardinals.W)
-                        || Scene.TestBorderCross(val - Vector3.UnitY, Cardinals.N) || Scene.TestBorderCross(val + Vector3.UnitY, Cardinals.S)) 
+                    if (
+                        // (Scene.TestBorderCross(val - Vector3.UnitX, Cardinals.E)
+                        //     || Scene.TestBorderCross(val + Vector3.UnitX, Cardinals.W)
+                        //     || Scene.TestBorderCross(val - Vector3.UnitY, Cardinals.N)
+                        //     || Scene.TestBorderCross(val + Vector3.UnitY, Cardinals.S))
+                        // Experimental change for better border crossings.
+                        //    The commented out original lines above would, it seems, trigger
+                        //    a border crossing a little early or late depending on which
+                        //    direction the object was moving.
+                        (Scene.TestBorderCross(val, Cardinals.E)
+                            || Scene.TestBorderCross(val, Cardinals.W)
+                            || Scene.TestBorderCross(val, Cardinals.N)
+                            || Scene.TestBorderCross(val, Cardinals.S))
                         && !IsAttachmentCheckFull() && (!Scene.LoadingPrims))
                     {
                         m_scene.CrossPrimGroupIntoNewRegion(val, this, true);
