@@ -1051,12 +1051,6 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             // ==================================================================
             m_lastVertAttractor = verticalAttractionContribution;
 
-            // DEBUG DEBUG DEBUG: optionally scale the angular velocity. Debugging SL vs ODE turning functions.
-            Vector3 originalAngularMotorContrib = angularMotorContribution;
-            if (PhysicsScene.VehicleScaleAngularVelocityByTimestep)
-                angularMotorContribution *= pTimestep;
-
-            // Sum corrections
             m_lastAngularVelocity = angularMotorContribution
                                     + verticalAttractionContribution
                                     + deflectionContribution
