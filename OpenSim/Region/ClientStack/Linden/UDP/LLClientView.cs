@@ -331,6 +331,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private Prioritizer m_prioritizer;
         private bool m_disableFacelights = false;
 
+        private bool m_VelocityInterpolate = false;
         private const uint MaxTransferBytesPerPacket = 600;
 
 
@@ -4971,7 +4972,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // in that direction, even though we don't model this on the server.  Implementing this in the future
                 // may improve movement smoothness.
 //                acceleration = new Vector3(1, 0, 0);
-                
+
                 angularVelocity = Vector3.Zero;
 
                 if (sendTexture)
@@ -5121,7 +5122,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             update.PCode = (byte)PCode.Avatar;
             update.ProfileCurve = 1;
             update.PSBlock = Utils.EmptyBytes;
-            update.Scale = new Vector3(0.45f, 0.6f, 1.9f);
+            update.Scale = data.Appearance.AvatarSize;
+//            update.Scale.Z -= 0.2f;
+
             update.Text = Utils.EmptyBytes;
             update.TextColor = new byte[4];
 
@@ -5309,8 +5312,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // If AgentUpdate is ever handled asynchronously, then we will also need to construct a new AgentUpdateArgs
             // for each AgentUpdate packet.
             AddLocalPacketHandler(PacketType.AgentUpdate, HandleAgentUpdate, false);
-            
+
             AddLocalPacketHandler(PacketType.ViewerEffect, HandleViewerEffect, false);
+            AddLocalPacketHandler(PacketType.VelocityInterpolateOff, HandleVelocityInterpolateOff, false);
+            AddLocalPacketHandler(PacketType.VelocityInterpolateOn, HandleVelocityInterpolateOn, false);
             AddLocalPacketHandler(PacketType.AgentCachedTexture, HandleAgentTextureCached, false);
             AddLocalPacketHandler(PacketType.MultipleObjectUpdate, HandleMultipleObjUpdate, false);
             AddLocalPacketHandler(PacketType.MoneyTransferRequest, HandleMoneyTransferRequest, false);
@@ -5828,6 +5833,29 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return true;
         }
 
+        private bool HandleVelocityInterpolateOff(IClientAPI sender, Packet Pack)
+        {
+            VelocityInterpolateOffPacket p = (VelocityInterpolateOffPacket)Pack;
+            if (p.AgentData.SessionID != SessionId ||
+                p.AgentData.AgentID != AgentId)
+                return true;
+
+            m_VelocityInterpolate = false;
+            return true;
+        }
+
+        private bool HandleVelocityInterpolateOn(IClientAPI sender, Packet Pack)
+        {
+            VelocityInterpolateOnPacket p = (VelocityInterpolateOnPacket)Pack;
+            if (p.AgentData.SessionID != SessionId ||
+                p.AgentData.AgentID != AgentId)
+                return true;
+
+            m_VelocityInterpolate = true;
+            return true;
+        }
+
+
         private bool HandleAvatarPropertiesRequest(IClientAPI sender, Packet Pack)
         {
             AvatarPropertiesRequestPacket avatarProperties = (AvatarPropertiesRequestPacket)Pack;
@@ -6248,6 +6276,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // Temporarily protect ourselves from the mantis #951 failure.
                 // However, we could do this for several other handlers where a failure isn't terminal
                 // for the client session anyway, in order to protect ourselves against bad code in plugins
+                Vector3 avSize = appear.AgentData.Size;
                 try
                 {
                     byte[] visualparams = new byte[appear.VisualParam.Length];
@@ -6258,7 +6287,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (appear.ObjectData.TextureEntry.Length > 1)
                         te = new Primitive.TextureEntry(appear.ObjectData.TextureEntry, 0, appear.ObjectData.TextureEntry.Length);
 
-                    handlerSetAppearance(sender, te, visualparams);
+                    handlerSetAppearance(sender, te, visualparams,avSize);
                 }
                 catch (Exception e)
                 {
@@ -11667,14 +11696,30 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             cachedresp.WearableData =
                 new AgentCachedTextureResponsePacket.WearableDataBlock[cachedtex.WearableData.Length];
 
-            for (int i = 0; i < cachedtex.WearableData.Length; i++)
+            IImprovedAssetCache cache = m_scene.RequestModuleInterface<IImprovedAssetCache>();
+            if (cache == null)
             {
-                cachedresp.WearableData[i] = new AgentCachedTextureResponsePacket.WearableDataBlock();
-                cachedresp.WearableData[i].TextureIndex = cachedtex.WearableData[i].TextureIndex;
-                cachedresp.WearableData[i].TextureID = UUID.Zero;
-                cachedresp.WearableData[i].HostName = new byte[0];
+                for (int i = 0; i < cachedtex.WearableData.Length; i++)
+                {
+                    cachedresp.WearableData[i] = new AgentCachedTextureResponsePacket.WearableDataBlock();
+                    cachedresp.WearableData[i].TextureIndex = cachedtex.WearableData[i].TextureIndex;
+                    cachedresp.WearableData[i].TextureID = UUID.Zero;
+                    cachedresp.WearableData[i].HostName = new byte[0];
+                }
             }
-
+            else
+            {
+                for (int i = 0; i < cachedtex.WearableData.Length; i++)
+                {
+                    cachedresp.WearableData[i] = new AgentCachedTextureResponsePacket.WearableDataBlock();
+                    cachedresp.WearableData[i].TextureIndex = cachedtex.WearableData[i].TextureIndex;
+                    if(cache.Check(cachedtex.WearableData[i].ID.ToString()))
+                        cachedresp.WearableData[i].TextureID = UUID.Zero;
+                    else
+                        cachedresp.WearableData[i].TextureID = UUID.Zero;
+                    cachedresp.WearableData[i].HostName = new byte[0];
+                }
+            }
             cachedresp.Header.Zerocoded = true;
             OutPacket(cachedresp, ThrottleOutPacketType.Task);
 

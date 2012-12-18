@@ -140,6 +140,8 @@ namespace OpenSim.Region.Framework.Scenes
         private Vector3 m_lastPosition;
         private Quaternion m_lastRotation;
         private Vector3 m_lastVelocity;
+        private Vector3 m_lastSize = new Vector3(0.45f,0.6f,1.9f);
+
 
         private Vector3? m_forceToApply;
         private int m_userFlags;
@@ -560,7 +562,24 @@ namespace OpenSim.Region.Framework.Scenes
 //                    Scene.RegionInfo.RegionName, Name, m_velocity);
             }
         }
+/*
+        public override Vector3 AngularVelocity
+        {
+            get
+            {
+                if (PhysicsActor != null)
+                {
+                    m_rotationalvelocity = PhysicsActor.RotationalVelocity;
 
+                    //                    m_log.DebugFormat(
+                    //                        "[SCENE PRESENCE]: Set velocity {0} for {1} in {2} via getting Velocity!",
+                    //                        m_velocity, Name, Scene.RegionInfo.RegionName);
+                }
+
+                return m_rotationalvelocity;
+            }
+        }
+*/
         private Quaternion m_bodyRot = Quaternion.Identity;
 
         public Quaternion Rotation
@@ -569,7 +588,18 @@ namespace OpenSim.Region.Framework.Scenes
             set
             {
                 m_bodyRot = value;
-//                m_log.DebugFormat("[SCENE PRESENCE]: Body rot for {0} set to {1}", Name, m_bodyRot);
+                //                m_log.DebugFormat("[SCENE PRESENCE]: Body rot for {0} set to {1}", Name, m_bodyRot);
+                if (PhysicsActor != null)
+                {
+                    try
+                    {
+                        PhysicsActor.Orientation = value;
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.Error("[SCENE PRESENCE]: Orientation " + e.Message);
+                    }
+                }
             }
         }
 
@@ -1245,6 +1275,13 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (PhysicsActor != null && !IsChildAgent)
                 PhysicsActor.Size = new Vector3(0.45f, 0.6f, height);
+        }
+
+        public void SetSize(Vector3 size, float feetoffset)
+        {
+            if (PhysicsActor != null && !IsChildAgent)
+                PhysicsActor.setAvatarSize(size, feetoffset);
+            
         }
 
         /// <summary>
@@ -2064,11 +2101,28 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else
             {
-                if (Util.GetDistanceTo(AbsolutePosition, pos) <= 10)
-                {
+//                if (Util.GetDistanceTo(AbsolutePosition, pos) <= 10)
+//                {
 //                    m_log.DebugFormat(
 //                        "[SCENE PRESENCE]: Sitting {0} on {1} {2} because sit target is unset and within 10m",
 //                        Name, part.Name, part.LocalId);
+
+                if (m_scene.PhysicsScene != null &&
+                    part.PhysActor != null &&
+                    Util.GetDistanceTo(AbsolutePosition, pos) <= 30)
+                {
+
+                    Vector3 camdif = CameraPosition - part.AbsolutePosition;
+                    camdif.Normalize();
+
+//                    m_log.InfoFormat("sit {0} {1}", offset.ToString(), camdif.ToString());
+
+                    if (m_scene.PhysicsScene.SitAvatar(part.PhysActor, AbsolutePosition, CameraPosition, offset, new Vector3(0.35f, 0, 0.65f), PhysicsSitResponse) != 0)
+                        return;
+                }
+
+                if (Util.GetDistanceTo(AbsolutePosition, pos) <= 10)
+                {
 
                     AbsolutePosition = pos + new Vector3(0.0f, 0.0f, m_sitAvatarHeight);
                     canSit = true;
@@ -2142,197 +2196,54 @@ namespace OpenSim.Region.Framework.Scenes
             SendSitResponse(targetID, offset, Quaternion.Identity);
         }
 
-        /*
-        public void SitRayCastAvatarPosition(SceneObjectPart part)
+        public void PhysicsSitResponse(int status, uint partID, Vector3 offset, Quaternion Orientation)
         {
-            Vector3 EndRayCastPosition = part.AbsolutePosition + m_requestedSitOffset;
-            Vector3 StartRayCastPosition = AbsolutePosition;
-            Vector3 direction = Vector3.Normalize(EndRayCastPosition - StartRayCastPosition);
-            float distance = Vector3.Distance(EndRayCastPosition, StartRayCastPosition);
-            m_scene.PhysicsScene.RaycastWorld(StartRayCastPosition, direction, distance, SitRayCastAvatarPositionResponse);
-        }
 
-        public void SitRayCastAvatarPositionResponse(bool hitYN, Vector3 collisionPoint, uint localid, float pdistance, Vector3 normal)
-        {
-            SceneObjectPart part =  FindNextAvailableSitTarget(m_requestedSitTargetUUID);
-            if (part != null)
-            {
-                if (hitYN)
-                {
-                    if (collisionPoint.ApproxEquals(m_requestedSitOffset + part.AbsolutePosition, 0.2f))
-                    {
-                        SitRaycastFindEdge(collisionPoint, normal);
-                        m_log.DebugFormat("[SIT]: Raycast Avatar Position succeeded at point: {0}, normal:{1}", collisionPoint, normal);
-                    }
-                    else
-                    {
-                        SitRayCastAvatarPositionCameraZ(part);
-                    }
-                }
-                else
-                {
-                    SitRayCastAvatarPositionCameraZ(part);
-                }
-            }
-            else
+            if (status < 0)
             {
                 ControllingClient.SendAlertMessage("Sit position no longer exists");
-                m_requestedSitTargetUUID = UUID.Zero;
-                m_requestedSitTargetID = 0;
-                m_requestedSitOffset = Vector3.Zero;
+                return;
             }
 
-        }
+            if (status == 0)
+                return;
 
-        public void SitRayCastAvatarPositionCameraZ(SceneObjectPart part)
-        {
-            // Next, try to raycast from the camera Z position
-            Vector3 EndRayCastPosition = part.AbsolutePosition + m_requestedSitOffset;
-            Vector3 StartRayCastPosition = AbsolutePosition; StartRayCastPosition.Z = CameraPosition.Z;
-            Vector3 direction = Vector3.Normalize(EndRayCastPosition - StartRayCastPosition);
-            float distance = Vector3.Distance(EndRayCastPosition, StartRayCastPosition);
-            m_scene.PhysicsScene.RaycastWorld(StartRayCastPosition, direction, distance, SitRayCastAvatarPositionCameraZResponse);
-        }
-
-        public void SitRayCastAvatarPositionCameraZResponse(bool hitYN, Vector3 collisionPoint, uint localid, float pdistance, Vector3 normal)
-        {
-            SceneObjectPart part = FindNextAvailableSitTarget(m_requestedSitTargetUUID);
-            if (part != null)
+            SceneObjectPart part = m_scene.GetSceneObjectPart(partID);
+            if (part == null || part.ParentGroup.IsAttachment)
             {
-                if (hitYN)
-                {
-                    if (collisionPoint.ApproxEquals(m_requestedSitOffset + part.AbsolutePosition, 0.2f))
-                    {
-                        SitRaycastFindEdge(collisionPoint, normal);
-                        m_log.DebugFormat("[SIT]: Raycast Avatar Position + CameraZ succeeded at point: {0}, normal:{1}", collisionPoint, normal);
-                    }
-                    else
-                    {
-                        SitRayCastCameraPosition(part);
-                    }
-                }
-                else
-                {
-                    SitRayCastCameraPosition(part);
-                }
-            }
-            else
-            {
-                ControllingClient.SendAlertMessage("Sit position no longer exists");
-                m_requestedSitTargetUUID = UUID.Zero;
-                m_requestedSitTargetID = 0;
-                m_requestedSitOffset = Vector3.Zero;
+                return;
             }
 
+//            m_log.InfoFormat("physsit {0} {1}", offset.ToString(),Orientation.ToString());
+
+            part.AddSittingAvatar(UUID);
+
+            Vector3 cameraAtOffset = part.GetCameraAtOffset();
+            Vector3 cameraEyeOffset = part.GetCameraEyeOffset();
+            bool forceMouselook = part.GetForceMouselook();
+
+            ControllingClient.SendSitResponse(
+                part.UUID, offset, Orientation, false, cameraAtOffset, cameraEyeOffset, forceMouselook);
+
+            part.ParentGroup.TriggerScriptChangedEvent(Changed.LINK);
+
+            // assuming no autopilot in use
+            Velocity = Vector3.Zero;
+            RemoveFromPhysicalScene();
+
+            Rotation = Orientation;
+            m_pos = offset;
+
+            m_requestedSitTargetID = 0; // invalidate the viewer sit comand for now
+            part.ParentGroup.AddAvatar(UUID);
+
+            ParentPart = part;
+            ParentID = part.LocalId;
+
+            Animator.TrySetMovementAnimation("SIT");
+            SendAvatarDataToAllAgents();
         }
 
-        public void SitRayCastCameraPosition(SceneObjectPart part)
-        {
-            // Next, try to raycast from the camera position
-            Vector3 EndRayCastPosition = part.AbsolutePosition + m_requestedSitOffset;
-            Vector3 StartRayCastPosition = CameraPosition;
-            Vector3 direction = Vector3.Normalize(EndRayCastPosition - StartRayCastPosition);
-            float distance = Vector3.Distance(EndRayCastPosition, StartRayCastPosition);
-            m_scene.PhysicsScene.RaycastWorld(StartRayCastPosition, direction, distance, SitRayCastCameraPositionResponse);
-        }
-
-        public void SitRayCastCameraPositionResponse(bool hitYN, Vector3 collisionPoint, uint localid, float pdistance, Vector3 normal)
-        {
-            SceneObjectPart part = FindNextAvailableSitTarget(m_requestedSitTargetUUID);
-            if (part != null)
-            {
-                if (hitYN)
-                {
-                    if (collisionPoint.ApproxEquals(m_requestedSitOffset + part.AbsolutePosition, 0.2f))
-                    {
-                        SitRaycastFindEdge(collisionPoint, normal);
-                        m_log.DebugFormat("[SIT]: Raycast Camera Position succeeded at point: {0}, normal:{1}", collisionPoint, normal);
-                    }
-                    else
-                    {
-                        SitRayHorizontal(part);
-                    }
-                }
-                else
-                {
-                    SitRayHorizontal(part);
-                }
-            }
-            else
-            {
-                ControllingClient.SendAlertMessage("Sit position no longer exists");
-                m_requestedSitTargetUUID = UUID.Zero;
-                m_requestedSitTargetID = 0;
-                m_requestedSitOffset = Vector3.Zero;
-            }
-
-        }
-
-        public void SitRayHorizontal(SceneObjectPart part)
-        {
-            // Next, try to raycast from the avatar position to fwd
-            Vector3 EndRayCastPosition = part.AbsolutePosition + m_requestedSitOffset;
-            Vector3 StartRayCastPosition = CameraPosition;
-            Vector3 direction = Vector3.Normalize(EndRayCastPosition - StartRayCastPosition);
-            float distance = Vector3.Distance(EndRayCastPosition, StartRayCastPosition);
-            m_scene.PhysicsScene.RaycastWorld(StartRayCastPosition, direction, distance, SitRayCastHorizontalResponse);
-        }
-
-        public void SitRayCastHorizontalResponse(bool hitYN, Vector3 collisionPoint, uint localid, float pdistance, Vector3 normal)
-        {
-            SceneObjectPart part = FindNextAvailableSitTarget(m_requestedSitTargetUUID);
-            if (part != null)
-            {
-                if (hitYN)
-                {
-                    if (collisionPoint.ApproxEquals(m_requestedSitOffset + part.AbsolutePosition, 0.2f))
-                    {
-                        SitRaycastFindEdge(collisionPoint, normal);
-                        m_log.DebugFormat("[SIT]: Raycast Horizontal Position succeeded at point: {0}, normal:{1}", collisionPoint, normal);
-                        // Next, try to raycast from the camera position
-                        Vector3 EndRayCastPosition = part.AbsolutePosition + m_requestedSitOffset;
-                        Vector3 StartRayCastPosition = CameraPosition;
-                        Vector3 direction = Vector3.Normalize(EndRayCastPosition - StartRayCastPosition);
-                        float distance = Vector3.Distance(EndRayCastPosition, StartRayCastPosition);
-                        //m_scene.PhysicsScene.RaycastWorld(StartRayCastPosition, direction, distance, SitRayCastResponseAvatarPosition);
-                    }
-                    else
-                    {
-                        ControllingClient.SendAlertMessage("Sit position not accessable.");
-                        m_requestedSitTargetUUID = UUID.Zero;
-                        m_requestedSitTargetID = 0;
-                        m_requestedSitOffset = Vector3.Zero;
-                    }
-                }
-                else
-                {
-                    ControllingClient.SendAlertMessage("Sit position not accessable.");
-                    m_requestedSitTargetUUID = UUID.Zero;
-                    m_requestedSitTargetID = 0;
-                    m_requestedSitOffset = Vector3.Zero;
-                }
-            }
-            else
-            {
-                ControllingClient.SendAlertMessage("Sit position no longer exists");
-                m_requestedSitTargetUUID = UUID.Zero;
-                m_requestedSitTargetID = 0;
-                m_requestedSitOffset = Vector3.Zero;
-            }
-
-        }
-
-        private void SitRaycastFindEdge(Vector3 collisionPoint, Vector3 collisionNormal)
-        {
-            int i = 0;
-            //throw new NotImplementedException();
-            //m_requestedSitTargetUUID = UUID.Zero;
-            //m_requestedSitTargetID = 0;
-            //m_requestedSitOffset = Vector3.Zero;
-
-            SendSitResponse(ControllingClient, m_requestedSitTargetUUID, collisionPoint - m_requestedSitOffset, Quaternion.Identity);
-        }
-        */
 
         public void HandleAgentSit(IClientAPI remoteClient, UUID agentID)
         {
@@ -2531,9 +2442,13 @@ namespace OpenSim.Region.Framework.Scenes
                 // NOTE: Velocity is not the same as m_velocity. Velocity will attempt to
                 // grab the latest PhysicsActor velocity, whereas m_velocity is often
                 // storing a requested force instead of an actual traveling velocity
+                if (Appearance.AvatarSize != m_lastSize)
+                {
+                    m_lastSize = Appearance.AvatarSize;
+                    SendAvatarDataToAllAgents();
+                }
 
-                // Throw away duplicate or insignificant updates
-                if (!Rotation.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE) ||
+                else if (!Rotation.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE) ||
                     !Velocity.ApproxEquals(m_lastVelocity, VELOCITY_TOLERANCE) ||
                     !m_pos.ApproxEquals(m_lastPosition, POSITION_TOLERANCE))
                 {
@@ -2831,6 +2746,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             avatar.ControllingClient.SendAppearance(
                 UUID, Appearance.VisualParams, Appearance.Texture.GetBytes());
+
+            
         }
 
         #endregion
@@ -3403,15 +3320,22 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             if (Appearance.AvatarHeight == 0)
-                Appearance.SetHeight();
+//                Appearance.SetHeight();
+                Appearance.SetSize(new Vector3(0.45f,0.6f,1.9f));
 
             PhysicsScene scene = m_scene.PhysicsScene;
 
             Vector3 pVec = AbsolutePosition;
 
+/*
             PhysicsActor = scene.AddAvatar(
                 LocalId, Firstname + "." + Lastname, pVec,
-                new Vector3(0f, 0f, Appearance.AvatarHeight), isFlying);
+                new Vector3(0.45f, 0.6f, Appearance.AvatarHeight), isFlying);
+*/
+
+            PhysicsActor = scene.AddAvatar(
+                LocalId, Firstname + "." + Lastname, pVec,
+                Appearance.AvatarBoxSize,Appearance.AvatarFeetOffset, isFlying);
 
             //PhysicsActor.OnRequestTerseUpdate += SendTerseUpdateToAllClients;
             PhysicsActor.OnCollisionUpdate += PhysicsCollisionUpdate;
@@ -3429,6 +3353,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (ControllingClient != null)
                 ControllingClient.SendAgentAlertMessage("Physics is having a problem with your avatar.  You may not be able to move until you relog.", true);
         }
+
 
         /// <summary>
         /// Event called by the physics plugin to tell the avatar about a collision.
@@ -3459,7 +3384,6 @@ namespace OpenSim.Region.Framework.Scenes
             CollisionEventUpdate collisionData = (CollisionEventUpdate)e;
             Dictionary<uint, ContactPoint> coldata = collisionData.m_objCollisionList;
 
-            CollisionPlane = Vector4.UnitW;
 
 //            // No collisions at all means we may be flying. Update always
 //            // to make falling work
@@ -3471,6 +3395,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (coldata.Count != 0)
             {
+/*
                 switch (Animator.CurrentMovementAnimation)
                 {
                     case "STAND":
@@ -3479,24 +3404,36 @@ namespace OpenSim.Region.Framework.Scenes
                     case "CROUCH":
                     case "CROUCHWALK":
                         {
+ */
                             ContactPoint lowest;
                             lowest.SurfaceNormal = Vector3.Zero;
                             lowest.Position = Vector3.Zero;
-                            lowest.Position.Z = Single.NaN;
+                            lowest.Position.Z = float.MaxValue;
 
                             foreach (ContactPoint contact in coldata.Values)
                             {
-                                if (Single.IsNaN(lowest.Position.Z) || contact.Position.Z < lowest.Position.Z)
+                                
+                                if (contact.CharacterFeet && contact.Position.Z < lowest.Position.Z)
                                 {
                                     lowest = contact;
                                 }
                             }
 
-                            CollisionPlane = new Vector4(-lowest.SurfaceNormal, -Vector3.Dot(lowest.Position, lowest.SurfaceNormal));
+                            if (lowest.Position.Z != float.MaxValue)
+                            {
+                                lowest.SurfaceNormal = -lowest.SurfaceNormal;
+                                CollisionPlane = new Vector4(lowest.SurfaceNormal, Vector3.Dot(lowest.Position, lowest.SurfaceNormal));
+                            }
+                            else
+                                CollisionPlane = Vector4.UnitW;
+/*
                         }
                         break;
                 }
+*/
             }
+            else
+                CollisionPlane = Vector4.UnitW;
 
             RaiseCollisionScriptEvents(coldata);
 

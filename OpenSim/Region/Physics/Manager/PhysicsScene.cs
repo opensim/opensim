@@ -38,6 +38,7 @@ namespace OpenSim.Region.Physics.Manager
 
     public delegate void RaycastCallback(bool hitYN, Vector3 collisionPoint, uint localid, float distance, Vector3 normal);
     public delegate void RayCallback(List<ContactResult> list);
+    public delegate void SitAvatarCallback(int status, uint partID, Vector3 offset, Quaternion Orientation);
 
     public delegate void JointMoved(PhysicsJoint joint);
     public delegate void JointDeactivated(PhysicsJoint joint);
@@ -127,8 +128,10 @@ namespace OpenSim.Region.Physics.Manager
         /// <param name="size"></param>
         /// <param name="isFlying"></param>
         /// <returns></returns>
-        public abstract PhysicsActor AddAvatar(string avName, Vector3 position, Vector3 size, bool isFlying);
-
+        public virtual PhysicsActor AddAvatar(string avName, Vector3 position, Vector3 size, bool isFlying)
+        {
+            return null;
+        }
         /// <summary>
         /// Add an avatar
         /// </summary>
@@ -142,6 +145,12 @@ namespace OpenSim.Region.Physics.Manager
         {
             PhysicsActor ret = AddAvatar(avName, position, size, isFlying);
             if (ret != null) ret.LocalID = localID;
+            return ret;
+        }
+
+        public virtual PhysicsActor AddAvatar(uint localID, string avName, Vector3 position, Vector3 size, float feetOffset, bool isFlying)
+        {
+            PhysicsActor ret = AddAvatar(localID, avName, position, size, isFlying);
             return ret;
         }
 
@@ -349,5 +358,9 @@ namespace OpenSim.Region.Physics.Manager
             return new List<ContactResult>();
         }
 
+        public virtual int SitAvatar(PhysicsActor actor, Vector3 AbsolutePosition, Vector3 CameraPosition, Vector3 offset, Vector3 AvatarSize, SitAvatarCallback PhysicsSitResponse)
+        {
+            return 0;
+        }
     }
 }

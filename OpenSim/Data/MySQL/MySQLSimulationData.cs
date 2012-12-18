@@ -2028,7 +2028,7 @@ namespace OpenSim.Data.MySQL
 
                     using (MySqlCommand cmd = dbcon.CreateCommand())
                     {
-                        cmd.CommandText = "select UUID from prims where RegionUUID = ?RegionUUID";
+                        cmd.CommandText = "select UUID from prims where RegionUUID = ?RegionUUID and SceneGroupID = UUID";
                         cmd.Parameters.AddWithValue("RegionUUID", regionID.ToString());
 
                         using (IDataReader reader = ExecuteReader(cmd))

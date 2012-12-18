@@ -333,7 +333,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 protocol = "https";
             }
             caps.RegisterHandler("GetTexture", String.Format("{0}://{1}:{2}{3}", protocol, hostName, port, capUrl));
-            m_pollservices.Add(agentID, args);
+            m_pollservices[agentID] = args;
             m_capsDict[agentID] = capUrl;
         }
 
