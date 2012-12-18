@@ -353,7 +353,7 @@ namespace OpenSim.Region.Physics.Manager
 
         public virtual void RaycastActor(PhysicsActor actor, Vector3 position, Vector3 direction, float length, RaycastCallback retMethod){}
         public virtual void RaycastActor(PhysicsActor actor, Vector3 position, Vector3 direction, float length, int Count, RayCallback retMethod) { }
-        public virtual List<ContactResult> RaycastActor(PhysicsActor actor, Vector3 position, Vector3 direction, float length, int Count)
+        public virtual List<ContactResult> RaycastActor(PhysicsActor actor, Vector3 position, Vector3 direction, float length, int Count, RayFilterFlags flags)
         {
             return new List<ContactResult>();
         }
