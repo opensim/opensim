@@ -199,6 +199,20 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_PendingRequests.Enqueue(req);
         }
 
+        public void QueueRequest(IntPtr geom, Vector3 position, Vector3 direction, float length, int count,RayFilterFlags flags, RayCallback retMethod)
+        {
+            ODERayRequest req = new ODERayRequest();
+            req.geom = geom;
+            req.callbackMethod = retMethod;
+            req.length = length;
+            req.Normal = direction;
+            req.Origin = position;
+            req.Count = count;
+            req.filter = flags;
+
+            m_PendingRequests.Enqueue(req);
+        }
+
         public void QueueRequest(Vector3 position, Vector3 direction, float length, int count, RaycastCallback retMethod)
         {
             ODERayRequest req = new ODERayRequest();
