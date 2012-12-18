@@ -351,7 +351,7 @@ public static class BSParam
             (s) => { return AvatarStandingFriction; },
             (s,p,l,v) => { AvatarStandingFriction = v; } ),
         new ParameterDefn("AvatarDensity", "Density of an avatar. Changed on avatar recreation.",
-            60f,
+            3.5f,
             (s,cf,p,v) => { AvatarDensity = cf.GetFloat(p, v); },
             (s) => { return AvatarDensity; },
             (s,p,l,v) => { s.UpdateParameterObject((x)=>{AvatarDensity=x;}, p, l, v); } ),

@@ -36,7 +36,7 @@ public sealed class BSConstraintHinge : BSConstraint
 {
     public override ConstraintType Type { get { return ConstraintType.HINGE_CONSTRAINT_TYPE; } }
 
-    public BSConstraintHinge(BulletSim world, BulletBody obj1, BulletBody obj2,
+    public BSConstraintHinge(BulletWorld world, BulletBody obj1, BulletBody obj2,
                     Vector3 pivotInA, Vector3 pivotInB,
                     Vector3 axisInA, Vector3 axisInB,
                     bool useLinearReferenceFrameA, bool disableCollisionsBetweenLinkedBodies)

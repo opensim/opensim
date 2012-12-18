@@ -89,6 +89,8 @@ public sealed class BSLinksetCompound : BSLinkset
     //   its internal properties.
     public override void Refresh(BSPhysObject requestor)
     {
+        base.Refresh(requestor);
+
         // Something changed so do the rebuilding thing
         // ScheduleRebuild();
     }
@@ -96,13 +98,13 @@ public sealed class BSLinksetCompound : BSLinkset
     // Schedule a refresh to happen after all the other taint processing.
     private void ScheduleRebuild(BSPhysObject requestor)
     {
-        DetailLog("{0},BSLinksetCompound.Refresh,schedulingRefresh,rebuilding={1}", 
+        DetailLog("{0},BSLinksetCompound.ScheduleRebuild,,rebuilding={1}", 
                             requestor.LocalID, Rebuilding);
         // When rebuilding, it is possible to set properties that would normally require a rebuild.
         //    If already rebuilding, don't request another rebuild.
         if (!Rebuilding)
         {
-            PhysicsScene.PostTaintObject("BSLinksetCompound.Refresh", LinksetRoot.LocalID, delegate()
+            PhysicsScene.PostTaintObject("BSLinksetCompound.ScheduleRebuild", LinksetRoot.LocalID, delegate()
             {
                 if (HasAnyChildren)
                     RecomputeLinksetCompound();
@@ -123,7 +125,6 @@ public sealed class BSLinksetCompound : BSLinkset
         if (IsRoot(child))
         {
             // The root is going dynamic. Make sure mass is properly set.
-            m_mass = ComputeLinksetMass();
             ScheduleRebuild(LinksetRoot);
         }
         else
@@ -377,8 +378,8 @@ public sealed class BSLinksetCompound : BSLinkset
             });
 
             // With all of the linkset packed into the root prim, it has the mass of everyone.
-            float linksetMass = LinksetMass;
-            LinksetRoot.UpdatePhysicalMassProperties(linksetMass);
+            LinksetMass = LinksetMass;
+            LinksetRoot.UpdatePhysicalMassProperties(LinksetMass, true);
         }
         finally
         {

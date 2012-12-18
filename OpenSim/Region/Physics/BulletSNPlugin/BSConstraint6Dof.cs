@@ -39,7 +39,7 @@ public sealed class BSConstraint6Dof : BSConstraint
     public override ConstraintType Type { get { return ConstraintType.D6_CONSTRAINT_TYPE; } }
 
     // Create a btGeneric6DofConstraint
-    public BSConstraint6Dof(BulletSim world, BulletBody obj1, BulletBody obj2,
+    public BSConstraint6Dof(BulletWorld world, BulletBody obj1, BulletBody obj2,
                     Vector3 frame1, Quaternion frame1rot,
                     Vector3 frame2, Quaternion frame2rot,
                     bool useLinearReferenceFrameA, bool disableCollisionsBetweenLinkedBodies)
@@ -58,7 +58,7 @@ public sealed class BSConstraint6Dof : BSConstraint
                             obj1.ID, obj1.ptr.ToString(), obj2.ID, obj2.ptr.ToString());
     }
 
-    public BSConstraint6Dof(BulletSim world, BulletBody obj1, BulletBody obj2,
+    public BSConstraint6Dof(BulletWorld world, BulletBody obj1, BulletBody obj2,
                     Vector3 joinPoint,
                     bool useLinearReferenceFrameA, bool disableCollisionsBetweenLinkedBodies)
     {

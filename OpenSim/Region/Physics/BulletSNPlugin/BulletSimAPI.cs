@@ -58,7 +58,6 @@ public enum ConstraintType : int
 	MAX_CONSTRAINT_TYPE
 }
 
-
 // ===============================================================================
 [StructLayout(LayoutKind.Sequential)]
 public struct ConvexHull

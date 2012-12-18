@@ -103,7 +103,7 @@ public sealed class BSTerrainHeightmap : BSTerrainPhys
         Vector3 centerPos;
         centerPos.X = m_mapInfo.minCoords.X + (m_mapInfo.sizeX / 2f);
         centerPos.Y = m_mapInfo.minCoords.Y + (m_mapInfo.sizeY / 2f);
-        centerPos.Z = m_mapInfo.minZ + ((m_mapInfo.maxZ - m_mapInfo.minZ) / 2f + 0.5f);
+        centerPos.Z = m_mapInfo.minZ + ((m_mapInfo.maxZ - m_mapInfo.minZ) / 2f - 0.5f);
 
         m_mapInfo.terrainBody = new BulletBody(m_mapInfo.ID,
                 BulletSimAPI.CreateBodyWithDefaultMotionState2(m_mapInfo.terrainShape.ptr,
