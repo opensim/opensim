@@ -311,6 +311,15 @@ public sealed class BSCharacter : BSPhysObject
     {
         bool ret = false;
 
+        // TODO: check for out of bounds
+        if (!PhysicsScene.TerrainManager.IsWithinKnownTerrain(_position))
+        {
+            // The character is out of the known/simulated area.
+            // Upper levels of code will handle the transition to other areas so, for
+            //     the time, we just ignore the position.
+            return ret;
+        }
+
         // If below the ground, move the avatar up
         float terrainHeight = PhysicsScene.TerrainManager.GetTerrainHeightAtXYZ(_position);
         if (Position.Z < terrainHeight)
@@ -329,7 +338,6 @@ public sealed class BSCharacter : BSPhysObject
             }
         }
 
-        // TODO: check for out of bounds
         return ret;
     }
 
@@ -700,7 +708,7 @@ public sealed class BSCharacter : BSPhysObject
         }
 
         // Tell the linkset about value changes
-        Linkset.UpdateProperties(this);
+        Linkset.UpdateProperties(this, true);
 
         // Avatars don't report their changes the usual way. Changes are checked for in the heartbeat loop.
         // base.RequestPhysicsterseUpdate();

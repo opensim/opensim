@@ -28,6 +28,8 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
+using OpenSim.Framework;
+
 using OMV = OpenMetaverse;
 
 namespace OpenSim.Region.Physics.BulletSPlugin
@@ -44,6 +46,11 @@ sealed class BSLinksetCompoundInfo : BSLinksetInfo
     {
         OffsetPos = p;
         OffsetRot = r;
+    }
+    public override void Clear()
+    {
+        OffsetPos = OMV.Vector3.Zero;
+        OffsetRot = OMV.Quaternion.Identity;
     }
     public override string ToString()
     {
@@ -82,22 +89,22 @@ public sealed class BSLinksetCompound : BSLinkset
     //   its internal properties.
     public override void Refresh(BSPhysObject requestor)
     {
-        // External request for Refresh (from BSPrim) doesn't need to do anything
-        // InternalRefresh(requestor);
+        // Something changed so do the rebuilding thing
+        // ScheduleRebuild();
     }
 
     // Schedule a refresh to happen after all the other taint processing.
-    private void InternalRefresh(BSPhysObject requestor)
+    private void ScheduleRebuild()
     {
-        DetailLog("{0},BSLinksetCompound.Refresh,schedulingRefresh,requestor={1},rebuilding={2}", 
-                            LinksetRoot.LocalID, requestor.LocalID, Rebuilding);
+        DetailLog("{0},BSLinksetCompound.Refresh,schedulingRefresh,rebuilding={1}", 
+                            LinksetRoot.LocalID, Rebuilding);
         // When rebuilding, it is possible to set properties that would normally require a rebuild.
         //    If already rebuilding, don't request another rebuild.
         if (!Rebuilding)
         {
-            PhysicsScene.PostTaintObject("BSLinksetCompound.Refresh", requestor.LocalID, delegate()
+            PhysicsScene.PostTaintObject("BSLinksetCompound.Refresh", LinksetRoot.LocalID, delegate()
             {
-                if (IsRoot(requestor) && HasAnyChildren)
+                if (HasAnyChildren)
                     RecomputeLinksetCompound();
             });
         }
@@ -117,8 +124,7 @@ public sealed class BSLinksetCompound : BSLinkset
         {
             // The root is going dynamic. Make sure mass is properly set.
             m_mass = ComputeLinksetMass();
-            if (HasAnyChildren)
-                InternalRefresh(LinksetRoot);
+            ScheduleRebuild();
         }
         else
         {
@@ -147,8 +153,7 @@ public sealed class BSLinksetCompound : BSLinkset
         DetailLog("{0},BSLinksetCompound.MakeStatic,call,IsRoot={1}", child.LocalID, IsRoot(child));
         if (IsRoot(child))
         {
-            if (HasAnyChildren)
-                InternalRefresh(LinksetRoot);
+            ScheduleRebuild();
         }
         else
         {
@@ -164,22 +169,21 @@ public sealed class BSLinksetCompound : BSLinkset
         return ret;
     }
 
-    // Called at taint-time!!
-    public override void UpdateProperties(BSPhysObject updated)
+    public override void UpdateProperties(BSPhysObject updated, bool physicalUpdate)
     {
-        // Nothing to do for compound linksets on property updates
-    }
-
-    // The children move around in relationship to the root.
-    // Just grab the current values of wherever it is right now.
-    public override OMV.Vector3 Position(BSPhysObject member)
-    {
-        return BulletSimAPI.GetPosition2(member.PhysBody.ptr);
-    }
-
-    public override OMV.Quaternion Orientation(BSPhysObject member)
-    {
-        return BulletSimAPI.GetOrientation2(member.PhysBody.ptr);
+        // The user moving a child around requires the rebuilding of the linkset compound shape
+        // One problem is this happens when a border is crossed -- the simulator implementation
+        //    is to store the position into the group which causes the move of the object
+        //    but it also means all the child positions get updated.
+        //    What would cause an unnecessary rebuild so we make sure the linkset is in a
+        //    region before bothering to do a rebuild.
+        if (!IsRoot(updated) 
+                && !physicalUpdate 
+                && PhysicsScene.TerrainManager.IsWithinKnownTerrain(LinksetRoot.RawPosition))
+        {
+            updated.LinksetInfo = null;
+            ScheduleRebuild();
+        }
     }
 
     // Routine called when rebuilding the body of some member of the linkset.
@@ -261,8 +265,8 @@ public sealed class BSLinksetCompound : BSLinkset
 
             DetailLog("{0},BSLinksetCompound.AddChildToLinkset,call,child={1}", LinksetRoot.LocalID, child.LocalID);
 
-            // Cause constraints and assorted properties to be recomputed before the next simulation step.
-            InternalRefresh(LinksetRoot);
+            // Rebuild the compound shape with the new child shape included
+            ScheduleRebuild();
         }
         return;
     }
@@ -289,8 +293,8 @@ public sealed class BSLinksetCompound : BSLinkset
             }
             else
             {
-                // Schedule a rebuild of the linkset  before the next simulation tick.
-                InternalRefresh(LinksetRoot);
+                // Rebuild the compound shape with the child removed
+                ScheduleRebuild();
             }
         }
         return;

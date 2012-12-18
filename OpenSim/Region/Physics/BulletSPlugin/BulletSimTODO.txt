@@ -1,3 +1,16 @@
+CURRENT PRIORITIES
+=================================================
+Eliminate all crashes (DONEish)
+	Editing/deleting physical linkset (DONE)
+	Border crossing of physical linkset (DONE)
+Enable vehicle border crossings (at least as poorly as ODE)
+	Avatar created in previous region and not new region when crossing border
+	Vehicle recreated in new sim at small Z value (offset from root value?)
+Calibrate turning radius
+limitMotorUp calibration (more down?)
+study PID motors (include 'efficiency' implementation
+	Add to avatar movement
+
 CRASHES
 =================================================
 20121129.1411: editting/moving phys object across region boundries causes crash
@@ -11,16 +24,18 @@ CRASHES
 
 VEHICLES TODO LIST:
 =================================================
+Border crossing with linked vehicle causes crash
 Neb vehicle taking > 25ms of physics time!!
 Vehicles (Move smoothly)
 Add vehicle collisions so IsColliding is properly reported.
 	Needed for banking, limitMotorUp, movementLimiting, ...
 Some vehicles should not be able to turn if no speed or off ground.
+Cannot edit/move a vehicle being ridden: it jumps back to the origional position.
 Neb car jiggling left and right
 	Happens on terrain and any other mesh object. Flat cubes are much smoother.
 	This has been reduced but not eliminated.
 Light cycle falling over when driving
-For limitMotorUp, use raycast down to find if vehicle is in the air.
+Implement referenceFrame for all the motion routines.
 Angular motion around Z moves the vehicle in world Z and not vehicle Z in ODE.
 	Verify that angular motion specified around Z moves in the vehicle coordinates.
 Verify llGetVel() is returning a smooth and good value for vehicle movement.
@@ -31,12 +46,13 @@ Should vehicle angular/linear movement friction happen after all the components
 After getting off a vehicle, the root prim is phantom (can be walked through)
     Need to force a position update for the root prim after compound shape destruction
 Linkset explosion after three "rides" on Nebadon lite vehicle (LinksetConstraint)
-Implement referenceFrame for all the motion routines.
-Cannot edit/move a vehicle being ridden: it jumps back to the origional position.
-Border crossing with linked vehicle causes crash
+For limitMotorUp, use raycast down to find if vehicle is in the air.
+Remove vehicle angular velocity zeroing in BSPrim.UpdateProperties().
+	A kludge that isn't fixing the real problem of Bullet adding extra motion.
 
 BULLETSIM TODO LIST:
 =================================================
+Revisit CollisionMargin. Builders notice the 0.04 spacing between prims.
 Avatar height off after unsitting (floats off ground)
 	Editting appearance then moving restores.
 	Must not be initializing height when recreating capsule after unsit.
@@ -64,11 +80,16 @@ Implement ShapeCollection.Dispose()
 Implement water as a plain so raycasting and collisions can happen with same.
 Add osGetPhysicsEngineName() so scripters can tell whether BulletSim or ODE
 	Also osGetPhysicsEngineVerion() maybe.
+Linkset.Position and Linkset.Orientation requre rewrite to properly return
+	child position. LinksetConstraint acts like it's at taint time!!
 
 LINKSETS
 ======================================================
 Linksets should allow collisions to individual children
 	Add LocalID to children shapes in LinksetCompound and create events for individuals
+LinksetCompound: when one of the children changes orientation (like tires
+	turning on a vehicle, the whole compound object is rebuilt. Optimize this
+	so orientation/position of individual children can change without a rebuild.
 Verify/think through scripts in children of linksets. What do they reference
 	and return when getting position, velocity, ...
 Confirm constraint linksets still work after making all the changes for compound linksets.
@@ -140,6 +161,11 @@ Remove HeightmapInfo from terrain specification
     Since C++ code does not need terrain height, this structure et al are not needed.
 Add floating motor for BS_FLOATS_ON_WATER so prim and avatar will
     bob at the water level. BSPrim.PositionSanityCheck().
+Should taints check for existance or activeness of target?
+	When destroying linksets/etc, taints can be generated for objects that are
+	actually gone when the taint happens. Crashes don't happen because the taint closure
+	keeps the object from being freed, but that is just an accident.
+	Possibly have and 'active' flag that is checked by the taint processor?
 
 THREADING
 =================================================

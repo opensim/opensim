@@ -349,8 +349,6 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         // make sure no stepping happens while we're deleting stuff
         m_initialized = false;
 
-        TerrainManager.ReleaseGroundPlaneAndTerrain();
-
         foreach (KeyValuePair<uint, BSPhysObject> kvp in PhysObjects)
         {
             kvp.Value.Destroy();
@@ -368,6 +366,13 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         {
             Shapes.Dispose();
             Shapes = null;
+        }
+
+        if (TerrainManager != null)
+        {
+            TerrainManager.ReleaseGroundPlaneAndTerrain();
+            TerrainManager.Dispose();
+            TerrainManager = null;
         }
 
         // Anything left in the unmanaged code should be cleaned out
@@ -512,8 +517,9 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
                         out updatedEntityCount, out updatedEntitiesPtr, out collidersCount, out collidersPtr);
 
             if (PhysicsLogging.Enabled) simTime = Util.EnvironmentTickCountSubtract(beforeTime);
-            DetailLog("{0},Simulate,call, frame={1}, nTaints={2}, simTime={3}, substeps={4}, updates={5}, colliders={6}",
-                        DetailLogZero, m_simulationStep, numTaints, simTime, numSubSteps, updatedEntityCount, collidersCount);
+            DetailLog("{0},Simulate,call, frame={1}, nTaints={2}, simTime={3}, substeps={4}, updates={5}, colliders={6}, objWColl={7}",
+                                    DetailLogZero, m_simulationStep, numTaints, simTime, numSubSteps, 
+                                    updatedEntityCount, collidersCount, ObjectsWithCollisions.Count);
             if (VehiclePhysicalLoggingEnabled) DumpVehicles();  // DEBUG
         }
         catch (Exception e)
@@ -568,6 +574,9 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
         // Objects that are done colliding are removed from the ObjectsWithCollisions list.
         // Not done above because it is inside an iteration of ObjectWithCollisions.
+        // This complex collision processing is required to create an empty collision
+        //     event call after all collisions have happened on an object. This enables
+        //     the simulator to generate the 'collision end' event.
         if (ObjectsWithNoMoreCollisions.Count > 0)
         {
             foreach (BSPhysObject po in ObjectsWithNoMoreCollisions)
@@ -592,7 +601,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
         ProcessPostStepTaints();
 
-        // This causes the unmanaged code to output ALL the values found in ALL the objects in the world.
+        // The following causes the unmanaged code to output ALL the values found in ALL the objects in the world.
         // Only enable this in a limited test world with few objects.
         // BulletSimAPI.DumpAllInfo2(World.ptr);    // DEBUG DEBUG DEBUG
 

@@ -279,9 +279,12 @@ public sealed class BSPrim : BSPhysObject
     }
     public override OMV.Vector3 Position {
         get {
+            /* NOTE: this refetch is not necessary. The simulator knows about linkset children
+             *    and does not fetch this position info for children. Thus this is commented out.
             // child prims move around based on their parent. Need to get the latest location
             if (!Linkset.IsRoot(this))
-                _position = Linkset.Position(this);
+                _position = Linkset.PositionGet(this);
+            */
 
             // don't do the GetObjectPosition for root elements because this function is called a zillion times.
             // _position = BulletSimAPI.GetObjectPosition2(PhysicsScene.World.ptr, BSBody.ptr);
@@ -289,21 +292,22 @@ public sealed class BSPrim : BSPhysObject
         }
         set {
             // If the position must be forced into the physics engine, use ForcePosition.
+            // All positions are given in world positions.
             if (_position == value)
             {
+                DetailLog("{0},BSPrim.setPosition,taint,positionNotChanging,pos={1},orient={2}", LocalID, _position, _orientation);
                 return;
             }
             _position = value;
-            // TODO: what does it mean to set the position of a child prim?? Rebuild the constraint?
             PositionSanityCheck(false);
+
+            // A linkset might need to know if a component information changed.
+            Linkset.UpdateProperties(this, false);
+
             PhysicsScene.TaintedObject("BSPrim.setPosition", delegate()
             {
-                // DetailLog("{0},BSPrim.SetPosition,taint,pos={1},orient={2}", LocalID, _position, _orientation);
-                if (PhysBody.HasPhysicalBody)
-                {
-                    BulletSimAPI.SetTranslation2(PhysBody.ptr, _position, _orientation);
-                    ActivateIfPhysical(false);
-                }
+                DetailLog("{0},BSPrim.SetPosition,taint,pos={1},orient={2}", LocalID, _position, _orientation);
+                ForcePosition = _position;
             });
         }
     }
@@ -314,9 +318,11 @@ public sealed class BSPrim : BSPhysObject
         }
         set {
             _position = value;
-            // PositionSanityCheck();   // Don't do this! Causes a loop and caller should know better.
-            BulletSimAPI.SetTranslation2(PhysBody.ptr, _position, _orientation);
-            ActivateIfPhysical(false);
+            if (PhysBody.HasPhysicalBody)
+            {
+                BulletSimAPI.SetTranslation2(PhysBody.ptr, _position, _orientation);
+                ActivateIfPhysical(false);
+            }
         }
     }
 
@@ -326,6 +332,14 @@ public sealed class BSPrim : BSPhysObject
     private bool PositionSanityCheck(bool inTaintTime)
     {
         bool ret = false;
+
+        if (!PhysicsScene.TerrainManager.IsWithinKnownTerrain(_position))
+        {
+            // The physical object is out of the known/simulated area.
+            // Upper levels of code will handle the transition to other areas so, for
+            //     the time, we just ignore the position.
+            return ret;
+        }
 
         float terrainHeight = PhysicsScene.TerrainManager.GetTerrainHeightAtXYZ(_position);
         OMV.Vector3 upForce = OMV.Vector3.Zero;
@@ -349,8 +363,6 @@ public sealed class BSPrim : BSPhysObject
                 ret = true;
             }
         }
-
-        // TODO: check for out of bounds
 
         // The above code computes a force to apply to correct any out-of-bounds problems. Apply same.
         // TODO: This should be intergrated with a geneal physics action mechanism.
@@ -551,18 +563,24 @@ public sealed class BSPrim : BSPhysObject
     }
     public override OMV.Quaternion Orientation {
         get {
+            /* NOTE: this refetch is not necessary. The simulator knows about linkset children
+             *    and does not fetch this position info for children. Thus this is commented out.
             // Children move around because tied to parent. Get a fresh value.
             if (!Linkset.IsRoot(this))
             {
-                _orientation = Linkset.Orientation(this);
+                _orientation = Linkset.OrientationGet(this);
             }
+             */
             return _orientation;
         }
         set {
             if (_orientation == value)
                 return;
             _orientation = value;
-            // TODO: what does it mean if a child in a linkset changes its orientation? Rebuild the constraint?
+
+            // A linkset might need to know if a component information changed.
+            Linkset.UpdateProperties(this, false);
+
             PhysicsScene.TaintedObject("BSPrim.setOrientation", delegate()
             {
                 if (PhysBody.HasPhysicalBody)
@@ -1427,13 +1445,13 @@ public sealed class BSPrim : BSPhysObject
                 entprop.Velocity = _velocity;
             }
 
-            // remember the current and last set values
-            LastEntityProperties = CurrentEntityProperties;
-            CurrentEntityProperties = entprop;
-
             OMV.Vector3 direction = OMV.Vector3.UnitX * _orientation;   // DEBUG DEBUG DEBUG
             DetailLog("{0},BSPrim.UpdateProperties,call,pos={1},orient={2},dir={3},vel={4},rotVel={5}",
                     LocalID, _position, _orientation, direction, _velocity, _rotationalVelocity);
+
+            // remember the current and last set values
+            LastEntityProperties = CurrentEntityProperties;
+            CurrentEntityProperties = entprop;
 
             base.RequestPhysicsterseUpdate();
         }
@@ -1448,7 +1466,7 @@ public sealed class BSPrim : BSPhysObject
              */
 
         // The linkset implimentation might want to know about this.
-        Linkset.UpdateProperties(this);
+        Linkset.UpdateProperties(this, true);
     }
 }
 }

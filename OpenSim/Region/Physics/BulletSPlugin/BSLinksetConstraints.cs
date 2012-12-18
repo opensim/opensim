@@ -78,21 +78,9 @@ public sealed class BSLinksetConstraints : BSLinkset
     }
 
     // Called at taint-time!!
-    public override void UpdateProperties(BSPhysObject updated)
+    public override void UpdateProperties(BSPhysObject updated, bool inTaintTime)
     {
         // Nothing to do for constraints on property updates
-    }
-
-    // The children of the linkset are moved around by the constraints.
-    // Just grab the current values of wherever it is right now.
-    public override OMV.Vector3 Position(BSPhysObject member)
-    {
-        return BulletSimAPI.GetPosition2(member.PhysBody.ptr);
-    }
-
-    public override OMV.Quaternion Orientation(BSPhysObject member)
-    {
-        return BulletSimAPI.GetOrientation2(member.PhysBody.ptr);
     }
 
     // Routine called when rebuilding the body of some member of the linkset.

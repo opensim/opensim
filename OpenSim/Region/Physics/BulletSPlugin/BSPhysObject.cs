@@ -214,7 +214,7 @@ public abstract class BSPhysObject : PhysicsActor
     {
         bool ret = true;
         // If the 'no collision' call, force it to happen right now so quick collision_end
-        bool force = CollisionCollection.Count == 0;
+        bool force = (CollisionCollection.Count == 0);
 
         // throttle the collisions to the number of milliseconds specified in the subscription
         if (force || (PhysicsScene.SimulationNowTime >= NextCollisionOkTime))
@@ -232,8 +232,10 @@ public abstract class BSPhysObject : PhysicsActor
             // DetailLog("{0},{1}.SendCollisionUpdate,call,numCollisions={2}", LocalID, TypeName, CollisionCollection.Count);
             base.SendCollisionUpdate(CollisionCollection);
 
-            // The collisionCollection structure is passed around in the simulator.
+            // The CollisionCollection instance is passed around in the simulator.
             // Make sure we don't have a handle to that one and that a new one is used for next time.
+            //    This fixes an interesting 'gotcha'. If we call CollisionCollection.Clear() here, 
+            //    a race condition is created for the other users of this instance.
             CollisionCollection = new CollisionEventUpdate();
         }
         return ret;
@@ -251,7 +253,8 @@ public abstract class BSPhysObject : PhysicsActor
 
             PhysicsScene.TaintedObject(TypeName+".SubscribeEvents", delegate()
             {
-                CurrentCollisionFlags = BulletSimAPI.AddToCollisionFlags2(PhysBody.ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
+                if (PhysBody.HasPhysicalBody)
+                    CurrentCollisionFlags = BulletSimAPI.AddToCollisionFlags2(PhysBody.ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
             });
         }
         else

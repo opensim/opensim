@@ -38,6 +38,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 // Each type of linkset will define the information needed for its type.
 public abstract class BSLinksetInfo
 {
+    public virtual void Clear() { }
 }
 
 public abstract class BSLinkset
@@ -95,13 +96,6 @@ public abstract class BSLinkset
         return BSPhysicsShapeType.SHAPE_UNKNOWN;
     }
 
-    // Linksets move around the children so the linkset might need to compute the child position
-    public virtual OMV.Vector3 Position(BSPhysObject member)
-        { return member.RawPosition; }
-    public virtual OMV.Quaternion Orientation(BSPhysObject member)
-        { return member.RawOrientation; }
-    // TODO: does this need to be done for Velocity and RotationalVelocityy?
-    
     // We keep the prim's mass in the linkset structure since it could be dependent on other prims
     protected float m_mass;
     public float LinksetMass
@@ -258,8 +252,9 @@ public abstract class BSLinkset
 
     // Called when a parameter update comes from the physics engine for any object
     //      of the linkset is received.
+    // Passed flag is update came from physics engine (true) or the user (false).
     // Called at taint-time!!
-    public abstract void UpdateProperties(BSPhysObject physObject);
+    public abstract void UpdateProperties(BSPhysObject physObject, bool physicalUpdate);
 
     // Routine used when rebuilding the body of the root of the linkset
     // Destroy all the constraints have have been made to root.

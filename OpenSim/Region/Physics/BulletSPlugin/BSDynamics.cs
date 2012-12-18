@@ -871,8 +871,11 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             if (VehiclePosition.Z < GetTerrainHeight(VehiclePosition))
             {
                 // TODO: correct position by applying force rather than forcing position.
-                VehiclePosition += new Vector3(0f, 0f, GetTerrainHeight(VehiclePosition) + 2f);
-                VDetailLog("{0},  MoveLinear,terrainHeight,terrainHeight={1},pos={2}", Prim.LocalID, GetTerrainHeight(VehiclePosition), VehiclePosition);
+                Vector3 newPosition = VehiclePosition;
+                newPosition.Z = GetTerrainHeight(VehiclePosition) + 1f;
+                VehiclePosition = newPosition;
+                VDetailLog("{0},  MoveLinear,terrainHeight,terrainHeight={1},pos={2}",
+                        Prim.LocalID, GetTerrainHeight(VehiclePosition), VehiclePosition);
             }
             return ret;
         }
