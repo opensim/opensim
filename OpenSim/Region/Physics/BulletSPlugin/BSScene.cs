@@ -189,7 +189,6 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     // 'true' of the vehicle code is to log lots of details
     public bool VehicleLoggingEnabled { get; private set; }
     public bool VehiclePhysicalLoggingEnabled { get; private set; }
-    public bool VehicleScaleAngularVelocityByTimestep { get; private set; }
 
     #region Construction and Initialization
     public BSScene(string identifier)
@@ -1239,11 +1238,6 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             (s,cf,p,v) => { s.m_params[0].vehicleAngularDamping = cf.GetFloat(p, v); },
             (s) => { return s.m_params[0].vehicleAngularDamping; },
             (s,p,l,v) => { s.m_params[0].vehicleAngularDamping = v; } ),
-        new ParameterDefn("VehicleScaleAngularVelocityByTimestep", "If true, scale angular turning by timestep",
-            ConfigurationParameters.numericFalse,
-            (s,cf,p,v) => { s.VehicleScaleAngularVelocityByTimestep = cf.GetBoolean(p, s.BoolNumeric(v)); },
-            (s) => { return s.NumericBool(s.VehicleScaleAngularVelocityByTimestep); },
-            (s,p,l,v) => { s.VehicleScaleAngularVelocityByTimestep = s.BoolNumeric(v); } ),
 
 	    new ParameterDefn("MaxPersistantManifoldPoolSize", "Number of manifolds pooled (0 means default of 4096)",
             0f,

@@ -147,7 +147,13 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         /// <summary>
         /// Stop the script instance.
         /// </summary>
+        /// <remarks>
+        /// This must not be called by a thread that is in the process of handling an event for this script.  Otherwise
+        /// there is a danger that it will self-abort and not complete the reset.
+        /// </remarks>
         /// <param name="timeout"></param>
+        /// How many milliseconds we will wait for an existing script event to finish before
+        /// forcibly aborting that event.
         /// <returns>true if the script was successfully stopped, false otherwise</returns>
         bool Stop(int timeout);
 
@@ -169,8 +175,31 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         object EventProcessor();
 
         int EventTime();
-        void ResetScript();
+
+        /// <summary>
+        /// Reset the script.
+        /// </summary>
+        /// <remarks>
+        /// This must not be called by a thread that is in the process of handling an event for this script.  Otherwise
+        /// there is a danger that it will self-abort and not complete the reset.  Such a thread must call
+        /// ApiResetScript() instead.
+        /// </remarks>
+        /// <param name='timeout'>
+        /// How many milliseconds we will wait for an existing script event to finish before
+        /// forcibly aborting that event prior to script reset.
+        /// </param>
+        void ResetScript(int timeout);
+
+        /// <summary>
+        /// Reset the script.
+        /// </summary>
+        /// <remarks>
+        /// This must not be called by any thread other than the one executing the scripts current event.  This is 
+        /// because there is no wait or abort logic if another thread is in the middle of processing a script event.
+        /// Such an external thread should use ResetScript() instead.
+        /// </remarks>
         void ApiResetScript();
+
         Dictionary<string, object> GetVars();
         void SetVars(Dictionary<string, object> vars);
         DetectParams GetDetectParams(int idx);

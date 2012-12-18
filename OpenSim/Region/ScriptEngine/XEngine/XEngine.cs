@@ -1783,7 +1783,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         {
             IScriptInstance instance = GetInstance(itemID);
             if (instance != null)
-                instance.ResetScript();
+                instance.ResetScript(m_WaitForEventCompletionOnScriptStop);
         }
 
         public void StartScript(UUID itemID)

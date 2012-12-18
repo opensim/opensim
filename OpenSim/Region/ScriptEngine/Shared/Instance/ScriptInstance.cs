@@ -880,7 +880,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             return (DateTime.Now - m_EventStart).Seconds;
         }
 
-        public void ResetScript()
+        public void ResetScript(int timeout)
         {
             if (m_Script == null)
                 return;
@@ -890,7 +890,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             RemoveState();
             ReleaseControls();
 
-            Stop(0);
+            Stop(timeout);
             SceneObjectPart part = Engine.World.GetSceneObjectPart(LocalID);
             part.Inventory.GetInventoryItem(ItemID).PermsMask = 0;
             part.Inventory.GetInventoryItem(ItemID).PermsGranter = UUID.Zero;

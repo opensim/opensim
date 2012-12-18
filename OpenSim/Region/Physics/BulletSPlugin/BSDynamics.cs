@@ -87,7 +87,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         private float m_angularMotorTimescale = 0;                      // motor angular velocity ramp up rate
         private float m_angularMotorDecayTimescale = 0;                 // motor angular velocity decay rate
         private Vector3 m_angularFrictionTimescale = Vector3.Zero;      // body angular velocity  decay rate
-        private Vector3 m_lastAngularCorrection = Vector3.Zero;
+        private Vector3 m_lastAngularVelocity = Vector3.Zero;
         private Vector3 m_lastVertAttractor = Vector3.Zero;             // what VA was last applied to body
 
         //Deflection properties
@@ -128,7 +128,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         // Return 'true' if this vehicle is doing vehicle things
         public bool IsActive
         {
-            get { return Type != Vehicle.TYPE_NONE; }
+            get { return Type != Vehicle.TYPE_NONE && Prim.IsPhysical; }
         }
 
         internal void ProcessFloatVehicleParam(Vehicle pParam, float pValue)
@@ -664,6 +664,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 //      an UpdateProperties event to send the changes up to the simulator.
                 BulletSimAPI.PushUpdate2(Prim.PhysBody.ptr);
             }
+            m_knownChanged = 0;
         }
 
         // Since the computation of terrain height can be a little involved, this routine
@@ -993,11 +994,12 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         public Vector3 ComputeLinearMotorUp(float pTimestep)
         {
             Vector3 ret = Vector3.Zero;
+            float distanceAboveGround = 0f;
 
             if ((m_flags & (VehicleFlag.LIMIT_MOTOR_UP)) != 0)
             {
                 float targetHeight = Type == Vehicle.TYPE_BOAT ? GetWaterLevel(VehiclePosition) : GetTerrainHeight(VehiclePosition);
-                float distanceAboveGround = VehiclePosition.Z - targetHeight;
+                distanceAboveGround = VehiclePosition.Z - targetHeight;
                 // Not colliding if the vehicle is off the ground
                 if (!Prim.IsColliding)
                 {
@@ -1010,9 +1012,9 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 //     has a decay factor. This says this force should
                 //     be computed with a motor.
                 // TODO: add interaction with banking.
-                VDetailLog("{0},  MoveLinear,limitMotorUp,distAbove={1},colliding={2},ret={3}",
-                                    Prim.LocalID, distanceAboveGround, Prim.IsColliding, ret);
             }
+            VDetailLog("{0},  MoveLinear,limitMotorUp,distAbove={1},colliding={2},ret={3}",
+                                Prim.LocalID, distanceAboveGround, Prim.IsColliding, ret);
             return ret;
         }
 
@@ -1049,8 +1051,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             // ==================================================================
             m_lastVertAttractor = verticalAttractionContribution;
 
-            // Sum corrections
-            m_lastAngularCorrection = angularMotorContribution
+            m_lastAngularVelocity = angularMotorContribution
                                     + verticalAttractionContribution
                                     + deflectionContribution
                                     + bankingContribution;
@@ -1058,19 +1059,15 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             // ==================================================================
             // Apply the correction velocity.
             // TODO: Should this be applied as an angular force (torque)?
-            if (!m_lastAngularCorrection.ApproxEquals(Vector3.Zero, 0.01f))
+            if (!m_lastAngularVelocity.ApproxEquals(Vector3.Zero, 0.01f))
             {
-                // DEBUG DEBUG DEBUG: optionally scale the angular velocity. Debugging SL vs ODE turning functions.
-                Vector3 scaledCorrection = m_lastAngularCorrection;
-                if (PhysicsScene.VehicleScaleAngularVelocityByTimestep)
-                    scaledCorrection *= pTimestep;
-                VehicleRotationalVelocity = scaledCorrection;
+                VehicleRotationalVelocity = m_lastAngularVelocity;
 
-                VDetailLog("{0},  MoveAngular,done,nonZero,angMotorContrib={1},vertAttrContrib={2},bankContrib={3},deflectContrib={4},totalContrib={5},scaledCorr={6}",
+                VDetailLog("{0},  MoveAngular,done,nonZero,angMotorContrib={1},vertAttrContrib={2},bankContrib={3},deflectContrib={4},totalContrib={5}",
                                     Prim.LocalID,
                                     angularMotorContribution, verticalAttractionContribution,
                                     bankingContribution, deflectionContribution,
-                                    m_lastAngularCorrection, scaledCorrection
+                                    m_lastAngularVelocity
                                     );
             }
             else
@@ -1124,18 +1121,18 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         {
             Vector3 ret = Vector3.Zero;
 
-            // If vertical attaction timescale is reasonable and we applied an angular force last time...
+            // If vertical attaction timescale is reasonable
             if (m_verticalAttractionTimescale < m_verticalAttractionCutoff)
             {
                 // Take a vector pointing up and convert it from world to vehicle relative coords.
                 Vector3 verticalError = Vector3.UnitZ * VehicleOrientation;
-                verticalError.Normalize();
 
                 // If vertical attraction correction is needed, the vector that was pointing up (UnitZ)
-                //    is now leaning to one side (rotated around the X axis) and the Y value will
-                //    go from zero (nearly straight up) to one (completely to the side) or leaning
-                //    front-to-back (rotated around the Y axis) and the value of X will be between
-                //    zero and one.
+                //    is now:
+                //    leaning to one side: rotated around the X axis with the Y value going
+                //        from zero (nearly straight up) to one (completely to the side)) or
+                //    leaning front-to-back: rotated around the Y axis with the value of X being between
+                //         zero and one.
                 // The value of Z is how far the rotation is off with 1 meaning none and 0 being 90 degrees.
 
                 // If verticalError.Z is negative, the vehicle is upside down. Add additional push.
