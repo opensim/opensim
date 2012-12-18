@@ -2675,9 +2675,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 m_rayCastManager.QueueRequest(geom,position, direction, length, Count, retMethod);
             }
         }
-
-        // don't like this
-        public override List<ContactResult> RaycastActor(PhysicsActor actor, Vector3 position, Vector3 direction, float length, int Count)
+       
+        public override List<ContactResult> RaycastActor(PhysicsActor actor, Vector3 position, Vector3 direction, float length, int Count, RayFilterFlags flags)
         {
             if (actor != null)
             {
@@ -2698,7 +2697,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     results.CopyTo(ourResults, 0);
                 };
                 int waitTime = 0;
-                m_rayCastManager.QueueRequest(geom,position, direction, length, Count, retMethod);
+                m_rayCastManager.QueueRequest(geom,position, direction, length, Count, flags, retMethod);
                 while (ourResults == null && waitTime < 1000)
                 {
                     Thread.Sleep(1);
