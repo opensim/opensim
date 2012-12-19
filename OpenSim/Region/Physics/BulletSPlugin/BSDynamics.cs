@@ -1003,7 +1003,6 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 // Not colliding if the vehicle is off the ground
                 if (!Prim.IsColliding)
                 {
-                    // downForce = new Vector3(0, 0, (-distanceAboveGround / m_bankingTimescale) * pTimestep);
                     // downForce = new Vector3(0, 0, -distanceAboveGround / m_bankingTimescale);
                     ret = new Vector3(0, 0, -distanceAboveGround);
                 }
@@ -1135,31 +1134,30 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 //         zero and one.
                 // The value of Z is how far the rotation is off with 1 meaning none and 0 being 90 degrees.
 
+                // Y error means needed rotation around X axis and visa versa.
+                // Since the error goes from zero to one, the asin is the corresponding angle.
+                ret.X = (float)Math.Asin(verticalError.Y);
+                ret.Y = (float)Math.Asin(verticalError.X);
+
                 // If verticalError.Z is negative, the vehicle is upside down. Add additional push.
                 if (verticalError.Z < 0f)
                 {
-                    verticalError.X = 2f - verticalError.X;
-                    verticalError.Y = 2f - verticalError.Y;
+                    ret.X += (float)Math.PI / 4f;
+                    ret.Y += (float)Math.PI / 4f;
                 }
 
-                // Y error means needed rotation around X axis and visa versa.
-                ret.X =    verticalError.Y;
-                ret.Y =  - verticalError.X;
-                ret.Z = 0f;
+                // Put the signs back on so the rotation is in the correct direction.
+                ret.X *= (float)Math.Sign(verticalError.Y);
+                // (Tilt forward (positive X) needs to tilt back (rotate negative) around Y axis.)
+                ret.Y *= -(float)Math.Sign(verticalError.X);
 
-                // Scale the correction force by how far we're off from vertical.
-                // Z error of one says little error. As Z gets smaller, the vehicle is leaning farther over.
-                float clampedSqrZError = ClampInRange(0.01f, verticalError.Z * verticalError.Z, 1f);
-                float vertForce = 1f / clampedSqrZError;
-
-                ret *= vertForce;
-
-                // Correction happens over a number of seconds.
+                // 'ret' is now the necessary velocity to correct tilt in one second.
+                //     Correction happens over a number of seconds.
                 Vector3 unscaledContrib = ret;
                 ret /= m_verticalAttractionTimescale;
 
-                VDetailLog("{0},  MoveAngular,verticalAttraction,,verticalError={1},unscaled={2},vertForce={3},eff={4},vertAttr={5}",
-                                Prim.LocalID, verticalError, unscaledContrib, vertForce, m_verticalAttractionEfficiency, ret);
+                VDetailLog("{0},  MoveAngular,verticalAttraction,,verticalError={1},unscaled={2},eff={3},vertAttr={4}",
+                                Prim.LocalID, verticalError, unscaledContrib, m_verticalAttractionEfficiency, ret);
             }
             return ret;
         }
@@ -1172,7 +1170,6 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         public Vector3 ComputeAngularDeflection()
         {
             Vector3 ret = Vector3.Zero;
-            return ret;     // DEBUG DEBUG DEBUG  debug one force at a time
 
             if (m_angularDeflectionEfficiency != 0)
             {
