@@ -100,10 +100,15 @@ public sealed class BSPrim : BSPhysObject
         BaseShape = pbs;
         _isPhysical = pisPhysical;
         _isVolumeDetect = false;
-        _friction = PhysicsScene.Params.defaultFriction;  // TODO: compute based on object material
-        _density = PhysicsScene.Params.defaultDensity;    // TODO: compute based on object material
+
+        // Someday set default attributes based on the material but, for now, we don't know the prim material yet.
+        // MaterialAttributes primMat = BSMaterials.GetAttributes(Material, pisPhysical);
+        _density = PhysicsScene.Params.defaultDensity;
+        _friction = PhysicsScene.Params.defaultFriction;
         _restitution = PhysicsScene.Params.defaultRestitution;
+
         _vehicle = new BSDynamics(PhysicsScene, this);            // add vehicleness
+
         _mass = CalculateMass();
 
         // No body or shape yet

@@ -6,7 +6,7 @@ Eliminate all crashes (DONEish)
 Enable vehicle border crossings (at least as poorly as ODE)
 	Avatar created in previous region and not new region when crossing border
 	Vehicle recreated in new sim at small Z value (offset from root value?) (DONE)
-Calibrate turning radius
+Calibrate turning radius (DONE)
 limitMotorUp calibration (more down?)
 study PID motors (include 'efficiency' implementation
 	Add to avatar movement
@@ -82,6 +82,7 @@ Add osGetPhysicsEngineName() so scripters can tell whether BulletSim or ODE
 	Also osGetPhysicsEngineVerion() maybe.
 Linkset.Position and Linkset.Orientation requre rewrite to properly return
 	child position. LinksetConstraint acts like it's at taint time!!
+Implement LockAngularMotion -- implements llSetStatus(ROTATE_AXIS_*, T/F)
 
 LINKSETS
 ======================================================
