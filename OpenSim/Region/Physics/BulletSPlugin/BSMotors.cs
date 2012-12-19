@@ -117,12 +117,12 @@ public class BSVMotor : BSMotor
 
     // A form of stepping that does not take the time quantum into account.
     // The caller must do the right thing later.
-    public Vector3 Step()
+    public virtual Vector3 Step()
     {
         return Step(1f);
     }
 
-    public Vector3 Step(float timeStep)
+    public virtual Vector3 Step(float timeStep)
     {
         Vector3 returnCurrent = Vector3.Zero;
         if (!CurrentValue.ApproxEquals(TargetValue, 0.01f))
@@ -204,17 +204,49 @@ public class BSFMotor : BSMotor
     public void SetTarget(float target)
     {
     }
-    public float Step(float timeStep)
+    public virtual float Step(float timeStep)
     {
         return 0f;
     }
 }
-public class BSPIDMotor : BSMotor
+
+// Proportional, Integral, Derivitive Motor
+// Good description at http://www.answers.com/topic/pid-controller . Includes processes for choosing p, i and d factors.
+public class BSPIDVMotor : BSVMotor
 {
-    // TODO: write and use this one
-    public BSPIDMotor(string useName)
+    public Vector3 pFactor { get; set; }    // Amount of direct correction of an error (sometimes called 'proportional gain')
+    public Vector3 iFactor { get; set; }    // 
+    public Vector3 dFactor { get; set; }
+
+    Vector3 IntegralFactor { get; set; }
+    Vector3 LastError { get; set; }
+
+    public BSPIDVMotor(string useName)
         : base(useName)
     {
+        // larger makes more overshoot, smaller means converge quicker. Range of 0.1 to 10.
+        pFactor = new Vector3(1.00f, 1.00f, 1.00f);
+        iFactor = new Vector3(1.00f, 1.00f, 1.00f);
+        dFactor = new Vector3(1.00f, 1.00f, 1.00f);
+    }
+
+    public override Vector3 Step(float timeStep)
+    {
+        // How far are we from where we should be
+        Vector3 error = TargetValue - CurrentValue;
+
+        // Add up the error so we can integrate over the accumulated errors
+        IntegralFactor += error * timeStep;
+
+        // A simple derivitive is the rate of change from the last error.
+        Vector3 derivFactor = (error - LastError) * timeStep;
+        LastError = error;
+
+        //                   Proportion                  Integral               Derivitive
+        // Correction = proportionOfPresentError + accumulationOfPastError + rateOfChangeOfError
+        Vector3 ret =        error * pFactor    + IntegralFactor * iFactor + derivFactor * dFactor;
+
+        return ret;
     }
 }
 }
