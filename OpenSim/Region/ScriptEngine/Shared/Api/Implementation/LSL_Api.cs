@@ -3013,7 +3013,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             bool result = money.ObjectGiveMoney(
-                m_host.ParentGroup.RootPart.UUID, m_host.ParentGroup.RootPart.OwnerID, toID, amount, UUID.Zero);
+                m_host.ParentGroup.RootPart.UUID, m_host.ParentGroup.RootPart.OwnerID, toID, amount,UUID.Zero);
 
             if (result)
                 return 1;
@@ -6384,7 +6384,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else
             {
-                agentSize = new LSL_Vector(0.45, 0.6, avatar.Appearance.AvatarHeight);
+//                agentSize = new LSL_Vector(0.45f, 0.6f, avatar.Appearance.AvatarHeight);
+                Vector3 s = avatar.Appearance.AvatarSize;
+                agentSize = new LSL_Vector(s.X, s.Y, s.Z);
             }
             return agentSize;
         }
@@ -8591,8 +8593,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 // and standing avatar since server 1.36
                 LSL_Vector lower;
                 LSL_Vector upper;
+
+                Vector3 box = presence.Appearance.AvatarBoxSize * 0.5f;
+
                 if (presence.Animator.Animations.ImplicitDefaultAnimation.AnimID 
                     == DefaultAvatarAnimations.AnimsUUID["SIT_GROUND_CONSTRAINED"])
+/*
                 {
                     // This is for ground sitting avatars
                     float height = presence.Appearance.AvatarHeight / 2.66666667f;
@@ -8610,6 +8616,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 // Adjust to the documented error offsets (see LSL Wiki)
                 lower += new LSL_Vector(0.05f, 0.05f, 0.05f);
                 upper -= new LSL_Vector(0.05f, 0.05f, 0.05f);
+*/
+                {
+                    // This is for ground sitting avatars TODO!
+                    lower = new LSL_Vector(-box.X - 0.1125, -box.Y, box.Z * -1.0f);
+                    upper = new LSL_Vector(box.X + 0.1125, box.Y, box.Z * -1.0f);
+                }
+                else
+                {
+                    // This is for standing/flying avatars
+                    lower = new LSL_Vector(-box.X, -box.Y, -box.Z);
+                    upper = new LSL_Vector(box.X, box.Y, box.Z);
+                }
 
                 if (lower.x > upper.x)
                     lower.x = upper.x;
@@ -12529,7 +12547,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     }
 
                     bool result = money.ObjectGiveMoney(
-                        m_host.ParentGroup.RootPart.UUID, m_host.ParentGroup.RootPart.OwnerID, toID, amount, txn);
+                        m_host.ParentGroup.RootPart.UUID, m_host.ParentGroup.RootPart.OwnerID, toID, amount,UUID.Zero);
 
                     if (result)
                     {
@@ -12931,7 +12949,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case (int)ScriptBaseClass.PRIM_SIZE:
                         // as in llGetAgentSize above
-                        res.Add(new LSL_Vector(0.45f, 0.6f, avatar.Appearance.AvatarHeight));
+//                        res.Add(new LSL_Vector(0.45f, 0.6f, avatar.Appearance.AvatarHeight));
+                        Vector3 s = avatar.Appearance.AvatarSize;
+                        res.Add(new LSL_Vector(s.X, s.Y, s.Z));
+
                         break;
 
                     case (int)ScriptBaseClass.PRIM_ROTATION:

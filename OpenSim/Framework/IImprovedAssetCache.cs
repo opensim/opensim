@@ -33,6 +33,7 @@ namespace OpenSim.Framework
     {
         void Cache(AssetBase asset);
         AssetBase Get(string id);
+        bool Check(string id);
         void Expire(string id);
         void Clear();
     }

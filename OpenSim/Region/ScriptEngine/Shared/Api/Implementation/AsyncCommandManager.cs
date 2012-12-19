@@ -317,8 +317,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 comms.DeleteListener(itemID);
 
             IXMLRPC xmlrpc = engine.World.RequestModuleInterface<IXMLRPC>();
-            xmlrpc.DeleteChannels(itemID);
-            xmlrpc.CancelSRDRequests(itemID);
+            if (xmlrpc != null)
+            {
+                xmlrpc.DeleteChannels(itemID);
+                xmlrpc.CancelSRDRequests(itemID);
+            }
 
             // Remove Sensors
             m_SensorRepeat[engine].UnSetSenseRepeaterEvents(localID, itemID);

@@ -40,6 +40,13 @@ namespace OpenSim.Framework
     /// </summary>
     public class AvatarAppearance
     {
+        // SL box diferent to size
+        const float AVBOXAJUST = 0.2f;
+        // constrains  for ubitode physics
+        const float AVBOXMINX = 0.2f;
+        const float AVBOXMINY = 0.3f;
+        const float AVBOXMINZ = 1.2f;
+
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         // this is viewer capabilities and weared things dependent
@@ -55,6 +62,10 @@ namespace OpenSim.Framework
         protected AvatarWearable[] m_wearables;
         protected Dictionary<int, List<AvatarAttachment>> m_attachments;
         protected float m_avatarHeight = 0;
+        protected Vector3 m_avatarSize = new Vector3(0.45f, 0.6f, 1.9f); // sl Z cloud value
+        protected Vector3 m_avatarBoxSize = new Vector3(0.45f, 0.6f, 1.9f);
+        protected float m_avatarFeetOffset = 0;
+        protected float m_avatarAnimOffset = 0;
 
         public virtual int Serial
         {
@@ -66,6 +77,21 @@ namespace OpenSim.Framework
         {
             get { return m_visualparams; }
             set { m_visualparams = value; }
+        }
+
+        public virtual Vector3 AvatarSize
+        {
+            get { return m_avatarSize; }
+        }
+
+        public virtual Vector3 AvatarBoxSize
+        {
+            get { return m_avatarBoxSize; }
+        }
+
+        public virtual float AvatarFeetOffset
+        {
+            get { return m_avatarFeetOffset + m_avatarAnimOffset; }
         }
 
         public virtual Primitive.TextureEntry Texture
@@ -98,7 +124,8 @@ namespace OpenSim.Framework
             SetDefaultWearables();
             SetDefaultTexture();
             SetDefaultParams();
-            SetHeight();
+//            SetHeight();
+            SetSize(new Vector3(0.45f,0.6f,1.9f));
             m_attachments = new Dictionary<int, List<AvatarAttachment>>();
         }
 
@@ -107,7 +134,7 @@ namespace OpenSim.Framework
 //            m_log.WarnFormat("[AVATAR APPEARANCE]: create appearance from OSDMap");
 
             Unpack(map);
-            SetHeight();
+//            SetHeight(); done in Unpack
         }
 
         public AvatarAppearance(AvatarWearable[] wearables, Primitive.TextureEntry textureEntry, byte[] visualParams)
@@ -131,7 +158,9 @@ namespace OpenSim.Framework
             else
                 SetDefaultParams();
 
-            SetHeight();
+//            SetHeight();
+            if(m_avatarHeight == 0)
+                SetSize(new Vector3(0.45f,0.6f,1.9f));
 
             m_attachments = new Dictionary<int, List<AvatarAttachment>>();
         }
@@ -150,7 +179,8 @@ namespace OpenSim.Framework
                 SetDefaultWearables();
                 SetDefaultTexture();
                 SetDefaultParams();
-                SetHeight();
+//                SetHeight();
+                SetSize(new Vector3(0.45f, 0.6f, 1.9f));
                 m_attachments = new Dictionary<int, List<AvatarAttachment>>();
 
                 return;
@@ -179,7 +209,8 @@ namespace OpenSim.Framework
             if (appearance.VisualParams != null)
                 m_visualparams = (byte[])appearance.VisualParams.Clone();
 
-            m_avatarHeight = appearance.m_avatarHeight;
+//            m_avatarHeight = appearance.m_avatarHeight;
+            SetSize(appearance.AvatarSize);
 
             // Copy the attachment, force append mode since that ensures consistency
             m_attachments = new Dictionary<int, List<AvatarAttachment>>();
@@ -346,8 +377,8 @@ namespace OpenSim.Framework
                 }
             }
             // Reset the height if the visual parameters actually changed
-            if (changed)
-                SetHeight();
+//           if (changed)
+//                SetHeight();
 
             return changed;
         }
@@ -363,6 +394,7 @@ namespace OpenSim.Framework
         /// </summary>
         public virtual void SetHeight()
         {
+/*
             // Start with shortest possible female avatar height
             m_avatarHeight = 1.14597f;
             // Add offset for male avatars
@@ -375,6 +407,35 @@ namespace OpenSim.Framework
                             + 0.07f     * (float)m_visualparams[(int)VPElement.SHOES_PLATFORM_HEIGHT] / 255.0f
                             + 0.08f     * (float)m_visualparams[(int)VPElement.SHOES_HEEL_HEIGHT]     / 255.0f
                             + 0.076f    * (float)m_visualparams[(int)VPElement.SHAPE_NECK_LENGTH]     / 255.0f;
+*/
+        }
+
+        public void SetSize(Vector3 avSize)
+        {
+            if (avSize.X > 32f)
+                avSize.X = 32f;
+            else if (avSize.X < 0.1f)
+                avSize.X = 0.1f;
+
+            if (avSize.Y > 32f)
+                avSize.Y = 32f;
+            else if (avSize.Y < 0.1f)
+                avSize.Y = 0.1f;
+            if (avSize.Z > 32f)
+                avSize.Z = 32f;
+            else if (avSize.Z < 0.1f)
+                avSize.Z = 0.1f;
+
+            m_avatarSize = avSize;
+            m_avatarBoxSize = avSize;
+            m_avatarBoxSize.Z += AVBOXAJUST;
+            if (m_avatarBoxSize.X < AVBOXMINX)
+                m_avatarBoxSize.X = AVBOXMINX;
+            if (m_avatarBoxSize.Y < AVBOXMINY)
+                m_avatarBoxSize.Y = AVBOXMINY;
+            if (m_avatarBoxSize.Z < AVBOXMINZ)
+                m_avatarBoxSize.Z = AVBOXMINZ;
+            m_avatarHeight = m_avatarSize.Z;
         }
 
         public virtual void SetWearable(int wearableId, AvatarWearable wearable)
@@ -649,7 +710,8 @@ namespace OpenSim.Framework
             if ((data != null) && (data["serial"] != null))
                 m_serial = data["serial"].AsInteger();
             if ((data != null) && (data["height"] != null))
-                m_avatarHeight = (float)data["height"].AsReal();
+//                m_avatarHeight = (float)data["height"].AsReal();
+                SetSize(new Vector3(0.45f,0.6f, (float)data["height"].AsReal()));
 
             try
             {
