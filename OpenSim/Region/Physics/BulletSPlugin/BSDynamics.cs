@@ -602,21 +602,22 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 
         #region Known vehicle value functions
         // Vehicle physical parameters that we buffer from constant getting and setting.
-        // The "m_known*" variables are initialized to 'null', fetched only if referenced
-        //      and stored back into the physics engine only if updated.
+        // The "m_known*" values are unknown until they are fetched and the m_knownHas flag is set.
+        //      Changing is remembered and the parameter is stored back into the physics engine only if updated.
         //      This does two things: 1) saves continuious calls into unmanaged code, and
         //      2) signals when a physics property update must happen back to the simulator
         //      to update values modified for the vehicle.
         private int m_knownChanged;
-        private float? m_knownTerrainHeight;
-        private float? m_knownWaterLevel;
-        private Vector3? m_knownPosition;
-        private Vector3? m_knownVelocity;
+        private int m_knownHas;
+        private float m_knownTerrainHeight;
+        private float m_knownWaterLevel;
+        private Vector3 m_knownPosition;
+        private Vector3 m_knownVelocity;
         private Vector3 m_knownForce;
-        private Quaternion? m_knownOrientation;
-        private Vector3? m_knownRotationalVelocity;
+        private Quaternion m_knownOrientation;
+        private Vector3 m_knownRotationalVelocity;
         private Vector3 m_knownRotationalForce;
-        private Vector3? m_knownForwardVelocity;    // vehicle relative forward speed
+        private Vector3 m_knownForwardVelocity;    // vehicle relative forward speed
 
         private const int m_knownChangedPosition           = 1 << 0;
         private const int m_knownChangedVelocity           = 1 << 1;
@@ -624,18 +625,13 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         private const int m_knownChangedOrientation        = 1 << 3;
         private const int m_knownChangedRotationalVelocity = 1 << 4;
         private const int m_knownChangedRotationalForce    = 1 << 5;
+        private const int m_knownChangedTerrainHeight      = 1 << 6;
+        private const int m_knownChangedWaterLevel         = 1 << 7;
+        private const int m_knownChangedForwardVelocity    = 1 << 7;
 
         private void ForgetKnownVehicleProperties()
         {
-            m_knownTerrainHeight = null;
-            m_knownWaterLevel = null;
-            m_knownPosition = null;
-            m_knownVelocity = null;
-            m_knownForce = Vector3.Zero;
-            m_knownOrientation = null;
-            m_knownRotationalVelocity = null;
-            m_knownRotationalForce = Vector3.Zero;
-            m_knownForwardVelocity = null;
+            m_knownHas = 0;
             m_knownChanged = 0;
         }
         private void PushKnownChanged()
@@ -674,17 +670,23 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         //    is used ot fetch the height only once for each vehicle simulation step.
         private float GetTerrainHeight(Vector3 pos)
         {
-            if (m_knownTerrainHeight == null)
+            if ((m_knownHas & m_knownChangedTerrainHeight) == 0)
+            {
                 m_knownTerrainHeight = Prim.PhysicsScene.TerrainManager.GetTerrainHeightAtXYZ(pos);
-            return (float)m_knownTerrainHeight;
+                m_knownHas |= m_knownChangedTerrainHeight;
+            }
+            return m_knownTerrainHeight;
         }
 
         // Since the computation of water level can be a little involved, this routine
         //    is used ot fetch the level only once for each vehicle simulation step.
         private float GetWaterLevel(Vector3 pos)
         {
-            if (m_knownWaterLevel == null)
+            if ((m_knownHas & m_knownChangedWaterLevel) == 0)
+            {
                 m_knownWaterLevel = Prim.PhysicsScene.TerrainManager.GetWaterLevelAtXYZ(pos);
+                m_knownHas |= m_knownChangedWaterLevel;
+            }
             return (float)m_knownWaterLevel;
         }
 
@@ -692,8 +694,11 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         {
             get
             {
-                if (m_knownPosition == null)
+                if ((m_knownHas & m_knownChangedPosition) == 0)
+                {
                     m_knownPosition = Prim.ForcePosition;
+                    m_knownHas |= m_knownChangedPosition;
+                }
                 return (Vector3)m_knownPosition;
             }
             set
@@ -707,8 +712,11 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         {
             get
             {
-                if (m_knownOrientation == null)
+                if ((m_knownHas & m_knownChangedOrientation) == 0)
+                {
                     m_knownOrientation = Prim.ForceOrientation;
+                    m_knownHas |= m_knownChangedOrientation;
+                }
                 return (Quaternion)m_knownOrientation;
             }
             set
@@ -722,8 +730,11 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         {
             get
             {
-                if (m_knownVelocity == null)
+                if ((m_knownHas & m_knownChangedVelocity) == 0)
+                {
                     m_knownVelocity = Prim.ForceVelocity;
+                    m_knownHas |= m_knownChangedVelocity;
+                }
                 return (Vector3)m_knownVelocity;
             }
             set
@@ -743,8 +754,11 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         {
             get
             {
-                if (m_knownRotationalVelocity == null)
+                if ((m_knownHas & m_knownChangedRotationalVelocity) == 0)
+                {
                     m_knownRotationalVelocity = Prim.ForceRotationalVelocity;
+                    m_knownHas |= m_knownChangedRotationalVelocity;
+                }
                 return (Vector3)m_knownRotationalVelocity;
             }
             set
@@ -763,8 +777,11 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         {
             get
             {
-                if (m_knownForwardVelocity == null)
+                if ((m_knownHas & m_knownChangedForwardVelocity) == 0)
+                {
                     m_knownForwardVelocity = VehicleVelocity * Quaternion.Inverse(Quaternion.Normalize(VehicleOrientation));
+                    m_knownHas |= m_knownChangedForwardVelocity;
+                }
                 return (Vector3)m_knownForwardVelocity;
             }
         }
