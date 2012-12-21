@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -136,6 +136,7 @@ public static class BSParam
     // A ParameterDefn() takes the following parameters:
     //    -- the text name of the parameter. This is used for console input and ini file.
     //    -- a short text description of the parameter. This shows up in the console listing.
+    //    -- a default value (float)
     //    -- a delegate for fetching the parameter from the ini file.
     //          Should handle fetching the right type from the ini file and converting it.
     //    -- a delegate for getting the value as a float
@@ -148,7 +149,7 @@ public static class BSParam
     //    o = BSPhysObject
     //    p = string parameter name
     //    l = localID of referenced object
-    //    v = float value
+    //    v = value (float)
     //    cf = parameter configuration class (for fetching values from ini file)
     private static ParameterDefn[] ParameterDefinitions =
     {

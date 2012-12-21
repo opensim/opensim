@@ -268,12 +268,14 @@ public class BSPIDVMotor : BSVMotor
     public Vector3 proportionFactor { get; set; }
     public Vector3 integralFactor { get; set; }
     public Vector3 derivFactor { get; set; }
+
     // Arbritrary factor range.
     // EfficiencyHigh means move quickly to the correct number. EfficiencyLow means might over correct.
     public float EfficiencyHigh = 0.4f;
     public float EfficiencyLow = 4.0f;
 
-    Vector3 IntegralFactor { get; set; }
+    // Running integration of the error
+    Vector3 RunningIntegration { get; set; }
 
     public BSPIDVMotor(string useName)
         : base(useName)
@@ -281,7 +283,7 @@ public class BSPIDVMotor : BSVMotor
         proportionFactor = new Vector3(1.00f, 1.00f, 1.00f);
         integralFactor = new Vector3(1.00f, 1.00f, 1.00f);
         derivFactor = new Vector3(1.00f, 1.00f, 1.00f);
-        IntegralFactor = Vector3.Zero;
+        RunningIntegration = Vector3.Zero;
         LastError = Vector3.Zero;
     }
 
@@ -312,14 +314,18 @@ public class BSPIDVMotor : BSVMotor
     public override Vector3 Step(float timeStep, Vector3 error)
     {
         // Add up the error so we can integrate over the accumulated errors
-        IntegralFactor += error * timeStep;
+        RunningIntegration += error * timeStep;
 
         // A simple derivitive is the rate of change from the last error.
         Vector3 derivFactor = (error - LastError) * timeStep;
         LastError = error;
 
         // Correction = -(proportionOfPresentError +      accumulationOfPastError    +     rateOfChangeOfError)
-        Vector3 ret   = -(error * proportionFactor + IntegralFactor * integralFactor + derivFactor * derivFactor);
+        Vector3 ret   = -(
+                          error * proportionFactor
+                        + RunningIntegration * integralFactor 
+                        + derivFactor * derivFactor
+                        );
 
         return ret;
     }
