@@ -763,7 +763,8 @@ public sealed class BSCharacter : BSPhysObject
         //     and that velocity component must be retained.
         float timeStep = 0.089f;        // DEBUG DEBUG FIX FIX FIX
         OMV.Vector3 stepVelocity = _velocityMotor.Step(timeStep);
-        stepVelocity.Z += entprop.Velocity.Z;
+        // Remove next line so avatars don't fly up forever. DEBUG DEBUG this is only temporary.
+        // stepVelocity.Z += entprop.Velocity.Z;
         _velocity = stepVelocity;
         BulletSimAPI.SetLinearVelocity2(PhysBody.ptr, _velocity);
         /*
