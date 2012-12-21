@@ -532,16 +532,18 @@ public sealed class BSPrim : BSPhysObject
             PhysicsScene.TaintedObject("BSPrim.setVelocity", delegate()
             {
                 // DetailLog("{0},BSPrim.SetVelocity,taint,vel={1}", LocalID, _velocity);
-                if (PhysBody.HasPhysicalBody)
-                    BulletSimAPI.SetLinearVelocity2(PhysBody.ptr, _velocity);
+                ForceVelocity = _velocity;
             });
         }
     }
     public override OMV.Vector3 ForceVelocity {
         get { return _velocity; }
         set {
+            PhysicsScene.AssertInTaintTime("BSPrim.ForceVelocity");
+
             _velocity = value;
-            BulletSimAPI.SetLinearVelocity2(PhysBody.ptr, _velocity);
+            if (PhysBody.HasPhysicalBody)
+                BulletSimAPI.SetLinearVelocity2(PhysBody.ptr, _velocity);
         }
     }
     public override OMV.Vector3 Torque {
