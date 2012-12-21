@@ -88,8 +88,8 @@ public sealed class BSCharacter : BSPhysObject
         // Old versions of ScenePresence passed only the height. If width and/or depth are zero,
         //     replace with the default values.
         _size = size;
-        if (_size.X == 0f) _size.X = PhysicsScene.Params.avatarCapsuleDepth;
-        if (_size.Y == 0f) _size.Y = PhysicsScene.Params.avatarCapsuleWidth;
+        if (_size.X == 0f) _size.X = BSParam.AvatarCapsuleDepth;
+        if (_size.Y == 0f) _size.Y = BSParam.AvatarCapsuleWidth;
 
         // A motor to control the acceleration and deceleration of the avatar movement.
         // _velocityMotor = new BSVMotor("BSCharacter.Velocity", 3f, 5f, BSMotor.InfiniteVector, 1f);
@@ -108,8 +108,8 @@ public sealed class BSCharacter : BSPhysObject
         _velocity = OMV.Vector3.Zero;
         _appliedVelocity = OMV.Vector3.Zero;
         _buoyancy = ComputeBuoyancyFromFlying(isFlying);
-        _currentFriction = PhysicsScene.Params.avatarStandingFriction;
-        _avatarDensity = PhysicsScene.Params.avatarDensity;
+        _currentFriction = BSParam.AvatarStandingFriction;
+        _avatarDensity = BSParam.AvatarDensity;
 
         // The dimensions of the avatar capsule are kept in the scale.
         // Physics creates a unit capsule which is scaled by the physics engine.
@@ -161,14 +161,14 @@ public sealed class BSCharacter : BSPhysObject
         // Needs to be reset especially when an avatar is recreated after crossing a region boundry.
         Flying = _flying;
 
-        BulletSimAPI.SetRestitution2(PhysBody.ptr, PhysicsScene.Params.avatarRestitution);
+        BulletSimAPI.SetRestitution2(PhysBody.ptr, BSParam.AvatarRestitution);
         BulletSimAPI.SetMargin2(PhysShape.ptr, PhysicsScene.Params.collisionMargin);
         BulletSimAPI.SetLocalScaling2(PhysShape.ptr, Scale);
-        BulletSimAPI.SetContactProcessingThreshold2(PhysBody.ptr, PhysicsScene.Params.contactProcessingThreshold);
-        if (PhysicsScene.Params.ccdMotionThreshold > 0f)
+        BulletSimAPI.SetContactProcessingThreshold2(PhysBody.ptr, BSParam.ContactProcessingThreshold);
+        if (BSParam.CcdMotionThreshold > 0f)
         {
-            BulletSimAPI.SetCcdMotionThreshold2(PhysBody.ptr, PhysicsScene.Params.ccdMotionThreshold);
-            BulletSimAPI.SetCcdSweptSphereRadius2(PhysBody.ptr, PhysicsScene.Params.ccdSweptSphereRadius);
+            BulletSimAPI.SetCcdMotionThreshold2(PhysBody.ptr, BSParam.CcdMotionThreshold);
+            BulletSimAPI.SetCcdSweptSphereRadius2(PhysBody.ptr, BSParam.CcdSweptSphereRadius);
         }
 
         UpdatePhysicalMassProperties(RawMass);
@@ -208,8 +208,8 @@ public sealed class BSCharacter : BSPhysObject
             _size = value;
             // Old versions of ScenePresence passed only the height. If width and/or depth are zero,
             //     replace with the default values.
-            if (_size.X == 0f) _size.X = PhysicsScene.Params.avatarCapsuleDepth;
-            if (_size.Y == 0f) _size.Y = PhysicsScene.Params.avatarCapsuleWidth;
+            if (_size.X == 0f) _size.X = BSParam.AvatarCapsuleDepth;
+            if (_size.Y == 0f) _size.Y = BSParam.AvatarCapsuleWidth;
 
             ComputeAvatarScale(_size);
             ComputeAvatarVolumeAndMass();
@@ -468,18 +468,18 @@ public sealed class BSCharacter : BSPhysObject
             //    to keep the avatar from slipping around
             if (_velocity.Length() == 0)
             {
-                if (_currentFriction != PhysicsScene.Params.avatarStandingFriction)
+                if (_currentFriction != BSParam.AvatarStandingFriction)
                 {
-                    _currentFriction = PhysicsScene.Params.avatarStandingFriction;
+                    _currentFriction = BSParam.AvatarStandingFriction;
                     if (PhysBody.HasPhysicalBody)
                         BulletSimAPI.SetFriction2(PhysBody.ptr, _currentFriction);
                 }
             }
             else
             {
-                if (_currentFriction != PhysicsScene.Params.avatarFriction)
+                if (_currentFriction != BSParam.AvatarFriction)
                 {
-                    _currentFriction = PhysicsScene.Params.avatarFriction;
+                    _currentFriction = BSParam.AvatarFriction;
                     if (PhysBody.HasPhysicalBody)
                         BulletSimAPI.SetFriction2(PhysBody.ptr, _currentFriction);
                 }

@@ -56,7 +56,7 @@ public abstract class BSLinkset
     {
         BSLinkset ret = null;
 
-        switch ((int)physScene.Params.linksetImplementation)
+        switch ((int)BSParam.LinksetImplementation)
         {
             case (int)LinksetImplementation.Constraint:
                 ret = new BSLinksetConstraints(physScene, parent);

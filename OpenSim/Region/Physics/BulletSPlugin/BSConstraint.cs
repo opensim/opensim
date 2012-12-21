@@ -122,7 +122,7 @@ public abstract class BSConstraint : IDisposable
                 // Setting an object's mass to zero (making it static like when it's selected)
                 //     automatically disables the constraints.
                 // If the link is enabled, be sure to set the constraint itself to enabled.
-                BulletSimAPI.SetConstraintEnable2(m_constraint.ptr, m_world.physicsScene.NumericBool(true));
+                BulletSimAPI.SetConstraintEnable2(m_constraint.ptr, BSParam.NumericBool(true));
             }
             else
             {

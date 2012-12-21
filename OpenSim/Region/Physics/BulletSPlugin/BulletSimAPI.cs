@@ -141,6 +141,8 @@ public struct EntityProperties
 }
 
 // Format of this structure must match the definition in the C++ code
+// NOTE: adding the X causes compile breaks if used. These are unused symbols
+//      that can be removed from both here and the unmanaged definition of this structure.
 [StructLayout(LayoutKind.Sequential)]
 public struct ConfigurationParameters
 {
@@ -150,31 +152,31 @@ public struct ConfigurationParameters
     public float collisionMargin;
     public float gravity;
 
-    public float linearDamping;
-    public float angularDamping;
-    public float deactivationTime;
-    public float linearSleepingThreshold;
-    public float angularSleepingThreshold;
-	public float ccdMotionThreshold;
-	public float ccdSweptSphereRadius;
-    public float contactProcessingThreshold;
+    public float XlinearDamping;
+    public float XangularDamping;
+    public float XdeactivationTime;
+    public float XlinearSleepingThreshold;
+    public float XangularSleepingThreshold;
+	public float XccdMotionThreshold;
+	public float XccdSweptSphereRadius;
+    public float XcontactProcessingThreshold;
 
-    public float terrainImplementation;
-    public float terrainFriction;
-    public float terrainHitFraction;
-    public float terrainRestitution;
-    public float terrainCollisionMargin;
+    public float XterrainImplementation;
+    public float XterrainFriction;
+    public float XterrainHitFraction;
+    public float XterrainRestitution;
+    public float XterrainCollisionMargin;
 
-    public float avatarFriction;
-    public float avatarStandingFriction;
-    public float avatarDensity;
-    public float avatarRestitution;
-    public float avatarCapsuleWidth;
-    public float avatarCapsuleDepth;
-    public float avatarCapsuleHeight;
-	public float avatarContactProcessingThreshold;
+    public float XavatarFriction;
+    public float XavatarStandingFriction;
+    public float XavatarDensity;
+    public float XavatarRestitution;
+    public float XavatarCapsuleWidth;
+    public float XavatarCapsuleDepth;
+    public float XavatarCapsuleHeight;
+	public float XavatarContactProcessingThreshold;
 
-    public float vehicleAngularDamping;
+    public float XvehicleAngularDamping;
 
 	public float maxPersistantManifoldPoolSize;
 	public float maxCollisionAlgorithmPoolSize;
@@ -185,14 +187,14 @@ public struct ConfigurationParameters
 	public float shouldEnableFrictionCaching;
 	public float numberOfSolverIterations;
 
-    public float linksetImplementation;
-    public float linkConstraintUseFrameOffset;
-    public float linkConstraintEnableTransMotor;
-    public float linkConstraintTransMotorMaxVel;
-    public float linkConstraintTransMotorMaxForce;
-    public float linkConstraintERP;
-    public float linkConstraintCFM;
-    public float linkConstraintSolverIterations;
+    public float XlinksetImplementation;
+    public float XlinkConstraintUseFrameOffset;
+    public float XlinkConstraintEnableTransMotor;
+    public float XlinkConstraintTransMotorMaxVel;
+    public float XlinkConstraintTransMotorMaxForce;
+    public float XlinkConstraintERP;
+    public float XlinkConstraintCFM;
+    public float XlinkConstraintSolverIterations;
 
     public float physicsLoggingFrames;
 

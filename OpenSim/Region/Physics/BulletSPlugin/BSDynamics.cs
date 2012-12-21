@@ -563,7 +563,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 // Moderate angular movement introduced by Bullet.
                 // TODO: possibly set AngularFactor and LinearFactor for the type of vehicle.
                 //     Maybe compute linear and angular factor and damping from params.
-                float angularDamping = PhysicsScene.Params.vehicleAngularDamping;
+                float angularDamping = BSParam.VehicleAngularDamping;
                 BulletSimAPI.SetAngularDamping2(Prim.PhysBody.ptr, angularDamping);
 
                 // Vehicles report collision events so we know when it's on the ground

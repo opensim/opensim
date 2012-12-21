@@ -720,10 +720,10 @@ public sealed class BSPrim : BSPhysObject
             // Mass is zero which disables a bunch of physics stuff in Bullet
             UpdatePhysicalMassProperties(0f);
             // Set collision detection parameters
-            if (PhysicsScene.Params.ccdMotionThreshold > 0f)
+            if (BSParam.CcdMotionThreshold > 0f)
             {
-                BulletSimAPI.SetCcdMotionThreshold2(PhysBody.ptr, PhysicsScene.Params.ccdMotionThreshold);
-                BulletSimAPI.SetCcdSweptSphereRadius2(PhysBody.ptr, PhysicsScene.Params.ccdSweptSphereRadius);
+                BulletSimAPI.SetCcdMotionThreshold2(PhysBody.ptr, BSParam.CcdMotionThreshold);
+                BulletSimAPI.SetCcdSweptSphereRadius2(PhysBody.ptr, BSParam.CcdSweptSphereRadius);
             }
 
             // The activation state is 'disabled' so Bullet will not try to act on it.
@@ -761,17 +761,17 @@ public sealed class BSPrim : BSPhysObject
             UpdatePhysicalMassProperties(RawMass);
 
             // Set collision detection parameters
-            if (PhysicsScene.Params.ccdMotionThreshold > 0f)
+            if (BSParam.CcdMotionThreshold > 0f)
             {
-                BulletSimAPI.SetCcdMotionThreshold2(PhysBody.ptr, PhysicsScene.Params.ccdMotionThreshold);
-                BulletSimAPI.SetCcdSweptSphereRadius2(PhysBody.ptr, PhysicsScene.Params.ccdSweptSphereRadius);
+                BulletSimAPI.SetCcdMotionThreshold2(PhysBody.ptr, BSParam.CcdMotionThreshold);
+                BulletSimAPI.SetCcdSweptSphereRadius2(PhysBody.ptr, BSParam.CcdSweptSphereRadius);
             }
 
             // Various values for simulation limits
-            BulletSimAPI.SetDamping2(PhysBody.ptr, PhysicsScene.Params.linearDamping, PhysicsScene.Params.angularDamping);
-            BulletSimAPI.SetDeactivationTime2(PhysBody.ptr, PhysicsScene.Params.deactivationTime);
-            BulletSimAPI.SetSleepingThresholds2(PhysBody.ptr, PhysicsScene.Params.linearSleepingThreshold, PhysicsScene.Params.angularSleepingThreshold);
-            BulletSimAPI.SetContactProcessingThreshold2(PhysBody.ptr, PhysicsScene.Params.contactProcessingThreshold);
+            BulletSimAPI.SetDamping2(PhysBody.ptr, BSParam.LinearDamping, BSParam.AngularDamping);
+            BulletSimAPI.SetDeactivationTime2(PhysBody.ptr, BSParam.DeactivationTime);
+            BulletSimAPI.SetSleepingThresholds2(PhysBody.ptr, BSParam.LinearSleepingThreshold, BSParam.AngularSleepingThreshold);
+            BulletSimAPI.SetContactProcessingThreshold2(PhysBody.ptr, BSParam.ContactProcessingThreshold);
 
             // This collides like an object.
             PhysBody.collisionType = CollisionType.Dynamic;
@@ -1361,11 +1361,7 @@ public sealed class BSPrim : BSPhysObject
         }
          */
 
-        if (returnMass <= 0)
-            returnMass = 0.0001f;
-
-        if (returnMass > PhysicsScene.MaximumObjectMass)
-            returnMass = PhysicsScene.MaximumObjectMass;
+        returnMass = Util.Clamp(returnMass, BSParam.MinimumObjectMass, BSParam.MaximumObjectMass);
 
         return returnMass;
     }// end CalculateMass
