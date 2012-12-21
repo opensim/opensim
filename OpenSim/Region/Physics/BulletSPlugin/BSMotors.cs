@@ -166,11 +166,13 @@ public class BSVMotor : BSMotor
                 CurrentValue *= (Vector3.One - frictionFactor);
             }
 
-            MDetailLog("{0},  BSVMotor.Step,nonZero,{1},origCurr={2},origTarget={3},timeStep={4},error={5},corr={6},targetDecay={6},decayFact={7},frictFac{8},curr={9},target={10},ret={11}",
+            MDetailLog("{0},  BSVMotor.Step,nonZero,{1},origCurr={2},origTarget={3},timeStep={4},err={5},corr={6}",
                                 BSScene.DetailLogZero, UseName, origCurrVal, origTarget,
-                                timeStep, error, correction,
-                                TargetValueDecayTimeScale, decayFactor, frictionFactor,
-                                CurrentValue, TargetValue, CurrentValue);
+                                timeStep, error, correction);
+            MDetailLog("{0},  BSVMotor.Step,nonZero,{1},tgtDecayTS={2},decayFact={3},frictTS={4},frictFact={5},tgt={6},curr={7}",
+                                BSScene.DetailLogZero, UseName,
+                                TargetValueDecayTimeScale, decayFactor, FrictionTimescale, frictionFactor,
+                                TargetValue, CurrentValue);
         }
         else
         {
@@ -196,9 +198,8 @@ public class BSVMotor : BSMotor
                 correctionAmount = error / TimeScale * timeStep;
 
             returnCorrection = correctionAmount;
-            MDetailLog("{0},  BSVMotor.Step,nonZero,{1},timeStep={2},timeScale={3},err={4},corr={5},frictTS={6},ret={7}",
-                                    BSScene.DetailLogZero, UseName, timeStep, TimeScale, error,
-                                    correctionAmount, FrictionTimescale, returnCorrection);
+            MDetailLog("{0},  BSVMotor.Step,nonZero,{1},timeStep={2},timeScale={3},err={4},corr={5}",
+                                    BSScene.DetailLogZero, UseName, timeStep, TimeScale, error, correctionAmount);
         }
         return returnCorrection;
     }
