@@ -2431,11 +2431,11 @@ namespace OpenSim.Region.Framework.Scenes
         public int GetAxisRotation(int axis)
         {
             //Cannot use ScriptBaseClass constants as no referance to it currently.
-            if (axis == 2)//STATUS_ROTATE_X
+            if (axis == (int)SceneObjectGroup.axisSelect.STATUS_ROTATE_X)
                 return STATUS_ROTATE_X;
-            if (axis == 4)//STATUS_ROTATE_Y
+            if (axis == (int)SceneObjectGroup.axisSelect.STATUS_ROTATE_Y)
                 return STATUS_ROTATE_Y;
-            if (axis == 8)//STATUS_ROTATE_Z
+            if (axis == (int)SceneObjectGroup.axisSelect.STATUS_ROTATE_Z)
                 return STATUS_ROTATE_Z;
 
             return 0;
@@ -3316,13 +3316,13 @@ namespace OpenSim.Region.Framework.Scenes
             ParentGroup.SetAxisRotation(axis, rotate);
 
             //Cannot use ScriptBaseClass constants as no referance to it currently.
-            if (axis == 2)//STATUS_ROTATE_X
+            if ((axis & (int)SceneObjectGroup.axisSelect.STATUS_ROTATE_X) != 0)
                 STATUS_ROTATE_X = rotate;
 
-            if (axis == 4)//STATUS_ROTATE_Y
+            if ((axis & (int)SceneObjectGroup.axisSelect.STATUS_ROTATE_Y) != 0)
                 STATUS_ROTATE_Y = rotate;
 
-            if (axis == 8)//STATUS_ROTATE_Z
+            if ((axis & (int)SceneObjectGroup.axisSelect.STATUS_ROTATE_Z) != 0)
                 STATUS_ROTATE_Z = rotate;
         }
 

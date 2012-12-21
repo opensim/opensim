@@ -1483,19 +1483,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         return 0;
 
                 case ScriptBaseClass.STATUS_ROTATE_X:
-                    if (m_host.GetAxisRotation(2) == 2)
+                    // if (m_host.GetAxisRotation(2) != 0)
+                    if (m_host.GetAxisRotation((int)SceneObjectGroup.axisSelect.STATUS_ROTATE_X) != 0)
                         return 1;
                     else
                         return 0;
 
                 case ScriptBaseClass.STATUS_ROTATE_Y:
-                    if (m_host.GetAxisRotation(4) == 4)
+                    if (m_host.GetAxisRotation((int)SceneObjectGroup.axisSelect.STATUS_ROTATE_Y) != 0)
                         return 1;
                     else
                         return 0;
 
                 case ScriptBaseClass.STATUS_ROTATE_Z:
-                    if (m_host.GetAxisRotation(8) == 8)
+                    if (m_host.GetAxisRotation((int)SceneObjectGroup.axisSelect.STATUS_ROTATE_Z) != 0)
                         return 1;
                     else
                         return 0;

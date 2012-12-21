@@ -69,6 +69,8 @@ public sealed class BSCharacter : BSPhysObject
     private OMV.Vector3 _appliedVelocity;   // the last velocity applied to the avatar
     private float _currentFriction;         // the friction currently being used (changed by setVelocity).
 
+    private BSVMotor _velocityMotor;
+
     private OMV.Vector3 _PIDTarget;
     private bool _usePID;
     private float _PIDTau;
@@ -88,6 +90,18 @@ public sealed class BSCharacter : BSPhysObject
         _size = size;
         if (_size.X == 0f) _size.X = PhysicsScene.Params.avatarCapsuleDepth;
         if (_size.Y == 0f) _size.Y = PhysicsScene.Params.avatarCapsuleWidth;
+
+        // A motor to control the acceleration and deceleration of the avatar movement.
+        // _velocityMotor = new BSVMotor("BSCharacter.Velocity", 3f, 5f, BSMotor.InfiniteVector, 1f);
+        // _velocityMotor = new BSPIDVMotor("BSCharacter.Velocity", 3f, 5f, BSMotor.InfiniteVector, 1f);
+        // Infinite decay and timescale values so motor only changes current to target values.
+        _velocityMotor = new BSVMotor("BSCharacter.Velocity", 
+                                            0.2f,                       // time scale
+                                            BSMotor.Infinite,           // decay time scale
+                                            BSMotor.InfiniteVector,     // friction timescale
+                                            1f                          // efficiency
+        );
+        _velocityMotor.PhysicsScene = PhysicsScene; // DEBUG DEBUG so motor will output detail log messages.
 
         _flying = isFlying;
         _orientation = OMV.Quaternion.Identity;
@@ -138,6 +152,10 @@ public sealed class BSCharacter : BSPhysObject
         ForcePosition = _position;
         // Set the velocity and compute the proper friction
         ForceVelocity = _velocity;
+        // Setting the current and target in the motor will cause it to start computing any deceleration.
+        _velocityMotor.Reset();
+        _velocityMotor.SetCurrent(_velocity);
+        _velocityMotor.SetTarget(_velocity);
 
         // This will enable or disable the flying buoyancy of the avatar.
         // Needs to be reset especially when an avatar is recreated after crossing a region boundry.
@@ -239,6 +257,7 @@ public sealed class BSCharacter : BSPhysObject
     public override void ZeroMotion(bool inTaintTime)
     {
         _velocity = OMV.Vector3.Zero;
+        _velocityMotor.Zero();
         _acceleration = OMV.Vector3.Zero;
         _rotationalVelocity = OMV.Vector3.Zero;
 
@@ -400,10 +419,38 @@ public sealed class BSCharacter : BSPhysObject
 
     public override OMV.Vector3 GeometricCenter { get { return OMV.Vector3.Zero; } }
     public override OMV.Vector3 CenterOfMass { get { return OMV.Vector3.Zero; } }
+
+    // Sets the target in the motor. This starts the changing of the avatar's velocity.
+    public override OMV.Vector3 TargetVelocity
+    {
+        get
+        {
+            return _velocityMotor.TargetValue;
+        }
+        set
+        {
+            DetailLog("{0},BSCharacter.setTargetVelocity,call,vel={1}", LocalID, value);
+            OMV.Vector3 targetVel = value;
+            PhysicsScene.TaintedObject("BSCharacter.setTargetVelocity", delegate()
+            {
+                float timeStep = 0.089f;    // DEBUG DEBUG FIX FIX FIX
+                _velocityMotor.Reset();
+                _velocityMotor.SetTarget(targetVel);
+                _velocityMotor.SetCurrent(_velocity);
+                // Compute a velocity value and make sure it gets pushed into the avatar.
+                // This makes sure the avatar will start from a stop.
+                ForceVelocity = _velocityMotor.Step(timeStep);
+            });
+        }
+    }
+    // Directly setting velocity means this is what the user really wants now.
     public override OMV.Vector3 Velocity {
         get { return _velocity; }
         set {
             _velocity = value;
+            _velocityMotor.Reset();
+            _velocityMotor.SetCurrent(_velocity);
+            _velocityMotor.SetTarget(_velocity);
             // m_log.DebugFormat("{0}: set velocity = {1}", LogHeader, _velocity);
             PhysicsScene.TaintedObject("BSCharacter.setVelocity", delegate()
             {
@@ -415,6 +462,8 @@ public sealed class BSCharacter : BSPhysObject
     public override OMV.Vector3 ForceVelocity {
         get { return _velocity; }
         set {
+            PhysicsScene.AssertInTaintTime("BSCharacter.ForceVelocity");
+
             // Depending on whether the avatar is moving or not, change the friction
             //    to keep the avatar from slipping around
             if (_velocity.Length() == 0)
@@ -511,6 +560,13 @@ public sealed class BSCharacter : BSPhysObject
         get { return _flying; }
         set {
             _flying = value;
+
+            // Velocity movement is different when flying: flying velocity degrades over time.
+            if (_flying)
+                _velocityMotor.TargetValueDecayTimeScale = 1f;
+            else
+                _velocityMotor.TargetValueDecayTimeScale = BSMotor.Infinite;
+
             // simulate flying by changing the effect of gravity
             Buoyancy = ComputeBuoyancyFromFlying(_flying);
         }
@@ -581,7 +637,10 @@ public sealed class BSCharacter : BSPhysObject
     }
     public override float ForceBuoyancy {
         get { return _buoyancy; }
-        set { _buoyancy = value;
+        set { 
+            PhysicsScene.AssertInTaintTime("BSCharacter.ForceBuoyancy");
+
+            _buoyancy = value;
             DetailLog("{0},BSCharacter.setForceBuoyancy,taint,buoy={1}", LocalID, _buoyancy);
             // Buoyancy is faked by changing the gravity applied to the object
             float grav = PhysicsScene.Params.gravity * (1f - _buoyancy);
@@ -698,6 +757,22 @@ public sealed class BSCharacter : BSPhysObject
         LastEntityProperties = CurrentEntityProperties;
         CurrentEntityProperties = entprop;
 
+        // Avatars don't respond to world friction, etc. They only go the speed I tell them too.
+        // Special kludge here for falling. Even though the target velocity might not have a
+        //     Z component, the avatar could be falling (walked off a ledge, stopped flying, ...)
+        //     and that velocity component must be retained.
+        float timeStep = 0.089f;        // DEBUG DEBUG FIX FIX FIX
+        OMV.Vector3 stepVelocity = _velocityMotor.Step(timeStep);
+        // Remove next line so avatars don't fly up forever. DEBUG DEBUG this is only temporary.
+        // stepVelocity.Z += entprop.Velocity.Z;
+        _velocity = stepVelocity;
+        BulletSimAPI.SetLinearVelocity2(PhysBody.ptr, _velocity);
+        /*
+        OMV.Vector3 stepVelocity = _velocityMotor.Step(timeStep);
+        OMV.Vector3 avVel = new OMV.Vector3(stepVelocity.X, stepVelocity.Y, entprop.Velocity.Z);
+        _velocity = avVel;
+        BulletSimAPI.SetLinearVelocity2(PhysBody.ptr, avVel);
+        
         if (entprop.Velocity != LastEntityProperties.Velocity)
         {
             // Changes in the velocity are suppressed in avatars.
@@ -706,6 +781,7 @@ public sealed class BSCharacter : BSPhysObject
             _velocity = avVel;
             BulletSimAPI.SetLinearVelocity2(PhysBody.ptr, avVel);
         }
+         */
 
         // Tell the linkset about value changes
         Linkset.UpdateProperties(this, true);

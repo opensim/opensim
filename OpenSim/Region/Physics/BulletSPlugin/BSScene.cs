@@ -96,6 +96,16 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     public long SimulationStep { get { return m_simulationStep; } }
     private int m_taintsToProcessPerStep;
 
+    // Avatar parameters
+    public float ParamAvatarFriction { get; private set; }
+    public float ParamAvatarStandingFriction { get; private set; }
+    public float ParamAvatarDensity { get; private set; }
+    public float ParamAvatarRestitution { get; private set; }
+    public float ParamAvatarCapsuleWidth { get; private set; }
+    public float ParamAvatarCapsuleDepth { get; private set; }
+    public float ParamAvatarCapsuleHeight { get; private set; }
+	public float ParamAvatarContactProcessingThreshold { get; private set; }
+
     public delegate void PreStepAction(float timeStep);
     public event PreStepAction BeforeStep;
 

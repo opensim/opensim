@@ -100,10 +100,15 @@ public sealed class BSPrim : BSPhysObject
         BaseShape = pbs;
         _isPhysical = pisPhysical;
         _isVolumeDetect = false;
-        _friction = PhysicsScene.Params.defaultFriction;  // TODO: compute based on object material
-        _density = PhysicsScene.Params.defaultDensity;    // TODO: compute based on object material
+
+        // Someday set default attributes based on the material but, for now, we don't know the prim material yet.
+        // MaterialAttributes primMat = BSMaterials.GetAttributes(Material, pisPhysical);
+        _density = PhysicsScene.Params.defaultDensity;
+        _friction = PhysicsScene.Params.defaultFriction;
         _restitution = PhysicsScene.Params.defaultRestitution;
+
         _vehicle = new BSDynamics(PhysicsScene, this);            // add vehicleness
+
         _mass = CalculateMass();
 
         // No body or shape yet
@@ -527,16 +532,18 @@ public sealed class BSPrim : BSPhysObject
             PhysicsScene.TaintedObject("BSPrim.setVelocity", delegate()
             {
                 // DetailLog("{0},BSPrim.SetVelocity,taint,vel={1}", LocalID, _velocity);
-                if (PhysBody.HasPhysicalBody)
-                    BulletSimAPI.SetLinearVelocity2(PhysBody.ptr, _velocity);
+                ForceVelocity = _velocity;
             });
         }
     }
     public override OMV.Vector3 ForceVelocity {
         get { return _velocity; }
         set {
+            PhysicsScene.AssertInTaintTime("BSPrim.ForceVelocity");
+
             _velocity = value;
-            BulletSimAPI.SetLinearVelocity2(PhysBody.ptr, _velocity);
+            if (PhysBody.HasPhysicalBody)
+                BulletSimAPI.SetLinearVelocity2(PhysBody.ptr, _velocity);
         }
     }
     public override OMV.Vector3 Torque {

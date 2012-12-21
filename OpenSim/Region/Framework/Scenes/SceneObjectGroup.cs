@@ -101,6 +101,15 @@ namespace OpenSim.Region.Framework.Scenes
     /// </summary>
     public partial class SceneObjectGroup : EntityBase, ISceneObject
     {
+        // Axis selection bitmask used by SetAxisRotation()
+        // Just happen to be the same bits used by llSetStatus() and defined in ScriptBaseClass.
+        public enum axisSelect : int
+        {
+            STATUS_ROTATE_X = 0x002,
+            STATUS_ROTATE_Y = 0x004,
+            STATUS_ROTATE_Z = 0x008,
+        }
+
         // private PrimCountTaintedDelegate handlerPrimCountTainted = null;
 
         /// <summary>
