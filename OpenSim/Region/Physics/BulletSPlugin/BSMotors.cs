@@ -46,6 +46,7 @@ public abstract class BSMotor
     }
     public virtual void Reset() { }
     public virtual void Zero() { }
+    public virtual void GenerateTestOutput(float timeStep) { }
 
     // A name passed at motor creation for easily identifyable debugging messages.
     public string UseName { get; private set; }
@@ -93,8 +94,9 @@ public class BSVMotor : BSMotor
 
     public virtual float ErrorZeroThreshold { get; set; }
 
-    public virtual Vector3 TargetValue { get; private set; }
-    public virtual Vector3 CurrentValue { get; private set; }
+    public virtual Vector3 TargetValue { get; protected set; }
+    public virtual Vector3 CurrentValue { get; protected set; }
+    public virtual Vector3 LastError { get; protected set; }
 
     public BSVMotor(string useName)
         : base(useName)
@@ -121,6 +123,11 @@ public class BSVMotor : BSMotor
     public void SetTarget(Vector3 target)
     {
         TargetValue = target;
+    }
+    public override void Zero()
+    {
+        base.Zero();
+        CurrentValue = TargetValue = Vector3.Zero;
     }
 
     // Compute the next step and return the new current value
@@ -168,21 +175,25 @@ public class BSVMotor : BSMotor
         else
         {
             // Difference between what we have and target is small. Motor is done.
-            CurrentValue = Vector3.Zero;
-            TargetValue = Vector3.Zero;
-            MDetailLog("{0},  BSVMotor.Step,zero,{1},ret={2}",
-                        BSScene.DetailLogZero, UseName, CurrentValue);
+            CurrentValue = TargetValue;
+            MDetailLog("{0},  BSVMotor.Step,zero,{1},origTgt={2},origCurr={3},ret={2}",
+                        BSScene.DetailLogZero, UseName, origCurrVal, origTarget, CurrentValue);
         }
 
         return CurrentValue;
     }
     public virtual Vector3 Step(float timeStep, Vector3 error)
     {
+        LastError = error;
         Vector3 returnCorrection = Vector3.Zero;
         if (!error.ApproxEquals(Vector3.Zero, ErrorZeroThreshold))
         {
             // correction =  error / secondsItShouldTakeToCorrect
-            Vector3 correctionAmount = error / TimeScale * timeStep;
+            Vector3 correctionAmount;
+            if (TimeScale == 0f || TimeScale == BSMotor.Infinite)
+                correctionAmount = error * timeStep;
+            else
+                correctionAmount = error / TimeScale * timeStep;
 
             returnCorrection = correctionAmount;
             MDetailLog("{0},  BSVMotor.Step,nonZero,{1},timeStep={2},timeScale={3},err={4},corr={5},frictTS={6},ret={7}",
@@ -191,6 +202,30 @@ public class BSVMotor : BSMotor
         }
         return returnCorrection;
     }
+
+    // The user sets all the parameters and calls this which outputs values until error is zero.
+    public override void GenerateTestOutput(float timeStep)
+    {
+        // maximum number of outputs to generate.
+        int maxOutput = 50;
+        MDetailLog("{0},BSVMotor.Test,{1},===================================== BEGIN Test Output", BSScene.DetailLogZero, UseName);
+        MDetailLog("{0},BSVMotor.Test,{1},timeScale={2},targDlyTS={3},frictTS={4},eff={5},curr={6},tgt={7}",
+                                BSScene.DetailLogZero, UseName,
+                                TimeScale, TargetValueDecayTimeScale, FrictionTimescale, Efficiency, 
+                                CurrentValue, TargetValue);
+
+        LastError = BSMotor.InfiniteVector;
+        while (maxOutput-- > 0 && !LastError.ApproxEquals(Vector3.Zero, ErrorZeroThreshold))
+        {
+            Vector3 lastStep = Step(timeStep);
+            MDetailLog("{0},BSVMotor.Test,{1},cur={2},tgt={3},lastError={4},lastStep={5}",
+                            BSScene.DetailLogZero, UseName, CurrentValue, TargetValue, LastError, lastStep);
+        }
+        MDetailLog("{0},BSVMotor.Test,{1},===================================== END Test Output", BSScene.DetailLogZero, UseName);
+        
+
+    }
+
     public override string ToString()
     {
         return String.Format("<{0},curr={1},targ={2},decayTS={3},frictTS={4}>",
@@ -238,7 +273,6 @@ public class BSPIDVMotor : BSVMotor
     public float EfficiencyLow = 4.0f;
 
     Vector3 IntegralFactor { get; set; }
-    Vector3 LastError { get; set; }
 
     public BSPIDVMotor(string useName)
         : base(useName)
@@ -274,7 +308,7 @@ public class BSPIDVMotor : BSVMotor
     }
 
     // Ignore Current and Target Values and just advance the PID computation on this error.
-    public Vector3 Step(float timeStep, Vector3 error)
+    public override Vector3 Step(float timeStep, Vector3 error)
     {
         // Add up the error so we can integrate over the accumulated errors
         IntegralFactor += error * timeStep;
