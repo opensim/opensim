@@ -1,16 +1,16 @@
 CURRENT PRIORITIES
 =================================================
-Eliminate all crashes (DONEish)
-	Editing/deleting physical linkset (DONE)
-	Border crossing of physical linkset (DONE)
+Smooth avatar movement with motor
+	Should motor update be all at taint-time?
 Enable vehicle border crossings (at least as poorly as ODE)
+	Terrain skirts
 	Avatar created in previous region and not new region when crossing border
 	Vehicle recreated in new sim at small Z value (offset from root value?) (DONE)
-Calibrate turning radius (DONE)
+Vehicle movement on terrain smoothness
+Vehicle script tuning/debugging
+	Avanti speed script
+	Weapon shooter script
 limitMotorUp calibration (more down?)
-study PID motors (include 'efficiency' implementation (DONE)
-	Add to avatar movement
-
 
 CRASHES
 =================================================
@@ -139,6 +139,8 @@ Consider moving prim/character body and shape destruction in destroy()
 	to postTimeTime rather than protecting all the potential sets that
 	might have been queued up.
 Remove unused fields from ShapeData (not used in API2)
+Remove unused fields from pinned memory shared parameter block
+	Create parameter variables in BSScene to replace same.
 Breakout code for mesh/hull/compound/native into separate BSShape* classes
     Standardize access to building and reference code.
 	The skeleton classes are in the sources but are not complete or linked in.
