@@ -627,7 +627,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         private const int m_knownChangedRotationalForce    = 1 << 5;
         private const int m_knownChangedTerrainHeight      = 1 << 6;
         private const int m_knownChangedWaterLevel         = 1 << 7;
-        private const int m_knownChangedForwardVelocity    = 1 << 7;
+        private const int m_knownChangedForwardVelocity    = 1 << 8;
 
         private void ForgetKnownVehicleProperties()
         {
@@ -860,13 +860,11 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             // ==================================================================
             // Clamp high or low velocities
             float newVelocityLengthSq = newVelocity.LengthSquared();
-            // if (newVelocityLengthSq > 1e6f)
             if (newVelocityLengthSq > 1000f)
             {
                 newVelocity /= newVelocity.Length();
                 newVelocity *= 1000f;
             }
-            // else if (newVelocityLengthSq < 1e-6f)
             else if (newVelocityLengthSq < 0.001f)
                 newVelocity = Vector3.Zero;
 
