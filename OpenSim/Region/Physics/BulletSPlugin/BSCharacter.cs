@@ -134,6 +134,8 @@ public sealed class BSCharacter : BSPhysObject
     // called when this character is being destroyed and the resources should be released
     public override void Destroy()
     {
+        base.Destroy();
+
         DetailLog("{0},BSCharacter.Destroy", LocalID);
         PhysicsScene.TaintedObject("BSCharacter.destroy", delegate()
         {
