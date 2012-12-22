@@ -563,12 +563,6 @@ public sealed class BSCharacter : BSPhysObject
         set {
             _flying = value;
 
-            // Velocity movement is different when flying: flying velocity degrades over time.
-            if (_flying)
-                _velocityMotor.TargetValueDecayTimeScale = 1f;
-            else
-                _velocityMotor.TargetValueDecayTimeScale = BSMotor.Infinite;
-
             // simulate flying by changing the effect of gravity
             Buoyancy = ComputeBuoyancyFromFlying(_flying);
         }
