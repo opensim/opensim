@@ -442,8 +442,12 @@ public sealed class BSPrim : BSPhysObject
                 RegisterPreStepAction("BSPrim.setForce", LocalID,
                     delegate(float timeStep)
                     {
+                        DetailLog("{0},BSPrim.setForce,preStep,force={1}", LocalID, _force);
                         if (PhysBody.HasPhysicalBody)
+                        {
                             BulletSimAPI.ApplyCentralForce2(PhysBody.ptr, _force);
+                            ActivateIfPhysical(false);
+                        }
                     }
                 );
             }
@@ -554,7 +558,10 @@ public sealed class BSPrim : BSPhysObject
 
             _velocity = value;
             if (PhysBody.HasPhysicalBody)
+            {
                 BulletSimAPI.SetLinearVelocity2(PhysBody.ptr, _velocity);
+                ActivateIfPhysical(false);
+            }
         }
     }
     public override OMV.Vector3 Torque {
@@ -845,7 +852,7 @@ public sealed class BSPrim : BSPhysObject
     // Called in taint-time!!
     private void ActivateIfPhysical(bool forceIt)
     {
-        if (IsPhysical)
+        if (IsPhysical && PhysBody.HasPhysicalBody)
             BulletSimAPI.Activate2(PhysBody.ptr, forceIt);
     }
 
@@ -919,8 +926,7 @@ public sealed class BSPrim : BSPhysObject
             PhysicsScene.TaintedObject("BSPrim.setRotationalVelocity", delegate()
             {
                 DetailLog("{0},BSPrim.SetRotationalVel,taint,rotvel={1}", LocalID, _rotationalVelocity);
-                if (PhysBody.HasPhysicalBody)
-                    BulletSimAPI.SetAngularVelocity2(PhysBody.ptr, _rotationalVelocity);
+                ForceRotationalVelocity = _rotationalVelocity;
             });
         }
     }
@@ -930,7 +936,11 @@ public sealed class BSPrim : BSPhysObject
         }
         set {
             _rotationalVelocity = value;
-            BulletSimAPI.SetAngularVelocity2(PhysBody.ptr, _rotationalVelocity);
+            if (PhysBody.HasPhysicalBody)
+            {
+                BulletSimAPI.SetAngularVelocity2(PhysBody.ptr, _rotationalVelocity);
+                ActivateIfPhysical(false);
+            }
         }
     }
     public override bool Kinematic {
@@ -959,6 +969,7 @@ public sealed class BSPrim : BSPhysObject
             {
                 float grav = PhysicsScene.Params.gravity * (1f - _buoyancy);
                 BulletSimAPI.SetGravity2(PhysBody.ptr, new OMV.Vector3(0f, 0f, grav));
+                ActivateIfPhysical(false);
             }
         }
     }
@@ -1011,7 +1022,10 @@ public sealed class BSPrim : BSPhysObject
                 // Bullet adds this central force to the total force for this tick
                 DetailLog("{0},BSPrim.addForce,taint,force={1}", LocalID, addForce);
                 if (PhysBody.HasPhysicalBody)
+                {
                     BulletSimAPI.ApplyCentralForce2(PhysBody.ptr, addForce);
+                    ActivateIfPhysical(false);
+                }
             });
         }
         else
@@ -1032,7 +1046,10 @@ public sealed class BSPrim : BSPhysObject
             PhysicsScene.TaintedObject(inTaintTime, "BSPrim.AddAngularForce", delegate()
             {
                 if (PhysBody.HasPhysicalBody)
+                {
                     BulletSimAPI.ApplyTorque2(PhysBody.ptr, angForce);
+                    ActivateIfPhysical(false);
+                }
             });
         }
         else
@@ -1052,7 +1069,10 @@ public sealed class BSPrim : BSPhysObject
         PhysicsScene.TaintedObject(inTaintTime, "BSPrim.ApplyTorqueImpulse", delegate()
         {
             if (PhysBody.HasPhysicalBody)
+            {
                 BulletSimAPI.ApplyTorqueImpulse2(PhysBody.ptr, applyImpulse);
+                ActivateIfPhysical(false);
+            }
         });
     }
 

@@ -304,17 +304,21 @@ public abstract class BSPhysObject : PhysicsActor
         string identifier = op + "-" + id.ToString();
         RegisteredActions[identifier] = actn;
         PhysicsScene.BeforeStep += actn;
+        DetailLog("{0},BSPhysObject.RegisterPreStepAction,id={1}", LocalID, identifier);
     }
 
     // Unregister a pre step action. Safe to call if the action has not been registered.
     protected void UnRegisterPreStepAction(string op, uint id)
     {
         string identifier = op + "-" + id.ToString();
+        bool removed = false;
         if (RegisteredActions.ContainsKey(identifier))
         {
             PhysicsScene.BeforeStep -= RegisteredActions[identifier];
             RegisteredActions.Remove(identifier);
+            removed = true;
         }
+        DetailLog("{0},BSPhysObject.UnRegisterPreStepAction,id={1},removed={2}", LocalID, identifier, removed);
     }
 
     protected void UnRegisterAllPreStepActions()
@@ -324,6 +328,7 @@ public abstract class BSPhysObject : PhysicsActor
             PhysicsScene.BeforeStep -= kvp.Value;
         }
         RegisteredActions.Clear();
+        DetailLog("{0},BSPhysObject.UnRegisterAllPreStepActions,", LocalID);
     }
 
     
