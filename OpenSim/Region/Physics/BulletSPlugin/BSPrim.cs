@@ -465,15 +465,18 @@ public sealed class BSPrim : BSPhysObject
         set {
             Vehicle type = (Vehicle)value;
 
-            // Tell the scene about the vehicle so it will get processing each frame.
-            PhysicsScene.VehicleInSceneTypeChanged(this, type);
-
             PhysicsScene.TaintedObject("setVehicleType", delegate()
             {
                 // Done at taint time so we're sure the physics engine is not using the variables
                 // Vehicle code changes the parameters for this vehicle type.
                 _vehicle.ProcessTypeChange(type);
                 ActivateIfPhysical(false);
+
+                // If an active vehicle, register the vehicle code to be called before each step
+                if (_vehicle.Type == Vehicle.TYPE_NONE)
+                    UnRegisterPreStepAction("BSPrim.Vehicle", LocalID);
+                else
+                    RegisterPreStepAction("BSPrim.Vehicle", LocalID, _vehicle.Step);
             });
         }
     }
@@ -507,23 +510,6 @@ public sealed class BSPrim : BSPhysObject
         {
             _vehicle.ProcessVehicleFlags(param, remove);
         });
-    }
-
-    // Called each simulation step to advance vehicle characteristics.
-    // Called from Scene when doing simulation step so we're in taint processing time.
-    public override void StepVehicle(float timeStep)
-    {
-        if (IsPhysical && _vehicle.IsActive)
-        {
-            _vehicle.Step(timeStep);
-            /* // TEST TEST DEBUG DEBUG -- trying to reduce the extra action of Bullet simulation step
-            PhysicsScene.PostTaintObject("BSPrim.StepVehicles", LocalID, delegate()
-            {
-                // This resets the interpolation values and recomputes the tensor variables
-                BulletSimAPI.SetCenterOfMassByPosRot2(BSBody.ptr, ForcePosition, ForceOrientation);
-            });
-             */
-        }
     }
 
     // Allows the detection of collisions with inherently non-physical prims. see llVolumeDetect for more

@@ -69,10 +69,6 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     //    every tick so OpenSim will update its animation.
     private HashSet<BSPhysObject> m_avatars = new HashSet<BSPhysObject>();
 
-    // List of all the objects that have vehicle properties and should be called
-    //    to update each physics step.
-    private List<BSPhysObject> m_vehicles = new List<BSPhysObject>();
-
     // let my minuions use my logger
     public ILog Logger { get { return m_log; } }
 
@@ -480,13 +476,18 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
         // update the prim states while we know the physics engine is not busy
         int numTaints = _taintOperations.Count;
+
+        InTaintTime = true; // Only used for debugging so locking is not necessary.
+
         ProcessTaints();
 
-        // Some of the prims operate with special vehicle properties
+        // Some of the physical objects requre individual, pre-step calls
         DoPreStepActions(timeStep);
 
         // the prestep actions might have added taints
         ProcessTaints();
+
+        InTaintTime = false; // Only used for debugging so locking is not necessary.
 
         // step the physical world one interval
         m_simulationStep++;
@@ -494,7 +495,6 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
         try
         {
-            if (VehiclePhysicalLoggingEnabled) DumpVehicles();  // DEBUG
             if (PhysicsLogging.Enabled) beforeTime = Util.EnvironmentTickCount();
 
             numSubSteps = BulletSimAPI.PhysicsStep2(World.ptr, timeStep, m_maxSubSteps, m_fixedTimeStep,
@@ -504,7 +504,6 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             DetailLog("{0},Simulate,call, frame={1}, nTaints={2}, simTime={3}, substeps={4}, updates={5}, colliders={6}, objWColl={7}",
                                     DetailLogZero, m_simulationStep, numTaints, simTime, numSubSteps, 
                                     updatedEntityCount, collidersCount, ObjectsWithCollisions.Count);
-            if (VehiclePhysicalLoggingEnabled) DumpVehicles();  // DEBUG
         }
         catch (Exception e)
         {
@@ -701,15 +700,21 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             TaintedObject(ident, callback);
     }
 
+    private void DoPreStepActions(float timeStep)
+    {
+        PreStepAction actions = BeforeStep;
+        if (actions != null)
+            actions(timeStep);
+
+    }
+
     // When someone tries to change a property on a BSPrim or BSCharacter, the object queues
     // a callback into itself to do the actual property change. That callback is called
     // here just before the physics engine is called to step the simulation.
     public void ProcessTaints()
     {
-        InTaintTime = true; // Only used for debugging so locking is not necessary.
         ProcessRegularTaints();
         ProcessPostTaintTaints();
-        InTaintTime = false;
     }
 
     private void ProcessRegularTaints()
@@ -871,68 +876,6 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
     #endregion // Taints
 
-    #region Vehicles
-
-    public void VehicleInSceneTypeChanged(BSPrim vehic, Vehicle newType)
-    {
-        RemoveVehiclePrim(vehic);
-        if (newType != Vehicle.TYPE_NONE)
-        {
-           // make it so the scene will call us each tick to do vehicle things
-           AddVehiclePrim(vehic);
-        }
-    }
-
-    // Make so the scene will call this prim for vehicle actions each tick.
-    // Safe to call if prim is already in the vehicle list.
-    public void AddVehiclePrim(BSPrim vehicle)
-    {
-        lock (m_vehicles)
-        {
-            if (!m_vehicles.Contains(vehicle))
-            {
-                m_vehicles.Add(vehicle);
-            }
-        }
-    }
-
-    // Remove a prim from our list of vehicles.
-    // Safe to call if the prim is not in the vehicle list.
-    public void RemoveVehiclePrim(BSPrim vehicle)
-    {
-        lock (m_vehicles)
-        {
-            if (m_vehicles.Contains(vehicle))
-            {
-                m_vehicles.Remove(vehicle);
-            }
-        }
-    }
-
-    private void DoPreStepActions(float timeStep)
-    {
-        InTaintTime = true; // Only used for debugging so locking is not necessary.
-        ProcessVehicles(timeStep);
-
-        PreStepAction actions = BeforeStep;
-        if (actions != null)
-            actions(timeStep);
-
-        InTaintTime = false;
-
-    }
-
-    // Some prims have extra vehicle actions
-    // Called at taint time!
-    private void ProcessVehicles(float timeStep)
-    {
-        foreach (BSPhysObject pobj in m_vehicles)
-        {
-            pobj.StepVehicle(timeStep);
-        }
-    }
-    #endregion Vehicles
-
     #region INI and command line parameter processing
 
     #region IPhysicsParameters
@@ -1032,16 +975,6 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     #endregion IPhysicsParameters
 
     #endregion Runtime settable parameters
-
-    // Debugging routine for dumping detailed physical information for vehicle prims
-    private void DumpVehicles()
-    {
-        foreach (BSPrim prim in m_vehicles)
-        {
-            BulletSimAPI.DumpRigidBody2(World.ptr, prim.PhysBody.ptr);
-            BulletSimAPI.DumpCollisionShape2(World.ptr, prim.PhysShape.ptr);
-        }
-    }
 
     // Invoke the detailed logger and output something if it's enabled.
     public void DetailLog(string msg, params Object[] args)
