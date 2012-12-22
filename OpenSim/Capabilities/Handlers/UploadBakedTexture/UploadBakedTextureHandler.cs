@@ -117,7 +117,7 @@ namespace OpenSim.Capabilities.Handlers
         /// <param name="data"></param>
         private void BakedTextureUploaded(UUID assetID, byte[] data)
         {
-//            m_log.DebugFormat("[UPLOAD BAKED TEXTURE HANDLER]: Received baked texture {0}", assetID.ToString());
+            m_log.DebugFormat("[UPLOAD BAKED TEXTURE HANDLER]: Received baked texture {0}", assetID.ToString());
 
             AssetBase asset;
             asset = new AssetBase(assetID, "Baked Texture", (sbyte)AssetType.Texture, m_HostCapsObj.AgentID.ToString());

@@ -931,18 +931,25 @@ namespace OpenSim.Region.Framework.Scenes
 
             // ----------------------------------
             // Previous Agent Difference - AGNI sends an unsolicited AgentDataUpdate upon root agent status
-            if (gm != null)
+            try
             {
-                groupUUID = ControllingClient.ActiveGroupId;
-                GroupRecord record = gm.GetGroupRecord(groupUUID);
-                if (record != null)
-                    GroupName = record.GroupName;
-                GroupMembershipData groupMembershipData = gm.GetMembershipData(groupUUID, m_uuid);
-                if (groupMembershipData != null)
-                    groupPowers = groupMembershipData.GroupPowers;
+                if (gm != null)
+                {
+                    groupUUID = ControllingClient.ActiveGroupId;
+                    GroupRecord record = gm.GetGroupRecord(groupUUID);
+                    if (record != null)
+                        GroupName = record.GroupName;
+                    GroupMembershipData groupMembershipData = gm.GetMembershipData(groupUUID, m_uuid);
+                    if (groupMembershipData != null)
+                        groupPowers = groupMembershipData.GroupPowers;
+                }
+                ControllingClient.SendAgentDataUpdate(m_uuid, groupUUID, Firstname, Lastname, groupPowers, GroupName,
+                                                      Grouptitle);
             }
-            ControllingClient.SendAgentDataUpdate(m_uuid, groupUUID, Firstname, Lastname, groupPowers, GroupName,
-                                      Grouptitle);
+            catch (Exception e)
+            {
+                m_log.Debug("[AGENTUPDATE]: " + e.ToString());
+            }
             // ------------------------------------
 
             if (ParentID == 0)

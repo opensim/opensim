@@ -6298,12 +6298,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     byte[] visualparams = new byte[appear.VisualParam.Length];
                     for (int i = 0; i < appear.VisualParam.Length; i++)
                         visualparams[i] = appear.VisualParam[i].ParamValue;
-
+                    //var b = appear.WearableData[0]; 
+                    
                     Primitive.TextureEntry te = null;
                     if (appear.ObjectData.TextureEntry.Length > 1)
                         te = new Primitive.TextureEntry(appear.ObjectData.TextureEntry, 0, appear.ObjectData.TextureEntry.Length);
+                    
+                    WearableCacheItem[] cacheitems = new WearableCacheItem[appear.WearableData.Length];
+                    for (int i=0; i<appear.WearableData.Length;i++)
+                        cacheitems[i] = new WearableCacheItem(){CacheId = appear.WearableData[i].CacheID,TextureIndex=Convert.ToUInt32(appear.WearableData[i].TextureIndex)};
 
-                    handlerSetAppearance(sender, te, visualparams,avSize);
+                    
+
+                    handlerSetAppearance(sender, te, visualparams,avSize, cacheitems);
                 }
                 catch (Exception e)
                 {
@@ -11704,6 +11711,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if (cachedtex.AgentData.SessionID != SessionId)
                 return false;
+            
 
             // TODO: don't create new blocks if recycling an old packet
             cachedresp.AgentData.AgentID = AgentId;
@@ -11713,6 +11721,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             cachedresp.WearableData =
                 new AgentCachedTextureResponsePacket.WearableDataBlock[cachedtex.WearableData.Length];
 
+            //IAvatarFactoryModule fac = m_scene.RequestModuleInterface<IAvatarFactoryModule>();
+           // var item = fac.GetBakedTextureFaces(AgentId);
+            //WearableCacheItem[] items = fac.GetCachedItems(AgentId);
+
             IImprovedAssetCache cache = m_scene.RequestModuleInterface<IImprovedAssetCache>();
             if (cache == null)
             {
@@ -11720,7 +11732,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     cachedresp.WearableData[i] = new AgentCachedTextureResponsePacket.WearableDataBlock();
                     cachedresp.WearableData[i].TextureIndex = cachedtex.WearableData[i].TextureIndex;
-                    cachedresp.WearableData[i].TextureID = UUID.Zero;
+                    cachedresp.WearableData[i].TextureID = UUID.Zero; //UUID.Parse("8334fb6e-c2f5-46ee-807d-a435f61a8d46");
                     cachedresp.WearableData[i].HostName = new byte[0];
                 }
             }
@@ -11730,10 +11742,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     cachedresp.WearableData[i] = new AgentCachedTextureResponsePacket.WearableDataBlock();
                     cachedresp.WearableData[i].TextureIndex = cachedtex.WearableData[i].TextureIndex;
-                    if(cache.Check(cachedtex.WearableData[i].ID.ToString()))
+
+
+
+                    if (cache.Check(cachedtex.WearableData[i].ID.ToString()))
                         cachedresp.WearableData[i].TextureID = UUID.Zero;
+                            //UUID.Parse("8334fb6e-c2f5-46ee-807d-a435f61a8d46");
                     else
-                        cachedresp.WearableData[i].TextureID = UUID.Zero;
+                        cachedresp.WearableData[i].TextureID = UUID.Zero; // UUID.Parse("8334fb6e-c2f5-46ee-807d-a435f61a8d46");
                     cachedresp.WearableData[i].HostName = new byte[0];
                 }
             }
