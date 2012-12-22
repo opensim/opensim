@@ -2109,9 +2109,6 @@ namespace OpenSim.Region.Framework.Scenes
             if (part == null)
                 return;
 
-            // TODO: determine position to sit at based on scene geometry; don't trust offset from client
-            // see http://wiki.secondlife.com/wiki/User:Andrew_Linden/Office_Hours/2007_11_06 for details on how LL does it
-
             if (PhysicsActor != null)
                 m_sitAvatarHeight = PhysicsActor.Size.Z * 0.5f;
 
@@ -2130,25 +2127,8 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else
             {
-//                if (Util.GetDistanceTo(AbsolutePosition, pos) <= 10)
-//                {
-//                    m_log.DebugFormat(
-//                        "[SCENE PRESENCE]: Sitting {0} on {1} {2} because sit target is unset and within 10m",
-//                        Name, part.Name, part.LocalId);
-
-                if (m_scene.PhysicsScene != null &&
-                    part.PhysActor != null &&
-                    Util.GetDistanceTo(AbsolutePosition, pos) <= 30)
-                {
-
-                    Vector3 camdif = CameraPosition - part.AbsolutePosition;
-                    camdif.Normalize();
-
-//                    m_log.InfoFormat("sit {0} {1}", offset.ToString(), camdif.ToString());
-
-                    if (m_scene.PhysicsScene.SitAvatar(part.PhysActor, AbsolutePosition, CameraPosition, offset, new Vector3(0.35f, 0, 0.65f), PhysicsSitResponse) != 0)
-                        return;
-                }
+                if (PhysicsSit(part,offset)) // physics engine 
+                    return;
 
                 if (Util.GetDistanceTo(AbsolutePosition, pos) <= 10)
                 {
@@ -2156,12 +2136,6 @@ namespace OpenSim.Region.Framework.Scenes
                     AbsolutePosition = pos + new Vector3(0.0f, 0.0f, m_sitAvatarHeight);
                     canSit = true;
                 }
-//                else
-//                {
-//                    m_log.DebugFormat(
-//                        "[SCENE PRESENCE]: Ignoring sit request of {0} on {1} {2} because sit target is unset and outside 10m",
-//                        Name, part.Name, part.LocalId);
-//                }
             }
 
             if (canSit)
@@ -2223,14 +2197,6 @@ namespace OpenSim.Region.Framework.Scenes
                 m_requestedSitTargetID = part.LocalId;
                 m_requestedSitTargetUUID = targetID;
 
-//                m_log.DebugFormat("[SIT]: Client requested Sit Position: {0}", offset);
-
-                if (m_scene.PhysicsScene.SupportsRayCast())
-                {
-                    //m_scene.PhysicsScene.RaycastWorld(Vector3.Zero,Vector3.Zero, 0.01f,new RaycastCallback());
-                    //SitRayCastAvatarPosition(part);
-                    //return;
-                }
             }
             else
             {
@@ -2240,23 +2206,56 @@ namespace OpenSim.Region.Framework.Scenes
             SendSitResponse(targetID, offset, Quaternion.Identity);
         }
 
-        public void PhysicsSitResponse(int status, uint partID, Vector3 offset, Quaternion Orientation)
+        // returns  false if does not suport so older sit can be tried
+        public bool PhysicsSit(SceneObjectPart part, Vector3 offset)
         {
-
-            if (status < 0)
-            {
-                ControllingClient.SendAlertMessage("Sit position no longer exists");
-                return;
-            }
-
-            if (status == 0)
-                return;
-
-            SceneObjectPart part = m_scene.GetSceneObjectPart(partID);
             if (part == null || part.ParentGroup.IsAttachment)
             {
+                return true;
+            }
+
+            if ( m_scene.PhysicsScene == null)
+                return false;
+
+            if (part.PhysActor == null)
+            {
+                // none physcis shape
+                if (part.PhysicsShapeType == (byte)PhysicsShapeType.None)
+                    ControllingClient.SendAlertMessage(" There is no suitable surface to sit on, try another spot.");
+                else
+                { // non physical phantom  TODO
+                    ControllingClient.SendAlertMessage(" There is no suitable surface to sit on, try another spot.");
+                    return false;
+                }
+                return true;
+            }
+
+            // not doing autopilot
+            m_requestedSitTargetID = 0; 
+
+            if (m_scene.PhysicsScene.SitAvatar(part.PhysActor, AbsolutePosition, CameraPosition, offset, new Vector3(0.35f, 0, 0.65f), PhysicsSitResponse) != 0)
+                return true;
+
+            return false;
+        }
+
+        // status
+        //          < 0 ignore
+        //          0   bad sit spot
+        public void PhysicsSitResponse(int status, uint partID, Vector3 offset, Quaternion Orientation)
+        {
+            if (status < 0)
+                return;
+
+            if (status == 0)
+            {
+                ControllingClient.SendAlertMessage(" There is no suitable surface to sit on, try another spot.");
                 return;
             }
+
+            SceneObjectPart part = m_scene.GetSceneObjectPart(partID);
+            if (part == null)
+                return;
 
 //            m_log.InfoFormat("physsit {0} {1}", offset.ToString(),Orientation.ToString());
 
@@ -2269,16 +2268,14 @@ namespace OpenSim.Region.Framework.Scenes
             ControllingClient.SendSitResponse(
                 part.UUID, offset, Orientation, false, cameraAtOffset, cameraEyeOffset, forceMouselook);
 
-            part.ParentGroup.TriggerScriptChangedEvent(Changed.LINK);
-
-            // assuming no autopilot in use
+            // not using autopilot
             Velocity = Vector3.Zero;
             RemoveFromPhysicalScene();
 
             Rotation = Orientation;
             m_pos = offset;
 
-            m_requestedSitTargetID = 0; // invalidate the viewer sit comand for now
+            m_requestedSitTargetID = 0;
             part.ParentGroup.AddAvatar(UUID);
 
             ParentPart = part;
@@ -2286,6 +2283,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             Animator.TrySetMovementAnimation("SIT");
             SendAvatarDataToAllAgents();
+
+            part.ParentGroup.TriggerScriptChangedEvent(Changed.LINK);
         }
 
 

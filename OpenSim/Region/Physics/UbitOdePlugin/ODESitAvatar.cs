@@ -52,6 +52,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
 
         private static Vector3 SitAjust = new Vector3(0, 0, 0.4f);
+        private const RayFilterFlags RaySitFlags = RayFilterFlags.AllPrims | RayFilterFlags.ClosestHit;
 
         public void Sit(PhysicsActor actor, Vector3 avPos, Vector3 avCameraPosition, Vector3 offset, Vector3 avOffset, SitAvatarCallback PhysicsSitResponse)
         {
@@ -93,10 +94,10 @@ namespace OpenSim.Region.Physics.OdePlugin
             rayDir.Y *= t;
             rayDir.Z *= t;
 
-            raylen += 0.5f;
+            raylen += 30f; // focal point may be far
             List<ContactResult> rayResults;
 
-            rayResults = m_scene.RaycastActor(actor, avCameraPosition, rayDir , raylen, 1);
+            rayResults = m_scene.RaycastActor(actor, avCameraPosition, rayDir, raylen, 1, RaySitFlags);
             if (rayResults.Count == 0 || rayResults[0].ConsumerID != actor.LocalID)
             {
                 d.GeomGetAABB(geom,out aabb);
@@ -107,6 +108,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 PhysicsSitResponse(1, actor.LocalID, offset, ori);
                 return;
             }
+
 
             offset = rayResults[0].Pos - geopos;
             double ang;
@@ -156,13 +158,16 @@ namespace OpenSim.Region.Physics.OdePlugin
                 return;
             }
 
-            Vector3 norm = rayResults[0].Normal;
+/*
+                // contact normals aren't reliable on meshs or sculpts it seems
+                Vector3 norm = rayResults[0].Normal;
 
-            if (norm.Z < 0)
-            {
-                PhysicsSitResponse(0, actor.LocalID, offset, Quaternion.Identity);
-                return;
-            }
+                if (norm.Z < 0)
+                {
+                    PhysicsSitResponse(0, actor.LocalID, offset, Quaternion.Identity);
+                    return;
+                }
+*/
 
             ang = Math.Atan2(-rayDir.Y, -rayDir.X);
             ang *= 0.5d;
