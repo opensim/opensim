@@ -135,7 +135,7 @@ public sealed class BSTerrainManager : IDisposable
         // The ground plane is here to catch things that are trying to drop to negative infinity
         BulletShape groundPlaneShape = new BulletShape(
                     BulletSimAPI.CreateGroundPlaneShape2(BSScene.GROUNDPLANE_ID, 1f, 
-                                    PhysicsScene.Params.terrainCollisionMargin),
+                                    BSParam.TerrainCollisionMargin),
                     BSPhysicsShapeType.SHAPE_GROUNDPLANE);
         m_groundPlane = new BulletBody(BSScene.GROUNDPLANE_ID,
                         BulletSimAPI.CreateBodyWithDefaultMotionState2(groundPlaneShape.ptr, BSScene.GROUNDPLANE_ID,
@@ -309,9 +309,9 @@ public sealed class BSTerrainManager : IDisposable
     {
         PhysicsScene.Logger.DebugFormat("{0} Terrain for {1}/{2} created with {3}", 
                                             LogHeader, PhysicsScene.RegionName, terrainRegionBase, 
-                                            (BSTerrainPhys.TerrainImplementation)PhysicsScene.Params.terrainImplementation);
+                                            (BSTerrainPhys.TerrainImplementation)BSParam.TerrainImplementation);
         BSTerrainPhys newTerrainPhys = null;
-        switch ((int)PhysicsScene.Params.terrainImplementation)
+        switch ((int)BSParam.TerrainImplementation)
         {
             case (int)BSTerrainPhys.TerrainImplementation.Heightmap:
                 newTerrainPhys = new BSTerrainHeightmap(PhysicsScene, terrainRegionBase, id,
@@ -324,8 +324,8 @@ public sealed class BSTerrainManager : IDisposable
             default:
                 PhysicsScene.Logger.ErrorFormat("{0} Bad terrain implementation specified. Type={1}/{2},Region={3}/{4}",
                                             LogHeader, 
-                                            (int)PhysicsScene.Params.terrainImplementation, 
-                                            PhysicsScene.Params.terrainImplementation,
+                                            (int)BSParam.TerrainImplementation, 
+                                            BSParam.TerrainImplementation,
                                             PhysicsScene.RegionName, terrainRegionBase);
                 break;
         }

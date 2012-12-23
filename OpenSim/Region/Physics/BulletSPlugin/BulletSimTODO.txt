@@ -112,6 +112,9 @@ Test avatar walking up stairs. How does compare with SL.
 Debounce avatar contact so legs don't keep folding up when standing.
 Implement LSL physics controls. Like STATUS_ROTATE_X.
 Add border extensions to terrain to help region crossings and objects leaving region.
+Use a different capsule shape for avatar when sitting
+	LL uses a pyrimidal shape scaled by the avatar's bounding box
+	http://wiki.secondlife.com/wiki/File:Avmeshforms.png
 
 Performance test with lots of avatars. Can BulletSim support a thousand?
 Optimize collisions in C++: only send up to the object subscribed to collisions.

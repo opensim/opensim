@@ -93,7 +93,7 @@ public sealed class BSTerrainHeightmap : BSTerrainPhys
     {
         m_mapInfo.Ptr = BulletSimAPI.CreateHeightMapInfo2(PhysicsScene.World.ptr, m_mapInfo.ID,
                                 m_mapInfo.minCoords, m_mapInfo.maxCoords, 
-                                m_mapInfo.heightMap, PhysicsScene.Params.terrainCollisionMargin);
+                                m_mapInfo.heightMap, BSParam.TerrainCollisionMargin);
 
         // Create the terrain shape from the mapInfo
         m_mapInfo.terrainShape = new BulletShape(BulletSimAPI.CreateTerrainShape2(m_mapInfo.Ptr),
@@ -110,9 +110,9 @@ public sealed class BSTerrainHeightmap : BSTerrainPhys
                                             m_mapInfo.ID, centerPos, Quaternion.Identity));
 
         // Set current terrain attributes
-        BulletSimAPI.SetFriction2(m_mapInfo.terrainBody.ptr, PhysicsScene.Params.terrainFriction);
-        BulletSimAPI.SetHitFraction2(m_mapInfo.terrainBody.ptr, PhysicsScene.Params.terrainHitFraction);
-        BulletSimAPI.SetRestitution2(m_mapInfo.terrainBody.ptr, PhysicsScene.Params.terrainRestitution);
+        BulletSimAPI.SetFriction2(m_mapInfo.terrainBody.ptr, BSParam.TerrainFriction);
+        BulletSimAPI.SetHitFraction2(m_mapInfo.terrainBody.ptr, BSParam.TerrainHitFraction);
+        BulletSimAPI.SetRestitution2(m_mapInfo.terrainBody.ptr, BSParam.TerrainRestitution);
         BulletSimAPI.SetCollisionFlags2(m_mapInfo.terrainBody.ptr, CollisionFlags.CF_STATIC_OBJECT);
 
         // Return the new terrain to the world of physical objects

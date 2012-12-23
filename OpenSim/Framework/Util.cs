@@ -299,6 +299,13 @@ namespace OpenSim.Framework
                 x;
         }
 
+        // Inclusive, within range test (true if equal to the endpoints)
+        public static bool InRange<T>(T x, T min, T max)
+            where T : IComparable<T>
+        {
+            return x.CompareTo(max) <= 0 && x.CompareTo(min) >= 0;
+        }
+
         public static uint GetNextXferID()
         {
             uint id = 0;

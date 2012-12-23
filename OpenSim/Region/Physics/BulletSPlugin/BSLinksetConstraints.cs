@@ -226,14 +226,14 @@ public sealed class BSLinksetConstraints : BSLinkset
         constrain.SetAngularLimits(OMV.Vector3.Zero, OMV.Vector3.Zero);
 
         // tweek the constraint to increase stability
-        constrain.UseFrameOffset(PhysicsScene.BoolNumeric(PhysicsScene.Params.linkConstraintUseFrameOffset));
-        constrain.TranslationalLimitMotor(PhysicsScene.BoolNumeric(PhysicsScene.Params.linkConstraintEnableTransMotor),
-                        PhysicsScene.Params.linkConstraintTransMotorMaxVel,
-                        PhysicsScene.Params.linkConstraintTransMotorMaxForce);
-        constrain.SetCFMAndERP(PhysicsScene.Params.linkConstraintCFM, PhysicsScene.Params.linkConstraintERP);
-        if (PhysicsScene.Params.linkConstraintSolverIterations != 0f)
+        constrain.UseFrameOffset(BSParam.BoolNumeric(BSParam.LinkConstraintUseFrameOffset));
+        constrain.TranslationalLimitMotor(BSParam.BoolNumeric(BSParam.LinkConstraintEnableTransMotor),
+                        BSParam.LinkConstraintTransMotorMaxVel,
+                        BSParam.LinkConstraintTransMotorMaxForce);
+        constrain.SetCFMAndERP(BSParam.LinkConstraintCFM, BSParam.LinkConstraintERP);
+        if (BSParam.LinkConstraintSolverIterations != 0f)
         {
-            constrain.SetSolverIterations(PhysicsScene.Params.linkConstraintSolverIterations);
+            constrain.SetSolverIterations(BSParam.LinkConstraintSolverIterations);
         }
         return constrain;
     }

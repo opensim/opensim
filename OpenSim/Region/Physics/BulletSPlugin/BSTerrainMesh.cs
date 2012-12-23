@@ -116,9 +116,9 @@ public sealed class BSTerrainMesh : BSTerrainPhys
         }
 
         // Set current terrain attributes
-        BulletSimAPI.SetFriction2(m_terrainBody.ptr, PhysicsScene.Params.terrainFriction);
-        BulletSimAPI.SetHitFraction2(m_terrainBody.ptr, PhysicsScene.Params.terrainHitFraction);
-        BulletSimAPI.SetRestitution2(m_terrainBody.ptr, PhysicsScene.Params.terrainRestitution);
+        BulletSimAPI.SetFriction2(m_terrainBody.ptr, BSParam.TerrainFriction);
+        BulletSimAPI.SetHitFraction2(m_terrainBody.ptr, BSParam.TerrainHitFraction);
+        BulletSimAPI.SetRestitution2(m_terrainBody.ptr, BSParam.TerrainRestitution);
         BulletSimAPI.SetCollisionFlags2(m_terrainBody.ptr, CollisionFlags.CF_STATIC_OBJECT);
 
         // Static objects are not very massive.

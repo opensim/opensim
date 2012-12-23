@@ -456,7 +456,7 @@ public sealed class BSShapeCollection : IDisposable
         if (!haveShape
                 && pbs != null
                 && nativeShapePossible
-                && ((pbs.SculptEntry && !PhysicsScene.ShouldMeshSculptedPrim)
+                && ((pbs.SculptEntry && !BSParam.ShouldMeshSculptedPrim)
                     || (pbs.ProfileBegin == 0 && pbs.ProfileEnd == 0
                         && pbs.ProfileHollow == 0
                         && pbs.PathTwist == 0 && pbs.PathTwistBegin == 0
@@ -520,7 +520,7 @@ public sealed class BSShapeCollection : IDisposable
         bool ret = false;
         // Note that if it's a native shape, the check for physical/non-physical is not
         //     made. Native shapes work in either case.
-        if (prim.IsPhysical && PhysicsScene.ShouldUseHullsForPhysicalObjects)
+        if (prim.IsPhysical && BSParam.ShouldUseHullsForPhysicalObjects)
         {
             // Update prim.BSShape to reference a hull of this shape.
             ret = GetReferenceToHull(prim,shapeCallback);
@@ -836,14 +836,14 @@ public sealed class BSShapeCollection : IDisposable
     private System.UInt64 ComputeShapeKey(OMV.Vector3 size, PrimitiveBaseShape pbs, out float retLod)
     {
         // level of detail based on size and type of the object
-        float lod = PhysicsScene.MeshLOD;
+        float lod = BSParam.MeshLOD;
         if (pbs.SculptEntry)
-            lod = PhysicsScene.SculptLOD;
+            lod = BSParam.SculptLOD;
 
         // Mega prims usually get more detail because one can interact with shape approximations at this size.
         float maxAxis = Math.Max(size.X, Math.Max(size.Y, size.Z));
-        if (maxAxis > PhysicsScene.MeshMegaPrimThreshold)
-            lod = PhysicsScene.MeshMegaPrimLOD;
+        if (maxAxis > BSParam.MeshMegaPrimThreshold)
+            lod = BSParam.MeshMegaPrimLOD;
 
         retLod = lod;
         return pbs.GetMeshKey(size, lod);

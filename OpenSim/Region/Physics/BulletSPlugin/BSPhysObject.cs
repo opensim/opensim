@@ -45,6 +45,16 @@ namespace OpenSim.Region.Physics.BulletSPlugin
  *      ForceVariableName: direct reference (store and fetch) to the value in the physics engine.
  *  The last two (and certainly the last one) should be referenced only in taint-time.
  */
+
+/*
+ * As of 20121221, the following are the call sequences (going down) for different script physical functions:
+ * llApplyImpulse       llApplyRotImpulse           llSetTorque             llSetForce
+ * SOP.ApplyImpulse     SOP.ApplyAngularImpulse     SOP.SetAngularImpulse   SOP.SetForce
+ * SOG.ApplyImpulse     SOG.ApplyAngularImpulse     SOG.SetAngularImpulse
+ * PA.AddForce          PA.AddAngularForce          PA.Torque = v           PA.Force = v
+ * BS.ApplyCentralForce BS.ApplyTorque              
+ */
+
 public abstract class BSPhysObject : PhysicsActor
 {
     protected BSPhysObject()
@@ -67,6 +77,12 @@ public abstract class BSPhysObject : PhysicsActor
         SubscribedEventsMs = 0;
         CollidingStep = 0;
         CollidingGroundStep = 0;
+    }
+
+    // Tell the object to clean up.
+    public virtual void Destroy()
+    {
+        UnRegisterAllPreStepActions();
     }
 
     public BSScene PhysicsScene { get; protected set; }
@@ -130,9 +146,6 @@ public abstract class BSPhysObject : PhysicsActor
     // Update the physical location and motion of the object. Called with data from Bullet.
     public abstract void UpdateProperties(EntityProperties entprop);
 
-    // Tell the object to clean up.
-    public abstract void Destroy();
-
     public abstract OMV.Vector3 RawPosition { get; set; }
     public abstract OMV.Vector3 ForcePosition { get; set; }
 
@@ -140,7 +153,7 @@ public abstract class BSPhysObject : PhysicsActor
     public abstract OMV.Quaternion ForceOrientation { get; set; }
 
     // The system is telling us the velocity it wants to move at.
-    protected OMV.Vector3 m_targetVelocity;
+    // protected OMV.Vector3 m_targetVelocity;  // use the definition in PhysicsActor
     public override OMV.Vector3 TargetVelocity
     {
         get { return m_targetVelocity; }
@@ -280,11 +293,53 @@ public abstract class BSPhysObject : PhysicsActor
 
     #endregion // Collisions
 
+    #region Per Simulation Step actions
+    // There are some actions that must be performed for a physical object before each simulation step.
+    // These actions are optional so, rather than scanning all the physical objects and asking them
+    //     if they have anything to do, a physical object registers for an event call before the step is performed.
+    // This bookkeeping makes it easy to add, remove and clean up after all these registrations.
+    private Dictionary<string, BSScene.PreStepAction> RegisteredActions = new Dictionary<string, BSScene.PreStepAction>();
+    protected void RegisterPreStepAction(string op, uint id, BSScene.PreStepAction actn)
+    {
+        string identifier = op + "-" + id.ToString();
+        RegisteredActions[identifier] = actn;
+        PhysicsScene.BeforeStep += actn;
+        DetailLog("{0},BSPhysObject.RegisterPreStepAction,id={1}", LocalID, identifier);
+    }
+
+    // Unregister a pre step action. Safe to call if the action has not been registered.
+    protected void UnRegisterPreStepAction(string op, uint id)
+    {
+        string identifier = op + "-" + id.ToString();
+        bool removed = false;
+        if (RegisteredActions.ContainsKey(identifier))
+        {
+            PhysicsScene.BeforeStep -= RegisteredActions[identifier];
+            RegisteredActions.Remove(identifier);
+            removed = true;
+        }
+        DetailLog("{0},BSPhysObject.UnRegisterPreStepAction,id={1},removed={2}", LocalID, identifier, removed);
+    }
+
+    protected void UnRegisterAllPreStepActions()
+    {
+        foreach (KeyValuePair<string, BSScene.PreStepAction> kvp in RegisteredActions)
+        {
+            PhysicsScene.BeforeStep -= kvp.Value;
+        }
+        RegisteredActions.Clear();
+        DetailLog("{0},BSPhysObject.UnRegisterAllPreStepActions,", LocalID);
+    }
+
+    
+    #endregion // Per Simulation Step actions
+
     // High performance detailed logging routine used by the physical objects.
     protected void DetailLog(string msg, params Object[] args)
     {
         if (PhysicsScene.PhysicsLogging.Enabled)
             PhysicsScene.DetailLog(msg, args);
     }
+
 }
 }

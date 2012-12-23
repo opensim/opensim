@@ -563,7 +563,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 // Moderate angular movement introduced by Bullet.
                 // TODO: possibly set AngularFactor and LinearFactor for the type of vehicle.
                 //     Maybe compute linear and angular factor and damping from params.
-                float angularDamping = PhysicsScene.Params.vehicleAngularDamping;
+                float angularDamping = BSParam.VehicleAngularDamping;
                 BulletSimAPI.SetAngularDamping2(Prim.PhysBody.ptr, angularDamping);
 
                 // Vehicles report collision events so we know when it's on the ground
@@ -634,28 +634,33 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             m_knownHas = 0;
             m_knownChanged = 0;
         }
+        // Push all the changed values back into the physics engine
         private void PushKnownChanged()
         {
             if (m_knownChanged != 0)
             {
                 if ((m_knownChanged & m_knownChangedPosition) != 0)
-                    Prim.ForcePosition = VehiclePosition;
+                    Prim.ForcePosition = m_knownPosition;
+
                 if ((m_knownChanged & m_knownChangedOrientation) != 0)
-                    Prim.ForceOrientation = VehicleOrientation;
+                    Prim.ForceOrientation = m_knownOrientation;
+
                 if ((m_knownChanged & m_knownChangedVelocity) != 0)
                 {
-                    Prim.ForceVelocity = VehicleVelocity;
+                    Prim.ForceVelocity = m_knownVelocity;
                     BulletSimAPI.SetInterpolationLinearVelocity2(Prim.PhysBody.ptr, VehicleVelocity);
                 }
+
                 if ((m_knownChanged & m_knownChangedForce) != 0)
                     Prim.AddForce((Vector3)m_knownForce, false, true);
 
                 if ((m_knownChanged & m_knownChangedRotationalVelocity) != 0)
                 {
-                    Prim.ForceRotationalVelocity = VehicleRotationalVelocity;
+                    Prim.ForceRotationalVelocity = m_knownRotationalVelocity;
                     // Fake out Bullet by making it think the velocity is the same as last time.
-                    BulletSimAPI.SetInterpolationAngularVelocity2(Prim.PhysBody.ptr, VehicleRotationalVelocity);
+                    BulletSimAPI.SetInterpolationAngularVelocity2(Prim.PhysBody.ptr, m_knownRotationalVelocity);
                 }
+
                 if ((m_knownChanged & m_knownChangedRotationalForce) != 0)
                     Prim.AddAngularForce((Vector3)m_knownRotationalForce, false, true);
 
@@ -667,7 +672,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         }
 
         // Since the computation of terrain height can be a little involved, this routine
-        //    is used ot fetch the height only once for each vehicle simulation step.
+        //    is used to fetch the height only once for each vehicle simulation step.
         private float GetTerrainHeight(Vector3 pos)
         {
             if ((m_knownHas & m_knownChangedTerrainHeight) == 0)
@@ -699,12 +704,13 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     m_knownPosition = Prim.ForcePosition;
                     m_knownHas |= m_knownChangedPosition;
                 }
-                return (Vector3)m_knownPosition;
+                return m_knownPosition;
             }
             set
             {
                 m_knownPosition = value;
                 m_knownChanged |= m_knownChangedPosition;
+                m_knownHas |= m_knownChangedPosition;
             }
         }
 
@@ -717,12 +723,13 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     m_knownOrientation = Prim.ForceOrientation;
                     m_knownHas |= m_knownChangedOrientation;
                 }
-                return (Quaternion)m_knownOrientation;
+                return m_knownOrientation;
             }
             set
             {
                 m_knownOrientation = value;
                 m_knownChanged |= m_knownChangedOrientation;
+                m_knownHas |= m_knownChangedOrientation;
             }
         }
 
@@ -741,13 +748,19 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             {
                 m_knownVelocity = value;
                 m_knownChanged |= m_knownChangedVelocity;
+                m_knownHas |= m_knownChangedVelocity;
             }
         }
 
         private void VehicleAddForce(Vector3 aForce)
         {
+            if ((m_knownHas & m_knownChangedForce) == 0)
+            {
+                m_knownForce = Vector3.Zero;
+            }
             m_knownForce += aForce;
             m_knownChanged |= m_knownChangedForce;
+            m_knownHas |= m_knownChangedForce;
         }
 
         private Vector3 VehicleRotationalVelocity
@@ -765,12 +778,18 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             {
                 m_knownRotationalVelocity = value;
                 m_knownChanged |= m_knownChangedRotationalVelocity;
+                m_knownHas |= m_knownChangedRotationalVelocity;
             }
         }
         private void VehicleAddAngularForce(Vector3 aForce)
         {
+            if ((m_knownHas & m_knownChangedRotationalForce) == 0)
+            {
+                m_knownRotationalForce = Vector3.Zero;
+            }
             m_knownRotationalForce += aForce;
             m_knownChanged |= m_knownChangedRotationalForce;
+            m_knownHas |= m_knownChangedRotationalForce;
         }
         // Vehicle relative forward velocity
         private Vector3 VehicleForwardVelocity
@@ -782,7 +801,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     m_knownForwardVelocity = VehicleVelocity * Quaternion.Inverse(Quaternion.Normalize(VehicleOrientation));
                     m_knownHas |= m_knownChangedForwardVelocity;
                 }
-                return (Vector3)m_knownForwardVelocity;
+                return m_knownForwardVelocity;
             }
         }
         private float VehicleForwardSpeed
