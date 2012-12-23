@@ -85,9 +85,13 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     internal long m_simulationStep = 0;
     public long SimulationStep { get { return m_simulationStep; } }
     internal int m_taintsToProcessPerStep;
+    internal float LastTimeStep { get; private set; }
 
+    // Physical objects can register for prestep or poststep events
     public delegate void PreStepAction(float timeStep);
+    public delegate void PostStepAction(float timeStep);
     public event PreStepAction BeforeStep;
+    public event PreStepAction AfterStep;
 
     // A value of the time now so all the collision and update routines do not have to get their own
     // Set to 'now' just before all the prims and actors are called for collisions and updates
@@ -463,6 +467,11 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     // Simulate one timestep
     public override float Simulate(float timeStep)
     {
+        // prevent simulation until we've been initialized
+        if (!m_initialized) return 5.0f;
+
+        LastTimeStep = timeStep;
+
         int updatedEntityCount = 0;
         IntPtr updatedEntitiesPtr;
         int collidersCount = 0;
@@ -470,9 +479,6 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
         int beforeTime = 0;
         int simTime = 0;
-
-        // prevent simulation until we've been initialized
-        if (!m_initialized) return 5.0f;
 
         // update the prim states while we know the physics engine is not busy
         int numTaints = _taintOperations.Count;
@@ -482,7 +488,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         ProcessTaints();
 
         // Some of the physical objects requre individual, pre-step calls
-        DoPreStepActions(timeStep);
+        TriggerPreStepEvent(timeStep);
 
         // the prestep actions might have added taints
         ProcessTaints();
@@ -582,7 +588,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             }
         }
 
-        ProcessPostStepTaints();
+        TriggerPostStepEvent(timeStep);
 
         // The following causes the unmanaged code to output ALL the values found in ALL the objects in the world.
         // Only enable this in a limited test world with few objects.
@@ -674,6 +680,15 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     public override bool IsThreaded { get { return false;  } }
 
     #region Taints
+    // The simulation execution order is:
+    // Simulate()
+    //    DoOneTimeTaints
+    //    TriggerPreStepEvent
+    //    DoOneTimeTaints
+    //    Step()
+    //       ProcessAndForwardCollisions
+    //       ProcessAndForwardPropertyUpdates
+    //    TriggerPostStepEvent
 
     // Calls to the PhysicsActors can't directly call into the physics engine
     //       because it might be busy. We delay changes to a known time.
@@ -700,9 +715,17 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             TaintedObject(ident, callback);
     }
 
-    private void DoPreStepActions(float timeStep)
+    private void TriggerPreStepEvent(float timeStep)
     {
         PreStepAction actions = BeforeStep;
+        if (actions != null)
+            actions(timeStep);
+
+    }
+
+    private void TriggerPostStepEvent(float timeStep)
+    {
+        PreStepAction actions = AfterStep;
         if (actions != null)
             actions(timeStep);
 
@@ -721,43 +744,6 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     {
         if (_taintOperations.Count > 0)  // save allocating new list if there is nothing to process
         {
-            /*
-            // Code to limit the number of taints processed per step. Meant to limit step time.
-            // Unsure if a good idea as code assumes that taints are done before the step.
-            int taintCount = m_taintsToProcessPerStep;
-            TaintCallbackEntry oneCallback = new TaintCallbackEntry();
-            while (_taintOperations.Count > 0 && taintCount-- > 0)
-            {
-                bool gotOne = false;
-                lock (_taintLock)
-                {
-                    if (_taintOperations.Count > 0)
-                    {
-                        oneCallback = _taintOperations[0];
-                        _taintOperations.RemoveAt(0);
-                        gotOne = true;
-                    }
-                }
-                if (gotOne)
-                {
-                    try
-                    {
-                        DetailLog("{0},BSScene.ProcessTaints,doTaint,id={1}", DetailLogZero, oneCallback.ident);
-                        oneCallback.callback();
-                    }
-                    catch (Exception e)
-                    {
-                        DetailLog("{0},BSScene.ProcessTaints,doTaintException,id={1}", DetailLogZero, oneCallback.ident); // DEBUG DEBUG DEBUG
-                        m_log.ErrorFormat("{0}: ProcessTaints: {1}: Exception: {2}", LogHeader, oneCallback.ident, e);
-                    }
-                }
-            }
-            if (_taintOperations.Count > 0)
-            {
-                DetailLog("{0},BSScene.ProcessTaints,leftTaintsOnList,numNotProcessed={1}", DetailLogZero, _taintOperations.Count);
-            }
-             */
-
             // swizzle a new list into the list location so we can process what's there
             List<TaintCallbackEntry> oldList;
             lock (_taintLock)
@@ -796,6 +782,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         return;
     }
 
+    // Taints that happen after the normal taint processing but before the simulation step.
     private void ProcessPostTaintTaints()
     {
         if (_postTaintOperations.Count > 0)
@@ -817,45 +804,6 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
                 catch (Exception e)
                 {
                     m_log.ErrorFormat("{0}: ProcessPostTaintTaints: {1}: Exception: {2}", LogHeader, kvp.Key, e);
-                }
-            }
-            oldList.Clear();
-        }
-    }
-
-    public void PostStepTaintObject(String ident, TaintCallback callback)
-    {
-        if (!m_initialized) return;
-
-        lock (_taintLock)
-        {
-            _postStepOperations.Add(new TaintCallbackEntry(ident, callback));
-        }
-
-        return;
-    }
-
-    private void ProcessPostStepTaints()
-    {
-        if (_postStepOperations.Count > 0)
-        {
-            List<TaintCallbackEntry> oldList;
-            lock (_taintLock)
-            {
-                oldList = _postStepOperations;
-                _postStepOperations = new List<TaintCallbackEntry>();
-            }
-
-            foreach (TaintCallbackEntry tcbe in oldList)
-            {
-                try
-                {
-                    DetailLog("{0},BSScene.ProcessPostStepTaints,doTaint,id={1}", DetailLogZero, tcbe.ident); // DEBUG DEBUG DEBUG
-                    tcbe.callback();
-                }
-                catch (Exception e)
-                {
-                    m_log.ErrorFormat("{0}: ProcessPostStepTaints: {1}: Exception: {2}", LogHeader, tcbe.ident, e);
                 }
             }
             oldList.Clear();
