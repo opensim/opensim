@@ -315,7 +315,7 @@ public static class BSParam
             (s,o,v) => { BulletSimAPI.SetContactProcessingThreshold2(o.PhysBody.ptr, v); } ),
 
 	    new ParameterDefn("TerrainImplementation", "Type of shape to use for terrain (0=heightmap, 1=mesh)",
-            (float)BSTerrainPhys.TerrainImplementation.Mesh,
+            (float)BSTerrainPhys.TerrainImplementation.Heightmap,
             (s,cf,p,v) => { TerrainImplementation = cf.GetFloat(p,v); },
             (s) => { return TerrainImplementation; },
             (s,p,l,v) => { TerrainImplementation = v; } ),
