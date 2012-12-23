@@ -158,6 +158,7 @@ public sealed class BSCharacter : BSPhysObject
         _velocityMotor.Reset();
         _velocityMotor.SetCurrent(_velocity);
         _velocityMotor.SetTarget(_velocity);
+        _velocityMotor.Enabled = false;
 
         // This will enable or disable the flying buoyancy of the avatar.
         // Needs to be reset especially when an avatar is recreated after crossing a region boundry.
@@ -435,13 +436,13 @@ public sealed class BSCharacter : BSPhysObject
             OMV.Vector3 targetVel = value;
             PhysicsScene.TaintedObject("BSCharacter.setTargetVelocity", delegate()
             {
-                float timeStep = 0.089f;    // DEBUG DEBUG FIX FIX FIX
                 _velocityMotor.Reset();
                 _velocityMotor.SetTarget(targetVel);
                 _velocityMotor.SetCurrent(_velocity);
-                // Compute a velocity value and make sure it gets pushed into the avatar.
-                // This makes sure the avatar will start from a stop.
-                ForceVelocity = _velocityMotor.Step(timeStep);
+                _velocityMotor.Enabled = true;
+
+                // Make sure a property update happens next step so the motor gets incorporated.
+                BulletSimAPI.PushUpdate2(PhysBody.ptr);
             });
         }
     }
@@ -450,12 +451,15 @@ public sealed class BSCharacter : BSPhysObject
         get { return _velocity; }
         set {
             _velocity = value;
-            _velocityMotor.Reset();
-            _velocityMotor.SetCurrent(_velocity);
-            _velocityMotor.SetTarget(_velocity);
             // m_log.DebugFormat("{0}: set velocity = {1}", LogHeader, _velocity);
             PhysicsScene.TaintedObject("BSCharacter.setVelocity", delegate()
             {
+                _velocityMotor.Reset();
+                _velocityMotor.SetCurrent(_velocity);
+                _velocityMotor.SetTarget(_velocity);
+                // Even though the motor is initialized, it's not used and the velocity goes straight into the avatar.
+                _velocityMotor.Enabled = false;
+
                 DetailLog("{0},BSCharacter.setVelocity,taint,vel={1}", LocalID, _velocity);
                 ForceVelocity = _velocity;
             });
@@ -466,6 +470,7 @@ public sealed class BSCharacter : BSPhysObject
         set {
             PhysicsScene.AssertInTaintTime("BSCharacter.ForceVelocity");
 
+            _velocity = value;
             // Depending on whether the avatar is moving or not, change the friction
             //    to keep the avatar from slipping around
             if (_velocity.Length() == 0)
@@ -486,7 +491,6 @@ public sealed class BSCharacter : BSPhysObject
                         BulletSimAPI.SetFriction2(PhysBody.ptr, _currentFriction);
                 }
             }
-            _velocity = value;
             // Remember the set velocity so we can suppress the reduction by friction, ...
             _appliedVelocity = value;
 
@@ -746,38 +750,41 @@ public sealed class BSCharacter : BSPhysObject
         _velocity = entprop.Velocity;
         _acceleration = entprop.Acceleration;
         _rotationalVelocity = entprop.RotationalVelocity;
+
         // Do some sanity checking for the avatar. Make sure it's above ground and inbounds.
         PositionSanityCheck(true);
+
+        if (_velocityMotor.Enabled)
+        {
+            // TODO: Decide if the step parameters should be changed depending on the avatar's
+            //     state (flying, colliding, ...).
+
+            OMV.Vector3 stepVelocity = _velocityMotor.Step(PhysicsScene.LastTimeStep);
+
+            // If falling, we keep the world's downward vector no matter what the other axis specify.
+            if (!Flying && !IsColliding)
+            {
+                stepVelocity.Z = entprop.Velocity.Z;
+                DetailLog("{0},BSCharacter.UpdateProperties,taint,overrideStepZWithWorldZ,stepVel={1}", LocalID, stepVelocity);
+            }
+
+            // If the user has said stop and we've stopped applying velocity correction,
+            //     the motor can be turned off. Set the velocity to zero so the zero motion is sent to the viewer.
+            if (_velocityMotor.TargetValue.ApproxEquals(OMV.Vector3.Zero, 0.01f) && _velocityMotor.ErrorIsZero)
+            {
+                stepVelocity = OMV.Vector3.Zero;
+                _velocityMotor.Enabled = false;
+                DetailLog("{0},BSCharacter.UpdateProperties,taint,disableVelocityMotor,m={1}", LocalID, _velocityMotor);
+            }
+
+            _velocity = stepVelocity;
+            entprop.Velocity = _velocity;
+            BulletSimAPI.SetLinearVelocity2(PhysBody.ptr, _velocity);
+        }
 
         // remember the current and last set values
         LastEntityProperties = CurrentEntityProperties;
         CurrentEntityProperties = entprop;
-
-        // Avatars don't respond to world friction, etc. They only go the speed I tell them too.
-        // Special kludge here for falling. Even though the target velocity might not have a
-        //     Z component, the avatar could be falling (walked off a ledge, stopped flying, ...)
-        //     and that velocity component must be retained.
-        float timeStep = 0.089f;        // DEBUG DEBUG FIX FIX FIX
-        OMV.Vector3 stepVelocity = _velocityMotor.Step(timeStep);
-        // Remove next line so avatars don't fly up forever. DEBUG DEBUG this is only temporary.
-        // stepVelocity.Z += entprop.Velocity.Z;
-        _velocity = stepVelocity;
-        BulletSimAPI.SetLinearVelocity2(PhysBody.ptr, _velocity);
-        /*
-        OMV.Vector3 stepVelocity = _velocityMotor.Step(timeStep);
-        OMV.Vector3 avVel = new OMV.Vector3(stepVelocity.X, stepVelocity.Y, entprop.Velocity.Z);
-        _velocity = avVel;
-        BulletSimAPI.SetLinearVelocity2(PhysBody.ptr, avVel);
-        
-        if (entprop.Velocity != LastEntityProperties.Velocity)
-        {
-            // Changes in the velocity are suppressed in avatars.
-            // That's just the way they are defined.
-            OMV.Vector3 avVel = new OMV.Vector3(_appliedVelocity.X, _appliedVelocity.Y, entprop.Velocity.Z);
-            _velocity = avVel;
-            BulletSimAPI.SetLinearVelocity2(PhysBody.ptr, avVel);
-        }
-         */
 
         // Tell the linkset about value changes
         Linkset.UpdateProperties(this, true);

@@ -153,7 +153,7 @@ public abstract class BSPhysObject : PhysicsActor
     public abstract OMV.Quaternion ForceOrientation { get; set; }
 
     // The system is telling us the velocity it wants to move at.
-    protected OMV.Vector3 m_targetVelocity;
+    // protected OMV.Vector3 m_targetVelocity;  // use the definition in PhysicsActor
     public override OMV.Vector3 TargetVelocity
     {
         get { return m_targetVelocity; }
