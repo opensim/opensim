@@ -96,7 +96,8 @@ public abstract class BSPhysObject : PhysicsActor
     // Return the object mass without calculating it or having side effects
     public abstract float RawMass { get; }
     // Set the raw mass but also update physical mass properties (inertia, ...)
-    public abstract void UpdatePhysicalMassProperties(float mass);
+    // 'inWorld' true if the object has already been added to the dynamic world.
+    public abstract void UpdatePhysicalMassProperties(float mass, bool inWorld);
 
     // The last value calculated for the prim's inertia
     public OMV.Vector3 Inertia { get; set; }

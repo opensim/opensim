@@ -97,14 +97,7 @@ public abstract class BSLinkset
     }
 
     // We keep the prim's mass in the linkset structure since it could be dependent on other prims
-    protected float m_mass;
-    public float LinksetMass
-    {
-        get
-        {
-            return m_mass;
-        }
-    }
+    public float LinksetMass { get; protected set; }
 
     public virtual bool LinksetIsColliding { get { return false; } }
 
@@ -128,7 +121,7 @@ public abstract class BSLinkset
         PhysicsScene = scene;
         LinksetRoot = parent;
         m_children = new HashSet<BSPhysObject>();
-        m_mass = parent.RawMass;
+        LinksetMass = parent.RawMass;
         Rebuilding = false;
     }
 
@@ -143,7 +136,7 @@ public abstract class BSLinkset
             // Don't add the root to its own linkset
             if (!IsRoot(child))
                 AddChildToLinkset(child);
-            m_mass = ComputeLinksetMass();
+            LinksetMass = ComputeLinksetMass();
         }
         return this;
     }
@@ -162,7 +155,7 @@ public abstract class BSLinkset
                 return this;
             }
             RemoveChildFromLinkset(child);
-            m_mass = ComputeLinksetMass();
+            LinksetMass = ComputeLinksetMass();
         }
 
         // The child is down to a linkset of just itself
@@ -230,7 +223,10 @@ public abstract class BSLinkset
     // When physical properties are changed the linkset needs to recalculate
     //   its internal properties.
     // May be called at runtime or taint-time.
-    public abstract void Refresh(BSPhysObject requestor);
+    public virtual void Refresh(BSPhysObject requestor)
+    {
+        LinksetMass = ComputeLinksetMass();
+    }
 
     // Flag denoting the linkset is in the process of being rebuilt.
     // Used to know not the schedule a rebuild in the middle of a rebuild.
