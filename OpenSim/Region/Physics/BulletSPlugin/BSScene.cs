@@ -74,7 +74,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
     public IMesher mesher;
     public uint WorldID { get; private set; }
-    public BulletSim World { get; private set; }
+    public BulletWorld World { get; private set; }
 
     // All the constraints that have been allocated in this instance.
     public BSConstraintCollection Constraints { get; private set; }
@@ -242,7 +242,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         Vector3 worldExtent = new Vector3(Constants.RegionSize, Constants.RegionSize, Constants.RegionHeight);
 
         // m_log.DebugFormat("{0}: Initialize: Calling BulletSimAPI.Initialize.", LogHeader);
-        World = new BulletSim(0, this, BulletSimAPI.Initialize2(worldExtent, m_paramsHandle.AddrOfPinnedObject(),
+        World = new BulletWorld(0, this, BulletSimAPI.Initialize2(worldExtent, m_paramsHandle.AddrOfPinnedObject(),
                                         m_maxCollisionsPerFrame, m_collisionArrayPinnedHandle.AddrOfPinnedObject(),
                                         m_maxUpdatesPerFrame, m_updateArrayPinnedHandle.AddrOfPinnedObject(),
                                         m_DebugLogCallbackHandle));

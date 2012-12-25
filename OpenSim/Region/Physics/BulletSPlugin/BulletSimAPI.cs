@@ -288,6 +288,398 @@ public enum ConstraintParamAxis : int
     AXIS_ALL
 };
 
+public abstract class BulletSimAPITemplate
+{
+// Initialization and simulation
+public abstract BulletWorld Initialize2(Vector3 maxPosition, IntPtr parms,
+											int maxCollisions,  IntPtr collisionArray,
+											int maxUpdates, IntPtr updateArray
+                                            );
+
+public abstract bool UpdateParameter2(BulletWorld world, uint localID, String parm, float value);
+
+public abstract void SetHeightMap2(BulletWorld world, float[] heightmap);
+
+public abstract void Shutdown2(BulletWorld sim);
+
+public abstract int PhysicsStep2(BulletWorld world, float timeStep, int maxSubSteps, float fixedTimeStep,
+                        out int updatedEntityCount,
+                        out IntPtr updatedEntitiesPtr,
+                        out int collidersCount,
+                        out IntPtr collidersPtr);
+
+public abstract bool PushUpdate2(BulletBody obj);
+
+// =====================================================================================
+// Mesh, hull, shape and body creation helper routines
+public abstract BulletShape CreateMeshShape2(BulletWorld world,
+                int indicesCount, [MarshalAs(UnmanagedType.LPArray)] int[] indices,
+                int verticesCount, [MarshalAs(UnmanagedType.LPArray)] float[] vertices );
+
+public abstract BulletShape CreateHullShape2(BulletWorld world,
+                int hullCount, [MarshalAs(UnmanagedType.LPArray)] float[] hulls);
+
+public abstract BulletShape BuildHullShapeFromMesh2(BulletWorld world, BulletShape meshShape);
+
+public abstract BulletShape BuildNativeShape2(BulletWorld world, ShapeData shapeData);
+
+public abstract bool IsNativeShape2(BulletShape shape);
+
+public abstract void SetShapeCollisionMargin(BulletShape shape, float margin);
+
+public abstract BulletShape BuildCapsuleShape2(BulletWorld world, float radius, float height, Vector3 scale);
+
+public abstract BulletShape CreateCompoundShape2(BulletWorld sim, bool enableDynamicAabbTree);
+
+public abstract int GetNumberOfCompoundChildren2(BulletShape cShape);
+
+public abstract void AddChildShapeToCompoundShape2(BulletShape cShape, BulletShape addShape, Vector3 pos, Quaternion rot);
+
+public abstract BulletShape GetChildShapeFromCompoundShapeIndex2(BulletShape cShape, int indx);
+
+public abstract BulletShape RemoveChildShapeFromCompoundShapeIndex2(BulletShape cShape, int indx);
+
+public abstract void RemoveChildShapeFromCompoundShape2(BulletShape cShape, BulletShape removeShape);
+
+public abstract void RecalculateCompoundShapeLocalAabb2(BulletShape cShape);
+
+public abstract BulletShape DuplicateCollisionShape2(BulletWorld sim, BulletShape srcShape, uint id);
+
+public abstract BulletBody CreateBodyFromShapeAndInfo2(BulletWorld sim, BulletShape shape, uint id, IntPtr constructionInfo);
+
+public abstract bool DeleteCollisionShape2(BulletWorld world, BulletShape shape);
+
+public abstract int GetBodyType2(BulletBody obj);
+
+public abstract BulletBody CreateBodyFromShape2(BulletWorld sim, BulletShape shape, uint id, Vector3 pos, Quaternion rot);
+
+public abstract BulletBody CreateBodyWithDefaultMotionState2(BulletShape shape, uint id, Vector3 pos, Quaternion rot);
+
+public abstract BulletBody CreateGhostFromShape2(BulletWorld sim, BulletShape shape, uint id, Vector3 pos, Quaternion rot);
+
+public abstract IntPtr AllocateBodyInfo2(BulletBody obj);
+
+public abstract void ReleaseBodyInfo2(IntPtr obj);
+
+public abstract void DestroyObject2(BulletWorld sim, BulletBody obj);
+
+// =====================================================================================
+// Terrain creation and helper routines
+public abstract IntPtr CreateHeightMapInfo2(BulletWorld sim, uint id, Vector3 minCoords, Vector3 maxCoords,
+        [MarshalAs(UnmanagedType.LPArray)] float[] heightMap, float collisionMargin);
+
+public abstract IntPtr FillHeightMapInfo2(BulletWorld sim, IntPtr mapInfo, uint id, Vector3 minCoords, Vector3 maxCoords,
+        [MarshalAs(UnmanagedType.LPArray)] float[] heightMap, float collisionMargin);
+
+public abstract bool ReleaseHeightMapInfo2(IntPtr heightMapInfo);
+
+public abstract BulletBody CreateGroundPlaneShape2(uint id, float height, float collisionMargin);
+
+public abstract BulletBody CreateTerrainShape2(IntPtr mapInfo);
+
+// =====================================================================================
+// Constraint creation and helper routines
+public abstract BulletConstraint Create6DofConstraint2(BulletWorld world, BulletBody obj1, BulletBody obj2,
+                    Vector3 frame1loc, Quaternion frame1rot,
+                    Vector3 frame2loc, Quaternion frame2rot,
+                    bool useLinearReferenceFrameA, bool disableCollisionsBetweenLinkedBodies);
+
+public abstract BulletConstraint Create6DofConstraintToPoint2(BulletWorld world, BulletBody obj1, BulletBody obj2,
+                    Vector3 joinPoint,
+                    bool useLinearReferenceFrameA, bool disableCollisionsBetweenLinkedBodies);
+
+public abstract BulletConstraint CreateHingeConstraint2(BulletWorld world, BulletBody obj1, BulletBody obj2,
+                    Vector3 pivotinA, Vector3 pivotinB,
+                    Vector3 axisInA, Vector3 axisInB,
+                    bool useLinearReferenceFrameA, bool disableCollisionsBetweenLinkedBodies);
+
+public abstract void SetConstraintEnable2(BulletConstraint constrain, float numericTrueFalse);
+
+public abstract void SetConstraintNumSolverIterations2(BulletConstraint constrain, float iterations);
+
+public abstract bool SetFrames2(BulletConstraint constrain,
+                Vector3 frameA, Quaternion frameArot, Vector3 frameB, Quaternion frameBrot);
+
+public abstract bool SetLinearLimits2(BulletConstraint constrain, Vector3 low, Vector3 hi);
+
+public abstract bool SetAngularLimits2(BulletConstraint constrain, Vector3 low, Vector3 hi);
+
+public abstract bool UseFrameOffset2(BulletConstraint constrain, float enable);
+
+public abstract bool TranslationalLimitMotor2(BulletConstraint constrain, float enable, float targetVel, float maxMotorForce);
+
+public abstract bool SetBreakingImpulseThreshold2(BulletConstraint constrain, float threshold);
+
+public abstract bool CalculateTransforms2(BulletConstraint constrain);
+
+public abstract bool SetConstraintParam2(BulletConstraint constrain, ConstraintParams paramIndex, float value, ConstraintParamAxis axis);
+
+public abstract bool DestroyConstraint2(BulletWorld world, BulletConstraint constrain);
+
+// =====================================================================================
+// btCollisionWorld entries
+public abstract void UpdateSingleAabb2(BulletWorld world, BulletBody obj);
+
+public abstract void UpdateAabbs2(BulletWorld world);
+
+public abstract bool GetForceUpdateAllAabbs2(BulletWorld world);
+
+public abstract void SetForceUpdateAllAabbs2(BulletWorld world, bool force);
+
+// =====================================================================================
+// btDynamicsWorld entries
+public abstract bool AddObjectToWorld2(BulletWorld world, BulletBody obj);
+
+public abstract bool RemoveObjectFromWorld2(BulletWorld world, BulletBody obj);
+
+public abstract bool AddConstraintToWorld2(BulletWorld world, BulletConstraint constrain, bool disableCollisionsBetweenLinkedObjects);
+
+public abstract bool RemoveConstraintFromWorld2(BulletWorld world, BulletConstraint constrain);
+// =====================================================================================
+// btCollisionObject entries
+public abstract Vector3 GetAnisotripicFriction2(BulletConstraint constrain);
+
+public abstract Vector3 SetAnisotripicFriction2(BulletConstraint constrain, Vector3 frict);
+
+public abstract bool HasAnisotripicFriction2(BulletConstraint constrain);
+
+public abstract void SetContactProcessingThreshold2(BulletBody obj, float val);
+
+public abstract float GetContactProcessingThreshold2(BulletBody obj);
+
+public abstract bool IsStaticObject2(BulletBody obj);
+
+public abstract bool IsKinematicObject2(BulletBody obj);
+
+public abstract bool IsStaticOrKinematicObject2(BulletBody obj);
+
+public abstract bool HasContactResponse2(BulletBody obj);
+
+public abstract void SetCollisionShape2(BulletWorld sim, BulletBody obj, BulletBody shape);
+
+public abstract BulletShape GetCollisionShape2(BulletBody obj);
+
+public abstract int GetActivationState2(BulletBody obj);
+
+public abstract void SetActivationState2(BulletBody obj, int state);
+
+public abstract void SetDeactivationTime2(BulletBody obj, float dtime);
+
+public abstract float GetDeactivationTime2(BulletBody obj);
+
+public abstract void ForceActivationState2(BulletBody obj, ActivationState state);
+
+public abstract void Activate2(BulletBody obj, bool forceActivation);
+
+public abstract bool IsActive2(BulletBody obj);
+
+public abstract void SetRestitution2(BulletBody obj, float val);
+
+public abstract float GetRestitution2(BulletBody obj);
+
+public abstract void SetFriction2(BulletBody obj, float val);
+
+public abstract float GetFriction2(BulletBody obj);
+
+    /* Haven't defined the type 'Transform'
+public abstract Transform GetWorldTransform2(BulletBody obj);
+
+public abstract void setWorldTransform2(BulletBody obj, Transform trans);
+     */
+
+public abstract Vector3 GetPosition2(BulletBody obj);
+
+public abstract Quaternion GetOrientation2(BulletBody obj);
+
+public abstract void SetTranslation2(BulletBody obj, Vector3 position, Quaternion rotation);
+
+public abstract IntPtr GetBroadphaseHandle2(BulletBody obj);
+
+public abstract void SetBroadphaseHandle2(BulletBody obj, IntPtr handle);
+
+    /*
+public abstract Transform GetInterpolationWorldTransform2(IntPtr obj);
+
+public abstract void SetInterpolationWorldTransform2(IntPtr obj, Transform trans);
+     */
+
+public abstract void SetInterpolationLinearVelocity2(BulletBody obj, Vector3 vel);
+
+public abstract void SetInterpolationAngularVelocity2(BulletBody obj, Vector3 vel);
+
+public abstract void SetInterpolationVelocity2(BulletBody obj, Vector3 linearVel, Vector3 angularVel);
+
+public abstract float GetHitFraction2(BulletBody obj);
+
+public abstract void SetHitFraction2(BulletBody obj, float val);
+
+public abstract CollisionFlags GetCollisionFlags2(BulletBody obj);
+
+public abstract CollisionFlags SetCollisionFlags2(BulletBody obj, CollisionFlags flags);
+
+public abstract CollisionFlags AddToCollisionFlags2(BulletBody obj, CollisionFlags flags);
+
+public abstract CollisionFlags RemoveFromCollisionFlags2(BulletBody obj, CollisionFlags flags);
+
+public abstract float GetCcdMotionThreshold2(BulletBody obj);
+
+public abstract void SetCcdMotionThreshold2(BulletBody obj, float val);
+
+public abstract float GetCcdSweptSphereRadius2(BulletBody obj);
+
+public abstract void SetCcdSweptSphereRadius2(BulletBody obj, float val);
+
+public abstract IntPtr GetUserPointer2(BulletBody obj);
+
+public abstract void SetUserPointer2(BulletBody obj, IntPtr val);
+
+// =====================================================================================
+// btRigidBody entries
+public abstract void ApplyGravity2(BulletBody obj);
+
+public abstract void SetGravity2(BulletBody obj, Vector3 val);
+
+public abstract Vector3 GetGravity2(BulletBody obj);
+
+public abstract void SetDamping2(BulletBody obj, float lin_damping, float ang_damping);
+
+public abstract void SetLinearDamping2(BulletBody obj, float lin_damping);
+
+public abstract void SetAngularDamping2(BulletBody obj, float ang_damping);
+
+public abstract float GetLinearDamping2(BulletBody obj);
+
+public abstract float GetAngularDamping2(BulletBody obj);
+
+public abstract float GetLinearSleepingThreshold2(BulletBody obj);
+
+
+public abstract void ApplyDamping2(BulletBody obj, float timeStep);
+
+public abstract void SetMassProps2(BulletBody obj, float mass, Vector3 inertia);
+
+public abstract Vector3 GetLinearFactor2(BulletBody obj);
+
+public abstract void SetLinearFactor2(BulletBody obj, Vector3 factor);
+
+    /*
+public abstract void SetCenterOfMassTransform2(BulletBody obj, Transform trans);
+     */
+
+public abstract void SetCenterOfMassByPosRot2(BulletBody obj, Vector3 pos, Quaternion rot);
+
+// Add a force to the object as if its mass is one.
+public abstract void ApplyCentralForce2(BulletBody obj, Vector3 force);
+
+// Set the force being applied to the object as if its mass is one.
+public abstract void SetObjectForce2(BulletBody obj, Vector3 force);
+
+public abstract Vector3 GetTotalForce2(BulletBody obj);
+
+public abstract Vector3 GetTotalTorque2(BulletBody obj);
+
+public abstract Vector3 GetInvInertiaDiagLocal2(BulletBody obj);
+
+public abstract void SetInvInertiaDiagLocal2(BulletBody obj, Vector3 inert);
+
+public abstract void SetSleepingThresholds2(BulletBody obj, float lin_threshold, float ang_threshold);
+
+public abstract void ApplyTorque2(BulletBody obj, Vector3 torque);
+
+// Apply force at the given point. Will add torque to the object.
+public abstract void ApplyForce2(BulletBody obj, Vector3 force, Vector3 pos);
+
+// Apply impulse to the object. Same as "ApplycentralForce" but force scaled by object's mass.
+public abstract void ApplyCentralImpulse2(BulletBody obj, Vector3 imp);
+
+// Apply impulse to the object's torque. Force is scaled by object's mass.
+public abstract void ApplyTorqueImpulse2(BulletBody obj, Vector3 imp);
+
+// Apply impulse at the point given. For is scaled by object's mass and effects both linear and angular forces.
+public abstract void ApplyImpulse2(BulletBody obj, Vector3 imp, Vector3 pos);
+
+public abstract void ClearForces2(BulletBody obj);
+
+public abstract void ClearAllForces2(BulletBody obj);
+
+public abstract void UpdateInertiaTensor2(BulletBody obj);
+
+
+    /*
+public abstract Transform GetCenterOfMassTransform2(BulletBody obj);
+     */
+
+public abstract Vector3 GetLinearVelocity2(BulletBody obj);
+
+public abstract Vector3 GetAngularVelocity2(BulletBody obj);
+
+public abstract void SetLinearVelocity2(BulletBody obj, Vector3 val);
+
+public abstract void SetAngularVelocity2(BulletBody obj, Vector3 angularVelocity);
+
+public abstract Vector3 GetVelocityInLocalPoint2(BulletBody obj, Vector3 pos);
+
+public abstract void Translate2(BulletBody obj, Vector3 trans);
+
+public abstract void UpdateDeactivation2(BulletBody obj, float timeStep);
+
+public abstract bool WantsSleeping2(BulletBody obj);
+
+public abstract void SetAngularFactor2(BulletBody obj, float factor);
+
+public abstract void SetAngularFactorV2(BulletBody obj, Vector3 factor);
+
+public abstract Vector3 GetAngularFactor2(BulletBody obj);
+
+public abstract bool IsInWorld2(BulletBody obj);
+
+public abstract void AddConstraintRef2(BulletBody obj, BulletConstraint constrain);
+
+public abstract void RemoveConstraintRef2(BulletBody obj, BulletConstraint constrain);
+
+public abstract BulletConstraint GetConstraintRef2(BulletBody obj, int index);
+
+public abstract int GetNumConstraintRefs2(BulletBody obj);
+
+public abstract bool SetCollisionGroupMask2(BulletBody body, uint filter, uint mask);
+
+// =====================================================================================
+// btCollisionShape entries
+
+public abstract float GetAngularMotionDisc2(BulletShape shape);
+
+public abstract float GetContactBreakingThreshold2(BulletShape shape, float defaultFactor);
+
+public abstract bool IsPolyhedral2(BulletShape shape);
+
+public abstract bool IsConvex2d2(BulletShape shape);
+
+public abstract bool IsConvex2(BulletShape shape);
+
+public abstract bool IsNonMoving2(BulletShape shape);
+
+public abstract bool IsConcave2(BulletShape shape);
+
+public abstract bool IsCompound2(BulletShape shape);
+
+public abstract bool IsSoftBody2(BulletShape shape);
+
+public abstract bool IsInfinite2(BulletShape shape);
+
+public abstract void SetLocalScaling2(BulletShape shape, Vector3 scale);
+
+public abstract Vector3 GetLocalScaling2(BulletShape shape);
+
+public abstract Vector3 CalculateLocalInertia2(BulletShape shape, float mass);
+
+public abstract int GetShapeType2(BulletShape shape);
+
+public abstract void SetMargin2(BulletShape shape, float val);
+
+public abstract float GetMargin2(BulletShape shape);
+
+};
+
 // ===============================================================================
 static class BulletSimAPI {
 // ===============================================================================

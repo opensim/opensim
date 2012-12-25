@@ -35,9 +35,9 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 // These hold pointers to allocated objects in the unmanaged space.
 
 // The physics engine controller class created at initialization
-public struct BulletSim
+public struct BulletWorld
 {
-    public BulletSim(uint worldId, BSScene bss, IntPtr xx)
+    public BulletWorld(uint worldId, BSScene bss, IntPtr xx)
     {
         ptr = xx;
         worldID = worldId;

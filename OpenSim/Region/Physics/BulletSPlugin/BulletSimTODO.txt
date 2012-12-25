@@ -146,6 +146,13 @@ Is there are more efficient method of implementing pre and post step actions?
 	See http://www.codeproject.com/Articles/29922/Weak-Events-in-C
 
 Physics Arena central pyramid: why is one side permiable?
+Enforce physical parameter min/max:
+	Gravity: [-1, 28]
+	Friction: [0, 255]
+	Density: [1, 22587]
+	Restitution [0, 1]
+	http://wiki.secondlife.com/wiki/Physics_Material_Settings_test
+Avatar attachments have no mass? http://forums-archive.secondlife.com/54/f0/31796/1.html
 
 INTERNAL IMPROVEMENT/CLEANUP
 =================================================
