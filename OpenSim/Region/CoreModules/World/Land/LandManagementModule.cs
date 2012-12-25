@@ -133,6 +133,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             m_scene.EventManager.OnValidateLandBuy += EventManagerOnValidateLandBuy;
             m_scene.EventManager.OnLandBuy += EventManagerOnLandBuy;
             m_scene.EventManager.OnNewClient += EventManagerOnNewClient;
+            m_scene.EventManager.OnMakeChildAgent += EventMakeChildAgent;
             m_scene.EventManager.OnSignificantClientMovement += EventManagerOnSignificantClientMovement;
             m_scene.EventManager.OnNoticeNoLandDataFromStorage += EventManagerOnNoLandDataFromStorage;
             m_scene.EventManager.OnIncomingLandDataFromStorage += EventManagerOnIncomingLandDataFromStorage;
@@ -216,6 +217,11 @@ namespace OpenSim.Region.CoreModules.World.Land
                 SendLandUpdate((ScenePresence)presenceEntity, true);
                 SendParcelOverlay(client);
             }
+        }
+
+        public void EventMakeChildAgent(ScenePresence avatar)
+        {
+            avatar.currentParcelUUID = UUID.Zero;
         }
 
         void ClientOnPreAgentUpdate(IClientAPI remoteClient, AgentUpdateArgs agentData)
