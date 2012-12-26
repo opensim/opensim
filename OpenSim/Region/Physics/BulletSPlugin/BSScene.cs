@@ -495,6 +495,10 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
         InTaintTime = false; // Only used for debugging so locking is not necessary.
 
+        // The following causes the unmanaged code to output ALL the values found in ALL the objects in the world.
+        // Only enable this in a limited test world with few objects.
+        // BulletSimAPI.DumpAllInfo2(World.ptr);    // DEBUG DEBUG DEBUG
+
         // step the physical world one interval
         m_simulationStep++;
         int numSubSteps = 0;

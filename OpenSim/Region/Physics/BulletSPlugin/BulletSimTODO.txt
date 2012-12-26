@@ -35,6 +35,8 @@ Border crossing with linked vehicle causes crash
 Vehicles (Move smoothly)
 Add vehicle collisions so IsColliding is properly reported.
 	Needed for banking, limitMotorUp, movementLimiting, ...
+VehicleAddForce is not scaled by the simulation step but it is only
+	applied for one step. Should it be scaled?
 Some vehicles should not be able to turn if no speed or off ground.
 Cannot edit/move a vehicle being ridden: it jumps back to the origional position.
 Neb car jiggling left and right
@@ -92,6 +94,8 @@ Should the different PID factors have non-equal contributions for different
 Selecting and deselecting physical objects causes CPU processing time to jump
 	http://www.youtube.com/watch?v=Hjg57fWg8yI&hd=1
 	put thousand physical objects, select and deselect same. CPU time will be large.
+Re-implement buoyancy as a separate force on the object rather than diddling gravity.
+	Register a pre-step event to add the force.
 
 LINKSETS
 ======================================================

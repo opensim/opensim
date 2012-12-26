@@ -1014,7 +1014,9 @@ public sealed class BSPrim : BSPhysObject
     public override float APIDDamping { set { return; } }
 
     public override void AddForce(OMV.Vector3 force, bool pushforce) {
-        AddForce(force, pushforce, false);
+        // Since this force is being applied in only one step, make this a force per second.
+        OMV.Vector3 addForce = force / PhysicsScene.LastTimeStep;
+        AddForce(addForce, pushforce, false);
     }
     // Applying a force just adds this to the total force on the object.
     // This added force will only last the next simulation tick.
@@ -1022,8 +1024,16 @@ public sealed class BSPrim : BSPhysObject
         // for an object, doesn't matter if force is a pushforce or not
         if (force.IsFinite())
         {
+            float magnitude = force.Length();
+            if (magnitude > 20000f)
+            {
+                // Force has a limit
+                force = force / magnitude * 20000f;
+            }
+
             OMV.Vector3 addForce = force;
             DetailLog("{0},BSPrim.addForce,call,force={1}", LocalID, addForce);
+
             PhysicsScene.TaintedObject(inTaintTime, "BSPrim.AddForce", delegate()
             {
                 // Bullet adds this central force to the total force for this tick
