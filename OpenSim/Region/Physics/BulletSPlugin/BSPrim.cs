@@ -422,20 +422,24 @@ public sealed class BSPrim : BSPhysObject
                     BulletSimAPI.RemoveObjectFromWorld2(PhysicsScene.World.ptr, PhysBody.ptr);
                 }
 
-                float grav = PhysicsScene.Params.gravity * (1f - _buoyancy);
-                BulletSimAPI.SetGravity2(PhysBody.ptr, new OMV.Vector3(0f, 0f, grav));
-
                 Inertia = BulletSimAPI.CalculateLocalInertia2(PhysShape.ptr, physMass);
                 BulletSimAPI.SetMassProps2(PhysBody.ptr, physMass, Inertia);
                 BulletSimAPI.UpdateInertiaTensor2(PhysBody.ptr);
+
                 // center of mass is at the zero of the object
                 // DEBUG DEBUG BulletSimAPI.SetCenterOfMassByPosRot2(PhysBody.ptr, ForcePosition, ForceOrientation);
-                DetailLog("{0},BSPrim.UpdateMassProperties,mass={1},localInertia={2}", LocalID, physMass, Inertia);
+                DetailLog("{0},BSPrim.UpdateMassProperties,mass={1},localInertia={2},inWorld={3}", LocalID, physMass, Inertia, inWorld);
 
                 if (inWorld)
                 {
                     BulletSimAPI.AddObjectToWorld2(PhysicsScene.World.ptr, PhysBody.ptr);
                 }
+
+                // Must set gravity after it has been added to the world because, for unknown reasons,
+                //     adding the object resets the object's gravity to world gravity
+                OMV.Vector3 grav = PhysicsScene.DefaultGravity * (1f - Buoyancy);
+                BulletSimAPI.SetGravity2(PhysBody.ptr, grav);
+
             }
         }
     }

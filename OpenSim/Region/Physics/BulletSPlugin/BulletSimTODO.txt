@@ -58,7 +58,6 @@ Incorporate inter-relationship of angular corrections. For instance, angularDefl
 
 BULLETSIM TODO LIST:
 =================================================
-In SL, perfect spheres don't seem to have rolling friction. Add special case.
 Avatar density is WAY off. Compare and calibrate with what's in SL.
 Revisit CollisionMargin. Builders notice the 0.04 spacing between prims.
 Duplicating a physical prim causes old prim to jump away
@@ -146,6 +145,8 @@ Is there are more efficient method of implementing pre and post step actions?
 	See http://www.codeproject.com/Articles/29922/Weak-Events-in-C
 
 Physics Arena central pyramid: why is one side permiable?
+
+In SL, perfect spheres don't seem to have rolling friction. Add special case.
 Enforce physical parameter min/max:
 	Gravity: [-1, 28]
 	Friction: [0, 255]
