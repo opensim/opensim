@@ -260,7 +260,6 @@ public sealed class BSCharacter : BSPhysObject
     public override void ZeroMotion(bool inTaintTime)
     {
         _velocity = OMV.Vector3.Zero;
-        _velocityMotor.Zero();
         _acceleration = OMV.Vector3.Zero;
         _rotationalVelocity = OMV.Vector3.Zero;
 
@@ -772,9 +771,9 @@ public sealed class BSCharacter : BSPhysObject
             //     the motor can be turned off. Set the velocity to zero so the zero motion is sent to the viewer.
             if (_velocityMotor.TargetValue.ApproxEquals(OMV.Vector3.Zero, 0.01f) && _velocityMotor.ErrorIsZero)
             {
-                _velocityMotor.Enabled = false;
-                stepVelocity = OMV.Vector3.Zero;
                 ZeroMotion(true);
+                stepVelocity = OMV.Vector3.Zero;
+                _velocityMotor.Enabled = false;
                 DetailLog("{0},BSCharacter.UpdateProperties,taint,disableVelocityMotor,m={1}", LocalID, _velocityMotor);
             }
 
