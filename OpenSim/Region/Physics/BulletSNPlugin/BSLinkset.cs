@@ -30,7 +30,7 @@ using System.Text;
 
 using OMV = OpenMetaverse;
 
-namespace OpenSim.Region.Physics.BulletSPlugin
+namespace OpenSim.Region.Physics.BulletSNPlugin
 {
 
 // A BSPrim can get individual information about its linkedness attached
@@ -97,7 +97,14 @@ public abstract class BSLinkset
     }
 
     // We keep the prim's mass in the linkset structure since it could be dependent on other prims
-    public float LinksetMass { get; protected set; }
+    protected float m_mass;
+    public float LinksetMass
+    {
+        get
+        {
+            return m_mass;
+        }
+    }
 
     public virtual bool LinksetIsColliding { get { return false; } }
 
@@ -121,7 +128,7 @@ public abstract class BSLinkset
         PhysicsScene = scene;
         LinksetRoot = parent;
         m_children = new HashSet<BSPhysObject>();
-        LinksetMass = parent.RawMass;
+        m_mass = parent.RawMass;
         Rebuilding = false;
     }
 
@@ -136,7 +143,7 @@ public abstract class BSLinkset
             // Don't add the root to its own linkset
             if (!IsRoot(child))
                 AddChildToLinkset(child);
-            LinksetMass = ComputeLinksetMass();
+            m_mass = ComputeLinksetMass();
         }
         return this;
     }
@@ -155,7 +162,7 @@ public abstract class BSLinkset
                 return this;
             }
             RemoveChildFromLinkset(child);
-            LinksetMass = ComputeLinksetMass();
+            m_mass = ComputeLinksetMass();
         }
 
         // The child is down to a linkset of just itself
@@ -223,10 +230,7 @@ public abstract class BSLinkset
     // When physical properties are changed the linkset needs to recalculate
     //   its internal properties.
     // May be called at runtime or taint-time.
-    public virtual void Refresh(BSPhysObject requestor)
-    {
-        LinksetMass = ComputeLinksetMass();
-    }
+    public abstract void Refresh(BSPhysObject requestor);
 
     // Flag denoting the linkset is in the process of being rebuilt.
     // Used to know not the schedule a rebuild in the middle of a rebuild.

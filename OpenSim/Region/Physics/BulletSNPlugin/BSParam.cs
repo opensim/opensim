@@ -33,7 +33,7 @@ using OpenSim.Region.Physics.Manager;
 using OpenMetaverse;
 using Nini.Config;
 
-namespace OpenSim.Region.Physics.BulletSPlugin
+namespace OpenSim.Region.Physics.BulletSNPlugin
 {
 public static class BSParam
 {
@@ -315,7 +315,7 @@ public static class BSParam
             (s,o,v) => { BulletSimAPI.SetContactProcessingThreshold2(o.PhysBody.ptr, v); } ),
 
 	    new ParameterDefn("TerrainImplementation", "Type of shape to use for terrain (0=heightmap, 1=mesh)",
-            (float)BSTerrainPhys.TerrainImplementation.Mesh,
+            (float)BSTerrainPhys.TerrainImplementation.Heightmap,
             (s,cf,p,v) => { TerrainImplementation = cf.GetFloat(p,v); },
             (s) => { return TerrainImplementation; },
             (s,p,l,v) => { TerrainImplementation = v; } ),
@@ -351,7 +351,7 @@ public static class BSParam
             (s) => { return AvatarStandingFriction; },
             (s,p,l,v) => { AvatarStandingFriction = v; } ),
         new ParameterDefn("AvatarDensity", "Density of an avatar. Changed on avatar recreation.",
-            3.5f,
+            60f,
             (s,cf,p,v) => { AvatarDensity = cf.GetFloat(p, v); },
             (s) => { return AvatarDensity; },
             (s,p,l,v) => { s.UpdateParameterObject((x)=>{AvatarDensity=x;}, p, l, v); } ),

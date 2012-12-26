@@ -1,11 +1,17 @@
 CURRENT PRIORITIES
 =================================================
-Smooth avatar movement with motor
-	Should motor update be all at taint-time?
+Smooth avatar movement with motor (DONE)
+	Should motor update be all at taint-time? (Yes, DONE)
+	Fix avatar slowly sliding when standing (zero motion when stopped)
+llApplyImpulse()
+	Compare mass/movement in OS and SL. Calibrate actions.
+llSetBuoyancy()
+Boats float low in the water
 Enable vehicle border crossings (at least as poorly as ODE)
 	Terrain skirts
 	Avatar created in previous region and not new region when crossing border
 	Vehicle recreated in new sim at small Z value (offset from root value?) (DONE)
+Add material densities to the material types.
 Vehicle movement on terrain smoothness
 Vehicle script tuning/debugging
 	Avanti speed script
@@ -52,6 +58,8 @@ Incorporate inter-relationship of angular corrections. For instance, angularDefl
 
 BULLETSIM TODO LIST:
 =================================================
+In SL, perfect spheres don't seem to have rolling friction. Add special case.
+Avatar density is WAY off. Compare and calibrate with what's in SL.
 Revisit CollisionMargin. Builders notice the 0.04 spacing between prims.
 Duplicating a physical prim causes old prim to jump away
 	Dup a phys prim and the original become unselected and thus interacts w/ selected prim.
@@ -82,6 +90,9 @@ Linkset.Position and Linkset.Orientation requre rewrite to properly return
 Implement LockAngularMotion -- implements llSetStatus(ROTATE_AXIS_*, T/F)
 Should the different PID factors have non-equal contributions for different
 	values of Efficiency?
+Selecting and deselecting physical objects causes CPU processing time to jump
+	http://www.youtube.com/watch?v=Hjg57fWg8yI&hd=1
+	put thousand physical objects, select and deselect same. CPU time will be large.
 
 LINKSETS
 ======================================================
@@ -135,6 +146,13 @@ Is there are more efficient method of implementing pre and post step actions?
 	See http://www.codeproject.com/Articles/29922/Weak-Events-in-C
 
 Physics Arena central pyramid: why is one side permiable?
+Enforce physical parameter min/max:
+	Gravity: [-1, 28]
+	Friction: [0, 255]
+	Density: [1, 22587]
+	Restitution [0, 1]
+	http://wiki.secondlife.com/wiki/Physics_Material_Settings_test
+Avatar attachments have no mass? http://forums-archive.secondlife.com/54/f0/31796/1.html
 
 INTERNAL IMPROVEMENT/CLEANUP
 =================================================

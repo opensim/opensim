@@ -32,7 +32,7 @@ using OMV = OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
 
-namespace OpenSim.Region.Physics.BulletSPlugin
+namespace OpenSim.Region.Physics.BulletSNPlugin
 {
 /*
  * Class to wrap all objects.
@@ -96,8 +96,7 @@ public abstract class BSPhysObject : PhysicsActor
     // Return the object mass without calculating it or having side effects
     public abstract float RawMass { get; }
     // Set the raw mass but also update physical mass properties (inertia, ...)
-    // 'inWorld' true if the object has already been added to the dynamic world.
-    public abstract void UpdatePhysicalMassProperties(float mass, bool inWorld);
+    public abstract void UpdatePhysicalMassProperties(float mass);
 
     // The last value calculated for the prim's inertia
     public OMV.Vector3 Inertia { get; set; }

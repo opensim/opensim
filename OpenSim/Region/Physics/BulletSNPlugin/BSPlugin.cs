@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -26,32 +26,56 @@
  */
 using System;
 using System.Collections.Generic;
-using System.Text;
+using OpenSim.Framework;
+using OpenSim.Region.Physics.Manager;
 using OpenMetaverse;
 
-namespace OpenSim.Region.Physics.BulletSPlugin
+namespace OpenSim.Region.Physics.BulletSNPlugin
 {
-
-public sealed class BSConstraintHinge : BSConstraint
+    /// <summary>
+    /// Entry for a port of Bullet (http://bulletphysics.org/) to OpenSim.
+    /// This module interfaces to an unmanaged C++ library which makes the
+    /// actual calls into the Bullet physics engine.
+    /// The unmanaged library is found in opensim-libs::trunk/unmanaged/BulletSim/.
+    /// The unmanaged library is compiled and linked statically with Bullet
+    /// to create BulletSim.dll and libBulletSim.so (for both 32 and 64 bit).
+    /// </summary>
+public class BSPlugin : IPhysicsPlugin
 {
-    public override ConstraintType Type { get { return ConstraintType.HINGE_CONSTRAINT_TYPE; } }
+    //private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-    public BSConstraintHinge(BulletWorld world, BulletBody obj1, BulletBody obj2,
-                    Vector3 pivotInA, Vector3 pivotInB,
-                    Vector3 axisInA, Vector3 axisInB,
-                    bool useLinearReferenceFrameA, bool disableCollisionsBetweenLinkedBodies)
+    private BSScene _mScene;
+
+    public BSPlugin()
     {
-        m_world = world;
-        m_body1 = obj1;
-        m_body2 = obj2;
-        m_constraint = new BulletConstraint(
-                            BulletSimAPI.CreateHingeConstraint2(m_world.ptr, m_body1.ptr, m_body2.ptr,
-                                pivotInA, pivotInB,
-                                axisInA, axisInB,
-                                useLinearReferenceFrameA, disableCollisionsBetweenLinkedBodies));
-        m_enabled = true;
     }
 
-}
+    public bool Init()
+    {
+        return true;
+    }
 
+    public PhysicsScene GetScene(String sceneIdentifier)
+    {
+        if (_mScene == null)
+        {
+           
+            // If not Windows, loading is performed by the
+            // Mono loader as specified in
+            // "bin/Physics/OpenSim.Region.Physics.BulletSNPlugin.dll.config".
+
+            _mScene = new BSScene(sceneIdentifier);
+        }
+        return (_mScene);
+    }
+
+    public string GetName()
+    {
+        return ("BulletSimN");
+    }
+
+    public void Dispose()
+    {
+    }
+}
 }

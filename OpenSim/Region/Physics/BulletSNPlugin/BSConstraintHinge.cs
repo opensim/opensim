@@ -29,14 +29,14 @@ using System.Collections.Generic;
 using System.Text;
 using OpenMetaverse;
 
-namespace OpenSim.Region.Physics.BulletSPlugin
+namespace OpenSim.Region.Physics.BulletSNPlugin
 {
 
 public sealed class BSConstraintHinge : BSConstraint
 {
     public override ConstraintType Type { get { return ConstraintType.HINGE_CONSTRAINT_TYPE; } }
 
-    public BSConstraintHinge(BulletWorld world, BulletBody obj1, BulletBody obj2,
+    public BSConstraintHinge(BulletSim world, BulletBody obj1, BulletBody obj2,
                     Vector3 pivotInA, Vector3 pivotInB,
                     Vector3 axisInA, Vector3 axisInB,
                     bool useLinearReferenceFrameA, bool disableCollisionsBetweenLinkedBodies)

@@ -30,7 +30,7 @@ using System.Text;
 
 using OMV = OpenMetaverse;
 
-namespace OpenSim.Region.Physics.BulletSPlugin
+namespace OpenSim.Region.Physics.BulletSNPlugin
 {
 public sealed class BSLinksetConstraints : BSLinkset
 {
@@ -46,8 +46,6 @@ public sealed class BSLinksetConstraints : BSLinkset
     //   refresh will happen once after all the other taints are applied.
     public override void Refresh(BSPhysObject requestor)
     {
-        base.Refresh(requestor);
-
         // Queue to happen after all the other taint processing
         PhysicsScene.PostTaintObject("BSLinksetContraints.Refresh", requestor.LocalID, delegate()
             {
@@ -95,7 +93,7 @@ public sealed class BSLinksetConstraints : BSLinkset
         bool ret = false;
 
         DetailLog("{0},BSLinksetConstraint.RemoveBodyDependencies,removeChildrenForRoot,rID={1},rBody={2}",
-                                    child.LocalID, LinksetRoot.LocalID, LinksetRoot.PhysBody.ptr.ToString("X"));
+                                    child.LocalID, LinksetRoot.LocalID, LinksetRoot.PhysBody.ptr.ToString());
 
         lock (m_linksetActivityLock)
         {
@@ -144,8 +142,8 @@ public sealed class BSLinksetConstraints : BSLinkset
 
             DetailLog("{0},BSLinksetConstraints.RemoveChildFromLinkset,call,rID={1},rBody={2},cID={3},cBody={4}",
                             childx.LocalID,
-                            rootx.LocalID, rootx.PhysBody.ptr.ToString("X"),
-                            childx.LocalID, childx.PhysBody.ptr.ToString("X"));
+                            rootx.LocalID, rootx.PhysBody.ptr.ToString(),
+                            childx.LocalID, childx.PhysBody.ptr.ToString());
 
             PhysicsScene.TaintedObject("BSLinksetConstraints.RemoveChildFromLinkset", delegate()
             {
@@ -184,8 +182,8 @@ public sealed class BSLinksetConstraints : BSLinkset
 
         DetailLog("{0},BSLinksetConstraint.BuildConstraint,taint,root={1},rBody={2},child={3},cBody={4},rLoc={5},cLoc={6},midLoc={7}",
                                         rootPrim.LocalID,
-                                        rootPrim.LocalID, rootPrim.PhysBody.ptr.ToString("X"),
-                                        childPrim.LocalID, childPrim.PhysBody.ptr.ToString("X"),
+                                        rootPrim.LocalID, rootPrim.PhysBody.ptr.ToString(),
+                                        childPrim.LocalID, childPrim.PhysBody.ptr.ToString(),
                                         rootPrim.Position, childPrim.Position, midPoint);
 
         // create a constraint that allows no freedom of movement between the two objects
@@ -249,8 +247,8 @@ public sealed class BSLinksetConstraints : BSLinkset
         bool ret = false;
         DetailLog("{0},BSLinksetConstraint.PhysicallyUnlinkAChildFromRoot,taint,root={1},rBody={2},child={3},cBody={4}",
                             rootPrim.LocalID,
-                            rootPrim.LocalID, rootPrim.PhysBody.ptr.ToString("X"),
-                            childPrim.LocalID, childPrim.PhysBody.ptr.ToString("X"));
+                            rootPrim.LocalID, rootPrim.PhysBody.ptr.ToString(),
+                            childPrim.LocalID, childPrim.PhysBody.ptr.ToString());
 
         // Find the constraint for this link and get rid of it from the overall collection and from my list
         if (PhysicsScene.Constraints.RemoveAndDestroyConstraint(rootPrim.PhysBody, childPrim.PhysBody))
@@ -281,20 +279,20 @@ public sealed class BSLinksetConstraints : BSLinkset
     private void RecomputeLinksetConstraints()
     {
         float linksetMass = LinksetMass;
-        LinksetRoot.UpdatePhysicalMassProperties(linksetMass, true);
+        LinksetRoot.UpdatePhysicalMassProperties(linksetMass);
 
         // DEBUG: see of inter-linkset collisions are causing problems
         // BulletSimAPI.SetCollisionFilterMask2(LinksetRoot.BSBody.ptr, 
         //                     (uint)CollisionFilterGroups.LinksetFilter, (uint)CollisionFilterGroups.LinksetMask);
         DetailLog("{0},BSLinksetConstraint.RecomputeLinksetConstraints,set,rBody={1},linksetMass={2}",
-                            LinksetRoot.LocalID, LinksetRoot.PhysBody.ptr.ToString("X"), linksetMass);
+                            LinksetRoot.LocalID, LinksetRoot.PhysBody.ptr.ToString(), linksetMass);
 
         foreach (BSPhysObject child in m_children)
         {
             // A child in the linkset physically shows the mass of the whole linkset.
             // This allows Bullet to apply enough force on the child to move the whole linkset.
             // (Also do the mass stuff before recomputing the constraint so mass is not zero.)
-            child.UpdatePhysicalMassProperties(linksetMass, true);
+            child.UpdatePhysicalMassProperties(linksetMass);
 
             BSConstraint constrain;
             if (!PhysicsScene.Constraints.TryGetConstraint(LinksetRoot.PhysBody, child.PhysBody, out constrain))

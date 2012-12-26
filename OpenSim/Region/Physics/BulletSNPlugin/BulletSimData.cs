@@ -29,21 +29,21 @@ using System.Collections.Generic;
 using System.Text;
 using OMV = OpenMetaverse;
 
-namespace OpenSim.Region.Physics.BulletSPlugin
+namespace OpenSim.Region.Physics.BulletSNPlugin
 {
 // Classes to allow some type checking for the API
 // These hold pointers to allocated objects in the unmanaged space.
 
 // The physics engine controller class created at initialization
-public struct BulletWorld
+public struct BulletSim
 {
-    public BulletWorld(uint worldId, BSScene bss, IntPtr xx)
+    public BulletSim(uint worldId, BSScene bss, object xx)
     {
         ptr = xx;
         worldID = worldId;
         physicsScene = bss;
     }
-    public IntPtr ptr;
+    public object ptr;
     public uint worldID;
     // The scene is only in here so very low level routines have a handle to print debug/error messages
     public BSScene physicsScene;
@@ -52,24 +52,24 @@ public struct BulletWorld
 // An allocated Bullet btRigidBody
 public struct BulletBody
 {
-    public BulletBody(uint id) : this(id, IntPtr.Zero)
+    public BulletBody(uint id) : this(id, null)
     {
     }
-    public BulletBody(uint id, IntPtr xx)
+    public BulletBody(uint id, object xx)
     {
         ID = id;
         ptr = xx;
         collisionType = CollisionType.Static;
     }
-    public IntPtr ptr;
+    public object ptr;
     public uint ID;
     public CollisionType collisionType;
 
     public void Clear()
     {
-        ptr = IntPtr.Zero;
+        ptr = null;
     }
-    public bool HasPhysicalBody { get { return ptr != IntPtr.Zero; } }
+    public bool HasPhysicalBody { get { return ptr != null; } }
 
     // Apply the specificed collision mask into the physical world
     public void ApplyCollisionMask()
@@ -88,7 +88,7 @@ public struct BulletBody
         buff.Append("<id=");
         buff.Append(ID.ToString());
         buff.Append(",p=");
-        buff.Append(ptr.ToString("X"));
+        buff.Append(ptr.ToString());
         buff.Append(",c=");
         buff.Append(collisionType);
         buff.Append(">");
@@ -98,32 +98,32 @@ public struct BulletBody
 
 public struct BulletShape
 {
-    public BulletShape(IntPtr xx) : this(xx, BSPhysicsShapeType.SHAPE_UNKNOWN)
+    public BulletShape(object xx) : this(xx, BSPhysicsShapeType.SHAPE_UNKNOWN)
     {
     }
-    public BulletShape(IntPtr xx, BSPhysicsShapeType typ)
+    public BulletShape(object xx, BSPhysicsShapeType typ)
     {
         ptr = xx;
         type = typ;
         shapeKey = (System.UInt64)FixedShapeKey.KEY_NONE;
         isNativeShape = false;
     }
-    public IntPtr ptr;
+    public object ptr;
     public BSPhysicsShapeType type;
     public System.UInt64 shapeKey;
     public bool isNativeShape;
 
     public void Clear()
     {
-        ptr = IntPtr.Zero;
+        ptr = null;
     }
-    public bool HasPhysicalShape { get { return ptr != IntPtr.Zero; } }
+    public bool HasPhysicalShape { get { return ptr != null; } }
 
     public override string ToString()
     {
         StringBuilder buff = new StringBuilder();
         buff.Append("<p=");
-        buff.Append(ptr.ToString("X"));
+        buff.Append(ptr.ToString());
         buff.Append(",s=");
         buff.Append(type.ToString());
         buff.Append(",k=");
@@ -138,17 +138,17 @@ public struct BulletShape
 // An allocated Bullet btConstraint
 public struct BulletConstraint
 {
-    public BulletConstraint(IntPtr xx)
+    public BulletConstraint(object xx)
     {
         ptr = xx;
     }
-    public IntPtr ptr;
+    public object ptr;
 
     public void Clear()
     {
-        ptr = IntPtr.Zero;
+        ptr = null;
     }
-    public bool HasPhysicalConstraint { get { return ptr != IntPtr.Zero; } }
+    public bool HasPhysicalConstraint { get { return ptr != null; } }
 }
 
 // An allocated HeightMapThing which holds various heightmap info.
@@ -157,7 +157,7 @@ public struct BulletConstraint
 //      than making copies.
 public class BulletHeightMapInfo
 {
-    public BulletHeightMapInfo(uint id, float[] hm, IntPtr xx) {
+    public BulletHeightMapInfo(uint id, float[] hm, object xx) {
         ID = id;
         Ptr = xx;
         heightMap = hm;
@@ -168,7 +168,7 @@ public class BulletHeightMapInfo
         sizeX = sizeY = 256f;
     }
     public uint ID;
-    public IntPtr Ptr;
+    public object Ptr;
     public float[] heightMap;
     public OMV.Vector3 terrainRegionBase;
     public OMV.Vector3 minCoords;
@@ -177,6 +177,8 @@ public class BulletHeightMapInfo
     public float minZ, maxZ;
     public BulletShape terrainShape;
     public BulletBody terrainBody;
+
+    public float collisionMargin { get; set; }
 }
 
 // The general class of collsion object.

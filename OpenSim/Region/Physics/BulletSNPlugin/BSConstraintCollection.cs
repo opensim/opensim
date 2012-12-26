@@ -30,7 +30,7 @@ using System.Text;
 using log4net;
 using OpenMetaverse;
 
-namespace OpenSim.Region.Physics.BulletSPlugin
+namespace OpenSim.Region.Physics.BulletSNPlugin
 {
 
 public sealed class BSConstraintCollection : IDisposable
@@ -41,9 +41,9 @@ public sealed class BSConstraintCollection : IDisposable
     delegate bool ConstraintAction(BSConstraint constrain);
 
     private List<BSConstraint> m_constraints;
-    private BulletWorld m_world;
+    private BulletSim m_world;
 
-    public BSConstraintCollection(BulletWorld world)
+    public BSConstraintCollection(BulletSim world)
     {
         m_world = world;
         m_constraints = new List<BSConstraint>();

@@ -206,12 +206,13 @@
     ;; Choose one of the physics engines below
     ;# {physics} {} {Select physics engine} {OpenDynamicsEngine BulletSim basicphysics POS} OpenDynamicsEngine
     ;; OpenDynamicsEngine is by some distance the most developed physics engine
-    ;; BulletSim is incomplete and experimental but in active development
+    ;; BulletSim is incomplete and experimental but in active development.  BulletSimN is a purely C# version of BulletSim.
     ;; basicphysics effectively does not model physics at all, making all
-    ;; objects phantom
+    ;; objects phantom.   
     ;; Default is OpenDynamicsEngine
     ; physics = OpenDynamicsEngine
     ; physics = BulletSim
+    ; physics = BulletSimN
     ; physics = basicphysics
     ; physics = POS
 

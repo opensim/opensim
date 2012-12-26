@@ -47,7 +47,7 @@ using OpenMetaverse;
 // Check terrain size. 128 or 127?
 // Raycast
 //
-namespace OpenSim.Region.Physics.BulletSPlugin
+namespace OpenSim.Region.Physics.BulletSNPlugin
 {
 public sealed class BSScene : PhysicsScene, IPhysicsParameters
 {
@@ -74,7 +74,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
     public IMesher mesher;
     public uint WorldID { get; private set; }
-    public BulletWorld World { get; private set; }
+    public BulletSim World { get; private set; }
 
     // All the constraints that have been allocated in this instance.
     public BSConstraintCollection Constraints { get; private set; }
@@ -106,12 +106,13 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
     // Pinned memory used to pass step information between managed and unmanaged
     internal int m_maxCollisionsPerFrame;
-    internal CollisionDesc[] m_collisionArray;
-    internal GCHandle m_collisionArrayPinnedHandle;
+    private List<BulletXNA.CollisionDesc> m_collisionArray;
+    //private GCHandle m_collisionArrayPinnedHandle;
 
     internal int m_maxUpdatesPerFrame;
-    internal EntityProperties[] m_updateArray;
-    internal GCHandle m_updateArrayPinnedHandle;
+    private List<BulletXNA.EntityProperties> m_updateArray;
+    //private GCHandle m_updateArrayPinnedHandle;
+
 
     public const uint TERRAIN_ID = 0;       // OpenSim senses terrain with a localID of zero
     public const uint GROUNDPLANE_ID = 1;
@@ -157,7 +158,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     // A pointer to an instance if this structure is passed to the C++ code
     // Used to pass basic configuration values to the unmanaged code.
     internal ConfigurationParameters[] UnmanagedParams;
-    GCHandle m_paramsHandle;
+    //GCHandle m_paramsHandle;
 
     // Handle to the callback used by the unmanaged code to call into the managed code.
     // Used for debug logging.
@@ -194,16 +195,16 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
         // Allocate pinned memory to pass parameters.
         UnmanagedParams = new ConfigurationParameters[1];
-        m_paramsHandle = GCHandle.Alloc(UnmanagedParams, GCHandleType.Pinned);
+        //m_paramsHandle = GCHandle.Alloc(UnmanagedParams, GCHandleType.Pinned);
 
         // Set default values for physics parameters plus any overrides from the ini file
         GetInitialParameterValues(config);
 
         // allocate more pinned memory close to the above in an attempt to get the memory all together
-        m_collisionArray = new CollisionDesc[m_maxCollisionsPerFrame];
-        m_collisionArrayPinnedHandle = GCHandle.Alloc(m_collisionArray, GCHandleType.Pinned);
-        m_updateArray = new EntityProperties[m_maxUpdatesPerFrame];
-        m_updateArrayPinnedHandle = GCHandle.Alloc(m_updateArray, GCHandleType.Pinned);
+        m_collisionArray = new List<BulletXNA.CollisionDesc>();
+        //m_collisionArrayPinnedHandle = GCHandle.Alloc(m_collisionArray, GCHandleType.Pinned);
+        m_updateArray = new List<BulletXNA.EntityProperties>();
+        //m_updateArrayPinnedHandle = GCHandle.Alloc(m_updateArray, GCHandleType.Pinned);
 
         // Enable very detailed logging.
         // By creating an empty logger when not logging, the log message invocation code
@@ -242,9 +243,10 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         Vector3 worldExtent = new Vector3(Constants.RegionSize, Constants.RegionSize, Constants.RegionHeight);
 
         // m_log.DebugFormat("{0}: Initialize: Calling BulletSimAPI.Initialize.", LogHeader);
-        World = new BulletWorld(0, this, BulletSimAPI.Initialize2(worldExtent, m_paramsHandle.AddrOfPinnedObject(),
-                                        m_maxCollisionsPerFrame, m_collisionArrayPinnedHandle.AddrOfPinnedObject(),
-                                        m_maxUpdatesPerFrame, m_updateArrayPinnedHandle.AddrOfPinnedObject(),
+
+        World = new BulletSim(0, this, BulletSimAPI.Initialize2(worldExtent, UnmanagedParams,
+                                        m_maxCollisionsPerFrame, ref m_collisionArray,
+                                        m_maxUpdatesPerFrame,ref m_updateArray,
                                         m_DebugLogCallbackHandle));
 
         Constraints = new BSConstraintCollection(World);
@@ -473,9 +475,9 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         LastTimeStep = timeStep;
 
         int updatedEntityCount = 0;
-        IntPtr updatedEntitiesPtr;
+        //Object updatedEntitiesPtr;
         int collidersCount = 0;
-        IntPtr collidersPtr;
+        //Object collidersPtr;
 
         int beforeTime = 0;
         int simTime = 0;
@@ -501,10 +503,11 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
         try
         {
+            //if (VehicleLoggingEnabled) DumpVehicles();  // DEBUG
             if (PhysicsLogging.Enabled) beforeTime = Util.EnvironmentTickCount();
 
             numSubSteps = BulletSimAPI.PhysicsStep2(World.ptr, timeStep, m_maxSubSteps, m_fixedTimeStep,
-                        out updatedEntityCount, out updatedEntitiesPtr, out collidersCount, out collidersPtr);
+                        out updatedEntityCount, out m_updateArray, out collidersCount, out m_collisionArray);
 
             if (PhysicsLogging.Enabled) simTime = Util.EnvironmentTickCountSubtract(beforeTime);
             DetailLog("{0},Simulate,call, frame={1}, nTaints={2}, simTime={3}, substeps={4}, updates={5}, colliders={6}, objWColl={7}",
@@ -534,8 +537,10 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             {
                 uint cA = m_collisionArray[ii].aID;
                 uint cB = m_collisionArray[ii].bID;
-                Vector3 point = m_collisionArray[ii].point;
-                Vector3 normal = m_collisionArray[ii].normal;
+                Vector3 point = new Vector3(m_collisionArray[ii].point.X, m_collisionArray[ii].point.Y,
+                                            m_collisionArray[ii].point.Z);
+                Vector3 normal = new Vector3(m_collisionArray[ii].normal.X, m_collisionArray[ii].normal.Y,
+                                            m_collisionArray[ii].normal.Z); 
                 SendCollision(cA, cB, point, normal, 0.01f);
                 SendCollision(cB, cA, point, -normal, 0.01f);
             }
@@ -579,11 +584,22 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         {
             for (int ii = 0; ii < updatedEntityCount; ii++)
             {
-                EntityProperties entprop = m_updateArray[ii];
+
+                BulletXNA.EntityProperties entprop = m_updateArray[ii];
                 BSPhysObject pobj;
                 if (PhysObjects.TryGetValue(entprop.ID, out pobj))
                 {
-                    pobj.UpdateProperties(entprop);
+                    EntityProperties prop = new EntityProperties()
+                                                {
+                                                    Acceleration = new Vector3(entprop.Acceleration.X, entprop.Acceleration.Y, entprop.Acceleration.Z),
+                                                    ID = entprop.ID,
+                                                    Position = new Vector3(entprop.Position.X,entprop.Position.Y,entprop.Position.Z),
+                                                    Rotation = new Quaternion(entprop.Rotation.X,entprop.Rotation.Y,entprop.Rotation.Z,entprop.Rotation.W),
+                                                    RotationalVelocity = new Vector3(entprop.AngularVelocity.X,entprop.AngularVelocity.Y,entprop.AngularVelocity.Z),
+                                                    Velocity = new Vector3(entprop.Velocity.X,entprop.Velocity.Y,entprop.Velocity.Z)
+                                                };
+                    //m_log.Debug(pobj.Name + ":" + prop.ToString() + "\n");
+                    pobj.UpdateProperties(prop);
                 }
             }
         }
@@ -817,7 +833,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         {
             DetailLog("{0},BSScene.AssertInTaintTime,NOT IN TAINT TIME,Region={1},Where={2}", DetailLogZero, RegionName, whereFrom);
             m_log.ErrorFormat("{0} NOT IN TAINT TIME!! Region={1}, Where={2}", LogHeader, RegionName, whereFrom);
-            Util.PrintCallStack(DetailLog);
+            Util.PrintCallStack();  // Prints the stack into the DEBUG log file.
         }
         return InTaintTime;
     }

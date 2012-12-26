@@ -32,7 +32,7 @@ using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
 using OpenSim.Region.Physics.ConvexDecompositionDotNet;
 
-namespace OpenSim.Region.Physics.BulletSPlugin
+namespace OpenSim.Region.Physics.BulletSNPlugin
 {
 public sealed class BSShapeCollection : IDisposable
 {
@@ -45,7 +45,7 @@ public sealed class BSShapeCollection : IDisposable
     // Description of a Mesh
     private struct MeshDesc
     {
-        public IntPtr ptr;
+        public Object ptr;
         public int referenceCount;
         public DateTime lastReferenced;
         public UInt64 shapeKey;
@@ -55,7 +55,7 @@ public sealed class BSShapeCollection : IDisposable
     // Meshes and hulls have the same shape hash key but we only need hulls for efficient collision calculations.
     private struct HullDesc
     {
-        public IntPtr ptr;
+        public Object ptr;
         public int referenceCount;
         public DateTime lastReferenced;
         public UInt64 shapeKey;
@@ -98,7 +98,7 @@ public sealed class BSShapeCollection : IDisposable
     //    higher level dependencies on the shape or body. Mostly used for LinkSets to
     //    remove the physical constraints before the body is destroyed.
     // Called at taint-time!!
-    public bool GetBodyAndShape(bool forceRebuild, BulletWorld sim, BSPhysObject prim,
+    public bool GetBodyAndShape(bool forceRebuild, BulletSim sim, BSPhysObject prim,
                     ShapeDestructionCallback shapeCallback, BodyDestructionCallback bodyCallback)
     {
         PhysicsScene.AssertInTaintTime("BSShapeCollection.GetBodyAndShape");
@@ -126,7 +126,7 @@ public sealed class BSShapeCollection : IDisposable
         return ret;
     }
 
-    public bool GetBodyAndShape(bool forceRebuild, BulletWorld sim, BSPhysObject prim)
+    public bool GetBodyAndShape(bool forceRebuild, BulletSim sim, BSPhysObject prim)
     {
         return GetBodyAndShape(forceRebuild, sim, prim, null, null);
     }
@@ -141,7 +141,7 @@ public sealed class BSShapeCollection : IDisposable
             if (DDetail) DetailLog("{0},BSShapeCollection.ReferenceBody,newBody,body={1}", body.ID, body);
             PhysicsScene.TaintedObject(inTaintTime, "BSShapeCollection.ReferenceBody", delegate()
             {
-                if (!BulletSimAPI.IsInWorld2(body.ptr))
+                if (!BulletSimAPI.IsInWorld2(PhysicsScene.World.ptr, body.ptr))
                 {
                     BulletSimAPI.AddObjectToWorld2(PhysicsScene.World.ptr, body.ptr);
                     if (DDetail) DetailLog("{0},BSShapeCollection.ReferenceBody,addedToWorld,ref={1}", body.ID, body);
@@ -166,14 +166,14 @@ public sealed class BSShapeCollection : IDisposable
                 // If the caller needs to know the old body is going away, pass the event up.
                 if (bodyCallback != null) bodyCallback(body);
 
-                if (BulletSimAPI.IsInWorld2(body.ptr))
+                if (BulletSimAPI.IsInWorld2(PhysicsScene.World.ptr, body.ptr))
                 {
                     BulletSimAPI.RemoveObjectFromWorld2(PhysicsScene.World.ptr, body.ptr);
                     if (DDetail) DetailLog("{0},BSShapeCollection.DereferenceBody,removingFromWorld. Body={1}", body.ID, body);
                 }
 
                 // Zero any reference to the shape so it is not freed when the body is deleted.
-                BulletSimAPI.SetCollisionShape2(PhysicsScene.World.ptr, body.ptr, IntPtr.Zero);
+                BulletSimAPI.SetCollisionShape2(PhysicsScene.World.ptr, body.ptr, null);
                 BulletSimAPI.DestroyObject2(PhysicsScene.World.ptr, body.ptr);
             });
         }
@@ -259,7 +259,7 @@ public sealed class BSShapeCollection : IDisposable
                 {
                     // Native shapes are not tracked and are released immediately
                     if (DDetail) DetailLog("{0},BSShapeCollection.DereferenceShape,deleteNativeShape,ptr={1},taintTime={2}",
-                                    BSScene.DetailLogZero, shape.ptr.ToString("X"), inTaintTime);
+                                    BSScene.DetailLogZero, shape.ptr.ToString(), inTaintTime);
                     if (shapeCallback != null) shapeCallback(shape);
                     BulletSimAPI.DeleteCollisionShape2(PhysicsScene.World.ptr, shape.ptr);
                 }
@@ -336,9 +336,9 @@ public sealed class BSShapeCollection : IDisposable
         {
             // Failed the sanity check!!
             PhysicsScene.Logger.ErrorFormat("{0} Attempt to free a compound shape that is not compound!! type={1}, ptr={2}",
-                                        LogHeader, shape.type, shape.ptr.ToString("X"));
+                                        LogHeader, shape.type, shape.ptr.ToString());
             if (DDetail) DetailLog("{0},BSShapeCollection.DereferenceCompound,notACompoundShape,type={1},ptr={2}",
-                                        BSScene.DetailLogZero, shape.type, shape.ptr.ToString("X"));
+                                        BSScene.DetailLogZero, shape.type, shape.ptr.ToString());
             return;
         }
 
@@ -347,7 +347,7 @@ public sealed class BSShapeCollection : IDisposable
 
         for (int ii = numChildren - 1; ii >= 0; ii--)
         {
-            IntPtr childShape = BulletSimAPI.RemoveChildShapeFromCompoundShapeIndex2(shape.ptr, ii);
+            Object childShape = BulletSimAPI.RemoveChildShapeFromCompoundShapeIndex2(shape.ptr, ii);
             DereferenceAnonCollisionShape(childShape);
         }
         BulletSimAPI.DeleteCollisionShape2(PhysicsScene.World.ptr, shape.ptr);
@@ -356,7 +356,7 @@ public sealed class BSShapeCollection : IDisposable
     // Sometimes we have a pointer to a collision shape but don't know what type it is.
     // Figure out type and call the correct dereference routine.
     // Called at taint-time.
-    private void DereferenceAnonCollisionShape(IntPtr cShape)
+    private void DereferenceAnonCollisionShape(Object cShape)
     {
         MeshDesc meshDesc;
         HullDesc hullDesc;
@@ -400,7 +400,7 @@ public sealed class BSShapeCollection : IDisposable
         else
         {
             PhysicsScene.Logger.ErrorFormat("{0} Could not decypher shape type. Region={1}, addr={2}",
-                                    LogHeader, PhysicsScene.RegionName, cShape.ToString("X"));
+                                    LogHeader, PhysicsScene.RegionName, cShape.ToString());
         }
     }
 
@@ -628,7 +628,7 @@ public sealed class BSShapeCollection : IDisposable
     private BulletShape CreatePhysicalMesh(string objName, System.UInt64 newMeshKey, PrimitiveBaseShape pbs, OMV.Vector3 size, float lod)
     {
         IMesh meshData = null;
-        IntPtr meshPtr = IntPtr.Zero;
+        Object meshPtr = null;
         MeshDesc meshDesc;
         if (Meshes.TryGetValue(newMeshKey, out meshDesc))
         {
@@ -637,7 +637,7 @@ public sealed class BSShapeCollection : IDisposable
         }
         else
         {
-            meshData = PhysicsScene.mesher.CreateMesh(objName, pbs, size, lod, true, false, false, false);
+            meshData = PhysicsScene.mesher.CreateMesh(objName, pbs, size, lod, true, false);
 
             if (meshData != null)
             {
@@ -698,7 +698,7 @@ public sealed class BSShapeCollection : IDisposable
     private BulletShape CreatePhysicalHull(string objName, System.UInt64 newHullKey, PrimitiveBaseShape pbs, OMV.Vector3 size, float lod)
     {
 
-        IntPtr hullPtr = IntPtr.Zero;
+        Object hullPtr = null;
         HullDesc hullDesc;
         if (Hulls.TryGetValue(newHullKey, out hullDesc))
         {
@@ -709,7 +709,7 @@ public sealed class BSShapeCollection : IDisposable
         {
             // Build a new hull in the physical world
             // Pass true for physicalness as this creates some sort of bounding box which we don't need
-            IMesh meshData = PhysicsScene.mesher.CreateMesh(objName, pbs, size, lod, true, false, false, false);
+            IMesh meshData = PhysicsScene.mesher.CreateMesh(objName, pbs, size, lod, true, false);
             if (meshData != null)
             {
 
@@ -918,7 +918,7 @@ public sealed class BSShapeCollection : IDisposable
     // Updates prim.BSBody with the information about the new body if one is created.
     // Returns 'true' if an object was actually created.
     // Called at taint-time.
-    private bool CreateBody(bool forceRebuild, BSPhysObject prim, BulletWorld sim, BulletShape shape,
+    private bool CreateBody(bool forceRebuild, BSPhysObject prim, BulletSim sim, BulletShape shape,
                             BodyDestructionCallback bodyCallback)
     {
         bool ret = false;
@@ -945,18 +945,18 @@ public sealed class BSShapeCollection : IDisposable
             DereferenceBody(prim.PhysBody, true, bodyCallback);
 
             BulletBody aBody;
-            IntPtr bodyPtr = IntPtr.Zero;
+            Object bodyPtr = null;
             if (prim.IsSolid)
             {
                 bodyPtr = BulletSimAPI.CreateBodyFromShape2(sim.ptr, shape.ptr,
                                         prim.LocalID, prim.RawPosition, prim.RawOrientation);
-                if (DDetail) DetailLog("{0},BSShapeCollection.CreateBody,mesh,ptr={1}", prim.LocalID, bodyPtr.ToString("X"));
+                if (DDetail) DetailLog("{0},BSShapeCollection.CreateBody,mesh,ptr={1}", prim.LocalID, bodyPtr.ToString());
             }
             else
             {
                 bodyPtr = BulletSimAPI.CreateGhostFromShape2(sim.ptr, shape.ptr,
                                         prim.LocalID, prim.RawPosition, prim.RawOrientation);
-                if (DDetail) DetailLog("{0},BSShapeCollection.CreateBody,ghost,ptr={1}", prim.LocalID, bodyPtr.ToString("X"));
+                if (DDetail) DetailLog("{0},BSShapeCollection.CreateBody,ghost,ptr={1}", prim.LocalID, bodyPtr.ToString());
             }
             aBody = new BulletBody(prim.LocalID, bodyPtr);
 
@@ -970,7 +970,7 @@ public sealed class BSShapeCollection : IDisposable
         return ret;
     }
 
-    private bool TryGetMeshByPtr(IntPtr addr, out MeshDesc outDesc)
+    private bool TryGetMeshByPtr(Object addr, out MeshDesc outDesc)
     {
         bool ret = false;
         MeshDesc foundDesc = new MeshDesc();
@@ -988,7 +988,7 @@ public sealed class BSShapeCollection : IDisposable
         return ret;
     }
 
-    private bool TryGetHullByPtr(IntPtr addr, out HullDesc outDesc)
+    private bool TryGetHullByPtr(Object addr, out HullDesc outDesc)
     {
         bool ret = false;
         HullDesc foundDesc = new HullDesc();

@@ -32,7 +32,7 @@ using OMV = OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
 
-namespace OpenSim.Region.Physics.BulletSPlugin
+namespace OpenSim.Region.Physics.BulletSNPlugin
 {
 public sealed class BSCharacter : BSPhysObject
 {
@@ -174,14 +174,14 @@ public sealed class BSCharacter : BSPhysObject
             BulletSimAPI.SetCcdSweptSphereRadius2(PhysBody.ptr, BSParam.CcdSweptSphereRadius);
         }
 
-        UpdatePhysicalMassProperties(RawMass, false);
+        UpdatePhysicalMassProperties(RawMass);
 
         // Make so capsule does not fall over
         BulletSimAPI.SetAngularFactorV2(PhysBody.ptr, OMV.Vector3.Zero);
 
         BulletSimAPI.AddToCollisionFlags2(PhysBody.ptr, CollisionFlags.CF_CHARACTER_OBJECT);
 
-        BulletSimAPI.AddObjectToWorld2(PhysicsScene.World.ptr, PhysBody.ptr);
+        BulletSimAPI.AddObjectToWorld2(PhysicsScene.World.ptr, PhysBody.ptr, _position, _orientation);
 
         // BulletSimAPI.ForceActivationState2(BSBody.ptr, ActivationState.ACTIVE_TAG);
         BulletSimAPI.ForceActivationState2(PhysBody.ptr, ActivationState.DISABLE_DEACTIVATION);
@@ -224,7 +224,7 @@ public sealed class BSCharacter : BSPhysObject
                 if (PhysBody.HasPhysicalBody && PhysShape.HasPhysicalShape)
                 {
                     BulletSimAPI.SetLocalScaling2(PhysShape.ptr, Scale);
-                    UpdatePhysicalMassProperties(RawMass, true);
+                    UpdatePhysicalMassProperties(RawMass);
                     // Make sure this change appears as a property update event
                     BulletSimAPI.PushUpdate2(PhysBody.ptr);
                 }
@@ -390,7 +390,7 @@ public sealed class BSCharacter : BSPhysObject
     public override float RawMass { 
         get {return _mass; }
     }
-    public override void UpdatePhysicalMassProperties(float physMass, bool inWorld)
+    public override void UpdatePhysicalMassProperties(float physMass)
     {
         OMV.Vector3 localInertia = BulletSimAPI.CalculateLocalInertia2(PhysShape.ptr, physMass);
         BulletSimAPI.SetMassProps2(PhysBody.ptr, physMass, localInertia);
@@ -410,6 +410,11 @@ public sealed class BSCharacter : BSPhysObject
         }
     }
 
+    public bool TouchingGround()
+    {
+        bool ret = BulletSimAPI.RayCastGround(PhysicsScene.World.ptr,_position,_size.Z * 0.55f, PhysBody.ptr);
+        return ret;
+    }
     // Avatars don't do vehicles
     public override int VehicleType { get { return (int)Vehicle.TYPE_NONE; } set { return; } }
     public override void VehicleFloatParam(int param, float value) { }
@@ -433,9 +438,19 @@ public sealed class BSCharacter : BSPhysObject
         set
         {
             DetailLog("{0},BSCharacter.setTargetVelocity,call,vel={1}", LocalID, value);
+
+            if (!_flying)
+                if ((value.Z >= 0.0001f) || (value.Z <= -0.0001f) || _velocity.Z < -0.0001f)
+                    if (!TouchingGround())
+                        value.Z = _velocity.Z;
+            if (_setAlwaysRun)
+                value *= 1.3f;
+
             OMV.Vector3 targetVel = value;
+
             PhysicsScene.TaintedObject("BSCharacter.setTargetVelocity", delegate()
             {
+                                                                                
                 _velocityMotor.Reset();
                 _velocityMotor.SetTarget(targetVel);
                 _velocityMotor.SetCurrent(_velocity);
@@ -772,9 +787,8 @@ public sealed class BSCharacter : BSPhysObject
             //     the motor can be turned off. Set the velocity to zero so the zero motion is sent to the viewer.
             if (_velocityMotor.TargetValue.ApproxEquals(OMV.Vector3.Zero, 0.01f) && _velocityMotor.ErrorIsZero)
             {
-                _velocityMotor.Enabled = false;
                 stepVelocity = OMV.Vector3.Zero;
-                ZeroMotion(true);
+                _velocityMotor.Enabled = false;
                 DetailLog("{0},BSCharacter.UpdateProperties,taint,disableVelocityMotor,m={1}", LocalID, _velocityMotor);
             }
 

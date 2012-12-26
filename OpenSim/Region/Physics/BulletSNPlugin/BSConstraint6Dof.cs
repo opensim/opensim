@@ -29,7 +29,7 @@ using System.Collections.Generic;
 using System.Text;
 using OpenMetaverse;
 
-namespace OpenSim.Region.Physics.BulletSPlugin
+namespace OpenSim.Region.Physics.BulletSNPlugin
 {
 
 public sealed class BSConstraint6Dof : BSConstraint
@@ -39,7 +39,7 @@ public sealed class BSConstraint6Dof : BSConstraint
     public override ConstraintType Type { get { return ConstraintType.D6_CONSTRAINT_TYPE; } }
 
     // Create a btGeneric6DofConstraint
-    public BSConstraint6Dof(BulletWorld world, BulletBody obj1, BulletBody obj2,
+    public BSConstraint6Dof(BulletSim world, BulletBody obj1, BulletBody obj2,
                     Vector3 frame1, Quaternion frame1rot,
                     Vector3 frame2, Quaternion frame2rot,
                     bool useLinearReferenceFrameA, bool disableCollisionsBetweenLinkedBodies)
@@ -55,10 +55,10 @@ public sealed class BSConstraint6Dof : BSConstraint
         m_enabled = true;
         world.physicsScene.DetailLog("{0},BS6DofConstraint,createFrame,wID={1}, rID={2}, rBody={3}, cID={4}, cBody={5}",
                             BSScene.DetailLogZero, world.worldID,
-                            obj1.ID, obj1.ptr.ToString("X"), obj2.ID, obj2.ptr.ToString("X"));
+                            obj1.ID, obj1.ptr.ToString(), obj2.ID, obj2.ptr.ToString());
     }
 
-    public BSConstraint6Dof(BulletWorld world, BulletBody obj1, BulletBody obj2,
+    public BSConstraint6Dof(BulletSim world, BulletBody obj1, BulletBody obj2,
                     Vector3 joinPoint,
                     bool useLinearReferenceFrameA, bool disableCollisionsBetweenLinkedBodies)
     {
@@ -69,9 +69,9 @@ public sealed class BSConstraint6Dof : BSConstraint
         {
             world.physicsScene.DetailLog("{0},BS6DOFConstraint,badBodyPtr,wID={1}, rID={2}, rBody={3}, cID={4}, cBody={5}",
                             BSScene.DetailLogZero, world.worldID,
-                            obj1.ID, obj1.ptr.ToString("X"), obj2.ID, obj2.ptr.ToString("X"));
+                            obj1.ID, obj1.ptr.ToString(), obj2.ID, obj2.ptr.ToString());
             world.physicsScene.Logger.ErrorFormat("{0} Attempt to build 6DOF constraint with missing bodies: wID={1}, rID={2}, rBody={3}, cID={4}, cBody={5}",
-                            LogHeader, world.worldID, obj1.ID, obj1.ptr.ToString("X"), obj2.ID, obj2.ptr.ToString("X"));
+                            LogHeader, world.worldID, obj1.ID, obj1.ptr.ToString(), obj2.ID, obj2.ptr.ToString());
             m_enabled = false;
         }
         else
@@ -81,8 +81,8 @@ public sealed class BSConstraint6Dof : BSConstraint
                                     joinPoint,
                                     useLinearReferenceFrameA, disableCollisionsBetweenLinkedBodies));
             world.physicsScene.DetailLog("{0},BS6DofConstraint,createMidPoint,wID={1}, csrt={2}, rID={3}, rBody={4}, cID={5}, cBody={6}",
-                                BSScene.DetailLogZero, world.worldID, m_constraint.ptr.ToString("X"),
-                                obj1.ID, obj1.ptr.ToString("X"), obj2.ID, obj2.ptr.ToString("X"));
+                                BSScene.DetailLogZero, world.worldID, m_constraint.ptr.ToString(),
+                                obj1.ID, obj1.ptr.ToString(), obj2.ID, obj2.ptr.ToString());
             if (!m_constraint.HasPhysicalConstraint)
             {
                 world.physicsScene.Logger.ErrorFormat("{0} Failed creation of 6Dof constraint. rootID={1}, childID={2}",

@@ -5,7 +5,7 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclat simer.
+ *       notice, this list of conditions and the following disclaimer.
  *     * Redistributions in binary form must reproduce the above copyrightD
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
@@ -32,7 +32,7 @@ using OpenSim.Framework;
 
 using OMV = OpenMetaverse;
 
-namespace OpenSim.Region.Physics.BulletSPlugin
+namespace OpenSim.Region.Physics.BulletSNPlugin
 {
 
 // When a child is linked, the relationship position of the child to the parent
@@ -89,8 +89,6 @@ public sealed class BSLinksetCompound : BSLinkset
     //   its internal properties.
     public override void Refresh(BSPhysObject requestor)
     {
-        base.Refresh(requestor);
-
         // Something changed so do the rebuilding thing
         // ScheduleRebuild();
     }
@@ -98,13 +96,13 @@ public sealed class BSLinksetCompound : BSLinkset
     // Schedule a refresh to happen after all the other taint processing.
     private void ScheduleRebuild(BSPhysObject requestor)
     {
-        DetailLog("{0},BSLinksetCompound.ScheduleRebuild,,rebuilding={1}", 
+        DetailLog("{0},BSLinksetCompound.Refresh,schedulingRefresh,rebuilding={1}", 
                             requestor.LocalID, Rebuilding);
         // When rebuilding, it is possible to set properties that would normally require a rebuild.
         //    If already rebuilding, don't request another rebuild.
         if (!Rebuilding)
         {
-            PhysicsScene.PostTaintObject("BSLinksetCompound.ScheduleRebuild", LinksetRoot.LocalID, delegate()
+            PhysicsScene.PostTaintObject("BSLinksetCompound.Refresh", LinksetRoot.LocalID, delegate()
             {
                 if (HasAnyChildren)
                     RecomputeLinksetCompound();
@@ -125,6 +123,7 @@ public sealed class BSLinksetCompound : BSLinkset
         if (IsRoot(child))
         {
             // The root is going dynamic. Make sure mass is properly set.
+            m_mass = ComputeLinksetMass();
             ScheduleRebuild(LinksetRoot);
         }
         else
@@ -196,7 +195,7 @@ public sealed class BSLinksetCompound : BSLinkset
         bool ret = false;
 
         DetailLog("{0},BSLinksetCompound.RemoveBodyDependencies,refreshIfChild,rID={1},rBody={2},isRoot={3}",
-                        child.LocalID, LinksetRoot.LocalID, LinksetRoot.PhysBody.ptr.ToString("X"), IsRoot(child));
+                        child.LocalID, LinksetRoot.LocalID, LinksetRoot.PhysBody.ptr.ToString(), IsRoot(child));
 
         if (!IsRoot(child))
         {
@@ -280,8 +279,8 @@ public sealed class BSLinksetCompound : BSLinkset
         {
             DetailLog("{0},BSLinksetCompound.RemoveChildFromLinkset,call,rID={1},rBody={2},cID={3},cBody={4}",
                             child.LocalID,
-                            LinksetRoot.LocalID, LinksetRoot.PhysBody.ptr.ToString("X"),
-                            child.LocalID, child.PhysBody.ptr.ToString("X"));
+                            LinksetRoot.LocalID, LinksetRoot.PhysBody.ptr.ToString(),
+                            child.LocalID, child.PhysBody.ptr.ToString());
 
             // Cause the child's body to be rebuilt and thus restored to normal operation
             RecomputeChildWorldPosition(child, false);
@@ -378,8 +377,8 @@ public sealed class BSLinksetCompound : BSLinkset
             });
 
             // With all of the linkset packed into the root prim, it has the mass of everyone.
-            LinksetMass = LinksetMass;
-            LinksetRoot.UpdatePhysicalMassProperties(LinksetMass, true);
+            float linksetMass = LinksetMass;
+            LinksetRoot.UpdatePhysicalMassProperties(linksetMass);
         }
         finally
         {

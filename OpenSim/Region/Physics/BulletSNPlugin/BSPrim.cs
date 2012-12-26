@@ -35,7 +35,7 @@ using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
 using OpenSim.Region.Physics.ConvexDecompositionDotNet;
 
-namespace OpenSim.Region.Physics.BulletSPlugin
+namespace OpenSim.Region.Physics.BulletSNPlugin
 {
 
     [Serializable]
@@ -114,8 +114,6 @@ public sealed class BSPrim : BSPhysObject
         // No body or shape yet
         PhysBody = new BulletBody(LocalID);
         PhysShape = new BulletShape();
-
-        Linkset.Refresh(this);
 
         DetailLog("{0},BSPrim.constructor,call", LocalID);
         // do the actual object creation at taint time
@@ -386,13 +384,13 @@ public sealed class BSPrim : BSPhysObject
     }
 
     // Return the effective mass of the object.
-        // The definition of this call is to return the mass of the prim.
-        // If the simulator cares about the mass of the linkset, it will sum it itself.
+    // If there are multiple items in the linkset, add them together for the root
     public override float Mass
     {
         get
         {
-            return _mass;
+            return Linkset.LinksetMass;
+            // return _mass;
         }
     }
 
@@ -402,41 +400,22 @@ public sealed class BSPrim : BSPhysObject
     }
     // Set the physical mass to the passed mass.
     // Note that this does not change _mass!
-    public override void UpdatePhysicalMassProperties(float physMass, bool inWorld)
+    public override void UpdatePhysicalMassProperties(float physMass)
     {
-        if (PhysBody.HasPhysicalBody)
+        if (IsStatic)
         {
-            if (IsStatic)
-            {
-                Inertia = OMV.Vector3.Zero;
-                BulletSimAPI.SetMassProps2(PhysBody.ptr, 0f, Inertia);
-                BulletSimAPI.UpdateInertiaTensor2(PhysBody.ptr);
-            }
-            else
-            {
-                if (inWorld)
-                {
-                    // Changing interesting properties doesn't change proxy and collision cache
-                    //    information. The Bullet solution is to re-add the object to the world
-                    //    after parameters are changed.
-                    BulletSimAPI.RemoveObjectFromWorld2(PhysicsScene.World.ptr, PhysBody.ptr);
-                }
-
-                float grav = PhysicsScene.Params.gravity * (1f - _buoyancy);
-                BulletSimAPI.SetGravity2(PhysBody.ptr, new OMV.Vector3(0f, 0f, grav));
-
-                Inertia = BulletSimAPI.CalculateLocalInertia2(PhysShape.ptr, physMass);
-                BulletSimAPI.SetMassProps2(PhysBody.ptr, physMass, Inertia);
-                BulletSimAPI.UpdateInertiaTensor2(PhysBody.ptr);
-                // center of mass is at the zero of the object
-                // DEBUG DEBUG BulletSimAPI.SetCenterOfMassByPosRot2(PhysBody.ptr, ForcePosition, ForceOrientation);
-                DetailLog("{0},BSPrim.UpdateMassProperties,mass={1},localInertia={2}", LocalID, physMass, Inertia);
-
-                if (inWorld)
-                {
-                    BulletSimAPI.AddObjectToWorld2(PhysicsScene.World.ptr, PhysBody.ptr);
-                }
-            }
+            Inertia = OMV.Vector3.Zero;
+            BulletSimAPI.SetMassProps2(PhysBody.ptr, 0f, Inertia);
+            BulletSimAPI.UpdateInertiaTensor2(PhysBody.ptr);
+        }
+        else
+        {
+            Inertia = BulletSimAPI.CalculateLocalInertia2(PhysShape.ptr, physMass);
+            BulletSimAPI.SetMassProps2(PhysBody.ptr, physMass, Inertia);
+            BulletSimAPI.UpdateInertiaTensor2(PhysBody.ptr);
+            // center of mass is at the zero of the object
+            // DEBUG DEBUG BulletSimAPI.SetCenterOfMassByPosRot2(PhysBody.ptr, ForcePosition, ForceOrientation);
+            DetailLog("{0},BSPrim.UpdateMassProperties,mass={1},localInertia={2}", LocalID, physMass, Inertia);
         }
     }
 
@@ -720,7 +699,7 @@ public sealed class BSPrim : BSPhysObject
         // Make solid or not (do things bounce off or pass through this object).
         MakeSolid(IsSolid);
 
-        BulletSimAPI.AddObjectToWorld2(PhysicsScene.World.ptr, PhysBody.ptr);
+        BulletSimAPI.AddObjectToWorld2(PhysicsScene.World.ptr, PhysBody.ptr, _position, _orientation);
 
         // Rebuild its shape
         BulletSimAPI.UpdateSingleAabb2(PhysicsScene.World.ptr, PhysBody.ptr);
@@ -735,7 +714,7 @@ public sealed class BSPrim : BSPhysObject
         Linkset.Refresh(this);
 
         DetailLog("{0},BSPrim.UpdatePhysicalParameters,taintExit,static={1},solid={2},mass={3},collide={4},cf={5:X},body={6},shape={7}",
-                        LocalID, IsStatic, IsSolid, Mass, SubscribedEvents(), CurrentCollisionFlags, PhysBody, PhysShape);
+                        LocalID, IsStatic, IsSolid, _mass, SubscribedEvents(), CurrentCollisionFlags, PhysBody, PhysShape);
     }
 
     // "Making dynamic" means changing to and from static.
@@ -758,7 +737,7 @@ public sealed class BSPrim : BSPhysObject
             BulletSimAPI.SetRestitution2(PhysBody.ptr, matAttrib.restitution);
 
             // Mass is zero which disables a bunch of physics stuff in Bullet
-            UpdatePhysicalMassProperties(0f, false);
+            UpdatePhysicalMassProperties(0f);
             // Set collision detection parameters
             if (BSParam.CcdMotionThreshold > 0f)
             {
@@ -798,7 +777,7 @@ public sealed class BSPrim : BSPhysObject
             // DEBUG DEBUG BulletSimAPI.SetCenterOfMassByPosRot2(Linkset.LinksetRoot.PhysBody.ptr, _position, _orientation);
 
             // A dynamic object has mass
-            UpdatePhysicalMassProperties(RawMass, false);
+            UpdatePhysicalMassProperties(RawMass);
 
             // Set collision detection parameters
             if (BSParam.CcdMotionThreshold > 0f)
@@ -971,9 +950,13 @@ public sealed class BSPrim : BSPhysObject
         set {
             _buoyancy = value;
             // DetailLog("{0},BSPrim.setForceBuoyancy,taint,buoy={1}", LocalID, _buoyancy);
-            // Force the recalculation of the various inertia,etc variables in the object
-            UpdatePhysicalMassProperties(_mass, true);
-            ActivateIfPhysical(false);
+            // Buoyancy is faked by changing the gravity applied to the object
+            if (PhysBody.HasPhysicalBody)
+            {
+                float grav = PhysicsScene.Params.gravity * (1f - _buoyancy);
+                BulletSimAPI.SetGravity2(PhysBody.ptr, new OMV.Vector3(0f, 0f, grav));
+                ActivateIfPhysical(false);
+            }
         }
     }
 

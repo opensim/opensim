@@ -29,14 +29,14 @@ using System.Collections.Generic;
 using System.Text;
 using OpenMetaverse;
 
-namespace OpenSim.Region.Physics.BulletSPlugin
+namespace OpenSim.Region.Physics.BulletSNPlugin
 {
 
 public abstract class BSConstraint : IDisposable
 {
     private static string LogHeader = "[BULLETSIM CONSTRAINT]";
 
-    protected BulletWorld m_world;
+    protected BulletSim m_world;
     protected BulletBody m_body1;
     protected BulletBody m_body2;
     protected BulletConstraint m_constraint;
@@ -62,8 +62,8 @@ public abstract class BSConstraint : IDisposable
                 bool success = BulletSimAPI.DestroyConstraint2(m_world.ptr, m_constraint.ptr);
                 m_world.physicsScene.DetailLog("{0},BSConstraint.Dispose,taint,id1={1},body1={2},id2={3},body2={4},success={5}",
                                     BSScene.DetailLogZero,
-                                    m_body1.ID, m_body1.ptr.ToString("X"),
-                                    m_body2.ID, m_body2.ptr.ToString("X"),
+                                    m_body1.ID, m_body1.ptr.ToString(),
+                                    m_body2.ID, m_body2.ptr.ToString(),
                                     success);
                 m_constraint.Clear();
             }
