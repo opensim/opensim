@@ -38,15 +38,6 @@ using Nini.Config;
 using log4net;
 using OpenMetaverse;
 
-// TODOs for BulletSim (for BSScene, BSPrim, BSCharacter and BulletSim)
-// Based on material, set density and friction
-// More efficient memory usage when passing hull information from BSPrim to BulletSim
-// Do attachments need to be handled separately? Need collision events. Do not collide with VolumeDetect
-// Implement LockAngularMotion
-// Add PID movement operations. What does ScenePresence.MoveToTarget do?
-// Check terrain size. 128 or 127?
-// Raycast
-//
 namespace OpenSim.Region.Physics.BulletSPlugin
 {
 public sealed class BSScene : PhysicsScene, IPhysicsParameters

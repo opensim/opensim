@@ -96,6 +96,7 @@ Selecting and deselecting physical objects causes CPU processing time to jump
 	put thousand physical objects, select and deselect same. CPU time will be large.
 Re-implement buoyancy as a separate force on the object rather than diddling gravity.
 	Register a pre-step event to add the force.
+More efficient memory usage when passing hull information from BSPrim to BulletSim
 
 LINKSETS
 ======================================================

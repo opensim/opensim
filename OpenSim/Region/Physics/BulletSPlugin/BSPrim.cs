@@ -1025,10 +1025,10 @@ public sealed class BSPrim : BSPhysObject
         if (force.IsFinite())
         {
             float magnitude = force.Length();
-            if (magnitude > 20000f)
+            if (magnitude > BSParam.MaxAddForceMagnitude)
             {
                 // Force has a limit
-                force = force / magnitude * 20000f;
+                force = force / magnitude * BSParam.MaxAddForceMagnitude;
             }
 
             OMV.Vector3 addForce = force;
