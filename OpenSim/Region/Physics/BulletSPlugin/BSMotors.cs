@@ -241,8 +241,8 @@ public class BSVMotor : BSMotor
 
     public override string ToString()
     {
-        return String.Format("<{0},curr={1},targ={2},decayTS={3},frictTS={4}>",
-            UseName, CurrentValue, TargetValue, TargetValueDecayTimeScale, FrictionTimescale);
+        return String.Format("<{0},curr={1},targ={2},lastErr={3},decayTS={4},frictTS={5}>",
+            UseName, CurrentValue, TargetValue, LastError, TargetValueDecayTimeScale, FrictionTimescale);
     }
 }
 

@@ -94,7 +94,7 @@ public sealed class BSPrim : BSPhysObject
         _size = size;
         Scale = size;   // prims are the size the user wants them to be (different for BSCharactes).
         _orientation = rotation;
-        _buoyancy = 1f;
+        _buoyancy = 0f;
         _velocity = OMV.Vector3.Zero;
         _rotationalVelocity = OMV.Vector3.Zero;
         BaseShape = pbs;
@@ -408,12 +408,15 @@ public sealed class BSPrim : BSPhysObject
         {
             if (IsStatic)
             {
+                BulletSimAPI.SetGravity2(PhysBody.ptr, PhysicsScene.DefaultGravity);
                 Inertia = OMV.Vector3.Zero;
                 BulletSimAPI.SetMassProps2(PhysBody.ptr, 0f, Inertia);
                 BulletSimAPI.UpdateInertiaTensor2(PhysBody.ptr);
             }
             else
             {
+                OMV.Vector3 grav = ComputeGravity();
+
                 if (inWorld)
                 {
                     // Changing interesting properties doesn't change proxy and collision cache
@@ -422,13 +425,16 @@ public sealed class BSPrim : BSPhysObject
                     BulletSimAPI.RemoveObjectFromWorld2(PhysicsScene.World.ptr, PhysBody.ptr);
                 }
 
+                // The computation of mass props requires gravity to be set on the object.
+                BulletSimAPI.SetGravity2(PhysBody.ptr, grav);
+
                 Inertia = BulletSimAPI.CalculateLocalInertia2(PhysShape.ptr, physMass);
                 BulletSimAPI.SetMassProps2(PhysBody.ptr, physMass, Inertia);
                 BulletSimAPI.UpdateInertiaTensor2(PhysBody.ptr);
 
                 // center of mass is at the zero of the object
                 // DEBUG DEBUG BulletSimAPI.SetCenterOfMassByPosRot2(PhysBody.ptr, ForcePosition, ForceOrientation);
-                DetailLog("{0},BSPrim.UpdateMassProperties,mass={1},localInertia={2},inWorld={3}", LocalID, physMass, Inertia, inWorld);
+                DetailLog("{0},BSPrim.UpdateMassProperties,mass={1},localInertia={2},grav={3},inWorld={4}", LocalID, physMass, Inertia, grav, inWorld);
 
                 if (inWorld)
                 {
@@ -437,11 +443,21 @@ public sealed class BSPrim : BSPhysObject
 
                 // Must set gravity after it has been added to the world because, for unknown reasons,
                 //     adding the object resets the object's gravity to world gravity
-                OMV.Vector3 grav = PhysicsScene.DefaultGravity * (1f - Buoyancy);
                 BulletSimAPI.SetGravity2(PhysBody.ptr, grav);
 
             }
         }
+    }
+
+    // Return what gravity should be set to this very moment
+    private OMV.Vector3 ComputeGravity()
+    {
+        OMV.Vector3 ret = PhysicsScene.DefaultGravity;
+
+        if (!IsStatic)
+            ret *= (1f - Buoyancy);
+
+        return ret;
     }
 
     // Is this used?
@@ -669,7 +685,7 @@ public sealed class BSPrim : BSPhysObject
                 _isPhysical = value;
                 PhysicsScene.TaintedObject("BSPrim.setIsPhysical", delegate()
                 {
-                    // DetailLog("{0},setIsPhysical,taint,isPhys={1}", LocalID, _isPhysical);
+                    DetailLog("{0},setIsPhysical,taint,isPhys={1}", LocalID, _isPhysical);
                     SetObjectDynamic(true);
                     // whether phys-to-static or static-to-phys, the object is not moving.
                     ZeroMotion(true);
@@ -725,6 +741,10 @@ public sealed class BSPrim : BSPhysObject
         MakeSolid(IsSolid);
 
         BulletSimAPI.AddObjectToWorld2(PhysicsScene.World.ptr, PhysBody.ptr);
+
+        // TODO: Fix this. Total kludge because adding object to world resets its gravity to default.
+        // Replace this when the new AddObjectToWorld function is complete.
+        BulletSimAPI.SetGravity2(PhysBody.ptr, ComputeGravity());
 
         // Rebuild its shape
         BulletSimAPI.UpdateSingleAabb2(PhysicsScene.World.ptr, PhysBody.ptr);
@@ -976,6 +996,7 @@ public sealed class BSPrim : BSPhysObject
             _buoyancy = value;
             // DetailLog("{0},BSPrim.setForceBuoyancy,taint,buoy={1}", LocalID, _buoyancy);
             // Force the recalculation of the various inertia,etc variables in the object
+            DetailLog("{0},BSPrim.ForceBuoyancy,buoy={1},mass={2}", LocalID, _buoyancy, _mass);
             UpdatePhysicalMassProperties(_mass, true);
             ActivateIfPhysical(false);
         }
