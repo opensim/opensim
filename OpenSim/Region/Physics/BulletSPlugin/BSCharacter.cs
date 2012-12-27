@@ -683,22 +683,31 @@ public sealed class BSCharacter : BSPhysObject
     public override void AddForce(OMV.Vector3 force, bool pushforce) {
         if (force.IsFinite())
         {
-            _force.X += force.X;
-            _force.Y += force.Y;
-            _force.Z += force.Z;
-            // m_log.DebugFormat("{0}: AddForce. adding={1}, newForce={2}", LogHeader, force, _force);
+            float magnitude = force.Length();
+            if (magnitude > BSParam.MaxAddForceMagnitude)
+            {
+                // Force has a limit
+                force = force / magnitude * BSParam.MaxAddForceMagnitude;
+            }
+
+            OMV.Vector3 addForce = force / PhysicsScene.LastTimeStep;
+            DetailLog("{0},BSCharacter.addForce,call,force={1}", LocalID, addForce);
+
             PhysicsScene.TaintedObject("BSCharacter.AddForce", delegate()
             {
-                DetailLog("{0},BSCharacter.setAddForce,taint,addedForce={1}", LocalID, _force);
+                // Bullet adds this central force to the total force for this tick
+                DetailLog("{0},BSCharacter.addForce,taint,force={1}", LocalID, addForce);
                 if (PhysBody.HasPhysicalBody)
-                    BulletSimAPI.SetObjectForce2(PhysBody.ptr, _force);
+                {
+                    BulletSimAPI.ApplyCentralForce2(PhysBody.ptr, addForce);
+                }
             });
         }
         else
         {
-            m_log.ErrorFormat("{0}: Got a NaN force applied to a Character", LogHeader);
+            m_log.WarnFormat("{0}: Got a NaN force applied to a character. LocalID={1}", LogHeader, LocalID);
+            return;
         }
-        //m_lastUpdateSent = false;
     }
 
     public override void AddAngularForce(OMV.Vector3 force, bool pushforce) {
