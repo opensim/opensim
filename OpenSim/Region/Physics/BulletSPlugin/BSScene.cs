@@ -74,6 +74,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     internal int m_maxSubSteps;
     internal float m_fixedTimeStep;
     internal long m_simulationStep = 0;
+    internal float NominalFrameRate { get; set; }
     public long SimulationStep { get { return m_simulationStep; } }
     internal int m_taintsToProcessPerStep;
     internal float LastTimeStep { get; private set; }
@@ -162,6 +163,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     private string m_physicsLoggingPrefix;
     private int m_physicsLoggingFileMinutes;
     private bool m_physicsLoggingDoFlush;
+    private bool m_physicsPhysicalDumpEnabled;
     // 'true' of the vehicle code is to log lots of details
     public bool VehicleLoggingEnabled { get; private set; }
     public bool VehiclePhysicalLoggingEnabled { get; private set; }
@@ -272,6 +274,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
                 m_physicsLoggingPrefix = pConfig.GetString("PhysicsLoggingPrefix", "physics-%REGIONNAME%-");
                 m_physicsLoggingFileMinutes = pConfig.GetInt("PhysicsLoggingFileMinutes", 5);
                 m_physicsLoggingDoFlush = pConfig.GetBoolean("PhysicsLoggingDoFlush", false);
+                m_physicsPhysicalDumpEnabled = pConfig.GetBoolean("PhysicsPhysicalDumpEnabled", false);
                 // Very detailed logging for vehicle debugging
                 VehicleLoggingEnabled = pConfig.GetBoolean("VehicleLoggingEnabled", false);
                 VehiclePhysicalLoggingEnabled = pConfig.GetBoolean("VehiclePhysicalLoggingEnabled", false);
@@ -488,7 +491,8 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
         // The following causes the unmanaged code to output ALL the values found in ALL the objects in the world.
         // Only enable this in a limited test world with few objects.
-        // BulletSimAPI.DumpAllInfo2(World.ptr);    // DEBUG DEBUG DEBUG
+        if (m_physicsPhysicalDumpEnabled)
+            BulletSimAPI.DumpAllInfo2(World.ptr);
 
         // step the physical world one interval
         m_simulationStep++;
@@ -587,12 +591,13 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
         // The following causes the unmanaged code to output ALL the values found in ALL the objects in the world.
         // Only enable this in a limited test world with few objects.
-        // BulletSimAPI.DumpAllInfo2(World.ptr);    // DEBUG DEBUG DEBUG
+        if (m_physicsPhysicalDumpEnabled)
+            BulletSimAPI.DumpAllInfo2(World.ptr);
 
         // The physics engine returns the number of milliseconds it simulated this call.
         // These are summed and normalized to one second and divided by 1000 to give the reported physics FPS.
         // Multiply by 55 to give a nominal frame rate of 55.
-        return (float)numSubSteps * m_fixedTimeStep * 1000f * 55f;
+        return (float)numSubSteps * m_fixedTimeStep * 1000f * NominalFrameRate;
     }
 
     // Something has collided
