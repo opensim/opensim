@@ -464,15 +464,15 @@ public sealed class BSCharacter : BSPhysObject
         {
             DetailLog("{0},BSCharacter.setTargetVelocity,call,vel={1}", LocalID, value);
             OMV.Vector3 targetVel = value;
+            if (_setAlwaysRun)
+                targetVel *= BSParam.AvatarAlwaysRunFactor;
+
             PhysicsScene.TaintedObject("BSCharacter.setTargetVelocity", delegate()
             {
                 _velocityMotor.Reset();
                 _velocityMotor.SetTarget(targetVel);
                 _velocityMotor.SetCurrent(_velocity);
                 _velocityMotor.Enabled = true;
-
-                // Make sure a property update happens next step so the motor gets incorporated.
-                BulletSimAPI.PushUpdate2(PhysBody.ptr);
             });
         }
     }

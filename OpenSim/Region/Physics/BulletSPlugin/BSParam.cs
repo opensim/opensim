@@ -68,6 +68,7 @@ public static class BSParam
     // Avatar parameters
     public static float AvatarFriction { get; private set; }
     public static float AvatarStandingFriction { get; private set; }
+    public static float AvatarAlwaysRunFactor { get; private set; }
     public static float AvatarDensity { get; private set; }
     public static float AvatarRestitution { get; private set; }
     public static float AvatarCapsuleWidth { get; private set; }
@@ -367,6 +368,11 @@ public static class BSParam
             (s,cf,p,v) => { AvatarStandingFriction = cf.GetFloat(p, v); },
             (s) => { return AvatarStandingFriction; },
             (s,p,l,v) => { AvatarStandingFriction = v; } ),
+        new ParameterDefn("AvatarAlwaysRunFactor", "Speed multiplier if avatar is set to always run",
+            1.3f,
+            (s,cf,p,v) => { AvatarAlwaysRunFactor = cf.GetFloat(p, v); },
+            (s) => { return AvatarAlwaysRunFactor; },
+            (s,p,l,v) => { AvatarAlwaysRunFactor = v; } ),
         new ParameterDefn("AvatarDensity", "Density of an avatar. Changed on avatar recreation.",
             3.5f,
             (s,cf,p,v) => { AvatarDensity = cf.GetFloat(p, v); },
