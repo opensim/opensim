@@ -194,6 +194,7 @@ Should taints check for existance or activeness of target?
 	actually gone when the taint happens. Crashes don't happen because the taint closure
 	keeps the object from being freed, but that is just an accident.
 	Possibly have and 'active' flag that is checked by the taint processor?
+Parameters for physics logging should be moved from BSScene to BSParam (at least boolean ones)
 
 THREADING
 =================================================

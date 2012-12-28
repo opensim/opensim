@@ -250,20 +250,20 @@ public enum CollisionFilterGroups : uint
     //   filter/mask definition below. This way collision interactions
     //   are more easily found and debugged.
     BNoneGroup              = 0,
-    BDefaultGroup           = 1 << 0,
-    BStaticGroup            = 1 << 1,
-    BKinematicGroup         = 1 << 2,
-    BDebrisGroup            = 1 << 3,
-    BSensorTrigger          = 1 << 4,
-    BCharacterGroup         = 1 << 5,
-    BAllGroup               = 0xFFFFFFFF,
+    BDefaultGroup           = 1 << 0,   // 0001
+    BStaticGroup            = 1 << 1,   // 0002
+    BKinematicGroup         = 1 << 2,   // 0004
+    BDebrisGroup            = 1 << 3,   // 0008
+    BSensorTrigger          = 1 << 4,   // 0010
+    BCharacterGroup         = 1 << 5,   // 0020
+    BAllGroup               = 0x000FFFFF,
     // Filter groups defined by BulletSim
-    BGroundPlaneGroup       = 1 << 10,
-    BTerrainGroup           = 1 << 11,
-    BRaycastGroup           = 1 << 12,
-    BSolidGroup             = 1 << 13,
+    BGroundPlaneGroup       = 1 << 10,  // 0400
+    BTerrainGroup           = 1 << 11,  // 0800
+    BRaycastGroup           = 1 << 12,  // 1000
+    BSolidGroup             = 1 << 13,  // 2000
     // BLinksetGroup        = xx  // a linkset proper is either static or dynamic
-    BLinksetChildGroup      = 1 << 14,
+    BLinksetChildGroup      = 1 << 14,  // 4000
 };
 
 // CFM controls the 'hardness' of the constraint. 0=fixed, 0..1=violatable. Default=0

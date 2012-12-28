@@ -269,6 +269,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
                 BSParam.SetParameterConfigurationValues(this, pConfig);
 
                 // Very detailed logging for physics debugging
+                // TODO: the boolean values can be moved to the normal parameter processing.
                 m_physicsLoggingEnabled = pConfig.GetBoolean("PhysicsLoggingEnabled", false);
                 m_physicsLoggingDir = pConfig.GetString("PhysicsLoggingDir", ".");
                 m_physicsLoggingPrefix = pConfig.GetString("PhysicsLoggingPrefix", "physics-%REGIONNAME%-");
