@@ -438,7 +438,7 @@ public sealed class BSPrim : BSPhysObject
 
                 if (inWorld)
                 {
-                    BulletSimAPI.AddObjectToWorld2(PhysicsScene.World.ptr, PhysBody.ptr);
+                    AddObjectToPhysicalWorld();
                 }
 
                 // Must set gravity after it has been added to the world because, for unknown reasons,
@@ -740,17 +740,10 @@ public sealed class BSPrim : BSPhysObject
         // Make solid or not (do things bounce off or pass through this object).
         MakeSolid(IsSolid);
 
-        BulletSimAPI.AddObjectToWorld2(PhysicsScene.World.ptr, PhysBody.ptr);
-
-        // TODO: Fix this. Total kludge because adding object to world resets its gravity to default.
-        // Replace this when the new AddObjectToWorld function is complete.
-        BulletSimAPI.SetGravity2(PhysBody.ptr, ComputeGravity());
+        AddObjectToPhysicalWorld();
 
         // Rebuild its shape
         BulletSimAPI.UpdateSingleAabb2(PhysicsScene.World.ptr, PhysBody.ptr);
-
-        // Collision filter can be set only when the object is in the world
-        PhysBody.ApplyCollisionMask();
 
         // Recompute any linkset parameters.
         // When going from non-physical to physical, this re-enables the constraints that
@@ -897,6 +890,28 @@ public sealed class BSPrim : BSPhysObject
         else
         {
             CurrentCollisionFlags = BulletSimAPI.RemoveFromCollisionFlags2(PhysBody.ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
+        }
+    }
+
+    // Add me to the physical world.
+    // Object MUST NOT already be in the world.
+    // This routine exists because some assorted properties get mangled by adding to the world.
+    internal void AddObjectToPhysicalWorld()
+    {
+        if (PhysBody.HasPhysicalBody)
+        {
+            BulletSimAPI.AddObjectToWorld2(PhysicsScene.World.ptr, PhysBody.ptr);
+
+            // TODO: Fix this. Total kludge because adding object to world resets its gravity to default.
+            // Replace this when the new AddObjectToWorld function is complete.
+            BulletSimAPI.SetGravity2(PhysBody.ptr, ComputeGravity());
+
+            // Collision filter can be set only when the object is in the world
+            if (!PhysBody.ApplyCollisionMask())
+            {
+                m_log.ErrorFormat("{0} Failed setting object collision mask: id={1}", LogHeader, LocalID);
+                DetailLog("{0},BSPrim.UpdatePhysicalParameters,failedSetMaskGroup,cType={1}", LocalID, PhysBody.collisionType);
+            }
         }
     }
 
