@@ -260,7 +260,6 @@ public sealed class BSCharacter : BSPhysObject
     public override void ZeroMotion(bool inTaintTime)
     {
         _velocity = OMV.Vector3.Zero;
-        _velocityMotor.Zero();
         _acceleration = OMV.Vector3.Zero;
         _rotationalVelocity = OMV.Vector3.Zero;
 
@@ -585,18 +584,6 @@ public sealed class BSCharacter : BSPhysObject
         get { return _throttleUpdates; }
         set { _throttleUpdates = value; }
     }
-    public override bool IsColliding {
-        get { return (CollidingStep == PhysicsScene.SimulationStep); }
-        set { _isColliding = value; }
-    }
-    public override bool CollidingGround {
-        get { return (CollidingGroundStep == PhysicsScene.SimulationStep); }
-        set { CollidingGround = value; }
-    }
-    public override bool CollidingObj {
-        get { return _collidingObj; }
-        set { _collidingObj = value; }
-    }
     public override bool FloatOnWater {
         set {
             _floatOnWater = value;
@@ -684,22 +671,31 @@ public sealed class BSCharacter : BSPhysObject
     public override void AddForce(OMV.Vector3 force, bool pushforce) {
         if (force.IsFinite())
         {
-            _force.X += force.X;
-            _force.Y += force.Y;
-            _force.Z += force.Z;
-            // m_log.DebugFormat("{0}: AddForce. adding={1}, newForce={2}", LogHeader, force, _force);
+            float magnitude = force.Length();
+            if (magnitude > BSParam.MaxAddForceMagnitude)
+            {
+                // Force has a limit
+                force = force / magnitude * BSParam.MaxAddForceMagnitude;
+            }
+
+            OMV.Vector3 addForce = force / PhysicsScene.LastTimeStep;
+            DetailLog("{0},BSCharacter.addForce,call,force={1}", LocalID, addForce);
+
             PhysicsScene.TaintedObject("BSCharacter.AddForce", delegate()
             {
-                DetailLog("{0},BSCharacter.setAddForce,taint,addedForce={1}", LocalID, _force);
+                // Bullet adds this central force to the total force for this tick
+                DetailLog("{0},BSCharacter.addForce,taint,force={1}", LocalID, addForce);
                 if (PhysBody.HasPhysicalBody)
-                    BulletSimAPI.SetObjectForce2(PhysBody.ptr, _force);
+                {
+                    BulletSimAPI.ApplyCentralForce2(PhysBody.ptr, addForce);
+                }
             });
         }
         else
         {
-            m_log.ErrorFormat("{0}: Got a NaN force applied to a Character", LogHeader);
+            m_log.WarnFormat("{0}: Got a NaN force applied to a character. LocalID={1}", LogHeader, LocalID);
+            return;
         }
-        //m_lastUpdateSent = false;
     }
 
     public override void AddAngularForce(OMV.Vector3 force, bool pushforce) {
@@ -761,21 +757,25 @@ public sealed class BSCharacter : BSPhysObject
 
             OMV.Vector3 stepVelocity = _velocityMotor.Step(PhysicsScene.LastTimeStep);
 
-            // If falling, we keep the world's downward vector no matter what the other axis specify.
-            if (!Flying && !IsColliding)
+            // Check for cases to turn off the motor.
+            if (
+                // If the walking motor is all done, turn it off
+                (_velocityMotor.TargetValue.ApproxEquals(OMV.Vector3.Zero, 0.01f) && _velocityMotor.ErrorIsZero) )
             {
-                stepVelocity.Z = entprop.Velocity.Z;
-                DetailLog("{0},BSCharacter.UpdateProperties,taint,overrideStepZWithWorldZ,stepVel={1}", LocalID, stepVelocity);
-            }
-
-            // If the user has said stop and we've stopped applying velocity correction,
-            //     the motor can be turned off. Set the velocity to zero so the zero motion is sent to the viewer.
-            if (_velocityMotor.TargetValue.ApproxEquals(OMV.Vector3.Zero, 0.01f) && _velocityMotor.ErrorIsZero)
-            {
-                _velocityMotor.Enabled = false;
-                stepVelocity = OMV.Vector3.Zero;
                 ZeroMotion(true);
+                stepVelocity = OMV.Vector3.Zero;
+                _velocityMotor.Enabled = false;
                 DetailLog("{0},BSCharacter.UpdateProperties,taint,disableVelocityMotor,m={1}", LocalID, _velocityMotor);
+            }
+            else
+            {
+                // If the motor is not being turned off...
+                // If falling, we keep the world's downward vector no matter what the other axis specify.
+                if (!Flying && !IsColliding)
+                {
+                    stepVelocity.Z = entprop.Velocity.Z;
+                    DetailLog("{0},BSCharacter.UpdateProperties,taint,overrideStepZWithWorldZ,stepVel={1}", LocalID, stepVelocity);
+                }
             }
 
             _velocity = stepVelocity;

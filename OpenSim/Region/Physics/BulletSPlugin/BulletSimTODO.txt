@@ -1,22 +1,22 @@
 CURRENT PRIORITIES
 =================================================
-Smooth avatar movement with motor (DONE)
-	Should motor update be all at taint-time? (Yes, DONE)
-	Fix avatar slowly sliding when standing (zero motion when stopped)
-llApplyImpulse()
-	Compare mass/movement in OS and SL. Calibrate actions.
-llSetBuoyancy()
-Boats float low in the water
+Redo BulletSimAPI to allow native C# implementation of Bullet option.
+Avatar movement
+	flying into a wall doesn't stop avatar who keeps appearing to move through the obstacle
+	walking up stairs is not calibrated correctly (stairs out of Kepler cabin)
+	avatar capsule rotation completed
+llMoveToTarget
 Enable vehicle border crossings (at least as poorly as ODE)
 	Terrain skirts
 	Avatar created in previous region and not new region when crossing border
 	Vehicle recreated in new sim at small Z value (offset from root value?) (DONE)
-Add material densities to the material types.
 Vehicle movement on terrain smoothness
 Vehicle script tuning/debugging
 	Avanti speed script
 	Weapon shooter script
 limitMotorUp calibration (more down?)
+Boats float low in the water
+Add material densities to the material types.
 
 CRASHES
 =================================================
@@ -35,6 +35,8 @@ Border crossing with linked vehicle causes crash
 Vehicles (Move smoothly)
 Add vehicle collisions so IsColliding is properly reported.
 	Needed for banking, limitMotorUp, movementLimiting, ...
+VehicleAddForce is not scaled by the simulation step but it is only
+	applied for one step. Should it be scaled?
 Some vehicles should not be able to turn if no speed or off ground.
 Cannot edit/move a vehicle being ridden: it jumps back to the origional position.
 Neb car jiggling left and right
@@ -58,7 +60,6 @@ Incorporate inter-relationship of angular corrections. For instance, angularDefl
 
 BULLETSIM TODO LIST:
 =================================================
-In SL, perfect spheres don't seem to have rolling friction. Add special case.
 Avatar density is WAY off. Compare and calibrate with what's in SL.
 Revisit CollisionMargin. Builders notice the 0.04 spacing between prims.
 Duplicating a physical prim causes old prim to jump away
@@ -93,6 +94,9 @@ Should the different PID factors have non-equal contributions for different
 Selecting and deselecting physical objects causes CPU processing time to jump
 	http://www.youtube.com/watch?v=Hjg57fWg8yI&hd=1
 	put thousand physical objects, select and deselect same. CPU time will be large.
+Re-implement buoyancy as a separate force on the object rather than diddling gravity.
+	Register a pre-step event to add the force.
+More efficient memory usage when passing hull information from BSPrim to BulletSim
 
 LINKSETS
 ======================================================
@@ -146,6 +150,8 @@ Is there are more efficient method of implementing pre and post step actions?
 	See http://www.codeproject.com/Articles/29922/Weak-Events-in-C
 
 Physics Arena central pyramid: why is one side permiable?
+
+In SL, perfect spheres don't seem to have rolling friction. Add special case.
 Enforce physical parameter min/max:
 	Gravity: [-1, 28]
 	Friction: [0, 255]
@@ -188,6 +194,7 @@ Should taints check for existance or activeness of target?
 	actually gone when the taint happens. Crashes don't happen because the taint closure
 	keeps the object from being freed, but that is just an accident.
 	Possibly have and 'active' flag that is checked by the taint processor?
+Parameters for physics logging should be moved from BSScene to BSParam (at least boolean ones)
 
 THREADING
 =================================================
@@ -237,3 +244,12 @@ Should vehicle angular/linear movement friction happen after all the components
 	What is expected by some vehicles (turning up friction to moderate speed))
 Tune terrain/object friction to be closer to SL.
 	(Resolution: added material type with friction and resolution)
+Smooth avatar movement with motor (DONE)
+	Should motor update be all at taint-time? (Yes, DONE)
+	Fix avatar slowly sliding when standing (zero motion when stopped) (DONE)
+	(Resolution: added BSVMotor for avatar starting and stopping)
+llApplyImpulse()
+	Compare mass/movement in OS and SL. Calibrate actions.	(DONE)
+	(Resolution: tested on SL and OS. AddForce scales the force for timestep)
+llSetBuoyancy()	(DONE)
+	(Resolution: Bullet resets object gravity when added to world. Moved set gravity)

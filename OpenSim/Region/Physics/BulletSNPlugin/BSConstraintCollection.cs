@@ -41,9 +41,9 @@ public sealed class BSConstraintCollection : IDisposable
     delegate bool ConstraintAction(BSConstraint constrain);
 
     private List<BSConstraint> m_constraints;
-    private BulletSim m_world;
+    private BulletWorld m_world;
 
-    public BSConstraintCollection(BulletSim world)
+    public BSConstraintCollection(BulletWorld world)
     {
         m_world = world;
         m_constraints = new List<BSConstraint>();

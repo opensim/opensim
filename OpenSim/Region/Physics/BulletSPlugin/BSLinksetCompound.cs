@@ -5,7 +5,7 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclat simer.
+ *       notice, this list of conditions and the following disclaimer.
  *     * Redistributions in binary form must reproduce the above copyrightD
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
@@ -98,11 +98,12 @@ public sealed class BSLinksetCompound : BSLinkset
     // Schedule a refresh to happen after all the other taint processing.
     private void ScheduleRebuild(BSPhysObject requestor)
     {
-        DetailLog("{0},BSLinksetCompound.ScheduleRebuild,,rebuilding={1}", 
-                            requestor.LocalID, Rebuilding);
+        DetailLog("{0},BSLinksetCompound.ScheduleRebuild,,rebuilding={1},hasChildren={2}", 
+                            requestor.LocalID, Rebuilding, HasAnyChildren);
         // When rebuilding, it is possible to set properties that would normally require a rebuild.
         //    If already rebuilding, don't request another rebuild.
-        if (!Rebuilding)
+        //    If a linkset with just a root prim (simple non-linked prim) don't bother rebuilding.
+        if (!Rebuilding && HasAnyChildren)
         {
             PhysicsScene.PostTaintObject("BSLinksetCompound.ScheduleRebuild", LinksetRoot.LocalID, delegate()
             {
@@ -112,8 +113,7 @@ public sealed class BSLinksetCompound : BSLinkset
         }
     }
 
-    // The object is going dynamic (physical). Do any setup necessary
-    //     for a dynamic linkset.
+    // The object is going dynamic (physical). Do any setup necessary for a dynamic linkset.
     // Only the state of the passed object can be modified. The rest of the linkset
     //     has not yet been fully constructed.
     // Return 'true' if any properties updated on the passed object.
@@ -124,7 +124,7 @@ public sealed class BSLinksetCompound : BSLinkset
         DetailLog("{0},BSLinksetCompound.MakeDynamic,call,IsRoot={1}", child.LocalID, IsRoot(child));
         if (IsRoot(child))
         {
-            // The root is going dynamic. Make sure mass is properly set.
+            // The root is going dynamic. Rebuild the linkset so parts and mass get computed properly.
             ScheduleRebuild(LinksetRoot);
         }
         else
@@ -378,7 +378,7 @@ public sealed class BSLinksetCompound : BSLinkset
             });
 
             // With all of the linkset packed into the root prim, it has the mass of everyone.
-            LinksetMass = LinksetMass;
+            LinksetMass = ComputeLinksetMass();
             LinksetRoot.UpdatePhysicalMassProperties(LinksetMass, true);
         }
         finally

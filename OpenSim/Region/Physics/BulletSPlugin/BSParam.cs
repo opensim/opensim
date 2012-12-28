@@ -89,6 +89,18 @@ public static class BSParam
     public static float PID_D { get; private set; }    // derivative
     public static float PID_P { get; private set; }    // proportional
 
+    // Various constants that come from that other virtual world that shall not be named
+    public const float MinGravityZ = -1f;
+    public const float MaxGravityZ = 28f;
+    public const float MinFriction = 0f;
+    public const float MaxFriction = 255f;
+    public const float MinDensity = 0f;
+    public const float MaxDensity = 22587f;
+    public const float MinRestitution = 0f;
+    public const float MaxRestitution = 1f;
+    public const float MaxAddForceMagnitude = 20000f;
+
+    // ===========================================================================
     public delegate void ParamUser(BSScene scene, IConfig conf, string paramName, float val);
     public delegate float ParamGet(BSScene scene);
     public delegate void ParamSet(BSScene scene, string paramName, uint localID, float val);
@@ -200,6 +212,11 @@ public static class BSParam
             (s,cf,p,v) => { s.m_fixedTimeStep = cf.GetFloat(p, v); },
             (s) => { return (float)s.m_fixedTimeStep; },
             (s,p,l,v) => { s.m_fixedTimeStep = v; } ),
+        new ParameterDefn("NominalFrameRate", "The base frame rate we claim",
+            55f,
+            (s,cf,p,v) => { s.NominalFrameRate = cf.GetInt(p, (int)v); },
+            (s) => { return (float)s.NominalFrameRate; },
+            (s,p,l,v) => { s.NominalFrameRate = (int)v; } ),
         new ParameterDefn("MaxCollisionsPerFrame", "Max collisions returned at end of each frame",
             2048f,
             (s,cf,p,v) => { s.m_maxCollisionsPerFrame = cf.GetInt(p, (int)v); },

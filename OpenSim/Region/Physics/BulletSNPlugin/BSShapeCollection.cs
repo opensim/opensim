@@ -98,7 +98,7 @@ public sealed class BSShapeCollection : IDisposable
     //    higher level dependencies on the shape or body. Mostly used for LinkSets to
     //    remove the physical constraints before the body is destroyed.
     // Called at taint-time!!
-    public bool GetBodyAndShape(bool forceRebuild, BulletSim sim, BSPhysObject prim,
+    public bool GetBodyAndShape(bool forceRebuild, BulletWorld sim, BSPhysObject prim,
                     ShapeDestructionCallback shapeCallback, BodyDestructionCallback bodyCallback)
     {
         PhysicsScene.AssertInTaintTime("BSShapeCollection.GetBodyAndShape");
@@ -126,7 +126,7 @@ public sealed class BSShapeCollection : IDisposable
         return ret;
     }
 
-    public bool GetBodyAndShape(bool forceRebuild, BulletSim sim, BSPhysObject prim)
+    public bool GetBodyAndShape(bool forceRebuild, BulletWorld sim, BSPhysObject prim)
     {
         return GetBodyAndShape(forceRebuild, sim, prim, null, null);
     }
@@ -637,7 +637,7 @@ public sealed class BSShapeCollection : IDisposable
         }
         else
         {
-            meshData = PhysicsScene.mesher.CreateMesh(objName, pbs, size, lod, true, false);
+            meshData = PhysicsScene.mesher.CreateMesh(objName, pbs, size, lod, true, false, false, false);
 
             if (meshData != null)
             {
@@ -709,7 +709,7 @@ public sealed class BSShapeCollection : IDisposable
         {
             // Build a new hull in the physical world
             // Pass true for physicalness as this creates some sort of bounding box which we don't need
-            IMesh meshData = PhysicsScene.mesher.CreateMesh(objName, pbs, size, lod, true, false);
+            IMesh meshData = PhysicsScene.mesher.CreateMesh(objName, pbs, size, lod, true, false, false, false);
             if (meshData != null)
             {
 
@@ -918,7 +918,7 @@ public sealed class BSShapeCollection : IDisposable
     // Updates prim.BSBody with the information about the new body if one is created.
     // Returns 'true' if an object was actually created.
     // Called at taint-time.
-    private bool CreateBody(bool forceRebuild, BSPhysObject prim, BulletSim sim, BulletShape shape,
+    private bool CreateBody(bool forceRebuild, BSPhysObject prim, BulletWorld sim, BulletShape shape,
                             BodyDestructionCallback bodyCallback)
     {
         bool ret = false;

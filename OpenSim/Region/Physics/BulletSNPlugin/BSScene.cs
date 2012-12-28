@@ -74,7 +74,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
     public IMesher mesher;
     public uint WorldID { get; private set; }
-    public BulletSim World { get; private set; }
+    public BulletWorld World { get; private set; }
 
     // All the constraints that have been allocated in this instance.
     public BSConstraintCollection Constraints { get; private set; }
@@ -244,7 +244,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
         // m_log.DebugFormat("{0}: Initialize: Calling BulletSimAPI.Initialize.", LogHeader);
 
-        World = new BulletSim(0, this, BulletSimAPI.Initialize2(worldExtent, UnmanagedParams,
+        World = new BulletWorld(0, this, BulletSimAPI.Initialize2(worldExtent, UnmanagedParams,
                                         m_maxCollisionsPerFrame, ref m_collisionArray,
                                         m_maxUpdatesPerFrame,ref m_updateArray,
                                         m_DebugLogCallbackHandle));
@@ -497,13 +497,16 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
         InTaintTime = false; // Only used for debugging so locking is not necessary.
 
+        // The following causes the unmanaged code to output ALL the values found in ALL the objects in the world.
+        // Only enable this in a limited test world with few objects.
+        // BulletSimAPI.DumpAllInfo2(World.ptr);    // DEBUG DEBUG DEBUG
+
         // step the physical world one interval
         m_simulationStep++;
         int numSubSteps = 0;
 
         try
         {
-            //if (VehicleLoggingEnabled) DumpVehicles();  // DEBUG
             if (PhysicsLogging.Enabled) beforeTime = Util.EnvironmentTickCount();
 
             numSubSteps = BulletSimAPI.PhysicsStep2(World.ptr, timeStep, m_maxSubSteps, m_fixedTimeStep,
@@ -833,7 +836,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         {
             DetailLog("{0},BSScene.AssertInTaintTime,NOT IN TAINT TIME,Region={1},Where={2}", DetailLogZero, RegionName, whereFrom);
             m_log.ErrorFormat("{0} NOT IN TAINT TIME!! Region={1}, Where={2}", LogHeader, RegionName, whereFrom);
-            Util.PrintCallStack();  // Prints the stack into the DEBUG log file.
+            Util.PrintCallStack(DetailLog);
         }
         return InTaintTime;
     }

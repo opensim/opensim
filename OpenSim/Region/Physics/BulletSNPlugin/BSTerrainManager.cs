@@ -140,7 +140,7 @@ public sealed class BSTerrainManager : IDisposable
         m_groundPlane = new BulletBody(BSScene.GROUNDPLANE_ID,
                         BulletSimAPI.CreateBodyWithDefaultMotionState2(groundPlaneShape.ptr, BSScene.GROUNDPLANE_ID,
                                                             Vector3.Zero, Quaternion.Identity));
-        BulletSimAPI.AddObjectToWorld2(PhysicsScene.World.ptr, m_groundPlane.ptr);
+        BulletSimAPI.AddObjectToWorld2(PhysicsScene.World.ptr, m_groundPlane.ptr, Vector3.Zero, Quaternion.Identity);
         BulletSimAPI.UpdateSingleAabb2(PhysicsScene.World.ptr, m_groundPlane.ptr);
         // Ground plane does not move
         BulletSimAPI.ForceActivationState2(m_groundPlane.ptr, ActivationState.DISABLE_SIMULATION);
@@ -376,6 +376,7 @@ public sealed class BSTerrainManager : IDisposable
             DetailLog("{0},BSTerrainManager.GetTerrainHeightAtXYZ,terrainNotFound,pos={1},base={2}",
                                 BSScene.DetailLogZero, pos, terrainBaseXYZ);
         }
+
         lastHeight = ret;
         return ret;
     }

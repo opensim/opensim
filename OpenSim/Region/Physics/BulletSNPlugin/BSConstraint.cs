@@ -36,7 +36,7 @@ public abstract class BSConstraint : IDisposable
 {
     private static string LogHeader = "[BULLETSIM CONSTRAINT]";
 
-    protected BulletSim m_world;
+    protected BulletWorld m_world;
     protected BulletBody m_body1;
     protected BulletBody m_body2;
     protected BulletConstraint m_constraint;

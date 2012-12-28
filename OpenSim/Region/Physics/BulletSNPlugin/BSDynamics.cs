@@ -573,6 +573,9 @@ namespace OpenSim.Region.Physics.BulletSNPlugin
                 BulletSimAPI.SetMassProps2(Prim.PhysBody.ptr, m_vehicleMass, localInertia);
                 BulletSimAPI.UpdateInertiaTensor2(Prim.PhysBody.ptr);
 
+                Vector3 grav = PhysicsScene.DefaultGravity * (1f - Prim.Buoyancy);
+                BulletSimAPI.SetGravity2(Prim.PhysBody.ptr, grav);
+
                 VDetailLog("{0},BSDynamics.Refresh,mass={1},frict={2},inert={3},aDamp={4}",
                                 Prim.LocalID, m_vehicleMass, friction, localInertia, angularDamping);
             }

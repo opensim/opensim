@@ -72,12 +72,12 @@ public struct BulletBody
     public bool HasPhysicalBody { get { return ptr != IntPtr.Zero; } }
 
     // Apply the specificed collision mask into the physical world
-    public void ApplyCollisionMask()
+    public bool ApplyCollisionMask()
     {
         // Should assert the body has been added to the physical world.
         // (The collision masks are stored in the collision proxy cache which only exists for
         //    a collision body that is in the world.)
-        BulletSimAPI.SetCollisionGroupMask2(ptr,
+        return BulletSimAPI.SetCollisionGroupMask2(ptr,
                                 BulletSimData.CollisionTypeMasks[collisionType].group,
                                 BulletSimData.CollisionTypeMasks[collisionType].mask);
     }
@@ -207,26 +207,6 @@ public struct CollisionTypeFilterGroup
     public uint mask;
 };
 
-    /* NOTE: old definitions kept for reference. Delete when things are working.
-    // The collsion filters and masked are defined in one place -- don't want them scattered
-    AvatarGroup             = BCharacterGroup,
-    AvatarMask              = BAllGroup,
-    ObjectGroup             = BSolidGroup,
-    ObjectMask              = BAllGroup,
-    StaticObjectGroup       = BStaticGroup,
-    StaticObjectMask        = AvatarGroup | ObjectGroup,    // static things don't interact with much
-    LinksetGroup            = BLinksetGroup,
-    LinksetMask             = BAllGroup,
-    LinksetChildGroup       = BLinksetChildGroup,
-    LinksetChildMask        = BNoneGroup,   // Linkset children disappear from the world
-    VolumeDetectGroup       = BSensorTrigger,
-    VolumeDetectMask        = ~BSensorTrigger,
-    TerrainGroup            = BTerrainGroup,
-    TerrainMask             = BAllGroup & ~BStaticGroup,  // static objects on the ground don't collide
-    GroundPlaneGroup        = BGroundPlaneGroup,
-    GroundPlaneMask         = BAllGroup
-    */
-
 public static class BulletSimData
 {
 
@@ -269,8 +249,9 @@ public static Dictionary<CollisionType, CollisionTypeFilterGroup> CollisionTypeM
     },
     { CollisionType.LinksetChild,
                 new CollisionTypeFilterGroup(CollisionType.LinksetChild, 
-                                (uint)CollisionFilterGroups.BTerrainGroup, 
+                                (uint)CollisionFilterGroups.BLinksetChildGroup, 
                                 (uint)(CollisionFilterGroups.BNoneGroup))
+                                // (uint)(CollisionFilterGroups.BCharacterGroup | CollisionFilterGroups.BSolidGroup))
     },
 };
 

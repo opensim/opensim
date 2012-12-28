@@ -46,6 +46,8 @@ public sealed class BSLinksetConstraints : BSLinkset
     //   refresh will happen once after all the other taints are applied.
     public override void Refresh(BSPhysObject requestor)
     {
+        base.Refresh(requestor);
+
         // Queue to happen after all the other taint processing
         PhysicsScene.PostTaintObject("BSLinksetContraints.Refresh", requestor.LocalID, delegate()
             {
@@ -279,7 +281,7 @@ public sealed class BSLinksetConstraints : BSLinkset
     private void RecomputeLinksetConstraints()
     {
         float linksetMass = LinksetMass;
-        LinksetRoot.UpdatePhysicalMassProperties(linksetMass);
+        LinksetRoot.UpdatePhysicalMassProperties(linksetMass, true);
 
         // DEBUG: see of inter-linkset collisions are causing problems
         // BulletSimAPI.SetCollisionFilterMask2(LinksetRoot.BSBody.ptr, 
@@ -292,7 +294,7 @@ public sealed class BSLinksetConstraints : BSLinkset
             // A child in the linkset physically shows the mass of the whole linkset.
             // This allows Bullet to apply enough force on the child to move the whole linkset.
             // (Also do the mass stuff before recomputing the constraint so mass is not zero.)
-            child.UpdatePhysicalMassProperties(linksetMass);
+            child.UpdatePhysicalMassProperties(linksetMass, true);
 
             BSConstraint constrain;
             if (!PhysicsScene.Constraints.TryGetConstraint(LinksetRoot.PhysBody, child.PhysBody, out constrain))
