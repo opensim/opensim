@@ -91,17 +91,7 @@ public sealed class BSCharacter : BSPhysObject
         if (_size.X == 0f) _size.X = BSParam.AvatarCapsuleDepth;
         if (_size.Y == 0f) _size.Y = BSParam.AvatarCapsuleWidth;
 
-        // A motor to control the acceleration and deceleration of the avatar movement.
-        // _velocityMotor = new BSVMotor("BSCharacter.Velocity", 3f, 5f, BSMotor.InfiniteVector, 1f);
-        // _velocityMotor = new BSPIDVMotor("BSCharacter.Velocity", 3f, 5f, BSMotor.InfiniteVector, 1f);
-        // Infinite decay and timescale values so motor only changes current to target values.
-        _velocityMotor = new BSVMotor("BSCharacter.Velocity", 
-                                            0.2f,                       // time scale
-                                            BSMotor.Infinite,           // decay time scale
-                                            BSMotor.InfiniteVector,     // friction timescale
-                                            1f                          // efficiency
-        );
-        _velocityMotor.PhysicsScene = PhysicsScene; // DEBUG DEBUG so motor will output detail log messages.
+        SetupMovementMotor();
 
         _flying = isFlying;
         _orientation = OMV.Quaternion.Identity;
@@ -152,13 +142,12 @@ public sealed class BSCharacter : BSPhysObject
 
         ZeroMotion(true);
         ForcePosition = _position;
+
         // Set the velocity and compute the proper friction
-        ForceVelocity = _velocity;
-        // Setting the current and target in the motor will cause it to start computing any deceleration.
         _velocityMotor.Reset();
-        _velocityMotor.SetCurrent(_velocity);
         _velocityMotor.SetTarget(_velocity);
-        _velocityMotor.Enabled = false;
+        _velocityMotor.SetCurrent(_velocity);
+        ForceVelocity = _velocity;
 
         // This will enable or disable the flying buoyancy of the avatar.
         // Needs to be reset especially when an avatar is recreated after crossing a region boundry.
@@ -190,6 +179,48 @@ public sealed class BSCharacter : BSPhysObject
         // Do this after the object has been added to the world
         PhysBody.collisionType = CollisionType.Avatar;
         PhysBody.ApplyCollisionMask();
+    }
+
+    // The avatar's movement is controlled by this motor that speeds up and slows down
+    //    the avatar seeking to reach the motor's target speed.
+    // This motor runs as a prestep action for the avatar so it will keep the avatar
+    //    standing as well as moving. Destruction of the avatar will destroy the pre-step action.
+    private void SetupMovementMotor()
+    {
+
+        // Someday, use a PID motor for asymmetric speed up and slow down
+        // _velocityMotor = new BSPIDVMotor("BSCharacter.Velocity", 3f, 5f, BSMotor.InfiniteVector, 1f);
+
+        // Infinite decay and timescale values so motor only changes current to target values.
+        _velocityMotor = new BSVMotor("BSCharacter.Velocity", 
+                                            0.2f,                       // time scale
+                                            BSMotor.Infinite,           // decay time scale
+                                            BSMotor.InfiniteVector,     // friction timescale
+                                            1f                          // efficiency
+        );
+        // _velocityMotor.PhysicsScene = PhysicsScene; // DEBUG DEBUG so motor will output detail log messages.
+
+        RegisterPreStepAction("BSCharactor.Movement", LocalID, delegate(float timeStep)
+        {
+            // TODO: Decide if the step parameters should be changed depending on the avatar's
+            //     state (flying, colliding, ...). There is code in ODE to do this.
+
+            OMV.Vector3 stepVelocity = _velocityMotor.Step(timeStep);
+
+            // If falling, we keep the world's downward vector no matter what the other axis specify.
+            if (!Flying && !IsColliding)
+            {
+                stepVelocity.Z = _velocity.Z;
+                DetailLog("{0},BSCharacter.MoveMotor,taint,overrideStepZWithWorldZ,stepVel={1}",
+                            LocalID, stepVelocity);
+            }
+
+            // 'stepVelocity' is now the speed we'd like the avatar to move in. Turn that into an instantanous force.
+            OMV.Vector3 moveForce = (stepVelocity - _velocity) * Mass / PhysicsScene.LastTimeStep;
+            DetailLog("{0},BSCharacter.MoveMotor,move,stepVel={1},vel={2},mass={3},moveForce={4}",
+                                            LocalID, stepVelocity, _velocity, Mass, moveForce);
+            AddForce(moveForce, false, true);
+        });
     }
 
     public override void RequestPhysicsterseUpdate()
@@ -668,7 +699,13 @@ public sealed class BSCharacter : BSPhysObject
     public override float APIDStrength { set { return; } }
     public override float APIDDamping { set { return; } }
 
-    public override void AddForce(OMV.Vector3 force, bool pushforce) {
+    public override void AddForce(OMV.Vector3 force, bool pushforce)
+    {
+        // Since this force is being applied in only one step, make this a force per second.
+        OMV.Vector3 addForce = force / PhysicsScene.LastTimeStep;
+        AddForce(addForce, pushforce, false);
+    }
+    private void AddForce(OMV.Vector3 force, bool pushforce, bool inTaintTime) {
         if (force.IsFinite())
         {
             float magnitude = force.Length();
@@ -678,10 +715,10 @@ public sealed class BSCharacter : BSPhysObject
                 force = force / magnitude * BSParam.MaxAddForceMagnitude;
             }
 
-            OMV.Vector3 addForce = force / PhysicsScene.LastTimeStep;
+            OMV.Vector3 addForce = force;
             DetailLog("{0},BSCharacter.addForce,call,force={1}", LocalID, addForce);
 
-            PhysicsScene.TaintedObject("BSCharacter.AddForce", delegate()
+            PhysicsScene.TaintedObject(inTaintTime, "BSCharacter.AddForce", delegate()
             {
                 // Bullet adds this central force to the total force for this tick
                 DetailLog("{0},BSCharacter.addForce,taint,force={1}", LocalID, addForce);
@@ -749,39 +786,6 @@ public sealed class BSCharacter : BSPhysObject
 
         // Do some sanity checking for the avatar. Make sure it's above ground and inbounds.
         PositionSanityCheck(true);
-
-        if (_velocityMotor.Enabled)
-        {
-            // TODO: Decide if the step parameters should be changed depending on the avatar's
-            //     state (flying, colliding, ...).
-
-            OMV.Vector3 stepVelocity = _velocityMotor.Step(PhysicsScene.LastTimeStep);
-
-            // Check for cases to turn off the motor.
-            if (
-                // If the walking motor is all done, turn it off
-                (_velocityMotor.TargetValue.ApproxEquals(OMV.Vector3.Zero, 0.01f) && _velocityMotor.ErrorIsZero) )
-            {
-                ZeroMotion(true);
-                stepVelocity = OMV.Vector3.Zero;
-                _velocityMotor.Enabled = false;
-                DetailLog("{0},BSCharacter.UpdateProperties,taint,disableVelocityMotor,m={1}", LocalID, _velocityMotor);
-            }
-            else
-            {
-                // If the motor is not being turned off...
-                // If falling, we keep the world's downward vector no matter what the other axis specify.
-                if (!Flying && !IsColliding)
-                {
-                    stepVelocity.Z = entprop.Velocity.Z;
-                    DetailLog("{0},BSCharacter.UpdateProperties,taint,overrideStepZWithWorldZ,stepVel={1}", LocalID, stepVelocity);
-                }
-            }
-
-            _velocity = stepVelocity;
-            entprop.Velocity = _velocity;
-            BulletSimAPI.SetLinearVelocity2(PhysBody.ptr, _velocity);
-        }
 
         // remember the current and last set values
         LastEntityProperties = CurrentEntityProperties;
