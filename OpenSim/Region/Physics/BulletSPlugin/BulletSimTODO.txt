@@ -2,9 +2,10 @@ CURRENT PRIORITIES
 =================================================
 Redo BulletSimAPI to allow native C# implementation of Bullet option.
 Avatar movement
-	flying into a wall doesn't stop avatar who keeps appearing to move through the obsticle
+	flying into a wall doesn't stop avatar who keeps appearing to move through the obstacle
 	walking up stairs is not calibrated correctly (stairs out of Kepler cabin)
 	avatar capsule rotation completed
+llMoveToTarget
 Enable vehicle border crossings (at least as poorly as ODE)
 	Terrain skirts
 	Avatar created in previous region and not new region when crossing border

@@ -584,18 +584,6 @@ public sealed class BSCharacter : BSPhysObject
         get { return _throttleUpdates; }
         set { _throttleUpdates = value; }
     }
-    public override bool IsColliding {
-        get { return (CollidingStep == PhysicsScene.SimulationStep); }
-        set { _isColliding = value; }
-    }
-    public override bool CollidingGround {
-        get { return (CollidingGroundStep == PhysicsScene.SimulationStep); }
-        set { CollidingGround = value; }
-    }
-    public override bool CollidingObj {
-        get { return _collidingObj; }
-        set { _collidingObj = value; }
-    }
     public override bool FloatOnWater {
         set {
             _floatOnWater = value;
@@ -769,21 +757,25 @@ public sealed class BSCharacter : BSPhysObject
 
             OMV.Vector3 stepVelocity = _velocityMotor.Step(PhysicsScene.LastTimeStep);
 
-            // If falling, we keep the world's downward vector no matter what the other axis specify.
-            if (!Flying && !IsColliding)
-            {
-                stepVelocity.Z = entprop.Velocity.Z;
-                DetailLog("{0},BSCharacter.UpdateProperties,taint,overrideStepZWithWorldZ,stepVel={1}", LocalID, stepVelocity);
-            }
-
-            // If the user has said stop and we've stopped applying velocity correction,
-            //     the motor can be turned off. Set the velocity to zero so the zero motion is sent to the viewer.
-            if (_velocityMotor.TargetValue.ApproxEquals(OMV.Vector3.Zero, 0.01f) && _velocityMotor.ErrorIsZero)
+            // Check for cases to turn off the motor.
+            if (
+                // If the walking motor is all done, turn it off
+                (_velocityMotor.TargetValue.ApproxEquals(OMV.Vector3.Zero, 0.01f) && _velocityMotor.ErrorIsZero) )
             {
                 ZeroMotion(true);
                 stepVelocity = OMV.Vector3.Zero;
                 _velocityMotor.Enabled = false;
                 DetailLog("{0},BSCharacter.UpdateProperties,taint,disableVelocityMotor,m={1}", LocalID, _velocityMotor);
+            }
+            else
+            {
+                // If the motor is not being turned off...
+                // If falling, we keep the world's downward vector no matter what the other axis specify.
+                if (!Flying && !IsColliding)
+                {
+                    stepVelocity.Z = entprop.Velocity.Z;
+                    DetailLog("{0},BSCharacter.UpdateProperties,taint,overrideStepZWithWorldZ,stepVel={1}", LocalID, stepVelocity);
+                }
             }
 
             _velocity = stepVelocity;

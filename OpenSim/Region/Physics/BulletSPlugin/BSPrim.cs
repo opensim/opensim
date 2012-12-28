@@ -915,18 +915,6 @@ public sealed class BSPrim : BSPhysObject
         get { return _throttleUpdates; }
         set { _throttleUpdates = value; }
     }
-    public override bool IsColliding {
-        get { return (CollidingStep == PhysicsScene.SimulationStep); }
-        set { _isColliding = value; }
-    }
-    public override bool CollidingGround {
-        get { return (CollidingGroundStep == PhysicsScene.SimulationStep); }
-        set { _collidingGround = value; }
-    }
-    public override bool CollidingObj {
-        get { return _collidingObj; }
-        set { _collidingObj = value; }
-    }
     public bool IsPhantom {
         get {
             // SceneObjectPart removes phantom objects from the physics scene
@@ -1006,11 +994,11 @@ public sealed class BSPrim : BSPhysObject
     public override OMV.Vector3 PIDTarget {
         set { _PIDTarget = value; }
     }
-    public override bool PIDActive {
-        set { _usePID = value; }
-    }
     public override float PIDTau {
         set { _PIDTau = value; }
+    }
+    public override bool PIDActive {
+        set { _usePID = value; }
     }
 
     // Used for llSetHoverHeight and maybe vehicle height

@@ -182,8 +182,39 @@ public abstract class BSPhysObject : PhysicsActor
     protected long CollidingStep { get; set; }
     // The simulation step that last had a collision with the ground
     protected long CollidingGroundStep { get; set; }
+    // The simulation step that last collided with an object
+    protected long CollidingObjectStep { get; set; }
     // The collision flags we think are set in Bullet
     protected CollisionFlags CurrentCollisionFlags { get; set; }
+
+    public override bool IsColliding {
+        get { return (CollidingStep == PhysicsScene.SimulationStep); }
+        set {
+            if (value)
+                CollidingStep = PhysicsScene.SimulationStep;
+            else
+                CollidingStep = 0;
+            }
+    }
+    public override bool CollidingGround {
+        get { return (CollidingGroundStep == PhysicsScene.SimulationStep); }
+        set
+        {
+            if (value)
+                CollidingGroundStep = PhysicsScene.SimulationStep;
+            else
+                CollidingGroundStep = 0;
+        }
+    }
+    public override bool CollidingObj {
+        get { return (CollidingObjectStep == PhysicsScene.SimulationStep); }
+        set { 
+            if (value)
+                CollidingObjectStep = PhysicsScene.SimulationStep;
+            else
+                CollidingObjectStep = 0;
+        }
+    }
 
     // The collisions that have been collected this tick
     protected CollisionEventUpdate CollisionCollection;
@@ -196,11 +227,15 @@ public abstract class BSPhysObject : PhysicsActor
     {
         bool ret = false;
 
-        // The following lines make IsColliding() and IsCollidingGround() work
+        // The following lines make IsColliding(), CollidingGround() and CollidingObj work
         CollidingStep = PhysicsScene.SimulationStep;
         if (collidingWith <= PhysicsScene.TerrainManager.HighestTerrainID)
         {
             CollidingGroundStep = PhysicsScene.SimulationStep;
+        }
+        else
+        {
+            CollidingObjectStep = PhysicsScene.SimulationStep;
         }
 
         // prims in the same linkset cannot collide with each other
