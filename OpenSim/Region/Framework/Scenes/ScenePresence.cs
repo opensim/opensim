@@ -2335,9 +2335,14 @@ namespace OpenSim.Region.Framework.Scenes
                 // storing a requested force instead of an actual traveling velocity
 
                 // Throw away duplicate or insignificant updates
-                if (!Rotation.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE) ||
-                    !Velocity.ApproxEquals(m_lastVelocity, VELOCITY_TOLERANCE) ||
-                    !m_pos.ApproxEquals(m_lastPosition, POSITION_TOLERANCE))
+                if (
+                    // If the velocity has become zero, send it no matter what.
+                       (Velocity != m_lastVelocity && Velocity == Vector3.Zero)
+                    // otherwise, if things have changed reasonably, send the update
+                    || (!Rotation.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE)
+                        || !Velocity.ApproxEquals(m_lastVelocity, VELOCITY_TOLERANCE)
+                        || !m_pos.ApproxEquals(m_lastPosition, POSITION_TOLERANCE)))
+
                 {
                     SendTerseUpdateToAllClients();
 
