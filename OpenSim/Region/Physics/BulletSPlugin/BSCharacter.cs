@@ -558,12 +558,16 @@ public sealed class BSCharacter : BSPhysObject
     public override OMV.Quaternion Orientation {
         get { return _orientation; }
         set {
-            _orientation = value;
-            // m_log.DebugFormat("{0}: set orientation to {1}", LogHeader, _orientation);
-            PhysicsScene.TaintedObject("BSCharacter.setOrientation", delegate()
+            // Orientation is set zillions of times when an avatar is walking. It's like
+            //      the viewer doesn't trust us.
+            if (_orientation != value)
             {
-                ForceOrientation = _orientation;
-            });
+                _orientation = value;
+                PhysicsScene.TaintedObject("BSCharacter.setOrientation", delegate()
+                {
+                    ForceOrientation = _orientation;
+                });
+            }
         }
     }
     // Go directly to Bullet to get/set the value.
