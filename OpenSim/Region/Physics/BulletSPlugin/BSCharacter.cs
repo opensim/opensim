@@ -66,7 +66,6 @@ public sealed class BSCharacter : BSPhysObject
     private float _buoyancy;
 
     // The friction and velocity of the avatar is modified depending on whether walking or not.
-    private OMV.Vector3 _appliedVelocity;   // the last velocity applied to the avatar
     private float _currentFriction;         // the friction currently being used (changed by setVelocity).
 
     private BSVMotor _velocityMotor;
@@ -85,27 +84,27 @@ public sealed class BSCharacter : BSPhysObject
         _physicsActorType = (int)ActorTypes.Agent;
         _position = pos;
 
+        _flying = isFlying;
+        _orientation = OMV.Quaternion.Identity;
+        _velocity = OMV.Vector3.Zero;
+        _buoyancy = ComputeBuoyancyFromFlying(isFlying);
+        _currentFriction = BSParam.AvatarStandingFriction;
+        _avatarDensity = BSParam.AvatarDensity;
+
         // Old versions of ScenePresence passed only the height. If width and/or depth are zero,
         //     replace with the default values.
         _size = size;
         if (_size.X == 0f) _size.X = BSParam.AvatarCapsuleDepth;
         if (_size.Y == 0f) _size.Y = BSParam.AvatarCapsuleWidth;
 
-        SetupMovementMotor();
-
-        _flying = isFlying;
-        _orientation = OMV.Quaternion.Identity;
-        _velocity = OMV.Vector3.Zero;
-        _appliedVelocity = OMV.Vector3.Zero;
-        _buoyancy = ComputeBuoyancyFromFlying(isFlying);
-        _currentFriction = BSParam.AvatarStandingFriction;
-        _avatarDensity = BSParam.AvatarDensity;
-
-        // The dimensions of the avatar capsule are kept in the scale.
+        // The dimensions of the physical capsule are kept in the scale.
         // Physics creates a unit capsule which is scaled by the physics engine.
-        ComputeAvatarScale(_size);
+        Scale = ComputeAvatarScale(_size);
         // set _avatarVolume and _mass based on capsule size, _density and Scale
         ComputeAvatarVolumeAndMass();
+
+        SetupMovementMotor();
+
         DetailLog("{0},BSCharacter.create,call,size={1},scale={2},density={3},volume={4},mass={5}",
                             LocalID, _size, Scale, _avatarDensity, _avatarVolume, RawMass);
 
@@ -217,9 +216,21 @@ public sealed class BSCharacter : BSPhysObject
 
             // 'stepVelocity' is now the speed we'd like the avatar to move in. Turn that into an instantanous force.
             OMV.Vector3 moveForce = (stepVelocity - _velocity) * Mass / PhysicsScene.LastTimeStep;
-            DetailLog("{0},BSCharacter.MoveMotor,move,stepVel={1},vel={2},mass={3},moveForce={4}",
-                                            LocalID, stepVelocity, _velocity, Mass, moveForce);
-            AddForce(moveForce, false, true);
+
+            // If moveForce is very small, zero things so we don't keep sending microscopic updates to the user
+            float moveForceMagnitudeSquared = moveForce.LengthSquared();
+            if (moveForceMagnitudeSquared < 0.0001)
+            {
+                DetailLog("{0},BSCharacter.MoveMotor,zeroMovement,stepVel={1},vel={2},mass={3},magSq={4},moveForce={5}",
+                                        LocalID, stepVelocity, _velocity, Mass, moveForceMagnitudeSquared, moveForce);
+                ForceVelocity = OMV.Vector3.Zero;
+            }
+            else
+            {
+                DetailLog("{0},BSCharacter.MoveMotor,move,stepVel={1},vel={2},mass={3},moveForce={4}",
+                                        LocalID, stepVelocity, _velocity, Mass, moveForce);
+                AddForce(moveForce, false, true);
+            }
         });
     }
 
@@ -238,14 +249,13 @@ public sealed class BSCharacter : BSPhysObject
         }
 
         set {
-            // When an avatar's size is set, only the height is changed.
             _size = value;
             // Old versions of ScenePresence passed only the height. If width and/or depth are zero,
             //     replace with the default values.
             if (_size.X == 0f) _size.X = BSParam.AvatarCapsuleDepth;
             if (_size.Y == 0f) _size.Y = BSParam.AvatarCapsuleWidth;
 
-            ComputeAvatarScale(_size);
+            Scale = ComputeAvatarScale(_size);
             ComputeAvatarVolumeAndMass();
             DetailLog("{0},BSCharacter.setSize,call,size={1},scale={2},density={3},volume={4},mass={5}",
                             LocalID, _size, Scale, _avatarDensity, _avatarVolume, RawMass);
@@ -521,8 +531,6 @@ public sealed class BSCharacter : BSPhysObject
                         BulletSimAPI.SetFriction2(PhysBody.ptr, _currentFriction);
                 }
             }
-            // Remember the set velocity so we can suppress the reduction by friction, ...
-            _appliedVelocity = value;
 
             BulletSimAPI.SetLinearVelocity2(PhysBody.ptr, _velocity);
             BulletSimAPI.Activate2(PhysBody.ptr, true);
@@ -554,11 +562,7 @@ public sealed class BSCharacter : BSPhysObject
             // m_log.DebugFormat("{0}: set orientation to {1}", LogHeader, _orientation);
             PhysicsScene.TaintedObject("BSCharacter.setOrientation", delegate()
             {
-                if (PhysBody.HasPhysicalBody)
-                {
-                    // _position = BulletSimAPI.GetPosition2(BSBody.ptr);
-                    BulletSimAPI.SetTranslation2(PhysBody.ptr, _position, _orientation);
-                }
+                ForceOrientation = _orientation;
             });
         }
     }
@@ -573,7 +577,11 @@ public sealed class BSCharacter : BSPhysObject
         set
         {
             _orientation = value;
-            BulletSimAPI.SetTranslation2(PhysBody.ptr, _position, _orientation);
+            if (PhysBody.HasPhysicalBody)
+            {
+                // _position = BulletSimAPI.GetPosition2(BSBody.ptr);
+                BulletSimAPI.SetTranslation2(PhysBody.ptr, _position, _orientation);
+            }
         }
     }
     public override int PhysicsActorType {
@@ -716,7 +724,7 @@ public sealed class BSCharacter : BSPhysObject
             }
 
             OMV.Vector3 addForce = force;
-            DetailLog("{0},BSCharacter.addForce,call,force={1}", LocalID, addForce);
+            // DetailLog("{0},BSCharacter.addForce,call,force={1}", LocalID, addForce);
 
             PhysicsScene.TaintedObject(inTaintTime, "BSCharacter.AddForce", delegate()
             {
@@ -740,21 +748,31 @@ public sealed class BSCharacter : BSPhysObject
     public override void SetMomentum(OMV.Vector3 momentum) {
     }
 
-    private void ComputeAvatarScale(OMV.Vector3 size)
+    private OMV.Vector3 ComputeAvatarScale(OMV.Vector3 size)
     {
-        OMV.Vector3 newScale = size;
-        // newScale.X = PhysicsScene.Params.avatarCapsuleWidth;
-        // newScale.Y = PhysicsScene.Params.avatarCapsuleDepth;
+        OMV.Vector3 newScale;
+        
+        // Bullet's capsule total height is the "passed height + radius * 2";
+        // The base capsule is 1 diameter and 2 height (passed radius=0.5, passed height = 1)
+        // The number we pass in for 'scaling' is the multiplier to get that base
+        //     shape to be the size desired.
+        // So, when creating the scale for the avatar height, we take the passed height
+        //     (size.Z) and remove the caps.
+        // Another oddity of the Bullet capsule implementation is that it presumes the Y
+        //     dimension is the radius of the capsule. Even though some of the code allows
+        //     for a asymmetrical capsule, other parts of the code presume it is cylindrical.
 
-        // From the total height, remove the capsule half spheres that are at each end
-        // The 1.15f came from ODE. Not sure what this factors in.
-        // newScale.Z = (size.Z * 1.15f) - (newScale.X + newScale.Y);
+        // Scale is multiplier of radius with one of "0.5"
+        newScale.X = size.X / 2f;
+        newScale.Y = size.Y / 2f;
 
         // The total scale height is the central cylindar plus the caps on the two ends.
-        newScale.Z = size.Z + (Math.Min(size.X, size.Y) * 2f);
+        newScale.Z = (size.Z + (Math.Min(size.X, size.Y) * 2)) / 2f;
+        // If smaller than the endcaps, just fake like we're almost that small
+        if (newScale.Z < 0)
+            newScale.Z = 0.1f;
 
-        // Convert diameters to radii and height to half height -- the way Bullet expects it.
-        Scale = newScale / 2f;
+        return newScale;
     }
 
     // set _avatarVolume and _mass based on capsule size, _density and Scale
@@ -762,14 +780,14 @@ public sealed class BSCharacter : BSPhysObject
     {
         _avatarVolume = (float)(
                         Math.PI
-                        * Scale.X
-                        * Scale.Y    // the area of capsule cylinder
-                        * Scale.Z    // times height of capsule cylinder
+                        * Size.X / 2f
+                        * Size.Y / 2f    // the area of capsule cylinder
+                        * Size.Z         // times height of capsule cylinder
                       + 1.33333333f
                         * Math.PI
-                        * Scale.X
-                        * Math.Min(Scale.X, Scale.Y)
-                        * Scale.Y    // plus the volume of the capsule end caps
+                        * Size.X / 2f
+                        * Math.Min(Size.X, Size.Y) / 2
+                        * Size.Y / 2f    // plus the volume of the capsule end caps
                         );
         _mass = _avatarDensity * _avatarVolume;
     }

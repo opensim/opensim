@@ -69,6 +69,7 @@ public enum BSPhysicsShapeType
 	SHAPE_TERRAIN   = 21,
 	SHAPE_COMPOUND  = 22,
 	SHAPE_HEIGHTMAP = 23,
+    SHAPE_AVATAR    = 24,
 };
 
 // The native shapes have predefined shape hash keys
@@ -80,6 +81,7 @@ public enum FixedShapeKey : ulong
     KEY_CONE        = 3,
     KEY_CYLINDER    = 4,
     KEY_CAPSULE     = 5,
+    KEY_AVATAR      = 6,
 }
 
 [StructLayout(LayoutKind.Sequential)]

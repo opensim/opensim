@@ -420,8 +420,7 @@ public sealed class BSShapeCollection : IDisposable
         if (!haveShape && prim.PreferredPhysicalShape == BSPhysicsShapeType.SHAPE_CAPSULE)
         {
             // an avatar capsule is close to a native shape (it is not shared)
-            GetReferenceToNativeShape(prim, BSPhysicsShapeType.SHAPE_CAPSULE,
-                            FixedShapeKey.KEY_CAPSULE, shapeCallback);
+            GetReferenceToNativeShape(prim, BSPhysicsShapeType.SHAPE_CAPSULE, FixedShapeKey.KEY_CAPSULE, shapeCallback);
             if (DDetail) DetailLog("{0},BSShapeCollection.CreateGeom,avatarCapsule,shape={1}", prim.LocalID, prim.PhysShape);
             ret = true;
             haveShape = true;
@@ -573,6 +572,9 @@ public sealed class BSShapeCollection : IDisposable
         {
             // The proper scale has been calculated in the prim.
             newShape = new BulletShape(
+                        // Bullet's capsule total height is the passed "height + (radius * 2)" so, the base
+                        //     capsule is radius of 0.5f (1 diameter) and height of two (1.0f + 0.5f * 2)".
+                        //     This must be taken into account when computing the scaling of the capsule.
                         BulletSimAPI.BuildCapsuleShape2(PhysicsScene.World.ptr, 1f, 1f, prim.Scale)
                         , shapeType);
             if (DDetail) DetailLog("{0},BSShapeCollection.BuiletPhysicalNativeShape,capsule,scale={1}", prim.LocalID, prim.Scale);
