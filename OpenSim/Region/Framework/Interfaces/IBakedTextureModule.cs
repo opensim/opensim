@@ -13,7 +13,7 @@ namespace OpenSim.Services.Interfaces
 {
     public interface IBakedTextureModule
     {
-        AssetBase[] Get(UUID id);
-        void Store(UUID id, AssetBase[] data);
+        WearableCacheItem[] Get(UUID id);
+        void Store(UUID id, WearableCacheItem[] data);
     }
 }
