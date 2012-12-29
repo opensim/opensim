@@ -217,6 +217,7 @@ public sealed class BSCharacter : BSPhysObject
             // 'stepVelocity' is now the speed we'd like the avatar to move in. Turn that into an instantanous force.
             OMV.Vector3 moveForce = (stepVelocity - _velocity) * Mass / PhysicsScene.LastTimeStep;
 
+            /*
             // If moveForce is very small, zero things so we don't keep sending microscopic updates to the user
             float moveForceMagnitudeSquared = moveForce.LengthSquared();
             if (moveForceMagnitudeSquared < 0.0001)
@@ -227,10 +228,12 @@ public sealed class BSCharacter : BSPhysObject
             }
             else
             {
-                DetailLog("{0},BSCharacter.MoveMotor,move,stepVel={1},vel={2},mass={3},moveForce={4}",
-                                        LocalID, stepVelocity, _velocity, Mass, moveForce);
                 AddForce(moveForce, false, true);
             }
+            */
+            DetailLog("{0},BSCharacter.MoveMotor,move,stepVel={1},vel={2},mass={3},moveForce={4}",
+                                    LocalID, stepVelocity, _velocity, Mass, moveForce);
+            AddForce(moveForce, false, true);
         });
     }
 
