@@ -588,18 +588,18 @@ namespace OpenSim.Region.Framework.Scenes
             set
             {
                 m_bodyRot = value;
-                //                m_log.DebugFormat("[SCENE PRESENCE]: Body rot for {0} set to {1}", Name, m_bodyRot);
                 if (PhysicsActor != null)
                 {
                     try
                     {
-                        PhysicsActor.Orientation = value;
+                        PhysicsActor.Orientation = m_bodyRot;
                     }
                     catch (Exception e)
                     {
                         m_log.Error("[SCENE PRESENCE]: Orientation " + e.Message);
                     }
                 }
+//                m_log.DebugFormat("[SCENE PRESENCE]: Body rot for {0} set to {1}", Name, m_bodyRot);
             }
         }
 

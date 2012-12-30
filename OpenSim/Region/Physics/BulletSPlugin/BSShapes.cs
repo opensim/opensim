@@ -205,4 +205,17 @@ public class BSShapeCompound : BSShape
     }
     public override void Dereference(BSScene physicsScene) { }
 }
+
+public class BSShapeAvatar : BSShape
+{
+    private static string LogHeader = "[BULLETSIM SHAPE AVATAR]";
+    public BSShapeAvatar() : base()
+    {
+    }
+    public static BSShape GetReference(BSPhysObject prim) 
+    { 
+        return new BSShapeNull();
+    }
+    public override void Dereference(BSScene physicsScene) { }
+}
 }
