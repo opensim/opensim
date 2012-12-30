@@ -196,7 +196,7 @@ public sealed class BSLinksetCompound : BSLinkset
         bool ret = false;
 
         DetailLog("{0},BSLinksetCompound.RemoveBodyDependencies,refreshIfChild,rID={1},rBody={2},isRoot={3}",
-                        child.LocalID, LinksetRoot.LocalID, LinksetRoot.PhysBody.ptr.ToString("X"), IsRoot(child));
+                        child.LocalID, LinksetRoot.LocalID, LinksetRoot.PhysBody.AddrString, IsRoot(child));
 
         if (!IsRoot(child))
         {
@@ -280,8 +280,8 @@ public sealed class BSLinksetCompound : BSLinkset
         {
             DetailLog("{0},BSLinksetCompound.RemoveChildFromLinkset,call,rID={1},rBody={2},cID={3},cBody={4}",
                             child.LocalID,
-                            LinksetRoot.LocalID, LinksetRoot.PhysBody.ptr.ToString("X"),
-                            child.LocalID, child.PhysBody.ptr.ToString("X"));
+                            LinksetRoot.LocalID, LinksetRoot.PhysBody.AddrString,
+                            child.LocalID, child.PhysBody.AddrString);
 
             // Cause the child's body to be rebuilt and thus restored to normal operation
             RecomputeChildWorldPosition(child, false);

@@ -91,11 +91,17 @@ public abstract class BSShape
     // All shapes have a static call to get a reference to the physical shape
     // protected abstract static BSShape GetReference();
 
+    // Returns a string for debugging that uniquily identifies the memory used by this instance
+    public string AddrString
+    {
+        get { return ptr.ToString("X"); }
+    }
+
     public override string ToString()
     {
         StringBuilder buff = new StringBuilder();
         buff.Append("<p=");
-        buff.Append(ptr.ToString("X"));
+        buff.Append(AddrString);
         buff.Append(",s=");
         buff.Append(type.ToString());
         buff.Append(",k=");

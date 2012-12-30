@@ -65,8 +65,8 @@ public abstract class BSConstraint : IDisposable
                 bool success = PhysicsScene.PE.DestroyConstraint(m_world, m_constraint);
                 m_world.physicsScene.DetailLog("{0},BSConstraint.Dispose,taint,id1={1},body1={2},id2={3},body2={4},success={5}",
                                     BSScene.DetailLogZero,
-                                    m_body1.ID, m_body1.ptr.ToString("X"),
-                                    m_body2.ID, m_body2.ptr.ToString("X"),
+                                    m_body1.ID, m_body1.AddrString,
+                                    m_body2.ID, m_body2.AddrString,
                                     success);
                 m_constraint.Clear();
             }

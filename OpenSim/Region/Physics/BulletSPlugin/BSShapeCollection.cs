@@ -259,7 +259,7 @@ public sealed class BSShapeCollection : IDisposable
                 {
                     // Native shapes are not tracked and are released immediately
                     if (DDetail) DetailLog("{0},BSShapeCollection.DereferenceShape,deleteNativeShape,ptr={1},taintTime={2}",
-                                    BSScene.DetailLogZero, shape.ptr.ToString("X"), inTaintTime);
+                                    BSScene.DetailLogZero, shape.AddrString, inTaintTime);
                     if (shapeCallback != null) shapeCallback(shape);
                     PhysicsScene.PE.DeleteCollisionShape(PhysicsScene.World, shape);
                 }
@@ -336,9 +336,9 @@ public sealed class BSShapeCollection : IDisposable
         {
             // Failed the sanity check!!
             PhysicsScene.Logger.ErrorFormat("{0} Attempt to free a compound shape that is not compound!! type={1}, ptr={2}",
-                                        LogHeader, shape.type, shape.ptr.ToString("X"));
+                                        LogHeader, shape.type, shape.AddrString);
             if (DDetail) DetailLog("{0},BSShapeCollection.DereferenceCompound,notACompoundShape,type={1},ptr={2}",
-                                        BSScene.DetailLogZero, shape.type, shape.ptr.ToString("X"));
+                                        BSScene.DetailLogZero, shape.type, shape.AddrString);
             return;
         }
 
@@ -400,7 +400,7 @@ public sealed class BSShapeCollection : IDisposable
         else
         {
             PhysicsScene.Logger.ErrorFormat("{0} Could not decypher shape type. Region={1}, addr={2}",
-                                    LogHeader, PhysicsScene.RegionName, cShape.ToString("X"));
+                                    LogHeader, PhysicsScene.RegionName, shapeInfo.AddrString);
         }
     }
 

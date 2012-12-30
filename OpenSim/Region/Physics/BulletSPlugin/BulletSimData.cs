@@ -82,13 +82,22 @@ public class BulletBody
                                 BulletSimData.CollisionTypeMasks[collisionType].mask);
     }
 
+    // Used for log messages for a unique display of the memory/object allocated to this instance
+    public string AddrString
+    {
+        get
+        {
+            return ptr.ToString("X");
+        }
+    }
+
     public override string ToString()
     {
         StringBuilder buff = new StringBuilder();
         buff.Append("<id=");
         buff.Append(ID.ToString());
         buff.Append(",p=");
-        buff.Append(ptr.ToString("X"));
+        buff.Append(AddrString);
         buff.Append(",c=");
         buff.Append(collisionType);
         buff.Append(">");
@@ -124,11 +133,20 @@ public class BulletShape
     }
     public bool HasPhysicalShape { get { return ptr != IntPtr.Zero; } }
 
+    // Used for log messages for a unique display of the memory/object allocated to this instance
+    public string AddrString
+    {
+        get
+        {
+            return ptr.ToString("X");
+        }
+    }
+
     public override string ToString()
     {
         StringBuilder buff = new StringBuilder();
         buff.Append("<p=");
-        buff.Append(ptr.ToString("X"));
+        buff.Append(AddrString);
         buff.Append(",s=");
         buff.Append(type.ToString());
         buff.Append(",k=");
@@ -154,6 +172,15 @@ public class BulletConstraint
         ptr = IntPtr.Zero;
     }
     public bool HasPhysicalConstraint { get { return ptr != IntPtr.Zero; } }
+
+    // Used for log messages for a unique display of the memory/object allocated to this instance
+    public string AddrString
+    {
+        get
+        {
+            return ptr.ToString("X");
+        }
+    }
 }
 
 // An allocated HeightMapThing which holds various heightmap info.
