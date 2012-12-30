@@ -126,7 +126,8 @@ public class BSShapeNative : BSShape
                     BSPhysicsShapeType shapeType, FixedShapeKey shapeKey) 
     {
         // Native shapes are not shared and are always built anew.
-        return new BSShapeNative(physicsScene, prim, shapeType, shapeKey);
+        //return new BSShapeNative(physicsScene, prim, shapeType, shapeKey);
+        return null;
     }
 
     private BSShapeNative(BSScene physicsScene, BSPhysObject prim,
@@ -141,6 +142,7 @@ public class BSShapeNative : BSShape
         nativeShapeData.HullKey = (ulong)shapeKey;
 
        
+        /*
         if (shapeType == BSPhysicsShapeType.SHAPE_CAPSULE)
         {
             ptr = BulletSimAPI.BuildCapsuleShape2(physicsScene.World.ptr, 1f, 1f, prim.Scale);
@@ -157,15 +159,18 @@ public class BSShapeNative : BSShape
         }
         type = shapeType;
         key = (UInt64)shapeKey;
+         */
     }
     // Make this reference to the physical shape go away since native shapes are not shared.
     public override void Dereference(BSScene physicsScene)
     {
+        /*
         // Native shapes are not tracked and are released immediately
         physicsScene.DetailLog("{0},BSShapeCollection.DereferenceShape,deleteNativeShape,shape={1}", BSScene.DetailLogZero, this);
         BulletSimAPI.DeleteCollisionShape2(physicsScene.World.ptr, ptr);
         ptr = IntPtr.Zero;
         // Garbage collection will free up this instance.
+         */
     }
 }
 

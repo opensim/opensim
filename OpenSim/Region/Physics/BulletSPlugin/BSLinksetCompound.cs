@@ -359,7 +359,7 @@ public sealed class BSLinksetCompound : BSLinkset
                         PhysicsScene.Shapes.CreateGeomMeshOrHull(cPrim, null);
                         BulletShape newShape = cPrim.PhysShape;
                         cPrim.PhysShape = saveShape;
-                        BulletSimAPI.AddChildShapeToCompoundShape2(LinksetRoot.PhysShape.ptr, newShape.ptr, lci.OffsetPos, lci.OffsetRot);
+                        PhysicsScene.PE.AddChildShapeToCompoundShape(LinksetRoot.PhysShape, newShape, lci.OffsetPos, lci.OffsetRot);
                     }
                     else
                     {
@@ -371,7 +371,7 @@ public sealed class BSLinksetCompound : BSLinkset
                             PhysicsScene.Logger.ErrorFormat("{0} Rebuilt sharable shape when building linkset! Region={1}, primID={2}, shape={3}",
                                                 LogHeader, PhysicsScene.RegionName, cPrim.LocalID, cPrim.PhysShape);
                         }
-                        BulletSimAPI.AddChildShapeToCompoundShape2(LinksetRoot.PhysShape.ptr, cPrim.PhysShape.ptr, lci.OffsetPos, lci.OffsetRot);
+                        PhysicsScene.PE.AddChildShapeToCompoundShape(LinksetRoot.PhysShape, cPrim.PhysShape, lci.OffsetPos, lci.OffsetRot);
                     }
                 }
                 return false;   // 'false' says to move onto the next child in the list
@@ -386,7 +386,7 @@ public sealed class BSLinksetCompound : BSLinkset
             Rebuilding = false;
         }
 
-        BulletSimAPI.RecalculateCompoundShapeLocalAabb2(LinksetRoot.PhysShape.ptr);
+        PhysicsScene.PE.RecalculateCompoundShapeLocalAabb(LinksetRoot.PhysShape);
 
         // DEBUG: see of inter-linkset collisions are causing problems for constraint linksets.
         // BulletSimAPI.SetCollisionFilterMask2(LinksetRoot.BSBody.ptr, 

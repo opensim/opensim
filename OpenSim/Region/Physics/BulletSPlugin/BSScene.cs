@@ -50,6 +50,9 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
     public string BulletSimVersion = "?";
 
+    // The handle to the underlying managed or unmanaged version of Bullet being used.
+    public BulletSimAPITemplate PE;
+
     public Dictionary<uint, BSPhysObject> PhysObjects;
     public BSShapeCollection Shapes;
 
@@ -187,12 +190,15 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
         // Allocate pinned memory to pass parameters.
         UnmanagedParams = new ConfigurationParameters[1];
-        m_paramsHandle = GCHandle.Alloc(UnmanagedParams, GCHandleType.Pinned);
 
         // Set default values for physics parameters plus any overrides from the ini file
         GetInitialParameterValues(config);
 
-        // allocate more pinned memory close to the above in an attempt to get the memory all together
+        // For the moment, only one version of the interface
+        PE = new BSAPIUnman();
+
+        // Allocate more pinned memory. Do this early to try and get all pinned memory close together.
+        m_paramsHandle = GCHandle.Alloc(UnmanagedParams, GCHandleType.Pinned);
         m_collisionArray = new CollisionDesc[m_maxCollisionsPerFrame];
         m_collisionArrayPinnedHandle = GCHandle.Alloc(m_collisionArray, GCHandleType.Pinned);
         m_updateArray = new EntityProperties[m_maxUpdatesPerFrame];

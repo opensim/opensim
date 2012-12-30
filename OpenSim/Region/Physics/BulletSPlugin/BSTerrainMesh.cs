@@ -91,9 +91,7 @@ public sealed class BSTerrainMesh : BSTerrainPhys
         PhysicsScene.DetailLog("{0},BSTerrainMesh.create,meshed,indices={1},indSz={2},vertices={3},vertSz={4}", 
                                 ID, indicesCount, indices.Length, verticesCount, vertices.Length);
 
-        m_terrainShape = new BulletShape(BulletSimAPI.CreateMeshShape2(PhysicsScene.World.ptr,
-                                                    indicesCount, indices, verticesCount, vertices),
-                                        BSPhysicsShapeType.SHAPE_MESH);
+        m_terrainShape = PhysicsScene.PE.CreateMeshShape(PhysicsScene.World, indicesCount, indices, verticesCount, vertices);
         if (!m_terrainShape.HasPhysicalShape)
         {
             // DISASTER!!
@@ -106,7 +104,7 @@ public sealed class BSTerrainMesh : BSTerrainPhys
         Vector3 pos = regionBase;
         Quaternion rot = Quaternion.Identity;
 
-        m_terrainBody = new BulletBody(id, BulletSimAPI.CreateBodyWithDefaultMotionState2( m_terrainShape.ptr, ID, pos, rot));
+        m_terrainBody = PhysicsScene.PE.CreateBodyWithDefaultMotionState(m_terrainShape, ID, pos, rot);
         if (!m_terrainBody.HasPhysicalBody)
         {
             // DISASTER!!
@@ -143,7 +141,7 @@ public sealed class BSTerrainMesh : BSTerrainPhys
         {
             BulletSimAPI.RemoveObjectFromWorld2(PhysicsScene.World.ptr, m_terrainBody.ptr);
             // Frees both the body and the shape.
-            BulletSimAPI.DestroyObject2(PhysicsScene.World.ptr, m_terrainBody.ptr);
+            PhysicsScene.PE.DestroyObject(PhysicsScene.World, m_terrainBody);
         }
     }
 

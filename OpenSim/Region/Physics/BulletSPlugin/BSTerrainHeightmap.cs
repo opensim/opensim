@@ -105,9 +105,8 @@ public sealed class BSTerrainHeightmap : BSTerrainPhys
         centerPos.Y = m_mapInfo.minCoords.Y + (m_mapInfo.sizeY / 2f);
         centerPos.Z = m_mapInfo.minZ + ((m_mapInfo.maxZ - m_mapInfo.minZ) / 2f);
 
-        m_mapInfo.terrainBody = new BulletBody(m_mapInfo.ID,
-                BulletSimAPI.CreateBodyWithDefaultMotionState2(m_mapInfo.terrainShape.ptr,
-                                            m_mapInfo.ID, centerPos, Quaternion.Identity));
+        m_mapInfo.terrainBody = PhysicsScene.PE.CreateBodyWithDefaultMotionState(m_mapInfo.terrainShape, 
+                                m_mapInfo.ID, centerPos, Quaternion.Identity);
 
         // Set current terrain attributes
         BulletSimAPI.SetFriction2(m_mapInfo.terrainBody.ptr, BSParam.TerrainFriction);
@@ -139,7 +138,7 @@ public sealed class BSTerrainHeightmap : BSTerrainPhys
             {
                 BulletSimAPI.RemoveObjectFromWorld2(PhysicsScene.World.ptr, m_mapInfo.terrainBody.ptr);
                 // Frees both the body and the shape.
-                BulletSimAPI.DestroyObject2(PhysicsScene.World.ptr, m_mapInfo.terrainBody.ptr);
+                PhysicsScene.PE.DestroyObject(PhysicsScene.World, m_mapInfo.terrainBody);
                 BulletSimAPI.ReleaseHeightMapInfo2(m_mapInfo.Ptr);
             }
         }

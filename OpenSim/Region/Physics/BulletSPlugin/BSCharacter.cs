@@ -210,8 +210,7 @@ public sealed class BSCharacter : BSPhysObject
             if (!Flying && !IsColliding)
             {
                 stepVelocity.Z = _velocity.Z;
-                DetailLog("{0},BSCharacter.MoveMotor,taint,overrideStepZWithWorldZ,stepVel={1}",
-                            LocalID, stepVelocity);
+                // DetailLog("{0},BSCharacter.MoveMotor,taint,overrideStepZWithWorldZ,stepVel={1}", LocalID, stepVelocity);
             }
 
             // 'stepVelocity' is now the speed we'd like the avatar to move in. Turn that into an instantanous force.
@@ -231,8 +230,7 @@ public sealed class BSCharacter : BSPhysObject
                 AddForce(moveForce, false, true);
             }
             */
-            DetailLog("{0},BSCharacter.MoveMotor,move,stepVel={1},vel={2},mass={3},moveForce={4}",
-                                    LocalID, stepVelocity, _velocity, Mass, moveForce);
+            // DetailLog("{0},BSCharacter.MoveMotor,move,stepVel={1},vel={2},mass={3},moveForce={4}", LocalID, stepVelocity, _velocity, Mass, moveForce);
             AddForce(moveForce, false, true);
         });
     }
@@ -736,7 +734,7 @@ public sealed class BSCharacter : BSPhysObject
             PhysicsScene.TaintedObject(inTaintTime, "BSCharacter.AddForce", delegate()
             {
                 // Bullet adds this central force to the total force for this tick
-                DetailLog("{0},BSCharacter.addForce,taint,force={1}", LocalID, addForce);
+                // DetailLog("{0},BSCharacter.addForce,taint,force={1}", LocalID, addForce);
                 if (PhysBody.HasPhysicalBody)
                 {
                     BulletSimAPI.ApplyCentralForce2(PhysBody.ptr, addForce);

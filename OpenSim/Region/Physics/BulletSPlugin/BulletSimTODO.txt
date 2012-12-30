@@ -31,6 +31,7 @@ CRASHES
 
 VEHICLES TODO LIST:
 =================================================
+Angular motor direction is global coordinates rather than local coordinates
 Border crossing with linked vehicle causes crash
 Vehicles (Move smoothly)
 Add vehicle collisions so IsColliding is properly reported.
@@ -78,7 +79,7 @@ Small physical objects do not interact correctly
     Create chain of .5x.5x.1 torui and make all but top physical so to hang.
         The chain will fall apart and pairs will dance around on ground
     Chains of 1x1x.2 will stay connected but will dance.
-    Chains above 2x2x.4 are move stable and get stablier as torui get larger.
+    Chains above 2x2x.4 are more stable and get stablier as torui get larger.
 Add PID motor for avatar movement (slow to stop, ...)
 setForce should set a constant force. Different than AddImpulse.
 Implement raycast.
@@ -100,9 +101,13 @@ More efficient memory usage when passing hull information from BSPrim to BulletS
 Avatar movement motor check for zero or small movement. Somehow suppress small movements
 	when avatar has stopped and is just standing. Simple test for near zero has
 	the problem of preventing starting up (increase from zero) especially when falling.
+Physical and phantom will drop through the terrain
+
 
 LINKSETS
 ======================================================
+Offset the center of the linkset to be the geometric center of all the prims
+	Not quite the same as the center-of-gravity
 Linksets should allow collisions to individual children
 	Add LocalID to children shapes in LinksetCompound and create events for individuals
 LinksetCompound: when one of the children changes orientation (like tires

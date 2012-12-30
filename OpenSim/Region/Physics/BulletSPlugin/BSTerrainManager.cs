@@ -137,9 +137,9 @@ public sealed class BSTerrainManager : IDisposable
                     BulletSimAPI.CreateGroundPlaneShape2(BSScene.GROUNDPLANE_ID, 1f, 
                                     BSParam.TerrainCollisionMargin),
                     BSPhysicsShapeType.SHAPE_GROUNDPLANE);
-        m_groundPlane = new BulletBody(BSScene.GROUNDPLANE_ID,
-                        BulletSimAPI.CreateBodyWithDefaultMotionState2(groundPlaneShape.ptr, BSScene.GROUNDPLANE_ID,
-                                                            Vector3.Zero, Quaternion.Identity));
+        m_groundPlane = PhysicsScene.PE.CreateBodyWithDefaultMotionState(groundPlaneShape, 
+                                        BSScene.GROUNDPLANE_ID, Vector3.Zero, Quaternion.Identity);
+
         BulletSimAPI.AddObjectToWorld2(PhysicsScene.World.ptr, m_groundPlane.ptr);
         BulletSimAPI.UpdateSingleAabb2(PhysicsScene.World.ptr, m_groundPlane.ptr);
         // Ground plane does not move
@@ -160,7 +160,7 @@ public sealed class BSTerrainManager : IDisposable
         {
             if (BulletSimAPI.RemoveObjectFromWorld2(PhysicsScene.World.ptr, m_groundPlane.ptr))
             {
-                BulletSimAPI.DestroyObject2(PhysicsScene.World.ptr, m_groundPlane.ptr);
+                PhysicsScene.PE.DestroyObject(PhysicsScene.World, m_groundPlane);
             }
             m_groundPlane.Clear();
         }
