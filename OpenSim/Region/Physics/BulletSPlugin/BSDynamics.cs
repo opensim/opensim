@@ -564,17 +564,17 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 // TODO: possibly set AngularFactor and LinearFactor for the type of vehicle.
                 //     Maybe compute linear and angular factor and damping from params.
                 float angularDamping = BSParam.VehicleAngularDamping;
-                BulletSimAPI.SetAngularDamping2(Prim.PhysBody.ptr, angularDamping);
+                PhysicsScene.PE.SetAngularDamping(Prim.PhysBody, angularDamping);
 
                 // Vehicles report collision events so we know when it's on the ground
                 PhysicsScene.PE.AddToCollisionFlags(Prim.PhysBody, CollisionFlags.BS_VEHICLE_COLLISIONS);
 
-                Vector3 localInertia = BulletSimAPI.CalculateLocalInertia2(Prim.PhysShape.ptr, m_vehicleMass);
-                BulletSimAPI.SetMassProps2(Prim.PhysBody.ptr, m_vehicleMass, localInertia);
-                BulletSimAPI.UpdateInertiaTensor2(Prim.PhysBody.ptr);
+                Vector3 localInertia = PhysicsScene.PE.CalculateLocalInertia(Prim.PhysShape, m_vehicleMass);
+                PhysicsScene.PE.SetMassProps(Prim.PhysBody, m_vehicleMass, localInertia);
+                PhysicsScene.PE.UpdateInertiaTensor(Prim.PhysBody);
 
                 Vector3 grav = PhysicsScene.DefaultGravity * (1f - Prim.Buoyancy);
-                BulletSimAPI.SetGravity2(Prim.PhysBody.ptr, grav);
+                PhysicsScene.PE.SetGravity(Prim.PhysBody, grav);
 
                 VDetailLog("{0},BSDynamics.Refresh,mass={1},frict={2},inert={3},aDamp={4}",
                                 Prim.LocalID, m_vehicleMass, friction, localInertia, angularDamping);
@@ -669,7 +669,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 
                 // If we set one of the values (ie, the physics engine didn't do it) we must force
                 //      an UpdateProperties event to send the changes up to the simulator.
-                BulletSimAPI.PushUpdate2(Prim.PhysBody.ptr);
+                PhysicsScene.PE.PushUpdate(Prim.PhysBody);
             }
             m_knownChanged = 0;
         }

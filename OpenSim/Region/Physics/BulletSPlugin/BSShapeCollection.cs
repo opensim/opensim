@@ -141,7 +141,7 @@ public sealed class BSShapeCollection : IDisposable
             if (DDetail) DetailLog("{0},BSShapeCollection.ReferenceBody,newBody,body={1}", body.ID, body);
             PhysicsScene.TaintedObject(inTaintTime, "BSShapeCollection.ReferenceBody", delegate()
             {
-                if (!BulletSimAPI.IsInWorld2(body.ptr))
+                if (!PhysicsScene.PE.IsInWorld(body))
                 {
                     PhysicsScene.PE.AddObjectToWorld(PhysicsScene.World, body);
                     if (DDetail) DetailLog("{0},BSShapeCollection.ReferenceBody,addedToWorld,ref={1}", body.ID, body);
@@ -166,7 +166,7 @@ public sealed class BSShapeCollection : IDisposable
                 // If the caller needs to know the old body is going away, pass the event up.
                 if (bodyCallback != null) bodyCallback(body);
 
-                if (BulletSimAPI.IsInWorld2(body.ptr))
+                if (PhysicsScene.PE.IsInWorld(body))
                 {
                     PhysicsScene.PE.RemoveObjectFromWorld(PhysicsScene.World, body);
                     if (DDetail) DetailLog("{0},BSShapeCollection.DereferenceBody,removingFromWorld. Body={1}", body.ID, body);
@@ -332,7 +332,7 @@ public sealed class BSShapeCollection : IDisposable
     // Called at taint-time.
     private void DereferenceCompound(BulletShape shape, ShapeDestructionCallback shapeCallback)
     {
-        if (!BulletSimAPI.IsCompound2(shape.ptr))
+        if (!PhysicsScene.PE.IsCompound(shape))
         {
             // Failed the sanity check!!
             PhysicsScene.Logger.ErrorFormat("{0} Attempt to free a compound shape that is not compound!! type={1}, ptr={2}",
@@ -376,7 +376,7 @@ public sealed class BSShapeCollection : IDisposable
             }
             else
             {
-                if (BulletSimAPI.IsCompound2(cShape))
+                if (PhysicsScene.PE.IsCompound(shapeInfo))
                 {
                     shapeInfo.type = BSPhysicsShapeType.SHAPE_COMPOUND;
                 }
@@ -467,7 +467,7 @@ public sealed class BSShapeCollection : IDisposable
             // Get the scale of any existing shape so we can see if the new shape is same native type and same size.
             OMV.Vector3 scaleOfExistingShape = OMV.Vector3.Zero;
             if (prim.PhysShape.HasPhysicalShape)
-                scaleOfExistingShape = BulletSimAPI.GetLocalScaling2(prim.PhysShape.ptr);
+                scaleOfExistingShape = PhysicsScene.PE.GetLocalScaling(prim.PhysShape);
 
             if (DDetail) DetailLog("{0},BSShapeCollection.CreateGeom,maybeNative,force={1},primScale={2},primSize={3},primShape={4}",
                         prim.LocalID, forceRebuild, prim.Scale, prim.Size, prim.PhysShape.type);

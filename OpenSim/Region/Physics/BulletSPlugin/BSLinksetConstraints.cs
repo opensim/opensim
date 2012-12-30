@@ -259,7 +259,7 @@ public sealed class BSLinksetConstraints : BSLinkset
         if (PhysicsScene.Constraints.RemoveAndDestroyConstraint(rootPrim.PhysBody, childPrim.PhysBody))
         {
             // Make the child refresh its location
-            BulletSimAPI.PushUpdate2(childPrim.PhysBody.ptr);
+            PhysicsScene.PE.PushUpdate(childPrim.PhysBody);
             ret = true;
         }
 
@@ -286,9 +286,6 @@ public sealed class BSLinksetConstraints : BSLinkset
         float linksetMass = LinksetMass;
         LinksetRoot.UpdatePhysicalMassProperties(linksetMass, true);
 
-        // DEBUG: see of inter-linkset collisions are causing problems
-        // BulletSimAPI.SetCollisionFilterMask2(LinksetRoot.BSBody.ptr, 
-        //                     (uint)CollisionFilterGroups.LinksetFilter, (uint)CollisionFilterGroups.LinksetMask);
         DetailLog("{0},BSLinksetConstraint.RecomputeLinksetConstraints,set,rBody={1},linksetMass={2}",
                             LinksetRoot.LocalID, LinksetRoot.PhysBody.AddrString, linksetMass);
 
@@ -307,11 +304,7 @@ public sealed class BSLinksetConstraints : BSLinkset
             }
             constrain.RecomputeConstraintVariables(linksetMass);
 
-            // DEBUG: see of inter-linkset collisions are causing problems
-            // BulletSimAPI.SetCollisionFilterMask2(child.BSBody.ptr, 
-            //                 (uint)CollisionFilterGroups.LinksetFilter, (uint)CollisionFilterGroups.LinksetMask);
-
-            // BulletSimAPI.DumpConstraint2(PhysicsScene.World.ptr, constrain.Constraint.ptr);    // DEBUG DEBUG
+            // PhysicsScene.PE.DumpConstraint(PhysicsScene.World, constrain.Constraint);    // DEBUG DEBUG
         }
 
     }

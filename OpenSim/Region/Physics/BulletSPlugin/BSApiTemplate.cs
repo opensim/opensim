@@ -290,7 +290,7 @@ public enum ConstraintParamAxis : int
     AXIS_ALL
 };
 
-public abstract class BulletSimAPITemplate
+public abstract class BSAPITemplate
 {
     /*
 // Initialization and simulation
@@ -311,8 +311,8 @@ public abstract int PhysicsStep(BulletWorld world, float timeStep, int maxSubSte
                         out int collidersCount,
                         out IntPtr collidersPtr);
 
-public abstract bool PushUpdate(BulletBody obj);
      */
+public abstract bool PushUpdate(BulletBody obj);
 
 // =====================================================================================
 // Mesh, hull, shape and body creation helper routines
@@ -525,7 +525,6 @@ public abstract IntPtr GetUserPointer(BulletBody obj);
 
 public abstract void SetUserPointer(BulletBody obj, IntPtr val);
 
-    /*
 // =====================================================================================
 // btRigidBody entries
 public abstract void ApplyGravity(BulletBody obj);
@@ -545,7 +544,6 @@ public abstract float GetLinearDamping(BulletBody obj);
 public abstract float GetAngularDamping(BulletBody obj);
 
 public abstract float GetLinearSleepingThreshold(BulletBody obj);
-
 
 public abstract void ApplyDamping(BulletBody obj, float timeStep);
 
@@ -661,7 +659,6 @@ public abstract int GetShapeType(BulletShape shape);
 public abstract void SetMargin(BulletShape shape, float val);
 
 public abstract float GetMargin(BulletShape shape);
-    */
 
 };
 }

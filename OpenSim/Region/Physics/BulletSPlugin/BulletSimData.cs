@@ -72,12 +72,12 @@ public class BulletBody
     public bool HasPhysicalBody { get { return ptr != IntPtr.Zero; } }
 
     // Apply the specificed collision mask into the physical world
-    public bool ApplyCollisionMask()
+    public bool ApplyCollisionMask(BSScene physicsScene)
     {
         // Should assert the body has been added to the physical world.
         // (The collision masks are stored in the collision proxy cache which only exists for
         //    a collision body that is in the world.)
-        return BulletSimAPI.SetCollisionGroupMask2(ptr,
+        return physicsScene.PE.SetCollisionGroupMask(this,
                                 BulletSimData.CollisionTypeMasks[collisionType].group,
                                 BulletSimData.CollisionTypeMasks[collisionType].mask);
     }

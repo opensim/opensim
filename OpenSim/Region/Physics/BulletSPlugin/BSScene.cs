@@ -51,7 +51,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     public string BulletSimVersion = "?";
 
     // The handle to the underlying managed or unmanaged version of Bullet being used.
-    public BulletSimAPITemplate PE;
+    public BSAPITemplate PE;
 
     public Dictionary<uint, BSPhysObject> PhysObjects;
     public BSShapeCollection Shapes;

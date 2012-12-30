@@ -120,7 +120,7 @@ public sealed class BSTerrainMesh : BSTerrainPhys
         PhysicsScene.PE.SetCollisionFlags(m_terrainBody, CollisionFlags.CF_STATIC_OBJECT);
 
         // Static objects are not very massive.
-        BulletSimAPI.SetMassProps2(m_terrainBody.ptr, 0f, Vector3.Zero);
+        PhysicsScene.PE.SetMassProps(m_terrainBody, 0f, Vector3.Zero);
 
         // Put the new terrain to the world of physical objects
         PhysicsScene.PE.AddObjectToWorld(PhysicsScene.World, m_terrainBody);
@@ -129,7 +129,7 @@ public sealed class BSTerrainMesh : BSTerrainPhys
         PhysicsScene.PE.UpdateSingleAabb(PhysicsScene.World, m_terrainBody);
 
         m_terrainBody.collisionType = CollisionType.Terrain;
-        m_terrainBody.ApplyCollisionMask();
+        m_terrainBody.ApplyCollisionMask(PhysicsScene);
 
         // Make it so the terrain will not move or be considered for movement.
         PhysicsScene.PE.ForceActivationState(m_terrainBody, ActivationState.DISABLE_SIMULATION);

@@ -120,7 +120,7 @@ public sealed class BSTerrainHeightmap : BSTerrainPhys
         PhysicsScene.PE.UpdateSingleAabb(PhysicsScene.World, m_mapInfo.terrainBody);
 
         m_mapInfo.terrainBody.collisionType = CollisionType.Terrain;
-        m_mapInfo.terrainBody.ApplyCollisionMask();
+        m_mapInfo.terrainBody.ApplyCollisionMask(PhysicsScene);
 
         // Make it so the terrain will not move or be considered for movement.
         PhysicsScene.PE.ForceActivationState(m_mapInfo.terrainBody, ActivationState.DISABLE_SIMULATION);

@@ -151,12 +151,12 @@ public class BSShapeNative : BSShape
         /*
         if (shapeType == BSPhysicsShapeType.SHAPE_CAPSULE)
         {
-            ptr = BulletSimAPI.BuildCapsuleShape2(physicsScene.World.ptr, 1f, 1f, prim.Scale);
+            ptr = PhysicsScene.PE.BuildCapsuleShape(physicsScene.World, 1f, 1f, prim.Scale);
             physicsScene.DetailLog("{0},BSShapeCollection.BuiletPhysicalNativeShape,capsule,scale={1}", prim.LocalID, prim.Scale);
         }
         else
         {
-            ptr = BulletSimAPI.BuildNativeShape2(physicsScene.World.ptr, nativeShapeData);
+            ptr = PhysicsScene.PE.BuildNativeShape(physicsScene.World, nativeShapeData);
         }
         if (ptr == IntPtr.Zero)
         {
@@ -173,7 +173,7 @@ public class BSShapeNative : BSShape
         /*
         // Native shapes are not tracked and are released immediately
         physicsScene.DetailLog("{0},BSShapeCollection.DereferenceShape,deleteNativeShape,shape={1}", BSScene.DetailLogZero, this);
-        BulletSimAPI.DeleteCollisionShape2(physicsScene.World.ptr, ptr);
+        PhysicsScene.PE.DeleteCollisionShape(physicsScene.World, this);
         ptr = IntPtr.Zero;
         // Garbage collection will free up this instance.
          */

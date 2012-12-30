@@ -143,7 +143,7 @@ public sealed class BSTerrainManager : IDisposable
         PhysicsScene.PE.ForceActivationState(m_groundPlane, ActivationState.DISABLE_SIMULATION);
         // Everything collides with the ground plane.
         m_groundPlane.collisionType = CollisionType.Groundplane;
-        m_groundPlane.ApplyCollisionMask();
+        m_groundPlane.ApplyCollisionMask(PhysicsScene);
 
         // Build an initial terrain and put it in the world. This quickly gets replaced by the real region terrain.
         BSTerrainPhys initialTerrain = new BSTerrainHeightmap(PhysicsScene, Vector3.Zero, BSScene.TERRAIN_ID, DefaultRegionSize);
