@@ -96,6 +96,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected float m_ScriptDelayFactor = 1.0f;
         protected float m_ScriptDistanceFactor = 1.0f;
         protected float m_MinTimerInterval = 0.5f;
+        protected float m_recoilScaleFactor = 0.0f;
 
         protected DateTime m_timer = DateTime.Now;
         protected bool m_waitingForScriptAnswer = false;
@@ -146,6 +147,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 // there's an smtp config, so load in the snooze time.
                 EMAIL_PAUSE_TIME = SMTPConfig.GetInt("email_pause_time", EMAIL_PAUSE_TIME);
             }
+            // Rezzing an object with a velocity can create recoil. This feature seems to have been
+            //    removed from recent versions of SL. The code computes recoil (vel*mass) and scales
+            //    it by this factor. May be zero to turn off recoil all together.
+            m_recoilScaleFactor = m_ScriptEngine.Config.GetFloat("RecoilScaleFactor", m_recoilScaleFactor);
         }
 
         public override Object InitializeLifetimeService()
@@ -2829,10 +2834,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 PhysicsActor pa = new_group.RootPart.PhysActor;
 
+                //Recoil.
                 if (pa != null && pa.IsPhysical && (Vector3)vel != Vector3.Zero)
                 {
-                    //Recoil.
-                    llApplyImpulse(vel * groupmass, 0);
+                    Vector3 recoil = -vel * groupmass * m_recoilScaleFactor;
+                    if (recoil != Vector3.Zero)
+                    {
+                        llApplyImpulse(recoil, 0);
+                    }
                 }
                 // Variable script delay? (see (http://wiki.secondlife.com/wiki/LSL_Delay)
             });
