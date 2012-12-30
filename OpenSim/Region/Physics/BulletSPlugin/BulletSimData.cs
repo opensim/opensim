@@ -35,7 +35,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 // These hold pointers to allocated objects in the unmanaged space.
 
 // The physics engine controller class created at initialization
-public struct BulletWorld
+public class BulletWorld
 {
     public BulletWorld(uint worldId, BSScene bss, IntPtr xx)
     {
@@ -50,7 +50,7 @@ public struct BulletWorld
 }
 
 // An allocated Bullet btRigidBody
-public struct BulletBody
+public class BulletBody
 {
     public BulletBody(uint id) : this(id, IntPtr.Zero)
     {
@@ -96,9 +96,14 @@ public struct BulletBody
     }
 }
 
-public struct BulletShape
+public class BulletShape
 {
-    public BulletShape(IntPtr xx) : this(xx, BSPhysicsShapeType.SHAPE_UNKNOWN)
+    public BulletShape()
+        : this(IntPtr.Zero, BSPhysicsShapeType.SHAPE_UNKNOWN)
+    {
+    }
+    public BulletShape(IntPtr xx)
+        : this(xx, BSPhysicsShapeType.SHAPE_UNKNOWN)
     {
     }
     public BulletShape(IntPtr xx, BSPhysicsShapeType typ)
@@ -136,7 +141,7 @@ public struct BulletShape
 }
 
 // An allocated Bullet btConstraint
-public struct BulletConstraint
+public class BulletConstraint
 {
     public BulletConstraint(IntPtr xx)
     {

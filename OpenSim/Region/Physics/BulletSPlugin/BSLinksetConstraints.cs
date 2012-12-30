@@ -48,12 +48,15 @@ public sealed class BSLinksetConstraints : BSLinkset
     {
         base.Refresh(requestor);
 
-        // Queue to happen after all the other taint processing
-        PhysicsScene.PostTaintObject("BSLinksetContraints.Refresh", requestor.LocalID, delegate()
-            {
-                if (HasAnyChildren && IsRoot(requestor))
-                    RecomputeLinksetConstraints();
-            });
+        if (HasAnyChildren && IsRoot(requestor))
+        {
+            // Queue to happen after all the other taint processing
+            PhysicsScene.PostTaintObject("BSLinksetContraints.Refresh", requestor.LocalID, delegate()
+                {
+                    if (HasAnyChildren && IsRoot(requestor))
+                        RecomputeLinksetConstraints();
+                });
+        }
     }
 
     // The object is going dynamic (physical). Do any setup necessary

@@ -67,6 +67,11 @@ public abstract class BSPhysObject : PhysicsActor
         PhysObjectName = name;
         TypeName = typeName;
 
+        // We don't have any physical representation yet.
+        PhysBody = new BulletBody(localID);
+        PhysShape = new BulletShape();
+
+        // A linkset of just me
         Linkset = BSLinkset.Factory(PhysicsScene, this);
         LastAssetBuildFailed = false;
 
