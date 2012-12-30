@@ -308,7 +308,7 @@ public abstract class BSPhysObject : PhysicsActor
             PhysicsScene.TaintedObject(TypeName+".SubscribeEvents", delegate()
             {
                 if (PhysBody.HasPhysicalBody)
-                    CurrentCollisionFlags = BulletSimAPI.AddToCollisionFlags2(PhysBody.ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
+                    CurrentCollisionFlags = PhysicsScene.PE.AddToCollisionFlags(PhysBody, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
             });
         }
         else
@@ -324,7 +324,7 @@ public abstract class BSPhysObject : PhysicsActor
         {
             // Make sure there is a body there because sometimes destruction happens in an un-ideal order.
             if (PhysBody.HasPhysicalBody)
-                CurrentCollisionFlags = BulletSimAPI.RemoveFromCollisionFlags2(PhysBody.ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
+                CurrentCollisionFlags = PhysicsScene.PE.RemoveFromCollisionFlags(PhysBody, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
         });
     }
     // Return 'true' if the simulator wants collision events

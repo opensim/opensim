@@ -143,7 +143,7 @@ public sealed class BSShapeCollection : IDisposable
             {
                 if (!BulletSimAPI.IsInWorld2(body.ptr))
                 {
-                    BulletSimAPI.AddObjectToWorld2(PhysicsScene.World.ptr, body.ptr);
+                    PhysicsScene.PE.AddObjectToWorld(PhysicsScene.World, body);
                     if (DDetail) DetailLog("{0},BSShapeCollection.ReferenceBody,addedToWorld,ref={1}", body.ID, body);
                 }
             });
@@ -168,12 +168,12 @@ public sealed class BSShapeCollection : IDisposable
 
                 if (BulletSimAPI.IsInWorld2(body.ptr))
                 {
-                    BulletSimAPI.RemoveObjectFromWorld2(PhysicsScene.World.ptr, body.ptr);
+                    PhysicsScene.PE.RemoveObjectFromWorld(PhysicsScene.World, body);
                     if (DDetail) DetailLog("{0},BSShapeCollection.DereferenceBody,removingFromWorld. Body={1}", body.ID, body);
                 }
 
                 // Zero any reference to the shape so it is not freed when the body is deleted.
-                BulletSimAPI.SetCollisionShape2(PhysicsScene.World.ptr, body.ptr, IntPtr.Zero);
+                PhysicsScene.PE.SetCollisionShape(PhysicsScene.World, body, new BulletShape());
                 PhysicsScene.PE.DestroyObject(PhysicsScene.World, body);
             });
         }

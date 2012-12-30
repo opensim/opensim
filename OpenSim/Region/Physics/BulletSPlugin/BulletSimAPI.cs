@@ -367,7 +367,6 @@ public abstract void ReleaseBodyInfo(IntPtr obj);
 
 public abstract void DestroyObject(BulletWorld sim, BulletBody obj);
 
-    /*
 // =====================================================================================
 // Terrain creation and helper routines
 public abstract IntPtr CreateHeightMapInfo(BulletWorld sim, uint id, Vector3 minCoords, Vector3 maxCoords,
@@ -378,9 +377,9 @@ public abstract IntPtr FillHeightMapInfo(BulletWorld sim, IntPtr mapInfo, uint i
 
 public abstract bool ReleaseHeightMapInfo(IntPtr heightMapInfo);
 
-public abstract BulletBody CreateGroundPlaneShape(uint id, float height, float collisionMargin);
+public abstract BulletShape CreateGroundPlaneShape(uint id, float height, float collisionMargin);
 
-public abstract BulletBody CreateTerrainShape(IntPtr mapInfo);
+public abstract BulletShape CreateTerrainShape(IntPtr mapInfo);
 
 // =====================================================================================
 // Constraint creation and helper routines
@@ -460,7 +459,7 @@ public abstract bool IsStaticOrKinematicObject(BulletBody obj);
 
 public abstract bool HasContactResponse(BulletBody obj);
 
-public abstract void SetCollisionShape(BulletWorld sim, BulletBody obj, BulletBody shape);
+public abstract void SetCollisionShape(BulletWorld sim, BulletBody obj, BulletShape shape);
 
 public abstract BulletShape GetCollisionShape(BulletBody obj);
 
@@ -526,6 +525,7 @@ public abstract IntPtr GetUserPointer(BulletBody obj);
 
 public abstract void SetUserPointer(BulletBody obj, IntPtr val);
 
+    /*
 // =====================================================================================
 // btRigidBody entries
 public abstract void ApplyGravity(BulletBody obj);

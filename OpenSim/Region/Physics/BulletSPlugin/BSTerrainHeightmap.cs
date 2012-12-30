@@ -91,13 +91,12 @@ public sealed class BSTerrainHeightmap : BSTerrainPhys
     // Using the information in m_mapInfo, create the physical representation of the heightmap.
     private void BuildHeightmapTerrain()
     {
-        m_mapInfo.Ptr = BulletSimAPI.CreateHeightMapInfo2(PhysicsScene.World.ptr, m_mapInfo.ID,
+        m_mapInfo.Ptr = PhysicsScene.PE.CreateHeightMapInfo(PhysicsScene.World, m_mapInfo.ID,
                                 m_mapInfo.minCoords, m_mapInfo.maxCoords, 
                                 m_mapInfo.heightMap, BSParam.TerrainCollisionMargin);
 
         // Create the terrain shape from the mapInfo
-        m_mapInfo.terrainShape = new BulletShape(BulletSimAPI.CreateTerrainShape2(m_mapInfo.Ptr),
-                                                    BSPhysicsShapeType.SHAPE_TERRAIN);
+        m_mapInfo.terrainShape = PhysicsScene.PE.CreateTerrainShape(m_mapInfo.Ptr);
 
         // The terrain object initial position is at the center of the object
         Vector3 centerPos;
@@ -109,22 +108,22 @@ public sealed class BSTerrainHeightmap : BSTerrainPhys
                                 m_mapInfo.ID, centerPos, Quaternion.Identity);
 
         // Set current terrain attributes
-        BulletSimAPI.SetFriction2(m_mapInfo.terrainBody.ptr, BSParam.TerrainFriction);
-        BulletSimAPI.SetHitFraction2(m_mapInfo.terrainBody.ptr, BSParam.TerrainHitFraction);
-        BulletSimAPI.SetRestitution2(m_mapInfo.terrainBody.ptr, BSParam.TerrainRestitution);
-        BulletSimAPI.SetCollisionFlags2(m_mapInfo.terrainBody.ptr, CollisionFlags.CF_STATIC_OBJECT);
+        PhysicsScene.PE.SetFriction(m_mapInfo.terrainBody, BSParam.TerrainFriction);
+        PhysicsScene.PE.SetHitFraction(m_mapInfo.terrainBody, BSParam.TerrainHitFraction);
+        PhysicsScene.PE.SetRestitution(m_mapInfo.terrainBody, BSParam.TerrainRestitution);
+        PhysicsScene.PE.SetCollisionFlags(m_mapInfo.terrainBody, CollisionFlags.CF_STATIC_OBJECT);
 
         // Return the new terrain to the world of physical objects
-        BulletSimAPI.AddObjectToWorld2(PhysicsScene.World.ptr, m_mapInfo.terrainBody.ptr);
+        PhysicsScene.PE.AddObjectToWorld(PhysicsScene.World, m_mapInfo.terrainBody);
 
         // redo its bounding box now that it is in the world
-        BulletSimAPI.UpdateSingleAabb2(PhysicsScene.World.ptr, m_mapInfo.terrainBody.ptr);
+        PhysicsScene.PE.UpdateSingleAabb(PhysicsScene.World, m_mapInfo.terrainBody);
 
         m_mapInfo.terrainBody.collisionType = CollisionType.Terrain;
         m_mapInfo.terrainBody.ApplyCollisionMask();
 
         // Make it so the terrain will not move or be considered for movement.
-        BulletSimAPI.ForceActivationState2(m_mapInfo.terrainBody.ptr, ActivationState.DISABLE_SIMULATION);
+        PhysicsScene.PE.ForceActivationState(m_mapInfo.terrainBody, ActivationState.DISABLE_SIMULATION);
 
         return;
     }
@@ -136,10 +135,10 @@ public sealed class BSTerrainHeightmap : BSTerrainPhys
         {
             if (m_mapInfo.terrainBody.HasPhysicalBody)
             {
-                BulletSimAPI.RemoveObjectFromWorld2(PhysicsScene.World.ptr, m_mapInfo.terrainBody.ptr);
+                PhysicsScene.PE.RemoveObjectFromWorld(PhysicsScene.World, m_mapInfo.terrainBody);
                 // Frees both the body and the shape.
                 PhysicsScene.PE.DestroyObject(PhysicsScene.World, m_mapInfo.terrainBody);
-                BulletSimAPI.ReleaseHeightMapInfo2(m_mapInfo.Ptr);
+                PhysicsScene.PE.ReleaseHeightMapInfo(m_mapInfo.Ptr);
             }
         }
         m_mapInfo = null;

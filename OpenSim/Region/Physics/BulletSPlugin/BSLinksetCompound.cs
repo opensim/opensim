@@ -131,10 +131,10 @@ public sealed class BSLinksetCompound : BSLinkset
         {
             // The origional prims are removed from the world as the shape of the root compound
             //     shape takes over.
-            BulletSimAPI.AddToCollisionFlags2(child.PhysBody.ptr, CollisionFlags.CF_NO_CONTACT_RESPONSE);
-            BulletSimAPI.ForceActivationState2(child.PhysBody.ptr, ActivationState.DISABLE_SIMULATION);
+            PhysicsScene.PE.AddToCollisionFlags(child.PhysBody, CollisionFlags.CF_NO_CONTACT_RESPONSE);
+            PhysicsScene.PE.ForceActivationState(child.PhysBody, ActivationState.DISABLE_SIMULATION);
             // We don't want collisions from the old linkset children.
-            BulletSimAPI.RemoveFromCollisionFlags2(child.PhysBody.ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
+            PhysicsScene.PE.RemoveFromCollisionFlags(child.PhysBody, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
 
             child.PhysBody.collisionType = CollisionType.LinksetChild;
 
@@ -159,12 +159,12 @@ public sealed class BSLinksetCompound : BSLinkset
         else
         {
             // The non-physical children can come back to life.
-            BulletSimAPI.RemoveFromCollisionFlags2(child.PhysBody.ptr, CollisionFlags.CF_NO_CONTACT_RESPONSE);
+            PhysicsScene.PE.RemoveFromCollisionFlags(child.PhysBody, CollisionFlags.CF_NO_CONTACT_RESPONSE);
 
             child.PhysBody.collisionType = CollisionType.LinksetChild;
 
             // Don't force activation so setting of DISABLE_SIMULATION can stay if used.
-            BulletSimAPI.Activate2(child.PhysBody.ptr, false);
+            PhysicsScene.PE.Activate(child.PhysBody, false);
             ret = true;
         }
         return ret;

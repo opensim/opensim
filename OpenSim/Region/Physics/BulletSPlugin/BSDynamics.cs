@@ -558,7 +558,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 
                 // Friction affects are handled by this vehicle code
                 float friction = 0f;
-                BulletSimAPI.SetFriction2(Prim.PhysBody.ptr, friction);
+                PhysicsScene.PE.SetFriction(Prim.PhysBody, friction);
 
                 // Moderate angular movement introduced by Bullet.
                 // TODO: possibly set AngularFactor and LinearFactor for the type of vehicle.
@@ -567,7 +567,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 BulletSimAPI.SetAngularDamping2(Prim.PhysBody.ptr, angularDamping);
 
                 // Vehicles report collision events so we know when it's on the ground
-                BulletSimAPI.AddToCollisionFlags2(Prim.PhysBody.ptr, CollisionFlags.BS_VEHICLE_COLLISIONS);
+                PhysicsScene.PE.AddToCollisionFlags(Prim.PhysBody, CollisionFlags.BS_VEHICLE_COLLISIONS);
 
                 Vector3 localInertia = BulletSimAPI.CalculateLocalInertia2(Prim.PhysShape.ptr, m_vehicleMass);
                 BulletSimAPI.SetMassProps2(Prim.PhysBody.ptr, m_vehicleMass, localInertia);
@@ -581,7 +581,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             }
             else
             {
-                BulletSimAPI.RemoveFromCollisionFlags2(Prim.PhysBody.ptr, CollisionFlags.BS_VEHICLE_COLLISIONS);
+                PhysicsScene.PE.RemoveFromCollisionFlags(Prim.PhysBody, CollisionFlags.BS_VEHICLE_COLLISIONS);
             }
         }
 
@@ -651,7 +651,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 if ((m_knownChanged & m_knownChangedVelocity) != 0)
                 {
                     Prim.ForceVelocity = m_knownVelocity;
-                    BulletSimAPI.SetInterpolationLinearVelocity2(Prim.PhysBody.ptr, VehicleVelocity);
+                    PhysicsScene.PE.SetInterpolationLinearVelocity(Prim.PhysBody, VehicleVelocity);
                 }
 
                 if ((m_knownChanged & m_knownChangedForce) != 0)
@@ -661,7 +661,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 {
                     Prim.ForceRotationalVelocity = m_knownRotationalVelocity;
                     // Fake out Bullet by making it think the velocity is the same as last time.
-                    BulletSimAPI.SetInterpolationAngularVelocity2(Prim.PhysBody.ptr, m_knownRotationalVelocity);
+                    PhysicsScene.PE.SetInterpolationAngularVelocity(Prim.PhysBody, m_knownRotationalVelocity);
                 }
 
                 if ((m_knownChanged & m_knownChangedRotationalForce) != 0)

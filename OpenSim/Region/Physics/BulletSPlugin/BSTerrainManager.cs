@@ -133,17 +133,14 @@ public sealed class BSTerrainManager : IDisposable
     public void CreateInitialGroundPlaneAndTerrain()
     {
         // The ground plane is here to catch things that are trying to drop to negative infinity
-        BulletShape groundPlaneShape = new BulletShape(
-                    BulletSimAPI.CreateGroundPlaneShape2(BSScene.GROUNDPLANE_ID, 1f, 
-                                    BSParam.TerrainCollisionMargin),
-                    BSPhysicsShapeType.SHAPE_GROUNDPLANE);
+        BulletShape groundPlaneShape = PhysicsScene.PE.CreateGroundPlaneShape(BSScene.GROUNDPLANE_ID, 1f, BSParam.TerrainCollisionMargin);
         m_groundPlane = PhysicsScene.PE.CreateBodyWithDefaultMotionState(groundPlaneShape, 
                                         BSScene.GROUNDPLANE_ID, Vector3.Zero, Quaternion.Identity);
 
-        BulletSimAPI.AddObjectToWorld2(PhysicsScene.World.ptr, m_groundPlane.ptr);
-        BulletSimAPI.UpdateSingleAabb2(PhysicsScene.World.ptr, m_groundPlane.ptr);
+        PhysicsScene.PE.AddObjectToWorld(PhysicsScene.World, m_groundPlane);
+        PhysicsScene.PE.UpdateSingleAabb(PhysicsScene.World, m_groundPlane);
         // Ground plane does not move
-        BulletSimAPI.ForceActivationState2(m_groundPlane.ptr, ActivationState.DISABLE_SIMULATION);
+        PhysicsScene.PE.ForceActivationState(m_groundPlane, ActivationState.DISABLE_SIMULATION);
         // Everything collides with the ground plane.
         m_groundPlane.collisionType = CollisionType.Groundplane;
         m_groundPlane.ApplyCollisionMask();
@@ -158,7 +155,7 @@ public sealed class BSTerrainManager : IDisposable
     {
         if (m_groundPlane.HasPhysicalBody)
         {
-            if (BulletSimAPI.RemoveObjectFromWorld2(PhysicsScene.World.ptr, m_groundPlane.ptr))
+            if (PhysicsScene.PE.RemoveObjectFromWorld(PhysicsScene.World, m_groundPlane))
             {
                 PhysicsScene.PE.DestroyObject(PhysicsScene.World, m_groundPlane);
             }
