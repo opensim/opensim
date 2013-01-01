@@ -1415,8 +1415,9 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (m_followCamAuto)
             {
-                if (hitYN)
+                if (hitYN && localid != LocalId)
                 {
+
                     CameraConstraintActive = true;
                     //m_log.DebugFormat("[RAYCASTRESULT]: {0}, {1}, {2}, {3}", hitYN, collisionPoint, localid, distance);
                     
@@ -2282,7 +2283,6 @@ namespace OpenSim.Region.Framework.Scenes
                 ControllingClient.SendAlertMessage(" Sit position on restricted land, try another spot");
                 return;
             }
-//            m_log.InfoFormat("physsit {0} {1}", offset.ToString(),Orientation.ToString());
 
             RemoveFromPhysicalScene();
 
@@ -2292,7 +2292,6 @@ namespace OpenSim.Region.Framework.Scenes
             Velocity = Vector3.Zero;
 
             part.AddSittingAvatar(UUID);
-
 
             Vector3 cameraAtOffset = part.GetCameraAtOffset();
             Vector3 cameraEyeOffset = part.GetCameraEyeOffset();
