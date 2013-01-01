@@ -137,7 +137,7 @@ public sealed class BSCharacter : BSPhysObject
 
     private void SetPhysicalProperties()
     {
-        BulletSimAPI.RemoveObjectFromWorld2(PhysicsScene.World.ptr, PhysBody.ptr);
+        PhysicsScene.PE.RemoveObjectFromWorld(PhysicsScene.World, PhysBody);
 
         ZeroMotion(true);
         ForcePosition = _position;
@@ -152,32 +152,32 @@ public sealed class BSCharacter : BSPhysObject
         // Needs to be reset especially when an avatar is recreated after crossing a region boundry.
         Flying = _flying;
 
-        BulletSimAPI.SetRestitution2(PhysBody.ptr, BSParam.AvatarRestitution);
-        BulletSimAPI.SetMargin2(PhysShape.ptr, PhysicsScene.Params.collisionMargin);
-        BulletSimAPI.SetLocalScaling2(PhysShape.ptr, Scale);
-        BulletSimAPI.SetContactProcessingThreshold2(PhysBody.ptr, BSParam.ContactProcessingThreshold);
+        PhysicsScene.PE.SetRestitution(PhysBody, BSParam.AvatarRestitution);
+        PhysicsScene.PE.SetMargin(PhysShape, PhysicsScene.Params.collisionMargin);
+        PhysicsScene.PE.SetLocalScaling(PhysShape, Scale);
+        PhysicsScene.PE.SetContactProcessingThreshold(PhysBody, BSParam.ContactProcessingThreshold);
         if (BSParam.CcdMotionThreshold > 0f)
         {
-            BulletSimAPI.SetCcdMotionThreshold2(PhysBody.ptr, BSParam.CcdMotionThreshold);
-            BulletSimAPI.SetCcdSweptSphereRadius2(PhysBody.ptr, BSParam.CcdSweptSphereRadius);
+            PhysicsScene.PE.SetCcdMotionThreshold(PhysBody, BSParam.CcdMotionThreshold);
+            PhysicsScene.PE.SetCcdSweptSphereRadius(PhysBody, BSParam.CcdSweptSphereRadius);
         }
 
         UpdatePhysicalMassProperties(RawMass, false);
 
         // Make so capsule does not fall over
-        BulletSimAPI.SetAngularFactorV2(PhysBody.ptr, OMV.Vector3.Zero);
+        PhysicsScene.PE.SetAngularFactorV(PhysBody, OMV.Vector3.Zero);
 
-        BulletSimAPI.AddToCollisionFlags2(PhysBody.ptr, CollisionFlags.CF_CHARACTER_OBJECT);
+        PhysicsScene.PE.AddToCollisionFlags(PhysBody, CollisionFlags.CF_CHARACTER_OBJECT);
 
-        BulletSimAPI.AddObjectToWorld2(PhysicsScene.World.ptr, PhysBody.ptr);
+        PhysicsScene.PE.AddObjectToWorld(PhysicsScene.World, PhysBody);
 
-        // BulletSimAPI.ForceActivationState2(BSBody.ptr, ActivationState.ACTIVE_TAG);
-        BulletSimAPI.ForceActivationState2(PhysBody.ptr, ActivationState.DISABLE_DEACTIVATION);
-        BulletSimAPI.UpdateSingleAabb2(PhysicsScene.World.ptr, PhysBody.ptr);
+        // PhysicsScene.PE.ForceActivationState(PhysBody, ActivationState.ACTIVE_TAG);
+        PhysicsScene.PE.ForceActivationState(PhysBody, ActivationState.DISABLE_DEACTIVATION);
+        PhysicsScene.PE.UpdateSingleAabb(PhysicsScene.World, PhysBody);
 
         // Do this after the object has been added to the world
         PhysBody.collisionType = CollisionType.Avatar;
-        PhysBody.ApplyCollisionMask();
+        PhysBody.ApplyCollisionMask(PhysicsScene);
     }
 
     // The avatar's movement is controlled by this motor that speeds up and slows down
@@ -210,8 +210,7 @@ public sealed class BSCharacter : BSPhysObject
             if (!Flying && !IsColliding)
             {
                 stepVelocity.Z = _velocity.Z;
-                DetailLog("{0},BSCharacter.MoveMotor,taint,overrideStepZWithWorldZ,stepVel={1}",
-                            LocalID, stepVelocity);
+                // DetailLog("{0},BSCharacter.MoveMotor,taint,overrideStepZWithWorldZ,stepVel={1}", LocalID, stepVelocity);
             }
 
             // 'stepVelocity' is now the speed we'd like the avatar to move in. Turn that into an instantanous force.
@@ -231,8 +230,7 @@ public sealed class BSCharacter : BSPhysObject
                 AddForce(moveForce, false, true);
             }
             */
-            DetailLog("{0},BSCharacter.MoveMotor,move,stepVel={1},vel={2},mass={3},moveForce={4}",
-                                    LocalID, stepVelocity, _velocity, Mass, moveForce);
+            // DetailLog("{0},BSCharacter.MoveMotor,move,stepVel={1},vel={2},mass={3},moveForce={4}", LocalID, stepVelocity, _velocity, Mass, moveForce);
             AddForce(moveForce, false, true);
         });
     }
@@ -267,10 +265,10 @@ public sealed class BSCharacter : BSPhysObject
             {
                 if (PhysBody.HasPhysicalBody && PhysShape.HasPhysicalShape)
                 {
-                    BulletSimAPI.SetLocalScaling2(PhysShape.ptr, Scale);
+                    PhysicsScene.PE.SetLocalScaling(PhysShape, Scale);
                     UpdatePhysicalMassProperties(RawMass, true);
                     // Make sure this change appears as a property update event
-                    BulletSimAPI.PushUpdate2(PhysBody.ptr);
+                    PhysicsScene.PE.PushUpdate(PhysBody);
                 }
             });
 
@@ -311,7 +309,7 @@ public sealed class BSCharacter : BSPhysObject
         PhysicsScene.TaintedObject(inTaintTime, "BSCharacter.ZeroMotion", delegate()
         {
             if (PhysBody.HasPhysicalBody)
-                BulletSimAPI.ClearAllForces2(PhysBody.ptr);
+                PhysicsScene.PE.ClearAllForces(PhysBody);
         });
     }
     public override void ZeroAngularMotion(bool inTaintTime)
@@ -322,10 +320,10 @@ public sealed class BSCharacter : BSPhysObject
         {
             if (PhysBody.HasPhysicalBody)
             {
-                BulletSimAPI.SetInterpolationAngularVelocity2(PhysBody.ptr, OMV.Vector3.Zero);
-                BulletSimAPI.SetAngularVelocity2(PhysBody.ptr, OMV.Vector3.Zero);
+                PhysicsScene.PE.SetInterpolationAngularVelocity(PhysBody, OMV.Vector3.Zero);
+                PhysicsScene.PE.SetAngularVelocity(PhysBody, OMV.Vector3.Zero);
                 // The next also get rid of applied linear force but the linear velocity is untouched.
-                BulletSimAPI.ClearForces2(PhysBody.ptr);
+                PhysicsScene.PE.ClearForces(PhysBody);
             }
         });
     }
@@ -341,7 +339,7 @@ public sealed class BSCharacter : BSPhysObject
     public override OMV.Vector3 Position {
         get {
             // Don't refetch the position because this function is called a zillion times
-            // _position = BulletSimAPI.GetObjectPosition2(Scene.World.ptr, LocalID);
+            // _position = PhysicsScene.PE.GetObjectPosition(Scene.World, LocalID);
             return _position;
         }
         set {
@@ -352,19 +350,19 @@ public sealed class BSCharacter : BSPhysObject
             {
                 DetailLog("{0},BSCharacter.SetPosition,taint,pos={1},orient={2}", LocalID, _position, _orientation);
                 if (PhysBody.HasPhysicalBody)
-                    BulletSimAPI.SetTranslation2(PhysBody.ptr, _position, _orientation);
+                    PhysicsScene.PE.SetTranslation(PhysBody, _position, _orientation);
             });
         }
     }
     public override OMV.Vector3 ForcePosition {
         get {
-            _position = BulletSimAPI.GetPosition2(PhysBody.ptr);
+            _position = PhysicsScene.PE.GetPosition(PhysBody);
             return _position;
         }
         set {
             _position = value;
             PositionSanityCheck();
-            BulletSimAPI.SetTranslation2(PhysBody.ptr, _position, _orientation);
+            PhysicsScene.PE.SetTranslation(PhysBody, _position, _orientation);
         }
     }
 
@@ -420,7 +418,7 @@ public sealed class BSCharacter : BSPhysObject
             {
                 DetailLog("{0},BSCharacter.PositionSanityCheck,taint,pos={1},orient={2}", LocalID, _position, _orientation);
                 if (PhysBody.HasPhysicalBody)
-                    BulletSimAPI.SetTranslation2(PhysBody.ptr, _position, _orientation);
+                    PhysicsScene.PE.SetTranslation(PhysBody, _position, _orientation);
             });
             ret = true;
         }
@@ -435,8 +433,8 @@ public sealed class BSCharacter : BSPhysObject
     }
     public override void UpdatePhysicalMassProperties(float physMass, bool inWorld)
     {
-        OMV.Vector3 localInertia = BulletSimAPI.CalculateLocalInertia2(PhysShape.ptr, physMass);
-        BulletSimAPI.SetMassProps2(PhysBody.ptr, physMass, localInertia);
+        OMV.Vector3 localInertia = PhysicsScene.PE.CalculateLocalInertia(PhysShape, physMass);
+        PhysicsScene.PE.SetMassProps(PhysBody, physMass, localInertia);
     }
 
     public override OMV.Vector3 Force {
@@ -448,7 +446,7 @@ public sealed class BSCharacter : BSPhysObject
             {
                 DetailLog("{0},BSCharacter.setForce,taint,force={1}", LocalID, _force);
                 if (PhysBody.HasPhysicalBody)
-                    BulletSimAPI.SetObjectForce2(PhysBody.ptr, _force);
+                    PhysicsScene.PE.SetObjectForce(PhysBody, _force);
             });
         }
     }
@@ -522,7 +520,7 @@ public sealed class BSCharacter : BSPhysObject
                 {
                     _currentFriction = BSParam.AvatarStandingFriction;
                     if (PhysBody.HasPhysicalBody)
-                        BulletSimAPI.SetFriction2(PhysBody.ptr, _currentFriction);
+                        PhysicsScene.PE.SetFriction(PhysBody, _currentFriction);
                 }
             }
             else
@@ -531,12 +529,12 @@ public sealed class BSCharacter : BSPhysObject
                 {
                     _currentFriction = BSParam.AvatarFriction;
                     if (PhysBody.HasPhysicalBody)
-                        BulletSimAPI.SetFriction2(PhysBody.ptr, _currentFriction);
+                        PhysicsScene.PE.SetFriction(PhysBody, _currentFriction);
                 }
             }
 
-            BulletSimAPI.SetLinearVelocity2(PhysBody.ptr, _velocity);
-            BulletSimAPI.Activate2(PhysBody.ptr, true);
+            PhysicsScene.PE.SetLinearVelocity(PhysBody, _velocity);
+            PhysicsScene.PE.Activate(PhysBody, true);
         }
     }
     public override OMV.Vector3 Torque {
@@ -578,7 +576,7 @@ public sealed class BSCharacter : BSPhysObject
     {
         get
         {
-            _orientation = BulletSimAPI.GetOrientation2(PhysBody.ptr);
+            _orientation = PhysicsScene.PE.GetOrientation(PhysBody);
             return _orientation;
         }
         set
@@ -586,8 +584,8 @@ public sealed class BSCharacter : BSPhysObject
             _orientation = value;
             if (PhysBody.HasPhysicalBody)
             {
-                // _position = BulletSimAPI.GetPosition2(BSBody.ptr);
-                BulletSimAPI.SetTranslation2(PhysBody.ptr, _position, _orientation);
+                // _position = PhysicsScene.PE.GetPosition(BSBody);
+                PhysicsScene.PE.SetTranslation(PhysBody, _position, _orientation);
             }
         }
     }
@@ -638,9 +636,9 @@ public sealed class BSCharacter : BSPhysObject
                 if (PhysBody.HasPhysicalBody)
                 {
                     if (_floatOnWater)
-                        CurrentCollisionFlags = BulletSimAPI.AddToCollisionFlags2(PhysBody.ptr, CollisionFlags.BS_FLOATS_ON_WATER);
+                        CurrentCollisionFlags = PhysicsScene.PE.AddToCollisionFlags(PhysBody, CollisionFlags.BS_FLOATS_ON_WATER);
                     else
-                        CurrentCollisionFlags = BulletSimAPI.RemoveFromCollisionFlags2(PhysBody.ptr, CollisionFlags.BS_FLOATS_ON_WATER);
+                        CurrentCollisionFlags = PhysicsScene.PE.RemoveFromCollisionFlags(PhysBody, CollisionFlags.BS_FLOATS_ON_WATER);
                 }
             });
         }
@@ -678,7 +676,7 @@ public sealed class BSCharacter : BSPhysObject
             // Buoyancy is faked by changing the gravity applied to the object
             float grav = PhysicsScene.Params.gravity * (1f - _buoyancy);
             if (PhysBody.HasPhysicalBody)
-                BulletSimAPI.SetGravity2(PhysBody.ptr, new OMV.Vector3(0f, 0f, grav));
+                PhysicsScene.PE.SetGravity(PhysBody, new OMV.Vector3(0f, 0f, grav));
         }
     }
 
@@ -736,10 +734,10 @@ public sealed class BSCharacter : BSPhysObject
             PhysicsScene.TaintedObject(inTaintTime, "BSCharacter.AddForce", delegate()
             {
                 // Bullet adds this central force to the total force for this tick
-                DetailLog("{0},BSCharacter.addForce,taint,force={1}", LocalID, addForce);
+                // DetailLog("{0},BSCharacter.addForce,taint,force={1}", LocalID, addForce);
                 if (PhysBody.HasPhysicalBody)
                 {
-                    BulletSimAPI.ApplyCentralForce2(PhysBody.ptr, addForce);
+                    PhysicsScene.PE.ApplyCentralForce(PhysBody, addForce);
                 }
             });
         }

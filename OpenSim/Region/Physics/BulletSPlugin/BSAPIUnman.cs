@@ -26,664 +26,954 @@
  */
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
+
 using OpenMetaverse;
 
-namespace OpenSim.Region.Physics.BulletSPlugin {
-
-    // Constraint type values as defined by Bullet
-public enum ConstraintType : int
+namespace OpenSim.Region.Physics.BulletSPlugin
 {
-	POINT2POINT_CONSTRAINT_TYPE = 3,
-	HINGE_CONSTRAINT_TYPE,
-	CONETWIST_CONSTRAINT_TYPE,
-	D6_CONSTRAINT_TYPE,
-	SLIDER_CONSTRAINT_TYPE,
-	CONTACT_CONSTRAINT_TYPE,
-	D6_SPRING_CONSTRAINT_TYPE,
-	MAX_CONSTRAINT_TYPE
+public sealed class BSAPIUnman : BSAPITemplate
+{
+
+// We pin the memory passed between the managed and unmanaged code.
+GCHandle m_paramsHandle;
+private GCHandle m_collisionArrayPinnedHandle;
+private GCHandle m_updateArrayPinnedHandle;
+
+// Handle to the callback used by the unmanaged code to call into the managed code.
+// Used for debug logging.
+// Need to store the handle in a persistant variable so it won't be freed.
+private BSAPICPP.DebugLogCallback m_DebugLogCallbackHandle;
+
+private BSScene PhysicsScene { get; set; }
+
+public override string BulletEngineName { get { return "BulletUnmanaged"; } }
+public override string BulletEngineVersion { get; protected set; }
+
+public BSAPIUnman(string paramName, BSScene physScene)
+{
+    PhysicsScene = physScene;
+    // Do something fancy with the paramName to get the right DLL implementation
+    //     like "Bullet-2.80-OpenCL-Intel" loading the version for Intel based OpenCL implementation, etc.
 }
 
-// ===============================================================================
-[StructLayout(LayoutKind.Sequential)]
-public struct ConvexHull
-{
-	Vector3 Offset;
-	int VertexCount;
-	Vector3[] Vertices;
-}
-public enum BSPhysicsShapeType
-{
-	SHAPE_UNKNOWN   = 0,
-	SHAPE_CAPSULE   = 1,
-	SHAPE_BOX       = 2,
-	SHAPE_CONE      = 3,
-	SHAPE_CYLINDER  = 4,
-	SHAPE_SPHERE    = 5,
-	SHAPE_MESH      = 6,
-	SHAPE_HULL      = 7,
-    // following defined by BulletSim
-	SHAPE_GROUNDPLANE  = 20,
-	SHAPE_TERRAIN   = 21,
-	SHAPE_COMPOUND  = 22,
-	SHAPE_HEIGHTMAP = 23,
-    SHAPE_AVATAR    = 24,
-};
-
-// The native shapes have predefined shape hash keys
-public enum FixedShapeKey : ulong
-{
-    KEY_NONE        = 0,
-    KEY_BOX         = 1,
-    KEY_SPHERE      = 2,
-    KEY_CONE        = 3,
-    KEY_CYLINDER    = 4,
-    KEY_CAPSULE     = 5,
-    KEY_AVATAR      = 6,
-}
-
-[StructLayout(LayoutKind.Sequential)]
-public struct ShapeData
-{
-    public uint ID;
-    public BSPhysicsShapeType Type;
-    public Vector3 Position;
-    public Quaternion Rotation;
-    public Vector3 Velocity;
-    public Vector3 Scale;
-    public float Mass;
-    public float Buoyancy;
-    public System.UInt64 HullKey;
-    public System.UInt64 MeshKey;
-    public float Friction;
-    public float Restitution;
-    public float Collidable;    // true of things bump into this
-    public float Static;        // true if a static object. Otherwise gravity, etc.
-    public float Solid;         // true if object cannot be passed through
-    public Vector3 Size;
-
-    // note that bools are passed as floats since bool size changes by language and architecture
-    public const float numericTrue = 1f;
-    public const float numericFalse = 0f;
-}
-[StructLayout(LayoutKind.Sequential)]
-public struct SweepHit
-{
-    public uint ID;
-    public float Fraction;
-    public Vector3 Normal;
-    public Vector3 Point;
-}
-[StructLayout(LayoutKind.Sequential)]
-public struct RaycastHit
-{
-    public uint ID;
-    public float Fraction;
-    public Vector3 Normal;
-}
-[StructLayout(LayoutKind.Sequential)]
-public struct CollisionDesc
-{
-    public uint aID;
-    public uint bID;
-    public Vector3 point;
-    public Vector3 normal;
-}
-[StructLayout(LayoutKind.Sequential)]
-public struct EntityProperties
-{
-    public uint ID;
-    public Vector3 Position;
-    public Quaternion Rotation;
-    public Vector3 Velocity;
-    public Vector3 Acceleration;
-    public Vector3 RotationalVelocity;
-}
-
-// Format of this structure must match the definition in the C++ code
-// NOTE: adding the X causes compile breaks if used. These are unused symbols
-//      that can be removed from both here and the unmanaged definition of this structure.
-[StructLayout(LayoutKind.Sequential)]
-public struct ConfigurationParameters
-{
-    public float defaultFriction;
-    public float defaultDensity;
-    public float defaultRestitution;
-    public float collisionMargin;
-    public float gravity;
-
-    public float XlinearDamping;
-    public float XangularDamping;
-    public float XdeactivationTime;
-    public float XlinearSleepingThreshold;
-    public float XangularSleepingThreshold;
-	public float XccdMotionThreshold;
-	public float XccdSweptSphereRadius;
-    public float XcontactProcessingThreshold;
-
-    public float XterrainImplementation;
-    public float XterrainFriction;
-    public float XterrainHitFraction;
-    public float XterrainRestitution;
-    public float XterrainCollisionMargin;
-
-    public float XavatarFriction;
-    public float XavatarStandingFriction;
-    public float XavatarDensity;
-    public float XavatarRestitution;
-    public float XavatarCapsuleWidth;
-    public float XavatarCapsuleDepth;
-    public float XavatarCapsuleHeight;
-	public float XavatarContactProcessingThreshold;
-
-    public float XvehicleAngularDamping;
-
-	public float maxPersistantManifoldPoolSize;
-	public float maxCollisionAlgorithmPoolSize;
-	public float shouldDisableContactPoolDynamicAllocation;
-	public float shouldForceUpdateAllAabbs;
-	public float shouldRandomizeSolverOrder;
-	public float shouldSplitSimulationIslands;
-	public float shouldEnableFrictionCaching;
-	public float numberOfSolverIterations;
-
-    public float XlinksetImplementation;
-    public float XlinkConstraintUseFrameOffset;
-    public float XlinkConstraintEnableTransMotor;
-    public float XlinkConstraintTransMotorMaxVel;
-    public float XlinkConstraintTransMotorMaxForce;
-    public float XlinkConstraintERP;
-    public float XlinkConstraintCFM;
-    public float XlinkConstraintSolverIterations;
-
-    public float physicsLoggingFrames;
-
-    public const float numericTrue = 1f;
-    public const float numericFalse = 0f;
-}
-
-
-// The states a bullet collision object can have
-public enum ActivationState : uint
-{
-    ACTIVE_TAG = 1,
-    ISLAND_SLEEPING,
-    WANTS_DEACTIVATION,
-    DISABLE_DEACTIVATION,
-    DISABLE_SIMULATION,
-}
-
-public enum CollisionObjectTypes : int
-{
-    CO_COLLISION_OBJECT             = 1 << 0,
-    CO_RIGID_BODY                   = 1 << 1,
-    CO_GHOST_OBJECT                 = 1 << 2,
-    CO_SOFT_BODY                    = 1 << 3,
-    CO_HF_FLUID                     = 1 << 4,
-    CO_USER_TYPE                    = 1 << 5,
-}
-
-// Values used by Bullet and BulletSim to control object properties.
-// Bullet's "CollisionFlags" has more to do with operations on the
-//    object (if collisions happen, if gravity effects it, ...).
-public enum CollisionFlags : uint
-{
-    CF_STATIC_OBJECT                 = 1 << 0,
-    CF_KINEMATIC_OBJECT              = 1 << 1,
-    CF_NO_CONTACT_RESPONSE           = 1 << 2,
-    CF_CUSTOM_MATERIAL_CALLBACK      = 1 << 3,
-    CF_CHARACTER_OBJECT              = 1 << 4,
-    CF_DISABLE_VISUALIZE_OBJECT      = 1 << 5,
-    CF_DISABLE_SPU_COLLISION_PROCESS = 1 << 6,
-    // Following used by BulletSim to control collisions and updates
-    BS_SUBSCRIBE_COLLISION_EVENTS    = 1 << 10,
-    BS_FLOATS_ON_WATER               = 1 << 11,
-    BS_VEHICLE_COLLISIONS            = 1 << 12,
-    BS_NONE                          = 0,
-    BS_ALL                           = 0xFFFFFFFF
-};
-
-// Values f collisions groups and masks
-public enum CollisionFilterGroups : uint
-{
-    // Don't use the bit definitions!!  Define the use in a
-    //   filter/mask definition below. This way collision interactions
-    //   are more easily found and debugged.
-    BNoneGroup              = 0,
-    BDefaultGroup           = 1 << 0,   // 0001
-    BStaticGroup            = 1 << 1,   // 0002
-    BKinematicGroup         = 1 << 2,   // 0004
-    BDebrisGroup            = 1 << 3,   // 0008
-    BSensorTrigger          = 1 << 4,   // 0010
-    BCharacterGroup         = 1 << 5,   // 0020
-    BAllGroup               = 0x000FFFFF,
-    // Filter groups defined by BulletSim
-    BGroundPlaneGroup       = 1 << 10,  // 0400
-    BTerrainGroup           = 1 << 11,  // 0800
-    BRaycastGroup           = 1 << 12,  // 1000
-    BSolidGroup             = 1 << 13,  // 2000
-    // BLinksetGroup        = xx  // a linkset proper is either static or dynamic
-    BLinksetChildGroup      = 1 << 14,  // 4000
-};
-
-// CFM controls the 'hardness' of the constraint. 0=fixed, 0..1=violatable. Default=0
-// ERP controls amount of correction per tick. Usable range=0.1..0.8. Default=0.2.
-public enum ConstraintParams : int
-{
-    BT_CONSTRAINT_ERP = 1,  // this one is not used in Bullet as of 20120730
-    BT_CONSTRAINT_STOP_ERP,
-    BT_CONSTRAINT_CFM,
-    BT_CONSTRAINT_STOP_CFM,
-};
-public enum ConstraintParamAxis : int
-{
-    AXIS_LINEAR_X = 0,
-    AXIS_LINEAR_Y,
-    AXIS_LINEAR_Z,
-    AXIS_ANGULAR_X,
-    AXIS_ANGULAR_Y,
-    AXIS_ANGULAR_Z,
-    AXIS_LINEAR_ALL = 20,    // these last three added by BulletSim so we don't have to do zillions of calls
-    AXIS_ANGULAR_ALL,
-    AXIS_ALL
-};
-
-public abstract class BulletSimAPITemplate
-{
 // Initialization and simulation
-public abstract BulletWorld Initialize2(Vector3 maxPosition, IntPtr parms,
-											int maxCollisions,  IntPtr collisionArray,
-											int maxUpdates, IntPtr updateArray
-                                            );
+public override BulletWorld Initialize(Vector3 maxPosition, ConfigurationParameters parms,
+											int maxCollisions,  ref CollisionDesc[] collisionArray,
+											int maxUpdates, ref EntityProperties[] updateArray
+                                            )
+{
+    // Pin down the memory that will be used to pass object collisions and updates back from unmanaged code
+    m_paramsHandle = GCHandle.Alloc(parms, GCHandleType.Pinned);
+    m_collisionArrayPinnedHandle = GCHandle.Alloc(collisionArray, GCHandleType.Pinned);
+    m_updateArrayPinnedHandle = GCHandle.Alloc(updateArray, GCHandleType.Pinned);
 
-public abstract bool UpdateParameter2(BulletWorld world, uint localID, String parm, float value);
+    // If Debug logging level, enable logging from the unmanaged code
+    m_DebugLogCallbackHandle = null;
+    if (BSScene.m_log.IsDebugEnabled || PhysicsScene.PhysicsLogging.Enabled)
+    {
+        BSScene.m_log.DebugFormat("{0}: Initialize: Setting debug callback for unmanaged code", BSScene.LogHeader);
+        if (PhysicsScene.PhysicsLogging.Enabled)
+            // The handle is saved in a variable to make sure it doesn't get freed after this call
+            m_DebugLogCallbackHandle = new BSAPICPP.DebugLogCallback(BulletLoggerPhysLog);
+        else
+            m_DebugLogCallbackHandle = new BSAPICPP.DebugLogCallback(BulletLogger);
+    }
 
-public abstract void SetHeightMap2(BulletWorld world, float[] heightmap);
+    // Get the version of the DLL
+    // TODO: this doesn't work yet. Something wrong with marshaling the returned string.
+    // BulletEngineVersion = BulletSimAPI.GetVersion2();
+    BulletEngineVersion = "";
 
-public abstract void Shutdown2(BulletWorld sim);
+    // Call the unmanaged code with the buffers and other information
+    return new BulletWorld(0, PhysicsScene, BSAPICPP.Initialize2(maxPosition, m_paramsHandle.AddrOfPinnedObject(),
+                                    maxCollisions, m_collisionArrayPinnedHandle.AddrOfPinnedObject(),
+                                    maxUpdates, m_updateArrayPinnedHandle.AddrOfPinnedObject(),
+                                    m_DebugLogCallbackHandle));
 
-public abstract int PhysicsStep2(BulletWorld world, float timeStep, int maxSubSteps, float fixedTimeStep,
-                        out int updatedEntityCount,
-                        out IntPtr updatedEntitiesPtr,
-                        out int collidersCount,
-                        out IntPtr collidersPtr);
+}
 
-public abstract bool PushUpdate2(BulletBody obj);
+// Called directly from unmanaged code so don't do much
+private void BulletLogger(string msg)
+{
+    BSScene.m_log.Debug("[BULLETS UNMANAGED]:" + msg);
+}
+
+// Called directly from unmanaged code so don't do much
+private void BulletLoggerPhysLog(string msg)
+{
+    PhysicsScene.DetailLog("[BULLETS UNMANAGED]:" + msg);
+}
+
+public override int PhysicsStep(BulletWorld world, float timeStep, int maxSubSteps, float fixedTimeStep,
+                        out int updatedEntityCount, out int collidersCount)
+{
+    return BSAPICPP.PhysicsStep2(world.ptr, timeStep, maxSubSteps, fixedTimeStep, out updatedEntityCount, out collidersCount);
+}
+
+public override void Shutdown(BulletWorld sim)
+{
+    BSAPICPP.Shutdown2(sim.ptr);
+}
+
+public override bool PushUpdate(BulletBody obj)
+{
+    return BSAPICPP.PushUpdate2(obj.ptr);
+}
+
+public override bool UpdateParameter(BulletWorld world, uint localID, String parm, float value)
+{
+    return BSAPICPP.UpdateParameter2(world.ptr, localID, parm, value);
+}
 
 // =====================================================================================
 // Mesh, hull, shape and body creation helper routines
-public abstract BulletShape CreateMeshShape2(BulletWorld world,
-                int indicesCount, [MarshalAs(UnmanagedType.LPArray)] int[] indices,
-                int verticesCount, [MarshalAs(UnmanagedType.LPArray)] float[] vertices );
+public override BulletShape CreateMeshShape(BulletWorld world,
+                int indicesCount, int[] indices,
+                int verticesCount, float[] vertices)
+{
+    return new BulletShape(
+                    BSAPICPP.CreateMeshShape2(world.ptr, indicesCount, indices, verticesCount, vertices),
+                    BSPhysicsShapeType.SHAPE_MESH);
+}
 
-public abstract BulletShape CreateHullShape2(BulletWorld world,
-                int hullCount, [MarshalAs(UnmanagedType.LPArray)] float[] hulls);
+public override BulletShape CreateHullShape(BulletWorld world, int hullCount, float[] hulls)
+{
+    return new BulletShape(
+                    BSAPICPP.CreateHullShape2(world.ptr, hullCount, hulls), 
+                    BSPhysicsShapeType.SHAPE_HULL);
+}
 
-public abstract BulletShape BuildHullShapeFromMesh2(BulletWorld world, BulletShape meshShape);
+public override BulletShape BuildHullShapeFromMesh(BulletWorld world, BulletShape meshShape)
+{
+    return new BulletShape(
+                    BSAPICPP.BuildHullShapeFromMesh2(world.ptr, meshShape.ptr),
+                    BSPhysicsShapeType.SHAPE_HULL);
+}
 
-public abstract BulletShape BuildNativeShape2(BulletWorld world, ShapeData shapeData);
+public override BulletShape BuildNativeShape( BulletWorld world, ShapeData shapeData)
+{
+    return new BulletShape(
+                    BSAPICPP.BuildNativeShape2(world.ptr, shapeData), 
+                    shapeData.Type);
+}
 
-public abstract bool IsNativeShape2(BulletShape shape);
+public override bool IsNativeShape(BulletShape shape)
+{
+    if (shape.HasPhysicalShape)
+        return BSAPICPP.IsNativeShape2(shape.ptr);
+    return false;
+}
 
-public abstract void SetShapeCollisionMargin(BulletShape shape, float margin);
+public override void SetShapeCollisionMargin(BulletShape shape, float margin)
+{
+    if (shape.HasPhysicalShape)
+        BSAPICPP.SetShapeCollisionMargin2(shape.ptr, margin);
+}
 
-public abstract BulletShape BuildCapsuleShape2(BulletWorld world, float radius, float height, Vector3 scale);
+public override BulletShape BuildCapsuleShape(BulletWorld world, float radius, float height, Vector3 scale)
+{
+    return new BulletShape(
+                   BSAPICPP.BuildCapsuleShape2(world.ptr, radius, height, scale),
+                   BSPhysicsShapeType.SHAPE_CAPSULE);
+}
 
-public abstract BulletShape CreateCompoundShape2(BulletWorld sim, bool enableDynamicAabbTree);
+public override BulletShape CreateCompoundShape(BulletWorld sim, bool enableDynamicAabbTree)
+{
+    return new BulletShape(
+                    BSAPICPP.CreateCompoundShape2(sim.ptr, enableDynamicAabbTree),
+                    BSPhysicsShapeType.SHAPE_COMPOUND);
 
-public abstract int GetNumberOfCompoundChildren2(BulletShape cShape);
+}
 
-public abstract void AddChildShapeToCompoundShape2(BulletShape cShape, BulletShape addShape, Vector3 pos, Quaternion rot);
+public override int GetNumberOfCompoundChildren(BulletShape shape)
+{
+    if (shape.HasPhysicalShape)
+        return BSAPICPP.GetNumberOfCompoundChildren2(shape.ptr);
+    return 0;
+}
 
-public abstract BulletShape GetChildShapeFromCompoundShapeIndex2(BulletShape cShape, int indx);
+public override void AddChildShapeToCompoundShape(BulletShape cShape, BulletShape addShape, Vector3 pos, Quaternion rot)
+{
+    BSAPICPP.AddChildShapeToCompoundShape2(cShape.ptr, addShape.ptr, pos, rot);
+}
 
-public abstract BulletShape RemoveChildShapeFromCompoundShapeIndex2(BulletShape cShape, int indx);
+public override BulletShape GetChildShapeFromCompoundShapeIndex(BulletShape cShape, int indx)
+{
+    return new BulletShape(BSAPICPP.GetChildShapeFromCompoundShapeIndex2(cShape.ptr, indx));
+}
 
-public abstract void RemoveChildShapeFromCompoundShape2(BulletShape cShape, BulletShape removeShape);
+public override BulletShape RemoveChildShapeFromCompoundShapeIndex(BulletShape cShape, int indx)
+{
+    return new BulletShape(BSAPICPP.RemoveChildShapeFromCompoundShapeIndex2(cShape.ptr, indx));
+}
 
-public abstract void RecalculateCompoundShapeLocalAabb2(BulletShape cShape);
+public override void RemoveChildShapeFromCompoundShape(BulletShape cShape, BulletShape removeShape)
+{
+    BSAPICPP.RemoveChildShapeFromCompoundShape2(cShape.ptr, removeShape.ptr);
+}
 
-public abstract BulletShape DuplicateCollisionShape2(BulletWorld sim, BulletShape srcShape, uint id);
+public override void RecalculateCompoundShapeLocalAabb(BulletShape cShape)
+{
+    BSAPICPP.RecalculateCompoundShapeLocalAabb2(cShape.ptr);
+}
 
-public abstract BulletBody CreateBodyFromShapeAndInfo2(BulletWorld sim, BulletShape shape, uint id, IntPtr constructionInfo);
+public override BulletShape DuplicateCollisionShape(BulletWorld sim, BulletShape srcShape, uint id)
+{
+    return new BulletShape(BSAPICPP.DuplicateCollisionShape2(sim.ptr, srcShape.ptr, id), srcShape.type);
+}
 
-public abstract bool DeleteCollisionShape2(BulletWorld world, BulletShape shape);
+public override bool DeleteCollisionShape(BulletWorld world, BulletShape shape)
+{
+    return BSAPICPP.DeleteCollisionShape2(world.ptr, shape.ptr);
+}
 
-public abstract int GetBodyType2(BulletBody obj);
+public override int GetBodyType(BulletBody obj)
+{
+    return BSAPICPP.GetBodyType2(obj.ptr);
+}
 
-public abstract BulletBody CreateBodyFromShape2(BulletWorld sim, BulletShape shape, uint id, Vector3 pos, Quaternion rot);
+public override BulletBody CreateBodyFromShape(BulletWorld sim, BulletShape shape, uint id, Vector3 pos, Quaternion rot)
+{
+    return new BulletBody(id, BSAPICPP.CreateBodyFromShape2(sim.ptr, shape.ptr, id, pos, rot));
+}
 
-public abstract BulletBody CreateBodyWithDefaultMotionState2(BulletShape shape, uint id, Vector3 pos, Quaternion rot);
+public override BulletBody CreateBodyWithDefaultMotionState(BulletShape shape, uint id, Vector3 pos, Quaternion rot)
+{
+    return new BulletBody(id, BSAPICPP.CreateBodyWithDefaultMotionState2(shape.ptr, id, pos, rot));
+}
 
-public abstract BulletBody CreateGhostFromShape2(BulletWorld sim, BulletShape shape, uint id, Vector3 pos, Quaternion rot);
+public override BulletBody CreateGhostFromShape(BulletWorld sim, BulletShape shape, uint id, Vector3 pos, Quaternion rot)
+{
+    return new BulletBody(id, BSAPICPP.CreateGhostFromShape2(sim.ptr, shape.ptr, id, pos, rot));
+}
 
-public abstract IntPtr AllocateBodyInfo2(BulletBody obj);
-
-public abstract void ReleaseBodyInfo2(IntPtr obj);
-
-public abstract void DestroyObject2(BulletWorld sim, BulletBody obj);
+public override void DestroyObject(BulletWorld sim, BulletBody obj)
+{
+    BSAPICPP.DestroyObject2(sim.ptr, obj.ptr);
+}
 
 // =====================================================================================
 // Terrain creation and helper routines
-public abstract IntPtr CreateHeightMapInfo2(BulletWorld sim, uint id, Vector3 minCoords, Vector3 maxCoords,
-        [MarshalAs(UnmanagedType.LPArray)] float[] heightMap, float collisionMargin);
+public override BulletShape CreateGroundPlaneShape(uint id, float height, float collisionMargin)
+{
+    return new BulletShape(BSAPICPP.CreateGroundPlaneShape2(id, height, collisionMargin), BSPhysicsShapeType.SHAPE_GROUNDPLANE);
+}
 
-public abstract IntPtr FillHeightMapInfo2(BulletWorld sim, IntPtr mapInfo, uint id, Vector3 minCoords, Vector3 maxCoords,
-        [MarshalAs(UnmanagedType.LPArray)] float[] heightMap, float collisionMargin);
-
-public abstract bool ReleaseHeightMapInfo2(IntPtr heightMapInfo);
-
-public abstract BulletBody CreateGroundPlaneShape2(uint id, float height, float collisionMargin);
-
-public abstract BulletBody CreateTerrainShape2(IntPtr mapInfo);
+public override BulletShape CreateTerrainShape(uint id, Vector3 size, float minHeight, float maxHeight, float[] heightMap,
+                                float scaleFactor, float collisionMargin)
+{
+    return new BulletShape(BSAPICPP.CreateTerrainShape2(id, size, minHeight, maxHeight, heightMap, scaleFactor, collisionMargin),
+                                                BSPhysicsShapeType.SHAPE_TERRAIN);
+}
 
 // =====================================================================================
 // Constraint creation and helper routines
-public abstract BulletConstraint Create6DofConstraint2(BulletWorld world, BulletBody obj1, BulletBody obj2,
+public override BulletConstraint Create6DofConstraint(BulletWorld world, BulletBody obj1, BulletBody obj2,
                     Vector3 frame1loc, Quaternion frame1rot,
                     Vector3 frame2loc, Quaternion frame2rot,
-                    bool useLinearReferenceFrameA, bool disableCollisionsBetweenLinkedBodies);
+                    bool useLinearReferenceFrameA, bool disableCollisionsBetweenLinkedBodies)
+{
+    return new BulletConstraint(BSAPICPP.Create6DofConstraint2(world.ptr, obj1.ptr, obj2.ptr, frame1loc, frame1rot,
+                    frame2loc, frame2rot, useLinearReferenceFrameA, disableCollisionsBetweenLinkedBodies));
+}
 
-public abstract BulletConstraint Create6DofConstraintToPoint2(BulletWorld world, BulletBody obj1, BulletBody obj2,
+public override BulletConstraint Create6DofConstraintToPoint(BulletWorld world, BulletBody obj1, BulletBody obj2,
                     Vector3 joinPoint,
-                    bool useLinearReferenceFrameA, bool disableCollisionsBetweenLinkedBodies);
+                    bool useLinearReferenceFrameA, bool disableCollisionsBetweenLinkedBodies)
+{
+    return new BulletConstraint(BSAPICPP.Create6DofConstraintToPoint2(world.ptr, obj1.ptr, obj2.ptr,
+                    joinPoint, useLinearReferenceFrameA, disableCollisionsBetweenLinkedBodies));
+}
 
-public abstract BulletConstraint CreateHingeConstraint2(BulletWorld world, BulletBody obj1, BulletBody obj2,
+public override BulletConstraint CreateHingeConstraint(BulletWorld world, BulletBody obj1, BulletBody obj2,
                     Vector3 pivotinA, Vector3 pivotinB,
                     Vector3 axisInA, Vector3 axisInB,
-                    bool useLinearReferenceFrameA, bool disableCollisionsBetweenLinkedBodies);
+                    bool useLinearReferenceFrameA, bool disableCollisionsBetweenLinkedBodies)
+{
+    return new BulletConstraint(BSAPICPP.CreateHingeConstraint2(world.ptr, obj1.ptr, obj2.ptr,
+                    pivotinA, pivotinB, axisInA, axisInB, useLinearReferenceFrameA, disableCollisionsBetweenLinkedBodies));
+}
 
-public abstract void SetConstraintEnable2(BulletConstraint constrain, float numericTrueFalse);
+public override void SetConstraintEnable(BulletConstraint constrain, float numericTrueFalse)
+{
+    BSAPICPP.SetConstraintEnable2(constrain.ptr, numericTrueFalse);
+}
 
-public abstract void SetConstraintNumSolverIterations2(BulletConstraint constrain, float iterations);
+public override void SetConstraintNumSolverIterations(BulletConstraint constrain, float iterations)
+{
+    BSAPICPP.SetConstraintNumSolverIterations2(constrain.ptr, iterations);
+}
 
-public abstract bool SetFrames2(BulletConstraint constrain,
-                Vector3 frameA, Quaternion frameArot, Vector3 frameB, Quaternion frameBrot);
+public override bool SetFrames(BulletConstraint constrain,
+                Vector3 frameA, Quaternion frameArot, Vector3 frameB, Quaternion frameBrot)
+{
+    return BSAPICPP.SetFrames2(constrain.ptr, frameA, frameArot, frameB, frameBrot);
+}
 
-public abstract bool SetLinearLimits2(BulletConstraint constrain, Vector3 low, Vector3 hi);
+public override bool SetLinearLimits(BulletConstraint constrain, Vector3 low, Vector3 hi)
+{
+    return BSAPICPP.SetLinearLimits2(constrain.ptr, low, hi);
+}
 
-public abstract bool SetAngularLimits2(BulletConstraint constrain, Vector3 low, Vector3 hi);
+public override bool SetAngularLimits(BulletConstraint constrain, Vector3 low, Vector3 hi)
+{
+    return BSAPICPP.SetAngularLimits2(constrain.ptr, low, hi);
+}
 
-public abstract bool UseFrameOffset2(BulletConstraint constrain, float enable);
+public override bool UseFrameOffset(BulletConstraint constrain, float enable)
+{
+    return BSAPICPP.UseFrameOffset2(constrain.ptr, enable);
+}
 
-public abstract bool TranslationalLimitMotor2(BulletConstraint constrain, float enable, float targetVel, float maxMotorForce);
+public override bool TranslationalLimitMotor(BulletConstraint constrain, float enable, float targetVel, float maxMotorForce)
+{
+    return BSAPICPP.TranslationalLimitMotor2(constrain.ptr, enable, targetVel, maxMotorForce);
+}
 
-public abstract bool SetBreakingImpulseThreshold2(BulletConstraint constrain, float threshold);
+public override bool SetBreakingImpulseThreshold(BulletConstraint constrain, float threshold)
+{
+    return BSAPICPP.SetBreakingImpulseThreshold2(constrain.ptr, threshold);
+}
 
-public abstract bool CalculateTransforms2(BulletConstraint constrain);
+public override bool CalculateTransforms(BulletConstraint constrain)
+{
+    return BSAPICPP.CalculateTransforms2(constrain.ptr);
+}
 
-public abstract bool SetConstraintParam2(BulletConstraint constrain, ConstraintParams paramIndex, float value, ConstraintParamAxis axis);
+public override bool SetConstraintParam(BulletConstraint constrain, ConstraintParams paramIndex, float value, ConstraintParamAxis axis)
+{
+    return BSAPICPP.SetConstraintParam2(constrain.ptr, paramIndex, value, axis);
+}
 
-public abstract bool DestroyConstraint2(BulletWorld world, BulletConstraint constrain);
+public override bool DestroyConstraint(BulletWorld world, BulletConstraint constrain)
+{
+    return BSAPICPP.DestroyConstraint2(world.ptr, constrain.ptr);
+}
 
 // =====================================================================================
 // btCollisionWorld entries
-public abstract void UpdateSingleAabb2(BulletWorld world, BulletBody obj);
+public override void UpdateSingleAabb(BulletWorld world, BulletBody obj)
+{
+    BSAPICPP.UpdateSingleAabb2(world.ptr, obj.ptr);
+}
 
-public abstract void UpdateAabbs2(BulletWorld world);
+public override void UpdateAabbs(BulletWorld world)
+{
+    BSAPICPP.UpdateAabbs2(world.ptr);
+}
 
-public abstract bool GetForceUpdateAllAabbs2(BulletWorld world);
+public override bool GetForceUpdateAllAabbs(BulletWorld world)
+{
+    return BSAPICPP.GetForceUpdateAllAabbs2(world.ptr);
+}
 
-public abstract void SetForceUpdateAllAabbs2(BulletWorld world, bool force);
+public override void SetForceUpdateAllAabbs(BulletWorld world, bool force)
+{
+    BSAPICPP.SetForceUpdateAllAabbs2(world.ptr, force);
+}
 
 // =====================================================================================
 // btDynamicsWorld entries
-public abstract bool AddObjectToWorld2(BulletWorld world, BulletBody obj);
+public override bool AddObjectToWorld(BulletWorld world, BulletBody obj)
+{
+    return BSAPICPP.AddObjectToWorld2(world.ptr, obj.ptr);
+}
 
-public abstract bool RemoveObjectFromWorld2(BulletWorld world, BulletBody obj);
+public override bool RemoveObjectFromWorld(BulletWorld world, BulletBody obj)
+{
+    return BSAPICPP.RemoveObjectFromWorld2(world.ptr, obj.ptr);
+}
 
-public abstract bool AddConstraintToWorld2(BulletWorld world, BulletConstraint constrain, bool disableCollisionsBetweenLinkedObjects);
+public override bool AddConstraintToWorld(BulletWorld world, BulletConstraint constrain, bool disableCollisionsBetweenLinkedObjects)
+{
+    return BSAPICPP.AddConstraintToWorld2(world.ptr, constrain.ptr, disableCollisionsBetweenLinkedObjects);
+}
 
-public abstract bool RemoveConstraintFromWorld2(BulletWorld world, BulletConstraint constrain);
+public override bool RemoveConstraintFromWorld(BulletWorld world, BulletConstraint constrain)
+{
+    return BSAPICPP.RemoveConstraintFromWorld2(world.ptr, constrain.ptr);
+}
 // =====================================================================================
 // btCollisionObject entries
-public abstract Vector3 GetAnisotripicFriction2(BulletConstraint constrain);
+public override Vector3 GetAnisotripicFriction(BulletConstraint constrain)
+{
+    return BSAPICPP.GetAnisotripicFriction2(constrain.ptr);
+}
 
-public abstract Vector3 SetAnisotripicFriction2(BulletConstraint constrain, Vector3 frict);
+public override Vector3 SetAnisotripicFriction(BulletConstraint constrain, Vector3 frict)
+{
+    return BSAPICPP.SetAnisotripicFriction2(constrain.ptr, frict);
+}
 
-public abstract bool HasAnisotripicFriction2(BulletConstraint constrain);
+public override bool HasAnisotripicFriction(BulletConstraint constrain)
+{
+    return BSAPICPP.HasAnisotripicFriction2(constrain.ptr);
+}
 
-public abstract void SetContactProcessingThreshold2(BulletBody obj, float val);
+public override void SetContactProcessingThreshold(BulletBody obj, float val)
+{
+    BSAPICPP.SetContactProcessingThreshold2(obj.ptr, val);
+}
 
-public abstract float GetContactProcessingThreshold2(BulletBody obj);
+public override float GetContactProcessingThreshold(BulletBody obj)
+{
+    return BSAPICPP.GetContactProcessingThreshold2(obj.ptr);
+}
 
-public abstract bool IsStaticObject2(BulletBody obj);
+public override bool IsStaticObject(BulletBody obj)
+{
+    return BSAPICPP.IsStaticObject2(obj.ptr);
+}
 
-public abstract bool IsKinematicObject2(BulletBody obj);
+public override bool IsKinematicObject(BulletBody obj)
+{
+    return BSAPICPP.IsKinematicObject2(obj.ptr);
+}
 
-public abstract bool IsStaticOrKinematicObject2(BulletBody obj);
+public override bool IsStaticOrKinematicObject(BulletBody obj)
+{
+    return BSAPICPP.IsStaticOrKinematicObject2(obj.ptr);
+}
 
-public abstract bool HasContactResponse2(BulletBody obj);
+public override bool HasContactResponse(BulletBody obj)
+{
+    return BSAPICPP.HasContactResponse2(obj.ptr);
+}
 
-public abstract void SetCollisionShape2(BulletWorld sim, BulletBody obj, BulletBody shape);
+public override void SetCollisionShape(BulletWorld sim, BulletBody obj, BulletShape shape)
+{
+    BSAPICPP.SetCollisionShape2(sim.ptr, obj.ptr, shape.ptr);
+}
 
-public abstract BulletShape GetCollisionShape2(BulletBody obj);
+public override BulletShape GetCollisionShape(BulletBody obj)
+{
+    return new BulletShape(BSAPICPP.GetCollisionShape2(obj.ptr));
+}
 
-public abstract int GetActivationState2(BulletBody obj);
+public override int GetActivationState(BulletBody obj)
+{
+    return BSAPICPP.GetActivationState2(obj.ptr);
+}
 
-public abstract void SetActivationState2(BulletBody obj, int state);
+public override void SetActivationState(BulletBody obj, int state)
+{
+    BSAPICPP.SetActivationState2(obj.ptr, state);
+}
 
-public abstract void SetDeactivationTime2(BulletBody obj, float dtime);
+public override void SetDeactivationTime(BulletBody obj, float dtime)
+{
+    BSAPICPP.SetDeactivationTime2(obj.ptr, dtime);
+}
 
-public abstract float GetDeactivationTime2(BulletBody obj);
+public override float GetDeactivationTime(BulletBody obj)
+{
+    return BSAPICPP.GetDeactivationTime2(obj.ptr);
+}
 
-public abstract void ForceActivationState2(BulletBody obj, ActivationState state);
+public override void ForceActivationState(BulletBody obj, ActivationState state)
+{
+    BSAPICPP.ForceActivationState2(obj.ptr, state);
+}
 
-public abstract void Activate2(BulletBody obj, bool forceActivation);
+public override void Activate(BulletBody obj, bool forceActivation)
+{
+    BSAPICPP.Activate2(obj.ptr, forceActivation);
+}
 
-public abstract bool IsActive2(BulletBody obj);
+public override bool IsActive(BulletBody obj)
+{
+    return BSAPICPP.IsActive2(obj.ptr);
+}
 
-public abstract void SetRestitution2(BulletBody obj, float val);
+public override void SetRestitution(BulletBody obj, float val)
+{
+    BSAPICPP.SetRestitution2(obj.ptr, val);
+}
 
-public abstract float GetRestitution2(BulletBody obj);
+public override float GetRestitution(BulletBody obj)
+{
+    return BSAPICPP.GetRestitution2(obj.ptr);
+}
 
-public abstract void SetFriction2(BulletBody obj, float val);
+public override void SetFriction(BulletBody obj, float val)
+{
+    BSAPICPP.SetFriction2(obj.ptr, val);
+}
 
-public abstract float GetFriction2(BulletBody obj);
+public override float GetFriction(BulletBody obj)
+{
+    return BSAPICPP.GetFriction2(obj.ptr);
+}
 
-    /* Haven't defined the type 'Transform'
-public abstract Transform GetWorldTransform2(BulletBody obj);
+public override Vector3 GetPosition(BulletBody obj)
+{
+    return BSAPICPP.GetPosition2(obj.ptr);
+}
 
-public abstract void setWorldTransform2(BulletBody obj, Transform trans);
-     */
+public override Quaternion GetOrientation(BulletBody obj)
+{
+    return BSAPICPP.GetOrientation2(obj.ptr);
+}
 
-public abstract Vector3 GetPosition2(BulletBody obj);
-
-public abstract Quaternion GetOrientation2(BulletBody obj);
-
-public abstract void SetTranslation2(BulletBody obj, Vector3 position, Quaternion rotation);
-
-public abstract IntPtr GetBroadphaseHandle2(BulletBody obj);
-
-public abstract void SetBroadphaseHandle2(BulletBody obj, IntPtr handle);
+public override void SetTranslation(BulletBody obj, Vector3 position, Quaternion rotation)
+{
+    BSAPICPP.SetTranslation2(obj.ptr, position, rotation);
+}
 
     /*
-public abstract Transform GetInterpolationWorldTransform2(IntPtr obj);
+public override IntPtr GetBroadphaseHandle(BulletBody obj)
+{
+    return BSAPICPP.GetBroadphaseHandle2(obj.ptr);
+}
 
-public abstract void SetInterpolationWorldTransform2(IntPtr obj, Transform trans);
+public override void SetBroadphaseHandle(BulletBody obj, IntPtr handle)
+{
+    BSAPICPP.SetUserPointer2(obj.ptr, handle);
+}
      */
 
-public abstract void SetInterpolationLinearVelocity2(BulletBody obj, Vector3 vel);
+public override void SetInterpolationLinearVelocity(BulletBody obj, Vector3 vel)
+{
+    BSAPICPP.SetInterpolationLinearVelocity2(obj.ptr, vel);
+}
 
-public abstract void SetInterpolationAngularVelocity2(BulletBody obj, Vector3 vel);
+public override void SetInterpolationAngularVelocity(BulletBody obj, Vector3 vel)
+{
+    BSAPICPP.SetInterpolationAngularVelocity2(obj.ptr, vel);
+}
 
-public abstract void SetInterpolationVelocity2(BulletBody obj, Vector3 linearVel, Vector3 angularVel);
+public override void SetInterpolationVelocity(BulletBody obj, Vector3 linearVel, Vector3 angularVel)
+{
+    BSAPICPP.SetInterpolationVelocity2(obj.ptr, linearVel, angularVel);
+}
 
-public abstract float GetHitFraction2(BulletBody obj);
+public override float GetHitFraction(BulletBody obj)
+{
+    return BSAPICPP.GetHitFraction2(obj.ptr);
+}
 
-public abstract void SetHitFraction2(BulletBody obj, float val);
+public override void SetHitFraction(BulletBody obj, float val)
+{
+    BSAPICPP.SetHitFraction2(obj.ptr, val);
+}
 
-public abstract CollisionFlags GetCollisionFlags2(BulletBody obj);
+public override CollisionFlags GetCollisionFlags(BulletBody obj)
+{
+    return BSAPICPP.GetCollisionFlags2(obj.ptr);
+}
 
-public abstract CollisionFlags SetCollisionFlags2(BulletBody obj, CollisionFlags flags);
+public override CollisionFlags SetCollisionFlags(BulletBody obj, CollisionFlags flags)
+{
+    return BSAPICPP.SetCollisionFlags2(obj.ptr, flags);
+}
 
-public abstract CollisionFlags AddToCollisionFlags2(BulletBody obj, CollisionFlags flags);
+public override CollisionFlags AddToCollisionFlags(BulletBody obj, CollisionFlags flags)
+{
+    return BSAPICPP.AddToCollisionFlags2(obj.ptr, flags);
+}
 
-public abstract CollisionFlags RemoveFromCollisionFlags2(BulletBody obj, CollisionFlags flags);
+public override CollisionFlags RemoveFromCollisionFlags(BulletBody obj, CollisionFlags flags)
+{
+    return BSAPICPP.RemoveFromCollisionFlags2(obj.ptr, flags);
+}
 
-public abstract float GetCcdMotionThreshold2(BulletBody obj);
+public override float GetCcdMotionThreshold(BulletBody obj)
+{
+    return BSAPICPP.GetCcdMotionThreshold2(obj.ptr);
+}
 
-public abstract void SetCcdMotionThreshold2(BulletBody obj, float val);
 
-public abstract float GetCcdSweptSphereRadius2(BulletBody obj);
+public override void SetCcdMotionThreshold(BulletBody obj, float val)
+{
+    BSAPICPP.SetCcdMotionThreshold2(obj.ptr, val);
+}
 
-public abstract void SetCcdSweptSphereRadius2(BulletBody obj, float val);
+public override float GetCcdSweptSphereRadius(BulletBody obj)
+{
+    return BSAPICPP.GetCcdSweptSphereRadius2(obj.ptr);
+}
 
-public abstract IntPtr GetUserPointer2(BulletBody obj);
+public override void SetCcdSweptSphereRadius(BulletBody obj, float val)
+{
+    BSAPICPP.SetCcdSweptSphereRadius2(obj.ptr, val);
+}
 
-public abstract void SetUserPointer2(BulletBody obj, IntPtr val);
+public override IntPtr GetUserPointer(BulletBody obj)
+{
+    return BSAPICPP.GetUserPointer2(obj.ptr);
+}
+
+public override void SetUserPointer(BulletBody obj, IntPtr val)
+{
+    BSAPICPP.SetUserPointer2(obj.ptr, val);
+}
 
 // =====================================================================================
 // btRigidBody entries
-public abstract void ApplyGravity2(BulletBody obj);
+public override void ApplyGravity(BulletBody obj)
+{
+    BSAPICPP.ApplyGravity2(obj.ptr);
+}
 
-public abstract void SetGravity2(BulletBody obj, Vector3 val);
+public override void SetGravity(BulletBody obj, Vector3 val)
+{
+    BSAPICPP.SetGravity2(obj.ptr, val);
+}
 
-public abstract Vector3 GetGravity2(BulletBody obj);
+public override Vector3 GetGravity(BulletBody obj)
+{
+    return BSAPICPP.GetGravity2(obj.ptr);
+}
 
-public abstract void SetDamping2(BulletBody obj, float lin_damping, float ang_damping);
+public override void SetDamping(BulletBody obj, float lin_damping, float ang_damping)
+{
+    BSAPICPP.SetDamping2(obj.ptr, lin_damping, ang_damping);
+}
 
-public abstract void SetLinearDamping2(BulletBody obj, float lin_damping);
+public override void SetLinearDamping(BulletBody obj, float lin_damping)
+{
+    BSAPICPP.SetLinearDamping2(obj.ptr, lin_damping);
+}
 
-public abstract void SetAngularDamping2(BulletBody obj, float ang_damping);
+public override void SetAngularDamping(BulletBody obj, float ang_damping)
+{
+    BSAPICPP.SetAngularDamping2(obj.ptr, ang_damping);
+}
 
-public abstract float GetLinearDamping2(BulletBody obj);
+public override float GetLinearDamping(BulletBody obj)
+{
+    return BSAPICPP.GetLinearDamping2(obj.ptr);
+}
 
-public abstract float GetAngularDamping2(BulletBody obj);
+public override float GetAngularDamping(BulletBody obj)
+{
+    return BSAPICPP.GetAngularDamping2(obj.ptr);
+}
 
-public abstract float GetLinearSleepingThreshold2(BulletBody obj);
+public override float GetLinearSleepingThreshold(BulletBody obj)
+{
+    return BSAPICPP.GetLinearSleepingThreshold2(obj.ptr);
+}
 
+public override void ApplyDamping(BulletBody obj, float timeStep)
+{
+    BSAPICPP.ApplyDamping2(obj.ptr, timeStep);
+}
 
-public abstract void ApplyDamping2(BulletBody obj, float timeStep);
+public override void SetMassProps(BulletBody obj, float mass, Vector3 inertia)
+{
+    BSAPICPP.SetMassProps2(obj.ptr, mass, inertia);
+}
 
-public abstract void SetMassProps2(BulletBody obj, float mass, Vector3 inertia);
+public override Vector3 GetLinearFactor(BulletBody obj)
+{
+    return BSAPICPP.GetLinearFactor2(obj.ptr);
+}
 
-public abstract Vector3 GetLinearFactor2(BulletBody obj);
+public override void SetLinearFactor(BulletBody obj, Vector3 factor)
+{
+    BSAPICPP.SetLinearFactor2(obj.ptr, factor);
+}
 
-public abstract void SetLinearFactor2(BulletBody obj, Vector3 factor);
-
-    /*
-public abstract void SetCenterOfMassTransform2(BulletBody obj, Transform trans);
-     */
-
-public abstract void SetCenterOfMassByPosRot2(BulletBody obj, Vector3 pos, Quaternion rot);
+public override void SetCenterOfMassByPosRot(BulletBody obj, Vector3 pos, Quaternion rot)
+{
+    BSAPICPP.SetCenterOfMassByPosRot2(obj.ptr, pos, rot);
+}
 
 // Add a force to the object as if its mass is one.
-public abstract void ApplyCentralForce2(BulletBody obj, Vector3 force);
+public override void ApplyCentralForce(BulletBody obj, Vector3 force)
+{
+    BSAPICPP.ApplyCentralForce2(obj.ptr, force);
+}
 
 // Set the force being applied to the object as if its mass is one.
-public abstract void SetObjectForce2(BulletBody obj, Vector3 force);
+public override void SetObjectForce(BulletBody obj, Vector3 force)
+{
+    BSAPICPP.SetObjectForce2(obj.ptr, force);
+}
 
-public abstract Vector3 GetTotalForce2(BulletBody obj);
+public override Vector3 GetTotalForce(BulletBody obj)
+{
+    return BSAPICPP.GetTotalForce2(obj.ptr);
+}
 
-public abstract Vector3 GetTotalTorque2(BulletBody obj);
+public override Vector3 GetTotalTorque(BulletBody obj)
+{
+    return BSAPICPP.GetTotalTorque2(obj.ptr);
+}
 
-public abstract Vector3 GetInvInertiaDiagLocal2(BulletBody obj);
+public override Vector3 GetInvInertiaDiagLocal(BulletBody obj)
+{
+    return BSAPICPP.GetInvInertiaDiagLocal2(obj.ptr);
+}
 
-public abstract void SetInvInertiaDiagLocal2(BulletBody obj, Vector3 inert);
+public override void SetInvInertiaDiagLocal(BulletBody obj, Vector3 inert)
+{
+    BSAPICPP.SetInvInertiaDiagLocal2(obj.ptr, inert);
+}
 
-public abstract void SetSleepingThresholds2(BulletBody obj, float lin_threshold, float ang_threshold);
+public override void SetSleepingThresholds(BulletBody obj, float lin_threshold, float ang_threshold)
+{
+    BSAPICPP.SetSleepingThresholds2(obj.ptr, lin_threshold, ang_threshold);
+}
 
-public abstract void ApplyTorque2(BulletBody obj, Vector3 torque);
+public override void ApplyTorque(BulletBody obj, Vector3 torque)
+{
+    BSAPICPP.ApplyTorque2(obj.ptr, torque);
+}
 
 // Apply force at the given point. Will add torque to the object.
-public abstract void ApplyForce2(BulletBody obj, Vector3 force, Vector3 pos);
+public override void ApplyForce(BulletBody obj, Vector3 force, Vector3 pos)
+{
+    BSAPICPP.ApplyForce2(obj.ptr, force, pos);
+}
 
 // Apply impulse to the object. Same as "ApplycentralForce" but force scaled by object's mass.
-public abstract void ApplyCentralImpulse2(BulletBody obj, Vector3 imp);
+public override void ApplyCentralImpulse(BulletBody obj, Vector3 imp)
+{
+    BSAPICPP.ApplyCentralImpulse2(obj.ptr, imp);
+}
 
 // Apply impulse to the object's torque. Force is scaled by object's mass.
-public abstract void ApplyTorqueImpulse2(BulletBody obj, Vector3 imp);
+public override void ApplyTorqueImpulse(BulletBody obj, Vector3 imp)
+{
+    BSAPICPP.ApplyTorqueImpulse2(obj.ptr, imp);
+}
 
 // Apply impulse at the point given. For is scaled by object's mass and effects both linear and angular forces.
-public abstract void ApplyImpulse2(BulletBody obj, Vector3 imp, Vector3 pos);
+public override void ApplyImpulse(BulletBody obj, Vector3 imp, Vector3 pos)
+{
+    BSAPICPP.ApplyImpulse2(obj.ptr, imp, pos);
+}
 
-public abstract void ClearForces2(BulletBody obj);
+public override void ClearForces(BulletBody obj)
+{
+    BSAPICPP.ClearForces2(obj.ptr);
+}
 
-public abstract void ClearAllForces2(BulletBody obj);
+public override void ClearAllForces(BulletBody obj)
+{
+    BSAPICPP.ClearAllForces2(obj.ptr);
+}
 
-public abstract void UpdateInertiaTensor2(BulletBody obj);
+public override void UpdateInertiaTensor(BulletBody obj)
+{
+    BSAPICPP.UpdateInertiaTensor2(obj.ptr);
+}
 
+public override Vector3 GetLinearVelocity(BulletBody obj)
+{
+    return BSAPICPP.GetLinearVelocity2(obj.ptr);
+}
 
-    /*
-public abstract Transform GetCenterOfMassTransform2(BulletBody obj);
-     */
+public override Vector3 GetAngularVelocity(BulletBody obj)
+{
+    return BSAPICPP.GetAngularVelocity2(obj.ptr);
+}
 
-public abstract Vector3 GetLinearVelocity2(BulletBody obj);
+public override void SetLinearVelocity(BulletBody obj, Vector3 vel)
+{
+    BSAPICPP.SetLinearVelocity2(obj.ptr, vel);
+}
 
-public abstract Vector3 GetAngularVelocity2(BulletBody obj);
+public override void SetAngularVelocity(BulletBody obj, Vector3 angularVelocity)
+{
+    BSAPICPP.SetAngularVelocity2(obj.ptr, angularVelocity);
+}
 
-public abstract void SetLinearVelocity2(BulletBody obj, Vector3 val);
+public override Vector3 GetVelocityInLocalPoint(BulletBody obj, Vector3 pos)
+{
+    return BSAPICPP.GetVelocityInLocalPoint2(obj.ptr, pos);
+}
 
-public abstract void SetAngularVelocity2(BulletBody obj, Vector3 angularVelocity);
+public override void Translate(BulletBody obj, Vector3 trans)
+{
+    BSAPICPP.Translate2(obj.ptr, trans);
+}
 
-public abstract Vector3 GetVelocityInLocalPoint2(BulletBody obj, Vector3 pos);
+public override void UpdateDeactivation(BulletBody obj, float timeStep)
+{
+    BSAPICPP.UpdateDeactivation2(obj.ptr, timeStep);
+}
 
-public abstract void Translate2(BulletBody obj, Vector3 trans);
+public override bool WantsSleeping(BulletBody obj)
+{
+    return BSAPICPP.WantsSleeping2(obj.ptr);
+}
 
-public abstract void UpdateDeactivation2(BulletBody obj, float timeStep);
+public override void SetAngularFactor(BulletBody obj, float factor)
+{
+    BSAPICPP.SetAngularFactor2(obj.ptr, factor);
+}
 
-public abstract bool WantsSleeping2(BulletBody obj);
+public override void SetAngularFactorV(BulletBody obj, Vector3 factor)
+{
+    BSAPICPP.SetAngularFactorV2(obj.ptr, factor);
+}
 
-public abstract void SetAngularFactor2(BulletBody obj, float factor);
+public override Vector3 GetAngularFactor(BulletBody obj)
+{
+    return BSAPICPP.GetAngularFactor2(obj.ptr);
+}
 
-public abstract void SetAngularFactorV2(BulletBody obj, Vector3 factor);
+public override bool IsInWorld(BulletBody obj)
+{
+    return BSAPICPP.IsInWorld2(obj.ptr);
+}
 
-public abstract Vector3 GetAngularFactor2(BulletBody obj);
+public override void AddConstraintRef(BulletBody obj, BulletConstraint constrain)
+{
+    BSAPICPP.AddConstraintRef2(obj.ptr, constrain.ptr);
+}
 
-public abstract bool IsInWorld2(BulletBody obj);
+public override void RemoveConstraintRef(BulletBody obj, BulletConstraint constrain)
+{
+    BSAPICPP.RemoveConstraintRef2(obj.ptr, constrain.ptr);
+}
 
-public abstract void AddConstraintRef2(BulletBody obj, BulletConstraint constrain);
+public override BulletConstraint GetConstraintRef(BulletBody obj, int index)
+{
+    return new BulletConstraint(BSAPICPP.GetConstraintRef2(obj.ptr, index));
+}
 
-public abstract void RemoveConstraintRef2(BulletBody obj, BulletConstraint constrain);
+public override int GetNumConstraintRefs(BulletBody obj)
+{
+    return BSAPICPP.GetNumConstraintRefs2(obj.ptr);
+}
 
-public abstract BulletConstraint GetConstraintRef2(BulletBody obj, int index);
-
-public abstract int GetNumConstraintRefs2(BulletBody obj);
-
-public abstract bool SetCollisionGroupMask2(BulletBody body, uint filter, uint mask);
+public override bool SetCollisionGroupMask(BulletBody body, uint filter, uint mask)
+{
+    return BSAPICPP.SetCollisionGroupMask2(body.ptr, filter, mask);
+}
 
 // =====================================================================================
 // btCollisionShape entries
 
-public abstract float GetAngularMotionDisc2(BulletShape shape);
+public override float GetAngularMotionDisc(BulletShape shape)
+{
+    return BSAPICPP.GetAngularMotionDisc2(shape.ptr);
+}
 
-public abstract float GetContactBreakingThreshold2(BulletShape shape, float defaultFactor);
+public override float GetContactBreakingThreshold(BulletShape shape, float defaultFactor)
+{
+    return BSAPICPP.GetContactBreakingThreshold2(shape.ptr, defaultFactor);
+}
 
-public abstract bool IsPolyhedral2(BulletShape shape);
+public override bool IsPolyhedral(BulletShape shape)
+{
+    return BSAPICPP.IsPolyhedral2(shape.ptr);
+}
 
-public abstract bool IsConvex2d2(BulletShape shape);
+public override bool IsConvex2d(BulletShape shape)
+{
+    return BSAPICPP.IsConvex2d2(shape.ptr);
+}
 
-public abstract bool IsConvex2(BulletShape shape);
+public override bool IsConvex(BulletShape shape)
+{
+    return BSAPICPP.IsConvex2(shape.ptr);
+}
 
-public abstract bool IsNonMoving2(BulletShape shape);
+public override bool IsNonMoving(BulletShape shape)
+{
+    return BSAPICPP.IsNonMoving2(shape.ptr);
+}
 
-public abstract bool IsConcave2(BulletShape shape);
+public override bool IsConcave(BulletShape shape)
+{
+    return BSAPICPP.IsConcave2(shape.ptr);
+}
 
-public abstract bool IsCompound2(BulletShape shape);
+public override bool IsCompound(BulletShape shape)
+{
+    return BSAPICPP.IsCompound2(shape.ptr);
+}
 
-public abstract bool IsSoftBody2(BulletShape shape);
+public override bool IsSoftBody(BulletShape shape)
+{
+    return BSAPICPP.IsSoftBody2(shape.ptr);
+}
 
-public abstract bool IsInfinite2(BulletShape shape);
+public override bool IsInfinite(BulletShape shape)
+{
+    return BSAPICPP.IsInfinite2(shape.ptr);
+}
 
-public abstract void SetLocalScaling2(BulletShape shape, Vector3 scale);
+public override void SetLocalScaling(BulletShape shape, Vector3 scale)
+{
+    BSAPICPP.SetLocalScaling2(shape.ptr, scale);
+}
 
-public abstract Vector3 GetLocalScaling2(BulletShape shape);
+public override Vector3 GetLocalScaling(BulletShape shape)
+{
+    return BSAPICPP.GetLocalScaling2(shape.ptr);
+}
 
-public abstract Vector3 CalculateLocalInertia2(BulletShape shape, float mass);
+public override Vector3 CalculateLocalInertia(BulletShape shape, float mass)
+{
+    return BSAPICPP.CalculateLocalInertia2(shape.ptr, mass);
+}
 
-public abstract int GetShapeType2(BulletShape shape);
+public override int GetShapeType(BulletShape shape)
+{
+    return BSAPICPP.GetShapeType2(shape.ptr);
+}
 
-public abstract void SetMargin2(BulletShape shape, float val);
+public override void SetMargin(BulletShape shape, float val)
+{
+    BSAPICPP.SetMargin2(shape.ptr, val);
+}
 
-public abstract float GetMargin2(BulletShape shape);
+public override float GetMargin(BulletShape shape)
+{
+    return BSAPICPP.GetMargin2(shape.ptr);
+}
 
-};
+// =====================================================================================
+// Debugging
+public override void DumpRigidBody(BulletWorld sim, BulletBody collisionObject)
+{
+    BSAPICPP.DumpRigidBody2(sim.ptr, collisionObject.ptr);
+}
 
-// ===============================================================================
-static class BulletSimAPI {
+public override void DumpCollisionShape(BulletWorld sim, BulletShape collisionShape)
+{
+    BSAPICPP.DumpCollisionShape2(sim.ptr, collisionShape.ptr);
+}
+
+public override void DumpConstraint(BulletWorld sim, BulletConstraint constrain)
+{
+    BSAPICPP.DumpConstraint2(sim.ptr, constrain.ptr);
+}
+
+public override void DumpActivationInfo(BulletWorld sim)
+{
+    BSAPICPP.DumpActivationInfo2(sim.ptr);
+}
+
+public override void DumpAllInfo(BulletWorld sim)
+{
+    BSAPICPP.DumpAllInfo2(sim.ptr);
+}
+
+public override void DumpPhysicsStatistics(BulletWorld sim)
+{
+    BSAPICPP.DumpPhysicsStatistics2(sim.ptr);
+}
+
+
+// =====================================================================================
+// =====================================================================================
+// =====================================================================================
+// =====================================================================================
+// =====================================================================================
+// The actual interface to the unmanaged code
+static class BSAPICPP
+{
 // ===============================================================================
 // Link back to the managed code for outputting log messages
 [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
@@ -698,23 +988,17 @@ public static extern IntPtr Initialize2(Vector3 maxPosition, IntPtr parms,
                                             DebugLogCallback logRoutine);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern bool UpdateParameter2(IntPtr world, uint localID, String parm, float value);
-
-[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern void SetHeightMap2(IntPtr world, float[] heightmap);
+public static extern int PhysicsStep2(IntPtr world, float timeStep, int maxSubSteps, float fixedTimeStep,
+                        out int updatedEntityCount, out int collidersCount);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern void Shutdown2(IntPtr sim);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern int PhysicsStep2(IntPtr world, float timeStep, int maxSubSteps, float fixedTimeStep,
-                        out int updatedEntityCount,
-                        out IntPtr updatedEntitiesPtr,
-                        out int collidersCount,
-                        out IntPtr collidersPtr);
+public static extern bool PushUpdate2(IntPtr obj);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern bool PushUpdate2(IntPtr obj);
+public static extern bool UpdateParameter2(IntPtr world, uint localID, String parm, float value);
 
 // =====================================================================================
 // Mesh, hull, shape and body creation helper routines
@@ -737,7 +1021,7 @@ public static extern IntPtr BuildNativeShape2(IntPtr world, ShapeData shapeData)
 public static extern bool IsNativeShape2(IntPtr shape);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern void SetShapeCollisionMargin(IntPtr shape, float margin);
+public static extern void SetShapeCollisionMargin2(IntPtr shape, float margin);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern IntPtr BuildCapsuleShape2(IntPtr world, float radius, float height, Vector3 scale);
@@ -767,9 +1051,6 @@ public static extern void RecalculateCompoundShapeLocalAabb2(IntPtr cShape);
 public static extern IntPtr DuplicateCollisionShape2(IntPtr sim, IntPtr srcShape, uint id);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern IntPtr CreateBodyFromShapeAndInfo2(IntPtr sim, IntPtr shape, uint id, IntPtr constructionInfo);
-
-[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern bool DeleteCollisionShape2(IntPtr world, IntPtr shape);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
@@ -785,32 +1066,17 @@ public static extern IntPtr CreateBodyWithDefaultMotionState2(IntPtr shape, uint
 public static extern IntPtr CreateGhostFromShape2(IntPtr sim, IntPtr shape, uint id, Vector3 pos, Quaternion rot);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern IntPtr AllocateBodyInfo2(IntPtr obj);
-
-[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern void ReleaseBodyInfo2(IntPtr obj);
-
-[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern void DestroyObject2(IntPtr sim, IntPtr obj);
 
 // =====================================================================================
 // Terrain creation and helper routines
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern IntPtr CreateHeightMapInfo2(IntPtr sim, uint id, Vector3 minCoords, Vector3 maxCoords,
-        [MarshalAs(UnmanagedType.LPArray)] float[] heightMap, float collisionMargin);
-
-[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern IntPtr FillHeightMapInfo2(IntPtr sim, IntPtr mapInfo, uint id, Vector3 minCoords, Vector3 maxCoords,
-        [MarshalAs(UnmanagedType.LPArray)] float[] heightMap, float collisionMargin);
-
-[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern bool ReleaseHeightMapInfo2(IntPtr heightMapInfo);
-
-[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern IntPtr CreateGroundPlaneShape2(uint id, float height, float collisionMargin);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern IntPtr CreateTerrainShape2(IntPtr mapInfo);
+public static extern IntPtr CreateTerrainShape2(uint id, Vector3 size, float minHeight, float maxHeight, 
+                                            [MarshalAs(UnmanagedType.LPArray)] float[] heightMap,
+                                            float scaleFactor, float collisionMargin);
 
 // =====================================================================================
 // Constraint creation and helper routines
@@ -1273,4 +1539,7 @@ public static extern void DumpAllInfo2(IntPtr sim);
 public static extern void DumpPhysicsStatistics2(IntPtr sim);
 
 }
+
+}
+
 }
