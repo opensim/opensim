@@ -346,7 +346,6 @@ public abstract void RecalculateCompoundShapeLocalAabb(BulletShape cShape);
 
 public abstract BulletShape DuplicateCollisionShape(BulletWorld sim, BulletShape srcShape, uint id);
 
-public abstract BulletBody CreateBodyFromShapeAndInfo(BulletWorld sim, BulletShape shape, uint id, IntPtr constructionInfo);
 
 public abstract bool DeleteCollisionShape(BulletWorld world, BulletShape shape);
 
@@ -357,10 +356,6 @@ public abstract BulletBody CreateBodyFromShape(BulletWorld sim, BulletShape shap
 public abstract BulletBody CreateBodyWithDefaultMotionState(BulletShape shape, uint id, Vector3 pos, Quaternion rot);
 
 public abstract BulletBody CreateGhostFromShape(BulletWorld sim, BulletShape shape, uint id, Vector3 pos, Quaternion rot);
-
-public abstract IntPtr AllocateBodyInfo(BulletBody obj);
-
-public abstract void ReleaseBodyInfo(IntPtr obj);
 
 public abstract void DestroyObject(BulletWorld sim, BulletBody obj);
 
