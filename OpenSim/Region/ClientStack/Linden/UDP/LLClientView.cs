@@ -11727,6 +11727,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             IAssetService cache = m_scene.AssetService;
             IBakedTextureModule bakedTextureModule = m_scene.RequestModuleInterface<IBakedTextureModule>();
+            //bakedTextureModule = null;
+            int maxWearablesLoop = cachedtex.WearableData.Length;
+            if (maxWearablesLoop > AvatarWearable.MAX_WEARABLES)
+                maxWearablesLoop = AvatarWearable.MAX_WEARABLES;
+
             if (bakedTextureModule != null && cache != null)
             {
                 // We need to make sure the asset stored in the bake is available on this server also by it's assetid before we map it to a Cacheid
@@ -11742,10 +11747,27 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             p.Appearance.WearableCacheItems = cacheItems;
                             p.Appearance.WearableCacheItemsDirty = false;
                         }
-                        catch (InvalidOperationException)
+
+                        /*
+                         * The following Catch types DO NOT WORK, it jumps to the General Packet Exception Handler if you don't catch Exception!
+                         * 
+                        catch (System.Net.Sockets.SocketException)
                         {
                             cacheItems = null;
                         }
+                        catch (WebException)
+                        {
+                            cacheItems = null;
+                        }
+                        catch (InvalidOperationException)
+                        {
+                            cacheItems = null;
+                        } */
+                        catch (Exception)
+                        {
+                            cacheItems = null;
+                        }
+                        
                     }
                     else if (p.Appearance.WearableCacheItems != null)
                     {
@@ -11766,10 +11788,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     }
                 }
+               
                 if (cacheItems != null)
                 {
                    
-                    for (int i = 0; i < cachedtex.WearableData.Length; i++)
+                    for (int i = 0; i < maxWearablesLoop; i++)
                     {
                         WearableCacheItem item =
                             WearableCacheItem.SearchTextureIndex(cachedtex.WearableData[i].TextureIndex,cacheItems);
@@ -11777,8 +11800,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         cachedresp.WearableData[i] = new AgentCachedTextureResponsePacket.WearableDataBlock();
                         cachedresp.WearableData[i].TextureIndex= cachedtex.WearableData[i].TextureIndex;
                         cachedresp.WearableData[i].HostName = new byte[0];
-                        if (item != null)
+                        if (item != null && cachedtex.WearableData[i].ID == item.CacheId)
                         {
+                            
                             cachedresp.WearableData[i].TextureID = item.TextureID;
                         }
                         else
@@ -11789,7 +11813,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
                 else
                 {
-                    for (int i = 0; i < cachedtex.WearableData.Length; i++)
+                    for (int i = 0; i < maxWearablesLoop; i++)
                     {
                         cachedresp.WearableData[i] = new AgentCachedTextureResponsePacket.WearableDataBlock();
                         cachedresp.WearableData[i].TextureIndex = cachedtex.WearableData[i].TextureIndex;
@@ -11803,7 +11827,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 if (cache == null)
                 {
-                    for (int i = 0; i < cachedtex.WearableData.Length; i++)
+                    for (int i = 0; i < maxWearablesLoop; i++)
                     {
                         cachedresp.WearableData[i] = new AgentCachedTextureResponsePacket.WearableDataBlock();
                         cachedresp.WearableData[i].TextureIndex = cachedtex.WearableData[i].TextureIndex;
@@ -11814,7 +11838,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
                 else
                 {
-                    for (int i = 0; i < cachedtex.WearableData.Length; i++)
+                    for (int i = 0; i < maxWearablesLoop; i++)
                     {
                         cachedresp.WearableData[i] = new AgentCachedTextureResponsePacket.WearableDataBlock();
                         cachedresp.WearableData[i].TextureIndex = cachedtex.WearableData[i].TextureIndex;

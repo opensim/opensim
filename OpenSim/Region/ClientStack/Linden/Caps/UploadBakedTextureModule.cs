@@ -119,13 +119,20 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private void CaptureAppearanceSettings(IClientAPI remoteClient, Primitive.TextureEntry textureEntry, byte[] visualParams, Vector3 avSize, WearableCacheItem[] cacheItems)
         {
+            int maxCacheitemsLoop = cacheItems.Length;
+            if (maxCacheitemsLoop > AvatarWearable.MAX_WEARABLES)
+            {
+                maxCacheitemsLoop = AvatarWearable.MAX_WEARABLES;
+                m_log.WarnFormat("[CACHEDBAKES]: Too Many Cache items Provided {0}, the max is {1}.  Truncating!", cacheItems.Length, AvatarWearable.MAX_WEARABLES);
+            }
+
             m_BakedTextureModule = m_scene.RequestModuleInterface<IBakedTextureModule>();
             if (cacheItems.Length > 0)
             {
-                m_log.Info("[Cacheitems]: " + cacheItems.Length);
-                for (int iter = 0; iter < cacheItems.Length; iter++)
+                m_log.Debug("[Cacheitems]: " + cacheItems.Length);
+                for (int iter = 0; iter < maxCacheitemsLoop; iter++)
                 {
-                    m_log.Info("[Cacheitems] {" + iter + "/" + cacheItems[iter].TextureIndex + "}: c-" + cacheItems[iter].CacheId + ", t-" +
+                    m_log.Debug("[Cacheitems] {" + iter + "/" + cacheItems[iter].TextureIndex + "}: c-" + cacheItems[iter].CacheId + ", t-" +
                                       cacheItems[iter].TextureID);
                 }
                
@@ -133,65 +140,99 @@ namespace OpenSim.Region.ClientStack.Linden
                 if (m_scene.TryGetScenePresence(remoteClient.AgentId, out p))
                 {
 
-                        WearableCacheItem[] existingitems = p.Appearance.WearableCacheItems;
-                        if (existingitems == null)
+                    WearableCacheItem[] existingitems = p.Appearance.WearableCacheItems;
+                    if (existingitems == null)
+                    {
+                        if (m_BakedTextureModule != null)
                         {
-                            if (m_BakedTextureModule != null)
+                            WearableCacheItem[] savedcache = null;
+                            try
                             {
-                                WearableCacheItem[] savedcache = null;
-                                try
+                                if (p.Appearance.WearableCacheItemsDirty)
                                 {
-                                    if (p.Appearance.WearableCacheItemsDirty)
-                                    {
-                                        savedcache = m_BakedTextureModule.Get(p.UUID);
-                                        p.Appearance.WearableCacheItems = savedcache;
-                                        p.Appearance.WearableCacheItemsDirty = false;
-                                    }
-
-                                }
-                                catch (InvalidOperationException)
-                                {
+                                    savedcache = m_BakedTextureModule.Get(p.UUID);
+                                    p.Appearance.WearableCacheItems = savedcache;
+                                    p.Appearance.WearableCacheItemsDirty = false;
                                 }
 
-                                if (savedcache != null)
-                                    existingitems = savedcache;
                             }
-                        }
-                        // Existing items null means it's a fully new appearance
-                        if (existingitems == null)
-                        {
-
-                            for (int iter = 0; iter < cacheItems.Length; iter++)
+                            /*
+                             * The following Catch types DO NOT WORK with m_BakedTextureModule.Get
+                             * it jumps to the General Packet Exception Handler if you don't catch Exception!
+                             * 
+                            catch (System.Net.Sockets.SocketException)
                             {
-
-                                cacheItems[iter].TextureID = textureEntry.FaceTextures[cacheItems[iter].TextureIndex].TextureID;
-                                if (m_scene.AssetService != null)
-                                    cacheItems[iter].TextureAsset = m_scene.AssetService.GetCached(cacheItems[iter].TextureID.ToString());
-                                
-
+                                cacheItems = null;
                             }
-                        }
-                        else  
-                         
+                            catch (WebException)
+                            {
+                                cacheItems = null;
+                            }
+                            catch (InvalidOperationException)
+                            {
+                                cacheItems = null;
+                            } */
+                            catch (Exception)
+                            {
+                               // The service logs a sufficient error message.
+                            }
                             
+
+                            if (savedcache != null)
+                                existingitems = savedcache;
+                        }
+                    }
+                    // Existing items null means it's a fully new appearance
+                    if (existingitems == null)
+                    {
+
+                        for (int i = 0; i < maxCacheitemsLoop; i++)
                         {
-                            // for each uploaded baked texture
-                            for (int i = 0; i < cacheItems.Length; i++)
+                            if (textureEntry.FaceTextures.Length > cacheItems[i].TextureIndex)
+                            {
+                                cacheItems[i].TextureID =
+                                    textureEntry.FaceTextures[cacheItems[i].TextureIndex].TextureID;
+                                if (m_scene.AssetService != null)
+                                    cacheItems[i].TextureAsset =
+                                        m_scene.AssetService.GetCached(cacheItems[i].TextureID.ToString());
+                            }
+                            else
+                            {
+                                m_log.WarnFormat("[CACHEDBAKES]: Invalid Texture Index Provided, Texture doesn't exist or hasn't been uploaded yet {0}, the max is {1}.  Skipping!", cacheItems[i].TextureIndex, textureEntry.FaceTextures.Length);
+                            }
+
+
+                        }
+                    }
+                    else
+
+
+                    {
+                        // for each uploaded baked texture
+                        for (int i = 0; i < maxCacheitemsLoop; i++)
+                        {
+                            if (textureEntry.FaceTextures.Length > cacheItems[i].TextureIndex)
                             {
                                 cacheItems[i].TextureID =
                                     textureEntry.FaceTextures[cacheItems[i].TextureIndex].TextureID;
                             }
-                            
-                            for (int i = 0; i < cacheItems.Length; i++)
+                            else
                             {
-                                if (cacheItems[i].TextureAsset == null)
-                                {
-                                    cacheItems[i].TextureAsset = m_scene.AssetService.GetCached(cacheItems[i].TextureID.ToString());
-                                }
+                                m_log.WarnFormat("[CACHEDBAKES]: Invalid Texture Index Provided, Texture doesn't exist or hasn't been uploaded yet {0}, the max is {1}.  Skipping!", cacheItems[i].TextureIndex, textureEntry.FaceTextures.Length);
                             }
                         }
 
-                   
+                        for (int i = 0; i < maxCacheitemsLoop; i++)
+                        {
+                            if (cacheItems[i].TextureAsset == null)
+                            {
+                                cacheItems[i].TextureAsset =
+                                    m_scene.AssetService.GetCached(cacheItems[i].TextureID.ToString());
+                            }
+                        }
+                    }
+
+
 
                     p.Appearance.WearableCacheItems = cacheItems;
                     
