@@ -108,10 +108,6 @@ private void BulletLoggerPhysLog(string msg)
     PhysicsScene.DetailLog("[BULLETS UNMANAGED]:" + msg);
 }
 
-    /*
-public void SetHeightMap(BulletWorld world, float[] heightmap);
-
-     */
 public override int PhysicsStep(BulletWorld world, float timeStep, int maxSubSteps, float fixedTimeStep,
                         out int updatedEntityCount, out int collidersCount)
 {
@@ -277,6 +273,7 @@ public override void DestroyObject(BulletWorld sim, BulletBody obj)
 
 // =====================================================================================
 // Terrain creation and helper routines
+    /*
 public override IntPtr CreateHeightMapInfo(BulletWorld sim, uint id, Vector3 minCoords, Vector3 maxCoords,
         float[] heightMap, float collisionMargin)
 {
@@ -293,15 +290,18 @@ public override bool ReleaseHeightMapInfo(IntPtr heightMapInfo)
 {
     return BSAPICPP.ReleaseHeightMapInfo2(heightMapInfo);
 }
+     */
 
 public override BulletShape CreateGroundPlaneShape(uint id, float height, float collisionMargin)
 {
     return new BulletShape(BSAPICPP.CreateGroundPlaneShape2(id, height, collisionMargin), BSPhysicsShapeType.SHAPE_GROUNDPLANE);
 }
 
-public override BulletShape CreateTerrainShape(IntPtr mapInfo)
+public override BulletShape CreateTerrainShape(uint id, Vector3 size, float minHeight, float maxHeight, float[] heightMap,
+                                float scaleFactor, float collisionMargin)
 {
-    return new BulletShape(BSAPICPP.CreateTerrainShape2(mapInfo), BSPhysicsShapeType.SHAPE_TERRAIN);
+    return new BulletShape(BSAPICPP.CreateTerrainShape2(id, size, minHeight, maxHeight, heightMap, scaleFactor, collisionMargin),
+                                                BSPhysicsShapeType.SHAPE_TERRAIN);
 }
 
 // =====================================================================================
@@ -977,11 +977,6 @@ public override void DumpCollisionShape(BulletWorld sim, BulletShape collisionSh
     BSAPICPP.DumpCollisionShape2(sim.ptr, collisionShape.ptr);
 }
 
-public override void DumpMapInfo(BulletWorld sim, BulletHMapInfo mapInfo)
-{
-    BSAPICPP.DumpMapInfo2(sim.ptr, mapInfo.ptr);
-}
-
 public override void DumpConstraint(BulletWorld sim, BulletConstraint constrain)
 {
     BSAPICPP.DumpConstraint2(sim.ptr, constrain.ptr);
@@ -1023,9 +1018,6 @@ public static extern IntPtr Initialize2(Vector3 maxPosition, IntPtr parms,
 											int maxCollisions,  IntPtr collisionArray,
 											int maxUpdates, IntPtr updateArray,
                                             DebugLogCallback logRoutine);
-
-[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern void SetHeightMap2(IntPtr world, float[] heightmap);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern int PhysicsStep2(IntPtr world, float timeStep, int maxSubSteps, float fixedTimeStep,
@@ -1119,6 +1111,7 @@ public static extern void DestroyObject2(IntPtr sim, IntPtr obj);
 
 // =====================================================================================
 // Terrain creation and helper routines
+    /*
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern IntPtr CreateHeightMapInfo2(IntPtr sim, uint id, Vector3 minCoords, Vector3 maxCoords,
         [MarshalAs(UnmanagedType.LPArray)] float[] heightMap, float collisionMargin);
@@ -1129,12 +1122,15 @@ public static extern IntPtr FillHeightMapInfo2(IntPtr sim, IntPtr mapInfo, uint 
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern bool ReleaseHeightMapInfo2(IntPtr heightMapInfo);
+    */
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern IntPtr CreateGroundPlaneShape2(uint id, float height, float collisionMargin);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern IntPtr CreateTerrainShape2(IntPtr mapInfo);
+public static extern IntPtr CreateTerrainShape2(uint id, Vector3 size, float minHeight, float maxHeight, 
+                                            [MarshalAs(UnmanagedType.LPArray)] float[] heightMap,
+                                            float scaleFactor, float collisionMargin);
 
 // =====================================================================================
 // Constraint creation and helper routines

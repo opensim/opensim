@@ -302,10 +302,6 @@ public abstract BulletWorld Initialize(Vector3 maxPosition, ConfigurationParamet
 											int maxUpdates, ref EntityProperties[] updateArray
                                             );
 
-    /*
-public abstract void SetHeightMap(BulletWorld world, float[] heightmap);
-
-     */
 public abstract int PhysicsStep(BulletWorld world, float timeStep, int maxSubSteps, float fixedTimeStep,
                         out int updatedEntityCount, out int collidersCount);
 
@@ -369,18 +365,10 @@ public abstract void ReleaseBodyInfo(IntPtr obj);
 public abstract void DestroyObject(BulletWorld sim, BulletBody obj);
 
 // =====================================================================================
-// Terrain creation and helper routines
-public abstract IntPtr CreateHeightMapInfo(BulletWorld sim, uint id, Vector3 minCoords, Vector3 maxCoords,
-        float[] heightMap, float collisionMargin);
-
-public abstract IntPtr FillHeightMapInfo(BulletWorld sim, IntPtr mapInfo, uint id, Vector3 minCoords, Vector3 maxCoords,
-        float[] heightMap, float collisionMargin);
-
-public abstract bool ReleaseHeightMapInfo(IntPtr heightMapInfo);
-
 public abstract BulletShape CreateGroundPlaneShape(uint id, float height, float collisionMargin);
 
-public abstract BulletShape CreateTerrainShape(IntPtr mapInfo);
+public abstract BulletShape CreateTerrainShape(uint id, Vector3 size, float minHeight, float maxHeight, float[] heightMap, 
+								float scaleFactor, float collisionMargin);
 
 // =====================================================================================
 // Constraint creation and helper routines
@@ -666,8 +654,6 @@ public abstract float GetMargin(BulletShape shape);
 public abstract void DumpRigidBody(BulletWorld sim, BulletBody collisionObject);
 
 public abstract void DumpCollisionShape(BulletWorld sim, BulletShape collisionShape);
-
-public abstract void DumpMapInfo(BulletWorld sim, BulletHMapInfo mapInfo);
 
 public abstract void DumpConstraint(BulletWorld sim, BulletConstraint constrain);
 
