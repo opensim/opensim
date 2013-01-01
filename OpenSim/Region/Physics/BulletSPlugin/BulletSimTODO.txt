@@ -61,7 +61,8 @@ Incorporate inter-relationship of angular corrections. For instance, angularDefl
 
 BULLETSIM TODO LIST:
 =================================================
-Avatar density is WAY off. Compare and calibrate with what's in SL.
+Implement an avatar mesh shape. The Bullet capsule is way too limited.
+	Consider just hand creating a vertex/index array in a new BSShapeAvatar.
 Revisit CollisionMargin. Builders notice the 0.04 spacing between prims.
 Duplicating a physical prim causes old prim to jump away
 	Dup a phys prim and the original become unselected and thus interacts w/ selected prim.
@@ -170,6 +171,9 @@ Avatar attachments have no mass? http://forums-archive.secondlife.com/54/f0/3179
 
 INTERNAL IMPROVEMENT/CLEANUP
 =================================================
+Create the physical wrapper classes (BulletBody, BulletShape) by methods on
+	BSAPITemplate and make their actual implementation Bullet engine specific.
+	For the short term, just call the existing functions in ShapeCollection.
 Consider moving prim/character body and shape destruction in destroy()
 	to postTimeTime rather than protecting all the potential sets that
 	might have been queued up.
@@ -204,6 +208,8 @@ Should taints check for existance or activeness of target?
 	Possibly have and 'active' flag that is checked by the taint processor?
 Parameters for physics logging should be moved from BSScene to BSParam (at least boolean ones)
 Can some of the physical wrapper classes (BulletBody, BulletWorld, BulletShape) be 'sealed'?
+There are TOO MANY interfaces from BulletSim core to Bullet itself
+	Think of something to eliminate one or more of the layers
 
 THREADING
 =================================================
@@ -262,3 +268,5 @@ llApplyImpulse()
 	(Resolution: tested on SL and OS. AddForce scales the force for timestep)
 llSetBuoyancy()	(DONE)
 	(Resolution: Bullet resets object gravity when added to world. Moved set gravity)
+Avatar density is WAY off. Compare and calibrate with what's in SL. (DONE)
+	(Resolution: set default density to 3.5 (from 60) which is closer to SL)

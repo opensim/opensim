@@ -44,7 +44,7 @@ public sealed class BSTerrainHeightmap : BSTerrainPhys
 {
     static string LogHeader = "[BULLETSIM TERRAIN HEIGHTMAP]";
 
-    BulletHeightMapInfo m_mapInfo = null;
+    BulletHMapInfo m_mapInfo = null;
 
     // Constructor to build a default, flat heightmap terrain.
     public BSTerrainHeightmap(BSScene physicsScene, Vector3 regionBase, uint id, Vector3 regionSize)
@@ -58,7 +58,7 @@ public sealed class BSTerrainHeightmap : BSTerrainPhys
         {
             initialMap[ii] = BSTerrainManager.HEIGHT_INITIALIZATION;
         }
-        m_mapInfo = new BulletHeightMapInfo(id, initialMap, IntPtr.Zero);
+        m_mapInfo = new BulletHMapInfo(id, initialMap, IntPtr.Zero);
         m_mapInfo.minCoords = minTerrainCoords;
         m_mapInfo.maxCoords = maxTerrainCoords;
         m_mapInfo.terrainRegionBase = TerrainBase;
@@ -72,7 +72,7 @@ public sealed class BSTerrainHeightmap : BSTerrainPhys
                                                     Vector3 minCoords, Vector3 maxCoords)
         : base(physicsScene, regionBase, id)
     {
-        m_mapInfo = new BulletHeightMapInfo(id, initialMap, IntPtr.Zero);
+        m_mapInfo = new BulletHMapInfo(id, initialMap, IntPtr.Zero);
         m_mapInfo.minCoords = minCoords;
         m_mapInfo.maxCoords = maxCoords;
         m_mapInfo.minZ = minCoords.Z;
@@ -91,12 +91,12 @@ public sealed class BSTerrainHeightmap : BSTerrainPhys
     // Using the information in m_mapInfo, create the physical representation of the heightmap.
     private void BuildHeightmapTerrain()
     {
-        m_mapInfo.Ptr = PhysicsScene.PE.CreateHeightMapInfo(PhysicsScene.World, m_mapInfo.ID,
+        m_mapInfo.ptr = PhysicsScene.PE.CreateHeightMapInfo(PhysicsScene.World, m_mapInfo.ID,
                                 m_mapInfo.minCoords, m_mapInfo.maxCoords, 
                                 m_mapInfo.heightMap, BSParam.TerrainCollisionMargin);
 
         // Create the terrain shape from the mapInfo
-        m_mapInfo.terrainShape = PhysicsScene.PE.CreateTerrainShape(m_mapInfo.Ptr);
+        m_mapInfo.terrainShape = PhysicsScene.PE.CreateTerrainShape(m_mapInfo.ptr);
 
         // The terrain object initial position is at the center of the object
         Vector3 centerPos;
@@ -138,7 +138,7 @@ public sealed class BSTerrainHeightmap : BSTerrainPhys
                 PhysicsScene.PE.RemoveObjectFromWorld(PhysicsScene.World, m_mapInfo.terrainBody);
                 // Frees both the body and the shape.
                 PhysicsScene.PE.DestroyObject(PhysicsScene.World, m_mapInfo.terrainBody);
-                PhysicsScene.PE.ReleaseHeightMapInfo(m_mapInfo.Ptr);
+                PhysicsScene.PE.ReleaseHeightMapInfo(m_mapInfo.ptr);
             }
         }
         m_mapInfo = null;

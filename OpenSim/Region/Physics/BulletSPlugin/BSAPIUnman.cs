@@ -26,6 +26,7 @@
  */
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
@@ -36,29 +37,100 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 {
 public sealed class BSAPIUnman : BSAPITemplate
 {
-    /*
+
+// We pin the memory passed between the managed and unmanaged code.
+GCHandle m_paramsHandle;
+private GCHandle m_collisionArrayPinnedHandle;
+private GCHandle m_updateArrayPinnedHandle;
+
+// Handle to the callback used by the unmanaged code to call into the managed code.
+// Used for debug logging.
+// Need to store the handle in a persistant variable so it won't be freed.
+private BSAPICPP.DebugLogCallback m_DebugLogCallbackHandle;
+
+private BSScene PhysicsScene { get; set; }
+
+public override string BulletEngineName { get { return "BulletUnmanaged"; } }
+public override string BulletEngineVersion { get; protected set; }
+
+public BSAPIUnman(string paramName, BSScene physScene)
+{
+    PhysicsScene = physScene;
+    // Do something fancy with the paramName to get the right DLL implementation
+    //     like "Bullet-2.80-OpenCL-Intel" loading the version for Intel based OpenCL implementation, etc.
+}
+
 // Initialization and simulation
-public BulletWorld Initialize(Vector3 maxPosition, IntPtr parms,
-											int maxCollisions,  IntPtr collisionArray,
-											int maxUpdates, IntPtr updateArray
-                                            );
+public override BulletWorld Initialize(Vector3 maxPosition, ConfigurationParameters parms,
+											int maxCollisions,  ref CollisionDesc[] collisionArray,
+											int maxUpdates, ref EntityProperties[] updateArray
+                                            )
+{
+    // Pin down the memory that will be used to pass object collisions and updates back from unmanaged code
+    m_paramsHandle = GCHandle.Alloc(parms, GCHandleType.Pinned);
+    m_collisionArrayPinnedHandle = GCHandle.Alloc(collisionArray, GCHandleType.Pinned);
+    m_updateArrayPinnedHandle = GCHandle.Alloc(updateArray, GCHandleType.Pinned);
 
-public bool UpdateParameter(BulletWorld world, uint localID, String parm, float value);
+    // If Debug logging level, enable logging from the unmanaged code
+    m_DebugLogCallbackHandle = null;
+    if (BSScene.m_log.IsDebugEnabled || PhysicsScene.PhysicsLogging.Enabled)
+    {
+        BSScene.m_log.DebugFormat("{0}: Initialize: Setting debug callback for unmanaged code", BSScene.LogHeader);
+        if (PhysicsScene.PhysicsLogging.Enabled)
+            // The handle is saved in a variable to make sure it doesn't get freed after this call
+            m_DebugLogCallbackHandle = new BSAPICPP.DebugLogCallback(BulletLoggerPhysLog);
+        else
+            m_DebugLogCallbackHandle = new BSAPICPP.DebugLogCallback(BulletLogger);
+    }
 
+    // Get the version of the DLL
+    // TODO: this doesn't work yet. Something wrong with marshaling the returned string.
+    // BulletEngineVersion = BulletSimAPI.GetVersion2();
+    BulletEngineVersion = "";
+
+    // Call the unmanaged code with the buffers and other information
+    return new BulletWorld(0, PhysicsScene, BSAPICPP.Initialize2(maxPosition, m_paramsHandle.AddrOfPinnedObject(),
+                                    maxCollisions, m_collisionArrayPinnedHandle.AddrOfPinnedObject(),
+                                    maxUpdates, m_updateArrayPinnedHandle.AddrOfPinnedObject(),
+                                    m_DebugLogCallbackHandle));
+
+}
+
+// Called directly from unmanaged code so don't do much
+private void BulletLogger(string msg)
+{
+    BSScene.m_log.Debug("[BULLETS UNMANAGED]:" + msg);
+}
+
+// Called directly from unmanaged code so don't do much
+private void BulletLoggerPhysLog(string msg)
+{
+    PhysicsScene.DetailLog("[BULLETS UNMANAGED]:" + msg);
+}
+
+    /*
 public void SetHeightMap(BulletWorld world, float[] heightmap);
 
-public void Shutdown(BulletWorld sim);
-
-public int PhysicsStep(BulletWorld world, float timeStep, int maxSubSteps, float fixedTimeStep,
-                        out int updatedEntityCount,
-                        out IntPtr updatedEntitiesPtr,
-                        out int collidersCount,
-                        out IntPtr collidersPtr);
-
      */
+public override int PhysicsStep(BulletWorld world, float timeStep, int maxSubSteps, float fixedTimeStep,
+                        out int updatedEntityCount, out int collidersCount)
+{
+    return BSAPICPP.PhysicsStep2(world.ptr, timeStep, maxSubSteps, fixedTimeStep, out updatedEntityCount, out collidersCount);
+}
+
+public override void Shutdown(BulletWorld sim)
+{
+    BSAPICPP.Shutdown2(sim.ptr);
+}
+
 public override bool PushUpdate(BulletBody obj)
 {
     return BSAPICPP.PushUpdate2(obj.ptr);
+}
+
+public override bool UpdateParameter(BulletWorld world, uint localID, String parm, float value)
+{
+    return BSAPICPP.UpdateParameter2(world.ptr, localID, parm, value);
 }
 
 // =====================================================================================
@@ -893,10 +965,80 @@ public override float GetMargin(BulletShape shape)
     return BSAPICPP.GetMargin2(shape.ptr);
 }
 
+// =====================================================================================
+// Debugging
+public override void DumpRigidBody(BulletWorld sim, BulletBody collisionObject)
+{
+    BSAPICPP.DumpRigidBody2(sim.ptr, collisionObject.ptr);
+}
+
+public override void DumpCollisionShape(BulletWorld sim, BulletShape collisionShape)
+{
+    BSAPICPP.DumpCollisionShape2(sim.ptr, collisionShape.ptr);
+}
+
+public override void DumpMapInfo(BulletWorld sim, BulletHMapInfo mapInfo)
+{
+    BSAPICPP.DumpMapInfo2(sim.ptr, mapInfo.ptr);
+}
+
+public override void DumpConstraint(BulletWorld sim, BulletConstraint constrain)
+{
+    BSAPICPP.DumpConstraint2(sim.ptr, constrain.ptr);
+}
+
+public override void DumpActivationInfo(BulletWorld sim)
+{
+    BSAPICPP.DumpActivationInfo2(sim.ptr);
+}
+
+public override void DumpAllInfo(BulletWorld sim)
+{
+    BSAPICPP.DumpAllInfo2(sim.ptr);
+}
+
+public override void DumpPhysicsStatistics(BulletWorld sim)
+{
+    BSAPICPP.DumpPhysicsStatistics2(sim.ptr);
+}
+
+
+// =====================================================================================
+// =====================================================================================
+// =====================================================================================
+// =====================================================================================
+// =====================================================================================
+// The actual interface to the unmanaged code
 static class BSAPICPP
 {
+// ===============================================================================
+// Link back to the managed code for outputting log messages
+[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+public delegate void DebugLogCallback([MarshalAs(UnmanagedType.LPStr)]string msg);
+
+// ===============================================================================
+// Initialization and simulation
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern IntPtr Initialize2(Vector3 maxPosition, IntPtr parms,
+											int maxCollisions,  IntPtr collisionArray,
+											int maxUpdates, IntPtr updateArray,
+                                            DebugLogCallback logRoutine);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern void SetHeightMap2(IntPtr world, float[] heightmap);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern int PhysicsStep2(IntPtr world, float timeStep, int maxSubSteps, float fixedTimeStep,
+                        out int updatedEntityCount, out int collidersCount);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern void Shutdown2(IntPtr sim);
+
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern bool PushUpdate2(IntPtr obj);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern bool UpdateParameter2(IntPtr world, uint localID, String parm, float value);
 
 // =====================================================================================
 // Mesh, hull, shape and body creation helper routines
@@ -1431,52 +1573,6 @@ public static extern void SetMargin2(IntPtr shape, float val);
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern float GetMargin2(IntPtr shape);
 
-}
-}
-
-// ===============================================================================
-// ===============================================================================
-// ===============================================================================
-// ===============================================================================
-// ===============================================================================
-// ===============================================================================
-// ===============================================================================
-// ===============================================================================
-// ===============================================================================
-// ===============================================================================
-// ===============================================================================
-// ===============================================================================
-// ===============================================================================
-static class BulletSimAPI {
-// ===============================================================================
-// Link back to the managed code for outputting log messages
-[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-public delegate void DebugLogCallback([MarshalAs(UnmanagedType.LPStr)]string msg);
-
-// ===============================================================================
-// Initialization and simulation
-[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern IntPtr Initialize2(Vector3 maxPosition, IntPtr parms,
-											int maxCollisions,  IntPtr collisionArray,
-											int maxUpdates, IntPtr updateArray,
-                                            DebugLogCallback logRoutine);
-
-[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern bool UpdateParameter2(IntPtr world, uint localID, String parm, float value);
-
-[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern void SetHeightMap2(IntPtr world, float[] heightmap);
-
-[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern void Shutdown2(IntPtr sim);
-
-[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern int PhysicsStep2(IntPtr world, float timeStep, int maxSubSteps, float fixedTimeStep,
-                        out int updatedEntityCount,
-                        out IntPtr updatedEntitiesPtr,
-                        out int collidersCount,
-                        out IntPtr collidersPtr);
-
 // =====================================================================================
 // Debugging
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
@@ -1501,4 +1597,7 @@ public static extern void DumpAllInfo2(IntPtr sim);
 public static extern void DumpPhysicsStatistics2(IntPtr sim);
 
 }
+
+}
+
 }

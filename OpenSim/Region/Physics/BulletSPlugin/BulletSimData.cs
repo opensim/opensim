@@ -187,11 +187,11 @@ public class BulletConstraint
 // Made a class rather than a struct so there would be only one
 //      instance of this and C# will pass around pointers rather
 //      than making copies.
-public class BulletHeightMapInfo
+public class BulletHMapInfo
 {
-    public BulletHeightMapInfo(uint id, float[] hm, IntPtr xx) {
+    public BulletHMapInfo(uint id, float[] hm, IntPtr xx) {
         ID = id;
-        Ptr = xx;
+        ptr = xx;
         heightMap = hm;
         terrainRegionBase = OMV.Vector3.Zero;
         minCoords = new OMV.Vector3(100f, 100f, 25f);
@@ -200,7 +200,7 @@ public class BulletHeightMapInfo
         sizeX = sizeY = 256f;
     }
     public uint ID;
-    public IntPtr Ptr;
+    public IntPtr ptr;
     public float[] heightMap;
     public OMV.Vector3 terrainRegionBase;
     public OMV.Vector3 minCoords;

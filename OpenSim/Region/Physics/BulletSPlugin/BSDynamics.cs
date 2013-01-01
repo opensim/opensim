@@ -823,7 +823,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             if (!IsActive) return;
 
             if (PhysicsScene.VehiclePhysicalLoggingEnabled)
-                BulletSimAPI.DumpRigidBody2(PhysicsScene.World.ptr, Prim.PhysBody.ptr);
+                PhysicsScene.PE.DumpRigidBody(PhysicsScene.World, Prim.PhysBody);
 
             ForgetKnownVehicleProperties();
 
@@ -840,7 +840,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             PushKnownChanged();
 
             if (PhysicsScene.VehiclePhysicalLoggingEnabled)
-                BulletSimAPI.DumpRigidBody2(PhysicsScene.World.ptr, Prim.PhysBody.ptr);
+                PhysicsScene.PE.DumpRigidBody(PhysicsScene.World, Prim.PhysBody);
 
             VDetailLog("{0},BSDynamics.Step,done,pos={1},force={2},velocity={3},angvel={4}",
                     Prim.LocalID, VehiclePosition, Prim.Force, VehicleVelocity, VehicleRotationalVelocity);

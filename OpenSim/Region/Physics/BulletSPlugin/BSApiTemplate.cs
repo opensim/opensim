@@ -292,26 +292,27 @@ public enum ConstraintParamAxis : int
 
 public abstract class BSAPITemplate
 {
-    /*
+// Returns the name of the underlying Bullet engine
+public abstract string BulletEngineName { get; }
+public abstract string BulletEngineVersion { get; protected set;} 
+
 // Initialization and simulation
-public abstract BulletWorld Initialize(Vector3 maxPosition, IntPtr parms,
-											int maxCollisions,  IntPtr collisionArray,
-											int maxUpdates, IntPtr updateArray
+public abstract BulletWorld Initialize(Vector3 maxPosition, ConfigurationParameters parms,
+											int maxCollisions,  ref CollisionDesc[] collisionArray,
+											int maxUpdates, ref EntityProperties[] updateArray
                                             );
+
+    /*
+public abstract void SetHeightMap(BulletWorld world, float[] heightmap);
+
+     */
+public abstract int PhysicsStep(BulletWorld world, float timeStep, int maxSubSteps, float fixedTimeStep,
+                        out int updatedEntityCount, out int collidersCount);
 
 public abstract bool UpdateParameter(BulletWorld world, uint localID, String parm, float value);
 
-public abstract void SetHeightMap(BulletWorld world, float[] heightmap);
-
 public abstract void Shutdown(BulletWorld sim);
 
-public abstract int PhysicsStep(BulletWorld world, float timeStep, int maxSubSteps, float fixedTimeStep,
-                        out int updatedEntityCount,
-                        out IntPtr updatedEntitiesPtr,
-                        out int collidersCount,
-                        out IntPtr collidersPtr);
-
-     */
 public abstract bool PushUpdate(BulletBody obj);
 
 // =====================================================================================
@@ -659,6 +660,22 @@ public abstract int GetShapeType(BulletShape shape);
 public abstract void SetMargin(BulletShape shape, float val);
 
 public abstract float GetMargin(BulletShape shape);
+
+// =====================================================================================
+// Debugging
+public abstract void DumpRigidBody(BulletWorld sim, BulletBody collisionObject);
+
+public abstract void DumpCollisionShape(BulletWorld sim, BulletShape collisionShape);
+
+public abstract void DumpMapInfo(BulletWorld sim, BulletHMapInfo mapInfo);
+
+public abstract void DumpConstraint(BulletWorld sim, BulletConstraint constrain);
+
+public abstract void DumpActivationInfo(BulletWorld sim);
+
+public abstract void DumpAllInfo(BulletWorld sim);
+
+public abstract void DumpPhysicsStatistics(BulletWorld sim);
 
 };
 }

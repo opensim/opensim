@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -32,7 +32,7 @@ using System.Text;
 namespace OpenSim.Region.Physics.BulletSPlugin
 {
     /*
-public sealed class BSAPIXNA : BulletSimAPITemplate
+public sealed class BSAPIXNA : BSAPITemplate
 {
 }
      */
