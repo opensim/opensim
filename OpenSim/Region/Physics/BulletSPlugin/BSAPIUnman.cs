@@ -524,6 +524,7 @@ public override void SetTranslation(BulletBody obj, Vector3 position, Quaternion
     BSAPICPP.SetTranslation2(obj.ptr, position, rotation);
 }
 
+    /*
 public override IntPtr GetBroadphaseHandle(BulletBody obj)
 {
     return BSAPICPP.GetBroadphaseHandle2(obj.ptr);
@@ -533,6 +534,7 @@ public override void SetBroadphaseHandle(BulletBody obj, IntPtr handle)
 {
     BSAPICPP.SetUserPointer2(obj.ptr, handle);
 }
+     */
 
 public override void SetInterpolationLinearVelocity(BulletBody obj, Vector3 vel)
 {

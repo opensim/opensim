@@ -475,9 +475,9 @@ public abstract Quaternion GetOrientation(BulletBody obj);
 
 public abstract void SetTranslation(BulletBody obj, Vector3 position, Quaternion rotation);
 
-public abstract IntPtr GetBroadphaseHandle(BulletBody obj);
+// public abstract IntPtr GetBroadphaseHandle(BulletBody obj);
 
-public abstract void SetBroadphaseHandle(BulletBody obj, IntPtr handle);
+// public abstract void SetBroadphaseHandle(BulletBody obj, IntPtr handle);
 
 public abstract void SetInterpolationLinearVelocity(BulletBody obj, Vector3 vel);
 
