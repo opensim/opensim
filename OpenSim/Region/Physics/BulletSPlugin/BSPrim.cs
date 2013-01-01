@@ -300,7 +300,7 @@ public sealed class BSPrim : BSPhysObject
             // All positions are given in world positions.
             if (_position == value)
             {
-                DetailLog("{0},BSPrim.setPosition,taint,positionNotChanging,pos={1},orient={2}", LocalID, _position, _orientation);
+                DetailLog("{0},BSPrim.setPosition,call,positionNotChanging,pos={1},orient={2}", LocalID, _position, _orientation);
                 return;
             }
             _position = value;
@@ -909,6 +909,11 @@ public sealed class BSPrim : BSPhysObject
                 m_log.ErrorFormat("{0} Failed setting object collision mask: id={1}", LogHeader, LocalID);
                 DetailLog("{0},BSPrim.UpdatePhysicalParameters,failedSetMaskGroup,cType={1}", LocalID, PhysBody.collisionType);
             }
+        }
+        else
+        {
+            m_log.ErrorFormat("{0} Attempt to add physical object without body. id={1}", LogHeader, LocalID);
+            DetailLog("{0},BSPrim.UpdatePhysicalParameters,addObjectWithoutBody,cType={1}", LocalID, PhysBody.collisionType);
         }
     }
 

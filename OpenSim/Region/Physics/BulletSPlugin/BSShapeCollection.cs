@@ -45,7 +45,7 @@ public sealed class BSShapeCollection : IDisposable
     // Description of a Mesh
     private struct MeshDesc
     {
-        public IntPtr ptr;
+        public BulletShape shape;
         public int referenceCount;
         public DateTime lastReferenced;
         public UInt64 shapeKey;
@@ -55,7 +55,7 @@ public sealed class BSShapeCollection : IDisposable
     // Meshes and hulls have the same shape hash key but we only need hulls for efficient collision calculations.
     private struct HullDesc
     {
-        public IntPtr ptr;
+        public BulletShape shape;
         public int referenceCount;
         public DateTime lastReferenced;
         public UInt64 shapeKey;
@@ -173,7 +173,7 @@ public sealed class BSShapeCollection : IDisposable
                 }
 
                 // Zero any reference to the shape so it is not freed when the body is deleted.
-                PhysicsScene.PE.SetCollisionShape(PhysicsScene.World, body, new BulletShape());
+                PhysicsScene.PE.SetCollisionShape(PhysicsScene.World, body, null);
                 PhysicsScene.PE.DestroyObject(PhysicsScene.World, body);
             });
         }
@@ -202,7 +202,7 @@ public sealed class BSShapeCollection : IDisposable
                 else
                 {
                     // This is a new reference to a mesh
-                    meshDesc.ptr = shape.ptr;
+                    meshDesc.shape = shape.Clone();
                     meshDesc.shapeKey = shape.shapeKey;
                     // We keep a reference to the underlying IMesh data so a hull can be built
                     meshDesc.referenceCount = 1;
@@ -225,7 +225,7 @@ public sealed class BSShapeCollection : IDisposable
                 else
                 {
                     // This is a new reference to a hull
-                    hullDesc.ptr = shape.ptr;
+                    hullDesc.shape = shape.Clone();
                     hullDesc.shapeKey = shape.shapeKey;
                     hullDesc.referenceCount = 1;
                     if (DDetail) DetailLog("{0},BSShapeCollection.ReferenceShape,newHull,key={1},cnt={2}",
@@ -361,15 +361,14 @@ public sealed class BSShapeCollection : IDisposable
         MeshDesc meshDesc;
         HullDesc hullDesc;
 
-        IntPtr cShape = shapeInfo.ptr;
-        if (TryGetMeshByPtr(cShape, out meshDesc))
+        if (TryGetMeshByPtr(shapeInfo, out meshDesc))
         {
             shapeInfo.type = BSPhysicsShapeType.SHAPE_MESH;
             shapeInfo.shapeKey = meshDesc.shapeKey;
         }
         else
         {
-            if (TryGetHullByPtr(cShape, out hullDesc))
+            if (TryGetHullByPtr(shapeInfo, out hullDesc))
             {
                 shapeInfo.type = BSPhysicsShapeType.SHAPE_HULL;
                 shapeInfo.shapeKey = hullDesc.shapeKey;
@@ -632,7 +631,7 @@ public sealed class BSShapeCollection : IDisposable
         if (Meshes.TryGetValue(newMeshKey, out meshDesc))
         {
             // If the mesh has already been built just use it.
-            newShape = new BulletShape(meshDesc.ptr, BSPhysicsShapeType.SHAPE_MESH);
+            newShape = meshDesc.shape.Clone();
         }
         else
         {
@@ -703,7 +702,7 @@ public sealed class BSShapeCollection : IDisposable
         if (Hulls.TryGetValue(newHullKey, out hullDesc))
         {
             // If the hull shape already is created, just use it.
-            newShape = new BulletShape(hullDesc.ptr, BSPhysicsShapeType.SHAPE_HULL);
+            newShape = hullDesc.shape.Clone();
         }
         else
         {
@@ -965,13 +964,13 @@ public sealed class BSShapeCollection : IDisposable
         return ret;
     }
 
-    private bool TryGetMeshByPtr(IntPtr addr, out MeshDesc outDesc)
+    private bool TryGetMeshByPtr(BulletShape shape, out MeshDesc outDesc)
     {
         bool ret = false;
         MeshDesc foundDesc = new MeshDesc();
         foreach (MeshDesc md in Meshes.Values)
         {
-            if (md.ptr == addr)
+            if (md.shape.ReferenceSame(shape))
             {
                 foundDesc = md;
                 ret = true;
@@ -983,13 +982,13 @@ public sealed class BSShapeCollection : IDisposable
         return ret;
     }
 
-    private bool TryGetHullByPtr(IntPtr addr, out HullDesc outDesc)
+    private bool TryGetHullByPtr(BulletShape shape, out HullDesc outDesc)
     {
         bool ret = false;
         HullDesc foundDesc = new HullDesc();
         foreach (HullDesc hd in Hulls.Values)
         {
-            if (hd.ptr == addr)
+            if (hd.shape.ReferenceSame(shape))
             {
                 foundDesc = hd;
                 ret = true;
