@@ -61,7 +61,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             for (byte i = 0; i < visualParams.Length; i++)
                 visualParams[i] = i;
 
-            afm.SetAppearance(sp, new Primitive.TextureEntry(TestHelpers.ParseTail(0x10)), visualParams);
+            afm.SetAppearance(sp, new Primitive.TextureEntry(TestHelpers.ParseTail(0x10)), visualParams, new WearableCacheItem[0]);
 
             // TODO: Check baked texture
             Assert.AreEqual(visualParams, sp.Appearance.VisualParams);
@@ -102,7 +102,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             Primitive.TextureEntryFace eyesFace = bakedTextureEntry.CreateFace(eyesFaceIndex);
             eyesFace.TextureID = eyesTextureId;
 
-            afm.SetAppearance(sp, bakedTextureEntry, visualParams);
+            afm.SetAppearance(sp, bakedTextureEntry, visualParams, new WearableCacheItem[0]);
             afm.SaveBakedTextures(userId);
 //            Dictionary<BakeType, Primitive.TextureEntryFace> bakedTextures = afm.GetBakedTextureFaces(userId);
 

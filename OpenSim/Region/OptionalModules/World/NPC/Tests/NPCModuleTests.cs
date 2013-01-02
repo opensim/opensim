@@ -108,7 +108,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
             // ScenePresence.SendInitialData() to reset our entire appearance.
             m_scene.AssetService.Store(AssetHelpers.CreateNotecardAsset(originalFace8TextureId));
 
-            m_afMod.SetAppearance(sp, originalTe, null);
+            m_afMod.SetAppearance(sp, originalTe, null, new WearableCacheItem[0] );
 
             UUID npcId = m_npcMod.CreateNPC("John", "Smith", new Vector3(128, 128, 30), UUID.Zero, true, m_scene, sp.Appearance);
 
