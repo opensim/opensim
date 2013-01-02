@@ -84,7 +84,7 @@ namespace OpenSim.Framework.Console
             Columns.Add(new ConsoleDisplayTableColumn(name, width));
         }
 
-        public void AddRow(params string[] cells)
+        public void AddRow(params object[] cells)
         {
             Rows.Add(new ConsoleDisplayTableRow(cells));
         }

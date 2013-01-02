@@ -189,7 +189,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Animations
                 int seq = sequenceNumbers[i];
                 UUID objectId = objectIds[i];
 
-                cdt.Rows.Add(new ConsoleDisplayTableRow(animId, animName, seq, objectId));
+                cdt.AddRow(animId, animName, seq, objectId);
             }
 
             cdt.AddToStringBuilder(sb);
