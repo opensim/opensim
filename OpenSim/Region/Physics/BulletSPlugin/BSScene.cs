@@ -161,6 +161,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     private int m_physicsLoggingFileMinutes;
     private bool m_physicsLoggingDoFlush;
     private bool m_physicsPhysicalDumpEnabled;
+    public float PhysicsMetricDumpFrames { get; set; }
     // 'true' of the vehicle code is to log lots of details
     public bool VehicleLoggingEnabled { get; private set; }
     public bool VehiclePhysicalLoggingEnabled { get; private set; }
@@ -525,6 +526,9 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             updatedEntityCount = 0;
             collidersCount = 0;
         }
+
+        if ((m_simulationStep % PhysicsMetricDumpFrames) == 0)
+            PE.DumpPhysicsStatistics(World);
 
         // Get a value for 'now' so all the collision and update routines don't have to get their own.
         SimulationNowTime = Util.EnvironmentTickCount();

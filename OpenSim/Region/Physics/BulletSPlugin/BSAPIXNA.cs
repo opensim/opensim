@@ -970,7 +970,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
         p.linkConstraintERP = o[0].XlinkConstraintERP;
         p.linkConstraintCFM = o[0].XlinkConstraintCFM;
         p.linkConstraintSolverIterations = o[0].XlinkConstraintSolverIterations;
-        p.physicsLoggingFrames = o[0].physicsLoggingFrames;
+        p.physicsLoggingFrames = o[0].XphysicsLoggingFrames;
         DefaultCollisionConstructionInfo ccci = new DefaultCollisionConstructionInfo();
         
         DefaultCollisionConfiguration cci = new DefaultCollisionConfiguration();

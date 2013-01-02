@@ -492,11 +492,11 @@ public static class BSParam
             (s) => { return LinkConstraintSolverIterations; },
             (s,p,l,v) => { LinkConstraintSolverIterations = v; } ),
 
-        new ParameterDefn("LogPhysicsStatisticsFrames", "Frames between outputting detailed phys stats. (0 is off)",
+        new ParameterDefn("PhysicsMetricFrames", "Frames between outputting detailed phys metrics. (0 is off)",
             0f,
-            (s,cf,p,v) => { s.UnmanagedParams[0].physicsLoggingFrames = cf.GetInt(p, (int)v); },
-            (s) => { return (float)s.UnmanagedParams[0].physicsLoggingFrames; },
-            (s,p,l,v) => { s.UnmanagedParams[0].physicsLoggingFrames = (int)v; } ),
+            (s,cf,p,v) => { s.PhysicsMetricDumpFrames = cf.GetFloat(p, (int)v); },
+            (s) => { return (float)s.PhysicsMetricDumpFrames; },
+            (s,p,l,v) => { s.PhysicsMetricDumpFrames = (int)v; } ),
     };
 
     // Convert a boolean to our numeric true and false values

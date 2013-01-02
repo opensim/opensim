@@ -198,7 +198,7 @@ public struct ConfigurationParameters
     public float XlinkConstraintCFM;
     public float XlinkConstraintSolverIterations;
 
-    public float physicsLoggingFrames;
+    public float XphysicsLoggingFrames;
 
     public const float numericTrue = 1f;
     public const float numericFalse = 0f;
