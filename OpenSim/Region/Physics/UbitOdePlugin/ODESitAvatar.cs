@@ -233,8 +233,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                         norm = rayResults[0].Normal;
                         edgeNormalX = norm.X;
                         edgeNormalY = norm.Y;
-                        edgeDirX = rayDir.X;
-                        edgeDirY = rayDir.Y;
+                        edgeDirX = -rayDir.X;
+                        edgeDirY = -rayDir.Y;
                     }
                     else
                     {
