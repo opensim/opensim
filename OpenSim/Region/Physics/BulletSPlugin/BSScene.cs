@@ -26,6 +26,7 @@
  */
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -42,13 +43,17 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 {
 public sealed class BSScene : PhysicsScene, IPhysicsParameters
 {
-    private static readonly ILog m_log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-    private static readonly string LogHeader = "[BULLETS SCENE]";
+    internal static readonly ILog m_log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+    internal static readonly string LogHeader = "[BULLETS SCENE]";
 
     // The name of the region we're working for.
     public string RegionName { get; private set; }
 
     public string BulletSimVersion = "?";
+
+    // The handle to the underlying managed or unmanaged version of Bullet being used.
+    public string BulletEngineName { get; private set; }
+    public BSAPITemplate PE;
 
     public Dictionary<uint, BSPhysObject> PhysObjects;
     public BSShapeCollection Shapes;
@@ -99,11 +104,9 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     // Pinned memory used to pass step information between managed and unmanaged
     internal int m_maxCollisionsPerFrame;
     internal CollisionDesc[] m_collisionArray;
-    internal GCHandle m_collisionArrayPinnedHandle;
 
     internal int m_maxUpdatesPerFrame;
     internal EntityProperties[] m_updateArray;
-    internal GCHandle m_updateArrayPinnedHandle;
 
     public const uint TERRAIN_ID = 0;       // OpenSim senses terrain with a localID of zero
     public const uint GROUNDPLANE_ID = 1;
@@ -149,12 +152,6 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     // A pointer to an instance if this structure is passed to the C++ code
     // Used to pass basic configuration values to the unmanaged code.
     internal ConfigurationParameters[] UnmanagedParams;
-    GCHandle m_paramsHandle;
-
-    // Handle to the callback used by the unmanaged code to call into the managed code.
-    // Used for debug logging.
-    // Need to store the handle in a persistant variable so it won't be freed.
-    private BulletSimAPI.DebugLogCallback m_DebugLogCallbackHandle;
 
     // Sometimes you just have to log everything.
     public Logging.LogWriter PhysicsLogging;
@@ -164,6 +161,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     private int m_physicsLoggingFileMinutes;
     private bool m_physicsLoggingDoFlush;
     private bool m_physicsPhysicalDumpEnabled;
+    public float PhysicsMetricDumpFrames { get; set; }
     // 'true' of the vehicle code is to log lots of details
     public bool VehicleLoggingEnabled { get; private set; }
     public bool VehiclePhysicalLoggingEnabled { get; private set; }
@@ -187,16 +185,12 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
         // Allocate pinned memory to pass parameters.
         UnmanagedParams = new ConfigurationParameters[1];
-        m_paramsHandle = GCHandle.Alloc(UnmanagedParams, GCHandleType.Pinned);
 
         // Set default values for physics parameters plus any overrides from the ini file
         GetInitialParameterValues(config);
 
-        // allocate more pinned memory close to the above in an attempt to get the memory all together
-        m_collisionArray = new CollisionDesc[m_maxCollisionsPerFrame];
-        m_collisionArrayPinnedHandle = GCHandle.Alloc(m_collisionArray, GCHandleType.Pinned);
-        m_updateArray = new EntityProperties[m_maxUpdatesPerFrame];
-        m_updateArrayPinnedHandle = GCHandle.Alloc(m_updateArray, GCHandleType.Pinned);
+        // Get the connection to the physics engine (could be native or one of many DLLs)
+        PE = SelectUnderlyingBulletEngine(BulletEngineName);
 
         // Enable very detailed logging.
         // By creating an empty logger when not logging, the log message invocation code
@@ -211,22 +205,9 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             PhysicsLogging = new Logging.LogWriter();
         }
 
-        // If Debug logging level, enable logging from the unmanaged code
-        m_DebugLogCallbackHandle = null;
-        if (m_log.IsDebugEnabled || PhysicsLogging.Enabled)
-        {
-            m_log.DebugFormat("{0}: Initialize: Setting debug callback for unmanaged code", LogHeader);
-            if (PhysicsLogging.Enabled)
-                // The handle is saved in a variable to make sure it doesn't get freed after this call
-                m_DebugLogCallbackHandle = new BulletSimAPI.DebugLogCallback(BulletLoggerPhysLog);
-            else
-                m_DebugLogCallbackHandle = new BulletSimAPI.DebugLogCallback(BulletLogger);
-        }
-
-        // Get the version of the DLL
-        // TODO: this doesn't work yet. Something wrong with marshaling the returned string.
-        // BulletSimVersion = BulletSimAPI.GetVersion();
-        // m_log.WarnFormat("{0}: BulletSim.dll version='{1}'", LogHeader, BulletSimVersion);
+        // Allocate memory for returning of the updates and collisions from the physics engine
+        m_collisionArray = new CollisionDesc[m_maxCollisionsPerFrame];
+        m_updateArray = new EntityProperties[m_maxUpdatesPerFrame];
 
         // The bounding box for the simulated world. The origin is 0,0,0 unless we're
         //    a child in a mega-region.
@@ -234,11 +215,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         //    area. It tracks active objects no matter where they are.
         Vector3 worldExtent = new Vector3(Constants.RegionSize, Constants.RegionSize, Constants.RegionHeight);
 
-        // m_log.DebugFormat("{0}: Initialize: Calling BulletSimAPI.Initialize.", LogHeader);
-        World = new BulletWorld(0, this, BulletSimAPI.Initialize2(worldExtent, m_paramsHandle.AddrOfPinnedObject(),
-                                        m_maxCollisionsPerFrame, m_collisionArrayPinnedHandle.AddrOfPinnedObject(),
-                                        m_maxUpdatesPerFrame, m_updateArrayPinnedHandle.AddrOfPinnedObject(),
-                                        m_DebugLogCallbackHandle));
+        World = PE.Initialize(worldExtent, Params, m_maxCollisionsPerFrame, ref m_collisionArray, m_maxUpdatesPerFrame, ref m_updateArray);
 
         Constraints = new BSConstraintCollection(World);
 
@@ -267,6 +244,9 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             if (pConfig != null)
             {
                 BSParam.SetParameterConfigurationValues(this, pConfig);
+
+                // There are two Bullet implementations to choose from
+                BulletEngineName = pConfig.GetString("BulletEngine", "BulletUnmanaged");
 
                 // Very detailed logging for physics debugging
                 // TODO: the boolean values can be moved to the normal parameter processing.
@@ -309,16 +289,41 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         return ret;
     }
 
-    // Called directly from unmanaged code so don't do much
-    private void BulletLogger(string msg)
+    // Select the connection to the actual Bullet implementation.
+    // The main engine selection is the engineName up to the first hypen.
+    // So "Bullet-2.80-OpenCL-Intel" specifies the 'bullet' class here and the whole name
+    //     is passed to the engine to do its special selection, etc.
+    private BSAPITemplate SelectUnderlyingBulletEngine(string engineName)
     {
-        m_log.Debug("[BULLETS UNMANAGED]:" + msg);
-    }
+        // For the moment, do a simple switch statement.
+        // Someday do fancyness with looking up the interfaces in the assembly.
+        BSAPITemplate ret = null;
 
-    // Called directly from unmanaged code so don't do much
-    private void BulletLoggerPhysLog(string msg)
-    {
-        DetailLog("[BULLETS UNMANAGED]:" + msg);
+        string selectionName = engineName.ToLower();
+        int hyphenIndex = engineName.IndexOf("-");
+        if (hyphenIndex > 0)
+            selectionName = engineName.ToLower().Substring(0, hyphenIndex - 1);
+
+        switch (selectionName)
+        {
+            case "bulletunmanaged":
+                ret = new BSAPIUnman(engineName, this);
+                break;
+            case "bulletxna":
+                ret = new BSAPIXNA(engineName, this);
+                break;
+        }
+
+        if (ret == null)
+        {
+            m_log.ErrorFormat("{0) COULD NOT SELECT BULLET ENGINE: '[BulletSim]PhysicsEngine' must be either 'BulletUnmanaged-*' or 'BulletXNA-*'", LogHeader);
+        }
+        else
+        {
+            m_log.WarnFormat("{0} Selected bullet engine {1} -> {2}/{3}", LogHeader, engineName, ret.BulletEngineName, ret.BulletEngineVersion);
+        }
+
+        return ret;
     }
 
     public override void Dispose()
@@ -355,7 +360,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         }
 
         // Anything left in the unmanaged code should be cleaned out
-        BulletSimAPI.Shutdown2(World.ptr);
+        PE.Shutdown(World);
 
         // Not logging any more
         PhysicsLogging.Close();
@@ -468,9 +473,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         LastTimeStep = timeStep;
 
         int updatedEntityCount = 0;
-        IntPtr updatedEntitiesPtr;
         int collidersCount = 0;
-        IntPtr collidersPtr;
 
         int beforeTime = 0;
         int simTime = 0;
@@ -486,6 +489,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         TriggerPreStepEvent(timeStep);
 
         // the prestep actions might have added taints
+        numTaints += _taintOperations.Count;
         ProcessTaints();
 
         InTaintTime = false; // Only used for debugging so locking is not necessary.
@@ -493,23 +497,25 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         // The following causes the unmanaged code to output ALL the values found in ALL the objects in the world.
         // Only enable this in a limited test world with few objects.
         if (m_physicsPhysicalDumpEnabled)
-            BulletSimAPI.DumpAllInfo2(World.ptr);
+            PE.DumpAllInfo(World);
 
         // step the physical world one interval
         m_simulationStep++;
         int numSubSteps = 0;
-
         try
         {
-            if (PhysicsLogging.Enabled) beforeTime = Util.EnvironmentTickCount();
+            if (PhysicsLogging.Enabled)
+                beforeTime = Util.EnvironmentTickCount();
 
-            numSubSteps = BulletSimAPI.PhysicsStep2(World.ptr, timeStep, m_maxSubSteps, m_fixedTimeStep,
-                        out updatedEntityCount, out updatedEntitiesPtr, out collidersCount, out collidersPtr);
+            numSubSteps = PE.PhysicsStep(World, timeStep, m_maxSubSteps, m_fixedTimeStep, out updatedEntityCount, out collidersCount);
 
-            if (PhysicsLogging.Enabled) simTime = Util.EnvironmentTickCountSubtract(beforeTime);
-            DetailLog("{0},Simulate,call, frame={1}, nTaints={2}, simTime={3}, substeps={4}, updates={5}, colliders={6}, objWColl={7}",
-                                    DetailLogZero, m_simulationStep, numTaints, simTime, numSubSteps, 
-                                    updatedEntityCount, collidersCount, ObjectsWithCollisions.Count);
+            if (PhysicsLogging.Enabled)
+            {
+                simTime = Util.EnvironmentTickCountSubtract(beforeTime);
+                DetailLog("{0},Simulate,call, frame={1}, nTaints={2}, simTime={3}, substeps={4}, updates={5}, colliders={6}, objWColl={7}",
+                                        DetailLogZero, m_simulationStep, numTaints, simTime, numSubSteps,
+                                        updatedEntityCount, collidersCount, ObjectsWithCollisions.Count);
+            }
         }
         catch (Exception e)
         {
@@ -521,7 +527,8 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             collidersCount = 0;
         }
 
-        // Don't have to use the pointers passed back since we know it is the same pinned memory we passed in.
+        if ((m_simulationStep % PhysicsMetricDumpFrames) == 0)
+            PE.DumpPhysicsStatistics(World);
 
         // Get a value for 'now' so all the collision and update routines don't have to get their own.
         SimulationNowTime = Util.EnvironmentTickCount();
@@ -564,7 +571,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         // Objects that are done colliding are removed from the ObjectsWithCollisions list.
         // Not done above because it is inside an iteration of ObjectWithCollisions.
         // This complex collision processing is required to create an empty collision
-        //     event call after all collisions have happened on an object. This enables
+        //     event call after all real collisions have happened on an object. This enables
         //     the simulator to generate the 'collision end' event.
         if (ObjectsWithNoMoreCollisions.Count > 0)
         {
@@ -593,11 +600,11 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         // The following causes the unmanaged code to output ALL the values found in ALL the objects in the world.
         // Only enable this in a limited test world with few objects.
         if (m_physicsPhysicalDumpEnabled)
-            BulletSimAPI.DumpAllInfo2(World.ptr);
+            PE.DumpAllInfo(World);
 
         // The physics engine returns the number of milliseconds it simulated this call.
         // These are summed and normalized to one second and divided by 1000 to give the reported physics FPS.
-        // Multiply by 55 to give a nominal frame rate of 55.
+        // Multiply by a fixed nominal frame rate to give a rate similar to the simulator (usually 55).
         return (float)numSubSteps * m_fixedTimeStep * 1000f * NominalFrameRate;
     }
 

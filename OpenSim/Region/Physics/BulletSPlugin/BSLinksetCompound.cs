@@ -131,10 +131,10 @@ public sealed class BSLinksetCompound : BSLinkset
         {
             // The origional prims are removed from the world as the shape of the root compound
             //     shape takes over.
-            BulletSimAPI.AddToCollisionFlags2(child.PhysBody.ptr, CollisionFlags.CF_NO_CONTACT_RESPONSE);
-            BulletSimAPI.ForceActivationState2(child.PhysBody.ptr, ActivationState.DISABLE_SIMULATION);
+            PhysicsScene.PE.AddToCollisionFlags(child.PhysBody, CollisionFlags.CF_NO_CONTACT_RESPONSE);
+            PhysicsScene.PE.ForceActivationState(child.PhysBody, ActivationState.DISABLE_SIMULATION);
             // We don't want collisions from the old linkset children.
-            BulletSimAPI.RemoveFromCollisionFlags2(child.PhysBody.ptr, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
+            PhysicsScene.PE.RemoveFromCollisionFlags(child.PhysBody, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
 
             child.PhysBody.collisionType = CollisionType.LinksetChild;
 
@@ -159,12 +159,12 @@ public sealed class BSLinksetCompound : BSLinkset
         else
         {
             // The non-physical children can come back to life.
-            BulletSimAPI.RemoveFromCollisionFlags2(child.PhysBody.ptr, CollisionFlags.CF_NO_CONTACT_RESPONSE);
+            PhysicsScene.PE.RemoveFromCollisionFlags(child.PhysBody, CollisionFlags.CF_NO_CONTACT_RESPONSE);
 
             child.PhysBody.collisionType = CollisionType.LinksetChild;
 
             // Don't force activation so setting of DISABLE_SIMULATION can stay if used.
-            BulletSimAPI.Activate2(child.PhysBody.ptr, false);
+            PhysicsScene.PE.Activate(child.PhysBody, false);
             ret = true;
         }
         return ret;
@@ -196,7 +196,7 @@ public sealed class BSLinksetCompound : BSLinkset
         bool ret = false;
 
         DetailLog("{0},BSLinksetCompound.RemoveBodyDependencies,refreshIfChild,rID={1},rBody={2},isRoot={3}",
-                        child.LocalID, LinksetRoot.LocalID, LinksetRoot.PhysBody.ptr.ToString("X"), IsRoot(child));
+                        child.LocalID, LinksetRoot.LocalID, LinksetRoot.PhysBody.AddrString, IsRoot(child));
 
         if (!IsRoot(child))
         {
@@ -280,8 +280,8 @@ public sealed class BSLinksetCompound : BSLinkset
         {
             DetailLog("{0},BSLinksetCompound.RemoveChildFromLinkset,call,rID={1},rBody={2},cID={3},cBody={4}",
                             child.LocalID,
-                            LinksetRoot.LocalID, LinksetRoot.PhysBody.ptr.ToString("X"),
-                            child.LocalID, child.PhysBody.ptr.ToString("X"));
+                            LinksetRoot.LocalID, LinksetRoot.PhysBody.AddrString,
+                            child.LocalID, child.PhysBody.AddrString);
 
             // Cause the child's body to be rebuilt and thus restored to normal operation
             RecomputeChildWorldPosition(child, false);
@@ -359,7 +359,7 @@ public sealed class BSLinksetCompound : BSLinkset
                         PhysicsScene.Shapes.CreateGeomMeshOrHull(cPrim, null);
                         BulletShape newShape = cPrim.PhysShape;
                         cPrim.PhysShape = saveShape;
-                        BulletSimAPI.AddChildShapeToCompoundShape2(LinksetRoot.PhysShape.ptr, newShape.ptr, lci.OffsetPos, lci.OffsetRot);
+                        PhysicsScene.PE.AddChildShapeToCompoundShape(LinksetRoot.PhysShape, newShape, lci.OffsetPos, lci.OffsetRot);
                     }
                     else
                     {
@@ -371,7 +371,7 @@ public sealed class BSLinksetCompound : BSLinkset
                             PhysicsScene.Logger.ErrorFormat("{0} Rebuilt sharable shape when building linkset! Region={1}, primID={2}, shape={3}",
                                                 LogHeader, PhysicsScene.RegionName, cPrim.LocalID, cPrim.PhysShape);
                         }
-                        BulletSimAPI.AddChildShapeToCompoundShape2(LinksetRoot.PhysShape.ptr, cPrim.PhysShape.ptr, lci.OffsetPos, lci.OffsetRot);
+                        PhysicsScene.PE.AddChildShapeToCompoundShape(LinksetRoot.PhysShape, cPrim.PhysShape, lci.OffsetPos, lci.OffsetRot);
                     }
                 }
                 return false;   // 'false' says to move onto the next child in the list
@@ -386,12 +386,7 @@ public sealed class BSLinksetCompound : BSLinkset
             Rebuilding = false;
         }
 
-        BulletSimAPI.RecalculateCompoundShapeLocalAabb2(LinksetRoot.PhysShape.ptr);
-
-        // DEBUG: see of inter-linkset collisions are causing problems for constraint linksets.
-        // BulletSimAPI.SetCollisionFilterMask2(LinksetRoot.BSBody.ptr, 
-        //                     (uint)CollisionFilterGroups.LinksetFilter, (uint)CollisionFilterGroups.LinksetMask);
-
+        PhysicsScene.PE.RecalculateCompoundShapeLocalAabb(LinksetRoot.PhysShape);
     }
 }
 }

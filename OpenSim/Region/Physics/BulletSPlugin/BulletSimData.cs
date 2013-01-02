@@ -33,53 +33,57 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 {
 // Classes to allow some type checking for the API
 // These hold pointers to allocated objects in the unmanaged space.
+// These classes are subclassed by the various physical implementations of
+// objects. In particular, there is a version for physical instances in
+// unmanaged memory ("unman") and one for in managed memory ("XNA").
 
-// The physics engine controller class created at initialization
-public struct BulletWorld
+// Currently, the instances of these classes are a reference to a
+// physical representation and this has no releationship to other
+// instances. Someday, refarb the usage of these classes so each instance
+// refers to a particular physical instance and this class controls reference
+// counts and such. This should be done along with adding BSShapes.
+
+public class BulletWorld
 {
-    public BulletWorld(uint worldId, BSScene bss, IntPtr xx)
+    public BulletWorld(uint worldId, BSScene bss)
     {
-        ptr = xx;
         worldID = worldId;
         physicsScene = bss;
     }
-    public IntPtr ptr;
     public uint worldID;
     // The scene is only in here so very low level routines have a handle to print debug/error messages
     public BSScene physicsScene;
 }
 
 // An allocated Bullet btRigidBody
-public struct BulletBody
+public class BulletBody
 {
-    public BulletBody(uint id) : this(id, IntPtr.Zero)
-    {
-    }
-    public BulletBody(uint id, IntPtr xx)
+    public BulletBody(uint id)
     {
         ID = id;
-        ptr = xx;
         collisionType = CollisionType.Static;
     }
-    public IntPtr ptr;
     public uint ID;
     public CollisionType collisionType;
 
-    public void Clear()
-    {
-        ptr = IntPtr.Zero;
-    }
-    public bool HasPhysicalBody { get { return ptr != IntPtr.Zero; } }
+    public virtual void Clear() { }
+    public virtual bool HasPhysicalBody { get { return false; } }
 
     // Apply the specificed collision mask into the physical world
-    public bool ApplyCollisionMask()
+    public virtual bool ApplyCollisionMask(BSScene physicsScene)
     {
         // Should assert the body has been added to the physical world.
         // (The collision masks are stored in the collision proxy cache which only exists for
         //    a collision body that is in the world.)
-        return BulletSimAPI.SetCollisionGroupMask2(ptr,
+        return physicsScene.PE.SetCollisionGroupMask(this,
                                 BulletSimData.CollisionTypeMasks[collisionType].group,
                                 BulletSimData.CollisionTypeMasks[collisionType].mask);
+    }
+
+    // Used for log messages for a unique display of the memory/object allocated to this instance
+    public virtual string AddrString
+    {
+        get { return "unknown"; }
     }
 
     public override string ToString()
@@ -88,7 +92,7 @@ public struct BulletBody
         buff.Append("<id=");
         buff.Append(ID.ToString());
         buff.Append(",p=");
-        buff.Append(ptr.ToString("X"));
+        buff.Append(AddrString);
         buff.Append(",c=");
         buff.Append(collisionType);
         buff.Append(">");
@@ -96,34 +100,36 @@ public struct BulletBody
     }
 }
 
-public struct BulletShape
+public class BulletShape
 {
-    public BulletShape(IntPtr xx) : this(xx, BSPhysicsShapeType.SHAPE_UNKNOWN)
+    public BulletShape()
     {
-    }
-    public BulletShape(IntPtr xx, BSPhysicsShapeType typ)
-    {
-        ptr = xx;
-        type = typ;
+        type = BSPhysicsShapeType.SHAPE_UNKNOWN;
         shapeKey = (System.UInt64)FixedShapeKey.KEY_NONE;
         isNativeShape = false;
     }
-    public IntPtr ptr;
     public BSPhysicsShapeType type;
     public System.UInt64 shapeKey;
     public bool isNativeShape;
 
-    public void Clear()
+    public virtual void Clear() { }
+    public virtual bool HasPhysicalShape { get { return false; } }
+    // Make another reference to this physical object.
+    public virtual BulletShape Clone() { return new BulletShape(); }
+    // Return 'true' if this and other refer to the same physical object
+    public virtual bool ReferenceSame(BulletShape xx) { return false; }
+
+    // Used for log messages for a unique display of the memory/object allocated to this instance
+    public virtual string AddrString
     {
-        ptr = IntPtr.Zero;
+        get { return "unknown"; }
     }
-    public bool HasPhysicalShape { get { return ptr != IntPtr.Zero; } }
 
     public override string ToString()
     {
         StringBuilder buff = new StringBuilder();
         buff.Append("<p=");
-        buff.Append(ptr.ToString("X"));
+        buff.Append(AddrString);
         buff.Append(",s=");
         buff.Append(type.ToString());
         buff.Append(",k=");
@@ -136,30 +142,29 @@ public struct BulletShape
 }
 
 // An allocated Bullet btConstraint
-public struct BulletConstraint
+public class BulletConstraint
 {
-    public BulletConstraint(IntPtr xx)
+    public BulletConstraint()
     {
-        ptr = xx;
     }
-    public IntPtr ptr;
+    public virtual void Clear() { }
+    public virtual bool HasPhysicalConstraint { get { return false; } }
 
-    public void Clear()
+    // Used for log messages for a unique display of the memory/object allocated to this instance
+    public virtual string AddrString
     {
-        ptr = IntPtr.Zero;
+        get { return "unknown"; }
     }
-    public bool HasPhysicalConstraint { get { return ptr != IntPtr.Zero; } }
 }
 
 // An allocated HeightMapThing which holds various heightmap info.
 // Made a class rather than a struct so there would be only one
 //      instance of this and C# will pass around pointers rather
 //      than making copies.
-public class BulletHeightMapInfo
+public class BulletHMapInfo
 {
-    public BulletHeightMapInfo(uint id, float[] hm, IntPtr xx) {
+    public BulletHMapInfo(uint id, float[] hm) {
         ID = id;
-        Ptr = xx;
         heightMap = hm;
         terrainRegionBase = OMV.Vector3.Zero;
         minCoords = new OMV.Vector3(100f, 100f, 25f);
@@ -168,7 +173,6 @@ public class BulletHeightMapInfo
         sizeX = sizeY = 256f;
     }
     public uint ID;
-    public IntPtr Ptr;
     public float[] heightMap;
     public OMV.Vector3 terrainRegionBase;
     public OMV.Vector3 minCoords;

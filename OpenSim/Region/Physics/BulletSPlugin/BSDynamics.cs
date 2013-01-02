@@ -558,30 +558,30 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 
                 // Friction affects are handled by this vehicle code
                 float friction = 0f;
-                BulletSimAPI.SetFriction2(Prim.PhysBody.ptr, friction);
+                PhysicsScene.PE.SetFriction(Prim.PhysBody, friction);
 
                 // Moderate angular movement introduced by Bullet.
                 // TODO: possibly set AngularFactor and LinearFactor for the type of vehicle.
                 //     Maybe compute linear and angular factor and damping from params.
                 float angularDamping = BSParam.VehicleAngularDamping;
-                BulletSimAPI.SetAngularDamping2(Prim.PhysBody.ptr, angularDamping);
+                PhysicsScene.PE.SetAngularDamping(Prim.PhysBody, angularDamping);
 
                 // Vehicles report collision events so we know when it's on the ground
-                BulletSimAPI.AddToCollisionFlags2(Prim.PhysBody.ptr, CollisionFlags.BS_VEHICLE_COLLISIONS);
+                PhysicsScene.PE.AddToCollisionFlags(Prim.PhysBody, CollisionFlags.BS_VEHICLE_COLLISIONS);
 
-                Vector3 localInertia = BulletSimAPI.CalculateLocalInertia2(Prim.PhysShape.ptr, m_vehicleMass);
-                BulletSimAPI.SetMassProps2(Prim.PhysBody.ptr, m_vehicleMass, localInertia);
-                BulletSimAPI.UpdateInertiaTensor2(Prim.PhysBody.ptr);
+                Vector3 localInertia = PhysicsScene.PE.CalculateLocalInertia(Prim.PhysShape, m_vehicleMass);
+                PhysicsScene.PE.SetMassProps(Prim.PhysBody, m_vehicleMass, localInertia);
+                PhysicsScene.PE.UpdateInertiaTensor(Prim.PhysBody);
 
                 Vector3 grav = PhysicsScene.DefaultGravity * (1f - Prim.Buoyancy);
-                BulletSimAPI.SetGravity2(Prim.PhysBody.ptr, grav);
+                PhysicsScene.PE.SetGravity(Prim.PhysBody, grav);
 
                 VDetailLog("{0},BSDynamics.Refresh,mass={1},frict={2},inert={3},aDamp={4}",
                                 Prim.LocalID, m_vehicleMass, friction, localInertia, angularDamping);
             }
             else
             {
-                BulletSimAPI.RemoveFromCollisionFlags2(Prim.PhysBody.ptr, CollisionFlags.BS_VEHICLE_COLLISIONS);
+                PhysicsScene.PE.RemoveFromCollisionFlags(Prim.PhysBody, CollisionFlags.BS_VEHICLE_COLLISIONS);
             }
         }
 
@@ -651,7 +651,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 if ((m_knownChanged & m_knownChangedVelocity) != 0)
                 {
                     Prim.ForceVelocity = m_knownVelocity;
-                    BulletSimAPI.SetInterpolationLinearVelocity2(Prim.PhysBody.ptr, VehicleVelocity);
+                    PhysicsScene.PE.SetInterpolationLinearVelocity(Prim.PhysBody, VehicleVelocity);
                 }
 
                 if ((m_knownChanged & m_knownChangedForce) != 0)
@@ -661,7 +661,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 {
                     Prim.ForceRotationalVelocity = m_knownRotationalVelocity;
                     // Fake out Bullet by making it think the velocity is the same as last time.
-                    BulletSimAPI.SetInterpolationAngularVelocity2(Prim.PhysBody.ptr, m_knownRotationalVelocity);
+                    PhysicsScene.PE.SetInterpolationAngularVelocity(Prim.PhysBody, m_knownRotationalVelocity);
                 }
 
                 if ((m_knownChanged & m_knownChangedRotationalForce) != 0)
@@ -669,7 +669,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 
                 // If we set one of the values (ie, the physics engine didn't do it) we must force
                 //      an UpdateProperties event to send the changes up to the simulator.
-                BulletSimAPI.PushUpdate2(Prim.PhysBody.ptr);
+                PhysicsScene.PE.PushUpdate(Prim.PhysBody);
             }
             m_knownChanged = 0;
         }
@@ -823,7 +823,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             if (!IsActive) return;
 
             if (PhysicsScene.VehiclePhysicalLoggingEnabled)
-                BulletSimAPI.DumpRigidBody2(PhysicsScene.World.ptr, Prim.PhysBody.ptr);
+                PhysicsScene.PE.DumpRigidBody(PhysicsScene.World, Prim.PhysBody);
 
             ForgetKnownVehicleProperties();
 
@@ -840,7 +840,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             PushKnownChanged();
 
             if (PhysicsScene.VehiclePhysicalLoggingEnabled)
-                BulletSimAPI.DumpRigidBody2(PhysicsScene.World.ptr, Prim.PhysBody.ptr);
+                PhysicsScene.PE.DumpRigidBody(PhysicsScene.World, Prim.PhysBody);
 
             VDetailLog("{0},BSDynamics.Step,done,pos={1},force={2},velocity={3},angvel={4}",
                     Prim.LocalID, VehiclePosition, Prim.Force, VehicleVelocity, VehicleRotationalVelocity);

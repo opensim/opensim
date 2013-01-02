@@ -1576,6 +1576,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             startInfo.StartSuspended = true;
 
             m_ThreadPool = new SmartThreadPool(startInfo);
+            m_ThreadPool.Name = "XEngine";
         }
 
         //

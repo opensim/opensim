@@ -111,10 +111,6 @@ public sealed class BSPrim : BSPhysObject
 
         _mass = CalculateMass();
 
-        // No body or shape yet
-        PhysBody = new BulletBody(LocalID);
-        PhysShape = new BulletShape();
-
         Linkset.Refresh(this);
 
         DetailLog("{0},BSPrim.constructor,call", LocalID);

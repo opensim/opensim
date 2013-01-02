@@ -110,12 +110,12 @@ namespace OpenSim.Region.OptionalModules.Scripting.XmlRpcRouterModule
 
         public void ScriptRemoved(UUID itemID)
         {
-            System.Console.WriteLine("TEST Script Removed!");
+            // System.Console.WriteLine("TEST Script Removed!");
         }
 
         public void ObjectRemoved(UUID objectID)
         {
-            System.Console.WriteLine("TEST Obj Removed!");
+            // System.Console.WriteLine("TEST Obj Removed!");
         }
     }
 }

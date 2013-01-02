@@ -40,15 +40,13 @@ public sealed class BSConstraintHinge : BSConstraint
                     Vector3 pivotInA, Vector3 pivotInB,
                     Vector3 axisInA, Vector3 axisInB,
                     bool useLinearReferenceFrameA, bool disableCollisionsBetweenLinkedBodies)
+        : base(world)
     {
-        m_world = world;
         m_body1 = obj1;
         m_body2 = obj2;
-        m_constraint = new BulletConstraint(
-                            BulletSimAPI.CreateHingeConstraint2(m_world.ptr, m_body1.ptr, m_body2.ptr,
-                                pivotInA, pivotInB,
-                                axisInA, axisInB,
-                                useLinearReferenceFrameA, disableCollisionsBetweenLinkedBodies));
+        m_constraint = PhysicsScene.PE.CreateHingeConstraint(world, obj1, obj2,
+                                pivotInA, pivotInB, axisInA, axisInB, 
+                                useLinearReferenceFrameA, disableCollisionsBetweenLinkedBodies);
         m_enabled = true;
     }
 

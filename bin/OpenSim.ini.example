@@ -787,8 +787,9 @@
     ;; Allow the use of os* functions (some are dangerous)
     ; AllowOSFunctions = false
 
-    ;# {AllowLightShareFunctions} {Enabled:true [LightShare]enable_windlight:true} {Allow LightShare functions?} {true false} true
-    ; Allow the user of LightShare functions
+    ;# {AllowLightShareFunctions} {Enabled:false [LightShare]enable_windlight:true} {Allow LightShare functions?} {true false} false
+    ; Allow the use of LightShare functions.
+    ; The setting enable_windlight = true must also be enabled in the [LightShare] section.
     ; AllowLightShareFunctions = false
 
     ;# {OSFunctionThreatLevel} {Enabled:true AllowOSFunctions:true} {OSFunction threat level? (DANGEROUS!)} {None VeryLow Low Moderate High VeryHigh Severe} VeryLow

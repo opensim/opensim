@@ -37,6 +37,7 @@ public abstract class BSConstraint : IDisposable
     private static string LogHeader = "[BULLETSIM CONSTRAINT]";
 
     protected BulletWorld m_world;
+    protected BSScene PhysicsScene;
     protected BulletBody m_body1;
     protected BulletBody m_body2;
     protected BulletConstraint m_constraint;
@@ -48,8 +49,10 @@ public abstract class BSConstraint : IDisposable
     public abstract ConstraintType Type { get; }
     public bool IsEnabled { get { return m_enabled; } }
 
-    public BSConstraint()
+    public BSConstraint(BulletWorld world)
     {
+        m_world = world;
+        PhysicsScene = m_world.physicsScene;
     }
 
     public virtual void Dispose()
@@ -59,11 +62,11 @@ public abstract class BSConstraint : IDisposable
             m_enabled = false;
             if (m_constraint.HasPhysicalConstraint)
             {
-                bool success = BulletSimAPI.DestroyConstraint2(m_world.ptr, m_constraint.ptr);
+                bool success = PhysicsScene.PE.DestroyConstraint(m_world, m_constraint);
                 m_world.physicsScene.DetailLog("{0},BSConstraint.Dispose,taint,id1={1},body1={2},id2={3},body2={4},success={5}",
                                     BSScene.DetailLogZero,
-                                    m_body1.ID, m_body1.ptr.ToString("X"),
-                                    m_body2.ID, m_body2.ptr.ToString("X"),
+                                    m_body1.ID, m_body1.AddrString,
+                                    m_body2.ID, m_body2.AddrString,
                                     success);
                 m_constraint.Clear();
             }
@@ -74,7 +77,7 @@ public abstract class BSConstraint : IDisposable
     {
         bool ret = false;
         if (m_enabled)
-            ret = BulletSimAPI.SetLinearLimits2(m_constraint.ptr, low, high);
+            ret = PhysicsScene.PE.SetLinearLimits(m_constraint, low, high);
         return ret;
     }
 
@@ -82,7 +85,7 @@ public abstract class BSConstraint : IDisposable
     {
         bool ret = false;
         if (m_enabled)
-            ret = BulletSimAPI.SetAngularLimits2(m_constraint.ptr, low, high);
+            ret = PhysicsScene.PE.SetAngularLimits(m_constraint, low, high);
         return ret;
     }
 
@@ -91,7 +94,7 @@ public abstract class BSConstraint : IDisposable
         bool ret = false;
         if (m_enabled)
         {
-            BulletSimAPI.SetConstraintNumSolverIterations2(m_constraint.ptr, cnt);
+            PhysicsScene.PE.SetConstraintNumSolverIterations(m_constraint, cnt);
             ret = true;
         }
         return ret;
@@ -103,7 +106,7 @@ public abstract class BSConstraint : IDisposable
         if (m_enabled)
         {
             // Recompute the internal transforms
-            BulletSimAPI.CalculateTransforms2(m_constraint.ptr);
+            PhysicsScene.PE.CalculateTransforms(m_constraint);
             ret = true;
         }
         return ret;
@@ -122,7 +125,7 @@ public abstract class BSConstraint : IDisposable
                 // Setting an object's mass to zero (making it static like when it's selected)
                 //     automatically disables the constraints.
                 // If the link is enabled, be sure to set the constraint itself to enabled.
-                BulletSimAPI.SetConstraintEnable2(m_constraint.ptr, BSParam.NumericBool(true));
+                PhysicsScene.PE.SetConstraintEnable(m_constraint, BSParam.NumericBool(true));
             }
             else
             {
