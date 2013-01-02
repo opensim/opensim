@@ -2579,7 +2579,16 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             if (retMethod != null)
             {
-                m_rayCastManager.QueueRequest(position, direction, length, retMethod);
+                ODERayRequest req = new ODERayRequest();
+                req.geom = IntPtr.Zero;
+                req.callbackMethod = retMethod;
+                req.length = length;
+                req.Normal = direction;
+                req.Origin = position;
+                req.Count = 0;
+                req.filter = RayFilterFlags.All;
+
+                m_rayCastManager.QueueRequest(req);
             }
         }
 
@@ -2587,29 +2596,51 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             if (retMethod != null)
             {
-                m_rayCastManager.QueueRequest(position, direction, length, Count, retMethod);
+                ODERayRequest req = new ODERayRequest();
+                req.geom = IntPtr.Zero;
+                req.callbackMethod = retMethod;
+                req.length = length;
+                req.Normal = direction;
+                req.Origin = position;
+                req.Count = Count;
+                req.filter = RayFilterFlags.All;
+
+                m_rayCastManager.QueueRequest(req);
             }
         }
 
-        // don't like this
+       
         public override List<ContactResult> RaycastWorld(Vector3 position, Vector3 direction, float length, int Count)
         {
-            ContactResult[] ourResults = null;
+            List<ContactResult> ourresults = new List<ContactResult>();
+            object SyncObject = new object();
+
             RayCallback retMethod = delegate(List<ContactResult> results)
             {
-                ourResults = new ContactResult[results.Count];
-                results.CopyTo(ourResults, 0);
+                lock (SyncObject)
+                {
+                    ourresults = results;
+                    Monitor.PulseAll(SyncObject);
+                }
             };
-            int waitTime = 0;
-            m_rayCastManager.QueueRequest(position, direction, length, Count, retMethod);
-            while (ourResults == null && waitTime < 1000)
+
+            ODERayRequest req = new ODERayRequest();
+            req.geom = IntPtr.Zero;
+            req.callbackMethod = retMethod;
+            req.length = length;
+            req.Normal = direction;
+            req.Origin = position;
+            req.Count = Count;
+            req.filter = RayFilterFlags.All;
+
+            lock (SyncObject)
             {
-                Thread.Sleep(1);
-                waitTime++;
+                m_rayCastManager.QueueRequest(req);
+                if (!Monitor.Wait(SyncObject, 500))
+                    return null;
+                else
+                    return ourresults;
             }
-            if (ourResults == null)
-                return new List<ContactResult>();
-            return new List<ContactResult>(ourResults);
         }
 
         public override bool SuportsRaycastWorldFiltered()
@@ -2631,9 +2662,18 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
             };
 
+            ODERayRequest req = new ODERayRequest();
+            req.geom = IntPtr.Zero;
+            req.callbackMethod = retMethod;
+            req.length = length;
+            req.Normal = direction;
+            req.Origin = position;
+            req.Count = Count;
+            req.filter = filter;
+
             lock (SyncObject)
             {
-                m_rayCastManager.QueueRequest(position, direction, length, Count,filter, retMethod);
+                m_rayCastManager.QueueRequest(req);
                 if (!Monitor.Wait(SyncObject, 500))
                     return null;
                 else
@@ -2641,73 +2681,163 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
-        public override void RaycastActor(PhysicsActor actor, Vector3 position, Vector3 direction, float length, RaycastCallback retMethod)
-        {
-            if (retMethod != null && actor !=null)
-            {
-                IntPtr geom;
-                if (actor is OdePrim)
-                    geom = ((OdePrim)actor).prim_geom;
-                else if (actor is OdeCharacter)
-                    geom = ((OdePrim)actor).prim_geom;
-                else
-                    return;
-                if (geom == IntPtr.Zero)
-                    return;
-                m_rayCastManager.QueueRequest(geom, position, direction, length, retMethod);
-            }
-        }
-
-        public override void RaycastActor(PhysicsActor actor, Vector3 position, Vector3 direction, float length, int Count, RayCallback retMethod)
-        {
-            if (retMethod != null && actor != null)
-            {
-                IntPtr geom;
-                if (actor is OdePrim)
-                    geom = ((OdePrim)actor).prim_geom;
-                else if (actor is OdeCharacter)
-                    geom = ((OdePrim)actor).prim_geom;
-                else
-                    return;
-                if (geom == IntPtr.Zero)
-                    return;
-
-                m_rayCastManager.QueueRequest(geom,position, direction, length, Count, retMethod);
-            }
-        }
-       
         public override List<ContactResult> RaycastActor(PhysicsActor actor, Vector3 position, Vector3 direction, float length, int Count, RayFilterFlags flags)
         {
+            if (actor == null)
+                return new List<ContactResult>();
+
+            IntPtr geom;
+            if (actor is OdePrim)
+                geom = ((OdePrim)actor).prim_geom;
+            else if (actor is OdeCharacter)
+                geom = ((OdePrim)actor).prim_geom;
+            else
+                return new List<ContactResult>();
+
+            if (geom == IntPtr.Zero)
+                return new List<ContactResult>();
+
+            List<ContactResult> ourResults = null;
+            object SyncObject = new object();
+
+            RayCallback retMethod = delegate(List<ContactResult> results)
+            {
+                lock (SyncObject)
+                {
+                    ourResults = results;
+                    Monitor.PulseAll(SyncObject);
+                }
+            };
+
+            ODERayRequest req = new ODERayRequest();
+            req.geom = geom;
+            req.callbackMethod = retMethod;
+            req.length = length;
+            req.Normal = direction;
+            req.Origin = position;
+            req.Count = Count;
+            req.filter = flags;
+
+            lock (SyncObject)
+            {
+                m_rayCastManager.QueueRequest(req);
+                if (!Monitor.Wait(SyncObject, 500))
+                    return new List<ContactResult>();
+            }
+
+            if (ourResults == null)
+                return new List<ContactResult>();
+            return ourResults;
+        }
+
+        public override List<ContactResult> BoxProbe(Vector3 position, Vector3 size, Quaternion orientation, int Count, RayFilterFlags flags)
+        {
+            List<ContactResult> ourResults = null;
+            object SyncObject = new object();
+
+            ProbeBoxCallback retMethod = delegate(List<ContactResult> results)
+            {
+                lock (SyncObject)
+                {
+                    ourResults = results;
+                    Monitor.PulseAll(SyncObject);
+                }
+            };
+
+            ODERayRequest req = new ODERayRequest();
+            req.geom = IntPtr.Zero;
+            req.callbackMethod = retMethod;
+            req.Normal = size;
+            req.Origin = position;
+            req.orientation = orientation;
+            req.Count = Count;
+            req.filter = flags;
+
+            lock (SyncObject)
+            {
+                m_rayCastManager.QueueRequest(req);
+                if (!Monitor.Wait(SyncObject, 500))
+                    return new List<ContactResult>();
+            }
+
+            if (ourResults == null)
+                return new List<ContactResult>();
+            return ourResults;
+        }
+
+        public override List<ContactResult> SphereProbe(Vector3 position, float radius, int Count, RayFilterFlags flags)
+        {
+            List<ContactResult> ourResults = null;
+            object SyncObject = new object();
+
+            ProbeSphereCallback retMethod = delegate(List<ContactResult> results)
+            {
+                ourResults = results;
+                Monitor.PulseAll(SyncObject);
+            };
+
+            ODERayRequest req = new ODERayRequest();
+            req.geom = IntPtr.Zero;
+            req.callbackMethod = retMethod;
+            req.length = radius;
+            req.Origin = position;
+            req.Count = Count;
+            req.filter = flags;
+
+
+            lock (SyncObject)
+            {
+                m_rayCastManager.QueueRequest(req);
+                if (!Monitor.Wait(SyncObject, 500))
+                    return new List<ContactResult>();
+            }
+
+            if (ourResults == null)
+                return new List<ContactResult>();
+            return ourResults;
+        }
+
+        public override List<ContactResult> PlaneProbe(PhysicsActor actor, Vector4 plane, int Count, RayFilterFlags flags)
+        {
+            IntPtr geom = IntPtr.Zero;;
+
             if (actor != null)
             {
-                IntPtr geom;
                 if (actor is OdePrim)
                     geom = ((OdePrim)actor).prim_geom;
                 else if (actor is OdeCharacter)
                     geom = ((OdePrim)actor).prim_geom;
-                else
-                    return new List<ContactResult>();
-                if (geom == IntPtr.Zero)
-                    return new List<ContactResult>();
-
-                ContactResult[] ourResults = null;
-                RayCallback retMethod = delegate(List<ContactResult> results)
-                {
-                    ourResults = new ContactResult[results.Count];
-                    results.CopyTo(ourResults, 0);
-                };
-                int waitTime = 0;
-                m_rayCastManager.QueueRequest(geom,position, direction, length, Count, flags, retMethod);
-                while (ourResults == null && waitTime < 1000)
-                {
-                    Thread.Sleep(1);
-                    waitTime++;
-                }
-                if (ourResults == null)
-                    return new List<ContactResult>();
-                return new List<ContactResult>(ourResults);
             }
-            return new List<ContactResult>();
+
+            List<ContactResult> ourResults = null;
+            object SyncObject = new object();
+
+            ProbePlaneCallback retMethod = delegate(List<ContactResult> results)
+            {
+                ourResults = results;
+                Monitor.PulseAll(SyncObject);
+            };
+
+            ODERayRequest req = new ODERayRequest();
+            req.geom = geom;
+            req.callbackMethod = retMethod;
+            req.length = plane.W;
+            req.Normal.X = plane.X;
+            req.Normal.Y = plane.Y;
+            req.Normal.Z = plane.Z;
+            req.Count = Count;
+            req.filter = flags;
+
+            lock (SyncObject)
+            {
+                m_rayCastManager.QueueRequest(req);
+                if (!Monitor.Wait(SyncObject, 500))
+                    return new List<ContactResult>();
+            }
+
+            if (ourResults == null)
+                return new List<ContactResult>();
+            return ourResults;
         }
 
         public override int SitAvatar(PhysicsActor actor, Vector3 AbsolutePosition, Vector3 CameraPosition, Vector3 offset, Vector3 AvatarSize, SitAvatarCallback PhysicsSitResponse)

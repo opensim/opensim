@@ -2280,8 +2280,10 @@ namespace OpenSim.Region.Framework.Scenes
 
             ParentPart = part;
             ParentID = part.LocalId;
-
-            Animator.TrySetMovementAnimation("SIT");
+            if(status == 3)
+                Animator.TrySetMovementAnimation("SIT_GROUND");
+            else
+                Animator.TrySetMovementAnimation("SIT");
             SendAvatarDataToAllAgents();
 
             part.ParentGroup.TriggerScriptChangedEvent(Changed.LINK);

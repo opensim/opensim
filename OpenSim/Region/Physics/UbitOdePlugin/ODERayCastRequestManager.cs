@@ -56,8 +56,11 @@ namespace OpenSim.Region.Physics.OdePlugin
         private OdeScene m_scene;
 
         IntPtr ray; // the ray. we only need one for our lifetime
+        IntPtr Sphere;
+        IntPtr Box;
+        IntPtr Plane;
 
-        private const int ColisionContactGeomsPerTest = 5;
+        private int CollisionContactGeomsPerTest = 25;
         private const int DefaultMaxCount = 25;
         private const int MaxTimePerCallMS = 30;
 
@@ -65,6 +68,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// ODE near callback delegate
         /// </summary>
         private d.NearCallback nearCallback;
+        private d.NearCallback nearProbeCallback;
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private List<ContactResult> m_contactResults = new List<ContactResult>();
         private RayFilterFlags CurrentRayFilter;
@@ -74,169 +78,21 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             m_scene = pScene;
             nearCallback = near;
+            nearProbeCallback = nearProbe;
             ray = d.CreateRay(IntPtr.Zero, 1.0f);
-            d.GeomSetCategoryBits(ray,0);
+            d.GeomSetCategoryBits(ray, 0);
+            Box = d.CreateBox(IntPtr.Zero, 1.0f, 1.0f, 1.0f);
+            d.GeomSetCategoryBits(Box, 0);
+            Sphere = d.CreateSphere(IntPtr.Zero,1.0f);
+            d.GeomSetCategoryBits(Sphere, 0);
+            Plane = d.CreatePlane(IntPtr.Zero, 0f,0f,1f,1f);
+            d.GeomSetCategoryBits(Sphere, 0);
         }
 
-        /// <summary>
-        /// Queues request for a raycast to all world 
-        /// </summary>
-        /// <param name="position">Origin of Ray</param>
-        /// <param name="direction">Ray direction</param>
-        /// <param name="length">Ray length</param>
-        /// <param name="retMethod">Return method to send the results</param>
-        public void QueueRequest(Vector3 position, Vector3 direction, float length, RayCallback retMethod)
+        public void QueueRequest(ODERayRequest req)
         {
-            ODERayRequest req = new ODERayRequest();
-            req.geom = IntPtr.Zero;
-            req.callbackMethod = retMethod;
-            req.Count = DefaultMaxCount;
-            req.length = length;
-            req.Normal = direction;
-            req.Origin = position;
-            req.filter = RayFilterFlags.AllPrims;
-
-            m_PendingRequests.Enqueue(req);
-        }
-
-        /// <summary>
-        /// Queues request for a raycast to particular part
-        /// </summary>
-        /// <param name="position">Origin of Ray</param>
-        /// <param name="direction">Ray direction</param>
-        /// <param name="length">Ray length</param>
-        /// <param name="retMethod">Return method to send the results</param>
-        public void QueueRequest(IntPtr geom, Vector3 position, Vector3 direction, float length, RayCallback retMethod)
-        {
-            ODERayRequest req = new ODERayRequest();
-            req.geom = geom;
-            req.callbackMethod = retMethod;
-            req.length = length;
-            req.Normal = direction;
-            req.Origin = position;
-            req.Count = DefaultMaxCount;
-            req.filter = RayFilterFlags.AllPrims;
-
-            m_PendingRequests.Enqueue(req);
-        }
-
-        public void QueueRequest(Vector3 position, Vector3 direction, float length, RaycastCallback retMethod)
-        {
-            ODERayRequest req = new ODERayRequest();
-            req.geom = IntPtr.Zero;
-            req.callbackMethod = retMethod;
-            req.Count = DefaultMaxCount;
-            req.length = length;
-            req.Normal = direction;
-            req.Origin = position;
-            req.filter = RayFilterFlags.AllPrims | RayFilterFlags.land;
-
-            m_PendingRequests.Enqueue(req);
-        }
-
-        public void QueueRequest(IntPtr geom, Vector3 position, Vector3 direction, float length, RaycastCallback retMethod)
-        {
-            ODERayRequest req = new ODERayRequest();
-            req.geom = geom;
-            req.callbackMethod = retMethod;
-            req.length = length;
-            req.Normal = direction;
-            req.Origin = position;
-            req.Count = DefaultMaxCount;
-            req.filter = RayFilterFlags.AllPrims;
-
-            m_PendingRequests.Enqueue(req);
-        }
-
-        /// <summary>
-        /// Queues a raycast
-        /// </summary>
-        /// <param name="position">Origin of Ray</param>
-        /// <param name="direction">Ray normal</param>
-        /// <param name="length">Ray length</param>
-        /// <param name="count"></param>
-        /// <param name="retMethod">Return method to send the results</param>
-        public void QueueRequest(Vector3 position, Vector3 direction, float length, int count, RayCallback retMethod)
-        {
-            ODERayRequest req = new ODERayRequest();
-            req.geom = IntPtr.Zero;
-            req.callbackMethod = retMethod;
-            req.length = length;
-            req.Normal = direction;
-            req.Origin = position;
-            req.Count = count;
-            req.filter = RayFilterFlags.AllPrims;
-
-            m_PendingRequests.Enqueue(req);
-        }
-
-
-        public void QueueRequest(Vector3 position, Vector3 direction, float length, int count,RayFilterFlags filter , RayCallback retMethod)
-        {
-            ODERayRequest req = new ODERayRequest();
-            req.geom = IntPtr.Zero;
-            req.callbackMethod = retMethod;
-            req.length = length;
-            req.Normal = direction;
-            req.Origin = position;
-            req.Count = count;
-            req.filter = filter;
-
-            m_PendingRequests.Enqueue(req);
-        }
-
-        public void QueueRequest(IntPtr geom, Vector3 position, Vector3 direction, float length, int count, RayCallback retMethod)
-        {
-            ODERayRequest req = new ODERayRequest();
-            req.geom = geom;
-            req.callbackMethod = retMethod;
-            req.length = length;
-            req.Normal = direction;
-            req.Origin = position;
-            req.Count = count;
-            req.filter = RayFilterFlags.AllPrims;
-
-            m_PendingRequests.Enqueue(req);
-        }
-
-        public void QueueRequest(IntPtr geom, Vector3 position, Vector3 direction, float length, int count,RayFilterFlags flags, RayCallback retMethod)
-        {
-            ODERayRequest req = new ODERayRequest();
-            req.geom = geom;
-            req.callbackMethod = retMethod;
-            req.length = length;
-            req.Normal = direction;
-            req.Origin = position;
-            req.Count = count;
-            req.filter = flags;
-
-            m_PendingRequests.Enqueue(req);
-        }
-
-        public void QueueRequest(Vector3 position, Vector3 direction, float length, int count, RaycastCallback retMethod)
-        {
-            ODERayRequest req = new ODERayRequest();
-            req.geom = IntPtr.Zero;
-            req.callbackMethod = retMethod;
-            req.length = length;
-            req.Normal = direction;
-            req.Origin = position;
-            req.Count = count;
-            req.filter = RayFilterFlags.AllPrims;
-
-            m_PendingRequests.Enqueue(req);
-        }
-
-        public void QueueRequest(IntPtr geom, Vector3 position, Vector3 direction, float length, int count, RaycastCallback retMethod)
-        {
-            ODERayRequest req = new ODERayRequest();
-            req.geom = geom;
-            req.callbackMethod = retMethod;
-            req.length = length;
-            req.Normal = direction;
-            req.Origin = position;
-            req.Count = count;
-            req.filter = RayFilterFlags.AllPrims;
+            if (req.Count == 0)
+                req.Count = DefaultMaxCount;
 
             m_PendingRequests.Enqueue(req);
         }
@@ -272,21 +128,64 @@ namespace OpenSim.Region.Physics.OdePlugin
                     CurrentRayFilter = req.filter;
                     CurrentMaxCount = req.Count;
 
+                    CollisionContactGeomsPerTest = req.Count & 0xffff;
+
                     closestHit = ((CurrentRayFilter & RayFilterFlags.ClosestHit) == 0 ? 0 : 1);
                     backfacecull = ((CurrentRayFilter & RayFilterFlags.BackFaceCull) == 0 ? 0 : 1);
 
-                    d.GeomRaySetLength(ray, req.length);
-                    d.GeomRaySet(ray, req.Origin.X, req.Origin.Y, req.Origin.Z, req.Normal.X, req.Normal.Y, req.Normal.Z);
-                    d.GeomRaySetParams(ray, 0, backfacecull);
-                    d.GeomRaySetClosestHit(ray, closestHit);
+                    if (req.callbackMethod is ProbeBoxCallback)
+                    {
+                        if (CollisionContactGeomsPerTest > 80)
+                            CollisionContactGeomsPerTest = 80;
+                        d.GeomBoxSetLengths(Box, req.Normal.X, req.Normal.Y, req.Normal.Z);
+                        d.GeomSetPosition(Box, req.Origin.X, req.Origin.Y, req.Origin.Z);
+                        d.Quaternion qtmp;
+                        qtmp.X = req.orientation.X;
+                        qtmp.Y = req.orientation.Y;
+                        qtmp.Z = req.orientation.Z;
+                        qtmp.W = req.orientation.W;
+                        d.GeomSetOffsetWorldQuaternion(Box, ref qtmp);
+                    }
+                    else if (req.callbackMethod is ProbeSphereCallback)
+                    {
+                        if (CollisionContactGeomsPerTest > 80)
+                            CollisionContactGeomsPerTest = 80;
 
-                    if (req.callbackMethod is RaycastCallback)
-                        // if we only want one get only one per colision pair saving memory
-                        CurrentRayFilter |= RayFilterFlags.ClosestHit;
+                        d.GeomSphereSetRadius(Sphere, req.length);
+                        d.GeomSetPosition(Sphere, req.Origin.X, req.Origin.Y, req.Origin.Z);
+                    }
+                    else if (req.callbackMethod is ProbePlaneCallback)
+                    {
+                        if (CollisionContactGeomsPerTest > 80)
+                            CollisionContactGeomsPerTest = 80;
+
+                        d.GeomPlaneSetParams(Plane, req.Normal.X, req.Normal.Y, req.Normal.Z, req.length);
+                    }
+
+                    else
+                    {
+                        if (CollisionContactGeomsPerTest > 25)
+                            CollisionContactGeomsPerTest = 25;
+
+                        d.GeomRaySetLength(ray, req.length);
+                        d.GeomRaySet(ray, req.Origin.X, req.Origin.Y, req.Origin.Z, req.Normal.X, req.Normal.Y, req.Normal.Z);
+                        d.GeomRaySetParams(ray, 0, backfacecull);
+                        d.GeomRaySetClosestHit(ray, closestHit);
+
+                        if (req.callbackMethod is RaycastCallback)
+                            // if we only want one get only one per Collision pair saving memory
+                            CurrentRayFilter |= RayFilterFlags.ClosestHit;
+                    }
+
+                    if ((CurrentRayFilter & RayFilterFlags.ContactsUnImportant) != 0)
+                        unchecked
+                        {
+                            CollisionContactGeomsPerTest |= (int)d.CONTACTS_UNIMPORTANT;
+                        }
 
                     if (req.geom == IntPtr.Zero)
                     {
-                        // translate ray filter to colision flags
+                        // translate ray filter to Collision flags
                         catflags = 0;
                         if ((CurrentRayFilter & RayFilterFlags.volumedtc) != 0)
                             catflags |= CollisionCategories.VolumeDtc;
@@ -303,15 +202,48 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                         if (catflags != 0)
                         {
-                            d.GeomSetCollideBits(ray, (uint)catflags);
-                            doSpaceRay(req);
+                            if (req.callbackMethod is ProbeBoxCallback)
+                            {
+                                catflags |= CollisionCategories.Space;
+                                d.GeomSetCollideBits(Box, (uint)catflags);
+                                d.GeomSetCategoryBits(Box, (uint)catflags);
+                                doProbe(req, Box);
+                            }
+                            else if (req.callbackMethod is ProbeSphereCallback)
+                            {
+                                catflags |= CollisionCategories.Space;
+                                d.GeomSetCollideBits(Sphere, (uint)catflags);
+                                d.GeomSetCategoryBits(Sphere, (uint)catflags);
+                                doProbe(req, Sphere);
+                            }
+                            else if (req.callbackMethod is ProbePlaneCallback)
+                            {
+                                catflags |= CollisionCategories.Space;
+                                d.GeomSetCollideBits(Plane, (uint)catflags);
+                                d.GeomSetCategoryBits(Plane, (uint)catflags);
+                                doPlane(req);
+                            }
+                            else
+                            {
+                                d.GeomSetCollideBits(ray, (uint)catflags);
+                                doSpaceRay(req);
+                            }
                         }
                     }
                     else
                     {
                         // if we select a geom don't use filters
-                        d.GeomSetCollideBits(ray, (uint)CollisionCategories.All);
-                        doGeomRay(req);
+
+                        if (req.callbackMethod is ProbePlaneCallback)
+                        {
+                            d.GeomSetCollideBits(Plane, (uint)CollisionCategories.All);
+                            doPlane(req);
+                        }
+                        else
+                        {
+                            d.GeomSetCollideBits(ray, (uint)CollisionCategories.All);
+                            doGeomRay(req);
+                        }
                     }
                 }
 
@@ -396,6 +328,61 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
+        private void doProbe(ODERayRequest req, IntPtr probe)
+        {
+            // Collide tests
+            if ((CurrentRayFilter & FilterActiveSpace) != 0)
+            {
+                d.SpaceCollide2(probe, m_scene.ActiveSpace, IntPtr.Zero, nearCallback);
+                d.SpaceCollide2(probe, m_scene.CharsSpace, IntPtr.Zero, nearCallback);
+            }
+            if ((CurrentRayFilter & FilterStaticSpace) != 0 && (m_contactResults.Count < CurrentMaxCount))
+                d.SpaceCollide2(probe, m_scene.StaticSpace, IntPtr.Zero, nearCallback);
+            if ((CurrentRayFilter & RayFilterFlags.land) != 0 && (m_contactResults.Count < CurrentMaxCount))
+                d.SpaceCollide2(probe, m_scene.GroundSpace, IntPtr.Zero, nearCallback);
+
+            List<ContactResult> cresult = new List<ContactResult>(m_contactResults.Count);
+            lock (m_PendingRequests)
+            {
+                cresult.AddRange(m_contactResults);
+                m_contactResults.Clear();
+            }
+            if (req.callbackMethod is ProbeBoxCallback)
+                ((ProbeBoxCallback)req.callbackMethod)(cresult);
+            else if (req.callbackMethod is ProbeSphereCallback)
+                ((ProbeSphereCallback)req.callbackMethod)(cresult);
+        }
+
+        private void doPlane(ODERayRequest req)
+        {
+            // Collide tests
+            if (req.geom == IntPtr.Zero)
+            {
+                if ((CurrentRayFilter & FilterActiveSpace) != 0)
+                {
+                    d.SpaceCollide2(Plane, m_scene.ActiveSpace, IntPtr.Zero, nearCallback);
+                    d.SpaceCollide2(Plane, m_scene.CharsSpace, IntPtr.Zero, nearCallback);
+                }
+                if ((CurrentRayFilter & FilterStaticSpace) != 0 && (m_contactResults.Count < CurrentMaxCount))
+                    d.SpaceCollide2(Plane, m_scene.StaticSpace, IntPtr.Zero, nearCallback);
+                if ((CurrentRayFilter & RayFilterFlags.land) != 0 && (m_contactResults.Count < CurrentMaxCount))
+                    d.SpaceCollide2(Plane, m_scene.GroundSpace, IntPtr.Zero, nearCallback);
+            }
+            else
+            {
+                d.SpaceCollide2(Plane, req.geom, IntPtr.Zero, nearCallback);
+            }
+
+            List<ContactResult> cresult = new List<ContactResult>(m_contactResults.Count);
+            lock (m_PendingRequests)
+            {
+                cresult.AddRange(m_contactResults);
+                m_contactResults.Clear();
+            }
+
+            ((ProbePlaneCallback)req.callbackMethod)(cresult);
+        }
+
         /// <summary>
         /// Method that actually initiates the raycast with a geom
         /// </summary>
@@ -450,7 +437,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private bool GetCurContactGeom(int index, ref d.ContactGeom newcontactgeom)
         {
             IntPtr ContactgeomsArray = m_scene.ContactgeomsArray;
-            if (ContactgeomsArray == IntPtr.Zero || index >= ColisionContactGeomsPerTest)
+            if (ContactgeomsArray == IntPtr.Zero || index >= CollisionContactGeomsPerTest)
                 return false;
 
             IntPtr contactptr = new IntPtr(ContactgeomsArray.ToInt64() + (Int64)(index * d.ContactGeom.unmanagedSizeOf));
@@ -483,7 +470,157 @@ namespace OpenSim.Region.Physics.OdePlugin
             int count = 0;
             try
             {
-                count = d.CollidePtr(g1, g2, ColisionContactGeomsPerTest, m_scene.ContactgeomsArray, d.ContactGeom.unmanagedSizeOf);
+                count = d.CollidePtr(g1, g2, CollisionContactGeomsPerTest, m_scene.ContactgeomsArray, d.ContactGeom.unmanagedSizeOf);
+            }
+            catch (Exception e)
+            {
+                m_log.WarnFormat("[PHYSICS Ray]: Unable to collide test an object: {0}", e.Message);
+                return;
+            }
+
+            if (count == 0)
+                return;
+
+            uint cat1 = d.GeomGetCategoryBits(g1);
+            uint cat2 = d.GeomGetCategoryBits(g2);
+            uint col1 = d.GeomGetCollideBits(g1);
+            uint col2 = d.GeomGetCollideBits(g2);
+
+            
+            uint ID = 0;
+            PhysicsActor p2 = null;
+
+            m_scene.actor_name_map.TryGetValue(g2, out p2);
+
+            if (p2 == null)
+                return;
+
+            switch (p2.PhysicsActorType)
+            {
+                case (int)ActorTypes.Prim:
+
+                    RayFilterFlags thisFlags;
+
+                    if (p2.IsPhysical)
+                        thisFlags = RayFilterFlags.physical;
+                    else
+                        thisFlags = RayFilterFlags.nonphysical;
+
+                    if (p2.Phantom)
+                        thisFlags |= RayFilterFlags.phantom;
+
+                    if (p2.IsVolumeDtc)
+                        thisFlags |= RayFilterFlags.volumedtc;
+
+                    if ((thisFlags & CurrentRayFilter) == 0)
+                        return;
+
+                    ID = ((OdePrim)p2).LocalID;
+                    break;
+
+                case (int)ActorTypes.Agent:
+
+                    if ((CurrentRayFilter & RayFilterFlags.agent) == 0)
+                        return;
+                    else
+                        ID = ((OdeCharacter)p2).LocalID;
+                    break;
+
+                case (int)ActorTypes.Ground:
+
+                    if ((CurrentRayFilter & RayFilterFlags.land) == 0)
+                        return;
+                    break;
+
+                case (int)ActorTypes.Water:
+
+                    if ((CurrentRayFilter & RayFilterFlags.water) == 0)
+                        return;
+                    break;
+
+                default:
+                    break;
+            }
+
+            d.ContactGeom curcontact = new d.ContactGeom();
+
+            // closestHit for now only works for meshs, so must do it for others
+            if ((CurrentRayFilter & RayFilterFlags.ClosestHit) == 0)
+            {
+                // Loop all contacts, build results.
+                for (int i = 0; i < count; i++)
+                {
+                    if (!GetCurContactGeom(i, ref curcontact))
+                        break;
+
+                    ContactResult collisionresult = new ContactResult();
+                    collisionresult.ConsumerID = ID;
+                    collisionresult.Pos = new Vector3(curcontact.pos.X, curcontact.pos.Y, curcontact.pos.Z);
+                    collisionresult.Depth = curcontact.depth;
+                    collisionresult.Normal = new Vector3(curcontact.normal.X, curcontact.normal.Y,
+                                                         curcontact.normal.Z);
+                    lock (m_contactResults)
+                    {
+                        m_contactResults.Add(collisionresult);
+                        if (m_contactResults.Count >= CurrentMaxCount)
+                            return;
+                    }
+                }
+            }
+            else
+            {
+                // keep only closest contact
+                ContactResult collisionresult = new ContactResult();
+                collisionresult.ConsumerID = ID;
+                collisionresult.Depth = float.MaxValue;
+
+                for (int i = 0; i < count; i++)
+                {
+                    if (!GetCurContactGeom(i, ref curcontact))
+                        break;
+
+                    if (curcontact.depth < collisionresult.Depth)
+                    {
+                        collisionresult.Pos = new Vector3(curcontact.pos.X, curcontact.pos.Y, curcontact.pos.Z);
+                        collisionresult.Depth = curcontact.depth;
+                        collisionresult.Normal = new Vector3(curcontact.normal.X, curcontact.normal.Y,
+                                                             curcontact.normal.Z);
+                    }
+                }
+
+                if (collisionresult.Depth != float.MaxValue)
+                {
+                    lock (m_contactResults)
+                        m_contactResults.Add(collisionresult);
+                }
+            }
+        }
+
+        private void nearProbe(IntPtr space, IntPtr g1, IntPtr g2)
+        {
+            if (g1 == IntPtr.Zero || g1 == g2)
+                return;
+
+            if (m_contactResults.Count >= CurrentMaxCount)
+                return;
+
+            if (d.GeomIsSpace(g1))
+            {
+                try
+                {
+                    d.SpaceCollide2(g1, g2, IntPtr.Zero, nearProbeCallback);
+                }
+                catch (Exception e)
+                {
+                    m_log.WarnFormat("[PHYSICS Ray]: Unable to Space collide test an object: {0}", e.Message);
+                }
+                return;
+            }
+
+            int count = 0;
+            try
+            {
+                count = d.CollidePtr(g1, g2, CollisionContactGeomsPerTest, m_scene.ContactgeomsArray, d.ContactGeom.unmanagedSizeOf);
             }
             catch (Exception e)
             {
@@ -495,82 +632,58 @@ namespace OpenSim.Region.Physics.OdePlugin
                 return;
 
             uint ID = 0;
-            PhysicsActor p2 = null;
+            PhysicsActor p1 = null;
 
-            m_scene.actor_name_map.TryGetValue(g2, out p2);
+            m_scene.actor_name_map.TryGetValue(g1, out p1);
 
-            if (p2 == null)
-            {
-                /*
-                                string name;
-
-                                if (!m_scene.geom_name_map.TryGetValue(g2, out name))
-                                    return;
-
-                                if (name == "Terrain")
-                                {
-                                    // land colision
-                                    if ((CurrentRayFilter & RayFilterFlags.land) == 0)
-                                        return;
-                                }
-                                else if (name == "Water")
-                                {
-                                    if ((CurrentRayFilter & RayFilterFlags.water) == 0)
-                                        return;
-                                }
-                                else
-                                    return;
-                 */
+            if (p1 == null)
                 return;
-            }
-            else
+
+            switch (p1.PhysicsActorType)
             {
-                switch (p2.PhysicsActorType)
-                {
-                    case (int)ActorTypes.Prim:
+                case (int)ActorTypes.Prim:
 
-                        RayFilterFlags thisFlags;
+                    RayFilterFlags thisFlags;
 
-                        if (p2.IsPhysical)
-                            thisFlags = RayFilterFlags.physical;
-                        else
-                            thisFlags = RayFilterFlags.nonphysical;
+                    if (p1.IsPhysical)
+                        thisFlags = RayFilterFlags.physical;
+                    else
+                        thisFlags = RayFilterFlags.nonphysical;
 
-                        if (p2.Phantom)
-                            thisFlags |= RayFilterFlags.phantom;
+                    if (p1.Phantom)
+                        thisFlags |= RayFilterFlags.phantom;
 
-                        if (p2.IsVolumeDtc)
-                            thisFlags |= RayFilterFlags.volumedtc;
+                    if (p1.IsVolumeDtc)
+                        thisFlags |= RayFilterFlags.volumedtc;
 
-                        if ((thisFlags & CurrentRayFilter) == 0)
-                            return;
+                    if ((thisFlags & CurrentRayFilter) == 0)
+                        return;
 
-                        ID = ((OdePrim)p2).LocalID;
-                        break;
+                    ID = ((OdePrim)p1).LocalID;
+                    break;
 
-                    case (int)ActorTypes.Agent:
+                case (int)ActorTypes.Agent:
 
-                        if ((CurrentRayFilter & RayFilterFlags.agent) == 0)
-                            return;
-                        else
-                            ID = ((OdeCharacter)p2).LocalID;
-                        break;
+                    if ((CurrentRayFilter & RayFilterFlags.agent) == 0)
+                        return;
+                    else
+                        ID = ((OdeCharacter)p1).LocalID;
+                    break;
 
-                    case (int)ActorTypes.Ground:
+                case (int)ActorTypes.Ground:
 
-                        if ((CurrentRayFilter & RayFilterFlags.land) == 0)
-                            return;
-                        break;
+                    if ((CurrentRayFilter & RayFilterFlags.land) == 0)
+                        return;
+                    break;
 
-                    case (int)ActorTypes.Water:
+                case (int)ActorTypes.Water:
 
-                        if ((CurrentRayFilter & RayFilterFlags.water) == 0)
-                            return;
-                        break;
+                    if ((CurrentRayFilter & RayFilterFlags.water) == 0)
+                        return;
+                    break;
 
-                    default:
-                        break;
-                }
+                default:
+                    break;
             }
 
             d.ContactGeom curcontact = new d.ContactGeom();
@@ -638,6 +751,21 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.GeomDestroy(ray);
                 ray = IntPtr.Zero;
             }
+            if (Box != IntPtr.Zero)
+            {
+                d.GeomDestroy(Box);
+                Box = IntPtr.Zero;
+            }
+            if (Sphere != IntPtr.Zero)
+            {
+                d.GeomDestroy(Sphere);
+                Sphere = IntPtr.Zero;
+            }
+            if (Plane != IntPtr.Zero)
+            {
+                d.GeomDestroy(Plane);
+                Plane = IntPtr.Zero;
+            }           
         }
     }
 
@@ -650,5 +778,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         public float length;
         public object callbackMethod;
         public RayFilterFlags filter;
+        public Quaternion orientation;
     }
 }

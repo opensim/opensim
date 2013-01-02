@@ -54,6 +54,20 @@ namespace OpenSim.Region.Physics.OdePlugin
         private static Vector3 SitAjust = new Vector3(0, 0, 0.4f);
         private const RayFilterFlags RaySitFlags = RayFilterFlags.AllPrims | RayFilterFlags.ClosestHit;
 
+        private void RotAroundZ(float x, float y, ref Quaternion ori)
+        {
+            double ang = Math.Atan2(y, x);
+            ang *= 0.5d;
+            float s = (float)Math.Sin(ang);
+            float c = (float)Math.Cos(ang);
+
+            ori.X = 0;
+            ori.Y = 0;
+            ori.Z = s;
+            ori.W = c;
+        }
+
+
         public void Sit(PhysicsActor actor, Vector3 avPos, Vector3 avCameraPosition, Vector3 offset, Vector3 avOffset, SitAvatarCallback PhysicsSitResponse)
         {
             if (!m_scene.haveActor(actor) || !(actor is OdePrim) || ((OdePrim)actor).prim_geom == IntPtr.Zero)
@@ -72,7 +86,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
 
             d.AABB aabb;
-            Quaternion ori;
+            Quaternion ori = Quaternion.Identity;
             d.Quaternion qtmp;
             d.GeomCopyQuaternion(geom, out qtmp);
             Quaternion geomOri;
@@ -86,9 +100,14 @@ namespace OpenSim.Region.Physics.OdePlugin
             geomInvOri.Z = -qtmp.Z;
             geomInvOri.W = qtmp.W;
 
-            Vector3 target = geopos + offset;
-            Vector3 rayDir = target - avCameraPosition;
+            Vector3 rayDir = geopos + offset - avCameraPosition;
             float raylen = rayDir.Length();
+            if (raylen < 0.001f)
+            {
+                PhysicsSitResponse(-1, actor.LocalID, offset, Quaternion.Identity);
+                return;
+            }
+
             float t = 1 / raylen;
             rayDir.X *= t;
             rayDir.Y *= t;
@@ -98,9 +117,9 @@ namespace OpenSim.Region.Physics.OdePlugin
             List<ContactResult> rayResults;
 
             rayResults = m_scene.RaycastActor(actor, avCameraPosition, rayDir, raylen, 1, RaySitFlags);
-            if (rayResults.Count == 0 || rayResults[0].ConsumerID != actor.LocalID)
+            if (rayResults.Count == 0)
             {
-                d.GeomGetAABB(geom,out aabb);
+                d.GeomGetAABB(geom, out aabb);
                 offset = new Vector3(avOffset.X, 0, aabb.MaxZ + avOffset.Z - geopos.Z);
                 ori = geomInvOri;
                 offset *= geomInvOri;
@@ -109,44 +128,45 @@ namespace OpenSim.Region.Physics.OdePlugin
                 return;
             }
 
-
             offset = rayResults[0].Pos - geopos;
-            double ang;
-            float s;
-            float c;
 
             d.GeomClassID geoclass = d.GeomGetClass(geom);
 
             if (geoclass == d.GeomClassID.SphereClass)
             {
-                float r = d.GeomSphereGetRadius(geom);              
+                int status = 1;
+                float r = d.GeomSphereGetRadius(geom);
 
                 offset.Normalize();
                 offset *= r;
 
-                ang = Math.Atan2(offset.Y, offset.X);
-                ang *= 0.5d;
-                s = (float)Math.Sin(ang);
-                c = (float)Math.Cos(ang);
-
-                ori = new Quaternion(0, 0, s, c);
+                RotAroundZ(offset.X, offset.Y, ref ori);
 
                 if (r < 0.4f)
                 {
                     offset = new Vector3(0, 0, r);
                 }
-                else if (offset.Z < 0.4f)
+                else
                 {
-                    t = offset.Z;
-                    float rsq = r * r;
+                    if (offset.Z < 0.4f)
+                    {
+                        t = offset.Z;
+                        float rsq = r * r;
 
-                    t = 1.0f / (rsq - t * t);
-                    offset.X *= t;
-                    offset.Y *= t;
-                    offset.Z = 0.4f;
-                    t = rsq - 0.16f;
-                    offset.X *= t;
-                    offset.Y *= t;
+                        t = 1.0f / (rsq - t * t);
+                        offset.X *= t;
+                        offset.Y *= t;
+                        offset.Z = 0.4f;
+                        t = rsq - 0.16f;
+                        offset.X *= t;
+                        offset.Y *= t;
+                    }
+                    else if (r > 0.8f && offset.Z > 0.8f * r)
+                    {
+                        status = 3;
+                        avOffset.X = -avOffset.X;
+                        avOffset.Z += 0.4f;
+                    }
                 }
 
                 offset += avOffset * ori;
@@ -154,27 +174,189 @@ namespace OpenSim.Region.Physics.OdePlugin
                 ori = geomInvOri * ori;
                 offset *= geomInvOri;
 
-                PhysicsSitResponse(1, actor.LocalID, offset, ori);
+                PhysicsSitResponse(status, actor.LocalID, offset, ori);
                 return;
             }
 
-/*
-                // contact normals aren't reliable on meshs or sculpts it seems
-                Vector3 norm = rayResults[0].Normal;
+            Vector3 norm = rayResults[0].Normal;
 
-                if (norm.Z < 0)
+            if (norm.Z < -0.4f)
+            {
+                PhysicsSitResponse(0, actor.LocalID, offset, Quaternion.Identity);
+                return;
+            }
+
+            float SitNormX = -rayDir.X;
+            float SitNormY = -rayDir.Y;
+
+            Vector3 pivot = geopos + offset;
+
+            float edgeNormalX = norm.X;
+            float edgeNormalY = norm.Y;
+            float edgeDirX = -rayDir.X;
+            float edgeDirY = -rayDir.Y;
+            Vector3 edgePos = rayResults[0].Pos;
+            float edgeDist = float.MaxValue;
+
+            bool foundEdge = false;
+
+            if (norm.Z < 0.5f)
+            {
+                float rayDist = 4.0f;
+                float curEdgeDist = 0.0f;
+                pivot = geopos + offset;
+
+                for (int i = 0; i < 6; i++)
                 {
-                    PhysicsSitResponse(0, actor.LocalID, offset, Quaternion.Identity);
+                    pivot.X -= 0.005f * norm.X;
+                    pivot.Y -= 0.005f * norm.Y;
+                    pivot.Z -= 0.005f * norm.Z;
+
+                    rayDir.X = -norm.X * norm.Z;
+                    rayDir.Y = -norm.Y * norm.Z;
+                    rayDir.Z = 1.0f - norm.Z * norm.Z;
+                    rayDir.Normalize();
+
+                    rayResults = m_scene.RaycastActor(actor, pivot, rayDir, rayDist, 1, RayFilterFlags.AllPrims);
+                    if (rayResults.Count == 0)
+                        break;
+
+                    curEdgeDist += rayResults[0].Depth;
+
+                    if (Math.Abs(rayResults[0].Normal.Z) < 0.7f)
+                    {
+                        rayDist -= rayResults[0].Depth;
+                        if (rayDist < 0f)
+                            break;
+
+                        pivot = rayResults[0].Pos;
+                        norm = rayResults[0].Normal;
+                        edgeNormalX = norm.X;
+                        edgeNormalY = norm.Y;
+                        edgeDirX = rayDir.X;
+                        edgeDirY = rayDir.Y;
+                    }
+                    else
+                    {
+                        foundEdge = true;
+                        if (curEdgeDist < edgeDist)
+                        {
+                            edgeDist = curEdgeDist;
+                            edgePos = rayResults[0].Pos;
+                        }
+                        break;
+                    }
+                }
+
+                if (!foundEdge)
+                {
+                    PhysicsSitResponse(0, actor.LocalID, offset, ori);
                     return;
                 }
-*/
+                avOffset.X *= 0.5f;
+            }
 
-            ang = Math.Atan2(-rayDir.Y, -rayDir.X);
-            ang *= 0.5d;
-            s = (float)Math.Sin(ang);
-            c = (float)Math.Cos(ang);
+            else if (norm.Z > 0.866f)
+            {
+                float toCamBaseX = avCameraPosition.X - pivot.X;
+                float toCamBaseY = avCameraPosition.Y - pivot.Y;
+                float toCamX = toCamBaseX;
+                float toCamY = toCamBaseY;
 
-            ori = new Quaternion(0, 0, s, c);
+                for (int j = 0; j < 4; j++)
+                {
+                    float rayDist = 1.0f;
+                    float curEdgeDist = 0.0f;
+                    pivot = geopos + offset;
+
+                    for (int i = 0; i < 3; i++)
+                    {
+                        pivot.Z -= 0.005f;
+                        rayDir.X = toCamX;
+                        rayDir.Y = toCamY;
+                        rayDir.Z = (-toCamX * norm.X - toCamY * norm.Y) / norm.Z;
+                        rayDir.Normalize();
+
+                        rayResults = m_scene.RaycastActor(actor, pivot, rayDir, rayDist, 1, RayFilterFlags.AllPrims);
+                        if (rayResults.Count == 0)
+                            break;
+
+                        curEdgeDist += rayResults[0].Depth;
+
+                        if (rayResults[0].Normal.Z > 0.5f)
+                        {
+                            rayDist -= rayResults[0].Depth;
+                            if (rayDist < 0f)
+                                break;
+
+                            pivot = rayResults[0].Pos;
+                            norm = rayResults[0].Normal;
+                        }
+                        else
+                        {
+                            foundEdge = true;
+                            if (curEdgeDist < edgeDist)
+                            {
+                                edgeDist = curEdgeDist;
+                                edgeNormalX = rayResults[0].Normal.X;
+                                edgeNormalY = rayResults[0].Normal.Y;
+                                edgeDirX = rayDir.X;
+                                edgeDirY = rayDir.Y;
+                                edgePos = rayResults[0].Pos;
+                            }
+                            break;
+                        }
+                    }
+                    if (foundEdge && edgeDist < 0.2f)
+                        break;
+
+                    switch (j)
+                    {
+                        case 0:
+                            toCamX = -toCamBaseY;
+                            toCamY = toCamBaseX;
+                            break;
+                        case 1:
+                            toCamX = toCamBaseY;
+                            toCamY = -toCamBaseX;
+                            break;
+                        case 2:
+                            toCamX = -toCamBaseX;
+                            toCamY = -toCamBaseY;
+                            break;
+                        default:
+                            break;
+                    }
+                }
+
+                if (!foundEdge)
+                {
+                    avOffset.X = -avOffset.X;
+                    avOffset.Z += 0.4f;
+
+                    RotAroundZ(SitNormX, SitNormY, ref ori);
+
+                    offset += avOffset * ori;
+
+                    ori = geomInvOri * ori;
+                    offset *= geomInvOri;
+
+                    PhysicsSitResponse(3, actor.LocalID, offset, ori);
+                    return;
+                }
+                avOffset.X *= 0.5f;
+            }
+
+            SitNormX = edgeNormalX;
+            SitNormY = edgeNormalY;
+            offset = edgePos - geopos;
+            if (edgeDirX * SitNormX + edgeDirY * SitNormY < 0)
+            {
+                SitNormX = -SitNormX;
+                SitNormY = -SitNormY;
+            }
+
+            RotAroundZ(SitNormX, SitNormY, ref ori);
 
             offset += avOffset * ori;
 
