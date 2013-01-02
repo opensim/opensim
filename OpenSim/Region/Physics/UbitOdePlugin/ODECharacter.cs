@@ -1540,8 +1540,11 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             if (CollisionEventsThisFrame != null)
             {
-                CollisionEventsThisFrame.Clear();
-                CollisionEventsThisFrame = null;
+                lock (CollisionEventsThisFrame)
+                {
+                    CollisionEventsThisFrame.Clear();
+                    CollisionEventsThisFrame = null;
+                }
             }
             m_eventsubscription = 0;
         }
@@ -1550,8 +1553,11 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             if (CollisionEventsThisFrame == null)
                 CollisionEventsThisFrame = new CollisionEventUpdate();
-            CollisionEventsThisFrame.AddCollider(CollidedWith, contact);
-            _parent_scene.AddCollisionEventReporting(this);
+            lock (CollisionEventsThisFrame)
+            {
+                CollisionEventsThisFrame.AddCollider(CollidedWith, contact);
+                _parent_scene.AddCollisionEventReporting(this);
+            }
         }
 
         public void SendCollisions()
@@ -1559,26 +1565,29 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (CollisionEventsThisFrame == null)
                 return;
 
-            if (m_cureventsubscription < m_eventsubscription)
-                return;
-
-            m_cureventsubscription = 0;
-
-            int ncolisions = CollisionEventsThisFrame.m_objCollisionList.Count;
-
-            if (!SentEmptyCollisionsEvent || ncolisions > 0)
+            lock (CollisionEventsThisFrame)
             {
-                base.SendCollisionUpdate(CollisionEventsThisFrame);
+                if (m_cureventsubscription < m_eventsubscription)
+                    return;
 
-                if (ncolisions == 0)
+                m_cureventsubscription = 0;
+
+                int ncolisions = CollisionEventsThisFrame.m_objCollisionList.Count;
+
+                if (!SentEmptyCollisionsEvent || ncolisions > 0)
                 {
-                    SentEmptyCollisionsEvent = true;
-                    _parent_scene.RemoveCollisionEventReporting(this);
-                }
-                else
-                {
-                    SentEmptyCollisionsEvent = false;
-                    CollisionEventsThisFrame.Clear();
+                    base.SendCollisionUpdate(CollisionEventsThisFrame);
+
+                    if (ncolisions == 0)
+                    {
+                        SentEmptyCollisionsEvent = true;
+                        _parent_scene.RemoveCollisionEventReporting(this);
+                    }
+                    else
+                    {
+                        SentEmptyCollisionsEvent = false;
+                        CollisionEventsThisFrame.Clear();
+                    }
                 }
             }           
         }
