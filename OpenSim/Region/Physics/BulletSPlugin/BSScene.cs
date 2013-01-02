@@ -309,7 +309,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
                 ret = new BSAPIUnman(engineName, this);
                 break;
             case "bulletxna":
-                // ret = new BSAPIXNA(engineName, this);
+                ret = new BSAPIXNA(engineName, this);
                 break;
         }
 

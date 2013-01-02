@@ -339,10 +339,10 @@ public override bool DeleteCollisionShape(BulletWorld world, BulletShape shape)
     return BSAPICPP.DeleteCollisionShape2(worldu.ptr, shapeu.ptr);
 }
 
-public override int GetBodyType(BulletBody obj)
+public override CollisionObjectTypes GetBodyType(BulletBody obj)
 {
     BulletBodyUnman bodyu = obj as BulletBodyUnman;
-    return BSAPICPP.GetBodyType2(bodyu.ptr);
+    return (CollisionObjectTypes)BSAPICPP.GetBodyType2(bodyu.ptr);
 }
 
 public override BulletBody CreateBodyFromShape(BulletWorld world, BulletShape shape, uint id, Vector3 pos, Quaternion rot)
@@ -522,9 +522,22 @@ public override void SetForceUpdateAllAabbs(BulletWorld world, bool force)
 // btDynamicsWorld entries
 public override bool AddObjectToWorld(BulletWorld world, BulletBody obj)
 {
+    // Bullet resets several variables when an object is added to the world.
+    //   Gravity is reset to world default depending on the static/dynamic
+    //   type. Of course, the collision flags in the broadphase proxy are initialized to default.
     BulletWorldUnman worldu = world as BulletWorldUnman;
     BulletBodyUnman bodyu = obj as BulletBodyUnman;
-    return BSAPICPP.AddObjectToWorld2(worldu.ptr, bodyu.ptr);
+
+    Vector3 origGrav = BSAPICPP.GetGravity2(bodyu.ptr);
+
+    bool ret = BSAPICPP.AddObjectToWorld2(worldu.ptr, bodyu.ptr);
+
+    if (ret)
+    {
+        BSAPICPP.SetGravity2(bodyu.ptr, origGrav);
+        obj.ApplyCollisionMask(world.physicsScene);
+    }
+    return ret;
 }
 
 public override bool RemoveObjectFromWorld(BulletWorld world, BulletBody obj)
@@ -1061,7 +1074,7 @@ public override Vector3 GetAngularFactor(BulletBody obj)
     return BSAPICPP.GetAngularFactor2(bodyu.ptr);
 }
 
-public override bool IsInWorld(BulletBody obj)
+public override bool IsInWorld(BulletWorld world, BulletBody obj)
 {
     BulletBodyUnman bodyu = obj as BulletBodyUnman;
     return BSAPICPP.IsInWorld2(bodyu.ptr);
@@ -1238,7 +1251,6 @@ public override void DumpPhysicsStatistics(BulletWorld world)
     BulletWorldUnman worldu = world as BulletWorldUnman;
     BSAPICPP.DumpPhysicsStatistics2(worldu.ptr);
 }
-
 
 // =====================================================================================
 // =====================================================================================

@@ -898,17 +898,6 @@ public sealed class BSPrim : BSPhysObject
         if (PhysBody.HasPhysicalBody)
         {
             PhysicsScene.PE.AddObjectToWorld(PhysicsScene.World, PhysBody);
-
-            // TODO: Fix this. Total kludge because adding object to world resets its gravity to default.
-            // Replace this when the new AddObjectToWorld function is complete.
-            PhysicsScene.PE.SetGravity(PhysBody, ComputeGravity());
-
-            // Collision filter can be set only when the object is in the world
-            if (!PhysBody.ApplyCollisionMask(PhysicsScene))
-            {
-                m_log.ErrorFormat("{0} Failed setting object collision mask: id={1}", LogHeader, LocalID);
-                DetailLog("{0},BSPrim.UpdatePhysicalParameters,failedSetMaskGroup,cType={1}", LocalID, PhysBody.collisionType);
-            }
         }
         else
         {

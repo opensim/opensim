@@ -346,10 +346,9 @@ public abstract void RecalculateCompoundShapeLocalAabb(BulletShape cShape);
 
 public abstract BulletShape DuplicateCollisionShape(BulletWorld sim, BulletShape srcShape, uint id);
 
-
 public abstract bool DeleteCollisionShape(BulletWorld world, BulletShape shape);
 
-public abstract int GetBodyType(BulletBody obj);
+public abstract CollisionObjectTypes GetBodyType(BulletBody obj);
 
 public abstract BulletBody CreateBodyFromShape(BulletWorld sim, BulletShape shape, uint id, Vector3 pos, Quaternion rot);
 
@@ -416,6 +415,7 @@ public abstract void SetForceUpdateAllAabbs(BulletWorld world, bool force);
 
 // =====================================================================================
 // btDynamicsWorld entries
+// public abstract bool AddObjectToWorld(BulletWorld world, BulletBody obj, Vector3 pos, Quaternion rot);
 public abstract bool AddObjectToWorld(BulletWorld world, BulletBody obj);
 
 public abstract bool RemoveObjectFromWorld(BulletWorld world, BulletBody obj);
@@ -597,7 +597,7 @@ public abstract void SetAngularFactorV(BulletBody obj, Vector3 factor);
 
 public abstract Vector3 GetAngularFactor(BulletBody obj);
 
-public abstract bool IsInWorld(BulletBody obj);
+public abstract bool IsInWorld(BulletWorld world, BulletBody obj);
 
 public abstract void AddConstraintRef(BulletBody obj, BulletConstraint constrain);
 

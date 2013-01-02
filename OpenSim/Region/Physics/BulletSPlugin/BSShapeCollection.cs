@@ -141,7 +141,7 @@ public sealed class BSShapeCollection : IDisposable
             if (DDetail) DetailLog("{0},BSShapeCollection.ReferenceBody,newBody,body={1}", body.ID, body);
             PhysicsScene.TaintedObject(inTaintTime, "BSShapeCollection.ReferenceBody", delegate()
             {
-                if (!PhysicsScene.PE.IsInWorld(body))
+                if (!PhysicsScene.PE.IsInWorld(PhysicsScene.World, body))
                 {
                     PhysicsScene.PE.AddObjectToWorld(PhysicsScene.World, body);
                     if (DDetail) DetailLog("{0},BSShapeCollection.ReferenceBody,addedToWorld,ref={1}", body.ID, body);
@@ -166,7 +166,7 @@ public sealed class BSShapeCollection : IDisposable
                 // If the caller needs to know the old body is going away, pass the event up.
                 if (bodyCallback != null) bodyCallback(body);
 
-                if (PhysicsScene.PE.IsInWorld(body))
+                if (PhysicsScene.PE.IsInWorld(PhysicsScene.World, body))
                 {
                     PhysicsScene.PE.RemoveObjectFromWorld(PhysicsScene.World, body);
                     if (DDetail) DetailLog("{0},BSShapeCollection.DereferenceBody,removingFromWorld. Body={1}", body.ID, body);
