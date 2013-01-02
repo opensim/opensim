@@ -3463,7 +3463,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 INPCModule npcModule = World.RequestModuleInterface<INPCModule>();
                 if (npcModule != null && npcModule.IsNPC(agentID, World))
                 {
-                    if (agentID == m_host.ParentGroup.OwnerID || npcModule.GetOwner(agentID) == m_host.ParentGroup.OwnerID)
+                    if (npcModule.CheckPermissions(agentID, m_host.OwnerID))
                     {
                         lock (m_host.TaskInventory)
                         {
