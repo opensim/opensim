@@ -530,12 +530,12 @@ public override void SetForceUpdateAllAabbs(BulletWorld world, bool force)
 // btDynamicsWorld entries
 public override bool AddObjectToWorld(BulletWorld world, BulletBody obj)
 {
-    // Bullet resets several variables when an object is added to the world.
-    //   Gravity is reset to world default depending on the static/dynamic
-    //   type. Of course, the collision flags in the broadphase proxy are initialized to default.
     BulletWorldUnman worldu = world as BulletWorldUnman;
     BulletBodyUnman bodyu = obj as BulletBodyUnman;
 
+    // Bullet resets several variables when an object is added to the world.
+    //   Gravity is reset to world default depending on the static/dynamic
+    //   type. Of course, the collision flags in the broadphase proxy are initialized to default.
     Vector3 origGrav = BSAPICPP.GetGravity2(bodyu.ptr);
 
     bool ret = BSAPICPP.AddObjectToWorld2(worldu.ptr, bodyu.ptr);
@@ -1259,6 +1259,16 @@ public override void DumpPhysicsStatistics(BulletWorld world)
     BulletWorldUnman worldu = world as BulletWorldUnman;
     BSAPICPP.DumpPhysicsStatistics2(worldu.ptr);
 }
+public override void ResetBroadphasePool(BulletWorld world)
+{
+    BulletWorldUnman worldu = world as BulletWorldUnman;
+    BSAPICPP.ResetBroadphasePool(worldu.ptr);
+}
+public override void ResetConstraintSolver(BulletWorld world)
+{
+    BulletWorldUnman worldu = world as BulletWorldUnman;
+    BSAPICPP.ResetConstraintSolver(worldu.ptr);
+}
 
 // =====================================================================================
 // =====================================================================================
@@ -1831,6 +1841,12 @@ public static extern void DumpAllInfo2(IntPtr sim);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern void DumpPhysicsStatistics2(IntPtr sim);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern void ResetBroadphasePool(IntPtr sim);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern void ResetConstraintSolver(IntPtr sim);
 
 }
 
