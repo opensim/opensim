@@ -38,6 +38,9 @@ namespace OpenSim.Region.Physics.Manager
 
     public delegate void RaycastCallback(bool hitYN, Vector3 collisionPoint, uint localid, float distance, Vector3 normal);
     public delegate void RayCallback(List<ContactResult> list);
+    public delegate void ProbeBoxCallback(List<ContactResult> list);
+    public delegate void ProbeSphereCallback(List<ContactResult> list);
+    public delegate void ProbePlaneCallback(List<ContactResult> list);
     public delegate void SitAvatarCallback(int status, uint partID, Vector3 offset, Quaternion Orientation);
 
     public delegate void JointMoved(PhysicsJoint joint);
@@ -56,6 +59,7 @@ namespace OpenSim.Region.Physics.Manager
         volumedtc = 0x40,
 
         // ray cast colision control (may only work for meshs)
+        ContactsUnImportant = 0x2000,
         BackFaceCull = 0x4000,
         ClosestHit = 0x8000,
 
@@ -351,9 +355,22 @@ namespace OpenSim.Region.Physics.Manager
             return false;
         }
 
-        public virtual void RaycastActor(PhysicsActor actor, Vector3 position, Vector3 direction, float length, RaycastCallback retMethod){}
-        public virtual void RaycastActor(PhysicsActor actor, Vector3 position, Vector3 direction, float length, int Count, RayCallback retMethod) { }
         public virtual List<ContactResult> RaycastActor(PhysicsActor actor, Vector3 position, Vector3 direction, float length, int Count, RayFilterFlags flags)
+        {
+            return new List<ContactResult>();
+        }
+
+        public virtual List<ContactResult> BoxProbe(Vector3 position, Vector3 size, Quaternion orientation, int Count, RayFilterFlags flags)
+        {
+            return new List<ContactResult>();
+        }
+
+        public virtual List<ContactResult> SphereProbe(Vector3 position, float radius, int Count, RayFilterFlags flags)
+        {
+            return new List<ContactResult>();
+        }
+
+        public virtual List<ContactResult> PlaneProbe(PhysicsActor actor, Vector4 plane, int Count, RayFilterFlags flags)
         {
             return new List<ContactResult>();
         }

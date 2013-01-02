@@ -715,7 +715,17 @@ namespace OpenSim.Region.Physics.OdePlugin
                     Vector3 off = _velocity;
                     float t = 0.5f * timeStep;
                     off = off * t;
+                    d.Quaternion qtmp;
+                    d.GeomCopyQuaternion(bbox, out qtmp);
+                    Quaternion q;
+                    q.X = qtmp.X;
+                    q.Y = qtmp.Y;
+                    q.Z = qtmp.Z;
+                    q.W = qtmp.W;
+                    off *= Quaternion.Conjugate(q);
+
                     d.GeomSetOffsetPosition(bbox, off.X, off.Y, off.Z);
+
                     off.X = 2.0f * (m_size.X + Math.Abs(off.X));
                     off.Y = 2.0f * (m_size.Y + Math.Abs(off.Y));
                     off.Z = m_size.Z + 2.0f * Math.Abs(off.Z);
@@ -741,6 +751,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                     d.GeomSetCategoryBits(feetbox, (uint)m_collisionCategories);
                     d.GeomSetCollideBits(feetbox, (uint)m_collisionFlags);
                 }
+                uint cat1 = d.GeomGetCategoryBits(bbox);
+                uint col1 = d.GeomGetCollideBits(bbox);
+
             }
         }
 
