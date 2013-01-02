@@ -139,16 +139,16 @@ namespace OpenSim.Framework.Console
 
     public struct ConsoleDisplayTableRow
     {
-        public List<string> Cells { get; private set; }
+        public List<object> Cells { get; private set; }
 
-        public ConsoleDisplayTableRow(List<string> cells) : this()
+        public ConsoleDisplayTableRow(List<object> cells) : this()
         {
             Cells = cells;
         }
 
-        public ConsoleDisplayTableRow(params string[] cells) : this()
+        public ConsoleDisplayTableRow(params object[] cells) : this()
         {
-            Cells = new List<string>(cells);
+            Cells = new List<object>(cells);
         }
     }
 }
