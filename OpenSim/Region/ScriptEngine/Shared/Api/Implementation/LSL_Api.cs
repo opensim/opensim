@@ -2363,7 +2363,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // RootPart != null should shortcircuit
             
             // try to let this work as in SL...
-            if (m_host.ParentID == 0 ) //|| (rootPart != null && m_host.LocalId == rootPart.LocalId))
+            if (m_host.ParentID == 0 || (rootPart != null && m_host.LocalId == rootPart.LocalId))
             {
                 // special case: If we are root, rotate complete SOG to new rotation
                 SetRot(m_host, rot);
