@@ -149,7 +149,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Animations
         {
             sb.AppendFormat("Animations for {0}\n", sp.Name);
 
-            ConsoleDisplayList cdl = new ConsoleDisplayList();
+            ConsoleDisplayList cdl = new ConsoleDisplayList() { Indent = 2 };
             ScenePresenceAnimator spa = sp.Animator;
             AnimationSet anims = sp.Animator.Animations;
 
