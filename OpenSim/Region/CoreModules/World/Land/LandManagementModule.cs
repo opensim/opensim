@@ -1413,7 +1413,8 @@ namespace OpenSim.Region.CoreModules.World.Land
                     m_landList.TryGetValue(localID, out selectedParcel);
                 }
 
-                if (selectedParcel == null) return;
+                if (selectedParcel == null) 
+                    return;
 
                 selectedParcel.ReturnLandObjects(returnType, agentIDs, taskIDs, remoteClient);
             }
@@ -1421,7 +1422,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             {
                 if (returnType != 1)
                 {
-                    m_log.WarnFormat("[LAND MANAGEMENT MODULE] ReturnObjectsInParcel: unknown return type {0}", returnType);
+                    m_log.WarnFormat("[LAND MANAGEMENT MODULE]: ReturnObjectsInParcel: unknown return type {0}", returnType);
                     return;
                 }
 
@@ -1441,14 +1442,14 @@ namespace OpenSim.Region.CoreModules.World.Land
                     }
                     else
                     {
-                        m_log.WarnFormat("[LAND MANAGEMENT MODULE] ReturnObjectsInParcel: unknown object {0}", groupID);
+                        m_log.WarnFormat("[LAND MANAGEMENT MODULE]: ReturnObjectsInParcel: unknown object {0}", groupID);
                     }
                 }
 
                 int num = 0;
                 foreach (HashSet<SceneObjectGroup> objs in returns.Values)
                     num += objs.Count;
-                m_log.DebugFormat("[LAND MANAGEMENT MODULE] Returning {0} specific object(s)", num);
+                m_log.DebugFormat("[LAND MANAGEMENT MODULE]: Returning {0} specific object(s)", num);
 
                 foreach (HashSet<SceneObjectGroup> objs in returns.Values)
                 {
@@ -1459,7 +1460,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     }
                     else
                     {
-                        m_log.WarnFormat("[LAND MANAGEMENT MODULE] ReturnObjectsInParcel: not permitted to return {0} object(s) belonging to user {1}",
+                        m_log.WarnFormat("[LAND MANAGEMENT MODULE]: ReturnObjectsInParcel: not permitted to return {0} object(s) belonging to user {1}",
                             objs2.Count, objs2[0].OwnerID);
                     }
                 }
