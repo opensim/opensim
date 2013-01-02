@@ -59,12 +59,6 @@ public class BSPlugin : IPhysicsPlugin
     {
         if (_mScene == null)
         {
-            if (Util.IsWindows())
-                Util.LoadArchSpecificWindowsDll("BulletSim.dll");
-            // If not Windows, loading is performed by the
-            // Mono loader as specified in
-            // "bin/Physics/OpenSim.Region.Physics.BulletSPlugin.dll.config".
-
             _mScene = new BSScene(sceneIdentifier);
         }
         return (_mScene);
