@@ -56,7 +56,7 @@ namespace OpenSim.Framework.Console
         public List<ConsoleDisplayTableRow> Rows { get; private set; }
 
         /// <summary>
-        /// Number of spaces to indent the table.
+        /// Number of spaces to indent the whole table.
         /// </summary>
         public int Indent { get; set; }
 
@@ -113,7 +113,8 @@ namespace OpenSim.Framework.Console
 
             for (int i = 0; i < Columns.Count; i++)
             {
-                formatSb.Append(' ', TableSpacing);
+                if (i != 0)
+                    formatSb.Append(' ', TableSpacing);
 
                 // Can only do left formatting for now
                 formatSb.AppendFormat("{{{0},-{1}}}", i, Columns[i].Width);
