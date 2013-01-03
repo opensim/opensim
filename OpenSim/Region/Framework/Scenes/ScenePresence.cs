@@ -1990,7 +1990,8 @@ namespace OpenSim.Region.Framework.Scenes
 //            m_log.DebugFormat("[SCENE PRESENCE]: Resetting move to target for {0}", Name);
 
             MovingToTarget = false;
-            MoveToPositionTarget = Vector3.Zero;
+//            MoveToPositionTarget = Vector3.Zero;
+            m_forceToApply = null; // cancel possible last action
 
             // We need to reset the control flag as the ScenePresenceAnimator uses this to determine the correct
             // resting animation (e.g. hover or stand).  NPCs don't have a client that will quickly reset this flag.
@@ -2148,10 +2149,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 if (MovingToTarget)
-                {
                     ResetMoveToTarget();
-                    m_forceToApply = null;
-                }
 
                 Velocity = Vector3.Zero;
 
@@ -2272,10 +2270,7 @@ namespace OpenSim.Region.Framework.Scenes
             RemoveFromPhysicalScene();
 
             if (MovingToTarget)
-            {
                 ResetMoveToTarget();
-                m_forceToApply = null;
-            }
 
             Velocity = Vector3.Zero;
 
