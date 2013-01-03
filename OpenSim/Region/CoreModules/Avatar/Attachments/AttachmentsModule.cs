@@ -654,15 +654,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             if (!silent)
             {
-                // Killing it here will cause the client to deselect it
-                // It then reappears on the avatar, deselected
-                // through the full update below
-                //
-                if (so.IsSelected)
-                {
-                    m_scene.SendKillObject(new List<uint> { so.RootPart.LocalId });
-                }
-                else if (so.HasPrivateAttachmentPoint)
+                if (so.HasPrivateAttachmentPoint)
                 {
 //                    m_log.DebugFormat(
 //                        "[ATTACHMENTS MODULE]: Killing private HUD {0} for avatars other than {1} at attachment point {2}",
