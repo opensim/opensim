@@ -2247,6 +2247,17 @@ namespace OpenSim.Region.Framework.Scenes
             return false;
         }
 
+
+        private bool CanEnterLandPosition(Vector3 testPos)
+        {
+            ILandObject land = m_scene.LandChannel.GetLandObject(testPos.X, testPos.Y);
+
+            if (land == null || land.LandData.Name == "NO_LAND")
+                return true;
+
+            return land.CanBeOnThisLand(UUID,testPos.Z);
+        }
+
         // status
         //          < 0 ignore
         //          0   bad sit spot
@@ -2265,6 +2276,12 @@ namespace OpenSim.Region.Framework.Scenes
             if (part == null)
                 return;
 
+            Vector3 targetPos = part.GetWorldPosition() + offset * part.GetWorldRotation();     
+            if(!CanEnterLandPosition(targetPos))
+            {
+                ControllingClient.SendAlertMessage(" Sit position on restricted land, try another spot");
+                return;
+            }
 //            m_log.InfoFormat("physsit {0} {1}", offset.ToString(),Orientation.ToString());
 
             RemoveFromPhysicalScene();
