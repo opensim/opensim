@@ -480,7 +480,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 else
                 {
                     m_plugineffects[pluginName] = effect;
-                    m_log.Warn("E ... " + pluginName + " (Replaced)");
+                    m_log.Info("E ... " + pluginName + " (Replaced)");
                 }
             }
         }
