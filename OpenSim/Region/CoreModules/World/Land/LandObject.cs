@@ -442,6 +442,19 @@ namespace OpenSim.Region.CoreModules.World.Land
             return false;
         }
 
+        public bool CanBeOnThisLand(UUID avatar, float posHeight)
+        {
+            if (posHeight < LandChannel.BAN_LINE_SAFETY_HIEGHT && IsBannedFromLand(avatar))
+            {
+                return false;
+            }
+            else if (IsRestrictedFromLand(avatar))
+            {
+                return false;
+            }
+            return true;
+        }
+
         public bool HasGroupAccess(UUID avatar)
         {
             if (LandData.GroupID != UUID.Zero && (LandData.Flags & (uint)ParcelFlags.UseAccessGroup) == (uint)ParcelFlags.UseAccessGroup)
