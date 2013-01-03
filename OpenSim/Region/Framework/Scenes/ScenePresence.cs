@@ -2140,11 +2140,20 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (canSit)
             {
+
                 if (PhysicsActor != null)
                 {
                     // We can remove the physicsActor until they stand up.
                     RemoveFromPhysicalScene();
                 }
+
+                if (MovingToTarget)
+                {
+                    ResetMoveToTarget();
+                    m_forceToApply = null;
+                }
+
+                Velocity = Vector3.Zero;
 
                 part.AddSittingAvatar(UUID);
 
@@ -2230,6 +2239,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return true;
             }
 
+
             // not doing autopilot
             m_requestedSitTargetID = 0; 
 
@@ -2259,7 +2269,18 @@ namespace OpenSim.Region.Framework.Scenes
 
 //            m_log.InfoFormat("physsit {0} {1}", offset.ToString(),Orientation.ToString());
 
+            RemoveFromPhysicalScene();
+
+            if (MovingToTarget)
+            {
+                ResetMoveToTarget();
+                m_forceToApply = null;
+            }
+
+            Velocity = Vector3.Zero;
+
             part.AddSittingAvatar(UUID);
+
 
             Vector3 cameraAtOffset = part.GetCameraAtOffset();
             Vector3 cameraEyeOffset = part.GetCameraEyeOffset();
@@ -2269,8 +2290,6 @@ namespace OpenSim.Region.Framework.Scenes
                 part.UUID, offset, Orientation, false, cameraAtOffset, cameraEyeOffset, forceMouselook);
 
             // not using autopilot
-            Velocity = Vector3.Zero;
-            RemoveFromPhysicalScene();
 
             Rotation = Orientation;
             m_pos = offset;
@@ -2316,6 +2335,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                     return;
                 }
+
 
                 if (part.SitTargetAvatar == UUID)
                 {
