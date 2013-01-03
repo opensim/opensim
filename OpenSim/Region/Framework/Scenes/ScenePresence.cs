@@ -1990,7 +1990,8 @@ namespace OpenSim.Region.Framework.Scenes
 //            m_log.DebugFormat("[SCENE PRESENCE]: Resetting move to target for {0}", Name);
 
             MovingToTarget = false;
-            MoveToPositionTarget = Vector3.Zero;
+//            MoveToPositionTarget = Vector3.Zero;
+            m_forceToApply = null; // cancel possible last action
 
             // We need to reset the control flag as the ScenePresenceAnimator uses this to determine the correct
             // resting animation (e.g. hover or stand).  NPCs don't have a client that will quickly reset this flag.
@@ -2140,11 +2141,17 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (canSit)
             {
+
                 if (PhysicsActor != null)
                 {
                     // We can remove the physicsActor until they stand up.
                     RemoveFromPhysicalScene();
                 }
+
+                if (MovingToTarget)
+                    ResetMoveToTarget();
+
+                Velocity = Vector3.Zero;
 
                 part.AddSittingAvatar(UUID);
 
@@ -2230,6 +2237,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return true;
             }
 
+
             // not doing autopilot
             m_requestedSitTargetID = 0; 
 
@@ -2259,7 +2267,15 @@ namespace OpenSim.Region.Framework.Scenes
 
 //            m_log.InfoFormat("physsit {0} {1}", offset.ToString(),Orientation.ToString());
 
+            RemoveFromPhysicalScene();
+
+            if (MovingToTarget)
+                ResetMoveToTarget();
+
+            Velocity = Vector3.Zero;
+
             part.AddSittingAvatar(UUID);
+
 
             Vector3 cameraAtOffset = part.GetCameraAtOffset();
             Vector3 cameraEyeOffset = part.GetCameraEyeOffset();
@@ -2269,8 +2285,6 @@ namespace OpenSim.Region.Framework.Scenes
                 part.UUID, offset, Orientation, false, cameraAtOffset, cameraEyeOffset, forceMouselook);
 
             // not using autopilot
-            Velocity = Vector3.Zero;
-            RemoveFromPhysicalScene();
 
             Rotation = Orientation;
             m_pos = offset;
@@ -2316,6 +2330,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                     return;
                 }
+
 
                 if (part.SitTargetAvatar == UUID)
                 {
