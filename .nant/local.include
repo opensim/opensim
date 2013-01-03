@@ -43,6 +43,7 @@
   <delete dir="${distbindir}/Prebuild"/>
   <delete dir="${distbindir}/%temp%"/>
   <delete dir="${distbindir}/.nant"/>
+  <delete dir="${distbindir}/ThirdParty"/>
   <delete>
     <fileset basedir="${distbindir}">
       <include name="compile.bat"/>
