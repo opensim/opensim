@@ -669,7 +669,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                             });
                 }
 
-                so.IsSelected = false; // fudge....
+                // Fudge below is an extremely unhelpful comment.  It's probably here so that the scheduled full update
+                // will succeed, as that will not update if an attachment is selected.
+                so.IsSelected = false; // fudge.... 
+
                 so.ScheduleGroupForFullUpdate();
             }
 
