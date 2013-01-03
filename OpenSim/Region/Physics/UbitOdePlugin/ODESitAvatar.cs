@@ -78,36 +78,20 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             IntPtr geom = ((OdePrim)actor).prim_geom;
 
-            d.Vector3 dtmp = d.GeomGetPosition(geom);
-            Vector3 geopos;
-            geopos.X = dtmp.X;
-            geopos.Y = dtmp.Y;
-            geopos.Z = dtmp.Z;
+            Vector3 geopos = d.GeomGetPositionOMV(geom);
+            Quaternion geomOri = d.GeomGetQuaternionOMV(geom);
+            Quaternion geomInvOri = Quaternion.Conjugate(geomOri);
 
-
-            d.AABB aabb;
             Quaternion ori = Quaternion.Identity;
-            d.Quaternion qtmp;
-            d.GeomCopyQuaternion(geom, out qtmp);
-            Quaternion geomOri;
-            geomOri.X = qtmp.X;
-            geomOri.Y = qtmp.Y;
-            geomOri.Z = qtmp.Z;
-            geomOri.W = qtmp.W;
-            Quaternion geomInvOri;
-            geomInvOri.X = -qtmp.X;
-            geomInvOri.Y = -qtmp.Y;
-            geomInvOri.Z = -qtmp.Z;
-            geomInvOri.W = qtmp.W;
 
             Vector3 rayDir = geopos + offset - avCameraPosition;
+
             float raylen = rayDir.Length();
             if (raylen < 0.001f)
             {
                 PhysicsSitResponse(-1, actor.LocalID, offset, Quaternion.Identity);
                 return;
             }
-
             float t = 1 / raylen;
             rayDir.X *= t;
             rayDir.Y *= t;
@@ -119,22 +103,25 @@ namespace OpenSim.Region.Physics.OdePlugin
             rayResults = m_scene.RaycastActor(actor, avCameraPosition, rayDir, raylen, 1, RaySitFlags);
             if (rayResults.Count == 0)
             {
+/* if this fundamental ray failed, then just fail so user can try another spot and not be sitted far on a big prim
+                d.AABB aabb;
                 d.GeomGetAABB(geom, out aabb);
                 offset = new Vector3(avOffset.X, 0, aabb.MaxZ + avOffset.Z - geopos.Z);
                 ori = geomInvOri;
                 offset *= geomInvOri;
-
                 PhysicsSitResponse(1, actor.LocalID, offset, ori);
+*/
+                PhysicsSitResponse(0, actor.LocalID, offset, ori);
                 return;
             }
 
+            int status = 1;
             offset = rayResults[0].Pos - geopos;
 
             d.GeomClassID geoclass = d.GeomGetClass(geom);
 
             if (geoclass == d.GeomClassID.SphereClass)
             {
-                int status = 1;
                 float r = d.GeomSphereGetRadius(geom);
 
                 offset.Normalize();
@@ -165,7 +152,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     {
                         status = 3;
                         avOffset.X = -avOffset.X;
-                        avOffset.Z += 0.4f;
+                        avOffset.Z *= 1.6f;
                     }
                 }
 
@@ -186,6 +173,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 return;
             }
 
+
             float SitNormX = -rayDir.X;
             float SitNormY = -rayDir.Y;
 
@@ -204,7 +192,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 float rayDist = 4.0f;
                 float curEdgeDist = 0.0f;
-                pivot = geopos + offset;
 
                 for (int i = 0; i < 6; i++)
                 {
@@ -239,11 +226,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                     else
                     {
                         foundEdge = true;
-                        if (curEdgeDist < edgeDist)
-                        {
-                            edgeDist = curEdgeDist;
-                            edgePos = rayResults[0].Pos;
-                        }
+                        edgeDist = curEdgeDist;
+                        edgePos = rayResults[0].Pos;
                         break;
                     }
                 }
@@ -267,7 +251,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     float rayDist = 1.0f;
                     float curEdgeDist = 0.0f;
-                    pivot = geopos + offset;
 
                     for (int i = 0; i < 3; i++)
                     {
@@ -310,6 +293,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                     if (foundEdge && edgeDist < 0.2f)
                         break;
 
+                    pivot = geopos + offset;
+
                     switch (j)
                     {
                         case 0:
@@ -332,7 +317,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (!foundEdge)
                 {
                     avOffset.X = -avOffset.X;
-                    avOffset.Z += 0.4f;
+                    avOffset.Z *= 1.6f;
 
                     RotAroundZ(SitNormX, SitNormY, ref ori);
 
@@ -349,7 +334,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             SitNormX = edgeNormalX;
             SitNormY = edgeNormalY;
-            offset = edgePos - geopos;
             if (edgeDirX * SitNormX + edgeDirY * SitNormY < 0)
             {
                 SitNormX = -SitNormX;
@@ -358,7 +342,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             RotAroundZ(SitNormX, SitNormY, ref ori);
 
-            offset += avOffset * ori;
+            offset = edgePos + avOffset * ori;
+            offset -= geopos;
 
             ori = geomInvOri * ori;
             offset *= geomInvOri;

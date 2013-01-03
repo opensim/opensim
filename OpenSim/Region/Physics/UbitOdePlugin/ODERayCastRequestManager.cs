@@ -144,7 +144,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         qtmp.Y = req.orientation.Y;
                         qtmp.Z = req.orientation.Z;
                         qtmp.W = req.orientation.W;
-                        d.GeomSetOffsetWorldQuaternion(Box, ref qtmp);
+                        d.GeomSetQuaternion(Box, ref qtmp);
                     }
                     else if (req.callbackMethod is ProbeSphereCallback)
                     {
@@ -480,12 +480,12 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             if (count == 0)
                 return;
-
+/*
             uint cat1 = d.GeomGetCategoryBits(g1);
             uint cat2 = d.GeomGetCategoryBits(g2);
             uint col1 = d.GeomGetCollideBits(g1);
             uint col2 = d.GeomGetCollideBits(g2);
-
+*/
             
             uint ID = 0;
             PhysicsActor p2 = null;

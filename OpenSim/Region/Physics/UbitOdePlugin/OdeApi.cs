@@ -44,7 +44,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 using System;
 using System.Runtime.InteropServices;
 using System.Security;
-
+using OMV = OpenMetaverse;
 namespace OdeAPI
 {
 //#if dDOUBLE
@@ -925,9 +925,20 @@ namespace OdeAPI
 		{
 			unsafe { return *(GeomGetPositionUnsafe(geom)); }
 		}
+		public static OMV.Vector3 GeomGetPositionOMV(IntPtr geom)
+		{
+            Vector3 vtmp = GeomGetPosition(geom);
+            return new OMV.Vector3(vtmp.X, vtmp.Y, vtmp.Z);
+		}
 
 		[DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dGeomGetQuaternion"), SuppressUnmanagedCodeSecurity]
-		public static extern void GeomCopyQuaternion(IntPtr geom, out Quaternion q);
+        public static extern void GeomCopyQuaternion(IntPtr geom, out Quaternion q);
+        public static OMV.Quaternion GeomGetQuaternionOMV(IntPtr geom)
+        {
+            Quaternion qtmp;
+            GeomCopyQuaternion(geom, out qtmp);
+            return new OMV.Quaternion(qtmp.X, qtmp.Y, qtmp.Z, qtmp.W);
+        }
 
 		[DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dGeomGetQuaternion"), SuppressUnmanagedCodeSecurity]
 		public static extern void GeomCopyQuaternion(IntPtr geom, out dReal X);
