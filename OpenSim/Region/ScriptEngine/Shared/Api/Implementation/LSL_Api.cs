@@ -3824,62 +3824,56 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_String llGetLinkName(int linknum)
         {
             m_host.AddScriptLPS(1);
-            // simplest case, this prims link number
-            if (linknum == m_host.LinkNum || linknum == ScriptBaseClass.LINK_THIS)
-                return m_host.Name;
 
-            // parse for sitting avatare-names
-            List<String> nametable = new List<String>();
-            World.ForEachRootScenePresence(delegate(ScenePresence presence)
+            if (linknum < 0)
             {
-                SceneObjectPart sitPart = presence.ParentPart;
-                if (sitPart != null && m_host.ParentGroup.ContainsPart(sitPart.LocalId))
-                    nametable.Add(presence.ControllingClient.Name);
-            });
-
-            int totalprims = m_host.ParentGroup.PrimCount + nametable.Count;
-            if (totalprims > m_host.ParentGroup.PrimCount)
-            {
-                // sitting Avatar-Name with negativ linknum / SinglePrim
-                if (linknum < 0 && m_host.ParentGroup.PrimCount == 1 && nametable.Count == 1)
-                    return nametable[0];
-                // Prim-Name / SinglePrim Sitting Avatar
-                if (linknum == 1 && m_host.ParentGroup.PrimCount == 1 && nametable.Count == 1)
-                    return m_host.Name;
-                // LinkNumber > of Real PrimSet = AvatarName
-                if (linknum > m_host.ParentGroup.PrimCount && linknum <= totalprims)
-                    return nametable[totalprims - linknum];
-            }
-
-            // Single prim
-            if (m_host.LinkNum == 0)
-            {
-                if (linknum == 0 || linknum == ScriptBaseClass.LINK_ROOT)
+                if (linknum == ScriptBaseClass.LINK_THIS)
                     return m_host.Name;
                 else
-                    return UUID.Zero.ToString();
+                    return ScriptBaseClass.NULL_KEY;
             }
 
-            // Link set
-            SceneObjectPart part = null;
-            if (m_host.LinkNum == 1) // this is the Root prim
+            int actualPrimCount = m_host.ParentGroup.PrimCount;
+            List<UUID> sittingAvatarIds = m_host.ParentGroup.GetSittingAvatars();
+            int adjustedPrimCount = actualPrimCount + sittingAvatarIds.Count;
+
+            // Special case for a single prim.  In this case the linknum is zero.  However, this will not match a single
+            // prim that has any avatars sat upon it (in which case the root prim is link 1).
+            if (linknum == 0)
             {
-                if (linknum < 0)
-                    part = m_host.ParentGroup.GetLinkNumPart(2);
-                else
-                    part = m_host.ParentGroup.GetLinkNumPart(linknum);
+                if (actualPrimCount == 1 && sittingAvatarIds.Count == 0)
+                    return m_host.Name;
+
+                return ScriptBaseClass.NULL_KEY;
             }
-            else // this is a child prim
+            // Special case to handle a single prim with sitting avatars.  GetLinkPart() would only match zero but
+            // here we must match 1 (ScriptBaseClass.LINK_ROOT).
+            else if (linknum == 1 && actualPrimCount == 1)
             {
-                if (linknum < 2)
-                    part = m_host.ParentGroup.GetLinkNumPart(1);
+                if (sittingAvatarIds.Count > 0)
+                    return m_host.ParentGroup.RootPart.Name;
                 else
-                    part = m_host.ParentGroup.GetLinkNumPart(linknum);
+                    return ScriptBaseClass.NULL_KEY;
             }
-            if (part != null)
-                return part.Name;
+            else if (linknum <= adjustedPrimCount)
+            {
+                if (linknum <= actualPrimCount)
+                {
+                    return m_host.ParentGroup.GetLinkNumPart(linknum).Name;
+                }
+                else
+                {
+                    ScenePresence sp = World.GetScenePresence(sittingAvatarIds[linknum - actualPrimCount - 1]);
+                    if (sp != null)
+                        return sp.Name;
+                    else
+                        return ScriptBaseClass.NULL_KEY;
+                }
+            }
             else
-                return UUID.Zero.ToString();
+            {
+                return ScriptBaseClass.NULL_KEY;
+            }
         }
 
         public LSL_Integer llGetInventoryNumber(int type)
