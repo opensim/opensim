@@ -3738,33 +3738,47 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_String llGetLinkKey(int linknum)
         {
             m_host.AddScriptLPS(1);
-            List<UUID> keytable = new List<UUID>();
-            // parse for sitting avatare-uuids
-            World.ForEachRootScenePresence(delegate(ScenePresence presence)
-            {
-                if (presence.ParentID != 0 && m_host.ParentGroup.ContainsPart(presence.ParentID))
-                    keytable.Add(presence.UUID);
-            });
 
-            int totalprims = m_host.ParentGroup.PrimCount + keytable.Count;
-            if (linknum > m_host.ParentGroup.PrimCount && linknum <= totalprims)
+            if (linknum < 0)
             {
-                return keytable[totalprims - linknum].ToString();
+                if (linknum == ScriptBaseClass.LINK_THIS)
+                    return m_host.UUID.ToString();
+                else
+                    return ScriptBaseClass.NULL_KEY;
             }
 
-            if (linknum == 1 && m_host.ParentGroup.PrimCount == 1 && keytable.Count == 1)
-            {
-                return m_host.UUID.ToString();
-            }
+            int actualPrimCount = m_host.ParentGroup.PrimCount;
+            List<UUID> sittingAvatarIds = m_host.ParentGroup.GetSittingAvatars();
+            int adjustedPrimCount = actualPrimCount + sittingAvatarIds.Count;
 
-            SceneObjectPart part = m_host.ParentGroup.GetLinkNumPart(linknum);
-            if (part != null)
+            // Special case for a single prim.  In this case the linknum is zero.  However, this will not match a single
+            // prim that has any avatars sat upon it (in which case the root prim is link 1).
+            if (linknum == 0)
             {
-                return part.UUID.ToString();
+                if (actualPrimCount == 1 && sittingAvatarIds.Count == 0)
+                    return m_host.UUID.ToString();
+
+                return ScriptBaseClass.NULL_KEY;
+            }
+            // Special case to handle a single prim with sitting avatars.  GetLinkPart() would only match zero but
+            // here we must match 1 (ScriptBaseClass.LINK_ROOT).
+            else if (linknum == 1 && actualPrimCount == 1)
+            {
+                if (sittingAvatarIds.Count > 0)
+                    return m_host.ParentGroup.RootPart.UUID.ToString();
+                else
+                    return ScriptBaseClass.NULL_KEY;
+            }
+            else if (linknum <= adjustedPrimCount)
+            {
+                if (linknum <= actualPrimCount)
+                    return m_host.ParentGroup.GetLinkNumPart(linknum).UUID.ToString();
+                else
+                    return sittingAvatarIds[linknum - actualPrimCount - 1].ToString();
             }
             else
             {
-                return UUID.Zero.ToString();
+                return ScriptBaseClass.NULL_KEY;
             }
         }
 

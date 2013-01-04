@@ -1256,7 +1256,7 @@ namespace OpenSim.Region.Framework.Scenes
         public UUID SitTargetAvatar { get; set; }
 
         /// <summary>
-        /// IDs of all avatars start on this object part.
+        /// IDs of all avatars sat on this part.
         /// </summary>
         /// <remarks>
         /// We need to track this so that we can stop sat upon prims from being attached.
@@ -4504,18 +4504,22 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name='avatarId'></param>
         protected internal bool AddSittingAvatar(UUID avatarId)
         {
-            if (IsSitTargetSet && SitTargetAvatar == UUID.Zero)
-                SitTargetAvatar = avatarId;
-
-            HashSet<UUID> sittingAvatars = m_sittingAvatars;
-
-            if (sittingAvatars == null)
-                sittingAvatars = new HashSet<UUID>();
-
-            lock (sittingAvatars)
+            lock (ParentGroup.m_sittingAvatars)
             {
-                m_sittingAvatars = sittingAvatars;
-                return m_sittingAvatars.Add(avatarId);
+                if (IsSitTargetSet && SitTargetAvatar == UUID.Zero)
+                    SitTargetAvatar = avatarId;
+
+                if (m_sittingAvatars == null)
+                    m_sittingAvatars = new HashSet<UUID>();
+
+                if (m_sittingAvatars.Add(avatarId))
+                {
+                    ParentGroup.m_sittingAvatars.Add(avatarId);
+
+                    return true;
+                }
+
+                return false;
             }
         }
 
@@ -4529,27 +4533,26 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name='avatarId'></param>
         protected internal bool RemoveSittingAvatar(UUID avatarId)
         {
-            if (SitTargetAvatar == avatarId)
-                SitTargetAvatar = UUID.Zero;
-
-            HashSet<UUID> sittingAvatars = m_sittingAvatars;
-
-            // This can occur under a race condition where another thread
-            if (sittingAvatars == null)
-                return false;
-
-            lock (sittingAvatars)
+            lock (ParentGroup.m_sittingAvatars)
             {
-                if (sittingAvatars.Remove(avatarId))
+                if (SitTargetAvatar == avatarId)
+                    SitTargetAvatar = UUID.Zero;
+
+                if (m_sittingAvatars == null)
+                    return false;
+
+                if (m_sittingAvatars.Remove(avatarId))
                 {
-                    if (sittingAvatars.Count == 0)
+                    if (m_sittingAvatars.Count == 0)
                         m_sittingAvatars = null;
+
+                    ParentGroup.m_sittingAvatars.Remove(avatarId);
 
                     return true;
                 }
-            }
 
-            return false;
+                return false;
+            }
         }
 
         /// <summary>
@@ -4559,16 +4562,12 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>A hashset of the sitting avatars.  Returns null if there are no sitting avatars.</returns>
         public HashSet<UUID> GetSittingAvatars()
         {
-            HashSet<UUID> sittingAvatars = m_sittingAvatars;
-
-            if (sittingAvatars == null)
+            lock (ParentGroup.m_sittingAvatars)
             {
-                return null;
-            }
-            else
-            {
-                lock (sittingAvatars)
-                    return new HashSet<UUID>(sittingAvatars);
+                if (m_sittingAvatars == null)
+                    return null;
+                else
+                    return new HashSet<UUID>(m_sittingAvatars);
             }
         }
 
@@ -4579,13 +4578,13 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns></returns>
         public int GetSittingAvatarsCount()
         {
-            HashSet<UUID> sittingAvatars = m_sittingAvatars;
-
-            if (sittingAvatars == null)
-                return 0;
-
-            lock (sittingAvatars)
-                return sittingAvatars.Count;
+            lock (ParentGroup.m_sittingAvatars)
+            {
+                if (m_sittingAvatars == null)
+                    return 0;
+                else
+                    return m_sittingAvatars.Count;
+            }
         }
     }
 }
