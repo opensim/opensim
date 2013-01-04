@@ -6194,6 +6194,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             ps.BurstSpeedMax = 1.0f;
             ps.BurstRate = 0.1f;
             ps.PartMaxAge = 10.0f;
+            ps.BurstPartCount = 1;
             return ps;
         }
 
@@ -6215,9 +6216,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             SetParticleSystem(m_host, rules);
         }
 
-        private void SetParticleSystem(SceneObjectPart part, LSL_List rules) {
-
-
+        private void SetParticleSystem(SceneObjectPart part, LSL_List rules) 
+        {
             if (rules.Length == 0)
             {
                 part.RemoveParticleSystem();
