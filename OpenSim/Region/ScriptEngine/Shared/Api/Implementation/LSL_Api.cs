@@ -3412,21 +3412,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else
             {
-                bool sitting = false;
-                if (m_host.SitTargetAvatar == agentID)
-                {
-                    sitting = true;
-                }
-                else
-                {
-                    foreach (SceneObjectPart p in m_host.ParentGroup.Parts)
-                    {
-                        if (p.SitTargetAvatar == agentID)
-                            sitting = true;
-                    }
-                }
-
-                if (sitting)
+                if (m_host.ParentGroup.GetSittingAvatars().Contains(agentID)
                 {
                     // When agent is sitting, certain permissions are implicit if requested from sitting agent
                     implicitPerms = ScriptBaseClass.PERMISSION_TRIGGER_ANIMATION |
