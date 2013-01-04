@@ -5619,33 +5619,7 @@ Environment.Exit(1);
 
         public void TriggerEstateSunUpdate()
         {
-            float sun;
-            if (RegionInfo.RegionSettings.UseEstateSun)
-            {
-                sun = (float)RegionInfo.EstateSettings.SunPosition;
-                if (RegionInfo.EstateSettings.UseGlobalTime)
-                {
-                    sun = EventManager.GetCurrentTimeAsSunLindenHour() - 6.0f;
-                }
-
-                // 
-                EventManager.TriggerEstateToolsSunUpdate(
-                        RegionInfo.RegionHandle,
-                        RegionInfo.EstateSettings.FixedSun,
-                        RegionInfo.RegionSettings.UseEstateSun,
-                        sun);
-            }
-            else
-            {
-                // Use the Sun Position from the Region Settings
-                sun = (float)RegionInfo.RegionSettings.SunPosition - 6.0f;
-
-                EventManager.TriggerEstateToolsSunUpdate(
-                        RegionInfo.RegionHandle,
-                        RegionInfo.RegionSettings.FixedSun,
-                        RegionInfo.RegionSettings.UseEstateSun,
-                        sun);
-            }
+            EventManager.TriggerEstateToolsSunUpdate(RegionInfo.RegionHandle);
         }
 
         private void HandleReloadEstate(string module, string[] cmd)

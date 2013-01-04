@@ -387,7 +387,7 @@ namespace OpenSim.Services.GridService
             m_log.DebugFormat("[HYPERGRID LINKER]: Request to unlink {0}", mapName);
             GridRegion regInfo = null;
 
-            List<RegionData> regions = m_Database.Get(mapName, m_ScopeID);
+            List<RegionData> regions = m_Database.Get(Util.EscapeForLike(mapName), m_ScopeID);
             if (regions != null && regions.Count > 0)
             {
                 OpenSim.Framework.RegionFlags rflags = (OpenSim.Framework.RegionFlags)Convert.ToInt32(regions[0].Data["flags"]);

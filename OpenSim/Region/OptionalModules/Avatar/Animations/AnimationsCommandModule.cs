@@ -40,42 +40,43 @@ using OpenSim.Framework.Monitoring;
 using OpenSim.Region.ClientStack.LindenUDP;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Framework.Scenes.Animation;
+using OpenSim.Services.Interfaces;
 
-namespace OpenSim.Region.OptionalModules.Avatar.Attachments
+namespace OpenSim.Region.OptionalModules.Avatar.Animations
 {
     /// <summary>
-    /// A module that just holds commands for inspecting avatar appearance.
+    /// A module that just holds commands for inspecting avatar animations.
     /// </summary>
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "AttachmentsCommandModule")]
-    public class AttachmentsCommandModule : ISharedRegionModule
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "AnimationsCommandModule")]
+    public class AnimationsCommandModule : ISharedRegionModule
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private List<Scene> m_scenes = new List<Scene>();
-//        private IAvatarFactoryModule m_avatarFactory;
 
-        public string Name { get { return "Attachments Command Module"; } }
+        public string Name { get { return "Animations Command Module"; } }
         
         public Type ReplaceableInterface { get { return null; } }
         
         public void Initialise(IConfigSource source)
         {
-//            m_log.DebugFormat("[ATTACHMENTS COMMAND MODULE]: INITIALIZED MODULE");
+//            m_log.DebugFormat("[ANIMATIONS COMMAND MODULE]: INITIALIZED MODULE");
         }
         
         public void PostInitialise()
         {
-//            m_log.DebugFormat("[ATTACHMENTS COMMAND MODULE]: POST INITIALIZED MODULE");
+//            m_log.DebugFormat("[ANIMATIONS COMMAND MODULE]: POST INITIALIZED MODULE");
         }
         
         public void Close()
         {
-//            m_log.DebugFormat("[ATTACHMENTS COMMAND MODULE]: CLOSED MODULE");
+//            m_log.DebugFormat("[ANIMATIONS COMMAND MODULE]: CLOSED MODULE");
         }
         
         public void AddRegion(Scene scene)
         {
-//            m_log.DebugFormat("[ATTACHMENTS COMMAND MODULE]: REGION {0} ADDED", scene.RegionInfo.RegionName);
+//            m_log.DebugFormat("[ANIMATIONS COMMAND MODULE]: REGION {0} ADDED", scene.RegionInfo.RegionName);
         }
         
         public void RemoveRegion(Scene scene)
@@ -88,24 +89,26 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
         
         public void RegionLoaded(Scene scene)
         {
-//            m_log.DebugFormat("[ATTACHMENTS COMMAND MODULE]: REGION {0} LOADED", scene.RegionInfo.RegionName);
+//            m_log.DebugFormat("[ANIMATIONS COMMAND MODULE]: REGION {0} LOADED", scene.RegionInfo.RegionName);
             
             lock (m_scenes)
                 m_scenes.Add(scene);
 
             scene.AddCommand(
-                "Users", this, "attachments show",
-                "attachments show [<first-name> <last-name>]",
-                "Show attachment information for avatars in this simulator.",
-                "If no name is supplied then information for all avatars is shown.",
-                HandleShowAttachmentsCommand);
+                "Users", this, "show animations",
+                "show animations [<first-name> <last-name>]",
+                "Show animation information for avatars in this simulator.",
+                "If no name is supplied then information for all avatars is shown.\n"
+                + "Please note that for inventory animations, the animation name is the name under which the animation was originally uploaded\n"
+                + ", which is not necessarily the current inventory name.",
+                HandleShowAnimationsCommand);
         }
 
-        protected void HandleShowAttachmentsCommand(string module, string[] cmd)
+        protected void HandleShowAnimationsCommand(string module, string[] cmd)
         {
             if (cmd.Length != 2 && cmd.Length < 4)
             {
-                MainConsole.Instance.OutputFormat("Usage: attachments show [<first-name> <last-name>]");
+                MainConsole.Instance.OutputFormat("Usage: show animations [<first-name> <last-name>]");
                 return;
             }
 
@@ -144,53 +147,69 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
 
         private void GetAttachmentsReport(ScenePresence sp, StringBuilder sb)
         {
-            sb.AppendFormat("Attachments for {0}\n", sp.Name);
+            sb.AppendFormat("Animations for {0}\n", sp.Name);
 
-            ConsoleDisplayTable ct = new ConsoleDisplayTable() { Indent = 2 };
-            ct.Columns.Add(new ConsoleDisplayTableColumn("Attachment Name", 50));
-            ct.Columns.Add(new ConsoleDisplayTableColumn("Local ID", 10));
-            ct.Columns.Add(new ConsoleDisplayTableColumn("Item ID", 36));
-            ct.Columns.Add(new ConsoleDisplayTableColumn("Attach Point", 14));
-            ct.Columns.Add(new ConsoleDisplayTableColumn("Position", 15));
+            ConsoleDisplayList cdl = new ConsoleDisplayList() { Indent = 2 };
+            ScenePresenceAnimator spa = sp.Animator;
+            AnimationSet anims = sp.Animator.Animations;
 
-//            sb.AppendFormat(
-//                "  {0,-36}  {1,-10}  {2,-36}  {3,-14}  {4,-15}\n",
-//                "Attachment Name", "Local ID", "Item ID", "Attach Point", "Position");
+            string cma = spa.CurrentMovementAnimation;
+            cdl.AddRow(
+                "Current movement anim", 
+                string.Format("{0}, {1}", DefaultAvatarAnimations.GetDefaultAnimation(cma), cma));
 
-            List<SceneObjectGroup> attachmentObjects = sp.GetAttachments();
-            foreach (SceneObjectGroup attachmentObject in attachmentObjects)
+            UUID defaultAnimId = anims.DefaultAnimation.AnimID;
+            cdl.AddRow(
+                "Default anim", 
+                string.Format("{0}, {1}", defaultAnimId, GetAnimName(sp.Scene.AssetService, defaultAnimId)));
+
+            UUID implicitDefaultAnimId = anims.ImplicitDefaultAnimation.AnimID;
+            cdl.AddRow(
+                "Implicit default anim", 
+                string.Format("{0}, {1}", implicitDefaultAnimId, GetAnimName(sp.Scene.AssetService, implicitDefaultAnimId)));
+
+            cdl.AddToStringBuilder(sb);
+
+            ConsoleDisplayTable cdt = new ConsoleDisplayTable() { Indent = 2 };
+            cdt.AddColumn("Animation ID", 36);
+            cdt.AddColumn("Name", 20);
+            cdt.AddColumn("Seq", 3);
+            cdt.AddColumn("Object ID", 36);
+
+            UUID[] animIds;
+            int[] sequenceNumbers;
+            UUID[] objectIds;
+
+            sp.Animator.Animations.GetArrays(out animIds, out sequenceNumbers, out objectIds);
+
+            for (int i = 0; i < animIds.Length; i++)
             {
-//                InventoryItemBase attachmentItem
-//                    = m_scenes[0].InventoryService.GetItem(new InventoryItemBase(attachmentObject.FromItemID));
+                UUID animId = animIds[i];
+                string animName = GetAnimName(sp.Scene.AssetService, animId);
+                int seq = sequenceNumbers[i];
+                UUID objectId = objectIds[i];
 
-//                if (attachmentItem == null)
-//                {
-//                    sb.AppendFormat(
-//                        "WARNING: Couldn't find attachment for item {0} at point {1}\n",
-//                        attachmentData.ItemID, (AttachmentPoint)attachmentData.AttachPoint);
-//                        continue;
-//                }
-//                else
-//                {
-//                    sb.AppendFormat(
-//                        "  {0,-36}  {1,-10}  {2,-36}  {3,-14}  {4,-15}\n",
-//                        attachmentObject.Name, attachmentObject.LocalId, attachmentObject.FromItemID,
-//                        (AttachmentPoint)attachmentObject.AttachmentPoint, attachmentObject.RootPart.AttachedPos);
-                    ct.Rows.Add(
-                        new ConsoleDisplayTableRow(
-                            new List<string>()
-                            {
-                                attachmentObject.Name,
-                                attachmentObject.LocalId.ToString(),
-                                attachmentObject.FromItemID.ToString(),
-                                ((AttachmentPoint)attachmentObject.AttachmentPoint).ToString(),
-                                attachmentObject.RootPart.AttachedPos.ToString()
-                            }));
-//                }
+                cdt.AddRow(animId, animName, seq, objectId);
             }
 
-            ct.AddToStringBuilder(sb);
+            cdt.AddToStringBuilder(sb);
             sb.Append("\n");
+        }
+
+        private string GetAnimName(IAssetService assetService, UUID animId)
+        {
+            string animName;
+
+            if (!DefaultAvatarAnimations.AnimsNames.TryGetValue(animId, out animName))
+            {
+                AssetMetadata amd = assetService.GetMetadata(animId.ToString());
+                if (amd != null)
+                    animName = amd.Name;
+                else
+                    animName = "Unknown";
+            }
+
+            return animName;
         }
     }
 }

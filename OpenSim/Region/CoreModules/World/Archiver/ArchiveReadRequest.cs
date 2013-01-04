@@ -622,13 +622,18 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// <returns></returns>
         private bool ResolveUserUuid(Scene scene, UUID uuid)
         {
-            if (!m_validUserUuids.ContainsKey(uuid))
+            lock (m_validUserUuids)
             {
-                UserAccount account = scene.UserAccountService.GetUserAccount(scene.RegionInfo.ScopeID, uuid);
-                m_validUserUuids.Add(uuid, account != null);
-            }
+                if (!m_validUserUuids.ContainsKey(uuid))
+                {
+                    // Note: we call GetUserAccount() inside the lock because this UserID is likely
+                    // to occur many times, and we only want to query the users service once.
+                    UserAccount account = scene.UserAccountService.GetUserAccount(scene.RegionInfo.ScopeID, uuid);
+                    m_validUserUuids.Add(uuid, account != null);
+                }
 
-            return m_validUserUuids[uuid];
+                return m_validUserUuids[uuid];
+            }
         }
 
         /// <summary>
@@ -641,19 +646,26 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             if (uuid == UUID.Zero)
                 return true;    // this means the object has no group
 
-            if (!m_validGroupUuids.ContainsKey(uuid))
+            lock (m_validGroupUuids)
             {
-                bool exists;
-                
-                if (m_groupsModule == null)
-                    exists = false;
-                else
-                    exists = (m_groupsModule.GetGroupRecord(uuid) != null);
+                if (!m_validGroupUuids.ContainsKey(uuid))
+                {
+                    bool exists;
+                    if (m_groupsModule == null)
+                    {
+                        exists = false;
+                    }
+                    else
+                    {
+                        // Note: we call GetGroupRecord() inside the lock because this GroupID is likely
+                        // to occur many times, and we only want to query the groups service once.
+                        exists = (m_groupsModule.GetGroupRecord(uuid) != null);
+                    }
+                    m_validGroupUuids.Add(uuid, exists);
+                }
 
-                m_validGroupUuids.Add(uuid, exists);
+                return m_validGroupUuids[uuid];
             }
-
-            return m_validGroupUuids[uuid];
         }
 
         /// Load an asset

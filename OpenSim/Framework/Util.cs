@@ -2114,5 +2114,16 @@ namespace OpenSim.Framework
             return firstName + "." + lastName + " " + "@" + uri.Authority;
         }
         #endregion
+
+        /// <summary>
+        /// Escapes the special characters used in "LIKE".
+        /// </summary>
+        /// <remarks>
+        /// For example: EscapeForLike("foo_bar%baz") = "foo\_bar\%baz"
+        /// </remarks>
+        public static string EscapeForLike(string str)
+        {
+            return str.Replace("_", "\\_").Replace("%", "\\%");
+        }
     }
 }

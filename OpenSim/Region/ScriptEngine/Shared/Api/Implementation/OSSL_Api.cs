@@ -1214,12 +1214,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 sunHour += 24.0;
 
             World.RegionInfo.RegionSettings.UseEstateSun = useEstateSun;
-            World.RegionInfo.RegionSettings.SunPosition  = sunHour + 6; // LL Region Sun Hour is 6 to 30
-            World.RegionInfo.RegionSettings.FixedSun     = sunFixed;
+            World.RegionInfo.RegionSettings.SunPosition = sunHour + 6; // LL Region Sun Hour is 6 to 30
+            World.RegionInfo.RegionSettings.FixedSun = sunFixed;
             World.RegionInfo.RegionSettings.Save();
 
-            World.EventManager.TriggerEstateToolsSunUpdate(
-                World.RegionInfo.RegionHandle, sunFixed, useEstateSun, (float)sunHour);
+            World.EventManager.TriggerEstateToolsSunUpdate(World.RegionInfo.RegionHandle);
         }
 
         /// <summary>
@@ -1244,8 +1243,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             World.RegionInfo.EstateSettings.FixedSun = sunFixed;
             World.RegionInfo.EstateSettings.Save();
 
-            World.EventManager.TriggerEstateToolsSunUpdate(
-                World.RegionInfo.RegionHandle, sunFixed, World.RegionInfo.RegionSettings.UseEstateSun, (float)sunHour);
+            World.EventManager.TriggerEstateToolsSunUpdate(World.RegionInfo.RegionHandle);
         }
 
         /// <summary>

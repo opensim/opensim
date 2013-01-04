@@ -755,7 +755,7 @@ namespace OpenSim.Region.Framework.Scenes
         public event ScriptTimerEvent OnScriptTimerEvent;
          */
 
-        public delegate void EstateToolsSunUpdate(ulong regionHandle, bool FixedTime, bool EstateSun, float LindenHour);
+        public delegate void EstateToolsSunUpdate(ulong regionHandle);
         public delegate void GetScriptRunning(IClientAPI controllingClient, UUID objectID, UUID itemID);
 
         public event EstateToolsSunUpdate OnEstateToolsSunUpdate;
@@ -2536,13 +2536,10 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Updates the system as to how the position of the sun should be handled.
+        /// Called when the sun's position parameters have changed in the Region and/or Estate
         /// </summary>
-        /// <param name="regionHandle"></param>
-        /// <param name="FixedTime">True if the Sun Position is fixed</param>
-        /// <param name="useEstateTime">True if the Estate Settings should be used instead of region</param>
-        /// <param name="FixedSunHour">The hour 0.0 <= FixedSunHour <= 24.0 at which the sun is fixed at. Sun Hour 0 is sun-rise, when Day/Night ratio is 1:1</param>
-        public void TriggerEstateToolsSunUpdate(ulong regionHandle, bool FixedTime, bool useEstateTime, float FixedSunHour)
+        /// <param name="regionHandle">The region that changed</param>
+        public void TriggerEstateToolsSunUpdate(ulong regionHandle)
         {
             EstateToolsSunUpdate handlerEstateToolsSunUpdate = OnEstateToolsSunUpdate;
             if (handlerEstateToolsSunUpdate != null)
@@ -2551,7 +2548,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     try
                     {
-                        d(regionHandle, FixedTime, useEstateTime, FixedSunHour);
+                        d(regionHandle);
                     }
                     catch (Exception e)
                     {
