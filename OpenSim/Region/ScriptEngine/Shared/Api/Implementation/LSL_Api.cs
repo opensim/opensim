@@ -7891,14 +7891,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Integer llGetNumberOfPrims()
         {
             m_host.AddScriptLPS(1);
-            int avatarCount = 0;
-            World.ForEachRootScenePresence(delegate(ScenePresence presence)
-            {
-                if (presence.ParentID != 0 && m_host.ParentGroup.ContainsPart(presence.ParentID))
-                    avatarCount++;
-            });
 
-            return m_host.ParentGroup.PrimCount + avatarCount;
+            return m_host.ParentGroup.PrimCount + m_host.ParentGroup.GetSittingAvatarsCount();
         }
 
         /// <summary>
