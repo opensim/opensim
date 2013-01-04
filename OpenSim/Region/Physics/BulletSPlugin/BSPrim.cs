@@ -66,9 +66,6 @@ public sealed class BSPrim : BSPhysObject
     private float _restitution;
     private bool _setAlwaysRun;
     private bool _throttleUpdates;
-    private bool _isColliding;
-    private bool _collidingGround;
-    private bool _collidingObj;
     private bool _floatOnWater;
     private OMV.Vector3 _rotationalVelocity;
     private bool _kinematic;
@@ -76,13 +73,14 @@ public sealed class BSPrim : BSPhysObject
 
     private BSDynamics _vehicle;
 
+    private BSVMotor _targetMotor;
     private OMV.Vector3 _PIDTarget;
-    private bool _usePID;
     private float _PIDTau;
-    private bool _useHoverPID;
+
+    private BSFMotor _hoverMotor;
     private float _PIDHoverHeight;
     private PIDHoverType _PIDHoverType;
-    private float _PIDHoverTao;
+    private float _PIDHoverTau;
 
     public BSPrim(uint localID, String primName, BSScene parent_scene, OMV.Vector3 pos, OMV.Vector3 size,
                        OMV.Quaternion rotation, PrimitiveBaseShape pbs, bool pisPhysical)
@@ -564,6 +562,11 @@ public sealed class BSPrim : BSPhysObject
         }
         return;
     }
+    public OMV.Vector3 RawVelocity
+    {
+        get { return _velocity; }
+        set { _velocity = value; }
+    }
     public override OMV.Vector3 Velocity {
         get { return _velocity; }
         set {
@@ -1004,13 +1007,120 @@ public sealed class BSPrim : BSPhysObject
         set { _PIDTau = value; }
     }
     public override bool PIDActive {
-        set { _usePID = value; }
+        set {
+            if (value)
+            {
+                // Turning the target on
+                /*
+                _targetMotor = new BSVMotor("BSPrim.PIDTarget",
+                                            _PIDTau,                    // timeScale
+                                            BSMotor.Infinite,           // decay time scale
+                                            BSMotor.InfiniteVector,     // friction timescale
+                                            1f                          // efficiency
+                );
+                _targetMotor.SetTarget(_PIDTarget);
+                _targetMotor.SetCurrent(RawPosition);
+                 */
+                _targetMotor = new BSPIDVMotor("BSPrim.PIDTarget");
+                _targetMotor.SetTarget(_PIDTarget);
+                _targetMotor.SetCurrent(RawPosition);
+                _targetMotor.Efficiency = 1f;
+
+                _targetMotor.PhysicsScene = PhysicsScene; // DEBUG DEBUG so motor will output detail log messages.
+
+                RegisterPreStepAction("BSPrim.PIDTarget", LocalID, delegate(float timeStep)
+                {
+                    // How far are we away from the target
+                    OMV.Vector3 distance = _PIDTarget - RawPosition;
+
+                    // The amount of that distance we should cover per second
+                    OMV.Vector3 movementPerSecond = distance / _PIDTau;
+
+                    OMV.Vector3 adjustedVelocity = movementPerSecond - RawVelocity;
+
+                    // Apply force to overcome current velocity
+                    AddForce(-RawVelocity * Mass, false, true);
+                    // Get it moving to the point
+                    AddForce(movementPerSecond * Mass, false, true);
+
+                    // Apply enough force to get to the speed needed to get to the point
+                    // The physics engine will do only a timestep's worth.
+                    // AddForce(adjustedVelocity * Mass, false, true);
+                    // PhysicsScene.PE.ApplyCentralImpulse(PhysBody, adjustedVelocity);
+
+                    DetailLog("{0},BSPrim.PIDTarget,move,tgt={1},pos={2},vel={3},dist={4},tau={5},mvmt={6},newVel={7}",
+                        LocalID, _PIDTarget, RawPosition, RawVelocity, distance, _PIDTau, movementPerSecond, adjustedVelocity);
+
+                    /*
+                    OMV.Vector3 movePosition = _targetMotor.Step(timeStep);
+
+                    // 'movePosition' is where we'd like the prim to be at this moment.
+                    // Compute the amount of force to push us there.
+                    OMV.Vector3 moveForce = (movePosition - RawPosition) * Mass;
+
+                    // If we are very close to our target, turn off the movement motor.
+                    if (_targetMotor.ErrorIsZero())
+                    {
+                        DetailLog("{0},BSPrim.PIDTarget,zeroMovement,movePos={1},pos={2},mass={3},moveForce={4}",
+                                                LocalID, movePosition, RawPosition, Mass, moveForce);
+                        moveForce = OMV.Vector3.Zero;
+                        ForcePosition = _targetMotor.TargetValue;
+                        _targetMotor.Enabled = false;
+                    }
+                    else
+                    {
+                        AddForce(moveForce, false, true);
+                    }
+                    DetailLog("{0},BSPrim.PIDTarget,move,movePos={1},moveForce={2},mass={3}", LocalID, movePosition, moveForce, Mass);
+                    */
+                });
+            }
+            else
+            {
+                // Stop any targetting
+                UnRegisterPreStepAction("BSPrim.PIDTarget", LocalID);
+            }
+        }
     }
 
     // Used for llSetHoverHeight and maybe vehicle height
     // Hover Height will override MoveTo target's Z
     public override bool PIDHoverActive {
-        set { _useHoverPID = value; }
+        set {
+            if (value)
+            {
+                // Turning the target on
+                _hoverMotor = new BSFMotor("BSPrim.Hover",
+                                            _PIDHoverTau,               // timeScale
+                                            BSMotor.Infinite,           // decay time scale
+                                            BSMotor.Infinite,           // friction timescale
+                                            1f                          // efficiency
+                );
+                _hoverMotor.SetTarget(ComputeCurrentPIDHoverHeight());
+                _hoverMotor.SetCurrent(RawPosition.Z);
+                _hoverMotor.PhysicsScene = PhysicsScene; // DEBUG DEBUG so motor will output detail log messages.
+
+                RegisterPreStepAction("BSPrim.Hover", LocalID, delegate(float timeStep)
+                {
+                    // TODO: Decide if the step parameters should be changed depending on the avatar's
+                    //     state (flying, colliding, ...). There is code in ODE to do this.
+
+                    _hoverMotor.SetTarget(ComputeCurrentPIDHoverHeight());
+                    float targetHeight = _hoverMotor.Step(timeStep);
+
+                    // 'targetHeight' is where we'd like the Z of the prim to be at this moment.
+                    // Compute the amount of force to push us there.
+                    float moveForce = (targetHeight - RawPosition.Z) * Mass / PhysicsScene.LastTimeStep;
+
+                    AddForce(new OMV.Vector3(0f, 0f, moveForce), false, true);
+                    DetailLog("{0},BSPrim.Hover,move,targHt={1},moveForce={2},mass={3}", LocalID, targetHeight, moveForce, Mass);
+                });
+            }
+            else
+            {
+                UnRegisterPreStepAction("BSPrim.Hover", LocalID);
+            }
+        }
     }
     public override float PIDHoverHeight {
         set { _PIDHoverHeight = value; }
@@ -1019,8 +1129,35 @@ public sealed class BSPrim : BSPhysObject
         set { _PIDHoverType = value; }
     }
     public override float PIDHoverTau {
-        set { _PIDHoverTao = value; }
+        set { _PIDHoverTau = value; }
     }
+    // Based on current position, determine what we should be hovering at now.
+    // Must recompute often. What if we walked offa cliff>
+    private float ComputeCurrentPIDHoverHeight()
+    {
+        float ret = _PIDHoverHeight;
+        float groundHeight = PhysicsScene.TerrainManager.GetTerrainHeightAtXYZ(RawPosition);
+
+        switch (_PIDHoverType)
+        {
+            case PIDHoverType.Ground:
+                ret = groundHeight + _PIDHoverHeight;
+                break;
+            case PIDHoverType.GroundAndWater:
+                float waterHeight = PhysicsScene.TerrainManager.GetWaterLevelAtXYZ(RawPosition);
+                if (groundHeight > waterHeight)
+                {
+                    ret = groundHeight + _PIDHoverHeight;
+                }
+                else
+                {
+                    ret = waterHeight + _PIDHoverHeight;
+                }
+                break;
+        }
+        return ret;
+    }
+
 
     // For RotLookAt
     public override OMV.Quaternion APIDTarget { set { return; } }
@@ -1047,7 +1184,7 @@ public sealed class BSPrim : BSPhysObject
             }
 
             OMV.Vector3 addForce = force;
-            DetailLog("{0},BSPrim.addForce,call,force={1}", LocalID, addForce);
+            // DetailLog("{0},BSPrim.addForce,call,force={1}", LocalID, addForce);
 
             PhysicsScene.TaintedObject(inTaintTime, "BSPrim.AddForce", delegate()
             {
