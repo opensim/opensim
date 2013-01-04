@@ -3412,7 +3412,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else
             {
-                if (m_host.ParentGroup.GetSittingAvatars().Contains(agentID)
+                if (m_host.ParentGroup.GetSittingAvatars().Contains(agentID))
                 {
                     // When agent is sitting, certain permissions are implicit if requested from sitting agent
                     implicitPerms = ScriptBaseClass.PERMISSION_TRIGGER_ANIMATION |
