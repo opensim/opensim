@@ -1010,69 +1010,48 @@ public sealed class BSPrim : BSPhysObject
         set {
             if (value)
             {
-                // Turning the target on
-                /*
+                // We're taking over after this.
+                ZeroMotion(true);
+
                 _targetMotor = new BSVMotor("BSPrim.PIDTarget",
                                             _PIDTau,                    // timeScale
                                             BSMotor.Infinite,           // decay time scale
                                             BSMotor.InfiniteVector,     // friction timescale
                                             1f                          // efficiency
                 );
-                _targetMotor.SetTarget(_PIDTarget);
-                _targetMotor.SetCurrent(RawPosition);
-                 */
-                _targetMotor = new BSPIDVMotor("BSPrim.PIDTarget");
-                _targetMotor.SetTarget(_PIDTarget);
-                _targetMotor.SetCurrent(RawPosition);
-                _targetMotor.Efficiency = 1f;
-
                 _targetMotor.PhysicsScene = PhysicsScene; // DEBUG DEBUG so motor will output detail log messages.
+                _targetMotor.SetTarget(_PIDTarget);
+                _targetMotor.SetCurrent(RawPosition);
+                /*
+                _targetMotor = new BSPIDVMotor("BSPrim.PIDTarget");
+                _targetMotor.PhysicsScene = PhysicsScene; // DEBUG DEBUG so motor will output detail log messages.
+
+                _targetMotor.SetTarget(_PIDTarget);
+                _targetMotor.SetCurrent(RawPosition);
+                _targetMotor.TimeScale = _PIDTau;
+                _targetMotor.Efficiency = 1f;
+                 */
 
                 RegisterPreStepAction("BSPrim.PIDTarget", LocalID, delegate(float timeStep)
                 {
-                    // How far are we away from the target
-                    OMV.Vector3 distance = _PIDTarget - RawPosition;
-
-                    // The amount of that distance we should cover per second
-                    OMV.Vector3 movementPerSecond = distance / _PIDTau;
-
-                    OMV.Vector3 adjustedVelocity = movementPerSecond - RawVelocity;
-
-                    // Apply force to overcome current velocity
-                    AddForce(-RawVelocity * Mass, false, true);
-                    // Get it moving to the point
-                    AddForce(movementPerSecond * Mass, false, true);
-
-                    // Apply enough force to get to the speed needed to get to the point
-                    // The physics engine will do only a timestep's worth.
-                    // AddForce(adjustedVelocity * Mass, false, true);
-                    // PhysicsScene.PE.ApplyCentralImpulse(PhysBody, adjustedVelocity);
-
-                    DetailLog("{0},BSPrim.PIDTarget,move,tgt={1},pos={2},vel={3},dist={4},tau={5},mvmt={6},newVel={7}",
-                        LocalID, _PIDTarget, RawPosition, RawVelocity, distance, _PIDTau, movementPerSecond, adjustedVelocity);
-
-                    /*
-                    OMV.Vector3 movePosition = _targetMotor.Step(timeStep);
+                    OMV.Vector3 origPosition = RawPosition;     // DEBUG DEBUG (for printout below)
 
                     // 'movePosition' is where we'd like the prim to be at this moment.
-                    // Compute the amount of force to push us there.
-                    OMV.Vector3 moveForce = (movePosition - RawPosition) * Mass;
+                    OMV.Vector3 movePosition = _targetMotor.Step(timeStep);
 
                     // If we are very close to our target, turn off the movement motor.
                     if (_targetMotor.ErrorIsZero())
                     {
-                        DetailLog("{0},BSPrim.PIDTarget,zeroMovement,movePos={1},pos={2},mass={3},moveForce={4}",
-                                                LocalID, movePosition, RawPosition, Mass, moveForce);
-                        moveForce = OMV.Vector3.Zero;
+                        DetailLog("{0},BSPrim.PIDTarget,zeroMovement,movePos={1},pos={2},mass={3}",
+                                                LocalID, movePosition, RawPosition, Mass);
                         ForcePosition = _targetMotor.TargetValue;
                         _targetMotor.Enabled = false;
                     }
                     else
                     {
-                        AddForce(moveForce, false, true);
+                        ForcePosition = movePosition;
                     }
-                    DetailLog("{0},BSPrim.PIDTarget,move,movePos={1},moveForce={2},mass={3}", LocalID, movePosition, moveForce, Mass);
-                    */
+                    DetailLog("{0},BSPrim.PIDTarget,move,fromPos={1},movePos={2}", LocalID, origPosition, movePosition);
                 });
             }
             else
@@ -1102,17 +1081,17 @@ public sealed class BSPrim : BSPhysObject
 
                 RegisterPreStepAction("BSPrim.Hover", LocalID, delegate(float timeStep)
                 {
-                    // TODO: Decide if the step parameters should be changed depending on the avatar's
-                    //     state (flying, colliding, ...). There is code in ODE to do this.
-
+                    _hoverMotor.SetCurrent(RawPosition.Z);
                     _hoverMotor.SetTarget(ComputeCurrentPIDHoverHeight());
                     float targetHeight = _hoverMotor.Step(timeStep);
 
                     // 'targetHeight' is where we'd like the Z of the prim to be at this moment.
                     // Compute the amount of force to push us there.
-                    float moveForce = (targetHeight - RawPosition.Z) * Mass / PhysicsScene.LastTimeStep;
+                    float moveForce = (targetHeight - RawPosition.Z) * Mass;
+                    // Undo anything the object thinks it's doing at the moment
+                    moveForce = -RawVelocity.Z * Mass;
 
-                    AddForce(new OMV.Vector3(0f, 0f, moveForce), false, true);
+                    PhysicsScene.PE.ApplyCentralImpulse(PhysBody, new OMV.Vector3(0f, 0f, moveForce));
                     DetailLog("{0},BSPrim.Hover,move,targHt={1},moveForce={2},mass={3}", LocalID, targetHeight, moveForce, Mass);
                 });
             }
@@ -1174,7 +1153,7 @@ public sealed class BSPrim : BSPhysObject
     // This added force will only last the next simulation tick.
     public void AddForce(OMV.Vector3 force, bool pushforce, bool inTaintTime) {
         // for an object, doesn't matter if force is a pushforce or not
-        if (force.IsFinite())
+        if (!IsStatic && force.IsFinite())
         {
             float magnitude = force.Length();
             if (magnitude > BSParam.MaxAddForceMagnitude)

@@ -1,22 +1,26 @@
 CURRENT PRIORITIES
 =================================================
-Redo BulletSimAPI to allow native C# implementation of Bullet option.
-Avatar movement
-	flying into a wall doesn't stop avatar who keeps appearing to move through the obstacle
-	walking up stairs is not calibrated correctly (stairs out of Kepler cabin)
-	avatar capsule rotation completed
+Redo BulletSimAPI to allow native C# implementation of Bullet option (DONE)
+Meshes rendering as bounding boxes
 llMoveToTarget
+Vehicle movement on terrain smoothness
+limitMotorUp calibration (more down?)
+Preferred orientatino angular correction fix
+Surfboard go wonky when turning
+	Angular motor direction is global coordinates rather than local coordinates?
+Boats float low in the water
+Avatar movement
+	flying into a wall doesn't stop avatar who keeps appearing to move through the obstacle (DONE)
+	walking up stairs is not calibrated correctly (stairs out of Kepler cabin)
+	avatar capsule rotation completed (NOT DONE - Bullet's capsule shape is not the solution)
 Enable vehicle border crossings (at least as poorly as ODE)
 	Terrain skirts
 	Avatar created in previous region and not new region when crossing border
 	Vehicle recreated in new sim at small Z value (offset from root value?) (DONE)
-Vehicle movement on terrain smoothness
 Vehicle script tuning/debugging
 	Avanti speed script
 	Weapon shooter script
-limitMotorUp calibration (more down?)
-Boats float low in the water
-Add material densities to the material types.
+Add material densities to the material types
 
 CRASHES
 =================================================
