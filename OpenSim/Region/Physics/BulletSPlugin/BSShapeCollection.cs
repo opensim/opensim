@@ -453,6 +453,7 @@ public sealed class BSShapeCollection : IDisposable
         // If the prim attributes are simple, this could be a simple Bullet native shape
         if (!haveShape
                 && pbs != null
+                && !pbs.SculptEntry
                 && nativeShapePossible
                 && ((pbs.SculptEntry && !BSParam.ShouldMeshSculptedPrim)
                     || (pbs.ProfileBegin == 0 && pbs.ProfileEnd == 0
