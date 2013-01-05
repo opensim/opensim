@@ -388,6 +388,12 @@ public class BSPIDVMotor : BSVMotor
     public Vector3 integralFactor { get; set; }
     public Vector3 derivFactor { get; set; }
 
+    // The factors are vectors for the three dimensions. This is the proportional of each
+    //    that is applied. This could be multiplied through the actual factors but it
+    //    is sometimes easier to manipulate the factors and their mix separately.
+    //      to 
+    public Vector3 FactorMix;
+
     // Arbritrary factor range.
     // EfficiencyHigh means move quickly to the correct number. EfficiencyLow means might over correct.
     public float EfficiencyHigh = 0.4f;
@@ -402,6 +408,7 @@ public class BSPIDVMotor : BSVMotor
         proportionFactor = new Vector3(1.00f, 1.00f, 1.00f);
         integralFactor = new Vector3(1.00f, 1.00f, 1.00f);
         derivFactor = new Vector3(1.00f, 1.00f, 1.00f);
+        FactorMix = new Vector3(0.5f, 0.25f, 0.25f);
         RunningIntegration = Vector3.Zero;
         LastError = Vector3.Zero;
     }
@@ -417,15 +424,18 @@ public class BSPIDVMotor : BSVMotor
         set
         {
             base.Efficiency = Util.Clamp(value, 0f, 1f);
+
             // Compute factors based on efficiency.
             // If efficiency is high (1f), use a factor value that moves the error value to zero with little overshoot.
             // If efficiency is low (0f), use a factor value that overcorrects.
             // TODO: might want to vary contribution of different factor depending on efficiency.
             float factor = ((1f - this.Efficiency) * EfficiencyHigh + EfficiencyLow) / 3f;
             // float factor = (1f - this.Efficiency) * EfficiencyHigh + EfficiencyLow;
+
             proportionFactor = new Vector3(factor, factor, factor);
             integralFactor = new Vector3(factor, factor, factor);
             derivFactor = new Vector3(factor, factor, factor);
+
             MDetailLog("{0},BSPIDVMotor.setEfficiency,eff={1},factor={2}", BSScene.DetailLogZero, Efficiency, factor);
         }
     }
@@ -439,18 +449,17 @@ public class BSPIDVMotor : BSVMotor
         RunningIntegration += error * timeStep;
 
         // A simple derivitive is the rate of change from the last error.
-        Vector3 derivFactor = (error - LastError) * timeStep;
+        Vector3 derivitive = (error - LastError) * timeStep;
         LastError = error;
 
-        // Correction = -(proportionOfPresentError +      accumulationOfPastError    +     rateOfChangeOfError)
-        Vector3 ret   = -(
-                          error * proportionFactor
-                        + RunningIntegration * integralFactor 
-                        + derivFactor * derivFactor
-                        );
+        // Correction = (proportionOfPresentError + accumulationOfPastError + rateOfChangeOfError)
+        Vector3 ret   =   error * timeStep   * proportionFactor * FactorMix.X
+                        + RunningIntegration * integralFactor   * FactorMix.Y
+                        + derivitive         * derivFactor      * FactorMix.Z
+                        ;
 
-        MDetailLog("{0},BSPIDVMotor.step,ts={1},err={2},runnInt={3},derivFact={4},ret={5}",
-                        BSScene.DetailLogZero, timeStep, error, RunningIntegration, derivFactor, ret);
+        MDetailLog("{0},BSPIDVMotor.step,ts={1},err={2},runnInt={3},deriv={4},ret={5}",
+                        BSScene.DetailLogZero, timeStep, error, RunningIntegration, derivitive, ret);
 
         return ret;
     }
