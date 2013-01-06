@@ -460,6 +460,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         public bool SendLogoutPacketWhenClosing { set { m_SendLogoutPacketWhenClosing = value; } }
+       
 
         #endregion Properties
 
@@ -585,6 +586,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Disable UDP handling for this client
             m_udpClient.Shutdown();
 
+            
             //m_log.InfoFormat("[CLIENTVIEW] Memory pre  GC {0}", System.GC.GetTotalMemory(false));
             //GC.Collect();
             //m_log.InfoFormat("[CLIENTVIEW] Memory post GC {0}", System.GC.GetTotalMemory(true));
@@ -2750,8 +2752,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     req.AssetInf.ID, req.AssetInf.Metadata.ContentType);
                 return;
             }
+            int WearableOut = 0;
+            bool isWearable = false;
 
-            //m_log.Debug("sending asset " + req.RequestAssetID);
+            if (req.AssetInf != null)
+                isWearable =
+                    ((AssetType) req.AssetInf.Type ==
+                     AssetType.Bodypart || (AssetType) req.AssetInf.Type == AssetType.Clothing);
+
+            
+            //m_log.Debug("sending asset " + req.RequestAssetID + ", iswearable: " + isWearable);
+           
+            
+            //if (isWearable) 
+            //    m_log.Debug((AssetType)req.AssetInf.Type);
+            
             TransferInfoPacket Transfer = new TransferInfoPacket();
             Transfer.TransferInfo.ChannelType = 2;
             Transfer.TransferInfo.Status = 0;
@@ -2773,7 +2788,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             Transfer.TransferInfo.Size = req.AssetInf.Data.Length;
             Transfer.TransferInfo.TransferID = req.TransferRequestID;
             Transfer.Header.Zerocoded = true;
-            OutPacket(Transfer, ThrottleOutPacketType.Asset);
+            OutPacket(Transfer, isWearable ? ThrottleOutPacketType.State : ThrottleOutPacketType.Asset);
 
             if (req.NumPackets == 1)
             {
@@ -2784,7 +2799,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 TransferPacket.TransferData.Data = req.AssetInf.Data;
                 TransferPacket.TransferData.Status = 1;
                 TransferPacket.Header.Zerocoded = true;
-                OutPacket(TransferPacket, ThrottleOutPacketType.Asset);
+                OutPacket(TransferPacket, isWearable ? ThrottleOutPacketType.State : ThrottleOutPacketType.Asset);
             }
             else
             {
@@ -2817,7 +2832,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         TransferPacket.TransferData.Status = 1;
                     }
                     TransferPacket.Header.Zerocoded = true;
-                    OutPacket(TransferPacket, ThrottleOutPacketType.Asset);
+                    OutPacket(TransferPacket, isWearable ? ThrottleOutPacketType.State : ThrottleOutPacketType.Asset);
 
                     processedLength += chunkSize;
                     packetNumber++;
@@ -3572,24 +3587,25 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             aw.WearableData = new AgentWearablesUpdatePacket.WearableDataBlock[count];
             AgentWearablesUpdatePacket.WearableDataBlock awb;
             int idx = 0;
-            for (int i = 0; i < wearables.Length; i++)
-            {
-                for (int j = 0; j < wearables[i].Count; j++)
-                {
-                    awb = new AgentWearablesUpdatePacket.WearableDataBlock();
-                    awb.WearableType = (byte)i;
-                    awb.AssetID = wearables[i][j].AssetID;
-                    awb.ItemID = wearables[i][j].ItemID;
-                    aw.WearableData[idx] = awb;
-                    idx++;
+           
+                    for (int i = 0; i < wearables.Length; i++)
+                    {
+                        for (int j = 0; j < wearables[i].Count; j++)
+                        {
+                            awb = new AgentWearablesUpdatePacket.WearableDataBlock();
+                            awb.WearableType = (byte) i;
+                            awb.AssetID = wearables[i][j].AssetID;
+                            awb.ItemID = wearables[i][j].ItemID;
+                            aw.WearableData[idx] = awb;
+                            idx++;
 
-//                                m_log.DebugFormat(
-//                                    "[APPEARANCE]: Sending wearable item/asset {0} {1} (index {2}) for {3}",
-//                                    awb.ItemID, awb.AssetID, i, Name);
-                }
-            }
+                            //                                m_log.DebugFormat(
+                            //                                    "[APPEARANCE]: Sending wearable item/asset {0} {1} (index {2}) for {3}",
+                            //                                    awb.ItemID, awb.AssetID, i, Name);
+                        }
+                    }    
 
-            OutPacket(aw, ThrottleOutPacketType.Task);
+            OutPacket(aw, ThrottleOutPacketType.State);
         }
 
         public void SendAppearance(UUID agentID, byte[] visualParams, byte[] textureEntry)
@@ -3614,7 +3630,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             avp.Sender.IsTrial = false;
             avp.Sender.ID = agentID;
             //m_log.DebugFormat("[CLIENT]: Sending appearance for {0} to {1}", agentID.ToString(), AgentId.ToString());
-            OutPacket(avp, ThrottleOutPacketType.Task);
+            OutPacket(avp, ThrottleOutPacketType.State);
         }
 
         public void SendAnimations(UUID[] animations, int[] seqs, UUID sourceAgentId, UUID[] objectIDs)
@@ -6282,12 +6298,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     byte[] visualparams = new byte[appear.VisualParam.Length];
                     for (int i = 0; i < appear.VisualParam.Length; i++)
                         visualparams[i] = appear.VisualParam[i].ParamValue;
-
+                    //var b = appear.WearableData[0]; 
+                    
                     Primitive.TextureEntry te = null;
                     if (appear.ObjectData.TextureEntry.Length > 1)
                         te = new Primitive.TextureEntry(appear.ObjectData.TextureEntry, 0, appear.ObjectData.TextureEntry.Length);
+                    
+                    WearableCacheItem[] cacheitems = new WearableCacheItem[appear.WearableData.Length];
+                    for (int i=0; i<appear.WearableData.Length;i++)
+                        cacheitems[i] = new WearableCacheItem(){CacheId = appear.WearableData[i].CacheID,TextureIndex=Convert.ToUInt32(appear.WearableData[i].TextureIndex)};
 
-                    handlerSetAppearance(sender, te, visualparams,avSize);
+                    
+
+                    handlerSetAppearance(sender, te, visualparams,avSize, cacheitems);
                 }
                 catch (Exception e)
                 {
@@ -7798,6 +7821,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // surrounding scene
                 if ((ImageType)block.Type == ImageType.Baked)
                     args.Priority *= 2.0f;
+                int wearableout = 0;
 
                 ImageManager.EnqueueReq(args);
             }
@@ -11687,6 +11711,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if (cachedtex.AgentData.SessionID != SessionId)
                 return false;
+            
 
             // TODO: don't create new blocks if recycling an old packet
             cachedresp.AgentData.AgentID = AgentId;
@@ -11696,6 +11721,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             cachedresp.WearableData =
                 new AgentCachedTextureResponsePacket.WearableDataBlock[cachedtex.WearableData.Length];
 
+            //IAvatarFactoryModule fac = m_scene.RequestModuleInterface<IAvatarFactoryModule>();
+           // var item = fac.GetBakedTextureFaces(AgentId);
+            //WearableCacheItem[] items = fac.GetCachedItems(AgentId);
+
             IImprovedAssetCache cache = m_scene.RequestModuleInterface<IImprovedAssetCache>();
             if (cache == null)
             {
@@ -11703,7 +11732,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     cachedresp.WearableData[i] = new AgentCachedTextureResponsePacket.WearableDataBlock();
                     cachedresp.WearableData[i].TextureIndex = cachedtex.WearableData[i].TextureIndex;
-                    cachedresp.WearableData[i].TextureID = UUID.Zero;
+                    cachedresp.WearableData[i].TextureID = UUID.Zero; //UUID.Parse("8334fb6e-c2f5-46ee-807d-a435f61a8d46");
                     cachedresp.WearableData[i].HostName = new byte[0];
                 }
             }
@@ -11713,10 +11742,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     cachedresp.WearableData[i] = new AgentCachedTextureResponsePacket.WearableDataBlock();
                     cachedresp.WearableData[i].TextureIndex = cachedtex.WearableData[i].TextureIndex;
-                    if(cache.Check(cachedtex.WearableData[i].ID.ToString()))
+
+
+
+                    if (cache.Check(cachedtex.WearableData[i].ID.ToString()))
                         cachedresp.WearableData[i].TextureID = UUID.Zero;
+                            //UUID.Parse("8334fb6e-c2f5-46ee-807d-a435f61a8d46");
                     else
-                        cachedresp.WearableData[i].TextureID = UUID.Zero;
+                        cachedresp.WearableData[i].TextureID = UUID.Zero; // UUID.Parse("8334fb6e-c2f5-46ee-807d-a435f61a8d46");
                     cachedresp.WearableData[i].HostName = new byte[0];
                 }
             }

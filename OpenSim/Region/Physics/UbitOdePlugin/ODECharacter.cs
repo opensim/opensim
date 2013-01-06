@@ -715,7 +715,17 @@ namespace OpenSim.Region.Physics.OdePlugin
                     Vector3 off = _velocity;
                     float t = 0.5f * timeStep;
                     off = off * t;
+                    d.Quaternion qtmp;
+                    d.GeomCopyQuaternion(bbox, out qtmp);
+                    Quaternion q;
+                    q.X = qtmp.X;
+                    q.Y = qtmp.Y;
+                    q.Z = qtmp.Z;
+                    q.W = qtmp.W;
+                    off *= Quaternion.Conjugate(q);
+
                     d.GeomSetOffsetPosition(bbox, off.X, off.Y, off.Z);
+
                     off.X = 2.0f * (m_size.X + Math.Abs(off.X));
                     off.Y = 2.0f * (m_size.Y + Math.Abs(off.Y));
                     off.Z = m_size.Z + 2.0f * Math.Abs(off.Z);
@@ -741,6 +751,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                     d.GeomSetCategoryBits(feetbox, (uint)m_collisionCategories);
                     d.GeomSetCollideBits(feetbox, (uint)m_collisionFlags);
                 }
+                uint cat1 = d.GeomGetCategoryBits(bbox);
+                uint col1 = d.GeomGetCollideBits(bbox);
+
             }
         }
 
@@ -1527,8 +1540,11 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             if (CollisionEventsThisFrame != null)
             {
-                CollisionEventsThisFrame.Clear();
-                CollisionEventsThisFrame = null;
+                lock (CollisionEventsThisFrame)
+                {
+                    CollisionEventsThisFrame.Clear();
+                    CollisionEventsThisFrame = null;
+                }
             }
             m_eventsubscription = 0;
         }
@@ -1537,8 +1553,11 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             if (CollisionEventsThisFrame == null)
                 CollisionEventsThisFrame = new CollisionEventUpdate();
-            CollisionEventsThisFrame.AddCollider(CollidedWith, contact);
-            _parent_scene.AddCollisionEventReporting(this);
+            lock (CollisionEventsThisFrame)
+            {
+                CollisionEventsThisFrame.AddCollider(CollidedWith, contact);
+                _parent_scene.AddCollisionEventReporting(this);
+            }
         }
 
         public void SendCollisions()
@@ -1546,26 +1565,29 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (CollisionEventsThisFrame == null)
                 return;
 
-            if (m_cureventsubscription < m_eventsubscription)
-                return;
-
-            m_cureventsubscription = 0;
-
-            int ncolisions = CollisionEventsThisFrame.m_objCollisionList.Count;
-
-            if (!SentEmptyCollisionsEvent || ncolisions > 0)
+            lock (CollisionEventsThisFrame)
             {
-                base.SendCollisionUpdate(CollisionEventsThisFrame);
+                if (m_cureventsubscription < m_eventsubscription)
+                    return;
 
-                if (ncolisions == 0)
+                m_cureventsubscription = 0;
+
+                int ncolisions = CollisionEventsThisFrame.m_objCollisionList.Count;
+
+                if (!SentEmptyCollisionsEvent || ncolisions > 0)
                 {
-                    SentEmptyCollisionsEvent = true;
-                    _parent_scene.RemoveCollisionEventReporting(this);
-                }
-                else
-                {
-                    SentEmptyCollisionsEvent = false;
-                    CollisionEventsThisFrame.Clear();
+                    base.SendCollisionUpdate(CollisionEventsThisFrame);
+
+                    if (ncolisions == 0)
+                    {
+                        SentEmptyCollisionsEvent = true;
+                        _parent_scene.RemoveCollisionEventReporting(this);
+                    }
+                    else
+                    {
+                        SentEmptyCollisionsEvent = false;
+                        CollisionEventsThisFrame.Clear();
+                    }
                 }
             }           
         }

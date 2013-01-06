@@ -140,18 +140,18 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
         /// <param name="sp"></param>
         /// <param name="texture"></param>
         /// <param name="visualParam"></param>
-        public void SetAppearance(IScenePresence sp, AvatarAppearance appearance)
+        public void SetAppearance(IScenePresence sp, AvatarAppearance appearance, WearableCacheItem[] cacheItems)
         {
-            SetAppearance(sp, appearance.Texture, appearance.VisualParams);
+            SetAppearance(sp, appearance.Texture, appearance.VisualParams, cacheItems);
         }
 
 
-        public void SetAppearance(IScenePresence sp, Primitive.TextureEntry textureEntry, byte[] visualParams, Vector3 avSize)
+        public void SetAppearance(IScenePresence sp, Primitive.TextureEntry textureEntry, byte[] visualParams, Vector3 avSize, WearableCacheItem[] cacheItems)
         {
             float oldoff = sp.Appearance.AvatarFeetOffset;
             Vector3 oldbox = sp.Appearance.AvatarBoxSize;
 
-            SetAppearance(sp, textureEntry, visualParams);
+            SetAppearance(sp, textureEntry, visualParams, cacheItems);
             sp.Appearance.SetSize(avSize);
 
             float off = sp.Appearance.AvatarFeetOffset;
@@ -166,7 +166,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
         /// <param name="sp"></param>
         /// <param name="texture"></param>
         /// <param name="visualParam"></param>
-        public void SetAppearance(IScenePresence sp, Primitive.TextureEntry textureEntry, byte[] visualParams)
+        public void SetAppearance(IScenePresence sp, Primitive.TextureEntry textureEntry, byte[] visualParams, WearableCacheItem[] cacheItems)
         {
 //            m_log.DebugFormat(
 //                "[AVFACTORY]: start SetAppearance for {0}, te {1}, visualParams {2}",
@@ -205,11 +205,14 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 //                        ((ScenePresence)sp).SetSize(box,off);
 
                 }
-
+                //if (cacheItems.Length > 0)
+                //{
+                    sp.Appearance.WearableCacheItems = cacheItems;
+                //}
                 // Process the baked texture array
                 if (textureEntry != null)
                 {
-//                    m_log.DebugFormat("[AVFACTORY]: Received texture update for {0} {1}", sp.Name, sp.UUID);
+                    m_log.DebugFormat("[AVFACTORY]: Received texture update for {0} {1}", sp.Name, sp.UUID);
 
 //                    WriteBakedTexturesReport(sp, m_log.DebugFormat);
 
@@ -276,6 +279,19 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 return new Dictionary<BakeType, Primitive.TextureEntryFace>();
 
             return GetBakedTextureFaces(sp);
+        }
+
+        public WearableCacheItem[] GetCachedItems(UUID agentId)
+        {
+            ScenePresence sp = m_scene.GetScenePresence(agentId);
+            Dictionary<BakeType, Primitive.TextureEntryFace> bakedTextures = GetBakedTextureFaces(sp);
+
+            WearableCacheItem[] items = sp.Appearance.WearableCacheItems;
+            //foreach (WearableCacheItem item in items)
+            //{
+               
+            //}
+            return items;
         }
 
         public bool SaveBakedTextures(UUID agentId)
@@ -660,12 +676,12 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
         /// <param name="client"></param>
         /// <param name="texture"></param>
         /// <param name="visualParam"></param>
-        private void Client_OnSetAppearance(IClientAPI client, Primitive.TextureEntry textureEntry, byte[] visualParams, Vector3 avSize)
+        private void Client_OnSetAppearance(IClientAPI client, Primitive.TextureEntry textureEntry, byte[] visualParams, Vector3 avSize, WearableCacheItem[] cacheItems)
         {
             // m_log.WarnFormat("[AVFACTORY]: Client_OnSetAppearance called for {0} ({1})", client.Name, client.AgentId);
             ScenePresence sp = m_scene.GetScenePresence(client.AgentId);
             if (sp != null)
-                SetAppearance(sp, textureEntry, visualParams,avSize);
+                SetAppearance(sp, textureEntry, visualParams,avSize, cacheItems);
             else
                 m_log.WarnFormat("[AVFACTORY]: Client_OnSetAppearance unable to find presence for {0}", client.AgentId);
         }
