@@ -137,6 +137,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             get { return Type != Vehicle.TYPE_NONE && Prim.IsPhysical; }
         }
 
+        #region Vehicle parameter setting
         internal void ProcessFloatVehicleParam(Vehicle pParam, float pValue)
         {
             VDetailLog("{0},ProcessFloatVehicleParam,param={1},val={2}", Prim.LocalID, pParam, pValue);
@@ -546,6 +547,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             m_verticalAttractionMotor.FrictionTimescale = new Vector3(BSMotor.Infinite, BSMotor.Infinite, 0.1f);
             m_verticalAttractionMotor.PhysicsScene = PhysicsScene;  // DEBUG DEBUG DEBUG (enables detail logging)
         }
+        #endregion // Vehicle parameter setting
 
         // Some of the properties of this prim may have changed.
         // Do any updating needed for a vehicle
@@ -925,7 +927,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             // TODO: Consider taking the rotated size of the object or possibly casting a ray.
             if (VehiclePosition.Z < GetTerrainHeight(VehiclePosition))
             {
-                // TODO: correct position by applying force rather than forcing position.
+                // Force position because applying force won't get the vehicle through the terrain
                 Vector3 newPosition = VehiclePosition;
                 newPosition.Z = GetTerrainHeight(VehiclePosition) + 1f;
                 VehiclePosition = newPosition;

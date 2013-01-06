@@ -1,8 +1,6 @@
 CURRENT PRIORITIES
 =================================================
-Redo BulletSimAPI to allow native C# implementation of Bullet option (DONE)
-Meshes rendering as bounding boxes
-llMoveToTarget
+Avatars walking up stairs
 Vehicle movement on terrain smoothness
 limitMotorUp calibration (more down?)
 Preferred orientatino angular correction fix
@@ -135,6 +133,9 @@ Eliminate collisions between objects in a linkset. (LinksetConstraint)
 
 MORE
 ======================================================
+Use the HACD convex hull routine in Bullet rather than the C# version.
+Do we need to do convex hulls all the time? Can complex meshes be left meshes?
+	There is some problem with meshes and collisions
 Test avatar walking up stairs. How does compare with SL.
     Radius of the capsule affects ability to climb edges.
 Debounce avatar contact so legs don't keep folding up when standing.
@@ -274,3 +275,8 @@ llSetBuoyancy()	(DONE)
 	(Resolution: Bullet resets object gravity when added to world. Moved set gravity)
 Avatar density is WAY off. Compare and calibrate with what's in SL. (DONE)
 	(Resolution: set default density to 3.5 (from 60) which is closer to SL)
+Redo BulletSimAPI to allow native C# implementation of Bullet option (DONE)
+	(Resolution: added BSAPITemplate and then interfaces for C++ Bullet and C# BulletXNA
+Meshes rendering as bounding boxes (DONE)
+	(Resolution: Added test for mesh/sculpties in native shapes so it didn't think it was a box)
+llMoveToTarget (Resolution: added simple motor to update the position.)
