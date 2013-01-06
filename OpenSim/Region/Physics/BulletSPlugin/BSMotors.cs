@@ -59,10 +59,7 @@ public abstract class BSMotor
     {
         if (PhysicsScene != null)
         {
-            if (PhysicsScene.VehicleLoggingEnabled)
-            {
-                PhysicsScene.DetailLog(msg, parms);
-            }
+            PhysicsScene.DetailLog(msg, parms);
         }
     }
 }
@@ -100,10 +97,13 @@ public class BSVMotor : BSMotor
     public virtual Vector3 CurrentValue { get; protected set; }
     public virtual Vector3 LastError { get; protected set; }
 
-    public virtual bool ErrorIsZero
-    { get {
-        return (LastError == Vector3.Zero || LastError.LengthSquared() <= ErrorZeroThreshold);
-        }
+    public virtual bool ErrorIsZero()
+    {
+        return ErrorIsZero(LastError);
+    }
+    public virtual bool ErrorIsZero(Vector3 err)
+    { 
+        return (err == Vector3.Zero || err.ApproxEquals(Vector3.Zero, ErrorZeroThreshold));
     }
 
     public BSVMotor(string useName)
@@ -148,7 +148,7 @@ public class BSVMotor : BSMotor
 
         Vector3 correction = Vector3.Zero;
         Vector3 error = TargetValue - CurrentValue;
-        if (!error.ApproxEquals(Vector3.Zero, ErrorZeroThreshold))
+        if (!ErrorIsZero(error))
         {
             correction = Step(timeStep, error);
 
@@ -200,7 +200,7 @@ public class BSVMotor : BSMotor
 
         LastError = error;
         Vector3 returnCorrection = Vector3.Zero;
-        if (!error.ApproxEquals(Vector3.Zero, ErrorZeroThreshold))
+        if (!ErrorIsZero())
         {
             // correction =  error / secondsItShouldTakeToCorrect
             Vector3 correctionAmount;
@@ -246,32 +246,139 @@ public class BSVMotor : BSMotor
     }
 }
 
+// ============================================================================
+// ============================================================================
 public class BSFMotor : BSMotor
 {
-    public float TimeScale { get; set; }
-    public float DecayTimeScale { get; set; }
-    public float Friction { get; set; }
-    public float Efficiency { get; set; }
+    public virtual float TimeScale { get; set; }
+    public virtual float TargetValueDecayTimeScale { get; set; }
+    public virtual float FrictionTimescale { get; set; }
+    public virtual float Efficiency { get; set; }
 
-    public float Target { get; private set; }
-    public float CurrentValue { get; private set; }
+    public virtual float ErrorZeroThreshold { get; set; }
+
+    public virtual float TargetValue { get; protected set; }
+    public virtual float CurrentValue { get; protected set; }
+    public virtual float LastError { get; protected set; }
+
+    public virtual bool ErrorIsZero()
+    {
+        return ErrorIsZero(LastError);
+    }
+    public virtual bool ErrorIsZero(float err)
+    { 
+        return (err >= -ErrorZeroThreshold && err <= ErrorZeroThreshold);
+    }
 
     public BSFMotor(string useName, float timeScale, float decayTimescale, float friction, float efficiency)
         : base(useName)
     {
+        TimeScale = TargetValueDecayTimeScale = BSMotor.Infinite;
+        Efficiency = 1f;
+        FrictionTimescale = BSMotor.Infinite;
+        CurrentValue = TargetValue = 0f;
+        ErrorZeroThreshold = 0.01f;
     }
-    public void SetCurrent(float target)
+    public void SetCurrent(float current)
     {
+        CurrentValue = current;
     }
     public void SetTarget(float target)
     {
+        TargetValue = target;
     }
+    public override void Zero()
+    {
+        base.Zero();
+        CurrentValue = TargetValue = 0f;
+    }
+
     public virtual float Step(float timeStep)
     {
-        return 0f;
+        if (!Enabled) return TargetValue;
+
+        float origTarget = TargetValue;       // DEBUG
+        float origCurrVal = CurrentValue;     // DEBUG
+
+        float correction = 0f;
+        float error = TargetValue - CurrentValue;
+        if (!ErrorIsZero(error))
+        {
+            correction = Step(timeStep, error);
+
+            CurrentValue += correction;
+
+            // The desired value reduces to zero which also reduces the difference with current.
+            // If the decay time is infinite, don't decay at all.
+            float decayFactor = 0f;
+            if (TargetValueDecayTimeScale != BSMotor.Infinite)
+            {
+                decayFactor = (1.0f / TargetValueDecayTimeScale) * timeStep;
+                TargetValue *= (1f - decayFactor);
+            }
+
+            // The amount we can correct the error is reduced by the friction
+            float frictionFactor = 0f;
+            if (FrictionTimescale != BSMotor.Infinite)
+            {
+                // frictionFactor = (Vector3.One / FrictionTimescale) * timeStep;
+                // Individual friction components can be 'infinite' so compute each separately.
+                frictionFactor = 1f / FrictionTimescale;
+                frictionFactor *= timeStep;
+                CurrentValue *= (1f - frictionFactor);
+            }
+
+            MDetailLog("{0},  BSFMotor.Step,nonZero,{1},origCurr={2},origTarget={3},timeStep={4},err={5},corr={6}",
+                                BSScene.DetailLogZero, UseName, origCurrVal, origTarget,
+                                timeStep, error, correction);
+            MDetailLog("{0},  BSFMotor.Step,nonZero,{1},tgtDecayTS={2},decayFact={3},frictTS={4},frictFact={5},tgt={6},curr={7}",
+                                BSScene.DetailLogZero, UseName,
+                                TargetValueDecayTimeScale, decayFactor, FrictionTimescale, frictionFactor,
+                                TargetValue, CurrentValue);
+        }
+        else
+        {
+            // Difference between what we have and target is small. Motor is done.
+            CurrentValue = TargetValue;
+            MDetailLog("{0},  BSFMotor.Step,zero,{1},origTgt={2},origCurr={3},ret={4}",
+                        BSScene.DetailLogZero, UseName, origCurrVal, origTarget, CurrentValue);
+        }
+
+        return CurrentValue;
     }
+
+    public virtual float Step(float timeStep, float error)
+    {
+        if (!Enabled) return 0f;
+
+        LastError = error;
+        float returnCorrection = 0f;
+        if (!ErrorIsZero())
+        {
+            // correction =  error / secondsItShouldTakeToCorrect
+            float correctionAmount;
+            if (TimeScale == 0f || TimeScale == BSMotor.Infinite)
+                correctionAmount = error * timeStep;
+            else
+                correctionAmount = error / TimeScale * timeStep;
+
+            returnCorrection = correctionAmount;
+            MDetailLog("{0},  BSFMotor.Step,nonZero,{1},timeStep={2},timeScale={3},err={4},corr={5}",
+                                    BSScene.DetailLogZero, UseName, timeStep, TimeScale, error, correctionAmount);
+        }
+        return returnCorrection;
+    }
+
+    public override string ToString()
+    {
+        return String.Format("<{0},curr={1},targ={2},lastErr={3},decayTS={4},frictTS={5}>",
+            UseName, CurrentValue, TargetValue, LastError, TargetValueDecayTimeScale, FrictionTimescale);
+    }
+
 }
 
+// ============================================================================
+// ============================================================================
 // Proportional, Integral, Derivitive Motor
 // Good description at http://www.answers.com/topic/pid-controller . Includes processes for choosing p, i and d factors.
 public class BSPIDVMotor : BSVMotor
@@ -280,6 +387,12 @@ public class BSPIDVMotor : BSVMotor
     public Vector3 proportionFactor { get; set; }
     public Vector3 integralFactor { get; set; }
     public Vector3 derivFactor { get; set; }
+
+    // The factors are vectors for the three dimensions. This is the proportional of each
+    //    that is applied. This could be multiplied through the actual factors but it
+    //    is sometimes easier to manipulate the factors and their mix separately.
+    //      to 
+    public Vector3 FactorMix;
 
     // Arbritrary factor range.
     // EfficiencyHigh means move quickly to the correct number. EfficiencyLow means might over correct.
@@ -295,6 +408,7 @@ public class BSPIDVMotor : BSVMotor
         proportionFactor = new Vector3(1.00f, 1.00f, 1.00f);
         integralFactor = new Vector3(1.00f, 1.00f, 1.00f);
         derivFactor = new Vector3(1.00f, 1.00f, 1.00f);
+        FactorMix = new Vector3(0.5f, 0.25f, 0.25f);
         RunningIntegration = Vector3.Zero;
         LastError = Vector3.Zero;
     }
@@ -310,15 +424,19 @@ public class BSPIDVMotor : BSVMotor
         set
         {
             base.Efficiency = Util.Clamp(value, 0f, 1f);
+
             // Compute factors based on efficiency.
             // If efficiency is high (1f), use a factor value that moves the error value to zero with little overshoot.
             // If efficiency is low (0f), use a factor value that overcorrects.
             // TODO: might want to vary contribution of different factor depending on efficiency.
             float factor = ((1f - this.Efficiency) * EfficiencyHigh + EfficiencyLow) / 3f;
             // float factor = (1f - this.Efficiency) * EfficiencyHigh + EfficiencyLow;
+
             proportionFactor = new Vector3(factor, factor, factor);
             integralFactor = new Vector3(factor, factor, factor);
             derivFactor = new Vector3(factor, factor, factor);
+
+            MDetailLog("{0},BSPIDVMotor.setEfficiency,eff={1},factor={2}", BSScene.DetailLogZero, Efficiency, factor);
         }
     }
 
@@ -331,15 +449,17 @@ public class BSPIDVMotor : BSVMotor
         RunningIntegration += error * timeStep;
 
         // A simple derivitive is the rate of change from the last error.
-        Vector3 derivFactor = (error - LastError) * timeStep;
+        Vector3 derivitive = (error - LastError) * timeStep;
         LastError = error;
 
-        // Correction = -(proportionOfPresentError +      accumulationOfPastError    +     rateOfChangeOfError)
-        Vector3 ret   = -(
-                          error * proportionFactor
-                        + RunningIntegration * integralFactor 
-                        + derivFactor * derivFactor
-                        );
+        // Correction = (proportionOfPresentError + accumulationOfPastError + rateOfChangeOfError)
+        Vector3 ret   =   error * timeStep   * proportionFactor * FactorMix.X
+                        + RunningIntegration * integralFactor   * FactorMix.Y
+                        + derivitive         * derivFactor      * FactorMix.Z
+                        ;
+
+        MDetailLog("{0},BSPIDVMotor.step,ts={1},err={2},runnInt={3},deriv={4},ret={5}",
+                        BSScene.DetailLogZero, timeStep, error, RunningIntegration, derivitive, ret);
 
         return ret;
     }

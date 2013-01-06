@@ -530,12 +530,12 @@ public override void SetForceUpdateAllAabbs(BulletWorld world, bool force)
 // btDynamicsWorld entries
 public override bool AddObjectToWorld(BulletWorld world, BulletBody obj)
 {
-    // Bullet resets several variables when an object is added to the world.
-    //   Gravity is reset to world default depending on the static/dynamic
-    //   type. Of course, the collision flags in the broadphase proxy are initialized to default.
     BulletWorldUnman worldu = world as BulletWorldUnman;
     BulletBodyUnman bodyu = obj as BulletBodyUnman;
 
+    // Bullet resets several variables when an object is added to the world.
+    //   Gravity is reset to world default depending on the static/dynamic
+    //   type. Of course, the collision flags in the broadphase proxy are initialized to default.
     Vector3 origGrav = BSAPICPP.GetGravity2(bodyu.ptr);
 
     bool ret = BSAPICPP.AddObjectToWorld2(worldu.ptr, bodyu.ptr);
@@ -921,6 +921,7 @@ public override void SetCenterOfMassByPosRot(BulletBody obj, Vector3 pos, Quater
 }
 
 // Add a force to the object as if its mass is one.
+// Deep down in Bullet: m_totalForce += force*m_linearFactor;
 public override void ApplyCentralForce(BulletBody obj, Vector3 force)
 {
     BulletBodyUnman bodyu = obj as BulletBodyUnman;
@@ -964,6 +965,7 @@ public override void SetSleepingThresholds(BulletBody obj, float lin_threshold, 
     BSAPICPP.SetSleepingThresholds2(bodyu.ptr, lin_threshold, ang_threshold);
 }
 
+// Deep down in Bullet: m_totalTorque += torque*m_angularFactor;
 public override void ApplyTorque(BulletBody obj, Vector3 torque)
 {
     BulletBodyUnman bodyu = obj as BulletBodyUnman;
@@ -971,6 +973,8 @@ public override void ApplyTorque(BulletBody obj, Vector3 torque)
 }
 
 // Apply force at the given point. Will add torque to the object.
+// Deep down in Bullet: applyCentralForce(force);
+//              		applyTorque(rel_pos.cross(force*m_linearFactor));
 public override void ApplyForce(BulletBody obj, Vector3 force, Vector3 pos)
 {
     BulletBodyUnman bodyu = obj as BulletBodyUnman;
@@ -978,6 +982,7 @@ public override void ApplyForce(BulletBody obj, Vector3 force, Vector3 pos)
 }
 
 // Apply impulse to the object. Same as "ApplycentralForce" but force scaled by object's mass.
+// Deep down in Bullet: m_linearVelocity += impulse *m_linearFactor * m_inverseMass;
 public override void ApplyCentralImpulse(BulletBody obj, Vector3 imp)
 {
     BulletBodyUnman bodyu = obj as BulletBodyUnman;
@@ -985,6 +990,7 @@ public override void ApplyCentralImpulse(BulletBody obj, Vector3 imp)
 }
 
 // Apply impulse to the object's torque. Force is scaled by object's mass.
+// Deep down in Bullet: m_angularVelocity += m_invInertiaTensorWorld * torque * m_angularFactor;
 public override void ApplyTorqueImpulse(BulletBody obj, Vector3 imp)
 {
     BulletBodyUnman bodyu = obj as BulletBodyUnman;
@@ -992,6 +998,8 @@ public override void ApplyTorqueImpulse(BulletBody obj, Vector3 imp)
 }
 
 // Apply impulse at the point given. For is scaled by object's mass and effects both linear and angular forces.
+// Deep down in Bullet: applyCentralImpulse(impulse);
+//          			applyTorqueImpulse(rel_pos.cross(impulse*m_linearFactor));
 public override void ApplyImpulse(BulletBody obj, Vector3 imp, Vector3 pos)
 {
     BulletBodyUnman bodyu = obj as BulletBodyUnman;
@@ -1258,6 +1266,16 @@ public override void DumpPhysicsStatistics(BulletWorld world)
 {
     BulletWorldUnman worldu = world as BulletWorldUnman;
     BSAPICPP.DumpPhysicsStatistics2(worldu.ptr);
+}
+public override void ResetBroadphasePool(BulletWorld world)
+{
+    BulletWorldUnman worldu = world as BulletWorldUnman;
+    BSAPICPP.ResetBroadphasePool(worldu.ptr);
+}
+public override void ResetConstraintSolver(BulletWorld world)
+{
+    BulletWorldUnman worldu = world as BulletWorldUnman;
+    BSAPICPP.ResetConstraintSolver(worldu.ptr);
 }
 
 // =====================================================================================
@@ -1831,6 +1849,12 @@ public static extern void DumpAllInfo2(IntPtr sim);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern void DumpPhysicsStatistics2(IntPtr sim);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern void ResetBroadphasePool(IntPtr sim);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern void ResetConstraintSolver(IntPtr sim);
 
 }
 

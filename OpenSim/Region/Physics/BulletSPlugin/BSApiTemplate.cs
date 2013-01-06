@@ -646,17 +646,21 @@ public abstract float GetMargin(BulletShape shape);
 
 // =====================================================================================
 // Debugging
-public abstract void DumpRigidBody(BulletWorld sim, BulletBody collisionObject);
+public virtual void DumpRigidBody(BulletWorld sim, BulletBody collisionObject) { }
 
-public abstract void DumpCollisionShape(BulletWorld sim, BulletShape collisionShape);
+public virtual void DumpCollisionShape(BulletWorld sim, BulletShape collisionShape) { }
 
-public abstract void DumpConstraint(BulletWorld sim, BulletConstraint constrain);
+public virtual void DumpConstraint(BulletWorld sim, BulletConstraint constrain) { }
 
-public abstract void DumpActivationInfo(BulletWorld sim);
+public virtual void DumpActivationInfo(BulletWorld sim) { }
 
-public abstract void DumpAllInfo(BulletWorld sim);
+public virtual void DumpAllInfo(BulletWorld sim) { }
 
-public abstract void DumpPhysicsStatistics(BulletWorld sim);
+public virtual void DumpPhysicsStatistics(BulletWorld sim) { }
+
+public virtual void ResetBroadphasePool(BulletWorld sim) { }
+
+public virtual void ResetConstraintSolver(BulletWorld sim) { }
 
 };
 }

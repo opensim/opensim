@@ -497,6 +497,16 @@ public static class BSParam
             (s,cf,p,v) => { s.PhysicsMetricDumpFrames = cf.GetFloat(p, (int)v); },
             (s) => { return (float)s.PhysicsMetricDumpFrames; },
             (s,p,l,v) => { s.PhysicsMetricDumpFrames = (int)v; } ),
+        new ParameterDefn("ResetBroadphasePool", "Setting this is any value resets the broadphase collision pool",
+            0f,
+            (s,cf,p,v) => { ; },
+            (s) => { return 0f; },
+            (s,p,l,v) => { BSParam.ResetBroadphasePoolTainted(s, v); } ),
+        new ParameterDefn("ResetConstraintSolver", "Setting this is any value resets the constraint solver",
+            0f,
+            (s,cf,p,v) => { ; },
+            (s) => { return 0f; },
+            (s,p,l,v) => { BSParam.ResetConstraintSolverTainted(s, v); } ),
     };
 
     // Convert a boolean to our numeric true and false values
@@ -509,6 +519,24 @@ public static class BSParam
     public static bool BoolNumeric(float b)
     {
         return (b == ConfigurationParameters.numericTrue ? true : false);
+    }
+
+    private static void ResetBroadphasePoolTainted(BSScene pPhysScene, float v)
+    {
+        BSScene physScene = pPhysScene;
+        physScene.TaintedObject("BSParam.ResetBroadphasePoolTainted", delegate()
+        {
+            physScene.PE.ResetBroadphasePool(physScene.World);
+        });
+    }
+
+    private static void ResetConstraintSolverTainted(BSScene pPhysScene, float v)
+    {
+        BSScene physScene = pPhysScene;
+        physScene.TaintedObject("BSParam.ResetConstraintSolver", delegate()
+        {
+            physScene.PE.ResetConstraintSolver(physScene.World);
+        });
     }
 
     // Search through the parameter definitions and return the matching

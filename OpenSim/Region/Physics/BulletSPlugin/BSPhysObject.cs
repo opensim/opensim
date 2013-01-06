@@ -343,6 +343,10 @@ public abstract class BSPhysObject : PhysicsActor
     protected void RegisterPreStepAction(string op, uint id, BSScene.PreStepAction actn)
     {
         string identifier = op + "-" + id.ToString();
+
+        // Clean out any existing action
+        UnRegisterPreStepAction(op, id);
+
         RegisteredActions[identifier] = actn;
         PhysicsScene.BeforeStep += actn;
         DetailLog("{0},BSPhysObject.RegisterPreStepAction,id={1}", LocalID, identifier);

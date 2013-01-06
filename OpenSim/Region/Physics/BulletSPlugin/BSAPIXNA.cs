@@ -232,21 +232,25 @@ private sealed class BulletConstraintXNA : BulletConstraint
 
     public override bool AddObjectToWorld(BulletWorld pWorld, BulletBody pBody)
     {
+        DiscreteDynamicsWorld world = ((BulletWorldXNA)pWorld).world;
+        CollisionObject cbody = ((BulletBodyXNA)pBody).body;
+        RigidBody rbody = cbody as RigidBody;
+
         // Bullet resets several variables when an object is added to the world. In particular,
         //   BulletXNA resets position and rotation. Gravity is also reset depending on the static/dynamic
         //   type. Of course, the collision flags in the broadphase proxy are initialized to default.
-        DiscreteDynamicsWorld world = ((BulletWorldXNA)pWorld).world;
-        RigidBody body = ((BulletBodyXNA)pBody).rigidBody;
-
-        IndexedMatrix origPos = body.GetWorldTransform();
-        IndexedVector3 origGrav = body.GetGravity();
-
-        //if (!(body.GetCollisionShape().GetShapeType() == BroadphaseNativeTypes.STATIC_PLANE_PROXYTYPE && body.GetCollisionShape().GetShapeType() == BroadphaseNativeTypes.TERRAIN_SHAPE_PROXYTYPE))
-
-        world.AddRigidBody(body);
-
-        body.SetWorldTransform(origPos);
-        body.SetGravity(origGrav);
+        IndexedMatrix origPos = cbody.GetWorldTransform();
+        if (rbody != null)
+        {
+            IndexedVector3 origGrav = rbody.GetGravity();
+            world.AddRigidBody(rbody);
+            rbody.SetGravity(origGrav);
+        }
+        else
+        {
+            world.AddCollisionObject(rbody);
+        }
+        cbody.SetWorldTransform(origPos);
 
         pBody.ApplyCollisionMask(pWorld.physicsScene);
 
@@ -771,35 +775,6 @@ private sealed class BulletConstraintXNA : BulletConstraint
         RigidBody body = ((BulletBodyXNA)pBody).rigidBody;
         IndexedVector3 fSum = new IndexedVector3(pfSum.X, pfSum.Y, pfSum.Z);
         body.ApplyTorqueImpulse(ref fSum);
-    }
-
-    public override void DumpRigidBody(BulletWorld p, BulletBody p_2)
-    {
-        //TODO:
-    }
-
-    public override void DumpCollisionShape(BulletWorld p, BulletShape p_2)
-    {
-        //TODO:
-    }
-    public override void DumpConstraint(BulletWorld world, BulletConstraint constrain)
-    {
-        //TODO:
-    }
-
-    public override void DumpActivationInfo(BulletWorld world)
-    {
-        //TODO:
-    }
-
-    public override void DumpAllInfo(BulletWorld world)
-    {
-        //TODO:
-    }
-
-    public override void DumpPhysicsStatistics(BulletWorld world)
-    {
-        //TODO:
     }
 
     public override void DestroyObject(BulletWorld p, BulletBody p_2)

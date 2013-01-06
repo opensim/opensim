@@ -47,7 +47,7 @@
   <delete>
     <fileset basedir="${distbindir}">
       <include name="compile.bat"/>
-      <include name="BUILDING.txt"/>
+      <include name="BUILDING.md"/>
       <include name="Makefile"/>
       <include name="nant-color"/>
       <include name="OpenSim.*"/>
