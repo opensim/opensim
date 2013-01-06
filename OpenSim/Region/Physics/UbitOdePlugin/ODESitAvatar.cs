@@ -78,8 +78,12 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             IntPtr geom = ((OdePrim)actor).prim_geom;
 
-            Vector3 geopos = d.GeomGetPositionOMV(geom);
-            Quaternion geomOri = d.GeomGetQuaternionOMV(geom);
+//            Vector3 geopos = d.GeomGetPositionOMV(geom);
+//            Quaternion geomOri = d.GeomGetQuaternionOMV(geom);
+
+            Vector3 geopos = actor.Position;
+            Quaternion geomOri = actor.Orientation;
+
             Quaternion geomInvOri = Quaternion.Conjugate(geomOri);
 
             Quaternion ori = Quaternion.Identity;
@@ -116,6 +120,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
 
             int status = 1;
+
             offset = rayResults[0].Pos - geopos;
 
             d.GeomClassID geoclass = d.GeomGetClass(geom);
@@ -191,13 +196,12 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (norm.Z < 0.5f)
             {
                 float rayDist = 4.0f;
-                float curEdgeDist = 0.0f;
 
                 for (int i = 0; i < 6; i++)
                 {
-                    pivot.X -= 0.005f * norm.X;
-                    pivot.Y -= 0.005f * norm.Y;
-                    pivot.Z -= 0.005f * norm.Z;
+                    pivot.X -= 0.01f * norm.X;
+                    pivot.Y -= 0.01f * norm.Y;
+                    pivot.Z -= 0.01f * norm.Z;
 
                     rayDir.X = -norm.X * norm.Z;
                     rayDir.Y = -norm.Y * norm.Z;
@@ -207,8 +211,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                     rayResults = m_scene.RaycastActor(actor, pivot, rayDir, rayDist, 1, RayFilterFlags.AllPrims);
                     if (rayResults.Count == 0)
                         break;
-
-                    curEdgeDist += rayResults[0].Depth;
 
                     if (Math.Abs(rayResults[0].Normal.Z) < 0.7f)
                     {
@@ -226,7 +228,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                     else
                     {
                         foundEdge = true;
-                        edgeDist = curEdgeDist;
                         edgePos = rayResults[0].Pos;
                         break;
                     }
@@ -254,7 +255,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                     for (int i = 0; i < 3; i++)
                     {
-                        pivot.Z -= 0.005f;
+                        pivot.Z -= 0.01f;
                         rayDir.X = toCamX;
                         rayDir.Y = toCamY;
                         rayDir.Z = (-toCamX * norm.X - toCamY * norm.Y) / norm.Z;
