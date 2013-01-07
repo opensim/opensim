@@ -58,8 +58,6 @@ public sealed class BSCharacter : BSPhysObject
     private bool _flying;
     private bool _setAlwaysRun;
     private bool _throttleUpdates;
-    private bool _isColliding;
-    private bool _collidingObj;
     private bool _floatOnWater;
     private OMV.Vector3 _rotationalVelocity;
     private bool _kinematic;

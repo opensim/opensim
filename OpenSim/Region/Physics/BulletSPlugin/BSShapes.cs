@@ -95,9 +95,9 @@ public abstract class BSShape
     // protected abstract static BSShape GetReference();
 
     // Returns a string for debugging that uniquily identifies the memory used by this instance
-    public string AddrString
+    public virtual string AddrString
     {
-        get { return ptr.ToString("X"); }
+        get { return "unknown"; }
     }
 
     public override string ToString()
@@ -105,10 +105,6 @@ public abstract class BSShape
         StringBuilder buff = new StringBuilder();
         buff.Append("<p=");
         buff.Append(AddrString);
-        buff.Append(",s=");
-        buff.Append(type.ToString());
-        buff.Append(",k=");
-        buff.Append(key.ToString("X"));
         buff.Append(",c=");
         buff.Append(referenceCount.ToString());
         buff.Append(">");
