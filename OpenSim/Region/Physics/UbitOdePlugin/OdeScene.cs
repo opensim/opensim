@@ -2586,7 +2586,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 req.Normal = direction;
                 req.Origin = position;
                 req.Count = 0;
-                req.filter = RayFilterFlags.All;
+                req.filter = RayFilterFlags.AllPrims | RayFilterFlags.land;
 
                 m_rayCastManager.QueueRequest(req);
             }
@@ -2603,7 +2603,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 req.Normal = direction;
                 req.Origin = position;
                 req.Count = Count;
-                req.filter = RayFilterFlags.All;
+                req.filter = RayFilterFlags.AllPrims | RayFilterFlags.land;
 
                 m_rayCastManager.QueueRequest(req);
             }
@@ -2631,7 +2631,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             req.Normal = direction;
             req.Origin = position;
             req.Count = Count;
-            req.filter = RayFilterFlags.All;
+            req.filter = RayFilterFlags.AllPrims | RayFilterFlags.land;
 
             lock (SyncObject)
             {
