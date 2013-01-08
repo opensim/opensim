@@ -1538,33 +1538,36 @@ namespace OpenSim.Region.Framework.Scenes
             // Raycast from the avatar's head to the camera to see if there's anything blocking the view
             // this exclude checks may not be complete
 
-            if (!m_doingCamRayCast && !m_mouseLook && m_scene.PhysicsScene.SupportsRayCast() && ParentID == 0)
+            if (m_movementUpdateCount % NumMovementsBetweenRayCast == 0 && m_scene.PhysicsScene.SupportsRayCast())
             {
-                Vector3 posAdjusted = AbsolutePosition;
-                posAdjusted.Z += 0.5f * Appearance.AvatarSize.Z - 0.5f;
-
-                Vector3 tocam = CameraPosition - posAdjusted;
-                tocam.X = (float)Math.Round(tocam.X, 1);
-                tocam.Y = (float)Math.Round(tocam.Y, 1);
-                tocam.Z = (float)Math.Round(tocam.Z, 1);
-                
-                float distTocamlen = tocam.Length();
-                if (distTocamlen > 0.3f)
+                if (!m_doingCamRayCast && !m_mouseLook && ParentID == 0)
                 {
-                    tocam *= (1.0f / distTocamlen);
-                    posAdjusted.X = (float)Math.Round(posAdjusted.X, 1);
-                    posAdjusted.Y = (float)Math.Round(posAdjusted.Y, 1);
-                    posAdjusted.Z = (float)Math.Round(posAdjusted.Z, 1);
+                    Vector3 posAdjusted = AbsolutePosition;
+                    posAdjusted.Z += 0.5f * Appearance.AvatarSize.Z - 0.5f;
 
-                    m_doingCamRayCast = true;
-                    m_scene.PhysicsScene.RaycastWorld(posAdjusted, tocam, distTocamlen + 1.0f, RayCastCameraCallback);
+                    Vector3 tocam = CameraPosition - posAdjusted;
+                    tocam.X = (float)Math.Round(tocam.X, 1);
+                    tocam.Y = (float)Math.Round(tocam.Y, 1);
+                    tocam.Z = (float)Math.Round(tocam.Z, 1);
+
+                    float distTocamlen = tocam.Length();
+                    if (distTocamlen > 0.3f)
+                    {
+                        tocam *= (1.0f / distTocamlen);
+                        posAdjusted.X = (float)Math.Round(posAdjusted.X, 1);
+                        posAdjusted.Y = (float)Math.Round(posAdjusted.Y, 1);
+                        posAdjusted.Z = (float)Math.Round(posAdjusted.Z, 1);
+
+                        m_doingCamRayCast = true;
+                        m_scene.PhysicsScene.RaycastWorld(posAdjusted, tocam, distTocamlen + 1.0f, RayCastCameraCallback);
+                    }
                 }
-            }
-            else if (CameraConstraintActive && (m_mouseLook || ParentID != 0) )
-            {
-                Vector4 plane = new Vector4(0.9f, 0.0f, 0.361f, -10000f); // not right...
-                UpdateCameraCollisionPlane(plane);
-                CameraConstraintActive = false;
+                else if (CameraConstraintActive && (m_mouseLook || ParentID != 0))
+                {
+                    Vector4 plane = new Vector4(0.9f, 0.0f, 0.361f, -10000f); // not right...
+                    UpdateCameraCollisionPlane(plane);
+                    CameraConstraintActive = false;
+                }
             }
 
             uint flagsForScripts = (uint)flags;
