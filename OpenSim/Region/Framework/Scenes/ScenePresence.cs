@@ -2545,10 +2545,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // grab the latest PhysicsActor velocity, whereas m_velocity is often
                 // storing a requested force instead of an actual traveling velocity
                 if (Appearance.AvatarSize != m_lastSize && !IsLoggingIn)
-                {
-                    m_lastSize = Appearance.AvatarSize;
                     SendAvatarDataToAllAgents();
-                }
 
                 if (!Rotation.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE) ||
                     !Velocity.ApproxEquals(m_lastVelocity, VELOCITY_TOLERANCE) ||
