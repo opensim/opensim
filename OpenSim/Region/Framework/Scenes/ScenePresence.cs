@@ -140,6 +140,8 @@ namespace OpenSim.Region.Framework.Scenes
         private Vector3 m_lastPosition;
         private Quaternion m_lastRotation;
         private Vector3 m_lastVelocity;
+        private Vector3 m_lastSize = new Vector3(0.45f,0.6f,1.9f);
+
 
         private Vector3? m_forceToApply;
         private int m_userFlags;
@@ -2539,7 +2541,13 @@ namespace OpenSim.Region.Framework.Scenes
                 // NOTE: Velocity is not the same as m_velocity. Velocity will attempt to
                 // grab the latest PhysicsActor velocity, whereas m_velocity is often
                 // storing a requested force instead of an actual traveling velocity
-                if (!Rotation.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE) ||
+                if (Appearance.AvatarSize != m_lastSize)
+                {
+                    m_lastSize = Appearance.AvatarSize;
+                    SendAvatarDataToAllAgents();
+                }
+
+                else if (!Rotation.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE) ||
                     !Velocity.ApproxEquals(m_lastVelocity, VELOCITY_TOLERANCE) ||
                     !m_pos.ApproxEquals(m_lastPosition, POSITION_TOLERANCE))
                 {
