@@ -173,8 +173,13 @@ namespace OpenSim.Region.Physics.OdePlugin
                         d.GeomRaySetClosestHit(ray, closestHit);
 
                         if (req.callbackMethod is RaycastCallback)
+                        {
                             // if we only want one get only one per Collision pair saving memory
                             CurrentRayFilter |= RayFilterFlags.ClosestHit;
+                            d.GeomRaySetClosestHit(ray, 1);
+                        }
+                        else
+                            d.GeomRaySetClosestHit(ray, closestHit);
                     }
 
                     if ((CurrentRayFilter & RayFilterFlags.ContactsUnImportant) != 0)
@@ -555,10 +560,13 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                     ContactResult collisionresult = new ContactResult();
                     collisionresult.ConsumerID = ID;
-                    collisionresult.Pos = new Vector3(curcontact.pos.X, curcontact.pos.Y, curcontact.pos.Z);
+                    collisionresult.Pos.X = curcontact.pos.X;
+                    collisionresult.Pos.Y = curcontact.pos.Y;
+                    collisionresult.Pos.Z = curcontact.pos.Z;
                     collisionresult.Depth = curcontact.depth;
-                    collisionresult.Normal = new Vector3(curcontact.normal.X, curcontact.normal.Y,
-                                                         curcontact.normal.Z);
+                    collisionresult.Normal.X = curcontact.normal.X;
+                    collisionresult.Normal.Y = curcontact.normal.Y;
+                    collisionresult.Normal.Z = curcontact.normal.Z;
                     lock (m_contactResults)
                     {
                         m_contactResults.Add(collisionresult);
@@ -581,10 +589,13 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                     if (curcontact.depth < collisionresult.Depth)
                     {
-                        collisionresult.Pos = new Vector3(curcontact.pos.X, curcontact.pos.Y, curcontact.pos.Z);
+                        collisionresult.Pos.X = curcontact.pos.X;
+                        collisionresult.Pos.Y = curcontact.pos.Y;
+                        collisionresult.Pos.Z = curcontact.pos.Z;
                         collisionresult.Depth = curcontact.depth;
-                        collisionresult.Normal = new Vector3(curcontact.normal.X, curcontact.normal.Y,
-                                                             curcontact.normal.Z);
+                        collisionresult.Normal.X = curcontact.normal.X;
+                        collisionresult.Normal.Y = curcontact.normal.Y;
+                        collisionresult.Normal.Z = curcontact.normal.Z;
                     }
                 }
 
@@ -699,10 +710,13 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                     ContactResult collisionresult = new ContactResult();
                     collisionresult.ConsumerID = ID;
-                    collisionresult.Pos = new Vector3(curcontact.pos.X, curcontact.pos.Y, curcontact.pos.Z);
+                    collisionresult.Pos.X = curcontact.pos.X;
+                    collisionresult.Pos.Y = curcontact.pos.Y;
+                    collisionresult.Pos.Z = curcontact.pos.Z;
                     collisionresult.Depth = curcontact.depth;
-                    collisionresult.Normal = new Vector3(curcontact.normal.X, curcontact.normal.Y,
-                                                         curcontact.normal.Z);
+                    collisionresult.Normal.X = curcontact.normal.X;
+                    collisionresult.Normal.Y = curcontact.normal.Y;
+                    collisionresult.Normal.Z = curcontact.normal.Z;
                     lock (m_contactResults)
                     {
                         m_contactResults.Add(collisionresult);
@@ -725,10 +739,13 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                     if (curcontact.depth < collisionresult.Depth)
                     {
-                        collisionresult.Pos = new Vector3(curcontact.pos.X, curcontact.pos.Y, curcontact.pos.Z);
+                        collisionresult.Pos.X = curcontact.pos.X;
+                        collisionresult.Pos.Y = curcontact.pos.Y;
+                        collisionresult.Pos.Z = curcontact.pos.Z;
                         collisionresult.Depth = curcontact.depth;
-                        collisionresult.Normal = new Vector3(curcontact.normal.X, curcontact.normal.Y,
-                                                             curcontact.normal.Z);
+                        collisionresult.Normal.X = curcontact.normal.X;
+                        collisionresult.Normal.Y = curcontact.normal.Y;
+                        collisionresult.Normal.Z = curcontact.normal.Z;
                     }
                 }
 
