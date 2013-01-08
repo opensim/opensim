@@ -205,10 +205,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 //                        ((ScenePresence)sp).SetSize(box,off);
 
                 }
-                //if (cacheItems.Length > 0)
-                //{
-                    sp.Appearance.WearableCacheItems = cacheItems;
-                //}
+            
                 // Process the baked texture array
                 if (textureEntry != null)
                 {
@@ -284,8 +281,6 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
         public WearableCacheItem[] GetCachedItems(UUID agentId)
         {
             ScenePresence sp = m_scene.GetScenePresence(agentId);
-            Dictionary<BakeType, Primitive.TextureEntryFace> bakedTextures = GetBakedTextureFaces(sp);
-
             WearableCacheItem[] items = sp.Appearance.WearableCacheItems;
             //foreach (WearableCacheItem item in items)
             //{
