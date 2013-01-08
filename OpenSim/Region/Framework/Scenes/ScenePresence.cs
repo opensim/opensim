@@ -2738,6 +2738,8 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
             }
 
+            m_lastSize = Appearance.AvatarSize;
+
             int count = 0;
             m_scene.ForEachScenePresence(delegate(ScenePresence scenePresence)
                                          {
