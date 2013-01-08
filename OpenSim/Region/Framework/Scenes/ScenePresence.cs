@@ -607,6 +607,7 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         public bool IsChildAgent { get; set; }
+        public bool IsLoggingIn { get; set; }
 
         /// <summary>
         /// If the avatar is sitting, the local ID of the prim that it's sitting on.  If not sitting then zero.
@@ -743,6 +744,7 @@ namespace OpenSim.Region.Framework.Scenes
             AttachmentsSyncLock = new Object();
             AllowMovement = true;
             IsChildAgent = true;
+            IsLoggingIn = false;
             m_sendCoarseLocationsMethod = SendCoarseLocationsDefault;
             Animator = new ScenePresenceAnimator(this);
             PresenceType = type;
@@ -915,6 +917,7 @@ namespace OpenSim.Region.Framework.Scenes
             else
             {
                 IsChildAgent = false;
+                IsLoggingIn = false;
             }
 
 
@@ -2541,13 +2544,13 @@ namespace OpenSim.Region.Framework.Scenes
                 // NOTE: Velocity is not the same as m_velocity. Velocity will attempt to
                 // grab the latest PhysicsActor velocity, whereas m_velocity is often
                 // storing a requested force instead of an actual traveling velocity
-                if (Appearance.AvatarSize != m_lastSize)
+                if (Appearance.AvatarSize != m_lastSize && !IsLoggingIn)
                 {
                     m_lastSize = Appearance.AvatarSize;
                     SendAvatarDataToAllAgents();
                 }
 
-                else if (!Rotation.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE) ||
+                if (!Rotation.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE) ||
                     !Velocity.ApproxEquals(m_lastVelocity, VELOCITY_TOLERANCE) ||
                     !m_pos.ApproxEquals(m_lastPosition, POSITION_TOLERANCE))
                 {
