@@ -96,8 +96,8 @@ namespace OpenSim.Region.ClientStack.Linden
         //        private static readonly string m_fetchInventoryPath = "0006/";
         private static readonly string m_copyFromNotecardPath = "0007/";
         // private static readonly string m_remoteParcelRequestPath = "0009/";// This is in the LandManagementModule.
-
-
+        private static readonly string m_UpdateAgentInformationPath = "0500/";
+        
         // These are callbacks which will be setup by the scene so that we can update scene data when we
         // receive capability calls
         public NewInventoryItem AddNewInventoryItem = null;
@@ -204,6 +204,8 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_HostCapsObj.RegisterHandler("UpdateNotecardAgentInventory", req);
                 m_HostCapsObj.RegisterHandler("UpdateScriptAgentInventory", req);
                 m_HostCapsObj.RegisterHandler("UpdateScriptAgent", req);
+                IRequestHandler UpdateAgentInformationHandler = new RestStreamHandler("POST", capsBase + m_UpdateAgentInformationPath, UpdateAgentInformation);
+                m_HostCapsObj.RegisterHandler("UpdateAgentInformation", UpdateAgentInformationHandler);
 
                 m_HostCapsObj.RegisterHandler(
                     "CopyInventoryFromNotecard",
@@ -854,6 +856,22 @@ namespace OpenSim.Region.ClientStack.Linden
 
             response["int_response_code"] = 200;
             return LLSDHelpers.SerialiseLLSDReply(response);
+        }
+
+        public string UpdateAgentInformation(string request, string path,
+                string param, IOSHttpRequest httpRequest,
+                IOSHttpResponse httpResponse)
+        {
+            OSDMap req = (OSDMap)OSDParser.DeserializeLLSDXml(request);
+            OSDMap resp = new OSDMap();
+
+            OSDMap accessPrefs = new OSDMap();
+            accessPrefs["max"] = "A";
+
+            resp["access_prefs"] = accessPrefs;
+
+            string response = OSDParser.SerializeLLSDXmlString(resp);
+            return response; 
         }
     }
 
