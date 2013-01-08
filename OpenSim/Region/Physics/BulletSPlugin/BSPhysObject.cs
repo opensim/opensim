@@ -79,6 +79,7 @@ public abstract class BSPhysObject : PhysicsActor
         Material = MaterialAttributes.Material.Wood;
 
         CollisionCollection = new CollisionEventUpdate();
+        CollisionsLastTick = CollisionCollection;
         SubscribedEventsMs = 0;
         CollidingStep = 0;
         CollidingGroundStep = 0;
@@ -159,6 +160,7 @@ public abstract class BSPhysObject : PhysicsActor
     public abstract OMV.Quaternion ForceOrientation { get; set; }
 
     // The system is telling us the velocity it wants to move at.
+    // Velocity in world coordinates.
     // protected OMV.Vector3 m_targetVelocity;  // use the definition in PhysicsActor
     public override OMV.Vector3 TargetVelocity
     {
@@ -169,6 +171,15 @@ public abstract class BSPhysObject : PhysicsActor
             Velocity = value;
         }
     }
+    public virtual float TargetSpeed
+    {
+        get
+        {
+            OMV.Vector3 characterOrientedVelocity = TargetVelocity * OMV.Quaternion.Inverse(OMV.Quaternion.Normalize(RawOrientation));
+            return characterOrientedVelocity.X;
+        }
+    }
+    public abstract OMV.Vector3 RawVelocity { get; set; }
     public abstract OMV.Vector3 ForceVelocity { get; set; }
 
     public abstract OMV.Vector3 ForceRotationalVelocity { get; set; }
@@ -176,6 +187,15 @@ public abstract class BSPhysObject : PhysicsActor
     public abstract float ForceBuoyancy { get; set; }
 
     public virtual bool ForceBodyShapeRebuild(bool inTaintTime) { return false; }
+
+    public virtual float ForwardSpeed
+    {
+        get
+        {
+            OMV.Vector3 characterOrientedVelocity = RawVelocity * OMV.Quaternion.Inverse(OMV.Quaternion.Normalize(RawOrientation));
+            return characterOrientedVelocity.X;
+        }
+    }
 
     #region Collisions
 
@@ -223,9 +243,13 @@ public abstract class BSPhysObject : PhysicsActor
 
     // The collisions that have been collected this tick
     protected CollisionEventUpdate CollisionCollection;
+    // Remember collisions from last tick for fancy collision based actions
+    //     (like a BSCharacter walking up stairs).
+    protected CollisionEventUpdate CollisionsLastTick;
 
     // The simulation step is telling this object about a collision.
     // Return 'true' if a collision was processed and should be sent up.
+    // Return 'false' if this object is not enabled/subscribed/appropriate for or has already seen this collision.
     // Called at taint time from within the Step() function
     public virtual bool Collide(uint collidingWith, BSPhysObject collidee,
                     OMV.Vector3 contactPoint, OMV.Vector3 contactNormal, float pentrationDepth)
@@ -285,6 +309,9 @@ public abstract class BSPhysObject : PhysicsActor
 
             // DetailLog("{0},{1}.SendCollisionUpdate,call,numCollisions={2}", LocalID, TypeName, CollisionCollection.Count);
             base.SendCollisionUpdate(CollisionCollection);
+
+            // Remember the collisions from this tick for some collision specific processing.
+            CollisionsLastTick = CollisionCollection;
 
             // The CollisionCollection instance is passed around in the simulator.
             // Make sure we don't have a handle to that one and that a new one is used for next time.

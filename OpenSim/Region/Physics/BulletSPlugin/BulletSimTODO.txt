@@ -88,6 +88,8 @@ setForce should set a constant force. Different than AddImpulse.
 Implement raycast.
 Implement ShapeCollection.Dispose()
 Implement water as a plain so raycasting and collisions can happen with same.
+Add collision penetration return
+	Add field passed back by BulletSim.dll and fill with info in ManifoldConstact.GetDistance()
 Add osGetPhysicsEngineName() so scripters can tell whether BulletSim or ODE
 	Also osGetPhysicsEngineVerion() maybe.
 Linkset.Position and Linkset.Orientation requre rewrite to properly return
