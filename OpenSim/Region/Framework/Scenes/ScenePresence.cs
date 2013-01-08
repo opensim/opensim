@@ -1421,6 +1421,9 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void RayCastCameraCallback(bool hitYN, Vector3 collisionPoint, uint localid, float distance, Vector3 pNormal)
         {
+            const float POSITION_TOLERANCE = 0.02f;
+            const float ROTATION_TOLERANCE = 0.02f;
+
             m_doingCamRayCast = false;
             if (hitYN && localid != LocalId)
             {
@@ -1436,11 +1439,11 @@ namespace OpenSim.Region.Framework.Scenes
                 Vector4 plane = new Vector4(pNormal.X, pNormal.Y, pNormal.Z, Vector3.Dot(collisionPoint, pNormal));
                 UpdateCameraCollisionPlane(plane);
             }
-            else
+            else if (!m_pos.ApproxEquals(m_lastPosition, POSITION_TOLERANCE) ||
+                     !Rotation.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE))
             {
                 Vector4 plane = new Vector4(0.9f, 0.0f, 0.361f, -9000f); // not right...
                 UpdateCameraCollisionPlane(plane);
-
                 CameraConstraintActive = false;
             }
         }
@@ -1543,8 +1546,8 @@ namespace OpenSim.Region.Framework.Scenes
                 if (!m_doingCamRayCast && !m_mouseLook && ParentID == 0)
                 {
                     Vector3 posAdjusted = AbsolutePosition;
-                    posAdjusted.Z += 0.5f * Appearance.AvatarSize.Z - 0.5f;
-
+//                    posAdjusted.Z += 0.5f * Appearance.AvatarSize.Z - 0.5f;
+                    posAdjusted.Z += 1.0f; // viewer current camera focus point
                     Vector3 tocam = CameraPosition - posAdjusted;
                     tocam.X = (float)Math.Round(tocam.X, 1);
                     tocam.Y = (float)Math.Round(tocam.Y, 1);
