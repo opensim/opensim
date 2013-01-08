@@ -103,6 +103,7 @@ namespace OpenSim.Region.ClientStack.Linden
         private static readonly string m_getObjectPhysicsDataPath = "0101/";
         private static readonly string m_getObjectCostPath = "0102/";
         private static readonly string m_ResourceCostSelectedPath = "0103/";
+        private static readonly string m_UpdateAgentInformationPath = "0500/";
         
 
         // These are callbacks which will be setup by the scene so that we can update scene data when we
@@ -287,6 +288,8 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_HostCapsObj.RegisterHandler("GetObjectCost", getObjectCostHandler);
                 IRequestHandler ResourceCostSelectedHandler = new RestStreamHandler("POST", capsBase + m_ResourceCostSelectedPath, ResourceCostSelected);
                 m_HostCapsObj.RegisterHandler("ResourceCostSelected", ResourceCostSelectedHandler);       
+                IRequestHandler UpdateAgentInformationHandler = new RestStreamHandler("POST", capsBase + m_UpdateAgentInformationPath, UpdateAgentInformation);
+                m_HostCapsObj.RegisterHandler("UpdateAgentInformation", UpdateAgentInformationHandler);
 
                 m_HostCapsObj.RegisterHandler(
                     "CopyInventoryFromNotecard",
@@ -1434,6 +1437,22 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 resp["selected"] = object_data;
             }
+
+            string response = OSDParser.SerializeLLSDXmlString(resp);
+            return response; 
+        }
+
+        public string UpdateAgentInformation(string request, string path,
+                string param, IOSHttpRequest httpRequest,
+                IOSHttpResponse httpResponse)
+        {
+            OSDMap req = (OSDMap)OSDParser.DeserializeLLSDXml(request);
+            OSDMap resp = new OSDMap();
+
+            OSDMap accessPrefs = new OSDMap();
+            accessPrefs["max"] = "A";
+
+            resp["access_prefs"] = accessPrefs;
 
             string response = OSDParser.SerializeLLSDXmlString(resp);
             return response; 
