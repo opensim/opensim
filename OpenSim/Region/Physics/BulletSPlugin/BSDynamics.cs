@@ -1111,6 +1111,10 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                                     + deflectionContribution
                                     + bankingContribution;
 
+            // Add of the above computation are made relative to vehicle coordinates.
+            // Convert to world coordinates.
+            m_lastAngularVelocity *= VehicleOrientation;
+
             // ==================================================================
             // Apply the correction velocity.
             // TODO: Should this be applied as an angular force (torque)?
@@ -1222,14 +1226,13 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         public Vector3 ComputeAngularDeflection()
         {
             Vector3 ret = Vector3.Zero;
-            return ret;         // DEBUG DEBUG DEBUG
-            // Disable angular deflection for the moment.
+
             // Since angularMotorUp and angularDeflection are computed independently, they will calculate
             //     approximately the same X or Y correction. When added together (when contributions are combined)
             //     this creates an over-correction and then wabbling as the target is overshot.
             // TODO: rethink how the different correction computations inter-relate.
 
-            if (m_angularDeflectionEfficiency != 0)
+            if (m_angularDeflectionEfficiency != 0 && VehicleVelocity != Vector3.Zero)
             {
                 // The direction the vehicle is moving
                 Vector3 movingDirection = VehicleVelocity;
@@ -1298,33 +1301,29 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 
             if (m_bankingEfficiency != 0 && m_verticalAttractionTimescale < m_verticalAttractionCutoff)
             {
-                // This works by rotating a unit vector to the orientation of the vehicle. The
-                //    roll (tilt) will be Y component of a tilting Z vector (zero for no tilt
-                //    up to one for full over).
+                // Rotate a UnitZ vector (pointing up) to how the vehicle is oriented.
+                // As the vehicle rolls to the right or left, the Y value will increase from
+                //     zero (straight up) to 1 or -1 (full tilt right  or left)
                 Vector3 rollComponents = Vector3.UnitZ * VehicleOrientation;
-
+                
                 // Figure out the yaw value for this much roll.
-                float turnComponent = rollComponents.Y * rollComponents.Y * m_bankingEfficiency;
-                // Keep the sign
-                if (rollComponents.Y < 0f)
-                    turnComponent = -turnComponent;
-
-                // TODO: there must be a better computation of the banking force.
-                float bankingTurnForce = turnComponent;
+                // Squared because that seems to give a good value
+                float yawAngle = (float)Math.Asin(rollComponents.Y * rollComponents.Y) * m_bankingEfficiency;
 
                 //        actual error  =       static turn error            +           dynamic turn error
-                float mixedBankingError = bankingTurnForce * (1f - m_bankingMix) + bankingTurnForce * m_bankingMix * VehicleForwardSpeed;
+                float mixedYawAngle = yawAngle * (1f - m_bankingMix) + yawAngle * m_bankingMix * VehicleForwardSpeed;
+
                 // TODO: the banking effect should not go to infinity but what to limit it to?
-                mixedBankingError = ClampInRange(-20f, mixedBankingError, 20f);
+                mixedYawAngle = ClampInRange(-20f, mixedYawAngle, 20f);
 
                 // Build the force vector to change rotation from what it is to what it should be
-                ret.Z = -mixedBankingError;
+                ret.Z = -mixedYawAngle;
 
                 // Don't do it all at once.
                 ret /= m_bankingTimescale;
 
-                VDetailLog("{0},  MoveAngular,Banking,rollComp={1},speed={2},turnComp={3},bankErr={4},mixedBankErr={5},ret={6}",
-                            Prim.LocalID, rollComponents, VehicleForwardSpeed, turnComponent, bankingTurnForce, mixedBankingError, ret);
+                VDetailLog("{0},  MoveAngular,Banking,rollComp={1},speed={2},rollComp={3},yAng={4},mYAng={5},ret={6}",
+                            Prim.LocalID, rollComponents, VehicleForwardSpeed, rollComponents, yawAngle, mixedYawAngle, ret);
             }
             return ret;
         }
