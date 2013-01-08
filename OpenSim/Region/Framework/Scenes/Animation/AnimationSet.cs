@@ -185,7 +185,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                 else if (m_animations.Count == 0)
                 {
                     animIDs[0] = m_implicitDefaultAnimation.AnimID;
-                    sequenceNums[0] = m_implicitDefaultAnimation.SequenceNum;
+                    sequenceNums[0] = m_defaultAnimation.SequenceNum;
                     objectIDs[0] = m_implicitDefaultAnimation.ObjectID;
                 }
 
