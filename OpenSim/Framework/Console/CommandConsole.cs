@@ -197,14 +197,11 @@ namespace OpenSim.Framework.Console
 
                 string descriptiveHelp = commandInfo.descriptive_help;
 
-                // If we do have some descriptive help then insert a spacing line before and after for readability.
+                // If we do have some descriptive help then insert a spacing line before for readability.
                 if (descriptiveHelp != string.Empty)
                     help.Add(string.Empty);
                 
                 help.Add(commandInfo.descriptive_help);
-
-//                if (descriptiveHelp != string.Empty)
-//                    help.Add(string.Empty);
             }
             else
             {
