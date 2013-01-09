@@ -8755,6 +8755,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     linknumber = remaining.GetLSLIntegerItem(0);
                     rules = remaining.GetSublist(1, -1);
                 }
+                else
+                    break;
             }
 
             return res;
