@@ -856,6 +856,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             // The movement computed in the linear motor is relative to the vehicle
             //     coordinates. Rotate the movement to world coordinates.
             linearMotorContribution *= VehicleOrientation;
+            // All the contributions after this are world relative (mostly Z modifications)
 
             // ==================================================================
             // Buoyancy: force to overcome gravity.
@@ -982,14 +983,11 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     float verticalCorrectionVelocity = verticalError / m_VhoverTimescale;
 
                     // TODO: implement m_VhoverEfficiency correctly
-                    if (Math.Abs(verticalError) > m_VhoverEfficiency)
-                    {
-                        ret = new Vector3(0f, 0f, verticalCorrectionVelocity);
-                    }
+                    ret = new Vector3(0f, 0f, verticalCorrectionVelocity);
                 }
 
-                VDetailLog("{0},  MoveLinear,hover,pos={1},ret={2},hoverTS={3},height={4},target={5}",
-                                Prim.LocalID, VehiclePosition, ret, m_VhoverTimescale, m_VhoverHeight, m_VhoverTargetHeight);
+                VDetailLog("{0},  MoveLinear,hover,pos={1},eff={2},hoverTS={3},height={4},target={5},ret={6}",
+                                Prim.LocalID, VehiclePosition, m_VhoverEfficiency, m_VhoverTimescale, m_VhoverHeight, m_VhoverTargetHeight, ret);
             }
 
             return ret;
@@ -1238,6 +1236,9 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 Vector3 movingDirection = VehicleVelocity;
                 movingDirection.Normalize();
 
+                // If the vehicle is going backward, it is still pointing forward
+                movingDirection *= Math.Sign(VehicleForwardSpeed);
+
                 // The direction the vehicle is pointing
                 Vector3 pointingDirection = Vector3.UnitX * VehicleOrientation;
                 pointingDirection.Normalize();
@@ -1246,6 +1247,9 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 Vector3 deflectionError = movingDirection - pointingDirection;
 
                 // Don't try to correct very large errors (not our job)
+                // if (Math.Abs(deflectionError.X) > PIOverFour) deflectionError.X = PIOverTwo * Math.Sign(deflectionError.X);
+                // if (Math.Abs(deflectionError.Y) > PIOverFour) deflectionError.Y = PIOverTwo * Math.Sign(deflectionError.Y);
+                // if (Math.Abs(deflectionError.Z) > PIOverFour) deflectionError.Z = PIOverTwo * Math.Sign(deflectionError.Z);
                 if (Math.Abs(deflectionError.X) > PIOverFour) deflectionError.X = 0f;
                 if (Math.Abs(deflectionError.Y) > PIOverFour) deflectionError.Y = 0f;
                 if (Math.Abs(deflectionError.Z) > PIOverFour) deflectionError.Z = 0f;
