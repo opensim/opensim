@@ -110,10 +110,11 @@ namespace OpenSim.Framework.Console
             // Remove initial help keyword
             helpParts.RemoveAt(0);
 
+            help.Add(""); // Will become a newline.
+
             // General help
             if (helpParts.Count == 0)
             {
-                help.Add(""); // Will become a newline.
                 help.Add(GeneralHelpText);
                 help.Add(ItemHelpText);
                 help.AddRange(CollectModulesHelp(tree));
@@ -126,6 +127,8 @@ namespace OpenSim.Framework.Console
             {
                 help.AddRange(CollectHelp(helpParts));
             }
+
+            help.Add(""); // Will become a newline.
 
             return help;
         }
@@ -200,8 +203,8 @@ namespace OpenSim.Framework.Console
                 
                 help.Add(commandInfo.descriptive_help);
 
-                if (descriptiveHelp != string.Empty)
-                    help.Add(string.Empty);
+//                if (descriptiveHelp != string.Empty)
+//                    help.Add(string.Empty);
             }
             else
             {
