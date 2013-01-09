@@ -1,9 +1,9 @@
 CURRENT PRIORITIES
 =================================================
-Avatars walking up stairs
+Avatars walking up stairs (HALF DONE)
 Vehicle movement on terrain smoothness
 limitMotorUp calibration (more down?)
-Preferred orientatino angular correction fix
+Preferred orientation angular correction fix
 Surfboard go wonky when turning
 	Angular motor direction is global coordinates rather than local coordinates?
 Boats float low in the water
