@@ -486,6 +486,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         ProcessTaints();
 
         // Some of the physical objects requre individual, pre-step calls
+        //      (vehicles and avatar movement, in particular)
         TriggerPreStepEvent(timeStep);
 
         // the prestep actions might have added taints

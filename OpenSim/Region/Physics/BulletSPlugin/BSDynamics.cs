@@ -124,6 +124,11 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         static readonly float PIOverFour = ((float)Math.PI) / 4f;
         static readonly float PIOverTwo = ((float)Math.PI) / 2f;
 
+        // For debugging, flags to turn on and off individual corrections.
+        private bool enableAngularVerticalAttraction = true;
+        private bool enableAngularDeflection = true;
+        private bool enableAngularBanking = true;
+
         public BSDynamics(BSScene myScene, BSPrim myPrim)
         {
             PhysicsScene = myScene;
@@ -575,11 +580,13 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 PhysicsScene.PE.SetMassProps(Prim.PhysBody, m_vehicleMass, localInertia);
                 PhysicsScene.PE.UpdateInertiaTensor(Prim.PhysBody);
 
-                Vector3 grav = PhysicsScene.DefaultGravity * (1f - Prim.Buoyancy);
+                // Set the gravity for the vehicle depending on the buoyancy
+                // TODO: what should be done if prim and vehicle buoyancy differ?
+                Vector3 grav = Prim.ComputeGravity(m_VehicleBuoyancy);
                 PhysicsScene.PE.SetGravity(Prim.PhysBody, grav);
 
-                VDetailLog("{0},BSDynamics.Refresh,mass={1},frict={2},inert={3},aDamp={4}",
-                                Prim.LocalID, m_vehicleMass, friction, localInertia, angularDamping);
+                VDetailLog("{0},BSDynamics.Refresh,mass={1},frict={2},inert={3},aDamp={4},grav={5}",
+                                Prim.LocalID, m_vehicleMass, friction, localInertia, angularDamping, grav);
             }
             else
             {
@@ -858,12 +865,6 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             linearMotorContribution *= VehicleOrientation;
             // All the contributions after this are world relative (mostly Z modifications)
 
-            // ==================================================================
-            // Buoyancy: force to overcome gravity.
-            // m_VehicleBuoyancy: -1=2g; 0=1g; 1=0g;
-            // So, if zero, don't change anything (let gravity happen). If one, negate the effect of gravity.
-            Vector3 buoyancyContribution =  Prim.PhysicsScene.DefaultGravity * m_VehicleBuoyancy;
-
             Vector3 terrainHeightContribution = ComputeLinearTerrainHeightCorrection(pTimestep);
 
             Vector3 hoverContribution = ComputeLinearHover(pTimestep);
@@ -873,12 +874,15 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             Vector3 limitMotorUpContribution = ComputeLinearMotorUp(pTimestep);
 
             // ==================================================================
+            // Select between velocities and forces. Forces will happen over time and
+            //    will take into account inertia, collisions, etc. Velocities are
+            //    raw updates to the velocity of the vehicle.
             Vector3 newVelocity = linearMotorContribution
                             + terrainHeightContribution
                             + hoverContribution
                             + limitMotorUpContribution;
 
-            Vector3 newForce = buoyancyContribution;
+            Vector3 newForce = Vector3.Zero;
 
             // If not changing some axis, reduce out velocity
             if ((m_flags & (VehicleFlag.NO_X)) != 0)
@@ -902,6 +906,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             // ==================================================================
             // Stuff new linear velocity into the vehicle.
             // Since the velocity is just being set, it is not scaled by pTimeStep. Bullet will do that for us.
+            // Also not scaled by mass since this is a super-physical setting of velocity.
             VehicleVelocity = newVelocity;
 
             // Other linear forces are applied as forces.
@@ -911,13 +916,10 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 VehicleAddForce(totalDownForce);
             }
 
-            VDetailLog("{0},  MoveLinear,done,newVel={1},totDown={2},IsColliding={3}",
-                                Prim.LocalID, newVelocity, totalDownForce, Prim.IsColliding);
-            VDetailLog("{0},  MoveLinear,done,linContrib={1},terrContrib={2},hoverContrib={3},limitContrib={4},buoyContrib={5}",
+            VDetailLog("{0},  MoveLinear,done,linContrib={1},terrContrib={2},hoverContrib={3},limitContrib={4},totDown={5},isColl={6},newVel={7}",
                                 Prim.LocalID,
-                                linearMotorContribution, terrainHeightContribution, hoverContribution, 
-                                limitMotorUpContribution, buoyancyContribution
-            );
+                                linearMotorContribution, terrainHeightContribution, hoverContribution, limitMotorUpContribution,
+                                totalDownForce, Prim.IsColliding, newVelocity );
 
         } // end MoveLinear()
 
@@ -1088,6 +1090,8 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             //    for preventing ground vehicles with large linear deflection, like bumper cars,
             //    from climbing their linear deflection into the sky. 
             // That is, NO_DEFLECTION_UP says angular motion should not add any pitch or roll movement
+            // TODO: This is here because this is where ODE put it but documentation says it
+            //    is a linear effect. Where should this check go?
             if ((m_flags & (VehicleFlag.NO_DEFLECTION_UP)) != 0)
             {
                 angularMotorContribution.X = 0f;
@@ -1179,7 +1183,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             Vector3 ret = Vector3.Zero;
 
             // If vertical attaction timescale is reasonable
-            if (m_verticalAttractionTimescale < m_verticalAttractionCutoff)
+            if (enableAngularVerticalAttraction && m_verticalAttractionTimescale < m_verticalAttractionCutoff)
             {
                 // Take a vector pointing up and convert it from world to vehicle relative coords.
                 Vector3 verticalError = Vector3.UnitZ * VehicleOrientation;
@@ -1230,7 +1234,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             //     this creates an over-correction and then wabbling as the target is overshot.
             // TODO: rethink how the different correction computations inter-relate.
 
-            if (m_angularDeflectionEfficiency != 0 && VehicleVelocity != Vector3.Zero)
+            if (enableAngularDeflection && m_angularDeflectionEfficiency != 0 && VehicleVelocity != Vector3.Zero)
             {
                 // The direction the vehicle is moving
                 Vector3 movingDirection = VehicleVelocity;
@@ -1303,7 +1307,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         {
             Vector3 ret = Vector3.Zero;
 
-            if (m_bankingEfficiency != 0 && m_verticalAttractionTimescale < m_verticalAttractionCutoff)
+            if (enableAngularBanking && m_bankingEfficiency != 0 && m_verticalAttractionTimescale < m_verticalAttractionCutoff)
             {
                 // Rotate a UnitZ vector (pointing up) to how the vehicle is oriented.
                 // As the vehicle rolls to the right or left, the Y value will increase from

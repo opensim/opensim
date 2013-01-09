@@ -410,7 +410,7 @@ public sealed class BSPrim : BSPhysObject
             }
             else
             {
-                OMV.Vector3 grav = ComputeGravity();
+                OMV.Vector3 grav = ComputeGravity(Buoyancy);
 
                 if (inWorld)
                 {
@@ -445,12 +445,12 @@ public sealed class BSPrim : BSPhysObject
     }
 
     // Return what gravity should be set to this very moment
-    private OMV.Vector3 ComputeGravity()
+    public OMV.Vector3 ComputeGravity(float buoyancy)
     {
         OMV.Vector3 ret = PhysicsScene.DefaultGravity;
 
         if (!IsStatic)
-            ret *= (1f - Buoyancy);
+            ret *= (1f - buoyancy);
 
         return ret;
     }
@@ -1561,21 +1561,6 @@ public sealed class BSPrim : BSPhysObject
 
     // The physics engine says that properties have updated. Update same and inform
     // the world that things have changed.
-    // TODO: do we really need to check for changed? Maybe just copy values and call RequestPhysicsterseUpdate()
-    enum UpdatedProperties {
-        Position      = 1 << 0,
-        Rotation      = 1 << 1,
-        Velocity      = 1 << 2,
-        Acceleration  = 1 << 3,
-        RotationalVel = 1 << 4
-    }
-
-    const float ROTATION_TOLERANCE = 0.01f;
-    const float VELOCITY_TOLERANCE = 0.001f;
-    const float POSITION_TOLERANCE = 0.05f;
-    const float ACCELERATION_TOLERANCE = 0.01f;
-    const float ROTATIONAL_VELOCITY_TOLERANCE = 0.01f;
-
     public override void UpdateProperties(EntityProperties entprop)
     {
         // Updates only for individual prims and for the root object of a linkset.
@@ -1588,7 +1573,7 @@ public sealed class BSPrim : BSPhysObject
                 entprop.RotationalVelocity = OMV.Vector3.Zero;
             }
 
-            // Assign directly to the local variables so the normal set action does not happen
+            // Assign directly to the local variables so the normal set actions do not happen
             _position = entprop.Position;
             _orientation = entprop.Rotation;
             _velocity = entprop.Velocity;
