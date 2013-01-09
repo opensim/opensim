@@ -8750,7 +8750,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     remaining = GetPrimParams(avatar, rules, ref res);
                 }
 
-                if (remaining != null && remaining.Length > 0)
+                if ((object)remaining != null && remaining.Length > 0)
                 {
                     linknumber = remaining.GetLSLIntegerItem(0);
                     rules = remaining.GetSublist(1, -1);
