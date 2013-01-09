@@ -2443,6 +2443,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             
             m_host.AddScriptLPS(1);
             Quaternion q = m_host.GetWorldRotation();
+
+            if (m_host.ParentGroup != null && m_host.ParentGroup.AttachmentPoint != 0)
+            {
+                ScenePresence avatar = World.GetScenePresence(m_host.ParentGroup.AttachedAvatar);
+                if (avatar != null)
+                {
+                    if ((avatar.AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_MOUSELOOK) != 0)
+                        q = avatar.CameraRotation * q; // Mouselook
+                    else
+                        q = avatar.Rotation * q; // Currently infrequently updated so may be inaccurate
+                }
+            }
+
             return new LSL_Rotation(q.X, q.Y, q.Z, q.W);
         }
 
@@ -2468,7 +2481,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     q = part.ParentGroup.GroupRotation; // just the group rotation
                 return new LSL_Rotation(q.X, q.Y, q.Z, q.W);
             }
+
             q = part.GetWorldRotation();
+            if (part.ParentGroup.AttachmentPoint != 0)
+            {
+                ScenePresence avatar = World.GetScenePresence(part.ParentGroup.AttachedAvatar);
+                if (avatar != null)
+                {
+                    if ((avatar.AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_MOUSELOOK) != 0)
+                        q = avatar.CameraRotation * q; // Mouselook
+                    else
+                        q = avatar.Rotation * q; // Currently infrequently updated so may be inaccurate
+                }
+            }
+
             return new LSL_Rotation(q.X, q.Y, q.Z, q.W);
         }
 
@@ -8709,7 +8735,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             LSL_List remaining = GetPrimParams(m_host, rules, ref result);
 
-            while (remaining != null && remaining.Length > 2)
+            while ((object)remaining != null && remaining.Length > 2)
             {
                 int linknumber = remaining.GetLSLIntegerItem(0);
                 rules = remaining.GetSublist(1, -1);
