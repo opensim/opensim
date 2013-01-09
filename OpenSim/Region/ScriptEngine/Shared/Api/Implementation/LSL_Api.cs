@@ -2353,8 +2353,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
+
+            // Teravus:  if (m_host.ParentID == 0) is bug code because the ParentID for the Avatar will cause this to be nonzero for root prim attachments
+            // which is then treated like a child prim rotation and it's offset gets cumulatively multiplied against.
+            // to fix the scripted rotations we also have to check to see if the root part localid is the same as the host's localid.
+            // RootPart != null should shortcircuit
+            
             // try to let this work as in SL...
-            if (m_host.ParentID == 0)
+            if (m_host.ParentID == 0 || (m_host.ParentGroup != null && m_host == m_host.ParentGroup.RootPart))
             {
                 // special case: If we are root, rotate complete SOG to new rotation
                 SetRot(m_host, rot);
@@ -7911,7 +7917,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                             LSL_Rotation q = rules.GetQuaternionItem(idx++);
                             // try to let this work as in SL...
-                            if (part.ParentID == 0)
+                            if (part.ParentID == 0 || (part.ParentGroup != null && part == part.ParentGroup.RootPart))
                             {
                                 // special case: If we are root, rotate complete SOG to new rotation
                                 SetRot(part, q);
