@@ -70,12 +70,12 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Show debug information about teleports.
         /// </summary>
-        public bool DebugTeleporting { get; private set; }
+        public bool DebugTeleporting { get; set; }
 
         /// <summary>
         /// Show debug information about the scene loop.
         /// </summary>
-        public bool DebugUpdates { get; private set; }
+        public bool DebugUpdates { get; set; }
 
         /// <summary>
         /// If true then the scene is saved to persistent storage periodically, every m_update_backup frames and
@@ -86,13 +86,61 @@ namespace OpenSim.Region.Framework.Scenes
         /// FIXME: Currently, setting this to false will mean that objects are not periodically returned from parcels.  
         /// This needs to be fixed.
         /// </remarks>
-        public bool PeriodicBackup { get; private set; }
+        public bool PeriodicBackup { get; set; }
 
         /// <summary>
         /// If false then the scene is never saved to persistence storage even if PeriodicBackup == true and even
         /// if the scene is being shut down for the final time.
         /// </summary>
-        public bool UseBackup { get; private set; }
+        public bool UseBackup { get; set; }
+
+        /// <summary>
+        /// If false then physical objects are disabled, though collisions will continue as normal.
+        /// </summary>
+        public bool PhysicsEnabled { get; set; }
+
+        /// <summary>
+        /// If false then scripts are not enabled on the smiulator
+        /// </summary>
+        public bool ScriptsEnabled 
+        { 
+            get { return m_scripts_enabled; }
+            set 
+            {
+                if (m_scripts_enabled != value)
+                {
+                    if (!value)
+                    {
+                        m_log.Info("Stopping all Scripts in Scene");
+
+                        EntityBase[] entities = Entities.GetEntities();
+                        foreach (EntityBase ent in entities)
+                        {
+                            if (ent is SceneObjectGroup)
+                                ((SceneObjectGroup)ent).RemoveScriptInstances(false);
+                        }
+                    }
+                    else
+                    {
+                        m_log.Info("Starting all Scripts in Scene");
+    
+                        EntityBase[] entities = Entities.GetEntities();
+                        foreach (EntityBase ent in entities)
+                        {
+                            if (ent is SceneObjectGroup)
+                            {
+                                SceneObjectGroup sog = (SceneObjectGroup)ent;
+                                sog.CreateScriptInstances(0, false, DefaultScriptEngine, 0);
+                                sog.ResumeScripts();
+                            }
+                        }
+                    }
+
+                    m_scripts_enabled = value;
+                }
+            }
+        }
+        private bool m_scripts_enabled;
 
         public SynchronizeSceneHandler SynchronizeScene;
 
@@ -299,8 +347,6 @@ namespace OpenSim.Region.Framework.Scenes
         private Dictionary<UUID, ReturnInfo> m_returns = new Dictionary<UUID, ReturnInfo>();
         private Dictionary<UUID, SceneObjectGroup> m_groupsWithTargets = new Dictionary<UUID, SceneObjectGroup>();
 
-        private bool m_physics_enabled = true;
-        private bool m_scripts_enabled = true;
         private string m_defaultScriptEngine;
 
         /// <summary>
@@ -762,9 +808,11 @@ namespace OpenSim.Region.Framework.Scenes
 
             DumpAssetsToFile = dumpAssetsToFile;
 
+            // XXX: Don't set the public property since we don't want to activate here.  This needs to be handled 
+            // better in the future.
             m_scripts_enabled = !RegionInfo.RegionSettings.DisableScripts;
 
-            m_physics_enabled = !RegionInfo.RegionSettings.DisablePhysics;
+            PhysicsEnabled = !RegionInfo.RegionSettings.DisablePhysics;
 
             m_simulatorVersion = simulatorVersion + " (" + Util.GetRuntimeInformation() + ")";
 
@@ -948,6 +996,8 @@ namespace OpenSim.Region.Framework.Scenes
         {
             PhysicalPrims = true;
             CollidablePrims = true;
+            PhysicsEnabled = true;
+
             PeriodicBackup = true;
             UseBackup = true;
 
@@ -1189,91 +1239,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                 // Reset list to nothing.
                 m_regionRestartNotifyList.Clear();
-            }
-        }
-
-        public void SetSceneCoreDebug(Dictionary<string, string> options)
-        {
-            if (options.ContainsKey("active"))
-            {
-                bool active;
-
-                if (bool.TryParse(options["active"], out active))
-                    Active = active;
-            }
-
-            if (options.ContainsKey("pbackup"))
-            {
-                bool active;
-
-                if (bool.TryParse(options["pbackup"], out active))
-                    PeriodicBackup = active;
-            }
-
-            if (options.ContainsKey("scripting"))
-            {
-                bool enableScripts = true;
-                if (bool.TryParse(options["scripting"], out enableScripts) && m_scripts_enabled != enableScripts)
-                {
-                    if (!enableScripts)
-                    {
-                        m_log.Info("Stopping all Scripts in Scene");
-                        
-                        EntityBase[] entities = Entities.GetEntities();
-                        foreach (EntityBase ent in entities)
-                        {
-                            if (ent is SceneObjectGroup)
-                                ((SceneObjectGroup)ent).RemoveScriptInstances(false);
-                        }
-                    }
-                    else
-                    {
-                        m_log.Info("Starting all Scripts in Scene");
-    
-                        EntityBase[] entities = Entities.GetEntities();
-                        foreach (EntityBase ent in entities)
-                        {
-                            if (ent is SceneObjectGroup)
-                            {
-                                SceneObjectGroup sog = (SceneObjectGroup)ent;
-                                sog.CreateScriptInstances(0, false, DefaultScriptEngine, 0);
-                                sog.ResumeScripts();
-                            }
-                        }
-                    }
-
-                    m_scripts_enabled = enableScripts;
-                }
-            }
-
-            if (options.ContainsKey("physics"))
-            {
-                bool enablePhysics;
-                if (bool.TryParse(options["physics"], out enablePhysics))
-                    m_physics_enabled = enablePhysics;
-            }
-
-//            if (options.ContainsKey("collisions"))
-//            {
-//                // TODO: Implement.  If false, should stop objects colliding, though possibly should still allow
-//                // the avatar themselves to collide with the ground.
-//            }
-
-            if (options.ContainsKey("teleport"))
-            {
-                bool enableTeleportDebugging;
-                if (bool.TryParse(options["teleport"], out enableTeleportDebugging))
-                    DebugTeleporting = enableTeleportDebugging;
-            }
-
-            if (options.ContainsKey("updates"))
-            {
-                bool enableUpdateDebugging;
-                if (bool.TryParse(options["updates"], out enableUpdateDebugging))
-                {
-                    DebugUpdates = enableUpdateDebugging;
-                    GcNotify.Enabled = DebugUpdates;
-                }
             }
         }
 
@@ -1526,7 +1491,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
 
                     tmpMS = Util.EnvironmentTickCount();
-                    if ((Frame % m_update_physics == 0) && m_physics_enabled)
+                    if (PhysicsEnabled && Frame % m_update_physics == 0)
                         m_sceneGraph.UpdatePreparePhysics();
                     physicsMS2 = Util.EnvironmentTickCountSubtract(tmpMS);
     
@@ -1541,7 +1506,7 @@ namespace OpenSim.Region.Framework.Scenes
                     tmpMS = Util.EnvironmentTickCount();
                     if (Frame % m_update_physics == 0)
                     {
-                        if (m_physics_enabled)
+                        if (PhysicsEnabled)
                             physicsFPS = m_sceneGraph.UpdatePhysics(MinFrameTime);
     
                         if (SynchronizeScene != null)
