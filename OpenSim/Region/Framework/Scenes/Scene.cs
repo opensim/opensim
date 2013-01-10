@@ -1322,16 +1322,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_log.Debug("[SCENE]: Persisting changed objects");
             EventManager.TriggerSceneShuttingDown(this);
-
-            EntityBase[] entities = GetEntities();
-            foreach (EntityBase entity in entities)
-            {
-                if (!entity.IsDeleted && entity is SceneObjectGroup && ((SceneObjectGroup)entity).HasGroupChanged)
-                {
-                    ((SceneObjectGroup)entity).ProcessBackup(SimulationDataService, false);
-                }
-            }
-
+            Backup(false);
             m_sceneGraph.Close();
 
             if (!GridService.DeregisterRegion(RegionInfo.RegionID))
