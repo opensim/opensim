@@ -169,6 +169,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         IWorkItemResult m_CurrentCompile = null;
         private Dictionary<UUID, int> m_CompileDict = new Dictionary<UUID, int>();
 
+        private ScriptEngineConsoleCommands m_consoleCommands;
+
         public string ScriptEngineName
         {
             get { return "XEngine"; }
@@ -317,6 +319,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 OnScriptRemoved += m_XmlRpcRouter.ScriptRemoved;
                 OnObjectRemoved += m_XmlRpcRouter.ObjectRemoved;
             }
+
+            m_consoleCommands = new ScriptEngineConsoleCommands(this);
+            m_consoleCommands.RegisterCommands();
 
             MainConsole.Instance.Commands.AddCommand(
                 "Scripts", false, "xengine status", "xengine status", "Show status information",
