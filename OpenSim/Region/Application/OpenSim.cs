@@ -244,7 +244,7 @@ namespace OpenSim
                                           + "If pbackup    is false then periodic scene backup is turned off.\n"
                                           + "If physics    is false then all physics objects are non-physical.\n"
                                           + "If scripting  is false then no scripting operations happen.\n"
-                                          + "If teleport   is true  then some extra teleport debug information is logged."
+                                          + "If teleport   is true  then some extra teleport debug information is logged.\n"
                                           + "If updates    is true  then any frame which exceeds double the maximum desired frame time is logged.",
                                           Debug);
 
