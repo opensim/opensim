@@ -204,6 +204,10 @@ public sealed class BSPrim : BSPhysObject
             }
         }
     }
+    public override bool IsSelected
+    {
+        get { return _isSelected; }
+    }
     public override void CrossingFailure() { return; }
 
     // link me to the specified parent
@@ -1153,33 +1157,70 @@ public sealed class BSPrim : BSPhysObject
     // This added force will only last the next simulation tick.
     public void AddForce(OMV.Vector3 force, bool pushforce, bool inTaintTime) {
         // for an object, doesn't matter if force is a pushforce or not
-        if (!IsStatic && force.IsFinite())
+        if (!IsStatic)
         {
-            float magnitude = force.Length();
-            if (magnitude > BSParam.MaxAddForceMagnitude)
+            if (force.IsFinite())
             {
-                // Force has a limit
-                force = force / magnitude * BSParam.MaxAddForceMagnitude;
-            }
-
-            OMV.Vector3 addForce = force;
-            // DetailLog("{0},BSPrim.addForce,call,force={1}", LocalID, addForce);
-
-            PhysicsScene.TaintedObject(inTaintTime, "BSPrim.AddForce", delegate()
-            {
-                // Bullet adds this central force to the total force for this tick
-                DetailLog("{0},BSPrim.addForce,taint,force={1}", LocalID, addForce);
-                if (PhysBody.HasPhysicalBody)
+                float magnitude = force.Length();
+                if (magnitude > BSParam.MaxAddForceMagnitude)
                 {
-                    PhysicsScene.PE.ApplyCentralForce(PhysBody, addForce);
-                    ActivateIfPhysical(false);
+                    // Force has a limit
+                    force = force / magnitude * BSParam.MaxAddForceMagnitude;
                 }
-            });
+
+                OMV.Vector3 addForce = force;
+                // DetailLog("{0},BSPrim.addForce,call,force={1}", LocalID, addForce);
+
+                PhysicsScene.TaintedObject(inTaintTime, "BSPrim.AddForce", delegate()
+                {
+                    // Bullet adds this central force to the total force for this tick
+                    DetailLog("{0},BSPrim.addForce,taint,force={1}", LocalID, addForce);
+                    if (PhysBody.HasPhysicalBody)
+                    {
+                        PhysicsScene.PE.ApplyCentralForce(PhysBody, addForce);
+                        ActivateIfPhysical(false);
+                    }
+                });
+            }
+            else
+            {
+                m_log.WarnFormat("{0}: AddForce: Got a NaN force applied to a prim. LocalID={1}", LogHeader, LocalID);
+                return;
+            }
         }
-        else
+    }
+
+    public void AddForceImpulse(OMV.Vector3 impulse, bool pushforce, bool inTaintTime) {
+        // for an object, doesn't matter if force is a pushforce or not
+        if (!IsStatic)
         {
-            m_log.WarnFormat("{0}: Got a NaN force applied to a prim. LocalID={1}", LogHeader, LocalID);
-            return;
+            if (impulse.IsFinite())
+            {
+                float magnitude = impulse.Length();
+                if (magnitude > BSParam.MaxAddForceMagnitude)
+                {
+                    // Force has a limit
+                    impulse = impulse / magnitude * BSParam.MaxAddForceMagnitude;
+                }
+
+                // DetailLog("{0},BSPrim.addForceImpulse,call,impulse={1}", LocalID, impulse);
+                OMV.Vector3 addImpulse = impulse;
+                PhysicsScene.TaintedObject(inTaintTime, "BSPrim.AddImpulse", delegate()
+                {
+                    // Bullet adds this impulse immediately to the velocity
+                    DetailLog("{0},BSPrim.addForceImpulse,taint,impulseforce={1}", LocalID, addImpulse);
+                    if (PhysBody.HasPhysicalBody)
+                    {
+                        PhysicsScene.PE.ApplyCentralImpulse(PhysBody, addImpulse);
+                        ActivateIfPhysical(false);
+                    }
+                });
+            }
+            else
+            {
+                m_log.WarnFormat("{0}: AddForceImpulse: Got a NaN impulse applied to a prim. LocalID={1}", LogHeader, LocalID);
+                return;
+            }
         }
     }
 
