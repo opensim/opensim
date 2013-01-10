@@ -105,7 +105,6 @@ namespace OpenSim.Region.ClientStack.Linden
         private static readonly string m_ResourceCostSelectedPath = "0103/";
         private static readonly string m_UpdateAgentInformationPath = "0500/";
         
-
         // These are callbacks which will be setup by the scene so that we can update scene data when we
         // receive capability calls
         public NewInventoryItem AddNewInventoryItem = null;

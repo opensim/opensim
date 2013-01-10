@@ -75,6 +75,9 @@ public static class BSParam
     public static float AvatarCapsuleDepth { get; private set; }
     public static float AvatarCapsuleHeight { get; private set; }
 	public static float AvatarContactProcessingThreshold { get; private set; }
+	public static float AvatarStepHeight { get; private set; }
+	public static float AvatarStepApproachFactor { get; private set; }
+	public static float AvatarStepForceFactor { get; private set; }
 
     public static float VehicleAngularDamping { get; private set; }
 
@@ -403,6 +406,21 @@ public static class BSParam
             (s,cf,p,v) => { AvatarContactProcessingThreshold = cf.GetFloat(p, v); },
             (s) => { return AvatarContactProcessingThreshold; },
             (s,p,l,v) => { s.UpdateParameterObject((x)=>{AvatarContactProcessingThreshold=x;}, p, l, v); } ),
+	    new ParameterDefn("AvatarStepHeight", "Height of a step obstacle to consider step correction",
+            0.3f,
+            (s,cf,p,v) => { AvatarStepHeight = cf.GetFloat(p, v); },
+            (s) => { return AvatarStepHeight; },
+            (s,p,l,v) => { AvatarStepHeight = v; } ),
+	    new ParameterDefn("AvatarStepApproachFactor", "Factor to control angle of approach to step (0=straight on)",
+            0.6f,
+            (s,cf,p,v) => { AvatarStepApproachFactor = cf.GetFloat(p, v); },
+            (s) => { return AvatarStepApproachFactor; },
+            (s,p,l,v) => { AvatarStepApproachFactor = v; } ),
+	    new ParameterDefn("AvatarStepForceFactor", "Controls the amount of force up applied to step up onto a step",
+            2.0f,
+            (s,cf,p,v) => { AvatarStepForceFactor = cf.GetFloat(p, v); },
+            (s) => { return AvatarStepForceFactor; },
+            (s,p,l,v) => { AvatarStepForceFactor = v; } ),
 
         new ParameterDefn("VehicleAngularDamping", "Factor to damp vehicle angular movement per second (0.0 - 1.0)",
             0.95f,

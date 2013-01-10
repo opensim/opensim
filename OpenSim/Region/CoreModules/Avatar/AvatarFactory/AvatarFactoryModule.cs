@@ -322,6 +322,9 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
                 if (asset != null)
                 {
+                    // Replace an HG ID with the simple asset ID so that we can persist textures for foreign HG avatars
+                    asset.ID = asset.FullID.ToString();
+
                     asset.Temporary = false;
                     asset.Local = false;
                     m_scene.AssetService.Store(asset);

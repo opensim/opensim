@@ -142,6 +142,8 @@ public sealed class BSTerrainMesh : BSTerrainPhys
             PhysicsScene.PE.RemoveObjectFromWorld(PhysicsScene.World, m_terrainBody);
             // Frees both the body and the shape.
             PhysicsScene.PE.DestroyObject(PhysicsScene.World, m_terrainBody);
+            m_terrainBody.Clear();
+            m_terrainShape.Clear();
         }
     }
 

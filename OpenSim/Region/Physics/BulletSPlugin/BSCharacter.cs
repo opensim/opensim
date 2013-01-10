@@ -58,8 +58,6 @@ public sealed class BSCharacter : BSPhysObject
     private bool _flying;
     private bool _setAlwaysRun;
     private bool _throttleUpdates;
-    private bool _isColliding;
-    private bool _collidingObj;
     private bool _floatOnWater;
     private OMV.Vector3 _rotationalVelocity;
     private bool _kinematic;
@@ -186,10 +184,6 @@ public sealed class BSCharacter : BSPhysObject
     //    standing as well as moving. Destruction of the avatar will destroy the pre-step action.
     private void SetupMovementMotor()
     {
-
-        // Someday, use a PID motor for asymmetric speed up and slow down
-        // _velocityMotor = new BSPIDVMotor("BSCharacter.Velocity", 3f, 5f, BSMotor.InfiniteVector, 1f);
-
         // Infinite decay and timescale values so motor only changes current to target values.
         _velocityMotor = new BSVMotor("BSCharacter.Velocity", 
                                             0.2f,                       // time scale
@@ -216,23 +210,66 @@ public sealed class BSCharacter : BSPhysObject
             // 'stepVelocity' is now the speed we'd like the avatar to move in. Turn that into an instantanous force.
             OMV.Vector3 moveForce = (stepVelocity - _velocity) * Mass;
 
-            /*
-            // If moveForce is very small, zero things so we don't keep sending microscopic updates to the user
-            float moveForceMagnitudeSquared = moveForce.LengthSquared();
-            if (moveForceMagnitudeSquared < 0.0001)
-            {
-                DetailLog("{0},BSCharacter.MoveMotor,zeroMovement,stepVel={1},vel={2},mass={3},magSq={4},moveForce={5}",
-                                        LocalID, stepVelocity, _velocity, Mass, moveForceMagnitudeSquared, moveForce);
-                ForceVelocity = OMV.Vector3.Zero;
-            }
-            else
-            {
-                AddForce(moveForce, false, true);
-            }
-            */
-            // DetailLog("{0},BSCharacter.MoveMotor,move,stepVel={1},vel={2},mass={3},moveForce={4}", LocalID, stepVelocity, _velocity, Mass, moveForce);
+            // Should we check for move force being small and forcing velocity to zero?
+
+            // Add special movement force to allow avatars to walk up stepped surfaces.
+            moveForce += WalkUpStairs();
+
+            DetailLog("{0},BSCharacter.MoveMotor,move,stepVel={1},vel={2},mass={3},moveForce={4}", LocalID, stepVelocity, _velocity, Mass, moveForce);
             PhysicsScene.PE.ApplyCentralImpulse(PhysBody, moveForce);
         });
+    }
+
+    // Decide of the character is colliding with a low object and compute a force to pop the
+    //    avatar up so it has a chance of walking up and over the low object.
+    private OMV.Vector3 WalkUpStairs()
+    {
+        OMV.Vector3 ret = OMV.Vector3.Zero;
+
+        // This test is done if moving forward, not flying and is colliding with something.
+        // DetailLog("{0},BSCharacter.WalkUpStairs,IsColliding={1},flying={2},targSpeed={3},collisions={4}",
+        //                 LocalID, IsColliding, Flying, TargetSpeed, CollisionsLastTick.Count);
+        if (IsColliding && !Flying && TargetSpeed > 0.1f /* && ForwardSpeed < 0.1f */)
+        {
+            // The range near the character's feet where we will consider stairs
+            float nearFeetHeightMin = RawPosition.Z - (Size.Z / 2f) + 0.05f;
+            float nearFeetHeightMax = nearFeetHeightMin + BSParam.AvatarStepHeight;
+
+            // Look for a collision point that is near the character's feet and is oriented the same as the charactor is
+            foreach (KeyValuePair<uint, ContactPoint> kvp in CollisionsLastTick.m_objCollisionList)
+            {
+                // Don't care about collisions with the terrain
+                if (kvp.Key > PhysicsScene.TerrainManager.HighestTerrainID)
+                {
+                    OMV.Vector3 touchPosition = kvp.Value.Position;
+                    // DetailLog("{0},BSCharacter.WalkUpStairs,min={1},max={2},touch={3}",
+                    //                 LocalID, nearFeetHeightMin, nearFeetHeightMax, touchPosition);
+                    if (touchPosition.Z >= nearFeetHeightMin && touchPosition.Z <= nearFeetHeightMax)
+                    {
+                        // This contact is within the 'near the feet' range.
+                        // The normal should be our contact point to the object so it is pointing away
+                        //    thus the difference between our facing orientation and the normal should be small.
+                        OMV.Vector3 directionFacing = OMV.Vector3.UnitX * RawOrientation;
+                        OMV.Vector3 touchNormal = OMV.Vector3.Normalize(kvp.Value.SurfaceNormal);
+                        float diff = Math.Abs(OMV.Vector3.Distance(directionFacing, touchNormal));
+                        if (diff < BSParam.AvatarStepApproachFactor)
+                        {
+                            // Found the stairs contact point. Push up a little to raise the character.
+                            float upForce = (touchPosition.Z - nearFeetHeightMin) * Mass * BSParam.AvatarStepForceFactor;
+                            ret = new OMV.Vector3(0f, 0f, upForce);
+
+                            // Also move the avatar up for the new height
+                            OMV.Vector3 displacement = new OMV.Vector3(0f, 0f, BSParam.AvatarStepHeight / 2f);
+                            ForcePosition = RawPosition + displacement;
+                        }
+                        DetailLog("{0},BSCharacter.WalkUpStairs,touchPos={1},nearFeetMin={2},faceDir={3},norm={4},diff={5},ret={6}",
+                                LocalID, touchPosition, nearFeetHeightMin, directionFacing, touchNormal, diff, ret);
+                    }
+                }
+            }
+        }
+
+        return ret;
     }
 
     public override void RequestPhysicsterseUpdate()
@@ -344,13 +381,11 @@ public sealed class BSCharacter : BSPhysObject
         }
         set {
             _position = value;
-            PositionSanityCheck();
 
             PhysicsScene.TaintedObject("BSCharacter.setPosition", delegate()
             {
                 DetailLog("{0},BSCharacter.SetPosition,taint,pos={1},orient={2}", LocalID, _position, _orientation);
-                if (PhysBody.HasPhysicalBody)
-                    PhysicsScene.PE.SetTranslation(PhysBody, _position, _orientation);
+                ForcePosition = _position;
             });
         }
     }
@@ -361,8 +396,11 @@ public sealed class BSCharacter : BSPhysObject
         }
         set {
             _position = value;
-            PositionSanityCheck();
-            PhysicsScene.PE.SetTranslation(PhysBody, _position, _orientation);
+            if (PhysBody.HasPhysicalBody)
+            {
+                PositionSanityCheck();
+                PhysicsScene.PE.SetTranslation(PhysBody, _position, _orientation);
+            }
         }
     }
 
@@ -375,7 +413,7 @@ public sealed class BSCharacter : BSPhysObject
         bool ret = false;
 
         // TODO: check for out of bounds
-        if (!PhysicsScene.TerrainManager.IsWithinKnownTerrain(_position))
+        if (!PhysicsScene.TerrainManager.IsWithinKnownTerrain(RawPosition))
         {
             // The character is out of the known/simulated area.
             // Upper levels of code will handle the transition to other areas so, for
@@ -384,7 +422,7 @@ public sealed class BSCharacter : BSPhysObject
         }
 
         // If below the ground, move the avatar up
-        float terrainHeight = PhysicsScene.TerrainManager.GetTerrainHeightAtXYZ(_position);
+        float terrainHeight = PhysicsScene.TerrainManager.GetTerrainHeightAtXYZ(RawPosition);
         if (Position.Z < terrainHeight)
         {
             DetailLog("{0},BSCharacter.PositionAdjustUnderGround,call,pos={1},terrain={2}", LocalID, _position, terrainHeight);
@@ -486,6 +524,11 @@ public sealed class BSCharacter : BSPhysObject
                 _velocityMotor.Enabled = true;
             });
         }
+    }
+    public override OMV.Vector3 RawVelocity
+    {
+        get { return _velocity; }
+        set { _velocity = value; }
     }
     // Directly setting velocity means this is what the user really wants now.
     public override OMV.Vector3 Velocity {

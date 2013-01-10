@@ -562,7 +562,7 @@ public sealed class BSPrim : BSPhysObject
         }
         return;
     }
-    public OMV.Vector3 RawVelocity
+    public override OMV.Vector3 RawVelocity
     {
         get { return _velocity; }
         set { _velocity = value; }

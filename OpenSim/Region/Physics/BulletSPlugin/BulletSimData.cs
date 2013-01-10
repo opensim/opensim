@@ -114,8 +114,10 @@ public class BulletShape
 
     public virtual void Clear() { }
     public virtual bool HasPhysicalShape { get { return false; } }
+
     // Make another reference to this physical object.
     public virtual BulletShape Clone() { return new BulletShape(); }
+
     // Return 'true' if this and other refer to the same physical object
     public virtual bool ReferenceSame(BulletShape xx) { return false; }
 
