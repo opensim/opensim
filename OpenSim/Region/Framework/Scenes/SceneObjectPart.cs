@@ -4050,9 +4050,9 @@ namespace OpenSim.Region.Framework.Scenes
                         rigidBody,
                         m_localId);
             }
-            catch
+            catch (Exception e)
             {
-                m_log.ErrorFormat("[SCENE]: caught exception meshing object {0}. Object set to phantom.", m_uuid);
+                m_log.ErrorFormat("[SCENE]: caught exception meshing object {0}. Object set to phantom. e={1}", m_uuid, e);
                 pa = null;
             }
 
