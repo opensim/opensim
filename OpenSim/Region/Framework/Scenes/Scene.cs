@@ -77,6 +77,23 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public bool DebugUpdates { get; private set; }
 
+        /// <summary>
+        /// If true then the scene is saved to persistent storage periodically, every m_update_backup frames and
+        /// if objects meet required conditions (m_dontPersistBefore and m_dontPersistAfter).
+        /// </summary>
+        /// <remarks>
+        /// Even if false, the scene will still be saved on clean shutdown.
+        /// FIXME: Currently, setting this to false will mean that objects are not periodically returned from parcels.  
+        /// This needs to be fixed.
+        /// </remarks>
+        public bool PeriodicBackup { get; private set; }
+
+        /// <summary>
+        /// If false then the scene is never saved to persistence storage even if PeriodicBackup == true and even
+        /// if the scene is being shut down for the final time.
+        /// </summary>
+        public bool UseBackup { get; private set; }
+
         public SynchronizeSceneHandler SynchronizeScene;
 
         /// <summary>
@@ -341,7 +358,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         private Timer m_mapGenerationTimer = new Timer();
         private bool m_generateMaptiles;
-        private bool m_useBackup = true;
 
         #endregion Fields
 
@@ -594,11 +610,6 @@ namespace OpenSim.Region.Framework.Scenes
             get { return m_authenticateHandler; }
         }
 
-        public bool UseBackup
-        {
-            get { return m_useBackup; }
-        }
-
         // an instance to the physics plugin's Scene object.
         public PhysicsScene PhysicsScene
         {
@@ -768,8 +779,8 @@ namespace OpenSim.Region.Framework.Scenes
                 StartDisabled = startupConfig.GetBoolean("StartDisabled", false);
 
                 m_defaultDrawDistance = startupConfig.GetFloat("DefaultDrawDistance", m_defaultDrawDistance);
-                m_useBackup = startupConfig.GetBoolean("UseSceneBackup", m_useBackup);
-                if (!m_useBackup)
+                UseBackup = startupConfig.GetBoolean("UseSceneBackup", UseBackup);
+                if (!UseBackup)
                     m_log.InfoFormat("[SCENE]: Backup has been disabled for {0}", RegionInfo.RegionName);
                 
                 //Animation states
@@ -937,6 +948,8 @@ namespace OpenSim.Region.Framework.Scenes
         {
             PhysicalPrims = true;
             CollidablePrims = true;
+            PeriodicBackup = true;
+            UseBackup = true;
 
             BordersLocked = true;
             Border northBorder = new Border();
@@ -1187,6 +1200,14 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (bool.TryParse(options["active"], out active))
                     Active = active;
+            }
+
+            if (options.ContainsKey("pbackup"))
+            {
+                bool active;
+
+                if (bool.TryParse(options["pbackup"], out active))
+                    PeriodicBackup = active;
             }
 
             if (options.ContainsKey("scripting"))
@@ -1570,7 +1591,7 @@ namespace OpenSim.Region.Framework.Scenes
                         eventMS = Util.EnvironmentTickCountSubtract(tmpMS);
                     }
     
-                    if (Frame % m_update_backup == 0)
+                    if (PeriodicBackup && Frame % m_update_backup == 0)
                     {
                         tmpMS = Util.EnvironmentTickCount();
                         UpdateStorageBackup();
