@@ -47,20 +47,29 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         public void RegisterCommands()
         {
             MainConsole.Instance.Commands.AddCommand(
-                "Scripts", false, "show sensors", "show sensors", "Show script sensors information",
+                "Scripts", false, "show script sensors", "show script sensors", "Show script sensors information",
                 HandleShowSensors);
+
+            MainConsole.Instance.Commands.AddCommand(
+                "Scripts", false, "show script timers", "show script timers", "Show script sensors information",
+                HandleShowTimers);
+        }
+
+        private bool IsSceneSelected()
+        {
+            return MainConsole.Instance.ConsoleScene == null || MainConsole.Instance.ConsoleScene == m_engine.World;
         }
 
         private void HandleShowSensors(string module, string[] cmdparams)
         {
-            if (!(MainConsole.Instance.ConsoleScene == null || MainConsole.Instance.ConsoleScene == m_engine.World))
+            if (!IsSceneSelected())
                 return;
 
             SensorRepeat sr = AsyncCommandManager.GetSensorRepeatPlugin(m_engine);
 
             if (sr == null)
             {
-                MainConsole.Instance.Output("Sensor plugin not yet initialized");
+                MainConsole.Instance.Output("Plugin not yet initialized");
                 return;
             }
 
@@ -81,6 +90,37 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             MainConsole.Instance.Output(cdt.ToString());
             MainConsole.Instance.OutputFormat("Total: {0}", sensorInfo.Count);
+        }
+
+        private void HandleShowTimers(string module, string[] cmdparams)
+        {
+            if (!IsSceneSelected())
+                return;
+
+            Timer timerPlugin = AsyncCommandManager.GetTimerPlugin(m_engine);
+
+            if (timerPlugin == null)
+            {
+                MainConsole.Instance.Output("Plugin not yet initialized");
+                return;
+            }
+
+            List<Timer.TimerInfo> timersInfo = timerPlugin.GetTimersInfo();
+
+            ConsoleDisplayTable cdt = new ConsoleDisplayTable();
+            cdt.AddColumn("Part local ID", 13);
+            cdt.AddColumn("Script item ID", 36);
+            cdt.AddColumn("Interval", 10);
+            cdt.AddColumn("Next", 8);
+
+            foreach (Timer.TimerInfo t in timersInfo)
+            {
+                // Convert from 100 ns ticks back to seconds
+                cdt.AddRow(t.localID, t.itemID, (double)t.interval / 10000000, t.next);
+            }
+
+            MainConsole.Instance.Output(cdt.ToString());
+            MainConsole.Instance.OutputFormat("Total: {0}", timersInfo.Count);
         }
     }
 }
