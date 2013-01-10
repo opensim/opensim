@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -50,6 +51,7 @@ namespace OpenSim.Capabilities.Handlers
 {
     public class UploadBakedTextureHandler
     {
+      
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private Caps m_HostCapsObj;
@@ -79,9 +81,9 @@ namespace OpenSim.Capabilities.Handlers
             {
                 string capsBase = "/CAPS/" + m_HostCapsObj.CapsObjectPath;
                 string uploaderPath = Util.RandomClass.Next(5000, 8000).ToString("0000");
-
+                
                 BakedTextureUploader uploader =
-                    new BakedTextureUploader(capsBase + uploaderPath, m_HostCapsObj.HttpListener);
+                    new BakedTextureUploader(capsBase + uploaderPath, m_HostCapsObj.HttpListener, m_HostCapsObj.AgentID);
                 uploader.OnUpLoad += BakedTextureUploaded;
 
                 m_HostCapsObj.HttpListener.AddStreamHandler(
@@ -125,6 +127,7 @@ namespace OpenSim.Capabilities.Handlers
             asset.Temporary = true;
             asset.Local = !m_persistBakedTextures; // Local assets aren't persisted, non-local are
             m_assetService.Store(asset);
+            
         }
     }
 
@@ -137,14 +140,18 @@ namespace OpenSim.Capabilities.Handlers
         private string uploaderPath = String.Empty;
         private UUID newAssetID;
         private IHttpServer httpListener;
+        private UUID AgentId = UUID.Zero;
 
-        public BakedTextureUploader(string path, IHttpServer httpServer)
+        public BakedTextureUploader(string path, IHttpServer httpServer, UUID uUID)
         {
             newAssetID = UUID.Random();
             uploaderPath = path;
             httpListener = httpServer;
+            AgentId = uUID;
             //                m_log.InfoFormat("[CAPS] baked texture upload starting for {0}",newAssetID);
         }
+
+       
 
         /// <summary>
         /// Handle raw uploaded baked texture data.

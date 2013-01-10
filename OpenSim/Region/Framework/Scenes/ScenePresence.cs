@@ -225,8 +225,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public bool LandAtTarget { get; private set; }
 
-        private bool m_followCamAuto;
-
         private int m_movementUpdateCount;
         private const int NumMovementsBetweenRayCast = 5;
 
@@ -354,6 +352,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// Position of agent's camera in world (region cordinates)
         /// </summary>
         protected Vector3 m_lastCameraPosition;
+
+        private Vector4 m_lastCameraCollisionPlane = new Vector4(0f, 0f, 0f, 1);
+        private bool m_doingCamRayCast = false;
 
         public Vector3 CameraPosition { get; set; }
 
@@ -604,6 +605,7 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         public bool IsChildAgent { get; set; }
+        public bool IsLoggingIn { get; set; }
 
         /// <summary>
         /// If the avatar is sitting, the local ID of the prim that it's sitting on.  If not sitting then zero.
@@ -740,6 +742,7 @@ namespace OpenSim.Region.Framework.Scenes
             AttachmentsSyncLock = new Object();
             AllowMovement = true;
             IsChildAgent = true;
+            IsLoggingIn = false;
             m_sendCoarseLocationsMethod = SendCoarseLocationsDefault;
             Animator = new ScenePresenceAnimator(this);
             PresenceType = type;
@@ -912,6 +915,7 @@ namespace OpenSim.Region.Framework.Scenes
             else
             {
                 IsChildAgent = false;
+                IsLoggingIn = false;
             }
 
 
@@ -1405,35 +1409,43 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="collisionPoint"></param>
         /// <param name="localid"></param>
         /// <param name="distance"></param>
+        /// 
+
+        private void UpdateCameraCollisionPlane(Vector4 plane)
+        {
+            if (m_lastCameraCollisionPlane != plane)
+            {
+                m_lastCameraCollisionPlane = plane;
+                ControllingClient.SendCameraConstraint(plane);
+            }
+        }
+
         public void RayCastCameraCallback(bool hitYN, Vector3 collisionPoint, uint localid, float distance, Vector3 pNormal)
         {
             const float POSITION_TOLERANCE = 0.02f;
-            const float VELOCITY_TOLERANCE = 0.02f;
             const float ROTATION_TOLERANCE = 0.02f;
 
-            if (m_followCamAuto)
+            m_doingCamRayCast = false;
+            if (hitYN && localid != LocalId)
             {
-                if (hitYN)
-                {
-                    CameraConstraintActive = true;
-                    //m_log.DebugFormat("[RAYCASTRESULT]: {0}, {1}, {2}, {3}", hitYN, collisionPoint, localid, distance);
-                    
-                    Vector3 normal = Vector3.Normalize(new Vector3(0f, 0f, collisionPoint.Z) - collisionPoint);
-                    ControllingClient.SendCameraConstraint(new Vector4(normal.X, normal.Y, normal.Z, -1 * Vector3.Distance(new Vector3(0,0,collisionPoint.Z),collisionPoint)));
-                }
-                else
-                {
-                    if (!m_pos.ApproxEquals(m_lastPosition, POSITION_TOLERANCE) ||
-                        !Velocity.ApproxEquals(m_lastVelocity, VELOCITY_TOLERANCE) ||
-                        !Rotation.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE))
-                    {
-                        if (CameraConstraintActive)
-                        {
-                            ControllingClient.SendCameraConstraint(new Vector4(0f, 0.5f, 0.9f, -3000f));
-                            CameraConstraintActive = false;
-                        }
-                    }
-                }
+                CameraConstraintActive = true;
+                pNormal.X = (float)Math.Round(pNormal.X, 2);
+                pNormal.Y = (float)Math.Round(pNormal.Y, 2);
+                pNormal.Z = (float)Math.Round(pNormal.Z, 2);
+                pNormal.Normalize();
+                collisionPoint.X = (float)Math.Round(collisionPoint.X, 1);
+                collisionPoint.Y = (float)Math.Round(collisionPoint.Y, 1);
+                collisionPoint.Z = (float)Math.Round(collisionPoint.Z, 1);
+
+                Vector4 plane = new Vector4(pNormal.X, pNormal.Y, pNormal.Z, Vector3.Dot(collisionPoint, pNormal));
+                UpdateCameraCollisionPlane(plane);
+            }
+            else if (!m_pos.ApproxEquals(m_lastPosition, POSITION_TOLERANCE) ||
+                     !Rotation.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE))
+            {
+                Vector4 plane = new Vector4(0.9f, 0.0f, 0.361f, -9000f); // not right...
+                UpdateCameraCollisionPlane(plane);
+                CameraConstraintActive = false;
             }
         }
 
@@ -1508,12 +1520,6 @@ namespace OpenSim.Region.Framework.Scenes
             // DrawDistance = agentData.Far;
             DrawDistance = Scene.DefaultDrawDistance;
 
-            // Check if Client has camera in 'follow cam' or 'build' mode.
-            Vector3 camdif = (Vector3.One * Rotation - Vector3.One * CameraRotation);
-
-            m_followCamAuto = ((CameraUpAxis.Z > 0.959f && CameraUpAxis.Z < 0.98f)
-               && (Math.Abs(camdif.X) < 0.4f && Math.Abs(camdif.Y) < 0.4f)) ? true : false;
-
             m_mouseLook = (flags & AgentManager.ControlFlags.AGENT_CONTROL_MOUSELOOK) != 0;
             m_leftButtonDown = (flags & AgentManager.ControlFlags.AGENT_CONTROL_LBUTTON_DOWN) != 0;
 
@@ -1533,24 +1539,38 @@ namespace OpenSim.Region.Framework.Scenes
                 StandUp();
             }
 
-            //m_log.DebugFormat("[FollowCam]: {0}", m_followCamAuto);
             // Raycast from the avatar's head to the camera to see if there's anything blocking the view
-            if ((m_movementUpdateCount % NumMovementsBetweenRayCast) == 0 && m_scene.PhysicsScene.SupportsRayCast())
+            // this exclude checks may not be complete
+
+            if (m_movementUpdateCount % NumMovementsBetweenRayCast == 0 && m_scene.PhysicsScene.SupportsRayCast())
             {
-                if (m_followCamAuto)
+                if (!m_doingCamRayCast && !m_mouseLook && ParentID == 0)
                 {
-                    //                    Vector3 posAdjusted = m_pos + HEAD_ADJUSTMENT;
-                    //                    m_scene.PhysicsScene.RaycastWorld(m_pos, Vector3.Normalize(CameraPosition - posAdjusted), Vector3.Distance(CameraPosition, posAdjusted) + 0.3f, RayCastCameraCallback);
-                    
-                    Vector3 posAdjusted = AbsolutePosition + HEAD_ADJUSTMENT;
-                    Vector3 distTocam = CameraPosition - posAdjusted;
-                    float distTocamlen = distTocam.Length();
-                    if (distTocamlen > 0)
+                    Vector3 posAdjusted = AbsolutePosition;
+//                    posAdjusted.Z += 0.5f * Appearance.AvatarSize.Z - 0.5f;
+                    posAdjusted.Z += 1.0f; // viewer current camera focus point
+                    Vector3 tocam = CameraPosition - posAdjusted;
+                    tocam.X = (float)Math.Round(tocam.X, 1);
+                    tocam.Y = (float)Math.Round(tocam.Y, 1);
+                    tocam.Z = (float)Math.Round(tocam.Z, 1);
+
+                    float distTocamlen = tocam.Length();
+                    if (distTocamlen > 0.3f)
                     {
-                        distTocam *= 1.0f / distTocamlen;
-                        m_scene.PhysicsScene.RaycastWorld(posAdjusted, distTocam, distTocamlen + 0.3f, RayCastCameraCallback);
+                        tocam *= (1.0f / distTocamlen);
+                        posAdjusted.X = (float)Math.Round(posAdjusted.X, 1);
+                        posAdjusted.Y = (float)Math.Round(posAdjusted.Y, 1);
+                        posAdjusted.Z = (float)Math.Round(posAdjusted.Z, 1);
+
+                        m_doingCamRayCast = true;
+                        m_scene.PhysicsScene.RaycastWorld(posAdjusted, tocam, distTocamlen + 1.0f, RayCastCameraCallback);
                     }
-                    
+                }
+                else if (CameraConstraintActive && (m_mouseLook || ParentID != 0))
+                {
+                    Vector4 plane = new Vector4(0.9f, 0.0f, 0.361f, -10000f); // not right...
+                    UpdateCameraCollisionPlane(plane);
+                    CameraConstraintActive = false;
                 }
             }
 
@@ -2265,7 +2285,6 @@ namespace OpenSim.Region.Framework.Scenes
                 ControllingClient.SendAlertMessage(" Sit position on restricted land, try another spot");
                 return;
             }
-//            m_log.InfoFormat("physsit {0} {1}", offset.ToString(),Orientation.ToString());
 
             RemoveFromPhysicalScene();
 
@@ -2275,7 +2294,6 @@ namespace OpenSim.Region.Framework.Scenes
             Velocity = Vector3.Zero;
 
             part.AddSittingAvatar(UUID);
-
 
             Vector3 cameraAtOffset = part.GetCameraAtOffset();
             Vector3 cameraEyeOffset = part.GetCameraEyeOffset();
@@ -2502,20 +2520,12 @@ namespace OpenSim.Region.Framework.Scenes
                 // NOTE: Velocity is not the same as m_velocity. Velocity will attempt to
                 // grab the latest PhysicsActor velocity, whereas m_velocity is often
                 // storing a requested force instead of an actual traveling velocity
-                if (Appearance.AvatarSize != m_lastSize)
-                {
-                    m_lastSize = Appearance.AvatarSize;
+                if (Appearance.AvatarSize != m_lastSize && !IsLoggingIn)
                     SendAvatarDataToAllAgents();
-                }
-                // Throw away duplicate or insignificant updates
-                else if (
-                    // If the velocity has become zero, send it no matter what.
-                       (Velocity != m_lastVelocity && Velocity == Vector3.Zero)
-                    // otherwise, if things have changed reasonably, send the update
-                    || (!Rotation.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE)
-                        || !Velocity.ApproxEquals(m_lastVelocity, VELOCITY_TOLERANCE)
-                        || !m_pos.ApproxEquals(m_lastPosition, POSITION_TOLERANCE)))
 
+                if (!Rotation.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE) ||
+                    !Velocity.ApproxEquals(m_lastVelocity, VELOCITY_TOLERANCE) ||
+                    !m_pos.ApproxEquals(m_lastPosition, POSITION_TOLERANCE))
                 {
                     SendTerseUpdateToAllClients();
 
@@ -2703,6 +2713,8 @@ namespace OpenSim.Region.Framework.Scenes
 
                 return;
             }
+
+            m_lastSize = Appearance.AvatarSize;
 
             int count = 0;
             m_scene.ForEachScenePresence(delegate(ScenePresence scenePresence)

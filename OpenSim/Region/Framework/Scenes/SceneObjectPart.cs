@@ -144,7 +144,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </remarks>
         public bool IsRoot 
         {
-            get { return ParentGroup.RootPart == this; } 
+            get { return Object.ReferenceEquals(ParentGroup.RootPart, this); } 
         }
 
         /// <summary>

@@ -2359,8 +2359,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
+
+            // Teravus:  if (m_host.ParentID == 0) is bug code because the ParentID for the Avatar will cause this to be nonzero for root prim attachments
+            // which is then treated like a child prim rotation and it's offset gets cumulatively multiplied against.
+            // to fix the scripted rotations we also have to check to see if the root part localid is the same as the host's localid.
+            // RootPart != null should shortcircuit
+            
             // try to let this work as in SL...
-            if (m_host.ParentID == 0)
+            if (m_host.ParentID == 0 || (m_host.ParentGroup != null && m_host == m_host.ParentGroup.RootPart))
             {
                 // special case: If we are root, rotate complete SOG to new rotation
                 SetRot(m_host, rot);
@@ -2443,6 +2449,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             
             m_host.AddScriptLPS(1);
             Quaternion q = m_host.GetWorldRotation();
+
+            if (m_host.ParentGroup != null && m_host.ParentGroup.AttachmentPoint != 0)
+            {
+                ScenePresence avatar = World.GetScenePresence(m_host.ParentGroup.AttachedAvatar);
+                if (avatar != null)
+                {
+                    if ((avatar.AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_MOUSELOOK) != 0)
+                        q = avatar.CameraRotation * q; // Mouselook
+                    else
+                        q = avatar.Rotation * q; // Currently infrequently updated so may be inaccurate
+                }
+            }
+
             return new LSL_Rotation(q.X, q.Y, q.Z, q.W);
         }
 
@@ -2468,7 +2487,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     q = part.ParentGroup.GroupRotation; // just the group rotation
                 return new LSL_Rotation(q.X, q.Y, q.Z, q.W);
             }
+
             q = part.GetWorldRotation();
+            if (part.ParentGroup.AttachmentPoint != 0)
+            {
+                ScenePresence avatar = World.GetScenePresence(part.ParentGroup.AttachedAvatar);
+                if (avatar != null)
+                {
+                    if ((avatar.AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_MOUSELOOK) != 0)
+                        q = avatar.CameraRotation * q; // Mouselook
+                    else
+                        q = avatar.Rotation * q; // Currently infrequently updated so may be inaccurate
+                }
+            }
+
             return new LSL_Rotation(q.X, q.Y, q.Z, q.W);
         }
 
@@ -7909,7 +7941,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                             LSL_Rotation q = rules.GetQuaternionItem(idx++);
                             // try to let this work as in SL...
-                            if (part.ParentID == 0)
+                            if (part.ParentID == 0 || (part.ParentGroup != null && part == part.ParentGroup.RootPart))
                             {
                                 // special case: If we are root, rotate complete SOG to new rotation
                                 SetRot(part, q);
@@ -8701,7 +8733,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             LSL_List remaining = GetPrimParams(m_host, rules, ref result);
 
-            while (remaining != null && remaining.Length > 2)
+            while ((object)remaining != null && remaining.Length > 2)
             {
                 int linknumber = remaining.GetLSLIntegerItem(0);
                 rules = remaining.GetSublist(1, -1);
@@ -8742,11 +8774,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     remaining = GetPrimParams(avatar, rules, ref res);
                 }
 
-                if (remaining != null && remaining.Length > 0)
+                if ((object)remaining != null && remaining.Length > 0)
                 {
                     linknumber = remaining.GetLSLIntegerItem(0);
                     rules = remaining.GetSublist(1, -1);
                 }
+                else
+                    break;
             }
 
             return res;

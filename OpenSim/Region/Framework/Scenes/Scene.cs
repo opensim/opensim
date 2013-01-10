@@ -2982,6 +2982,7 @@ namespace OpenSim.Region.Framework.Scenes
                         // start the scripts again (since this is done in RezAttachments()).
                         // XXX: This is convoluted.
                         sp.IsChildAgent = false;
+                        sp.IsLoggingIn = true;
     
                         if (AttachmentsModule != null)
                             Util.FireAndForget(delegate(object o) { AttachmentsModule.RezAttachments(sp); });

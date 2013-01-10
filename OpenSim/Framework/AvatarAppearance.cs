@@ -66,7 +66,9 @@ namespace OpenSim.Framework
         protected Vector3 m_avatarBoxSize = new Vector3(0.45f, 0.6f, 1.9f);
         protected float m_avatarFeetOffset = 0;
         protected float m_avatarAnimOffset = 0;
-        protected WearableCacheItem[] cacheitems;
+        protected WearableCacheItem[] m_cacheitems;
+        protected bool m_cacheItemsDirty = true;
+
         public virtual int Serial
         {
             get { return m_serial; }
@@ -118,8 +120,14 @@ namespace OpenSim.Framework
         
         public virtual WearableCacheItem[] WearableCacheItems
         {
-            get { return cacheitems; }
-            set { cacheitems = value; }
+            get { return m_cacheitems; }
+            set { m_cacheitems = value; }
+        }
+
+        public virtual bool WearableCacheItemsDirty
+        {
+            get { return m_cacheItemsDirty; }
+            set { m_cacheItemsDirty = value; }
         }
 
         public AvatarAppearance()
