@@ -236,8 +236,6 @@ namespace OpenSim
                                           + "If an avatar name is given then only packets from that avatar are logged",
                                           Debug);
 
-            m_console.Commands.AddCommand("Debug", false, "debug teleport", "debug teleport", "Toggle teleport route debugging", Debug);
-
             m_console.Commands.AddCommand("Debug", false, "debug scene",
                                           "debug scene active|collisions|pbackup|physics|scripting|teleport|updates true|false",
                                           "Turn on scene debugging options.",
