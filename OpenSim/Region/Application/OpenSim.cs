@@ -239,13 +239,15 @@ namespace OpenSim
             m_console.Commands.AddCommand("Debug", false, "debug teleport", "debug teleport", "Toggle teleport route debugging", Debug);
 
             m_console.Commands.AddCommand("Debug", false, "debug scene",
-                                          "debug scene active|collisions|physics|scripting|teleport true|false",
-                                          "Turn on scene debugging.",
+                                          "debug scene active|collisions|pbackup|physics|scripting|teleport|updates true|false",
+                                          "Turn on scene debugging options.",
                                             "If active     is false then main scene update and maintenance loops are suspended.\n"
                                           + "If collisions is false then collisions with other objects are turned off.\n"
+                                          + "If pbackup    is false then periodic scene backup is turned off.\n"
                                           + "If physics    is false then all physics objects are non-physical.\n"
                                           + "If scripting  is false then no scripting operations happen.\n"
-                                          + "If teleport   is true  then some extra teleport debug information is logged.",
+                                          + "If teleport   is true  then some extra teleport debug information is logged."
+                                          + "If updates    is true  then any frame which exceeds double the maximum desired frame time is logged.",
                                           Debug);
 
             m_console.Commands.AddCommand("General", false, "change region",
@@ -764,7 +766,7 @@ namespace OpenSim
                     else
                     {
                         MainConsole.Instance.Output(
-                            "Usage: debug scene active|scripting|collisions|physics|teleport true|false");
+                            "Usage: debug scene active|collisions|pbackup|physics|scripting|teleport|updates true|false");
                     }
 
                     break;
