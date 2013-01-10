@@ -61,19 +61,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 
             public SensorInfo Clone()
             {
-                SensorInfo s = new SensorInfo();
-                s.localID = localID;
-                s.itemID = itemID;
-                s.interval = interval;
-                s.next = next;
-                s.name = name;
-                s.keyID = keyID;
-                s.type = type;
-                s.range = range;
-                s.arc = arc;
-                s.host = host;
-
-                return s;
+                return (SensorInfo)this.MemberwiseClone();
             }
         }
 
@@ -701,8 +689,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 
             lock (SenseRepeatListLock)
             {
-                foreach (SensorInfo si in SenseRepeaters)
-                    retList.Add(si.Clone());
+                foreach (SensorInfo i in SenseRepeaters)
+                    retList.Add(i.Clone());
             }
 
             return retList;

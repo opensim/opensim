@@ -72,7 +72,7 @@ namespace OpenSim.Framework.Monitoring
         /// </summary>
         public static double LastMemoryChurn
         {
-            get { if (m_samples.Count > 0) return m_samples.Last(); else return 0; }
+            get { if (m_samples.Count > 0) return m_samples.First(); else return 0; }
         }
 
         /// <summary>
