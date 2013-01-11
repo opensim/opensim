@@ -236,18 +236,6 @@ namespace OpenSim
                                           + "If an avatar name is given then only packets from that avatar are logged",
                                           Debug);
 
-            m_console.Commands.AddCommand("Debug", false, "debug teleport", "debug teleport", "Toggle teleport route debugging", Debug);
-
-            m_console.Commands.AddCommand("Debug", false, "debug scene",
-                                          "debug scene active|collisions|physics|scripting|teleport true|false",
-                                          "Turn on scene debugging.",
-                                            "If active     is false then main scene update and maintenance loops are suspended.\n"
-                                          + "If collisions is false then collisions with other objects are turned off.\n"
-                                          + "If physics    is false then all physics objects are non-physical.\n"
-                                          + "If scripting  is false then no scripting operations happen.\n"
-                                          + "If teleport   is true  then some extra teleport debug information is logged.",
-                                          Debug);
-
             m_console.Commands.AddCommand("General", false, "change region",
                                           "change region <region name>",
                                           "Change current console region", ChangeSelectedRegion);
@@ -740,31 +728,6 @@ namespace OpenSim
                         {
                             MainConsole.Instance.Output("Usage: debug packet 0..255");
                         }
-                    }
-
-                    break;
-
-                case "scene":
-                    if (args.Length == 4)
-                    {
-                        if (SceneManager.CurrentScene == null)
-                        {
-                            MainConsole.Instance.Output("Please use 'change region <regioname>' first");
-                        }
-                        else
-                        {
-                            string key = args[2];
-                            string value = args[3];
-                            SceneManager.CurrentScene.SetSceneCoreDebug(
-                                new Dictionary<string, string>() { { key, value } });
-
-                            MainConsole.Instance.OutputFormat("Set debug scene {0} = {1}", key, value);
-                        }
-                    }
-                    else
-                    {
-                        MainConsole.Instance.Output(
-                            "Usage: debug scene active|scripting|collisions|physics|teleport true|false");
                     }
 
                     break;
