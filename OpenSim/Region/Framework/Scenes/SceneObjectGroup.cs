@@ -307,9 +307,6 @@ namespace OpenSim.Region.Framework.Scenes
             get { return RootPart.VolumeDetectActive; }
         }
 
-        private Vector3 lastPhysGroupPos;
-        private Quaternion lastPhysGroupRot;
-
         private bool m_isBackedUp;
 
         public bool IsBackedUp
@@ -2525,6 +2522,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         #endregion
 
+
         public override void Update()
         {
             // Check that the group was not deleted before the scheduled update
@@ -2543,19 +2541,8 @@ namespace OpenSim.Region.Framework.Scenes
             // check to see if the physical position or rotation warrant an update. 
             if (m_rootPart.UpdateFlag == UpdateRequired.NONE)
             {
-                bool UsePhysics = ((RootPart.Flags & PrimFlags.Physics) != 0);
-
-                if (UsePhysics && !AbsolutePosition.ApproxEquals(lastPhysGroupPos, 0.02f))
-                {
-                    m_rootPart.UpdateFlag = UpdateRequired.TERSE;
-                    lastPhysGroupPos = AbsolutePosition;
-                }
-
-                if (UsePhysics && !GroupRotation.ApproxEquals(lastPhysGroupRot, 0.1f))
-                {
-                    m_rootPart.UpdateFlag = UpdateRequired.TERSE;
-                    lastPhysGroupRot = GroupRotation;
-                }
+                // rootpart SendScheduledUpdates will check if a update is needed
+                m_rootPart.UpdateFlag = UpdateRequired.TERSE;
             }
 
             SceneObjectPart[] parts = m_parts.GetArray();
