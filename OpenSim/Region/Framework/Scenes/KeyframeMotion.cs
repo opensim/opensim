@@ -544,8 +544,10 @@ namespace OpenSim.Region.Framework.Scenes
                         m_nextPosition = (Vector3)m_currentFrame.Position;
                         m_group.AbsolutePosition = m_nextPosition;
 
-                        m_group.UpdateGroupRotationR((Quaternion)m_currentFrame.Rotation);
+                        // we are sending imediate updates, no doing force a extra terseUpdate
+//                        m_group.UpdateGroupRotationR((Quaternion)m_currentFrame.Rotation);
 
+                        m_group.RootPart.RotationOffset = (Quaternion)m_currentFrame.Rotation;
                         m_frames.RemoveAt(0);
                         if (m_frames.Count > 0)
                             m_currentFrame = m_frames[0];
@@ -613,7 +615,9 @@ namespace OpenSim.Region.Framework.Scenes
                                 // assuming w is a dependente var
 
                             {
-                                m_group.UpdateGroupRotationR(step);
+//                                m_group.UpdateGroupRotationR(step);
+                                m_group.RootPart.RotationOffset = step;
+
                                 //m_group.RootPart.UpdateAngularVelocity(m_currentFrame.AngularVelocity / 2);
                                 update = true;
                             }
