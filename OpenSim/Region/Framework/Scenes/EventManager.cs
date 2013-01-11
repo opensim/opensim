@@ -339,6 +339,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// in <see cref="Scene.SetScriptRunning"/>
         /// via <see cref="OpenSim.Framework.IClientAPI.OnSetScriptRunning"/>,
         /// via <see cref="OpenSim.Region.ClientStack.LindenUDP.HandleSetScriptRunning"/>
+        /// XXX: This is only triggered when it is the client that starts the script, not in other situations where
+        /// a script is started, unlike OnStopScript!
         /// </remarks>
         public event StartScript OnStartScript;
 
@@ -352,6 +354,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// in <see cref="SceneObjectPartInventory.CreateScriptInstance"/>,
         /// <see cref="SceneObjectPartInventory.StopScriptInstance"/>,
         /// <see cref="Scene.SetScriptRunning"/>
+        /// XXX: This is triggered when a sciprt is stopped for any reason, unlike OnStartScript!
         /// </remarks>
         public event StopScript OnStopScript;
 

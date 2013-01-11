@@ -75,9 +75,25 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             m_scene.RegisterModuleInterface<IAttachmentsModule>(this);
 
             if (Enabled)
+            {
                 m_scene.EventManager.OnNewClient += SubscribeToClientEvents;
+                m_scene.EventManager.OnStartScript += HandleScriptStateChange;
+                m_scene.EventManager.OnStopScript += HandleScriptStateChange;
+            }
 
             // TODO: Should probably be subscribing to CloseClient too, but this doesn't yet give us IClientAPI
+        }
+
+        /// <summary>
+        /// Listen for client triggered running state changes so that we can persist the script's object if necessary.
+        /// </summary>
+        /// <param name='localID'></param>
+        /// <param name='itemID'></param>
+        private void HandleScriptStateChange(uint localID, UUID itemID)
+        {
+            SceneObjectGroup sog = m_scene.GetGroupByPrim(localID);
+            if (sog != null && sog.IsAttachment) 
+                sog.HasGroupChanged = true;
         }
         
         public void RemoveRegion(Scene scene) 
@@ -743,7 +759,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             // Remove the object from the scene so no more updates
             // are sent. Doing this before the below changes will ensure
             // updates can't cause "HUD artefacts"
-            m_scene.DeleteSceneObject(so, false, false);
+            m_scene.DeleteSceneObject(so, false);
 
             // Prepare sog for storage
             so.AttachedAvatar = UUID.Zero;
