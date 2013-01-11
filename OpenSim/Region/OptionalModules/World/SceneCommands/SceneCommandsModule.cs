@@ -51,7 +51,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private Scene m_scene;
-//        private IAvatarFactoryModule m_avatarFactory;
 
         public string Name { get { return "Scene Commands Module"; } }
         
@@ -77,6 +76,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
 //            m_log.DebugFormat("[SCENE COMMANDS MODULE]: REGION {0} ADDED", scene.RegionInfo.RegionName);
 
             m_scene = scene;
+            
+            m_scene.RegisterModuleInterface<ISceneCommandsModule>(this);
         }
         
         public void RemoveRegion(Scene scene)
@@ -221,57 +222,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
                     GcNotify.Enabled = enableUpdateDebugging;
                 }
             }
-        }
-
-        private void GetAttachmentsReport(ScenePresence sp, StringBuilder sb)
-        {
-            sb.AppendFormat("Attachments for {0}\n", sp.Name);
-
-            ConsoleDisplayTable ct = new ConsoleDisplayTable() { Indent = 2 };
-            ct.Columns.Add(new ConsoleDisplayTableColumn("Attachment Name", 50));
-            ct.Columns.Add(new ConsoleDisplayTableColumn("Local ID", 10));
-            ct.Columns.Add(new ConsoleDisplayTableColumn("Item ID", 36));
-            ct.Columns.Add(new ConsoleDisplayTableColumn("Attach Point", 14));
-            ct.Columns.Add(new ConsoleDisplayTableColumn("Position", 15));
-
-//            sb.AppendFormat(
-//                "  {0,-36}  {1,-10}  {2,-36}  {3,-14}  {4,-15}\n",
-//                "Attachment Name", "Local ID", "Item ID", "Attach Point", "Position");
-
-            List<SceneObjectGroup> attachmentObjects = sp.GetAttachments();
-            foreach (SceneObjectGroup attachmentObject in attachmentObjects)
-            {
-//                InventoryItemBase attachmentItem
-//                    = m_scenes[0].InventoryService.GetItem(new InventoryItemBase(attachmentObject.FromItemID));
-
-//                if (attachmentItem == null)
-//                {
-//                    sb.AppendFormat(
-//                        "WARNING: Couldn't find attachment for item {0} at point {1}\n",
-//                        attachmentData.ItemID, (AttachmentPoint)attachmentData.AttachPoint);
-//                        continue;
-//                }
-//                else
-//                {
-//                    sb.AppendFormat(
-//                        "  {0,-36}  {1,-10}  {2,-36}  {3,-14}  {4,-15}\n",
-//                        attachmentObject.Name, attachmentObject.LocalId, attachmentObject.FromItemID,
-//                        (AttachmentPoint)attachmentObject.AttachmentPoint, attachmentObject.RootPart.AttachedPos);
-                    ct.Rows.Add(
-                        new ConsoleDisplayTableRow(
-                            new List<string>()
-                            {
-                                attachmentObject.Name,
-                                attachmentObject.LocalId.ToString(),
-                                attachmentObject.FromItemID.ToString(),
-                                ((AttachmentPoint)attachmentObject.AttachmentPoint).ToString(),
-                                attachmentObject.RootPart.AttachedPos.ToString()
-                            }));
-//                }
-            }
-
-            ct.AddToStringBuilder(sb);
-            sb.Append("\n");
         }
     }
 }
