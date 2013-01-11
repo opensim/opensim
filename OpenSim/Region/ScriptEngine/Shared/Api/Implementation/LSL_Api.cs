@@ -12691,7 +12691,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if ((data & KeyframeMotion.DataFormat.Rotation) != 0)
                     {
                         LSL_Types.Quaternion tempq = frames.GetQuaternionItem(idx++);
-                        frame.Rotation = new Quaternion((float)tempq.x, (float)tempq.y, (float)tempq.z, (float)tempq.s);
+                        Quaternion q = new Quaternion((float)tempq.x, (float)tempq.y, (float)tempq.z, (float)tempq.s);
+                        q.Normalize();
+                        frame.Rotation = q;
                     }
 
                     float tempf = (float)frames.GetLSLFloatItem(idx++);
