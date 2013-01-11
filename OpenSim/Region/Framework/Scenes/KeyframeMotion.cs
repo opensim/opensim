@@ -345,9 +345,9 @@ namespace OpenSim.Region.Framework.Scenes
             m_baseRotation = m_group.GroupRotation;
 
             m_group.RootPart.Velocity = Vector3.Zero;
-            m_group.RootPart.UpdateAngularVelocity(Vector3.Zero);
-            m_group.SendGroupRootTerseUpdate();
-
+            m_group.RootPart.AngularVelocity = Vector3.Zero;
+//            m_group.SendGroupRootTerseUpdate();
+            m_group.RootPart.ScheduleTerseUpdate();
             m_frames.Clear();
         }
 
@@ -357,8 +357,10 @@ namespace OpenSim.Region.Framework.Scenes
             RemoveTimer();
 
             m_group.RootPart.Velocity = Vector3.Zero;
-            m_group.RootPart.UpdateAngularVelocity(Vector3.Zero);
-            m_group.SendGroupRootTerseUpdate();
+            m_group.RootPart.AngularVelocity = Vector3.Zero;
+//            m_group.SendGroupRootTerseUpdate();
+            m_group.RootPart.ScheduleTerseUpdate();
+
         }
 
         private void GetNextList()
@@ -489,7 +491,9 @@ namespace OpenSim.Region.Framework.Scenes
                         if (m_group.RootPart.Velocity != Vector3.Zero)
                         {
                             m_group.RootPart.Velocity = Vector3.Zero;
-                            m_group.SendGroupRootTerseUpdate();
+//                            m_group.SendGroupRootTerseUpdate();
+                            m_group.RootPart.ScheduleTerseUpdate();
+
                         }
                         m_inOnTimer = false;
                         return;
@@ -539,13 +543,15 @@ namespace OpenSim.Region.Framework.Scenes
                     if (steps <= 0.0)
                     {
                         m_group.RootPart.Velocity = Vector3.Zero;
-                        m_group.RootPart.UpdateAngularVelocity(Vector3.Zero);
+                        m_group.RootPart.AngularVelocity = Vector3.Zero;
 
                         m_nextPosition = (Vector3)m_currentFrame.Position;
                         m_group.AbsolutePosition = m_nextPosition;
 
-                        m_group.UpdateGroupRotationR((Quaternion)m_currentFrame.Rotation);
+                        // we are sending imediate updates, no doing force a extra terseUpdate
+//                        m_group.UpdateGroupRotationR((Quaternion)m_currentFrame.Rotation);
 
+                        m_group.RootPart.RotationOffset = (Quaternion)m_currentFrame.Rotation;
                         m_frames.RemoveAt(0);
                         if (m_frames.Count > 0)
                             m_currentFrame = m_frames[0];
@@ -613,7 +619,9 @@ namespace OpenSim.Region.Framework.Scenes
                                 // assuming w is a dependente var
 
                             {
-                                m_group.UpdateGroupRotationR(step);
+//                                m_group.UpdateGroupRotationR(step);
+                                m_group.RootPart.RotationOffset = step;
+
                                 //m_group.RootPart.UpdateAngularVelocity(m_currentFrame.AngularVelocity / 2);
                                 update = true;
                             }
@@ -621,7 +629,9 @@ namespace OpenSim.Region.Framework.Scenes
                     }
 
                     if (update)
-                        m_group.SendGroupRootTerseUpdate();
+//                        m_group.SendGroupRootTerseUpdate();
+                        m_group.RootPart.ScheduleTerseUpdate();
+
 
                 }
                 catch ( Exception ex)
@@ -671,7 +681,8 @@ namespace OpenSim.Region.Framework.Scenes
             if (m_group.RootPart.Velocity != Vector3.Zero)
             {
                 m_group.RootPart.Velocity = Vector3.Zero;
-                m_group.SendGroupRootTerseUpdate();
+//                m_group.SendGroupRootTerseUpdate();
+                m_group.RootPart.ScheduleTerseUpdate();
             }
         }
 
@@ -682,7 +693,8 @@ namespace OpenSim.Region.Framework.Scenes
             if (m_group != null)
             {
                 m_group.RootPart.Velocity = Vector3.Zero;
-                m_group.SendGroupRootTerseUpdate();
+//                m_group.SendGroupRootTerseUpdate();
+                m_group.RootPart.ScheduleTerseUpdate();
 
                 if (m_running && m_timer != null)
                 {
