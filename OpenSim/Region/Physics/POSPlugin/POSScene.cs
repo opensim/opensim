@@ -43,8 +43,10 @@ namespace OpenSim.Region.Physics.POSPlugin
 
         //protected internal string sceneIdentifier;
 
-        public POSScene(String _sceneIdentifier)
+        public POSScene(string engineType, String _sceneIdentifier)
         {
+            EngineType = engineType;
+            Name = EngineType + "/" + _sceneIdentifier;
             //sceneIdentifier = _sceneIdentifier;
         }
 

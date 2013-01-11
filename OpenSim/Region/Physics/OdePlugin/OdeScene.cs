@@ -526,11 +526,12 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// These settings need to be tweaked 'exactly' right or weird stuff happens.
         /// </summary>
         /// <param value="name">Name of the scene.  Useful in debug messages.</param>
-        public OdeScene(string name)
+        public OdeScene(string engineType, string name)
         {
             m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType.ToString() + "." + name);
 
             Name = name;
+            EngineType = engineType;
 
             nearCallback = near;
             triCallback = TriCallback;
