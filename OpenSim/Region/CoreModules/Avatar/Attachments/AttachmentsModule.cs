@@ -77,8 +77,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             if (Enabled)
             {
                 m_scene.EventManager.OnNewClient += SubscribeToClientEvents;
-                m_scene.EventManager.OnStartScript += HandleScriptStateChange;
-                m_scene.EventManager.OnStopScript += HandleScriptStateChange;
+                m_scene.EventManager.OnStartScript += (localID, itemID) => HandleScriptStateChange(localID, true);
+                m_scene.EventManager.OnStopScript += (localID, itemID) => HandleScriptStateChange(localID, false);
             }
 
             // TODO: Should probably be subscribing to CloseClient too, but this doesn't yet give us IClientAPI
@@ -89,11 +89,25 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         /// </summary>
         /// <param name='localID'></param>
         /// <param name='itemID'></param>
-        private void HandleScriptStateChange(uint localID, UUID itemID)
+        private void HandleScriptStateChange(uint localID, bool started)
         {
             SceneObjectGroup sog = m_scene.GetGroupByPrim(localID);
             if (sog != null && sog.IsAttachment) 
-                sog.HasGroupChanged = true;
+            {
+                if (!started)
+                {
+                    // FIXME: This is a convoluted way for working out whether the script state has changed to stop
+                    // because it has been manually stopped or because the stop was called in UpdateDetachedObject() below
+                    // This needs to be handled in a less tangled way.
+                    ScenePresence sp = m_scene.GetScenePresence(sog.AttachedAvatar);
+                    if (sp.ControllingClient.IsActive)
+                        sog.HasGroupChanged = true;
+                }
+                else
+                {
+                    sog.HasGroupChanged = true;
+                }
+            }
         }
         
         public void RemoveRegion(Scene scene) 
@@ -759,7 +773,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             // Remove the object from the scene so no more updates
             // are sent. Doing this before the below changes will ensure
             // updates can't cause "HUD artefacts"
-            m_scene.DeleteSceneObject(so, false);
+            m_scene.DeleteSceneObject(so, false, false);
 
             // Prepare sog for storage
             so.AttachedAvatar = UUID.Zero;
