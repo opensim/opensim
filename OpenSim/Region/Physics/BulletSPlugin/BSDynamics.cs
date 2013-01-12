@@ -148,7 +148,6 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 enableAngularVerticalAttraction = false;
                 enableAngularDeflection = false;
                 enableAngularBanking = false;
-                VDetailLog("{0},BSDynamics.SetupVehicleDebugging,settingDebugMode", Prim.LocalID);
             }
         }
 
@@ -690,10 +689,10 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 }
 
                 if ((m_knownChanged & m_knownChangedForce) != 0)
-                    Prim.AddForce((Vector3)m_knownForce, false, true);
+                    Prim.AddForce((Vector3)m_knownForce, false /*pushForce*/, true /*inTaintTime*/);
 
                 if ((m_knownChanged & m_knownChangedForceImpulse) != 0)
-                    Prim.AddForceImpulse((Vector3)m_knownForceImpulse, false, true);
+                    Prim.AddForceImpulse((Vector3)m_knownForceImpulse, false /*pushforce*/, true /*inTaintTime*/);
 
                 if ((m_knownChanged & m_knownChangedRotationalVelocity) != 0)
                 {
@@ -703,7 +702,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 
                 if ((m_knownChanged & m_knownChangedRotationalForce) != 0)
                 {
-                    Prim.AddAngularForce((Vector3)m_knownRotationalForce, false, true);
+                    Prim.AddAngularForce((Vector3)m_knownRotationalForce, false /*pushForce*/, true /*inTaintTime*/);
                 }
 
                 // If we set one of the values (ie, the physics engine didn't do it) we must force
@@ -970,7 +969,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             // Act against the inertia of the vehicle
             linearMotorForce *= m_vehicleMass;
 
-            VehicleAddForceImpulse(linearMotorForce);
+            VehicleAddForceImpulse(linearMotorForce * pTimestep);
 
             VDetailLog("{0},  MoveLinear,velocity,vehVel={1},step={2},stepVel={3},mix={4},force={5}",
                         Prim.LocalID, VehicleVelocity, linearMotorStep, linearMotorVelocity, mixFactor, linearMotorForce);
@@ -1033,7 +1032,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 {
                     // Error is positive if below the target and negative if above.
                     float verticalError = m_VhoverTargetHeight - VehiclePosition.Z;
-                    float verticalCorrectionVelocity = verticalError / m_VhoverTimescale;
+                    float verticalCorrectionVelocity = verticalError / m_VhoverTimescale * pTimestep;
 
                     // TODO: implement m_VhoverEfficiency correctly
                     VehicleAddForceImpulse(new Vector3(0f, 0f, verticalCorrectionVelocity));
@@ -1323,7 +1322,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             //     this creates an over-correction and then wabbling as the target is overshot.
             // TODO: rethink how the different correction computations inter-relate.
 
-            if (enableAngularDeflection && m_angularDeflectionEfficiency != 0 && VehicleVelocity != Vector3.Zero)
+            if (enableAngularDeflection && m_angularDeflectionEfficiency != 0 && VehicleForwardSpeed > 0.2)
             {
                 // The direction the vehicle is moving
                 Vector3 movingDirection = VehicleVelocity;

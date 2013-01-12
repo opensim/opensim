@@ -50,7 +50,10 @@ public sealed class BSPrim : BSPhysObject
     private bool _grabbed;
     private bool _isSelected;
     private bool _isVolumeDetect;
+
+    // _position is what the simulator thinks the positions of the prim is.
     private OMV.Vector3 _position;
+
     private float _mass;    // the mass of this object
     private float _density;
     private OMV.Vector3 _force;
@@ -320,16 +323,35 @@ public sealed class BSPrim : BSPhysObject
     }
     public override OMV.Vector3 ForcePosition {
         get {
-            _position = PhysicsScene.PE.GetPosition(PhysBody);
+            _position = PhysicsScene.PE.GetPosition(PhysBody) - PositionDisplacement;
             return _position;
         }
         set {
             _position = value;
             if (PhysBody.HasPhysicalBody)
             {
-                PhysicsScene.PE.SetTranslation(PhysBody, _position, _orientation);
+                PhysicsScene.PE.SetTranslation(PhysBody, _position + PositionDisplacement, _orientation);
                 ActivateIfPhysical(false);
             }
+        }
+    }
+    // Override to have position displacement immediately update the physical position.
+    // A feeble attempt to keep the sim and physical positions in sync
+    // Must be called at taint time.
+    public override OMV.Vector3 PositionDisplacement
+    {
+        get
+        {
+            return base.PositionDisplacement;
+        }
+        set
+        {
+            base.PositionDisplacement = value;
+            PhysicsScene.TaintedObject(PhysicsScene.InTaintTime, "BSPrim.setPosition", delegate()
+            {
+                if (PhysBody.HasPhysicalBody)
+                    PhysicsScene.PE.SetTranslation(PhysBody, _position + base.PositionDisplacement, _orientation);
+            });
         }
     }
 
@@ -590,6 +612,7 @@ public sealed class BSPrim : BSPhysObject
             _velocity = value;
             if (PhysBody.HasPhysicalBody)
             {
+                DetailLog("{0},BSPrim.ForceVelocity,taint,vel={1}", LocalID, _velocity);
                 PhysicsScene.PE.SetLinearVelocity(PhysBody, _velocity);
                 ActivateIfPhysical(false);
             }
@@ -654,12 +677,7 @@ public sealed class BSPrim : BSPhysObject
 
             PhysicsScene.TaintedObject("BSPrim.setOrientation", delegate()
             {
-                if (PhysBody.HasPhysicalBody)
-                {
-                    // _position = PhysicsScene.PE.GetObjectPosition(PhysicsScene.World, BSBody);
-                    // DetailLog("{0},BSPrim.setOrientation,taint,pos={1},orient={2}", LocalID, _position, _orientation);
-                    PhysicsScene.PE.SetTranslation(PhysBody, _position, _orientation);
-                }
+                ForceOrientation = _orientation;
             });
         }
     }
@@ -674,7 +692,8 @@ public sealed class BSPrim : BSPhysObject
         set
         {
             _orientation = value;
-            PhysicsScene.PE.SetTranslation(PhysBody, _position, _orientation);
+            if (PhysBody.HasPhysicalBody)
+                PhysicsScene.PE.SetTranslation(PhysBody, _position + PositionDisplacement, _orientation);
         }
     }
     public override int PhysicsActorType {
@@ -813,7 +832,7 @@ public sealed class BSPrim : BSPhysObject
             // PhysicsScene.PE.ClearAllForces(BSBody);
 
             // For good measure, make sure the transform is set through to the motion state
-            PhysicsScene.PE.SetTranslation(PhysBody, _position, _orientation);
+            PhysicsScene.PE.SetTranslation(PhysBody, _position + PositionDisplacement, _orientation);
 
             // Center of mass is at the center of the object
             // DEBUG DEBUG PhysicsScene.PE.SetCenterOfMassByPosRot(Linkset.LinksetRoot.PhysBody, _position, _orientation);
@@ -1615,6 +1634,7 @@ public sealed class BSPrim : BSPhysObject
             }
 
             // Assign directly to the local variables so the normal set actions do not happen
+            entprop.Position -= PositionDisplacement;
             _position = entprop.Position;
             _orientation = entprop.Rotation;
             _velocity = entprop.Velocity;

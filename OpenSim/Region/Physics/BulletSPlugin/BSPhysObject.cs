@@ -73,6 +73,8 @@ public abstract class BSPhysObject : PhysicsActor
 
         // A linkset of just me
         Linkset = BSLinkset.Factory(PhysicsScene, this);
+        PositionDisplacement = OMV.Vector3.Zero;
+
         LastAssetBuildFailed = false;
 
         // Default material type
@@ -156,6 +158,14 @@ public abstract class BSPhysObject : PhysicsActor
 
     public abstract OMV.Vector3 RawPosition { get; set; }
     public abstract OMV.Vector3 ForcePosition { get; set; }
+
+    // Position is what the simulator thinks the positions of the prim is.
+    // Because Bullet needs the zero coordinate to be the center of mass of the linkset,
+    //     sometimes it is necessary to displace the position the physics engine thinks
+    //     the position is. PositionDisplacement must be added and removed from the
+    //     position as the simulator position is stored and fetched from the physics
+    //     engine. 
+    public virtual OMV.Vector3 PositionDisplacement { get; set; }
 
     public abstract OMV.Quaternion RawOrientation { get; set; }
     public abstract OMV.Quaternion ForceOrientation { get; set; }

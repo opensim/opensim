@@ -327,6 +327,12 @@ public override void RemoveChildShapeFromCompoundShape(BulletShape shape, Bullet
     BSAPICPP.RemoveChildShapeFromCompoundShape2(shapeu.ptr, removeShapeu.ptr);
 }
 
+public override void UpdateChildTransform(BulletShape pShape, int childIndex, Vector3 pos, Quaternion rot, bool shouldRecalculateLocalAabb)
+{
+    BulletShapeUnman shapeu = pShape as BulletShapeUnman;
+    BSAPICPP.UpdateChildTransform2(shapeu.ptr, childIndex, pos, rot, shouldRecalculateLocalAabb);
+}
+
 public override void RecalculateCompoundShapeLocalAabb(BulletShape shape)
 {
     BulletShapeUnman shapeu = shape as BulletShapeUnman;
@@ -1355,6 +1361,9 @@ public static extern IntPtr RemoveChildShapeFromCompoundShapeIndex2(IntPtr cShap
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern void RemoveChildShapeFromCompoundShape2(IntPtr cShape, IntPtr removeShape);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern void UpdateChildTransform2(IntPtr pShape, int childIndex, Vector3 pos, Quaternion rot, bool shouldRecalculateLocalAabb);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern void RecalculateCompoundShapeLocalAabb2(IntPtr cShape);

@@ -170,6 +170,8 @@ Avatar attachments have no mass? http://forums-archive.secondlife.com/54/f0/3179
 
 INTERNAL IMPROVEMENT/CLEANUP
 =================================================
+Can the 'inTaintTime' flag be cleaned up and used? For instance, a call to
+	BSScene.TaintedObject() could immediately execute the callback if already in taint time.
 Create the physical wrapper classes (BulletBody, BulletShape) by methods on
 	BSAPITemplate and make their actual implementation Bullet engine specific.
 	For the short term, just call the existing functions in ShapeCollection.
