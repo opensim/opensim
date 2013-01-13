@@ -169,6 +169,7 @@ public sealed class BSPrim : BSPhysObject
     public override PrimitiveBaseShape Shape {
         set {
             BaseShape = value;
+            LastAssetBuildFailed = false;
             ForceBodyShapeRebuild(false);
         }
     }
@@ -178,7 +179,6 @@ public sealed class BSPrim : BSPhysObject
 
     public override bool ForceBodyShapeRebuild(bool inTaintTime)
     {
-        LastAssetBuildFailed = false;
         PhysicsScene.TaintedObject(inTaintTime, "BSPrim.ForceBodyShapeRebuild", delegate()
         {
             _mass = CalculateMass();   // changing the shape changes the mass
