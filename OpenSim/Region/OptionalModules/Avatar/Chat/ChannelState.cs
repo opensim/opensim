@@ -55,42 +55,42 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
         // These are the IRC Connector configurable parameters with hard-wired
         // default values (retained for compatability).
 
-        internal string Server               = null;
-        internal string Password             = null;
-        internal string IrcChannel           = null;
-        internal string BaseNickname         = "OSimBot";
-        internal uint   Port                 = 6667;
-        internal string User                 = null;
+        internal string Server = null;
+        internal string Password = null;
+        internal string IrcChannel = null;
+        internal string BaseNickname = "OSimBot";
+        internal uint Port = 6667;
+        internal string User = null;
 
-        internal bool   ClientReporting      = true;
-        internal bool   RelayChat            = true;
-        internal bool   RelayPrivateChannels = false;
-        internal int    RelayChannel         = 1;
+        internal bool ClientReporting = true;
+        internal bool RelayChat = true;
+        internal bool RelayPrivateChannels = false;
+        internal int RelayChannel = 1;
         internal List<int> ValidInWorldChannels = new List<int>();
 
         // Connector agnostic parameters. These values are NOT shared with the
         // connector and do not differentiate at an IRC level
 
         internal string PrivateMessageFormat = "PRIVMSG {0} :<{2}> {1} {3}";
-        internal string NoticeMessageFormat  = "PRIVMSG {0} :<{2}> {3}";
-        internal int    RelayChannelOut      = -1;
-        internal bool   RandomizeNickname    = true;
-        internal bool   CommandsEnabled      = false;
-        internal int    CommandChannel       = -1;
-        internal int    ConnectDelay         = 10;
-        internal int    PingDelay            = 15;
-        internal string DefaultZone          = "Sim";
+        internal string NoticeMessageFormat = "PRIVMSG {0} :<{2}> {3}";
+        internal int RelayChannelOut = -1;
+        internal bool RandomizeNickname = true;
+        internal bool CommandsEnabled = false;
+        internal int CommandChannel = -1;
+        internal int ConnectDelay = 10;
+        internal int PingDelay = 15;
+        internal string DefaultZone = "Sim";
 
-        internal string _accessPassword      = String.Empty;
-        internal Regex  AccessPasswordRegex  = null;
-        internal List<string> ExcludeList    = new List<string>();
+        internal string _accessPassword = String.Empty;
+        internal Regex AccessPasswordRegex = null;
+        internal List<string> ExcludeList = new List<string>();
         internal string AccessPassword
         {
             get { return _accessPassword; }
-            set 
+            set
             {
                 _accessPassword = value;
-                AccessPasswordRegex = new Regex(String.Format(@"^{0},\s*(?<avatar>[^,]+),\s*(?<message>.+)$", _accessPassword), 
+                AccessPasswordRegex = new Regex(String.Format(@"^{0},\s*(?<avatar>[^,]+),\s*(?<message>.+)$", _accessPassword),
                                                 RegexOptions.Compiled);
             }
         }
@@ -99,9 +99,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
 
         // IRC connector reference
 
-        internal IRCConnector irc           = null;
+        internal IRCConnector irc = null;
 
-        internal int idn                     = _idk_++;
+        internal int idn = _idk_++;
 
         // List of regions dependent upon this connection
 
@@ -119,29 +119,29 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
 
         internal ChannelState(ChannelState model)
         {
-            Server               = model.Server;
-            Password             = model.Password;
-            IrcChannel           = model.IrcChannel;
-            Port                 = model.Port;
-            BaseNickname         = model.BaseNickname;
-            RandomizeNickname    = model.RandomizeNickname;
-            User                 = model.User;
-            CommandsEnabled      = model.CommandsEnabled;
-            CommandChannel       = model.CommandChannel;
-            RelayChat            = model.RelayChat;
+            Server = model.Server;
+            Password = model.Password;
+            IrcChannel = model.IrcChannel;
+            Port = model.Port;
+            BaseNickname = model.BaseNickname;
+            RandomizeNickname = model.RandomizeNickname;
+            User = model.User;
+            CommandsEnabled = model.CommandsEnabled;
+            CommandChannel = model.CommandChannel;
+            RelayChat = model.RelayChat;
             RelayPrivateChannels = model.RelayPrivateChannels;
-            RelayChannelOut      = model.RelayChannelOut;
-            RelayChannel         = model.RelayChannel;
+            RelayChannelOut = model.RelayChannelOut;
+            RelayChannel = model.RelayChannel;
             ValidInWorldChannels = model.ValidInWorldChannels;
             PrivateMessageFormat = model.PrivateMessageFormat;
-            NoticeMessageFormat  = model.NoticeMessageFormat;
-            ClientReporting      = model.ClientReporting;
-            AccessPassword       = model.AccessPassword;
-            DefaultZone          = model.DefaultZone;
-            ConnectDelay         = model.ConnectDelay;
-            PingDelay            = model.PingDelay;
+            NoticeMessageFormat = model.NoticeMessageFormat;
+            ClientReporting = model.ClientReporting;
+            AccessPassword = model.AccessPassword;
+            DefaultZone = model.DefaultZone;
+            ConnectDelay = model.ConnectDelay;
+            PingDelay = model.PingDelay;
         }
-        
+
         // Read the configuration file, performing variable substitution and any
         // necessary aliasing. See accompanying documentation for how this works.
         // If you don't need variables, then this works exactly as before.
@@ -160,54 +160,54 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
 
             m_log.DebugFormat("[IRC-Channel-{0}] Initial request by Region {1} to connect to IRC", cs.idn, rs.Region);
 
-            cs.Server               = Substitute(rs, config.GetString("server", null));
+            cs.Server = Substitute(rs, config.GetString("server", null));
             m_log.DebugFormat("[IRC-Channel-{0}] Server : <{1}>", cs.idn, cs.Server);
-            cs.Password             = Substitute(rs, config.GetString("password", null));
+            cs.Password = Substitute(rs, config.GetString("password", null));
             // probably not a good idea to put a password in the log file
-            cs.User                 = Substitute(rs, config.GetString("user", null));
-            cs.IrcChannel           = Substitute(rs, config.GetString("channel", null));
+            cs.User = Substitute(rs, config.GetString("user", null));
+            cs.IrcChannel = Substitute(rs, config.GetString("channel", null));
             m_log.DebugFormat("[IRC-Channel-{0}] IrcChannel : <{1}>", cs.idn, cs.IrcChannel);
-            cs.Port                 = Convert.ToUInt32(Substitute(rs, config.GetString("port", Convert.ToString(cs.Port))));
+            cs.Port = Convert.ToUInt32(Substitute(rs, config.GetString("port", Convert.ToString(cs.Port))));
             m_log.DebugFormat("[IRC-Channel-{0}] Port : <{1}>", cs.idn, cs.Port);
-            cs.BaseNickname         = Substitute(rs, config.GetString("nick", cs.BaseNickname));
+            cs.BaseNickname = Substitute(rs, config.GetString("nick", cs.BaseNickname));
             m_log.DebugFormat("[IRC-Channel-{0}] BaseNickname : <{1}>", cs.idn, cs.BaseNickname);
-            cs.RandomizeNickname    = Convert.ToBoolean(Substitute(rs, config.GetString("randomize_nick", Convert.ToString(cs.RandomizeNickname))));
+            cs.RandomizeNickname = Convert.ToBoolean(Substitute(rs, config.GetString("randomize_nick", Convert.ToString(cs.RandomizeNickname))));
             m_log.DebugFormat("[IRC-Channel-{0}] RandomizeNickname : <{1}>", cs.idn, cs.RandomizeNickname);
-            cs.RandomizeNickname    = Convert.ToBoolean(Substitute(rs, config.GetString("nicknum", Convert.ToString(cs.RandomizeNickname))));
+            cs.RandomizeNickname = Convert.ToBoolean(Substitute(rs, config.GetString("nicknum", Convert.ToString(cs.RandomizeNickname))));
             m_log.DebugFormat("[IRC-Channel-{0}] RandomizeNickname : <{1}>", cs.idn, cs.RandomizeNickname);
-            cs.User                 = Substitute(rs, config.GetString("username", cs.User));
+            cs.User = Substitute(rs, config.GetString("username", cs.User));
             m_log.DebugFormat("[IRC-Channel-{0}] User : <{1}>", cs.idn, cs.User);
-            cs.CommandsEnabled      = Convert.ToBoolean(Substitute(rs, config.GetString("commands_enabled", Convert.ToString(cs.CommandsEnabled))));
+            cs.CommandsEnabled = Convert.ToBoolean(Substitute(rs, config.GetString("commands_enabled", Convert.ToString(cs.CommandsEnabled))));
             m_log.DebugFormat("[IRC-Channel-{0}] CommandsEnabled : <{1}>", cs.idn, cs.CommandsEnabled);
-            cs.CommandChannel       = Convert.ToInt32(Substitute(rs, config.GetString("commandchannel", Convert.ToString(cs.CommandChannel))));
+            cs.CommandChannel = Convert.ToInt32(Substitute(rs, config.GetString("commandchannel", Convert.ToString(cs.CommandChannel))));
             m_log.DebugFormat("[IRC-Channel-{0}] CommandChannel : <{1}>", cs.idn, cs.CommandChannel);
-            cs.CommandChannel       = Convert.ToInt32(Substitute(rs, config.GetString("command_channel", Convert.ToString(cs.CommandChannel))));
+            cs.CommandChannel = Convert.ToInt32(Substitute(rs, config.GetString("command_channel", Convert.ToString(cs.CommandChannel))));
             m_log.DebugFormat("[IRC-Channel-{0}] CommandChannel : <{1}>", cs.idn, cs.CommandChannel);
-            cs.RelayChat            = Convert.ToBoolean(Substitute(rs, config.GetString("relay_chat", Convert.ToString(cs.RelayChat))));
+            cs.RelayChat = Convert.ToBoolean(Substitute(rs, config.GetString("relay_chat", Convert.ToString(cs.RelayChat))));
             m_log.DebugFormat("[IRC-Channel-{0}] RelayChat           : <{1}>", cs.idn, cs.RelayChat);
             cs.RelayPrivateChannels = Convert.ToBoolean(Substitute(rs, config.GetString("relay_private_channels", Convert.ToString(cs.RelayPrivateChannels))));
             m_log.DebugFormat("[IRC-Channel-{0}] RelayPrivateChannels : <{1}>", cs.idn, cs.RelayPrivateChannels);
             cs.RelayPrivateChannels = Convert.ToBoolean(Substitute(rs, config.GetString("useworldcomm", Convert.ToString(cs.RelayPrivateChannels))));
             m_log.DebugFormat("[IRC-Channel-{0}] RelayPrivateChannels : <{1}>", cs.idn, cs.RelayPrivateChannels);
-            cs.RelayChannelOut      = Convert.ToInt32(Substitute(rs, config.GetString("relay_private_channel_out", Convert.ToString(cs.RelayChannelOut))));
+            cs.RelayChannelOut = Convert.ToInt32(Substitute(rs, config.GetString("relay_private_channel_out", Convert.ToString(cs.RelayChannelOut))));
             m_log.DebugFormat("[IRC-Channel-{0}] RelayChannelOut : <{1}>", cs.idn, cs.RelayChannelOut);
-            cs.RelayChannel         = Convert.ToInt32(Substitute(rs, config.GetString("relay_private_channel_in", Convert.ToString(cs.RelayChannel))));
+            cs.RelayChannel = Convert.ToInt32(Substitute(rs, config.GetString("relay_private_channel_in", Convert.ToString(cs.RelayChannel))));
             m_log.DebugFormat("[IRC-Channel-{0}] RelayChannel : <{1}>", cs.idn, cs.RelayChannel);
-            cs.RelayChannel         = Convert.ToInt32(Substitute(rs, config.GetString("inchannel", Convert.ToString(cs.RelayChannel))));
+            cs.RelayChannel = Convert.ToInt32(Substitute(rs, config.GetString("inchannel", Convert.ToString(cs.RelayChannel))));
             m_log.DebugFormat("[IRC-Channel-{0}] RelayChannel : <{1}>", cs.idn, cs.RelayChannel);
             cs.PrivateMessageFormat = Substitute(rs, config.GetString("msgformat", cs.PrivateMessageFormat));
             m_log.DebugFormat("[IRC-Channel-{0}] PrivateMessageFormat : <{1}>", cs.idn, cs.PrivateMessageFormat);
             cs.NoticeMessageFormat = Substitute(rs, config.GetString("noticeformat", cs.NoticeMessageFormat));
             m_log.DebugFormat("[IRC-Channel-{0}] NoticeMessageFormat : <{1}>", cs.idn, cs.NoticeMessageFormat);
-            cs.ClientReporting      = Convert.ToInt32(Substitute(rs, config.GetString("verbosity", cs.ClientReporting?"1":"0"))) > 0;
+            cs.ClientReporting = Convert.ToInt32(Substitute(rs, config.GetString("verbosity", cs.ClientReporting ? "1" : "0"))) > 0;
             m_log.DebugFormat("[IRC-Channel-{0}] ClientReporting : <{1}>", cs.idn, cs.ClientReporting);
-            cs.ClientReporting      = Convert.ToBoolean(Substitute(rs, config.GetString("report_clients", Convert.ToString(cs.ClientReporting))));
+            cs.ClientReporting = Convert.ToBoolean(Substitute(rs, config.GetString("report_clients", Convert.ToString(cs.ClientReporting))));
             m_log.DebugFormat("[IRC-Channel-{0}] ClientReporting : <{1}>", cs.idn, cs.ClientReporting);
-            cs.DefaultZone          = Substitute(rs, config.GetString("fallback_region", cs.DefaultZone));
+            cs.DefaultZone = Substitute(rs, config.GetString("fallback_region", cs.DefaultZone));
             m_log.DebugFormat("[IRC-Channel-{0}] DefaultZone : <{1}>", cs.idn, cs.DefaultZone);
-            cs.ConnectDelay      = Convert.ToInt32(Substitute(rs, config.GetString("connect_delay", Convert.ToString(cs.ConnectDelay))));
+            cs.ConnectDelay = Convert.ToInt32(Substitute(rs, config.GetString("connect_delay", Convert.ToString(cs.ConnectDelay))));
             m_log.DebugFormat("[IRC-Channel-{0}] ConnectDelay : <{1}>", cs.idn, cs.ConnectDelay);
-            cs.PingDelay      = Convert.ToInt32(Substitute(rs, config.GetString("ping_delay", Convert.ToString(cs.PingDelay))));
+            cs.PingDelay = Convert.ToInt32(Substitute(rs, config.GetString("ping_delay", Convert.ToString(cs.PingDelay))));
             m_log.DebugFormat("[IRC-Channel-{0}] PingDelay : <{1}>", cs.idn, cs.PingDelay);
             cs.AccessPassword = Substitute(rs, config.GetString("access_password", cs.AccessPassword));
             m_log.DebugFormat("[IRC-Channel-{0}] AccessPassword : <{1}>", cs.idn, cs.AccessPassword);
@@ -217,7 +217,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
             {
                 cs.ExcludeList.Add(name.Trim().ToLower());
             }
-            
+
             // Fail if fundamental information is still missing
 
             if (cs.Server == null)
@@ -306,8 +306,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
 
                     IRCBridgeModule.m_channels.Add(cs);
 
-                    m_log.InfoFormat("[IRC-Channel-{0}] New channel initialized for {1}, nick: {2}, commands {3}, private channels {4}", 
-                                 cs.idn, rs.Region, cs.DefaultZone, 
+                    m_log.InfoFormat("[IRC-Channel-{0}] New channel initialized for {1}, nick: {2}, commands {3}, private channels {4}",
+                                 cs.idn, rs.Region, cs.DefaultZone,
                                  cs.CommandsEnabled ? "enabled" : "not enabled",
                                  cs.RelayPrivateChannels ? "relayed" : "not relayed");
                 }
@@ -417,7 +417,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
         private bool IsAConnectionMatchFor(ChannelState cs)
         {
             return (
-                Server == cs.Server && 
+                Server == cs.Server &&
                 IrcChannel == cs.IrcChannel &&
                 Port == cs.Port &&
                 BaseNickname == cs.BaseNickname &&
@@ -473,27 +473,27 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
             {
 
                 string vvar = arg.Match(result).ToString();
-                string var  = vvar.Substring(1,vvar.Length-2).Trim();
+                string var = vvar.Substring(1, vvar.Length - 2).Trim();
 
                 switch (var.ToLower())
                 {
-                    case "%region"  :
+                    case "%region":
                         result = result.Replace(vvar, rs.Region);
                         break;
-                    case "%host"    :
+                    case "%host":
                         result = result.Replace(vvar, rs.Host);
                         break;
-                    case "%locx"    :
+                    case "%locx":
                         result = result.Replace(vvar, rs.LocX);
                         break;
-                    case "%locy"    :
+                    case "%locy":
                         result = result.Replace(vvar, rs.LocY);
                         break;
-                    case "%k"       :
+                    case "%k":
                         result = result.Replace(vvar, rs.IDK);
                         break;
-                    default         :
-                        result = result.Replace(vvar, rs.config.GetString(var,var));
+                    default:
+                        result = result.Replace(vvar, rs.config.GetString(var, var));
                         break;
                 }
                 // m_log.DebugFormat("[IRC-Channel] Parse[2]: {0}", result);
