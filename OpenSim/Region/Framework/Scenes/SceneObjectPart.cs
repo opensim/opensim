@@ -319,7 +319,7 @@ namespace OpenSim.Region.Framework.Scenes
         protected Vector3 m_lastVelocity;
         protected Vector3 m_lastAcceleration;
         protected Vector3 m_lastAngularVelocity;
-        protected int m_lastTerseSent;
+        protected int m_lastUpdateSentTime;
         protected float m_buoyancy = 0.0f;
         protected Vector3 m_force;
         protected Vector3 m_torque;
@@ -3201,6 +3201,14 @@ namespace OpenSim.Region.Framework.Scenes
             if (ParentGroup == null)
                 return;
 
+            // Update the "last" values
+            m_lastPosition = OffsetPosition;
+            m_lastRotation = RotationOffset;
+            m_lastVelocity = Velocity;
+            m_lastAcceleration = Acceleration;
+            m_lastAngularVelocity = AngularVelocity;
+            m_lastUpdateSentTime = Environment.TickCount;
+
             ParentGroup.Scene.ForEachScenePresence(delegate(ScenePresence avatar)
             {
                 SendFullUpdate(avatar.ControllingClient);
@@ -3274,17 +3282,10 @@ namespace OpenSim.Region.Framework.Scenes
                         Velocity.ApproxEquals(Vector3.Zero, VELOCITY_TOLERANCE) ||
                         !AngularVelocity.ApproxEquals(m_lastAngularVelocity, VELOCITY_TOLERANCE) ||
                         !OffsetPosition.ApproxEquals(m_lastPosition, POSITION_TOLERANCE) ||
-                        Environment.TickCount - m_lastTerseSent > TIME_MS_TOLERANCE)
+                        Environment.TickCount - m_lastUpdateSentTime > TIME_MS_TOLERANCE)
                     {
                         SendTerseUpdateToAllClients();
 
-                        // Update the "last" values
-                        m_lastPosition = OffsetPosition;
-                        m_lastRotation = RotationOffset;
-                        m_lastVelocity = Velocity;
-                        m_lastAcceleration = Acceleration;
-                        m_lastAngularVelocity = AngularVelocity;
-                        m_lastTerseSent = Environment.TickCount;
                     }
                     break;
                 }
@@ -3304,6 +3305,14 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (ParentGroup == null || ParentGroup.Scene == null)
                 return;
+
+            // Update the "last" values
+            m_lastPosition = OffsetPosition;
+            m_lastRotation = RotationOffset;
+            m_lastVelocity = Velocity;
+            m_lastAcceleration = Acceleration;
+            m_lastAngularVelocity = AngularVelocity;
+            m_lastUpdateSentTime = Environment.TickCount;
 
             ParentGroup.Scene.ForEachClient(delegate(IClientAPI client)
             {
