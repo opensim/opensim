@@ -202,7 +202,7 @@ private void BulletLoggerPhysLog(string msg)
 }
 
 public override int PhysicsStep(BulletWorld world, float timeStep, int maxSubSteps, float fixedTimeStep,
-                        out int updatedEntityCount, out int collidersCount)
+                                        out int updatedEntityCount, out int collidersCount)
 {
     BulletWorldUnman worldu = world as BulletWorldUnman;
     return BSAPICPP.PhysicsStep2(worldu.ptr, timeStep, maxSubSteps, fixedTimeStep, out updatedEntityCount, out collidersCount);

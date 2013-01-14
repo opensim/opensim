@@ -382,10 +382,13 @@ public abstract class BSPhysObject : PhysicsActor
     {
         string identifier = op + "-" + id.ToString();
 
-        // Clean out any existing action
-        UnRegisterPreStepAction(op, id);
+        lock (RegisteredActions)
+        {
+            // Clean out any existing action
+            UnRegisterPreStepAction(op, id);
 
-        RegisteredActions[identifier] = actn;
+            RegisteredActions[identifier] = actn;
+        }
         PhysicsScene.BeforeStep += actn;
         DetailLog("{0},BSPhysObject.RegisterPreStepAction,id={1}", LocalID, identifier);
     }
@@ -395,22 +398,28 @@ public abstract class BSPhysObject : PhysicsActor
     {
         string identifier = op + "-" + id.ToString();
         bool removed = false;
-        if (RegisteredActions.ContainsKey(identifier))
+        lock (RegisteredActions)
         {
-            PhysicsScene.BeforeStep -= RegisteredActions[identifier];
-            RegisteredActions.Remove(identifier);
-            removed = true;
+            if (RegisteredActions.ContainsKey(identifier))
+            {
+                PhysicsScene.BeforeStep -= RegisteredActions[identifier];
+                RegisteredActions.Remove(identifier);
+                removed = true;
+            }
         }
         DetailLog("{0},BSPhysObject.UnRegisterPreStepAction,id={1},removed={2}", LocalID, identifier, removed);
     }
 
     protected void UnRegisterAllPreStepActions()
     {
-        foreach (KeyValuePair<string, BSScene.PreStepAction> kvp in RegisteredActions)
+        lock (RegisteredActions)
         {
-            PhysicsScene.BeforeStep -= kvp.Value;
+            foreach (KeyValuePair<string, BSScene.PreStepAction> kvp in RegisteredActions)
+            {
+                PhysicsScene.BeforeStep -= kvp.Value;
+            }
+            RegisteredActions.Clear();
         }
-        RegisteredActions.Clear();
         DetailLog("{0},BSPhysObject.UnRegisterAllPreStepActions,", LocalID);
     }
 
