@@ -297,7 +297,7 @@ public sealed class BSPrim : BSPhysObject
             */
 
             // don't do the GetObjectPosition for root elements because this function is called a zillion times.
-            // _position = PhysicsScene.PE.GetObjectPosition2(PhysicsScene.World, BSBody);
+            // _position = PhysicsScene.PE.GetObjectPosition2(PhysicsScene.World, BSBody) - PositionDisplacement;
             return _position;
         }
         set {
@@ -362,7 +362,7 @@ public sealed class BSPrim : BSPhysObject
     {
         bool ret = false;
 
-        if (!PhysicsScene.TerrainManager.IsWithinKnownTerrain(_position))
+        if (!PhysicsScene.TerrainManager.IsWithinKnownTerrain(RawPosition))
         {
             // The physical object is out of the known/simulated area.
             // Upper levels of code will handle the transition to other areas so, for
@@ -376,8 +376,11 @@ public sealed class BSPrim : BSPhysObject
         {
             DetailLog("{0},BSPrim.PositionAdjustUnderGround,call,pos={1},terrain={2}", LocalID, _position, terrainHeight);
             float targetHeight = terrainHeight + (Size.Z / 2f);
-            // Upforce proportional to the distance away from the terrain. Correct the error in 1 sec.
-            upForce.Z = (terrainHeight - RawPosition.Z) * 1f;
+            // If the object is below ground it just has to be moved up because pushing will
+            //     not get it through the terrain
+            _position.Z = targetHeight;
+            if (!inTaintTime)
+                ForcePosition = _position;
             ret = true;
         }
 
@@ -389,20 +392,15 @@ public sealed class BSPrim : BSPhysObject
             {
                 // Upforce proportional to the distance away from the water. Correct the error in 1 sec.
                 upForce.Z = (waterHeight - RawPosition.Z) * 1f;
+
+                // Apply upforce and overcome gravity.
+                OMV.Vector3 correctionForce = upForce - PhysicsScene.DefaultGravity;
+                DetailLog("{0},BSPrim.PositionSanityCheck,applyForce,pos={1},upForce={2},correctionForce={3}", LocalID, _position, upForce, correctionForce);
+                AddForce(correctionForce, false, inTaintTime);
                 ret = true;
             }
         }
 
-        // The above code computes a force to apply to correct any out-of-bounds problems. Apply same.
-        // TODO: This should be intergrated with a geneal physics action mechanism.
-        // TODO: This should be moderated with PID'ness.
-        if (ret)
-        {
-            // Apply upforce and overcome gravity.
-            OMV.Vector3 correctionForce = upForce - PhysicsScene.DefaultGravity;
-            DetailLog("{0},BSPrim.PositionSanityCheck,applyForce,pos={1},upForce={2},correctionForce={3}", LocalID, _position, upForce, correctionForce);
-            AddForce(correctionForce, false, inTaintTime);
-        }
         return ret;
     }
 

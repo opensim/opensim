@@ -319,6 +319,7 @@ public sealed class BSLinksetCompound : BSLinkset
     // Constraint linksets are rebuilt every time.
     // Note that this works for rebuilding just the root after a linkset is taken apart.
     // Called at taint time!!
+    private bool disableCOM = true;     // disable until we get this debugged
     private void RecomputeLinksetCompound()
     {
         try
@@ -331,15 +332,26 @@ public sealed class BSLinksetCompound : BSLinkset
 
             // The center of mass for the linkset is the geometric center of the group.
             // Compute a displacement for each component so it is relative to the center-of-mass.
-            OMV.Vector3 centerOfMass = ComputeLinksetGeometricCenter();
-            OMV.Vector3 centerDisplacement = centerOfMass - LinksetRoot.RawPosition;
+            // Bullet presumes an object's origin (relative <0,0,0>) is its center-of-mass
+            OMV.Vector3 centerOfMass;
+            OMV.Vector3 centerDisplacement = OMV.Vector3.Zero;
+            if (disableCOM)                             // DEBUG DEBUG
+            {                                           // DEBUG DEBUG
+                centerOfMass = LinksetRoot.RawPosition; // DEBUG DEBUG
+                LinksetRoot.PositionDisplacement = OMV.Vector3.Zero;
+            }                                           // DEBUG DEBUG
+            else
+            {
+                centerOfMass = ComputeLinksetGeometricCenter();
+                centerDisplacement = centerOfMass - LinksetRoot.RawPosition;
 
-            // Since we're displacing the center of the shape, we need to move the body in the world
-            LinksetRoot.PositionDisplacement = centerDisplacement * LinksetRoot.RawOrientation;
+                // Since we're displacing the center of the shape, we need to move the body in the world
+                LinksetRoot.PositionDisplacement = centerDisplacement;
 
-            PhysicsScene.PE.UpdateChildTransform(LinksetRoot.PhysShape, 0, -centerDisplacement, OMV.Quaternion.Identity, false);
-            DetailLog("{0},BSLinksetCompound.RecomputeLinksetCompound,COM,com={1},rootPos={2},centerDisp={3}",
-                                    LinksetRoot.LocalID, centerOfMass, LinksetRoot.RawPosition, centerDisplacement);
+                PhysicsScene.PE.UpdateChildTransform(LinksetRoot.PhysShape, 0, -centerDisplacement, OMV.Quaternion.Identity, false);
+                DetailLog("{0},BSLinksetCompound.RecomputeLinksetCompound,COM,com={1},rootPos={2},centerDisp={3}",
+                                        LinksetRoot.LocalID, centerOfMass, LinksetRoot.RawPosition, centerDisplacement);
+            }
 
             DetailLog("{0},BSLinksetCompound.RecomputeLinksetCompound,start,rBody={1},rShape={2},numChildren={3}",
                             LinksetRoot.LocalID, LinksetRoot.PhysBody, LinksetRoot.PhysShape, NumberOfChildren);
@@ -357,14 +369,15 @@ public sealed class BSLinksetCompound : BSLinkset
                     BSLinksetCompoundInfo lci = cPrim.LinksetInfo as BSLinksetCompoundInfo;
                     if (lci == null)
                     {
-                        // Each child position and rotation is given relative to the root.
+                        // Each child position and rotation is given relative to the center-of-mass.
                         OMV.Quaternion invRootOrientation = OMV.Quaternion.Inverse(LinksetRoot.RawOrientation);
-                        OMV.Vector3 displacementPos = (cPrim.RawPosition - LinksetRoot.RawPosition) * invRootOrientation;
+                        OMV.Vector3 displacementFromRoot = (cPrim.RawPosition - LinksetRoot.RawPosition) * invRootOrientation;
+                        OMV.Vector3 displacementFromCOM = displacementFromRoot - centerDisplacement;
                         OMV.Quaternion displacementRot = cPrim.RawOrientation * invRootOrientation;
 
                         // Save relative position for recomputing child's world position after moving linkset.
-                        lci = new BSLinksetCompoundInfo(memberIndex, displacementPos, displacementRot);
-                        lci.OffsetFromCenterOfMass = displacementPos - centerDisplacement;
+                        lci = new BSLinksetCompoundInfo(memberIndex, displacementFromCOM, displacementRot);
+                        lci.OffsetFromRoot = displacementFromRoot;
                         cPrim.LinksetInfo = lci;
                         DetailLog("{0},BSLinksetCompound.RecomputeLinksetCompound,creatingRelPos,lci={1}", cPrim.LocalID, lci);
                     }
