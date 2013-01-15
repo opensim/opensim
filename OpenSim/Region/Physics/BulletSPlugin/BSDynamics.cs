@@ -124,9 +124,9 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         static readonly float PIOverTwo = ((float)Math.PI) / 2f;
 
         // For debugging, flags to turn on and off individual corrections.
-        private bool enableAngularVerticalAttraction = true;
-        private bool enableAngularDeflection = true;
-        private bool enableAngularBanking = true;
+        private bool enableAngularVerticalAttraction;
+        private bool enableAngularDeflection;
+        private bool enableAngularBanking;
 
         public BSDynamics(BSScene myScene, BSPrim myPrim)
         {
@@ -141,8 +141,8 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         public void SetupVehicleDebugging()
         {
             enableAngularVerticalAttraction = true;
-            enableAngularDeflection = true;
-            enableAngularBanking = true;
+            enableAngularDeflection = false;
+            enableAngularBanking = false;
             if (BSParam.VehicleDebuggingEnabled != ConfigurationParameters.numericFalse)
             {
                 enableAngularVerticalAttraction = false;
@@ -649,6 +649,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         private Quaternion m_knownOrientation;
         private Vector3 m_knownRotationalVelocity;
         private Vector3 m_knownRotationalForce;
+        private Vector3 m_knownRotationalImpulse;
         private Vector3 m_knownForwardVelocity;    // vehicle relative forward speed
 
         private const int m_knownChangedPosition           = 1 << 0;
@@ -658,9 +659,10 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         private const int m_knownChangedOrientation        = 1 << 4;
         private const int m_knownChangedRotationalVelocity = 1 << 5;
         private const int m_knownChangedRotationalForce    = 1 << 6;
-        private const int m_knownChangedTerrainHeight      = 1 << 7;
-        private const int m_knownChangedWaterLevel         = 1 << 8;
-        private const int m_knownChangedForwardVelocity    = 1 << 9;
+        private const int m_knownChangedRotationalImpulse  = 1 << 7;
+        private const int m_knownChangedTerrainHeight      = 1 << 8;
+        private const int m_knownChangedWaterLevel         = 1 << 9;
+        private const int m_knownChangedForwardVelocity    = 1 <<10;
 
         private void ForgetKnownVehicleProperties()
         {
@@ -699,6 +701,9 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     Prim.ForceRotationalVelocity = m_knownRotationalVelocity;
                     PhysicsScene.PE.SetInterpolationAngularVelocity(Prim.PhysBody, m_knownRotationalVelocity);
                 }
+
+                if ((m_knownChanged & m_knownChangedRotationalImpulse) != 0)
+                    Prim.ApplyTorqueImpulse((Vector3)m_knownRotationalImpulse, true /*inTaintTime*/);
 
                 if ((m_knownChanged & m_knownChangedRotationalForce) != 0)
                 {
@@ -843,6 +848,17 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             m_knownChanged |= m_knownChangedRotationalForce;
             m_knownHas |= m_knownChangedRotationalForce;
         }
+        private void VehicleAddRotationalImpulse(Vector3 pImpulse)
+        {
+            if ((m_knownHas & m_knownChangedRotationalImpulse) == 0)
+            {
+                m_knownRotationalImpulse = Vector3.Zero;
+                m_knownHas |= m_knownChangedRotationalImpulse;
+            }
+            m_knownRotationalImpulse += pImpulse;
+            m_knownChanged |= m_knownChangedRotationalImpulse;
+        }
+
         // Vehicle relative forward velocity
         private Vector3 VehicleForwardVelocity
         {
