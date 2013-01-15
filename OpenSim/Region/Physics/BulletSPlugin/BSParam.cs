@@ -94,16 +94,16 @@ public static class BSParam
     public static float PID_D { get; private set; }    // derivative
     public static float PID_P { get; private set; }    // proportional
 
-    // Various constants that come from that other virtual world that shall not be named
+    // Various constants that come from that other virtual world that shall not be named.
     public const float MinGravityZ = -1f;
     public const float MaxGravityZ = 28f;
     public const float MinFriction = 0f;
     public const float MaxFriction = 255f;
-    public const float MinDensity = 0f;
+    public const float MinDensity = 0.01f;
     public const float MaxDensity = 22587f;
     public const float MinRestitution = 0f;
     public const float MaxRestitution = 1f;
-    public const float MaxAddForceMagnitude = 20000f;
+    public const float MaxAddForceMagnitude = 20f;
 
     // ===========================================================================
     public delegate void ParamUser(BSScene scene, IConfig conf, string paramName, float val);
