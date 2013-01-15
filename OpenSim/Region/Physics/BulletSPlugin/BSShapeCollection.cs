@@ -513,6 +513,7 @@ public sealed class BSShapeCollection : IDisposable
         return ret;
     }
 
+    // return 'true' if the shape was changed
     public bool CreateGeomMeshOrHull(BSPhysObject prim, ShapeDestructionCallback shapeCallback)
     {
 
@@ -872,8 +873,7 @@ public sealed class BSShapeCollection : IDisposable
         {
             prim.LastAssetBuildFailed = true;
             BSPhysObject xprim = prim;
-            DetailLog("{0},BSShapeCollection.VerifyMeshCreated,fetchAsset,lID={1},lastFailed={2}",
-                            LogHeader, prim.LocalID, prim.LastAssetBuildFailed);
+            DetailLog("{0},BSShapeCollection.VerifyMeshCreated,fetchAsset,lastFailed={1}", prim.LocalID, prim.LastAssetBuildFailed);
             Util.FireAndForget(delegate
                 {
                     RequestAssetDelegate assetProvider = PhysicsScene.RequestAssetMethod;
@@ -882,18 +882,33 @@ public sealed class BSShapeCollection : IDisposable
                         BSPhysObject yprim = xprim; // probably not necessary, but, just in case.
                         assetProvider(yprim.BaseShape.SculptTexture, delegate(AssetBase asset)
                         {
-                            if (!yprim.BaseShape.SculptEntry)
-                                return;
-                            if (yprim.BaseShape.SculptTexture.ToString() != asset.ID)
-                                return;
-
-                            yprim.BaseShape.SculptData = asset.Data;
-                            // This will cause the prim to see that the filler shape is not the right
-                            //    one and try again to build the object.
-                            // No race condition with the normal shape setting since the rebuild is at taint time.
-                            yprim.ForceBodyShapeRebuild(false);
+                            bool assetFound = false;            // DEBUG DEBUG
+                            string mismatchIDs = String.Empty;  // DEBUG DEBUG
+                            if (yprim.BaseShape.SculptEntry)
+                            {
+                                if (yprim.BaseShape.SculptTexture.ToString() == asset.ID)
+                                {
+                                    yprim.BaseShape.SculptData = asset.Data;
+                                    // This will cause the prim to see that the filler shape is not the right
+                                    //    one and try again to build the object.
+                                    // No race condition with the normal shape setting since the rebuild is at taint time.
+                                    yprim.ForceBodyShapeRebuild(false /* inTaintTime */);
+                                    assetFound = true;
+                                }
+                                else
+                                {
+                                    mismatchIDs = yprim.BaseShape.SculptTexture.ToString() + "/" + asset.ID;
+                                }
+                            }
+                            DetailLog("{0},BSShapeCollection,fetchAssetCallback,found={1},isSculpt={2},ids={3}",
+                                        yprim.LocalID, assetFound, yprim.BaseShape.SculptEntry, mismatchIDs );
 
                         });
+                    }
+                    else
+                    {
+                        PhysicsScene.Logger.ErrorFormat("{0} Physical object requires asset but no asset provider. Name={1}",
+                                                    LogHeader, PhysicsScene.Name);
                     }
                 });
         }
@@ -907,8 +922,7 @@ public sealed class BSShapeCollection : IDisposable
         }
 
         // While we figure out the real problem, stick in a simple box for the object.
-        BulletShape fillinShape =
-            BuildPhysicalNativeShape(prim, BSPhysicsShapeType.SHAPE_BOX, FixedShapeKey.KEY_BOX);
+        BulletShape fillinShape = BuildPhysicalNativeShape(prim, BSPhysicsShapeType.SHAPE_BOX, FixedShapeKey.KEY_BOX);
 
         return fillinShape;
     }

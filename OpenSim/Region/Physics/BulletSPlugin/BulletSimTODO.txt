@@ -1,7 +1,23 @@
 CURRENT PRIORITIES
 =================================================
+Crazyness during 20130115 office hours was PositionAdjustUnderground for both char and prim
+	m1:logs/20130115.0934/physics-BulletSim-20130115083613.log
+	Creation of Neb's terrain made the terrain "disappear". Everything started to fall
+		and then get restored to be above terrain.
+Create tests for different interface components
+	Have test objects/scripts measure themselves and turn color if correct/bad
+	Test functions in SL and calibrate correctness there
+	Create auto rezzer and tracker to run through the tests
+Mantis 6040 script http://opensimulator.org/mantis/view.php?id=6040
+	Msg Kayaker on OSGrid when working
+Teravus llMoveToTarget script debug
+	Mixing of hover, buoyancy/gravity, moveToTarget, into one force
+Surf board debugging
+Boats floating at proper level
 Nebadon vehicles turning funny in arena
 limitMotorUp calibration (more down?)
+llRotLookAt
+llLookAt
 Vehicle angular vertical attraction
 Vehicle angular deflection
 	Preferred orientation angular correction fix
@@ -167,6 +183,7 @@ Enforce physical parameter min/max:
 	Restitution [0, 1]
 	http://wiki.secondlife.com/wiki/Physics_Material_Settings_test
 Avatar attachments have no mass? http://forums-archive.secondlife.com/54/f0/31796/1.html
+Keep avatar scaling correct. http://pennycow.blogspot.fr/2011/07/matter-of-scale.html
 
 INTERNAL IMPROVEMENT/CLEANUP
 =================================================

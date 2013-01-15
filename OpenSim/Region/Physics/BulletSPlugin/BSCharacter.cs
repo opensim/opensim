@@ -855,7 +855,10 @@ public sealed class BSCharacter : BSPhysObject
         _rotationalVelocity = entprop.RotationalVelocity;
 
         // Do some sanity checking for the avatar. Make sure it's above ground and inbounds.
-        PositionSanityCheck(true);
+        if (PositionSanityCheck(true))
+        {
+            entprop.Position = _position;
+        }
 
         // remember the current and last set values
         LastEntityProperties = CurrentEntityProperties;
