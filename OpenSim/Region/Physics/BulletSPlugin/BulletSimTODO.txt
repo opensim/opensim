@@ -1,18 +1,9 @@
 CURRENT PRIORITIES
 =================================================
-Crazyness during 20130115 office hours was PositionAdjustUnderground for both char and prim
-	m1:logs/20130115.0934/physics-BulletSim-20130115083613.log
-	Creation of Neb's terrain made the terrain "disappear". Everything started to fall
-		and then get restored to be above terrain.
-Create tests for different interface components
-	Have test objects/scripts measure themselves and turn color if correct/bad
-	Test functions in SL and calibrate correctness there
-	Create auto rezzer and tracker to run through the tests
 Mantis 6040 script http://opensimulator.org/mantis/view.php?id=6040
 	Msg Kayaker on OSGrid when working
 Teravus llMoveToTarget script debug
 	Mixing of hover, buoyancy/gravity, moveToTarget, into one force
-Surf board debugging
 Boats floating at proper level
 Nebadon vehicles turning funny in arena
 limitMotorUp calibration (more down?)
@@ -25,8 +16,6 @@ vehicle angular banking
 Avatars walking up stairs (HALF DONE)
     Radius of the capsule affects ability to climb edges.
 Vehicle movement on terrain smoothness
-Surfboard go wonky when turning
-	Angular motor direction is global coordinates rather than local coordinates?
 Boats float low in the water (DONE)
 Avatar movement
 	flying into a wall doesn't stop avatar who keeps appearing to move through the obstacle (DONE)
@@ -43,6 +32,10 @@ Add material densities to the material types
 
 CRASHES
 =================================================
+Crazyness during 20130115 office hours was PositionAdjustUnderground for both char and prim
+	m1:logs/20130115.0934/physics-BulletSim-20130115083613.log
+	Creation of Neb's terrain made the terrain "disappear". Everything started to fall
+		and then get restored to be above terrain.
 20121129.1411: editting/moving phys object across region boundries causes crash
     getPos-> btRigidBody::upcast -> getBodyType -> BOOM
 20121128.1600: mesh object not rezzing (no physics mesh).
@@ -149,6 +142,10 @@ Eliminate collisions between objects in a linkset. (LinksetConstraint)
 
 MORE
 ======================================================
+Create tests for different interface components
+	Have test objects/scripts measure themselves and turn color if correct/bad
+	Test functions in SL and calibrate correctness there
+	Create auto rezzer and tracker to run through the tests
 Use the HACD convex hull routine in Bullet rather than the C# version.
 Do we need to do convex hulls all the time? Can complex meshes be left meshes?
 	There is some problem with meshes and collisions
@@ -305,3 +302,6 @@ Disable activity of passive linkset children. (DONE)
 	around and need to be phantomized so they don't collide, ...
 Remove HeightmapInfo from terrain specification (DONE)
     Since C++ code does not need terrain height, this structure et al are not needed.
+Surfboard go wonky when turning (DONE)
+	Angular motor direction is global coordinates rather than local coordinates?
+	(Resolution: made angular motor direction correct coordinate system)

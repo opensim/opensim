@@ -311,7 +311,7 @@ public sealed class BSLinksetCompound : BSLinkset
             else
             {
                 // Rebuild the compound shape with the child removed
-                ScheduleRebuild(child);
+                ScheduleRebuild(LinksetRoot);
             }
         }
         return;

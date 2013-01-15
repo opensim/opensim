@@ -215,7 +215,7 @@ public sealed class BSCharacter : BSPhysObject
             // Add special movement force to allow avatars to walk up stepped surfaces.
             moveForce += WalkUpStairs();
 
-            DetailLog("{0},BSCharacter.MoveMotor,move,stepVel={1},vel={2},mass={3},moveForce={4}", LocalID, stepVelocity, _velocity, Mass, moveForce);
+            // DetailLog("{0},BSCharacter.MoveMotor,move,stepVel={1},vel={2},mass={3},moveForce={4}", LocalID, stepVelocity, _velocity, Mass, moveForce);
             PhysicsScene.PE.ApplyCentralImpulse(PhysBody, moveForce);
         });
     }

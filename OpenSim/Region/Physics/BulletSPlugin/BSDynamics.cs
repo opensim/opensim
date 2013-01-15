@@ -1160,8 +1160,10 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 if (!Prim.IsColliding && VehicleVelocity.Z > 0.1)
                 {
                     // Get rid of any of the velocity vector that is pushing us up.
-                    VehicleVelocity += new Vector3(0, 0, -VehicleVelocity.Z);
+                    float upVelocity = VehicleVelocity.Z;
+                    VehicleVelocity += new Vector3(0, 0, -upVelocity);
 
+                    /*
                     // If we're pointed up into the air, we should nose down
                     Vector3 pointingDirection = Vector3.UnitX * VehicleOrientation;
                     // The rotation around the Y axis is pitch up or down
@@ -1175,11 +1177,9 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                         VDetailLog("{0},  MoveLinear,limitMotorUp,newVel={1},pntDir={2},corrFrc={3},aCorr={4}",
                                     Prim.LocalID, VehicleVelocity, pointingDirection, angularCorrectionForce, angularCorrectionVector);
                     }
-                    else
-                    {
-                        VDetailLog("{0},  MoveLinear,limitMotorUp,newVel={1},pntDir={2}",
-                                    Prim.LocalID, VehicleVelocity, pointingDirection);
-                    }
+                        */
+                    VDetailLog("{0},  MoveLinear,limitMotorUp,collide={1},upVel={2},newVel={3}",
+                                    Prim.LocalID, Prim.IsColliding, upVelocity, VehicleVelocity);
                 }
             }
         }
