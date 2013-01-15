@@ -61,10 +61,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         internal bool m_LSFunctionsEnabled = false;
         internal IScriptModuleComms m_comms = null;
 
-        public void Initialize(IScriptEngine ScriptEngine, SceneObjectPart host, TaskInventoryItem item)
+        public void Initialize(IScriptInstance scriptInstance)
         {
-            m_ScriptEngine = ScriptEngine;
-            m_host = host;
+            m_ScriptEngine = scriptInstance.Engine;
+            m_host = scriptInstance.Part;
 
             if (m_ScriptEngine.Config.GetBoolean("AllowLightShareFunctions", false))
                 m_LSFunctionsEnabled = true;
@@ -92,10 +92,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             get { return m_ScriptEngine.World; }
         }
 
-        //
-        //Dumps an error message on the debug console.
-        //
-
+        /// <summary>
+        /// Dumps an error message on the debug console.
+        /// </summary>
         internal void LSShoutError(string message)
         {
             if (message.Length > 1023)

@@ -61,11 +61,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         internal bool m_MODFunctionsEnabled = false;
         internal IScriptModuleComms m_comms = null;
 
-        public void Initialize(IScriptEngine ScriptEngine, SceneObjectPart host, TaskInventoryItem item)
+        public void Initialize(IScriptInstance scriptInstance)
         {
-            m_ScriptEngine = ScriptEngine;
-            m_host = host;
-            m_item = item;
+            m_ScriptEngine = scriptInstance.Engine;
+            m_host = scriptInstance.Part;
+            m_item = scriptInstance.ScriptTask;
 
             if (m_ScriptEngine.Config.GetBoolean("AllowMODFunctions", false))
                 m_MODFunctionsEnabled = true;

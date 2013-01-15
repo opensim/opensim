@@ -110,11 +110,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected int EMAIL_PAUSE_TIME = 20;  // documented delay value for smtp.
         protected ISoundModule m_SoundModule = null;
 
-        public void Initialize(IScriptEngine ScriptEngine, SceneObjectPart host, TaskInventoryItem item)
+        public void Initialize(IScriptInstance scriptInstance)
         {
-            m_ScriptEngine = ScriptEngine;
-            m_host = host;
-            m_item = item;
+            m_ScriptEngine = scriptInstance.Engine;
+            m_host = scriptInstance.Part;
+            m_item = scriptInstance.ScriptTask;
 
             LoadLimits();  // read script limits from config.
 
@@ -123,10 +123,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_UrlModule = m_ScriptEngine.World.RequestModuleInterface<IUrlModule>();
             m_SoundModule = m_ScriptEngine.World.RequestModuleInterface<ISoundModule>();
 
-            AsyncCommands = new AsyncCommandManager(ScriptEngine);
+            AsyncCommands = new AsyncCommandManager(m_ScriptEngine);
         }
 
-        /* load configuration items that affect script, object and run-time behavior. */
+        /// <summary>
+        /// Load configuration items that affect script, object and run-time behavior. */
+        /// </summary>
         private void LoadLimits()
         {
             m_ScriptDelayFactor =
@@ -141,12 +143,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 m_ScriptEngine.Config.GetInt("NotecardLineReadCharsMax", 255);
             if (m_notecardLineReadCharsMax > 65535)
                 m_notecardLineReadCharsMax = 65535;
+
             // load limits for particular subsystems.
             IConfig SMTPConfig;
             if ((SMTPConfig = m_ScriptEngine.ConfigSource.Configs["SMTP"]) != null) {
                 // there's an smtp config, so load in the snooze time.
                 EMAIL_PAUSE_TIME = SMTPConfig.GetInt("email_pause_time", EMAIL_PAUSE_TIME);
             }
+
             // Rezzing an object with a velocity can create recoil. This feature seems to have been
             //    removed from recent versions of SL. The code computes recoil (vel*mass) and scales
             //    it by this factor. May be zero to turn off recoil all together.

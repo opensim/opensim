@@ -29,6 +29,7 @@ using System;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.ScriptEngine.Shared;
 
 namespace OpenSim.Region.ScriptEngine.Interfaces
 {
@@ -38,11 +39,8 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         /// Initialize the API
         /// </summary>
         /// <remarks>
-        /// Each API has an identifier, which is used to load the
-        /// proper runtime assembly at load time.
-        /// <param name='engine'>/param>
-        /// <param name='part'></param>
-        /// <param name='item'></param>
-        void Initialize(IScriptEngine engine, SceneObjectPart part, TaskInventoryItem item);
+        /// Each API has an identifier, which is used to load the proper runtime assembly at load time.
+        /// <param name='scriptInstance'>/param>
+        void Initialize(IScriptInstance scriptInstance);
     }
 }

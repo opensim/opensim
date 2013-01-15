@@ -1284,11 +1284,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     m_DomainScripts[appDomain].Add(itemID);
 
                     instance = new ScriptInstance(this, part,
-                                                  itemID, assetID, assembly,
-                                                  m_AppDomains[appDomain],
-                                                  part.ParentGroup.RootPart.Name,
-                                                  item.Name, startParam, postOnRez,
-                                                  stateSource, m_MaxScriptQueue);
+                                                  item,
+                                                  startParam, postOnRez,
+                                                  m_MaxScriptQueue);
+
+                    instance.Load(m_AppDomains[appDomain], assembly, stateSource);
 
 //                    if (DebugLevel >= 1)
 //                    m_log.DebugFormat(

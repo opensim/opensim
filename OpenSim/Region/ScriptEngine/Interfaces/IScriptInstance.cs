@@ -31,6 +31,7 @@ using System.Collections.Generic;
 using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
+using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.ScriptEngine.Shared;
 using OpenSim.Region.ScriptEngine.Interfaces;
 
@@ -105,6 +106,11 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         /// </summary>
         long MeasurementPeriodExecutionTime { get; }
 
+        /// <summary>
+        /// Scene part in which this script instance is contained.
+        /// </summary>
+        SceneObjectPart Part { get; }
+
         IScriptEngine Engine { get; }
         UUID AppDomain { get; set; }
         string PrimName { get; }
@@ -124,6 +130,12 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
 
         uint LocalID { get; }
         UUID AssetID { get; }
+
+        /// <summary>
+        /// Inventory item containing the script used.
+        /// </summary>
+        TaskInventoryItem ScriptTask { get; }
+
         Queue EventQueue { get; }
 
         /// <summary>

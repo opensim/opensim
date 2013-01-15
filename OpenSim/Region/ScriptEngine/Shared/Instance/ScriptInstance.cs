@@ -157,9 +157,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
         public UUID AppDomain { get; set; }
 
-        /// <summary>
-        /// Scene part in which this script instance is contained.
-        /// </summary>
         public SceneObjectPart Part { get; private set; }
 
         public string PrimName { get; private set; }
@@ -209,43 +206,52 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             EventQueue.Clear();
         }
 
-        public ScriptInstance(IScriptEngine engine, SceneObjectPart part,
-                UUID itemID, UUID assetID, string assembly,
-                AppDomain dom, string primName, string scriptName,
-                int startParam, bool postOnRez, StateSource stateSource,
-                int maxScriptQueue)
+        public ScriptInstance(
+            IScriptEngine engine, SceneObjectPart part, TaskInventoryItem item,
+            int startParam, bool postOnRez,
+            int maxScriptQueue)
         {
             State = "default";
             EventQueue = new Queue(32);
 
             Engine = engine;
             Part = part;
-            ItemID = itemID;
-            AssetID = assetID;
-            PrimName = primName;
-            ScriptName = scriptName;
-            m_Assembly = assembly;
+            ScriptTask = item;
+
+            // This is currently only here to allow regression tests to get away without specifying any inventory
+            // item when they are testing script logic that doesn't require an item.
+            if (ScriptTask != null)
+            {
+                ScriptName = ScriptTask.Name;
+                ItemID = ScriptTask.ItemID;
+                AssetID = ScriptTask.AssetID;
+            }
+
+            PrimName = part.ParentGroup.Name;
             StartParam = startParam;
             m_MaxScriptQueue = maxScriptQueue;
-            m_stateSource = stateSource;
             m_postOnRez = postOnRez;
             m_AttachedAvatar = Part.ParentGroup.AttachedAvatar;
             m_RegionID = Part.ParentGroup.Scene.RegionInfo.RegionID;
+        }
 
-            lock (Part.TaskInventory)
-            {
-                if (Part.TaskInventory.ContainsKey(ItemID))
-                {
-                    ScriptTask = Part.TaskInventory[ItemID];
-                }
-            }
+        /// <summary>
+        /// Load the script from an assembly into an AppDomain.
+        /// </summary>
+        /// <param name='dom'></param>
+        /// <param name='assembly'></param>
+        /// <param name='stateSource'></param>
+        public void Load(AppDomain dom, string assembly, StateSource stateSource)
+        {
+            m_Assembly = assembly;
+            m_stateSource = stateSource;
 
             ApiManager am = new ApiManager();
 
             foreach (string api in am.GetApis())
             {
                 m_Apis[api] = am.CreateApi(api);
-                m_Apis[api].Initialize(engine, part, ScriptTask);
+                m_Apis[api].Initialize(this);
             }
     
             try
@@ -279,7 +285,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
 //                // m_log.Debug("[Script] Script instance created");
 
-                part.SetScriptEvents(ItemID,
+                Part.SetScriptEvents(ItemID,
                                      (int)m_Script.GetStateEventFlags(State));
             }
             catch (Exception e)
