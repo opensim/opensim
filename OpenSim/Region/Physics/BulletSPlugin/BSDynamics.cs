@@ -1047,16 +1047,32 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 else
                 {
                     // Error is positive if below the target and negative if above.
-                    float verticalError = m_VhoverTargetHeight - VehiclePosition.Z;
-                    float verticalCorrectionVelocity = verticalError / m_VhoverTimescale * pTimestep;
+                    Vector3 hpos = VehiclePosition;
+                    float verticalError = m_VhoverTargetHeight - hpos.Z;
+                    float verticalCorrection = verticalError / m_VhoverTimescale;
+                    verticalCorrection *= m_VhoverEfficiency;
+
+                    hpos.Z += verticalCorrection;
+                    VehiclePosition = hpos;
+
+                    // Since we are hovering, we need to do the opposite of falling -- get rid of world Z
+                    Vector3 vel = VehicleVelocity;
+                    vel.Z = 0f;
+                    VehicleVelocity = vel;
+
+                    /*
+                    float verticalCorrectionVelocity = verticalError / m_VhoverTimescale;
+                    Vector3 verticalCorrection = new Vector3(0f, 0f, verticalCorrectionVelocity);
+                    verticalCorrection *= m_vehicleMass;
 
                     // TODO: implement m_VhoverEfficiency correctly
-                    VehicleAddForceImpulse(new Vector3(0f, 0f, verticalCorrectionVelocity));
+                    VehicleAddForceImpulse(verticalCorrection);
+                     */
 
-                    VDetailLog("{0},  MoveLinear,hover,pos={1},eff={2},hoverTS={3},height={4},target={5},err={6},corrVel={7}",
+                    VDetailLog("{0},  MoveLinear,hover,pos={1},eff={2},hoverTS={3},height={4},target={5},err={6},corr={7}",
                                     Prim.LocalID, VehiclePosition, m_VhoverEfficiency,
                                     m_VhoverTimescale, m_VhoverHeight, m_VhoverTargetHeight,
-                                    verticalError, verticalCorrectionVelocity);
+                                    verticalError, verticalCorrection);
                 }
 
             }
