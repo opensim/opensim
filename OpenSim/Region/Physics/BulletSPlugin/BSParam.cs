@@ -80,6 +80,7 @@ public static class BSParam
 	public static float AvatarStepForceFactor { get; private set; }
 
     public static float VehicleAngularDamping { get; private set; }
+    public static float VehicleDebuggingEnabled { get; private set; }
 
     public static float LinksetImplementation { get; private set; }
     public static float LinkConstraintUseFrameOffset { get; private set; }
@@ -317,13 +318,13 @@ public static class BSParam
             (s,p,l,v) => { s.UpdateParameterObject((x)=>{AngularSleepingThreshold=x;}, p, l, v); },
             (s,o,v) => { s.PE.SetSleepingThresholds(o.PhysBody, v, v); } ),
         new ParameterDefn("CcdMotionThreshold", "Continuious collision detection threshold (0 means no CCD)" ,
-            0f,     // set to zero to disable
+            0.3f,     // set to zero to disable
             (s,cf,p,v) => { CcdMotionThreshold = cf.GetFloat(p, v); },
             (s) => { return CcdMotionThreshold; },
             (s,p,l,v) => { s.UpdateParameterObject((x)=>{CcdMotionThreshold=x;}, p, l, v); },
             (s,o,v) => { s.PE.SetCcdMotionThreshold(o.PhysBody, v); } ),
         new ParameterDefn("CcdSweptSphereRadius", "Continuious collision detection test radius" ,
-            0f,
+            0.2f,
             (s,cf,p,v) => { CcdSweptSphereRadius = cf.GetFloat(p, v); },
             (s) => { return CcdSweptSphereRadius; },
             (s,p,l,v) => { s.UpdateParameterObject((x)=>{CcdSweptSphereRadius=x;}, p, l, v); },
@@ -427,6 +428,11 @@ public static class BSParam
             (s,cf,p,v) => { VehicleAngularDamping = cf.GetFloat(p, v); },
             (s) => { return VehicleAngularDamping; },
             (s,p,l,v) => { VehicleAngularDamping = v; } ),
+        new ParameterDefn("VehicleDebuggingEnable", "Turn on/off vehicle debugging",
+            ConfigurationParameters.numericFalse,
+            (s,cf,p,v) => { VehicleDebuggingEnabled = BSParam.NumericBool(cf.GetBoolean(p, BSParam.BoolNumeric(v))); },
+            (s) => { return VehicleDebuggingEnabled; },
+            (s,p,l,v) => { VehicleDebuggingEnabled = v; } ),
 
 	    new ParameterDefn("MaxPersistantManifoldPoolSize", "Number of manifolds pooled (0 means default of 4096)",
             0f,
@@ -459,7 +465,7 @@ public static class BSParam
             (s) => { return s.UnmanagedParams[0].shouldSplitSimulationIslands; },
             (s,p,l,v) => { s.UnmanagedParams[0].shouldSplitSimulationIslands = v; } ),
 	    new ParameterDefn("ShouldEnableFrictionCaching", "Enable friction computation caching",
-            ConfigurationParameters.numericFalse,
+            ConfigurationParameters.numericTrue,
             (s,cf,p,v) => { s.UnmanagedParams[0].shouldEnableFrictionCaching = BSParam.NumericBool(cf.GetBoolean(p, BSParam.BoolNumeric(v))); },
             (s) => { return s.UnmanagedParams[0].shouldEnableFrictionCaching; },
             (s,p,l,v) => { s.UnmanagedParams[0].shouldEnableFrictionCaching = v; } ),

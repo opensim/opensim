@@ -152,6 +152,7 @@ public abstract class BSLinkset
             if (IsRoot(child))
             {
                 // Cannot remove the root from a linkset.
+                child.PositionDisplacement = OMV.Vector3.Zero;
                 return this;
             }
             RemoveChildFromLinkset(child);
@@ -159,6 +160,7 @@ public abstract class BSLinkset
         }
 
         // The child is down to a linkset of just itself
+        child.PositionDisplacement = OMV.Vector3.Zero;
         return BSLinkset.Factory(PhysicsScene, child);
     }
 
@@ -310,7 +312,7 @@ public abstract class BSLinkset
 
             foreach (BSPhysObject bp in m_children)
             {
-                com += bp.Position * bp.RawMass;
+                com += bp.Position;
             }
             com /= (m_children.Count + 1);
         }
