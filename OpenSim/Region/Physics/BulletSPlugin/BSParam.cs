@@ -80,6 +80,7 @@ public static class BSParam
 	public static float AvatarStepForceFactor { get; private set; }
 
     public static float VehicleAngularDamping { get; private set; }
+    public static float VehicleDebuggingEnabled { get; private set; }
 
     public static float LinksetImplementation { get; private set; }
     public static float LinkConstraintUseFrameOffset { get; private set; }
@@ -427,6 +428,11 @@ public static class BSParam
             (s,cf,p,v) => { VehicleAngularDamping = cf.GetFloat(p, v); },
             (s) => { return VehicleAngularDamping; },
             (s,p,l,v) => { VehicleAngularDamping = v; } ),
+        new ParameterDefn("VehicleDebuggingEnable", "Turn on/off vehicle debugging",
+            ConfigurationParameters.numericFalse,
+            (s,cf,p,v) => { VehicleDebuggingEnabled = BSParam.NumericBool(cf.GetBoolean(p, BSParam.BoolNumeric(v))); },
+            (s) => { return VehicleDebuggingEnabled; },
+            (s,p,l,v) => { VehicleDebuggingEnabled = v; } ),
 
 	    new ParameterDefn("MaxPersistantManifoldPoolSize", "Number of manifolds pooled (0 means default of 4096)",
             0f,

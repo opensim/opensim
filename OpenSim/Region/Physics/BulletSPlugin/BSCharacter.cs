@@ -126,9 +126,9 @@ public sealed class BSCharacter : BSPhysObject
         DetailLog("{0},BSCharacter.Destroy", LocalID);
         PhysicsScene.TaintedObject("BSCharacter.destroy", delegate()
         {
-            PhysicsScene.Shapes.DereferenceBody(PhysBody, true, null);
+            PhysicsScene.Shapes.DereferenceBody(PhysBody, true /* inTaintTime */, null /* bodyCallback */);
             PhysBody.Clear();
-            PhysicsScene.Shapes.DereferenceShape(PhysShape, true, null);
+            PhysicsScene.Shapes.DereferenceShape(PhysShape, true /* inTaintTime */, null /* bodyCallback */);
             PhysShape.Clear();
         });
     }
@@ -327,6 +327,10 @@ public sealed class BSCharacter : BSPhysObject
     }
     public override bool Selected {
         set { _selected = value; }
+    }
+    public override bool IsSelected
+    {
+        get { return _selected; }
     }
     public override void CrossingFailure() { return; }
     public override void link(PhysicsActor obj) { return; }

@@ -49,7 +49,7 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
 
         public PhysicsScene GetScene(string sceneIdentifier)
         {
-            return new BasicScene(sceneIdentifier);
+            return new BasicScene(GetName(), sceneIdentifier);
         }
 
         public string GetName()

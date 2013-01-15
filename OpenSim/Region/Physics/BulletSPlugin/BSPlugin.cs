@@ -59,7 +59,7 @@ public class BSPlugin : IPhysicsPlugin
     {
         if (_mScene == null)
         {
-            _mScene = new BSScene(sceneIdentifier);
+            _mScene = new BSScene(GetName(), sceneIdentifier);
         }
         return (_mScene);
     }
