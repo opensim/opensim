@@ -94,7 +94,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             m_scene.AddSceneObject(so);
 
             OSSL_Api osslApi = new OSSL_Api();
-            osslApi.Initialize(new ScriptInstance(m_engine, part, null, 0, false, int.MaxValue));
+            osslApi.Initialize(m_engine, part, null, null);
 
             string notecardName = "appearanceNc";
 
@@ -135,7 +135,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             m_scene.AddSceneObject(so);
 
             OSSL_Api osslApi = new OSSL_Api();
-            osslApi.Initialize(new ScriptInstance(m_engine, part, null, 0, false, int.MaxValue));
+            osslApi.Initialize(m_engine, part, null, null);
 
             string notecardName = "appearanceNc";
 

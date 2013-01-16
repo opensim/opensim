@@ -142,11 +142,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         protected IUrlModule m_UrlModule = null;
 
-        public void Initialize(IScriptInstance scriptInstance)
+        public void Initialize(
+            IScriptEngine scriptEngine, SceneObjectPart host, TaskInventoryItem item, EventWaitHandle coopSleepHandle)
         {
-            m_ScriptEngine = scriptInstance.Engine;
-            m_host = scriptInstance.Part;
-            m_item = scriptInstance.ScriptTask;
+            m_ScriptEngine = scriptEngine;
+            m_host = host;
+            m_item = item;
 
             m_UrlModule = m_ScriptEngine.World.RequestModuleInterface<IUrlModule>();
 

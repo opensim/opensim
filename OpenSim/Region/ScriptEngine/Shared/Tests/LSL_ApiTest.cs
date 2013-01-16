@@ -67,7 +67,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             engine.AddRegion(scene);
 
             m_lslApi = new LSL_Api();
-            m_lslApi.Initialize(new ScriptInstance(engine, part, null, 0, false, int.MaxValue));
+            m_lslApi.Initialize(engine, part, null, null);
         }
 
         [Test]

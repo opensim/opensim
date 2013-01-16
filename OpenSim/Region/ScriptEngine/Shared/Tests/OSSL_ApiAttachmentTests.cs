@@ -99,10 +99,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             SceneObjectGroup inWorldObj = SceneHelpers.AddSceneObject(m_scene, "inWorldObj", ua1.PrincipalID);
             TaskInventoryItem scriptItem = TaskInventoryHelpers.AddScript(m_scene, inWorldObj.RootPart);
 
-            ScriptInstance si = new ScriptInstance(m_engine, inWorldObj.RootPart, scriptItem, 0, false, int.MaxValue);
-            new LSL_Api().Initialize(si);
+            new LSL_Api().Initialize(m_engine, inWorldObj.RootPart, scriptItem, null);
             OSSL_Api osslApi = new OSSL_Api();
-            osslApi.Initialize(si);
+            osslApi.Initialize(m_engine, inWorldObj.RootPart, scriptItem, null);
 
 //            SceneObjectGroup sog1 = SceneHelpers.CreateSceneObject(1, ua1.PrincipalID);
 
@@ -146,10 +145,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             SceneObjectGroup inWorldObj = SceneHelpers.AddSceneObject(m_scene, "inWorldObj", ua1.PrincipalID);
             TaskInventoryItem scriptItem = TaskInventoryHelpers.AddScript(m_scene, inWorldObj.RootPart);
 
-            ScriptInstance si = new ScriptInstance(m_engine, inWorldObj.RootPart, scriptItem, 0, false, int.MaxValue);
-            new LSL_Api().Initialize(si);
+            new LSL_Api().Initialize(m_engine, inWorldObj.RootPart, scriptItem, null);
             OSSL_Api osslApi = new OSSL_Api();
-            osslApi.Initialize(si);
+            osslApi.Initialize(m_engine, inWorldObj.RootPart, scriptItem, null);
 
             // Create an object embedded inside the first
             TaskInventoryHelpers.AddNotecard(
@@ -195,10 +193,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             SceneObjectGroup inWorldObj = SceneHelpers.AddSceneObject(m_scene, "inWorldObj", ua1.PrincipalID);
             TaskInventoryItem scriptItem = TaskInventoryHelpers.AddScript(m_scene, inWorldObj.RootPart);
 
-            ScriptInstance si = new ScriptInstance(m_engine, inWorldObj.RootPart, scriptItem, 0, false, int.MaxValue);
-            new LSL_Api().Initialize(si);
+            new LSL_Api().Initialize(m_engine, inWorldObj.RootPart, scriptItem, null);
             OSSL_Api osslApi = new OSSL_Api();
-            osslApi.Initialize(si);
+            osslApi.Initialize(m_engine, inWorldObj.RootPart, scriptItem, null);
 
             // Create an object embedded inside the first
             TaskInventoryHelpers.AddSceneObject(
