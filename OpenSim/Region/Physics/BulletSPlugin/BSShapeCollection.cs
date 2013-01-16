@@ -906,7 +906,7 @@ public sealed class BSShapeCollection : IDisposable
             }
         }
 
-        // While we figure out the real problem, stick a simple native shape on the object.
+        // While we figure out the real problem, stick in a simple box for the object.
         BulletShape fillinShape =
             BuildPhysicalNativeShape(prim, BSPhysicsShapeType.SHAPE_BOX, FixedShapeKey.KEY_BOX);
 

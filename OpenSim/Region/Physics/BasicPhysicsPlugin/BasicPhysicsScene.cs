@@ -49,8 +49,10 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
 
         //protected internal string sceneIdentifier;
 
-        public BasicScene(string _sceneIdentifier)
+        public BasicScene(string engineType, string _sceneIdentifier)
         {
+            EngineType = engineType;
+            Name = EngineType + "/" + _sceneIdentifier;
             //sceneIdentifier = _sceneIdentifier;
         }
 

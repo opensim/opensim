@@ -167,11 +167,16 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     public bool VehiclePhysicalLoggingEnabled { get; private set; }
 
     #region Construction and Initialization
-    public BSScene(string identifier)
+    public BSScene(string engineType, string identifier)
     {
         m_initialized = false;
-        // we are passed the name of the region we're working for.
+
+        // The name of the region we're working for is passed to us. Keep for identification.
         RegionName = identifier;
+
+        // Set identifying variables in the PhysicsScene interface.
+        EngineType = engineType;
+        Name = EngineType + "/" + RegionName;
     }
 
     public override void Initialise(IMesher meshmerizer, IConfigSource config)
@@ -486,6 +491,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         ProcessTaints();
 
         // Some of the physical objects requre individual, pre-step calls
+        //      (vehicles and avatar movement, in particular)
         TriggerPreStepEvent(timeStep);
 
         // the prestep actions might have added taints

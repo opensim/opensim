@@ -328,6 +328,10 @@ public sealed class BSCharacter : BSPhysObject
     public override bool Selected {
         set { _selected = value; }
     }
+    public override bool IsSelected
+    {
+        get { return _selected; }
+    }
     public override void CrossingFailure() { return; }
     public override void link(PhysicsActor obj) { return; }
     public override void delink() { return; }

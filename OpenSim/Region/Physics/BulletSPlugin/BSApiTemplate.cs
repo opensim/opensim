@@ -342,6 +342,8 @@ public abstract BulletShape RemoveChildShapeFromCompoundShapeIndex(BulletShape c
 
 public abstract void RemoveChildShapeFromCompoundShape(BulletShape cShape, BulletShape removeShape);
 
+public abstract void UpdateChildTransform(BulletShape pShape, int childIndex, Vector3 pos, Quaternion rot, bool shouldRecalculateLocalAabb);
+
 public abstract void RecalculateCompoundShapeLocalAabb(BulletShape cShape);
 
 public abstract BulletShape DuplicateCollisionShape(BulletWorld sim, BulletShape srcShape, uint id);

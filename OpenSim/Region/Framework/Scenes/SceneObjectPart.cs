@@ -4649,9 +4649,9 @@ namespace OpenSim.Region.Framework.Scenes
                                  PhysicsShapeType,
                                  m_localId);
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                m_log.ErrorFormat("[SCENE]: AddToPhysics object {0} failed: {1}", m_uuid, ex.Message);
+                m_log.ErrorFormat("[SCENE]: caught exception meshing object {0}. Object set to phantom. e={1}", m_uuid, e);
                 pa = null;
             }
           

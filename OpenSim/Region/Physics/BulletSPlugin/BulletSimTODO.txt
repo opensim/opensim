@@ -1,12 +1,17 @@
 CURRENT PRIORITIES
 =================================================
-Avatars walking up stairs (HALF DONE)
-Vehicle movement on terrain smoothness
+Nebadon vehicles turning funny in arena
 limitMotorUp calibration (more down?)
-Preferred orientation angular correction fix
+Vehicle angular vertical attraction
+Vehicle angular deflection
+	Preferred orientation angular correction fix
+vehicle angular banking
+Avatars walking up stairs (HALF DONE)
+    Radius of the capsule affects ability to climb edges.
+Vehicle movement on terrain smoothness
 Surfboard go wonky when turning
 	Angular motor direction is global coordinates rather than local coordinates?
-Boats float low in the water
+Boats float low in the water (DONE)
 Avatar movement
 	flying into a wall doesn't stop avatar who keeps appearing to move through the obstacle (DONE)
 	walking up stairs is not calibrated correctly (stairs out of Kepler cabin)
@@ -33,19 +38,15 @@ CRASHES
 
 VEHICLES TODO LIST:
 =================================================
-Angular motor direction is global coordinates rather than local coordinates
 Border crossing with linked vehicle causes crash
 Vehicles (Move smoothly)
-Add vehicle collisions so IsColliding is properly reported.
-	Needed for banking, limitMotorUp, movementLimiting, ...
-VehicleAddForce is not scaled by the simulation step but it is only
-	applied for one step. Should it be scaled?
 Some vehicles should not be able to turn if no speed or off ground.
 Cannot edit/move a vehicle being ridden: it jumps back to the origional position.
 Neb car jiggling left and right
 	Happens on terrain and any other mesh object. Flat cubes are much smoother.
 	This has been reduced but not eliminated.
 Implement referenceFrame for all the motion routines.
+For limitMotorUp, use raycast down to find if vehicle is in the air.
 Angular motion around Z moves the vehicle in world Z and not vehicle Z in ODE.
 	Verify that angular motion specified around Z moves in the vehicle coordinates.
 Verify llGetVel() is returning a smooth and good value for vehicle movement.
@@ -54,14 +55,13 @@ Implement function efficiency for lineaar and angular motion.
 After getting off a vehicle, the root prim is phantom (can be walked through)
     Need to force a position update for the root prim after compound shape destruction
 Linkset explosion after three "rides" on Nebadon lite vehicle (LinksetConstraint)
-For limitMotorUp, use raycast down to find if vehicle is in the air.
 Remove vehicle angular velocity zeroing in BSPrim.UpdateProperties().
 	A kludge that isn't fixing the real problem of Bullet adding extra motion.
 Incorporate inter-relationship of angular corrections. For instance, angularDeflection
 	and angularMotorUp will compute same X or Y correction. When added together
 	creates over-correction and over-shoot and wabbling.
 
-BULLETSIM TODO LIST:
+GENERAL TODO LIST:
 =================================================
 Implement an avatar mesh shape. The Bullet capsule is way too limited.
 	Consider just hand creating a vertex/index array in a new BSShapeAvatar.
@@ -121,11 +121,9 @@ LinksetCompound: when one of the children changes orientation (like tires
 Verify/think through scripts in children of linksets. What do they reference
 	and return when getting position, velocity, ...
 Confirm constraint linksets still work after making all the changes for compound linksets.
+Use PostTaint callback to do rebuilds for constraint linksets to reduce rebuilding
 Add 'changed' flag or similar to reduce the number of times a linkset is rebuilt.
 	For compound linksets, add ability to remove or reposition individual child shapes.
-Disable activity of passive linkset children.
-	Since the linkset is a compound object, the old prims are left lying
-	around and need to be phantomized so they don't collide, ...
 Speed up creation of large physical linksets
 	For instance, sitting in Neb's car (130 prims) takes several seconds to become physical.
 	REALLY bad for very large physical linksets (freezes the sim for many seconds).
@@ -138,25 +136,21 @@ MORE
 Use the HACD convex hull routine in Bullet rather than the C# version.
 Do we need to do convex hulls all the time? Can complex meshes be left meshes?
 	There is some problem with meshes and collisions
-Test avatar walking up stairs. How does compare with SL.
-    Radius of the capsule affects ability to climb edges.
+	Hulls are not as detailed as meshes. Hulled vehicles insides are different shape.
 Debounce avatar contact so legs don't keep folding up when standing.
 Implement LSL physics controls. Like STATUS_ROTATE_X.
 Add border extensions to terrain to help region crossings and objects leaving region.
 Use a different capsule shape for avatar when sitting
 	LL uses a pyrimidal shape scaled by the avatar's bounding box
 	http://wiki.secondlife.com/wiki/File:Avmeshforms.png
-
 Performance test with lots of avatars. Can BulletSim support a thousand?
 Optimize collisions in C++: only send up to the object subscribed to collisions.
     Use collision subscription and remove the collsion(A,B) and collision(B,A)
 Check whether SimMotionState needs large if statement (see TODO).
-
 Implement 'top colliders' info.
 Avatar jump
 Performance measurement and changes to make quicker.
 Implement detailed physics stats (GetStats()).
-
 Measure performance improvement from hulls
 Test not using ghost objects for volume detect implementation.
 Performance of closures and delegates for taint processing
@@ -164,9 +158,7 @@ Performance of closures and delegates for taint processing
 	Is any slowdown introduced by the existing implementation significant?
 Is there are more efficient method of implementing pre and post step actions?
 	See http://www.codeproject.com/Articles/29922/Weak-Events-in-C
-
 Physics Arena central pyramid: why is one side permiable?
-
 In SL, perfect spheres don't seem to have rolling friction. Add special case.
 Enforce physical parameter min/max:
 	Gravity: [-1, 28]
@@ -178,6 +170,8 @@ Avatar attachments have no mass? http://forums-archive.secondlife.com/54/f0/3179
 
 INTERNAL IMPROVEMENT/CLEANUP
 =================================================
+Can the 'inTaintTime' flag be cleaned up and used? For instance, a call to
+	BSScene.TaintedObject() could immediately execute the callback if already in taint time.
 Create the physical wrapper classes (BulletBody, BulletShape) by methods on
 	BSAPITemplate and make their actual implementation Bullet engine specific.
 	For the short term, just call the existing functions in ShapeCollection.
@@ -197,22 +191,19 @@ Generalize Dynamics and PID with standardized motors.
 Generalize Linkset and vehicles into PropertyManagers
     Methods for Refresh, RemoveBodyDependencies, RestoreBodyDependencies
 	Potentially add events for shape destruction, etc.
-Complete implemention of preStepActions
-	Replace vehicle step call with prestep event.
-	Is there a need for postStepActions? postStepTaints?
+Better mechanism for resetting linkset set and vehicle parameters when body rebuilt.
+	BSPrim.CreateGeomAndObject is kludgy with the callbacks, etc.
 Implement linkset by setting position of children when root updated. (LinksetManual)
 	Linkset implementation using manual prim movement.
 LinkablePrim class? Would that simplify/centralize the linkset logic?
 BSScene.UpdateParameterSet() is broken. How to set params on objects?
-Remove HeightmapInfo from terrain specification
-    Since C++ code does not need terrain height, this structure et al are not needed.
 Add floating motor for BS_FLOATS_ON_WATER so prim and avatar will
-    bob at the water level. BSPrim.PositionSanityCheck().
+    bob at the water level. BSPrim.PositionSanityCheck()
 Should taints check for existance or activeness of target?
 	When destroying linksets/etc, taints can be generated for objects that are
 	actually gone when the taint happens. Crashes don't happen because the taint closure
 	keeps the object from being freed, but that is just an accident.
-	Possibly have and 'active' flag that is checked by the taint processor?
+	Possibly have an 'active' flag that is checked by the taint processor?
 Parameters for physics logging should be moved from BSScene to BSParam (at least boolean ones)
 Can some of the physical wrapper classes (BulletBody, BulletWorld, BulletShape) be 'sealed'?
 There are TOO MANY interfaces from BulletSim core to Bullet itself
@@ -282,3 +273,18 @@ Redo BulletSimAPI to allow native C# implementation of Bullet option (DONE)
 Meshes rendering as bounding boxes (DONE)
 	(Resolution: Added test for mesh/sculpties in native shapes so it didn't think it was a box)
 llMoveToTarget (Resolution: added simple motor to update the position.)
+Angular motor direction is global coordinates rather than local coordinates (DONE)
+Add vehicle collisions so IsColliding is properly reported. (DONE)
+	Needed for banking, limitMotorUp, movementLimiting, ...
+	(Resolution: added CollisionFlags.BS_VEHICLE_COLLISION and code to use it)
+VehicleAddForce is not scaled by the simulation step but it is only
+	applied for one step. Should it be scaled? (DONE)
+	(Resolution: use force for timed things, Impulse for immediate, non-timed things)
+Complete implemention of preStepActions (DONE)
+	Replace vehicle step call with prestep event.
+	Is there a need for postStepActions? postStepTaints?
+Disable activity of passive linkset children. (DONE)
+	Since the linkset is a compound object, the old prims are left lying
+	around and need to be phantomized so they don't collide, ...
+Remove HeightmapInfo from terrain specification (DONE)
+    Since C++ code does not need terrain height, this structure et al are not needed.

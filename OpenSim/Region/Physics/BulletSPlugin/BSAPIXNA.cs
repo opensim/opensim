@@ -1212,6 +1212,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
 
     public override BulletShape GetChildShapeFromCompoundShapeIndex(BulletShape cShape, int indx) { /* TODO */ return null; }
     public override void RemoveChildShapeFromCompoundShape(BulletShape cShape, BulletShape removeShape) { /* TODO */ }
+    public override void UpdateChildTransform(BulletShape pShape, int childIndex, Vector3 pos, Quaternion rot, bool shouldRecalculateLocalAabb) { /* TODO */ }
 
     public override BulletShape CreateGroundPlaneShape(uint pLocalId, float pheight, float pcollisionMargin)
     {
