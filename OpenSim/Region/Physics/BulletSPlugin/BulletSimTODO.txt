@@ -1,7 +1,14 @@
 CURRENT PRIORITIES
 =================================================
+Mantis 6040 script http://opensimulator.org/mantis/view.php?id=6040
+	Msg Kayaker on OSGrid when working
+Teravus llMoveToTarget script debug
+	Mixing of hover, buoyancy/gravity, moveToTarget, into one force
+Boats floating at proper level
 Nebadon vehicles turning funny in arena
 limitMotorUp calibration (more down?)
+llRotLookAt
+llLookAt
 Vehicle angular vertical attraction
 Vehicle angular deflection
 	Preferred orientation angular correction fix
@@ -9,8 +16,6 @@ vehicle angular banking
 Avatars walking up stairs (HALF DONE)
     Radius of the capsule affects ability to climb edges.
 Vehicle movement on terrain smoothness
-Surfboard go wonky when turning
-	Angular motor direction is global coordinates rather than local coordinates?
 Boats float low in the water (DONE)
 Avatar movement
 	flying into a wall doesn't stop avatar who keeps appearing to move through the obstacle (DONE)
@@ -27,6 +32,10 @@ Add material densities to the material types
 
 CRASHES
 =================================================
+Crazyness during 20130115 office hours was PositionAdjustUnderground for both char and prim
+	m1:logs/20130115.0934/physics-BulletSim-20130115083613.log
+	Creation of Neb's terrain made the terrain "disappear". Everything started to fall
+		and then get restored to be above terrain.
 20121129.1411: editting/moving phys object across region boundries causes crash
     getPos-> btRigidBody::upcast -> getBodyType -> BOOM
 20121128.1600: mesh object not rezzing (no physics mesh).
@@ -111,6 +120,8 @@ Physical and phantom will drop through the terrain
 
 LINKSETS
 ======================================================
+Editing a child of a linkset causes the child to go phantom
+	Move a child prim once when it is physical and can never move it again without it going phantom
 Offset the center of the linkset to be the geometric center of all the prims
 	Not quite the same as the center-of-gravity
 Linksets should allow collisions to individual children
@@ -133,6 +144,10 @@ Eliminate collisions between objects in a linkset. (LinksetConstraint)
 
 MORE
 ======================================================
+Create tests for different interface components
+	Have test objects/scripts measure themselves and turn color if correct/bad
+	Test functions in SL and calibrate correctness there
+	Create auto rezzer and tracker to run through the tests
 Use the HACD convex hull routine in Bullet rather than the C# version.
 Do we need to do convex hulls all the time? Can complex meshes be left meshes?
 	There is some problem with meshes and collisions
@@ -167,6 +182,7 @@ Enforce physical parameter min/max:
 	Restitution [0, 1]
 	http://wiki.secondlife.com/wiki/Physics_Material_Settings_test
 Avatar attachments have no mass? http://forums-archive.secondlife.com/54/f0/31796/1.html
+Keep avatar scaling correct. http://pennycow.blogspot.fr/2011/07/matter-of-scale.html
 
 INTERNAL IMPROVEMENT/CLEANUP
 =================================================
@@ -288,3 +304,6 @@ Disable activity of passive linkset children. (DONE)
 	around and need to be phantomized so they don't collide, ...
 Remove HeightmapInfo from terrain specification (DONE)
     Since C++ code does not need terrain height, this structure et al are not needed.
+Surfboard go wonky when turning (DONE)
+	Angular motor direction is global coordinates rather than local coordinates?
+	(Resolution: made angular motor direction correct coordinate system)

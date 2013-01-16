@@ -442,7 +442,8 @@ public sealed class BSShapeCollection : IDisposable
         return ret;
     }
 
-    // Create a mesh/hull shape or a native shape if 'nativeShapePossible' is 'true'.
+    // Create a mesh, hull or native shape.
+    // Return 'true' if the prim's shape was changed.
     public bool CreateGeomNonSpecial(bool forceRebuild, BSPhysObject prim, ShapeDestructionCallback shapeCallback)
     {
         bool ret = false;
@@ -472,7 +473,7 @@ public sealed class BSShapeCollection : IDisposable
             if (DDetail) DetailLog("{0},BSShapeCollection.CreateGeom,maybeNative,force={1},primScale={2},primSize={3},primShape={4}",
                         prim.LocalID, forceRebuild, prim.Scale, prim.Size, prim.PhysShape.type);
 
-            // It doesn't look like Bullet scales spheres so make sure the scales are all equal
+            // It doesn't look like Bullet scales native spheres so make sure the scales are all equal
             if ((pbs.ProfileShape == ProfileShape.HalfCircle && pbs.PathCurve == (byte)Extrusion.Curve1)
                                 && pbs.Scale.X == pbs.Scale.Y && pbs.Scale.Y == pbs.Scale.Z)
             {
@@ -484,9 +485,9 @@ public sealed class BSShapeCollection : IDisposable
                 {
                     ret = GetReferenceToNativeShape(prim, BSPhysicsShapeType.SHAPE_SPHERE,
                                             FixedShapeKey.KEY_SPHERE, shapeCallback);
-                    if (DDetail) DetailLog("{0},BSShapeCollection.CreateGeom,sphere,force={1},shape={2}",
-                                        prim.LocalID, forceRebuild, prim.PhysShape);
                 }
+                if (DDetail) DetailLog("{0},BSShapeCollection.CreateGeom,sphere,force={1},rebuilt={2},shape={3}",
+                                        prim.LocalID, forceRebuild, ret, prim.PhysShape);
             }
             if (!haveShape && pbs.ProfileShape == ProfileShape.Square && pbs.PathCurve == (byte)Extrusion.Straight)
             {
@@ -498,9 +499,9 @@ public sealed class BSShapeCollection : IDisposable
                 {
                     ret = GetReferenceToNativeShape( prim, BSPhysicsShapeType.SHAPE_BOX,
                                             FixedShapeKey.KEY_BOX, shapeCallback);
-                    if (DDetail) DetailLog("{0},BSShapeCollection.CreateGeom,box,force={1},shape={2}",
-                                        prim.LocalID, forceRebuild, prim.PhysShape);
                 }
+                if (DDetail) DetailLog("{0},BSShapeCollection.CreateGeom,box,force={1},rebuilt={2},shape={3}",
+                                        prim.LocalID, forceRebuild, ret, prim.PhysShape);
             }
         }
 
@@ -513,6 +514,7 @@ public sealed class BSShapeCollection : IDisposable
         return ret;
     }
 
+    // return 'true' if the prim's shape was changed.
     public bool CreateGeomMeshOrHull(BSPhysObject prim, ShapeDestructionCallback shapeCallback)
     {
 
@@ -872,8 +874,7 @@ public sealed class BSShapeCollection : IDisposable
         {
             prim.LastAssetBuildFailed = true;
             BSPhysObject xprim = prim;
-            DetailLog("{0},BSShapeCollection.VerifyMeshCreated,fetchAsset,lID={1},lastFailed={2}",
-                            LogHeader, prim.LocalID, prim.LastAssetBuildFailed);
+            DetailLog("{0},BSShapeCollection.VerifyMeshCreated,fetchAsset,lastFailed={1}", prim.LocalID, prim.LastAssetBuildFailed);
             Util.FireAndForget(delegate
                 {
                     RequestAssetDelegate assetProvider = PhysicsScene.RequestAssetMethod;
@@ -882,18 +883,33 @@ public sealed class BSShapeCollection : IDisposable
                         BSPhysObject yprim = xprim; // probably not necessary, but, just in case.
                         assetProvider(yprim.BaseShape.SculptTexture, delegate(AssetBase asset)
                         {
-                            if (!yprim.BaseShape.SculptEntry)
-                                return;
-                            if (yprim.BaseShape.SculptTexture.ToString() != asset.ID)
-                                return;
-
-                            yprim.BaseShape.SculptData = asset.Data;
-                            // This will cause the prim to see that the filler shape is not the right
-                            //    one and try again to build the object.
-                            // No race condition with the normal shape setting since the rebuild is at taint time.
-                            yprim.ForceBodyShapeRebuild(false);
+                            bool assetFound = false;            // DEBUG DEBUG
+                            string mismatchIDs = String.Empty;  // DEBUG DEBUG
+                            if (yprim.BaseShape.SculptEntry)
+                            {
+                                if (yprim.BaseShape.SculptTexture.ToString() == asset.ID)
+                                {
+                                    yprim.BaseShape.SculptData = asset.Data;
+                                    // This will cause the prim to see that the filler shape is not the right
+                                    //    one and try again to build the object.
+                                    // No race condition with the normal shape setting since the rebuild is at taint time.
+                                    yprim.ForceBodyShapeRebuild(false /* inTaintTime */);
+                                    assetFound = true;
+                                }
+                                else
+                                {
+                                    mismatchIDs = yprim.BaseShape.SculptTexture.ToString() + "/" + asset.ID;
+                                }
+                            }
+                            DetailLog("{0},BSShapeCollection,fetchAssetCallback,found={1},isSculpt={2},ids={3}",
+                                        yprim.LocalID, assetFound, yprim.BaseShape.SculptEntry, mismatchIDs );
 
                         });
+                    }
+                    else
+                    {
+                        PhysicsScene.Logger.ErrorFormat("{0} Physical object requires asset but no asset provider. Name={1}",
+                                                    LogHeader, PhysicsScene.Name);
                     }
                 });
         }
@@ -906,9 +922,9 @@ public sealed class BSShapeCollection : IDisposable
             }
         }
 
-        // While we figure out the real problem, stick in a simple box for the object.
-        BulletShape fillinShape =
-            BuildPhysicalNativeShape(prim, BSPhysicsShapeType.SHAPE_BOX, FixedShapeKey.KEY_BOX);
+        // While we wait for the mesh defining asset to be loaded, stick in a simple box for the object.
+        BulletShape fillinShape = BuildPhysicalNativeShape(prim, BSPhysicsShapeType.SHAPE_BOX, FixedShapeKey.KEY_BOX);
+        DetailLog("{0},BSShapeCollection.VerifyMeshCreated,boxTempShape", prim.LocalID);
 
         return fillinShape;
     }

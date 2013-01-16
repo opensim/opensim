@@ -25,27 +25,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using System.Threading;
-using OpenMetaverse;
-using OpenSim.Framework;
-using OpenSim.Region.Framework.Scenes;
-using OpenSim.Region.ScriptEngine.Shared;
+using System.Net;
+using OpenMetaverse.StructuredData;
 
-namespace OpenSim.Region.ScriptEngine.Interfaces
+namespace OpenSim.Framework.Servers.HttpServer
 {
-    public interface IScriptApi
-    {
-        /// <summary>
-        /// Initialize the API
-        /// </summary>
-        /// <remarks>
-        /// Each API has an identifier, which is used to load the proper runtime assembly at load time.
-        /// <param name='scriptEngine'>/param>
-        /// <param name='host'>/param>
-        /// <param name='item'>/param>
-        /// <param name='coopSleepHandle'>/param>
-        void Initialize(
-            IScriptEngine scriptEngine, SceneObjectPart host, TaskInventoryItem item, EventWaitHandle coopSleepHandle);
-    }
+    public delegate void JsonRPCMethod(OSDMap jsonRpcRequest, ref JsonRpcResponse response);
 }

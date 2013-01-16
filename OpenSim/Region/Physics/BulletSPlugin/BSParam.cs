@@ -94,16 +94,16 @@ public static class BSParam
     public static float PID_D { get; private set; }    // derivative
     public static float PID_P { get; private set; }    // proportional
 
-    // Various constants that come from that other virtual world that shall not be named
+    // Various constants that come from that other virtual world that shall not be named.
     public const float MinGravityZ = -1f;
     public const float MaxGravityZ = 28f;
     public const float MinFriction = 0f;
     public const float MaxFriction = 255f;
-    public const float MinDensity = 0f;
+    public const float MinDensity = 0.01f;
     public const float MaxDensity = 22587f;
     public const float MinRestitution = 0f;
     public const float MaxRestitution = 1f;
-    public const float MaxAddForceMagnitude = 20000f;
+    public const float MaxAddForceMagnitude = 20f;
 
     // ===========================================================================
     public delegate void ParamUser(BSScene scene, IConfig conf, string paramName, float val);
@@ -318,13 +318,13 @@ public static class BSParam
             (s,p,l,v) => { s.UpdateParameterObject((x)=>{AngularSleepingThreshold=x;}, p, l, v); },
             (s,o,v) => { s.PE.SetSleepingThresholds(o.PhysBody, v, v); } ),
         new ParameterDefn("CcdMotionThreshold", "Continuious collision detection threshold (0 means no CCD)" ,
-            0f,     // set to zero to disable
+            0.3f,     // set to zero to disable
             (s,cf,p,v) => { CcdMotionThreshold = cf.GetFloat(p, v); },
             (s) => { return CcdMotionThreshold; },
             (s,p,l,v) => { s.UpdateParameterObject((x)=>{CcdMotionThreshold=x;}, p, l, v); },
             (s,o,v) => { s.PE.SetCcdMotionThreshold(o.PhysBody, v); } ),
         new ParameterDefn("CcdSweptSphereRadius", "Continuious collision detection test radius" ,
-            0f,
+            0.2f,
             (s,cf,p,v) => { CcdSweptSphereRadius = cf.GetFloat(p, v); },
             (s) => { return CcdSweptSphereRadius; },
             (s,p,l,v) => { s.UpdateParameterObject((x)=>{CcdSweptSphereRadius=x;}, p, l, v); },
@@ -465,7 +465,7 @@ public static class BSParam
             (s) => { return s.UnmanagedParams[0].shouldSplitSimulationIslands; },
             (s,p,l,v) => { s.UnmanagedParams[0].shouldSplitSimulationIslands = v; } ),
 	    new ParameterDefn("ShouldEnableFrictionCaching", "Enable friction computation caching",
-            ConfigurationParameters.numericFalse,
+            ConfigurationParameters.numericTrue,
             (s,cf,p,v) => { s.UnmanagedParams[0].shouldEnableFrictionCaching = BSParam.NumericBool(cf.GetBoolean(p, BSParam.BoolNumeric(v))); },
             (s) => { return s.UnmanagedParams[0].shouldEnableFrictionCaching; },
             (s,p,l,v) => { s.UnmanagedParams[0].shouldEnableFrictionCaching = v; } ),

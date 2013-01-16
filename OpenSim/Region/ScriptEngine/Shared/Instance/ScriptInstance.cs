@@ -157,9 +157,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
         public UUID AppDomain { get; set; }
 
-        /// <summary>
-        /// Scene part in which this script instance is contained.
-        /// </summary>
         public SceneObjectPart Part { get; private set; }
 
         public string PrimName { get; private set; }
@@ -203,49 +200,68 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
         public static readonly long MaxMeasurementPeriod = 30 * TimeSpan.TicksPerMinute;
 
+        private bool m_coopTermination;
+ 
+        private EventWaitHandle m_coopSleepHandle;
+
         public void ClearQueue()
         {
             m_TimerQueued = false;
             EventQueue.Clear();
         }
 
-        public ScriptInstance(IScriptEngine engine, SceneObjectPart part,
-                UUID itemID, UUID assetID, string assembly,
-                AppDomain dom, string primName, string scriptName,
-                int startParam, bool postOnRez, StateSource stateSource,
-                int maxScriptQueue)
+        public ScriptInstance(
+            IScriptEngine engine, SceneObjectPart part, TaskInventoryItem item,
+            int startParam, bool postOnRez,
+            int maxScriptQueue)
         {
             State = "default";
             EventQueue = new Queue(32);
 
             Engine = engine;
             Part = part;
-            ItemID = itemID;
-            AssetID = assetID;
-            PrimName = primName;
-            ScriptName = scriptName;
-            m_Assembly = assembly;
+            ScriptTask = item;
+
+            // This is currently only here to allow regression tests to get away without specifying any inventory
+            // item when they are testing script logic that doesn't require an item.
+            if (ScriptTask != null)
+            {
+                ScriptName = ScriptTask.Name;
+                ItemID = ScriptTask.ItemID;
+                AssetID = ScriptTask.AssetID;
+            }
+
+            PrimName = part.ParentGroup.Name;
             StartParam = startParam;
             m_MaxScriptQueue = maxScriptQueue;
-            m_stateSource = stateSource;
             m_postOnRez = postOnRez;
             m_AttachedAvatar = Part.ParentGroup.AttachedAvatar;
             m_RegionID = Part.ParentGroup.Scene.RegionInfo.RegionID;
 
-            lock (Part.TaskInventory)
+            if (Engine.Config.GetString("ScriptStopStrategy", "abort") == "co-op")
             {
-                if (Part.TaskInventory.ContainsKey(ItemID))
-                {
-                    ScriptTask = Part.TaskInventory[ItemID];
-                }
+                m_coopTermination = true;
+                m_coopSleepHandle = new AutoResetEvent(false);
             }
+        }
+
+        /// <summary>
+        /// Load the script from an assembly into an AppDomain.
+        /// </summary>
+        /// <param name='dom'></param>
+        /// <param name='assembly'></param>
+        /// <param name='stateSource'></param>
+        public void Load(AppDomain dom, string assembly, StateSource stateSource)
+        {
+            m_Assembly = assembly;
+            m_stateSource = stateSource;
 
             ApiManager am = new ApiManager();
 
             foreach (string api in am.GetApis())
             {
                 m_Apis[api] = am.CreateApi(api);
-                m_Apis[api].Initialize(engine, part, ScriptTask);
+                m_Apis[api].Initialize(Engine, Part, ScriptTask, m_coopSleepHandle);
             }
     
             try
@@ -279,7 +295,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
 //                // m_log.Debug("[Script] Script instance created");
 
-                part.SetScriptEvents(ItemID,
+                Part.SetScriptEvents(ItemID,
                                      (int)m_Script.GetStateEventFlags(State));
             }
             catch (Exception e)
@@ -526,9 +542,34 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             }
 
             // Wait for the current event to complete.
-            if (!m_InSelfDelete && workItem.Wait(new TimeSpan((long)timeout * 100000)))
+            if (!m_InSelfDelete)
             {
-                return true;
+                if (!m_coopTermination)
+                {
+                    // If we're not co-operative terminating then try and wait for the event to complete before stopping
+                    if (workItem.Wait(new TimeSpan((long)timeout * 100000)))
+                        return true;
+                }
+                else
+                {
+                    m_log.DebugFormat(
+                        "[SCRIPT INSTANCE]: Co-operatively stopping script {0} {1} in {2} {3}",
+                        ScriptName, ItemID, PrimName, ObjectID);
+
+                    // This will terminate the event on next handle check by the script.
+                    m_coopSleepHandle.Set();
+
+                    // For now, we will wait forever since the event should always cleanly terminate once LSL loop
+                    // checking is implemented.  May want to allow a shorter timeout option later.
+                    if (workItem.Wait(TimeSpan.MaxValue))
+                    {
+                        m_log.DebugFormat(
+                            "[SCRIPT INSTANCE]: Co-operatively stopped script {0} {1} in {2} {3}",
+                            ScriptName, ItemID, PrimName, ObjectID);
+
+                        return true;
+                    }
+                }
             }
 
             lock (EventQueue)
@@ -541,6 +582,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
             // If the event still hasn't stopped and we the stop isn't the result of script or object removal, then
             // forcibly abort the work item (this aborts the underlying thread).
+            // Co-operative termination should never reach this point.
             if (!m_InSelfDelete)
             {
                 m_log.DebugFormat(
@@ -780,7 +822,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                             m_InEvent = false;
                             m_CurrentEvent = String.Empty;
 
-                            if ((!(e is TargetInvocationException) || (!(e.InnerException is SelfDeleteException) && !(e.InnerException is ScriptDeleteException))) && !(e is ThreadAbortException))
+                            if ((!(e is TargetInvocationException) 
+                                || (!(e.InnerException is SelfDeleteException) 
+                                    && !(e.InnerException is ScriptDeleteException)
+                                    && !(e.InnerException is ScriptCoopStopException))) 
+                                && !(e is ThreadAbortException))
                             {
                                 try
                                 {
@@ -827,6 +873,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                             {
                                 m_InSelfDelete = true;
                                 Part.Inventory.RemoveInventoryItem(ItemID);
+                            }
+                            else if ((e is TargetInvocationException) && (e.InnerException is ScriptCoopStopException))
+                            {
+                                m_log.DebugFormat(
+                                    "[SCRIPT INSTANCE]: Script {0}.{1} in event {2}, state {3} stopped co-operatively.",
+                                    PrimName, ScriptName, data.EventName, State);
                             }
                         }
                     }

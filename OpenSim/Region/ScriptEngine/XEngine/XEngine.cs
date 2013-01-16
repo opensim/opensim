@@ -1284,11 +1284,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     m_DomainScripts[appDomain].Add(itemID);
 
                     instance = new ScriptInstance(this, part,
-                                                  itemID, assetID, assembly,
-                                                  m_AppDomains[appDomain],
-                                                  part.ParentGroup.RootPart.Name,
-                                                  item.Name, startParam, postOnRez,
-                                                  stateSource, m_MaxScriptQueue);
+                                                  item,
+                                                  startParam, postOnRez,
+                                                  m_MaxScriptQueue);
+
+                    instance.Load(m_AppDomains[appDomain], assembly, stateSource);
 
 //                    if (DebugLevel >= 1)
 //                    m_log.DebugFormat(
@@ -1716,9 +1716,14 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             IScriptInstance instance = GetInstance(itemID);
 
             if (instance != null)
+            {
                 instance.Stop(m_WaitForEventCompletionOnScriptStop);
+            }
             else
+            {
+//                m_log.DebugFormat("[XENGINE]: Could not find script with ID {0} to stop in {1}", itemID, World.Name);
                 m_runFlags.AddOrUpdate(itemID, false, 240);
+            }
         }
 
         public DetectParams GetDetectParams(UUID itemID, int idx)
