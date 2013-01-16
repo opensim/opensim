@@ -83,12 +83,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
     public class LSL_Api : MarshalByRefObject, ILSL_Api, IScriptApi
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
-        /// <summary>
-        /// Instance of this script.
-        /// </summary>
-        protected IScriptInstance m_scriptInstance;
-
         protected IScriptEngine m_ScriptEngine;
         protected SceneObjectPart m_host;
 
@@ -118,12 +112,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void Initialize(IScriptInstance scriptInstance)
         {
-            m_scriptInstance = scriptInstance;
-            m_ScriptEngine = m_scriptInstance.Engine;
-            m_host = m_scriptInstance.Part;
-            m_item = m_scriptInstance.ScriptTask;
+            m_ScriptEngine = scriptInstance.Engine;
+            m_host = scriptInstance.Part;
+            m_item = scriptInstance.ScriptTask;
 
-            LoadConfig();
+            LoadLimits();  // read script limits from config.
 
             m_TransferModule =
                     m_ScriptEngine.World.RequestModuleInterface<IMessageTransferModule>();
@@ -136,7 +129,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// <summary>
         /// Load configuration items that affect script, object and run-time behavior. */
         /// </summary>
-        private void LoadConfig()
+        private void LoadLimits()
         {
             m_ScriptDelayFactor =
                 m_ScriptEngine.Config.GetFloat("ScriptDelayFactor", 1.0f);
@@ -182,16 +175,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             delay = (int)((float)delay * m_ScriptDelayFactor);
             if (delay == 0)
                 return;
-
-            Sleep(delay);
-        }
-
-        protected virtual void Sleep(int delay)
-        {
-            if (!m_scriptInstance.CoopTermination)
-                System.Threading.Thread.Sleep(delay);
-            else if (m_scriptInstance.CoopSleepHandle.WaitOne(delay))
-                throw new ScriptCoopStopException();
+            System.Threading.Thread.Sleep(delay);
         }
 
         public Scene World
@@ -2930,8 +2914,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
 //            m_log.Info("llSleep snoozing " + sec + "s.");
             m_host.AddScriptLPS(1);
-
-            Sleep((int)(sec * 1000));
+            Thread.Sleep((int)(sec * 1000));
         }
 
         public LSL_Float llGetMass()

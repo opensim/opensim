@@ -2417,9 +2417,7 @@
       <Reference name="log4net" path="../../../../../bin/"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="true">
-          <Exclude name="Tests" pattern="Tests"/>
-        </Match>
+        <Match pattern="*.cs" recurse="true"/>
       </Files>
     </Project>
 
@@ -3311,7 +3309,6 @@
         <!-- SADLY the way this works means you need to keep adding these paths -->
         <Match path="Shared/Tests" pattern="*.cs" recurse="true"/>
         <Match path="Shared/CodeTools/Tests" pattern="*.cs" recurse="true"/>
-        <Match path="Shared/Instance/Tests" pattern="*.cs" recurse="true"/>
         <Match path="XEngine/Tests" pattern="*.cs" recurse="true"/>
       </Files>
     </Project>

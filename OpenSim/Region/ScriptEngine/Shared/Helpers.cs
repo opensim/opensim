@@ -81,24 +81,6 @@ namespace OpenSim.Region.ScriptEngine.Shared
         }
     }
 
-    /// <summary>
-    /// Used to signal when the script is stopping in co-operation with the script engine 
-    /// (instead of through Thread.Abort()).
-    /// </summary>
-    [Serializable]
-    public class ScriptCoopStopException : Exception
-    {
-        public ScriptCoopStopException()
-        {
-        }
-
-        protected ScriptCoopStopException(
-                SerializationInfo info, 
-                StreamingContext context)
-        {
-        }
-    }
-
     public class DetectParams
     {
         public const int AGENT = 1;

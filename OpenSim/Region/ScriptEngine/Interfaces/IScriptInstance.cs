@@ -28,7 +28,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Threading;
 using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
@@ -180,18 +179,6 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         
         void Suspend();
         void Resume();
-
-        /// <summary>
-        /// If true then scripts should look to terminate their threads in co-operation with the script engine rather
-        /// than through Thread.Abort()
-        /// </summary>
-        bool CoopTermination { get; }
-
-        /// <summary>
-        /// Used for script sleeps when we are using co-operative script termination.
-        /// </summary>
-        /// <remarks>null if CoopTermination is not active</remarks>  
-        EventWaitHandle CoopSleepHandle { get; }
 
         /// <summary>
         /// Process the next event queued for this script instance.

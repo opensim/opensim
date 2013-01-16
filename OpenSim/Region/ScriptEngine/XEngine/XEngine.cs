@@ -1716,14 +1716,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             IScriptInstance instance = GetInstance(itemID);
 
             if (instance != null)
-            {
                 instance.Stop(m_WaitForEventCompletionOnScriptStop);
-            }
             else
-            {
-//                m_log.DebugFormat("[XENGINE]: Could not find script with ID {0} to stop in {1}", itemID, World.Name);
                 m_runFlags.AddOrUpdate(itemID, false, 240);
-            }
         }
 
         public DetectParams GetDetectParams(UUID itemID, int idx)
