@@ -2788,7 +2788,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             Transfer.TransferInfo.Size = req.AssetInf.Data.Length;
             Transfer.TransferInfo.TransferID = req.TransferRequestID;
             Transfer.Header.Zerocoded = true;
-            OutPacket(Transfer, isWearable ? ThrottleOutPacketType.Task : ThrottleOutPacketType.Asset);
+            OutPacket(Transfer, isWearable ? ThrottleOutPacketType.Task | ThrottleOutPacketType.HighPriority : ThrottleOutPacketType.Asset);
 
             if (req.NumPackets == 1)
             {
@@ -2799,7 +2799,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 TransferPacket.TransferData.Data = req.AssetInf.Data;
                 TransferPacket.TransferData.Status = 1;
                 TransferPacket.Header.Zerocoded = true;
-                OutPacket(TransferPacket, isWearable ? ThrottleOutPacketType.Task : ThrottleOutPacketType.Asset);
+                OutPacket(TransferPacket, isWearable ? ThrottleOutPacketType.Task | ThrottleOutPacketType.HighPriority : ThrottleOutPacketType.Asset);
             }
             else
             {
@@ -2832,7 +2832,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         TransferPacket.TransferData.Status = 1;
                     }
                     TransferPacket.Header.Zerocoded = true;
-                    OutPacket(TransferPacket, isWearable ? ThrottleOutPacketType.Task : ThrottleOutPacketType.Asset);
+                    OutPacket(TransferPacket, isWearable ? ThrottleOutPacketType.Task | ThrottleOutPacketType.HighPriority : ThrottleOutPacketType.Asset);
 
                     processedLength += chunkSize;
                     packetNumber++;
@@ -3605,7 +3605,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
                     }    
 
-            OutPacket(aw, ThrottleOutPacketType.Task);
+            OutPacket(aw, ThrottleOutPacketType.Task | ThrottleOutPacketType.HighPriority);
         }
 
         public void SendAppearance(UUID agentID, byte[] visualParams, byte[] textureEntry)
