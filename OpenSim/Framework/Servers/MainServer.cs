@@ -230,6 +230,10 @@ namespace OpenSim.Framework.Servers
                     List<String> poll = httpServer.GetPollServiceHandlerKeys();
                     foreach (String s in httpServer.GetHTTPHandlerKeys())
                         handlers.AppendFormat("\t{0} {1}\n", s, (poll.Contains(s) ? "(poll service)" : string.Empty));
+                    
+                    handlers.AppendFormat("* JSONRPC:\n");
+                    foreach (String s in httpServer.GetJsonRpcHandlerKeys())
+                        handlers.AppendFormat("\t{0}\n", s);
         
 //                    handlers.AppendFormat("* Agent:\n");
 //                    foreach (String s in httpServer.GetAgentHandlerKeys())
