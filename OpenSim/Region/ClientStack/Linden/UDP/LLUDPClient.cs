@@ -339,7 +339,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             int texture = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); pos += 4;
             int asset = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f);
             // State is a subcategory of task that we allocate a percentage to
-            int state = 0;
+//            int state = 0;
+            int state = (int)((1.0f - STATE_TASK_PERCENTAGE) * (float)task);
+            task = (int)(STATE_TASK_PERCENTAGE * (float)task);
 
             // Make sure none of the throttles are set below our packet MTU,
             // otherwise a throttle could become permanently clogged
@@ -350,6 +352,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             task = Math.Max(task, LLUDPServer.MTU);
             texture = Math.Max(texture, LLUDPServer.MTU);
             asset = Math.Max(asset, LLUDPServer.MTU);
+            state = Math.Max(state, LLUDPServer.MTU);
 
             //int total = resend + land + wind + cloud + task + texture + asset;
             //m_log.DebugFormat("[LLUDPCLIENT]: {0} is setting throttles. Resend={1}, Land={2}, Wind={3}, Cloud={4}, Task={5}, Texture={6}, Asset={7}, Total={8}",
