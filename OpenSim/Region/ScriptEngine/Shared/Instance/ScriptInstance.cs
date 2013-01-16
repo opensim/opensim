@@ -200,6 +200,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
         public static readonly long MaxMeasurementPeriod = 30 * TimeSpan.TicksPerMinute;
 
+        public bool CoopTermination { get; private set; }
+ 
+        public EventWaitHandle CoopSleepHandle { get; private set; }
+
         public void ClearQueue()
         {
             m_TimerQueued = false;
@@ -233,6 +237,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             m_postOnRez = postOnRez;
             m_AttachedAvatar = Part.ParentGroup.AttachedAvatar;
             m_RegionID = Part.ParentGroup.Scene.RegionInfo.RegionID;
+
+            if (Engine.Config.GetString("ScriptStopStrategy", "abort") == "co-op")
+            {
+                CoopTermination = true;
+                CoopSleepHandle = new AutoResetEvent(false);
+            }
         }
 
         /// <summary>
@@ -532,9 +542,34 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             }
 
             // Wait for the current event to complete.
-            if (!m_InSelfDelete && workItem.Wait(new TimeSpan((long)timeout * 100000)))
+            if (!m_InSelfDelete)
             {
-                return true;
+                if (!CoopTermination)
+                {
+                    // If we're not co-operative terminating then try and wait for the event to complete before stopping
+                    if (workItem.Wait(new TimeSpan((long)timeout * 100000)))
+                        return true;
+                }
+                else
+                {
+                    m_log.DebugFormat(
+                        "[SCRIPT INSTANCE]: Co-operatively stopping script {0} {1} in {2} {3}",
+                        ScriptName, ItemID, PrimName, ObjectID);
+
+                    // This will terminate the event on next handle check by the script.
+                    CoopSleepHandle.Set();
+
+                    // For now, we will wait forever since the event should always cleanly terminate once LSL loop
+                    // checking is implemented.  May want to allow a shorter timeout option later.
+                    if (workItem.Wait(TimeSpan.MaxValue))
+                    {
+                        m_log.DebugFormat(
+                            "[SCRIPT INSTANCE]: Co-operatively stopped script {0} {1} in {2} {3}",
+                            ScriptName, ItemID, PrimName, ObjectID);
+
+                        return true;
+                    }
+                }
             }
 
             lock (EventQueue)
@@ -547,6 +582,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
             // If the event still hasn't stopped and we the stop isn't the result of script or object removal, then
             // forcibly abort the work item (this aborts the underlying thread).
+            // Co-operative termination should never reach this point.
             if (!m_InSelfDelete)
             {
                 m_log.DebugFormat(
@@ -786,7 +822,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                             m_InEvent = false;
                             m_CurrentEvent = String.Empty;
 
-                            if ((!(e is TargetInvocationException) || (!(e.InnerException is SelfDeleteException) && !(e.InnerException is ScriptDeleteException))) && !(e is ThreadAbortException))
+                            if ((!(e is TargetInvocationException) 
+                                || (!(e.InnerException is SelfDeleteException) 
+                                    && !(e.InnerException is ScriptDeleteException)
+                                    && !(e.InnerException is ScriptCoopStopException))) 
+                                && !(e is ThreadAbortException))
                             {
                                 try
                                 {
@@ -833,6 +873,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                             {
                                 m_InSelfDelete = true;
                                 Part.Inventory.RemoveInventoryItem(ItemID);
+                            }
+                            else if ((e is TargetInvocationException) && (e.InnerException is ScriptCoopStopException))
+                            {
+                                m_log.DebugFormat(
+                                    "[SCRIPT INSTANCE]: Script {0}.{1} in event {2}, state {3} stopped co-operatively.",
+                                    PrimName, ScriptName, data.EventName, State);
                             }
                         }
                     }
