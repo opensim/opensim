@@ -8342,9 +8342,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     else
                     {
                         part.OffsetPosition = currentPosition;
-                        SceneObjectGroup parent = part.ParentGroup;
-                        parent.HasGroupChanged = true;
-                        parent.ScheduleGroupForTerseUpdate();
+//                        SceneObjectGroup parent = part.ParentGroup;
+//                        parent.HasGroupChanged = true;
+//                        parent.ScheduleGroupForTerseUpdate();
+                        part.ScheduleTerseUpdate();
                     }
                 }
             }
