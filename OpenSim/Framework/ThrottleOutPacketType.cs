@@ -47,9 +47,8 @@ namespace OpenSim.Framework
         Texture = 5,
         /// <summary>Non-texture assets</summary>
         Asset = 6,
-        /// <summary>Avatar and primitive data</summary>
-        /// <remarks>This is a sub-category of Task</remarks>
-        State = 7,
+
+        HighPriority = 128,
     }
 
     [Flags]
@@ -61,6 +60,5 @@ namespace OpenSim.Framework
         Task = 1 << 3,
         Texture = 1 << 4,
         Asset = 1 << 5,
-        State = 1 << 6,
     }
 }

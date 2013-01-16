@@ -2260,7 +2260,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return end;
         }
 
-        protected LSL_Vector GetSetPosTarget(SceneObjectPart part, LSL_Vector targetPos, LSL_Vector fromPos)
+        protected LSL_Vector GetSetPosTarget(SceneObjectPart part, LSL_Vector targetPos, LSL_Vector fromPos, bool adjust)
         {
             if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
                 return fromPos;
@@ -2276,9 +2276,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if ((targetPos.z < ground) && disable_underground_movement && m_host.ParentGroup.AttachmentPoint == 0)
                     targetPos.z = ground;
             }
-            LSL_Vector real_vec = SetPosAdjust(fromPos, targetPos);
+            if (adjust)
+                return SetPosAdjust(fromPos, targetPos);
 
-            return real_vec;
+            return targetPos;
         }
 
         /// <summary>
@@ -2293,7 +2294,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
 
             LSL_Vector currentPos = GetPartLocalPos(part);
-            LSL_Vector toPos = GetSetPosTarget(part, targetPos, currentPos);
+            LSL_Vector toPos = GetSetPosTarget(part, targetPos, currentPos, adjust);
 
 
             if (part.ParentGroup.RootPart == part)
@@ -7925,7 +7926,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 return null;
 
                             v=rules.GetVector3Item(idx++);
-                            currentPosition = GetSetPosTarget(part, v, currentPosition);
+                            if (part.IsRoot && !part.ParentGroup.IsAttachment)
+                                currentPosition = GetSetPosTarget(part, v, currentPosition, true);
+                            else
+                                currentPosition = GetSetPosTarget(part, v, currentPosition, false);
                             positionChanged = true;
 
                             break;

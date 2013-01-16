@@ -803,6 +803,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             #region Queue or Send
 
+            bool highPriority = false;
+
+            if (category != ThrottleOutPacketType.Unknown && (category & ThrottleOutPacketType.HighPriority) != 0)
+            {
+                category = (ThrottleOutPacketType)((int)category & 127);
+                highPriority = true;
+            }
+
             OutgoingPacket outgoingPacket = new OutgoingPacket(udpClient, buffer, category, null);
             // If we were not provided a method for handling unacked, use the UDPServer default method
             outgoingPacket.UnackedMethod = ((method == null) ? delegate(OutgoingPacket oPacket) { ResendUnacked(oPacket); } : method);
@@ -811,7 +819,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // continue to display the deleted object until relog.  Therefore, we need to always queue a kill object
             // packet so that it isn't sent before a queued update packet.
             bool requestQueue = type == PacketType.KillObject;
-            if (!outgoingPacket.Client.EnqueueOutgoing(outgoingPacket, requestQueue))
+            if (!outgoingPacket.Client.EnqueueOutgoing(outgoingPacket, requestQueue, highPriority))
                 SendPacketFinal(outgoingPacket);
 
             #endregion Queue or Send

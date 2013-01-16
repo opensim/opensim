@@ -2580,7 +2580,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (retMethod != null)
             {
                 ODERayRequest req = new ODERayRequest();
-                req.geom = IntPtr.Zero;
+                req.actor = null;
                 req.callbackMethod = retMethod;
                 req.length = length;
                 req.Normal = direction;
@@ -2597,7 +2597,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (retMethod != null)
             {
                 ODERayRequest req = new ODERayRequest();
-                req.geom = IntPtr.Zero;
+                req.actor = null;
                 req.callbackMethod = retMethod;
                 req.length = length;
                 req.Normal = direction;
@@ -2625,7 +2625,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             };
 
             ODERayRequest req = new ODERayRequest();
-            req.geom = IntPtr.Zero;
+            req.actor = null;
             req.callbackMethod = retMethod;
             req.length = length;
             req.Normal = direction;
@@ -2663,7 +2663,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             };
 
             ODERayRequest req = new ODERayRequest();
-            req.geom = IntPtr.Zero;
+            req.actor = null;
             req.callbackMethod = retMethod;
             req.length = length;
             req.Normal = direction;
@@ -2710,7 +2710,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             };
 
             ODERayRequest req = new ODERayRequest();
-            req.geom = geom;
+            req.actor = actor;
             req.callbackMethod = retMethod;
             req.length = length;
             req.Normal = direction;
@@ -2745,7 +2745,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             };
 
             ODERayRequest req = new ODERayRequest();
-            req.geom = IntPtr.Zero;
+            req.actor = null;
             req.callbackMethod = retMethod;
             req.Normal = size;
             req.Origin = position;
@@ -2777,7 +2777,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             };
 
             ODERayRequest req = new ODERayRequest();
-            req.geom = IntPtr.Zero;
+            req.actor = null;
             req.callbackMethod = retMethod;
             req.length = radius;
             req.Origin = position;
@@ -2819,7 +2819,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             };
 
             ODERayRequest req = new ODERayRequest();
-            req.geom = geom;
+            req.actor = null;
             req.callbackMethod = retMethod;
             req.length = plane.W;
             req.Normal.X = plane.X;
