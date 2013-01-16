@@ -87,8 +87,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
     public class LSL_Api : MarshalByRefObject, ILSL_Api, IScriptApi
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         protected IScriptEngine m_ScriptEngine;
         protected SceneObjectPart m_host;
+
+        /// <summary>
+        /// Used for script sleeps when we are using co-operative script termination.
+        /// </summary>
+        /// <remarks>null if co-operative script termination is not active</remarks>  
+        EventWaitHandle m_coopSleepHandle;       
 
         /// <summary>
         /// The item that hosts this script
@@ -142,33 +149,31 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         {"TURNRIGHT", "Turning Right"}
                 };
 
-        public void Initialize(IScriptEngine ScriptEngine, SceneObjectPart host, TaskInventoryItem item)
+        public void Initialize(
+            IScriptEngine scriptEngine, SceneObjectPart host, TaskInventoryItem item, EventWaitHandle coopSleepHandle)
         {
-/*
-            m_ShoutSayTimer = new Timer(1000);
-            m_ShoutSayTimer.Elapsed += SayShoutTimerElapsed;
-            m_ShoutSayTimer.AutoReset = true;
-            m_ShoutSayTimer.Start();
-*/
             m_lastSayShoutCheck = DateTime.UtcNow;
 
-            m_ScriptEngine = ScriptEngine;
+            m_ScriptEngine = scriptEngine;
             m_host = host;
             m_item = item;
             m_debuggerSafe = m_ScriptEngine.Config.GetBoolean("DebuggerSafe", false);
+            m_coopSleepHandle = coopSleepHandle;
 
-            LoadLimits();  // read script limits from config.
+            LoadConfig();
 
             m_TransferModule =
                     m_ScriptEngine.World.RequestModuleInterface<IMessageTransferModule>();
             m_UrlModule = m_ScriptEngine.World.RequestModuleInterface<IUrlModule>();
             m_SoundModule = m_ScriptEngine.World.RequestModuleInterface<ISoundModule>();
 
-            AsyncCommands = new AsyncCommandManager(ScriptEngine);
+            AsyncCommands = new AsyncCommandManager(m_ScriptEngine);
         }
 
-        /* load configuration items that affect script, object and run-time behavior. */
-        private void LoadLimits()
+        /// <summary>
+        /// Load configuration items that affect script, object and run-time behavior. */
+        /// </summary>
+        private void LoadConfig()
         {
             m_ScriptDelayFactor =
                 m_ScriptEngine.Config.GetFloat("ScriptDelayFactor", 1.0f);
@@ -182,12 +187,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 m_ScriptEngine.Config.GetInt("NotecardLineReadCharsMax", 255);
             if (m_notecardLineReadCharsMax > 65535)
                 m_notecardLineReadCharsMax = 65535;
+
             // load limits for particular subsystems.
             IConfig SMTPConfig;
             if ((SMTPConfig = m_ScriptEngine.ConfigSource.Configs["SMTP"]) != null) {
                 // there's an smtp config, so load in the snooze time.
                 EMAIL_PAUSE_TIME = SMTPConfig.GetInt("email_pause_time", EMAIL_PAUSE_TIME);
             }
+
             // Rezzing an object with a velocity can create recoil. This feature seems to have been
             //    removed from recent versions of SL. The code computes recoil (vel*mass) and scales
             //    it by this factor. May be zero to turn off recoil all together.
@@ -212,7 +219,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             delay = (int)((float)delay * m_ScriptDelayFactor);
             if (delay == 0)
                 return;
-            System.Threading.Thread.Sleep(delay);
+
+            Sleep(delay);
+        }
+
+        protected virtual void Sleep(int delay)
+        {
+            if (m_coopSleepHandle == null)
+                System.Threading.Thread.Sleep(delay);
+            else if (m_coopSleepHandle.WaitOne(delay))
+                throw new ScriptCoopStopException();
         }
 
         public Scene World
@@ -3228,7 +3244,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
 //            m_log.Info("llSleep snoozing " + sec + "s.");
             m_host.AddScriptLPS(1);
-            Thread.Sleep((int)(sec * 1000));
+
+            Sleep((int)(sec * 1000));
         }
 
         public LSL_Float llGetMass()

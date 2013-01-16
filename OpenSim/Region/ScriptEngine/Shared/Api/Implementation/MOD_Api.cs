@@ -30,6 +30,7 @@ using System.Reflection;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.Remoting.Lifetime;
+using System.Threading;
 using OpenMetaverse;
 using Nini.Config;
 using OpenSim;
@@ -61,9 +62,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         internal bool m_MODFunctionsEnabled = false;
         internal IScriptModuleComms m_comms = null;
 
-        public void Initialize(IScriptEngine ScriptEngine, SceneObjectPart host, TaskInventoryItem item)
+        public void Initialize(
+            IScriptEngine scriptEngine, SceneObjectPart host, TaskInventoryItem item, EventWaitHandle coopSleepHandle)
         {
-            m_ScriptEngine = ScriptEngine;
+            m_ScriptEngine = scriptEngine;
             m_host = host;
             m_item = item;
 

@@ -143,9 +143,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         protected IUrlModule m_UrlModule = null;
 
-        public void Initialize(IScriptEngine ScriptEngine, SceneObjectPart host, TaskInventoryItem item)
+        public void Initialize(
+            IScriptEngine scriptEngine, SceneObjectPart host, TaskInventoryItem item, EventWaitHandle coopSleepHandle)
         {
-            m_ScriptEngine = ScriptEngine;
+            m_ScriptEngine = scriptEngine;
             m_host = host;
             m_item = item;
             m_debuggerSafe = m_ScriptEngine.Config.GetBoolean("DebuggerSafe", false);

@@ -1783,6 +1783,21 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>The part where the script was rezzed if successful.  False otherwise.</returns>
         public SceneObjectPart RezNewScript(UUID agentID, InventoryItemBase itemBase)
         {
+            return RezNewScript(
+                agentID,
+                itemBase,
+                "default\n{\n    state_entry()\n    {\n        llSay(0, \"Script running\");\n    }\n}");
+        }
+
+        /// <summary>
+        /// Rez a new script from nothing with given script text.
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="itemBase">Template item.</param>
+        /// <param name="scriptText"></param>
+        /// <returns>The part where the script was rezzed if successful.  False otherwise.</returns>
+        public SceneObjectPart RezNewScript(UUID agentID, InventoryItemBase itemBase, string scriptText)
+        {
             // The part ID is the folder ID!
             SceneObjectPart part = GetSceneObjectPart(itemBase.Folder);
             if (part == null)
@@ -1802,9 +1817,14 @@ namespace OpenSim.Region.Framework.Scenes
                 return null;
             }
 
-            AssetBase asset = CreateAsset(itemBase.Name, itemBase.Description, (sbyte)itemBase.AssetType,
-                Encoding.ASCII.GetBytes("default\n{\n    state_entry()\n    {\n        llSay(0, \"Script running\");\n    }\n\n    touch_start(integer num)\n    {\n    }\n}"),
-                agentID);
+            AssetBase asset 
+                = CreateAsset(
+                    itemBase.Name, 
+                    itemBase.Description, 
+                    (sbyte)itemBase.AssetType,
+                    Encoding.ASCII.GetBytes(scriptText), 
+                    agentID);
+
             AssetService.Store(asset);
 
             TaskInventoryItem taskItem = new TaskInventoryItem();
