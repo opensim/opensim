@@ -157,6 +157,9 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     availableMethods["admin_acl_remove"] = (req, ep) => InvokeXmlRpcMethod(req, ep, XmlRpcAccessListRemove);
                     availableMethods["admin_acl_list"] = (req, ep) => InvokeXmlRpcMethod(req, ep, XmlRpcAccessListList);
 
+                    // Misc
+                    availableMethods["admin_refresh_search"] = (req, ep) => InvokeXmlRpcMethod(req, ep, XmlRpcRefreshSearch);
+
                     // Either enable full remote functionality or just selected features
                     string enabledMethods = m_config.GetString("enabled_methods", "all");
 
@@ -1946,6 +1949,32 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
             // We have no way of telling the failure of the actual teleport
             responseData["success"] = true;
+        }
+
+        private void XmlRpcRefreshSearch(XmlRpcRequest request, XmlRpcResponse response, IPEndPoint remoteClient)
+        {
+            m_log.Info("[RADMIN]: Received Refresh Search Request");
+
+            Hashtable responseData = (Hashtable)response.Value;
+            Hashtable requestData = (Hashtable)request.Params[0];
+
+            CheckRegionParams(requestData, responseData);
+
+            Scene scene = null;
+            GetSceneFromRegionParams(requestData, responseData, out scene);
+
+            ISearchModule searchModule = scene.RequestModuleInterface<ISearchModule>();
+            if (searchModule != null)
+            {
+                searchModule.Refresh();
+                responseData["success"] = true;
+            }
+            else
+            {
+                responseData["success"] = false;
+            }
+
+            m_log.Info("[RADMIN]: Refresh Search Request complete");
         }
 
         /// <summary>
