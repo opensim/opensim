@@ -1607,7 +1607,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if (localIDs.Count == 1 && m_scene.GetScenePresence(localIDs[0]) != null)
             {
-                OutPacket(kill, ThrottleOutPacketType.State);
+                OutPacket(kill, ThrottleOutPacketType.Task);
             }
             else
             {

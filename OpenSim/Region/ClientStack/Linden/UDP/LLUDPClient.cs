@@ -279,7 +279,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public string GetStats()
         {
             return string.Format(
-                "{0,7} {1,7} {2,7} {3,9} {4,7} {5,7} {6,7} {7,7} {8,7} {9,8} {10,7} {11,7} {12,7}",
+                "{0,7} {1,7} {2,7} {3,9} {4,7} {5,7} {6,7} {7,7} {8,7} {9,8} {10,7} {11,7}",
                 Util.EnvironmentTickCountSubtract(TickLastPacketReceived),
                 PacketsReceived,                                 
                 PacketsSent,
@@ -291,8 +291,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_packetOutboxes[(int)ThrottleOutPacketType.Cloud].Count,
                 m_packetOutboxes[(int)ThrottleOutPacketType.Task].Count,
                 m_packetOutboxes[(int)ThrottleOutPacketType.Texture].Count,
-                m_packetOutboxes[(int)ThrottleOutPacketType.Asset].Count,
-                m_packetOutboxes[(int)ThrottleOutPacketType.State].Count);                                
+                m_packetOutboxes[(int)ThrottleOutPacketType.Asset].Count);
         }
 
         public void SendPacketStats()
@@ -338,8 +337,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             int task = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); pos += 4;
             int texture = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); pos += 4;
             int asset = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f);
-            // State is a subcategory of task that we allocate a percentage to
-            int state = 0;
 
             // Make sure none of the throttles are set below our packet MTU,
             // otherwise a throttle could become permanently clogged
@@ -375,9 +372,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             bucket = m_throttleCategories[(int)ThrottleOutPacketType.Task];
             bucket.RequestedDripRate = task;
-
-            bucket = m_throttleCategories[(int)ThrottleOutPacketType.State];
-            bucket.RequestedDripRate = state;
 
             bucket = m_throttleCategories[(int)ThrottleOutPacketType.Texture];
             bucket.RequestedDripRate = texture;
@@ -709,9 +703,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         Texture = 5,
         /// <summary>Non-texture assets</summary>
         Asset = 6,
-        /// <summary>Avatar and primitive data</summary>
-        /// <remarks>This is a sub-category of Task</remarks>
-        State = 7,
              */
 
             switch (category)
@@ -728,8 +719,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     return ThrottleOutPacketTypeFlags.Texture;
                 case ThrottleOutPacketType.Asset:
                     return ThrottleOutPacketTypeFlags.Asset;
-                case ThrottleOutPacketType.State:
-                    return ThrottleOutPacketTypeFlags.State;
                 default:
                     return 0;
             }
