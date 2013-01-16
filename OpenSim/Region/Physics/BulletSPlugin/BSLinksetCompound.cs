@@ -108,8 +108,8 @@ public sealed class BSLinksetCompound : BSLinkset
     // Schedule a refresh to happen after all the other taint processing.
     private void ScheduleRebuild(BSPhysObject requestor)
     {
-        DetailLog("{0},BSLinksetCompound.ScheduleRebuild,,rebuilding={1},hasChildren={2}", 
-                            requestor.LocalID, Rebuilding, HasAnyChildren);
+        DetailLog("{0},BSLinksetCompound.ScheduleRebuild,,rebuilding={1},hasChildren={2},actuallyScheduling={3}", 
+                            requestor.LocalID, Rebuilding, HasAnyChildren, (!Rebuilding && HasAnyChildren));
         // When rebuilding, it is possible to set properties that would normally require a rebuild.
         //    If already rebuilding, don't request another rebuild.
         //    If a linkset with just a root prim (simple non-linked prim) don't bother rebuilding.
@@ -311,7 +311,7 @@ public sealed class BSLinksetCompound : BSLinkset
             else
             {
                 // Rebuild the compound shape with the child removed
-                ScheduleRebuild(child);
+                ScheduleRebuild(LinksetRoot);
             }
         }
         return;
