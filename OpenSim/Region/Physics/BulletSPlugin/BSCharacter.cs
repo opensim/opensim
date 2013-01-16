@@ -126,9 +126,9 @@ public sealed class BSCharacter : BSPhysObject
         DetailLog("{0},BSCharacter.Destroy", LocalID);
         PhysicsScene.TaintedObject("BSCharacter.destroy", delegate()
         {
-            PhysicsScene.Shapes.DereferenceBody(PhysBody, true, null);
+            PhysicsScene.Shapes.DereferenceBody(PhysBody, true /* inTaintTime */, null /* bodyCallback */);
             PhysBody.Clear();
-            PhysicsScene.Shapes.DereferenceShape(PhysShape, true, null);
+            PhysicsScene.Shapes.DereferenceShape(PhysShape, true /* inTaintTime */, null /* bodyCallback */);
             PhysShape.Clear();
         });
     }

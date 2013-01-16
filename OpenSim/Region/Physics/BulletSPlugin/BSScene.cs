@@ -387,12 +387,14 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         if (!m_initialized) return null;
 
         BSCharacter actor = new BSCharacter(localID, avName, this, position, size, isFlying);
-        lock (PhysObjects) PhysObjects.Add(localID, actor);
+        lock (PhysObjects)
+            PhysObjects.Add(localID, actor);
 
         // TODO: Remove kludge someday.
         // We must generate a collision for avatars whether they collide or not.
         // This is required by OpenSim to update avatar animations, etc.
-        lock (m_avatars) m_avatars.Add(actor);
+        lock (m_avatars)
+            m_avatars.Add(actor);
 
         return actor;
     }
@@ -408,9 +410,11 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         {
             try
             {
-                lock (PhysObjects) PhysObjects.Remove(actor.LocalID);
+                lock (PhysObjects)
+                    PhysObjects.Remove(bsactor.LocalID);
                 // Remove kludge someday
-                lock (m_avatars) m_avatars.Remove(bsactor);
+                lock (m_avatars)
+                    m_avatars.Remove(bsactor);
             }
             catch (Exception e)
             {
@@ -418,6 +422,11 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             }
             bsactor.Destroy();
             // bsactor.dispose();
+        }
+        else
+        {
+            m_log.ErrorFormat("{0}: Requested to remove avatar that is not a BSCharacter. ID={1}, type={2}",
+                                        LogHeader, actor.LocalID, actor.GetType().Name);
         }
     }
 

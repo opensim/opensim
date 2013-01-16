@@ -6600,19 +6600,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 #endregion
 
                 AgentRequestSit handlerAgentRequestSit = OnAgentRequestSit;
-                if (handlerAgentRequestSit != null)
-                    if (!(agentRequestSit.AgentData == null
-                        || agentRequestSit.TargetObject == null
-                        || agentRequestSit.TargetObject.TargetID == null
-                        || agentRequestSit.TargetObject.Offset == null))
-                    {
-                        var sp = m_scene.GetScenePresence(agentRequestSit.AgentData.AgentID);
-                        if (sp == null || sp.ParentID != 0) // ignore packet if agent is already sitting
-                            return true;
 
-                        handlerAgentRequestSit(this, agentRequestSit.AgentData.AgentID,
-                                               agentRequestSit.TargetObject.TargetID, agentRequestSit.TargetObject.Offset);
-                    }
+                if (handlerAgentRequestSit != null)
+                    handlerAgentRequestSit(this, agentRequestSit.AgentData.AgentID,
+                                           agentRequestSit.TargetObject.TargetID, agentRequestSit.TargetObject.Offset);
             }
             return true;
         }

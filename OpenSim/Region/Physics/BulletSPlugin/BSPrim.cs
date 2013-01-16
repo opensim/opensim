@@ -379,7 +379,7 @@ public sealed class BSPrim : BSPhysObject
             // If the object is below ground it just has to be moved up because pushing will
             //     not get it through the terrain
             _position.Z = targetHeight;
-            if (!inTaintTime)
+            if (inTaintTime)
                 ForcePosition = _position;
             ret = true;
         }

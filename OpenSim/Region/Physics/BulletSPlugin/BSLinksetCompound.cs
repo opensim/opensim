@@ -195,8 +195,11 @@ public sealed class BSLinksetCompound : BSLinkset
                 && PhysicsScene.TerrainManager.IsWithinKnownTerrain(LinksetRoot.RawPosition))
         {
             // TODO: replace this with are calculation of the child prim's orientation and pos.
-            updated.LinksetInfo = null;
-            ScheduleRebuild(updated);
+            // TODO: for the moment, don't rebuild the compound shape.
+            //    This is often just the car turning its wheels. When we can just reorient the one
+            //    member shape of the compound shape, the overhead of rebuilding won't be a problem.
+            // updated.LinksetInfo = null;
+            // ScheduleRebuild(updated);
         }
     }
 

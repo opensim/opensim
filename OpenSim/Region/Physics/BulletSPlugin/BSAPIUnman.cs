@@ -166,7 +166,7 @@ public override BulletWorld Initialize(Vector3 maxPosition, ConfigurationParamet
 
     // If Debug logging level, enable logging from the unmanaged code
     m_DebugLogCallbackHandle = null;
-    if (BSScene.m_log.IsDebugEnabled || PhysicsScene.PhysicsLogging.Enabled)
+    if (BSScene.m_log.IsDebugEnabled && PhysicsScene.PhysicsLogging.Enabled)
     {
         BSScene.m_log.DebugFormat("{0}: Initialize: Setting debug callback for unmanaged code", BSScene.LogHeader);
         if (PhysicsScene.PhysicsLogging.Enabled)
@@ -202,7 +202,7 @@ private void BulletLoggerPhysLog(string msg)
 }
 
 public override int PhysicsStep(BulletWorld world, float timeStep, int maxSubSteps, float fixedTimeStep,
-                        out int updatedEntityCount, out int collidersCount)
+                                        out int updatedEntityCount, out int collidersCount)
 {
     BulletWorldUnman worldu = world as BulletWorldUnman;
     return BSAPICPP.PhysicsStep2(worldu.ptr, timeStep, maxSubSteps, fixedTimeStep, out updatedEntityCount, out collidersCount);
@@ -212,6 +212,19 @@ public override void Shutdown(BulletWorld world)
 {
     BulletWorldUnman worldu = world as BulletWorldUnman;
     BSAPICPP.Shutdown2(worldu.ptr);
+
+    if (m_paramsHandle.IsAllocated)
+    {
+        m_paramsHandle.Free();
+    }
+    if (m_collisionArrayPinnedHandle.IsAllocated)
+    {
+        m_collisionArrayPinnedHandle.Free();
+    }
+    if (m_updateArrayPinnedHandle.IsAllocated)
+    {
+        m_updateArrayPinnedHandle.Free();
+    }
 }
 
 public override bool PushUpdate(BulletBody obj)
