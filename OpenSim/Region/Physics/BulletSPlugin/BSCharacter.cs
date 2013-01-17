@@ -652,6 +652,9 @@ public sealed class BSCharacter : BSPhysObject
     public override bool IsStatic {
         get { return false; }
     }
+    public override bool IsPhysicallyActive {
+        get { return true; }
+    }
     public override bool Flying {
         get { return _flying; }
         set {

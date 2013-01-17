@@ -35,6 +35,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using OpenMetaverse;
+using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.Physics.BulletSPlugin
@@ -154,7 +155,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         // Return 'true' if this vehicle is doing vehicle things
         public bool IsActive
         {
-            get { return (Type != Vehicle.TYPE_NONE && !Prim.IsStatic); }
+            get { return (Type != Vehicle.TYPE_NONE && Prim.IsPhysicallyActive); }
         }
 
         #region Vehicle parameter setting
