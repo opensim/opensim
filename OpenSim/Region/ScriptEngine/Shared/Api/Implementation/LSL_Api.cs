@@ -192,7 +192,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             if (m_coopSleepHandle == null)
                 System.Threading.Thread.Sleep(delay);
-            else if (m_coopSleepHandle.WaitOne(delay))
+            else
+                CheckForCoopTermination(delay);
+        }
+
+        /// <summary>
+        /// Check for co-operative termination.
+        /// </summary>
+        /// <param name='delay'>If called with 0, then just the check is performed with no wait.</param>
+        protected virtual void CheckForCoopTermination(int delay)
+        {
+            if (m_coopSleepHandle.WaitOne(delay))
                 throw new ScriptCoopStopException();
         }
 

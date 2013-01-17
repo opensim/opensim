@@ -53,6 +53,7 @@ using OpenSim.Region.ScriptEngine.Shared.Instance;
 using OpenSim.Region.ScriptEngine.Shared.Api;
 using OpenSim.Region.ScriptEngine.Shared.Api.Plugins;
 using OpenSim.Region.ScriptEngine.Interfaces;
+using OpenSim.Region.ScriptEngine.XEngine.ScriptBase;
 using Timer = OpenSim.Region.ScriptEngine.Shared.Api.Plugins.Timer;
 
 using ScriptCompileQueue = OpenSim.Framework.LocklessQueue<object[]>;
@@ -176,6 +177,12 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             get { return "XEngine"; }
         }
 
+        public string ScriptBaseClassName { get; private set; }
+
+        public ParameterInfo[] ScriptBaseClassParameters { get; private set; }
+
+        public string[] ScriptReferencedAssemblies { get; private set; }
+
         public Scene World
         {
             get { return m_Scene; }
@@ -230,6 +237,12 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             m_ScriptConfig = configSource.Configs["XEngine"];
             m_ConfigSource = configSource;
+
+            ScriptBaseClassName = typeof(XEngineScriptBase).FullName;
+            ScriptBaseClassParameters = typeof(XEngineScriptBase).GetConstructor(new Type[] { typeof(WaitHandle) }).GetParameters();
+            ScriptReferencedAssemblies = new string[] { Path.GetFileName(typeof(XEngineScriptBase).Assembly.Location) };
+
+            Console.WriteLine("ASSEMBLY NAME: {0}", ScriptReferencedAssemblies[0]);
         }
 
         public void AddRegion(Scene scene)
@@ -1179,7 +1192,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 }
                 catch (Exception e)
                 {
-//                    m_log.ErrorFormat("[XEngine]: Exception when rezzing script {0}{1}", e.Message, e.StackTrace);
+//                    m_log.ErrorFormat(
+//                        "[XEngine]: Exception when rezzing script with item ID {0}, {1}{2}", 
+//                        itemID, e.Message, e.StackTrace);
 
     //                try
     //                {

@@ -267,13 +267,27 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             try
             {
                 if (dom != System.AppDomain.CurrentDomain)
-                    m_Script = (IScript)dom.CreateInstanceAndUnwrap(
+                    m_Script 
+                        = (IScript)dom.CreateInstanceAndUnwrap(
                             Path.GetFileNameWithoutExtension(assembly),
-                            "SecondLife.Script");
+                            "SecondLife.Script",
+                            false,
+                            BindingFlags.Default,
+                            null,
+                            new object[] { m_coopSleepHandle },
+                            null,
+                            null,
+                            null);
                 else
-                    m_Script = (IScript)Assembly.Load(
-                            Path.GetFileNameWithoutExtension(assembly)).CreateInstance(
-                            "SecondLife.Script");
+                    m_Script 
+                        = (IScript)Assembly.Load(Path.GetFileNameWithoutExtension(assembly)).CreateInstance(
+                            "SecondLife.Script", 
+                            false, 
+                            BindingFlags.Default, 
+                            null, 
+                            new object[] { m_coopSleepHandle }, 
+                            null, 
+                            null);
 
                 //ILease lease = (ILease)RemotingServices.GetLifetimeService(m_Script as ScriptBaseClass);
                 //RemotingServices.GetLifetimeService(m_Script as ScriptBaseClass);
