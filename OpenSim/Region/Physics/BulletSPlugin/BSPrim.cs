@@ -502,6 +502,12 @@ public sealed class BSPrim : BSPhysObject
                 RegisterPreStepAction("BSPrim.setForce", LocalID,
                     delegate(float timeStep)
                     {
+                        if (!IsPhysicallyActive)
+                        {
+                            UnRegisterPreStepAction("BSPrim.setForce", LocalID);
+                            return;
+                        }
+
                         DetailLog("{0},BSPrim.setForce,preStep,force={1}", LocalID, _force);
                         if (PhysBody.HasPhysicalBody)
                         {
@@ -627,6 +633,12 @@ public sealed class BSPrim : BSPhysObject
                 RegisterPreStepAction("BSPrim.setTorque", LocalID,
                     delegate(float timeStep)
                     {
+                        if (!IsPhysicallyActive)
+                        {
+                            UnRegisterPreStepAction("BSPrim.setTorque", LocalID);
+                            return;
+                        }
+
                         if (PhysBody.HasPhysicalBody)
                             AddAngularForce(_torque, false, true);
                     }
@@ -1061,6 +1073,12 @@ public sealed class BSPrim : BSPhysObject
 
                 RegisterPreStepAction("BSPrim.PIDTarget", LocalID, delegate(float timeStep)
                 {
+                    if (!IsPhysicallyActive)
+                    {
+                        UnRegisterPreStepAction("BSPrim.PIDTarget", LocalID);
+                        return;
+                    }
+
                     OMV.Vector3 origPosition = RawPosition;     // DEBUG DEBUG (for printout below)
 
                     // 'movePosition' is where we'd like the prim to be at this moment.
@@ -1108,6 +1126,9 @@ public sealed class BSPrim : BSPhysObject
 
                 RegisterPreStepAction("BSPrim.Hover", LocalID, delegate(float timeStep)
                 {
+                    if (!IsPhysicallyActive)
+                        return;
+
                     _hoverMotor.SetCurrent(RawPosition.Z);
                     _hoverMotor.SetTarget(ComputeCurrentPIDHoverHeight());
                     float targetHeight = _hoverMotor.Step(timeStep);
