@@ -132,8 +132,8 @@ public sealed class BSPrim : BSPhysObject
         base.Destroy();
 
         // Undo any links between me and any other object
-        BSPhysObject parentBefore = Linkset.LinksetRoot;
-        int childrenBefore = Linkset.NumberOfChildren;
+        BSPhysObject parentBefore = Linkset.LinksetRoot;    // DEBUG DEBUG
+        int childrenBefore = Linkset.NumberOfChildren;      // DEBUG DEBUG
 
         Linkset = Linkset.RemoveMeFromLinkset(this);
 
@@ -727,6 +727,12 @@ public sealed class BSPrim : BSPhysObject
         get { return !IsPhantom && !_isVolumeDetect; }
     }
 
+    // The object is moving and is actively being dynamic in the physical world
+    public override bool IsPhysicallyActive
+    {
+        get { return !_isSelected && IsPhysical; }
+    }
+
     // Make gravity work if the object is physical and not selected
     // Called at taint-time!!
     private void SetObjectDynamic(bool forceRebuild)
@@ -1174,18 +1180,11 @@ public sealed class BSPrim : BSPhysObject
     // This added force will only last the next simulation tick.
     public void AddForce(OMV.Vector3 force, bool pushforce, bool inTaintTime) {
         // for an object, doesn't matter if force is a pushforce or not
-        if (!IsStatic)
+        if (IsPhysicallyActive)
         {
             if (force.IsFinite())
             {
-                float magnitude = force.Length();
-                if (magnitude > BSParam.MaxAddForceMagnitude)
-                {
-                    // Force has a limit
-                    force = force / magnitude * BSParam.MaxAddForceMagnitude;
-                }
-
-                OMV.Vector3 addForce = force;
+                OMV.Vector3 addForce = Util.ClampV(force, BSParam.MaxAddForceMagnitude);
                 // DetailLog("{0},BSPrim.addForce,call,force={1}", LocalID, addForce);
 
                 PhysicsScene.TaintedObject(inTaintTime, "BSPrim.AddForce", delegate()
@@ -1209,19 +1208,13 @@ public sealed class BSPrim : BSPhysObject
 
     public void AddForceImpulse(OMV.Vector3 impulse, bool pushforce, bool inTaintTime) {
         // for an object, doesn't matter if force is a pushforce or not
-        if (!IsStatic)
+        if (!IsPhysicallyActive)
         {
             if (impulse.IsFinite())
             {
-                float magnitude = impulse.Length();
-                if (magnitude > BSParam.MaxAddForceMagnitude)
-                {
-                    // Force has a limit
-                    impulse = impulse / magnitude * BSParam.MaxAddForceMagnitude;
-                }
-
+                OMV.Vector3 addImpulse = Util.ClampV(impulse, BSParam.MaxAddForceMagnitude);
                 // DetailLog("{0},BSPrim.addForceImpulse,call,impulse={1}", LocalID, impulse);
-                OMV.Vector3 addImpulse = impulse;
+
                 PhysicsScene.TaintedObject(inTaintTime, "BSPrim.AddImpulse", delegate()
                 {
                     // Bullet adds this impulse immediately to the velocity

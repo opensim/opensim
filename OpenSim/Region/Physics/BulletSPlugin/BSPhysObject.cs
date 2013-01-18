@@ -139,6 +139,11 @@ public abstract class BSPhysObject : PhysicsActor
     public abstract bool IsStatic { get; }
     public abstract bool IsSelected { get; }
 
+    // It can be confusing for an actor to know if it should move or update an object
+    //    depeneding on the setting of 'selected', 'physical, ...
+    // This flag is the true test -- if true, the object is being acted on in the physical world
+    public abstract bool IsPhysicallyActive { get; }
+
     // Materialness
     public MaterialAttributes.Material Material { get; private set; }
     public override void SetMaterial(int material)
@@ -302,8 +307,9 @@ public abstract class BSPhysObject : PhysicsActor
     public virtual bool SendCollisions()
     {
         bool ret = true;
+
         // If the 'no collision' call, force it to happen right now so quick collision_end
-        bool force = (CollisionCollection.Count == 0);
+        bool force = (CollisionCollection.Count == 0 && CollisionsLastTick.Count != 0);
 
         // throttle the collisions to the number of milliseconds specified in the subscription
         if (force || (PhysicsScene.SimulationNowTime >= NextCollisionOkTime))
@@ -318,7 +324,7 @@ public abstract class BSPhysObject : PhysicsActor
                 ret = false;
             }
 
-            // DetailLog("{0},{1}.SendCollisionUpdate,call,numCollisions={2}", LocalID, TypeName, CollisionCollection.Count);
+            DetailLog("{0},{1}.SendCollisionUpdate,call,numCollisions={2}", LocalID, TypeName, CollisionCollection.Count);
             base.SendCollisionUpdate(CollisionCollection);
 
             // Remember the collisions from this tick for some collision specific processing.

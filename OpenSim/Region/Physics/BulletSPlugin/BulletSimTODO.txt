@@ -16,6 +16,7 @@ vehicle angular banking
 Avatars walking up stairs (HALF DONE)
     Radius of the capsule affects ability to climb edges.
 Vehicle movement on terrain smoothness
+When is force introduced by SetForce removed? The prestep action could go forever.
 Boats float low in the water (DONE)
 Avatar movement
 	flying into a wall doesn't stop avatar who keeps appearing to move through the obstacle (DONE)
@@ -72,8 +73,11 @@ Incorporate inter-relationship of angular corrections. For instance, angularDefl
 
 GENERAL TODO LIST:
 =================================================
+Implement llSetPhysicalMaterial.
+Implement llSetForceAndTorque.
 Implement an avatar mesh shape. The Bullet capsule is way too limited.
 	Consider just hand creating a vertex/index array in a new BSShapeAvatar.
+Verify/fix phantom, volume-detect objects do not fall to infinity. Should stop at terrain.
 Revisit CollisionMargin. Builders notice the 0.04 spacing between prims.
 Duplicating a physical prim causes old prim to jump away
 	Dup a phys prim and the original become unselected and thus interacts w/ selected prim.
