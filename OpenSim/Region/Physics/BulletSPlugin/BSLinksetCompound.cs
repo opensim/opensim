@@ -290,13 +290,6 @@ public sealed class BSLinksetCompound : BSLinkset
         return ret;
     }
 
-    // Companion to RemoveBodyDependencies(). If RemoveBodyDependencies() returns 'true',
-    //     this routine will restore the removed constraints.
-    // Called at taint-time!!
-    public override void RestoreBodyDependencies(BSPrim child)
-    {
-    }
-
     // When the linkset is built, the child shape is added to the compound shape relative to the
     //    root shape. The linkset then moves around but this does not move the actual child
     //    prim. The child prim's location must be recomputed based on the location of the root shape.

@@ -1606,11 +1606,6 @@ public sealed class BSPrim : BSPhysObject
     // Called at taint-time!!!
     public void CreateGeomAndObject(bool forceRebuild)
     {
-        // If this prim is part of a linkset, we must remove and restore the physical
-        //    links if the body is rebuilt.
-        bool needToRestoreLinkset = false;
-        bool needToRestoreVehicle = false;
-
         // Create the correct physical representation for this type of object.
         // Updates PhysBody and PhysShape with the new information.
         // Ignore 'forceRebuild'. This routine makes the right choices and changes of necessary.
@@ -1619,20 +1614,9 @@ public sealed class BSPrim : BSPhysObject
             // Called if the current prim body is about to be destroyed.
             // Remove all the physical dependencies on the old body.
             // (Maybe someday make the changing of BSShape an event to be subscribed to by BSLinkset, ...)
-            needToRestoreLinkset = Linkset.RemoveBodyDependencies(this);
-            needToRestoreVehicle = _vehicle.RemoveBodyDependencies(this);
+            Linkset.RemoveBodyDependencies(this);
+            _vehicle.RemoveBodyDependencies(this);
         });
-
-        if (needToRestoreLinkset)
-        {
-            // If physical body dependencies were removed, restore them
-            Linkset.RestoreBodyDependencies(this);
-        }
-        if (needToRestoreVehicle)
-        {
-            // If physical body dependencies were removed, restore them
-            _vehicle.RestoreBodyDependencies(this);
-        }
 
         // Make sure the properties are set on the new object
         UpdatePhysicalParameters();
