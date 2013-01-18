@@ -86,7 +86,10 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             if (m_scenePresence.IsChildAgent)
                 return;
 
-//            m_log.DebugFormat("[SCENE PRESENCE ANIMATOR]: Adding animation {0} for {1}", animID, m_scenePresence.Name);
+            if (m_scenePresence.Scene.DebugAnimations)
+                m_log.DebugFormat(
+                    "[SCENE PRESENCE ANIMATOR]: Adding animation {0} {1} for {2}", 
+                    GetAnimName(animID), animID, m_scenePresence.Name);
 
             if (m_animations.Add(animID, m_scenePresence.ControllingClient.NextAnimationSequenceNumber, objectID))
                 SendAnimPack();
@@ -114,7 +117,10 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             if (m_scenePresence.IsChildAgent)
                 return;
 
-//            m_log.DebugFormat("[SCENE PRESENCE ANIMATOR]: Removing animation {0} for {1}", animID, m_scenePresence.Name);
+            if (m_scenePresence.Scene.DebugAnimations)
+                m_log.DebugFormat(
+                    "[SCENE PRESENCE ANIMATOR]: Removing animation {0} {1} for {2}", 
+                    GetAnimName(animID), animID, m_scenePresence.Name);
 
             if (m_animations.Remove(animID))
                 SendAnimPack();
@@ -137,9 +143,10 @@ namespace OpenSim.Region.Framework.Scenes.Animation
 
         public void ResetAnimations()
         {
-//            m_log.DebugFormat(
-//                "[SCENE PRESENCE ANIMATOR]: Resetting animations for {0} in {1}",
-//                m_scenePresence.Name, m_scenePresence.Scene.RegionInfo.RegionName);
+            if (m_scenePresence.Scene.DebugAnimations)
+                m_log.DebugFormat(
+                    "[SCENE PRESENCE ANIMATOR]: Resetting animations for {0} in {1}",
+                    m_scenePresence.Name, m_scenePresence.Scene.RegionInfo.RegionName);
 
             m_animations.Clear();
         }
@@ -549,6 +556,22 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             m_animations.GetArrays(out animIDs, out sequenceNums, out objectIDs);
 
             SendAnimPack(animIDs, sequenceNums, objectIDs);
+        }
+
+        public string GetAnimName(UUID animId)
+        {
+            string animName;
+
+            if (!DefaultAvatarAnimations.AnimsNames.TryGetValue(animId, out animName))
+            {
+                AssetMetadata amd = m_scenePresence.Scene.AssetService.GetMetadata(animId.ToString());
+                if (amd != null)
+                    animName = amd.Name;
+                else
+                    animName = "Unknown";
+            }
+
+            return animName;
         }
     }
 }
