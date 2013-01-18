@@ -261,11 +261,6 @@ public abstract class BSLinkset
     // Called at taint-time!!
     public abstract bool RemoveBodyDependencies(BSPrim child);
 
-    // Companion to RemoveBodyDependencies(). If RemoveBodyDependencies() returns 'true',
-    //     this routine will restore the removed constraints.
-    // Called at taint-time!!
-    public abstract void RestoreBodyDependencies(BSPrim child);
-
     // ================================================================
     protected virtual float ComputeLinksetMass()
     {
