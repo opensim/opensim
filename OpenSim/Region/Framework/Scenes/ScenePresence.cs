@@ -2260,7 +2260,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void HandleStopAnim(IClientAPI remoteClient, UUID animID)
         {
-            Animator.RemoveAnimation(animID);
+            Animator.RemoveAnimation(animID, false);
         }
 
         /// <summary>
