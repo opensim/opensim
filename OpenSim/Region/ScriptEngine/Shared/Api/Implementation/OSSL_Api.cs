@@ -974,7 +974,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if (animID == UUID.Zero)
                         target.Animator.RemoveAnimation(animation);
                     else
-                        target.Animator.RemoveAnimation(animID);
+                        target.Animator.RemoveAnimation(animID, true);
                 }
             }
         }

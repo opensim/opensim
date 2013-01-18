@@ -112,7 +112,15 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             AddAnimation(animID, objectID);
         }
 
-        public void RemoveAnimation(UUID animID)
+        /// <summary>
+        /// Remove the specified animation
+        /// </summary>
+        /// <param name='animID'></param>
+        /// <param name='allowNoDefault'>
+        /// If true, then the default animation can be entirely removed. 
+        /// If false, then removing the default animation will reset it to the simulator default (currently STAND).
+        /// </param>
+        public void RemoveAnimation(UUID animID, bool allowNoDefault)
         {
             if (m_scenePresence.IsChildAgent)
                 return;
@@ -122,7 +130,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                     "[SCENE PRESENCE ANIMATOR]: Removing animation {0} {1} for {2}", 
                     GetAnimName(animID), animID, m_scenePresence.Name);
 
-            if (m_animations.Remove(animID))
+            if (m_animations.Remove(animID, allowNoDefault))
                 SendAnimPack();
         }
 
@@ -138,7 +146,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             if (animID == UUID.Zero)
                 return;
 
-            RemoveAnimation(animID);
+            RemoveAnimation(animID, true);
         }
 
         public void ResetAnimations()
