@@ -94,6 +94,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
                 "debug scene get",
                 "List current scene options.",
                 "If active     is false then main scene update and maintenance loops are suspended.\n"
+                    + "If animations is true  then extra animations debug information is logged.\n"
                     + "If collisions is false then collisions with other objects are turned off.\n"
                     + "If pbackup    is false then periodic scene backup is turned off.\n"
                     + "If physics    is false then all physics objects are non-physical.\n"
@@ -107,6 +108,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
                 "debug scene set active|collisions|pbackup|physics|scripting|teleport|updates true|false",
                 "Turn on scene debugging options.",
                 "If active     is false then main scene update and maintenance loops are suspended.\n"
+                    + "If animations is true  then extra animations debug information is logged.\n"
                     + "If collisions is false then collisions with other objects are turned off.\n"
                     + "If pbackup    is false then periodic scene backup is turned off.\n"
                     + "If physics    is false then all physics objects are non-physical.\n"
@@ -135,6 +137,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
         {
             ConsoleDisplayList cdl = new ConsoleDisplayList();
             cdl.AddRow("active", m_scene.Active);
+            cdl.AddRow("animations", m_scene.DebugAnimations);
             cdl.AddRow("pbackup", m_scene.PeriodicBackup);
             cdl.AddRow("physics", m_scene.PhysicsEnabled);
             cdl.AddRow("scripting", m_scene.ScriptsEnabled);
@@ -176,6 +179,14 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
 
                 if (bool.TryParse(options["active"], out active))
                     m_scene.Active = active;
+            }
+
+            if (options.ContainsKey("animations"))
+            {
+                bool active;
+
+                if (bool.TryParse(options["animations"], out active))
+                    m_scene.DebugAnimations = active;
             }
 
             if (options.ContainsKey("pbackup"))
