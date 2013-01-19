@@ -897,32 +897,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 msg.MessageBlock.Message = Util.StringToBytes1024(im.message);
                 msg.MessageBlock.BinaryBucket = im.binaryBucket;
 
-                if (im.message.StartsWith("[grouptest]"))
-                { // this block is test code for implementing group IM - delete when group IM is finished
-                    IEventQueue eq = Scene.RequestModuleInterface<IEventQueue>();
-                    if (eq != null)
-                    {
-                        im.dialog = 17;
-
-                        //eq.ChatterboxInvitation(
-                        //    new UUID("00000000-68f9-1111-024e-222222111123"),
-                        //    "OpenSimulator Testing", im.fromAgentID, im.message, im.toAgentID, im.fromAgentName, im.dialog, 0,
-                        //    false, 0, new Vector3(), 1, im.imSessionID, im.fromGroup, im.binaryBucket);
-
-                        eq.ChatterboxInvitation(
-                            new UUID("00000000-68f9-1111-024e-222222111123"),
-                            "OpenSimulator Testing", new UUID(im.fromAgentID), im.message, new UUID(im.toAgentID), im.fromAgentName, im.dialog, 0,
-                            false, 0, new Vector3(), 1, new UUID(im.imSessionID), im.fromGroup, Util.StringToBytes256("OpenSimulator Testing"));
-
-                        eq.ChatterBoxSessionAgentListUpdates(
-                            new UUID("00000000-68f9-1111-024e-222222111123"),
-                            new UUID(im.fromAgentID), new UUID(im.toAgentID), false, false, false);
-                    }
-
-                    Console.WriteLine("SendInstantMessage: " + msg);
-                }
-                else
-                    OutPacket(msg, ThrottleOutPacketType.Task);
+                OutPacket(msg, ThrottleOutPacketType.Task);
             }
         }
 
