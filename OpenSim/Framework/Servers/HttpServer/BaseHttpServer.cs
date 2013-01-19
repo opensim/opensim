@@ -1830,6 +1830,8 @@ namespace OpenSim.Framework.Servers.HttpServer
             HTTPDRunning = false;
             try
             {
+//                m_PollServiceManager.Stop();
+
                 m_httpListener2.ExceptionThrown -= httpServerException;
                 //m_httpListener2.DisconnectHandler = null;
 

@@ -161,12 +161,13 @@ namespace OpenSim.Region.OptionalModules.Avatar.Animations
             UUID defaultAnimId = anims.DefaultAnimation.AnimID;
             cdl.AddRow(
                 "Default anim", 
-                string.Format("{0}, {1}", defaultAnimId, GetAnimName(sp.Scene.AssetService, defaultAnimId)));
+                string.Format("{0}, {1}", defaultAnimId, sp.Animator.GetAnimName(defaultAnimId)));
 
             UUID implicitDefaultAnimId = anims.ImplicitDefaultAnimation.AnimID;
             cdl.AddRow(
                 "Implicit default anim", 
-                string.Format("{0}, {1}", implicitDefaultAnimId, GetAnimName(sp.Scene.AssetService, implicitDefaultAnimId)));
+                string.Format("{0}, {1}", 
+                    implicitDefaultAnimId, sp.Animator.GetAnimName(implicitDefaultAnimId)));
 
             cdl.AddToStringBuilder(sb);
 
@@ -185,7 +186,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Animations
             for (int i = 0; i < animIds.Length; i++)
             {
                 UUID animId = animIds[i];
-                string animName = GetAnimName(sp.Scene.AssetService, animId);
+                string animName = sp.Animator.GetAnimName(animId);
                 int seq = sequenceNumbers[i];
                 UUID objectId = objectIds[i];
 
@@ -194,22 +195,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.Animations
 
             cdt.AddToStringBuilder(sb);
             sb.Append("\n");
-        }
-
-        private string GetAnimName(IAssetService assetService, UUID animId)
-        {
-            string animName;
-
-            if (!DefaultAvatarAnimations.AnimsNames.TryGetValue(animId, out animName))
-            {
-                AssetMetadata amd = assetService.GetMetadata(animId.ToString());
-                if (amd != null)
-                    animName = amd.Name;
-                else
-                    animName = "Unknown";
-            }
-
-            return animName;
         }
     }
 }

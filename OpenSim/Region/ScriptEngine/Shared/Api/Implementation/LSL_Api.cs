@@ -3708,7 +3708,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if (animID == UUID.Zero)
                         presence.Animator.RemoveAnimation(anim);
                     else
-                        presence.Animator.RemoveAnimation(animID);
+                        presence.Animator.RemoveAnimation(animID, true);
                 }
             }
         }
@@ -6228,13 +6228,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 if (parcelOwned && land.LandData.OwnerID == id ||
                                     parcel && land.LandData.GlobalID == id)
                                 {
-                                    result.Add(ssp.UUID.ToString());
+                                    result.Add(new LSL_Key(ssp.UUID.ToString()));
                                 }
                             }
                         }
                         else
                         {
-                            result.Add(ssp.UUID.ToString());
+                            result.Add(new LSL_Key(ssp.UUID.ToString()));
                         }
                     }
                     // Maximum of 100 results
@@ -11528,6 +11528,35 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             case ScriptBaseClass.OBJECT_PHYSICS_COST:
                                 ret.Add(new LSL_Float(0));
                                 break;
+                            case ScriptBaseClass.OBJECT_CHARACTER_TIME: // Pathfinding
+                                ret.Add(new LSL_Float(0));
+                                break;
+                            case ScriptBaseClass.OBJECT_ROOT:
+                                SceneObjectPart p = av.ParentPart;
+                                if (p != null)
+                                {
+                                    ret.Add(new LSL_String(p.ParentGroup.RootPart.UUID.ToString()));
+                                }
+                                else
+                                {
+                                    ret.Add(new LSL_String(id));
+                                }
+                                break;
+                            case ScriptBaseClass.OBJECT_ATTACHED_POINT:
+                                ret.Add(new LSL_Integer(0));
+                                break;
+                            case ScriptBaseClass.OBJECT_PATHFINDING_TYPE: // Pathfinding
+                                ret.Add(new LSL_Integer(ScriptBaseClass.OPT_AVATAR));
+                                break;
+                            case ScriptBaseClass.OBJECT_PHYSICS:
+                                ret.Add(new LSL_Integer(0));
+                                break;
+                            case ScriptBaseClass.OBJECT_PHANTOM:
+                                ret.Add(new LSL_Integer(0));
+                                break;
+                            case ScriptBaseClass.OBJECT_TEMP_ON_REZ:
+                                ret.Add(new LSL_Integer(0));
+                                break;
                             default:
                                 // Invalid or unhandled constant.
                                 ret.Add(new LSL_Integer(ScriptBaseClass.OBJECT_UNKNOWN_DETAIL));
@@ -11618,6 +11647,52 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             case ScriptBaseClass.OBJECT_PHYSICS_COST:
                                 // The value returned in SL for normal prims is prim count
                                 ret.Add(new LSL_Float(obj.PhysicsCost));
+                                break;
+                            case ScriptBaseClass.OBJECT_CHARACTER_TIME: // Pathfinding
+                                ret.Add(new LSL_Float(0));
+                                break;
+                            case ScriptBaseClass.OBJECT_ROOT:
+                                ret.Add(new LSL_String(obj.ParentGroup.RootPart.UUID.ToString()));
+                                break;
+                            case ScriptBaseClass.OBJECT_ATTACHED_POINT:
+                                ret.Add(new LSL_Integer(obj.ParentGroup.AttachmentPoint));
+                                break;
+                            case ScriptBaseClass.OBJECT_PATHFINDING_TYPE:
+                                byte pcode = obj.Shape.PCode;
+                                if (obj.ParentGroup.AttachmentPoint != 0
+                                   || pcode == (byte)PCode.Grass
+                                   || pcode == (byte)PCode.Tree
+                                   || pcode == (byte)PCode.NewTree)
+                                {
+                                    ret.Add(new LSL_Integer(ScriptBaseClass.OPT_OTHER));
+                                }
+                                else
+                                {
+                                    ret.Add(new LSL_Integer(ScriptBaseClass.OPT_LEGACY_LINKSET));
+                                }
+                                break;
+                            case ScriptBaseClass.OBJECT_PHYSICS:
+                                if (obj.ParentGroup.AttachmentPoint != 0)
+                                {
+                                    ret.Add(new LSL_Integer(0)); // Always false if attached
+                                }
+                                else
+                                {
+                                    ret.Add(new LSL_Integer(obj.ParentGroup.UsesPhysics ? 1 : 0));
+                                }
+                                break;
+                            case ScriptBaseClass.OBJECT_PHANTOM:
+                                if (obj.ParentGroup.AttachmentPoint != 0)
+                                {
+                                    ret.Add(new LSL_Integer(0)); // Always false if attached
+                                }
+                                else
+                                {
+                                    ret.Add(new LSL_Integer(obj.ParentGroup.IsPhantom ? 1 : 0));
+                                }
+                                break;
+                            case ScriptBaseClass.OBJECT_TEMP_ON_REZ:
+                                ret.Add(new LSL_Integer(obj.ParentGroup.IsTemporary ? 1 : 0));
                                 break;
                             default:
                                 // Invalid or unhandled constant.

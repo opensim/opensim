@@ -94,6 +94,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
                 "debug scene get",
                 "List current scene options.",
                 "If active     is false then main scene update and maintenance loops are suspended.\n"
+                    + "If animations is true  then extra animations debug information is logged.\n"
                     + "If collisions is false then collisions with other objects are turned off.\n"
                     + "If pbackup    is false then periodic scene backup is turned off.\n"
                     + "If physics    is false then all physics objects are non-physical.\n"
@@ -107,6 +108,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
                 "debug scene set active|collisions|pbackup|physics|scripting|teleport|updates true|false",
                 "Turn on scene debugging options.",
                 "If active     is false then main scene update and maintenance loops are suspended.\n"
+                    + "If animations is true  then extra animations debug information is logged.\n"
                     + "If collisions is false then collisions with other objects are turned off.\n"
                     + "If pbackup    is false then periodic scene backup is turned off.\n"
                     + "If physics    is false then all physics objects are non-physical.\n"
@@ -120,10 +122,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
         {
             if (args.Length == 3)
             {
-                if (MainConsole.Instance.ConsoleScene == null)
-                    MainConsole.Instance.Output("Please use 'change region <regioname>' first");
-                else
-                    OutputSceneDebugOptions();
+                if (MainConsole.Instance.ConsoleScene != m_scene && MainConsole.Instance.ConsoleScene != null)
+                    return;
+
+                OutputSceneDebugOptions();
             }
             else
             {
@@ -135,12 +137,14 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
         {
             ConsoleDisplayList cdl = new ConsoleDisplayList();
             cdl.AddRow("active", m_scene.Active);
+            cdl.AddRow("animations", m_scene.DebugAnimations);
             cdl.AddRow("pbackup", m_scene.PeriodicBackup);
             cdl.AddRow("physics", m_scene.PhysicsEnabled);
             cdl.AddRow("scripting", m_scene.ScriptsEnabled);
             cdl.AddRow("teleport", m_scene.DebugTeleporting);
             cdl.AddRow("updates", m_scene.DebugUpdates);
 
+            MainConsole.Instance.OutputFormat("Scene {0} options:", m_scene.Name);
             MainConsole.Instance.Output(cdl.ToString());
         }
 
@@ -148,18 +152,14 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
         {
             if (args.Length == 5)
             {
-                if (MainConsole.Instance.ConsoleScene == null)
-                {
-                    MainConsole.Instance.Output("Please use 'change region <regioname>' first");
-                }
-                else
-                {
-                    string key = args[3];
-                    string value = args[4];
-                    SetSceneDebugOptions(new Dictionary<string, string>() { { key, value } });
+                if (MainConsole.Instance.ConsoleScene != m_scene && MainConsole.Instance.ConsoleScene != null)
+                    return;
 
-                    MainConsole.Instance.OutputFormat("Set debug scene {0} = {1}", key, value);
-                }
+                string key = args[3];
+                string value = args[4];
+                SetSceneDebugOptions(new Dictionary<string, string>() { { key, value } });
+
+                MainConsole.Instance.OutputFormat("Set {0} debug scene {1} = {2}", m_scene.Name, key, value);
             }
             else
             {
@@ -176,6 +176,14 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
 
                 if (bool.TryParse(options["active"], out active))
                     m_scene.Active = active;
+            }
+
+            if (options.ContainsKey("animations"))
+            {
+                bool active;
+
+                if (bool.TryParse(options["animations"], out active))
+                    m_scene.DebugAnimations = active;
             }
 
             if (options.ContainsKey("pbackup"))

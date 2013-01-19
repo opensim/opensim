@@ -853,7 +853,14 @@ public sealed class BSCharacter : BSPhysObject
     {
         _position = entprop.Position;
         _orientation = entprop.Rotation;
-        _velocity = entprop.Velocity;
+
+        // Smooth velocity. OpenSimulator is very sensitive to changes in velocity of the avatar
+        //    and will send agent updates to the clients if velocity changes by more than
+        //    0.001m/s. Bullet introduces a lot of jitter in the velocity which causes many
+        //    extra updates.
+        if (!entprop.Velocity.ApproxEquals(_velocity, 0.1f))
+            _velocity = entprop.Velocity;
+
         _acceleration = entprop.Acceleration;
         _rotationalVelocity = entprop.RotationalVelocity;
 

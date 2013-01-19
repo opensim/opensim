@@ -68,6 +68,11 @@ namespace OpenSim.Region.Framework.Scenes
         public bool EmergencyMonitoring = false;
 
         /// <summary>
+        /// Show debug information about animations.
+        /// </summary>
+        public bool DebugAnimations { get; set; }
+
+        /// <summary>
         /// Show debug information about teleports.
         /// </summary>
         public bool DebugTeleporting { get; set; }

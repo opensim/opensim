@@ -557,6 +557,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int OBJECT_SERVER_COST = 14;
         public const int OBJECT_STREAMING_COST = 15;
         public const int OBJECT_PHYSICS_COST = 16;
+        public const int OBJECT_CHARACTER_TIME = 17;
+        public const int OBJECT_ROOT = 18;
+        public const int OBJECT_ATTACHED_POINT = 19;
+        public const int OBJECT_PATHFINDING_TYPE = 20;
+        public const int OBJECT_PHYSICS = 21;
+        public const int OBJECT_PHANTOM = 22;
+        public const int OBJECT_TEMP_ON_REZ = 23;
+
+        // Pathfinding types
+        public const int OPT_OTHER = -1;
+        public const int OPT_LEGACY_LINKSET = 0;
+        public const int OPT_AVATAR = 1;
+        public const int OPT_CHARACTER = 2;
+        public const int OPT_WALKABLE = 3;
+        public const int OPT_STATIC_OBSTACLE = 4;
+        public const int OPT_MATERIAL_VOLUME = 5;
+        public const int OPT_EXCLUSION_VOLUME = 6;
 
         // for llGetAgentList
         public const int AGENT_LIST_PARCEL = 1;
