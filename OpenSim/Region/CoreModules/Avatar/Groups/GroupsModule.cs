@@ -73,17 +73,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Groups
             }
             else
             {
-                m_Enabled = groupsConfig.GetBoolean("Enabled", false);
-                if (!m_Enabled)
+                if (groupsConfig.GetBoolean("Enabled", false))
                 {
-                    m_log.Info("[GROUPS]: Groups disabled in configuration");
-                    return;
+                    if (groupsConfig.GetString("Module", "Default") == "Default")
+                        m_Enabled = true;
                 }
-
-                if (groupsConfig.GetString("Module", "Default") != "Default")
-                    return;
             }
-
         }
 
         public void AddRegion(Scene scene)
