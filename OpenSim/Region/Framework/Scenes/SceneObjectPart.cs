@@ -3763,7 +3763,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             ParentGroup.stopMoveToTarget();
 
-            ParentGroup.ScheduleGroupForTerseUpdate();
+//            ParentGroup.ScheduleGroupForTerseUpdate();
             //ParentGroup.ScheduleGroupForFullUpdate();
         }
 

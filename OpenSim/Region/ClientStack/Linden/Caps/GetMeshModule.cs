@@ -501,7 +501,8 @@ namespace OpenSim.Region.ClientStack.Linden
                     ScenePresence p;
                     if (m_scene.TryGetScenePresence(User, out p)) // If we don't get a user they're not here anymore.
                     {
-                        AlterThrottle(UserSetThrottle, p);
+//                        AlterThrottle(UserSetThrottle, p);
+                        UpdateThrottle(UserSetThrottle, p);
                     }
                 }
             }
@@ -546,7 +547,12 @@ namespace OpenSim.Region.ClientStack.Linden
                 // Client set throttle !
                 UserSetThrottle = pimagethrottle;
                 CapSetThrottle = (int)(pimagethrottle*CapThrottleDistributon);
-                UDPSetThrottle = (int) (pimagethrottle*(100 - CapThrottleDistributon));
+//                UDPSetThrottle = (int) (pimagethrottle*(100 - CapThrottleDistributon));
+
+                float udp = 1.0f - CapThrottleDistributon;
+                if(udp < 0.5f)
+                    udp = 0.5f;
+                UDPSetThrottle = (int) ((float)pimagethrottle * udp);
                 if (CapSetThrottle < 4068)
                     CapSetThrottle = 4068;  // at least two discovery mesh
                 p.ControllingClient.SetAgentThrottleSilent((int) Throttle, UDPSetThrottle);

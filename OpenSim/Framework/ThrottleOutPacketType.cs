@@ -47,6 +47,8 @@ namespace OpenSim.Framework
         Texture = 5,
         /// <summary>Non-texture assets</summary>
         Asset = 6,
+
+        HighPriority = 128,
     }
 
     [Flags]

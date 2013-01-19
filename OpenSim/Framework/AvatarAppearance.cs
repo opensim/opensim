@@ -1558,7 +1558,58 @@ namespace OpenSim.Framework
             SHAPE_EYELID_INNER_CORNER_UP = 214,
             SKIRT_SKIRT_RED = 215,
             SKIRT_SKIRT_GREEN = 216,
-            SKIRT_SKIRT_BLUE = 217
+            SKIRT_SKIRT_BLUE = 217, 
+
+            /// <summary>
+            /// Avatar Physics section.  These are 0 type visual params which get transmitted.
+            /// </summary>
+
+            /// <summary>
+            /// Breast Part 1 
+            /// </summary>
+            BREAST_PHYSICS_MASS = 218,
+            BREAST_PHYSICS_GRAVITY = 219,
+            BREAST_PHYSICS_DRAG = 220,
+            BREAST_PHYSICS_UPDOWN_MAX_EFFECT = 221,
+            BREAST_PHYSICS_UPDOWN_SPRING = 222,
+            BREAST_PHYSICS_UPDOWN_GAIN = 223,
+            BREAST_PHYSICS_UPDOWN_DAMPING = 224,
+            BREAST_PHYSICS_INOUT_MAX_EFFECT = 225,
+            BREAST_PHYSICS_INOUT_SPRING = 226,
+            BREAST_PHYSICS_INOUT_GAIN = 227,
+            BREAST_PHYSICS_INOUT_DAMPING = 228,
+            /// <summary>
+            /// Belly
+            /// </summary>
+            BELLY_PHYISCS_MASS = 229,
+            BELLY_PHYSICS_GRAVITY = 230,
+            BELLY_PHYSICS_DRAG = 231,
+            BELLY_PHYISCS_UPDOWN_MAX_EFFECT = 232,
+            BELLY_PHYSICS_UPDOWN_SPRING = 233,
+            BELLY_PHYSICS_UPDOWN_GAIN = 234,
+            BELLY_PHYSICS_UPDOWN_DAMPING = 235,
+
+            /// <summary>
+            /// Butt
+            /// </summary>
+            BUTT_PHYSICS_MASS = 236,
+            BUTT_PHYSICS_GRAVITY = 237,
+            BUTT_PHYSICS_DRAG = 238,
+            BUTT_PHYSICS_UPDOWN_MAX_EFFECT = 239,
+            BUTT_PHYSICS_UPDOWN_SPRING = 240,
+            BUTT_PHYSICS_UPDOWN_GAIN = 241,
+            BUTT_PHYSICS_UPDOWN_DAMPING = 242,
+            BUTT_PHYSICS_LEFTRIGHT_MAX_EFFECT = 243,
+            BUTT_PHYSICS_LEFTRIGHT_SPRING = 244,
+            BUTT_PHYSICS_LEFTRIGHT_GAIN = 245,
+            BUTT_PHYSICS_LEFTRIGHT_DAMPING = 246,
+            /// <summary>
+            /// Breast Part 2
+            /// </summary>
+            BREAST_PHYSICS_LEFTRIGHT_MAX_EFFECT = 247,
+            BREAST_PHYSICS_LEFTRIGHT_SPRING= 248,
+            BREAST_PHYSICS_LEFTRIGHT_GAIN = 249,
+            BREAST_PHYSICS_LEFTRIGHT_DAMPING = 250
         }
         #endregion
     }
