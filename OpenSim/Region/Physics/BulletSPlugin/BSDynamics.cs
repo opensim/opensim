@@ -720,10 +720,12 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 
         // Since the computation of terrain height can be a little involved, this routine
         //    is used to fetch the height only once for each vehicle simulation step.
+        Vector3 lastRememberedHeightPos;
         private float GetTerrainHeight(Vector3 pos)
         {
-            if ((m_knownHas & m_knownChangedTerrainHeight) == 0)
+            if ((m_knownHas & m_knownChangedTerrainHeight) == 0 || pos != lastRememberedHeightPos)
             {
+                lastRememberedHeightPos = pos;
                 m_knownTerrainHeight = Prim.PhysicsScene.TerrainManager.GetTerrainHeightAtXYZ(pos);
                 m_knownHas |= m_knownChangedTerrainHeight;
             }
