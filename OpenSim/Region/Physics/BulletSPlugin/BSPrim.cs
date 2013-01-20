@@ -1082,7 +1082,7 @@ public sealed class BSPrim : BSPhysObject
                     OMV.Vector3 origPosition = RawPosition;     // DEBUG DEBUG (for printout below)
 
                     // 'movePosition' is where we'd like the prim to be at this moment.
-                    OMV.Vector3 movePosition = _targetMotor.Step(timeStep);
+                    OMV.Vector3 movePosition = RawPosition + _targetMotor.Step(timeStep);
 
                     // If we are very close to our target, turn off the movement motor.
                     if (_targetMotor.ErrorIsZero())

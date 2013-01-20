@@ -198,7 +198,8 @@ public sealed class BSCharacter : BSPhysObject
             // TODO: Decide if the step parameters should be changed depending on the avatar's
             //     state (flying, colliding, ...). There is code in ODE to do this.
 
-            OMV.Vector3 stepVelocity = _velocityMotor.Step(timeStep);
+            _velocityMotor.Step(timeStep);
+            OMV.Vector3 stepVelocity = _velocityMotor.CurrentValue;
 
             // If falling, we keep the world's downward vector no matter what the other axis specify.
             if (!Flying && !IsColliding)

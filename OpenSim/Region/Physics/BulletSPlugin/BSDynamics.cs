@@ -957,39 +957,25 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 
         public void ComputeLinearVelocity(float pTimestep)
         {
-            Vector3 linearMotorStep = m_linearMotor.Step(pTimestep);
+            // Step the motor from the current value. Get the correction needed this step.
+            Vector3 currentVel = VehicleVelocity * Quaternion.Inverse(VehicleOrientation);
+            Vector3 linearMotorCorrection = m_linearMotor.Step(pTimestep, currentVel);
 
-            // The movement computed in the linear motor is relative to the vehicle
-            //     coordinates. Rotate the movement to world coordinates.
-            Vector3 linearMotorVelocity = linearMotorStep * VehicleOrientation;
+            // Motor is vehicle coordinates. Rotate it to world coordinates
+            Vector3 linearMotorVelocity = linearMotorCorrection * VehicleOrientation;
 
-            // If we're a ground vehicle, don't loose any Z action (like gravity acceleration).
-            float mixFactor = 1f;   // 1 means use all linear motor Z value, 0 means use all existing Z
+            // If we're a ground vehicle, don't add any upward Z movement
             if ((m_flags & VehicleFlag.LIMIT_MOTOR_UP) != 0)
             {
-                if (!Prim.IsColliding)
-                {
-                    // If a ground vehicle and not on the ground, I want gravity effect
-                    mixFactor = 0.2f;
-                }
+                if (linearMotorVelocity.Z > 0f)
+                    linearMotorVelocity.Z = 0f;
             }
-            else
-            {
-                // I'm not a ground vehicle but don't totally loose the effect of the environment
-                mixFactor = 0.8f;
-            }
-            linearMotorVelocity.Z = mixFactor * linearMotorVelocity.Z + (1f - mixFactor) * VehicleVelocity.Z;
 
-            // What we want to contribute to the vehicle's existing velocity
-            Vector3 linearMotorForce = linearMotorVelocity - VehicleVelocity;
+            // Add this correction to the velocity to make it faster/slower.
+            VehicleVelocity += linearMotorVelocity;
 
-            // Act against the inertia of the vehicle
-            linearMotorForce *= m_vehicleMass;
-
-            VehicleAddForceImpulse(linearMotorForce * pTimestep);
-
-            VDetailLog("{0},  MoveLinear,velocity,vehVel={1},step={2},stepVel={3},mix={4},force={5}",
-                        Prim.LocalID, VehicleVelocity, linearMotorStep, linearMotorVelocity, mixFactor, linearMotorForce);
+            VDetailLog("{0},  MoveLinear,velocity,vehVel={1},correction={2},force={3}",
+                        Prim.LocalID, VehicleVelocity, linearMotorCorrection, linearMotorVelocity);
         }
 
         public void ComputeLinearTerrainHeightCorrection(float pTimestep)
@@ -1204,6 +1190,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         {
             // The user wants this many radians per second angular change?
             Vector3 angularMotorContribution = m_angularMotor.Step(pTimestep);
+            angularMotorContribution = m_angularMotor.CurrentValue;
 
             // ==================================================================
             // From http://wiki.secondlife.com/wiki/LlSetVehicleFlags :
@@ -1234,7 +1221,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                                     + deflectionContribution
                                     + bankingContribution;
 
-            // Add of the above computation are made relative to vehicle coordinates.
+            // All of the above computation are made relative to vehicle coordinates.
             // Convert to world coordinates.
             m_lastAngularVelocity *= VehicleOrientation;
 

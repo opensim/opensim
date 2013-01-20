@@ -74,7 +74,10 @@ Incorporate inter-relationship of angular corrections. For instance, angularDefl
 GENERAL TODO LIST:
 =================================================
 Implement llSetPhysicalMaterial.
+	extend it with Center-of-mass, rolling friction, density
 Implement llSetForceAndTorque.
+Change BSPrim.moveToTarget to used forces rather than changing position
+	Changing position allows one to move through walls
 Implement an avatar mesh shape. The Bullet capsule is way too limited.
 	Consider just hand creating a vertex/index array in a new BSShapeAvatar.
 Verify/fix phantom, volume-detect objects do not fall to infinity. Should stop at terrain.
