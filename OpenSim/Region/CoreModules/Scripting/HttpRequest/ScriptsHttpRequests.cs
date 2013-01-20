@@ -206,7 +206,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                 m_pendingRequests.Add(reqID, htc);
             }
 
-            htc.Process();
+            htc.SendRequest();
 
             return reqID;
         }
@@ -340,7 +340,6 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
         public string HttpMIMEType = "text/plain;charset=utf-8";
         public int HttpTimeout;
         public bool HttpVerifyCert = true;
-        private Thread httpThread;
 
         // Request info
         private UUID _itemID;
@@ -374,27 +373,11 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
 
         public void Process()
         {
-            httpThread = new Thread(SendRequest);
-            httpThread.Name = "HttpRequestThread";
-            httpThread.Priority = ThreadPriority.BelowNormal;
-            httpThread.IsBackground = true;
-            _finished = false;
-            httpThread.Start();
+            SendRequest();
         }
-
-        /*
-         * TODO: More work on the response codes.  Right now
-         * returning 200 for success or 499 for exception
-         */
 
         public void SendRequest()
         {
-            HttpWebResponse response = null;
-            StringBuilder sb = new StringBuilder();
-            byte[] buf = new byte[8192];
-            string tempString = null;
-            int count = 0;
-
             try
             {
                 Request = (HttpWebRequest) WebRequest.Create(Url);
@@ -409,13 +392,9 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                 {
                     // We could hijack Connection Group Name to identify
                     // a desired security exception.  But at the moment we'll use a dummy header instead.
-//                    Request.ConnectionGroupName = "NoVerify";
                     Request.Headers.Add("NoVerifyCert", "true");
                 }
-//                else
-//                {
-//                    Request.ConnectionGroupName="Verify";
-//                }
+
                 if (proxyurl != null && proxyurl.Length > 0) 
                 {
                     if (proxyexcepts != null && proxyexcepts.Length > 0) 
@@ -430,10 +409,14 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                 }
 
                 foreach (KeyValuePair<string, string> entry in ResponseHeaders)
+                {
                     if (entry.Key.ToLower().Equals("user-agent"))
                         Request.UserAgent = entry.Value;
                     else
                         Request.Headers[entry.Key] = entry.Value;
+                }
+
+                Request.Timeout = HttpTimeout;
 
                 // Encode outbound data
                 if (OutboundBody.Length > 0) 
@@ -441,16 +424,78 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                     byte[] data = Util.UTF8.GetBytes(OutboundBody);
 
                     Request.ContentLength = data.Length;
-                    Stream bstream = Request.GetRequestStream();
-                    bstream.Write(data, 0, data.Length);
-                    bstream.Close();
+                    Request.BeginGetRequestStream(new AsyncCallback(SendRequestData), this);
+                    return;
                 }
 
-                Request.Timeout = HttpTimeout;
+                Request.BeginGetResponse(new AsyncCallback(ProcessResponse), this);
+            }
+            catch (Exception e)
+            {
+                // Do nothing. Abort was called.
+            }
+        }
+
+        private void SendRequestData(IAsyncResult ar)
+        {
+            try
+            {
+                byte[] data = Util.UTF8.GetBytes(OutboundBody);
+
+                Stream bstream = Request.EndGetRequestStream(ar);
+                bstream.Write(data, 0, data.Length);
+                bstream.Close();
+
+                Request.BeginGetResponse(new AsyncCallback(ProcessResponse), this);
+            }
+            catch (WebException e)
+            {
+                // Abort was called. Just go away
+                if (e.Status == WebExceptionStatus.RequestCanceled)
+                    return;
+
+                // Server errored on request
+                if (e.Status == WebExceptionStatus.ProtocolError && e.Response != null)
+                {
+                    HttpWebResponse webRsp = (HttpWebResponse)e.Response;
+
+                    Status = (int)webRsp.StatusCode;
+
+                    try
+                    {
+                        using (Stream responseStream = webRsp.GetResponseStream())
+                        {
+                            ResponseBody = responseStream.GetStreamString();
+                        }
+                    }
+                    catch
+                    {
+                        ResponseBody = webRsp.StatusDescription;
+                    }
+                    finally
+                    {
+                        webRsp.Close();
+                    }
+                    return;
+                }
+
+                _finished = true;
+            }
+        }
+
+        private void ProcessResponse(IAsyncResult ar)
+        {
+            HttpWebResponse response = null;
+            StringBuilder sb = new StringBuilder();
+            byte[] buf = new byte[8192];
+            string tempString = null;
+            int count = 0;
+
+            try
+            {
                 try
                 {
-                    // execute the request
-                    response = (HttpWebResponse) Request.GetResponse();
+                    response = (HttpWebResponse) Request.EndGetResponse(ar);
                 }
                 catch (WebException e)
                 {
@@ -485,32 +530,21 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
 
                 ResponseBody = sb.ToString().Replace("\r", "");
             }
-            catch (Exception e)
+            catch (WebException e)
             {
-                if (e is WebException && ((WebException)e).Status == WebExceptionStatus.ProtocolError)
-                {
-                    HttpWebResponse webRsp = (HttpWebResponse)((WebException)e).Response;
-                    Status = (int)webRsp.StatusCode;
-                    try
-                    {
-                        using (Stream responseStream = webRsp.GetResponseStream())
-                        {
-                            ResponseBody = responseStream.GetStreamString();
-                        }
-                    }
-                    catch
-                    {
-                        ResponseBody = webRsp.StatusDescription;
-                    }
-                }
-                else
-                {
-                    Status = (int)OSHttpStatusCode.ClientErrorJoker;
-                    ResponseBody = e.Message;
-                }
+                // Abort was called. Just go away
+                if (e.Status == WebExceptionStatus.RequestCanceled)
+                    return;
 
+                Status = (int)OSHttpStatusCode.ClientErrorJoker;
+
+                ResponseBody = e.Message;
                 _finished = true;
                 return;
+            }
+            catch (Exception e)
+            {
+                // Ignore
             }
             finally
             {
@@ -525,7 +559,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
         {
             try
             {
-                httpThread.Abort();
+                Request.Abort();
             }
             catch (Exception)
             {
