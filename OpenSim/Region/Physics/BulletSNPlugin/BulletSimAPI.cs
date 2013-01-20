@@ -894,7 +894,7 @@ static class BulletSimAPI {
         return capsuleShapeZ;
     }
 
-    public static object Initialize2(Vector3 worldExtent, ConfigurationParameters[] o, int mMaxCollisionsPerFrame, ref List<BulletXNA.CollisionDesc> collisionArray, int mMaxUpdatesPerFrame, ref List<BulletXNA.EntityProperties> updateArray, object mDebugLogCallbackHandle)
+    public static object Initialize2(Vector3 worldExtent, ConfigurationParameters[] o, int mMaxCollisionsPerFrame, ref BulletXNA.CollisionDesc[] collisionArray, int mMaxUpdatesPerFrame, ref BulletXNA.EntityProperties[] updateArray, object mDebugLogCallbackHandle)
     {
         CollisionWorld.WorldData.ParamData p = new CollisionWorld.WorldData.ParamData();
 
@@ -1436,14 +1436,14 @@ static class BulletSimAPI {
 
     }
 
-    internal static int PhysicsStep2(object pWorld, float timeStep, int m_maxSubSteps, float m_fixedTimeStep, out int updatedEntityCount, out List<BulletXNA.EntityProperties> updatedEntities, out int collidersCount, out List<BulletXNA.CollisionDesc>colliders)
+    internal static int PhysicsStep2(object pWorld, float timeStep, int m_maxSubSteps, float m_fixedTimeStep, out int updatedEntityCount, out BulletXNA.EntityProperties[] updatedEntities, out int collidersCount, out BulletXNA.CollisionDesc[] colliders)
     {
         int epic = PhysicsStepint2(pWorld, timeStep, m_maxSubSteps, m_fixedTimeStep, out updatedEntityCount, out updatedEntities,
                                 out collidersCount, out colliders);
         return epic;
     }
 
-    private static int PhysicsStepint2(object pWorld,float timeStep, int m_maxSubSteps, float m_fixedTimeStep, out int updatedEntityCount, out List<BulletXNA.EntityProperties> updatedEntities, out int collidersCount, out List<BulletXNA.CollisionDesc> colliders)
+    private static int PhysicsStepint2(object pWorld,float timeStep, int m_maxSubSteps, float m_fixedTimeStep, out int updatedEntityCount, out BulletXNA.EntityProperties[] updatedEntities, out int collidersCount, out BulletXNA.CollisionDesc[] colliders)
     {
         int numSimSteps = 0;
       
@@ -1462,16 +1462,16 @@ static class BulletSimAPI {
             numSimSteps = world.StepSimulation(timeStep, m_maxSubSteps, m_fixedTimeStep);
             int updates = 0;
 
-            updatedEntityCount = world.UpdatedObjects.Count;
-            updatedEntities = new List<BulletXNA.EntityProperties>(world.UpdatedObjects);
-            updatedEntityCount = updatedEntities.Count;
-            world.UpdatedObjects.Clear();
+            updatedEntityCount = world.UpdatedObjects.Length;
+            updatedEntities = (world.UpdatedObjects);
+            updatedEntityCount = updatedEntities.Length;
+            //world.UpdatedObjects = ;
             
 
-            collidersCount = world.UpdatedCollisions.Count;
-            colliders = new List<BulletXNA.CollisionDesc>(world.UpdatedCollisions);
+            collidersCount = world.UpdatedCollisions.Length;
+            colliders = (world.UpdatedCollisions);
 
-            world.UpdatedCollisions.Clear();
+            world.UpdatedCollisions = new BulletXNA.CollisionDesc[0];
             m_collisionsThisFrame = 0;
             int numManifolds = world.GetDispatcher().GetNumManifolds();
             for (int j = 0; j < numManifolds; j++)
@@ -1501,10 +1501,10 @@ static class BulletSimAPI {
         else
         {
             //if (updatedEntities is null)
-            updatedEntities = new List<BulletXNA.EntityProperties>();
+            updatedEntities = new BulletXNA.EntityProperties[0];
             updatedEntityCount = 0;
             //if (colliders is null)
-            colliders = new List<BulletXNA.CollisionDesc>();
+            colliders = new BulletXNA.CollisionDesc[0];
             collidersCount = 0;
         }
         return numSimSteps;
@@ -1538,7 +1538,8 @@ static class BulletSimAPI {
                                                 point = contact,
                                                 normal = contactNormal
                                             };
-        world.UpdatedCollisions.Add(cDesc);
+        if (world.LastCollisionDesc < world.UpdatedCollisions.Length)
+            world.UpdatedCollisions[world.LastCollisionDesc++] = (cDesc);
         m_collisionsThisFrame++;
 
 

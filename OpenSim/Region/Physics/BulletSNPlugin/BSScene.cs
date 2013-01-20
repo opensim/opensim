@@ -106,11 +106,11 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
     // Pinned memory used to pass step information between managed and unmanaged
     internal int m_maxCollisionsPerFrame;
-    private List<BulletXNA.CollisionDesc> m_collisionArray;
+    private BulletXNA.CollisionDesc[] m_collisionArray;
     //private GCHandle m_collisionArrayPinnedHandle;
 
     internal int m_maxUpdatesPerFrame;
-    private List<BulletXNA.EntityProperties> m_updateArray;
+    private BulletXNA.EntityProperties[] m_updateArray;
     //private GCHandle m_updateArrayPinnedHandle;
 
 
@@ -201,9 +201,9 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         GetInitialParameterValues(config);
 
         // allocate more pinned memory close to the above in an attempt to get the memory all together
-        m_collisionArray = new List<BulletXNA.CollisionDesc>();
+        m_collisionArray = new BulletXNA.CollisionDesc[0];
         //m_collisionArrayPinnedHandle = GCHandle.Alloc(m_collisionArray, GCHandleType.Pinned);
-        m_updateArray = new List<BulletXNA.EntityProperties>();
+        m_updateArray = new BulletXNA.EntityProperties[0];
         //m_updateArrayPinnedHandle = GCHandle.Alloc(m_updateArray, GCHandleType.Pinned);
 
         // Enable very detailed logging.
