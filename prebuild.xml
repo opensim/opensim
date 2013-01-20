@@ -1727,11 +1727,13 @@
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../../bin/Physics/</OutputPath>
+          <AllowUnsafe>true</AllowUnsafe>
         </Options>
       </Configuration>
       <Configuration name="Release">
         <Options>
           <OutputPath>../../../../bin/Physics/</OutputPath>
+          <AllowUnsafe>true</AllowUnsafe>
         </Options>
       </Configuration>
 
