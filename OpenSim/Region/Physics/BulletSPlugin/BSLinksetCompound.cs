@@ -51,6 +51,21 @@ sealed class BSLinksetCompoundInfo : BSLinksetInfo
         OffsetFromCenterOfMass = p;
         OffsetRot = r;
     }
+    // 'centerDisplacement' is the distance from the root the the center-of-mass (Bullet 'zero' of the shape)
+    public BSLinksetCompoundInfo(int indx, BSPhysObject root, BSPhysObject child, OMV.Vector3 centerDisplacement)
+    {
+        // Each child position and rotation is given relative to the center-of-mass.
+        OMV.Quaternion invRootOrientation = OMV.Quaternion.Inverse(root.RawOrientation);
+        OMV.Vector3 displacementFromRoot = (child.RawPosition - root.RawPosition) * invRootOrientation;
+        OMV.Vector3 displacementFromCOM = displacementFromRoot - centerDisplacement;
+        OMV.Quaternion displacementRot = child.RawOrientation * invRootOrientation;
+
+        // Save relative position for recomputing child's world position after moving linkset.
+        Index = indx;
+        OffsetFromRoot = displacementFromRoot;
+        OffsetFromCenterOfMass = displacementFromCOM;
+        OffsetRot = displacementRot;
+    }
     public override void Clear()
     {
         Index = 0;
@@ -182,24 +197,71 @@ public sealed class BSLinksetCompound : BSLinkset
 
     // 'physicalUpdate' is true if these changes came directly from the physics engine. Don't need to rebuild then.
     // Called at taint-time.
-    public override void UpdateProperties(BSPhysObject updated, bool physicalUpdate)
+    public override void UpdateProperties(UpdatedProperties whichUpdated, BSPhysObject updated)
     {
         // The user moving a child around requires the rebuilding of the linkset compound shape
         // One problem is this happens when a border is crossed -- the simulator implementation
-        //    is to store the position into the group which causes the move of the object
+        //    stores the position into the group which causes the move of the object
         //    but it also means all the child positions get updated.
         //    What would cause an unnecessary rebuild so we make sure the linkset is in a
         //    region before bothering to do a rebuild.
-        if (!IsRoot(updated) 
-                && !physicalUpdate 
-                && PhysicsScene.TerrainManager.IsWithinKnownTerrain(LinksetRoot.RawPosition))
+        if (!IsRoot(updated) && PhysicsScene.TerrainManager.IsWithinKnownTerrain(LinksetRoot.RawPosition))
         {
-            // TODO: replace this with are calculation of the child prim's orientation and pos.
-            // TODO: for the moment, don't rebuild the compound shape.
-            //    This is often just the car turning its wheels. When we can just reorient the one
-            //    member shape of the compound shape, the overhead of rebuilding won't be a problem.
-            // updated.LinksetInfo = null;
-            // ScheduleRebuild(updated);
+            // If a child of the linkset is updating only the position or rotation, that can be done
+            //    without rebuilding the linkset.
+            // If a handle for the child can be fetch, we update the child here. If a rebuild was
+            //    scheduled by someone else, the rebuild will just replace this setting.
+
+            bool updatedChild = false;
+            // Anything other than updating position or orientation usually means a physical update
+            //     and that is caused by us updating the object.
+            if ((whichUpdated & ~(UpdatedProperties.Position | UpdatedProperties.Orientation)) == 0)
+            {
+                // Gather the child info. It might not be there if the linkset is in transition.
+                BSLinksetCompoundInfo lsi = updated.LinksetInfo as BSLinksetCompoundInfo;
+                if (LinksetRoot.PhysShape.HasPhysicalShape && lsi != null)
+                {
+                    if (PhysicsScene.PE.IsCompound(LinksetRoot.PhysShape))
+                    {
+                        BulletShape linksetChildShape = PhysicsScene.PE.GetChildShapeFromCompoundShapeIndex(LinksetRoot.PhysShape, lsi.Index);
+                        if (linksetChildShape.HasPhysicalShape)
+                        {
+                            // Compute the offset from the center-of-gravity
+                            BSLinksetCompoundInfo newLsi = new BSLinksetCompoundInfo(lsi.Index, LinksetRoot, updated, LinksetRoot.PositionDisplacement);
+                            PhysicsScene.PE.UpdateChildTransform(LinksetRoot.PhysShape, lsi.Index,
+                                                                        newLsi.OffsetFromCenterOfMass,
+                                                                        newLsi.OffsetRot,
+                                                                        true /* shouldRecalculateLocalAabb */);
+                            DetailLog("{0},BSLinksetCompound.UpdateProperties,changeChildPosRot,whichUpdated={1}newLsi={2}",
+                                                                        updated.LocalID, whichUpdated, newLsi);
+                            updated.LinksetInfo = newLsi;
+                            updatedChild = true;
+                        }
+                        else    // DEBUG DEBUG
+                        {       // DEBUG DEBUG
+                            DetailLog("{0},BSLinksetCompound.UpdateProperties,couldNotUpdateChild,noChildShape,shape={1}",
+                                                                        updated.LocalID, linksetChildShape);
+                        }       // DEBUG DEBUG
+                    }
+                    else    // DEBUG DEBUG
+                    {       // DEBUG DEBUG
+                        DetailLog("{0},BSLinksetCompound.UpdateProperties,couldNotUpdateChild,notCompound", updated.LocalID);
+                    }       // DEBUG DEBUG
+                }
+                else    // DEBUG DEBUG
+                {       // DEBUG DEBUG
+                    DetailLog("{0},BSLinksetCompound.UpdateProperties,couldNotUpdateChild,rootPhysShape={1},lsi={2}",
+                                updated.LocalID, LinksetRoot.PhysShape, lsi == null ? "NULL" : lsi.ToString());
+                }       // DEBUG DEBUG
+                if (!updatedChild)
+                {
+                    // If couldn't do the individual child, the linkset needs a rebuild to incorporate the new child info.
+                    DetailLog("{0},BSLinksetCompound.UpdateProperties,couldNotUpdateChild.schedulingRebuild,whichUpdated={1}",
+                                                                    updated.LocalID, whichUpdated);
+                    updated.LinksetInfo = null; // setting to 'null' causes relative position to be recomputed.
+                    ScheduleRebuild(updated);
+                }
+            }
         }
     }
 
@@ -372,15 +434,7 @@ public sealed class BSLinksetCompound : BSLinkset
                     BSLinksetCompoundInfo lci = cPrim.LinksetInfo as BSLinksetCompoundInfo;
                     if (lci == null)
                     {
-                        // Each child position and rotation is given relative to the center-of-mass.
-                        OMV.Quaternion invRootOrientation = OMV.Quaternion.Inverse(LinksetRoot.RawOrientation);
-                        OMV.Vector3 displacementFromRoot = (cPrim.RawPosition - LinksetRoot.RawPosition) * invRootOrientation;
-                        OMV.Vector3 displacementFromCOM = displacementFromRoot - centerDisplacement;
-                        OMV.Quaternion displacementRot = cPrim.RawOrientation * invRootOrientation;
-
-                        // Save relative position for recomputing child's world position after moving linkset.
-                        lci = new BSLinksetCompoundInfo(memberIndex, displacementFromCOM, displacementRot);
-                        lci.OffsetFromRoot = displacementFromRoot;
+                        lci = new BSLinksetCompoundInfo(memberIndex, LinksetRoot, cPrim, centerDisplacement);
                         cPrim.LinksetInfo = lci;
                         DetailLog("{0},BSLinksetCompound.RecomputeLinksetCompound,creatingRelPos,lci={1}", cPrim.LocalID, lci);
                     }

@@ -311,13 +311,14 @@ public sealed class BSPrim : BSPhysObject
             _position = value;
             PositionSanityCheck(false);
 
-            // A linkset might need to know if a component information changed.
-            Linkset.UpdateProperties(this, false);
-
             PhysicsScene.TaintedObject("BSPrim.setPosition", delegate()
             {
                 DetailLog("{0},BSPrim.SetPosition,taint,pos={1},orient={2}", LocalID, _position, _orientation);
                 ForcePosition = _position;
+
+                // A linkset might need to know if a component information changed.
+                Linkset.UpdateProperties(UpdatedProperties.Position, this);
+
             });
         }
     }
@@ -682,12 +683,13 @@ public sealed class BSPrim : BSPhysObject
                 return;
             _orientation = value;
 
-            // A linkset might need to know if a component information changed.
-            Linkset.UpdateProperties(this, false);
-
             PhysicsScene.TaintedObject("BSPrim.setOrientation", delegate()
             {
                 ForceOrientation = _orientation;
+
+                // A linkset might need to know if a component information changed.
+                Linkset.UpdateProperties(UpdatedProperties.Orientation, this);
+
             });
         }
     }
@@ -1686,7 +1688,7 @@ public sealed class BSPrim : BSPhysObject
              */
 
         // The linkset implimentation might want to know about this.
-        Linkset.UpdateProperties(this, true);
+        Linkset.UpdateProperties(UpdatedProperties.EntPropUpdates, this);
     }
 }
 }

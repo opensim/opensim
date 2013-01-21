@@ -899,7 +899,7 @@ public sealed class BSCharacter : BSPhysObject
         CurrentEntityProperties = entprop;
 
         // Tell the linkset about value changes
-        Linkset.UpdateProperties(this, true);
+        Linkset.UpdateProperties(UpdatedProperties.EntPropUpdates, this);
 
         // Avatars don't report their changes the usual way. Changes are checked for in the heartbeat loop.
         // base.RequestPhysicsterseUpdate();
