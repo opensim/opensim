@@ -79,14 +79,14 @@ namespace OpenSim.Region.Framework.Scenes
         object_rez = 4194304
     }
 
-    struct scriptPosTarget
+    public struct scriptPosTarget
     {
         public Vector3 targetPos;
         public float tolerance;
         public uint handle;
     }
 
-    struct scriptRotTarget
+    public struct scriptRotTarget
     {
         public Quaternion targetRot;
         public float tolerance;
@@ -322,6 +322,16 @@ namespace OpenSim.Region.Framework.Scenes
 
         private SortedDictionary<uint, scriptPosTarget> m_targets = new SortedDictionary<uint, scriptPosTarget>();
         private SortedDictionary<uint, scriptRotTarget> m_rotTargets = new SortedDictionary<uint, scriptRotTarget>();
+
+        public SortedDictionary<uint, scriptPosTarget> AtTargets
+        {
+            get { return m_targets; }
+        }
+
+        public SortedDictionary<uint, scriptRotTarget> RotTargets
+        {
+            get { return m_rotTargets; }
+        }
 
         private bool m_scriptListens_atTarget;
         private bool m_scriptListens_notAtTarget;
