@@ -171,7 +171,8 @@ namespace OpenSim.Data.MySQL
                                     "ParticleSystem, ClickAction, Material, " +
                                     "CollisionSound, CollisionSoundVolume, " +
                                     "PassTouches, " +
-                                    "LinkNumber, MediaURL) values (" + "?UUID, " +
+                                    "LinkNumber, MediaURL, DynAttrs) " +
+                                    "values (?UUID, " +
                                     "?CreationDate, ?Name, ?Text, " +
                                     "?Description, ?SitName, ?TouchName, " +
                                     "?ObjectFlags, ?OwnerMask, ?NextOwnerMask, " +
@@ -202,7 +203,8 @@ namespace OpenSim.Data.MySQL
                                     "?SaleType, ?ColorR, ?ColorG, " +
                                     "?ColorB, ?ColorA, ?ParticleSystem, " +
                                     "?ClickAction, ?Material, ?CollisionSound, " +
-                                    "?CollisionSoundVolume, ?PassTouches, ?LinkNumber, ?MediaURL, ?DynAttrs)";
+                                    "?CollisionSoundVolume, ?PassTouches, ?LinkNumber, " +
+                                    "?MediaURL, ?DynAttrs)";
     
                             FillPrimCommand(cmd, prim, obj.UUID, regionUUID);
     
@@ -219,7 +221,8 @@ namespace OpenSim.Data.MySQL
                                     "PathTaperX, PathTaperY, PathTwist, " +
                                     "PathTwistBegin, ProfileBegin, ProfileEnd, " +
                                     "ProfileCurve, ProfileHollow, Texture, " +
-                                    "ExtraParams, State, Media) values (?UUID, " +
+                                    "ExtraParams, State, Media, DynAttrs) " +
+                                    "values (?UUID, " +
                                     "?Shape, ?ScaleX, ?ScaleY, ?ScaleZ, " +
                                     "?PCode, ?PathBegin, ?PathEnd, " +
                                     "?PathScaleX, ?PathScaleY, " +
