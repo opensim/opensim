@@ -320,8 +320,8 @@ namespace OpenSim.Region.Framework.Scenes
         protected SceneObjectPart m_rootPart;
         // private Dictionary<UUID, scriptEvents> m_scriptEvents = new Dictionary<UUID, scriptEvents>();
 
-        private Dictionary<uint, scriptPosTarget> m_targets = new Dictionary<uint, scriptPosTarget>();
-        private Dictionary<uint, scriptRotTarget> m_rotTargets = new Dictionary<uint, scriptRotTarget>();
+        private SortedDictionary<uint, scriptPosTarget> m_targets = new SortedDictionary<uint, scriptPosTarget>();
+        private SortedDictionary<uint, scriptRotTarget> m_rotTargets = new SortedDictionary<uint, scriptRotTarget>();
 
         private bool m_scriptListens_atTarget;
         private bool m_scriptListens_notAtTarget;
@@ -4112,6 +4112,8 @@ namespace OpenSim.Region.Framework.Scenes
             waypoint.handle = handle;
             lock (m_rotTargets)
             {
+                if (m_rotTargets.Count >= 8)
+                    m_rotTargets.Remove(m_rotTargets.ElementAt(0).Key);
                 m_rotTargets.Add(handle, waypoint);
             }
             m_scene.AddGroupTarget(this);
@@ -4137,6 +4139,8 @@ namespace OpenSim.Region.Framework.Scenes
             waypoint.handle = handle;
             lock (m_targets)
             {
+                if (m_targets.Count >= 8)
+                    m_targets.Remove(m_targets.ElementAt(0).Key);
                 m_targets.Add(handle, waypoint);
             }
             m_scene.AddGroupTarget(this);
