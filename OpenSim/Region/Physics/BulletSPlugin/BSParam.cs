@@ -45,6 +45,9 @@ public static class BSParam
 
     public static float MinimumObjectMass { get; private set; }
     public static float MaximumObjectMass { get; private set; }
+    public static float MaxLinearVelocity { get; private set; }
+    public static float MaxAngularVelocity { get; private set; }
+    public static float MaxAddForceMagnitude { get; private set; }
 
     public static float LinearDamping { get; private set; }
     public static float AngularDamping { get; private set; }
@@ -79,6 +82,8 @@ public static class BSParam
 	public static float AvatarStepApproachFactor { get; private set; }
 	public static float AvatarStepForceFactor { get; private set; }
 
+    public static float VehicleMaxLinearVelocity { get; private set; }
+    public static float VehicleMaxAngularVelocity { get; private set; }
     public static float VehicleAngularDamping { get; private set; }
     public static float VehicleDebuggingEnabled { get; private set; }
 
@@ -103,7 +108,6 @@ public static class BSParam
     public const float MaxDensity = 22587f;
     public const float MinRestitution = 0f;
     public const float MaxRestitution = 1f;
-    public const float MaxAddForceMagnitude = 20f;
 
     // ===========================================================================
     public delegate void ParamUser(BSScene scene, IConfig conf, string paramName, float val);
@@ -247,6 +251,22 @@ public static class BSParam
             (s,cf,p,v) => { MaximumObjectMass = cf.GetFloat(p, v); },
             (s) => { return (float)MaximumObjectMass; },
             (s,p,l,v) => { MaximumObjectMass = v; } ),
+        new ParameterDefn("MaxLinearVelocity", "Maximum velocity magnitude that can be assigned to an object",
+            1000.0f,
+            (s,cf,p,v) => { MaxLinearVelocity = cf.GetFloat(p, v); },
+            (s) => { return (float)MaxLinearVelocity; },
+            (s,p,l,v) => { MaxLinearVelocity = v; } ),
+        new ParameterDefn("MaxAngularVelocity", "Maximum rotational velocity magnitude that can be assigned to an object",
+            1000.0f,
+            (s,cf,p,v) => { MaxAngularVelocity = cf.GetFloat(p, v); },
+            (s) => { return (float)MaxAngularVelocity; },
+            (s,p,l,v) => { MaxAngularVelocity = v; } ),
+        // LL documentation says thie number should be 20f
+        new ParameterDefn("MaxAddForceMagnitude", "Maximum force that can be applied by llApplyImpulse (SL says 20f)",
+            200.0f,
+            (s,cf,p,v) => { MaxAddForceMagnitude = cf.GetFloat(p, v); },
+            (s) => { return (float)MaxAddForceMagnitude; },
+            (s,p,l,v) => { MaxAddForceMagnitude = v; } ),
 
         new ParameterDefn("PID_D", "Derivitive factor for motion smoothing",
             2200f,
@@ -423,6 +443,16 @@ public static class BSParam
             (s) => { return AvatarStepForceFactor; },
             (s,p,l,v) => { AvatarStepForceFactor = v; } ),
 
+        new ParameterDefn("VehicleMaxLinearVelocity", "Maximum velocity magnitude that can be assigned to a vehicle",
+            1000.0f,
+            (s,cf,p,v) => { VehicleMaxLinearVelocity = cf.GetFloat(p, v); },
+            (s) => { return (float)VehicleMaxLinearVelocity; },
+            (s,p,l,v) => { VehicleMaxLinearVelocity = v; } ),
+        new ParameterDefn("VehicleMaxAngularVelocity", "Maximum rotational velocity magnitude that can be assigned to a vehicle",
+            12.0f,
+            (s,cf,p,v) => { VehicleMaxAngularVelocity = cf.GetFloat(p, v); },
+            (s) => { return (float)VehicleMaxAngularVelocity; },
+            (s,p,l,v) => { VehicleMaxAngularVelocity = v; } ),
         new ParameterDefn("VehicleAngularDamping", "Factor to damp vehicle angular movement per second (0.0 - 1.0)",
             0.95f,
             (s,cf,p,v) => { VehicleAngularDamping = cf.GetFloat(p, v); },

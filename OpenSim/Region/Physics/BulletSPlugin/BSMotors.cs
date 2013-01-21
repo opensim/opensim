@@ -149,6 +149,7 @@ public class BSVMotor : BSMotor
 
         Vector3 correction = Vector3.Zero;
         Vector3 error = TargetValue - CurrentValue;
+        LastError = error;
         if (!ErrorIsZero(error))
         {
             correction = StepError(timeStep, error);
@@ -188,9 +189,15 @@ public class BSVMotor : BSMotor
         else
         {
             // Difference between what we have and target is small. Motor is done.
-            CurrentValue = TargetValue = Vector3.Zero;
-            MDetailLog("{0},  BSVMotor.Step,zero,{1},origTgt={2},origCurr={3},ret={4}",
-                        BSScene.DetailLogZero, UseName, origCurrVal, origTarget, CurrentValue);
+            if (TargetValue.ApproxEquals(Vector3.Zero, ErrorZeroThreshold))
+            {
+                // The target can step down to nearly zero but not get there.  If close to zero
+                //     it is really zero.
+                TargetValue = Vector3.Zero;
+            }
+            CurrentValue = TargetValue;
+            MDetailLog("{0},  BSVMotor.Step,zero,{1},origTgt={2},origCurr={3},currTgt={4},currCurr={5}",
+                        BSScene.DetailLogZero, UseName, origCurrVal, origTarget, TargetValue, CurrentValue);
         }
 
         return correction;
@@ -205,9 +212,8 @@ public class BSVMotor : BSMotor
     {
         if (!Enabled) return Vector3.Zero;
 
-        LastError = error;
         Vector3 returnCorrection = Vector3.Zero;
-        if (!ErrorIsZero())
+        if (!ErrorIsZero(error))
         {
             // correction =  error / secondsItShouldTakeToCorrect
             Vector3 correctionAmount;
@@ -309,6 +315,7 @@ public class BSFMotor : BSMotor
 
         float correction = 0f;
         float error = TargetValue - CurrentValue;
+        LastError = error;
         if (!ErrorIsZero(error))
         {
             correction = StepError(timeStep, error);
@@ -346,6 +353,12 @@ public class BSFMotor : BSMotor
         else
         {
             // Difference between what we have and target is small. Motor is done.
+            if (Util.InRange<float>(TargetValue, -ErrorZeroThreshold, ErrorZeroThreshold))
+            {
+                // The target can step down to nearly zero but not get there.  If close to zero
+                //     it is really zero.
+                TargetValue = 0f;
+            }
             CurrentValue = TargetValue;
             MDetailLog("{0},  BSFMotor.Step,zero,{1},origTgt={2},origCurr={3},ret={4}",
                         BSScene.DetailLogZero, UseName, origCurrVal, origTarget, CurrentValue);
@@ -358,9 +371,8 @@ public class BSFMotor : BSMotor
     {
         if (!Enabled) return 0f;
 
-        LastError = error;
         float returnCorrection = 0f;
-        if (!ErrorIsZero())
+        if (!ErrorIsZero(error))
         {
             // correction =  error / secondsItShouldTakeToCorrect
             float correctionAmount;

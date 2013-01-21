@@ -989,10 +989,10 @@ public sealed class BSPrim : BSPhysObject
         }
         set {
             _rotationalVelocity = value;
+            Util.ClampV(_rotationalVelocity, BSParam.MaxAngularVelocity);
             // m_log.DebugFormat("{0}: RotationalVelocity={1}", LogHeader, _rotationalVelocity);
             PhysicsScene.TaintedObject("BSPrim.setRotationalVelocity", delegate()
             {
-                DetailLog("{0},BSPrim.SetRotationalVel,taint,rotvel={1}", LocalID, _rotationalVelocity);
                 ForceRotationalVelocity = _rotationalVelocity;
             });
         }
@@ -1005,6 +1005,7 @@ public sealed class BSPrim : BSPhysObject
             _rotationalVelocity = value;
             if (PhysBody.HasPhysicalBody)
             {
+                DetailLog("{0},BSPrim.ForceRotationalVel,taint,rotvel={1}", LocalID, _rotationalVelocity);
                 PhysicsScene.PE.SetAngularVelocity(PhysBody, _rotationalVelocity);
                 ActivateIfPhysical(false);
             }
@@ -1193,10 +1194,14 @@ public sealed class BSPrim : BSPhysObject
     public override float APIDDamping { set { return; } }
 
     public override void AddForce(OMV.Vector3 force, bool pushforce) {
+        // Per documentation, max force is limited.
+        OMV.Vector3 addForce = Util.ClampV(force, BSParam.MaxAddForceMagnitude);
+
         // Since this force is being applied in only one step, make this a force per second.
-        OMV.Vector3 addForce = force / PhysicsScene.LastTimeStep;
-        AddForce(addForce, pushforce, false);
+        addForce /= PhysicsScene.LastTimeStep;
+        AddForce(addForce, pushforce, false /* inTaintTime */);
     }
+
     // Applying a force just adds this to the total force on the object.
     // This added force will only last the next simulation tick.
     public void AddForce(OMV.Vector3 force, bool pushforce, bool inTaintTime) {
@@ -1205,9 +1210,9 @@ public sealed class BSPrim : BSPhysObject
         {
             if (force.IsFinite())
             {
-                OMV.Vector3 addForce = Util.ClampV(force, BSParam.MaxAddForceMagnitude);
                 // DetailLog("{0},BSPrim.addForce,call,force={1}", LocalID, addForce);
 
+                OMV.Vector3 addForce = force;
                 PhysicsScene.TaintedObject(inTaintTime, "BSPrim.AddForce", delegate()
                 {
                     // Bullet adds this central force to the total force for this tick

@@ -200,20 +200,36 @@ public sealed class BSCharacter : BSPhysObject
             // TODO: Decide if the step parameters should be changed depending on the avatar's
             //     state (flying, colliding, ...). There is code in ODE to do this.
 
+            // COMMENTARY: when the user is making the avatar walk, except for falling, the velocity
+            //   specified for the avatar is the one that should be used. For falling, if the avatar
+            //   is not flying and is not colliding then it is presumed to be falling and the Z
+            //   component is not fooled with (thus allowing gravity to do its thing).
+            // When the avatar is standing, though, the user has specified a velocity of zero and
+            //   the avatar should be standing. But if the avatar is pushed by something in the world
+            //   (raising elevator platform, moving vehicle, ...) the avatar should be allowed to
+            //   move. Thus, the velocity cannot be forced to zero. The problem is that small velocity
+            //   errors can creap in and the avatar will slowly float off in some direction.
+            // So, the problem is that, when an avatar is standing, we cannot tell creaping error
+            //   from real pushing.OMV.Vector3.Zero;
+            // The code below keeps setting the velocity to zero hoping the world will keep pushing.
+
             _velocityMotor.Step(timeStep);
 
             // If we're not supposed to be moving, make sure things are zero.
-            if (_velocityMotor.ErrorIsZero() && _velocityMotor.TargetValue.ApproxEquals(OMV.Vector3.Zero, 0.01f))
+            if (_velocityMotor.ErrorIsZero() && _velocityMotor.TargetValue == OMV.Vector3.Zero && IsColliding)
             {
-                if (_wasWalking)
+                // The avatar shouldn't be moving
+                _velocityMotor.Zero();
+                ZeroMotion(true /* inTaintTime */);
+
+                // Standing has more friction on the ground
+                if (_currentFriction != BSParam.AvatarStandingFriction)
                 {
-                    _velocityMotor.Zero();
-                    _velocity = OMV.Vector3.Zero;
-                    PhysicsScene.PE.SetLinearVelocity(PhysBody, OMV.Vector3.Zero);
                     _currentFriction = BSParam.AvatarStandingFriction;
                     PhysicsScene.PE.SetFriction(PhysBody, _currentFriction);
-                    // DetailLog("{0},BSCharacter.MoveMotor,taint,stopping,target={1}", LocalID, _velocityMotor.TargetValue);
                 }
+                DetailLog("{0},BSCharacter.MoveMotor,taint,stopping,target={1}", LocalID, _velocityMotor.TargetValue);
+
                 _wasWalking = false;
             }
             else
@@ -242,7 +258,7 @@ public sealed class BSCharacter : BSPhysObject
                 // Add special movement force to allow avatars to walk up stepped surfaces.
                 moveForce += WalkUpStairs();
 
-                // DetailLog("{0},BSCharacter.MoveMotor,move,stepVel={1},vel={2},mass={3},moveForce={4}", LocalID, stepVelocity, _velocity, Mass, moveForce);
+                DetailLog("{0},BSCharacter.MoveMotor,move,stepVel={1},vel={2},mass={3},moveForce={4}", LocalID, stepVelocity, _velocity, Mass, moveForce);
                 PhysicsScene.PE.ApplyCentralImpulse(PhysBody, moveForce);
                 _wasWalking = true;
             }
