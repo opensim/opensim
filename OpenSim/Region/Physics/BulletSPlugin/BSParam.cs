@@ -236,11 +236,7 @@ public static class BSParam
             (s,cf,p,v) => { s.m_maxUpdatesPerFrame = cf.GetInt(p, (int)v); },
             (s) => { return (float)s.m_maxUpdatesPerFrame; },
             (s,p,l,v) => { s.m_maxUpdatesPerFrame = (int)v; } ),
-        new ParameterDefn("MaxTaintsToProcessPerStep", "Number of update taints to process before each simulation step",
-            500f,
-            (s,cf,p,v) => { s.m_taintsToProcessPerStep = cf.GetInt(p, (int)v); },
-            (s) => { return (float)s.m_taintsToProcessPerStep; },
-            (s,p,l,v) => { s.m_taintsToProcessPerStep = (int)v; } ),
+
         new ParameterDefn("MinObjectMass", "Minimum object mass (0.0001)",
             0.0001f,
             (s,cf,p,v) => { MinimumObjectMass = cf.GetFloat(p, v); },
@@ -261,9 +257,9 @@ public static class BSParam
             (s,cf,p,v) => { MaxAngularVelocity = cf.GetFloat(p, v); },
             (s) => { return (float)MaxAngularVelocity; },
             (s,p,l,v) => { MaxAngularVelocity = v; } ),
-        // LL documentation says thie number should be 20f
+        // LL documentation says thie number should be 20f for llApplyImpulse and 200f for llRezObject
         new ParameterDefn("MaxAddForceMagnitude", "Maximum force that can be applied by llApplyImpulse (SL says 20f)",
-            200.0f,
+            20000.0f,
             (s,cf,p,v) => { MaxAddForceMagnitude = cf.GetFloat(p, v); },
             (s) => { return (float)MaxAddForceMagnitude; },
             (s,p,l,v) => { MaxAddForceMagnitude = v; } ),

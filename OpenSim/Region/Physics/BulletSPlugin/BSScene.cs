@@ -81,7 +81,6 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     internal long m_simulationStep = 0;
     internal float NominalFrameRate { get; set; }
     public long SimulationStep { get { return m_simulationStep; } }
-    internal int m_taintsToProcessPerStep;
     internal float LastTimeStep { get; private set; }
 
     // Physical objects can register for prestep or poststep events
