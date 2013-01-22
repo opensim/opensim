@@ -450,7 +450,7 @@ public static class BSParam
             (s) => { return (float)VehicleMaxAngularVelocity; },
             (s,p,l,v) => { VehicleMaxAngularVelocity = v; } ),
         new ParameterDefn("VehicleAngularDamping", "Factor to damp vehicle angular movement per second (0.0 - 1.0)",
-            0.95f,
+            0.0f,
             (s,cf,p,v) => { VehicleAngularDamping = cf.GetFloat(p, v); },
             (s) => { return VehicleAngularDamping; },
             (s,p,l,v) => { VehicleAngularDamping = v; } ),

@@ -1009,6 +1009,7 @@ public sealed class BSPrim : BSPhysObject
             {
                 DetailLog("{0},BSPrim.ForceRotationalVel,taint,rotvel={1}", LocalID, _rotationalVelocity);
                 PhysicsScene.PE.SetAngularVelocity(PhysBody, _rotationalVelocity);
+                // PhysicsScene.PE.SetInterpolationAngularVelocity(PhysBody, _rotationalVelocity);
                 ActivateIfPhysical(false);
             }
         }
@@ -1649,7 +1650,7 @@ public sealed class BSPrim : BSPhysObject
             // TODO: handle physics introduced by Bullet with computed vehicle physics.
             if (_vehicle.IsActive)
             {
-                entprop.RotationalVelocity = OMV.Vector3.Zero;
+                // entprop.RotationalVelocity = OMV.Vector3.Zero;
             }
 
             // Assign directly to the local variables so the normal set actions do not happen

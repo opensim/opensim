@@ -1192,7 +1192,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         //     set directly on the vehicle.
         private void MoveAngular(float pTimestep)
         {
-            VehicleRotationalVelocity = Vector3.Zero;
+            // VehicleRotationalVelocity = Vector3.Zero;
 
             ComputeAngularTurning(pTimestep);
 
@@ -1201,12 +1201,6 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             ComputeAngularDeflection();
 
             ComputeAngularBanking();
-
-            // ==================================================================
-            // All of the above computation are made relative to vehicle coordinates.
-            // Convert to world coordinates.
-            // TODO: Should this be applied as an angular force (torque)?
-            VehicleRotationalVelocity *= VehicleOrientation;
 
             // ==================================================================
             if (VehicleRotationalVelocity.ApproxEquals(Vector3.Zero, 0.01f))
@@ -1256,7 +1250,8 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         private void ComputeAngularTurning(float pTimestep)
         {
             // The user wants this many radians per second angular change?
-            Vector3 angularMotorContribution = m_angularMotor.Step(pTimestep);
+            Vector3 currentAngular = VehicleRotationalVelocity * Quaternion.Inverse(VehicleOrientation);
+            Vector3 angularMotorContribution = m_angularMotor.Step(pTimestep, currentAngular);
 
             // ==================================================================
             // From http://wiki.secondlife.com/wiki/LlSetVehicleFlags :
@@ -1272,7 +1267,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 angularMotorContribution.Y = 0f;
             }
 
-            VehicleRotationalVelocity += angularMotorContribution;
+            VehicleRotationalVelocity += angularMotorContribution * VehicleOrientation;
             VDetailLog("{0},  MoveAngular,angularTurning,angularMotorContrib={1}", Prim.LocalID, angularMotorContribution);
         }
 
@@ -1312,7 +1307,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 if (verticalError.Z < 0f)
                 {
                     vertContribution.X += PIOverFour;
-                    vertContribution.Y += PIOverFour;
+                    // vertContribution.Y -= PIOverFour;
                 }
 
                 // 'vertContrbution' is now the necessary angular correction to correct tilt in one second.
@@ -1320,7 +1315,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 Vector3 unscaledContrib = vertContribution;     // DEBUG DEBUG
                 vertContribution /= m_verticalAttractionTimescale;
 
-                VehicleRotationalVelocity += vertContribution;
+                VehicleRotationalVelocity += vertContribution * VehicleOrientation;
 
                 VDetailLog("{0},  MoveAngular,verticalAttraction,,verticalError={1},unscaled={2},eff={3},ts={4},vertAttr={5}",
                                 Prim.LocalID, verticalError, unscaledContrib, m_verticalAttractionEfficiency, m_verticalAttractionTimescale, vertContribution);
@@ -1371,7 +1366,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 deflectContribution = (-deflectionError) * m_angularDeflectionEfficiency;
                 deflectContribution /= m_angularDeflectionTimescale;
 
-                VehicleRotationalVelocity += deflectContribution;
+                VehicleRotationalVelocity += deflectContribution * VehicleOrientation;
 
                 VDetailLog("{0},  MoveAngular,Deflection,movingDir={1},pointingDir={2},deflectError={3},ret={4}",
                     Prim.LocalID, movingDirection, pointingDirection, deflectionError, deflectContribution);
@@ -1438,7 +1433,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 // Don't do it all at once.
                 bankingContribution /= m_bankingTimescale;
 
-                VehicleRotationalVelocity += bankingContribution;
+                VehicleRotationalVelocity += bankingContribution * VehicleOrientation;
 
                 VDetailLog("{0},  MoveAngular,Banking,rollComp={1},speed={2},rollComp={3},yAng={4},mYAng={5},ret={6}",
                             Prim.LocalID, rollComponents, VehicleForwardSpeed, rollComponents, yawAngle, mixedYawAngle, bankingContribution);
