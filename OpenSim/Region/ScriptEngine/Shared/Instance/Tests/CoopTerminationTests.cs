@@ -124,8 +124,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance.Tests
 {    
     state_entry()
     {
-        llSay(0, ""Thin Lizzy"");
         integer i = 0;
+        llSay(0, ""Thin Lizzy"");
+        
         for (i = 0; i < 2147483647; i++)        
             llSay(0, ""Iter "" + (string)i);
     }
@@ -145,8 +146,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance.Tests
 {    
     state_entry()
     {
-        llSay(0, ""Thin Lizzy"");
         integer i = 0;
+        llSay(0, ""Thin Lizzy"");
+        
         for (i = 0; i < 2147483647; i++) 
         {
             llSay(0, ""Iter "" + (string)i);
@@ -168,6 +170,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance.Tests
 {    
     state_entry()
     {
+        integer i = 0;
         llSay(0, ""Thin Lizzy"");
 
         while (1 == 1)        
@@ -189,12 +192,37 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance.Tests
 {    
     state_entry()
     {
+        integer i = 0;
         llSay(0, ""Thin Lizzy"");
 
         while (1 == 1) 
         {
             llSay(0, ""Iter "" + (string)i);
         }
+    }
+}";
+
+            TestStop(script);
+        }
+
+        [Test]
+        public void TestStopOnLongDoWhileLoop()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            string script = 
+@"default
+{    
+    state_entry()
+    {
+        integer i = 0;
+        llSay(0, ""Thin Lizzy"");
+
+        do 
+        {
+            llSay(0, ""Iter "" + (string)i);
+        } while (1 == 1)
     }
 }";
 
