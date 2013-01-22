@@ -176,8 +176,17 @@ namespace OpenSim.Capabilities.Handlers
                return true;
            }
 
+            response = new Hashtable();
+
+            response["int_response_code"] = 404;
+            response["str_response_string"] = "not found";
+            response["content_type"] = "text/plain";
+            response["keepalive"] = false;
+            response["reusecontext"] = false;
+            response["int_bytes"] = 0;
+            //WriteTextureData(request,response,null,format);
             // not found
-//            m_log.Warn("[GETTEXTURE]: Texture " + textureID + " not found");
+            //m_log.Warn("[GETTEXTURE]: Texture " + textureID + " not found");
             return true;
         }
 
