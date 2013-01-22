@@ -7782,8 +7782,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
 
             setLinkPrimParams(linknumber, rules, "llSetLinkPrimitiveParamsFast");
-
-            ScriptSleep(200);
         }
 
         private void setLinkPrimParams(int linknumber, LSL_List rules, string originFunc)
