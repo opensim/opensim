@@ -99,23 +99,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance.Tests
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
 
-            UUID userId = TestHelpers.ParseTail(0x1);
-//            UUID objectId = TestHelpers.ParseTail(0x100);
-//            UUID itemId = TestHelpers.ParseTail(0x3);
-            string itemName = "TestStopOnObjectDerezLongSleep() Item";
-
-            SceneObjectGroup so = SceneHelpers.CreateSceneObject(1, userId, "TestStopOnObjectDerezLongSleep", 0x100);
-            m_scene.AddNewSceneObject(so, true);
-
-            InventoryItemBase itemTemplate = new InventoryItemBase();
-//            itemTemplate.ID = itemId;
-            itemTemplate.Name = itemName;
-            itemTemplate.Folder = so.UUID;
-            itemTemplate.InvType = (int)InventoryType.LSL;
-
-            m_scene.EventManager.OnChatFromWorld += OnChatFromWorld;
-
-            SceneObjectPart partWhereRezzed = m_scene.RezNewScript(userId, itemTemplate, 
+            string script = 
 @"default
 {    
     state_entry()
@@ -123,31 +107,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance.Tests
         llSay(0, ""Thin Lizzy"");
         llSleep(60);
     }
-}");
+}";
 
-            TaskInventoryItem rezzedItem = partWhereRezzed.Inventory.GetInventoryItem(itemName);
-
-            // Wait for the script to start the event before we try stopping it.
-            m_chatEvent.WaitOne(60000);
-
-            Console.WriteLine("Script started with message [{0}]", m_osChatMessageReceived.Message);
-
-            // FIXME: This is a very poor way of trying to avoid a low-probability race condition where the script
-            // executes llSay() but has not started the sleep before we try to stop it.
-            Thread.Sleep(1000);
-
-            // We need a way of carrying on if StopScript() fail, since it won't return if the script isn't actually
-            // stopped.  This kind of multi-threading is far from ideal in a regression test.
-            new Thread(() => { m_xEngine.StopScript(rezzedItem.ItemID); m_stoppedEvent.Set(); }).Start();
-
-            if (!m_stoppedEvent.WaitOne(30000))
-                Assert.Fail("Script did not co-operatively stop.");
-
-            bool running;
-            TaskInventoryItem scriptItem = partWhereRezzed.Inventory.GetInventoryItem(itemName);
-            Assert.That(
-                SceneObjectPartInventory.TryGetScriptInstanceRunning(m_scene, scriptItem, out running), Is.True);
-            Assert.That(running, Is.False);
+            TestStop(script);
         }
 
         [Test]
@@ -156,23 +118,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance.Tests
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
 
-            UUID userId = TestHelpers.ParseTail(0x1);
-//            UUID objectId = TestHelpers.ParseTail(0x100);
-//            UUID itemId = TestHelpers.ParseTail(0x3);
-            string itemName = "TestStopOnLongForLoop() Item";
-
-            SceneObjectGroup so = SceneHelpers.CreateSceneObject(1, userId, "TestStopOnLongForLoop", 0x100);
-            m_scene.AddNewSceneObject(so, true);
-
-            InventoryItemBase itemTemplate = new InventoryItemBase();
-//            itemTemplate.ID = itemId;
-            itemTemplate.Name = itemName;
-            itemTemplate.Folder = so.UUID;
-            itemTemplate.InvType = (int)InventoryType.LSL;
-
-            m_scene.EventManager.OnChatFromWorld += OnChatFromWorld;
-
-            SceneObjectPart partWhereRezzed = m_scene.RezNewScript(userId, itemTemplate, 
+            string script = 
 @"default
 {    
     state_entry()
@@ -182,7 +128,30 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance.Tests
         for (i = 0; i < 2147483647; i++)        
             llSay(0, ""Iter "" + (string)i);
     }
-}");
+}";
+
+            TestStop(script);
+        }
+
+        private void TestStop(string script)
+        {
+            UUID userId = TestHelpers.ParseTail(0x1);
+//            UUID objectId = TestHelpers.ParseTail(0x100);
+//            UUID itemId = TestHelpers.ParseTail(0x3);
+            string itemName = "TestStop() Item";
+
+            SceneObjectGroup so = SceneHelpers.CreateSceneObject(1, userId, "TestStop", 0x100);
+            m_scene.AddNewSceneObject(so, true);
+
+            InventoryItemBase itemTemplate = new InventoryItemBase();
+//            itemTemplate.ID = itemId;
+            itemTemplate.Name = itemName;
+            itemTemplate.Folder = so.UUID;
+            itemTemplate.InvType = (int)InventoryType.LSL;
+
+            m_scene.EventManager.OnChatFromWorld += OnChatFromWorld;
+
+            SceneObjectPart partWhereRezzed = m_scene.RezNewScript(userId, itemTemplate, script);
 
             TaskInventoryItem rezzedItem = partWhereRezzed.Inventory.GetInventoryItem(itemName);
 
@@ -192,7 +161,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance.Tests
             Console.WriteLine("Script started with message [{0}]", m_osChatMessageReceived.Message);
 
             // FIXME: This is a very poor way of trying to avoid a low-probability race condition where the script
-            // executes llSay() but has not started the sleep before we try to stop it.
+            // executes llSay() but has not started the next statement before we try to stop it.
             Thread.Sleep(1000);
 
             // We need a way of carrying on if StopScript() fail, since it won't return if the script isn't actually
