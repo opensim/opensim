@@ -261,6 +261,36 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance.Tests
             TestStop(script);
         }
 
+        [Test]
+        public void TestStopOnInfiniteUserFunctionCallLoop()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            string script = 
+@"
+integer i = 0;
+
+ufn1()
+{
+  llSay(0, ""Iter ufn1() "" + (string)i++);
+  ufn1();
+}
+
+default
+{    
+    state_entry()
+    {
+        integer i = 0;
+        llSay(0, ""Thin Lizzy"");
+
+        ufn1();
+    }
+}";
+
+            TestStop(script);
+        }
+
         private void TestStop(string script)
         {
             UUID userId = TestHelpers.ParseTail(0x1);
