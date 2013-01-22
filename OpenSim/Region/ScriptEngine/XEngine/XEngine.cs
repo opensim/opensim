@@ -242,7 +242,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             ScriptBaseClassParameters = typeof(XEngineScriptBase).GetConstructor(new Type[] { typeof(WaitHandle) }).GetParameters();
             ScriptReferencedAssemblies = new string[] { Path.GetFileName(typeof(XEngineScriptBase).Assembly.Location) };
 
-            Console.WriteLine("ASSEMBLY NAME: {0}", ScriptReferencedAssemblies[0]);
+//            Console.WriteLine("ASSEMBLY NAME: {0}", ScriptReferencedAssemblies[0]);
         }
 
         public void AddRegion(Scene scene)
