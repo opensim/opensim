@@ -45,7 +45,9 @@ namespace OpenSim.Region.Framework.DynamicAttributes.DAExampleModule
     public class DAExampleModule : INonSharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
+        private static readonly bool ENABLED = false;   // enable for testing
+
         protected Scene m_scene;
         protected IDialogModule m_dialogMod;
         
@@ -56,14 +58,20 @@ namespace OpenSim.Region.Framework.DynamicAttributes.DAExampleModule
         
         public void AddRegion(Scene scene)
         {
-            m_scene = scene;
-            m_scene.EventManager.OnSceneGroupMove += OnSceneGroupMove;
-            m_dialogMod = m_scene.RequestModuleInterface<IDialogModule>();
+            if (ENABLED)
+            {
+                m_scene = scene;
+                m_scene.EventManager.OnSceneGroupMove += OnSceneGroupMove;
+                m_dialogMod = m_scene.RequestModuleInterface<IDialogModule>();
+            }
         }
         
         public void RemoveRegion(Scene scene) 
         {
-            m_scene.EventManager.OnSceneGroupMove -= OnSceneGroupMove;
+            if (ENABLED)
+            {
+                m_scene.EventManager.OnSceneGroupMove -= OnSceneGroupMove;
+            }
         }
         
         public void RegionLoaded(Scene scene) {}
