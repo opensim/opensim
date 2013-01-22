@@ -50,14 +50,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance.Tests
         private TestScene m_scene;
         private OpenSim.Region.ScriptEngine.XEngine.XEngine m_xEngine;
 
-        private AutoResetEvent m_chatEvent = new AutoResetEvent(false);
-        private AutoResetEvent m_stoppedEvent = new AutoResetEvent(false);
+        private AutoResetEvent m_chatEvent;
+        private AutoResetEvent m_stoppedEvent;
 
         private OSChatMessage m_osChatMessageReceived;
 
-        [TestFixtureSetUp]
+        [SetUp]
         public void Init()
         {
+            m_osChatMessageReceived = null;
+            m_chatEvent = new AutoResetEvent(false);
+            m_stoppedEvent = new AutoResetEvent(false);
+
             //AppDomain.CurrentDomain.SetData("APPBASE", Environment.CurrentDirectory + "/bin");
 //            Console.WriteLine(AppDomain.CurrentDomain.BaseDirectory);
             m_xEngine = new OpenSim.Region.ScriptEngine.XEngine.XEngine();
@@ -76,7 +80,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance.Tests
             xEngineConfig.Set("AppDomainLoading", "false");
 
             xEngineConfig.Set("ScriptStopStrategy", "co-op");
+
+            // This is really just set for debugging the test.
             xEngineConfig.Set("WriteScriptSourceToDebugFile", true);
+
+            // Set to false if we need to debug test so the old scripts don't get wiped before each separate test
+//            xEngineConfig.Set("DeleteScriptsOnStartup", false);
 
             // This is not currently used at all for co-op termination.  Bumping up to demonstrate that co-op termination
             // has an effect - without it tests will fail due to a 120 second wait for the event to finish.
@@ -174,7 +183,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance.Tests
         llSay(0, ""Thin Lizzy"");
 
         while (1 == 1)        
-            llSay(0, ""Iter "" + (string)i);
+            llSay(0, ""Iter "" + (string)i++);
     }
 }";
 
@@ -197,7 +206,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance.Tests
 
         while (1 == 1) 
         {
-            llSay(0, ""Iter "" + (string)i);
+            llSay(0, ""Iter "" + (string)i++);
         }
     }
 }";
@@ -221,8 +230,31 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance.Tests
 
         do 
         {
-            llSay(0, ""Iter "" + (string)i);
-        } while (1 == 1)
+            llSay(0, ""Iter "" + (string)i++);
+} while (1 == 1);
+    }
+}";
+
+            TestStop(script);
+        }
+
+        [Test]
+        public void TestStopOnInfiniteJumpLoop()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            string script = 
+@"default
+{    
+    state_entry()
+    {
+        integer i = 0;
+        llSay(0, ""Thin Lizzy"");
+
+        @p1;      
+        llSay(0, ""Iter "" + (string)i++);
+        jump p1;
     }
 }";
 
@@ -276,7 +308,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance.Tests
 
         private void OnChatFromWorld(object sender, OSChatMessage oscm)
         {
-//            Console.WriteLine("Got chat [{0}]", oscm.Message);
+            m_scene.EventManager.OnChatFromWorld -= OnChatFromWorld;
+            Console.WriteLine("Got chat [{0}]", oscm.Message);
 
             m_osChatMessageReceived = oscm;
             m_chatEvent.Set();
