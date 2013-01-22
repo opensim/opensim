@@ -75,22 +75,23 @@ namespace OpenSim.Region.Framework.DynamicAttributes.DAExampleModule
         
         protected bool OnSceneGroupMove(UUID groupId, Vector3 delta)
         {
+            OSDMap attrs = null;
             SceneObjectPart sop = m_scene.GetSceneObjectPart(groupId);
-            DAMap attrs = sop.DynAttrs;
+            if (!sop.DynAttrs.TryGetValue(Name, out attrs))
+                attrs = new OSDMap();
             
-            lock (attrs)
-            {
-                OSDInteger newValue;
+            OSDInteger newValue;
                 
-                if (!attrs.ContainsKey("moves"))
-                    newValue = new OSDInteger(1);
-                else
-                    newValue = new OSDInteger(((OSDInteger)attrs["moves"]).AsInteger() + 1);
+            if (!attrs.ContainsKey("moves"))
+                newValue = new OSDInteger(1);
+            else
+                newValue = new OSDInteger(((OSDInteger)attrs["moves"]).AsInteger() + 1);
                     
-                attrs["moves"] = newValue;    
-                
-                m_dialogMod.SendGeneralAlert(string.Format("{0} {1} moved {2} times", sop.Name, sop.UUID, newValue));
-            }     
+            attrs["moves"] = newValue;
+
+            sop.DynAttrs[Name] = attrs;
+    
+            m_dialogMod.SendGeneralAlert(string.Format("{0} {1} moved {2} times", sop.Name, sop.UUID, newValue));
             
             return true;
         }

@@ -39,10 +39,19 @@ using OpenMetaverse.StructuredData;
 namespace OpenSim.Framework
 {
     /// <summary>
-    /// This is the map for storing and retrieving dynamic attributes.
+    /// This class stores and retrieves dynamic attributes.
     /// </summary>
-    public class DAMap : IDictionary<string, OSD>, IXmlSerializable
-    {    
+    /// <remarks>
+    /// Modules that want to use dynamic attributes need to do so in a private data store
+    /// which is accessed using a unique name. DAMap provides access to the data stores,
+    /// each of which is an OSDMap. Modules are free to store any type of data they want
+    /// within their data store. However, avoid storing large amounts of data because that
+    /// would slow down database access.
+    /// </remarks>
+    public class DAMap : IDictionary<string, OSDMap>, IXmlSerializable
+    {
+        private static readonly int MIN_STORE_NAME_LENGTH = 4;
+
         protected OSDMap m_map;
         
         public DAMap() { m_map = new OSDMap(); }
@@ -79,12 +88,42 @@ namespace OpenSim.Framework
         {
             writer.WriteRaw(ToXml());
         }                             
-        
+
+        /// <summary>
+        /// Returns the number of data stores.
+        /// </summary>
         public int Count { get { lock (this) { return m_map.Count; } } }
+        
         public bool IsReadOnly { get { return false; } }
+        
+        /// <summary>
+        /// Returns the names of the data stores.
+        /// </summary>
         public ICollection<string> Keys { get { lock (this) { return m_map.Keys; } } }
-        public ICollection<OSD> Values { get { lock (this) { return m_map.Values; } } }
-        public OSD this[string key] 
+
+        /// <summary>
+        /// Returns all the data stores.
+        /// </summary>
+        public ICollection<OSDMap> Values
+        {
+            get
+            {
+                lock (this)
+                {
+                    List<OSDMap> stores = new List<OSDMap>(m_map.Count);
+                    foreach (OSD llsd in m_map.Values)
+                        stores.Add((OSDMap)llsd);
+                    return stores;
+                }
+            }
+        }
+        
+        /// <summary>
+        /// Gets or sets one data store.
+        /// </summary>
+        /// <param name="key">Store name</param>
+        /// <returns></returns>
+        public OSDMap this[string key] 
         {    
             get  
             {                    
@@ -93,13 +132,25 @@ namespace OpenSim.Framework
                 lock (this)
                 {
                     if (m_map.TryGetValue(key, out llsd))
-                        return llsd;
+                        return (OSDMap)llsd;
                     else 
                         return null;
                 }
             }    
-            set { lock (this) { m_map[key] = value; } }
-        }    
+            
+            set
+            {
+                ValidateKey(key);
+                lock (this)
+                    m_map[key] = value;
+            }
+        }
+
+        private static void ValidateKey(string key)
+        {
+            if (key.Length < MIN_STORE_NAME_LENGTH)
+                throw new Exception("Minimum store name length is " + MIN_STORE_NAME_LENGTH);
+        }
 
         public bool ContainsKey(string key) 
         {    
@@ -107,13 +158,14 @@ namespace OpenSim.Framework
                 return m_map.ContainsKey(key);
         }    
 
-        public void Add(string key, OSD llsd)
-        {    
+        public void Add(string key, OSDMap store)
+        {
+            ValidateKey(key);
             lock (this)
-                m_map.Add(key, llsd);
+                m_map.Add(key, store);
         }    
 
-        public void Add(KeyValuePair<string, OSD> kvp) 
+        public void Add(KeyValuePair<string, OSDMap> kvp) 
         {    
             lock (this)
                 m_map.Add(kvp.Key, kvp.Value);
@@ -125,10 +177,22 @@ namespace OpenSim.Framework
                 return m_map.Remove(key);
         }    
 
-        public bool TryGetValue(string key, out OSD llsd)
-        {    
+        public bool TryGetValue(string key, out OSDMap store)
+        {
             lock (this)
-                return m_map.TryGetValue(key, out llsd);
+            {
+                OSD llsd;
+                if (m_map.TryGetValue(key, out llsd))
+                {
+                    store = (OSDMap)llsd;
+                    return true;
+                }
+                else
+                {
+                    store = null;
+                    return false;
+                }
+            }
         }    
 
         public void Clear()
@@ -137,18 +201,18 @@ namespace OpenSim.Framework
                 m_map.Clear();
         }  
         
-        public bool Contains(KeyValuePair<string, OSD> kvp)
+        public bool Contains(KeyValuePair<string, OSDMap> kvp)
         {
             lock (this)
                 return m_map.ContainsKey(kvp.Key);
         }
 
-        public void CopyTo(KeyValuePair<string, OSD>[] array, int index)
+        public void CopyTo(KeyValuePair<string, OSDMap>[] array, int index)
         {
             throw new NotImplementedException();
         }
 
-        public bool Remove(KeyValuePair<string, OSD> kvp)
+        public bool Remove(KeyValuePair<string, OSDMap> kvp)
         {
             lock (this)
                 return m_map.Remove(kvp.Key);
@@ -160,7 +224,7 @@ namespace OpenSim.Framework
                 return m_map.GetEnumerator();
         }
 
-        IEnumerator<KeyValuePair<string, OSD>> IEnumerable<KeyValuePair<string, OSD>>.GetEnumerator()
+        IEnumerator<KeyValuePair<string, OSDMap>> IEnumerable<KeyValuePair<string, OSDMap>>.GetEnumerator()
         {
             return null;
         }
