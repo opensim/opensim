@@ -81,6 +81,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance.Tests
 
             xEngineConfig.Set("ScriptStopStrategy", "co-op");
 
+            // Make sure loops aren't actually being terminated by a script delay wait.
+            xEngineConfig.Set("ScriptDelayFactor", 0);
+
             // This is really just set for debugging the test.
             xEngineConfig.Set("WriteScriptSourceToDebugFile", true);
 
