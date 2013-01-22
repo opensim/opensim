@@ -409,7 +409,7 @@ IF EXISTS (SELECT UUID FROM primshapes WHERE UUID = @UUID)
             PathSkew = @PathSkew, PathCurve = @PathCurve, PathRadiusOffset = @PathRadiusOffset, PathRevolutions = @PathRevolutions, 
             PathTaperX = @PathTaperX, PathTaperY = @PathTaperY, PathTwist = @PathTwist, PathTwistBegin = @PathTwistBegin, 
             ProfileBegin = @ProfileBegin, ProfileEnd = @ProfileEnd, ProfileCurve = @ProfileCurve, ProfileHollow = @ProfileHollow, 
-            Texture = @Texture, ExtraParams = @ExtraParams, State = @State, Media = @Media, DynAttrs = @DynAttrs
+            Texture = @Texture, ExtraParams = @ExtraParams, State = @State, Media = @Media
         WHERE UUID = @UUID
     END
 ELSE
@@ -418,11 +418,11 @@ ELSE
             primshapes (
             UUID, Shape, ScaleX, ScaleY, ScaleZ, PCode, PathBegin, PathEnd, PathScaleX, PathScaleY, PathShearX, PathShearY, 
             PathSkew, PathCurve, PathRadiusOffset, PathRevolutions, PathTaperX, PathTaperY, PathTwist, PathTwistBegin, ProfileBegin, 
-            ProfileEnd, ProfileCurve, ProfileHollow, Texture, ExtraParams, State, Media, DynAttrs
+            ProfileEnd, ProfileCurve, ProfileHollow, Texture, ExtraParams, State, Media
             ) VALUES (
             @UUID, @Shape, @ScaleX, @ScaleY, @ScaleZ, @PCode, @PathBegin, @PathEnd, @PathScaleX, @PathScaleY, @PathShearX, @PathShearY, 
             @PathSkew, @PathCurve, @PathRadiusOffset, @PathRevolutions, @PathTaperX, @PathTaperY, @PathTwist, @PathTwistBegin, @ProfileBegin, 
-            @ProfileEnd, @ProfileCurve, @ProfileHollow, @Texture, @ExtraParams, @State, @Media, @DynAttrs
+            @ProfileEnd, @ProfileCurve, @ProfileHollow, @Texture, @ExtraParams, @State, @Media
             )
     END";
 
@@ -1754,11 +1754,6 @@ VALUES
                 baseShape.Media = PrimitiveBaseShape.MediaList.FromXml((string)shapeRow["Media"]);
             }
 
-            if (!(shapeRow["DynAttrs"] is System.DBNull))
-                baseShape.DynAttrs = DAMap.FromXml((string)shapeRow["DynAttrs"]);            
-            else
-                baseShape.DynAttrs = new DAMap();             
-
             return baseShape;
         }
 
@@ -2152,8 +2147,6 @@ VALUES
             {
                 parameters.Add(_Database.CreateParameter("Media", s.Media.ToXml()));
             }
-
-            parameters.Add(_Database.CreateParameter("DynAttrs", s.DynAttrs.ToXml()));
 
             return parameters.ToArray();
         }

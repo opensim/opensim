@@ -221,7 +221,7 @@ namespace OpenSim.Data.MySQL
                                     "PathTaperX, PathTaperY, PathTwist, " +
                                     "PathTwistBegin, ProfileBegin, ProfileEnd, " +
                                     "ProfileCurve, ProfileHollow, Texture, " +
-                                    "ExtraParams, State, Media, DynAttrs) " +
+                                    "ExtraParams, State, Media) " +
                                     "values (?UUID, " +
                                     "?Shape, ?ScaleX, ?ScaleY, ?ScaleZ, " +
                                     "?PCode, ?PathBegin, ?PathEnd, " +
@@ -233,7 +233,7 @@ namespace OpenSim.Data.MySQL
                                     "?PathTwistBegin, ?ProfileBegin, " +
                                     "?ProfileEnd, ?ProfileCurve, " +
                                     "?ProfileHollow, ?Texture, ?ExtraParams, " +
-                                    "?State, ?Media, ?DynAttrs)";
+                                    "?State, ?Media)";
     
                             FillShapeCommand(cmd, prim);
     
@@ -1838,11 +1838,6 @@ namespace OpenSim.Data.MySQL
             
             if (!(row["Media"] is System.DBNull))
                 s.Media = PrimitiveBaseShape.MediaList.FromXml((string)row["Media"]);
-            
-            if (!(row["DynAttrs"] is System.DBNull))
-                s.DynAttrs = DAMap.FromXml((string)row["DynAttrs"]);            
-            else
-                s.DynAttrs = new DAMap();             
 
             return s;
         }
@@ -1887,7 +1882,6 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("ExtraParams", s.ExtraParams);
             cmd.Parameters.AddWithValue("State", s.State);
             cmd.Parameters.AddWithValue("Media", null == s.Media ? null : s.Media.ToXml());
-            cmd.Parameters.AddWithValue("DynAttrs", s.DynAttrs.ToXml());
         }
 
         public void StorePrimInventory(UUID primID, ICollection<TaskInventoryItem> items)

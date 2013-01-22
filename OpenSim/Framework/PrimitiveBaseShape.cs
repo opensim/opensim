@@ -82,11 +82,6 @@ namespace OpenSim.Framework
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private static readonly byte[] DEFAULT_TEXTURE = new Primitive.TextureEntry(new UUID("89556747-24cb-43ed-920b-47caed15465f")).GetBytes();
-        
-        /// <summary>
-        /// Dynamic attributes can be created and deleted as required.
-        /// </summary>
-        public DAMap DynAttrs { get; set; }        
 
         private byte[] m_textureEntry;
 
@@ -199,7 +194,6 @@ namespace OpenSim.Framework
         {
             PCode = (byte)PCodeEnum.Primitive;
             m_textureEntry = DEFAULT_TEXTURE;
-            DynAttrs = new DAMap();
         }
 
         /// <summary>
@@ -211,7 +205,6 @@ namespace OpenSim.Framework
 //            m_log.DebugFormat("[PRIMITIVE BASE SHAPE]: Creating from {0}", prim.ID);
 
             PCode = (byte)prim.PrimData.PCode;
-            DynAttrs = new DAMap();
 
             State = prim.PrimData.State;
             PathBegin = Primitive.PackBeginCut(prim.PrimData.PathBegin);
