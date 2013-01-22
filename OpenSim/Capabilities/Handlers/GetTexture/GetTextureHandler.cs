@@ -99,11 +99,22 @@ namespace OpenSim.Capabilities.Handlers
 
                 }
                 // OK, we have an array with preferred formats, possibly with only one entry
-
+                bool foundtexture = false;
                 foreach (string f in formats)
                 {
-                    if (FetchTexture(request, ret, textureID, f))
+                    foundtexture = FetchTexture(request, ret, textureID, f);
+                    if (foundtexture)
                         break;
+                }
+                if (!foundtexture)
+                {
+                    ret["int_response_code"] = 404;
+                    ret["error_status_text"] = "not found";
+                    ret["str_response_string"] = "not found";
+                    ret["content_type"] = "text/plain";
+                    ret["keepalive"] = false;
+                    ret["reusecontext"] = false;
+                    ret["int_bytes"] = 0;
                 }
             }
             else
@@ -176,18 +187,13 @@ namespace OpenSim.Capabilities.Handlers
                return true;
            }
 
-            response = new Hashtable();
+            //response = new Hashtable();
 
-            response["int_response_code"] = 404;
-            response["str_response_string"] = "not found";
-            response["content_type"] = "text/plain";
-            response["keepalive"] = false;
-            response["reusecontext"] = false;
-            response["int_bytes"] = 0;
+           
             //WriteTextureData(request,response,null,format);
             // not found
             //m_log.Warn("[GETTEXTURE]: Texture " + textureID + " not found");
-            return true;
+            return false;
         }
 
         private void WriteTextureData(Hashtable request, Hashtable response, AssetBase texture, string format)
