@@ -2090,7 +2090,11 @@ VALUES
                 parameters.Add(_Database.CreateParameter("PassTouches", 0));
             parameters.Add(_Database.CreateParameter("LinkNumber", prim.LinkNum));
             parameters.Add(_Database.CreateParameter("MediaURL", prim.MediaUrl));
-            parameters.Add(_Database.CreateParameter("DynAttrs", prim.DynAttrs.ToXml()));
+            
+            if (prim.DynAttrs.Count > 0)
+                parameters.Add(_Database.CreateParameter("DynAttrs", prim.DynAttrs.ToXml()));
+            else
+                parameters.Add(_Database.CreateParameter("DynAttrs", null));
 
             return parameters.ToArray();
         }

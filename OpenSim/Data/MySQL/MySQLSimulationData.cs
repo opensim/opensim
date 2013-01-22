@@ -1645,7 +1645,11 @@ namespace OpenSim.Data.MySQL
 
             cmd.Parameters.AddWithValue("LinkNumber", prim.LinkNum);
             cmd.Parameters.AddWithValue("MediaURL", prim.MediaUrl);
-            cmd.Parameters.AddWithValue("DynAttrs", prim.DynAttrs.ToXml());
+
+            if (prim.DynAttrs.Count > 0)
+                cmd.Parameters.AddWithValue("DynAttrs", prim.DynAttrs.ToXml());
+            else
+                cmd.Parameters.AddWithValue("DynAttrs", null);
         }
 
         /// <summary>

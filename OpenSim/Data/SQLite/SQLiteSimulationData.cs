@@ -2145,7 +2145,11 @@ namespace OpenSim.Data.SQLite
                 row["VolumeDetect"] = 0;
 
             row["MediaURL"] = prim.MediaUrl;
-            row["DynAttrs"] = prim.DynAttrs.ToXml();
+
+            if (prim.DynAttrs.Count > 0)
+                row["DynAttrs"] = prim.DynAttrs.ToXml();
+            else
+                row["DynAttrs"] = null;
         }
 
         /// <summary>
