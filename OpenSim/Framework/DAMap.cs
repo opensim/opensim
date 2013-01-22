@@ -67,7 +67,7 @@ namespace OpenSim.Framework
         
         public void ReadXml(string rawXml)
         {            
-            //System.Console.WriteLine("Trying to deserialize [{0}]", rawXml);
+            // System.Console.WriteLine("Trying to deserialize [{0}]", rawXml);
             
             lock (this)
                 m_map = (OSDMap)OSDParser.DeserializeLLSDXml(rawXml);         
@@ -87,7 +87,29 @@ namespace OpenSim.Framework
         public void WriteXml(XmlWriter writer)
         {
             writer.WriteRaw(ToXml());
-        }                             
+        }
+        
+        public void CopyFrom(DAMap other)
+        {
+            // Deep copy
+            
+            string data = null;
+            lock (other)
+            {
+                if (other.Count > 0)
+                {
+                    data = OSDParser.SerializeLLSDXmlString(other.m_map);
+                }
+            }
+            
+            lock (this)
+            {
+                if (data == null)
+                    Clear();
+                else
+                    m_map = (OSDMap)OSDParser.DeserializeLLSDXml(data);
+            }
+        }
 
         /// <summary>
         /// Returns the number of data stores.
