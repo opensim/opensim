@@ -157,6 +157,50 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance.Tests
             TestStop(script);
         }
 
+        [Test]
+        public void TestStopOnLongSingleStatementWhileLoop()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            string script = 
+@"default
+{    
+    state_entry()
+    {
+        llSay(0, ""Thin Lizzy"");
+
+        while (1 == 1)        
+            llSay(0, ""Iter "" + (string)i);
+    }
+}";
+
+            TestStop(script);
+        }
+
+        [Test]
+        public void TestStopOnLongCompoundStatementWhileLoop()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            string script = 
+@"default
+{    
+    state_entry()
+    {
+        llSay(0, ""Thin Lizzy"");
+
+        while (1 == 1) 
+        {
+            llSay(0, ""Iter "" + (string)i);
+        }
+    }
+}";
+
+            TestStop(script);
+        }
+
         private void TestStop(string script)
         {
             UUID userId = TestHelpers.ParseTail(0x1);
