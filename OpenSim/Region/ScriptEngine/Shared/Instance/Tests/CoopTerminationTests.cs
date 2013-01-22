@@ -77,6 +77,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance.Tests
 
             xEngineConfig.Set("ScriptStopStrategy", "co-op");
 
+            // This is not currently used at all for co-op termination.  Bumping up to demonstrate that co-op termination
+            // has an effect - without it tests will fail due to a 120 second wait for the event to finish.
+            xEngineConfig.Set("WaitForEventCompletionOnScriptStop", 120000);
+
             m_scene = new SceneHelpers().SetupScene("My Test", UUID.Random(), 1000, 1000, configSource);
             SceneHelpers.SetupSceneModules(m_scene, configSource, m_xEngine);
             m_scene.StartScripts();
