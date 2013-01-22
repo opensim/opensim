@@ -76,12 +76,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance.Tests
             xEngineConfig.Set("AppDomainLoading", "false");
 
             xEngineConfig.Set("ScriptStopStrategy", "co-op");
+            xEngineConfig.Set("WriteScriptSourceToDebugFile", true);
 
             // This is not currently used at all for co-op termination.  Bumping up to demonstrate that co-op termination
             // has an effect - without it tests will fail due to a 120 second wait for the event to finish.
             xEngineConfig.Set("WaitForEventCompletionOnScriptStop", 120000);
 
-            m_scene = new SceneHelpers().SetupScene("My Test", UUID.Random(), 1000, 1000, configSource);
+            m_scene = new SceneHelpers().SetupScene("My Test", TestHelpers.ParseTail(0x9999), 1000, 1000, configSource);
             SceneHelpers.SetupSceneModules(m_scene, configSource, m_xEngine);
             m_scene.StartScripts();
         }
@@ -113,7 +114,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance.Tests
         }
 
         [Test]
-        public void TestStopOnLongForLoop()
+        public void TestStopOnLongSingleStatementForLoop()
         {
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
@@ -127,6 +128,29 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance.Tests
         integer i = 0;
         for (i = 0; i < 2147483647; i++)        
             llSay(0, ""Iter "" + (string)i);
+    }
+}";
+
+            TestStop(script);
+        }
+
+        [Test]
+        public void TestStopOnLongCompoundStatementForLoop()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            string script = 
+@"default
+{    
+    state_entry()
+    {
+        llSay(0, ""Thin Lizzy"");
+        integer i = 0;
+        for (i = 0; i < 2147483647; i++) 
+        {
+            llSay(0, ""Iter "" + (string)i);
+        }
     }
 }";
 

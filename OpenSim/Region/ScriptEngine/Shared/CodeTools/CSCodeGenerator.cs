@@ -445,7 +445,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                 if (previousSymbol is GlobalFunctionDefinition 
                     || previousSymbol is WhileStatement 
                     || previousSymbol is DoWhileStatement 
-                    || previousSymbol is ForLoopStatement
+                    || previousSymbol is ForLoop
                     || previousSymbol is StateEvent)
                 retstr += GenerateIndentedLine(m_coopTerminationCheck);
             }
