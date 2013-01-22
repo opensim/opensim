@@ -294,6 +294,28 @@ default
             TestStop(script);
         }
 
+        [Test]
+        public void TestStopOnInfiniteManualEventCallLoop()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            string script = 
+@"default
+{    
+    state_entry()
+    {
+        integer i = 0;
+        llSay(0, ""Thin Lizzy"");
+
+        llSay(0, ""Iter"" + (string)i++);
+        default_event_state_entry();
+    }
+}";
+
+            TestStop(script);
+        }
+
         private void TestStop(string script)
         {
             UUID userId = TestHelpers.ParseTail(0x1);
