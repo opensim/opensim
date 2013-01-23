@@ -3017,42 +3017,40 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return src.ToLower();
         }
 
-        public LSL_Integer llGiveMoney(string destination, int amount)
+        public void llGiveMoney(string destination, int amount)
         {
-            m_host.AddScriptLPS(1);
-
-            if (m_item.PermsGranter == UUID.Zero)
-                return 0;
-
-            if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_DEBIT) == 0)
+            Util.FireAndForget(x =>
             {
-                LSLError("No permissions to give money");
-                return 0;
-            }
+                m_host.AddScriptLPS(1);
 
-            UUID toID = new UUID();
+                if (m_item.PermsGranter == UUID.Zero)
+                    return;
 
-            if (!UUID.TryParse(destination, out toID))
-            {
-                LSLError("Bad key in llGiveMoney");
-                return 0;
-            }
+                if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_DEBIT) == 0)
+                {
+                    LSLError("No permissions to give money");
+                    return;
+                }
 
-            IMoneyModule money = World.RequestModuleInterface<IMoneyModule>();
+                UUID toID = new UUID();
 
-            if (money == null)
-            {
-                NotImplemented("llGiveMoney");
-                return 0;
-            }
+                if (!UUID.TryParse(destination, out toID))
+                {
+                    LSLError("Bad key in llGiveMoney");
+                    return;
+                }
 
-            bool result = money.ObjectGiveMoney(
-                m_host.ParentGroup.RootPart.UUID, m_host.ParentGroup.RootPart.OwnerID, toID, amount,UUID.Zero);
+                IMoneyModule money = World.RequestModuleInterface<IMoneyModule>();
 
-            if (result)
-                return 1;
+                if (money == null)
+                {
+                    NotImplemented("llGiveMoney");
+                    return;
+                }
 
-            return 0;
+                money.ObjectGiveMoney(
+                    m_host.ParentGroup.RootPart.UUID, m_host.ParentGroup.RootPart.OwnerID, toID, amount,UUID.Zero);
+            });
         }
 
         public void llMakeExplosion(int particles, double scale, double vel, double lifetime, double arc, string texture, LSL_Vector offset)
@@ -12589,7 +12587,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     }
 
                     bool result = money.ObjectGiveMoney(
-                        m_host.ParentGroup.RootPart.UUID, m_host.ParentGroup.RootPart.OwnerID, toID, amount,UUID.Zero);
+                        m_host.ParentGroup.RootPart.UUID, m_host.ParentGroup.RootPart.OwnerID, toID, amount, txn);
 
                     if (result)
                     {
