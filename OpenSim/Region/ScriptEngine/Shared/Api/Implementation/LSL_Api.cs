@@ -7322,7 +7322,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             IXMLRPC xmlrpcMod = m_ScriptEngine.World.RequestModuleInterface<IXMLRPC>();
-            if (xmlrpcMod.IsEnabled())
+            if (xmlrpcMod != null && xmlrpcMod.IsEnabled())
             {
                 UUID channelID = xmlrpcMod.OpenXMLRPCChannel(m_host.LocalId, m_item.ItemID, UUID.Zero);
                 IXmlRpcRouter xmlRpcRouter = m_ScriptEngine.World.RequestModuleInterface<IXmlRpcRouter>();
@@ -7354,6 +7354,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             IXMLRPC xmlrpcMod = m_ScriptEngine.World.RequestModuleInterface<IXMLRPC>();
             ScriptSleep(3000);
+            if (xmlrpcMod == null)
+                return "";
             return (xmlrpcMod.SendRemoteData(m_host.LocalId, m_item.ItemID, channel, dest, idata, sdata)).ToString();
         }
 
@@ -7361,7 +7363,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             IXMLRPC xmlrpcMod = m_ScriptEngine.World.RequestModuleInterface<IXMLRPC>();
-            xmlrpcMod.RemoteDataReply(channel, message_id, sdata, idata);
+            if (xmlrpcMod != null)
+                xmlrpcMod.RemoteDataReply(channel, message_id, sdata, idata);
             ScriptSleep(3000);
         }
 
@@ -7369,7 +7372,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             IXMLRPC xmlrpcMod = m_ScriptEngine.World.RequestModuleInterface<IXMLRPC>();
-            xmlrpcMod.CloseXMLRPCChannel((UUID)channel);
+            if (xmlrpcMod != null)
+                xmlrpcMod.CloseXMLRPCChannel((UUID)channel);
             ScriptSleep(1000);
         }
 
