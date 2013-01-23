@@ -322,6 +322,7 @@ public sealed class BSPrim : BSPhysObject
             });
         }
     }
+
     public override OMV.Vector3 ForcePosition {
         get {
             _position = PhysicsScene.PE.GetPosition(PhysBody) - PositionDisplacement;
@@ -336,27 +337,6 @@ public sealed class BSPrim : BSPhysObject
             }
         }
     }
-        /*  Disable. Presume whoever is setting displacement is already adjusting position, etc.
-    // Override to have position displacement immediately update the physical position.
-    // A feeble attempt to keep the sim and physical positions in sync
-    // Must be called at taint time.
-    public override OMV.Vector3 PositionDisplacement
-    {
-        get
-        {
-            return base.PositionDisplacement;
-        }
-        set
-        {
-            base.PositionDisplacement = value;
-            PhysicsScene.TaintedObject(PhysicsScene.InTaintTime, "BSPrim.setPosition", delegate()
-            {
-                if (PhysBody.HasPhysicalBody)
-                    PhysicsScene.PE.SetTranslation(PhysBody, _position + base.PositionDisplacement, _orientation);
-            });
-        }
-    }
-        */
 
     // Check that the current position is sane and, if not, modify the position to make it so.
     // Check for being below terrain and being out of bounds.

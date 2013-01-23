@@ -407,6 +407,9 @@ public sealed class BSLinksetCompound : BSLinkset
                 // Since we're displacing the center of the shape, we need to move the body in the world
                 LinksetRoot.PositionDisplacement = centerDisplacement;
 
+                // This causes the root prim position to be set properly based on the new PositionDisplacement
+                LinksetRoot.ForcePosition = LinksetRoot.RawPosition;
+                // Update the local transform for the root child shape so it is offset from the <0,0,0> which is COM
                 PhysicsScene.PE.UpdateChildTransform(LinksetRoot.PhysShape, 0, -centerDisplacement, OMV.Quaternion.Identity, false);
                 DetailLog("{0},BSLinksetCompound.RecomputeLinksetCompound,COM,com={1},rootPos={2},centerDisp={3}",
                                         LinksetRoot.LocalID, centerOfMass, LinksetRoot.RawPosition, centerDisplacement);
@@ -438,7 +441,7 @@ public sealed class BSLinksetCompound : BSLinkset
 
                     if (cPrim.PhysShape.isNativeShape)
                     {
-                        // A native shape is turning into a hull collision shape because native
+                        // A native shape is turned into a hull collision shape because native
                         //    shapes are not shared so we have to hullify it so it will be tracked
                         //    and freed at the correct time. This also solves the scaling problem
                         //    (native shapes scaled but hull/meshes are assumed to not be).
