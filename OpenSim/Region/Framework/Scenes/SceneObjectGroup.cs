@@ -2398,6 +2398,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (pa != null)
                 pa.PIDActive = false;
+
+            RootPart.ScheduleTerseUpdate(); // send a stop information
         }
         
         public void rotLookAt(Quaternion target, float strength, float damping)
