@@ -2738,42 +2738,40 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return src.ToLower();
         }
 
-        public LSL_Integer llGiveMoney(string destination, int amount)
+        public void llGiveMoney(string destination, int amount)
         {
-            m_host.AddScriptLPS(1);
-
-            if (m_item.PermsGranter == UUID.Zero)
-                return 0;
-
-            if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_DEBIT) == 0)
+            Util.FireAndForget(x =>
             {
-                LSLError("No permissions to give money");
-                return 0;
-            }
+                m_host.AddScriptLPS(1);
 
-            UUID toID = new UUID();
+                if (m_item.PermsGranter == UUID.Zero)
+                    return;
 
-            if (!UUID.TryParse(destination, out toID))
-            {
-                LSLError("Bad key in llGiveMoney");
-                return 0;
-            }
+                if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_DEBIT) == 0)
+                {
+                    LSLError("No permissions to give money");
+                    return;
+                }
 
-            IMoneyModule money = World.RequestModuleInterface<IMoneyModule>();
+                UUID toID = new UUID();
 
-            if (money == null)
-            {
-                NotImplemented("llGiveMoney");
-                return 0;
-            }
+                if (!UUID.TryParse(destination, out toID))
+                {
+                    LSLError("Bad key in llGiveMoney");
+                    return;
+                }
 
-            bool result = money.ObjectGiveMoney(
-                m_host.ParentGroup.RootPart.UUID, m_host.ParentGroup.RootPart.OwnerID, toID, amount);
+                IMoneyModule money = World.RequestModuleInterface<IMoneyModule>();
 
-            if (result)
-                return 1;
+                if (money == null)
+                {
+                    NotImplemented("llGiveMoney");
+                    return;
+                }
 
-            return 0;
+                money.ObjectGiveMoney(
+                    m_host.ParentGroup.RootPart.UUID, m_host.ParentGroup.RootPart.OwnerID, toID, amount);
+            });
         }
 
         public void llMakeExplosion(int particles, double scale, double vel, double lifetime, double arc, string texture, LSL_Vector offset)
@@ -6839,7 +6837,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             IXMLRPC xmlrpcMod = m_ScriptEngine.World.RequestModuleInterface<IXMLRPC>();
-            if (xmlrpcMod.IsEnabled())
+            if (xmlrpcMod != null && xmlrpcMod.IsEnabled())
             {
                 UUID channelID = xmlrpcMod.OpenXMLRPCChannel(m_host.LocalId, m_item.ItemID, UUID.Zero);
                 IXmlRpcRouter xmlRpcRouter = m_ScriptEngine.World.RequestModuleInterface<IXmlRpcRouter>();
@@ -6871,6 +6869,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             IXMLRPC xmlrpcMod = m_ScriptEngine.World.RequestModuleInterface<IXMLRPC>();
             ScriptSleep(3000);
+            if (xmlrpcMod == null)
+                return "";
             return (xmlrpcMod.SendRemoteData(m_host.LocalId, m_item.ItemID, channel, dest, idata, sdata)).ToString();
         }
 
@@ -6878,7 +6878,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             IXMLRPC xmlrpcMod = m_ScriptEngine.World.RequestModuleInterface<IXMLRPC>();
-            xmlrpcMod.RemoteDataReply(channel, message_id, sdata, idata);
+            if (xmlrpcMod != null)
+                xmlrpcMod.RemoteDataReply(channel, message_id, sdata, idata);
             ScriptSleep(3000);
         }
 
@@ -6893,7 +6894,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             IXMLRPC xmlrpcMod = m_ScriptEngine.World.RequestModuleInterface<IXMLRPC>();
-            xmlrpcMod.CloseXMLRPCChannel((UUID)channel);
+            if (xmlrpcMod != null)
+                xmlrpcMod.CloseXMLRPCChannel((UUID)channel);
             ScriptSleep(1000);
         }
 
@@ -11552,6 +11554,79 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             NotImplemented("llGodLikeRezObject");
+        }
+
+        public LSL_String llTransferLindenDollars(string destination, int amount)
+        {
+            UUID txn = UUID.Random();
+
+            Util.FireAndForget(delegate(object x)
+            {
+                int replycode = 0;
+                string replydata = destination + "," + amount.ToString();
+
+                try
+                {
+                    TaskInventoryItem item = m_item;
+                    if (item == null)
+                    {
+                        replydata = "SERVICE_ERROR";
+                        return;
+                    }
+
+                    m_host.AddScriptLPS(1);
+
+                    if (item.PermsGranter == UUID.Zero)
+                    {
+                        replydata = "MISSING_PERMISSION_DEBIT";
+                        return;
+                    }
+
+                    if ((item.PermsMask & ScriptBaseClass.PERMISSION_DEBIT) == 0)
+                    {
+                        replydata = "MISSING_PERMISSION_DEBIT";
+                        return;
+                    }
+
+                    UUID toID = new UUID();
+
+                    if (!UUID.TryParse(destination, out toID))
+                    {
+                        replydata = "INVALID_AGENT";
+                        return;
+                    }
+
+                    IMoneyModule money = World.RequestModuleInterface<IMoneyModule>();
+
+                    if (money == null)
+                    {
+                        replydata = "TRANSFERS_DISABLED";
+                        return;
+                    }
+
+                    bool result = money.ObjectGiveMoney(
+                        m_host.ParentGroup.RootPart.UUID, m_host.ParentGroup.RootPart.OwnerID, toID, amount);
+
+                    if (result)
+                    {
+                        replycode = 1;
+                        return;
+                    }
+
+                    replydata = "LINDENDOLLAR_INSUFFICIENTFUNDS";
+                }
+                finally
+                {
+                    m_ScriptEngine.PostScriptEvent(m_item.ItemID, new EventParams(
+                            "transaction_result", new Object[] {
+                            new LSL_String(txn.ToString()),
+                            new LSL_Integer(replycode),
+                            new LSL_String(replydata) },
+                            new DetectParams[0]));
+                }
+            });
+
+            return txn.ToString();
         }
 
         #endregion
