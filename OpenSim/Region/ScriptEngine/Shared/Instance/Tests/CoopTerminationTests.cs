@@ -245,7 +245,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance.Tests
         public void TestStopOnInfiniteJumpLoop()
         {
             TestHelpers.InMethod();
-//            TestHelpers.EnableLogging();
+            TestHelpers.EnableLogging();
 
             string script = 
 @"default

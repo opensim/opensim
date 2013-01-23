@@ -79,6 +79,14 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         string ScriptEnginePath { get; }
 
         /// <summary>
+        /// Return the name of the class that will be used for all running scripts.
+        /// </summary>
+        /// <remarks>
+        /// Each class goes in its own assembly so we don't need to otherwise distinguish the class name.
+        /// </remarks>
+        string ScriptClassName { get; }
+
+        /// <summary>
         /// Return the name of the base class that will be used for all running scripts.
         /// </summary>
         string ScriptBaseClassName { get; }

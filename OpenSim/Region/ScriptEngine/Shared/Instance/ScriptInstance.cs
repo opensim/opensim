@@ -251,7 +251,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         /// <param name='dom'></param>
         /// <param name='assembly'></param>
         /// <param name='stateSource'></param>
-        public void Load(AppDomain dom, string assembly, StateSource stateSource)
+        /// <returns>false if load failed, true if suceeded</returns>
+        public bool Load(AppDomain dom, string assembly, StateSource stateSource)
         {
             m_Assembly = assembly;
             m_stateSource = stateSource;
@@ -266,26 +267,53 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
     
             try
             {
+                object[] constructorParams;
+
+                Assembly scriptAssembly = dom.Load(Path.GetFileNameWithoutExtension(assembly));
+                Type scriptType = scriptAssembly.GetType("SecondLife.XEngineScript");
+
+                if (scriptType != null)
+                {
+                    constructorParams = new object[] { m_coopSleepHandle };
+                }
+                else if (!m_coopTermination)
+                {
+                    scriptType = scriptAssembly.GetType("SecondLife.Script");
+                    constructorParams = null;
+                }
+                else
+                {
+                    m_log.ErrorFormat(
+                        "[SCRIPT INSTANCE]: You must remove all existing script DLLs before using enabling co-op termination"
+                        + ", either by setting DeleteScriptsOnStartup = true in [XEngine] for one run"
+                        + " or by deleting all *.dll* files in the relevant bin/ScriptEngines/<region-id>/ directory");
+
+                    return false;
+                }
+
+//                m_log.DebugFormat(
+//                    "[SCRIPT INSTANCE]: Looking to load {0} from assembly {1} in {2}", 
+//                    scriptType.FullName, Path.GetFileNameWithoutExtension(assembly), Engine.World.Name);
+
                 if (dom != System.AppDomain.CurrentDomain)
                     m_Script 
                         = (IScript)dom.CreateInstanceAndUnwrap(
                             Path.GetFileNameWithoutExtension(assembly),
-                            "SecondLife.Script",
+                            scriptType.FullName,
                             false,
                             BindingFlags.Default,
                             null,
-                            new object[] { m_coopSleepHandle },
-                            null,
+                            constructorParams,
                             null,
                             null);
                 else
                     m_Script 
-                        = (IScript)Assembly.Load(Path.GetFileNameWithoutExtension(assembly)).CreateInstance(
-                            "SecondLife.Script", 
+                        = (IScript)scriptAssembly.CreateInstance(
+                            scriptType.FullName, 
                             false, 
                             BindingFlags.Default, 
                             null, 
-                            new object[] { m_coopSleepHandle }, 
+                            constructorParams, 
                             null, 
                             null);
 
@@ -298,6 +326,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                 m_log.ErrorFormat(
                     "[SCRIPT INSTANCE]: Error loading assembly {0}.  Exception {1}{2}",
                     assembly, e.Message, e.StackTrace);
+
+                return false;
             }
 
             try
@@ -318,7 +348,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                     "[SCRIPT INSTANCE]: Error loading script instance from assembly {0}.  Exception {1}{2}",
                     assembly, e.Message, e.StackTrace);
 
-                return;
+                return false;
             }
 
             m_SaveState = true;
@@ -390,6 +420,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 //                    presence.ControllingClient.SendAgentAlertMessage("Compile successful", false);
 
 //            }
+
+            return true;
         }
 
         public void Init()

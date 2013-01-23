@@ -416,16 +416,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                 case enumCompileType.cs:
                 case enumCompileType.lsl:
                     compileScript = CreateCSCompilerScript(
-                        compileScript, m_scriptEngine.ScriptBaseClassName, m_scriptEngine.ScriptBaseClassParameters);
+                        compileScript, 
+                        m_scriptEngine.ScriptClassName, 
+                        m_scriptEngine.ScriptBaseClassName, 
+                        m_scriptEngine.ScriptBaseClassParameters);
                     break;
                 case enumCompileType.vb:
-                    compileScript = CreateVBCompilerScript(compileScript, m_scriptEngine.ScriptBaseClassName);
+                    compileScript = CreateVBCompilerScript(
+                        compileScript, m_scriptEngine.ScriptClassName, m_scriptEngine.ScriptBaseClassName);
                     break;
 //                case enumCompileType.js:
 //                    compileScript = CreateJSCompilerScript(compileScript, m_scriptEngine.ScriptBaseClassName);
 //                    break;
                 case enumCompileType.yp:
-                    compileScript = CreateYPCompilerScript(compileScript, m_scriptEngine.ScriptBaseClassName);
+                    compileScript = CreateYPCompilerScript(
+                        compileScript, m_scriptEngine.ScriptClassName,m_scriptEngine.ScriptBaseClassName);
                     break;
             }
 
@@ -457,7 +462,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
 //        }
 
         private static string CreateCSCompilerScript(
-            string compileScript, string baseClassName, ParameterInfo[] constructorParameters)
+            string compileScript, string className, string baseClassName, ParameterInfo[] constructorParameters)
         {
             compileScript = string.Format(    
 @"using OpenSim.Region.ScriptEngine.Shared; 
@@ -465,12 +470,13 @@ using System.Collections.Generic;
 
 namespace SecondLife 
 {{ 
-    public class Script : {0} 
+    public class {0} : {1} 
     {{
-        public Script({1}) : base({2}) {{}}
-{3}
+        public {0}({2}) : base({3}) {{}}
+{4}
     }}
 }}",
+                className,
                 baseClassName, 
                 constructorParameters != null 
                     ? string.Join(", ", Array.ConvertAll<ParameterInfo, string>(constructorParameters, pi => pi.ToString())) 
@@ -483,28 +489,28 @@ namespace SecondLife
             return compileScript;
         }
 
-        private static string CreateYPCompilerScript(string compileScript, string baseClassName)
+        private static string CreateYPCompilerScript(string compileScript, string className, string baseClassName)
         {
             compileScript = String.Empty +
                        "using OpenSim.Region.ScriptEngine.Shared.YieldProlog; " +
                         "using OpenSim.Region.ScriptEngine.Shared; using System.Collections.Generic;\r\n" +
                         String.Empty + "namespace SecondLife { " +
-                        String.Empty + "public class Script : " + baseClassName + " { \r\n" +
+                        String.Empty + "public class " + className + " : " + baseClassName + " { \r\n" +
                         //@"public Script() { } " +
                         @"static OpenSim.Region.ScriptEngine.Shared.YieldProlog.YP YP=null; " +
-                        @"public Script() {  YP= new OpenSim.Region.ScriptEngine.Shared.YieldProlog.YP(); } " +
+                        @"public " + className + "() {  YP= new OpenSim.Region.ScriptEngine.Shared.YieldProlog.YP(); } " +
                         compileScript +
                         "} }\r\n";
 
             return compileScript;
         }
 
-        private static string CreateVBCompilerScript(string compileScript, string baseClassName)
+        private static string CreateVBCompilerScript(string compileScript, string className, string baseClassName)
         {
             compileScript = String.Empty +
                 "Imports OpenSim.Region.ScriptEngine.Shared: Imports System.Collections.Generic: " +
                 String.Empty + "NameSpace SecondLife:" +
-                String.Empty + "Public Class Script: Inherits " + baseClassName +
+                String.Empty + "Public Class " + className + ": Inherits " + baseClassName +
                 "\r\nPublic Sub New()\r\nEnd Sub: " +
                 compileScript +
                 ":End Class :End Namespace\r\n";
