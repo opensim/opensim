@@ -42,6 +42,7 @@ using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using Mono.Addins;
+using Amib.Threading;
 
 /*****************************************************
  *
@@ -102,6 +103,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
         private Dictionary<UUID, HttpRequestClass> m_pendingRequests;
         private Scene m_scene;
         // private Queue<HttpRequestClass> rpcQueue = new Queue<HttpRequestClass>();
+        public static SmartThreadPool ThreadPool = null;
 
         public HttpRequestModule()
         {
@@ -279,7 +281,30 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
             m_proxyurl = config.Configs["Startup"].GetString("HttpProxy");
             m_proxyexcepts = config.Configs["Startup"].GetString("HttpProxyExceptions");
 
+            int maxThreads = 50;
+
+            IConfig httpConfig = config.Configs["HttpRequestModule"];
+            if (httpConfig != null)
+            {
+                maxThreads = httpConfig.GetInt("MaxPoolThreads", maxThreads);
+            }
+
             m_pendingRequests = new Dictionary<UUID, HttpRequestClass>();
+
+            // First instance sets this up for all sims
+            if (ThreadPool == null)
+            {
+                STPStartInfo startInfo = new STPStartInfo();
+                startInfo.IdleTimeout = 20000;
+                startInfo.MaxWorkerThreads = maxThreads;
+                startInfo.MinWorkerThreads = 5;
+                startInfo.ThreadPriority = ThreadPriority.BelowNormal;
+                startInfo.StartSuspended = true;
+
+                ThreadPool = new SmartThreadPool(startInfo);
+
+                ThreadPool.Start();
+            }
         }
 
         public void AddRegion(Scene scene)
@@ -340,7 +365,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
         public string HttpMIMEType = "text/plain;charset=utf-8";
         public int HttpTimeout;
         public bool HttpVerifyCert = true;
-        private Thread httpThread;
+        public IWorkItemResult WorkItem = null;
 
         // Request info
         private UUID _itemID;
@@ -374,12 +399,16 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
 
         public void Process()
         {
-            httpThread = new Thread(SendRequest);
-            httpThread.Name = "HttpRequestThread";
-            httpThread.Priority = ThreadPriority.BelowNormal;
-            httpThread.IsBackground = true;
             _finished = false;
-            httpThread.Start();
+
+            lock (HttpRequestModule.ThreadPool)
+                WorkItem = HttpRequestModule.ThreadPool.QueueWorkItem(new WorkItemCallback(StpSendWrapper), null);
+        }
+
+        private object StpSendWrapper(object o)
+        {
+            SendRequest();
+            return null;
         }
 
         /*
@@ -409,13 +438,8 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                 {
                     // We could hijack Connection Group Name to identify
                     // a desired security exception.  But at the moment we'll use a dummy header instead.
-//                    Request.ConnectionGroupName = "NoVerify";
                     Request.Headers.Add("NoVerifyCert", "true");
                 }
-//                else
-//                {
-//                    Request.ConnectionGroupName="Verify";
-//                }
                 if (proxyurl != null && proxyurl.Length > 0) 
                 {
                     if (proxyexcepts != null && proxyexcepts.Length > 0) 
@@ -485,9 +509,9 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
 
                 ResponseBody = sb.ToString().Replace("\r", "");
             }
-            catch (Exception e)
+            catch (WebException e)
             {
-                if (e is WebException && ((WebException)e).Status == WebExceptionStatus.ProtocolError)
+                if (e.Status == WebExceptionStatus.ProtocolError)
                 {
                     HttpWebResponse webRsp = (HttpWebResponse)((WebException)e).Response;
                     Status = (int)webRsp.StatusCode;
@@ -512,6 +536,10 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                 _finished = true;
                 return;
             }
+            catch (Exception e)
+            {
+                // Don't crash on anything else
+            }
             finally
             {
                 if (response != null)
@@ -525,7 +553,10 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
         {
             try
             {
-                httpThread.Abort();
+                if (!WorkItem.Cancel())
+                {
+                    WorkItem.Abort();
+                }
             }
             catch (Exception)
             {
