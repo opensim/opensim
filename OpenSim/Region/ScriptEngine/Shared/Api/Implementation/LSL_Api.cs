@@ -12287,11 +12287,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
             }
 
+            // Double check this
             if (checkTerrain)
             {
-                ContactResult? groundContact = GroundIntersection(rayStart, rayEnd);
-                if (groundContact != null)
-                    results.Add((ContactResult)groundContact);
+                bool skipGroundCheck = false;
+
+                foreach (ContactResult c in results)
+                {
+                    if (c.ConsumerID == 0) // Physics gave us a ground collision
+                        skipGroundCheck = true;
+                }
+
+                if (!skipGroundCheck)
+                {
+                    ContactResult? groundContact = GroundIntersection(rayStart, rayEnd);
+                    if (groundContact != null)
+                        results.Add((ContactResult)groundContact);
+                }
             }
 
             results.Sort(delegate(ContactResult a, ContactResult b)
