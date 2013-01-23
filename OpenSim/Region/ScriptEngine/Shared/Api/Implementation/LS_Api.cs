@@ -63,7 +63,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         internal IScriptModuleComms m_comms = null;
 
         public void Initialize(
-            IScriptEngine scriptEngine, SceneObjectPart host, TaskInventoryItem item, EventWaitHandle coopSleepHandle)
+            IScriptEngine scriptEngine, SceneObjectPart host, TaskInventoryItem item, WaitHandle coopSleepHandle)
         {
             m_ScriptEngine = scriptEngine;
             m_host = host;
