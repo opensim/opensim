@@ -241,7 +241,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             m_ScriptConfig = configSource.Configs["XEngine"];
             m_ConfigSource = configSource;
 
-            if (m_ScriptConfig.GetString("ScriptStopStrategy", "abort") == "co-op")
+            string rawScriptStopStrategy = m_ScriptConfig.GetString("ScriptStopStrategy", "abort");
+
+            m_log.InfoFormat("[XEngine]: Script stop strategy is {0}", rawScriptStopStrategy);
+
+            if (rawScriptStopStrategy == "co-op")
             {
                 ScriptClassName = "XEngineScript";
                 ScriptBaseClassName = typeof(XEngineScriptBase).FullName;
@@ -261,14 +265,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         {
             if (m_ScriptConfig == null)
                 return;
+
             m_ScriptFailCount = 0;
             m_ScriptErrorMessage = String.Empty;
-
-            if (m_ScriptConfig == null)
-            {
-//                m_log.ErrorFormat("[XEngine] No script configuration found. Scripts disabled");
-                return;
-            }
 
             m_Enabled = m_ScriptConfig.GetBoolean("Enabled", true);
 

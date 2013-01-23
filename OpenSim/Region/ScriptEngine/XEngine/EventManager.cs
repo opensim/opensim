@@ -52,7 +52,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         {
             myScriptEngine = _ScriptEngine;
 
-            m_log.Info("[XEngine] Hooking up to server events");
+//            m_log.Info("[XEngine] Hooking up to server events");
             myScriptEngine.World.EventManager.OnAttach += attach;
             myScriptEngine.World.EventManager.OnObjectGrab += touch_start;
             myScriptEngine.World.EventManager.OnObjectGrabbing += touch;
@@ -69,7 +69,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             myScriptEngine.World.EventManager.OnScriptLandColliderStart += land_collision_start;
             myScriptEngine.World.EventManager.OnScriptLandColliding += land_collision;
             myScriptEngine.World.EventManager.OnScriptLandColliderEnd += land_collision_end;
-            IMoneyModule money=myScriptEngine.World.RequestModuleInterface<IMoneyModule>();
+            IMoneyModule money = myScriptEngine.World.RequestModuleInterface<IMoneyModule>();
             if (money != null)
             {
                 money.OnObjectPaid+=HandleObjectPaid;
