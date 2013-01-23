@@ -30,5 +30,5 @@ using OpenMetaverse.StructuredData;
 
 namespace OpenSim.Framework.Servers.HttpServer
 {
-    public delegate void JsonRPCMethod(OSDMap jsonRpcRequest, ref JsonRpcResponse response);
+    public delegate bool JsonRPCMethod(OSDMap jsonRpcRequest, ref JsonRpcResponse response);
 }

@@ -1026,7 +1026,8 @@ namespace OpenSim.Framework.Servers.HttpServer
             return buffer;
         }
 
-        // JsonRpc (v2.0 only)
+        // JsonRpc (v2.0 only) 
+        // Batch requests not yet supported
         private byte[] HandleJsonRpcRequests(OSHttpRequest request, OSHttpResponse response)
         {
             Stream requestStream = request.InputStream;
@@ -1066,8 +1067,26 @@ namespace OpenSim.Framework.Servers.HttpServer
                         {
                             jsonRpcHandlers.TryGetValue(methodname, out method);
                         }
-
-                        method(jsonRpcRequest, ref jsonRpcResponse);
+                        bool res = false;
+                        try
+                        {
+                            res = method(jsonRpcRequest, ref jsonRpcResponse);
+                            if(!res)
+                            {
+                                // The handler sent back an unspecified error
+                                if(jsonRpcResponse.Error.Code == 0)
+                                {
+                                    jsonRpcResponse.Error.Code = ErrorCode.InternalError;
+                                }
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            string ErrorMessage = string.Format("[BASE HTTP SERVER]: Json-Rpc Handler Error method {0} - {1}", methodname, e.Message);
+                            m_log.Error(ErrorMessage);
+                            jsonRpcResponse.Error.Code = ErrorCode.InternalError;
+                            jsonRpcResponse.Error.Message = ErrorMessage;
+                        }
                     }
                     else // Error no hanlder defined for requested method
                     {
