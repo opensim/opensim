@@ -11340,25 +11340,89 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             bool checkPhysical = !((rejectTypes & ScriptBaseClass.RC_REJECT_PHYSICAL) == ScriptBaseClass.RC_REJECT_PHYSICAL);
 
 
+            if (World.SupportsRayCastFiltered())
+            {
+                if (dist == 0)
+                    return list;
+
+                RayFilterFlags rayfilter = RayFilterFlags.ClosestAndBackCull;
+                if (checkTerrain)
+                    rayfilter |= RayFilterFlags.land;
+//                if (checkAgents)
+//                    rayfilter |= RayFilterFlags.agent;
+                if (checkPhysical)
+                    rayfilter |= RayFilterFlags.physical;
+                if (checkNonPhysical)
+                    rayfilter |= RayFilterFlags.nonphysical;
+                if (detectPhantom)
+                    rayfilter |= RayFilterFlags.LSLPhanton;
+
+                Vector3 direction = dir * ( 1/dist);
+
+                if(rayfilter == 0)
+                {
+                    list.Add(new LSL_Integer(0));
+                    return list;
+                }
+
+                // get some more contacts to sort ???
+                int physcount = 4 * count;
+                if (physcount > 20)
+                    physcount = 20;
+
+                object physresults;
+                physresults = World.RayCastFiltered(rayStart, direction, dist, physcount, rayfilter);
+
+                if (physresults == null)
+                {
+                    list.Add(new LSL_Integer(-3)); // timeout error
+                    return list;
+                }
+
+                results = (List<ContactResult>)physresults;
+
+                // for now physics doesn't detect sitted avatars so do it outside physics
+                if (checkAgents)
+                {
+                    ContactResult[] agentHits = AvatarIntersection(rayStart, rayEnd);
+                    foreach (ContactResult r in agentHits)
+                        results.Add(r);
+                }
+
+                // TODO: Replace this with a better solution. ObjectIntersection can only
+                // detect nonphysical phantoms. They are detected by virtue of being
+                // nonphysical (e.g. no PhysActor) so will not conflict with detecting
+                // physicsl phantoms as done by the physics scene
+                // We don't want anything else but phantoms here.
+                if (detectPhantom)
+                {
+                    ContactResult[] objectHits = ObjectIntersection(rayStart, rayEnd, false, false, true);
+                    foreach (ContactResult r in objectHits)
+                        results.Add(r);
+                }
+            }
+            else
+            {
+                if (checkAgents)
+                {
+                    ContactResult[] agentHits = AvatarIntersection(rayStart, rayEnd);
+                    foreach (ContactResult r in agentHits)
+                        results.Add(r);
+                }
+
+                if (checkPhysical || checkNonPhysical || detectPhantom)
+                {
+                    ContactResult[] objectHits = ObjectIntersection(rayStart, rayEnd, checkPhysical, checkNonPhysical, detectPhantom);
+                    foreach (ContactResult r in objectHits)
+                        results.Add(r);
+                }
+            }
+
             if (checkTerrain)
             {
                 ContactResult? groundContact = GroundIntersection(rayStart, rayEnd);
                 if (groundContact != null)
                     results.Add((ContactResult)groundContact);
-            }
-
-            if (checkAgents)
-            {
-                ContactResult[] agentHits = AvatarIntersection(rayStart, rayEnd);
-                foreach (ContactResult r in agentHits)
-                    results.Add(r);
-            }
-
-            if (checkPhysical || checkNonPhysical || detectPhantom)
-            {
-                ContactResult[] objectHits = ObjectIntersection(rayStart, rayEnd, checkPhysical, checkNonPhysical, detectPhantom);
-                foreach (ContactResult r in objectHits)
-                    results.Add(r);
             }
 
             results.Sort(delegate(ContactResult a, ContactResult b)
