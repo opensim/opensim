@@ -140,6 +140,25 @@ public struct EntityProperties
     public Vector3 Velocity;
     public Vector3 Acceleration;
     public Vector3 RotationalVelocity;
+
+    public override string ToString()
+    {
+        StringBuilder buff = new StringBuilder();
+        buff.Append("<i=");
+        buff.Append(ID.ToString());
+        buff.Append(",p=");
+        buff.Append(Position.ToString());
+        buff.Append(",r=");
+        buff.Append(Rotation.ToString());
+        buff.Append(",v=");
+        buff.Append(Velocity.ToString());
+        buff.Append(",a=");
+        buff.Append(Acceleration.ToString());
+        buff.Append(",rv=");
+        buff.Append(RotationalVelocity.ToString());
+        buff.Append(">");
+        return buff.ToString();
+    }
 }
 
 // Format of this structure must match the definition in the C++ code

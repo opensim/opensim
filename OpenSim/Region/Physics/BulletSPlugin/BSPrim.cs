@@ -336,6 +336,7 @@ public sealed class BSPrim : BSPhysObject
             }
         }
     }
+        /*  Disable. Presume whoever is setting displacement is already adjusting position, etc.
     // Override to have position displacement immediately update the physical position.
     // A feeble attempt to keep the sim and physical positions in sync
     // Must be called at taint time.
@@ -355,6 +356,7 @@ public sealed class BSPrim : BSPhysObject
             });
         }
     }
+        */
 
     // Check that the current position is sane and, if not, modify the position to make it so.
     // Check for being below terrain and being out of bounds.
@@ -371,11 +373,11 @@ public sealed class BSPrim : BSPhysObject
             return ret;
         }
 
-        float terrainHeight = PhysicsScene.TerrainManager.GetTerrainHeightAtXYZ(_position);
+        float terrainHeight = PhysicsScene.TerrainManager.GetTerrainHeightAtXYZ(RawPosition);
         OMV.Vector3 upForce = OMV.Vector3.Zero;
         if (RawPosition.Z < terrainHeight)
         {
-            DetailLog("{0},BSPrim.PositionAdjustUnderGround,call,pos={1},terrain={2}", LocalID, _position, terrainHeight);
+            DetailLog("{0},BSPrim.PositionAdjustUnderGround,call,pos={1},terrain={2}", LocalID, RawPosition, terrainHeight);
             float targetHeight = terrainHeight + (Size.Z / 2f);
             // If the object is below ground it just has to be moved up because pushing will
             //     not get it through the terrain
@@ -1637,13 +1639,19 @@ public sealed class BSPrim : BSPhysObject
                 // entprop.RotationalVelocity = OMV.Vector3.Zero;
             }
 
+            DetailLog("{0},BSPrim.UpdateProperties,entry,entprop={1}", LocalID, entprop);   // DEBUG DEBUG
+
             // Assign directly to the local variables so the normal set actions do not happen
+
+            // Undo any center-of-mass displacement that might have been done.
             entprop.Position -= PositionDisplacement;
             _position = entprop.Position;
             _orientation = entprop.Rotation;
             _velocity = entprop.Velocity;
             _acceleration = entprop.Acceleration;
             _rotationalVelocity = entprop.RotationalVelocity;
+
+            DetailLog("{0},BSPrim.UpdateProperties,afterAssign,entprop={1}", LocalID, entprop);   // DEBUG DEBUG
 
             // The sanity check can change the velocity and/or position.
             if (IsPhysical && PositionSanityCheck(true))
@@ -1653,8 +1661,7 @@ public sealed class BSPrim : BSPhysObject
             }
 
             OMV.Vector3 direction = OMV.Vector3.UnitX * _orientation;   // DEBUG DEBUG DEBUG
-            DetailLog("{0},BSPrim.UpdateProperties,call,pos={1},orient={2},dir={3},vel={4},rotVel={5}",
-                    LocalID, _position, _orientation, direction, _velocity, _rotationalVelocity);
+            DetailLog("{0},BSPrim.UpdateProperties,call,entProp={1},dir={2}", LocalID, entprop, direction);
 
             // remember the current and last set values
             LastEntityProperties = CurrentEntityProperties;

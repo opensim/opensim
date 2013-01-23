@@ -377,7 +377,7 @@ public sealed class BSLinksetCompound : BSLinkset
     // Constraint linksets are rebuilt every time.
     // Note that this works for rebuilding just the root after a linkset is taken apart.
     // Called at taint time!!
-    private bool disableCOM = true;     // disable until we get this debugged
+    private bool disableCOM = false;     // disable until we get this debugged
     private void RecomputeLinksetCompound()
     {
         try
@@ -400,8 +400,9 @@ public sealed class BSLinksetCompound : BSLinkset
             }                                           // DEBUG DEBUG
             else
             {
-                centerOfMass = ComputeLinksetGeometricCenter();
-                centerDisplacement = centerOfMass - LinksetRoot.RawPosition;
+                centerOfMass = ComputeLinksetCenterOfMass();
+                // 'centerDisplacement' is the value to *add* to all the shape offsets
+                centerDisplacement = LinksetRoot.RawPosition - centerOfMass;
 
                 // Since we're displacing the center of the shape, we need to move the body in the world
                 LinksetRoot.PositionDisplacement = centerDisplacement;
