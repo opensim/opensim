@@ -1850,45 +1850,13 @@
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../../bin/Physics/</OutputPath>
+          <AllowUnsafe>true</AllowUnsafe>
         </Options>
       </Configuration>
       <Configuration name="Release">
         <Options>
           <OutputPath>../../../../bin/Physics/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../../bin/</ReferencePath>
-      <Reference name="System"/>
-      <Reference name="System.Core"/>
-      <Reference name="System.Xml"/>
-      <Reference name="OpenMetaverseTypes" path="../../../../bin/"/>
-      <Reference name="Nini.dll"  path="../../../../bin/"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Region.Framework"/>
-      <Reference name="OpenSim.Region.CoreModules"/>
-      <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="OpenSim.Region.Physics.Manager"/>
-      <Reference name="OpenSim.Region.Physics.ConvexDecompositionDotNet"/>
-      <Reference name="BulletXNA.dll" path="../../../../bin/"/>
-      <Reference name="log4net.dll" path="../../../../bin/"/>
-
-      <Files>
-        <Match pattern="*.cs" recurse="true">
-          <Exclude name="Tests" pattern="Tests"/>
-        </Match>
-      </Files>
-    </Project>
-
-    <Project frameworkVersion="v3_5" name="OpenSim.Region.Physics.BulletSNPlugin" path="OpenSim/Region/Physics/BulletSNPlugin" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../../bin/Physics/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../../bin/Physics/</OutputPath>
+          <AllowUnsafe>true</AllowUnsafe>
         </Options>
       </Configuration>
 

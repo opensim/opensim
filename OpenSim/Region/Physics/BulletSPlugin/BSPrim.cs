@@ -311,13 +311,14 @@ public sealed class BSPrim : BSPhysObject
             _position = value;
             PositionSanityCheck(false);
 
-            // A linkset might need to know if a component information changed.
-            Linkset.UpdateProperties(this, false);
-
             PhysicsScene.TaintedObject("BSPrim.setPosition", delegate()
             {
                 DetailLog("{0},BSPrim.SetPosition,taint,pos={1},orient={2}", LocalID, _position, _orientation);
                 ForcePosition = _position;
+
+                // A linkset might need to know if a component information changed.
+                Linkset.UpdateProperties(UpdatedProperties.Position, this);
+
             });
         }
     }
@@ -682,12 +683,13 @@ public sealed class BSPrim : BSPhysObject
                 return;
             _orientation = value;
 
-            // A linkset might need to know if a component information changed.
-            Linkset.UpdateProperties(this, false);
-
             PhysicsScene.TaintedObject("BSPrim.setOrientation", delegate()
             {
                 ForceOrientation = _orientation;
+
+                // A linkset might need to know if a component information changed.
+                Linkset.UpdateProperties(UpdatedProperties.Orientation, this);
+
             });
         }
     }
@@ -989,10 +991,10 @@ public sealed class BSPrim : BSPhysObject
         }
         set {
             _rotationalVelocity = value;
+            Util.ClampV(_rotationalVelocity, BSParam.MaxAngularVelocity);
             // m_log.DebugFormat("{0}: RotationalVelocity={1}", LogHeader, _rotationalVelocity);
             PhysicsScene.TaintedObject("BSPrim.setRotationalVelocity", delegate()
             {
-                DetailLog("{0},BSPrim.SetRotationalVel,taint,rotvel={1}", LocalID, _rotationalVelocity);
                 ForceRotationalVelocity = _rotationalVelocity;
             });
         }
@@ -1005,7 +1007,9 @@ public sealed class BSPrim : BSPhysObject
             _rotationalVelocity = value;
             if (PhysBody.HasPhysicalBody)
             {
+                DetailLog("{0},BSPrim.ForceRotationalVel,taint,rotvel={1}", LocalID, _rotationalVelocity);
                 PhysicsScene.PE.SetAngularVelocity(PhysBody, _rotationalVelocity);
+                // PhysicsScene.PE.SetInterpolationAngularVelocity(PhysBody, _rotationalVelocity);
                 ActivateIfPhysical(false);
             }
         }
@@ -1082,7 +1086,7 @@ public sealed class BSPrim : BSPhysObject
                     OMV.Vector3 origPosition = RawPosition;     // DEBUG DEBUG (for printout below)
 
                     // 'movePosition' is where we'd like the prim to be at this moment.
-                    OMV.Vector3 movePosition = _targetMotor.Step(timeStep);
+                    OMV.Vector3 movePosition = RawPosition + _targetMotor.Step(timeStep);
 
                     // If we are very close to our target, turn off the movement motor.
                     if (_targetMotor.ErrorIsZero())
@@ -1193,10 +1197,14 @@ public sealed class BSPrim : BSPhysObject
     public override float APIDDamping { set { return; } }
 
     public override void AddForce(OMV.Vector3 force, bool pushforce) {
+        // Per documentation, max force is limited.
+        OMV.Vector3 addForce = Util.ClampV(force, BSParam.MaxAddForceMagnitude);
+
         // Since this force is being applied in only one step, make this a force per second.
-        OMV.Vector3 addForce = force / PhysicsScene.LastTimeStep;
-        AddForce(addForce, pushforce, false);
+        addForce /= PhysicsScene.LastTimeStep;
+        AddForce(addForce, pushforce, false /* inTaintTime */);
     }
+
     // Applying a force just adds this to the total force on the object.
     // This added force will only last the next simulation tick.
     public void AddForce(OMV.Vector3 force, bool pushforce, bool inTaintTime) {
@@ -1205,9 +1213,9 @@ public sealed class BSPrim : BSPhysObject
         {
             if (force.IsFinite())
             {
-                OMV.Vector3 addForce = Util.ClampV(force, BSParam.MaxAddForceMagnitude);
                 // DetailLog("{0},BSPrim.addForce,call,force={1}", LocalID, addForce);
 
+                OMV.Vector3 addForce = force;
                 PhysicsScene.TaintedObject(inTaintTime, "BSPrim.AddForce", delegate()
                 {
                     // Bullet adds this central force to the total force for this tick
@@ -1642,7 +1650,7 @@ public sealed class BSPrim : BSPhysObject
             // TODO: handle physics introduced by Bullet with computed vehicle physics.
             if (_vehicle.IsActive)
             {
-                entprop.RotationalVelocity = OMV.Vector3.Zero;
+                // entprop.RotationalVelocity = OMV.Vector3.Zero;
             }
 
             // Assign directly to the local variables so the normal set actions do not happen
@@ -1681,7 +1689,7 @@ public sealed class BSPrim : BSPhysObject
              */
 
         // The linkset implimentation might want to know about this.
-        Linkset.UpdateProperties(this, true);
+        Linkset.UpdateProperties(UpdatedProperties.EntPropUpdates, this);
     }
 }
 }

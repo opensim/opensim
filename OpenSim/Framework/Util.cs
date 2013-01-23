@@ -1670,8 +1670,13 @@ namespace OpenSim.Framework
             if (m_ThreadPool != null)
                 throw new InvalidOperationException("SmartThreadPool is already initialized");
 
-            m_ThreadPool = new SmartThreadPool(2000, maxThreads, 2);
-            m_ThreadPool.Name = "Util";
+            STPStartInfo startInfo = new STPStartInfo();
+            startInfo.ThreadPoolName = "Util";
+            startInfo.IdleTimeout = 2000;
+            startInfo.MaxWorkerThreads = maxThreads;
+            startInfo.MinWorkerThreads = 2;
+
+            m_ThreadPool = new SmartThreadPool(startInfo);
         }
 
         public static int FireAndForgetCount()

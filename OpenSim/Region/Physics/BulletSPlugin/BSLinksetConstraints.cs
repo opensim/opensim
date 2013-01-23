@@ -83,7 +83,7 @@ public sealed class BSLinksetConstraints : BSLinkset
     }
 
     // Called at taint-time!!
-    public override void UpdateProperties(BSPhysObject updated, bool inTaintTime)
+    public override void UpdateProperties(UpdatedProperties whichUpdated, BSPhysObject pObj)
     {
         // Nothing to do for constraints on property updates
     }

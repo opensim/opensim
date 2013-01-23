@@ -2470,18 +2470,6 @@ namespace OpenSim.Region.Framework.Scenes
                 return new Vector3(0, 0, 0);
 
             return ParentGroup.GetGeometricCenter();
-
-            /*
-                        PhysicsActor pa = PhysActor;
-
-                        if (pa != null)
-                        {
-                            Vector3 vtmp = pa.CenterOfMass;
-                            return vtmp;
-                        }
-                        else
-                            return new Vector3(0, 0, 0);
-             */
         }
 
         public float GetMass()

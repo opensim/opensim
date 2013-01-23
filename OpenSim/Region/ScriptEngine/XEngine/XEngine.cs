@@ -1574,7 +1574,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             m_MaxScriptQueue = maxScriptQueue;
 
             STPStartInfo startInfo = new STPStartInfo();
-            startInfo.IdleTimeout = idleTimeout*1000; // convert to seconds as stated in .ini
+            startInfo.ThreadPoolName = "XEngine";
+            startInfo.IdleTimeout = idleTimeout * 1000; // convert to seconds as stated in .ini
             startInfo.MaxWorkerThreads = maxThreads;
             startInfo.MinWorkerThreads = minThreads;
             startInfo.ThreadPriority = threadPriority;;
@@ -1582,7 +1583,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             startInfo.StartSuspended = true;
 
             m_ThreadPool = new SmartThreadPool(startInfo);
-            m_ThreadPool.Name = "XEngine";
         }
 
         //

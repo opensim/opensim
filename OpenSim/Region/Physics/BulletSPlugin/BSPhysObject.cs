@@ -55,6 +55,16 @@ namespace OpenSim.Region.Physics.BulletSPlugin
  * BS.ApplyCentralForce BS.ApplyTorque              
  */
 
+// Flags used to denote which properties updates when making UpdateProperties calls to linksets, etc.
+public enum UpdatedProperties : uint
+{
+    Position                = 1 << 0,
+    Orientation             = 1 << 1,
+    Velocity                = 1 << 2,
+    Acceleration            = 1 << 3,
+    RotationalVelocity      = 1 << 4,
+    EntPropUpdates          = Position | Orientation | Velocity | Acceleration | RotationalVelocity,
+}
 public abstract class BSPhysObject : PhysicsActor
 {
     protected BSPhysObject()
