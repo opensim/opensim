@@ -531,7 +531,7 @@ namespace OpenSim.Framework.Servers
             }
         }
 
-        protected string GetVersionText()
+        public string GetVersionText()
         {
             return String.Format("Version: {0} (interface version {1})", m_version, VersionInfo.MajorInterfaceVersion);
         }
