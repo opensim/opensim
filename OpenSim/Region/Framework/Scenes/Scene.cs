@@ -2065,11 +2065,11 @@ namespace OpenSim.Region.Framework.Scenes
             EventManager.TriggerPrimsLoaded(this);
         }
 
-        public bool SuportsRayCastFiltered()
+        public bool SupportsRayCastFiltered()
         {
             if (PhysicsScene == null)
                 return false;
-            return PhysicsScene.SuportsRaycastWorldFiltered();
+            return PhysicsScene.SupportsRaycastWorldFiltered();
         }
 
         public object RayCastFiltered(Vector3 position, Vector3 direction, float length, int Count, RayFilterFlags filter)      

@@ -12209,7 +12209,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             bool checkPhysical = !((rejectTypes & ScriptBaseClass.RC_REJECT_PHYSICAL) == ScriptBaseClass.RC_REJECT_PHYSICAL);
 
 
-            if (World.SuportsRayCastFiltered())
+            if (World.SupportsRayCastFiltered())
             {
                 if (dist == 0)
                     return list;
@@ -12272,13 +12272,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else
             {
-                if (checkTerrain)
-                {
-                    ContactResult? groundContact = GroundIntersection(rayStart, rayEnd);
-                    if (groundContact != null)
-                        results.Add((ContactResult)groundContact);
-                }
-
                 if (checkAgents)
                 {
                     ContactResult[] agentHits = AvatarIntersection(rayStart, rayEnd);
@@ -12292,6 +12285,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     foreach (ContactResult r in objectHits)
                         results.Add(r);
                 }
+            }
+
+            if (checkTerrain)
+            {
+                ContactResult? groundContact = GroundIntersection(rayStart, rayEnd);
+                if (groundContact != null)
+                    results.Add((ContactResult)groundContact);
             }
 
             results.Sort(delegate(ContactResult a, ContactResult b)

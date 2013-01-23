@@ -2643,7 +2643,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
-        public override bool SuportsRaycastWorldFiltered()
+        public override bool SupportsRaycastWorldFiltered()
         {
             return true;
         }
