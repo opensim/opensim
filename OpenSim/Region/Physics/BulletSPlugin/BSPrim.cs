@@ -1621,10 +1621,15 @@ public sealed class BSPrim : BSPhysObject
 
             DetailLog("{0},BSPrim.UpdateProperties,entry,entprop={1}", LocalID, entprop);   // DEBUG DEBUG
 
-            // Assign directly to the local variables so the normal set actions do not happen
-
             // Undo any center-of-mass displacement that might have been done.
-            entprop.Position -= PositionDisplacement;
+            if (PositionDisplacement != OMV.Vector3.Zero)
+            {
+                // Correct for any rotation around the center-of-mass
+                // TODO!!!
+                entprop.Position -= PositionDisplacement;
+            }
+
+            // Assign directly to the local variables so the normal set actions do not happen
             _position = entprop.Position;
             _orientation = entprop.Rotation;
             _velocity = entprop.Velocity;
