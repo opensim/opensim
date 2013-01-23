@@ -1619,7 +1619,7 @@ public sealed class BSPrim : BSPhysObject
                 // entprop.RotationalVelocity = OMV.Vector3.Zero;
             }
 
-            DetailLog("{0},BSPrim.UpdateProperties,entry,entprop={1}", LocalID, entprop);   // DEBUG DEBUG
+            // DetailLog("{0},BSPrim.UpdateProperties,entry,entprop={1}", LocalID, entprop);   // DEBUG DEBUG
 
             // Undo any center-of-mass displacement that might have been done.
             if (PositionDisplacement != OMV.Vector3.Zero)
@@ -1636,7 +1636,7 @@ public sealed class BSPrim : BSPhysObject
             _acceleration = entprop.Acceleration;
             _rotationalVelocity = entprop.RotationalVelocity;
 
-            DetailLog("{0},BSPrim.UpdateProperties,afterAssign,entprop={1}", LocalID, entprop);   // DEBUG DEBUG
+            // DetailLog("{0},BSPrim.UpdateProperties,afterAssign,entprop={1}", LocalID, entprop);   // DEBUG DEBUG
 
             // The sanity check can change the velocity and/or position.
             if (IsPhysical && PositionSanityCheck(true))
