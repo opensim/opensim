@@ -81,7 +81,6 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     internal long m_simulationStep = 0;
     internal float NominalFrameRate { get; set; }
     public long SimulationStep { get { return m_simulationStep; } }
-    internal int m_taintsToProcessPerStep;
     internal float LastTimeStep { get; private set; }
 
     // Physical objects can register for prestep or poststep events
@@ -847,8 +846,6 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
     #endregion // Taints
 
-    #region INI and command line parameter processing
-
     #region IPhysicsParameters
     // Get the list of parameters this physics engine supports
     public PhysParameterEntry[] GetParameterList()
@@ -944,8 +941,6 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     }
 
     #endregion IPhysicsParameters
-
-    #endregion Runtime settable parameters
 
     // Invoke the detailed logger and output something if it's enabled.
     public void DetailLog(string msg, params Object[] args)

@@ -45,19 +45,26 @@ namespace OpenSim.Framework.Servers.HttpServer
         private uint m_WorkerThreadCount = 0;
         private Thread[] m_workerThreads;
         private PollServiceWorkerThread[] m_PollServiceWorkerThreads;
-        private bool m_running = true;
+        private volatile bool m_running = true;
+        private int m_pollTimeout;
 
         public PollServiceRequestManager(BaseHttpServer pSrv, uint pWorkerThreadCount, int pTimeout)
         {
             m_server = pSrv;
             m_WorkerThreadCount = pWorkerThreadCount;
+            m_pollTimeout = pTimeout;
+        }
+
+        public void Start()
+        {
+            m_running = true;
             m_workerThreads = new Thread[m_WorkerThreadCount];
             m_PollServiceWorkerThreads = new PollServiceWorkerThread[m_WorkerThreadCount];
 
             //startup worker threads
             for (uint i = 0; i < m_WorkerThreadCount; i++)
             {
-                m_PollServiceWorkerThreads[i] = new PollServiceWorkerThread(m_server, pTimeout);
+                m_PollServiceWorkerThreads[i] = new PollServiceWorkerThread(m_server, m_pollTimeout);
                 m_PollServiceWorkerThreads[i].ReQueue += ReQueueEvent;
 
                 m_workerThreads[i]
@@ -136,8 +143,10 @@ namespace OpenSim.Framework.Servers.HttpServer
             
         }
 
-        ~PollServiceRequestManager()
+        public void Stop()
         {
+            m_running = false;
+
             foreach (object o in m_requests)
             {
                 PollServiceHttpRequest req = (PollServiceHttpRequest) o;
@@ -151,8 +160,6 @@ namespace OpenSim.Framework.Servers.HttpServer
             {
                 t.Abort();
             }
-            
-            m_running = false;
         }
     }
 }

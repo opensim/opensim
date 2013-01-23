@@ -1,23 +1,20 @@
 CURRENT PRIORITIES
 =================================================
-Mantis 6040 script http://opensimulator.org/mantis/view.php?id=6040
-	Msg Kayaker on OSGrid when working
+Child movement in linkset (don't rebuild linkset)
+Vehicle angular vertical attraction
+vehicle angular banking
+Center-of-gravity
+Vehicle angular deflection
+	Preferred orientation angular correction fix
+when should angular and linear motor targets be zeroed? when selected?
+	Need a vehicle.clear()? Or an 'else' in prestep if not physical.
 Teravus llMoveToTarget script debug
 	Mixing of hover, buoyancy/gravity, moveToTarget, into one force
-Boats floating at proper level
 Nebadon vehicles turning funny in arena
 limitMotorUp calibration (more down?)
 llRotLookAt
 llLookAt
-Vehicle angular vertical attraction
-Vehicle angular deflection
-	Preferred orientation angular correction fix
-vehicle angular banking
 Avatars walking up stairs (HALF DONE)
-    Radius of the capsule affects ability to climb edges.
-Vehicle movement on terrain smoothness
-When is force introduced by SetForce removed? The prestep action could go forever.
-Boats float low in the water (DONE)
 Avatar movement
 	flying into a wall doesn't stop avatar who keeps appearing to move through the obstacle (DONE)
 	walking up stairs is not calibrated correctly (stairs out of Kepler cabin)
@@ -73,8 +70,12 @@ Incorporate inter-relationship of angular corrections. For instance, angularDefl
 
 GENERAL TODO LIST:
 =================================================
+llMoveToTarget objects are not effected by gravity until target is removed.
 Implement llSetPhysicalMaterial.
+	extend it with Center-of-mass, rolling friction, density
 Implement llSetForceAndTorque.
+Change BSPrim.moveToTarget to used forces rather than changing position
+	Changing position allows one to move through walls
 Implement an avatar mesh shape. The Bullet capsule is way too limited.
 	Consider just hand creating a vertex/index array in a new BSShapeAvatar.
 Verify/fix phantom, volume-detect objects do not fall to infinity. Should stop at terrain.
@@ -311,3 +312,11 @@ Remove HeightmapInfo from terrain specification (DONE)
 Surfboard go wonky when turning (DONE)
 	Angular motor direction is global coordinates rather than local coordinates?
 	(Resolution: made angular motor direction correct coordinate system)
+Mantis 6040 script http://opensimulator.org/mantis/view.php?id=6040 (DONE)
+	Msg Kayaker on OSGrid when working
+	(Resolution: LINEAR_DIRECTION is in vehicle coords. Test script does the
+	same in SL as in OS/BulletSim)
+Boats float low in the water (DONE)
+Boats floating at proper level (DONE)
+When is force introduced by SetForce removed? The prestep action could go forever. (DONE)
+	(Resolution: setForce registers a prestep action which keeps applying the force)
