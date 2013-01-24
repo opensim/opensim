@@ -557,8 +557,9 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
                 uint cB = m_collisionArray[ii].bID;
                 Vector3 point = m_collisionArray[ii].point;
                 Vector3 normal = m_collisionArray[ii].normal;
-                SendCollision(cA, cB, point, normal, 0.01f);
-                SendCollision(cB, cA, point, -normal, 0.01f);
+                float penetration = m_collisionArray[ii].penetration;
+                SendCollision(cA, cB, point, normal, penetration);
+                SendCollision(cB, cA, point, -normal, penetration);
             }
         }
 
