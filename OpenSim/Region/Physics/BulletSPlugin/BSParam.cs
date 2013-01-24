@@ -334,7 +334,7 @@ public static class BSParam
             (s,p,l,v) => { s.UpdateParameterObject((x)=>{AngularSleepingThreshold=x;}, p, l, v); },
             (s,o,v) => { s.PE.SetSleepingThresholds(o.PhysBody, v, v); } ),
         new ParameterDefn("CcdMotionThreshold", "Continuious collision detection threshold (0 means no CCD)" ,
-            0.3f,     // set to zero to disable
+            0.0f,     // set to zero to disable
             (s,cf,p,v) => { CcdMotionThreshold = cf.GetFloat(p, v); },
             (s) => { return CcdMotionThreshold; },
             (s,p,l,v) => { s.UpdateParameterObject((x)=>{CcdMotionThreshold=x;}, p, l, v); },
@@ -345,8 +345,8 @@ public static class BSParam
             (s) => { return CcdSweptSphereRadius; },
             (s,p,l,v) => { s.UpdateParameterObject((x)=>{CcdSweptSphereRadius=x;}, p, l, v); },
             (s,o,v) => { s.PE.SetCcdSweptSphereRadius(o.PhysBody, v); } ),
-        new ParameterDefn("ContactProcessingThreshold", "Distance between contacts before doing collision check" ,
-            0.1f,
+        new ParameterDefn("ContactProcessingThreshold", "Distance above which contacts can be discarded (0 means no discard)" ,
+            0.0f,
             (s,cf,p,v) => { ContactProcessingThreshold = cf.GetFloat(p, v); },
             (s) => { return ContactProcessingThreshold; },
             (s,p,l,v) => { s.UpdateParameterObject((x)=>{ContactProcessingThreshold=x;}, p, l, v); },
