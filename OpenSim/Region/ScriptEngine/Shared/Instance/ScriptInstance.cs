@@ -306,6 +306,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                             null,
                             constructorParams,
                             null,
+                            null,
                             null);
                 else
                     m_Script 
