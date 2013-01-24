@@ -3019,17 +3019,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Integer llGiveMoney(string destination, int amount)
         {
-//            Util.FireAndForget(x =>
-//            {
+            Util.FireAndForget(x =>
+            {
                 m_host.AddScriptLPS(1);
 
                 if (m_item.PermsGranter == UUID.Zero)
-                    return 0;
+                    return;
 
                 if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_DEBIT) == 0)
                 {
                     LSLError("No permissions to give money");
-                    return 0;
+                    return;
                 }
 
                 UUID toID = new UUID();
@@ -3037,7 +3037,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (!UUID.TryParse(destination, out toID))
                 {
                     LSLError("Bad key in llGiveMoney");
-                    return 0;
+                    return;
                 }
 
                 IMoneyModule money = World.RequestModuleInterface<IMoneyModule>();
@@ -3045,12 +3045,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (money == null)
                 {
                     NotImplemented("llGiveMoney");
-                    return 0;
+                    return;
                 }
 
-                return money.ObjectGiveMoney(
+                money.ObjectGiveMoney(
                     m_host.ParentGroup.RootPart.UUID, m_host.ParentGroup.RootPart.OwnerID, toID, amount,UUID.Zero);
-//            });
+            });
+
+            return 0;
         }
 
         public void llMakeExplosion(int particles, double scale, double vel, double lifetime, double arc, string texture, LSL_Vector offset)
