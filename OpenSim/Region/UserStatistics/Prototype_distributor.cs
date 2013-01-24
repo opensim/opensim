@@ -36,7 +36,18 @@ namespace OpenSim.Region.UserStatistics
 {
     public class Prototype_distributor : IStatsController
     {
-        private string prototypejs=string.Empty;
+        private string jsFileName = "prototype.js";
+        private string prototypejs = string.Empty;
+
+        public Prototype_distributor()
+        {
+            jsFileName = "prototype.js";
+        }
+
+        public Prototype_distributor(string jsName) 
+        {
+            jsFileName = jsName;
+        }
 
         public string ReportName
         {
@@ -45,20 +56,24 @@ namespace OpenSim.Region.UserStatistics
         public Hashtable ProcessModel(Hashtable pParams)
         {
             Hashtable pResult = new Hashtable();
-            if (prototypejs.Length == 0)
-            {
-                StreamReader fs = new StreamReader(new FileStream(Util.dataDir() + "/data/prototype.js", FileMode.Open));
-                prototypejs = fs.ReadToEnd();
-                fs.Close();
-                fs.Dispose();
-            }
-            pResult["js"] = prototypejs;
+            pResult["js"] = jsFileName;
             return pResult;
         }
 
         public string RenderView(Hashtable pModelResult)
         {
-            return pModelResult["js"].ToString();
+            string fileName = (string)pModelResult["js"];
+            using (StreamReader fs = new StreamReader(new FileStream(Util.dataDir() + "/data/" + fileName, FileMode.Open)))
+            {
+                prototypejs = fs.ReadToEnd();
+                fs.Close();
+            }
+            return prototypejs;
+        }
+
+        public string RenderJson(Hashtable pModelResult)
+        {
+            return "{}";
         }
 
     }

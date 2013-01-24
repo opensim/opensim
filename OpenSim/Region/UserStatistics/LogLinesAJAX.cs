@@ -33,6 +33,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Mono.Data.SqliteClient;
 using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Framework.Monitoring;
 
@@ -123,6 +124,34 @@ namespace OpenSim.Region.UserStatistics
                 
 
             return output.ToString();
+        }
+
+        /// <summary>
+        /// Return the last log lines. Output in the format:
+        /// <pre>
+        /// {"logLines": [
+        /// "line1",
+        /// "line2",
+        /// ...
+        /// ]
+        /// }
+        /// </pre>
+        /// </summary>
+        /// <param name="pModelResult"></param>
+        /// <returns></returns>
+        public string RenderJson(Hashtable pModelResult)
+        {
+            OSDMap logInfo = new OpenMetaverse.StructuredData.OSDMap();
+
+            OSDArray logLines = new OpenMetaverse.StructuredData.OSDArray();
+            string tmp = normalizeEndLines.Replace(pModelResult["loglines"].ToString(), "\n");
+            string[] result = Regex.Split(tmp, "\n");
+            for (int i = 0; i < result.Length; i++)
+            {
+                logLines.Add(new OSDString(result[i]));
+            }
+            logInfo.Add("logLines", logLines);
+            return logInfo.ToString();
         }
 
         #endregion

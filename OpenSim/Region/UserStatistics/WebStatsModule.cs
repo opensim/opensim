@@ -121,6 +121,10 @@ namespace OpenSim.Region.UserStatistics
             reports.Add("clients.report", clientReport);
             reports.Add("sessions.report", sessionsReport);
 
+            reports.Add("sim.css", new Prototype_distributor("sim.css"));
+            reports.Add("sim.html", new Prototype_distributor("sim.html"));
+            reports.Add("jquery.js", new Prototype_distributor("jquery.js"));
+
             ////
             // Add Your own Reports here (Do Not Modify Lines here Devs!)
             ////
@@ -255,15 +259,21 @@ namespace OpenSim.Region.UserStatistics
             string regpath = request["uri"].ToString();
             int response_code = 404;
             string contenttype = "text/html";
+            bool jsonFormatOutput = false;
             
             string strOut = string.Empty;
 
+            // The request patch should be "/SStats/reportName" where 'reportName'
+            // is one of the names added to the 'reports' hashmap.
             regpath = regpath.Remove(0, 8);
             if (regpath.Length == 0) regpath = "default.report";
             if (reports.ContainsKey(regpath))
             {
                 IStatsController rep = reports[regpath];
                 Hashtable repParams = new Hashtable();
+
+                if (request.ContainsKey("json"))
+                    jsonFormatOutput = true;
 
                 if (request.ContainsKey("requestvars"))
                     repParams["RequestVars"] = request["requestvars"];
@@ -284,11 +294,24 @@ namespace OpenSim.Region.UserStatistics
                 
                 concurrencyCounter++;
 
-                strOut = rep.RenderView(rep.ProcessModel(repParams));
+                if (jsonFormatOutput) 
+                {
+                    strOut = rep.RenderJson(rep.ProcessModel(repParams));
+                    contenttype = "text/json";
+                }
+                else 
+                {
+                    strOut = rep.RenderView(rep.ProcessModel(repParams));
+                }
 
                 if (regpath.EndsWith("js"))
                 {
                     contenttype = "text/javascript";
+                }
+
+                if (regpath.EndsWith("css"))
+                {
+                    contenttype = "text/css";
                 }
 
                 concurrencyCounter--;

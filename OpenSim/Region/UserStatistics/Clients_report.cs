@@ -31,6 +31,7 @@ using System.Collections.Generic;
 using System.Text;
 using Mono.Data.SqliteClient;
 using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.UserStatistics
@@ -42,6 +43,32 @@ namespace OpenSim.Region.UserStatistics
         public string ReportName
         {
             get { return "Client"; }
+        }
+
+        /// <summary>
+        /// Return summar information in the form:
+        /// <pre>
+        /// {"totalUsers": "34",
+        ///  "totalSessions": "233",
+        ///  ...
+        /// }
+        /// </pre>
+        /// </summary>
+        /// <param name="pModelResult"></param>
+        /// <returns></returns>
+        public string RenderJson(Hashtable pModelResult) {
+            stats_default_page_values values = (stats_default_page_values) pModelResult["hdata"];
+
+            OSDMap summaryInfo = new OpenMetaverse.StructuredData.OSDMap();
+            summaryInfo.Add("totalUsers", new OSDString(values.total_num_users.ToString()));
+            summaryInfo.Add("totalSessions", new OSDString(values.total_num_sessions.ToString()));
+            summaryInfo.Add("averageClientFPS", new OSDString(values.avg_client_fps.ToString()));
+            summaryInfo.Add("averageClientMem", new OSDString(values.avg_client_mem_use.ToString()));
+            summaryInfo.Add("averageSimFPS", new OSDString(values.avg_sim_fps.ToString()));
+            summaryInfo.Add("averagePingTime", new OSDString(values.avg_ping.ToString()));
+            summaryInfo.Add("totalKBOut", new OSDString(values.total_kb_out.ToString()));
+            summaryInfo.Add("totalKBIn", new OSDString(values.total_kb_in.ToString()));
+            return summaryInfo.ToString();
         }
 
         public Hashtable ProcessModel(Hashtable pParams)
