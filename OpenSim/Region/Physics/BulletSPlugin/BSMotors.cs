@@ -138,7 +138,8 @@ public class BSVMotor : BSMotor
         CurrentValue = TargetValue = Vector3.Zero;
     }
 
-    // Compute the next step and return the new current value
+    // Compute the next step and return the new current value.
+    // Returns the correction needed to move 'current' to 'target'.
     public virtual Vector3 Step(float timeStep)
     {
         if (!Enabled) return TargetValue;
@@ -148,9 +149,10 @@ public class BSVMotor : BSMotor
 
         Vector3 correction = Vector3.Zero;
         Vector3 error = TargetValue - CurrentValue;
+        LastError = error;
         if (!ErrorIsZero(error))
         {
-            correction = Step(timeStep, error);
+            correction = StepError(timeStep, error);
 
             CurrentValue += correction;
 
@@ -187,20 +189,31 @@ public class BSVMotor : BSMotor
         else
         {
             // Difference between what we have and target is small. Motor is done.
+            if (TargetValue.ApproxEquals(Vector3.Zero, ErrorZeroThreshold))
+            {
+                // The target can step down to nearly zero but not get there.  If close to zero
+                //     it is really zero.
+                TargetValue = Vector3.Zero;
+            }
             CurrentValue = TargetValue;
-            MDetailLog("{0},  BSVMotor.Step,zero,{1},origTgt={2},origCurr={3},ret={4}",
-                        BSScene.DetailLogZero, UseName, origCurrVal, origTarget, CurrentValue);
+            MDetailLog("{0},  BSVMotor.Step,zero,{1},origTgt={2},origCurr={3},currTgt={4},currCurr={5}",
+                        BSScene.DetailLogZero, UseName, origCurrVal, origTarget, TargetValue, CurrentValue);
         }
 
-        return CurrentValue;
+        return correction;
     }
-    public virtual Vector3 Step(float timeStep, Vector3 error)
+    // version of step that sets the current value before doing the step
+    public virtual Vector3 Step(float timeStep, Vector3 current)
+    {
+        CurrentValue = current;
+        return Step(timeStep);
+    }
+    public virtual Vector3 StepError(float timeStep, Vector3 error)
     {
         if (!Enabled) return Vector3.Zero;
 
-        LastError = error;
         Vector3 returnCorrection = Vector3.Zero;
-        if (!ErrorIsZero())
+        if (!ErrorIsZero(error))
         {
             // correction =  error / secondsItShouldTakeToCorrect
             Vector3 correctionAmount;
@@ -302,9 +315,10 @@ public class BSFMotor : BSMotor
 
         float correction = 0f;
         float error = TargetValue - CurrentValue;
+        LastError = error;
         if (!ErrorIsZero(error))
         {
-            correction = Step(timeStep, error);
+            correction = StepError(timeStep, error);
 
             CurrentValue += correction;
 
@@ -339,6 +353,12 @@ public class BSFMotor : BSMotor
         else
         {
             // Difference between what we have and target is small. Motor is done.
+            if (Util.InRange<float>(TargetValue, -ErrorZeroThreshold, ErrorZeroThreshold))
+            {
+                // The target can step down to nearly zero but not get there.  If close to zero
+                //     it is really zero.
+                TargetValue = 0f;
+            }
             CurrentValue = TargetValue;
             MDetailLog("{0},  BSFMotor.Step,zero,{1},origTgt={2},origCurr={3},ret={4}",
                         BSScene.DetailLogZero, UseName, origCurrVal, origTarget, CurrentValue);
@@ -347,13 +367,12 @@ public class BSFMotor : BSMotor
         return CurrentValue;
     }
 
-    public virtual float Step(float timeStep, float error)
+    public virtual float StepError(float timeStep, float error)
     {
         if (!Enabled) return 0f;
 
-        LastError = error;
         float returnCorrection = 0f;
-        if (!ErrorIsZero())
+        if (!ErrorIsZero(error))
         {
             // correction =  error / secondsItShouldTakeToCorrect
             float correctionAmount;
@@ -440,8 +459,8 @@ public class BSPIDVMotor : BSVMotor
         }
     }
 
-    // Ignore Current and Target Values and just advance the PID computation on this error.
-    public override Vector3 Step(float timeStep, Vector3 error)
+    // Advance the PID computation on this error.
+    public override Vector3 StepError(float timeStep, Vector3 error)
     {
         if (!Enabled) return Vector3.Zero;
 

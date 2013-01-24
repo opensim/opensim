@@ -83,7 +83,7 @@ public sealed class BSLinksetConstraints : BSLinkset
     }
 
     // Called at taint-time!!
-    public override void UpdateProperties(BSPhysObject updated, bool inTaintTime)
+    public override void UpdateProperties(UpdatedProperties whichUpdated, BSPhysObject pObj)
     {
         // Nothing to do for constraints on property updates
     }
@@ -108,14 +108,6 @@ public sealed class BSLinksetConstraints : BSLinkset
             Refresh(LinksetRoot);
         }
         return ret;
-    }
-
-    // Companion to RemoveBodyDependencies(). If RemoveBodyDependencies() returns 'true',
-    // this routine will restore the removed constraints.
-    // Called at taint-time!!
-    public override void RestoreBodyDependencies(BSPrim child)
-    {
-        // The Refresh operation queued by RemoveBodyDependencies() will build any missing constraints.
     }
 
     // ================================================================
