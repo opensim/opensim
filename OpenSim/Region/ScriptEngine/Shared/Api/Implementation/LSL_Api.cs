@@ -3049,7 +3049,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return src.ToLower();
         }
 
-        public void llGiveMoney(string destination, int amount)
+        public LSL_Integer llGiveMoney(string destination, int amount)
         {
             Util.FireAndForget(x =>
             {
@@ -3083,6 +3083,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 money.ObjectGiveMoney(
                     m_host.ParentGroup.RootPart.UUID, m_host.ParentGroup.RootPart.OwnerID, toID, amount,UUID.Zero);
             });
+
+            return 0;
         }
 
         public void llMakeExplosion(int particles, double scale, double vel, double lifetime, double arc, string texture, LSL_Vector offset)
@@ -12309,7 +12311,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             bool checkPhysical = !((rejectTypes & ScriptBaseClass.RC_REJECT_PHYSICAL) == ScriptBaseClass.RC_REJECT_PHYSICAL);
 
 
-            if (World.SuportsRayCastFiltered())
+            if (World.SupportsRayCastFiltered())
             {
                 if (dist == 0)
                     return list;
@@ -12372,13 +12374,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else
             {
-                if (checkTerrain)
-                {
-                    ContactResult? groundContact = GroundIntersection(rayStart, rayEnd);
-                    if (groundContact != null)
-                        results.Add((ContactResult)groundContact);
-                }
-
                 if (checkAgents)
                 {
                     ContactResult[] agentHits = AvatarIntersection(rayStart, rayEnd);
@@ -12391,6 +12386,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     ContactResult[] objectHits = ObjectIntersection(rayStart, rayEnd, checkPhysical, checkNonPhysical, detectPhantom);
                     foreach (ContactResult r in objectHits)
                         results.Add(r);
+                }
+            }
+
+            // Double check this
+            if (checkTerrain)
+            {
+                bool skipGroundCheck = false;
+
+                foreach (ContactResult c in results)
+                {
+                    if (c.ConsumerID == 0) // Physics gave us a ground collision
+                        skipGroundCheck = true;
+                }
+
+                if (!skipGroundCheck)
+                {
+                    ContactResult? groundContact = GroundIntersection(rayStart, rayEnd);
+                    if (groundContact != null)
+                        results.Add((ContactResult)groundContact);
                 }
             }
 
