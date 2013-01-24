@@ -1190,8 +1190,6 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         //     set directly on the vehicle.
         private void MoveAngular(float pTimestep)
         {
-            // VehicleRotationalVelocity = Vector3.Zero;
-
             ComputeAngularTurning(pTimestep);
 
             ComputeAngularVerticalAttraction();
@@ -1201,7 +1199,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             ComputeAngularBanking();
 
             // ==================================================================
-            if (VehicleRotationalVelocity.ApproxEquals(Vector3.Zero, 0.01f))
+            if (VehicleRotationalVelocity.ApproxEquals(Vector3.Zero, 0.0001f))
             {
                 // The vehicle is not adding anything angular wise.
                 VehicleRotationalVelocity = Vector3.Zero;
