@@ -917,8 +917,8 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
                     foreach (uint lID in xlIDs)
                     {
                         BSPhysObject theObject = null;
-                        PhysObjects.TryGetValue(lID, out theObject);
-                        thisParam.onObject(this, theObject, xval);
+                        if (PhysObjects.TryGetValue(lID, out theObject))
+                            thisParam.onObject(this, theObject, xval);
                     }
                 }
             }
