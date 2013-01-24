@@ -745,13 +745,6 @@
     ;; The trade-off may be increased memory usage by the script engine.
     ; ThreadStackSize = 262144
 
-    ;# {DeleteScriptsOnStartup} {} {Delete previously compiled script DLLs on startup?} (true false) true
-    ;; Controls whether previously compiled scripts DLLs are deleted on sim restart. If you set this to false
-    ;; then startup will be considerably faster since scripts won't need to be recompiled. However, then it becomes your responsibility to delete the
-    ;; compiled scripts if you're recompiling OpenSim from source code and internal interfaces used
-    ;; by scripts have changed.
-    ; DeleteScriptsOnStartup = true
-
     ;; Set this to true (the default) to load each script into a separate
     ;; AppDomain. 
     ;;
@@ -763,6 +756,23 @@
     ;; This may cause an OutOfMemory problem over time when avatars with scripted attachments move in and out of the region.
     ;; Some Windows users have also reported script loading problems when AppDomainLoading = false
     ; AppDomainLoading = true
+
+    ;; Controls whether scripts are stopped by aborting their threads externally (abort) or by co-operative checks from the compiled script (co-op) 
+    ;; co-op will be more stable but this option is currently experimental.
+    ;; If moving from co-op to abort, existing script DLLs will need to be recompiled.
+    ;; This currently can only be done manually, either by setting DeleteScriptsOnStartup = true for one run  
+    ;; or by deleting the script DLL* files in bin/ScriptEngines/<region-id>/
+    ;; One can move from co-op back to abort without recompilation, but reverting back to co-op again will need script recompile
+    ;; Current valid values are "abort" and "co-op"
+    ; ScriptStopStrategy = abort
+    
+
+    ;# {DeleteScriptsOnStartup} {} {Delete previously compiled script DLLs on startup?} (true false) true
+    ;; Controls whether previously compiled scripts DLLs are deleted on sim restart. If you set this to false
+    ;; then startup will be considerably faster since scripts won't need to be recompiled. However, then it becomes your responsibility to delete the
+    ;; compiled scripts if you're recompiling OpenSim from source code and internal interfaces used
+    ;; by scripts have changed.
+    ; DeleteScriptsOnStartup = true
 
     ;# {DefaultCompileLanguage} {Enabled:true} {Default script language?} {lsl vb cs} lsl
     ;; Default language for scripts

@@ -110,14 +110,6 @@ public sealed class BSLinksetConstraints : BSLinkset
         return ret;
     }
 
-    // Companion to RemoveBodyDependencies(). If RemoveBodyDependencies() returns 'true',
-    // this routine will restore the removed constraints.
-    // Called at taint-time!!
-    public override void RestoreBodyDependencies(BSPrim child)
-    {
-        // The Refresh operation queued by RemoveBodyDependencies() will build any missing constraints.
-    }
-
     // ================================================================
 
     // Add a new child to the linkset.

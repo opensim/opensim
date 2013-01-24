@@ -26,26 +26,36 @@
  */
 
 using System;
+using System.Runtime.Remoting;
+using System.Runtime.Remoting.Lifetime;
+using System.Security.Permissions;
 using System.Threading;
-using OpenMetaverse;
-using OpenSim.Framework;
-using OpenSim.Region.Framework.Scenes;
+using System.Reflection;
+using System.Collections;
+using System.Collections.Generic;
+using OpenSim.Region.ScriptEngine.Interfaces;
 using OpenSim.Region.ScriptEngine.Shared;
+using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
 
-namespace OpenSim.Region.ScriptEngine.Interfaces
+namespace OpenSim.Region.ScriptEngine.XEngine.ScriptBase
 {
-    public interface IScriptApi
+    public class XEngineScriptBase : ScriptBaseClass
     {
         /// <summary>
-        /// Initialize the API
+        /// Used for script sleeps when we are using co-operative script termination.
         /// </summary>
-        /// <remarks>
-        /// Each API has an identifier, which is used to load the proper runtime assembly at load time.
-        /// <param name='scriptEngine'>/param>
-        /// <param name='host'>/param>
-        /// <param name='item'>/param>
-        /// <param name='coopSleepHandle'>/param>
-        void Initialize(
-            IScriptEngine scriptEngine, SceneObjectPart host, TaskInventoryItem item, WaitHandle coopSleepHandle);
+        /// <remarks>null if co-operative script termination is not active</remarks>  
+        WaitHandle m_coopSleepHandle;
+
+        public XEngineScriptBase(WaitHandle coopSleepHandle) : base()
+        {
+            m_coopSleepHandle = coopSleepHandle;
+        }
+
+        public void opensim_reserved_CheckForCoopTermination()
+        {
+            if (m_coopSleepHandle != null && m_coopSleepHandle.WaitOne(0))
+                throw new ScriptCoopStopException();
+        }
     }
 }

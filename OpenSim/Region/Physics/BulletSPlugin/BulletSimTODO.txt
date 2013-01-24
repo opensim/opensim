@@ -1,5 +1,7 @@
 CURRENT PRIORITIES
 =================================================
+Deleting a linkset while standing on the root will leave the physical shape of the root behind.
+	Not sure if it is because standing on it. Done with large prim linksets.
 Child movement in linkset (don't rebuild linkset)
 Vehicle angular vertical attraction
 vehicle angular banking

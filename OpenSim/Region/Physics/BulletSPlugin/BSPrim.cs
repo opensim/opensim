@@ -322,6 +322,7 @@ public sealed class BSPrim : BSPhysObject
             });
         }
     }
+
     public override OMV.Vector3 ForcePosition {
         get {
             _position = PhysicsScene.PE.GetPosition(PhysBody) - PositionDisplacement;
@@ -334,25 +335,6 @@ public sealed class BSPrim : BSPhysObject
                 PhysicsScene.PE.SetTranslation(PhysBody, _position + PositionDisplacement, _orientation);
                 ActivateIfPhysical(false);
             }
-        }
-    }
-    // Override to have position displacement immediately update the physical position.
-    // A feeble attempt to keep the sim and physical positions in sync
-    // Must be called at taint time.
-    public override OMV.Vector3 PositionDisplacement
-    {
-        get
-        {
-            return base.PositionDisplacement;
-        }
-        set
-        {
-            base.PositionDisplacement = value;
-            PhysicsScene.TaintedObject(PhysicsScene.InTaintTime, "BSPrim.setPosition", delegate()
-            {
-                if (PhysBody.HasPhysicalBody)
-                    PhysicsScene.PE.SetTranslation(PhysBody, _position + base.PositionDisplacement, _orientation);
-            });
         }
     }
 
@@ -371,11 +353,11 @@ public sealed class BSPrim : BSPhysObject
             return ret;
         }
 
-        float terrainHeight = PhysicsScene.TerrainManager.GetTerrainHeightAtXYZ(_position);
+        float terrainHeight = PhysicsScene.TerrainManager.GetTerrainHeightAtXYZ(RawPosition);
         OMV.Vector3 upForce = OMV.Vector3.Zero;
         if (RawPosition.Z < terrainHeight)
         {
-            DetailLog("{0},BSPrim.PositionAdjustUnderGround,call,pos={1},terrain={2}", LocalID, _position, terrainHeight);
+            DetailLog("{0},BSPrim.PositionAdjustUnderGround,call,pos={1},terrain={2}", LocalID, RawPosition, terrainHeight);
             float targetHeight = terrainHeight + (Size.Z / 2f);
             // If the object is below ground it just has to be moved up because pushing will
             //     not get it through the terrain
@@ -1606,11 +1588,6 @@ public sealed class BSPrim : BSPhysObject
     // Called at taint-time!!!
     public void CreateGeomAndObject(bool forceRebuild)
     {
-        // If this prim is part of a linkset, we must remove and restore the physical
-        //    links if the body is rebuilt.
-        bool needToRestoreLinkset = false;
-        bool needToRestoreVehicle = false;
-
         // Create the correct physical representation for this type of object.
         // Updates PhysBody and PhysShape with the new information.
         // Ignore 'forceRebuild'. This routine makes the right choices and changes of necessary.
@@ -1619,20 +1596,9 @@ public sealed class BSPrim : BSPhysObject
             // Called if the current prim body is about to be destroyed.
             // Remove all the physical dependencies on the old body.
             // (Maybe someday make the changing of BSShape an event to be subscribed to by BSLinkset, ...)
-            needToRestoreLinkset = Linkset.RemoveBodyDependencies(this);
-            needToRestoreVehicle = _vehicle.RemoveBodyDependencies(this);
+            Linkset.RemoveBodyDependencies(this);
+            _vehicle.RemoveBodyDependencies(this);
         });
-
-        if (needToRestoreLinkset)
-        {
-            // If physical body dependencies were removed, restore them
-            Linkset.RestoreBodyDependencies(this);
-        }
-        if (needToRestoreVehicle)
-        {
-            // If physical body dependencies were removed, restore them
-            _vehicle.RestoreBodyDependencies(this);
-        }
 
         // Make sure the properties are set on the new object
         UpdatePhysicalParameters();
@@ -1653,13 +1619,24 @@ public sealed class BSPrim : BSPhysObject
                 // entprop.RotationalVelocity = OMV.Vector3.Zero;
             }
 
+            // DetailLog("{0},BSPrim.UpdateProperties,entry,entprop={1}", LocalID, entprop);   // DEBUG DEBUG
+
+            // Undo any center-of-mass displacement that might have been done.
+            if (PositionDisplacement != OMV.Vector3.Zero)
+            {
+                // Correct for any rotation around the center-of-mass
+                // TODO!!!
+                entprop.Position -= PositionDisplacement;
+            }
+
             // Assign directly to the local variables so the normal set actions do not happen
-            entprop.Position -= PositionDisplacement;
             _position = entprop.Position;
             _orientation = entprop.Rotation;
             _velocity = entprop.Velocity;
             _acceleration = entprop.Acceleration;
             _rotationalVelocity = entprop.RotationalVelocity;
+
+            // DetailLog("{0},BSPrim.UpdateProperties,afterAssign,entprop={1}", LocalID, entprop);   // DEBUG DEBUG
 
             // The sanity check can change the velocity and/or position.
             if (IsPhysical && PositionSanityCheck(true))
@@ -1669,8 +1646,7 @@ public sealed class BSPrim : BSPhysObject
             }
 
             OMV.Vector3 direction = OMV.Vector3.UnitX * _orientation;   // DEBUG DEBUG DEBUG
-            DetailLog("{0},BSPrim.UpdateProperties,call,pos={1},orient={2},dir={3},vel={4},rotVel={5}",
-                    LocalID, _position, _orientation, direction, _velocity, _rotationalVelocity);
+            DetailLog("{0},BSPrim.UpdateProperties,call,entProp={1},dir={2}", LocalID, entprop, direction);
 
             // remember the current and last set values
             LastEntityProperties = CurrentEntityProperties;

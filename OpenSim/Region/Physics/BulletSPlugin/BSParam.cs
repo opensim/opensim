@@ -645,11 +645,8 @@ public static class BSParam
                 entries.Add(new PhysParameterEntry(pd.name, pd.desc));
             }
 
-            // make the list in alphabetical order for estetic reasons
-            entries.Sort(delegate(PhysParameterEntry ppe1, PhysParameterEntry ppe2)
-            {
-                return ppe1.name.CompareTo(ppe2.name);
-            });
+            // make the list alphabetical for estetic reasons
+            entries.Sort((ppe1, ppe2) => { return ppe1.name.CompareTo(ppe2.name); });
 
             SettableParameters = entries.ToArray();
         }

@@ -252,7 +252,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         /// <param name='dom'></param>
         /// <param name='assembly'></param>
         /// <param name='stateSource'></param>
-        public void Load(AppDomain dom, string assembly, StateSource stateSource)
+        /// <returns>false if load failed, true if suceeded</returns>
+        public bool Load(AppDomain dom, string assembly, StateSource stateSource)
         {
             m_Assembly = assembly;
             m_stateSource = stateSource;
@@ -267,14 +268,56 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
     
             try
             {
-                if (dom != System.AppDomain.CurrentDomain)
-                    m_Script = (IScript)dom.CreateInstanceAndUnwrap(
-                            Path.GetFileNameWithoutExtension(assembly),
-                            "SecondLife.Script");
+                object[] constructorParams;
+
+                Assembly scriptAssembly = dom.Load(Path.GetFileNameWithoutExtension(assembly));
+                Type scriptType = scriptAssembly.GetType("SecondLife.XEngineScript");
+
+                if (scriptType != null)
+                {
+                    constructorParams = new object[] { m_coopSleepHandle };
+                }
+                else if (!m_coopTermination)
+                {
+                    scriptType = scriptAssembly.GetType("SecondLife.Script");
+                    constructorParams = null;
+                }
                 else
-                    m_Script = (IScript)Assembly.Load(
-                            Path.GetFileNameWithoutExtension(assembly)).CreateInstance(
-                            "SecondLife.Script");
+                {
+                    m_log.ErrorFormat(
+                        "[SCRIPT INSTANCE]: Not starting script {0} (id {1}) in part {2} (id {3}) in object {4} in {5}.  You must remove all existing {6}* script DLL files before using enabling co-op termination"
+                        + ", either by setting DeleteScriptsOnStartup = true in [XEngine] for one run"
+                        + " or by deleting these files manually.",
+                        ScriptTask.Name, ScriptTask.ItemID, Part.Name, Part.UUID, Part.ParentGroup.Name, Engine.World.Name, assembly);
+
+                    return false;
+                }
+
+//                m_log.DebugFormat(
+//                    "[SCRIPT INSTANCE]: Looking to load {0} from assembly {1} in {2}", 
+//                    scriptType.FullName, Path.GetFileNameWithoutExtension(assembly), Engine.World.Name);
+
+                if (dom != System.AppDomain.CurrentDomain)
+                    m_Script 
+                        = (IScript)dom.CreateInstanceAndUnwrap(
+                            Path.GetFileNameWithoutExtension(assembly),
+                            scriptType.FullName,
+                            false,
+                            BindingFlags.Default,
+                            null,
+                            constructorParams,
+                            null,
+                            null);
+                else
+                    m_Script 
+                        = (IScript)scriptAssembly.CreateInstance(
+                            scriptType.FullName, 
+                            false, 
+                            BindingFlags.Default, 
+                            null, 
+                            constructorParams, 
+                            null, 
+                            null);
 
                 //ILease lease = (ILease)RemotingServices.GetLifetimeService(m_Script as ScriptBaseClass);
                 //RemotingServices.GetLifetimeService(m_Script as ScriptBaseClass);
@@ -283,8 +326,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             catch (Exception e)
             {
                 m_log.ErrorFormat(
-                    "[SCRIPT INSTANCE]: Error loading assembly {0}.  Exception {1}{2}",
-                    assembly, e.Message, e.StackTrace);
+                    "[SCRIPT INSTANCE]: Not starting script {0} (id {1}) in part {2} (id {3}) in object {4} in {5}.  Error loading assembly {6}.  Exception {7}{8}",
+                    ScriptTask.Name, ScriptTask.ItemID, Part.Name, Part.UUID, Part.ParentGroup.Name, Engine.World.Name, assembly, e.Message, e.StackTrace);
+
+                return false;
             }
 
             try
@@ -302,10 +347,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             catch (Exception e)
             {
                 m_log.ErrorFormat(
-                    "[SCRIPT INSTANCE]: Error loading script instance from assembly {0}.  Exception {1}{2}",
-                    assembly, e.Message, e.StackTrace);
+                    "[SCRIPT INSTANCE]: Not starting script {0} (id {1}) in part {2} (id {3}) in object {4} in {5}.  Error initializing script instance.  Exception {6}{7}",
+                    ScriptTask.Name, ScriptTask.ItemID, Part.Name, Part.UUID, Part.ParentGroup.Name, Engine.World.Name, e.Message, e.StackTrace);
 
-                return;
+                return false;
             }
 
             m_SaveState = true;
@@ -358,15 +403,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                     else
                     {
                         m_log.WarnFormat(
-                            "[SCRIPT INSTANCE]: Unable to load script state file {0} for script {1} {2} in {3} {4} (assembly {5}).  Memory limit exceeded",
-                            savedState, ScriptName, ItemID, PrimName, ObjectID, assembly);
+                            "[SCRIPT INSTANCE]: Not starting script {0} (id {1}) in part {2} (id {3}) in object {4} in {5}.  Unable to load script state file {6}.  Memory limit exceeded.",
+                            ScriptTask.Name, ScriptTask.ItemID, Part.Name, Part.UUID, Part.ParentGroup.Name, Engine.World.Name, savedState);
                     }
                 }
                 catch (Exception e)
                 {
                      m_log.ErrorFormat(
-                         "[SCRIPT INSTANCE]: Unable to load script state file {0} for script {1} {2} in {3} {4} (assembly {5}).  XML is {6}.  Exception {7}{8}",
-                         savedState, ScriptName, ItemID, PrimName, ObjectID, assembly, xml, e.Message, e.StackTrace);
+                         "[SCRIPT INSTANCE]: Not starting script {0} (id {1}) in part {2} (id {3}) in object {4} in {5}.  Unable to load script state file {6}.  XML is {7}.  Exception {8}{9}",
+                         ScriptTask.Name, ScriptTask.ItemID, Part.Name, Part.UUID, Part.ParentGroup.Name, Engine.World.Name, savedState, xml, e.Message, e.StackTrace);
                 }
             }
 //            else
@@ -377,6 +422,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 //                    presence.ControllingClient.SendAgentAlertMessage("Compile successful", false);
 
 //            }
+
+            return true;
         }
 
         public void Init()
@@ -560,9 +607,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                 }
                 else
                 {
-                    m_log.DebugFormat(
-                        "[SCRIPT INSTANCE]: Co-operatively stopping script {0} {1} in {2} {3}",
-                        ScriptName, ItemID, PrimName, ObjectID);
+                    if (DebugLevel >= 1)
+                        m_log.DebugFormat(
+                            "[SCRIPT INSTANCE]: Co-operatively stopping script {0} {1} in {2} {3}",
+                            ScriptName, ItemID, PrimName, ObjectID);
 
                     // This will terminate the event on next handle check by the script.
                     m_coopSleepHandle.Set();
@@ -571,9 +619,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                     // checking is implemented.  May want to allow a shorter timeout option later.
                     if (workItem.Wait(TimeSpan.MaxValue))
                     {
-                        m_log.DebugFormat(
-                            "[SCRIPT INSTANCE]: Co-operatively stopped script {0} {1} in {2} {3}",
-                            ScriptName, ItemID, PrimName, ObjectID);
+                        if (DebugLevel >= 1)
+                            m_log.DebugFormat(
+                                "[SCRIPT INSTANCE]: Co-operatively stopped script {0} {1} in {2} {3}",
+                                ScriptName, ItemID, PrimName, ObjectID);
 
                         return true;
                     }
@@ -894,9 +943,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                             }
                             else if ((e is TargetInvocationException) && (e.InnerException is ScriptCoopStopException))
                             {
-                                m_log.DebugFormat(
-                                    "[SCRIPT INSTANCE]: Script {0}.{1} in event {2}, state {3} stopped co-operatively.",
-                                    PrimName, ScriptName, data.EventName, State);
+                                if (DebugLevel >= 1)
+                                    m_log.DebugFormat(
+                                        "[SCRIPT INSTANCE]: Script {0}.{1} in event {2}, state {3} stopped co-operatively.",
+                                        PrimName, ScriptName, data.EventName, State);
                             }
                         }
                     }

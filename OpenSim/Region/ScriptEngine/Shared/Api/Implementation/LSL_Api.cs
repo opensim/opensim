@@ -95,7 +95,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// Used for script sleeps when we are using co-operative script termination.
         /// </summary>
         /// <remarks>null if co-operative script termination is not active</remarks>  
-        EventWaitHandle m_coopSleepHandle;       
+        WaitHandle m_coopSleepHandle;       
 
         /// <summary>
         /// The item that hosts this script
@@ -150,7 +150,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 };
 
         public void Initialize(
-            IScriptEngine scriptEngine, SceneObjectPart host, TaskInventoryItem item, EventWaitHandle coopSleepHandle)
+            IScriptEngine scriptEngine, SceneObjectPart host, TaskInventoryItem item, WaitHandle coopSleepHandle)
         {
             m_lastSayShoutCheck = DateTime.UtcNow;
 
@@ -227,7 +227,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             if (m_coopSleepHandle == null)
                 System.Threading.Thread.Sleep(delay);
-            else if (m_coopSleepHandle.WaitOne(delay))
+            else
+                CheckForCoopTermination(delay);
+        }
+
+        /// <summary>
+        /// Check for co-operative termination.
+        /// </summary>
+        /// <param name='delay'>If called with 0, then just the check is performed with no wait.</param>
+        protected virtual void CheckForCoopTermination(int delay)
+        {
+            if (m_coopSleepHandle.WaitOne(delay))
                 throw new ScriptCoopStopException();
         }
 

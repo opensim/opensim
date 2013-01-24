@@ -708,8 +708,8 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     //    TriggerPreStepEvent
     //    DoOneTimeTaints
     //    Step()
-    //       ProcessAndForwardCollisions
-    //       ProcessAndForwardPropertyUpdates
+    //       ProcessAndSendToSimulatorCollisions
+    //       ProcessAndSendToSimulatorPropertyUpdates
     //    TriggerPostStepEvent
 
     // Calls to the PhysicsActors can't directly call into the physics engine

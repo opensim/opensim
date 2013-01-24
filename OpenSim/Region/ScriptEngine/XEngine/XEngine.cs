@@ -47,13 +47,15 @@ using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.ScriptEngine.Interfaces;
 using OpenSim.Region.ScriptEngine.Shared;
 using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
 using OpenSim.Region.ScriptEngine.Shared.CodeTools;
 using OpenSim.Region.ScriptEngine.Shared.Instance;
 using OpenSim.Region.ScriptEngine.Shared.Api;
 using OpenSim.Region.ScriptEngine.Shared.Api.Plugins;
-using OpenSim.Region.ScriptEngine.Interfaces;
+using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
+using OpenSim.Region.ScriptEngine.XEngine.ScriptBase;
 using Timer = OpenSim.Region.ScriptEngine.Shared.Api.Plugins.Timer;
 
 using ScriptCompileQueue = OpenSim.Framework.LocklessQueue<object[]>;
@@ -244,6 +246,14 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             get { return "XEngine"; }
         }
 
+        public string ScriptClassName { get; private set; }
+
+        public string ScriptBaseClassName { get; private set; }
+
+        public ParameterInfo[] ScriptBaseClassParameters { get; private set; }
+
+        public string[] ScriptReferencedAssemblies { get; private set; }
+
         public Scene World
         {
             get { return m_Scene; }
@@ -298,20 +308,34 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             m_ScriptConfig = configSource.Configs["XEngine"];
             m_ConfigSource = configSource;
+
+            string rawScriptStopStrategy = m_ScriptConfig.GetString("ScriptStopStrategy", "abort");
+
+            m_log.InfoFormat("[XEngine]: Script stop strategy is {0}", rawScriptStopStrategy);
+
+            if (rawScriptStopStrategy == "co-op")
+            {
+                ScriptClassName = "XEngineScript";
+                ScriptBaseClassName = typeof(XEngineScriptBase).FullName;
+                ScriptBaseClassParameters = typeof(XEngineScriptBase).GetConstructor(new Type[] { typeof(WaitHandle) }).GetParameters();
+                ScriptReferencedAssemblies = new string[] { Path.GetFileName(typeof(XEngineScriptBase).Assembly.Location) };
+            }
+            else
+            {
+                ScriptClassName = "Script";
+                ScriptBaseClassName = typeof(ScriptBaseClass).FullName;
+            }
+
+//            Console.WriteLine("ASSEMBLY NAME: {0}", ScriptReferencedAssemblies[0]);
         }
 
         public void AddRegion(Scene scene)
         {
             if (m_ScriptConfig == null)
                 return;
+
             m_ScriptFailCount = 0;
             m_ScriptErrorMessage = String.Empty;
-
-            if (m_ScriptConfig == null)
-            {
-//                m_log.ErrorFormat("[XEngine] No script configuration found. Scripts disabled");
-                return;
-            }
 
             m_Enabled = m_ScriptConfig.GetBoolean("Enabled", true);
 
@@ -1180,7 +1204,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             }
 
             m_log.DebugFormat(
-                "[XEngine] Loading script {0}.{1}, item UUID {2}, prim UUID {3} @ {4}.{5}",
+                "[XEngine]: Loading script {0}.{1}, item UUID {2}, prim UUID {3} @ {4}.{5}",
                 part.ParentGroup.RootPart.Name, item.Name, itemID, part.UUID,
                 part.ParentGroup.RootPart.AbsolutePosition, part.ParentGroup.Scene.RegionInfo.RegionName);
 
@@ -1201,6 +1225,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     lock (m_AddingAssemblies)
                     {
                         m_Compiler.PerformScriptCompile(script, assetID.ToString(), item.OwnerID, out assembly, out linemap);
+                        
                         if (!m_AddingAssemblies.ContainsKey(assembly)) {
                             m_AddingAssemblies[assembly] = 1;
                         } else {
@@ -1250,7 +1275,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 }
                 catch (Exception e)
                 {
-//                    m_log.ErrorFormat("[XEngine]: Exception when rezzing script {0}{1}", e.Message, e.StackTrace);
+//                    m_log.ErrorFormat(
+//                        "[XEngine]: Exception when rezzing script with item ID {0}, {1}{2}", 
+//                        itemID, e.Message, e.StackTrace);
 
     //                try
     //                {
@@ -1329,13 +1356,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                             sandbox = AppDomain.CurrentDomain;
                         }
 
-                        //PolicyLevel sandboxPolicy = PolicyLevel.CreateAppDomainLevel();
-                        //AllMembershipCondition sandboxMembershipCondition = new AllMembershipCondition();
-                        //PermissionSet sandboxPermissionSet = sandboxPolicy.GetNamedPermissionSet("Internet");
-                        //PolicyStatement sandboxPolicyStatement = new PolicyStatement(sandboxPermissionSet);
-                        //CodeGroup sandboxCodeGroup = new UnionCodeGroup(sandboxMembershipCondition, sandboxPolicyStatement);
-                        //sandboxPolicy.RootCodeGroup = sandboxCodeGroup;
-                        //sandbox.SetAppDomainPolicy(sandboxPolicy);
+                    if (!instance.Load(m_AppDomains[appDomain], assembly, stateSource))
+                        return false;
 
                         m_AppDomains[appDomain] = sandbox;
 

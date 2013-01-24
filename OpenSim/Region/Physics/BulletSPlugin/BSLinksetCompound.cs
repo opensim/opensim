@@ -290,13 +290,6 @@ public sealed class BSLinksetCompound : BSLinkset
         return ret;
     }
 
-    // Companion to RemoveBodyDependencies(). If RemoveBodyDependencies() returns 'true',
-    //     this routine will restore the removed constraints.
-    // Called at taint-time!!
-    public override void RestoreBodyDependencies(BSPrim child)
-    {
-    }
-
     // When the linkset is built, the child shape is added to the compound shape relative to the
     //    root shape. The linkset then moves around but this does not move the actual child
     //    prim. The child prim's location must be recomputed based on the location of the root shape.
@@ -384,7 +377,7 @@ public sealed class BSLinksetCompound : BSLinkset
     // Constraint linksets are rebuilt every time.
     // Note that this works for rebuilding just the root after a linkset is taken apart.
     // Called at taint time!!
-    private bool disableCOM = true;     // disable until we get this debugged
+    private bool disableCOM = false;     // disable until we get this debugged
     private void RecomputeLinksetCompound()
     {
         try
@@ -407,12 +400,16 @@ public sealed class BSLinksetCompound : BSLinkset
             }                                           // DEBUG DEBUG
             else
             {
-                centerOfMass = ComputeLinksetGeometricCenter();
-                centerDisplacement = centerOfMass - LinksetRoot.RawPosition;
+                centerOfMass = ComputeLinksetCenterOfMass();
+                // 'centerDisplacement' is the value to *add* to all the shape offsets
+                centerDisplacement = LinksetRoot.RawPosition - centerOfMass;
 
                 // Since we're displacing the center of the shape, we need to move the body in the world
                 LinksetRoot.PositionDisplacement = centerDisplacement;
 
+                // This causes the root prim position to be set properly based on the new PositionDisplacement
+                LinksetRoot.ForcePosition = LinksetRoot.RawPosition;
+                // Update the local transform for the root child shape so it is offset from the <0,0,0> which is COM
                 PhysicsScene.PE.UpdateChildTransform(LinksetRoot.PhysShape, 0, -centerDisplacement, OMV.Quaternion.Identity, false);
                 DetailLog("{0},BSLinksetCompound.RecomputeLinksetCompound,COM,com={1},rootPos={2},centerDisp={3}",
                                         LinksetRoot.LocalID, centerOfMass, LinksetRoot.RawPosition, centerDisplacement);
@@ -444,7 +441,7 @@ public sealed class BSLinksetCompound : BSLinkset
 
                     if (cPrim.PhysShape.isNativeShape)
                     {
-                        // A native shape is turning into a hull collision shape because native
+                        // A native shape is turned into a hull collision shape because native
                         //    shapes are not shared so we have to hullify it so it will be tracked
                         //    and freed at the correct time. This also solves the scaling problem
                         //    (native shapes scaled but hull/meshes are assumed to not be).
