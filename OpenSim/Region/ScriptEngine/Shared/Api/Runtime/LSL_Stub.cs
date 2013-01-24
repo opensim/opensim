@@ -876,9 +876,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_LSL_Functions.llGiveInventoryList(destination, category, inventory);
         }
 
-        public void llGiveMoney(string destination, int amount)
+        public LSL_Integer llGiveMoney(string destination, int amount)
         {
-            m_LSL_Functions.llGiveMoney(destination, amount);
+            return m_LSL_Functions.llGiveMoney(destination, amount);
         }
 
         public LSL_String llTransferLindenDollars(string destination, int amount)
