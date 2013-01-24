@@ -1821,7 +1821,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
                 IndexedVector3 contactPoint = manifoldPoint.GetPositionWorldOnB();
                 IndexedVector3 contactNormal = -manifoldPoint.m_normalWorldOnB; // make relative to A
 
-                RecordCollision(this, objA, objB, contactPoint, contactNormal);
+                RecordCollision(this, objA, objB, contactPoint, contactNormal,manifoldPoint.GetDistance());
                 m_collisionsThisFrame ++;
                 if (m_collisionsThisFrame >= 9999999)
                     break;
@@ -1858,8 +1858,64 @@ private sealed class BulletConstraintXNA : BulletConstraint
         }
         return numSimSteps;
     }
+    public void RecordGhostCollisions(PairCachingGhostObject obj)
+    {
+        /*
+         *void BulletSim::RecordGhostCollisions(btPairCachingGhostObject* obj)
+{
+	btManifoldArray   manifoldArray;
+	btBroadphasePairArray& pairArray = obj->getOverlappingPairCache()->getOverlappingPairArray();
+	int numPairs = pairArray.size();
 
-    private static void RecordCollision(BSAPIXNA world, CollisionObject objA, CollisionObject objB, IndexedVector3 contact, IndexedVector3 norm)
+	// For all the pairs of sets of contact points
+	for (int i=0; i < numPairs; i++)
+	{
+		if (m_collisionsThisFrame >= m_maxCollisionsPerFrame) 
+			break;
+
+		manifoldArray.clear();
+		const btBroadphasePair& pair = pairArray[i];
+
+		// The real representation is over in the world pair cache
+		btBroadphasePair* collisionPair = m_worldData.dynamicsWorld->getPairCache()->findPair(pair.m_pProxy0,pair.m_pProxy1);
+		if (!collisionPair)
+			continue;
+
+		if (collisionPair->m_algorithm)
+			collisionPair->m_algorithm->getAllContactManifolds(manifoldArray);
+
+		// The collision pair has sets of collision points (manifolds)
+		for (int j=0; j < manifoldArray.size(); j++)
+		{
+			btPersistentManifold* contactManifold = manifoldArray[j];
+			int numContacts = contactManifold->getNumContacts();
+
+			const btCollisionObject* objA = static_cast<const btCollisionObject*>(contactManifold->getBody0());
+			const btCollisionObject* objB = static_cast<const btCollisionObject*>(contactManifold->getBody1());
+
+			// TODO: this is a more thurough check than the regular collision code --
+			//     here we find the penetrating contact in the manifold but for regular
+			//     collisions we assume the first point in the manifold is good enough.
+			//     Decide of this extra checking is required or if first point is good enough.
+			for (int p=0; p < numContacts; p++)
+			{
+				const btManifoldPoint& pt = contactManifold->getContactPoint(p);
+				// If a penetrating contact, this is a hit
+				if (pt.getDistance()<0.f)
+				{
+					const btVector3& contactPoint = pt.getPositionWorldOnA();
+					const btVector3& normalOnA = -pt.m_normalWorldOnB;
+					RecordCollision(objA, objB, contactPoint, normalOnA, pt.getDistance());
+					// Only one contact point for each set of colliding objects
+					break;
+				}
+			}
+		}
+	}
+}
+         */
+    }
+    private static void RecordCollision(BSAPIXNA world, CollisionObject objA, CollisionObject objB, IndexedVector3 contact, IndexedVector3 norm, float penetration)
     {
        
         IndexedVector3 contactNormal = norm;
@@ -1885,7 +1941,9 @@ private sealed class BulletConstraintXNA : BulletConstraint
                                                 aID = idA,
                                                 bID = idB,
                                                 point = new Vector3(contact.X,contact.Y,contact.Z),
-                                                normal = new Vector3(contactNormal.X,contactNormal.Y,contactNormal.Z)
+                                                normal = new Vector3(contactNormal.X,contactNormal.Y,contactNormal.Z),
+                                                penetration = penetration
+
                                             };
         if (world.LastCollisionDesc < world.UpdatedCollisions.Length)
             world.UpdatedCollisions[world.LastCollisionDesc++] = (cDesc);
@@ -1911,7 +1969,8 @@ private sealed class BulletConstraintXNA : BulletConstraint
         return ent;
     }
 
-    public override bool UpdateParameter(BulletWorld world, uint localID, String parm, float value) { /* TODO */ return false; }
+    public override bool UpdateParameter(BulletWorld world, uint localID, String parm, float value) { /* TODO */
+        return false; }
 
     public override Vector3 GetLocalScaling(BulletShape pShape)
     {
