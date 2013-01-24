@@ -130,6 +130,7 @@ public struct CollisionDesc
     public uint bID;
     public Vector3 point;
     public Vector3 normal;
+    public float penetration;
 }
 [StructLayout(LayoutKind.Sequential)]
 public struct EntityProperties
