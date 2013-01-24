@@ -1952,6 +1952,16 @@ namespace OpenSim.Region.Framework.Scenes
             PhysicsActor pa = PhysActor;
 
             if (pa != null)
+                return new Vector3(pa.GeometricCenter.X, pa.GeometricCenter.Y, pa.GeometricCenter.Z);
+            else
+                return new Vector3(0, 0, 0);
+        }
+
+        public Vector3 GetCenterOfMass()
+        {
+            PhysicsActor pa = PhysActor;
+
+            if (pa != null)
                 return new Vector3(pa.CenterOfMass.X, pa.CenterOfMass.Y, pa.CenterOfMass.Z);
             else
                 return new Vector3(0, 0, 0);

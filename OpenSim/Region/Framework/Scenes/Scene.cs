@@ -68,6 +68,11 @@ namespace OpenSim.Region.Framework.Scenes
         public bool EmergencyMonitoring = false;
 
         /// <summary>
+        /// Show debug information about animations.
+        /// </summary>
+        public bool DebugAnimations { get; set; }
+
+        /// <summary>
         /// Show debug information about teleports.
         /// </summary>
         public bool DebugTeleporting { get; set; }
@@ -1978,6 +1983,19 @@ namespace OpenSim.Region.Framework.Scenes
             EventManager.TriggerPrimsLoaded(this);
         }
 
+        public bool SupportsRayCastFiltered()
+        {
+            if (PhysicsScene == null)
+                return false;
+            return PhysicsScene.SupportsRaycastWorldFiltered();
+        }
+
+        public object RayCastFiltered(Vector3 position, Vector3 direction, float length, int Count, RayFilterFlags filter)
+        {
+            if (PhysicsScene == null)
+                return null;
+            return PhysicsScene.RaycastWorld(position, direction, length, Count,filter);
+        }
 
         /// <summary>
         /// Gets a new rez location based on the raycast and the size of the object that is being rezzed.

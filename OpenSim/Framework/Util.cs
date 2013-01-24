@@ -299,6 +299,18 @@ namespace OpenSim.Framework
                 x;
         }
 
+        // Clamp the maximum magnitude of a vector
+        public static Vector3 ClampV(Vector3 x, float max)
+        {
+            Vector3 ret = x;
+            float lenSq = x.LengthSquared();
+            if (lenSq > (max * max))
+            {
+                x = x / x.Length() * max;
+            }
+            return x;
+        }
+
         // Inclusive, within range test (true if equal to the endpoints)
         public static bool InRange<T>(T x, T min, T max)
             where T : IComparable<T>
@@ -1646,8 +1658,13 @@ namespace OpenSim.Framework
             if (m_ThreadPool != null)
                 throw new InvalidOperationException("SmartThreadPool is already initialized");
 
-            m_ThreadPool = new SmartThreadPool(2000, maxThreads, 2);
-            m_ThreadPool.Name = "Util";
+            STPStartInfo startInfo = new STPStartInfo();
+            startInfo.ThreadPoolName = "Util";
+            startInfo.IdleTimeout = 2000;
+            startInfo.MaxWorkerThreads = maxThreads;
+            startInfo.MinWorkerThreads = 2;
+
+            m_ThreadPool = new SmartThreadPool(startInfo);
         }
 
         public static int FireAndForgetCount()

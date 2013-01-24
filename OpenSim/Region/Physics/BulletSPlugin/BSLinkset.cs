@@ -252,7 +252,7 @@ public abstract class BSLinkset
     //      of the linkset is received.
     // Passed flag is update came from physics engine (true) or the user (false).
     // Called at taint-time!!
-    public abstract void UpdateProperties(BSPhysObject physObject, bool physicalUpdate);
+    public abstract void UpdateProperties(UpdatedProperties whichUpdated, BSPhysObject physObject);
 
     // Routine used when rebuilding the body of the root of the linkset
     // Destroy all the constraints have have been made to root.
@@ -260,11 +260,6 @@ public abstract class BSLinkset
     // Returns 'true' of something was actually removed and would need restoring
     // Called at taint-time!!
     public abstract bool RemoveBodyDependencies(BSPrim child);
-
-    // Companion to RemoveBodyDependencies(). If RemoveBodyDependencies() returns 'true',
-    //     this routine will restore the removed constraints.
-    // Called at taint-time!!
-    public abstract void RestoreBodyDependencies(BSPrim child);
 
     // ================================================================
     protected virtual float ComputeLinksetMass()
