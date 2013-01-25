@@ -168,7 +168,10 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
                     m_comms.RegisterScriptInvocation(this,"JsonCreateStore");
                     m_comms.RegisterScriptInvocation(this,"JsonDestroyStore");
 
-                    m_comms.RegisterScriptInvocation(this,"JsonReadNotecard");
+                    m_comms.RegisterScriptInvocation(
+                        this, this.GetType().GetMethod(
+                        "JsonReadNotecard", BindingFlags.NonPublic | BindingFlags.Instance, null, new Type[] { typeof(UUID), typeof(UUID), typeof(UUID), typeof(string), typeof(UUID)}, null));
+
                     m_comms.RegisterScriptInvocation(this,"JsonWriteNotecard");
 
                     m_comms.RegisterScriptInvocation(this,"JsonTestPath");
@@ -191,7 +194,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
                 catch (Exception e)
                 {
                     // See http://opensimulator.org/mantis/view.php?id=5971 for more information
-                    m_log.WarnFormat("[JsonStroreScripts] script method registration failed; {0}",e.Message);
+                    m_log.WarnFormat("[JsonStoreScripts]: script method registration failed; {0}", e.Message);
                     m_enabled = false;
                 }
             }
