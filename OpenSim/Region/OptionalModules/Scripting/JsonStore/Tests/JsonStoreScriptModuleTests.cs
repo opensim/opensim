@@ -74,7 +74,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
             SceneHelpers.SetupSceneModules(m_scene, configSource, m_engine, m_smcm, jsm, jssm);
         }
 
-        [Test]
+//        [Test]
         public void TestJsonCreateStore()
         {
             TestHelpers.InMethod();
@@ -85,7 +85,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
             Assert.That(storeId, Is.Not.EqualTo(UUID.Zero));
         }
 
-        [Test]
+//        [Test]
         public void TestJsonGetValue()
         {
             TestHelpers.InMethod();
@@ -102,7 +102,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
             Assert.That(value, Is.EqualTo("World"));
         }
 
-        [Test]
+//        [Test]
         public void TestJsonTestPath()
         {
             TestHelpers.InMethod();
@@ -119,7 +119,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
             Assert.That(result, Is.EqualTo(1));
         }
 
-        [Test]
+//        [Test]
         public void TestJsonSetValue()
         {
             TestHelpers.InMethod();
