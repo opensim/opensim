@@ -4226,6 +4226,7 @@ namespace OpenSim.Region.Framework.Scenes
                         result.distance = distance2;
                         result.HitTF = true;
                         result.ipoint = q;
+                        result.face = i;
                         //m_log.Info("[FACE]:" + i.ToString());
                         //m_log.Info("[POINT]: " + q.ToString());
                         //m_log.Info("[DIST]: " + distance2.ToString());

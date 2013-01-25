@@ -12091,12 +12091,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     radius = Math.Abs(maxY);
                 if (Math.Abs(maxZ) > radius)
                     radius = Math.Abs(maxZ);
-
+                radius = radius*1.413f;
                 Vector3 ac = group.AbsolutePosition - rayStart;
                 Vector3 bc = group.AbsolutePosition - rayEnd;
 
                 double d = Math.Abs(Vector3.Mag(Vector3.Cross(ab, ac)) / Vector3.Distance(rayStart, rayEnd));
-
+                
                 // Too far off ray, don't bother
                 if (d > radius)
                     return;
@@ -12106,9 +12106,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (d2 > 0)
                     return;
 
+                ray = new Ray(rayStart, Vector3.Normalize(rayEnd - rayStart));
                 EntityIntersection intersection = group.TestIntersection(ray, true, false);
                 // Miss.
                 if (!intersection.HitTF)
+                    return;
+
+                Vector3 b1 = group.AbsolutePosition + new Vector3(minX, minY, minZ);
+                Vector3 b2 = group.AbsolutePosition + new Vector3(maxX, maxY, maxZ);
+                //m_log.DebugFormat("[LLCASTRAY]: min<{0},{1},{2}>, max<{3},{4},{5}> = hitp<{6},{7},{8}>", b1.X,b1.Y,b1.Z,b2.X,b2.Y,b2.Z,intersection.ipoint.X,intersection.ipoint.Y,intersection.ipoint.Z);
+                if (!(intersection.ipoint.X >= b1.X && intersection.ipoint.X <= b2.X &&
+                    intersection.ipoint.Y >= b1.Y && intersection.ipoint.Y <= b2.Y &&
+                    intersection.ipoint.Z >= b1.Z && intersection.ipoint.Z <= b2.Z))
                     return;
 
                 ContactResult result = new ContactResult ();
@@ -12384,8 +12393,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (checkPhysical || checkNonPhysical || detectPhantom)
                 {
                     ContactResult[] objectHits = ObjectIntersection(rayStart, rayEnd, checkPhysical, checkNonPhysical, detectPhantom);
-                    foreach (ContactResult r in objectHits)
-                        results.Add(r);
+                    for (int iter = 0; iter < objectHits.Length; iter++)
+                    {
+                        // Redistance the Depth because the Scene RayCaster returns distance from center to make the rezzing code simpler.
+                        objectHits[iter].Depth = Vector3.Distance(objectHits[iter].Pos, rayStart);
+                        results.Add(objectHits[iter]);
+                    }
                 }
             }
 

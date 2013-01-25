@@ -34,5 +34,6 @@ namespace OpenSim.Region.UserStatistics
         string ReportName { get; }
         Hashtable ProcessModel(Hashtable pParams);
         string RenderView(Hashtable pModelResult);
+        string RenderJson(Hashtable pModelResult);
     }
 }

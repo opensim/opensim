@@ -27,6 +27,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 
 using OpenSim.Framework;
@@ -130,10 +131,12 @@ private sealed class BulletConstraintXNA : BulletConstraint
     }
 }
     internal int m_maxCollisions;
-    internal CollisionDesc[] m_collisionArray;
-
+    internal CollisionDesc[] UpdatedCollisions;
+    internal int LastCollisionDesc = 0;
     internal int m_maxUpdatesPerFrame;
-    internal EntityProperties[] m_updateArray;
+    internal int LastEntityProperty = 0;
+
+    internal EntityProperties[] UpdatedObjects;
     
     private static int m_collisionsThisFrame;
     private BSScene PhysicsScene { get; set; }
@@ -900,7 +903,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
         CollisionShape shape1 = (pShape as BulletShapeXNA).shape;
 
         // TODO:  Turn this from a reference copy to a Value Copy.
-        BulletShapeXNA shape2 = new BulletShapeXNA(shape1, BSPhysicsShapeType.SHAPE_UNKNOWN);
+        BulletShapeXNA shape2 = new BulletShapeXNA(shape1, BSShapeTypeFromBroadPhaseNativeType(shape1.GetShapeType()));
         
         return shape2;
     }
@@ -922,9 +925,9 @@ private sealed class BulletConstraintXNA : BulletConstraint
         CollisionShape shape = (pShape as BulletShapeXNA).shape;
         //UpdateSingleAabb(world, shape);
         // TODO: Feed Update array into null
-        SimMotionState motionState = new SimMotionState(world, pLocalID, mat, null);
+        SimMotionState motionState = new SimMotionState(this, pLocalID, mat, null);
         RigidBody body = new RigidBody(0,motionState,shape,IndexedVector3.Zero);
-        RigidBodyConstructionInfo constructionInfo = new RigidBodyConstructionInfo(0, new SimMotionState(world, pLocalID, mat, null),shape,IndexedVector3.Zero)
+        RigidBodyConstructionInfo constructionInfo = new RigidBodyConstructionInfo(0, motionState, shape, IndexedVector3.Zero)
                                                          {
                                                              m_mass = 0
                                                          };
@@ -1039,8 +1042,8 @@ private sealed class BulletConstraintXNA : BulletConstraint
                                             )
     {
 
-        m_updateArray = updateArray;
-        m_collisionArray = collisionArray;
+        UpdatedObjects = updateArray;
+        UpdatedCollisions = collisionArray;
         /* TODO */
         ConfigurationParameters[] configparms = new ConfigurationParameters[1];
         configparms[0] = parms;
@@ -1135,10 +1138,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
         SequentialImpulseConstraintSolver m_solver = new SequentialImpulseConstraintSolver();
 
         DiscreteDynamicsWorld world = new DiscreteDynamicsWorld(m_dispatcher, m_broadphase, m_solver, cci);
-        
-        
-        world.UpdatedObjects = BSAPIXNA.GetBulletXNAEntityStruct(BSAPIXNA.BulletSimEntityStructToByteArray(updateArray, updateArray.Length));
-        world.UpdatedCollisions = BSAPIXNA.GetBulletXNACollisionStruct(BSAPIXNA.BulletSimCollisionStructToByteArray(collisionArray, collisionArray.Length));
+
         world.LastCollisionDesc = 0;
         world.LastEntityProperty = 0;
 
@@ -1332,7 +1332,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
     {
         CollisionObject collisionObject = (pCollisionObject as BulletBodyXNA).rigidBody;
         CollisionShape shape = collisionObject.GetCollisionShape();
-        return new BulletShapeXNA(shape,BSPhysicsShapeType.SHAPE_UNKNOWN);
+        return new BulletShapeXNA(shape, BSShapeTypeFromBroadPhaseNativeType(shape.GetShapeType()));
     }
 
     //(PhysicsScene.World.ptr, nativeShapeData)
@@ -1395,10 +1395,148 @@ private sealed class BulletConstraintXNA : BulletConstraint
         CollisionShape ret = null;
         ret = compoundshape.GetChildShape(pii);
         compoundshape.RemoveChildShapeByIndex(pii);
-        return new BulletShapeXNA(ret, BSPhysicsShapeType.SHAPE_UNKNOWN);
+        return new BulletShapeXNA(ret, BSShapeTypeFromBroadPhaseNativeType(ret.GetShapeType()));
     }
 
-    public override BulletShape GetChildShapeFromCompoundShapeIndex(BulletShape cShape, int indx) { /* TODO */ return null; }
+    public override BulletShape GetChildShapeFromCompoundShapeIndex(BulletShape cShape, int indx) { 
+        /* TODO */
+        if (cShape == null)
+            return null;
+        CompoundShape compoundShape = (cShape as BulletShapeXNA).shape as CompoundShape;
+        CollisionShape shape = compoundShape.GetChildShape(indx);
+        BulletShape retShape = new BulletShapeXNA(shape, BSShapeTypeFromBroadPhaseNativeType(shape.GetShapeType()));
+
+
+        return null; 
+    }
+
+    public BSPhysicsShapeType BSShapeTypeFromBroadPhaseNativeType(BroadphaseNativeTypes pin)
+    {
+        switch (pin)
+        {
+            case BroadphaseNativeTypes.BOX_SHAPE_PROXYTYPE:
+                return BSPhysicsShapeType.SHAPE_BOX;
+                break;
+            case BroadphaseNativeTypes.TRIANGLE_SHAPE_PROXYTYPE:
+                return BSPhysicsShapeType.SHAPE_UNKNOWN;
+                break;
+
+            case BroadphaseNativeTypes.TETRAHEDRAL_SHAPE_PROXYTYPE:
+                return BSPhysicsShapeType.SHAPE_UNKNOWN;
+                break;
+            case BroadphaseNativeTypes.CONVEX_TRIANGLEMESH_SHAPE_PROXYTYPE:
+                return BSPhysicsShapeType.SHAPE_MESH;
+                break;
+            case BroadphaseNativeTypes.CONVEX_HULL_SHAPE_PROXYTYPE:
+                return BSPhysicsShapeType.SHAPE_HULL;
+                break;
+            case BroadphaseNativeTypes.CONVEX_POINT_CLOUD_SHAPE_PROXYTYPE:
+                return BSPhysicsShapeType.SHAPE_UNKNOWN;
+                break;
+            case BroadphaseNativeTypes.CUSTOM_POLYHEDRAL_SHAPE_TYPE:
+                return BSPhysicsShapeType.SHAPE_UNKNOWN;
+                break;
+            //implicit convex shapes
+            case BroadphaseNativeTypes.IMPLICIT_CONVEX_SHAPES_START_HERE:
+                return BSPhysicsShapeType.SHAPE_UNKNOWN;
+                break;
+            case BroadphaseNativeTypes.SPHERE_SHAPE_PROXYTYPE:
+                return BSPhysicsShapeType.SHAPE_SPHERE;
+                break;
+            case BroadphaseNativeTypes.MULTI_SPHERE_SHAPE_PROXYTYPE:
+                return BSPhysicsShapeType.SHAPE_UNKNOWN;
+                break;
+            case BroadphaseNativeTypes.CAPSULE_SHAPE_PROXYTYPE:
+                return BSPhysicsShapeType.SHAPE_CAPSULE;
+                break;
+            case BroadphaseNativeTypes.CONE_SHAPE_PROXYTYPE:
+                return BSPhysicsShapeType.SHAPE_CONE;
+                break;
+            case BroadphaseNativeTypes.CONVEX_SHAPE_PROXYTYPE:
+                return BSPhysicsShapeType.SHAPE_UNKNOWN;
+                break;
+            case BroadphaseNativeTypes.CYLINDER_SHAPE_PROXYTYPE:
+                return BSPhysicsShapeType.SHAPE_CYLINDER;
+                break;
+            case BroadphaseNativeTypes.UNIFORM_SCALING_SHAPE_PROXYTYPE:
+                return BSPhysicsShapeType.SHAPE_UNKNOWN;
+                break;
+            case BroadphaseNativeTypes.MINKOWSKI_SUM_SHAPE_PROXYTYPE:
+                return BSPhysicsShapeType.SHAPE_UNKNOWN;
+                break;
+            case BroadphaseNativeTypes.MINKOWSKI_DIFFERENCE_SHAPE_PROXYTYPE:
+                return BSPhysicsShapeType.SHAPE_UNKNOWN;
+                break;
+            case BroadphaseNativeTypes.BOX_2D_SHAPE_PROXYTYPE:
+                return BSPhysicsShapeType.SHAPE_UNKNOWN;
+                break;
+            case BroadphaseNativeTypes.CONVEX_2D_SHAPE_PROXYTYPE:
+                return BSPhysicsShapeType.SHAPE_UNKNOWN;
+                break;
+            case BroadphaseNativeTypes.CUSTOM_CONVEX_SHAPE_TYPE:
+                return BSPhysicsShapeType.SHAPE_UNKNOWN;
+                break;
+            //concave shape
+            case BroadphaseNativeTypes.CONCAVE_SHAPES_START_HERE:
+                return BSPhysicsShapeType.SHAPE_UNKNOWN;
+                break;
+            //keep all the convex shapetype below here, for the check IsConvexShape in broadphase proxy!
+            case BroadphaseNativeTypes.TRIANGLE_MESH_SHAPE_PROXYTYPE:
+                return BSPhysicsShapeType.SHAPE_MESH;
+                break;
+            case BroadphaseNativeTypes.SCALED_TRIANGLE_MESH_SHAPE_PROXYTYPE:
+                return BSPhysicsShapeType.SHAPE_MESH;
+                break;
+            ///used for demo integration FAST/Swift collision library and Bullet
+            case BroadphaseNativeTypes.FAST_CONCAVE_MESH_PROXYTYPE:
+                return BSPhysicsShapeType.SHAPE_MESH;
+                break;
+            //terrain
+            case BroadphaseNativeTypes.TERRAIN_SHAPE_PROXYTYPE:
+                return BSPhysicsShapeType.SHAPE_HEIGHTMAP;
+                break;
+            ///Used for GIMPACT Trimesh integration
+            case BroadphaseNativeTypes.GIMPACT_SHAPE_PROXYTYPE:
+                return BSPhysicsShapeType.SHAPE_MESH;
+                break;
+            ///Multimaterial mesh
+            case BroadphaseNativeTypes.MULTIMATERIAL_TRIANGLE_MESH_PROXYTYPE:
+                return BSPhysicsShapeType.SHAPE_MESH;
+                break;
+
+            case BroadphaseNativeTypes.EMPTY_SHAPE_PROXYTYPE:
+                return BSPhysicsShapeType.SHAPE_UNKNOWN;
+                break;
+            case BroadphaseNativeTypes.STATIC_PLANE_PROXYTYPE:
+                return BSPhysicsShapeType.SHAPE_GROUNDPLANE;
+                break;
+            case BroadphaseNativeTypes.CUSTOM_CONCAVE_SHAPE_TYPE:
+                return BSPhysicsShapeType.SHAPE_UNKNOWN;
+                break;
+            case BroadphaseNativeTypes.CONCAVE_SHAPES_END_HERE:
+                return BSPhysicsShapeType.SHAPE_UNKNOWN;
+                break;
+
+            case BroadphaseNativeTypes.COMPOUND_SHAPE_PROXYTYPE:
+                return BSPhysicsShapeType.SHAPE_COMPOUND;
+                break;
+
+            case BroadphaseNativeTypes.SOFTBODY_SHAPE_PROXYTYPE:
+                return BSPhysicsShapeType.SHAPE_MESH;
+                break;
+            case BroadphaseNativeTypes.HFFLUID_SHAPE_PROXYTYPE:
+                return BSPhysicsShapeType.SHAPE_UNKNOWN;
+                break;
+            case BroadphaseNativeTypes.HFFLUID_BUOYANT_CONVEX_SHAPE_PROXYTYPE:
+                return BSPhysicsShapeType.SHAPE_UNKNOWN;
+                break;
+            case BroadphaseNativeTypes.INVALID_SHAPE_PROXYTYPE:
+                return BSPhysicsShapeType.SHAPE_UNKNOWN;
+                break;
+        }
+        return BSPhysicsShapeType.SHAPE_UNKNOWN;
+    }
+
     public override void RemoveChildShapeFromCompoundShape(BulletShape cShape, BulletShape removeShape) { /* TODO */ }
     public override void UpdateChildTransform(BulletShape pShape, int childIndex, Vector3 pos, Quaternion rot, bool shouldRecalculateLocalAabb) { /* TODO */ }
 
@@ -1636,11 +1774,21 @@ private sealed class BulletConstraintXNA : BulletConstraint
         return epic;
     }
 
-    private static int PhysicsStepint(BulletWorld pWorld,float timeStep, int m_maxSubSteps, float m_fixedTimeStep, out int updatedEntityCount, 
+    private int PhysicsStepint(BulletWorld pWorld,float timeStep, int m_maxSubSteps, float m_fixedTimeStep, out int updatedEntityCount, 
         out  EntityProperties[] updatedEntities, out int collidersCount, out CollisionDesc[] colliders, int maxCollisions, int maxUpdates)
     {
         int numSimSteps = 0;
+        Array.Clear(UpdatedObjects, 0, UpdatedObjects.Length);
+        Array.Clear(UpdatedCollisions, 0, UpdatedCollisions.Length);
+        LastEntityProperty=0;
+        
 
+
+
+
+
+        LastCollisionDesc=0;
+       
         updatedEntityCount = 0;
         collidersCount = 0;
         
@@ -1651,8 +1799,6 @@ private sealed class BulletConstraintXNA : BulletConstraint
 
             world.LastCollisionDesc = 0;
             world.LastEntityProperty = 0;
-            world.UpdatedObjects = new BulletXNA.EntityProperties[maxUpdates];
-            world.UpdatedCollisions = new BulletXNA.CollisionDesc[maxCollisions];
             numSimSteps = world.StepSimulation(timeStep, m_maxSubSteps, m_fixedTimeStep);
             int updates = 0;
 
@@ -1675,7 +1821,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
                 IndexedVector3 contactPoint = manifoldPoint.GetPositionWorldOnB();
                 IndexedVector3 contactNormal = -manifoldPoint.m_normalWorldOnB; // make relative to A
 
-                RecordCollision(world, objA, objB, contactPoint, contactNormal);
+                RecordCollision(this, objA, objB, contactPoint, contactNormal,manifoldPoint.GetDistance());
                 m_collisionsThisFrame ++;
                 if (m_collisionsThisFrame >= 9999999)
                     break;
@@ -1683,15 +1829,16 @@ private sealed class BulletConstraintXNA : BulletConstraint
 
             }
 
-            updatedEntityCount = world.LastEntityProperty;
-            updatedEntities = GetBulletSimEntityStruct(BulletXNAEntityStructToByteArray(world.UpdatedObjects, world.LastEntityProperty));
+            updatedEntityCount = LastEntityProperty;
+            updatedEntities = UpdatedObjects;
+            
 
 
 
 
-            collidersCount = world.LastCollisionDesc;
-            colliders =
-                GetBulletSimCollisionStruct(BulletXNACollisionStructToByteArray(world.UpdatedCollisions, world.LastCollisionDesc));//new List<BulletXNA.CollisionDesc>(world.UpdatedCollisions);
+            collidersCount = LastCollisionDesc;
+            colliders = UpdatedCollisions;
+                
 
         }
         else
@@ -1699,8 +1846,8 @@ private sealed class BulletConstraintXNA : BulletConstraint
             //if (updatedEntities is null)
             //updatedEntities = new List<BulletXNA.EntityProperties>();
             //updatedEntityCount = 0;
-            //if (colliders is null)
-            //colliders = new List<BulletXNA.CollisionDesc>();
+            
+            
             //collidersCount = 0;
            
             updatedEntities = new EntityProperties[0];
@@ -1711,8 +1858,64 @@ private sealed class BulletConstraintXNA : BulletConstraint
         }
         return numSimSteps;
     }
+    public void RecordGhostCollisions(PairCachingGhostObject obj)
+    {
+        /*
+         *void BulletSim::RecordGhostCollisions(btPairCachingGhostObject* obj)
+{
+	btManifoldArray   manifoldArray;
+	btBroadphasePairArray& pairArray = obj->getOverlappingPairCache()->getOverlappingPairArray();
+	int numPairs = pairArray.size();
 
-    private static void RecordCollision(CollisionWorld world, CollisionObject objA, CollisionObject objB, IndexedVector3 contact, IndexedVector3 norm)
+	// For all the pairs of sets of contact points
+	for (int i=0; i < numPairs; i++)
+	{
+		if (m_collisionsThisFrame >= m_maxCollisionsPerFrame) 
+			break;
+
+		manifoldArray.clear();
+		const btBroadphasePair& pair = pairArray[i];
+
+		// The real representation is over in the world pair cache
+		btBroadphasePair* collisionPair = m_worldData.dynamicsWorld->getPairCache()->findPair(pair.m_pProxy0,pair.m_pProxy1);
+		if (!collisionPair)
+			continue;
+
+		if (collisionPair->m_algorithm)
+			collisionPair->m_algorithm->getAllContactManifolds(manifoldArray);
+
+		// The collision pair has sets of collision points (manifolds)
+		for (int j=0; j < manifoldArray.size(); j++)
+		{
+			btPersistentManifold* contactManifold = manifoldArray[j];
+			int numContacts = contactManifold->getNumContacts();
+
+			const btCollisionObject* objA = static_cast<const btCollisionObject*>(contactManifold->getBody0());
+			const btCollisionObject* objB = static_cast<const btCollisionObject*>(contactManifold->getBody1());
+
+			// TODO: this is a more thurough check than the regular collision code --
+			//     here we find the penetrating contact in the manifold but for regular
+			//     collisions we assume the first point in the manifold is good enough.
+			//     Decide of this extra checking is required or if first point is good enough.
+			for (int p=0; p < numContacts; p++)
+			{
+				const btManifoldPoint& pt = contactManifold->getContactPoint(p);
+				// If a penetrating contact, this is a hit
+				if (pt.getDistance()<0.f)
+				{
+					const btVector3& contactPoint = pt.getPositionWorldOnA();
+					const btVector3& normalOnA = -pt.m_normalWorldOnB;
+					RecordCollision(objA, objB, contactPoint, normalOnA, pt.getDistance());
+					// Only one contact point for each set of colliding objects
+					break;
+				}
+			}
+		}
+	}
+}
+         */
+    }
+    private static void RecordCollision(BSAPIXNA world, CollisionObject objA, CollisionObject objB, IndexedVector3 contact, IndexedVector3 norm, float penetration)
     {
        
         IndexedVector3 contactNormal = norm;
@@ -1733,12 +1936,14 @@ private sealed class BulletConstraintXNA : BulletConstraint
 
         ulong collisionID = ((ulong) idA << 32) | idB;
 
-        BulletXNA.CollisionDesc cDesc = new BulletXNA.CollisionDesc()
+        CollisionDesc cDesc = new CollisionDesc()
                                             {
                                                 aID = idA,
                                                 bID = idB,
-                                                point = contact,
-                                                normal = contactNormal
+                                                point = new Vector3(contact.X,contact.Y,contact.Z),
+                                                normal = new Vector3(contactNormal.X,contactNormal.Y,contactNormal.Z),
+                                                penetration = penetration
+
                                             };
         if (world.LastCollisionDesc < world.UpdatedCollisions.Length)
             world.UpdatedCollisions[world.LastCollisionDesc++] = (cDesc);
@@ -1764,7 +1969,8 @@ private sealed class BulletConstraintXNA : BulletConstraint
         return ent;
     }
 
-    public override bool UpdateParameter(BulletWorld world, uint localID, String parm, float value) { /* TODO */ return false; }
+    public override bool UpdateParameter(BulletWorld world, uint localID, String parm, float value) { /* TODO */
+        return false; }
 
     public override Vector3 GetLocalScaling(BulletShape pShape)
     {
@@ -1800,160 +2006,131 @@ private sealed class BulletConstraintXNA : BulletConstraint
         }
         return false;
     }
-    
-    public static unsafe BulletXNA.CollisionDesc[] GetBulletXNACollisionStruct(byte[] buffer)
-    {
-        int count = buffer.Length/sizeof (BulletXNA.CollisionDesc);
-        BulletXNA.CollisionDesc[] result = new BulletXNA.CollisionDesc[count];
-        BulletXNA.CollisionDesc* ptr;
-        fixed (byte* localBytes = new byte[buffer.Length])
-        {
-            for (int i = 0; i < buffer.Length; i++)
-            {
-                localBytes[i] = buffer[i];
-            }
-            for (int i=0;i<count;i++)
-            {
-                ptr = (BulletXNA.CollisionDesc*) (localBytes + sizeof (BulletXNA.CollisionDesc)*i);
-                result[i] = new BulletXNA.CollisionDesc();
-                result[i] = *ptr;
-            }
-        }
-        return result;
-    }
+}
+  
 
-    public static unsafe CollisionDesc[] GetBulletSimCollisionStruct(byte[] buffer)
-    {
-        int count = buffer.Length / sizeof(CollisionDesc);
-        CollisionDesc[] result = new CollisionDesc[count];
-        CollisionDesc* ptr;
-        fixed (byte* localBytes = new byte[buffer.Length])
-        {
-            for (int i = 0; i < buffer.Length; i++)
-            {
-                localBytes[i] = buffer[i];
-            }
-            for (int i = 0; i < count; i++)
-            {
-                ptr = (CollisionDesc*)(localBytes + sizeof(CollisionDesc) * i);
-                result[i] = new CollisionDesc();
-                result[i] = *ptr;
-            }
-        }
-        return result;
-    }
-    public static unsafe byte[] BulletSimCollisionStructToByteArray(CollisionDesc[] CollisionDescArray, int count)
-    {
-        int arrayLength = CollisionDescArray.Length > count ? count : CollisionDescArray.Length;
-        byte[] byteArray = new byte[sizeof(CollisionDesc) * arrayLength];
-        fixed (CollisionDesc* floatPointer = CollisionDescArray)
-        {
-            fixed (byte* bytePointer = byteArray)
-            {
-                CollisionDesc* read = floatPointer;
-                CollisionDesc* write = (CollisionDesc*)bytePointer;
-                for (int i = 0; i < arrayLength; i++)
-                {
-                    *write++ = *read++;
-                }
-            }
-        }
-        return byteArray;
-    }
-    public static unsafe byte[] BulletXNACollisionStructToByteArray(BulletXNA.CollisionDesc[] CollisionDescArray, int count)
-    {
-        int arrayLength = CollisionDescArray.Length > count ? count : CollisionDescArray.Length;
-        byte[] byteArray = new byte[sizeof(BulletXNA.CollisionDesc) * arrayLength];
-        fixed (BulletXNA.CollisionDesc* floatPointer = CollisionDescArray)
-        {
-            fixed (byte* bytePointer = byteArray)
-            {
-                BulletXNA.CollisionDesc* read = floatPointer;
-                BulletXNA.CollisionDesc* write = (BulletXNA.CollisionDesc*)bytePointer;
-                for (int i = 0; i < arrayLength; i++)
-                {
-                    *write++ = *read++;
-                }
-            }
-        }
-        return byteArray;
-    }
-    public static unsafe BulletXNA.EntityProperties[] GetBulletXNAEntityStruct(byte[] buffer)
-    {
-        int count = buffer.Length / sizeof(BulletXNA.EntityProperties);
-        BulletXNA.EntityProperties[] result = new BulletXNA.EntityProperties[count];
-        BulletXNA.EntityProperties* ptr;
-        fixed (byte* localBytes = new byte[buffer.Length])
-        {
-            for (int i = 0; i < buffer.Length; i++)
-            {
-                localBytes[i] = buffer[i];
-            }
-            for (int i = 0; i < count; i++)
-            {
-                ptr = (BulletXNA.EntityProperties*)(localBytes + sizeof(BulletXNA.EntityProperties) * i);
-                result[i] = new BulletXNA.EntityProperties();
-                result[i] = *ptr;
-            }
-        }
-        return result;
-    }
+   
 
-    public static unsafe EntityProperties[] GetBulletSimEntityStruct(byte[] buffer)
+    public class SimMotionState : DefaultMotionState
     {
-        int count = buffer.Length / sizeof(EntityProperties);
-        EntityProperties[] result = new EntityProperties[count];
-        EntityProperties* ptr;
-        fixed (byte* localBytes = new byte[buffer.Length])
+        public RigidBody Rigidbody;
+        public Vector3 ZeroVect;
+
+        private IndexedMatrix m_xform;
+
+        private EntityProperties m_properties;
+        private EntityProperties m_lastProperties;
+        private BSAPIXNA m_world;
+
+        const float POSITION_TOLERANCE = 0.05f;
+        const float VELOCITY_TOLERANCE = 0.001f;
+        const float ROTATION_TOLERANCE = 0.01f;
+        const float ANGULARVELOCITY_TOLERANCE = 0.01f;
+
+        public SimMotionState(BSAPIXNA pWorld, uint id, IndexedMatrix starTransform, object frameUpdates)
         {
-            for (int i = 0; i < buffer.Length; i++)
+            IndexedQuaternion OrientationQuaterion = starTransform.GetRotation();
+            m_properties = new EntityProperties()
+                               {
+                                   ID = id,
+                                   Position = new Vector3(starTransform._origin.X, starTransform._origin.Y,starTransform._origin.Z),
+                                   Rotation = new Quaternion(OrientationQuaterion.X,OrientationQuaterion.Y,OrientationQuaterion.Z,OrientationQuaterion.W)
+                               };
+            m_lastProperties = new EntityProperties()
             {
-                localBytes[i] = buffer[i];
-            }
-            for (int i = 0; i < count; i++)
-            {
-                ptr = (EntityProperties*)(localBytes + sizeof(EntityProperties) * i);
-                result[i] = new EntityProperties();
-                result[i] = *ptr;
-            }
+                ID = id,
+                Position = new Vector3(starTransform._origin.X, starTransform._origin.Y, starTransform._origin.Z),
+                Rotation = new Quaternion(OrientationQuaterion.X, OrientationQuaterion.Y, OrientationQuaterion.Z, OrientationQuaterion.W)
+            };
+            m_world = pWorld;
+            m_xform = starTransform;
         }
-        return result;
-    }
-    public static unsafe byte[] BulletSimEntityStructToByteArray(EntityProperties[] CollisionDescArray, int count)
-    {
-        int arrayLength = CollisionDescArray.Length > count ? count : CollisionDescArray.Length;
-        byte[] byteArray = new byte[sizeof(EntityProperties) * arrayLength];
-        fixed (EntityProperties* floatPointer = CollisionDescArray)
+
+        public override void GetWorldTransform(out IndexedMatrix worldTrans)
         {
-            fixed (byte* bytePointer = byteArray)
-            {
-                EntityProperties* read = floatPointer;
-                EntityProperties* write = (EntityProperties*)bytePointer;
-                for (int i = 0; i < arrayLength; i++)
-                {
-                    *write++ = *read++;
-                }
-            }
+            worldTrans = m_xform;
         }
-        return byteArray;
-    }
-    public static unsafe byte[] BulletXNAEntityStructToByteArray(BulletXNA.EntityProperties[] CollisionDescArray, int count)
-    {
-        int arrayLength = CollisionDescArray.Length > count ? count : CollisionDescArray.Length;
-        byte[] byteArray = new byte[sizeof(BulletXNA.EntityProperties) * arrayLength];
-        fixed (BulletXNA.EntityProperties* floatPointer = CollisionDescArray)
+
+        public override void SetWorldTransform(IndexedMatrix worldTrans)
         {
-            fixed (byte* bytePointer = byteArray)
-            {
-                BulletXNA.EntityProperties* read = floatPointer;
-                BulletXNA.EntityProperties* write = (BulletXNA.EntityProperties*)bytePointer;
-                for (int i = 0; i < arrayLength; i++)
-                {
-                    *write++ = *read++;
-                }
-            }
+            SetWorldTransform(ref worldTrans);
         }
-        return byteArray;
+
+        public override void SetWorldTransform(ref IndexedMatrix worldTrans)
+        {
+            SetWorldTransform(ref worldTrans, false);
+        }
+        public void SetWorldTransform(ref IndexedMatrix worldTrans, bool force)
+        {
+            m_xform = worldTrans;
+            // Put the new transform into m_properties
+            IndexedQuaternion OrientationQuaternion = m_xform.GetRotation();
+            IndexedVector3 LinearVelocityVector = Rigidbody.GetLinearVelocity();
+            IndexedVector3 AngularVelocityVector = Rigidbody.GetAngularVelocity();
+            m_properties.Position = new Vector3(m_xform._origin.X, m_xform._origin.Y, m_xform._origin.Z);
+            m_properties.Rotation = new Quaternion(OrientationQuaternion.X, OrientationQuaternion.Y,
+                                                   OrientationQuaternion.Z, OrientationQuaternion.W);
+            // A problem with stock Bullet is that we don't get an event when an object is deactivated.
+            // This means that the last non-zero values for linear and angular velocity
+            // are left in the viewer who does dead reconning and the objects look like
+            // they float off.
+            // BulletSim ships with a patch to Bullet which creates such an event.
+            m_properties.Velocity = new Vector3(LinearVelocityVector.X, LinearVelocityVector.Y, LinearVelocityVector.Z);
+            m_properties.RotationalVelocity = new Vector3(AngularVelocityVector.X, AngularVelocityVector.Y, AngularVelocityVector.Z);
+
+            if (force
+
+                || !AlmostEqual(ref m_lastProperties.Position, ref m_properties.Position, POSITION_TOLERANCE)
+                || !AlmostEqual(ref m_properties.Rotation, ref m_lastProperties.Rotation, ROTATION_TOLERANCE)
+                // If the Velocity and AngularVelocity are zero, most likely the object has
+                //    been deactivated. If they both are zero and they have become zero recently,
+                //    make sure a property update is sent so the zeros make it to the viewer.
+                || ((m_properties.Velocity == ZeroVect && m_properties.RotationalVelocity == ZeroVect)
+                    &&
+                    (m_properties.Velocity != m_lastProperties.Velocity ||
+                     m_properties.RotationalVelocity != m_lastProperties.RotationalVelocity))
+                //	If Velocity and AngularVelocity are non-zero but have changed, send an update.
+                || !AlmostEqual(ref m_properties.Velocity, ref m_lastProperties.Velocity, VELOCITY_TOLERANCE)
+                ||
+                !AlmostEqual(ref m_properties.RotationalVelocity, ref m_lastProperties.RotationalVelocity,
+                             ANGULARVELOCITY_TOLERANCE)
+                )
+
+
+            {
+                // Add this update to the list of updates for this frame.
+                m_lastProperties = m_properties;
+                if (m_world.LastEntityProperty < m_world.UpdatedObjects.Length)
+                    m_world.UpdatedObjects[m_world.LastEntityProperty++]=(m_properties);
+                
+                //(*m_updatesThisFrame)[m_properties.ID] = &m_properties;
+            }
+                
+                
+                
+
+        }
+        public override void SetRigidBody(RigidBody body)
+        {
+            Rigidbody = body;
+        }
+        internal static bool AlmostEqual(ref Vector3 v1, ref Vector3 v2, float nEpsilon)
+        {
+            return
+            (((v1.X - nEpsilon) < v2.X) && (v2.X < (v1.X + nEpsilon))) &&
+            (((v1.Y - nEpsilon) < v2.Y) && (v2.Y < (v1.Y + nEpsilon))) &&
+            (((v1.Z - nEpsilon) < v2.Z) && (v2.Z < (v1.Z + nEpsilon)));
+        }
+
+        internal static bool AlmostEqual(ref Quaternion v1, ref Quaternion v2, float nEpsilon)
+        {
+            return
+            (((v1.X - nEpsilon) < v2.X) && (v2.X < (v1.X + nEpsilon))) &&
+            (((v1.Y - nEpsilon) < v2.Y) && (v2.Y < (v1.Y + nEpsilon))) &&
+            (((v1.Z - nEpsilon) < v2.Z) && (v2.Z < (v1.Z + nEpsilon))) &&
+            (((v1.W - nEpsilon) < v2.W) && (v2.W < (v1.W + nEpsilon)));
+        }
+        
     }
 }
-}
+

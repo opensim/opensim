@@ -363,7 +363,11 @@ public sealed class BSPrim : BSPhysObject
             //     not get it through the terrain
             _position.Z = targetHeight;
             if (inTaintTime)
+            {
                 ForcePosition = _position;
+            }
+            // If we are throwing the object around, zero its other forces
+            ZeroMotion(inTaintTime);
             ret = true;
         }
 
@@ -1639,10 +1643,12 @@ public sealed class BSPrim : BSPhysObject
             // DetailLog("{0},BSPrim.UpdateProperties,afterAssign,entprop={1}", LocalID, entprop);   // DEBUG DEBUG
 
             // The sanity check can change the velocity and/or position.
-            if (IsPhysical && PositionSanityCheck(true))
+            if (IsPhysical && PositionSanityCheck(true /* inTaintTime */ ))
             {
                 entprop.Position = _position;
                 entprop.Velocity = _velocity;
+                entprop.RotationalVelocity = _rotationalVelocity;
+                entprop.Acceleration = _acceleration;
             }
 
             OMV.Vector3 direction = OMV.Vector3.UnitX * _orientation;   // DEBUG DEBUG DEBUG
