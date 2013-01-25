@@ -101,6 +101,7 @@ public abstract class BSPhysObject : PhysicsActor
     public virtual void Destroy()
     {
         UnRegisterAllPreStepActions();
+        UnRegisterAllPostStepActions();
     }
 
     public BSScene PhysicsScene { get; protected set; }
@@ -393,17 +394,18 @@ public abstract class BSPhysObject : PhysicsActor
     // These actions are optional so, rather than scanning all the physical objects and asking them
     //     if they have anything to do, a physical object registers for an event call before the step is performed.
     // This bookkeeping makes it easy to add, remove and clean up after all these registrations.
-    private Dictionary<string, BSScene.PreStepAction> RegisteredActions = new Dictionary<string, BSScene.PreStepAction>();
+    private Dictionary<string, BSScene.PreStepAction> RegisteredPrestepActions = new Dictionary<string, BSScene.PreStepAction>();
+    private Dictionary<string, BSScene.PostStepAction> RegisteredPoststepActions = new Dictionary<string, BSScene.PostStepAction>();
     protected void RegisterPreStepAction(string op, uint id, BSScene.PreStepAction actn)
     {
         string identifier = op + "-" + id.ToString();
 
-        lock (RegisteredActions)
+        lock (RegisteredPrestepActions)
         {
             // Clean out any existing action
             UnRegisterPreStepAction(op, id);
 
-            RegisteredActions[identifier] = actn;
+            RegisteredPrestepActions[identifier] = actn;
         }
         PhysicsScene.BeforeStep += actn;
         DetailLog("{0},BSPhysObject.RegisterPreStepAction,id={1}", LocalID, identifier);
@@ -414,12 +416,12 @@ public abstract class BSPhysObject : PhysicsActor
     {
         string identifier = op + "-" + id.ToString();
         bool removed = false;
-        lock (RegisteredActions)
+        lock (RegisteredPrestepActions)
         {
-            if (RegisteredActions.ContainsKey(identifier))
+            if (RegisteredPrestepActions.ContainsKey(identifier))
             {
-                PhysicsScene.BeforeStep -= RegisteredActions[identifier];
-                RegisteredActions.Remove(identifier);
+                PhysicsScene.BeforeStep -= RegisteredPrestepActions[identifier];
+                RegisteredPrestepActions.Remove(identifier);
                 removed = true;
             }
         }
@@ -428,17 +430,61 @@ public abstract class BSPhysObject : PhysicsActor
 
     protected void UnRegisterAllPreStepActions()
     {
-        lock (RegisteredActions)
+        lock (RegisteredPrestepActions)
         {
-            foreach (KeyValuePair<string, BSScene.PreStepAction> kvp in RegisteredActions)
+            foreach (KeyValuePair<string, BSScene.PreStepAction> kvp in RegisteredPrestepActions)
             {
                 PhysicsScene.BeforeStep -= kvp.Value;
             }
-            RegisteredActions.Clear();
+            RegisteredPrestepActions.Clear();
         }
         DetailLog("{0},BSPhysObject.UnRegisterAllPreStepActions,", LocalID);
     }
+    
+    protected void RegisterPostStepAction(string op, uint id, BSScene.PostStepAction actn)
+    {
+        string identifier = op + "-" + id.ToString();
 
+        lock (RegisteredPoststepActions)
+        {
+            // Clean out any existing action
+            UnRegisterPostStepAction(op, id);
+
+            RegisteredPoststepActions[identifier] = actn;
+        }
+        PhysicsScene.AfterStep += actn;
+        DetailLog("{0},BSPhysObject.RegisterPostStepAction,id={1}", LocalID, identifier);
+    }
+
+    // Unregister a pre step action. Safe to call if the action has not been registered.
+    protected void UnRegisterPostStepAction(string op, uint id)
+    {
+        string identifier = op + "-" + id.ToString();
+        bool removed = false;
+        lock (RegisteredPoststepActions)
+        {
+            if (RegisteredPoststepActions.ContainsKey(identifier))
+            {
+                PhysicsScene.AfterStep -= RegisteredPoststepActions[identifier];
+                RegisteredPoststepActions.Remove(identifier);
+                removed = true;
+            }
+        }
+        DetailLog("{0},BSPhysObject.UnRegisterPostStepAction,id={1},removed={2}", LocalID, identifier, removed);
+    }
+
+    protected void UnRegisterAllPostStepActions()
+    {
+        lock (RegisteredPoststepActions)
+        {
+            foreach (KeyValuePair<string, BSScene.PostStepAction> kvp in RegisteredPoststepActions)
+            {
+                PhysicsScene.AfterStep -= kvp.Value;
+            }
+            RegisteredPoststepActions.Clear();
+        }
+        DetailLog("{0},BSPhysObject.UnRegisterAllPostStepActions,", LocalID);
+    }
     
     #endregion // Per Simulation Step actions
 

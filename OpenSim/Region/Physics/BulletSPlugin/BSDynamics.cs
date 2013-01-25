@@ -583,6 +583,8 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 
         // Some of the properties of this prim may have changed.
         // Do any updating needed for a vehicle
+        Vector3 m_physicsLinearFactor = new Vector3(0.2f, 0.2f, 0.2f);   // DEBUG DEBUG
+        Vector3 m_physicsAngularFactor = new Vector3(0.2f, 0.2f, 0.2f);   // DEBUG DEBUG
         public void Refresh()
         {
             if (IsActive)
@@ -599,6 +601,8 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 //     Maybe compute linear and angular factor and damping from params.
                 float angularDamping = BSParam.VehicleAngularDamping;
                 PhysicsScene.PE.SetAngularDamping(Prim.PhysBody, angularDamping);
+                PhysicsScene.PE.SetLinearFactor(Prim.PhysBody, m_physicsLinearFactor);   // DEBUG DEBUG
+                PhysicsScene.PE.SetAngularFactorV(Prim.PhysBody, m_physicsAngularFactor);   // DEBUG DEBUG
 
                 // Vehicles report collision events so we know when it's on the ground
                 PhysicsScene.PE.AddToCollisionFlags(Prim.PhysBody, CollisionFlags.BS_VEHICLE_COLLISIONS);
@@ -898,9 +902,6 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         {
             if (!IsActive) return;
 
-            if (PhysicsScene.VehiclePhysicalLoggingEnabled)
-                PhysicsScene.PE.DumpRigidBody(PhysicsScene.World, Prim.PhysBody);
-
             ForgetKnownVehicleProperties();
 
             MoveLinear(pTimestep);
@@ -920,6 +921,13 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 
             VDetailLog("{0},BSDynamics.Step,done,pos={1}, force={2},velocity={3},angvel={4}",
                     Prim.LocalID, VehiclePosition, m_knownForce, VehicleVelocity, VehicleRotationalVelocity);
+        }
+
+        // Called after the simulation step
+        internal void PostStep(float pTimestep)
+        {
+            if (PhysicsScene.VehiclePhysicalLoggingEnabled)
+                PhysicsScene.PE.DumpRigidBody(PhysicsScene.World, Prim.PhysBody);
         }
 
         // Apply the effect of the linear motor and other linear motions (like hover and float).

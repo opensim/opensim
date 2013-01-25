@@ -527,9 +527,15 @@ public sealed class BSPrim : BSPhysObject
 
                 // If an active vehicle, register the vehicle code to be called before each step
                 if (_vehicle.Type == Vehicle.TYPE_NONE)
+                {
                     UnRegisterPreStepAction("BSPrim.Vehicle", LocalID);
+                    PhysicsScene.AfterStep -= _vehicle.PostStep;
+                }
                 else
+                {
                     RegisterPreStepAction("BSPrim.Vehicle", LocalID, _vehicle.Step);
+                    PhysicsScene.AfterStep += _vehicle.PostStep;
+                }
             });
         }
     }
