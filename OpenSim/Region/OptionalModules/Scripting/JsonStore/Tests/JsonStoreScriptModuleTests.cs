@@ -101,6 +101,23 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
         }
 
         [Test]
+        public void TestJsonTestPath()
+        {
+            TestHelpers.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+
+            UUID storeId 
+                = (UUID)m_smcm.InvokeOperation(
+                    UUID.Zero, UUID.Zero, "JsonCreateStore", new object[] { "{ 'Hello' : 'World' }" }); 
+
+            int result 
+                = (int)m_smcm.InvokeOperation(
+                    UUID.Zero, UUID.Zero, "JsonTestPath", new object[] { storeId, "Hello" });
+
+            Assert.That(result, Is.EqualTo(1));
+        }
+
+        [Test]
         public void TestJsonSetValue()
         {
             TestHelpers.InMethod();
