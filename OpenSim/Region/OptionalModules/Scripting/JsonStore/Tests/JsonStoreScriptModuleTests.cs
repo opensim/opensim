@@ -59,6 +59,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
         {
             base.SetUp();
 
+            TestHelpers.EnableLogging();
+
             IConfigSource configSource = new IniConfigSource();
             IConfig jsonStoreConfig = configSource.AddConfig("JsonStore");
             jsonStoreConfig.Set("Enabled", "true");
@@ -76,7 +78,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
         public void TestJsonCreateStore()
         {
             TestHelpers.InMethod();
-            TestHelpers.EnableLogging();
+//            TestHelpers.EnableLogging();
 
             UUID storeId = (UUID)m_smcm.InvokeOperation(UUID.Zero, UUID.Zero, "JsonCreateStore", new object[] { "{}" }); 
 
@@ -87,7 +89,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
         public void TestJsonGetValue()
         {
             TestHelpers.InMethod();
-            TestHelpers.EnableLogging();
+//            TestHelpers.EnableLogging();
 
             UUID storeId 
                 = (UUID)m_smcm.InvokeOperation(
@@ -104,7 +106,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
         public void TestJsonTestPath()
         {
             TestHelpers.InMethod();
-            TestHelpers.EnableLogging();
+//            TestHelpers.EnableLogging();
 
             UUID storeId 
                 = (UUID)m_smcm.InvokeOperation(
@@ -121,7 +123,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
         public void TestJsonSetValue()
         {
             TestHelpers.InMethod();
-            TestHelpers.EnableLogging();
+//            TestHelpers.EnableLogging();
 
             UUID storeId 
                 = (UUID)m_smcm.InvokeOperation(
