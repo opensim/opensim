@@ -583,8 +583,6 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 
         // Some of the properties of this prim may have changed.
         // Do any updating needed for a vehicle
-        Vector3 m_physicsLinearFactor = new Vector3(0.2f, 0.2f, 0.2f);   // DEBUG DEBUG
-        Vector3 m_physicsAngularFactor = new Vector3(0.2f, 0.2f, 0.2f);   // DEBUG DEBUG
         public void Refresh()
         {
             if (IsActive)
@@ -593,16 +591,16 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 m_vehicleMass = Prim.Linkset.LinksetMass;
 
                 // Friction affects are handled by this vehicle code
-                float friction = 0f;
-                PhysicsScene.PE.SetFriction(Prim.PhysBody, friction);
+                PhysicsScene.PE.SetFriction(Prim.PhysBody, BSParam.VehicleFriction);
+                PhysicsScene.PE.SetRestitution(Prim.PhysBody, BSParam.VehicleRestitution);
 
                 // Moderate angular movement introduced by Bullet.
                 // TODO: possibly set AngularFactor and LinearFactor for the type of vehicle.
                 //     Maybe compute linear and angular factor and damping from params.
                 float angularDamping = BSParam.VehicleAngularDamping;
                 PhysicsScene.PE.SetAngularDamping(Prim.PhysBody, angularDamping);
-                PhysicsScene.PE.SetLinearFactor(Prim.PhysBody, m_physicsLinearFactor);   // DEBUG DEBUG
-                PhysicsScene.PE.SetAngularFactorV(Prim.PhysBody, m_physicsAngularFactor);   // DEBUG DEBUG
+                PhysicsScene.PE.SetLinearFactor(Prim.PhysBody, BSParam.VehicleLinearFactorV);
+                PhysicsScene.PE.SetAngularFactorV(Prim.PhysBody, BSParam.VehicleAngularFactorV);
 
                 // Vehicles report collision events so we know when it's on the ground
                 PhysicsScene.PE.AddToCollisionFlags(Prim.PhysBody, CollisionFlags.BS_VEHICLE_COLLISIONS);
@@ -618,7 +616,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 PhysicsScene.PE.SetGravity(Prim.PhysBody, Vector3.Zero);
 
                 VDetailLog("{0},BSDynamics.Refresh,mass={1},frict={2},inert={3},aDamp={4},grav={5}",
-                        Prim.LocalID, m_vehicleMass, friction, Prim.Inertia, angularDamping, m_VehicleGravity);
+                        Prim.LocalID, m_vehicleMass, Prim.Inertia, angularDamping, m_VehicleGravity);
             }
             else
             {

@@ -82,9 +82,34 @@ public static class BSParam
 	public static float AvatarStepApproachFactor { get; private set; }
 	public static float AvatarStepForceFactor { get; private set; }
 
+    // Vehicle parameters
     public static float VehicleMaxLinearVelocity { get; private set; }
     public static float VehicleMaxAngularVelocity { get; private set; }
     public static float VehicleAngularDamping { get; private set; }
+    public static float VehicleFriction { get; private set; }
+    public static float VehicleRestitution { get; private set; }
+    public static float VehicleLinearFactor { get; private set; }
+    private static Vector3? vehicleLinearFactorV;
+    public static Vector3 VehicleLinearFactorV
+    {
+        get
+        {
+            if (!vehicleLinearFactorV.HasValue)
+                vehicleLinearFactorV = new Vector3(VehicleLinearFactor, VehicleLinearFactor, VehicleLinearFactor);
+            return (Vector3)vehicleLinearFactorV;
+        }
+    }
+    public static float VehicleAngularFactor { get; private set; }
+    private static Vector3? vehicleAngularFactorV;
+    public static Vector3 VehicleAngularFactorV
+    {
+        get
+        {
+            if (!vehicleAngularFactorV.HasValue)
+                vehicleAngularFactorV = new Vector3(VehicleAngularFactor, VehicleAngularFactor, VehicleAngularFactor);
+            return (Vector3)vehicleAngularFactorV;
+        }
+    }
     public static float VehicleDebuggingEnabled { get; private set; }
 
     public static float LinksetImplementation { get; private set; }
@@ -454,6 +479,26 @@ public static class BSParam
             (s,cf,p,v) => { VehicleAngularDamping = cf.GetFloat(p, v); },
             (s) => { return VehicleAngularDamping; },
             (s,p,l,v) => { VehicleAngularDamping = v; } ),
+        new ParameterDefn("VehicleLinearFactor", "Fraction of physical linear changes applied to vehicle (0.0 - 1.0)",
+            0.2f,
+            (s,cf,p,v) => { VehicleLinearFactor = cf.GetFloat(p, v); },
+            (s) => { return VehicleLinearFactor; },
+            (s,p,l,v) => { VehicleLinearFactor = v; } ),
+        new ParameterDefn("VehicleAngularFactor", "Fraction of physical angular changes applied to vehicle (0.0 - 1.0)",
+            0.2f,
+            (s,cf,p,v) => { VehicleAngularFactor = cf.GetFloat(p, v); },
+            (s) => { return VehicleAngularFactor; },
+            (s,p,l,v) => { VehicleAngularFactor = v; } ),
+        new ParameterDefn("VehicleFriction", "Friction of vehicle on the ground (0.0 - 1.0)",
+            0.0f,
+            (s,cf,p,v) => { VehicleFriction = cf.GetFloat(p, v); },
+            (s) => { return VehicleFriction; },
+            (s,p,l,v) => { VehicleFriction = v; } ),
+        new ParameterDefn("VehicleRestitution", "Bouncyness factor for vehicles (0.0 - 1.0)",
+            0.0f,
+            (s,cf,p,v) => { VehicleRestitution = cf.GetFloat(p, v); },
+            (s) => { return VehicleRestitution; },
+            (s,p,l,v) => { VehicleRestitution = v; } ),
         new ParameterDefn("VehicleDebuggingEnable", "Turn on/off vehicle debugging",
             ConfigurationParameters.numericFalse,
             (s,cf,p,v) => { VehicleDebuggingEnabled = BSParam.NumericBool(cf.GetBoolean(p, BSParam.BoolNumeric(v))); },
