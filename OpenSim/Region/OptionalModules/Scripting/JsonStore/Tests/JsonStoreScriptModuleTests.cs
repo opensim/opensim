@@ -99,5 +99,28 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 
             Assert.That(value, Is.EqualTo("World"));
         }
+
+        [Test]
+        public void TestJsonSetValue()
+        {
+            TestHelpers.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+
+            UUID storeId 
+                = (UUID)m_smcm.InvokeOperation(
+                    UUID.Zero, UUID.Zero, "JsonCreateStore", new object[] { "{ }" }); 
+
+            int result 
+                = (int)m_smcm.InvokeOperation(
+                    UUID.Zero, UUID.Zero, "JsonSetValue", new object[] { storeId, "Hello", "World" });
+
+            Assert.That(result, Is.EqualTo(1));
+
+            string value 
+                = (string)m_smcm.InvokeOperation(
+                    UUID.Zero, UUID.Zero, "JsonGetValue", new object[] { storeId, "Hello" });
+
+            Assert.That(value, Is.EqualTo("World"));
+        }
     }
 }
