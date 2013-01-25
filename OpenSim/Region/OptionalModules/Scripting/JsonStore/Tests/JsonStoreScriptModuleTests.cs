@@ -76,7 +76,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
         public void TestJsonCreateStore()
         {
             TestHelpers.InMethod();
-//            log4net.Config.XmlConfigurator.Configure();
+            TestHelpers.EnableLogging();
 
             UUID storeId = (UUID)m_smcm.InvokeOperation(UUID.Zero, UUID.Zero, "JsonCreateStore", new object[] { "{}" }); 
 
@@ -87,7 +87,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
         public void TestJsonGetValue()
         {
             TestHelpers.InMethod();
-//            log4net.Config.XmlConfigurator.Configure();
+            TestHelpers.EnableLogging();
 
             UUID storeId 
                 = (UUID)m_smcm.InvokeOperation(
@@ -104,7 +104,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
         public void TestJsonTestPath()
         {
             TestHelpers.InMethod();
-//            log4net.Config.XmlConfigurator.Configure();
+            TestHelpers.EnableLogging();
 
             UUID storeId 
                 = (UUID)m_smcm.InvokeOperation(
@@ -121,7 +121,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
         public void TestJsonSetValue()
         {
             TestHelpers.InMethod();
-//            log4net.Config.XmlConfigurator.Configure();
+            TestHelpers.EnableLogging();
 
             UUID storeId 
                 = (UUID)m_smcm.InvokeOperation(
