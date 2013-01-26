@@ -74,6 +74,8 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
         [SetUp]
         public void Init()
         {
+            base.SetUp();
+
             IConfigSource config = new IniConfigSource();
             config.AddConfig("NPC");
             config.Configs["NPC"].Set("Enabled", "true");

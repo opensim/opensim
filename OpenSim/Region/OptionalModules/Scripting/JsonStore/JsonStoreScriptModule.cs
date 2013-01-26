@@ -92,12 +92,12 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[JsonStoreScripts] initialization error: {0}",e.Message);
+                m_log.ErrorFormat("[JsonStoreScripts]: initialization error: {0}", e.Message);
                 return;
             }
 
             if (m_enabled)
-                m_log.DebugFormat("[JsonStoreScripts] module is enabled");
+                m_log.DebugFormat("[JsonStoreScripts]: module is enabled");
         }
 
         // -----------------------------------------------------------------
@@ -150,7 +150,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
                 m_comms = m_scene.RequestModuleInterface<IScriptModuleComms>();
                 if (m_comms == null)
                 {
-                    m_log.ErrorFormat("[JsonStoreScripts] ScriptModuleComms interface not defined");
+                    m_log.ErrorFormat("[JsonStoreScripts]: ScriptModuleComms interface not defined");
                     m_enabled = false;
                     return;
                 }
@@ -158,40 +158,40 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
                 m_store = m_scene.RequestModuleInterface<IJsonStoreModule>();
                 if (m_store == null)
                 {
-                    m_log.ErrorFormat("[JsonStoreScripts] JsonModule interface not defined");
+                    m_log.ErrorFormat("[JsonStoreScripts]: JsonModule interface not defined");
                     m_enabled = false;
                     return;
                 }
-                    
+
                 try
                 {
-                    m_comms.RegisterScriptInvocation(this,"JsonCreateStore");
-                    m_comms.RegisterScriptInvocation(this,"JsonDestroyStore");
+                    m_comms.RegisterScriptInvocation(this, "JsonCreateStore");
+                    m_comms.RegisterScriptInvocation(this, "JsonDestroyStore");
 
-                    m_comms.RegisterScriptInvocation(this,"JsonReadNotecard");
-                    m_comms.RegisterScriptInvocation(this,"JsonWriteNotecard");
+                    m_comms.RegisterScriptInvocation(this, "JsonReadNotecard");
+                    m_comms.RegisterScriptInvocation(this, "JsonWriteNotecard");
 
-                    m_comms.RegisterScriptInvocation(this,"JsonTestPath");
-                    m_comms.RegisterScriptInvocation(this,"JsonTestPathJson");
+                    m_comms.RegisterScriptInvocation(this, "JsonTestPath");
+                    m_comms.RegisterScriptInvocation(this, "JsonTestPathJson");
 
-                    m_comms.RegisterScriptInvocation(this,"JsonGetValue");
-                    m_comms.RegisterScriptInvocation(this,"JsonGetValueJson");
+                    m_comms.RegisterScriptInvocation(this, "JsonGetValue");
+                    m_comms.RegisterScriptInvocation(this, "JsonGetValueJson");
 
-                    m_comms.RegisterScriptInvocation(this,"JsonTakeValue");
-                    m_comms.RegisterScriptInvocation(this,"JsonTakeValueJson");
+                    m_comms.RegisterScriptInvocation(this, "JsonTakeValue");
+                    m_comms.RegisterScriptInvocation(this, "JsonTakeValueJson");
 
-                    m_comms.RegisterScriptInvocation(this,"JsonReadValue");
-                    m_comms.RegisterScriptInvocation(this,"JsonReadValueJson");
+                    m_comms.RegisterScriptInvocation(this, "JsonReadValue");
+                    m_comms.RegisterScriptInvocation(this, "JsonReadValueJson");
 
-                    m_comms.RegisterScriptInvocation(this,"JsonSetValue");
-                    m_comms.RegisterScriptInvocation(this,"JsonSetValueJson");
+                    m_comms.RegisterScriptInvocation(this, "JsonSetValue");
+                    m_comms.RegisterScriptInvocation(this, "JsonSetValueJson");
 
-                    m_comms.RegisterScriptInvocation(this,"JsonRemoveValue");
+                    m_comms.RegisterScriptInvocation(this, "JsonRemoveValue");
                 }
                 catch (Exception e)
                 {
                     // See http://opensimulator.org/mantis/view.php?id=5971 for more information
-                    m_log.WarnFormat("[JsonStroreScripts] script method registration failed; {0}",e.Message);
+                    m_log.WarnFormat("[JsonStoreScripts]: script method registration failed; {0}", e.Message);
                     m_enabled = false;
                 }
             }
@@ -354,7 +354,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             }
             catch (Exception e)
             {
-                m_log.InfoFormat("[JsonStoreScripts] unable to retrieve value; {0}",e.ToString());
+                m_log.InfoFormat("[JsonStoreScripts]: unable to retrieve value; {0}",e.ToString());
             }
             
             DispatchValue(scriptID,reqID,String.Empty);
@@ -389,7 +389,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             }
             catch (Exception e)
             {
-                m_log.InfoFormat("[JsonStoreScripts] unable to retrieve value; {0}",e.ToString());
+                m_log.InfoFormat("[JsonStoreScripts]: unable to retrieve value; {0}",e.ToString());
             }
             
             DispatchValue(scriptID,reqID,String.Empty);
@@ -421,7 +421,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             if (a.Type != (sbyte)AssetType.Notecard)
                 GenerateRuntimeError(String.Format("Invalid notecard asset {0}",assetID));
             
-            m_log.DebugFormat("[JsonStoreScripts] read notecard in context {0}",storeID);
+            m_log.DebugFormat("[JsonStoreScripts]: read notecard in context {0}",storeID);
 
             try 
             {
@@ -432,7 +432,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             }
             catch (Exception e)
             {
-                m_log.WarnFormat("[JsonStoreScripts] Json parsing failed; {0}",e.Message);
+                m_log.WarnFormat("[JsonStoreScripts]: Json parsing failed; {0}",e.Message);
             }
 
             GenerateRuntimeError(String.Format("Json parsing failed for {0}",assetID.ToString()));

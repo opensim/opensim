@@ -48,7 +48,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "SceneCommandsModule")]
     public class SceneCommandsModule : ISceneCommandsModule, INonSharedRegionModule
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private Scene m_scene;
 

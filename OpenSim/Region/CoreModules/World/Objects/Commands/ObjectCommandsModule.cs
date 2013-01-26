@@ -592,11 +592,11 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                 cdl.AddRow(
                     "LightColor", 
                     string.Format("<{0},{1},{2},{3}>", s.LightColorR, s.LightColorB, s.LightColorG, s.LightColorA));
-                cdl.AddRow("FlexiDrag", s.LightCutoff);
-                cdl.AddRow("FlexiDrag", s.LightEntry);
-                cdl.AddRow("FlexiDrag", s.LightFalloff);
-                cdl.AddRow("FlexiDrag", s.LightIntensity);
-                cdl.AddRow("FlexiDrag", s.LightRadius);
+                cdl.AddRow("LightCutoff", s.LightCutoff);
+                cdl.AddRow("LightEntry", s.LightEntry);
+                cdl.AddRow("LightFalloff", s.LightFalloff);
+                cdl.AddRow("LightIntensity", s.LightIntensity);
+                cdl.AddRow("LightRadius", s.LightRadius);
                 cdl.AddRow("Media", string.Format("{0} entries", s.Media != null ? s.Media.Count.ToString() : "n/a"));
                 cdl.AddRow("PathBegin", s.PathBegin);
                 cdl.AddRow("PathEnd", s.PathEnd);

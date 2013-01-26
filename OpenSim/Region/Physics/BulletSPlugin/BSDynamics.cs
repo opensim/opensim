@@ -158,6 +158,12 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             get { return (Type != Vehicle.TYPE_NONE && Prim.IsPhysicallyActive); }
         }
 
+        // Return 'true' if this a vehicle that should be sitting on the ground
+        public bool IsGroundVehicle
+        {
+            get { return (Type == Vehicle.TYPE_CAR || Type == Vehicle.TYPE_SLED); }
+        }
+
         #region Vehicle parameter setting
         internal void ProcessFloatVehicleParam(Vehicle pParam, float pValue)
         {
@@ -1176,6 +1182,11 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         private void ApplyGravity(float pTimeStep)
         {
             Vector3 appliedGravity = m_VehicleGravity * m_vehicleMass;
+
+            // Hack to reduce downward force if the vehicle is probably sitting on the ground
+            if (Prim.IsColliding && IsGroundVehicle)
+                appliedGravity *= 0.2f;
+
             VehicleAddForce(appliedGravity);
 
             VDetailLog("{0},  MoveLinear,applyGravity,vehGrav={1},appliedForce-{2}", 
