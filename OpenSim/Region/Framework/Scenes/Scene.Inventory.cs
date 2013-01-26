@@ -401,17 +401,17 @@ namespace OpenSim.Region.Framework.Scenes
                 if (item.Owner != remoteClient.AgentId)
                     return;
 
-                if (UUID.Zero == transactionID)
-                {
-                    item.Flags = (item.Flags & ~(uint)255) | (itemUpd.Flags & (uint)255);
-                    item.Name = itemUpd.Name;
-                    item.Description = itemUpd.Description;
+                item.Flags = (item.Flags & ~(uint)255) | (itemUpd.Flags & (uint)255);
+                item.Name = itemUpd.Name;
+                item.Description = itemUpd.Description;
 
 //                    m_log.DebugFormat(
 //                        "[USER INVENTORY]: itemUpd {0} {1} {2} {3}, item {4} {5} {6} {7}",
 //                        itemUpd.NextPermissions, itemUpd.GroupPermissions, itemUpd.EveryOnePermissions, item.Flags,
 //                        item.NextPermissions, item.GroupPermissions, item.EveryOnePermissions, item.CurrentPermissions);
 
+                if (itemUpd.NextPermissions != 0) // Use this to determine validity. Can never be 0 if valid
+                {
                     if (item.NextPermissions != (itemUpd.NextPermissions & item.BasePermissions))
                         item.Flags |= (uint)InventoryItemFlags.ObjectOverwriteNextOwner;
                     item.NextPermissions = itemUpd.NextPermissions & item.BasePermissions;
@@ -446,7 +446,8 @@ namespace OpenSim.Region.Framework.Scenes
 
                     InventoryService.UpdateItem(item);
                 }
-                else
+
+                if (UUID.Zero != transactionID)
                 {
                     if (AgentTransactionsModule != null)
                     {
