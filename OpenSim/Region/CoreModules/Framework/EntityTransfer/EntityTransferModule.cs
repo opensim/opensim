@@ -150,6 +150,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         {
             client.OnTeleportHomeRequest += TriggerTeleportHome;
             client.OnTeleportLandmarkRequest += RequestTeleportLandmark;
+            client.OnTeleportCancel += TeleportCancel;
         }
 
         public virtual void Close() {}
@@ -401,14 +402,15 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         {
             // Record that this agent is in transit so that we can prevent simultaneous requests and do later detection
             // of whether the destination region completes the teleport.
-            if (!m_entityTransferStateMachine.SetInTransit(sp.UUID))
-            {
-                m_log.DebugFormat(
-                    "[ENTITY TRANSFER MODULE]: Ignoring teleport request of {0} {1} to {2} ({3}) {4}/{5} - agent is already in transit.",
-                    sp.Name, sp.UUID, reg.ServerURI, finalDestination.ServerURI, finalDestination.RegionName, position);
-
-                return;
-            }
+            m_entityTransferStateMachine.SetInTransit(sp.UUID);
+//            if (!m_entityTransferStateMachine.SetInTransit(sp.UUID))
+//            {
+//                m_log.DebugFormat(
+//                    "[ENTITY TRANSFER MODULE]: Ignoring teleport request of {0} {1} to {2} ({3}) {4}/{5} - agent is already in transit.",
+//                    sp.Name, sp.UUID, reg.ServerURI, finalDestination.ServerURI, finalDestination.RegionName, position);
+//
+//                return;
+//            }
 
             if (reg == null || finalDestination == null)
             {
@@ -991,6 +993,11 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             }
 
             return neighbourRegion;
+        }
+
+        private void TeleportCancel(IClientAPI remoteClient)
+        {
+            m_entityTransferStateMachine.ResetFromTransit(remoteClient.AgentId);
         }
 
         public bool Cross(ScenePresence agent, bool isFlying)

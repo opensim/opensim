@@ -350,7 +350,7 @@ namespace OpenSim.Region.Physics.Manager
             return null;
         }
 
-        public virtual bool SuportsRaycastWorldFiltered()
+        public virtual bool SupportsRaycastWorldFiltered()
         {
             return false;
         }

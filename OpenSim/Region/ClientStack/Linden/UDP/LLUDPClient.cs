@@ -92,7 +92,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>Packets we have sent that need to be ACKed by the client</summary>
         public readonly UnackedPacketCollection NeedAcks = new UnackedPacketCollection();
         /// <summary>ACKs that are queued up, waiting to be sent to the client</summary>
-        public readonly OpenSim.Framework.LocklessQueue<uint> PendingAcks = new OpenSim.Framework.LocklessQueue<uint>();
+        public readonly DoubleLocklessQueue<uint> PendingAcks = new DoubleLocklessQueue<uint>();
 
         /// <summary>Current packet sequence number</summary>
         public int CurrentSequence;
@@ -146,7 +146,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>Throttle buckets for each packet category</summary>
         private readonly TokenBucket[] m_throttleCategories;
         /// <summary>Outgoing queues for throttled packets</summary>
-        private readonly OpenSim.Framework.LocklessQueue<OutgoingPacket>[] m_packetOutboxes = new OpenSim.Framework.LocklessQueue<OutgoingPacket>[THROTTLE_CATEGORY_COUNT];
+        private readonly DoubleLocklessQueue<OutgoingPacket>[] m_packetOutboxes = new DoubleLocklessQueue<OutgoingPacket>[THROTTLE_CATEGORY_COUNT];
         /// <summary>A container that can hold one packet for each outbox, used to store
         /// dequeued packets that are being held for throttling</summary>
         private readonly OutgoingPacket[] m_nextPackets = new OutgoingPacket[THROTTLE_CATEGORY_COUNT];
@@ -202,7 +202,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 ThrottleOutPacketType type = (ThrottleOutPacketType)i;
 
                 // Initialize the packet outboxes, where packets sit while they are waiting for tokens
-                m_packetOutboxes[i] = new OpenSim.Framework.LocklessQueue<OutgoingPacket>();
+                m_packetOutboxes[i] = new DoubleLocklessQueue<OutgoingPacket>();
                 // Initialize the token buckets that control the throttling for each category
                 m_throttleCategories[i] = new TokenBucket(m_throttleCategory, rates.GetRate(type));
             }
@@ -430,15 +430,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </returns>
         public bool EnqueueOutgoing(OutgoingPacket packet, bool forceQueue)
         {
+            return EnqueueOutgoing(packet, forceQueue, false);
+        }
+
+        public bool EnqueueOutgoing(OutgoingPacket packet, bool forceQueue, bool highPriority)
+        {
             int category = (int)packet.Category;
 
             if (category >= 0 && category < m_packetOutboxes.Length)
             {
-                OpenSim.Framework.LocklessQueue<OutgoingPacket> queue = m_packetOutboxes[category];
+                DoubleLocklessQueue<OutgoingPacket> queue = m_packetOutboxes[category];
 
                 if (m_deliverPackets == false)
                 {
-                    queue.Enqueue(packet);
+                    queue.Enqueue(packet, highPriority);
                     return true;
                 }
 
@@ -449,7 +454,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // queued packets
                 if (queue.Count > 0)
                 {
-                    queue.Enqueue(packet);
+                    queue.Enqueue(packet, highPriority);
                     return true;
                 }
                 
@@ -462,7 +467,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 else
                 {
                     // Force queue specified or not enough tokens in the bucket, queue this packet
-                    queue.Enqueue(packet);
+                    queue.Enqueue(packet, highPriority);
                     return true;
                 }
             }
@@ -494,7 +499,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (m_deliverPackets == false) return false;
 
             OutgoingPacket packet = null;
-            OpenSim.Framework.LocklessQueue<OutgoingPacket> queue;
+            DoubleLocklessQueue<OutgoingPacket> queue;
             TokenBucket bucket;
             bool packetSent = false;
             ThrottleOutPacketTypeFlags emptyCategories = 0;
@@ -534,7 +539,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
                         catch
                         {
-                            m_packetOutboxes[i] = new OpenSim.Framework.LocklessQueue<OutgoingPacket>();
+                            m_packetOutboxes[i] = new DoubleLocklessQueue<OutgoingPacket>();
                         }
                         if (success)
                         {
@@ -567,7 +572,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                     else
                     {
-                        m_packetOutboxes[i] = new OpenSim.Framework.LocklessQueue<OutgoingPacket>();
+                        m_packetOutboxes[i] = new DoubleLocklessQueue<OutgoingPacket>();
                         emptyCategories |= CategoryToFlag(i);
                     }
                 }
@@ -722,6 +727,35 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 default:
                     return 0;
             }
+        }
+    }
+
+    public class DoubleLocklessQueue<T> : OpenSim.Framework.LocklessQueue<T>
+    {
+        OpenSim.Framework.LocklessQueue<T> highQueue = new OpenSim.Framework.LocklessQueue<T>();
+
+        public override int Count
+        {
+            get
+            {
+                return base.Count + highQueue.Count;
+            }
+        }
+
+        public override bool Dequeue(out T item)
+        {
+            if (highQueue.Dequeue(out item))
+                return true;
+
+            return base.Dequeue(out item);
+        }
+
+        public void Enqueue(T item, bool highPriority)
+        {
+            if (highPriority)
+                highQueue.Enqueue(item);
+            else
+                Enqueue(item);
         }
     }
 }
