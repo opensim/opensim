@@ -995,62 +995,66 @@ namespace OpenSim.Region.Physics.OdePlugin
 
 
             d.ContactGeom maxContact = curContact;
-//            if (IgnoreNegSides && curContact.side1 < 0)
-//                maxContact.depth = float.MinValue;
+            //            if (IgnoreNegSides && curContact.side1 < 0)
+            //                maxContact.depth = float.MinValue;
 
             d.ContactGeom minContact = curContact;
-//            if (IgnoreNegSides && curContact.side1 < 0)
-//                minContact.depth = float.MaxValue;
+            //            if (IgnoreNegSides && curContact.side1 < 0)
+            //                minContact.depth = float.MaxValue;
 
             IntPtr Joint;
             bool FeetCollision = false;
             int ncontacts = 0;
 
 
-                int i = 0;
+            int i = 0;
 
-                while (true)
-                {
-                    if (m_global_contactcount >= maxContactsbeforedeath)
-                        break;
+            while (true)
+            {
 
 //                    if (!(IgnoreNegSides && curContact.side1 < 0))
+                {
+                    bool noskip = true;
+                    if (dop1ava)
                     {
-                        bool noskip = true;
-                        if (dop1ava)
-                        {
-                            if (!(((OdeCharacter)p1).Collide(g1,false, ref curContact, ref FeetCollision)))
+                        if (!(((OdeCharacter)p1).Collide(g1, false, ref curContact, ref FeetCollision)))
 
-                                noskip = false;
-                        }
-                        else if (dop2ava)
-                        {
-                            if (!(((OdeCharacter)p2).Collide(g2,true, ref curContact, ref FeetCollision)))
-                                noskip = false;
-                        }
-
-                        if (noskip)
-                        {
-                            m_global_contactcount++;
-                            ncontacts++;
-
-                            Joint = CreateContacJoint(ref curContact, mu, bounce, cfm, erpscale, dscale);
-                            d.JointAttach(Joint, b1, b2);
-
-                            if (curContact.depth > maxContact.depth)
-                                maxContact = curContact;
-
-                            if (curContact.depth < minContact.depth)
-                                minContact = curContact;
-                        }
+                            noskip = false;
+                    }
+                    else if (dop2ava)
+                    {
+                        if (!(((OdeCharacter)p2).Collide(g2, true, ref curContact, ref FeetCollision)))
+                            noskip = false;
                     }
 
-                    if (++i >= count)
-                        break;
+                    if (noskip)
+                    {
+                        m_global_contactcount++;
+                        if (m_global_contactcount >= maxContactsbeforedeath)
+                            break;
 
-                    if (!GetCurContactGeom(i, ref curContact))
-                        break;
+                        ncontacts++;
+
+                        Joint = CreateContacJoint(ref curContact, mu, bounce, cfm, erpscale, dscale);
+                        if (Joint == IntPtr.Zero)
+                            break;
+
+                        d.JointAttach(Joint, b1, b2);
+
+                        if (curContact.depth > maxContact.depth)
+                            maxContact = curContact;
+
+                        if (curContact.depth < minContact.depth)
+                            minContact = curContact;
+                    }
                 }
+
+                if (++i >= count)
+                    break;
+
+                if (!GetCurContactGeom(i, ref curContact))
+                    break;
+            }
 
             if (ncontacts > 0)
             {
