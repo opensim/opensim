@@ -190,8 +190,15 @@ namespace OpenSim.Region.ClientStack.Linden
                         {
                             if (textureEntry.FaceTextures.Length > cacheItems[i].TextureIndex)
                             {
-                                cacheItems[i].TextureID =
-                                    textureEntry.FaceTextures[cacheItems[i].TextureIndex].TextureID;
+                                Primitive.TextureEntryFace face = textureEntry.FaceTextures[cacheItems[i].TextureIndex];
+                                if (face == null)
+                                {
+                                    textureEntry.CreateFace(cacheItems[i].TextureIndex);
+                                    textureEntry.FaceTextures[cacheItems[i].TextureIndex].TextureID =
+                                        AppearanceManager.DEFAULT_AVATAR_TEXTURE;
+                                    continue;
+                                }
+                                cacheItems[i].TextureID =face.TextureID;
                                 if (m_scene.AssetService != null)
                                     cacheItems[i].TextureAsset =
                                         m_scene.AssetService.GetCached(cacheItems[i].TextureID.ToString());
@@ -213,8 +220,16 @@ namespace OpenSim.Region.ClientStack.Linden
                         {
                             if (textureEntry.FaceTextures.Length > cacheItems[i].TextureIndex)
                             {
+                                Primitive.TextureEntryFace face = textureEntry.FaceTextures[cacheItems[i].TextureIndex];
+                                if (face == null)
+                                {
+                                    textureEntry.CreateFace(cacheItems[i].TextureIndex);
+                                    textureEntry.FaceTextures[cacheItems[i].TextureIndex].TextureID =
+                                        AppearanceManager.DEFAULT_AVATAR_TEXTURE;
+                                    continue;
+                                }
                                 cacheItems[i].TextureID =
-                                    textureEntry.FaceTextures[cacheItems[i].TextureIndex].TextureID;
+                                    face.TextureID;
                             }
                             else
                             {
