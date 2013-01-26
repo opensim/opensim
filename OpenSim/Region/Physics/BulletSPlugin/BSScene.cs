@@ -26,6 +26,7 @@
  */
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -697,7 +698,21 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
     public override Dictionary<uint, float> GetTopColliders()
     {
-        return new Dictionary<uint, float>();
+        Dictionary<uint, float> topColliders;
+
+        lock (PhysObjects)
+        {
+            foreach (KeyValuePair<uint, BSPhysObject> kvp in PhysObjects)
+            {
+                kvp.Value.ComputeCollisionScore();
+            }
+
+            List<BSPhysObject> orderedPrims = new List<BSPhysObject>(PhysObjects.Values);
+            orderedPrims.OrderByDescending(p => p.CollisionScore).Take(25);
+            topColliders = orderedPrims.ToDictionary(p => p.LocalID, p => p.CollisionScore);
+        }
+
+        return topColliders;
     }
 
     public override bool IsThreaded { get { return false;  } }

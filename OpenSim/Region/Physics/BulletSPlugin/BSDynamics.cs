@@ -597,8 +597,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 // Moderate angular movement introduced by Bullet.
                 // TODO: possibly set AngularFactor and LinearFactor for the type of vehicle.
                 //     Maybe compute linear and angular factor and damping from params.
-                float angularDamping = BSParam.VehicleAngularDamping;
-                PhysicsScene.PE.SetAngularDamping(Prim.PhysBody, angularDamping);
+                PhysicsScene.PE.SetAngularDamping(Prim.PhysBody, BSParam.VehicleAngularDamping);
                 PhysicsScene.PE.SetLinearFactor(Prim.PhysBody, BSParam.VehicleLinearFactorV);
                 PhysicsScene.PE.SetAngularFactorV(Prim.PhysBody, BSParam.VehicleAngularFactorV);
 
@@ -615,8 +614,11 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 // The actual vehicle gravity is set to zero in Bullet so we can do all the application of same.
                 PhysicsScene.PE.SetGravity(Prim.PhysBody, Vector3.Zero);
 
-                VDetailLog("{0},BSDynamics.Refresh,mass={1},frict={2},inert={3},aDamp={4},grav={5}",
-                        Prim.LocalID, m_vehicleMass, Prim.Inertia, angularDamping, m_VehicleGravity);
+                VDetailLog("{0},BSDynamics.Refresh,mass={1},inert={2},grav={3},aDamp={4},frict={5},rest={6},lFact={7},aFact={8}",
+                        Prim.LocalID, m_vehicleMass, Prim.Inertia, m_VehicleGravity,
+                        BSParam.VehicleAngularDamping, BSParam.VehicleFriction, BSParam.VehicleRestitution,
+                        BSParam.VehicleLinearFactor, BSParam.VehicleAngularFactor
+                        );
             }
             else
             {

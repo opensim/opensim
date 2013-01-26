@@ -95,6 +95,8 @@ public abstract class BSPhysObject : PhysicsActor
         SubscribedEventsMs = 0;
         CollidingStep = 0;
         CollidingGroundStep = 0;
+        CollisionAccumulation = 0;
+        CollisionScore = 0;
     }
 
     // Tell the object to clean up.
@@ -239,6 +241,9 @@ public abstract class BSPhysObject : PhysicsActor
     // The collision flags we think are set in Bullet
     protected CollisionFlags CurrentCollisionFlags { get; set; }
 
+    // Count of collisions for this object
+    protected long CollisionAccumulation { get; set; }
+
     public override bool IsColliding {
         get { return (CollidingStep == PhysicsScene.SimulationStep); }
         set {
@@ -299,6 +304,8 @@ public abstract class BSPhysObject : PhysicsActor
         {
             return ret;
         }
+
+        CollisionAccumulation++;
 
         // if someone has subscribed for collision events....
         if (SubscribedEvents()) {
@@ -386,6 +393,16 @@ public abstract class BSPhysObject : PhysicsActor
     public override bool SubscribedEvents() {
         return (SubscribedEventsMs > 0);
     }
+    // Because 'CollisionScore' is calls many times while sorting it should not be recomputed
+    //    each time called. So this is built to be light weight for each collision and to do
+    //    all the processing when the user asks for the info.
+    public void ComputeCollisionScore()
+    {
+        // Scale the collision count by the time since the last collision
+        long timeAgo = PhysicsScene.SimulationStep - CollidingStep + 1;
+        CollisionScore = CollisionAccumulation / timeAgo;
+    }
+    public override float CollisionScore { get; set; }
 
     #endregion // Collisions
 

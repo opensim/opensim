@@ -59,7 +59,6 @@ public sealed class BSPrim : BSPhysObject
     private OMV.Vector3 _force;
     private OMV.Vector3 _velocity;
     private OMV.Vector3 _torque;
-    private float _collisionScore;
     private OMV.Vector3 _acceleration;
     private OMV.Quaternion _orientation;
     private int _physicsActorType;
@@ -642,11 +641,6 @@ public sealed class BSPrim : BSPhysObject
                 UnRegisterPreStepAction("BSPrim.setTorque", LocalID);
             }
             // DetailLog("{0},BSPrim.SetTorque,call,torque={1}", LocalID, _torque);
-        }
-    }
-    public override float CollisionScore {
-        get { return _collisionScore; }
-        set { _collisionScore = value;
         }
     }
     public override OMV.Vector3 Acceleration {
