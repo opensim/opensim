@@ -3019,38 +3019,38 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Integer llGiveMoney(string destination, int amount)
         {
-            m_host.AddScriptLPS(1);
-
-            if (m_item.PermsGranter == UUID.Zero)
-                return 0;
-
-            if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_DEBIT) == 0)
+            Util.FireAndForget(x =>
             {
-                LSLError("No permissions to give money");
-                return 0;
-            }
+                m_host.AddScriptLPS(1);
 
-            UUID toID = new UUID();
+                if (m_item.PermsGranter == UUID.Zero)
+                    return;
 
-            if (!UUID.TryParse(destination, out toID))
-            {
-                LSLError("Bad key in llGiveMoney");
-                return 0;
-            }
+                if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_DEBIT) == 0)
+                {
+                    LSLError("No permissions to give money");
+                    return;
+                }
 
-            IMoneyModule money = World.RequestModuleInterface<IMoneyModule>();
+                UUID toID = new UUID();
 
-            if (money == null)
-            {
-                NotImplemented("llGiveMoney");
-                return 0;
-            }
+                if (!UUID.TryParse(destination, out toID))
+                {
+                    LSLError("Bad key in llGiveMoney");
+                    return;
+                }
 
-            bool result = money.ObjectGiveMoney(
-                m_host.ParentGroup.RootPart.UUID, m_host.ParentGroup.RootPart.OwnerID, toID, amount,UUID.Zero);
+                IMoneyModule money = World.RequestModuleInterface<IMoneyModule>();
 
-            if (result)
-                return 1;
+                if (money == null)
+                {
+                    NotImplemented("llGiveMoney");
+                    return;
+                }
+
+                money.ObjectGiveMoney(
+                    m_host.ParentGroup.RootPart.UUID, m_host.ParentGroup.RootPart.OwnerID, toID, amount,UUID.Zero);
+            });
 
             return 0;
         }
@@ -7322,7 +7322,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             IXMLRPC xmlrpcMod = m_ScriptEngine.World.RequestModuleInterface<IXMLRPC>();
-            if (xmlrpcMod.IsEnabled())
+            if (xmlrpcMod != null && xmlrpcMod.IsEnabled())
             {
                 UUID channelID = xmlrpcMod.OpenXMLRPCChannel(m_host.LocalId, m_item.ItemID, UUID.Zero);
                 IXmlRpcRouter xmlRpcRouter = m_ScriptEngine.World.RequestModuleInterface<IXmlRpcRouter>();
@@ -7354,6 +7354,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             IXMLRPC xmlrpcMod = m_ScriptEngine.World.RequestModuleInterface<IXMLRPC>();
             ScriptSleep(3000);
+            if (xmlrpcMod == null)
+                return "";
             return (xmlrpcMod.SendRemoteData(m_host.LocalId, m_item.ItemID, channel, dest, idata, sdata)).ToString();
         }
 
@@ -7361,7 +7363,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             IXMLRPC xmlrpcMod = m_ScriptEngine.World.RequestModuleInterface<IXMLRPC>();
-            xmlrpcMod.RemoteDataReply(channel, message_id, sdata, idata);
+            if (xmlrpcMod != null)
+                xmlrpcMod.RemoteDataReply(channel, message_id, sdata, idata);
             ScriptSleep(3000);
         }
 
@@ -7369,7 +7372,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             IXMLRPC xmlrpcMod = m_ScriptEngine.World.RequestModuleInterface<IXMLRPC>();
-            xmlrpcMod.CloseXMLRPCChannel((UUID)channel);
+            if (xmlrpcMod != null)
+                xmlrpcMod.CloseXMLRPCChannel((UUID)channel);
             ScriptSleep(1000);
         }
 
@@ -12207,7 +12211,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             bool checkPhysical = !((rejectTypes & ScriptBaseClass.RC_REJECT_PHYSICAL) == ScriptBaseClass.RC_REJECT_PHYSICAL);
 
 
-            if (World.SuportsRayCastFiltered())
+            if (World.SupportsRayCastFiltered())
             {
                 if (dist == 0)
                     return list;
@@ -12270,13 +12274,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else
             {
-                if (checkTerrain)
-                {
-                    ContactResult? groundContact = GroundIntersection(rayStart, rayEnd);
-                    if (groundContact != null)
-                        results.Add((ContactResult)groundContact);
-                }
-
                 if (checkAgents)
                 {
                     ContactResult[] agentHits = AvatarIntersection(rayStart, rayEnd);
@@ -12289,6 +12286,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     ContactResult[] objectHits = ObjectIntersection(rayStart, rayEnd, checkPhysical, checkNonPhysical, detectPhantom);
                     foreach (ContactResult r in objectHits)
                         results.Add(r);
+                }
+            }
+
+            // Double check this
+            if (checkTerrain)
+            {
+                bool skipGroundCheck = false;
+
+                foreach (ContactResult c in results)
+                {
+                    if (c.ConsumerID == 0) // Physics gave us a ground collision
+                        skipGroundCheck = true;
+                }
+
+                if (!skipGroundCheck)
+                {
+                    ContactResult? groundContact = GroundIntersection(rayStart, rayEnd);
+                    if (groundContact != null)
+                        results.Add((ContactResult)groundContact);
                 }
             }
 
@@ -12585,7 +12601,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     }
 
                     bool result = money.ObjectGiveMoney(
-                        m_host.ParentGroup.RootPart.UUID, m_host.ParentGroup.RootPart.OwnerID, toID, amount,UUID.Zero);
+                        m_host.ParentGroup.RootPart.UUID, m_host.ParentGroup.RootPart.OwnerID, toID, amount, txn);
 
                     if (result)
                     {

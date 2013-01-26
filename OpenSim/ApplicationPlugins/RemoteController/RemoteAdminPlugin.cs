@@ -70,6 +70,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
         private string m_name = "RemoteAdminPlugin";
         private string m_version = "0.0";
+        private string m_openSimVersion;
 
         public string Version
         {
@@ -89,6 +90,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
         public void Initialise(OpenSimBase openSim)
         {
+            m_openSimVersion = openSim.GetVersionText();
+
             m_configSource = openSim.ConfigSource.Source;
             try
             {
@@ -159,6 +162,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                     // Misc
                     availableMethods["admin_refresh_search"] = (req, ep) => InvokeXmlRpcMethod(req, ep, XmlRpcRefreshSearch);
+                    availableMethods["admin_get_opensim_version"] = (req, ep) => InvokeXmlRpcMethod(req, ep, XmlRpcGetOpenSimVersion);
 
                     // Either enable full remote functionality or just selected features
                     string enabledMethods = m_config.GetString("enabled_methods", "all");
@@ -1975,6 +1979,18 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             }
 
             m_log.Info("[RADMIN]: Refresh Search Request complete");
+        }
+
+        private void XmlRpcGetOpenSimVersion(XmlRpcRequest request, XmlRpcResponse response, IPEndPoint remoteClient)
+        {
+            m_log.Info("[RADMIN]: Received Get OpenSim Version Request");
+
+            Hashtable responseData = (Hashtable)response.Value;
+
+            responseData["version"] = m_openSimVersion;
+            responseData["success"] = true;
+
+            m_log.Info("[RADMIN]: Get OpenSim Version Request complete");
         }
 
         /// <summary>

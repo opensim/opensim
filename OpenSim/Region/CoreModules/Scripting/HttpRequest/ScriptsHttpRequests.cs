@@ -533,6 +533,9 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                     ResponseBody = e.Message;
                 }
 
+                if (ResponseBody == null)
+                    ResponseBody = String.Empty;
+
                 _finished = true;
                 return;
             }
@@ -545,6 +548,9 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                 if (response != null)
                     response.Close();
             }
+
+            if (ResponseBody == null)
+                ResponseBody = String.Empty;
 
             _finished = true;
         }
