@@ -282,7 +282,7 @@ namespace OpenSim.Region.Framework.Scenes
         private readonly Timer m_restartTimer = new Timer(15000); // Wait before firing
         private volatile bool m_backingup;
         private Dictionary<UUID, ReturnInfo> m_returns = new Dictionary<UUID, ReturnInfo>();
-        private Dictionary<UUID, SceneObjectGroup> m_groupsWithTargets = new Dictionary<UUID, SceneObjectGroup>();
+        private Dictionary<UUID, int> m_groupsWithTargets = new Dictionary<UUID, int>();
 
         private bool m_physics_enabled = true;
         private bool m_scripts_enabled = true;
@@ -1736,7 +1736,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void AddGroupTarget(SceneObjectGroup grp)
         {
             lock (m_groupsWithTargets)
-                m_groupsWithTargets[grp.UUID] = grp;
+                m_groupsWithTargets[grp.UUID] = 0;
         }
 
         public void RemoveGroupTarget(SceneObjectGroup grp)
@@ -1747,18 +1747,24 @@ namespace OpenSim.Region.Framework.Scenes
 
         private void CheckAtTargets()
         {
-            List<SceneObjectGroup> objs = null;
+            List<UUID> objs = null;
 
             lock (m_groupsWithTargets)
             {
                 if (m_groupsWithTargets.Count != 0)
-                    objs = new List<SceneObjectGroup>(m_groupsWithTargets.Values);
+                    objs = new List<UUID>(m_groupsWithTargets.Keys);
             }
 
             if (objs != null)
             {
-                foreach (SceneObjectGroup entry in objs)
-                    entry.checkAtTargets();
+                foreach (UUID entry in objs)
+                {
+                    SceneObjectGroup grp = GetSceneObjectGroup(entry);
+                    if (grp == null)
+                        m_groupsWithTargets.Remove(entry);
+                    else
+                        grp.checkAtTargets();
+                }
             }
         }
 
@@ -2059,11 +2065,11 @@ namespace OpenSim.Region.Framework.Scenes
             EventManager.TriggerPrimsLoaded(this);
         }
 
-        public bool SuportsRayCastFiltered()
+        public bool SupportsRayCastFiltered()
         {
             if (PhysicsScene == null)
                 return false;
-            return PhysicsScene.SuportsRaycastWorldFiltered();
+            return PhysicsScene.SupportsRaycastWorldFiltered();
         }
 
         public object RayCastFiltered(Vector3 position, Vector3 direction, float length, int Count, RayFilterFlags filter)      

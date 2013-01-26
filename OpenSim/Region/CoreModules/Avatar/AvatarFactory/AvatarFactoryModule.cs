@@ -373,6 +373,52 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
         {
             bool defonly = true; // are we only using default textures
             IImprovedAssetCache cache = m_scene.RequestModuleInterface<IImprovedAssetCache>();
+            IBakedTextureModule bakedModule = m_scene.RequestModuleInterface<IBakedTextureModule>();
+            WearableCacheItem[] wearableCache = null;
+
+            // Cache wearable data for teleport.
+            // Only makes sense if there's a bake module and a cache module
+            if (bakedModule != null && cache != null)
+            {
+                try
+                {
+                    wearableCache = bakedModule.Get(sp.UUID);
+                }
+                catch (Exception)
+                {
+
+                }
+                if (wearableCache != null)
+                {
+                    for (int i = 0; i < wearableCache.Length; i++)
+                    {
+                       cache.Cache(wearableCache[i].TextureAsset);
+                    }
+                }
+            }
+            /*
+             IBakedTextureModule bakedModule = m_scene.RequestModuleInterface<IBakedTextureModule>();
+            if (invService.GetRootFolder(userID) != null)
+            {
+                WearableCacheItem[] wearableCache = null;
+                if (bakedModule != null)
+                {
+                    try
+                    {
+                        wearableCache = bakedModule.Get(userID);
+                        appearance.WearableCacheItems = wearableCache;
+                        appearance.WearableCacheItemsDirty = false;
+                        foreach (WearableCacheItem item in wearableCache)
+                        {
+                            appearance.Texture.FaceTextures[item.TextureIndex].TextureID = item.TextureID;
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        
+                    }
+                }
+             */
 
             // Process the texture entry
             for (int i = 0; i < AvatarAppearance.BAKE_INDICES.Length; i++)
@@ -380,9 +426,32 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 int idx = AvatarAppearance.BAKE_INDICES[i];
                 Primitive.TextureEntryFace face = sp.Appearance.Texture.FaceTextures[idx];
 
-                // if there is no texture entry, skip it
+                // No face, so lets check our baked service cache, teleport or login.
                 if (face == null)
-                    continue;
+                {
+                    if (wearableCache != null)
+                    {
+                        // If we find the an appearance item, set it as the textureentry and the face
+                        WearableCacheItem searchitem = WearableCacheItem.SearchTextureIndex((uint) idx, wearableCache);
+                        if (searchitem != null)
+                        {
+                            sp.Appearance.Texture.FaceTextures[idx] = sp.Appearance.Texture.CreateFace((uint) idx);
+                            sp.Appearance.Texture.FaceTextures[idx].TextureID = searchitem.TextureID;
+                            face = sp.Appearance.Texture.FaceTextures[idx];
+                        }
+                        else
+                        {
+                            // if there is no texture entry and no baked cache, skip it
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        //No texture entry face and no cache.  Skip this face.
+                        continue;
+                    }
+                }
+                    
 
 //                m_log.DebugFormat(
 //                    "[AVFACTORY]: Looking for texture {0}, id {1} for {2} {3}",

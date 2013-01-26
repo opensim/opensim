@@ -1821,17 +1821,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             UUID assetID = UUID.Zero;
 
-            if (!UUID.TryParse(notecardNameOrUuid, out assetID))
+            bool notecardNameIsUUID = UUID.TryParse(notecardNameOrUuid, out assetID);
+
+            if (!notecardNameIsUUID)
             {
-                m_host.TaskInventory.LockItemsForRead(true);
-                foreach (TaskInventoryItem item in m_host.TaskInventory.Values)
-                {
-                    if (item.Type == 7 && item.Name == notecardNameOrUuid)
-                    {
-                        assetID = item.AssetID;
-                    }
-                }
-                m_host.TaskInventory.LockItemsForRead(false);
+                assetID = SearchTaskInventoryForAssetId(notecardNameOrUuid);
             }
 
             if (assetID == UUID.Zero)
@@ -1842,13 +1836,43 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 AssetBase a = World.AssetService.Get(assetID.ToString());
 
                 if (a == null)
-                    return UUID.Zero;
+                {
+                    // Whoops, it's still possible here that the notecard name was properly 
+                    // formatted like a UUID but isn't an asset UUID so lets look it up by name after all
+                    assetID = SearchTaskInventoryForAssetId(notecardNameOrUuid);
+                    if (assetID == UUID.Zero)
+                        return UUID.Zero;
+
+                    if (!NotecardCache.IsCached(assetID))
+                    {
+                        a = World.AssetService.Get(assetID.ToString());
+
+                        if (a == null)
+                        {
+                            return UUID.Zero;
+                        }
+                    }
+                }
 
                 string data = Encoding.UTF8.GetString(a.Data);
                 NotecardCache.Cache(assetID, data);
             };
 
             return assetID;
+        }
+        protected UUID SearchTaskInventoryForAssetId(string name)
+        {
+            UUID assetId = UUID.Zero;
+            m_host.TaskInventory.LockItemsForRead(true);
+            foreach (TaskInventoryItem item in m_host.TaskInventory.Values)
+            {
+                if (item.Type == 7 && item.Name == name)
+                {
+                    assetId = item.AssetID;
+                }
+            }
+            m_host.TaskInventory.LockItemsForRead(false);
+            return assetId;
         }
 
         /// <summary>
