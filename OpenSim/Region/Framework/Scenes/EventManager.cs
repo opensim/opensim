@@ -550,6 +550,20 @@ namespace OpenSim.Region.Framework.Scenes
         /// </remarks>
         public event ScriptControlEvent OnScriptControlEvent;
 
+        public delegate void ScriptMovingStartEvent(uint localID);
+
+        /// <summary>
+        /// TODO: Should be triggered when a physics object starts moving.
+        /// </summary>
+        public event ScriptMovingStartEvent OnScriptMovingStartEvent;
+   
+        public delegate void ScriptMovingEndEvent(uint localID);
+
+        /// <summary>
+        /// TODO: Should be triggered when a physics object stops moving.
+        /// </summary>
+        public event ScriptMovingEndEvent OnScriptMovingEndEvent;
+
         public delegate void ScriptAtTargetEvent(uint localID, uint handle, Vector3 targetpos, Vector3 atpos);
 
         /// <summary>
@@ -2232,6 +2246,48 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         m_log.ErrorFormat(
                             "[EVENT MANAGER]: Delegate for TriggerNotAtRotTargetEvent failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }
+        }
+
+        public void TriggerMovingStartEvent(uint localID)
+        {
+            ScriptMovingStartEvent handlerScriptMovingStartEvent = OnScriptMovingStartEvent;
+            if (handlerScriptMovingStartEvent != null)
+            {
+                foreach (ScriptMovingStartEvent d in handlerScriptMovingStartEvent.GetInvocationList())
+                {
+                    try
+                    {
+                        d(localID);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerMovingStartEvent failed - continuing.  {0} {1}",
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }
+        }
+
+        public void TriggerMovingEndEvent(uint localID)
+        {
+            ScriptMovingEndEvent handlerScriptMovingEndEvent = OnScriptMovingEndEvent;
+            if (handlerScriptMovingEndEvent != null)
+            {
+                foreach (ScriptMovingEndEvent d in handlerScriptMovingEndEvent.GetInvocationList())
+                {
+                    try
+                    {
+                        d(localID);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerMovingEndEvent failed - continuing.  {0} {1}",
                             e.Message, e.StackTrace);
                     }
                 }

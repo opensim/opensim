@@ -1907,10 +1907,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 part.Shape.FlexiForceX = (float)Force.x;
                 part.Shape.FlexiForceY = (float)Force.y;
                 part.Shape.FlexiForceZ = (float)Force.z;
-                part.Shape.PathCurve = 0x80;
-                part.ParentGroup.HasGroupChanged = true;
-                part.ScheduleFullUpdate();
+                part.Shape.PathCurve = (byte)Extrusion.Flexible;
             }
+            else
+            {
+                // Other values not set, they do not seem to be sent to the viewer
+                // Setting PathCurve appears to be what actually toggles the check box and turns Flexi on and off
+                part.Shape.PathCurve = (byte)Extrusion.Straight;
+                part.Shape.FlexiEntry = false;
+            }
+            part.ParentGroup.HasGroupChanged = true;
+            part.ScheduleFullUpdate();
         }
 
         /// <summary>
