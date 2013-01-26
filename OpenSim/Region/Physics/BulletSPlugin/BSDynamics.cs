@@ -976,8 +976,9 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         public void ComputeLinearVelocity(float pTimestep)
         {
             // Step the motor from the current value. Get the correction needed this step.
-            Vector3 currentVel = VehicleVelocity * Quaternion.Inverse(VehicleOrientation);
-            Vector3 linearMotorCorrectionV = m_linearMotor.Step(pTimestep, currentVel);
+            Vector3 origVelW = VehicleVelocity;             // DEBUG
+            Vector3 currentVelV = VehicleVelocity * Quaternion.Inverse(VehicleOrientation);
+            Vector3 linearMotorCorrectionV = m_linearMotor.Step(pTimestep, currentVelV);
 
             // Motor is vehicle coordinates. Rotate it to world coordinates
             Vector3 linearMotorVelocityW = linearMotorCorrectionV * VehicleOrientation;
@@ -992,8 +993,8 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             // Add this correction to the velocity to make it faster/slower.
             VehicleVelocity += linearMotorVelocityW;
 
-            VDetailLog("{0},  MoveLinear,velocity,vehVel={1},correction={2},force={3}",
-                        Prim.LocalID, VehicleVelocity, linearMotorCorrectionV, linearMotorVelocityW);
+            VDetailLog("{0},  MoveLinear,velocity,origVelW={1},velV={2},correctV={3},correctW={4},newVelW={5}",
+                        Prim.LocalID, origVelW, currentVelV, linearMotorCorrectionV, linearMotorVelocityW, VehicleVelocity);
         }
 
         public void ComputeLinearTerrainHeightCorrection(float pTimestep)
@@ -1193,12 +1194,12 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 
             // Hack to reduce downward force if the vehicle is probably sitting on the ground
             if (Prim.IsColliding && IsGroundVehicle)
-                appliedGravity *= 0.2f;
+                appliedGravity *= BSParam.VehicleGroundGravityFudge;
 
             VehicleAddForce(appliedGravity);
 
-            VDetailLog("{0},  MoveLinear,applyGravity,vehGrav={1},appliedForce-{2}", 
-                            Prim.LocalID, m_VehicleGravity, appliedGravity);
+            VDetailLog("{0},  MoveLinear,applyGravity,vehGrav={1},collid={2},appliedForce={3}", 
+                            Prim.LocalID, m_VehicleGravity, Prim.IsColliding, appliedGravity);
         }
 
         // =======================================================================

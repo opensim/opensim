@@ -110,6 +110,7 @@ public static class BSParam
             return (Vector3)vehicleAngularFactorV;
         }
     }
+    public static float VehicleGroundGravityFudge { get; private set; }
     public static float VehicleDebuggingEnabled { get; private set; }
 
     public static float LinksetImplementation { get; private set; }
@@ -480,12 +481,12 @@ public static class BSParam
             (s) => { return VehicleAngularDamping; },
             (s,p,l,v) => { VehicleAngularDamping = v; } ),
         new ParameterDefn("VehicleLinearFactor", "Fraction of physical linear changes applied to vehicle (0.0 - 1.0)",
-            0.2f,
+            1.0f,
             (s,cf,p,v) => { VehicleLinearFactor = cf.GetFloat(p, v); },
             (s) => { return VehicleLinearFactor; },
             (s,p,l,v) => { VehicleLinearFactor = v; } ),
         new ParameterDefn("VehicleAngularFactor", "Fraction of physical angular changes applied to vehicle (0.0 - 1.0)",
-            0.2f,
+            1.0f,
             (s,cf,p,v) => { VehicleAngularFactor = cf.GetFloat(p, v); },
             (s) => { return VehicleAngularFactor; },
             (s,p,l,v) => { VehicleAngularFactor = v; } ),
@@ -495,10 +496,15 @@ public static class BSParam
             (s) => { return VehicleFriction; },
             (s,p,l,v) => { VehicleFriction = v; } ),
         new ParameterDefn("VehicleRestitution", "Bouncyness factor for vehicles (0.0 - 1.0)",
-            0.0f,
+            0.2f,
             (s,cf,p,v) => { VehicleRestitution = cf.GetFloat(p, v); },
             (s) => { return VehicleRestitution; },
             (s,p,l,v) => { VehicleRestitution = v; } ),
+        new ParameterDefn("VehicleGroundGravityFudge", "Factor to multiple gravity if a ground vehicle is probably on the ground (0.0 - 1.0)",
+            1.0f,
+            (s,cf,p,v) => { VehicleGroundGravityFudge = cf.GetFloat(p, v); },
+            (s) => { return VehicleGroundGravityFudge; },
+            (s,p,l,v) => { VehicleGroundGravityFudge = v; } ),
         new ParameterDefn("VehicleDebuggingEnable", "Turn on/off vehicle debugging",
             ConfigurationParameters.numericFalse,
             (s,cf,p,v) => { VehicleDebuggingEnabled = BSParam.NumericBool(cf.GetBoolean(p, BSParam.BoolNumeric(v))); },

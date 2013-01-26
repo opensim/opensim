@@ -232,7 +232,7 @@ public sealed class BSLinksetCompound : BSLinkset
                                                                         newLsi.OffsetFromCenterOfMass,
                                                                         newLsi.OffsetRot,
                                                                         true /* shouldRecalculateLocalAabb */);
-                            DetailLog("{0},BSLinksetCompound.UpdateProperties,changeChildPosRot,whichUpdated={1}newLsi={2}",
+                            DetailLog("{0},BSLinksetCompound.UpdateProperties,changeChildPosRot,whichUpdated={1},newLsi={2}",
                                                                         updated.LocalID, whichUpdated, newLsi);
                             updated.LinksetInfo = newLsi;
                             updatedChild = true;
