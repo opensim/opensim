@@ -137,6 +137,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
     internal int LastEntityProperty = 0;
 
     internal EntityProperties[] UpdatedObjects;
+    internal Dictionary<uint, GhostObject> specialCollisionObjects; 
     
     private static int m_collisionsThisFrame;
     private BSScene PhysicsScene { get; set; }
@@ -158,7 +159,13 @@ private sealed class BulletConstraintXNA : BulletConstraint
     {
         DiscreteDynamicsWorld world = (pWorld as BulletWorldXNA).world;
         RigidBody body = ((BulletBodyXNA)pBody).rigidBody;
-        world.RemoveRigidBody(body);
+        CollisionObject collisionObject = ((BulletBodyXNA)pBody).body;
+        if (body != null)
+            world.RemoveRigidBody(body);
+        else if (collisionObject != null)
+            world.RemoveCollisionObject(collisionObject);
+        else
+            return false;
         return true;
     }
 
@@ -182,7 +189,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
 
     public override void SetRestitution(BulletBody pCollisionObject, float pRestitution)
     {
-        CollisionObject collisionObject = (pCollisionObject as BulletBodyXNA).rigidBody;
+        CollisionObject collisionObject = (pCollisionObject as BulletBodyXNA).body;
         collisionObject.SetRestitution(pRestitution);
     }
 
@@ -219,13 +226,13 @@ private sealed class BulletConstraintXNA : BulletConstraint
 
     public override void SetCcdMotionThreshold(BulletBody pCollisionObject, float pccdMotionThreashold)
     {
-        CollisionObject collisionObject = (pCollisionObject as BulletBodyXNA).rigidBody;
+        CollisionObject collisionObject = (pCollisionObject as BulletBodyXNA).body;
         collisionObject.SetCcdMotionThreshold(pccdMotionThreashold);
     }
 
     public override void SetCcdSweptSphereRadius(BulletBody pCollisionObject, float pCcdSweptSphereRadius)
     {
-        CollisionObject collisionObject = (pCollisionObject as BulletBodyXNA).rigidBody;
+        CollisionObject collisionObject = (pCollisionObject as BulletBodyXNA).body;
         collisionObject.SetCcdSweptSphereRadius(pCcdSweptSphereRadius);
     }
 
@@ -262,7 +269,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
         }
         else
         {
-            world.AddCollisionObject(rbody);
+            world.AddCollisionObject(cbody);
         }
         cbody.SetWorldTransform(origPos);
 
@@ -303,7 +310,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
 
     public override bool SetCollisionGroupMask(BulletBody pCollisionObject, uint pGroup, uint pMask)
     {
-        CollisionObject collisionObject = (pCollisionObject as BulletBodyXNA).rigidBody;
+        CollisionObject collisionObject = (pCollisionObject as BulletBodyXNA).body;
         collisionObject.GetBroadphaseHandle().m_collisionFilterGroup = (BulletXNA.BulletCollision.CollisionFilterGroups) pGroup;
         collisionObject.GetBroadphaseHandle().m_collisionFilterGroup = (BulletXNA.BulletCollision.CollisionFilterGroups) pGroup;
         if ((uint) collisionObject.GetBroadphaseHandle().m_collisionFilterGroup == 0)
@@ -390,7 +397,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
 
     public override void SetTranslation(BulletBody pCollisionObject, Vector3 _position, Quaternion _orientation)
     {
-        CollisionObject collisionObject = (pCollisionObject as BulletBodyXNA).rigidBody;
+        CollisionObject collisionObject = (pCollisionObject as BulletBodyXNA).body;
         IndexedVector3 vposition = new IndexedVector3(_position.X, _position.Y, _position.Z);
         IndexedQuaternion vquaternion = new IndexedQuaternion(_orientation.X, _orientation.Y, _orientation.Z,
                                                               _orientation.W);
@@ -418,8 +425,11 @@ private sealed class BulletConstraintXNA : BulletConstraint
     public override void SetMassProps(BulletBody pBody, float pphysMass, Vector3 plocalInertia)
     {
         RigidBody body = (pBody as BulletBodyXNA).rigidBody;
-        IndexedVector3 inertia = new IndexedVector3(plocalInertia.X, plocalInertia.Y, plocalInertia.Z);
-        body.SetMassProps(pphysMass, inertia);
+        if (body != null) // Can't set mass props on collision object.
+        {
+            IndexedVector3 inertia = new IndexedVector3(plocalInertia.X, plocalInertia.Y, plocalInertia.Z);
+            body.SetMassProps(pphysMass, inertia);
+        }
     }
 
 
@@ -432,7 +442,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
 
     public override void SetFriction(BulletBody pCollisionObject, float _currentFriction)
     {
-        CollisionObject collisionObject = (pCollisionObject as BulletBodyXNA).rigidBody;
+        CollisionObject collisionObject = (pCollisionObject as BulletBodyXNA).body;
         collisionObject.SetFriction(_currentFriction);
     }
 
@@ -459,7 +469,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
 
     public override CollisionFlags RemoveFromCollisionFlags(BulletBody pCollisionObject, CollisionFlags pcollisionFlags)
     {
-        CollisionObject collisionObject = (pCollisionObject as BulletBodyXNA).rigidBody;
+        CollisionObject collisionObject = (pCollisionObject as BulletBodyXNA).body;
         CollisionFlags existingcollisionFlags = (CollisionFlags)(uint)collisionObject.GetCollisionFlags();
         existingcollisionFlags &= ~pcollisionFlags;
         collisionObject.SetCollisionFlags((BulletXNA.BulletCollision.CollisionFlags)(uint)existingcollisionFlags);
@@ -494,8 +504,11 @@ private sealed class BulletConstraintXNA : BulletConstraint
     public override void SetGravity(BulletBody pBody, Vector3 pGravity)
     {
         RigidBody body = (pBody as BulletBodyXNA).rigidBody;
-        IndexedVector3 gravity = new IndexedVector3(pGravity.X, pGravity.Y, pGravity.Z);
-        body.SetGravity(gravity);
+        if (body != null) // Can't set collisionobject.set gravity
+        {
+            IndexedVector3 gravity = new IndexedVector3(pGravity.X, pGravity.Y, pGravity.Z);
+            body.SetGravity(gravity);
+        }
     }
 
     public override bool DestroyConstraint(BulletWorld pWorld, BulletConstraint pConstraint)
@@ -733,7 +746,8 @@ private sealed class BulletConstraintXNA : BulletConstraint
     public override void UpdateInertiaTensor(BulletBody pBody)
     {
         RigidBody body = (pBody as BulletBodyXNA).rigidBody;
-        body.UpdateInertiaTensor();
+        if (body != null)  // can't update inertia tensor on CollisionObject
+            body.UpdateInertiaTensor();
     }
 
     public override void RecalculateCompoundShapeLocalAabb(BulletShape pCompoundShape)
@@ -770,7 +784,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
 
     public override CollisionObjectTypes GetBodyType(BulletBody pCollisionObject)
     {
-        CollisionObject collisionObject = (pCollisionObject as BulletBodyXNA).rigidBody;
+        CollisionObject collisionObject = (pCollisionObject as BulletBodyXNA).body;
         return (CollisionObjectTypes)(int) collisionObject.GetInternalType();
     }
 
@@ -889,7 +903,18 @@ private sealed class BulletConstraintXNA : BulletConstraint
                 world.RemoveRigidBody(bo);
             }
         }
-       
+        if (co != null)
+        {
+            if (co.GetUserPointer() != null)
+            {
+                uint localId = (uint) co.GetUserPointer();
+                if (specialCollisionObjects.ContainsKey(localId))
+                {
+                    specialCollisionObjects.Remove(localId);
+                }
+            }
+        }
+
     }
 
     public override void Shutdown(BulletWorld pWorld)
@@ -1050,7 +1075,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
         Vector3 worldExtent = new Vector3(Constants.RegionSize, Constants.RegionSize, Constants.RegionHeight);
         m_maxCollisions = maxCollisions;
         m_maxUpdatesPerFrame = maxUpdates;
-
+        specialCollisionObjects = new Dictionary<uint, GhostObject>();
 
         return new BulletWorldXNA(1, PhysicsScene, BSAPIXNA.Initialize2(worldExtent, configparms, maxCollisions, ref collisionArray, maxUpdates, ref updateArray, null));
     }
@@ -1310,6 +1335,12 @@ private sealed class BulletConstraintXNA : BulletConstraint
         CollisionShape shape = (pShape as BulletShapeXNA).shape;
         gObj.SetCollisionShape(shape);
         gObj.SetUserPointer(pLocalID);
+        
+        if (specialCollisionObjects.ContainsKey(pLocalID))
+            specialCollisionObjects[pLocalID] = gObj;
+        else 
+            specialCollisionObjects.Add(pLocalID, gObj);
+
         // TODO: Add to Special CollisionObjects!
         return new BulletBodyXNA(pLocalID, gObj);
     }
@@ -1399,7 +1430,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
     }
 
     public override BulletShape GetChildShapeFromCompoundShapeIndex(BulletShape cShape, int indx) { 
-        /* TODO */
+        
         if (cShape == null)
             return null;
         CompoundShape compoundShape = (cShape as BulletShapeXNA).shape as CompoundShape;
@@ -1407,7 +1438,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
         BulletShape retShape = new BulletShapeXNA(shape, BSShapeTypeFromBroadPhaseNativeType(shape.GetShapeType()));
 
 
-        return null; 
+        return retShape; 
     }
 
     public BSPhysicsShapeType BSShapeTypeFromBroadPhaseNativeType(BroadphaseNativeTypes pin)
@@ -1802,26 +1833,29 @@ private sealed class BulletConstraintXNA : BulletConstraint
             numSimSteps = world.StepSimulation(timeStep, m_maxSubSteps, m_fixedTimeStep);
             int updates = 0;
 
-            
-            
+            PersistentManifold contactManifold;
+            CollisionObject objA;
+            CollisionObject objB;
+            ManifoldPoint manifoldPoint;
+            PairCachingGhostObject pairCachingGhostObject;
 
             m_collisionsThisFrame = 0;
             int numManifolds = world.GetDispatcher().GetNumManifolds();
             for (int j = 0; j < numManifolds; j++)
             {
-                PersistentManifold contactManifold = world.GetDispatcher().GetManifoldByIndexInternal(j);
+                contactManifold = world.GetDispatcher().GetManifoldByIndexInternal(j);
                 int numContacts = contactManifold.GetNumContacts();
                 if (numContacts == 0)
                     continue;
 
-                CollisionObject objA = contactManifold.GetBody0() as CollisionObject;
-                CollisionObject objB = contactManifold.GetBody1() as CollisionObject;
+                objA = contactManifold.GetBody0() as CollisionObject;
+                objB = contactManifold.GetBody1() as CollisionObject;
 
-                ManifoldPoint manifoldPoint = contactManifold.GetContactPoint(0);
-                IndexedVector3 contactPoint = manifoldPoint.GetPositionWorldOnB();
-                IndexedVector3 contactNormal = -manifoldPoint.m_normalWorldOnB; // make relative to A
+                manifoldPoint = contactManifold.GetContactPoint(0);
+                //IndexedVector3 contactPoint = manifoldPoint.GetPositionWorldOnB();
+               // IndexedVector3 contactNormal = -manifoldPoint.m_normalWorldOnB; // make relative to A
 
-                RecordCollision(this, objA, objB, contactPoint, contactNormal,manifoldPoint.GetDistance());
+                RecordCollision(this, objA, objB, manifoldPoint.GetPositionWorldOnB(), -manifoldPoint.m_normalWorldOnB, manifoldPoint.GetDistance());
                 m_collisionsThisFrame ++;
                 if (m_collisionsThisFrame >= 9999999)
                     break;
@@ -1829,12 +1863,19 @@ private sealed class BulletConstraintXNA : BulletConstraint
 
             }
 
+            foreach (GhostObject ghostObject in specialCollisionObjects.Values)
+            {
+                pairCachingGhostObject = ghostObject as PairCachingGhostObject;
+                if (pairCachingGhostObject != null)
+                {
+                    RecordGhostCollisions(pairCachingGhostObject);
+                }
+
+            }
+
+
             updatedEntityCount = LastEntityProperty;
             updatedEntities = UpdatedObjects;
-            
-
-
-
 
             collidersCount = LastCollisionDesc;
             colliders = UpdatedCollisions;
@@ -1860,60 +1901,49 @@ private sealed class BulletConstraintXNA : BulletConstraint
     }
     public void RecordGhostCollisions(PairCachingGhostObject obj)
     {
-        /*
-         *void BulletSim::RecordGhostCollisions(btPairCachingGhostObject* obj)
-{
-	btManifoldArray   manifoldArray;
-	btBroadphasePairArray& pairArray = obj->getOverlappingPairCache()->getOverlappingPairArray();
-	int numPairs = pairArray.size();
+        IOverlappingPairCache cache = obj.GetOverlappingPairCache();
+        ObjectArray<BroadphasePair> pairs = cache.GetOverlappingPairArray();
+        
+        DiscreteDynamicsWorld world = (PhysicsScene.World as BulletWorldXNA).world;
+        PersistentManifoldArray manifoldArray = new PersistentManifoldArray();
+        BroadphasePair collisionPair;
+        PersistentManifold contactManifold;
 
-	// For all the pairs of sets of contact points
-	for (int i=0; i < numPairs; i++)
-	{
-		if (m_collisionsThisFrame >= m_maxCollisionsPerFrame) 
-			break;
+        CollisionObject objA;
+        CollisionObject objB;
 
-		manifoldArray.clear();
-		const btBroadphasePair& pair = pairArray[i];
+        ManifoldPoint pt;
 
-		// The real representation is over in the world pair cache
-		btBroadphasePair* collisionPair = m_worldData.dynamicsWorld->getPairCache()->findPair(pair.m_pProxy0,pair.m_pProxy1);
-		if (!collisionPair)
-			continue;
+        int numPairs = pairs.Count;
+        
+        for (int i = 0; i < numPairs; i++)
+        {
+            manifoldArray.Clear();
+            if (LastCollisionDesc < UpdatedCollisions.Length)
+                break;
+            collisionPair = world.GetPairCache().FindPair(pairs[i].m_pProxy0, pairs[i].m_pProxy1);
+            if (collisionPair == null)
+                continue;
+            
+            collisionPair.m_algorithm.GetAllContactManifolds(manifoldArray);
+            for (int j = 0; j < manifoldArray.Count; j++)
+            {
+                contactManifold = manifoldArray[j];
+                int numContacts = contactManifold.GetNumContacts();
+                objA = contactManifold.GetBody0() as CollisionObject;
+                objB = contactManifold.GetBody1() as CollisionObject;
+                for (int p = 0; p < numContacts; p++)
+                {
+                    pt = contactManifold.GetContactPoint(p);
+                    if (pt.GetDistance() < 0.0f)
+                    {
+                        RecordCollision(this, objA, objB, pt.GetPositionWorldOnA(), -pt.m_normalWorldOnB,pt.GetDistance());
+                        break;
+                    }
+                }
+            }
+        }
 
-		if (collisionPair->m_algorithm)
-			collisionPair->m_algorithm->getAllContactManifolds(manifoldArray);
-
-		// The collision pair has sets of collision points (manifolds)
-		for (int j=0; j < manifoldArray.size(); j++)
-		{
-			btPersistentManifold* contactManifold = manifoldArray[j];
-			int numContacts = contactManifold->getNumContacts();
-
-			const btCollisionObject* objA = static_cast<const btCollisionObject*>(contactManifold->getBody0());
-			const btCollisionObject* objB = static_cast<const btCollisionObject*>(contactManifold->getBody1());
-
-			// TODO: this is a more thurough check than the regular collision code --
-			//     here we find the penetrating contact in the manifold but for regular
-			//     collisions we assume the first point in the manifold is good enough.
-			//     Decide of this extra checking is required or if first point is good enough.
-			for (int p=0; p < numContacts; p++)
-			{
-				const btManifoldPoint& pt = contactManifold->getContactPoint(p);
-				// If a penetrating contact, this is a hit
-				if (pt.getDistance()<0.f)
-				{
-					const btVector3& contactPoint = pt.getPositionWorldOnA();
-					const btVector3& normalOnA = -pt.m_normalWorldOnB;
-					RecordCollision(objA, objB, contactPoint, normalOnA, pt.getDistance());
-					// Only one contact point for each set of colliding objects
-					break;
-				}
-			}
-		}
-	}
-}
-         */
     }
     private static void RecordCollision(BSAPIXNA world, CollisionObject objA, CollisionObject objB, IndexedVector3 contact, IndexedVector3 norm, float penetration)
     {
@@ -1934,7 +1964,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
             contactNormal = -contactNormal;
         }
 
-        ulong collisionID = ((ulong) idA << 32) | idB;
+        //ulong collisionID = ((ulong) idA << 32) | idB;
 
         CollisionDesc cDesc = new CollisionDesc()
                                             {
