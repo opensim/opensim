@@ -2023,7 +2023,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 (parcel.LandData.GroupID != GroupID ||
                                 parcel.LandData.GroupID == UUID.Zero))
                         {
-                            if (GetSittingAvatarsCount() == 0 && (DateTime.UtcNow - RootPart.Rezzed).TotalMinutes >
+                            if ((DateTime.UtcNow - RootPart.Rezzed).TotalMinutes >
                                     parcel.LandData.OtherCleanTime)
                             {
                                 DetachFromBackup();

@@ -5122,7 +5122,7 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         if ((grp.RootPart.Flags & PrimFlags.TemporaryOnRez) != 0)
                         {
-                            if (grp.RootPart.Expires <= DateTime.Now)
+                            if (grp.GetSittingAvatarsCount() == 0 && grp.RootPart.Expires <= DateTime.Now)
                                 DeleteSceneObject(grp, false);
                         }
                     }
