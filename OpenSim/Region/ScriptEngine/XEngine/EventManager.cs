@@ -62,6 +62,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             myScriptEngine.World.EventManager.OnScriptNotAtTargetEvent += not_at_target;
             myScriptEngine.World.EventManager.OnScriptAtRotTargetEvent += at_rot_target;
             myScriptEngine.World.EventManager.OnScriptNotAtRotTargetEvent += not_at_rot_target;
+            myScriptEngine.World.EventManager.OnScriptMovingStartEvent += moving_start;
+            myScriptEngine.World.EventManager.OnScriptMovingEndEvent += moving_end;
             myScriptEngine.World.EventManager.OnScriptControlEvent += control;
             myScriptEngine.World.EventManager.OnScriptColliderStart += collision_start;
             myScriptEngine.World.EventManager.OnScriptColliding += collision;
@@ -419,14 +421,14 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         // dataserver: not handled here
         // link_message: not handled here
 
-        public void moving_start(uint localID, UUID itemID)
+        public void moving_start(uint localID)
         {
             myScriptEngine.PostObjectEvent(localID, new EventParams(
                     "moving_start",new object[0],
                     new DetectParams[0]));
         }
 
-        public void moving_end(uint localID, UUID itemID)
+        public void moving_end(uint localID)
         {
             myScriptEngine.PostObjectEvent(localID, new EventParams(
                     "moving_end",new object[0],
