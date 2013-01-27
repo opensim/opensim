@@ -525,6 +525,16 @@ namespace OpenSim.Region.Framework.Scenes
                         {
                             Stop();
                             m_inOnTimer = false;
+                            Scene scene = m_group.Scene;
+
+                            IScriptModule[] scriptModules = scene.RequestModuleInterfaces<IScriptModule>();
+                            foreach (IScriptModule m in scriptModules)
+                            {
+                                if (m == null)
+                                    continue;
+                                m.PostObjectEvent(m_group.RootPart.UUID, "moving_end", new object[0]);
+                            }
+
                             return;
                         }
 
