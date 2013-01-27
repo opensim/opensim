@@ -141,7 +141,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         //    in changes by making enablement of debugging flags from INI file.
         public void SetupVehicleDebugging()
         {
-            enableAngularVerticalAttraction = true;
+            enableAngularVerticalAttraction = false;
             enableAngularDeflection = false;
             enableAngularBanking = false;
             if (BSParam.VehicleDebuggingEnabled != ConfigurationParameters.numericFalse)
@@ -803,7 +803,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     m_knownVelocity = Prim.ForceVelocity;
                     m_knownHas |= m_knownChangedVelocity;
                 }
-                return (Vector3)m_knownVelocity;
+                return m_knownVelocity;
             }
             set
             {
@@ -926,6 +926,8 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         // Called after the simulation step
         internal void PostStep(float pTimestep)
         {
+            if (!IsActive) return;
+
             if (PhysicsScene.VehiclePhysicalLoggingEnabled)
                 PhysicsScene.PE.DumpRigidBody(PhysicsScene.World, Prim.PhysBody);
         }
@@ -961,10 +963,13 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             // ==================================================================
             // Clamp high or low velocities
             float newVelocityLengthSq = VehicleVelocity.LengthSquared();
-            if (newVelocityLengthSq > BSParam.VehicleMaxLinearVelocity)
+            if (newVelocityLengthSq > BSParam.VehicleMaxLinearVelocitySq)
             {
+                Vector3 origVelW = VehicleVelocity;         // DEBUG DEBUG
                 VehicleVelocity /= VehicleVelocity.Length();
                 VehicleVelocity *= BSParam.VehicleMaxLinearVelocity;
+                VDetailLog("{0},  MoveLinear,clampMax,origVelW={1},lenSq={2},maxVelSq={3},,newVelW={4}", 
+                            Prim.LocalID, origVelW, newVelocityLengthSq, BSParam.VehicleMaxLinearVelocitySq, VehicleVelocity);
             }
             else if (newVelocityLengthSq < 0.001f)
                 VehicleVelocity = Vector3.Zero;
@@ -1301,6 +1306,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             if (enableAngularVerticalAttraction && m_verticalAttractionTimescale < m_verticalAttractionCutoff)
             {
                 Vector3 vertContributionV = Vector3.Zero;
+                Vector3 origRotVelW = VehicleRotationalVelocity;        // DEBUG DEBUG
 
                 // Take a vector pointing up and convert it from world to vehicle relative coords.
                 Vector3 verticalError = Vector3.UnitZ * VehicleOrientation;
@@ -1328,13 +1334,14 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 
                 // 'vertContrbution' is now the necessary angular correction to correct tilt in one second.
                 //     Correction happens over a number of seconds.
-                Vector3 unscaledContrib = vertContributionV;     // DEBUG DEBUG
+                Vector3 unscaledContribVerticalErrorV = vertContributionV;     // DEBUG DEBUG
                 vertContributionV /= m_verticalAttractionTimescale;
 
                 VehicleRotationalVelocity += vertContributionV * VehicleOrientation;
 
-                VDetailLog("{0},  MoveAngular,verticalAttraction,,verticalError={1},unscaled={2},eff={3},ts={4},vertAttr={5}",
-                                Prim.LocalID, verticalError, unscaledContrib, m_verticalAttractionEfficiency, m_verticalAttractionTimescale, vertContributionV);
+                VDetailLog("{0},  MoveAngular,verticalAttraction,,origRotVW={1},vertError={2},unscaledV={3},eff={4},ts={5},vertContribV={6}",
+                                Prim.LocalID, origRotVelW, verticalError, unscaledContribVerticalErrorV, 
+                                m_verticalAttractionEfficiency, m_verticalAttractionTimescale, vertContributionV);
             }
         }
 

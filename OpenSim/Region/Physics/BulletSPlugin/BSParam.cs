@@ -84,32 +84,16 @@ public static class BSParam
 
     // Vehicle parameters
     public static float VehicleMaxLinearVelocity { get; private set; }
+    public static float VehicleMaxLinearVelocitySq { get; private set; }
     public static float VehicleMaxAngularVelocity { get; private set; }
+    public static float VehicleMaxAngularVelocitySq { get; private set; }
     public static float VehicleAngularDamping { get; private set; }
     public static float VehicleFriction { get; private set; }
     public static float VehicleRestitution { get; private set; }
     public static float VehicleLinearFactor { get; private set; }
-    private static Vector3? vehicleLinearFactorV;
-    public static Vector3 VehicleLinearFactorV
-    {
-        get
-        {
-            if (!vehicleLinearFactorV.HasValue)
-                vehicleLinearFactorV = new Vector3(VehicleLinearFactor, VehicleLinearFactor, VehicleLinearFactor);
-            return (Vector3)vehicleLinearFactorV;
-        }
-    }
+    public static Vector3 VehicleLinearFactorV { get; private set; }
     public static float VehicleAngularFactor { get; private set; }
-    private static Vector3? vehicleAngularFactorV;
-    public static Vector3 VehicleAngularFactorV
-    {
-        get
-        {
-            if (!vehicleAngularFactorV.HasValue)
-                vehicleAngularFactorV = new Vector3(VehicleAngularFactor, VehicleAngularFactor, VehicleAngularFactor);
-            return (Vector3)vehicleAngularFactorV;
-        }
-    }
+    public static Vector3 VehicleAngularFactorV { get; private set; }
     public static float VehicleGroundGravityFudge { get; private set; }
     public static float VehicleDebuggingEnabled { get; private set; }
 
@@ -469,12 +453,12 @@ public static class BSParam
             1000.0f,
             (s,cf,p,v) => { VehicleMaxLinearVelocity = cf.GetFloat(p, v); },
             (s) => { return (float)VehicleMaxLinearVelocity; },
-            (s,p,l,v) => { VehicleMaxLinearVelocity = v; } ),
+            (s,p,l,v) => { VehicleMaxLinearVelocity = v; VehicleMaxLinearVelocitySq = v * v; } ),
         new ParameterDefn("VehicleMaxAngularVelocity", "Maximum rotational velocity magnitude that can be assigned to a vehicle",
             12.0f,
             (s,cf,p,v) => { VehicleMaxAngularVelocity = cf.GetFloat(p, v); },
             (s) => { return (float)VehicleMaxAngularVelocity; },
-            (s,p,l,v) => { VehicleMaxAngularVelocity = v; } ),
+            (s,p,l,v) => { VehicleMaxAngularVelocity = v; VehicleMaxAngularVelocitySq = v * v; } ),
         new ParameterDefn("VehicleAngularDamping", "Factor to damp vehicle angular movement per second (0.0 - 1.0)",
             0.0f,
             (s,cf,p,v) => { VehicleAngularDamping = cf.GetFloat(p, v); },
@@ -484,24 +468,24 @@ public static class BSParam
             1.0f,
             (s,cf,p,v) => { VehicleLinearFactor = cf.GetFloat(p, v); },
             (s) => { return VehicleLinearFactor; },
-            (s,p,l,v) => { VehicleLinearFactor = v; } ),
+            (s,p,l,v) => { VehicleLinearFactor = v; VehicleLinearFactorV = new Vector3(v, v, v); } ),
         new ParameterDefn("VehicleAngularFactor", "Fraction of physical angular changes applied to vehicle (0.0 - 1.0)",
             1.0f,
             (s,cf,p,v) => { VehicleAngularFactor = cf.GetFloat(p, v); },
             (s) => { return VehicleAngularFactor; },
-            (s,p,l,v) => { VehicleAngularFactor = v; } ),
+            (s,p,l,v) => { VehicleAngularFactor = v; VehicleAngularFactorV = new Vector3(v, v, v); } ),
         new ParameterDefn("VehicleFriction", "Friction of vehicle on the ground (0.0 - 1.0)",
             0.0f,
             (s,cf,p,v) => { VehicleFriction = cf.GetFloat(p, v); },
             (s) => { return VehicleFriction; },
             (s,p,l,v) => { VehicleFriction = v; } ),
         new ParameterDefn("VehicleRestitution", "Bouncyness factor for vehicles (0.0 - 1.0)",
-            0.2f,
+            0.0f,
             (s,cf,p,v) => { VehicleRestitution = cf.GetFloat(p, v); },
             (s) => { return VehicleRestitution; },
             (s,p,l,v) => { VehicleRestitution = v; } ),
         new ParameterDefn("VehicleGroundGravityFudge", "Factor to multiple gravity if a ground vehicle is probably on the ground (0.0 - 1.0)",
-            1.0f,
+            0.2f,
             (s,cf,p,v) => { VehicleGroundGravityFudge = cf.GetFloat(p, v); },
             (s) => { return VehicleGroundGravityFudge; },
             (s,p,l,v) => { VehicleGroundGravityFudge = v; } ),
