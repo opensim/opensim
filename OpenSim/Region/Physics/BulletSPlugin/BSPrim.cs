@@ -1620,7 +1620,7 @@ public sealed class BSPrim : BSPhysObject
             // TODO: handle physics introduced by Bullet with computed vehicle physics.
             if (_vehicle.IsActive)
             {
-                // entprop.RotationalVelocity = OMV.Vector3.Zero;
+                entprop.RotationalVelocity = OMV.Vector3.Zero;
             }
 
             // DetailLog("{0},BSPrim.UpdateProperties,entry,entprop={1}", LocalID, entprop);   // DEBUG DEBUG
