@@ -339,7 +339,8 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                 // to avoid a race condition when the appearance module retrieves the item to set the asset id in
                 // the AvatarAppearance structure.
                 item.AssetID = m_asset.FullID;
-                m_Scene.InventoryService.UpdateItem(item);
+                if (item.AssetID != UUID.Zero)
+                    m_Scene.InventoryService.UpdateItem(item);
 
                 if (m_uploadState == UploadState.Complete)
                 {
