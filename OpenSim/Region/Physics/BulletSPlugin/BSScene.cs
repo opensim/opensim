@@ -88,7 +88,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     public delegate void PreStepAction(float timeStep);
     public delegate void PostStepAction(float timeStep);
     public event PreStepAction BeforeStep;
-    public event PreStepAction AfterStep;
+    public event PostStepAction AfterStep;
 
     // A value of the time now so all the collision and update routines do not have to get their own
     // Set to 'now' just before all the prims and actors are called for collisions and updates
@@ -763,7 +763,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
     private void TriggerPostStepEvent(float timeStep)
     {
-        PreStepAction actions = AfterStep;
+        PostStepAction actions = AfterStep;
         if (actions != null)
             actions(timeStep);
 
