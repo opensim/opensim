@@ -3379,10 +3379,11 @@
       <Reference name="log4net" path="../../../../../bin/"/>
       <Reference name="nunit.framework" path="../../../../../bin/"/>
       <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Region.Physics.BulletSPlugin" path="../../../../../bin/Physics/"/>
-      <Reference name="OpenSim.Region.Physics.Manager"/>
-      <Reference name="OpenSim.Region.Physics.Meshing"/>
       <Reference name="OpenSim.Tests.Common"/>
+      <Reference name="OpenSim.Region.CoreModules"/>
+      <Reference name="OpenSim.Region.Physics.Meshing" path="../../../../../bin/Physics/"/>
+      <Reference name="OpenSim.Region.Physics.Manager"/>
+      <Reference name="OpenSim.Region.Physics.BulletSPlugin" path="../../../../../bin/Physics/"/>
 
       <Files>
         <Match pattern="*.cs" recurse="false"/>
