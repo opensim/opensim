@@ -377,7 +377,7 @@ public sealed class BSLinksetCompound : BSLinkset
     // Constraint linksets are rebuilt every time.
     // Note that this works for rebuilding just the root after a linkset is taken apart.
     // Called at taint time!!
-    private bool disableCOM = false;     // disable until we get this debugged
+    private bool disableCOM = true;     // disable until we get this debugged
     private void RecomputeLinksetCompound()
     {
         try
