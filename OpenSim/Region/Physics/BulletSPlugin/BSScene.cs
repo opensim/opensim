@@ -708,8 +708,8 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             }
 
             List<BSPhysObject> orderedPrims = new List<BSPhysObject>(PhysObjects.Values);
-            orderedPrims.OrderByDescending(p => p.CollisionScore).Take(25);
-            topColliders = orderedPrims.ToDictionary(p => p.LocalID, p => p.CollisionScore);
+            orderedPrims.OrderByDescending(p => p.CollisionScore);
+            topColliders = orderedPrims.Take(25).ToDictionary(p => p.LocalID, p => p.CollisionScore);
         }
 
         return topColliders;
