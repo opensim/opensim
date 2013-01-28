@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -44,18 +44,20 @@ public static class BulletSimTestsUtil
     // 'engineName' is the Bullet engine to use. Either null (for unmanaged), "BulletUnmanaged" or "BulletXNA"
     // 'params' is a set of keyValue pairs to set in the engine's configuration file (override defaults)
     //      May be 'null' if there are no overrides.
-    public static BSScene CreateBasicPhysicsEngine(string engineName, Dictionary<string,string> paramOverrides)
+    public static BSScene CreateBasicPhysicsEngine(Dictionary<string,string> paramOverrides)
     {
-        if (engineName == null)
-            engineName = "BulletUnmanaged";
-
         IConfigSource openSimINI = new IniConfigSource();
         IConfig startupConfig = openSimINI.AddConfig("StartUp");
-        startupConfig.Set("meshing", "Meshmerizer");
         startupConfig.Set("physics", "BulletSim");
+        startupConfig.Set("meshing", "Meshmerizer");
+        startupConfig.Set("cacheSculptMaps", "false");  // meshmerizer shouldn't save maps
 
         IConfig bulletSimConfig = openSimINI.AddConfig("BulletSim");
-        bulletSimConfig.Set("BulletEngine", engineName);
+        // If the caller cares, specify the bullet engine otherwise it will default to "BulletUnmanaged".
+        // bulletSimConfig.Set("BulletEngine", "BulletUnmanaged");
+        // bulletSimConfig.Set("BulletEngine", "BulletXNA");
+        bulletSimConfig.Set("MeshSculptedPrim", "false");
+        bulletSimConfig.Set("ForceSimplePrimMeshing", "true");
         if (paramOverrides != null)
         {
             foreach (KeyValuePair<string, string> kvp in paramOverrides)
@@ -70,6 +72,10 @@ public static class BulletSimTestsUtil
         BSPlugin bsPlugin = new BSPlugin();
 
         BSScene bsScene = (BSScene)bsPlugin.GetScene("BSTestRegion");
+
+        // Since the asset requestor is not initialized, any mesh or sculptie will be a cube.
+        // In the future, add a fake asset fetcher to get meshes and sculpts.
+        // bsScene.RequestAssetMethod = ???;
 
         Meshing.Meshmerizer mesher = new Meshmerizer(openSimINI);
         bsScene.Initialise(mesher, openSimINI);
