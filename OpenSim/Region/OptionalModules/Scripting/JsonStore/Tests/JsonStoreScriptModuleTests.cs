@@ -59,8 +59,6 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
         {
             base.SetUp();
 
-            TestHelpers.EnableLogging();
-
             IConfigSource configSource = new IniConfigSource();
             IConfig jsonStoreConfig = configSource.AddConfig("JsonStore");
             jsonStoreConfig.Set("Enabled", "true");
@@ -72,9 +70,20 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 
             m_scene = new SceneHelpers().SetupScene();
             SceneHelpers.SetupSceneModules(m_scene, configSource, m_engine, m_smcm, jsm, jssm);
+
+            try
+            {
+                m_smcm.RegisterScriptInvocation(this, "DummyTestMethod");
+            }
+            catch (ArgumentException)
+            {
+                Assert.Ignore("Ignoring test since running on .NET 3.5 or earlier.");
+            }
+
+            // XXX: Unfortunately, ICommsModule currently has no way of deregistering methods.
         }
 
-//        [Test]
+        [Test]
         public void TestJsonCreateStore()
         {
             TestHelpers.InMethod();
@@ -85,7 +94,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
             Assert.That(storeId, Is.Not.EqualTo(UUID.Zero));
         }
 
-//        [Test]
+        [Test]
         public void TestJsonGetValue()
         {
             TestHelpers.InMethod();
@@ -102,7 +111,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
             Assert.That(value, Is.EqualTo("World"));
         }
 
-//        [Test]
+        [Test]
         public void TestJsonTestPath()
         {
             TestHelpers.InMethod();
@@ -119,7 +128,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
             Assert.That(result, Is.EqualTo(1));
         }
 
-//        [Test]
+        [Test]
         public void TestJsonSetValue()
         {
             TestHelpers.InMethod();
@@ -141,5 +150,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 
             Assert.That(value, Is.EqualTo("World"));
         }
+
+        public object DummyTestMethod(object o1, object o2, object o3, object o4, object o5) { return null; }
     }
 }
