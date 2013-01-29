@@ -141,12 +141,12 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         //    in changes by making enablement of debugging flags from INI file.
         public void SetupVehicleDebugging()
         {
-            enableAngularVerticalAttraction = false;
+            enableAngularVerticalAttraction = true;
             enableAngularDeflection = false;
             enableAngularBanking = false;
             if (BSParam.VehicleDebuggingEnabled != ConfigurationParameters.numericFalse)
             {
-                enableAngularVerticalAttraction = false;
+                enableAngularVerticalAttraction = true;
                 enableAngularDeflection = false;
                 enableAngularBanking = false;
             }

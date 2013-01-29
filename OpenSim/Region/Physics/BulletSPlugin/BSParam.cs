@@ -383,7 +383,7 @@ public static class BSParam
             (s) => { return TerrainRestitution; },
             (s,p,l,v) => { TerrainRestitution = v;  /* TODO: set on real terrain */ } ),
         new ParameterDefn("TerrainCollisionMargin", "Margin where collision checking starts" ,
-            0.04f,
+            0.08f,
             (s,cf,p,v) => { TerrainCollisionMargin = cf.GetFloat(p, v); },
             (s) => { return TerrainCollisionMargin; },
             (s,p,l,v) => { TerrainCollisionMargin = v;  /* TODO: set on real terrain */ } ),
