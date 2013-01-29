@@ -95,12 +95,16 @@ public abstract class BSPhysObject : PhysicsActor
         SubscribedEventsMs = 0;
         CollidingStep = 0;
         CollidingGroundStep = 0;
+        CollisionAccumulation = 0;
+        ColliderIsMoving = false;
+        CollisionScore = 0;
     }
 
     // Tell the object to clean up.
     public virtual void Destroy()
     {
         UnRegisterAllPreStepActions();
+        UnRegisterAllPostStepActions();
     }
 
     public BSScene PhysicsScene { get; protected set; }
@@ -174,13 +178,14 @@ public abstract class BSPhysObject : PhysicsActor
     public abstract OMV.Vector3 RawPosition { get; set; }
     public abstract OMV.Vector3 ForcePosition { get; set; }
 
-    // Position is what the simulator thinks the positions of the prim is.
+    // 'Position' and 'Orientation' is what the simulator thinks the positions of the prim is.
     // Because Bullet needs the zero coordinate to be the center of mass of the linkset,
     //     sometimes it is necessary to displace the position the physics engine thinks
     //     the position is. PositionDisplacement must be added and removed from the
     //     position as the simulator position is stored and fetched from the physics
-    //     engine. 
+    //     engine. Similar to OrientationDisplacement.
     public virtual OMV.Vector3 PositionDisplacement { get; set; }
+    public virtual OMV.Quaternion OrientationDisplacement { get; set; }
 
     public abstract OMV.Quaternion RawOrientation { get; set; }
     public abstract OMV.Quaternion ForceOrientation { get; set; }
@@ -237,6 +242,12 @@ public abstract class BSPhysObject : PhysicsActor
     protected long CollidingObjectStep { get; set; }
     // The collision flags we think are set in Bullet
     protected CollisionFlags CurrentCollisionFlags { get; set; }
+    // On a collision, check the collider and remember if the last collider was moving
+    //    Used to modify the standing of avatars (avatars on stationary things stand still)
+    protected bool ColliderIsMoving;
+
+    // Count of collisions for this object
+    protected long CollisionAccumulation { get; set; }
 
     public override bool IsColliding {
         get { return (CollidingStep == PhysicsScene.SimulationStep); }
@@ -299,7 +310,12 @@ public abstract class BSPhysObject : PhysicsActor
             return ret;
         }
 
-        // if someone has subscribed for collision events....
+        CollisionAccumulation++;
+
+        // For movement tests, remember if we are colliding with an object that is moving.
+        ColliderIsMoving = collidee != null ? collidee.RawVelocity != OMV.Vector3.Zero : false;
+
+        // If someone has subscribed for collision events log the collision so it will be reported up
         if (SubscribedEvents()) {
             CollisionCollection.AddCollider(collidingWith, new ContactPoint(contactPoint, contactNormal, pentrationDepth));
             DetailLog("{0},{1}.Collison.AddCollider,call,with={2},point={3},normal={4},depth={5}",
@@ -385,6 +401,17 @@ public abstract class BSPhysObject : PhysicsActor
     public override bool SubscribedEvents() {
         return (SubscribedEventsMs > 0);
     }
+    // Because 'CollisionScore' is called many times while sorting, it should not be recomputed
+    //    each time called. So this is built to be light weight for each collision and to do
+    //    all the processing when the user asks for the info.
+    public void ComputeCollisionScore()
+    {
+        // Scale the collision count by the time since the last collision.
+        // The "+1" prevents dividing by zero.
+        long timeAgo = PhysicsScene.SimulationStep - CollidingStep + 1;
+        CollisionScore = CollisionAccumulation / timeAgo;
+    }
+    public override float CollisionScore { get; set; }
 
     #endregion // Collisions
 
@@ -393,52 +420,103 @@ public abstract class BSPhysObject : PhysicsActor
     // These actions are optional so, rather than scanning all the physical objects and asking them
     //     if they have anything to do, a physical object registers for an event call before the step is performed.
     // This bookkeeping makes it easy to add, remove and clean up after all these registrations.
-    private Dictionary<string, BSScene.PreStepAction> RegisteredActions = new Dictionary<string, BSScene.PreStepAction>();
+    private Dictionary<string, BSScene.PreStepAction> RegisteredPrestepActions = new Dictionary<string, BSScene.PreStepAction>();
+    private Dictionary<string, BSScene.PostStepAction> RegisteredPoststepActions = new Dictionary<string, BSScene.PostStepAction>();
     protected void RegisterPreStepAction(string op, uint id, BSScene.PreStepAction actn)
     {
         string identifier = op + "-" + id.ToString();
 
-        lock (RegisteredActions)
+        lock (RegisteredPrestepActions)
         {
             // Clean out any existing action
             UnRegisterPreStepAction(op, id);
 
-            RegisteredActions[identifier] = actn;
+            RegisteredPrestepActions[identifier] = actn;
+
+            PhysicsScene.BeforeStep += actn;
         }
-        PhysicsScene.BeforeStep += actn;
         DetailLog("{0},BSPhysObject.RegisterPreStepAction,id={1}", LocalID, identifier);
     }
 
     // Unregister a pre step action. Safe to call if the action has not been registered.
-    protected void UnRegisterPreStepAction(string op, uint id)
+    // Returns 'true' if an action was actually removed
+    protected bool UnRegisterPreStepAction(string op, uint id)
     {
         string identifier = op + "-" + id.ToString();
         bool removed = false;
-        lock (RegisteredActions)
+        lock (RegisteredPrestepActions)
         {
-            if (RegisteredActions.ContainsKey(identifier))
+            if (RegisteredPrestepActions.ContainsKey(identifier))
             {
-                PhysicsScene.BeforeStep -= RegisteredActions[identifier];
-                RegisteredActions.Remove(identifier);
+                PhysicsScene.BeforeStep -= RegisteredPrestepActions[identifier];
+                RegisteredPrestepActions.Remove(identifier);
                 removed = true;
             }
         }
         DetailLog("{0},BSPhysObject.UnRegisterPreStepAction,id={1},removed={2}", LocalID, identifier, removed);
+        return removed;
     }
 
     protected void UnRegisterAllPreStepActions()
     {
-        lock (RegisteredActions)
+        lock (RegisteredPrestepActions)
         {
-            foreach (KeyValuePair<string, BSScene.PreStepAction> kvp in RegisteredActions)
+            foreach (KeyValuePair<string, BSScene.PreStepAction> kvp in RegisteredPrestepActions)
             {
                 PhysicsScene.BeforeStep -= kvp.Value;
             }
-            RegisteredActions.Clear();
+            RegisteredPrestepActions.Clear();
         }
         DetailLog("{0},BSPhysObject.UnRegisterAllPreStepActions,", LocalID);
     }
+    
+    protected void RegisterPostStepAction(string op, uint id, BSScene.PostStepAction actn)
+    {
+        string identifier = op + "-" + id.ToString();
 
+        lock (RegisteredPoststepActions)
+        {
+            // Clean out any existing action
+            UnRegisterPostStepAction(op, id);
+
+            RegisteredPoststepActions[identifier] = actn;
+
+            PhysicsScene.AfterStep += actn;
+        }
+        DetailLog("{0},BSPhysObject.RegisterPostStepAction,id={1}", LocalID, identifier);
+    }
+
+    // Unregister a pre step action. Safe to call if the action has not been registered.
+    // Returns 'true' if an action was actually removed.
+    protected bool UnRegisterPostStepAction(string op, uint id)
+    {
+        string identifier = op + "-" + id.ToString();
+        bool removed = false;
+        lock (RegisteredPoststepActions)
+        {
+            if (RegisteredPoststepActions.ContainsKey(identifier))
+            {
+                PhysicsScene.AfterStep -= RegisteredPoststepActions[identifier];
+                RegisteredPoststepActions.Remove(identifier);
+                removed = true;
+            }
+        }
+        DetailLog("{0},BSPhysObject.UnRegisterPostStepAction,id={1},removed={2}", LocalID, identifier, removed);
+        return removed;
+    }
+
+    protected void UnRegisterAllPostStepActions()
+    {
+        lock (RegisteredPoststepActions)
+        {
+            foreach (KeyValuePair<string, BSScene.PostStepAction> kvp in RegisteredPoststepActions)
+            {
+                PhysicsScene.AfterStep -= kvp.Value;
+            }
+            RegisteredPoststepActions.Clear();
+        }
+        DetailLog("{0},BSPhysObject.UnRegisterAllPostStepActions,", LocalID);
+    }
     
     #endregion // Per Simulation Step actions
 

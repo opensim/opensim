@@ -4096,8 +4096,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             lock (_prims)
             {
                 List<OdePrim> orderedPrims = new List<OdePrim>(_prims);
-                orderedPrims.OrderByDescending(p => p.CollisionScore).Take(25);
-                topColliders = orderedPrims.ToDictionary(p => p.LocalID, p => p.CollisionScore);
+                orderedPrims.OrderByDescending(p => p.CollisionScore);
+                topColliders = orderedPrims.Take(25).ToDictionary(p => p.LocalID, p => p.CollisionScore);
 
                 foreach (OdePrim p in _prims)
                     p.CollisionScore = 0;
