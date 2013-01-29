@@ -125,9 +125,9 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         static readonly float PIOverTwo = ((float)Math.PI) / 2f;
 
         // For debugging, flags to turn on and off individual corrections.
-        private bool enableAngularVerticalAttraction;
-        private bool enableAngularDeflection;
-        private bool enableAngularBanking;
+        public bool enableAngularVerticalAttraction;
+        public bool enableAngularDeflection;
+        public bool enableAngularBanking;
 
         public BSDynamics(BSScene myScene, BSPrim myPrim)
         {
@@ -165,7 +165,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         }
 
         #region Vehicle parameter setting
-        internal void ProcessFloatVehicleParam(Vehicle pParam, float pValue)
+        public void ProcessFloatVehicleParam(Vehicle pParam, float pValue)
         {
             VDetailLog("{0},ProcessFloatVehicleParam,param={1},val={2}", Prim.LocalID, pParam, pValue);
             switch (pParam)
@@ -677,13 +677,13 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         private const int m_knownChangedWaterLevel         = 1 << 9;
         private const int m_knownChangedForwardVelocity    = 1 <<10;
 
-        private void ForgetKnownVehicleProperties()
+        public void ForgetKnownVehicleProperties()
         {
             m_knownHas = 0;
             m_knownChanged = 0;
         }
         // Push all the changed values back into the physics engine
-        private void PushKnownChanged()
+        public void PushKnownChanged()
         {
             if (m_knownChanged != 0)
             {

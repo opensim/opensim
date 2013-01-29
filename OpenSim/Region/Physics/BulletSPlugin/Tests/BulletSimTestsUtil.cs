@@ -47,7 +47,7 @@ public static class BulletSimTestsUtil
     public static BSScene CreateBasicPhysicsEngine(Dictionary<string,string> paramOverrides)
     {
         IConfigSource openSimINI = new IniConfigSource();
-        IConfig startupConfig = openSimINI.AddConfig("StartUp");
+        IConfig startupConfig = openSimINI.AddConfig("Startup");
         startupConfig.Set("physics", "BulletSim");
         startupConfig.Set("meshing", "Meshmerizer");
         startupConfig.Set("cacheSculptMaps", "false");  // meshmerizer shouldn't save maps

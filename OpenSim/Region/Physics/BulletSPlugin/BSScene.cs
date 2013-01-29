@@ -855,7 +855,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         {
             DetailLog("{0},BSScene.AssertInTaintTime,NOT IN TAINT TIME,Region={1},Where={2}", DetailLogZero, RegionName, whereFrom);
             m_log.ErrorFormat("{0} NOT IN TAINT TIME!! Region={1}, Where={2}", LogHeader, RegionName, whereFrom);
-            Util.PrintCallStack(DetailLog);
+            // Util.PrintCallStack(DetailLog);
         }
         return InTaintTime;
     }

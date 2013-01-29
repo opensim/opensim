@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -33,7 +33,12 @@ using System.Text;
 using NUnit.Framework;
 using log4net;
 
+using OpenSim.Framework;
+using OpenSim.Region.Physics.BulletSPlugin;
+using OpenSim.Region.Physics.Manager;
 using OpenSim.Tests.Common;
+
+using OpenMetaverse;
 
 namespace OpenSim.Region.Physics.BulletSPlugin.Tests
 {
@@ -43,14 +48,80 @@ public class BasicVehicles : OpenSimTestCase
     // Documentation on attributes: http://www.nunit.org/index.php?p=attributes&r=2.6.1
     // Documentation on assertions: http://www.nunit.org/index.php?p=assertions&r=2.6.1
 
+    BSScene PhysicsScene { get; set; }
+    BSPrim TestVehicle { get; set; }
+    Vector3 TestVehicleInitPosition { get; set; }
+    float timeStep = 0.089f;
+
     [TestFixtureSetUp]
     public void Init()
     {
+        Dictionary<string, string> engineParams = new Dictionary<string, string>();
+        PhysicsScene = BulletSimTestsUtil.CreateBasicPhysicsEngine(engineParams);
+
+        PrimitiveBaseShape pbs = PrimitiveBaseShape.CreateSphere();
+        Vector3 pos = new Vector3(100.0f, 100.0f, 0f);
+        pos.Z = PhysicsScene.TerrainManager.GetTerrainHeightAtXYZ(pos) + 2f;
+        TestVehicleInitPosition = pos;
+        Vector3 size = new Vector3(1f, 1f, 1f);
+        pbs.Scale = size;
+        Quaternion rot = Quaternion.Identity;
+        bool isPhys = false;
+        uint localID = 123;
+
+        PhysicsScene.AddPrimShape("testPrim", pbs, pos, size, rot, isPhys, localID);
+        TestVehicle = (BSPrim)PhysicsScene.PhysObjects[localID];
+        // The actual prim shape creation happens at taint time
+        PhysicsScene.ProcessTaints();
+
     }
 
     [TestFixtureTearDown]
     public void TearDown()
     {
+        if (PhysicsScene != null)
+        {
+            // The Dispose() will also free any physical objects in the scene
+            PhysicsScene.Dispose();
+            PhysicsScene = null;
+        }
+    }
+
+    [TestCase(25,  0.25f,  0.25f,  0.25f)]
+    [TestCase(25, -0.25f,  0.25f,  0.25f)]
+    [TestCase(25,  0.25f, -0.25f,  0.25f)]
+    [TestCase(25, -0.25f, -0.25f,  0.25f)]
+    public void VerticalAttraction(int simSteps, float initRoll, float initPitch, float initYaw)
+    {
+        Quaternion initOrientation = Quaternion.CreateFromEulers(initRoll, initPitch, initYaw);
+        TestVehicle.Orientation = initOrientation;
+
+        TestVehicle.Position = TestVehicleInitPosition;
+
+        // The vehicle controller is not enabled directly (set a vehicle type).
+        //    Instead the appropriate values are set and calls are made just the parts of the
+        //    controller we want to exercise. Stepping the physics engine then applies
+        //    the actions of that one feature.
+        TestVehicle.VehicleController.ProcessFloatVehicleParam(Vehicle.VERTICAL_ATTRACTION_EFFICIENCY, 0.2f);
+        TestVehicle.VehicleController.ProcessFloatVehicleParam(Vehicle.VERTICAL_ATTRACTION_TIMESCALE, 2f);
+        TestVehicle.VehicleController.enableAngularVerticalAttraction = true;
+
+        TestVehicle.IsPhysical = true;
+        PhysicsScene.ProcessTaints();
+
+        // Step the simulator a bunch of times and and vertical attraction should orient the vehicle up
+        for (int ii = 0; ii < simSteps; ii++)
+        {
+            TestVehicle.VehicleController.ForgetKnownVehicleProperties();
+            TestVehicle.VehicleController.ComputeAngularVerticalAttraction();
+            TestVehicle.VehicleController.PushKnownChanged();
+
+            PhysicsScene.Simulate(timeStep);
+        }
+
+        // After these steps, the vehicle should be upright
+        Vector3 upPointer = Vector3.UnitZ * TestVehicle.Orientation;
+        Assert.That(upPointer.Z, Is.GreaterThan(0.99f));
     }
 }
 }
