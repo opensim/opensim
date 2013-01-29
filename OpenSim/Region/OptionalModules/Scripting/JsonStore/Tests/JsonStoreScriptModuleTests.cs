@@ -48,7 +48,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
     /// Tests for inventory functions in LSL
     /// </summary>
     [TestFixture]
-    public class LSL_ApiInventoryTests : OpenSimTestCase
+    public class JsonStoreScriptModuleTests : OpenSimTestCase
     {
         private Scene m_scene;
         private MockScriptEngine m_engine;
