@@ -99,6 +99,21 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
         }
 
         [Test]
+        public void TestJsonDestroyStore()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ 'Hello' : 'World' }");
+            int dsrv = (int)InvokeOp("JsonDestroyStore", storeId);
+
+            Assert.That(dsrv, Is.EqualTo(1));
+
+            int tprv = (int)InvokeOp("JsonTestPath", storeId, "Hello");
+            Assert.That(tprv, Is.EqualTo(0));
+        }
+
+        [Test]
         public void TestJsonGetValue()
         {
             TestHelpers.InMethod();
