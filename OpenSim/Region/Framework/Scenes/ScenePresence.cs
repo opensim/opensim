@@ -206,8 +206,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         private const float FLY_ROLL_MAX_RADIANS = 1.1f;
 
-        private const float FLY_ROLL_RADIANS_PER_SECOND = 0.06f;
-        private const float FLY_ROLL_RESET_RADIANS_PER_SECOND = 0.02f;
+        private const float FLY_ROLL_RADIANS_PER_UPDATE = 0.06f;
+        private const float FLY_ROLL_RESET_RADIANS_PER_UPDATE = 0.02f;
 
         private float m_health = 100f;
 
@@ -1244,11 +1244,47 @@ namespace OpenSim.Region.Framework.Scenes
         /// Applies a roll accumulator to the avatar's angular velocity for the avatar fly roll effect.
         /// </summary>
         /// <param name="amount">Postive or negative roll amount in radians</param>
-        private void ApplyFlyingRoll(float amount)
+        private void ApplyFlyingRoll(float amount, bool PressingUp, bool PressingDown)
         {
-            float noise = ((float)(Util.RandomClass.NextDouble()*0.2f)-0.1f);
-            float rollAmount = Util.Clamp(m_AngularVelocity.Z + amount, -FLY_ROLL_MAX_RADIANS, FLY_ROLL_MAX_RADIANS) + noise;
+            
+            float rollAmount = Util.Clamp(m_AngularVelocity.Z + amount, -FLY_ROLL_MAX_RADIANS, FLY_ROLL_MAX_RADIANS);
             m_AngularVelocity.Z = rollAmount;
+
+            // APPLY EXTRA consideration for flying up and flying down during this time.
+            // if we're turning left
+            if (amount > 0)
+            {
+
+                // If we're at the max roll and pressing up, we want to swing BACK a bit
+                // Automatically adds noise
+                if (PressingUp)
+                {
+                    if (m_AngularVelocity.Z >= FLY_ROLL_MAX_RADIANS - 0.04f)
+                        m_AngularVelocity.Z -= 0.9f;
+                }
+                // If we're at the max roll and pressing down, we want to swing MORE a bit
+                if (PressingDown)
+                {
+                    if (m_AngularVelocity.Z >= FLY_ROLL_MAX_RADIANS && m_AngularVelocity.Z < FLY_ROLL_MAX_RADIANS + 0.6f)
+                        m_AngularVelocity.Z += 0.6f;
+                }
+            }
+            else  // we're turning right.
+            {
+                // If we're at the max roll and pressing up, we want to swing BACK a bit
+                // Automatically adds noise
+                if (PressingUp)
+                {
+                    if (m_AngularVelocity.Z <= (-FLY_ROLL_MAX_RADIANS))
+                        m_AngularVelocity.Z += 0.6f;
+                }
+                // If we're at the max roll and pressing down, we want to swing MORE a bit
+                if (PressingDown)
+                {
+                    if (m_AngularVelocity.Z >= -FLY_ROLL_MAX_RADIANS - 0.6f)
+                        m_AngularVelocity.Z -= 0.6f;
+                }
+            }
         }
 
         /// <summary>
@@ -1800,26 +1836,30 @@ namespace OpenSim.Region.Framework.Scenes
                                         ((flags & AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG) != 0));
 
 
-                   
+                   //m_log.Debug("[CONTROL]: " +flags);
                     // Applies a satisfying roll effect to the avatar when flying.
                     if (((flags & AgentManager.ControlFlags.AGENT_CONTROL_TURN_LEFT) != 0) && ((flags & AgentManager.ControlFlags.AGENT_CONTROL_YAW_POS) != 0))
                     {
-                        ApplyFlyingRoll(FLY_ROLL_RADIANS_PER_SECOND);
+
+                        ApplyFlyingRoll(FLY_ROLL_RADIANS_PER_UPDATE, ((flags & AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) != 0), ((flags & AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0));
+                        
                         
                     } 
                     else if (((flags & AgentManager.ControlFlags.AGENT_CONTROL_TURN_RIGHT) != 0) &&
                              ((flags & AgentManager.ControlFlags.AGENT_CONTROL_YAW_NEG) != 0))
                     {
-                        ApplyFlyingRoll(-FLY_ROLL_RADIANS_PER_SECOND);
+                        ApplyFlyingRoll(-FLY_ROLL_RADIANS_PER_UPDATE, ((flags & AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) != 0), ((flags & AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0));
+                       
 
                     }
                     else
                     {
                         if (m_AngularVelocity.Z != 0)
-                            m_AngularVelocity.Z += CalculateFlyingRollResetToZero(FLY_ROLL_RESET_RADIANS_PER_SECOND);
+                            m_AngularVelocity.Z += CalculateFlyingRollResetToZero(FLY_ROLL_RESET_RADIANS_PER_UPDATE);
                         
                     }
-                  
+
+                   
 
 
                     if (Flying && IsColliding && controlland)
