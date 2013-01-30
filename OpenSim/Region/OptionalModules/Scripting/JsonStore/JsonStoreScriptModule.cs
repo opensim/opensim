@@ -167,6 +167,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
                 {
                     m_comms.RegisterScriptInvocation(this, "JsonCreateStore");
                     m_comms.RegisterScriptInvocation(this, "JsonDestroyStore");
+                    m_comms.RegisterScriptInvocation(this, "JsonTestStore");
 
                     m_comms.RegisterScriptInvocation(this, "JsonReadNotecard");
                     m_comms.RegisterScriptInvocation(this, "JsonWriteNotecard");
@@ -241,6 +242,16 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         protected int JsonDestroyStore(UUID hostID, UUID scriptID, UUID storeID)
         {
             return m_store.DestroyStore(storeID) ? 1 : 0;
+        }
+
+        // -----------------------------------------------------------------
+        /// <summary>
+        /// 
+        /// </summary>
+        // -----------------------------------------------------------------
+        protected int JsonTestStore(UUID hostID, UUID scriptID, UUID storeID)
+        {
+            return m_store.TestStore(storeID) ? 1 : 0;
         }
 
         // -----------------------------------------------------------------

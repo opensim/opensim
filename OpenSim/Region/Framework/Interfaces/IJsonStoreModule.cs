@@ -37,6 +37,7 @@ namespace OpenSim.Region.Framework.Interfaces
     {
         bool CreateStore(string value, ref UUID result);
         bool DestroyStore(UUID storeID);
+        bool TestStore(UUID storeID);
         bool TestPath(UUID storeID, string path, bool useJson);
         bool SetValue(UUID storeID, string path, string value, bool useJson);
         bool RemoveValue(UUID storeID, string path);

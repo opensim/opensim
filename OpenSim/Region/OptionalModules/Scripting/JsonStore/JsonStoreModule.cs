@@ -221,6 +221,19 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         /// 
         /// </summary>
         // -----------------------------------------------------------------
+        public bool TestStore(UUID storeID)
+        {
+            if (! m_enabled) return false;
+
+            lock (m_JsonValueStore)
+                return m_JsonValueStore.ContainsKey(storeID);
+        }
+
+        // -----------------------------------------------------------------
+        /// <summary>
+        /// 
+        /// </summary>
+        // -----------------------------------------------------------------
         public bool TestPath(UUID storeID, string path, bool useJson)
         {
             if (! m_enabled) return false;
