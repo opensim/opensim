@@ -557,11 +557,12 @@ public sealed class BSCharacter : BSPhysObject
     {
         get
         {
-            return _velocityMotor.TargetValue;
+            return m_targetVelocity;
         }
         set
         {
             DetailLog("{0},BSCharacter.setTargetVelocity,call,vel={1}", LocalID, value);
+            m_targetVelocity = value;
             OMV.Vector3 targetVel = value;
             if (_setAlwaysRun)
                 targetVel *= BSParam.AvatarAlwaysRunFactor;
@@ -591,7 +592,6 @@ public sealed class BSCharacter : BSPhysObject
                 _velocityMotor.Reset();
                 _velocityMotor.SetCurrent(_velocity);
                 _velocityMotor.SetTarget(_velocity);
-                // Even though the motor is initialized, it's not used and the velocity goes straight into the avatar.
                 _velocityMotor.Enabled = false;
 
                 DetailLog("{0},BSCharacter.setVelocity,taint,vel={1}", LocalID, _velocity);
