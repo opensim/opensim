@@ -31,7 +31,6 @@ using System.Collections.Generic;
 using System.Reflection;
 using log4net;
 using Tools;
-
 using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
@@ -479,19 +478,26 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         {
             string retstr = String.Empty;
             bool printSemicolon = true;
-
-            retstr += Indent();
+            bool transformToBlock = false;
 
             if (m_insertCoopTerminationChecks)
             {
-                // We have to check in event functions as well because the user can manually call these.
-                if (previousSymbol is GlobalFunctionDefinition 
-                    || previousSymbol is WhileStatement 
+                // A non-braced single line do while structure cannot contain multiple statements.
+                // So to insert the termination check we change this to a braced control structure instead.
+                if (previousSymbol is WhileStatement 
                     || previousSymbol is DoWhileStatement 
-                    || previousSymbol is ForLoop
-                    || previousSymbol is StateEvent)
-                retstr += Generate(m_coopTerminationCheck);
+                    || previousSymbol is ForLoop)
+                {
+                    transformToBlock = true;
+
+                    // FIXME: This will be wrongly indented because the previous for/while/dowhile will have already indented.
+                    retstr += GenerateIndentedLine("{");
+
+                    retstr += GenerateIndentedLine(m_coopTerminationCheck);
+                }
             }
+
+            retstr += Indent();
 
             if (0 < s.kids.Count)
             {
@@ -507,6 +513,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
 
             if (printSemicolon)
                 retstr += GenerateLine(";");
+
+            if (transformToBlock)
+            {
+                // FIXME: This will be wrongly indented because the for/while/dowhile is currently handling the unindent
+                retstr += GenerateIndentedLine("}");
+            }
 
             return retstr;
         }
