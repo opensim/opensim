@@ -344,6 +344,10 @@ public sealed class BSPrim : BSPhysObject
     {
         bool ret = false;
 
+        // We don't care where non-physical items are placed
+        if (!IsPhysicallyActive)
+            return ret;
+
         if (!PhysicsScene.TerrainManager.IsWithinKnownTerrain(RawPosition))
         {
             // The physical object is out of the known/simulated area.
@@ -1643,7 +1647,7 @@ public sealed class BSPrim : BSPhysObject
             // DetailLog("{0},BSPrim.UpdateProperties,afterAssign,entprop={1}", LocalID, entprop);   // DEBUG DEBUG
 
             // The sanity check can change the velocity and/or position.
-            if (IsPhysical && PositionSanityCheck(true /* inTaintTime */ ))
+            if (PositionSanityCheck(true /* inTaintTime */ ))
             {
                 entprop.Position = _position;
                 entprop.Velocity = _velocity;

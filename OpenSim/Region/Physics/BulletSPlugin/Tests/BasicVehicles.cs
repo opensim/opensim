@@ -51,7 +51,7 @@ public class BasicVehicles : OpenSimTestCase
     BSScene PhysicsScene { get; set; }
     BSPrim TestVehicle { get; set; }
     Vector3 TestVehicleInitPosition { get; set; }
-    float timeStep = 0.089f;
+    float simulationTimeStep = 0.089f;
 
     [TestFixtureSetUp]
     public void Init()
@@ -87,39 +87,62 @@ public class BasicVehicles : OpenSimTestCase
         }
     }
 
-    [TestCase(25,  0.25f,  0.25f,  0.25f)]
-    [TestCase(25, -0.25f,  0.25f,  0.25f)]
-    [TestCase(25,  0.25f, -0.25f,  0.25f)]
-    [TestCase(25, -0.25f, -0.25f,  0.25f)]
-    public void VerticalAttraction(int simSteps, float initRoll, float initPitch, float initYaw)
+    [TestCase(2f, 0.2f,  0.25f,  0.25f,  0.25f)]
+    [TestCase(2f, 0.2f, -0.25f,  0.25f,  0.25f)]
+    [TestCase(2f, 0.2f,  0.25f, -0.25f,  0.25f)]
+    [TestCase(2f, 0.2f, -0.25f, -0.25f,  0.25f)]
+    // [TestCase(2f, 0.2f, 0.785f,   0.0f,  0.25f) /*, "Leaning 45 degrees to the side" */]
+    // [TestCase(2f, 0.2f, 1.650f,   0.0f,  0.25f) /*, "Leaning more than 90 degrees to the side" */]
+    // [TestCase(2f, 0.2f, 2.750f,   0.0f,  0.25f) /*, "Almost upside down, tipped right" */]
+    // [TestCase(2f, 0.2f,-2.750f,   0.0f,  0.25f) /*, "Almost upside down, tipped left" */]
+    // [TestCase(2f, 0.2f,   0.0f, 0.785f,  0.25f) /*, "Tipped back 45 degrees" */]
+    // [TestCase(2f, 0.2f,   0.0f, 1.650f,  0.25f) /*, "Tipped back more than 90 degrees" */]
+    // [TestCase(2f, 0.2f,   0.0f, 2.750f,  0.25f) /*, "Almost upside down, tipped back" */]
+    // [TestCase(2f, 0.2f,   0.0f,-2.750f,  0.25f) /*, "Almost upside down, tipped forward" */]
+    public void AngularVerticalAttraction(float timeScale, float efficiency, float initRoll, float initPitch, float initYaw)
     {
+        // Enough simulation steps to cover the timescale the operation should take
+        int simSteps = (int)(timeScale / simulationTimeStep) + 1;
+
+        // Tip the vehicle
         Quaternion initOrientation = Quaternion.CreateFromEulers(initRoll, initPitch, initYaw);
         TestVehicle.Orientation = initOrientation;
 
         TestVehicle.Position = TestVehicleInitPosition;
 
-        // The vehicle controller is not enabled directly (set a vehicle type).
+        // The vehicle controller is not enabled directly (by setting a vehicle type).
         //    Instead the appropriate values are set and calls are made just the parts of the
         //    controller we want to exercise. Stepping the physics engine then applies
         //    the actions of that one feature.
-        TestVehicle.VehicleController.ProcessFloatVehicleParam(Vehicle.VERTICAL_ATTRACTION_EFFICIENCY, 0.2f);
-        TestVehicle.VehicleController.ProcessFloatVehicleParam(Vehicle.VERTICAL_ATTRACTION_TIMESCALE, 2f);
+        TestVehicle.VehicleController.ProcessFloatVehicleParam(Vehicle.VERTICAL_ATTRACTION_EFFICIENCY, efficiency);
+        TestVehicle.VehicleController.ProcessFloatVehicleParam(Vehicle.VERTICAL_ATTRACTION_TIMESCALE, timeScale);
         TestVehicle.VehicleController.enableAngularVerticalAttraction = true;
 
         TestVehicle.IsPhysical = true;
         PhysicsScene.ProcessTaints();
 
-        // Step the simulator a bunch of times and and vertical attraction should orient the vehicle up
+        // Step the simulator a bunch of times and vertical attraction should orient the vehicle up
         for (int ii = 0; ii < simSteps; ii++)
         {
             TestVehicle.VehicleController.ForgetKnownVehicleProperties();
             TestVehicle.VehicleController.ComputeAngularVerticalAttraction();
             TestVehicle.VehicleController.PushKnownChanged();
 
-            PhysicsScene.Simulate(timeStep);
+            PhysicsScene.Simulate(simulationTimeStep);
         }
 
+        TestVehicle.IsPhysical = false;
+        PhysicsScene.ProcessTaints();
+
         // After these steps, the vehicle should be upright
+        /*
+        float finalRoll, finalPitch, finalYaw;
+        TestVehicle.Orientation.GetEulerAngles(out finalRoll, out finalPitch, out finalYaw);
+        Assert.That(finalRoll, Is.InRange(-0.01f, 0.01f));
+        Assert.That(finalPitch, Is.InRange(-0.01f, 0.01f));
+        Assert.That(finalYaw, Is.InRange(initYaw - 0.1f, initYaw + 0.1f));
+         */
+
         Vector3 upPointer = Vector3.UnitZ * TestVehicle.Orientation;
         Assert.That(upPointer.Z, Is.GreaterThan(0.99f));
     }

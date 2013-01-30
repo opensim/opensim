@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -65,9 +66,16 @@ public static class BulletSimTestsUtil
                 bulletSimConfig.Set(kvp.Key, kvp.Value);
             }
         }
-        // bulletSimConfig.Set("PhysicsLoggingEnabled","True");
-        // bulletSimConfig.Set("PhysicsLoggingDoFlush","True");
-        // bulletSimConfig.Set("VehicleLoggingEnabled","True");
+
+        // If a special directory exists, put detailed logging therein.
+        // This allows local testing/debugging without having to worry that the build engine will output logs.
+        if (Directory.Exists("physlogs"))
+        {
+            bulletSimConfig.Set("PhysicsLoggingDir","./physlogs");
+            bulletSimConfig.Set("PhysicsLoggingEnabled","True");
+            bulletSimConfig.Set("PhysicsLoggingDoFlush","True");
+            bulletSimConfig.Set("VehicleLoggingEnabled","True");
+        }
 
         BSPlugin bsPlugin = new BSPlugin();
 
