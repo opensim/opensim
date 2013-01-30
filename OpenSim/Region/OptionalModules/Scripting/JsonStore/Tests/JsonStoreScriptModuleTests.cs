@@ -111,6 +111,58 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
             Assert.That(value, Is.EqualTo("World"));
         }
 
+//        [Test]
+//        public void TestJsonTakeValue()
+//        {
+//            TestHelpers.InMethod();
+////            TestHelpers.EnableLogging();
+//
+//            UUID storeId 
+//                = (UUID)m_smcm.InvokeOperation(
+//                    UUID.Zero, UUID.Zero, "JsonCreateStore", new object[] { "{ 'Hello' : 'World' }" }); 
+//
+//            string value 
+//                = (string)m_smcm.InvokeOperation(
+//                    UUID.Zero, UUID.Zero, "JsonTakeValue", new object[] { storeId, "Hello" });
+//
+//            Assert.That(value, Is.EqualTo("World"));
+//
+//            string value2
+//                = (string)m_smcm.InvokeOperation(
+//                    UUID.Zero, UUID.Zero, "JsonGetValue", new object[] { storeId, "Hello" });
+//
+//            Assert.That(value, Is.Null);
+//        }
+
+        [Test]
+        public void TestJsonRemoveValue()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            UUID storeId 
+                = (UUID)m_smcm.InvokeOperation(
+                    UUID.Zero, UUID.Zero, "JsonCreateStore", new object[] { "{ 'Hello' : 'World' }" }); 
+
+            int returnValue 
+                = (int)m_smcm.InvokeOperation(
+                    UUID.Zero, UUID.Zero, "JsonRemoveValue", new object[] { storeId, "Hello" });
+
+            Assert.That(returnValue, Is.EqualTo(1));
+
+            int result 
+                = (int)m_smcm.InvokeOperation(
+                    UUID.Zero, UUID.Zero, "JsonTestPath", new object[] { storeId, "Hello" });
+
+            Assert.That(result, Is.EqualTo(0));
+
+            string returnValue2
+                = (string)m_smcm.InvokeOperation(
+                    UUID.Zero, UUID.Zero, "JsonGetValue", new object[] { storeId, "Hello" });
+
+            Assert.That(returnValue2, Is.EqualTo(""));
+        }
+
         [Test]
         public void TestJsonTestPath()
         {
