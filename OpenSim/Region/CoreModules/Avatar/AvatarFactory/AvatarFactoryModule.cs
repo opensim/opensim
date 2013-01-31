@@ -935,36 +935,33 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
         }
         private UUID GetDefaultItem(WearableType wearable)
         {
-            // These are Urban male..  but it doesn't matter as long as the assets exist.
+            // These are ruth
             UUID ret = UUID.Zero;
             switch (wearable)
             {
                 case WearableType.Eyes:
-                    ret = new UUID("46d7f979-c060-0ad6-5d3c-8de38c941c8d");
+                    ret = new UUID("4bb6fa4d-1cd2-498a-a84c-95c1a0e745a7");
                     break;
                 case WearableType.Hair:
-                    ret = new UUID("21ae002d-57af-441a-81ff-86f5f674b9b9");
+                    ret = new UUID("d342e6c0-b9d2-11dc-95ff-0800200c9a66");
                     break;
                 case WearableType.Pants:
-                    ret = new UUID("e3440698-48fd-41ac-af9b-f680547cbef2");
+                    ret = new UUID("00000000-38f9-1111-024e-222222111120");
                     break;
                 case WearableType.Shape:
-                    ret = new UUID("7c1f1354-2aba-4e55-8357-1545c2c003ce");
+                    ret = new UUID("66c41e39-38f9-f75a-024e-585989bfab73");
                     break;
                 case WearableType.Shirt:
-                    ret = new UUID("f8fefa00-b019-4072-9c04-ff79c65348b9");
-                    break;
-                case WearableType.Shoes:
-                    ret = new UUID("6455d2cf-0ee1-4c9a-9812-da03371bf719");
+                    ret = new UUID("00000000-38f9-1111-024e-222222111110");
                     break;
                 case WearableType.Skin:
-                    ret = new UUID("29c99e80-cf59-4fa0-9f8e-e4a1ccaf2fa3");
+                    ret = new UUID("77c41e39-38f9-f75a-024e-585989bbabbb");
                     break;
-                case WearableType.Socks:
-                    ret = new UUID("96472ac3-1e18-49e5-b2e4-17c03791ea96");
+                case WearableType.Undershirt:
+                    ret = new UUID("16499ebb-3208-ec27-2def-481881728f47");
                     break;
                 case WearableType.Underpants:
-                    ret = new UUID("d6c7b174-8a2d-473f-a80f-3b7d7b7b3a96");
+                    ret = new UUID("4ac2e9c7-3671-d229-316a-67717730841d");
                     break;
             }
 
