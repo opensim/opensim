@@ -581,9 +581,18 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         }
         #endregion // Vehicle parameter setting
 
+        public void Refresh()
+        {
+            // If asking for a refresh, reset the physical parameters before the next simulation step.
+            PhysicsScene.PostTaintObject("BSDynamics.Refresh", Prim.LocalID, delegate()
+            {
+                SetPhysicalParameters();
+            });
+        }
+
         // Some of the properties of this prim may have changed.
         // Do any updating needed for a vehicle
-        public void Refresh()
+        private void SetPhysicalParameters()
         {
             if (IsActive)
             {
@@ -614,7 +623,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 // The actual vehicle gravity is set to zero in Bullet so we can do all the application of same.
                 PhysicsScene.PE.SetGravity(Prim.PhysBody, Vector3.Zero);
 
-                VDetailLog("{0},BSDynamics.Refresh,mass={1},inert={2},grav={3},aDamp={4},frict={5},rest={6},lFact={7},aFact={8}",
+                VDetailLog("{0},BSDynamics.SetPhysicalParameters,mass={1},inert={2},vehGrav={3},aDamp={4},frict={5},rest={6},lFact={7},aFact={8}",
                         Prim.LocalID, m_vehicleMass, Prim.Inertia, m_VehicleGravity,
                         BSParam.VehicleAngularDamping, BSParam.VehicleFriction, BSParam.VehicleRestitution,
                         BSParam.VehicleLinearFactor, BSParam.VehicleAngularFactor
@@ -622,26 +631,15 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             }
             else
             {
-                PhysicsScene.PE.RemoveFromCollisionFlags(Prim.PhysBody, CollisionFlags.BS_VEHICLE_COLLISIONS);
+                if (Prim.PhysBody.HasPhysicalBody)
+                    PhysicsScene.PE.RemoveFromCollisionFlags(Prim.PhysBody, CollisionFlags.BS_VEHICLE_COLLISIONS);
             }
         }
 
         public bool RemoveBodyDependencies(BSPhysObject prim)
         {
-            // If active, we need to add our properties back when the body is rebuilt.
-            return IsActive;
-        }
-
-        public void RestoreBodyDependencies(BSPhysObject prim)
-        {
-            if (Prim.LocalID != prim.LocalID)
-            {
-                // The call should be on us by our prim. Error if not.
-                PhysicsScene.Logger.ErrorFormat("{0} RestoreBodyDependencies: called by not my prim. passedLocalID={1}, vehiclePrimLocalID={2}",
-                                LogHeader, prim.LocalID, Prim.LocalID);
-                return;
-            }
             Refresh();
+            return IsActive;
         }
 
         #region Known vehicle value functions

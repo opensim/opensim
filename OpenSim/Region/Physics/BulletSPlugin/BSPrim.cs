@@ -1597,9 +1597,9 @@ public sealed class BSPrim : BSPhysObject
     public void CreateGeomAndObject(bool forceRebuild)
     {
         // Create the correct physical representation for this type of object.
-        // Updates PhysBody and PhysShape with the new information.
+        // Updates base.PhysBody and base.PhysShape with the new information.
         // Ignore 'forceRebuild'. This routine makes the right choices and changes of necessary.
-        PhysicsScene.Shapes.GetBodyAndShape(false, PhysicsScene.World, this, null, delegate(BulletBody dBody)
+        PhysicsScene.Shapes.GetBodyAndShape(false /*forceRebuild */, PhysicsScene.World, this, null, delegate(BulletBody dBody)
         {
             // Called if the current prim body is about to be destroyed.
             // Remove all the physical dependencies on the old body.

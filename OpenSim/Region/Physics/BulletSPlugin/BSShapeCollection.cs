@@ -116,8 +116,7 @@ public sealed class BSShapeCollection : IDisposable
             //    rebuild the body around it.
             // Updates prim.BSBody with information/pointers to requested body
             // Returns 'true' if BSBody was changed.
-            bool newBody = CreateBody((newGeom || forceRebuild), prim, PhysicsScene.World,
-                                    prim.PhysShape, bodyCallback);
+            bool newBody = CreateBody((newGeom || forceRebuild), prim, PhysicsScene.World, bodyCallback);
             ret = newGeom || newBody;
         }
         DetailLog("{0},BSShapeCollection.GetBodyAndShape,taintExit,force={1},ret={2},body={3},shape={4}",
@@ -933,8 +932,7 @@ public sealed class BSShapeCollection : IDisposable
     // Updates prim.BSBody with the information about the new body if one is created.
     // Returns 'true' if an object was actually created.
     // Called at taint-time.
-    private bool CreateBody(bool forceRebuild, BSPhysObject prim, BulletWorld sim, BulletShape shape,
-                            BodyDestructionCallback bodyCallback)
+    private bool CreateBody(bool forceRebuild, BSPhysObject prim, BulletWorld sim, BodyDestructionCallback bodyCallback)
     {
         bool ret = false;
 
@@ -951,6 +949,7 @@ public sealed class BSShapeCollection : IDisposable
             {
                 // If the collisionObject is not the correct type for solidness, rebuild what's there
                 mustRebuild = true;
+                if (DDetail) DetailLog("{0},BSShapeCollection.CreateBody,forceRebuildBecauseChangingBodyType,bodyType={1}", prim.LocalID, bodyType);
             }
         }
 
@@ -962,12 +961,12 @@ public sealed class BSShapeCollection : IDisposable
             BulletBody aBody;
             if (prim.IsSolid)
             {
-                aBody = PhysicsScene.PE.CreateBodyFromShape(sim, shape, prim.LocalID, prim.RawPosition, prim.RawOrientation);
+                aBody = PhysicsScene.PE.CreateBodyFromShape(sim, prim.PhysShape, prim.LocalID, prim.RawPosition, prim.RawOrientation);
                 if (DDetail) DetailLog("{0},BSShapeCollection.CreateBody,mesh,body={1}", prim.LocalID, aBody);
             }
             else
             {
-                aBody = PhysicsScene.PE.CreateGhostFromShape(sim, shape, prim.LocalID, prim.RawPosition, prim.RawOrientation);
+                aBody = PhysicsScene.PE.CreateGhostFromShape(sim, prim.PhysShape, prim.LocalID, prim.RawPosition, prim.RawOrientation);
                 if (DDetail) DetailLog("{0},BSShapeCollection.CreateBody,ghost,body={1}", prim.LocalID, aBody);
             }
 

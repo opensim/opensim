@@ -274,7 +274,7 @@ public sealed class BSLinksetCompound : BSLinkset
         bool ret = false;
 
         DetailLog("{0},BSLinksetCompound.RemoveBodyDependencies,refreshIfChild,rID={1},rBody={2},isRoot={3}",
-                        child.LocalID, LinksetRoot.LocalID, LinksetRoot.PhysBody.AddrString, IsRoot(child));
+                        child.LocalID, LinksetRoot.LocalID, LinksetRoot.PhysBody, IsRoot(child));
 
         if (!IsRoot(child))
         {
@@ -382,11 +382,11 @@ public sealed class BSLinksetCompound : BSLinkset
     {
         try
         {
-            // Suppress rebuilding while rebuilding
+            // Suppress rebuilding while rebuilding. (We know rebuilding is on only one thread.)
             Rebuilding = true;
 
             // Cause the root shape to be rebuilt as a compound object with just the root in it
-            LinksetRoot.ForceBodyShapeRebuild(true);
+            LinksetRoot.ForceBodyShapeRebuild(true /* inTaintTime */);
 
             // The center of mass for the linkset is the geometric center of the group.
             // Compute a displacement for each component so it is relative to the center-of-mass.
