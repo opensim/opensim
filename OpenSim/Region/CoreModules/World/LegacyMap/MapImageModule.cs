@@ -77,42 +77,52 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
         {
             bool drawPrimVolume = true;
             bool textureTerrain = false;
+            bool generateMaptiles = true;
+            Bitmap mapbmp;
 
             try
             {
                 IConfig startupConfig = m_config.Configs["Startup"];
                 drawPrimVolume = startupConfig.GetBoolean("DrawPrimOnMapTile", drawPrimVolume);
                 textureTerrain = startupConfig.GetBoolean("TextureOnMapTile", textureTerrain);
+                generateMaptiles = startupConfig.GetBoolean("GenerateMaptiles", generateMaptiles);
             }
             catch
             {
                 m_log.Warn("[MAPTILE]: Failed to load StartupConfig");
             }
 
-            if (textureTerrain)
+            if (generateMaptiles)
             {
-                terrainRenderer = new TexturedMapTileRenderer();
+                if (textureTerrain)
+                {
+                    terrainRenderer = new TexturedMapTileRenderer();
+                }
+                else
+                {
+                    terrainRenderer = new ShadedMapTileRenderer();
+                }
+
+                terrainRenderer.Initialise(m_scene, m_config);
+
+                mapbmp = new Bitmap((int)Constants.RegionSize, (int)Constants.RegionSize, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+                //long t = System.Environment.TickCount;
+                //for (int i = 0; i < 10; ++i) {
+                terrainRenderer.TerrainToBitmap(mapbmp);
+                //}
+                //t = System.Environment.TickCount - t;
+                //m_log.InfoFormat("[MAPTILE] generation of 10 maptiles needed {0} ms", t);
+
+
+                if (drawPrimVolume)
+                {
+                    DrawObjectVolume(m_scene, mapbmp);
+                }
             }
             else
             {
-                terrainRenderer = new ShadedMapTileRenderer();
+                mapbmp = fetchTexture(m_scene.RegionInfo.RegionSettings.TerrainImageID);
             }
-            terrainRenderer.Initialise(m_scene, m_config);
-
-            Bitmap mapbmp = new Bitmap((int)Constants.RegionSize, (int)Constants.RegionSize, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
-            //long t = System.Environment.TickCount;
-            //for (int i = 0; i < 10; ++i) {
-            terrainRenderer.TerrainToBitmap(mapbmp);
-            //}
-            //t = System.Environment.TickCount - t;
-            //m_log.InfoFormat("[MAPTILE] generation of 10 maptiles needed {0} ms", t);
-
-
-            if (drawPrimVolume)
-            {
-                DrawObjectVolume(m_scene, mapbmp);
-            }
-
             return mapbmp;
         }
 
@@ -221,6 +231,41 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
 //                 }
 //             }
 //         }
+
+        private Bitmap fetchTexture(UUID id)
+        {
+            AssetBase asset = m_scene.AssetService.Get(id.ToString());
+            m_log.DebugFormat("[MAPTILE]: Fetched static texture {0}, found: {1}", id, asset != null);
+            if (asset == null) return null;
+
+            ManagedImage managedImage;
+            Image image;
+
+            try
+            {
+                if (OpenJPEG.DecodeToImage(asset.Data, out managedImage, out image))
+                    return new Bitmap(image);
+                else
+                    return null;
+            }
+            catch (DllNotFoundException)
+            {
+                m_log.ErrorFormat("[MAPTILE]: OpenJpeg is not installed correctly on this system.   Asset Data is empty for {0}", id);
+
+            }
+            catch (IndexOutOfRangeException)
+            {
+                m_log.ErrorFormat("[MAPTILE]: OpenJpeg was unable to decode this.   Asset Data is empty for {0}", id);
+
+            }
+            catch (Exception)
+            {
+                m_log.ErrorFormat("[MAPTILE]: OpenJpeg was unable to decode this.   Asset Data is empty for {0}", id);
+
+            }
+            return null;
+
+        }
 
         private Bitmap DrawObjectVolume(Scene whichScene, Bitmap mapbmp)
         {

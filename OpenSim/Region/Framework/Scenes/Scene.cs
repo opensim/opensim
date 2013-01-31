@@ -917,9 +917,14 @@ namespace OpenSim.Region.Framework.Scenes
                     string tile = startupConfig.GetString("MaptileStaticUUID", UUID.Zero.ToString());
                     UUID tileID;
 
-                    if (UUID.TryParse(tile, out tileID))
+                    if ((tile!=UUID.Zero.ToString()) && UUID.TryParse(tile, out tileID))
                     {
                         RegionInfo.RegionSettings.TerrainImageID = tileID;
+                    }
+                    else
+                    {
+                        RegionInfo.RegionSettings.TerrainImageID = RegionInfo.MaptileStaticUUID;
+                        m_log.InfoFormat("[SCENE]: Region {0}, maptile set to {1}", RegionInfo.RegionName, RegionInfo.MaptileStaticUUID.ToString());
                     }
                 }
 
