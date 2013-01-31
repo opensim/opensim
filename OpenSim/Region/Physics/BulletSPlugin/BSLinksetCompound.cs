@@ -219,28 +219,45 @@ public sealed class BSLinksetCompound : BSLinkset
             {
                 // Gather the child info. It might not be there if the linkset is in transition.
                 BSLinksetCompoundInfo lsi = updated.LinksetInfo as BSLinksetCompoundInfo;
+                
+                // The linksetInfo will need to be rebuilt either here or when the linkset is rebuilt
                 if (LinksetRoot.PhysShape.HasPhysicalShape && lsi != null)
                 {
                     if (PhysicsScene.PE.IsCompound(LinksetRoot.PhysShape))
                     {
-                        BulletShape linksetChildShape = PhysicsScene.PE.GetChildShapeFromCompoundShapeIndex(LinksetRoot.PhysShape, lsi.Index);
-                        if (linksetChildShape.HasPhysicalShape)
+                        int numLinksetChildren = PhysicsScene.PE.GetNumberOfCompoundChildren(LinksetRoot.PhysShape);
+                        if (lsi.Index < numLinksetChildren)
                         {
-                            // Compute the offset from the center-of-gravity
-                            BSLinksetCompoundInfo newLsi = new BSLinksetCompoundInfo(lsi.Index, LinksetRoot, updated, LinksetRoot.PositionDisplacement);
-                            PhysicsScene.PE.UpdateChildTransform(LinksetRoot.PhysShape, lsi.Index,
-                                                                        newLsi.OffsetFromCenterOfMass,
-                                                                        newLsi.OffsetRot,
-                                                                        true /* shouldRecalculateLocalAabb */);
-                            DetailLog("{0},BSLinksetCompound.UpdateProperties,changeChildPosRot,whichUpdated={1},newLsi={2}",
-                                                                        updated.LocalID, whichUpdated, newLsi);
-                            updated.LinksetInfo = newLsi;
-                            updatedChild = true;
+                            // It is possible that the linkset is still under construction and the child is not yet
+                            //    inserted into the compound shape. A rebuild of the linkset in a pre-step action will
+                            //    build the whole thing with the new position or rotation.
+                            // This must be checked for because Bullet references the child array but does no validity
+                            //    checking of the child index passed.
+                            BulletShape linksetChildShape = PhysicsScene.PE.GetChildShapeFromCompoundShapeIndex(LinksetRoot.PhysShape, lsi.Index);
+                            if (linksetChildShape.HasPhysicalShape)
+                            {
+                                // Compute the offset from the center-of-gravity
+                                BSLinksetCompoundInfo newLsi = new BSLinksetCompoundInfo(lsi.Index, LinksetRoot, updated, LinksetRoot.PositionDisplacement);
+                                PhysicsScene.PE.UpdateChildTransform(LinksetRoot.PhysShape, lsi.Index,
+                                                                            newLsi.OffsetFromCenterOfMass,
+                                                                            newLsi.OffsetRot,
+                                                                            true /* shouldRecalculateLocalAabb */);
+                                updated.LinksetInfo = newLsi;
+                                updatedChild = true;
+                                DetailLog("{0},BSLinksetCompound.UpdateProperties,changeChildPosRot,whichUpdated={1},newLsi={2}",
+                                                                            updated.LocalID, whichUpdated, newLsi);
+                            }
+                            else    // DEBUG DEBUG
+                            {       // DEBUG DEBUG
+                                DetailLog("{0},BSLinksetCompound.UpdateProperties,couldNotUpdateChild,noChildShape,shape={1}",
+                                                                            updated.LocalID, linksetChildShape);
+                            }       // DEBUG DEBUG
                         }
                         else    // DEBUG DEBUG
                         {       // DEBUG DEBUG
-                            DetailLog("{0},BSLinksetCompound.UpdateProperties,couldNotUpdateChild,noChildShape,shape={1}",
-                                                                        updated.LocalID, linksetChildShape);
+                            // the child is not yet in the compound shape. This is non-fatal.
+                            DetailLog("{0},BSLinksetCompound.UpdateProperties,couldNotUpdateChild,childNotInCompoundShape,numChildren={1},index={2}",
+                                                                        updated.LocalID, numLinksetChildren, lsi.Index);
                         }       // DEBUG DEBUG
                     }
                     else    // DEBUG DEBUG
@@ -256,6 +273,9 @@ public sealed class BSLinksetCompound : BSLinkset
                 if (!updatedChild)
                 {
                     // If couldn't do the individual child, the linkset needs a rebuild to incorporate the new child info.
+                    // Note that there are several ways through this code that will not update the child that can
+                    //    occur if the linkset is being rebuilt. In this case, scheduling a rebuild is a NOOP since
+                    //    there will already be a rebuild scheduled.
                     DetailLog("{0},BSLinksetCompound.UpdateProperties,couldNotUpdateChild.schedulingRebuild,whichUpdated={1}",
                                                                     updated.LocalID, whichUpdated);
                     updated.LinksetInfo = null; // setting to 'null' causes relative position to be recomputed.

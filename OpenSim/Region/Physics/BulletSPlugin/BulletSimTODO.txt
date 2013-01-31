@@ -65,6 +65,10 @@ Vehicle attributes are not restored when a vehicle is rezzed on region creation
 
 GENERAL TODO LIST:
 =================================================
+Collisions are inconsistant: arrows are supposed to hit and report collision. Often don't.
+	If arrow show at prim, collision reported about 1/3 of time. If collision reported,
+	both arrow and prim report it. The arrow bounces off the prim 9 out of 10 times.
+	Shooting 5m sphere "arrows" at 60m/s.
 llMoveToTarget objects are not effected by gravity until target is removed.
 Compute CCD parameters based on body size
 Can solver iterations be changed per body/shape? Can be for constraints but what

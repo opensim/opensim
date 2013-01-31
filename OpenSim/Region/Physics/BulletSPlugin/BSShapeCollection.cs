@@ -133,48 +133,44 @@ public sealed class BSShapeCollection : IDisposable
     // Track another user of a body.
     // We presume the caller has allocated the body.
     // Bodies only have one user so the body is just put into the world if not already there.
-    public void ReferenceBody(BulletBody body, bool inTaintTime)
+    private void ReferenceBody(BulletBody body)
     {
         lock (m_collectionActivityLock)
         {
             if (DDetail) DetailLog("{0},BSShapeCollection.ReferenceBody,newBody,body={1}", body.ID, body);
-            PhysicsScene.TaintedObject(inTaintTime, "BSShapeCollection.ReferenceBody", delegate()
+            if (!PhysicsScene.PE.IsInWorld(PhysicsScene.World, body))
             {
-                if (!PhysicsScene.PE.IsInWorld(PhysicsScene.World, body))
-                {
-                    PhysicsScene.PE.AddObjectToWorld(PhysicsScene.World, body);
-                    if (DDetail) DetailLog("{0},BSShapeCollection.ReferenceBody,addedToWorld,ref={1}", body.ID, body);
-                }
-            });
+                PhysicsScene.PE.AddObjectToWorld(PhysicsScene.World, body);
+                if (DDetail) DetailLog("{0},BSShapeCollection.ReferenceBody,addedToWorld,ref={1}", body.ID, body);
+            }
         }
     }
 
     // Release the usage of a body.
     // Called when releasing use of a BSBody. BSShape is handled separately.
-    public void DereferenceBody(BulletBody body, bool inTaintTime, BodyDestructionCallback bodyCallback )
+    // Called in taint time.
+    public void DereferenceBody(BulletBody body, BodyDestructionCallback bodyCallback )
     {
         if (!body.HasPhysicalBody)
             return;
 
+        PhysicsScene.AssertInTaintTime("BSShapeCollection.DereferenceBody");
+
         lock (m_collectionActivityLock)
         {
-            PhysicsScene.TaintedObject(inTaintTime, "BSShapeCollection.DereferenceBody", delegate()
+            if (DDetail) DetailLog("{0},BSShapeCollection.DereferenceBody,DestroyingBody,body={1}", body.ID, body);
+            // If the caller needs to know the old body is going away, pass the event up.
+            if (bodyCallback != null) bodyCallback(body);
+
+            if (PhysicsScene.PE.IsInWorld(PhysicsScene.World, body))
             {
-                if (DDetail) DetailLog("{0},BSShapeCollection.DereferenceBody,DestroyingBody,body={1},inTaintTime={2}",
-                                            body.ID, body, inTaintTime);
-                // If the caller needs to know the old body is going away, pass the event up.
-                if (bodyCallback != null) bodyCallback(body);
+                PhysicsScene.PE.RemoveObjectFromWorld(PhysicsScene.World, body);
+                if (DDetail) DetailLog("{0},BSShapeCollection.DereferenceBody,removingFromWorld. Body={1}", body.ID, body);
+            }
 
-                if (PhysicsScene.PE.IsInWorld(PhysicsScene.World, body))
-                {
-                    PhysicsScene.PE.RemoveObjectFromWorld(PhysicsScene.World, body);
-                    if (DDetail) DetailLog("{0},BSShapeCollection.DereferenceBody,removingFromWorld. Body={1}", body.ID, body);
-                }
-
-                // Zero any reference to the shape so it is not freed when the body is deleted.
-                PhysicsScene.PE.SetCollisionShape(PhysicsScene.World, body, null);
-                PhysicsScene.PE.DestroyObject(PhysicsScene.World, body);
-            });
+            // Zero any reference to the shape so it is not freed when the body is deleted.
+            PhysicsScene.PE.SetCollisionShape(PhysicsScene.World, body, null);
+            PhysicsScene.PE.DestroyObject(PhysicsScene.World, body);
         }
     }
 
@@ -245,44 +241,43 @@ public sealed class BSShapeCollection : IDisposable
     }
 
     // Release the usage of a shape.
-    public void DereferenceShape(BulletShape shape, bool inTaintTime, ShapeDestructionCallback shapeCallback)
+    public void DereferenceShape(BulletShape shape, ShapeDestructionCallback shapeCallback)
     {
         if (!shape.HasPhysicalShape)
             return;
 
-        PhysicsScene.TaintedObject(inTaintTime, "BSShapeCollection.DereferenceShape", delegate()
+        PhysicsScene.AssertInTaintTime("BSShapeCollection.DereferenceShape");
+
+        if (shape.HasPhysicalShape)
         {
-            if (shape.HasPhysicalShape)
+            if (shape.isNativeShape)
             {
-                if (shape.isNativeShape)
+                // Native shapes are not tracked and are released immediately
+                if (DDetail) DetailLog("{0},BSShapeCollection.DereferenceShape,deleteNativeShape,ptr={1}",
+                                    BSScene.DetailLogZero, shape.AddrString);
+                if (shapeCallback != null) shapeCallback(shape);
+                PhysicsScene.PE.DeleteCollisionShape(PhysicsScene.World, shape);
+            }
+            else
+            {
+                switch (shape.type)
                 {
-                    // Native shapes are not tracked and are released immediately
-                    if (DDetail) DetailLog("{0},BSShapeCollection.DereferenceShape,deleteNativeShape,ptr={1},taintTime={2}",
-                                    BSScene.DetailLogZero, shape.AddrString, inTaintTime);
-                    if (shapeCallback != null) shapeCallback(shape);
-                    PhysicsScene.PE.DeleteCollisionShape(PhysicsScene.World, shape);
-                }
-                else
-                {
-                    switch (shape.type)
-                    {
-                        case BSPhysicsShapeType.SHAPE_HULL:
-                            DereferenceHull(shape, shapeCallback);
-                            break;
-                        case BSPhysicsShapeType.SHAPE_MESH:
-                            DereferenceMesh(shape, shapeCallback);
-                            break;
-                        case BSPhysicsShapeType.SHAPE_COMPOUND:
-                            DereferenceCompound(shape, shapeCallback);
-                            break;
-                        case BSPhysicsShapeType.SHAPE_UNKNOWN:
-                            break;
-                        default:
-                            break;
-                    }
+                    case BSPhysicsShapeType.SHAPE_HULL:
+                        DereferenceHull(shape, shapeCallback);
+                        break;
+                    case BSPhysicsShapeType.SHAPE_MESH:
+                        DereferenceMesh(shape, shapeCallback);
+                        break;
+                    case BSPhysicsShapeType.SHAPE_COMPOUND:
+                        DereferenceCompound(shape, shapeCallback);
+                        break;
+                    case BSPhysicsShapeType.SHAPE_UNKNOWN:
+                        break;
+                    default:
+                        break;
                 }
             }
-        });
+        }
     }
 
     // Count down the reference count for a mesh shape
@@ -393,7 +388,7 @@ public sealed class BSShapeCollection : IDisposable
 
         if (shapeInfo.type != BSPhysicsShapeType.SHAPE_UNKNOWN)
         {
-            DereferenceShape(shapeInfo, true, null);
+            DereferenceShape(shapeInfo, null);
         }
         else
         {
@@ -543,7 +538,7 @@ public sealed class BSShapeCollection : IDisposable
                             ShapeDestructionCallback shapeCallback)
     {
         // release any previous shape
-        DereferenceShape(prim.PhysShape, true, shapeCallback);
+        DereferenceShape(prim.PhysShape, shapeCallback);
 
         BulletShape newShape = BuildPhysicalNativeShape(prim, shapeType, shapeKey);
 
@@ -611,7 +606,7 @@ public sealed class BSShapeCollection : IDisposable
                                 prim.LocalID, prim.PhysShape.shapeKey.ToString("X"), newMeshKey.ToString("X"));
 
         // Since we're recreating new, get rid of the reference to the previous shape
-        DereferenceShape(prim.PhysShape, true, shapeCallback);
+        DereferenceShape(prim.PhysShape, shapeCallback);
 
         newShape = CreatePhysicalMesh(prim.PhysObjectName, newMeshKey, prim.BaseShape, prim.Size, lod);
         // Take evasive action if the mesh was not constructed.
@@ -682,7 +677,7 @@ public sealed class BSShapeCollection : IDisposable
                         prim.LocalID, prim.PhysShape.shapeKey.ToString("X"), newHullKey.ToString("X"));
 
         // Remove usage of the previous shape.
-        DereferenceShape(prim.PhysShape, true, shapeCallback);
+        DereferenceShape(prim.PhysShape, shapeCallback);
 
         newShape = CreatePhysicalHull(prim.PhysObjectName, newHullKey, prim.BaseShape, prim.Size, lod);
         newShape = VerifyMeshCreated(newShape, prim);
@@ -816,7 +811,6 @@ public sealed class BSShapeCollection : IDisposable
         // Remove reference to the old shape
         // Don't need to do this as the shape is freed when the new root shape is created below.
         // DereferenceShape(prim.PhysShape, true, shapeCallback);
-
 
         BulletShape cShape = PhysicsScene.PE.CreateCompoundShape(PhysicsScene.World, false);
 
@@ -956,7 +950,7 @@ public sealed class BSShapeCollection : IDisposable
         if (mustRebuild || forceRebuild)
         {
             // Free any old body
-            DereferenceBody(prim.PhysBody, true, bodyCallback);
+            DereferenceBody(prim.PhysBody, bodyCallback);
 
             BulletBody aBody;
             if (prim.IsSolid)
@@ -970,7 +964,7 @@ public sealed class BSShapeCollection : IDisposable
                 if (DDetail) DetailLog("{0},BSShapeCollection.CreateBody,ghost,body={1}", prim.LocalID, aBody);
             }
 
-            ReferenceBody(aBody, true);
+            ReferenceBody(aBody);
 
             prim.PhysBody = aBody;
 
