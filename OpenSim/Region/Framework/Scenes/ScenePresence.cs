@@ -204,6 +204,11 @@ namespace OpenSim.Region.Framework.Scenes
 
         private const int LAND_VELOCITYMAG_MAX = 12;
 
+        private const float FLY_ROLL_MAX_RADIANS = 1.1f;
+
+        private const float FLY_ROLL_RADIANS_PER_SECOND = 0.06f;
+        private const float FLY_ROLL_RESET_RADIANS_PER_SECOND = 0.02f;
+
         private float m_health = 100f;
 
         protected ulong crossingFromRegion;
@@ -606,6 +611,14 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        // Used for limited viewer 'fake' user rotations.
+        private Vector3 m_AngularVelocity = Vector3.Zero;
+
+        public Vector3 AngularVelocity
+        {
+            get { return m_AngularVelocity; }
+        }
+
         public bool IsChildAgent { get; set; }
         public bool IsLoggingIn { get; set; }
 
@@ -735,6 +748,8 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         #endregion
+
+
 
         #region Constructor(s)
 
@@ -1224,6 +1239,49 @@ namespace OpenSim.Region.Framework.Scenes
         {
             ControllingClient.StopFlying(this);
         }
+
+        /// <summary>
+        /// Applies a roll accumulator to the avatar's angular velocity for the avatar fly roll effect.
+        /// </summary>
+        /// <param name="amount">Postive or negative roll amount in radians</param>
+        private void ApplyFlyingRoll(float amount)
+        {
+            float noise = ((float)(Util.RandomClass.NextDouble()*0.2f)-0.1f);
+            float rollAmount = Util.Clamp(m_AngularVelocity.Z + amount, -FLY_ROLL_MAX_RADIANS, FLY_ROLL_MAX_RADIANS) + noise;
+            m_AngularVelocity.Z = rollAmount;
+        }
+
+        /// <summary>
+        /// incrementally sets roll amount to zero
+        /// </summary>
+        /// <param name="amount">Positive roll amount in radians</param>
+        /// <returns></returns>
+        private float CalculateFlyingRollResetToZero(float amount)
+        {
+            const float rollMinRadians = 0f;
+
+            if (m_AngularVelocity.Z > 0)
+            {
+                
+                float leftOverToMin = m_AngularVelocity.Z - rollMinRadians;
+                if (amount > leftOverToMin)
+                    return -leftOverToMin;
+                else
+                    return -amount;
+
+            }
+            else
+            {
+                
+                float leftOverToMin = -m_AngularVelocity.Z - rollMinRadians;
+                if (amount > leftOverToMin)
+                    return leftOverToMin;
+                else
+                    return amount;
+            }
+        }
+        
+
 
         // neighbouring regions we have enabled a child agent in
         // holds the seed cap for the child agent in that region
@@ -1740,6 +1798,29 @@ namespace OpenSim.Region.Framework.Scenes
                     // Are the landing controls requirements filled?
                     bool controlland = (((flags & AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0) ||
                                         ((flags & AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG) != 0));
+
+
+                   
+                    // Applies a satisfying roll effect to the avatar when flying.
+                    if (((flags & AgentManager.ControlFlags.AGENT_CONTROL_TURN_LEFT) != 0) && ((flags & AgentManager.ControlFlags.AGENT_CONTROL_YAW_POS) != 0))
+                    {
+                        ApplyFlyingRoll(FLY_ROLL_RADIANS_PER_SECOND);
+                        
+                    } 
+                    else if (((flags & AgentManager.ControlFlags.AGENT_CONTROL_TURN_RIGHT) != 0) &&
+                             ((flags & AgentManager.ControlFlags.AGENT_CONTROL_YAW_NEG) != 0))
+                    {
+                        ApplyFlyingRoll(-FLY_ROLL_RADIANS_PER_SECOND);
+
+                    }
+                    else
+                    {
+                        if (m_AngularVelocity.Z != 0)
+                            m_AngularVelocity.Z += CalculateFlyingRollResetToZero(FLY_ROLL_RESET_RADIANS_PER_SECOND);
+                        
+                    }
+                  
+
 
                     if (Flying && IsColliding && controlland)
                     {

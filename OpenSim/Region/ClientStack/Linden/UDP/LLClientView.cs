@@ -4963,8 +4963,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // in that direction, even though we don't model this on the server.  Implementing this in the future
                 // may improve movement smoothness.
 //                acceleration = new Vector3(1, 0, 0);
-
-                angularVelocity = Vector3.Zero;
+                
+                angularVelocity = presence.AngularVelocity;
+                rotation = presence.Rotation;
 
                 if (sendTexture)
                     textureEntry = presence.Appearance.Texture.GetBytes();
