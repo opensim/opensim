@@ -28,6 +28,7 @@
 using System;
 using System.Collections.Generic;
 using OpenSim.Region.Framework.Interfaces;
+using OpenMetaverse;
 
 namespace OpenSim.Region.CoreModules.Framework.InterfaceCommander
 {
@@ -151,6 +152,9 @@ namespace OpenSim.Region.CoreModules.Framework.InterfaceCommander
                             break;
                         case "Boolean":
                             m_args[i].ArgumentValue = Boolean.Parse(arg.ToString());
+                            break;
+                        case "UUID":
+                            m_args[i].ArgumentValue = UUID.Parse(arg.ToString());
                             break;
                         default:
                             Console.WriteLine("ERROR: Unknown desired type for argument " + m_args[i].Name + " on command " + m_name);
