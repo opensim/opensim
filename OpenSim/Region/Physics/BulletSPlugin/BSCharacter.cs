@@ -56,7 +56,6 @@ public sealed class BSCharacter : BSPhysObject
     private int _physicsActorType;
     private bool _isPhysical;
     private bool _flying;
-    private bool _wasWalking;   // 'true' if the avatar was walking/moving last frame
     private bool _setAlwaysRun;
     private bool _throttleUpdates;
     private bool _floatOnWater;
@@ -84,7 +83,6 @@ public sealed class BSCharacter : BSPhysObject
         _position = pos;
 
         _flying = isFlying;
-        _wasWalking = true;     // causes first step to initialize standing
         _orientation = OMV.Quaternion.Identity;
         _velocity = OMV.Vector3.Zero;
         _buoyancy = ComputeBuoyancyFromFlying(isFlying);
@@ -220,7 +218,13 @@ public sealed class BSCharacter : BSPhysObject
             {
                 // The avatar shouldn't be moving
                 _velocityMotor.Zero();
-                ZeroMotion(true /* inTaintTime */);
+
+                // If we are colliding with a stationary object, presume we're standing and don't move around
+                if (!ColliderIsMoving)
+                {
+                    DetailLog("{0},BSCharacter.MoveMotor,collidingWithStationary,zeroingMotion", LocalID);
+                    ZeroMotion(true /* inTaintTime */);
+                }
 
                 // Standing has more friction on the ground
                 if (_currentFriction != BSParam.AvatarStandingFriction)
@@ -229,8 +233,6 @@ public sealed class BSCharacter : BSPhysObject
                     PhysicsScene.PE.SetFriction(PhysBody, _currentFriction);
                 }
                 DetailLog("{0},BSCharacter.MoveMotor,taint,stopping,target={1}", LocalID, _velocityMotor.TargetValue);
-
-                _wasWalking = false;
             }
             else
             {
@@ -260,7 +262,6 @@ public sealed class BSCharacter : BSPhysObject
 
                 DetailLog("{0},BSCharacter.MoveMotor,move,stepVel={1},vel={2},mass={3},moveForce={4}", LocalID, stepVelocity, _velocity, Mass, moveForce);
                 PhysicsScene.PE.ApplyCentralImpulse(PhysBody, moveForce);
-                _wasWalking = true;
             }
         });
     }

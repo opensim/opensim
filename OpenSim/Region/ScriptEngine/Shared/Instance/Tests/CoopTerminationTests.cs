@@ -55,10 +55,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance.Tests
 
         private OSChatMessage m_osChatMessageReceived;
 
+        /// <summary>
+        /// Number of chat messages received so far.  Reset before each test.
+        /// </summary>
+        private int m_chatMessagesReceived;
+
+        /// <summary>
+        /// Number of chat messages expected.  m_chatEvent is not fired until this number is reached or exceeded.
+        /// </summary>
+        private int m_chatMessagesThreshold;
+
         [SetUp]
         public void Init()
         {
             m_osChatMessageReceived = null;
+            m_chatMessagesReceived = 0;
+            m_chatMessagesThreshold = 0;
             m_chatEvent = new AutoResetEvent(false);
             m_stoppedEvent = new AutoResetEvent(false);
 
@@ -126,6 +138,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance.Tests
         }
 
         [Test]
+        public void TestNoStopOnSingleStatementForLoop()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            string script = 
+@"default
+{    
+    state_entry()
+    {
+        integer i = 0;        
+        for (i = 0; i <= 1; i++) llSay(0, ""Iter "" + (string)i);
+    }
+}";
+
+            TestSingleStatementNoStop(script);
+        }
+
+        [Test]
         public void TestStopOnLongSingleStatementForLoop()
         {
             TestHelpers.InMethod();
@@ -139,8 +170,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance.Tests
         integer i = 0;
         llSay(0, ""Thin Lizzy"");
         
-        for (i = 0; i < 2147483647; i++)        
-            llSay(0, ""Iter "" + (string)i);
+        for (i = 0; i < 2147483647; i++) llSay(0, ""Iter "" + (string)i);
     }
 }";
 
@@ -169,6 +199,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance.Tests
 }";
 
             TestStop(script);
+        }
+
+        [Test]
+        public void TestNoStopOnSingleStatementWhileLoop()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            string script = 
+@"default
+{    
+    state_entry()
+    {
+        integer i = 0;        
+        while (i < 2) llSay(0, ""Iter "" + (string)i++);
+    }
+}";
+
+            TestSingleStatementNoStop(script);
         }
 
         [Test]
@@ -218,7 +267,50 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance.Tests
         }
 
         [Test]
-        public void TestStopOnLongDoWhileLoop()
+        public void TestNoStopOnSingleStatementDoWhileLoop()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            string script = 
+@"default
+{    
+    state_entry()
+    {
+        integer i = 0;
+
+        do llSay(0, ""Iter "" + (string)i++);
+        while (i < 2);
+    }
+}";
+
+            TestSingleStatementNoStop(script);
+        }
+
+        [Test]
+        public void TestStopOnLongSingleStatementDoWhileLoop()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            string script = 
+@"default
+{    
+    state_entry()
+    {
+        integer i = 0;
+        llSay(0, ""Thin Lizzy"");
+
+        do llSay(0, ""Iter "" + (string)i++);
+        while (1 == 1);
+    }
+}";
+
+            TestStop(script);
+        }
+
+        [Test]
+        public void TestStopOnLongCompoundStatementDoWhileLoop()
         {
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
@@ -234,7 +326,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance.Tests
         do 
         {
             llSay(0, ""Iter "" + (string)i++);
-} while (1 == 1);
+        } while (1 == 1);
     }
 }";
 
@@ -245,7 +337,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance.Tests
         public void TestStopOnInfiniteJumpLoop()
         {
             TestHelpers.InMethod();
-            TestHelpers.EnableLogging();
+//            TestHelpers.EnableLogging();
 
             string script = 
 @"default
@@ -320,14 +412,13 @@ default
             TestStop(script);
         }
 
-        private void TestStop(string script)
+        private SceneObjectPart CreateScript(string script, string itemName, UUID userId)
         {
-            UUID userId = TestHelpers.ParseTail(0x1);
 //            UUID objectId = TestHelpers.ParseTail(0x100);
 //            UUID itemId = TestHelpers.ParseTail(0x3);
-            string itemName = "TestStop() Item";
 
-            SceneObjectGroup so = SceneHelpers.CreateSceneObject(1, userId, "TestStop", 0x100);
+            SceneObjectGroup so 
+                = SceneHelpers.CreateSceneObject(1, userId, string.Format("Object for {0}", itemName), 0x100);
             m_scene.AddNewSceneObject(so, true);
 
             InventoryItemBase itemTemplate = new InventoryItemBase();
@@ -338,14 +429,57 @@ default
 
             m_scene.EventManager.OnChatFromWorld += OnChatFromWorld;
 
-            SceneObjectPart partWhereRezzed = m_scene.RezNewScript(userId, itemTemplate, script);
+            return m_scene.RezNewScript(userId, itemTemplate, script);
+        }
 
+        private void TestSingleStatementNoStop(string script)
+        {
+            // In these tests we expect to see at least 2 chat messages to confirm that the loop is working properly.
+            m_chatMessagesThreshold = 2;
+
+            UUID userId = TestHelpers.ParseTail(0x1);
+//            UUID objectId = TestHelpers.ParseTail(0x100);
+//            UUID itemId = TestHelpers.ParseTail(0x3);
+            string itemName = "TestNoStop";
+
+            SceneObjectPart partWhereRezzed = CreateScript(script, itemName, userId);
             TaskInventoryItem rezzedItem = partWhereRezzed.Inventory.GetInventoryItem(itemName);
 
             // Wait for the script to start the event before we try stopping it.
             m_chatEvent.WaitOne(60000);
 
-            Console.WriteLine("Script started with message [{0}]", m_osChatMessageReceived.Message);
+            if (m_osChatMessageReceived == null)
+                Assert.Fail("Script did not start");
+            else
+                Assert.That(m_chatMessagesReceived, Is.EqualTo(2));
+
+            bool running;
+            TaskInventoryItem scriptItem = partWhereRezzed.Inventory.GetInventoryItem(itemName);
+            Assert.That(
+                SceneObjectPartInventory.TryGetScriptInstanceRunning(m_scene, scriptItem, out running), Is.True);
+            Assert.That(running, Is.True);
+        }
+
+        private void TestStop(string script)
+        {
+            // In these tests we're only interested in the first message to confirm that the script has started.
+            m_chatMessagesThreshold = 1;
+
+            UUID userId = TestHelpers.ParseTail(0x1);
+//            UUID objectId = TestHelpers.ParseTail(0x100);
+//            UUID itemId = TestHelpers.ParseTail(0x3);
+            string itemName = "TestStop";
+
+            SceneObjectPart partWhereRezzed = CreateScript(script, itemName, userId);
+            TaskInventoryItem rezzedItem = partWhereRezzed.Inventory.GetInventoryItem(itemName);
+
+            // Wait for the script to start the event before we try stopping it.
+            m_chatEvent.WaitOne(60000);
+
+            if (m_osChatMessageReceived != null)
+                Console.WriteLine("Script started with message [{0}]", m_osChatMessageReceived.Message);
+            else
+                Assert.Fail("Script did not start");
 
             // FIXME: This is a very poor way of trying to avoid a low-probability race condition where the script
             // executes llSay() but has not started the next statement before we try to stop it.
@@ -367,11 +501,14 @@ default
 
         private void OnChatFromWorld(object sender, OSChatMessage oscm)
         {
-            m_scene.EventManager.OnChatFromWorld -= OnChatFromWorld;
             Console.WriteLine("Got chat [{0}]", oscm.Message);
-
             m_osChatMessageReceived = oscm;
-            m_chatEvent.Set();
+
+            if (++m_chatMessagesReceived >= m_chatMessagesThreshold)
+            {
+                m_scene.EventManager.OnChatFromWorld -= OnChatFromWorld;            
+                m_chatEvent.Set();
+            }
         }
     }
 }

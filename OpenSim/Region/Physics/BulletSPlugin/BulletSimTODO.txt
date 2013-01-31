@@ -1,8 +1,11 @@
 CURRENT PRIORITIES
 =================================================
+One sided meshes? Should terrain be built into a closed shape?
+	When meshes get partially wedged into the terrain, they cannot push themselves out.
+	It is possible that Bullet processes collisions whether entering or leaving a mesh.
+	Ref: http://bulletphysics.org/Bullet/phpBB3/viewtopic.php?t=4869
 Deleting a linkset while standing on the root will leave the physical shape of the root behind.
 	Not sure if it is because standing on it. Done with large prim linksets.
-Child movement in linkset (don't rebuild linkset)
 Vehicle angular vertical attraction
 vehicle angular banking
 Center-of-gravity
@@ -12,6 +15,7 @@ when should angular and linear motor targets be zeroed? when selected?
 	Need a vehicle.clear()? Or an 'else' in prestep if not physical.
 Teravus llMoveToTarget script debug
 	Mixing of hover, buoyancy/gravity, moveToTarget, into one force
+	Setting hover height to zero disables hover even if hover flags are on (from SL wiki)
 Nebadon vehicles turning funny in arena
 limitMotorUp calibration (more down?)
 llRotLookAt
@@ -72,7 +76,11 @@ Incorporate inter-relationship of angular corrections. For instance, angularDefl
 
 GENERAL TODO LIST:
 =================================================
+Avatar standing on a moving object should start to move with the object.
 llMoveToTarget objects are not effected by gravity until target is removed.
+Compute CCD parameters based on body size
+Can solver iterations be changed per body/shape? Can be for constraints but what
+	about regular vehicles?
 Implement llSetPhysicalMaterial.
 	extend it with Center-of-mass, rolling friction, density
 Implement llSetForceAndTorque.
@@ -322,3 +330,4 @@ Boats float low in the water (DONE)
 Boats floating at proper level (DONE)
 When is force introduced by SetForce removed? The prestep action could go forever. (DONE)
 	(Resolution: setForce registers a prestep action which keeps applying the force)
+Child movement in linkset (don't rebuild linkset) (DONE 20130122))

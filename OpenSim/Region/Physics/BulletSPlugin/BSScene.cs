@@ -26,6 +26,7 @@
  */
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -87,7 +88,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     public delegate void PreStepAction(float timeStep);
     public delegate void PostStepAction(float timeStep);
     public event PreStepAction BeforeStep;
-    public event PreStepAction AfterStep;
+    public event PostStepAction AfterStep;
 
     // A value of the time now so all the collision and update routines do not have to get their own
     // Set to 'now' just before all the prims and actors are called for collisions and updates
@@ -697,7 +698,21 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
     public override Dictionary<uint, float> GetTopColliders()
     {
-        return new Dictionary<uint, float>();
+        Dictionary<uint, float> topColliders;
+
+        lock (PhysObjects)
+        {
+            foreach (KeyValuePair<uint, BSPhysObject> kvp in PhysObjects)
+            {
+                kvp.Value.ComputeCollisionScore();
+            }
+
+            List<BSPhysObject> orderedPrims = new List<BSPhysObject>(PhysObjects.Values);
+            orderedPrims.OrderByDescending(p => p.CollisionScore);
+            topColliders = orderedPrims.Take(25).ToDictionary(p => p.LocalID, p => p.CollisionScore);
+        }
+
+        return topColliders;
     }
 
     public override bool IsThreaded { get { return false;  } }
@@ -748,7 +763,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
     private void TriggerPostStepEvent(float timeStep)
     {
-        PreStepAction actions = AfterStep;
+        PostStepAction actions = AfterStep;
         if (actions != null)
             actions(timeStep);
 
@@ -840,7 +855,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         {
             DetailLog("{0},BSScene.AssertInTaintTime,NOT IN TAINT TIME,Region={1},Where={2}", DetailLogZero, RegionName, whereFrom);
             m_log.ErrorFormat("{0} NOT IN TAINT TIME!! Region={1}, Where={2}", LogHeader, RegionName, whereFrom);
-            Util.PrintCallStack(DetailLog);
+            // Util.PrintCallStack(DetailLog);
         }
         return InTaintTime;
     }

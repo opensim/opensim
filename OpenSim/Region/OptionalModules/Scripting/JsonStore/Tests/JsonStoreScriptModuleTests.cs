@@ -48,7 +48,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
     /// Tests for inventory functions in LSL
     /// </summary>
     [TestFixture]
-    public class LSL_ApiInventoryTests : OpenSimTestCase
+    public class JsonStoreScriptModuleTests : OpenSimTestCase
     {
         private Scene m_scene;
         private MockScriptEngine m_engine;
@@ -58,8 +58,6 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
         public override void SetUp()
         {
             base.SetUp();
-
-            TestHelpers.EnableLogging();
 
             IConfigSource configSource = new IniConfigSource();
             IConfig jsonStoreConfig = configSource.AddConfig("JsonStore");
@@ -72,74 +70,129 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 
             m_scene = new SceneHelpers().SetupScene();
             SceneHelpers.SetupSceneModules(m_scene, configSource, m_engine, m_smcm, jsm, jssm);
+
+            try
+            {
+                m_smcm.RegisterScriptInvocation(this, "DummyTestMethod");
+            }
+            catch (ArgumentException)
+            {
+                Assert.Ignore("Ignoring test since running on .NET 3.5 or earlier.");
+            }
+
+            // XXX: Unfortunately, ICommsModule currently has no way of deregistering methods.
         }
 
-//        [Test]
+        private object InvokeOp(string name, params object[] args)
+        {
+            return m_smcm.InvokeOperation(UUID.Zero, UUID.Zero, name, args);
+        }
+
+        [Test]
         public void TestJsonCreateStore()
         {
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
 
-            UUID storeId = (UUID)m_smcm.InvokeOperation(UUID.Zero, UUID.Zero, "JsonCreateStore", new object[] { "{}" }); 
-
+            UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}");
             Assert.That(storeId, Is.Not.EqualTo(UUID.Zero));
         }
 
-//        [Test]
+        [Test]
+        public void TestJsonDestroyStore()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ 'Hello' : 'World' }");
+            int dsrv = (int)InvokeOp("JsonDestroyStore", storeId);
+
+            Assert.That(dsrv, Is.EqualTo(1));
+
+            int tprv = (int)InvokeOp("JsonTestPath", storeId, "Hello");
+            Assert.That(tprv, Is.EqualTo(0));
+        }
+
+        [Test]
         public void TestJsonGetValue()
         {
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
 
-            UUID storeId 
-                = (UUID)m_smcm.InvokeOperation(
-                    UUID.Zero, UUID.Zero, "JsonCreateStore", new object[] { "{ 'Hello' : 'World' }" }); 
+            UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ 'Hello' : 'World' }"); 
 
-            string value 
-                = (string)m_smcm.InvokeOperation(
-                    UUID.Zero, UUID.Zero, "JsonGetValue", new object[] { storeId, "Hello" });
-
+            string value = (string)InvokeOp("JsonGetValue", storeId, "Hello");
             Assert.That(value, Is.EqualTo("World"));
         }
 
 //        [Test]
+//        public void TestJsonTakeValue()
+//        {
+//            TestHelpers.InMethod();
+////            TestHelpers.EnableLogging();
+//
+//            UUID storeId 
+//                = (UUID)m_smcm.InvokeOperation(
+//                    UUID.Zero, UUID.Zero, "JsonCreateStore", new object[] { "{ 'Hello' : 'World' }" }); 
+//
+//            string value 
+//                = (string)m_smcm.InvokeOperation(
+//                    UUID.Zero, UUID.Zero, "JsonTakeValue", new object[] { storeId, "Hello" });
+//
+//            Assert.That(value, Is.EqualTo("World"));
+//
+//            string value2
+//                = (string)m_smcm.InvokeOperation(
+//                    UUID.Zero, UUID.Zero, "JsonGetValue", new object[] { storeId, "Hello" });
+//
+//            Assert.That(value, Is.Null);
+//        }
+
+        [Test]
+        public void TestJsonRemoveValue()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ 'Hello' : 'World' }"); 
+
+            int returnValue = (int)InvokeOp( "JsonRemoveValue", storeId, "Hello");
+            Assert.That(returnValue, Is.EqualTo(1));
+
+            int result = (int)InvokeOp("JsonTestPath", storeId, "Hello");
+            Assert.That(result, Is.EqualTo(0));
+
+            string returnValue2 = (string)InvokeOp("JsonGetValue", storeId, "Hello");
+            Assert.That(returnValue2, Is.EqualTo(""));
+        }
+
+        [Test]
         public void TestJsonTestPath()
         {
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
 
-            UUID storeId 
-                = (UUID)m_smcm.InvokeOperation(
-                    UUID.Zero, UUID.Zero, "JsonCreateStore", new object[] { "{ 'Hello' : 'World' }" }); 
+            UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ 'Hello' : 'World' }"); 
 
-            int result 
-                = (int)m_smcm.InvokeOperation(
-                    UUID.Zero, UUID.Zero, "JsonTestPath", new object[] { storeId, "Hello" });
-
+            int result = (int)InvokeOp("JsonTestPath", storeId, "Hello");
             Assert.That(result, Is.EqualTo(1));
         }
 
-//        [Test]
+        [Test]
         public void TestJsonSetValue()
         {
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
 
-            UUID storeId 
-                = (UUID)m_smcm.InvokeOperation(
-                    UUID.Zero, UUID.Zero, "JsonCreateStore", new object[] { "{ }" }); 
+            UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}"); 
 
-            int result 
-                = (int)m_smcm.InvokeOperation(
-                    UUID.Zero, UUID.Zero, "JsonSetValue", new object[] { storeId, "Hello", "World" });
-
+            int result = (int)InvokeOp("JsonSetValue", storeId, "Hello", "World");
             Assert.That(result, Is.EqualTo(1));
 
-            string value 
-                = (string)m_smcm.InvokeOperation(
-                    UUID.Zero, UUID.Zero, "JsonGetValue", new object[] { storeId, "Hello" });
-
+            string value = (string)InvokeOp("JsonGetValue", storeId, "Hello");
             Assert.That(value, Is.EqualTo("World"));
         }
+
+        public object DummyTestMethod(object o1, object o2, object o3, object o4, object o5) { return null; }
     }
 }
