@@ -43,7 +43,7 @@ namespace OpenSim.Region.Physics.Manager
     public delegate void JointDeactivated(PhysicsJoint joint);
     public delegate void JointErrorMessage(PhysicsJoint joint, string message); // this refers to an "error message due to a problem", not "amount of joint constraint violation"
 
-    public enum RayFilterFlags:ushort
+    public enum RayFilterFlags : ushort
     {
         // the flags
         water = 0x01,
@@ -60,7 +60,7 @@ namespace OpenSim.Region.Physics.Manager
         ClosestHit = 0x8000,
 
         // some combinations
-        LSLPhanton = phantom | volumedtc,
+        LSLPhantom = phantom | volumedtc,
         PrimsNonPhantom = nonphysical | physical,
         PrimsNonPhantomAgents = nonphysical | physical | agent,
 
