@@ -264,7 +264,8 @@ namespace OpenSim.Region.Framework.Scenes
                     UUID uuid = new UUID(uuidMatch.Value);
 //                    m_log.DebugFormat("[ARCHIVER]: Recording {0} in text", uuid);
 
-                    // Assume AssetIDs embedded are textures.
+                    // Embedded asset references (if not false positives) could be for many types of asset, so we will
+                    // label these as unknown.
                     assetUuids[uuid] = AssetType.Unknown;
                 }
             }
