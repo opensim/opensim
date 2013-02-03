@@ -99,7 +99,7 @@ namespace OpenSim.Region.ClientStack.TCPJSONStream
                 }
                 ClientNetworkContext context = new ClientNetworkContext((IPEndPoint) socket.RemoteEndPoint, _port,
                                                                         new NetworkStream(socket), 16384, socket);
-                HttpRequestParser parser;
+                //HttpRequestParser parser;
                 context.BeginRead();
 
             }

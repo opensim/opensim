@@ -55,6 +55,9 @@ namespace OpenSim.Region.ClientStack.TCPJSONStream
                 }
 
             }
+            catch (Exception)
+            {
+            }
         }
         /// <summary>
         /// send a whole buffer
