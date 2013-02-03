@@ -113,7 +113,6 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
                 //t = System.Environment.TickCount - t;
                 //m_log.InfoFormat("[MAPTILE] generation of 10 maptiles needed {0} ms", t);
 
-
                 if (drawPrimVolume)
                 {
                     DrawObjectVolume(m_scene, mapbmp);
@@ -121,7 +120,7 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
             }
             else
             {
-                mapbmp = fetchTexture(m_scene.RegionInfo.RegionSettings.TerrainImageID);
+                mapbmp = FetchTexture(m_scene.RegionInfo.RegionSettings.TerrainImageID);
             }
             return mapbmp;
         }
@@ -232,11 +231,19 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
 //             }
 //         }
 
-        private Bitmap fetchTexture(UUID id)
+        private Bitmap FetchTexture(UUID id)
         {
             AssetBase asset = m_scene.AssetService.Get(id.ToString());
-            m_log.DebugFormat("[MAPTILE]: Fetched static texture {0}, found: {1}", id, asset != null);
-            if (asset == null) return null;
+
+            if (asset != null)
+            {
+                m_log.DebugFormat("[MAPTILE]: Static map image texture {0} found for {1}", id, m_scene.Name);
+            }
+            else
+            {
+                m_log.WarnFormat("[MAPTILE]: Static map image texture {0} not found for {1}", id, m_scene.Name);
+                return null;
+            }
 
             ManagedImage managedImage;
             Image image;
