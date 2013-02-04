@@ -265,9 +265,10 @@
     ; DefaultScriptEngine = "XEngine"
 
     ;# {GenerateMaptiles} {} {Generate map tiles?} {true false} true
-    ;; Map tile options. You can choose to generate no map tiles at all,
-    ;; generate normal maptiles, or nominate an uploaded texture to
-    ;; be the map tile
+    ;; Map tile options. You can choose to generate normal maptiles or nominate an uploaded texture to
+    ;; be the map tile using the MaptileStaticUUID parameter in this section or for individual regions in
+    ;; the regions config file(s).  If you do not want to upload map tiles at all, then you will need 
+    ;; to disable the MapImageServiceModule entirely.
     ; GenerateMaptiles = true
 
     ;# {MaptileRefresh} {GenerateMaptiles} {Maptile refresh period?} {} 0

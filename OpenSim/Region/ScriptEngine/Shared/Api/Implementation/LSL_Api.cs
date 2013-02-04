@@ -12342,7 +12342,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (checkNonPhysical)
                     rayfilter |= RayFilterFlags.nonphysical;
                 if (detectPhantom)
-                    rayfilter |= RayFilterFlags.LSLPhanton;
+                    rayfilter |= RayFilterFlags.LSLPhantom;
 
                 Vector3 direction = dir * ( 1/dist);
 

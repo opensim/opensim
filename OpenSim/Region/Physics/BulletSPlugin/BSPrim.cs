@@ -146,9 +146,9 @@ public sealed class BSPrim : BSPhysObject
         {
             DetailLog("{0},BSPrim.Destroy,taint,", LocalID);
             // If there are physical body and shape, release my use of same.
-            PhysicsScene.Shapes.DereferenceBody(PhysBody, true, null);
+            PhysicsScene.Shapes.DereferenceBody(PhysBody, null);
             PhysBody.Clear();
-            PhysicsScene.Shapes.DereferenceShape(PhysShape, true, null);
+            PhysicsScene.Shapes.DereferenceShape(PhysShape, null);
             PhysShape.Clear();
         });
     }
@@ -181,11 +181,19 @@ public sealed class BSPrim : BSPhysObject
 
     public override bool ForceBodyShapeRebuild(bool inTaintTime)
     {
-        PhysicsScene.TaintedObject(inTaintTime, "BSPrim.ForceBodyShapeRebuild", delegate()
+        if (inTaintTime)
         {
             _mass = CalculateMass();   // changing the shape changes the mass
             CreateGeomAndObject(true);
-        });
+        }
+        else
+        {
+            PhysicsScene.TaintedObject("BSPrim.ForceBodyShapeRebuild", delegate()
+            {
+                _mass = CalculateMass();   // changing the shape changes the mass
+                CreateGeomAndObject(true);
+            });
+        }
         return true;
     }
     public override bool Grabbed {
@@ -1597,9 +1605,9 @@ public sealed class BSPrim : BSPhysObject
     public void CreateGeomAndObject(bool forceRebuild)
     {
         // Create the correct physical representation for this type of object.
-        // Updates PhysBody and PhysShape with the new information.
+        // Updates base.PhysBody and base.PhysShape with the new information.
         // Ignore 'forceRebuild'. This routine makes the right choices and changes of necessary.
-        PhysicsScene.Shapes.GetBodyAndShape(false, PhysicsScene.World, this, null, delegate(BulletBody dBody)
+        PhysicsScene.Shapes.GetBodyAndShape(false /*forceRebuild */, PhysicsScene.World, this, null, delegate(BulletBody dBody)
         {
             // Called if the current prim body is about to be destroyed.
             // Remove all the physical dependencies on the old body.

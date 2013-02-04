@@ -2517,7 +2517,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 ParentPart = m_scene.GetSceneObjectPart(m_requestedSitTargetID);
                 ParentID = m_requestedSitTargetID;
-
+                m_AngularVelocity = Vector3.Zero;
                 Velocity = Vector3.Zero;
                 RemoveFromPhysicalScene();
 
@@ -2533,7 +2533,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void HandleAgentSitOnGround()
         {
-//            m_updateCount = 0;  // Kill animation update burst so that the SIT_G.. will stick.
+//            m_updateCount = 0;  // Kill animation update burst so that the SIT_G.. will stick..
+            m_AngularVelocity = Vector3.Zero;
             Animator.TrySetMovementAnimation("SIT_GROUND_CONSTRAINED");
             SitGround = true;
             RemoveFromPhysicalScene();

@@ -790,32 +790,43 @@ namespace OpenSim.Region.CoreModules.Asset
         {
             UuidGatherer gatherer = new UuidGatherer(m_AssetService);
 
+            HashSet<UUID> uniqueUuids = new HashSet<UUID>();
             Dictionary<UUID, AssetType> assets = new Dictionary<UUID, AssetType>();
+
             foreach (Scene s in m_Scenes)
             {
                 StampRegionStatusFile(s.RegionInfo.RegionID);
 
                 s.ForEachSOG(delegate(SceneObjectGroup e)
-                {
+                {                   
                     gatherer.GatherAssetUuids(e, assets);
+
+                    foreach (UUID assetID in assets.Keys)
+                    {
+                        uniqueUuids.Add(assetID);
+
+                        string filename = GetFileName(assetID.ToString());
+
+                        if (File.Exists(filename))
+                        {
+                            File.SetLastAccessTime(filename, DateTime.Now);
+                        }
+                        else if (storeUncached)
+                        {
+                            AssetBase cachedAsset = m_AssetService.Get(assetID.ToString());
+                            if (cachedAsset == null && assets[assetID] != AssetType.Unknown)
+                                m_log.DebugFormat(
+                                "[FLOTSAM ASSET CACHE]: Could not find asset {0}, type {1} referenced by object {2} at {3} in scene {4} when pre-caching all scene assets",
+                                    assetID, assets[assetID], e.Name, e.AbsolutePosition, s.Name);
+                        }
+                    }
+
+                    assets.Clear();
                 });
             }
 
-            foreach (UUID assetID in assets.Keys)
-            {
-                string filename = GetFileName(assetID.ToString());
 
-                if (File.Exists(filename))
-                {
-                    File.SetLastAccessTime(filename, DateTime.Now);
-                }
-                else if (storeUncached)
-                {
-                    m_AssetService.Get(assetID.ToString());
-                }
-            }
-
-            return assets.Keys.Count;
+            return uniqueUuids.Count;
         }
 
         /// <summary>

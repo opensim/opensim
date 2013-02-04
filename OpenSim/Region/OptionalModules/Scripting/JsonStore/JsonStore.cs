@@ -68,7 +68,41 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         protected List<TakeValueCallbackClass> m_TakeStore;
         protected List<TakeValueCallbackClass> m_ReadStore;
         
+        // add separators for quoted paths
+        protected static Regex m_ParsePassOne = new Regex("{[^}]+}");
 
+        // add separators for array references
+        protected static Regex m_ParsePassTwo = new Regex("(\\[[0-9]+\\]|\\[\\+\\])");
+
+        // add quotes to bare identifiers which are limited to alphabetic characters
+        protected static Regex m_ParsePassThree = new Regex("\\.([a-zA-Z]+)");
+
+        // remove extra separator characters
+        protected static Regex m_ParsePassFour = new Regex("\\.+");
+
+        // expression used to validate the full path, this is canonical representation
+        protected static Regex m_ValidatePath = new Regex("^\\.(({[^}]+}|\\[[0-9]+\\]|\\[\\+\\])\\.)+$");
+
+        // expression used to match path components
+        protected static Regex m_PathComponent = new Regex("\\.({[^}]+}|\\[[0-9]+\\]|\\[\\+\\]+)");
+
+        // extract the internals of an array reference
+        protected static Regex m_SimpleArrayPattern = new Regex("\\[([0-9]+)\\]");
+        protected static Regex m_ArrayPattern = new Regex("\\[([0-9]+|\\+)\\]");
+
+        // extract the internals of a has reference
+        protected static Regex m_HashPattern = new Regex("{([^}]+)}");
+
+        // -----------------------------------------------------------------
+        /// <summary>
+        /// 
+        /// </summary>
+        // -----------------------------------------------------------------
+        public static string CanonicalPathExpression(string path)
+        {
+            return PathExpressionToKey(ParsePathExpression(path));
+        }
+        
         // -----------------------------------------------------------------
         /// <summary>
         /// 
@@ -224,9 +258,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             if (result == null)
                 return false;
 
-            Regex aPattern = new Regex("\\[([0-9]+|\\+)\\]");
-            MatchCollection amatches = aPattern.Matches(pkey,0);
-            
+            // Check for and extract array references
+            MatchCollection amatches = m_ArrayPattern.Matches(pkey,0);
             if (amatches.Count > 0)
             {
                 if (result.Type != OSDType.Array)
@@ -263,9 +296,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
                 return false;
             }
 
-            Regex hPattern = new Regex("{([^}]+)}");
-            MatchCollection hmatches = hPattern.Matches(pkey,0);
-            
+            // Check for and extract hash references
+            MatchCollection hmatches = m_HashPattern.Matches(pkey,0);
             if (hmatches.Count > 0)
             {
                 Match match = hmatches[0];
@@ -340,26 +372,21 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             path = "." + path + ".";
             
             // add separators for quoted paths
-            Regex pass1 = new Regex("{[^}]+}");
-            path = pass1.Replace(path,".$0.",-1,0);
+            path = m_ParsePassOne.Replace(path,".$0.",-1,0);
                 
             // add separators for array references
-            Regex pass2 = new Regex("(\\[[0-9]+\\]|\\[\\+\\])");
-            path = pass2.Replace(path,".$0.",-1,0);
+            path = m_ParsePassTwo.Replace(path,".$0.",-1,0);
                 
             // add quotes to bare identifier
-            Regex pass3 = new Regex("\\.([a-zA-Z]+)");
-            path = pass3.Replace(path,".{$1}",-1,0);
+            path = m_ParsePassThree.Replace(path,".{$1}",-1,0);
                 
             // remove extra separators
-            Regex pass4 = new Regex("\\.+");
-            path = pass4.Replace(path,".",-1,0);
+            path = m_ParsePassFour.Replace(path,".",-1,0);
 
-            Regex validate = new Regex("^\\.(({[^}]+}|\\[[0-9]+\\]|\\[\\+\\])\\.)+$");
-            if (validate.IsMatch(path))
+            // validate the results (catches extra quote characters for example)
+            if (m_ValidatePath.IsMatch(path))
             {
-                Regex parser = new Regex("\\.({[^}]+}|\\[[0-9]+\\]|\\[\\+\\]+)");
-                MatchCollection matches = parser.Matches(path,0);
+                MatchCollection matches = m_PathComponent.Matches(path,0);
                 foreach (Match match in matches)
                     m_path.Push(match.Groups[1].Value);
             }
@@ -385,9 +412,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
                 return null;
             
             // ---------- Check for an array index ----------
-            Regex aPattern = new Regex("\\[([0-9]+)\\]");
-            MatchCollection amatches = aPattern.Matches(pkey,0);
-            
+            MatchCollection amatches = m_SimpleArrayPattern.Matches(pkey,0);
+
             if (amatches.Count > 0)
             {
                 if (rmap.Type != OSDType.Array)
@@ -410,9 +436,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             }
 
             // ---------- Check for a hash index ----------
-            Regex hPattern = new Regex("{([^}]+)}");
-            MatchCollection hmatches = hPattern.Matches(pkey,0);
-            
+            MatchCollection hmatches = m_HashPattern.Matches(pkey,0);
+
             if (hmatches.Count > 0)
             {
                 if (rmap.Type != OSDType.Map)

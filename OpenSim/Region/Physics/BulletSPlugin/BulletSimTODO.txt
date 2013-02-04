@@ -6,6 +6,7 @@ One sided meshes? Should terrain be built into a closed shape?
 	Ref: http://bulletphysics.org/Bullet/phpBB3/viewtopic.php?t=4869
 Deleting a linkset while standing on the root will leave the physical shape of the root behind.
 	Not sure if it is because standing on it. Done with large prim linksets.
+Terrain detail: double terrain mesh detail
 Vehicle angular vertical attraction
 vehicle angular banking
 Center-of-gravity
@@ -34,34 +35,20 @@ Vehicle script tuning/debugging
 	Weapon shooter script
 Add material densities to the material types
 
-CRASHES
-=================================================
-Crazyness during 20130115 office hours was PositionAdjustUnderground for both char and prim
-	m1:logs/20130115.0934/physics-BulletSim-20130115083613.log
-	Creation of Neb's terrain made the terrain "disappear". Everything started to fall
-		and then get restored to be above terrain.
-20121129.1411: editting/moving phys object across region boundries causes crash
-    getPos-> btRigidBody::upcast -> getBodyType -> BOOM
-20121128.1600: mesh object not rezzing (no physics mesh).
-    Causes many errors. Doesn't stop after first error with box shape.
-    Eventually crashes when deleting the object.
-20121206.1434: rez Sam-pan into OSGrid BulletSim11 region
-	Immediate simulator crash. Mono does not output any stacktrace and
-	log just stops after reporting taint-time linking of the linkset.
-
 VEHICLES TODO LIST:
 =================================================
 Border crossing with linked vehicle causes crash
+	20121129.1411: editting/moving phys object across region boundries causes crash
+	    getPos-> btRigidBody::upcast -> getBodyType -> BOOM
 Vehicles (Move smoothly)
 Some vehicles should not be able to turn if no speed or off ground.
+What to do if vehicle and prim buoyancy differ?
 Cannot edit/move a vehicle being ridden: it jumps back to the origional position.
 Neb car jiggling left and right
 	Happens on terrain and any other mesh object. Flat cubes are much smoother.
 	This has been reduced but not eliminated.
 Implement referenceFrame for all the motion routines.
 For limitMotorUp, use raycast down to find if vehicle is in the air.
-Angular motion around Z moves the vehicle in world Z and not vehicle Z in ODE.
-	Verify that angular motion specified around Z moves in the vehicle coordinates.
 Verify llGetVel() is returning a smooth and good value for vehicle movement.
 llGetVel() should return the root's velocity if requested in a child prim.
 Implement function efficiency for lineaar and angular motion.
@@ -73,10 +60,15 @@ Remove vehicle angular velocity zeroing in BSPrim.UpdateProperties().
 Incorporate inter-relationship of angular corrections. For instance, angularDeflection
 	and angularMotorUp will compute same X or Y correction. When added together
 	creates over-correction and over-shoot and wabbling.
+Vehicle attributes are not restored when a vehicle is rezzed on region creation
+	Create vehicle, setup vehicle properties, restart region, vehicle is not reinitialized.
 
 GENERAL TODO LIST:
 =================================================
-Avatar standing on a moving object should start to move with the object.
+Collisions are inconsistant: arrows are supposed to hit and report collision. Often don't.
+	If arrow show at prim, collision reported about 1/3 of time. If collision reported,
+	both arrow and prim report it. The arrow bounces off the prim 9 out of 10 times.
+	Shooting 5m sphere "arrows" at 60m/s.
 llMoveToTarget objects are not effected by gravity until target is removed.
 Compute CCD parameters based on body size
 Can solver iterations be changed per body/shape? Can be for constraints but what
@@ -135,6 +127,7 @@ Physical and phantom will drop through the terrain
 
 LINKSETS
 ======================================================
+Child prims do not report collisions
 Editing a child of a linkset causes the child to go phantom
 	Move a child prim once when it is physical and can never move it again without it going phantom
 Offset the center of the linkset to be the geometric center of all the prims
@@ -331,3 +324,7 @@ Boats floating at proper level (DONE)
 When is force introduced by SetForce removed? The prestep action could go forever. (DONE)
 	(Resolution: setForce registers a prestep action which keeps applying the force)
 Child movement in linkset (don't rebuild linkset) (DONE 20130122))
+Avatar standing on a moving object should start to move with the object. (DONE 20130125)
+Angular motion around Z moves the vehicle in world Z and not vehicle Z in ODE.
+	Verify that angular motion specified around Z moves in the vehicle coordinates.
+	DONE 20130120: BulletSim properly applies force in vehicle relative coordinates.
