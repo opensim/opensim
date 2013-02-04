@@ -217,6 +217,10 @@ public static class BulletSimData
 {
 
 // Map of collisionTypes to flags for collision groups and masks.
+// An object's 'group' is the collison groups this object belongs to
+// An object's 'filter' is the groups another object has to belong to in order to collide with me
+// A collision happens if ((obj1.group & obj2.filter) != 0) || ((obj2.group & obj1.filter) != 0)
+//
 // As mentioned above, don't use the CollisionFilterGroups definitions directly in the code
 //     but, instead, use references to this dictionary. Finding and debugging
 //     collision flag problems will be made easier.

@@ -622,7 +622,6 @@ public sealed class BSShapeCollection : IDisposable
     private BulletShape CreatePhysicalMesh(string objName, System.UInt64 newMeshKey, PrimitiveBaseShape pbs, OMV.Vector3 size, float lod)
     {
         BulletShape newShape = new BulletShape();
-        IMesh meshData = null;
 
         MeshDesc meshDesc;
         if (Meshes.TryGetValue(newMeshKey, out meshDesc))
@@ -632,7 +631,7 @@ public sealed class BSShapeCollection : IDisposable
         }
         else
         {
-            meshData = PhysicsScene.mesher.CreateMesh(objName, pbs, size, lod, true, false);
+            IMesh meshData = PhysicsScene.mesher.CreateMesh(objName, pbs, size, lod, true, false);
 
             if (meshData != null)
             {
@@ -648,8 +647,31 @@ public sealed class BSShapeCollection : IDisposable
                     verticesAsFloats[vi++] = vv.Z;
                 }
 
-                // m_log.DebugFormat("{0}: BSShapeCollection.CreatePhysicalMesh: calling CreateMesh. lid={1}, key={2}, indices={3}, vertices={4}",
-                //                  LogHeader, prim.LocalID, newMeshKey, indices.Length, vertices.Count);
+                // DetailLog("{0},BSShapeCollection.CreatePhysicalMesh,key={1},lod={2},size={3},indices={4},vertices={5}",
+                //                     BSScene.DetailLogZero, newMeshKey.ToString("X"), lod, size, indices.Length, vertices.Count);
+
+                /* 
+                // DEBUG DEBUG
+                for (int ii = 0; ii < indices.Length; ii += 3)
+                {
+                    DetailLog("{0,3}: {1,3},{2,3},{3,3}: <{4,10},{5,10},{6,10}>, <{7,10},{8,10},{9,10}>, <{10,10},{11,10},{12,10}>",
+                        ii / 3,
+                        indices[ii + 0],
+                        indices[ii + 1],
+                        indices[ii + 2],
+                        verticesAsFloats[indices[ii+0] + 0],
+                        verticesAsFloats[indices[ii+0] + 1],
+                        verticesAsFloats[indices[ii+0] + 2],
+                        verticesAsFloats[indices[ii+1] + 0],
+                        verticesAsFloats[indices[ii+1] + 1],
+                        verticesAsFloats[indices[ii+1] + 2],
+                        verticesAsFloats[indices[ii+2] + 0],
+                        verticesAsFloats[indices[ii+2] + 1],
+                        verticesAsFloats[indices[ii+2] + 2]
+                        );
+                }
+                // END DEBUG DEBUG
+                 */
 
                 newShape = PhysicsScene.PE.CreateMeshShape(PhysicsScene.World,
                                     indices.GetLength(0), indices, vertices.Count, verticesAsFloats);
