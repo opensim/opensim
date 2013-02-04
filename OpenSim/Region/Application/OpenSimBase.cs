@@ -316,7 +316,7 @@ namespace OpenSim
         /// <param name="regionInfo"></param>
         /// <param name="portadd_flag"></param>
         /// <returns></returns>
-        public IClientNetworkServer CreateRegion(RegionInfo regionInfo, bool portadd_flag, out IScene scene)
+        public List<IClientNetworkServer> CreateRegion(RegionInfo regionInfo, bool portadd_flag, out IScene scene)
         {
             return CreateRegion(regionInfo, portadd_flag, false, out scene);
         }
@@ -326,7 +326,7 @@ namespace OpenSim
         /// </summary>
         /// <param name="regionInfo"></param>
         /// <returns></returns>
-        public IClientNetworkServer CreateRegion(RegionInfo regionInfo, out IScene scene)
+        public List<IClientNetworkServer> CreateRegion(RegionInfo regionInfo, out IScene scene)
         {
             return CreateRegion(regionInfo, false, true, out scene);
         }
@@ -338,7 +338,7 @@ namespace OpenSim
         /// <param name="portadd_flag"></param>
         /// <param name="do_post_init"></param>
         /// <returns></returns>
-        public IClientNetworkServer CreateRegion(RegionInfo regionInfo, bool portadd_flag, bool do_post_init, out IScene mscene)
+        public List<IClientNetworkServer> CreateRegion(RegionInfo regionInfo, bool portadd_flag, bool do_post_init, out IScene mscene)
         {
             int port = regionInfo.InternalEndPoint.Port;
 
@@ -363,8 +363,8 @@ namespace OpenSim
                 Util.XmlRpcCommand(proxyUrl, "AddPort", port, port + proxyOffset, regionInfo.ExternalHostName);
             }
 
-            IClientNetworkServer clientServer;
-            Scene scene = SetupScene(regionInfo, proxyOffset, Config, out clientServer);
+            List<IClientNetworkServer> clientServers;
+            Scene scene = SetupScene(regionInfo, proxyOffset, Config, out clientServers);
 
             m_log.Info("[MODULES]: Loading Region's modules (old style)");
 
@@ -414,8 +414,11 @@ namespace OpenSim
 
             if (m_autoCreateClientStack)
             {
-                m_clientServers.Add(clientServer);
-                clientServer.Start();
+                foreach (IClientNetworkServer clientserver in clientServers)
+                {
+                    m_clientServers.Add(clientserver);
+                    clientserver.Start();
+                }
             }
 
             scene.EventManager.OnShutdown += delegate() { ShutdownRegion(scene); };
@@ -425,7 +428,7 @@ namespace OpenSim
             scene.Start();
             scene.StartScripts();
 
-            return clientServer;
+            return clientServers;
         }
 
         /// <summary>
@@ -641,7 +644,7 @@ namespace OpenSim
         /// <param name="regionInfo"></param>
         /// <param name="clientServer"> </param>
         /// <returns></returns>
-        protected Scene SetupScene(RegionInfo regionInfo, out IClientNetworkServer clientServer)
+        protected Scene SetupScene(RegionInfo regionInfo, out List<IClientNetworkServer> clientServer)
         {
             return SetupScene(regionInfo, 0, null, out clientServer);
         }
@@ -655,19 +658,20 @@ namespace OpenSim
         /// <param name="clientServer"> </param>
         /// <returns></returns>
         protected Scene SetupScene(
-            RegionInfo regionInfo, int proxyOffset, IConfigSource configSource, out IClientNetworkServer clientServer)
+            RegionInfo regionInfo, int proxyOffset, IConfigSource configSource, out List<IClientNetworkServer> clientServer)
         {
+            List<IClientNetworkServer> clientNetworkServers = null;
+
             AgentCircuitManager circuitManager = new AgentCircuitManager();
             IPAddress listenIP = regionInfo.InternalEndPoint.Address;
             //if (!IPAddress.TryParse(regionInfo.InternalEndPoint, out listenIP))
             //    listenIP = IPAddress.Parse("0.0.0.0");
 
             uint port = (uint) regionInfo.InternalEndPoint.Port;
-
+            IClientNetworkServer clientNetworkServer;
             if (m_autoCreateClientStack)
             {
-                clientServer
-                    = m_clientStackManager.CreateServer(
+                clientNetworkServers = m_clientStackManager.CreateServers(
                         listenIP, ref port, proxyOffset, regionInfo.m_allow_alternate_ports, configSource,
                         circuitManager);
             }
@@ -682,9 +686,12 @@ namespace OpenSim
 
             if (m_autoCreateClientStack)
             {
-                clientServer.AddScene(scene);
+                foreach (IClientNetworkServer clientnetserver in clientNetworkServers)
+                {
+                    clientnetserver.AddScene(scene);
+                }
             }
-
+            clientServer = clientNetworkServers;
             scene.LoadWorldMap();
 
             scene.PhysicsScene = GetPhysicsScene(scene.RegionInfo.RegionName);
