@@ -617,7 +617,7 @@ namespace OpenSim.Region.ClientStack.Linden
                         = new SceneObjectPart(owner_id, pbs, position, Quaternion.Identity, Vector3.Zero);
 
                     prim.Scale = scale;
-                    prim.OffsetPosition = position;
+                    //prim.OffsetPosition = position;
                     rotations.Add(rotation);
                     positions.Add(position);
                     prim.UUID = UUID.Random();
