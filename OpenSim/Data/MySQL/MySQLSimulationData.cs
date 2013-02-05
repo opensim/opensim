@@ -171,7 +171,8 @@ namespace OpenSim.Data.MySQL
                                     "ParticleSystem, ClickAction, Material, " +
                                     "CollisionSound, CollisionSoundVolume, " +
                                     "PassTouches, " +
-                                    "LinkNumber, MediaURL) values (" + "?UUID, " +
+                                    "LinkNumber, MediaURL, DynAttrs) " +
+                                    "values (?UUID, " +
                                     "?CreationDate, ?Name, ?Text, " +
                                     "?Description, ?SitName, ?TouchName, " +
                                     "?ObjectFlags, ?OwnerMask, ?NextOwnerMask, " +
@@ -202,7 +203,8 @@ namespace OpenSim.Data.MySQL
                                     "?SaleType, ?ColorR, ?ColorG, " +
                                     "?ColorB, ?ColorA, ?ParticleSystem, " +
                                     "?ClickAction, ?Material, ?CollisionSound, " +
-                                    "?CollisionSoundVolume, ?PassTouches, ?LinkNumber, ?MediaURL)";
+                                    "?CollisionSoundVolume, ?PassTouches, ?LinkNumber, " +
+                                    "?MediaURL, ?DynAttrs)";
     
                             FillPrimCommand(cmd, prim, obj.UUID, regionUUID);
     
@@ -219,7 +221,8 @@ namespace OpenSim.Data.MySQL
                                     "PathTaperX, PathTaperY, PathTwist, " +
                                     "PathTwistBegin, ProfileBegin, ProfileEnd, " +
                                     "ProfileCurve, ProfileHollow, Texture, " +
-                                    "ExtraParams, State, Media) values (?UUID, " +
+                                    "ExtraParams, State, Media) " +
+                                    "values (?UUID, " +
                                     "?Shape, ?ScaleX, ?ScaleY, ?ScaleZ, " +
                                     "?PCode, ?PathBegin, ?PathEnd, " +
                                     "?PathScaleX, ?PathScaleY, " +
@@ -1291,6 +1294,11 @@ namespace OpenSim.Data.MySQL
             
             if (!(row["MediaURL"] is System.DBNull))
                 prim.MediaUrl = (string)row["MediaURL"];
+            
+            if (!(row["DynAttrs"] is System.DBNull))
+                prim.DynAttrs = DAMap.FromXml((string)row["DynAttrs"]);
+            else
+                prim.DynAttrs = new DAMap();        
 
             return prim;
         }
@@ -1637,6 +1645,11 @@ namespace OpenSim.Data.MySQL
 
             cmd.Parameters.AddWithValue("LinkNumber", prim.LinkNum);
             cmd.Parameters.AddWithValue("MediaURL", prim.MediaUrl);
+
+            if (prim.DynAttrs.Count > 0)
+                cmd.Parameters.AddWithValue("DynAttrs", prim.DynAttrs.ToXml());
+            else
+                cmd.Parameters.AddWithValue("DynAttrs", null);
         }
 
         /// <summary>
