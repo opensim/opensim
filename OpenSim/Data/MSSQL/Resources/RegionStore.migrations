@@ -1148,3 +1148,11 @@ CREATE TABLE [dbo].[regionenvironment](
 ) ON [PRIMARY]
 
 COMMIT
+
+:VERSION 38       #---------------- Dynamic attributes
+
+BEGIN TRANSACTION
+
+ALTER TABLE prims ADD COLUMN DynAttrs TEXT;
+
+COMMIT

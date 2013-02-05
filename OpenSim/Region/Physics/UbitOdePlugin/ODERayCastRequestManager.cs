@@ -300,9 +300,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                 ((ProbeSphereCallback)req.callbackMethod)(cresult);
         }
 
-        private const RayFilterFlags FilterActiveSpace = RayFilterFlags.agent | RayFilterFlags.physical | RayFilterFlags.LSLPhanton;
+        private const RayFilterFlags FilterActiveSpace = RayFilterFlags.agent | RayFilterFlags.physical | RayFilterFlags.LSLPhantom;
 //        private const RayFilterFlags FilterStaticSpace = RayFilterFlags.water | RayFilterFlags.land | RayFilterFlags.nonphysical | RayFilterFlags.LSLPhanton;
-        private const RayFilterFlags FilterStaticSpace = RayFilterFlags.water | RayFilterFlags.nonphysical | RayFilterFlags.LSLPhanton;
+        private const RayFilterFlags FilterStaticSpace = RayFilterFlags.water | RayFilterFlags.nonphysical | RayFilterFlags.LSLPhantom;
 
         private void doSpaceRay(ODERayRequest req)
         {

@@ -29,8 +29,10 @@ using System;
 using System.Reflection;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Runtime.Remoting.Lifetime;
 using System.Threading;
+using log4net;
 using OpenMetaverse;
 using Nini.Config;
 using OpenSim;
@@ -56,6 +58,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
     [Serializable]
     public class MOD_Api : MarshalByRefObject, IMOD_Api, IScriptApi
     {
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         internal IScriptEngine m_ScriptEngine;
         internal SceneObjectPart m_host;
         internal TaskInventoryItem m_item;
@@ -109,8 +113,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (message.Length > 1023)
                 message = message.Substring(0, 1023);
 
-            World.SimChat(Utils.StringToBytes(message),
-                          ChatTypeEnum.Shout, ScriptBaseClass.DEBUG_CHANNEL, m_host.ParentGroup.RootPart.AbsolutePosition, m_host.Name, m_host.UUID, true);
+            World.SimChat(
+                Utils.StringToBytes(message),
+                ChatTypeEnum.Shout, ScriptBaseClass.DEBUG_CHANNEL, 
+                m_host.ParentGroup.RootPart.AbsolutePosition, m_host.Name, m_host.UUID, false);
 
             IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
             wComm.DeliverMessage(ChatTypeEnum.Shout, ScriptBaseClass.DEBUG_CHANNEL, m_host.Name, m_host.UUID, message);
@@ -124,6 +130,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// <returns>string result of the invocation</returns>
         public void modInvokeN(string fname, params object[] parms)
         {
+//            m_log.DebugFormat(
+//                "[MOD API]: Invoking dynamic function {0}, args '{1}' with {2} return type", 
+//                fname, 
+//                string.Join(",", Array.ConvertAll<object, string>(parms, o => o.ToString())), 
+//                ((MethodInfo)MethodBase.GetCurrentMethod()).ReturnType);
+
             Type returntype = m_comms.LookupReturnType(fname);
             if (returntype != typeof(string))
                 MODError(String.Format("return type mismatch for {0}",fname));
@@ -133,6 +145,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_String modInvokeS(string fname, params object[] parms)
         {
+//            m_log.DebugFormat(
+//                "[MOD API]: Invoking dynamic function {0}, args '{1}' with {2} return type", 
+//                fname, 
+//                string.Join(",", Array.ConvertAll<object, string>(parms, o => o.ToString())), 
+//                ((MethodInfo)MethodBase.GetCurrentMethod()).ReturnType);
+
             Type returntype = m_comms.LookupReturnType(fname);
             if (returntype != typeof(string))
                 MODError(String.Format("return type mismatch for {0}",fname));
@@ -143,6 +161,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Integer modInvokeI(string fname, params object[] parms)
         {
+//            m_log.DebugFormat(
+//                "[MOD API]: Invoking dynamic function {0}, args '{1}' with {2} return type", 
+//                fname, 
+//                string.Join(",", Array.ConvertAll<object, string>(parms, o => o.ToString())), 
+//                ((MethodInfo)MethodBase.GetCurrentMethod()).ReturnType);
+
             Type returntype = m_comms.LookupReturnType(fname);
             if (returntype != typeof(int))
                 MODError(String.Format("return type mismatch for {0}",fname));
@@ -153,6 +177,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         
         public LSL_Float modInvokeF(string fname, params object[] parms)
         {
+//            m_log.DebugFormat(
+//                "[MOD API]: Invoking dynamic function {0}, args '{1}' with {2} return type", 
+//                fname, 
+//                string.Join(",", Array.ConvertAll<object, string>(parms, o => o.ToString())), 
+//                ((MethodInfo)MethodBase.GetCurrentMethod()).ReturnType);
+
             Type returntype = m_comms.LookupReturnType(fname);
             if (returntype != typeof(float))
                 MODError(String.Format("return type mismatch for {0}",fname));
@@ -163,6 +193,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Key modInvokeK(string fname, params object[] parms)
         {
+//            m_log.DebugFormat(
+//                "[MOD API]: Invoking dynamic function {0}, args '{1}' with {2} return type", 
+//                fname, 
+//                string.Join(",", Array.ConvertAll<object, string>(parms, o => o.ToString())), 
+//                ((MethodInfo)MethodBase.GetCurrentMethod()).ReturnType);
+
             Type returntype = m_comms.LookupReturnType(fname);
             if (returntype != typeof(UUID))
                 MODError(String.Format("return type mismatch for {0}",fname));
@@ -173,6 +209,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Vector modInvokeV(string fname, params object[] parms)
         {
+//            m_log.DebugFormat(
+//                "[MOD API]: Invoking dynamic function {0}, args '{1}' with {2} return type", 
+//                fname, 
+//                string.Join(",", Array.ConvertAll<object, string>(parms, o => o.ToString())), 
+//                ((MethodInfo)MethodBase.GetCurrentMethod()).ReturnType);
+
             Type returntype = m_comms.LookupReturnType(fname);
             if (returntype != typeof(OpenMetaverse.Vector3))
                 MODError(String.Format("return type mismatch for {0}",fname));
@@ -183,6 +225,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Rotation modInvokeR(string fname, params object[] parms)
         {
+//            m_log.DebugFormat(
+//                "[MOD API]: Invoking dynamic function {0}, args '{1}' with {2} return type", 
+//                fname, 
+//                string.Join(",", Array.ConvertAll<object, string>(parms, o => o.ToString())), 
+//                ((MethodInfo)MethodBase.GetCurrentMethod()).ReturnType);
+
             Type returntype = m_comms.LookupReturnType(fname);
             if (returntype != typeof(OpenMetaverse.Quaternion))
                 MODError(String.Format("return type mismatch for {0}",fname));
@@ -193,6 +241,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_List modInvokeL(string fname, params object[] parms)
         {
+//            m_log.DebugFormat(
+//                "[MOD API]: Invoking dynamic function {0}, args '{1}' with {2} return type", 
+//                fname, 
+//                string.Join(",", Array.ConvertAll<object, string>(parms, o => o.ToString())), 
+//                ((MethodInfo)MethodBase.GetCurrentMethod()).ReturnType);
+
             Type returntype = m_comms.LookupReturnType(fname);
             if (returntype != typeof(object[]))
                 MODError(String.Format("return type mismatch for {0}",fname));
@@ -249,6 +303,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 MODShoutError("Module command functions not enabled");
                 return "";
             }
+
+//            m_log.DebugFormat(
+//                "[MOD API]: Invoking dynamic function {0}, args '{1}' with {2} return type", 
+//                fname, 
+//                string.Join(",", Array.ConvertAll<object, string>(parms, o => o.ToString())), 
+//                ((MethodInfo)MethodBase.GetCurrentMethod()).ReturnType);
 
             Type[] signature = m_comms.LookupTypeSignature(fname);
             if (signature.Length != parms.Length)

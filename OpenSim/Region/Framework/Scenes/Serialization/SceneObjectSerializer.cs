@@ -365,6 +365,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             m_SOPXmlProcessors.Add("CollisionSound", ProcessCollisionSound);
             m_SOPXmlProcessors.Add("CollisionSoundVolume", ProcessCollisionSoundVolume);
             m_SOPXmlProcessors.Add("MediaUrl", ProcessMediaUrl);
+            m_SOPXmlProcessors.Add("DynAttrs", ProcessDynAttrs);
             m_SOPXmlProcessors.Add("TextureAnimation", ProcessTextureAnimation);
             m_SOPXmlProcessors.Add("ParticleSystem", ProcessParticleSystem);
             m_SOPXmlProcessors.Add("PayPrice0", ProcessPayPrice0);
@@ -795,6 +796,11 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         private static void ProcessMediaUrl(SceneObjectPart obj, XmlTextReader reader)
         {
             obj.MediaUrl = reader.ReadElementContentAsString("MediaUrl", String.Empty);
+        }
+
+        private static void ProcessDynAttrs(SceneObjectPart obj, XmlTextReader reader)
+        {
+            obj.DynAttrs.ReadXml(reader);
         }
 
         private static void ProcessTextureAnimation(SceneObjectPart obj, XmlTextReader reader)
@@ -1339,6 +1345,14 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             writer.WriteElementString("CollisionSoundVolume", sop.CollisionSoundVolume.ToString());
             if (sop.MediaUrl != null)
                 writer.WriteElementString("MediaUrl", sop.MediaUrl.ToString());
+            
+            if (sop.DynAttrs.Count > 0)
+            {
+                writer.WriteStartElement("DynAttrs");
+                sop.DynAttrs.WriteXml(writer);
+                writer.WriteEndElement();
+            }
+
             WriteBytes(writer, "TextureAnimation", sop.TextureAnimation);
             WriteBytes(writer, "ParticleSystem", sop.ParticleSystem);
             writer.WriteElementString("PayPrice0", sop.PayPrice[0].ToString());

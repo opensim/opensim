@@ -176,7 +176,7 @@ namespace OpenSim.Data.MySQL
                                     "PassCollisions, " +
                                     "LinkNumber, MediaURL, KeyframeMotion, " +
                                     "PhysicsShapeType, Density, GravityModifier, " +
-                                    "Friction, Restitution, Vehicle " +
+                                    "Friction, Restitution, Vehicle, DynAttrs " +
                                     ") values (" + "?UUID, " +
                                     "?CreationDate, ?Name, ?Text, " +
                                     "?Description, ?SitName, ?TouchName, " +
@@ -211,7 +211,7 @@ namespace OpenSim.Data.MySQL
                                     "?CollisionSoundVolume, ?PassTouches, ?PassCollisions, " +
                                     "?LinkNumber, ?MediaURL, ?KeyframeMotion, " +
                                     "?PhysicsShapeType, ?Density, ?GravityModifier, " +
-                                    "?Friction, ?Restitution, ?Vehicle)";
+                                    "?Friction, ?Restitution, ?Vehicle, ?DynAttrs)";
 
                             FillPrimCommand(cmd, prim, obj.UUID, regionUUID);
 
@@ -228,7 +228,8 @@ namespace OpenSim.Data.MySQL
                                     "PathTaperX, PathTaperY, PathTwist, " +
                                     "PathTwistBegin, ProfileBegin, ProfileEnd, " +
                                     "ProfileCurve, ProfileHollow, Texture, " +
-                                    "ExtraParams, State, Media) values (?UUID, " +
+                                    "ExtraParams, State, Media) " +
+                                    "values (?UUID, " +
                                     "?Shape, ?ScaleX, ?ScaleY, ?ScaleZ, " +
                                     "?PCode, ?PathBegin, ?PathEnd, " +
                                     "?PathScaleX, ?PathScaleY, " +
@@ -1321,6 +1322,11 @@ namespace OpenSim.Data.MySQL
             
             if (!(row["MediaURL"] is System.DBNull))
                 prim.MediaUrl = (string)row["MediaURL"];
+            
+            if (!(row["DynAttrs"] is System.DBNull))
+                prim.DynAttrs = DAMap.FromXml((string)row["DynAttrs"]);
+            else
+                prim.DynAttrs = new DAMap();        
 
             if (!(row["KeyframeMotion"] is DBNull))
             {
@@ -1731,6 +1737,11 @@ namespace OpenSim.Data.MySQL
                 cmd.Parameters.AddWithValue("Vehicle", prim.VehicleParams.ToXml2());
             else
                 cmd.Parameters.AddWithValue("Vehicle", String.Empty);
+
+            if (prim.DynAttrs.Count > 0)
+                cmd.Parameters.AddWithValue("DynAttrs", prim.DynAttrs.ToXml());
+            else
+                cmd.Parameters.AddWithValue("DynAttrs", null);
         }
 
         /// <summary>

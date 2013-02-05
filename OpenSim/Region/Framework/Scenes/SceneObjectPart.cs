@@ -37,6 +37,7 @@ using System.Xml.Serialization;
 using log4net;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
+using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes.Scripting;
@@ -136,6 +137,11 @@ namespace OpenSim.Region.Framework.Scenes
 
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        /// <summary>
+        /// Dynamic attributes can be created and deleted as required.
+        /// </summary>
+        public DAMap DynAttrs { get; set; }
+        
         /// <value>
         /// Is this a root part?
         /// </value>
@@ -386,6 +392,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_particleSystem = Utils.EmptyBytes;
             Rezzed = DateTime.UtcNow;
             Description = String.Empty;
+            DynAttrs = new DAMap();
 
             // Prims currently only contain a single folder (Contents).  From looking at the Second Life protocol,
             // this appears to have the same UUID (!) as the prim.  If this isn't the case, one can't drag items from
@@ -2118,6 +2125,8 @@ namespace OpenSim.Region.Framework.Scenes
             // safeguard  actual copy is done in sog.copy
             dupe.KeyframeMotion = null;
 
+            dupe.DynAttrs.CopyFrom(DynAttrs);
+            
             if (userExposed)
             {
 /*
