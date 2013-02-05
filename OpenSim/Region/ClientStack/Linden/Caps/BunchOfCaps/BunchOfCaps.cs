@@ -641,25 +641,40 @@ namespace OpenSim.Region.ClientStack.Linden
                         grp.AddPart(prim);
                 }
 
-                // Fix first link number
+                Vector3 rootPos = positions[0];
+
                 if (grp.Parts.Length > 1)
+                {
+                    // Fix first link number
                     grp.RootPart.LinkNum++;
 
-                Vector3 rootPos = positions[0];
-                grp.AbsolutePosition = rootPos;
-                for (int i = 0; i < positions.Count; i++)
+                    Quaternion rootRotConj = Quaternion.Conjugate(rotations[0]);
+                    Quaternion tmprot;
+                    Vector3 offset;
+
+                    // fix children rotations and positions
+                    for (int i = 1; i < rotations.Count; i++)
+                    {
+                        tmprot = rotations[i];
+                        tmprot = rootRotConj * tmprot;
+
+                        grp.Parts[i].RotationOffset = tmprot;
+
+                        offset = positions[i] - rootPos;
+
+                        offset *= rootRotConj;
+                        grp.Parts[i].OffsetPosition = offset;
+                    }
+
+                    grp.AbsolutePosition = rootPos;
+                    grp.UpdateGroupRotationR(rotations[0]);
+                }
+                else
                 {
-                    Vector3 offset = positions[i] - rootPos;
-                    grp.Parts[i].OffsetPosition = offset;
+                    grp.AbsolutePosition = rootPos;
+                    grp.UpdateGroupRotationR(rotations[0]);
                 }
 
-                for (int i = 0; i < rotations.Count; i++)
-                {
-                    if (i != 0)
-                        grp.Parts[i].RotationOffset = rotations[i];
-                }
-
-                grp.UpdateGroupRotationR(rotations[0]);
                 data = ASCIIEncoding.ASCII.GetBytes(SceneObjectSerializer.ToOriginalXmlFormat(grp));
             }
 
