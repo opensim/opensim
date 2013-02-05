@@ -54,6 +54,8 @@ namespace OpenSim.Framework.Servers.HttpServer
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private HttpServerLogWriter httpserverlog = new HttpServerLogWriter();
 
+        public delegate void WebSocketRequestDelegate(string servicepath, WebSocketHTTPServerHandler handler);
+
         /// <summary>
         /// Gets or sets the debug level.
         /// </summary>
@@ -86,6 +88,9 @@ namespace OpenSim.Framework.Servers.HttpServer
 //        protected Dictionary<string, IHttpAgentHandler> m_agentHandlers = new Dictionary<string, IHttpAgentHandler>();
         protected Dictionary<string, PollServiceEventArgs> m_pollHandlers =
             new Dictionary<string, PollServiceEventArgs>();
+
+        protected Dictionary<string, WebSocketRequestDelegate> m_WebSocketHandlers =
+            new Dictionary<string, WebSocketRequestDelegate>(); 
 
         protected uint m_port;
         protected uint m_sslport;
@@ -168,6 +173,22 @@ namespace OpenSim.Framework.Servers.HttpServer
                     m_streamHandlers.Add(handlerKey, handler);
                 }
             }
+        }
+
+        public void AddWebSocketHandler(string servicepath, WebSocketRequestDelegate handler)
+        {
+            lock (m_WebSocketHandlers)
+            {
+                if (!m_WebSocketHandlers.ContainsKey(servicepath))
+                    m_WebSocketHandlers.Add(servicepath, handler);
+            }
+        }
+
+        public void RemoveWebSocketHandler(string servicepath)
+        {
+            lock (m_WebSocketHandlers)
+                if (m_WebSocketHandlers.ContainsKey(servicepath))
+                    m_WebSocketHandlers.Remove(servicepath);
         }
 
         public List<string> GetStreamHandlerKeys()
@@ -409,9 +430,24 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public void OnHandleRequestIOThread(IHttpClientContext context, IHttpRequest request)
         {
+
             OSHttpRequest req = new OSHttpRequest(context, request);
+            WebSocketRequestDelegate dWebSocketRequestDelegate = null;
+            lock (m_WebSocketHandlers)
+            {
+                if (m_WebSocketHandlers.ContainsKey(req.RawUrl))
+                    dWebSocketRequestDelegate = m_WebSocketHandlers[req.RawUrl];
+            }
+            if (dWebSocketRequestDelegate != null)
+            {
+                dWebSocketRequestDelegate(req.Url.AbsolutePath, new WebSocketHTTPServerHandler(req, context, 16384));
+                return;
+            }
+            
             OSHttpResponse resp = new OSHttpResponse(new HttpResponse(context, request),context);
+            
             HandleRequest(req, resp);
+           
 
             // !!!HACK ALERT!!!
             // There seems to be a bug in the underlying http code that makes subsequent requests
@@ -500,7 +536,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                         LogIncomingToStreamHandler(request, requestHandler);
 
                     response.ContentType = requestHandler.ContentType; // Lets do this defaulting before in case handler has varying content type.
-
+                    
                     if (requestHandler is IStreamedRequestHandler)
                     {
                         IStreamedRequestHandler streamedRequestHandler = requestHandler as IStreamedRequestHandler;

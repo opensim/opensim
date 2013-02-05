@@ -47,7 +47,7 @@ namespace OpenSim.Region.ClientStack.TCPJSONStream
 
         public void NetworkStop()
         {
-            m_tcpServer.Stop();
+           // m_tcpServer.Stop();
         }
 
         public bool HandlesRegion(Location x)
@@ -62,12 +62,12 @@ namespace OpenSim.Region.ClientStack.TCPJSONStream
 
         public void Start()
         {
-            m_tcpServer.Start();
+            //m_tcpServer.Start();
         }
 
         public void Stop()
         {
-            m_tcpServer.Stop();
+           // m_tcpServer.Stop();
         }
     }
 }
