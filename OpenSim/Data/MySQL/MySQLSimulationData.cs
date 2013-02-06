@@ -1512,7 +1512,7 @@ namespace OpenSim.Data.MySQL
             for (int x = 0; x < (int)Constants.RegionSize; x++)
                 for (int y = 0; y < (int)Constants.RegionSize; y++)
                 {
-                    double height = 20.0;
+                    double height = val[x, y];
                     if (height == 0.0)
                         height = double.Epsilon;
 
