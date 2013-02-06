@@ -895,9 +895,11 @@ public sealed class BSShapeCollection : IDisposable
         // If this mesh has an underlying asset and we have not failed getting it before, fetch the asset
         if (prim.BaseShape.SculptEntry && !prim.LastAssetBuildFailed && prim.BaseShape.SculptTexture != OMV.UUID.Zero)
         {
-            prim.LastAssetBuildFailed = true;
-            BSPhysObject xprim = prim;
             DetailLog("{0},BSShapeCollection.VerifyMeshCreated,fetchAsset,lastFailed={1}", prim.LocalID, prim.LastAssetBuildFailed);
+            // This will prevent looping through this code as we keep trying to get the failed shape
+            prim.LastAssetBuildFailed = true;
+
+            BSPhysObject xprim = prim;
             Util.FireAndForget(delegate
                 {
                     RequestAssetDelegate assetProvider = PhysicsScene.RequestAssetMethod;
@@ -908,7 +910,7 @@ public sealed class BSShapeCollection : IDisposable
                         {
                             bool assetFound = false;            // DEBUG DEBUG
                             string mismatchIDs = String.Empty;  // DEBUG DEBUG
-                            if (yprim.BaseShape.SculptEntry)
+                            if (asset != null && yprim.BaseShape.SculptEntry)
                             {
                                 if (yprim.BaseShape.SculptTexture.ToString() == asset.ID)
                                 {
