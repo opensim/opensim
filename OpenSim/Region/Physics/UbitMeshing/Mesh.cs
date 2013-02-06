@@ -301,7 +301,7 @@ namespace OpenSim.Region.Physics.Meshing
             return result;
         }
 
-        private float[] getVertexListAsFloat()
+        public float[] getVertexListAsFloat()
         {
             if (m_bdata.m_vertices == null)
                 throw new NotSupportedException();

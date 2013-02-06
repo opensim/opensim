@@ -48,6 +48,7 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Scenes.Serialization;
 using OpenSim.Region.Framework.Scenes.Animation;
+using OpenSim.Region.Framework.Scenes.Scripting;
 using OpenSim.Region.Physics.Manager;
 using OpenSim.Region.ScriptEngine.Shared;
 using OpenSim.Region.ScriptEngine.Shared.Api.Plugins;
@@ -421,79 +422,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 ret.Add(target);
                 return ret;
             }
-        }
-
-        protected UUID InventoryKey(string name, int type)
-        {
-            TaskInventoryItem item = m_host.Inventory.GetInventoryItem(name);
-
-            if (item != null && item.Type == type)
-                return item.AssetID;
-            else
-                return UUID.Zero;
-        }
-
-        /// <summary>
-        /// accepts a valid UUID, -or- a name of an inventory item.
-        /// Returns a valid UUID or UUID.Zero if key invalid and item not found
-        /// in prim inventory.
-        /// </summary>
-        /// <param name="k"></param>
-        /// <returns></returns>
-        protected UUID KeyOrName(string k)
-        {
-            UUID key;
-
-            // if we can parse the string as a key, use it.
-            // else try to locate the name in inventory of object. found returns key,
-            // not found returns UUID.Zero
-            if (!UUID.TryParse(k, out key))
-            {
-                TaskInventoryItem item = m_host.Inventory.GetInventoryItem(k);
-
-                if (item != null)
-                    key = item.AssetID;
-                else
-                    key = UUID.Zero;
-            }
-
-            return key;
-        }
-
-        /// <summary>
-        /// Return the UUID of the asset matching the specified key or name
-        /// and asset type.
-        /// </summary>
-        /// <param name="k"></param>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        protected UUID KeyOrName(string k, AssetType type)
-        {
-            UUID key;
-
-            if (!UUID.TryParse(k, out key))
-            {
-                TaskInventoryItem item = m_host.Inventory.GetInventoryItem(k);
-                if (item != null && item.Type == (int)type)
-                    key = item.AssetID;
-            }
-            else
-            {
-                lock (m_host.TaskInventory)
-                {
-                    foreach (KeyValuePair<UUID, TaskInventoryItem> item in m_host.TaskInventory)
-                    {
-                        if (item.Value.Type == (int)type && item.Value.Name == k)
-                        {
-                            key = item.Value.ItemID;
-                            break;
-                        }
-                    }
-                }
-            }
-
-
-            return key;
         }
 
         //These are the implementations of the various ll-functions used by the LSL scripts.
@@ -2035,7 +1963,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             UUID textureID = new UUID();
 
-		    textureID = InventoryKey(texture, (int)AssetType.Texture);
+		    textureID = ScriptUtils.GetAssetIdFromItemName(m_host, texture, (int)AssetType.Texture);
 		    if (textureID == UUID.Zero)
 		    {
 			    if (!UUID.TryParse(texture, out textureID))
@@ -2751,7 +2679,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (m_SoundModule != null)
             {
                 m_SoundModule.SendSound(m_host.UUID,
-                        KeyOrName(sound, AssetType.Sound), volume, false, 0,
+                        ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, sound, AssetType.Sound), volume, false, 0,
                         0, false, false);
             }
         }
@@ -2761,7 +2689,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             if (m_SoundModule != null)
             {
-                m_SoundModule.LoopSound(m_host.UUID, KeyOrName(sound),
+                m_SoundModule.LoopSound(m_host.UUID, ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, sound),
                         volume, 20, false);
             }
         }
@@ -2771,7 +2699,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             if (m_SoundModule != null)
             {
-                m_SoundModule.LoopSound(m_host.UUID, KeyOrName(sound),
+                m_SoundModule.LoopSound(m_host.UUID, ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, sound),
                         volume, 20, true);
             }
         }
@@ -2793,7 +2721,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (m_SoundModule != null)
             {
                 m_SoundModule.SendSound(m_host.UUID,
-                        KeyOrName(sound, AssetType.Sound), volume, false, 0,
+                        ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, sound, AssetType.Sound), volume, false, 0,
                         0, true, false);
             }
         }
@@ -2805,7 +2733,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (m_SoundModule != null)
             {
                 m_SoundModule.SendSound(m_host.UUID,
-                        KeyOrName(sound, AssetType.Sound), volume, true, 0, 0,
+                        ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, sound, AssetType.Sound), volume, true, 0, 0,
                         false, false);
             }
         }
@@ -2822,7 +2750,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             if (m_SoundModule != null)
-                m_SoundModule.PreloadSound(m_host.UUID, KeyOrName(sound), 0);
+                m_SoundModule.PreloadSound(m_host.UUID, ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, sound), 0);
             ScriptSleep(1000);
         }
 
@@ -3699,7 +3627,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (presence != null)
                 {
                     // Do NOT try to parse UUID, animations cannot be triggered by ID
-                    UUID animID = InventoryKey(anim, (int)AssetType.Animation);
+                    UUID animID = ScriptUtils.GetAssetIdFromItemName(m_host, anim, (int)AssetType.Animation);
                     if (animID == UUID.Zero)
                         presence.Animator.AddAnimation(anim, m_host.UUID);
                     else
@@ -3721,7 +3649,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 if (presence != null)
                 {
-                    UUID animID = KeyOrName(anim);
+                    UUID animID = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, anim);
 
                     if (animID == UUID.Zero)
                         presence.Animator.RemoveAnimation(anim);
@@ -4717,7 +4645,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         private void DoLLTeleport(ScenePresence sp, string destination, Vector3 targetPos, Vector3 targetLookAt)
         {
-            UUID assetID = KeyOrName(destination);
+            UUID assetID = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, destination);
 
             // The destinaion is not an asset ID and also doesn't name a landmark.
             // Use it as a sim name
@@ -4791,7 +4719,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
             }
             // TODO: Parameter check logic required.
-            m_host.CollisionSound = KeyOrName(impact_sound, AssetType.Sound);
+            m_host.CollisionSound = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, impact_sound, AssetType.Sound);
             m_host.CollisionSoundVolume = (float)impact_volume;
             m_host.CollisionSoundType = 1;
         }
@@ -6356,7 +6284,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (m_SoundModule != null)
             {
                 m_SoundModule.TriggerSoundLimited(m_host.UUID,
-                        KeyOrName(sound, AssetType.Sound), volume,
+                        ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, sound, AssetType.Sound), volume,
                         bottom_south_west, top_north_east);
             }
         }
@@ -6827,7 +6755,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             break;
 
                         case (int)ScriptBaseClass.PSYS_SRC_TEXTURE:
-                            prules.Texture = KeyOrName(rules.GetLSLStringItem(i + 1));
+                            prules.Texture = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, rules.GetLSLStringItem(i + 1));
                             break;
 
                         case (int)ScriptBaseClass.PSYS_SRC_BURST_RATE:
@@ -7776,9 +7704,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UUID sculptId;
 
             if (!UUID.TryParse(map, out sculptId))
-            {
-                sculptId = InventoryKey(map, (int)AssetType.Texture);
-            }
+                sculptId = ScriptUtils.GetAssetIdFromItemName(m_host, map, (int)AssetType.Texture);
 
             if (sculptId == UUID.Zero)
                 return;

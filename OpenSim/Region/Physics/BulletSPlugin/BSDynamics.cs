@@ -1326,7 +1326,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 // If verticalError.Z is negative, the vehicle is upside down. Add additional push.
                 if (verticalError.Z < 0f)
                 {
-                    vertContributionV.X += PIOverFour;
+                    vertContributionV.X += Math.Sign(vertContributionV.X) * PIOverFour;
                     // vertContribution.Y -= PIOverFour;
                 }
 

@@ -4687,18 +4687,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Script Engine
 
-        private List<ScriptEngineInterface> ScriptEngines = new List<ScriptEngineInterface>();
         public bool DumpAssetsToFile;
-
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="scriptEngine"></param>
-        public void AddScriptEngine(ScriptEngineInterface scriptEngine)
-        {
-            ScriptEngines.Add(scriptEngine);
-            scriptEngine.InitializeEngine(this);
-        }
 
         private bool ScriptDanger(SceneObjectPart part,Vector3 pos)
         {

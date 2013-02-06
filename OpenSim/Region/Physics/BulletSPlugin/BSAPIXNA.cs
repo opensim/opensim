@@ -1088,7 +1088,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
     {
         CollisionWorld.WorldData.ParamData p = new CollisionWorld.WorldData.ParamData();
 
-        p.angularDamping = o[0].XangularDamping;
+        p.angularDamping = BSParam.AngularDamping;
         p.defaultFriction = o[0].defaultFriction;
         p.defaultFriction = o[0].defaultFriction;
         p.defaultDensity = o[0].defaultDensity;
@@ -1096,32 +1096,32 @@ private sealed class BulletConstraintXNA : BulletConstraint
         p.collisionMargin = o[0].collisionMargin;
         p.gravity = o[0].gravity;
 
-        p.linearDamping = o[0].XlinearDamping;
-        p.angularDamping = o[0].XangularDamping;
-        p.deactivationTime = o[0].XdeactivationTime;
-        p.linearSleepingThreshold = o[0].XlinearSleepingThreshold;
-        p.angularSleepingThreshold = o[0].XangularSleepingThreshold;
-        p.ccdMotionThreshold = o[0].XccdMotionThreshold;
-        p.ccdSweptSphereRadius = o[0].XccdSweptSphereRadius;
-        p.contactProcessingThreshold = o[0].XcontactProcessingThreshold;
+        p.linearDamping = BSParam.LinearDamping;
+        p.angularDamping = BSParam.AngularDamping;
+        p.deactivationTime = BSParam.DeactivationTime;
+        p.linearSleepingThreshold = BSParam.LinearSleepingThreshold;
+        p.angularSleepingThreshold = BSParam.AngularSleepingThreshold;
+        p.ccdMotionThreshold = BSParam.CcdMotionThreshold;
+        p.ccdSweptSphereRadius = BSParam.CcdSweptSphereRadius;
+        p.contactProcessingThreshold = BSParam.ContactProcessingThreshold;
 
-        p.terrainImplementation = o[0].XterrainImplementation;
-        p.terrainFriction = o[0].XterrainFriction;
+        p.terrainImplementation = BSParam.TerrainImplementation;
+        p.terrainFriction = BSParam.TerrainFriction;
 
-        p.terrainHitFraction = o[0].XterrainHitFraction;
-        p.terrainRestitution = o[0].XterrainRestitution;
-        p.terrainCollisionMargin = o[0].XterrainCollisionMargin;
+        p.terrainHitFraction = BSParam.TerrainHitFraction;
+        p.terrainRestitution = BSParam.TerrainRestitution;
+        p.terrainCollisionMargin = BSParam.TerrainCollisionMargin;
 
-        p.avatarFriction = o[0].XavatarFriction;
-        p.avatarStandingFriction = o[0].XavatarStandingFriction;
-        p.avatarDensity = o[0].XavatarDensity;
-        p.avatarRestitution = o[0].XavatarRestitution;
-        p.avatarCapsuleWidth = o[0].XavatarCapsuleWidth;
-        p.avatarCapsuleDepth = o[0].XavatarCapsuleDepth;
-        p.avatarCapsuleHeight = o[0].XavatarCapsuleHeight;
-        p.avatarContactProcessingThreshold = o[0].XavatarContactProcessingThreshold;
+        p.avatarFriction = BSParam.AvatarFriction;
+        p.avatarStandingFriction = BSParam.AvatarStandingFriction;
+        p.avatarDensity = BSParam.AvatarDensity;
+        p.avatarRestitution = BSParam.AvatarRestitution;
+        p.avatarCapsuleWidth = BSParam.AvatarCapsuleWidth;
+        p.avatarCapsuleDepth = BSParam.AvatarCapsuleDepth;
+        p.avatarCapsuleHeight = BSParam.AvatarCapsuleHeight;
+        p.avatarContactProcessingThreshold = BSParam.AvatarContactProcessingThreshold;
        
-        p.vehicleAngularDamping = o[0].XvehicleAngularDamping;
+        p.vehicleAngularDamping = BSParam.VehicleAngularDamping;
         
         p.maxPersistantManifoldPoolSize = o[0].maxPersistantManifoldPoolSize;
         p.maxCollisionAlgorithmPoolSize = o[0].maxCollisionAlgorithmPoolSize;
@@ -1132,15 +1132,15 @@ private sealed class BulletConstraintXNA : BulletConstraint
         p.shouldEnableFrictionCaching = o[0].shouldEnableFrictionCaching;
         p.numberOfSolverIterations = o[0].numberOfSolverIterations;
 
-        p.linksetImplementation = o[0].XlinksetImplementation;
-        p.linkConstraintUseFrameOffset = o[0].XlinkConstraintUseFrameOffset;
-        p.linkConstraintEnableTransMotor = o[0].XlinkConstraintEnableTransMotor;
-        p.linkConstraintTransMotorMaxVel = o[0].XlinkConstraintTransMotorMaxVel;
-        p.linkConstraintTransMotorMaxForce = o[0].XlinkConstraintTransMotorMaxForce;
-        p.linkConstraintERP = o[0].XlinkConstraintERP;
-        p.linkConstraintCFM = o[0].XlinkConstraintCFM;
-        p.linkConstraintSolverIterations = o[0].XlinkConstraintSolverIterations;
-        p.physicsLoggingFrames = o[0].XphysicsLoggingFrames;
+        p.linksetImplementation = BSParam.LinksetImplementation;
+        p.linkConstraintUseFrameOffset = BSParam.LinkConstraintUseFrameOffset;
+        p.linkConstraintEnableTransMotor = BSParam.LinkConstraintEnableTransMotor;
+        p.linkConstraintTransMotorMaxVel = BSParam.LinkConstraintTransMotorMaxVel;
+        p.linkConstraintTransMotorMaxForce = BSParam.LinkConstraintTransMotorMaxForce;
+        p.linkConstraintERP = BSParam.LinkConstraintERP;
+        p.linkConstraintCFM = BSParam.LinkConstraintCFM;
+        p.linkConstraintSolverIterations = BSParam.LinkConstraintSolverIterations;
+        p.physicsLoggingFrames = o[0].physicsLoggingFrames;
         DefaultCollisionConstructionInfo ccci = new DefaultCollisionConstructionInfo();
         
         DefaultCollisionConfiguration cci = new DefaultCollisionConfiguration();

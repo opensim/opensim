@@ -602,8 +602,8 @@ public sealed class BSShapeCollection : IDisposable
         if (newMeshKey == prim.PhysShape.shapeKey && prim.PhysShape.type == BSPhysicsShapeType.SHAPE_MESH)
             return false;
 
-        if (DDetail) DetailLog("{0},BSShapeCollection.GetReferenceToMesh,create,oldKey={1},newKey={2}",
-                                prim.LocalID, prim.PhysShape.shapeKey.ToString("X"), newMeshKey.ToString("X"));
+        if (DDetail) DetailLog("{0},BSShapeCollection.GetReferenceToMesh,create,oldKey={1},newKey={2},size={3},lod={4}",
+                                prim.LocalID, prim.PhysShape.shapeKey.ToString("X"), newMeshKey.ToString("X"), prim.Size, lod);
 
         // Since we're recreating new, get rid of the reference to the previous shape
         DereferenceShape(prim.PhysShape, shapeCallback);
@@ -622,7 +622,6 @@ public sealed class BSShapeCollection : IDisposable
     private BulletShape CreatePhysicalMesh(string objName, System.UInt64 newMeshKey, PrimitiveBaseShape pbs, OMV.Vector3 size, float lod)
     {
         BulletShape newShape = new BulletShape();
-        IMesh meshData = null;
 
         MeshDesc meshDesc;
         if (Meshes.TryGetValue(newMeshKey, out meshDesc))
@@ -632,27 +631,55 @@ public sealed class BSShapeCollection : IDisposable
         }
         else
         {
-            meshData = PhysicsScene.mesher.CreateMesh(objName, pbs, size, lod, true, false, false, false);
+            IMesh meshData = PhysicsScene.mesher.CreateMesh(objName, pbs, size, lod, 
+                                        true,
+                                        false,  // say it is not physical so a bounding box is not built
+                                        false,  // do not cache the mesh and do not use previously built versions
+                                        false   // It's NOT for ODE
+                                        );
 
             if (meshData != null)
             {
+
                 int[] indices = meshData.getIndexListAsInt();
-                List<OMV.Vector3> vertices = meshData.getVertexList();
+                int realIndicesIndex = indices.Length;
+                float[] verticesAsFloats = meshData.getVertexListAsFloat();
 
-                float[] verticesAsFloats = new float[vertices.Count * 3];
-                int vi = 0;
-                foreach (OMV.Vector3 vv in vertices)
+                if (BSParam.ShouldRemoveZeroWidthTriangles)
                 {
-                    verticesAsFloats[vi++] = vv.X;
-                    verticesAsFloats[vi++] = vv.Y;
-                    verticesAsFloats[vi++] = vv.Z;
+                    // Remove degenerate triangles. These are triangles with two of the vertices
+                    //    are the same. This is complicated by the problem that vertices are not
+                    //    made unique in sculpties so we have to compare the values in the vertex.
+                    realIndicesIndex = 0;
+                    for (int tri = 0; tri < indices.Length; tri += 3)
+                    {
+                        int v1 = indices[tri + 0] * 3;
+                        int v2 = indices[tri + 1] * 3;
+                        int v3 = indices[tri + 2] * 3;
+                        if (!((verticesAsFloats[v1 + 0] == verticesAsFloats[v2 + 0]
+                               && verticesAsFloats[v1 + 1] == verticesAsFloats[v2 + 1]
+                               && verticesAsFloats[v1 + 2] == verticesAsFloats[v2 + 2])
+                            || (verticesAsFloats[v2 + 0] == verticesAsFloats[v3 + 0]
+                               && verticesAsFloats[v2 + 1] == verticesAsFloats[v3 + 1]
+                               && verticesAsFloats[v2 + 2] == verticesAsFloats[v3 + 2])
+                            || (verticesAsFloats[v1 + 0] == verticesAsFloats[v3 + 0]
+                               && verticesAsFloats[v1 + 1] == verticesAsFloats[v3 + 1]
+                               && verticesAsFloats[v1 + 2] == verticesAsFloats[v3 + 2]))
+                        )
+                        {
+                            // None of the vertices of the triangles are the same. This is a good triangle;
+                            indices[realIndicesIndex + 0] = indices[tri + 0];
+                            indices[realIndicesIndex + 1] = indices[tri + 1];
+                            indices[realIndicesIndex + 2] = indices[tri + 2];
+                            realIndicesIndex += 3;
+                        }
+                    }
                 }
-
-                // m_log.DebugFormat("{0}: BSShapeCollection.CreatePhysicalMesh: calling CreateMesh. lid={1}, key={2}, indices={3}, vertices={4}",
-                //                  LogHeader, prim.LocalID, newMeshKey, indices.Length, vertices.Count);
+                DetailLog("{0},BSShapeCollection.CreatePhysicalMesh,origTri={1},realTri={2},numVerts={3}",
+                            BSScene.DetailLogZero, indices.Length / 3, realIndicesIndex / 3, verticesAsFloats.Length / 3);
 
                 newShape = PhysicsScene.PE.CreateMeshShape(PhysicsScene.World,
-                                    indices.GetLength(0), indices, vertices.Count, verticesAsFloats);
+                                    realIndicesIndex, indices, verticesAsFloats.Length/3, verticesAsFloats);
             }
         }
         newShape.shapeKey = newMeshKey;
@@ -831,6 +858,11 @@ public sealed class BSShapeCollection : IDisposable
     {
         // level of detail based on size and type of the object
         float lod = BSParam.MeshLOD;
+
+        // prims with curvy internal cuts need higher lod
+        if (pbs.HollowShape == HollowShape.Circle)
+            lod = BSParam.MeshCircularLOD;
+
         if (pbs.SculptEntry)
             lod = BSParam.SculptLOD;
 

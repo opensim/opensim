@@ -564,7 +564,7 @@ namespace OpenSim.Services.UserAccountService
             return account;
         }
 
-        private void CreateDefaultAppearanceEntries(UUID principalID)
+        protected void CreateDefaultAppearanceEntries(UUID principalID)
         {
             m_log.DebugFormat("[USER ACCOUNT SERVICE]: Creating default appearance items for {0}", principalID);
 

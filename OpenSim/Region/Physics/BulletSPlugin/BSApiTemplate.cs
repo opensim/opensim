@@ -174,32 +174,6 @@ public struct ConfigurationParameters
     public float collisionMargin;
     public float gravity;
 
-    public float XlinearDamping;
-    public float XangularDamping;
-    public float XdeactivationTime;
-    public float XlinearSleepingThreshold;
-    public float XangularSleepingThreshold;
-	public float XccdMotionThreshold;
-	public float XccdSweptSphereRadius;
-    public float XcontactProcessingThreshold;
-
-    public float XterrainImplementation;
-    public float XterrainFriction;
-    public float XterrainHitFraction;
-    public float XterrainRestitution;
-    public float XterrainCollisionMargin;
-
-    public float XavatarFriction;
-    public float XavatarStandingFriction;
-    public float XavatarDensity;
-    public float XavatarRestitution;
-    public float XavatarCapsuleWidth;
-    public float XavatarCapsuleDepth;
-    public float XavatarCapsuleHeight;
-	public float XavatarContactProcessingThreshold;
-
-    public float XvehicleAngularDamping;
-
 	public float maxPersistantManifoldPoolSize;
 	public float maxCollisionAlgorithmPoolSize;
 	public float shouldDisableContactPoolDynamicAllocation;
@@ -208,17 +182,9 @@ public struct ConfigurationParameters
 	public float shouldSplitSimulationIslands;
 	public float shouldEnableFrictionCaching;
 	public float numberOfSolverIterations;
+    public float useSingleSidedMeshes;
 
-    public float XlinksetImplementation;
-    public float XlinkConstraintUseFrameOffset;
-    public float XlinkConstraintEnableTransMotor;
-    public float XlinkConstraintTransMotorMaxVel;
-    public float XlinkConstraintTransMotorMaxForce;
-    public float XlinkConstraintERP;
-    public float XlinkConstraintCFM;
-    public float XlinkConstraintSolverIterations;
-
-    public float XphysicsLoggingFrames;
+    public float physicsLoggingFrames;
 
     public const float numericTrue = 1f;
     public const float numericFalse = 0f;
