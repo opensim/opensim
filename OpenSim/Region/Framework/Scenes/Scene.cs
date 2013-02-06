@@ -720,7 +720,6 @@ namespace OpenSim.Region.Framework.Scenes
         public Scene(RegionInfo regInfo, AgentCircuitManager authen,
                      SceneCommunicationService sceneGridService,
                      ISimulationDataService simDataService, IEstateDataService estateDataService,
-                     bool dumpAssetsToFile,
                      IConfigSource config, string simulatorVersion)
             : this(regInfo)
         {
@@ -810,8 +809,6 @@ namespace OpenSim.Region.Framework.Scenes
                     };
 
             RegisterDefaultSceneEvents();
-
-            DumpAssetsToFile = dumpAssetsToFile;
 
             // XXX: Don't set the public property since we don't want to activate here.  This needs to be handled 
             // better in the future.
@@ -4481,8 +4478,6 @@ namespace OpenSim.Region.Framework.Scenes
         #endregion
 
         #region Script Engine
-
-        public bool DumpAssetsToFile;
 
         private bool ScriptDanger(SceneObjectPart part,Vector3 pos)
         {
