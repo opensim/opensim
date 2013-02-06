@@ -798,7 +798,7 @@ namespace OpenSim
 
             return new Scene(
                 regionInfo, circuitManager, sceneGridService,
-                simDataService, estateDataService, false,
+                simDataService, estateDataService,
                 Config, m_version);
         }
         

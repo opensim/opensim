@@ -45,4 +45,8 @@ ExternalHostName = "SYSTEMIP"
 ; *
 
 ; RegionType = "Mainland"
+
+; *
+; * UUID of texture to use as a maptile for this region.
+; * Only set if you have disabled dynamic generation of the map tile from the region contents.
 ; MaptileStaticUUID = "00000000-0000-0000-0000-000000000000"
