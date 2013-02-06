@@ -39,6 +39,7 @@ using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Framework.Scenes.Scripting;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
@@ -256,10 +257,10 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         /// </summary>
         // -----------------------------------------------------------------
         [ScriptInvocation]
-        public UUID JsonReadNotecard(UUID hostID, UUID scriptID, UUID storeID, string path, UUID assetID)
+        public UUID JsonReadNotecard(UUID hostID, UUID scriptID, UUID storeID, string path, string notecardIdentifier)
         {
             UUID reqID = UUID.Random();
-            Util.FireAndForget(delegate(object o) { DoJsonReadNotecard(reqID,hostID,scriptID,storeID,path,assetID); });
+            Util.FireAndForget(o => DoJsonReadNotecard(reqID, hostID, scriptID, storeID, path, notecardIdentifier));
             return reqID;
         }
         
@@ -463,14 +464,23 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         /// 
         /// </summary>
         // -----------------------------------------------------------------
-        private void DoJsonReadNotecard(UUID reqID, UUID hostID, UUID scriptID, UUID storeID, string path, UUID assetID)
+        private void DoJsonReadNotecard(
+            UUID reqID, UUID hostID, UUID scriptID, UUID storeID, string path, string notecardIdentifier)
         {
+            UUID assetID;
+
+            if (!UUID.TryParse(notecardIdentifier, out assetID))
+            {
+                SceneObjectPart part = m_scene.GetSceneObjectPart(hostID);               
+                assetID = ScriptUtils.GetAssetIdFromItemName(part, notecardIdentifier, (int)AssetType.Notecard);
+            }
+
             AssetBase a = m_scene.AssetService.Get(assetID.ToString());
             if (a == null)
-                GenerateRuntimeError(String.Format("Unable to find notecard asset {0}",assetID));
+                GenerateRuntimeError(String.Format("Unable to find notecard asset {0}", assetID));
 
             if (a.Type != (sbyte)AssetType.Notecard)
-                GenerateRuntimeError(String.Format("Invalid notecard asset {0}",assetID));
+                GenerateRuntimeError(String.Format("Invalid notecard asset {0}", assetID));
             
             m_log.DebugFormat("[JsonStoreScripts]: read notecard in context {0}",storeID);
 
@@ -483,11 +493,11 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             }
             catch (Exception e)
             {
-                m_log.WarnFormat("[JsonStoreScripts]: Json parsing failed; {0}",e.Message);
+                m_log.WarnFormat("[JsonStoreScripts]: Json parsing failed; {0}", e.Message);
             }
 
-            GenerateRuntimeError(String.Format("Json parsing failed for {0}",assetID.ToString()));
-            m_comms.DispatchReply(scriptID,0,"",reqID.ToString());
+            GenerateRuntimeError(String.Format("Json parsing failed for {0}", assetID));
+            m_comms.DispatchReply(scriptID, 0, "", reqID.ToString());
         }
             
         // -----------------------------------------------------------------
