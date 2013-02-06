@@ -640,34 +640,37 @@ public sealed class BSShapeCollection : IDisposable
             {
 
                 int[] indices = meshData.getIndexListAsInt();
-                // int realIndicesIndex = indices.Length;
+                int realIndicesIndex = indices.Length;
                 float[] verticesAsFloats = meshData.getVertexListAsFloat();
 
-                // Remove degenerate triangles. These are triangles with two of the vertices
-                //    are the same. This is complicated by the problem that vertices are not
-                //    made unique in sculpties so we have to compare the values in the vertex.
-                int realIndicesIndex = 0;
-                for (int tri = 0; tri < indices.Length; tri += 3)
+                if (BSParam.ShouldRemoveZeroWidthTriangles)
                 {
-                    int v1 = indices[tri + 0] * 3;
-                    int v2 = indices[tri + 1] * 3;
-                    int v3 = indices[tri + 2] * 3;
-                    if (!( (  verticesAsFloats[v1 + 0] == verticesAsFloats[v2 + 0]
-                           && verticesAsFloats[v1 + 1] == verticesAsFloats[v2 + 1]
-                           && verticesAsFloats[v1 + 2] == verticesAsFloats[v2 + 2] )
-                        || (  verticesAsFloats[v2 + 0] == verticesAsFloats[v3 + 0]
-                           && verticesAsFloats[v2 + 1] == verticesAsFloats[v3 + 1]
-                           && verticesAsFloats[v2 + 2] == verticesAsFloats[v3 + 2] )
-                        || (  verticesAsFloats[v1 + 0] == verticesAsFloats[v3 + 0]
-                           && verticesAsFloats[v1 + 1] == verticesAsFloats[v3 + 1]
-                           && verticesAsFloats[v1 + 2] == verticesAsFloats[v3 + 2] ) )
-                    )
+                    // Remove degenerate triangles. These are triangles with two of the vertices
+                    //    are the same. This is complicated by the problem that vertices are not
+                    //    made unique in sculpties so we have to compare the values in the vertex.
+                    realIndicesIndex = 0;
+                    for (int tri = 0; tri < indices.Length; tri += 3)
                     {
-                        // None of the vertices of the triangles are the same. This is a good triangle;
-                        indices[realIndicesIndex + 0] = indices[tri + 0];
-                        indices[realIndicesIndex + 1] = indices[tri + 1];
-                        indices[realIndicesIndex + 2] = indices[tri + 2];
-                        realIndicesIndex += 3;
+                        int v1 = indices[tri + 0] * 3;
+                        int v2 = indices[tri + 1] * 3;
+                        int v3 = indices[tri + 2] * 3;
+                        if (!((verticesAsFloats[v1 + 0] == verticesAsFloats[v2 + 0]
+                               && verticesAsFloats[v1 + 1] == verticesAsFloats[v2 + 1]
+                               && verticesAsFloats[v1 + 2] == verticesAsFloats[v2 + 2])
+                            || (verticesAsFloats[v2 + 0] == verticesAsFloats[v3 + 0]
+                               && verticesAsFloats[v2 + 1] == verticesAsFloats[v3 + 1]
+                               && verticesAsFloats[v2 + 2] == verticesAsFloats[v3 + 2])
+                            || (verticesAsFloats[v1 + 0] == verticesAsFloats[v3 + 0]
+                               && verticesAsFloats[v1 + 1] == verticesAsFloats[v3 + 1]
+                               && verticesAsFloats[v1 + 2] == verticesAsFloats[v3 + 2]))
+                        )
+                        {
+                            // None of the vertices of the triangles are the same. This is a good triangle;
+                            indices[realIndicesIndex + 0] = indices[tri + 0];
+                            indices[realIndicesIndex + 1] = indices[tri + 1];
+                            indices[realIndicesIndex + 2] = indices[tri + 2];
+                            realIndicesIndex += 3;
+                        }
                     }
                 }
                 DetailLog("{0},BSShapeCollection.CreatePhysicalMesh,origTri={1},realTri={2},numVerts={3}",
