@@ -82,7 +82,6 @@ namespace OpenSim.Region.Framework.Scenes.Scripting
             return key;
         }
 
-
         /// <summary>
         /// Return the UUID of the asset matching the specified key or name
         /// and asset type.
@@ -100,20 +99,6 @@ namespace OpenSim.Region.Framework.Scenes.Scripting
                 TaskInventoryItem item = part.Inventory.GetInventoryItem(identifier);
                 if (item != null && item.Type == (int)type)
                     key = item.AssetID;
-            }
-            else
-            {
-                lock (part.TaskInventory)
-                {
-                    foreach (KeyValuePair<UUID, TaskInventoryItem> item in part.TaskInventory)
-                    {
-                        if (item.Value.Type == (int)type && item.Value.Name == identifier)
-                        {
-                            key = item.Value.ItemID;
-                            break;
-                        }
-                    }
-                }
             }
 
             return key;
