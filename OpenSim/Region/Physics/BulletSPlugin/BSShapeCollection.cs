@@ -602,8 +602,8 @@ public sealed class BSShapeCollection : IDisposable
         if (newMeshKey == prim.PhysShape.shapeKey && prim.PhysShape.type == BSPhysicsShapeType.SHAPE_MESH)
             return false;
 
-        if (DDetail) DetailLog("{0},BSShapeCollection.GetReferenceToMesh,create,oldKey={1},newKey={2}",
-                                prim.LocalID, prim.PhysShape.shapeKey.ToString("X"), newMeshKey.ToString("X"));
+        if (DDetail) DetailLog("{0},BSShapeCollection.GetReferenceToMesh,create,oldKey={1},newKey={2},size={3},lod={4}",
+                                prim.LocalID, prim.PhysShape.shapeKey.ToString("X"), newMeshKey.ToString("X"), prim.Size, lod);
 
         // Since we're recreating new, get rid of the reference to the previous shape
         DereferenceShape(prim.PhysShape, shapeCallback);
@@ -631,50 +631,50 @@ public sealed class BSShapeCollection : IDisposable
         }
         else
         {
-            IMesh meshData = PhysicsScene.mesher.CreateMesh(objName, pbs, size, lod, true, false);
+            IMesh meshData = PhysicsScene.mesher.CreateMesh(objName, pbs, size, lod, 
+                                        false,  // say it is not physical so a bounding box is not built
+                                        false   // do not cache the mesh and do not use previously built versions
+                                        );
 
             if (meshData != null)
             {
+
                 int[] indices = meshData.getIndexListAsInt();
-                List<OMV.Vector3> vertices = meshData.getVertexList();
+                // int realIndicesIndex = indices.Length;
+                float[] verticesAsFloats = meshData.getVertexListAsFloat();
 
-                float[] verticesAsFloats = new float[vertices.Count * 3];
-                int vi = 0;
-                foreach (OMV.Vector3 vv in vertices)
+                // Remove degenerate triangles. These are triangles with two of the vertices
+                //    are the same. This is complicated by the problem that vertices are not
+                //    made unique in sculpties so we have to compare the values in the vertex.
+                int realIndicesIndex = 0;
+                for (int tri = 0; tri < indices.Length; tri += 3)
                 {
-                    verticesAsFloats[vi++] = vv.X;
-                    verticesAsFloats[vi++] = vv.Y;
-                    verticesAsFloats[vi++] = vv.Z;
+                    int v1 = indices[tri + 0] * 3;
+                    int v2 = indices[tri + 1] * 3;
+                    int v3 = indices[tri + 2] * 3;
+                    if (!( (  verticesAsFloats[v1 + 0] == verticesAsFloats[v2 + 0]
+                           && verticesAsFloats[v1 + 1] == verticesAsFloats[v2 + 1]
+                           && verticesAsFloats[v1 + 2] == verticesAsFloats[v2 + 2] )
+                        || (  verticesAsFloats[v2 + 0] == verticesAsFloats[v3 + 0]
+                           && verticesAsFloats[v2 + 1] == verticesAsFloats[v3 + 1]
+                           && verticesAsFloats[v2 + 2] == verticesAsFloats[v3 + 2] )
+                        || (  verticesAsFloats[v1 + 0] == verticesAsFloats[v3 + 0]
+                           && verticesAsFloats[v1 + 1] == verticesAsFloats[v3 + 1]
+                           && verticesAsFloats[v1 + 2] == verticesAsFloats[v3 + 2] ) )
+                    )
+                    {
+                        // None of the vertices of the triangles are the same. This is a good triangle;
+                        indices[realIndicesIndex + 0] = indices[tri + 0];
+                        indices[realIndicesIndex + 1] = indices[tri + 1];
+                        indices[realIndicesIndex + 2] = indices[tri + 2];
+                        realIndicesIndex += 3;
+                    }
                 }
-
-                // DetailLog("{0},BSShapeCollection.CreatePhysicalMesh,key={1},lod={2},size={3},indices={4},vertices={5}",
-                //                     BSScene.DetailLogZero, newMeshKey.ToString("X"), lod, size, indices.Length, vertices.Count);
-
-                /* 
-                // DEBUG DEBUG
-                for (int ii = 0; ii < indices.Length; ii += 3)
-                {
-                    DetailLog("{0,3}: {1,3},{2,3},{3,3}: <{4,10},{5,10},{6,10}>, <{7,10},{8,10},{9,10}>, <{10,10},{11,10},{12,10}>",
-                        ii / 3,
-                        indices[ii + 0],
-                        indices[ii + 1],
-                        indices[ii + 2],
-                        verticesAsFloats[indices[ii+0] + 0],
-                        verticesAsFloats[indices[ii+0] + 1],
-                        verticesAsFloats[indices[ii+0] + 2],
-                        verticesAsFloats[indices[ii+1] + 0],
-                        verticesAsFloats[indices[ii+1] + 1],
-                        verticesAsFloats[indices[ii+1] + 2],
-                        verticesAsFloats[indices[ii+2] + 0],
-                        verticesAsFloats[indices[ii+2] + 1],
-                        verticesAsFloats[indices[ii+2] + 2]
-                        );
-                }
-                // END DEBUG DEBUG
-                 */
+                DetailLog("{0},BSShapeCollection.CreatePhysicalMesh,origTri={1},realTri={2},numVerts={3}",
+                            BSScene.DetailLogZero, indices.Length / 3, realIndicesIndex / 3, verticesAsFloats.Length / 3);
 
                 newShape = PhysicsScene.PE.CreateMeshShape(PhysicsScene.World,
-                                    indices.GetLength(0), indices, vertices.Count, verticesAsFloats);
+                                    realIndicesIndex, indices, verticesAsFloats.Length/3, verticesAsFloats);
             }
         }
         newShape.shapeKey = newMeshKey;
@@ -853,6 +853,11 @@ public sealed class BSShapeCollection : IDisposable
     {
         // level of detail based on size and type of the object
         float lod = BSParam.MeshLOD;
+
+        // prims with curvy internal cuts need higher lod
+        if (pbs.HollowShape == HollowShape.Circle)
+            lod = BSParam.MeshCircularLOD;
+
         if (pbs.SculptEntry)
             lod = BSParam.SculptLOD;
 

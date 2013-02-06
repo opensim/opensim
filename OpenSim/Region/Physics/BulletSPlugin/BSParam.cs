@@ -39,6 +39,7 @@ public static class BSParam
 {
     // Level of Detail values kept as float because that's what the Meshmerizer wants
     public static float MeshLOD { get; private set; }
+    public static float MeshCircularLOD { get; private set; }
     public static float MeshMegaPrimLOD { get; private set; }
     public static float MeshMegaPrimThreshold { get; private set; }
     public static float SculptLOD { get; private set; }
@@ -219,20 +220,25 @@ public static class BSParam
             (s,p,l,v) => { ShouldUseHullsForPhysicalObjects = BSParam.BoolNumeric(v); } ),
 
         new ParameterDefn("MeshLevelOfDetail", "Level of detail to render meshes (32, 16, 8 or 4. 32=most detailed)",
-            8f,
+            32f,
             (s,cf,p,v) => { MeshLOD = (float)cf.GetInt(p, (int)v); },
             (s) => { return MeshLOD; },
             (s,p,l,v) => { MeshLOD = v; } ),
-        new ParameterDefn("MeshLevelOfDetailMegaPrim", "Level of detail to render meshes larger than threshold meters",
-            16f,
-            (s,cf,p,v) => { MeshMegaPrimLOD = (float)cf.GetInt(p, (int)v); },
-            (s) => { return MeshMegaPrimLOD; },
-            (s,p,l,v) => { MeshMegaPrimLOD = v; } ),
+        new ParameterDefn("MeshLevelOfDetailCircular", "Level of detail for prims with circular cuts or shapes",
+            32f,
+            (s,cf,p,v) => { MeshCircularLOD = (float)cf.GetInt(p, (int)v); },
+            (s) => { return MeshCircularLOD; },
+            (s,p,l,v) => { MeshCircularLOD = v; } ),
         new ParameterDefn("MeshLevelOfDetailMegaPrimThreshold", "Size (in meters) of a mesh before using MeshMegaPrimLOD",
             10f,
             (s,cf,p,v) => { MeshMegaPrimThreshold = (float)cf.GetInt(p, (int)v); },
             (s) => { return MeshMegaPrimThreshold; },
             (s,p,l,v) => { MeshMegaPrimThreshold = v; } ),
+        new ParameterDefn("MeshLevelOfDetailMegaPrim", "Level of detail to render meshes larger than threshold meters",
+            32f,
+            (s,cf,p,v) => { MeshMegaPrimLOD = (float)cf.GetInt(p, (int)v); },
+            (s) => { return MeshMegaPrimLOD; },
+            (s,p,l,v) => { MeshMegaPrimLOD = v; } ),
         new ParameterDefn("SculptLevelOfDetail", "Level of detail to render sculpties (32, 16, 8 or 4. 32=most detailed)",
             32f,
             (s,cf,p,v) => { SculptLOD = (float)cf.GetInt(p, (int)v); },
