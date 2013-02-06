@@ -7594,6 +7594,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                              part.ScriptSetPhysicsStatus(physics);
                              break;
 
+                        case (int)ScriptBaseClass.PRIM_PHYSICS_SHAPE_TYPE:
+                            if (remain < 1)
+                                return null;
+
+                            int shape_type = rules.GetLSLIntegerItem(idx++);
+
+                            ExtraPhysicsData physdata = new ExtraPhysicsData();
+                            physdata.Density = part.Density;
+                            physdata.Bounce = part.Bounciness;
+                            physdata.GravitationModifier = part.GravityModifier;
+                            physdata.PhysShapeType = (PhysShapeType)shape_type;
+
+                            part.UpdateExtraPhysics(physdata);
+
+                            break;
+
                         case (int)ScriptBaseClass.PRIM_TEMP_ON_REZ:
                             if (remain < 1)
                                 return null;

@@ -302,6 +302,13 @@ namespace OpenSim.Region.Framework.Scenes
         protected Vector3 m_lastAcceleration;
         protected Vector3 m_lastAngularVelocity;
         protected int m_lastTerseSent;
+
+        protected byte m_physicsShapeType = (byte)PhysShapeType.prim;
+        // TODO: Implement these
+        //protected float m_density = 1000.0f; // in kg/m^3
+        //protected float m_gravitymod = 1.0f;
+        //protected float m_friction = 0.6f; // wood
+        //protected float m_bounce = 0.5f; // wood
         
         /// <summary>
         /// Stores media texture data
@@ -1322,6 +1329,69 @@ namespace OpenSim.Region.Framework.Scenes
             set { m_collisionSoundVolume = value; }
         }
 
+        public byte DefaultPhysicsShapeType()
+        {
+            byte type;
+
+            if (Shape != null && (Shape.SculptType == (byte)SculptType.Mesh))
+                type = (byte)PhysShapeType.convex;
+            else
+                type = (byte)PhysShapeType.prim;
+
+            return type;
+        }
+
+        public byte PhysicsShapeType
+        {
+            get { return m_physicsShapeType; }
+            set
+            {
+                byte oldv = m_physicsShapeType;
+
+                if (value >= 0 && value <= (byte)PhysShapeType.convex)
+                {
+                    if (value == (byte)PhysShapeType.none && ParentGroup != null && ParentGroup.RootPart == this)
+                        m_physicsShapeType = DefaultPhysicsShapeType();
+                    else
+                        m_physicsShapeType = value;
+                }
+                else
+                    m_physicsShapeType = DefaultPhysicsShapeType();
+
+                if (m_physicsShapeType != oldv && ParentGroup != null)
+                {
+                    if (m_physicsShapeType == (byte)PhysShapeType.none)
+                    {
+                        if (PhysActor != null)
+                        {
+                            Velocity = new Vector3(0, 0, 0);
+                            Acceleration = new Vector3(0, 0, 0);
+                            if (ParentGroup.RootPart == this)
+                                AngularVelocity = new Vector3(0, 0, 0);
+                            ParentGroup.Scene.RemovePhysicalPrim(1);
+                            RemoveFromPhysics();
+                        }
+                    }
+                    else if (PhysActor == null)
+                    {
+                        ApplyPhysics((uint)Flags, VolumeDetectActive);
+                    }
+                    else
+                    {
+                        // TODO: Update physics actor
+                    }
+
+                    if (ParentGroup != null)
+                        ParentGroup.HasGroupChanged = true;
+                }
+            }
+        }
+
+        public float Density { get; set; }
+        public float GravityModifier { get; set; }
+        public float Friction { get; set; }
+        public float Bounciness { get; set; }
+
         #endregion Public Properties with only Get
 
         private uint ApplyMask(uint val, bool set, uint mask)
@@ -1523,9 +1593,8 @@ namespace OpenSim.Region.Framework.Scenes
             if (!ParentGroup.Scene.CollidablePrims)
                 return;
 
-//            m_log.DebugFormat(
-//                "[SCENE OBJECT PART]: Applying physics to {0} {1}, m_physicalPrim {2}",
-//                Name, LocalId, UUID, m_physicalPrim);
+            if (PhysicsShapeType == (byte)PhysShapeType.none)
+                return;
 
             bool isPhysical = (rootObjectFlags & (uint) PrimFlags.Physics) != 0;
             bool isPhantom = (rootObjectFlags & (uint) PrimFlags.Phantom) != 0;
@@ -3878,6 +3947,26 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        public void UpdateExtraPhysics(ExtraPhysicsData physdata)
+        {
+            if (physdata.PhysShapeType == PhysShapeType.invalid || ParentGroup == null)
+                return;
+
+            if (PhysicsShapeType != (byte)physdata.PhysShapeType)
+            {
+                PhysicsShapeType = (byte)physdata.PhysShapeType;
+
+            }
+
+            if(Density != physdata.Density)
+                Density = physdata.Density;
+            if(GravityModifier != physdata.GravitationModifier)
+                GravityModifier = physdata.GravitationModifier;
+            if(Friction != physdata.Friction)
+                Friction = physdata.Friction;
+            if(Bounciness != physdata.Bounce)
+                Bounciness = physdata.Bounce;
+        }
         /// <summary>
         /// Update the flags on this prim.  This covers properties such as phantom, physics and temporary.
         /// </summary>
@@ -3949,6 +4038,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (SetPhantom
                 || ParentGroup.IsAttachment
+                || PhysicsShapeType == (byte)PhysShapeType.none
                 || (Shape.PathCurve == (byte)Extrusion.Flexible)) // note: this may have been changed above in the case of joints
             {
                 AddFlag(PrimFlags.Phantom);
