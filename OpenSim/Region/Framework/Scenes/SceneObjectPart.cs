@@ -116,7 +116,7 @@ namespace OpenSim.Region.Framework.Scenes
 
     #endregion Enumerations
 
-    public class SceneObjectPart : IScriptHost, ISceneEntity
+    public class SceneObjectPart : ISceneEntity
     {
         /// <value>
         /// Denote all sides of the prim
