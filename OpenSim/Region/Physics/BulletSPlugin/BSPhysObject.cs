@@ -75,6 +75,7 @@ public abstract class BSPhysObject : PhysicsActor
         PhysicsScene = parentScene;
         LocalID = localID;
         PhysObjectName = name;
+        Name = name;    // PhysicsActor also has the name of the object. Someday consolidate.
         TypeName = typeName;
 
         // We don't have any physical representation yet.
