@@ -184,13 +184,13 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
 
-            UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}"); 
+            UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ }"); 
 
-            int result = (int)InvokeOp("JsonSetValue", storeId, "Hello", "World");
+            int result = (int)InvokeOp("JsonSetValue", storeId, "Fun", "Times");
             Assert.That(result, Is.EqualTo(1));
 
-            string value = (string)InvokeOp("JsonGetValue", storeId, "Hello");
-            Assert.That(value, Is.EqualTo("World"));
+            string value = (string)InvokeOp("JsonGetValue", storeId, "Fun");
+            Assert.That(value, Is.EqualTo("Times"));
         }
 
         public object DummyTestMethod(object o1, object o2, object o3, object o4, object o5) { return null; }
