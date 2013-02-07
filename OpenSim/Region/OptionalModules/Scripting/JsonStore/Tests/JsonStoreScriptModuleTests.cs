@@ -208,6 +208,17 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 
             string returnValue2 = (string)InvokeOp("JsonGetValue", storeId, "Hello");
             Assert.That(returnValue2, Is.EqualTo(""));
+
+            // Test remove of non-existing value
+            int fakeValueRemove = (int)InvokeOp("JsonRemoveValue", storeId, "Hello");
+
+            // XXX: Is this the best response to removing a value that isn't there?
+            Assert.That(fakeValueRemove, Is.EqualTo(1));
+
+            // Test get from non-existing store
+            UUID fakeStoreId = TestHelpers.ParseTail(0x500);
+            int fakeStoreValueRemove = (int)InvokeOp("JsonRemoveValue", fakeStoreId, "Hello");
+            Assert.That(fakeStoreValueRemove, Is.EqualTo(0));
         }
 
         [Test]
