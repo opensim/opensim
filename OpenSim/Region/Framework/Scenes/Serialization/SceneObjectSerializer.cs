@@ -634,7 +634,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessBounce(SceneObjectPart obj, XmlTextReader reader)
         {
-            obj.Bounciness = reader.ReadElementContentAsFloat("Bounce", String.Empty);
+            obj.Restitution = reader.ReadElementContentAsFloat("Bounce", String.Empty);
         }
 
         private static void ProcessGravityModifier(SceneObjectPart obj, XmlTextReader reader)
@@ -1377,8 +1377,8 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 writer.WriteElementString("Density", sop.Density.ToString().ToLower());
             if (sop.Friction != 0.6f)
                 writer.WriteElementString("Friction", sop.Friction.ToString().ToLower());
-            if (sop.Bounciness != 0.5f)
-                writer.WriteElementString("Bounce", sop.Bounciness.ToString().ToLower());
+            if (sop.Restitution != 0.5f)
+                writer.WriteElementString("Bounce", sop.Restitution.ToString().ToLower());
             if (sop.GravityModifier != 1.0f)
                 writer.WriteElementString("GravityModifier", sop.GravityModifier.ToString().ToLower());
             WriteVector(writer, "CameraEyeOffset", sop.GetCameraEyeOffset());

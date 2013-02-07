@@ -1316,7 +1316,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     object_data["PhysicsShapeType"] = obj.PhysicsShapeType;
                     object_data["Density"] = obj.Density;
                     object_data["Friction"] = obj.Friction;
-                    object_data["Restitution"] = obj.Bounciness;
+                    object_data["Restitution"] = obj.Restitution;
                     object_data["GravityMultiplier"] = obj.GravityModifier;
 
                     resp[uuid.ToString()] = object_data;
