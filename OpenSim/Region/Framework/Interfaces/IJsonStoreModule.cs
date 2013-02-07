@@ -35,6 +35,7 @@ namespace OpenSim.Region.Framework.Interfaces
 
     public interface IJsonStoreModule
     {
+        bool AttachObjectStore(UUID objectID);
         bool CreateStore(string value, ref UUID result);
         bool DestroyStore(UUID storeID);
         bool TestStore(UUID storeID);

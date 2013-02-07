@@ -73,6 +73,14 @@ namespace OpenSim.Framework
                 m_map = (OSDMap)OSDParser.DeserializeLLSDXml(rawXml);         
         }
         
+        // WARNING: this is temporary for experimentation only, it will be removed!!!!
+        public OSDMap TopLevelMap
+        {
+            get { return m_map; }
+            set { m_map = value; }
+        }
+        
+
         public void ReadXml(XmlReader reader)
         { 
             ReadXml(reader.ReadInnerXml());            
