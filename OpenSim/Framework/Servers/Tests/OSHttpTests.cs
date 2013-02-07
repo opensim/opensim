@@ -70,6 +70,11 @@ namespace OpenSim.Framework.Servers.Tests
             public void Close() { }
             public bool EndWhenDone { get { return false;} set { return;}}
 
+            public HTTPNetworkContext GiveMeTheNetworkStreamIKnowWhatImDoing()
+            {
+                return new HTTPNetworkContext();
+            }
+
             public event EventHandler<DisconnectedEventArgs> Disconnected = delegate { };
             /// <summary>
             /// A request have been received in the context.
