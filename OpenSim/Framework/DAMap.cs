@@ -73,6 +73,14 @@ namespace OpenSim.Framework
                 m_map = (OSDMap)OSDParser.DeserializeLLSDXml(rawXml);         
         }
         
+        // WARNING: this is temporary for experimentation only, it will be removed!!!!
+        public OSDMap TopLevelMap
+        {
+            get { return m_map; }
+            set { m_map = value; }
+        }
+        
+
         public void ReadXml(XmlReader reader)
         { 
             ReadXml(reader.ReadInnerXml());            
@@ -168,6 +176,10 @@ namespace OpenSim.Framework
             }
         }
 
+        /// <summary>
+        /// Validate the key used for storing separate data stores.
+        /// </summary>
+        /// <param name='key'></param>
         private static void ValidateKey(string key)
         {
             if (key.Length < MIN_STORE_NAME_LENGTH)
@@ -188,7 +200,8 @@ namespace OpenSim.Framework
         }    
 
         public void Add(KeyValuePair<string, OSDMap> kvp) 
-        {    
+        {   
+            ValidateKey(kvp.Key);
             lock (this)
                 m_map.Add(kvp.Key, kvp.Value);
         }    

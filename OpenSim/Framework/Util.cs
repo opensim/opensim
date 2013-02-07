@@ -45,6 +45,7 @@ using System.Text.RegularExpressions;
 using System.Xml;
 using System.Threading;
 using log4net;
+using log4net.Appender;
 using Nini.Config;
 using Nwc.XmlRpc;
 using OpenMetaverse;
@@ -828,9 +829,22 @@ namespace OpenSim.Framework
             return ".";
         }
 
+        public static string logFile()
+        {
+            foreach (IAppender appender in LogManager.GetRepository().GetAppenders())
+            {
+                if (appender is FileAppender)
+                {
+                    return ((FileAppender)appender).File;
+                }
+            }
+
+            return "./OpenSim.log";
+        }
+
         public static string logDir()
         {
-            return ".";
+            return Path.GetDirectoryName(logFile());
         }
 
         // From: http://coercedcode.blogspot.com/2008/03/c-generate-unique-filenames-within.html

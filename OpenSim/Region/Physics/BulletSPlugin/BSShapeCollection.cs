@@ -608,7 +608,7 @@ public sealed class BSShapeCollection : IDisposable
         // Since we're recreating new, get rid of the reference to the previous shape
         DereferenceShape(prim.PhysShape, shapeCallback);
 
-        newShape = CreatePhysicalMesh(prim.PhysObjectName, newMeshKey, prim.BaseShape, prim.Size, lod);
+        newShape = CreatePhysicalMesh(prim, newMeshKey, prim.BaseShape, prim.Size, lod);
         // Take evasive action if the mesh was not constructed.
         newShape = VerifyMeshCreated(newShape, prim);
 
@@ -619,7 +619,7 @@ public sealed class BSShapeCollection : IDisposable
         return true;        // 'true' means a new shape has been added to this prim
     }
 
-    private BulletShape CreatePhysicalMesh(string objName, System.UInt64 newMeshKey, PrimitiveBaseShape pbs, OMV.Vector3 size, float lod)
+    private BulletShape CreatePhysicalMesh(BSPhysObject prim, System.UInt64 newMeshKey, PrimitiveBaseShape pbs, OMV.Vector3 size, float lod)
     {
         BulletShape newShape = new BulletShape();
 
@@ -631,7 +631,7 @@ public sealed class BSShapeCollection : IDisposable
         }
         else
         {
-            IMesh meshData = PhysicsScene.mesher.CreateMesh(objName, pbs, size, lod, 
+            IMesh meshData = PhysicsScene.mesher.CreateMesh(prim.PhysObjectName, pbs, size, lod, 
                                         true,
                                         false,  // say it is not physical so a bounding box is not built
                                         false,  // do not cache the mesh and do not use previously built versions
@@ -653,18 +653,20 @@ public sealed class BSShapeCollection : IDisposable
                     realIndicesIndex = 0;
                     for (int tri = 0; tri < indices.Length; tri += 3)
                     {
+                        // Compute displacements into vertex array for each vertex of the triangle
                         int v1 = indices[tri + 0] * 3;
                         int v2 = indices[tri + 1] * 3;
                         int v3 = indices[tri + 2] * 3;
-                        if (!((verticesAsFloats[v1 + 0] == verticesAsFloats[v2 + 0]
+                        // Check to see if any two of the vertices are the same
+                        if (!( (  verticesAsFloats[v1 + 0] == verticesAsFloats[v2 + 0]
                                && verticesAsFloats[v1 + 1] == verticesAsFloats[v2 + 1]
                                && verticesAsFloats[v1 + 2] == verticesAsFloats[v2 + 2])
-                            || (verticesAsFloats[v2 + 0] == verticesAsFloats[v3 + 0]
+                            || (  verticesAsFloats[v2 + 0] == verticesAsFloats[v3 + 0]
                                && verticesAsFloats[v2 + 1] == verticesAsFloats[v3 + 1]
                                && verticesAsFloats[v2 + 2] == verticesAsFloats[v3 + 2])
-                            || (verticesAsFloats[v1 + 0] == verticesAsFloats[v3 + 0]
+                            || (  verticesAsFloats[v1 + 0] == verticesAsFloats[v3 + 0]
                                && verticesAsFloats[v1 + 1] == verticesAsFloats[v3 + 1]
-                               && verticesAsFloats[v1 + 2] == verticesAsFloats[v3 + 2]))
+                               && verticesAsFloats[v1 + 2] == verticesAsFloats[v3 + 2]) )
                         )
                         {
                             // None of the vertices of the triangles are the same. This is a good triangle;
@@ -678,8 +680,16 @@ public sealed class BSShapeCollection : IDisposable
                 DetailLog("{0},BSShapeCollection.CreatePhysicalMesh,origTri={1},realTri={2},numVerts={3}",
                             BSScene.DetailLogZero, indices.Length / 3, realIndicesIndex / 3, verticesAsFloats.Length / 3);
 
-                newShape = PhysicsScene.PE.CreateMeshShape(PhysicsScene.World,
-                                    realIndicesIndex, indices, verticesAsFloats.Length/3, verticesAsFloats);
+                if (realIndicesIndex != 0)
+                {
+                    newShape = PhysicsScene.PE.CreateMeshShape(PhysicsScene.World,
+                                        realIndicesIndex, indices, verticesAsFloats.Length / 3, verticesAsFloats);
+                }
+                else
+                {
+                    PhysicsScene.Logger.ErrorFormat("{0} All mesh triangles degenerate. Prim {1} at {2} in {3}",
+                                        LogHeader, prim.PhysObjectName, prim.RawPosition, PhysicsScene.Name);
+                }
             }
         }
         newShape.shapeKey = newMeshKey;
@@ -897,9 +907,11 @@ public sealed class BSShapeCollection : IDisposable
         // If this mesh has an underlying asset and we have not failed getting it before, fetch the asset
         if (prim.BaseShape.SculptEntry && !prim.LastAssetBuildFailed && prim.BaseShape.SculptTexture != OMV.UUID.Zero)
         {
-            prim.LastAssetBuildFailed = true;
-            BSPhysObject xprim = prim;
             DetailLog("{0},BSShapeCollection.VerifyMeshCreated,fetchAsset,lastFailed={1}", prim.LocalID, prim.LastAssetBuildFailed);
+            // This will prevent looping through this code as we keep trying to get the failed shape
+            prim.LastAssetBuildFailed = true;
+
+            BSPhysObject xprim = prim;
             Util.FireAndForget(delegate
                 {
                     RequestAssetDelegate assetProvider = PhysicsScene.RequestAssetMethod;
@@ -910,7 +922,7 @@ public sealed class BSShapeCollection : IDisposable
                         {
                             bool assetFound = false;            // DEBUG DEBUG
                             string mismatchIDs = String.Empty;  // DEBUG DEBUG
-                            if (yprim.BaseShape.SculptEntry)
+                            if (asset != null && yprim.BaseShape.SculptEntry)
                             {
                                 if (yprim.BaseShape.SculptTexture.ToString() == asset.ID)
                                 {

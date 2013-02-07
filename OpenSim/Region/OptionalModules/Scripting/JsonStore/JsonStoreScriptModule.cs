@@ -169,6 +169,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
                     m_comms.RegisterScriptInvocations(this);
 
                     // m_comms.RegisterScriptInvocation(this, "JsonCreateStore");
+                    // m_comms.RegisterScriptInvocation(this, "JsonAttachObjectStore");
                     // m_comms.RegisterScriptInvocation(this, "JsonDestroyStore");
                     // m_comms.RegisterScriptInvocation(this, "JsonTestStore");
 
@@ -214,6 +215,21 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
 #endregion
 
 #region ScriptInvocationInteface
+        // -----------------------------------------------------------------
+        /// <summary>
+        /// 
+        /// </summary>
+        // -----------------------------------------------------------------
+        [ScriptInvocation]
+        public UUID JsonAttachObjectStore(UUID hostID, UUID scriptID)
+        {
+            UUID uuid = UUID.Zero;
+            if (! m_store.AttachObjectStore(hostID))
+                GenerateRuntimeError("Failed to create Json store");
+            
+            return hostID;
+        }
+
         // -----------------------------------------------------------------
         /// <summary>
         /// 
