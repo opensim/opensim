@@ -85,7 +85,7 @@ namespace OpenSim.Tests.Common
 
         public bool PostScriptEvent(UUID itemID, string name, object[] args)
         {
-            throw new System.NotImplementedException ();
+            return false;
         }
 
         public bool PostObjectEvent(UUID itemID, string name, object[] args)
