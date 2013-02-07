@@ -876,14 +876,39 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     //   will use the next time since it's pinned and shared memory.
     // Some of the values require calling into the physics engine to get the new
     //   value activated ('terrainFriction' for instance).
-    public bool SetPhysicsParameter(string parm, float val, uint localID)
+    public bool SetPhysicsParameter(string parm, string val, uint localID)
     {
         bool ret = false;
+
+        float valf = 0f;
+        if (val.ToLower() == "true")
+        {
+            valf = PhysParameterEntry.NUMERIC_TRUE;
+        }
+        else
+        {
+            if (val.ToLower() == "false")
+            {
+                valf = PhysParameterEntry.NUMERIC_FALSE;
+            }
+            else
+            {
+                try
+                {
+                    valf = float.Parse(val);
+                }
+                catch
+                {
+                    valf = 0f;
+                }
+            }
+        }
+
         BSParam.ParameterDefn theParam;
         if (BSParam.TryGetParameter(parm, out theParam))
         {
             // Set the value in the C# code
-            theParam.setter(this, parm, localID, val);
+            theParam.setter(this, parm, localID, valf);
 
             // Optionally set the parameter in the unmanaged code
             if (theParam.onObject != null)
@@ -898,16 +923,16 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
                     case PhysParameterEntry.APPLY_TO_NONE:
                         // This will cause a call into the physical world if some operation is specified (SetOnObject).
                         objectIDs.Add(TERRAIN_ID);
-                        TaintedUpdateParameter(parm, objectIDs, val);
+                        TaintedUpdateParameter(parm, objectIDs, valf);
                         break;
                     case PhysParameterEntry.APPLY_TO_ALL:
                         lock (PhysObjects) objectIDs = new List<uint>(PhysObjects.Keys);
-                        TaintedUpdateParameter(parm, objectIDs, val);
+                        TaintedUpdateParameter(parm, objectIDs, valf);
                         break;
                     default:
                         // setting only one localID
                         objectIDs.Add(localID);
-                        TaintedUpdateParameter(parm, objectIDs, val);
+                        TaintedUpdateParameter(parm, objectIDs, valf);
                         break;
                 }
             }
@@ -942,14 +967,14 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
     // Get parameter.
     // Return 'false' if not able to get the parameter.
-    public bool GetPhysicsParameter(string parm, out float value)
+    public bool GetPhysicsParameter(string parm, out string value)
     {
-        float val = 0f;
+        string val = String.Empty;
         bool ret = false;
         BSParam.ParameterDefn theParam;
         if (BSParam.TryGetParameter(parm, out theParam))
         {
-            val = theParam.getter(this);
+            val = theParam.getter(this).ToString();
             ret = true;
         }
         value = val;
