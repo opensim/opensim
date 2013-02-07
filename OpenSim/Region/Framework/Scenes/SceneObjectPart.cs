@@ -1042,6 +1042,7 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         public UpdateRequired UpdateFlag { get; set; }
+        public bool UpdatePhysRequired { get; set; }
         
         /// <summary>
         /// Used for media on a prim.

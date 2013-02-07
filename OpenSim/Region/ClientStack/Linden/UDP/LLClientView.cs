@@ -2627,6 +2627,34 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
+        public void SendPartPhysicsProprieties(ISceneEntity entity)
+        {
+            SceneObjectPart part = (SceneObjectPart)entity;
+            if (part != null && AgentId != UUID.Zero)
+            {
+                try
+                {
+                    IEventQueue eq = Scene.RequestModuleInterface<IEventQueue>();
+                    if (eq != null)
+                    {
+                        uint localid = part.LocalId;
+                        byte physshapetype = part.PhysicsShapeType;
+                        float density = part.Density;
+                        float friction = part.Friction;
+                        float bounce = part.Restitution;
+                        float gravmod = part.GravityModifier;
+                        eq.partPhysicsProperties(localid, physshapetype, density, friction, bounce, gravmod,AgentId);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    m_log.Error("Unable to send part Physics Proprieties - exception: " + ex.ToString());
+                }
+                part.UpdatePhysRequired = false;
+            }
+        }
+
+
 
         public void SendGroupNameReply(UUID groupLLUID, string GroupName)
         {
@@ -7035,10 +7063,33 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // 46,47,48 are special positions within the packet
                 // This may change so perhaps we need a better way
                 // of storing this (OMV.FlagUpdatePacket.UsePhysics,etc?)
-                bool UsePhysics = (data[46] != 0) ? true : false;
-                bool IsTemporary = (data[47] != 0) ? true : false;
-                bool IsPhantom = (data[48] != 0) ? true : false;
-                handlerUpdatePrimFlags(flags.AgentData.ObjectLocalID, UsePhysics, IsTemporary, IsPhantom, this);
+                /*
+                                bool UsePhysics = (data[46] != 0) ? true : false;
+                                bool IsTemporary = (data[47] != 0) ? true : false;
+                                bool IsPhantom = (data[48] != 0) ? true : false;
+                                handlerUpdatePrimFlags(flags.AgentData.ObjectLocalID, UsePhysics, IsTemporary, IsPhantom, this);
+                 */
+                bool UsePhysics = flags.AgentData.UsePhysics;
+                bool IsPhantom = flags.AgentData.IsPhantom;
+                bool IsTemporary = flags.AgentData.IsTemporary;
+                ObjectFlagUpdatePacket.ExtraPhysicsBlock[] blocks = flags.ExtraPhysics;
+                ExtraPhysicsData physdata = new ExtraPhysicsData();
+
+                if (blocks == null || blocks.Length == 0)
+                {
+                    physdata.PhysShapeType = PhysShapeType.invalid;
+                }
+                else
+                {
+                    ObjectFlagUpdatePacket.ExtraPhysicsBlock phsblock = blocks[0];
+                    physdata.PhysShapeType = (PhysShapeType)phsblock.PhysicsShapeType;
+                    physdata.Bounce = phsblock.Restitution;
+                    physdata.Density = phsblock.Density;
+                    physdata.Friction = phsblock.Friction;
+                    physdata.GravitationModifier = phsblock.GravityMultiplier;   
+                }
+
+                handlerUpdatePrimFlags(flags.AgentData.ObjectLocalID, UsePhysics, IsTemporary, IsPhantom, physdata, this);
             }
             return true;
         }
