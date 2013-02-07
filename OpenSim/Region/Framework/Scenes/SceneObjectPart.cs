@@ -1689,6 +1689,10 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (ParentGroup != null)
                     ParentGroup.HasGroupChanged = true;
+
+                PhysicsActor pa = PhysActor;
+                if (pa != null)
+                    pa.Density = Density;
             }
         }
 
@@ -1708,6 +1712,9 @@ namespace OpenSim.Region.Framework.Scenes
                 if (ParentGroup != null)
                     ParentGroup.HasGroupChanged = true;
 
+                PhysicsActor pa = PhysActor;
+                if (pa != null)
+                    pa.GravModifier = GravityModifier;
             }
         }
 
@@ -1726,6 +1733,10 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (ParentGroup != null)
                     ParentGroup.HasGroupChanged = true;
+
+                PhysicsActor pa = PhysActor;
+                if (pa != null)
+                    pa.Friction = Friction;
             }
         }
 
@@ -1744,6 +1755,10 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (ParentGroup != null)
                     ParentGroup.HasGroupChanged = true;
+
+                PhysicsActor pa = PhysActor;
+                if (pa != null)
+                    pa.Restitution = Restitution;
             }
         }
 
@@ -4656,6 +4671,11 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 pa.SOPName = this.Name; // save object into the PhysActor so ODE internals know the joint/body info
                 pa.SetMaterial(Material);
+
+                pa.Density = Density;
+                pa.GravModifier = GravityModifier;
+                pa.Friction = Friction;
+                pa.Restitution = Restitution;
 
                 if (VolumeDetectActive) // change if not the default only
                     pa.SetVolumeDetect(1);
