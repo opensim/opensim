@@ -54,7 +54,15 @@ namespace OpenSim.Framework.Servers.HttpServer
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private HttpServerLogWriter httpserverlog = new HttpServerLogWriter();
 
-        public delegate void WebSocketRequestDelegate(string servicepath, WebSocketHTTPServerHandler handler);
+
+        /// <summary>
+        /// This is a pending websocket request before it got an sucessful upgrade response.
+        /// The consumer must call handler.HandshakeAndUpgrade() to signal to the handler to 
+        /// start the connection and optionally provide an origin authentication method.
+        /// </summary>
+        /// <param name="servicepath"></param>
+        /// <param name="handler"></param>
+        public delegate void WebSocketRequestDelegate(string servicepath, WebSocketHttpServerHandler handler);
 
         /// <summary>
         /// Gets or sets the debug level.
@@ -440,7 +448,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
             if (dWebSocketRequestDelegate != null)
             {
-                dWebSocketRequestDelegate(req.Url.AbsolutePath, new WebSocketHTTPServerHandler(req, context, 16384));
+                dWebSocketRequestDelegate(req.Url.AbsolutePath, new WebSocketHttpServerHandler(req, context, 8192));
                 return;
             }
             
