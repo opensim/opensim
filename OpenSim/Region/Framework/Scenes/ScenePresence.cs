@@ -441,6 +441,8 @@ namespace OpenSim.Region.Framework.Scenes
             get { return (IClientCore)ControllingClient; }
         }
 
+        public UUID COF { get; set; }
+
 //        public Vector3 ParentPosition { get; set; }
 
         /// <summary>

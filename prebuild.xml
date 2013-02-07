@@ -1607,9 +1607,10 @@
       <Reference name="System.Drawing"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Web"/>
+      <Reference name="OpenMetaverse" path="../../../../../bin/"/>
       <Reference name="OpenMetaverseTypes" path="../../../../../bin/"/>
       <Reference name="OpenMetaverse.StructuredData" path="../../../../../bin/"/>
-      <Reference name="OpenMetaverse" path="../../../../../bin/"/>
+
       <Reference name="OpenSim.Region.Framework"/>
       <Reference name="OpenSim.Capabilities"/>
       <Reference name="OpenSim.Capabilities.Handlers"/>

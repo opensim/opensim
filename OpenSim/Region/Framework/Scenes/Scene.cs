@@ -2952,6 +2952,13 @@ namespace OpenSim.Region.Framework.Scenes
                     SubscribeToClientEvents(client);
     
                     sp = m_sceneGraph.CreateAndAddChildScenePresence(client, aCircuit.Appearance, type);
+                    InventoryFolderBase cof = InventoryService.GetFolderForType(client.AgentId, (AssetType)46);
+                    if (cof == null)
+                        sp.COF = UUID.Zero;
+                    else
+                        sp.COF = cof.ID;
+
+                    m_log.DebugFormat("[SCENE]: COF for {0} is {1}", client.AgentId, sp.COF);
                     m_eventManager.TriggerOnNewPresence(sp);
     
                     sp.TeleportFlags = (TPFlags)aCircuit.teleportFlags;

@@ -694,7 +694,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                                 case WearableType.Shape:
                                 case WearableType.Skin:
                                 //case WearableType.Underpants:
-                                    TryAndRepair((WearableType)i, invService, userID, appearance);
+                                    TryAndRepairBrokenWearable((WearableType)i, invService, userID, appearance);
                                     resetwearable = true;
                                     m_log.Warn("[AVFACTORY]: UUID.Zero Wearables, passing fake values.");
                                     resetwearable = true;
@@ -714,7 +714,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                                 case WearableType.Shape:
                                 case WearableType.Skin:
                                 //case WearableType.Underpants:
-                                    TryAndRepair((WearableType)i, invService, userID, appearance);
+                                    TryAndRepairBrokenWearable((WearableType)i, invService, userID, appearance);
                             
                                     m_log.WarnFormat("[AVFACTORY]: {0} Default Wearables, passing existing values.", (WearableType)i);
                                     resetwearable = true;
@@ -730,6 +730,17 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                         if (baseItem != null)
                         {
                             appearance.Wearables[i].Add(appearance.Wearables[i][j].ItemID, baseItem.AssetID);
+                            int unmodifiedWearableIndexForClosure = i;
+                            m_scene.AssetService.Get(baseItem.AssetID.ToString(), this,
+                                                                      delegate(string x, object y, AssetBase z)
+                                                                      {
+                                                                          if (z == null)
+                                                                          {
+                                                                              TryAndRepairBrokenWearable(
+                                                                                  (WearableType)unmodifiedWearableIndexForClosure, invService,
+                                                                                  userID, appearance);
+                                                                          }
+                                                                      });
                         }
                         else
                         {
@@ -737,7 +748,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                                 "[AVFACTORY]: Can't find inventory item {0} for {1}, setting to default",
                                 appearance.Wearables[i][j].ItemID, (WearableType)i);
 
-                            TryAndRepair((WearableType)i, invService, userID, appearance);
+                            TryAndRepairBrokenWearable((WearableType)i, invService, userID, appearance);
                             resetwearable = true;
                             
                         }
@@ -749,7 +760,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 {
                     m_log.WarnFormat("[AVFACTORY]: {0} Eyes are Null, passing existing values.", (WearableType.Eyes));
                     
-                    TryAndRepair(WearableType.Eyes, invService, userID, appearance);
+                    TryAndRepairBrokenWearable(WearableType.Eyes, invService, userID, appearance);
                     resetwearable = true;
                 }
                 else
@@ -759,7 +770,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                         m_log.WarnFormat("[AVFACTORY]: Eyes are UUID.Zero are broken, {0} {1}",
                                          appearance.Wearables[(int) WearableType.Eyes][0].ItemID,
                                          appearance.Wearables[(int) WearableType.Eyes][0].AssetID);
-                        TryAndRepair(WearableType.Eyes, invService, userID, appearance);
+                        TryAndRepairBrokenWearable(WearableType.Eyes, invService, userID, appearance);
                         resetwearable = true;
 
                     }
@@ -770,7 +781,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 {
                     m_log.WarnFormat("[AVFACTORY]: {0} shape is Null, passing existing values.", (WearableType.Shape));
 
-                    TryAndRepair(WearableType.Shape, invService, userID, appearance);
+                    TryAndRepairBrokenWearable(WearableType.Shape, invService, userID, appearance);
                     resetwearable = true;
                 }
                 else
@@ -780,7 +791,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                         m_log.WarnFormat("[AVFACTORY]: Shape is UUID.Zero and broken, {0} {1}",
                                          appearance.Wearables[(int)WearableType.Shape][0].ItemID,
                                          appearance.Wearables[(int)WearableType.Shape][0].AssetID);
-                        TryAndRepair(WearableType.Shape, invService, userID, appearance);
+                        TryAndRepairBrokenWearable(WearableType.Shape, invService, userID, appearance);
                         resetwearable = true;
 
                     }
@@ -791,7 +802,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 {
                     m_log.WarnFormat("[AVFACTORY]: {0} Hair is Null, passing existing values.", (WearableType.Hair));
 
-                    TryAndRepair(WearableType.Hair, invService, userID, appearance);
+                    TryAndRepairBrokenWearable(WearableType.Hair, invService, userID, appearance);
                     resetwearable = true;
                 }
                 else
@@ -801,7 +812,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                         m_log.WarnFormat("[AVFACTORY]: Hair is UUID.Zero and broken, {0} {1}",
                                          appearance.Wearables[(int)WearableType.Hair][0].ItemID,
                                          appearance.Wearables[(int)WearableType.Hair][0].AssetID);
-                        TryAndRepair(WearableType.Hair, invService, userID, appearance);
+                        TryAndRepairBrokenWearable(WearableType.Hair, invService, userID, appearance);
                         resetwearable = true;
 
                     }
@@ -812,7 +823,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 {
                     m_log.WarnFormat("[AVFACTORY]: {0} Skin is Null, passing existing values.", (WearableType.Skin));
 
-                    TryAndRepair(WearableType.Skin, invService, userID, appearance);
+                    TryAndRepairBrokenWearable(WearableType.Skin, invService, userID, appearance);
                     resetwearable = true;
                 }
                 else
@@ -822,7 +833,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                         m_log.WarnFormat("[AVFACTORY]: Skin is UUID.Zero and broken, {0} {1}",
                                          appearance.Wearables[(int)WearableType.Skin][0].ItemID,
                                          appearance.Wearables[(int)WearableType.Skin][0].AssetID);
-                        TryAndRepair(WearableType.Skin, invService, userID, appearance);
+                        TryAndRepairBrokenWearable(WearableType.Skin, invService, userID, appearance);
                         resetwearable = true;
 
                     }
@@ -844,7 +855,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 m_log.WarnFormat("[AVFACTORY]: user {0} has no inventory, appearance isn't going to work", userID);
             }
         }
-        private void TryAndRepair(WearableType type, IInventoryService invService, UUID userID,AvatarAppearance appearance)
+        private void TryAndRepairBrokenWearable(WearableType type, IInventoryService invService, UUID userID,AvatarAppearance appearance)
         {
             UUID defaultwearable = GetDefaultItem(type);
             if (defaultwearable != UUID.Zero)
