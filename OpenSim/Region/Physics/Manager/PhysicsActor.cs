@@ -235,11 +235,6 @@ namespace OpenSim.Region.Physics.Manager
         public abstract float Mass { get; }
         public abstract Vector3 Force { get; set; }
 
-        public virtual float Density { get; set; }
-        public virtual float Friction { get; set; }
-        public virtual float Restitution { get; set; }
-        public virtual float GravityModifier { get; set; }
-
         public abstract int VehicleType { get; set; }
         public abstract void VehicleFloatParam(int param, float value);
         public abstract void VehicleVectorParam(int param, Vector3 value);

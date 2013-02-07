@@ -1387,46 +1387,10 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        private float m_density = 10f;
-        public float Density {
-            get { return m_density; }
-            set
-            {
-                m_density = value;
-                if (PhysActor != null)
-                    PhysActor.Density = m_density;
-            }
-        }
-        private float m_gravityModifier = 1f;
-        public float GravityModifier {
-            get { return m_gravityModifier; }
-            set
-            {
-                m_gravityModifier = value;
-                if (PhysActor != null)
-                    PhysActor.GravityModifier = m_gravityModifier;
-            }
-        }
-        private float m_friction = 0.5f;
-        public float Friction { 
-            get { return m_friction; }
-            set
-            {
-                m_friction = value;
-                if (PhysActor != null)
-                    PhysActor.Friction = m_friction;
-            }
-        }
-        private float m_restitution = 0f;
-        public float Restitution { 
-            get { return m_restitution; }
-            set
-            {
-                m_restitution = value;
-                if (PhysActor != null)
-                    PhysActor.Restitution = m_restitution;
-            }
-        }
+        public float Density { get; set; }
+        public float GravityModifier { get; set; }
+        public float Friction { get; set; }
+        public float Restitution { get; set; }
 
         #endregion Public Properties with only Get
 
@@ -1932,18 +1896,8 @@ namespace OpenSim.Region.Framework.Scenes
                             {
                                 ParentGroup.Scene.AddPhysicalPrim(1);
 
-                                // Update initial values for various physical properties
-                                pa.SetMaterial(Material);
-                                pa.Density = Density;
-                                pa.Friction = Friction;
-                                pa.Restitution = Restitution;
-                                pa.GravityModifier = GravityModifier;
-
-                                // Link up callbacks for property updates from the physics engine
                                 pa.OnRequestTerseUpdate += PhysicsRequestingTerseUpdate;
                                 pa.OnOutOfBounds += PhysicsOutOfBounds;
-
-                                // If this is a child prim, tell the physics engine about the parent
                                 if (ParentID != 0 && ParentID != LocalId)
                                 {
                                     PhysicsActor parentPa = ParentGroup.RootPart.PhysActor;
@@ -4108,6 +4062,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                     if (pa != null)
                     {
+                        pa.SetMaterial(Material);
                         DoPhysicsPropertyUpdate(UsePhysics, true);
     
                         if (
@@ -4220,6 +4175,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (pa != null)
             {
                 pa.SOPName = this.Name; // save object into the PhysActor so ODE internals know the joint/body info
+                pa.SetMaterial(Material);
                 DoPhysicsPropertyUpdate(rigidBody, true);
             }
 
