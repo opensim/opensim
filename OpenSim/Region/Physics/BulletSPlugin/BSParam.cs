@@ -62,6 +62,7 @@ public static class BSParam
     public static bool ShouldMeshSculptedPrim { get; private set; }   // cause scuplted prims to get meshed
     public static bool ShouldForceSimplePrimMeshing { get; private set; }   // if a cube or sphere, let Bullet do internal shapes
     public static bool ShouldUseHullsForPhysicalObjects { get; private set; }   // 'true' if should create hulls for physical objects
+    public static bool ShouldRemoveZeroWidthTriangles { get; private set; }
 
     public static float TerrainImplementation { get; private set; }
     public static float TerrainFriction { get; private set; }
@@ -218,6 +219,11 @@ public static class BSParam
             (s,cf,p,v) => { ShouldUseHullsForPhysicalObjects = cf.GetBoolean(p, BSParam.BoolNumeric(v)); },
             (s) => { return BSParam.NumericBool(ShouldUseHullsForPhysicalObjects); },
             (s,p,l,v) => { ShouldUseHullsForPhysicalObjects = BSParam.BoolNumeric(v); } ),
+        new ParameterDefn("ShouldRemoveZeroWidthTriangles", "If true, remove degenerate triangles from meshes",
+            ConfigurationParameters.numericTrue,
+            (s,cf,p,v) => { ShouldRemoveZeroWidthTriangles = cf.GetBoolean(p, BSParam.BoolNumeric(v)); },
+            (s) => { return BSParam.NumericBool(ShouldRemoveZeroWidthTriangles); },
+            (s,p,l,v) => { ShouldRemoveZeroWidthTriangles = BSParam.BoolNumeric(v); } ),
 
         new ParameterDefn("MeshLevelOfDetail", "Level of detail to render meshes (32, 16, 8 or 4. 32=most detailed)",
             32f,

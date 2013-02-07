@@ -25,14 +25,26 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-//TODO: WHERE TO PLACE THIS?
+using OpenMetaverse;
 
-namespace OpenSim.Region.Framework.Scenes.Scripting
+namespace OpenSim.Framework
 {
-    public interface ScriptEngineInterface
+    public enum PhysShapeType : byte
     {
-        void InitializeEngine(Scene Sceneworld);
-        void Shutdown();
-//        void StartScript(string ScriptID, IScriptHost ObjectID);
+        prim = 0,
+        none = 1,
+        convex = 2,
+
+        invalid = 255 // use to mark invalid data in ExtraPhysicsData
+    }
+
+    public struct ExtraPhysicsData
+    {
+        public float Density;
+        public float GravitationModifier;
+        public float Friction;
+        public float Bounce;
+        public PhysShapeType PhysShapeType;
+
     }
 }
