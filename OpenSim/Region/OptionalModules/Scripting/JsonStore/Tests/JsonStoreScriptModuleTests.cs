@@ -135,6 +135,20 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
         }
 
         [Test]
+        public void TestJsonDestroyStoreNotExists()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            UUID fakeStoreId = TestHelpers.ParseTail(0x500);
+
+            int dsrv = (int)InvokeOp("JsonDestroyStore", fakeStoreId);
+
+            // XXX: Current returns 'true' even though no such store existed.  Need to ask if this is best behaviour.
+            Assert.That(dsrv, Is.EqualTo(1));
+        }
+
+        [Test]
         public void TestJsonGetValue()
         {
             TestHelpers.InMethod();
