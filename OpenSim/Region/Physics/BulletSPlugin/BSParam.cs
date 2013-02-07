@@ -220,7 +220,7 @@ public static class BSParam
             (s) => { return BSParam.NumericBool(ShouldUseHullsForPhysicalObjects); },
             (s,p,l,v) => { ShouldUseHullsForPhysicalObjects = BSParam.BoolNumeric(v); } ),
         new ParameterDefn("ShouldRemoveZeroWidthTriangles", "If true, remove degenerate triangles from meshes",
-            ConfigurationParameters.numericFalse,
+            ConfigurationParameters.numericTrue,
             (s,cf,p,v) => { ShouldRemoveZeroWidthTriangles = cf.GetBoolean(p, BSParam.BoolNumeric(v)); },
             (s) => { return BSParam.NumericBool(ShouldRemoveZeroWidthTriangles); },
             (s,p,l,v) => { ShouldRemoveZeroWidthTriangles = BSParam.BoolNumeric(v); } ),
