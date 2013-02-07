@@ -188,7 +188,8 @@ namespace OpenSim.Framework
         }    
 
         public void Add(KeyValuePair<string, OSDMap> kvp) 
-        {    
+        {   
+            ValidateKey(kvp.Key);
             lock (this)
                 m_map.Add(kvp.Key, kvp.Value);
         }    
