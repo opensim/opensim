@@ -158,6 +158,15 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 
             string value = (string)InvokeOp("JsonGetValue", storeId, "Hello");
             Assert.That(value, Is.EqualTo("World"));
+
+            // Test get of non-existing value
+            string fakeValueGet = (string)InvokeOp("JsonGetValue", storeId, "foo");
+            Assert.That(fakeValueGet, Is.EqualTo(""));
+
+            // Test get from non-existing store
+            UUID fakeStoreId = TestHelpers.ParseTail(0x500);
+            string fakeStoreValueGet = (string)InvokeOp("JsonGetValue", fakeStoreId, "Hello");
+            Assert.That(fakeStoreValueGet, Is.EqualTo(""));
         }
 
 //        [Test]
@@ -239,7 +248,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
         public void TestJsonWriteReadNotecard()
         {
             TestHelpers.InMethod();
-            TestHelpers.EnableLogging();
+//            TestHelpers.EnableLogging();
 
             string notecardName = "nc1";
 
