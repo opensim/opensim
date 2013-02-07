@@ -55,7 +55,7 @@ namespace OpenSim.Region.OptionalModules.WebSocketEchoModule
 
         public void Initialise(IConfigSource pConfig)
         {
-            enabled = true;// (pConfig.Configs["WebSocketEcho"] != null);
+            enabled =(pConfig.Configs["WebSocketEcho"] != null);
             if (enabled)
                 m_log.DebugFormat("[WebSocketEchoModule]: INITIALIZED MODULE");
         }
