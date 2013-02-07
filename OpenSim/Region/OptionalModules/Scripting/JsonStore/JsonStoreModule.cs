@@ -175,6 +175,34 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         /// 
         /// </summary>
         // -----------------------------------------------------------------
+        public bool AttachObjectStore(UUID objectID)
+        {
+            if (! m_enabled) return false;
+
+            SceneObjectPart sop = m_scene.GetSceneObjectPart(objectID);
+            if (sop == null)
+            {
+                m_log.InfoFormat("[JsonStore] unable to attach to unknown object; {0}",objectID);
+                return false;
+            }
+
+            lock (m_JsonValueStore)
+            {
+                if (m_JsonValueStore.ContainsKey(objectID))
+                    return true;
+                
+                JsonStore map = new JsonObjectStore(m_scene,objectID);
+                m_JsonValueStore.Add(objectID,map);
+            }
+            
+            return true;
+        }
+        
+        // -----------------------------------------------------------------
+        /// <summary>
+        /// 
+        /// </summary>
+        // -----------------------------------------------------------------
         public bool CreateStore(string value, ref UUID result)
         {
             if (result == UUID.Zero)
