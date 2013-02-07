@@ -54,6 +54,22 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
         private MockScriptEngine m_engine;
         private ScriptModuleCommsModule m_smcm;
 
+        [TestFixtureSetUp]
+        public void FixtureInit()
+        {
+            // Don't allow tests to be bamboozled by asynchronous events.  Execute everything on the same thread.
+            Util.FireAndForgetMethod = FireAndForgetMethod.RegressionTest;
+        }
+
+        [TestFixtureTearDown]
+        public void TearDown()
+        {
+            // We must set this back afterwards, otherwise later tests will fail since they're expecting multiple
+            // threads.  Possibly, later tests should be rewritten so none of them require async stuff (which regression
+            // tests really shouldn't).
+            Util.FireAndForgetMethod = Util.DefaultFireAndForgetMethod;
+        }
+
         [SetUp]
         public override void SetUp()
         {
