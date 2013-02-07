@@ -420,7 +420,7 @@ namespace OpenSim.Region.UserStatistics
             Encoding encoding = Encoding.ASCII;
             int sizeOfChar = encoding.GetByteCount("\n");
             byte[] buffer = encoding.GetBytes("\n");
-            string logfile = Util.logDir() + "/" + "OpenSim.log"; 
+            string logfile = Util.logFile();
             FileStream fs = new FileStream(logfile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
             Int64 tokenCount = 0;
             Int64 endPosition = fs.Length / sizeOfChar;
