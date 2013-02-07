@@ -114,7 +114,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             m_ReadStore = new List<TakeValueCallbackClass>();
         }
         
-        public JsonStore(string value)
+        public JsonStore(string value) : this()
         {
             if (String.IsNullOrEmpty(value))
                 ValueStore = new OSDMap();
