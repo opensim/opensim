@@ -54,6 +54,22 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
         private MockScriptEngine m_engine;
         private ScriptModuleCommsModule m_smcm;
 
+        [TestFixtureSetUp]
+        public void FixtureInit()
+        {
+            // Don't allow tests to be bamboozled by asynchronous events.  Execute everything on the same thread.
+            Util.FireAndForgetMethod = FireAndForgetMethod.RegressionTest;
+        }
+
+        [TestFixtureTearDown]
+        public void TearDown()
+        {
+            // We must set this back afterwards, otherwise later tests will fail since they're expecting multiple
+            // threads.  Possibly, later tests should be rewritten so none of them require async stuff (which regression
+            // tests really shouldn't).
+            Util.FireAndForgetMethod = Util.DefaultFireAndForgetMethod;
+        }
+
         [SetUp]
         public override void SetUp()
         {
@@ -85,7 +101,12 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 
         private object InvokeOp(string name, params object[] args)
         {
-            return m_smcm.InvokeOperation(UUID.Zero, UUID.Zero, name, args);
+            return InvokeOpOnHost(name, UUID.Zero, args);
+        }
+
+        private object InvokeOpOnHost(string name, UUID hostId, params object[] args)
+        {
+            return m_smcm.InvokeOperation(hostId, UUID.Zero, name, args);
         }
 
         [Test]
@@ -188,6 +209,44 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 
             int result = (int)InvokeOp("JsonSetValue", storeId, "Hello", "World");
             Assert.That(result, Is.EqualTo(1));
+
+            string value = (string)InvokeOp("JsonGetValue", storeId, "Hello");
+            Assert.That(value, Is.EqualTo("World"));
+        }
+
+        /// <summary>
+        /// Test for reading and writing json to a notecard
+        /// </summary>
+        /// <remarks>
+        /// TODO: Really needs to test correct receipt of the link_message event.  Could do this by directly fetching
+        /// it via the MockScriptEngine or perhaps by a dummy script instance.
+        /// </remarks>
+        [Test]
+        public void TestJsonWriteReadNotecard()
+        {
+            TestHelpers.InMethod();
+            TestHelpers.EnableLogging();
+
+            string notecardName = "nc1";
+
+            SceneObjectGroup so = SceneHelpers.CreateSceneObject(1, TestHelpers.ParseTail(0x1));
+            m_scene.AddSceneObject(so);
+
+            UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ 'Hello':'World' }"); 
+
+            // Write notecard
+            UUID writeNotecardRequestId = (UUID)InvokeOpOnHost("JsonWriteNotecard", so.UUID, storeId, "/", notecardName);
+            Assert.That(writeNotecardRequestId, Is.Not.EqualTo(UUID.Zero));
+
+            TaskInventoryItem nc1Item = so.RootPart.Inventory.GetInventoryItem(notecardName);
+            Assert.That(nc1Item, Is.Not.Null);
+
+            // TODO: Should probably independently check the contents.
+
+            // Read notecard
+            UUID receivingStoreId = (UUID)InvokeOp("JsonCreateStore", "{ 'Hello':'World' }"); 
+            UUID readNotecardRequestId = (UUID)InvokeOpOnHost("JsonReadNotecard", so.UUID, receivingStoreId, "/", notecardName);
+            Assert.That(readNotecardRequestId, Is.Not.EqualTo(UUID.Zero));
 
             string value = (string)InvokeOp("JsonGetValue", storeId, "Hello");
             Assert.That(value, Is.EqualTo("World"));

@@ -882,39 +882,39 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         BSParam.ParameterDefn theParam;
         if (BSParam.TryGetParameter(parm, out theParam))
         {
+            // Set the value in the C# code
             theParam.setter(this, parm, localID, val);
+
+            // Optionally set the parameter in the unmanaged code
+            if (theParam.onObject != null)
+            {
+                // update all the localIDs specified
+                // If the local ID is APPLY_TO_NONE, just change the default value
+                // If the localID is APPLY_TO_ALL change the default value and apply the new value to all the lIDs
+                // If the localID is a specific object, apply the parameter change to only that object
+                List<uint> objectIDs = new List<uint>();
+                switch (localID)
+                {
+                    case PhysParameterEntry.APPLY_TO_NONE:
+                        // This will cause a call into the physical world if some operation is specified (SetOnObject).
+                        objectIDs.Add(TERRAIN_ID);
+                        TaintedUpdateParameter(parm, objectIDs, val);
+                        break;
+                    case PhysParameterEntry.APPLY_TO_ALL:
+                        lock (PhysObjects) objectIDs = new List<uint>(PhysObjects.Keys);
+                        TaintedUpdateParameter(parm, objectIDs, val);
+                        break;
+                    default:
+                        // setting only one localID
+                        objectIDs.Add(localID);
+                        TaintedUpdateParameter(parm, objectIDs, val);
+                        break;
+                }
+            }
+
             ret = true;
         }
         return ret;
-    }
-
-    // update all the localIDs specified
-    // If the local ID is APPLY_TO_NONE, just change the default value
-    // If the localID is APPLY_TO_ALL change the default value and apply the new value to all the lIDs
-    // If the localID is a specific object, apply the parameter change to only that object
-    internal delegate void AssignVal(float x);
-    internal void UpdateParameterObject(AssignVal setDefault, string parm, uint localID, float val)
-    {
-        List<uint> objectIDs = new List<uint>();
-        switch (localID)
-        {
-            case PhysParameterEntry.APPLY_TO_NONE:
-                setDefault(val);            // setting only the default value
-                // This will cause a call into the physical world if some operation is specified (SetOnObject).
-                objectIDs.Add(TERRAIN_ID);
-                TaintedUpdateParameter(parm, objectIDs, val);
-                break;
-            case PhysParameterEntry.APPLY_TO_ALL:
-                setDefault(val);  // setting ALL also sets the default value
-                lock (PhysObjects) objectIDs = new List<uint>(PhysObjects.Keys);
-                TaintedUpdateParameter(parm, objectIDs, val);
-                break;
-            default:
-                // setting only one localID
-                objectIDs.Add(localID);
-                TaintedUpdateParameter(parm, objectIDs, val);
-                break;
-        }
     }
 
     // schedule the actual updating of the paramter to when the phys engine is not busy

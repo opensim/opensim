@@ -49,7 +49,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private OSD m_ValueStore;
+        protected virtual OSD ValueStore { get; set; }
 
         protected class TakeValueCallbackClass
         {
@@ -108,17 +108,18 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         /// 
         /// </summary>
         // -----------------------------------------------------------------
-        public JsonStore() : this("") {}
-        
-        public JsonStore(string value)
+        public JsonStore() 
         {
             m_TakeStore = new List<TakeValueCallbackClass>();
             m_ReadStore = new List<TakeValueCallbackClass>();
-           
+        }
+        
+        public JsonStore(string value)
+        {
             if (String.IsNullOrEmpty(value))
-                m_ValueStore = new OSDMap();
+                ValueStore = new OSDMap();
             else
-                m_ValueStore = OSDParser.DeserializeJson(value);
+                ValueStore = OSDParser.DeserializeJson(value);
         }
 
         // -----------------------------------------------------------------
@@ -129,7 +130,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         public bool TestPath(string expr, bool useJson)
         {
             Stack<string> path = ParsePathExpression(expr);
-            OSD result = ProcessPathExpression(m_ValueStore,path);
+            OSD result = ProcessPathExpression(ValueStore,path);
 
             if (result == null)
                 return false;
@@ -148,7 +149,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         public bool GetValue(string expr, out string value, bool useJson)
         {
             Stack<string> path = ParsePathExpression(expr);
-            OSD result = ProcessPathExpression(m_ValueStore,path);
+            OSD result = ProcessPathExpression(ValueStore,path);
             return ConvertOutputValue(result,out value,useJson); 
         }
      
@@ -184,7 +185,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             Stack<string> path = ParsePathExpression(expr);
             string pexpr = PathExpressionToKey(path);
 
-            OSD result = ProcessPathExpression(m_ValueStore,path);
+            OSD result = ProcessPathExpression(ValueStore,path);
             if (result == null)
             {
                 m_TakeStore.Add(new TakeValueCallbackClass(pexpr,useJson,cback));
@@ -215,7 +216,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             Stack<string> path = ParsePathExpression(expr);
             string pexpr = PathExpressionToKey(path);
 
-            OSD result = ProcessPathExpression(m_ValueStore,path);
+            OSD result = ProcessPathExpression(ValueStore,path);
             if (result == null)
             {
                 m_ReadStore.Add(new TakeValueCallbackClass(pexpr,useJson,cback));
@@ -245,7 +246,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             Stack<string> path = ParsePathExpression(expr);
             if (path.Count == 0)
             {
-                m_ValueStore = ovalue;
+                ValueStore = ovalue;
                 return true;
             }
 
@@ -254,7 +255,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             if (pexpr != "")
                 pexpr += ".";
 
-            OSD result = ProcessPathExpression(m_ValueStore,path);
+            OSD result = ProcessPathExpression(ValueStore,path);
             if (result == null)
                 return false;
 
@@ -522,4 +523,41 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             return pkey;
         }
     }
+
+    public class JsonObjectStore : JsonStore
+    {
+        private static readonly ILog m_log =
+            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        private Scene m_scene;
+        private UUID m_objectID;
+
+        protected override OSD ValueStore 
+        {
+            get
+            {
+                SceneObjectPart sop = m_scene.GetSceneObjectPart(m_objectID);
+                if (sop == null)
+                {
+                    // This is bad
+                    return null;
+                }
+                
+                return sop.DynAttrs.TopLevelMap;
+            }
+
+            // cannot set the top level
+            set
+            {
+                m_log.InfoFormat("[JsonStore] cannot set top level value in object store");
+            }
+        }
+
+        public JsonObjectStore(Scene scene, UUID oid) : base()
+        {
+            m_scene = scene;
+            m_objectID = oid;
+        }
+    }
+    
 }

@@ -575,3 +575,8 @@ CREATE TABLE `regionenvironment` (
 );
 
 COMMIT;
+
+:VERSION 27
+BEGIN;
+ALTER TABLE prims ADD COLUMN DynAttrs TEXT;
+COMMIT;

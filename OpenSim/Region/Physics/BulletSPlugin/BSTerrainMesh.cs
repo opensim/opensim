@@ -96,7 +96,7 @@ public sealed class BSTerrainMesh : BSTerrainPhys
         {
             // DISASTER!!
             PhysicsScene.DetailLog("{0},BSTerrainMesh.create,failedCreationOfShape", ID);
-            physicsScene.Logger.ErrorFormat("{0} Failed creation of terrain mesh! base={1}", LogHeader, TerrainBase);
+            PhysicsScene.Logger.ErrorFormat("{0} Failed creation of terrain mesh! base={1}", LogHeader, TerrainBase);
             // Something is very messed up and a crash is in our future.
             return;
         }
@@ -108,7 +108,7 @@ public sealed class BSTerrainMesh : BSTerrainPhys
         if (!m_terrainBody.HasPhysicalBody)
         {
             // DISASTER!!
-            physicsScene.Logger.ErrorFormat("{0} Failed creation of terrain body! base={1}", LogHeader, TerrainBase);
+            PhysicsScene.Logger.ErrorFormat("{0} Failed creation of terrain body! base={1}", LogHeader, TerrainBase);
             // Something is very messed up and a crash is in our future.
             return;
         }
@@ -130,6 +130,12 @@ public sealed class BSTerrainMesh : BSTerrainPhys
 
         m_terrainBody.collisionType = CollisionType.Terrain;
         m_terrainBody.ApplyCollisionMask(PhysicsScene);
+
+        if (BSParam.UseSingleSidedMeshes)
+        {
+            PhysicsScene.DetailLog("{0},BSTerrainMesh.settingCustomMaterial", id);
+            PhysicsScene.PE.AddToCollisionFlags(m_terrainBody, CollisionFlags.CF_CUSTOM_MATERIAL_CALLBACK);
+        }
 
         // Make it so the terrain will not move or be considered for movement.
         PhysicsScene.PE.ForceActivationState(m_terrainBody, ActivationState.DISABLE_SIMULATION);
@@ -176,8 +182,7 @@ public sealed class BSTerrainMesh : BSTerrainPhys
 
     // Convert the passed heightmap to mesh information suitable for CreateMeshShape2().
     // Return 'true' if successfully created.
-    public static bool ConvertHeightmapToMesh(
-                                BSScene physicsScene,
+    public static bool ConvertHeightmapToMesh( BSScene physicsScene,
                                 float[] heightMap, int sizeX, int sizeY,    // parameters of incoming heightmap
                                 float extentX, float extentY,               // zero based range for output vertices
                                 Vector3 extentBase,                         // base to be added to all vertices

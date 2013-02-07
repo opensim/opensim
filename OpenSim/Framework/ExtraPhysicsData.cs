@@ -25,49 +25,26 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using System.Net;
-using Nini.Config;
-using OpenSim.Framework;
+using OpenMetaverse;
 
-namespace OpenSim.Region.ClientStack.TCPJSONStream
+namespace OpenSim.Framework
 {
-    public sealed class TCPJsonWebSocketBase : IClientNetworkServer
+    public enum PhysShapeType : byte
     {
-        private TCPJsonWebSocketServer m_tcpServer;
+        prim = 0,
+        none = 1,
+        convex = 2,
 
-        public TCPJsonWebSocketBase()
-        {
-        }
+        invalid = 255 // use to mark invalid data in ExtraPhysicsData
+    }
 
-        public void Initialise(IPAddress _listenIP, ref uint port, int proxyPortOffsetParm, bool allow_alternate_port, IConfigSource configSource, AgentCircuitManager authenticateClass)
-        {
-            m_tcpServer = new TCPJsonWebSocketServer(_listenIP,ref port, proxyPortOffsetParm, allow_alternate_port,configSource,authenticateClass);
-        }
+    public struct ExtraPhysicsData
+    {
+        public float Density;
+        public float GravitationModifier;
+        public float Friction;
+        public float Bounce;
+        public PhysShapeType PhysShapeType;
 
-        public void NetworkStop()
-        {
-           // m_tcpServer.Stop();
-        }
-
-        public bool HandlesRegion(Location x)
-        {
-            return m_tcpServer.HandlesRegion(x);
-        }
-
-        public void AddScene(IScene x)
-        {
-            m_tcpServer.AddScene(x);
-        }
-
-        public void Start()
-        {
-            //m_tcpServer.Start();
-        }
-
-        public void Stop()
-        {
-           // m_tcpServer.Stop();
-        }
     }
 }

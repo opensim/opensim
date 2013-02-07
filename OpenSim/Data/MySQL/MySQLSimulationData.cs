@@ -52,7 +52,7 @@ namespace OpenSim.Data.MySQL
         private string m_connectionString;
         private object m_dbLock = new object();
 
-        protected virtual Assembly Assembly
+        protected Assembly Assembly
         {
             get { return GetType().Assembly; }
         }
@@ -119,8 +119,10 @@ namespace OpenSim.Data.MySQL
 
             // Eligibility check
             //
-            if ((flags & (uint)PrimFlags.Temporary) != 0)
-                return;
+            // PrimFlags.Temporary is not used in OpenSim code and cannot
+            // be guaranteed to always be clear. Don't check it.
+//            if ((flags & (uint)PrimFlags.Temporary) != 0)
+//                return;
             if ((flags & (uint)PrimFlags.TemporaryOnRez) != 0)
                 return;
 
@@ -135,7 +137,7 @@ namespace OpenSim.Data.MySQL
                         foreach (SceneObjectPart prim in obj.Parts)
                         {
                             cmd.Parameters.Clear();
-    
+
                             cmd.CommandText = "replace into prims (" +
                                     "UUID, CreationDate, " +
                                     "Name, Text, Description, " +
@@ -171,7 +173,10 @@ namespace OpenSim.Data.MySQL
                                     "ParticleSystem, ClickAction, Material, " +
                                     "CollisionSound, CollisionSoundVolume, " +
                                     "PassTouches, " +
-                                    "LinkNumber, MediaURL) values (" + "?UUID, " +
+                                    "LinkNumber, MediaURL, " +
+                                    "PhysicsShapeType, Density, GravityModifier, " +
+                                    "Friction, Restitution, DynAttrs " +
+                                    ") values (" + "?UUID, " +
                                     "?CreationDate, ?Name, ?Text, " +
                                     "?Description, ?SitName, ?TouchName, " +
                                     "?ObjectFlags, ?OwnerMask, ?NextOwnerMask, " +
@@ -202,14 +207,17 @@ namespace OpenSim.Data.MySQL
                                     "?SaleType, ?ColorR, ?ColorG, " +
                                     "?ColorB, ?ColorA, ?ParticleSystem, " +
                                     "?ClickAction, ?Material, ?CollisionSound, " +
-                                    "?CollisionSoundVolume, ?PassTouches, ?LinkNumber, ?MediaURL)";
-    
+                                    "?CollisionSoundVolume, ?PassTouches, " +
+                                    "?LinkNumber, ?MediaURL, " +
+                                    "?PhysicsShapeType, ?Density, ?GravityModifier, " +
+                                    "?Friction, ?Restitution, ?DynAttrs)";
+
                             FillPrimCommand(cmd, prim, obj.UUID, regionUUID);
-    
+
                             ExecuteNonQuery(cmd);
-    
+
                             cmd.Parameters.Clear();
-    
+
                             cmd.CommandText = "replace into primshapes (" +
                                     "UUID, Shape, ScaleX, ScaleY, " +
                                     "ScaleZ, PCode, PathBegin, PathEnd, " +
@@ -219,7 +227,8 @@ namespace OpenSim.Data.MySQL
                                     "PathTaperX, PathTaperY, PathTwist, " +
                                     "PathTwistBegin, ProfileBegin, ProfileEnd, " +
                                     "ProfileCurve, ProfileHollow, Texture, " +
-                                    "ExtraParams, State, Media) values (?UUID, " +
+                                    "ExtraParams, State, Media) " +
+                                    "values (?UUID, " +
                                     "?Shape, ?ScaleX, ?ScaleY, ?ScaleZ, " +
                                     "?PCode, ?PathBegin, ?PathEnd, " +
                                     "?PathScaleX, ?PathScaleY, " +
@@ -231,9 +240,9 @@ namespace OpenSim.Data.MySQL
                                     "?ProfileEnd, ?ProfileCurve, " +
                                     "?ProfileHollow, ?Texture, ?ExtraParams, " +
                                     "?State, ?Media)";
-    
+
                             FillShapeCommand(cmd, prim);
-    
+
                             ExecuteNonQuery(cmd);
                         }
                     }
@@ -579,7 +588,7 @@ namespace OpenSim.Data.MySQL
                         cmd.CommandText = "insert into terrain (RegionUUID, " +
                             "Revision, Heightfield) values (?RegionUUID, " +
                             "1, ?Heightfield)";
-
+ 
                         cmd.Parameters.AddWithValue("Heightfield", SerializeTerrain(ter));
 
                         ExecuteNonQuery(cmd);
@@ -738,7 +747,7 @@ namespace OpenSim.Data.MySQL
                         {
                             //No result, so store our default windlight profile and return it
                             nWP.regionID = regionUUID;
-                            StoreRegionWindlightSettings(nWP);
+//                            StoreRegionWindlightSettings(nWP);
                             return nWP;
                         }
                         else
@@ -1094,7 +1103,8 @@ namespace OpenSim.Data.MySQL
                             "?SunPosition, ?Covenant, ?CovenantChangedDateTime, ?Sandbox, " +
                             "?SunVectorX, ?SunVectorY, ?SunVectorZ, " +
                             "?LoadedCreationDateTime, ?LoadedCreationID, " +
-                            "?TerrainImageID, ?TelehubObject, ?ParcelImageID) ";
+                            "?TerrainImageID, " +
+                            "?TelehubObject, ?ParcelImageID)";
 
                         FillRegionSettingsCommand(cmd, rs);
 
@@ -1291,7 +1301,18 @@ namespace OpenSim.Data.MySQL
             
             if (!(row["MediaURL"] is System.DBNull))
                 prim.MediaUrl = (string)row["MediaURL"];
+            
+            if (!(row["DynAttrs"] is System.DBNull))
+                prim.DynAttrs = DAMap.FromXml((string)row["DynAttrs"]);
+            else
+                prim.DynAttrs = new DAMap();        
 
+            prim.PhysicsShapeType = (byte)Convert.ToInt32(row["PhysicsShapeType"].ToString());
+            prim.Density = (float)(double)row["Density"];
+            prim.GravityModifier = (float)(double)row["GravityModifier"];
+            prim.Friction = (float)(double)row["Friction"];
+            prim.Restitution = (float)(double)row["Restitution"];
+            
             return prim;
         }
 
@@ -1637,6 +1658,17 @@ namespace OpenSim.Data.MySQL
 
             cmd.Parameters.AddWithValue("LinkNumber", prim.LinkNum);
             cmd.Parameters.AddWithValue("MediaURL", prim.MediaUrl);
+
+            cmd.Parameters.AddWithValue("PhysicsShapeType", prim.PhysicsShapeType);
+            cmd.Parameters.AddWithValue("Density", (double)prim.Density);
+            cmd.Parameters.AddWithValue("GravityModifier", (double)prim.GravityModifier);
+            cmd.Parameters.AddWithValue("Friction", (double)prim.Friction);
+            cmd.Parameters.AddWithValue("Restitution", (double)prim.Restitution);
+
+            if (prim.DynAttrs.Count > 0)
+                cmd.Parameters.AddWithValue("DynAttrs", prim.DynAttrs.ToXml());
+            else
+                cmd.Parameters.AddWithValue("DynAttrs", null);
         }
 
         /// <summary>
@@ -1715,6 +1747,7 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("LoadedCreationDateTime", settings.LoadedCreationDateTime);
             cmd.Parameters.AddWithValue("LoadedCreationID", settings.LoadedCreationID);
             cmd.Parameters.AddWithValue("TerrainImageID", settings.TerrainImageID);
+
             cmd.Parameters.AddWithValue("ParcelImageID", settings.ParcelImageID);
             cmd.Parameters.AddWithValue("TelehubObject", settings.TelehubObject);
         }

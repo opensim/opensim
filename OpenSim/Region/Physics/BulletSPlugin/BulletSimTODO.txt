@@ -65,6 +65,8 @@ Vehicle attributes are not restored when a vehicle is rezzed on region creation
 
 GENERAL TODO LIST:
 =================================================
+Level-of-detail for mesh creation. Prims with circular interiors require lod of 32.
+	Is much saved with lower LODs? At the moment, all set to 32.
 Collisions are inconsistant: arrows are supposed to hit and report collision. Often don't.
 	If arrow show at prim, collision reported about 1/3 of time. If collision reported,
 	both arrow and prim report it. The arrow bounces off the prim 9 out of 10 times.
@@ -128,6 +130,9 @@ Physical and phantom will drop through the terrain
 LINKSETS
 ======================================================
 Child prims do not report collisions
+Allow children of a linkset to be phantom:
+	http://opensim-dev.2196679.n2.nabble.com/Setting-a-single-child-prim-to-Phantom-tp7578513.html
+	Add OS_STATUS_PHANTOM_PRIM to llSetLinkPrimitaveParamsFast.
 Editing a child of a linkset causes the child to go phantom
 	Move a child prim once when it is physical and can never move it again without it going phantom
 Offset the center of the linkset to be the geometric center of all the prims

@@ -359,6 +359,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             m_SOPXmlProcessors.Add("CollisionSound", ProcessCollisionSound);
             m_SOPXmlProcessors.Add("CollisionSoundVolume", ProcessCollisionSoundVolume);
             m_SOPXmlProcessors.Add("MediaUrl", ProcessMediaUrl);
+            m_SOPXmlProcessors.Add("DynAttrs", ProcessDynAttrs);
             m_SOPXmlProcessors.Add("TextureAnimation", ProcessTextureAnimation);
             m_SOPXmlProcessors.Add("ParticleSystem", ProcessParticleSystem);
             m_SOPXmlProcessors.Add("PayPrice0", ProcessPayPrice0);
@@ -366,6 +367,13 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             m_SOPXmlProcessors.Add("PayPrice2", ProcessPayPrice2);
             m_SOPXmlProcessors.Add("PayPrice3", ProcessPayPrice3);
             m_SOPXmlProcessors.Add("PayPrice4", ProcessPayPrice4);
+
+            m_SOPXmlProcessors.Add("PhysicsShapeType", ProcessPhysicsShapeType);
+            m_SOPXmlProcessors.Add("Density", ProcessDensity);
+            m_SOPXmlProcessors.Add("Friction", ProcessFriction);
+            m_SOPXmlProcessors.Add("Bounce", ProcessBounce);
+            m_SOPXmlProcessors.Add("GravityModifier", ProcessGravityModifier);
+
             #endregion
 
             #region TaskInventoryXmlProcessors initialization
@@ -593,6 +601,31 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             obj.ClickAction = (byte)reader.ReadElementContentAsInt("ClickAction", String.Empty);
         }
 
+        private static void ProcessPhysicsShapeType(SceneObjectPart obj, XmlTextReader reader)
+        {
+            obj.PhysicsShapeType = (byte)reader.ReadElementContentAsInt("PhysicsShapeType", String.Empty);
+        }
+
+        private static void ProcessDensity(SceneObjectPart obj, XmlTextReader reader)
+        {
+            obj.Density = reader.ReadElementContentAsFloat("Density", String.Empty);
+        }
+
+        private static void ProcessFriction(SceneObjectPart obj, XmlTextReader reader)
+        {
+            obj.Friction = reader.ReadElementContentAsFloat("Friction", String.Empty);
+        }
+
+        private static void ProcessBounce(SceneObjectPart obj, XmlTextReader reader)
+        {
+            obj.Restitution = reader.ReadElementContentAsFloat("Bounce", String.Empty);
+        }
+
+        private static void ProcessGravityModifier(SceneObjectPart obj, XmlTextReader reader)
+        {
+            obj.GravityModifier = reader.ReadElementContentAsFloat("GravityModifier", String.Empty);
+        }
+
         private static void ProcessShape(SceneObjectPart obj, XmlTextReader reader)
         {
             List<string> errorNodeNames;
@@ -720,6 +753,11 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         private static void ProcessMediaUrl(SceneObjectPart obj, XmlTextReader reader)
         {
             obj.MediaUrl = reader.ReadElementContentAsString("MediaUrl", String.Empty);
+        }
+
+        private static void ProcessDynAttrs(SceneObjectPart obj, XmlTextReader reader)
+        {
+            obj.DynAttrs.ReadXml(reader);
         }
 
         private static void ProcessTextureAnimation(SceneObjectPart obj, XmlTextReader reader)
@@ -1235,6 +1273,14 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             writer.WriteElementString("CollisionSoundVolume", sop.CollisionSoundVolume.ToString());
             if (sop.MediaUrl != null)
                 writer.WriteElementString("MediaUrl", sop.MediaUrl.ToString());
+            
+            if (sop.DynAttrs.Count > 0)
+            {
+                writer.WriteStartElement("DynAttrs");
+                sop.DynAttrs.WriteXml(writer);
+                writer.WriteEndElement();
+            }
+
             WriteBytes(writer, "TextureAnimation", sop.TextureAnimation);
             WriteBytes(writer, "ParticleSystem", sop.ParticleSystem);
             writer.WriteElementString("PayPrice0", sop.PayPrice[0].ToString());
@@ -1242,6 +1288,17 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             writer.WriteElementString("PayPrice2", sop.PayPrice[2].ToString());
             writer.WriteElementString("PayPrice3", sop.PayPrice[3].ToString());
             writer.WriteElementString("PayPrice4", sop.PayPrice[4].ToString());
+
+            if(sop.PhysicsShapeType != sop.DefaultPhysicsShapeType())
+                writer.WriteElementString("PhysicsShapeType", sop.PhysicsShapeType.ToString().ToLower());
+            if (sop.Density != 1000.0f)
+                writer.WriteElementString("Density", sop.Density.ToString().ToLower());
+            if (sop.Friction != 0.6f)
+                writer.WriteElementString("Friction", sop.Friction.ToString().ToLower());
+            if (sop.Restitution != 0.5f)
+                writer.WriteElementString("Bounce", sop.Restitution.ToString().ToLower());
+            if (sop.GravityModifier != 1.0f)
+                writer.WriteElementString("GravityModifier", sop.GravityModifier.ToString().ToLower());
 
             writer.WriteEndElement();
         }
