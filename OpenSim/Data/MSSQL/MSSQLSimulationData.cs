@@ -351,7 +351,8 @@ IF EXISTS (SELECT UUID FROM prims WHERE UUID = @UUID)
             ScriptAccessPin = @ScriptAccessPin, AllowedDrop = @AllowedDrop, DieAtEdge = @DieAtEdge, SalePrice = @SalePrice, 
             SaleType = @SaleType, ColorR = @ColorR, ColorG = @ColorG, ColorB = @ColorB, ColorA = @ColorA, ParticleSystem = @ParticleSystem, 
             ClickAction = @ClickAction, Material = @Material, CollisionSound = @CollisionSound, CollisionSoundVolume = @CollisionSoundVolume, PassTouches = @PassTouches,
-            LinkNumber = @LinkNumber, MediaURL = @MediaURL, DynAttrs = @DynAttrs
+            LinkNumber = @LinkNumber, MediaURL = @MediaURL, DynAttrs = @DynAttrs,
+            PhysicsShapeType = @PhysicsShapeType, Density = @Density, GravityModifier = @GravityModifier, Friction = @Friction, Restitution = @Restitution
         WHERE UUID = @UUID
     END
 ELSE
@@ -366,7 +367,8 @@ ELSE
             PayPrice, PayButton1, PayButton2, PayButton3, PayButton4, LoopedSound, LoopedSoundGain, TextureAnimation, OmegaX, 
             OmegaY, OmegaZ, CameraEyeOffsetX, CameraEyeOffsetY, CameraEyeOffsetZ, CameraAtOffsetX, CameraAtOffsetY, CameraAtOffsetZ, 
             ForceMouselook, ScriptAccessPin, AllowedDrop, DieAtEdge, SalePrice, SaleType, ColorR, ColorG, ColorB, ColorA, 
-            ParticleSystem, ClickAction, Material, CollisionSound, CollisionSoundVolume, PassTouches, LinkNumber, MediaURL, DynAttrs
+            ParticleSystem, ClickAction, Material, CollisionSound, CollisionSoundVolume, PassTouches, LinkNumber, MediaURL, DynAttrs,
+            PhysicsShapeType, Density, GravityModifier, Friction, Restitution
             ) VALUES (
             @UUID, @CreationDate, @Name, @Text, @Description, @SitName, @TouchName, @ObjectFlags, @OwnerMask, @NextOwnerMask, @GroupMask, 
             @EveryoneMask, @BaseMask, @PositionX, @PositionY, @PositionZ, @GroupPositionX, @GroupPositionY, @GroupPositionZ, @VelocityX, 
@@ -376,7 +378,8 @@ ELSE
             @PayPrice, @PayButton1, @PayButton2, @PayButton3, @PayButton4, @LoopedSound, @LoopedSoundGain, @TextureAnimation, @OmegaX, 
             @OmegaY, @OmegaZ, @CameraEyeOffsetX, @CameraEyeOffsetY, @CameraEyeOffsetZ, @CameraAtOffsetX, @CameraAtOffsetY, @CameraAtOffsetZ, 
             @ForceMouselook, @ScriptAccessPin, @AllowedDrop, @DieAtEdge, @SalePrice, @SaleType, @ColorR, @ColorG, @ColorB, @ColorA, 
-            @ParticleSystem, @ClickAction, @Material, @CollisionSound, @CollisionSoundVolume, @PassTouches, @LinkNumber, @MediaURL, @DynAttrs
+            @ParticleSystem, @ClickAction, @Material, @CollisionSound, @CollisionSoundVolume, @PassTouches, @LinkNumber, @MediaURL, @DynAttrs,
+            @PhysicsShapeType, @Density, @GravityModifier, @Friction, @Restitution
             )
     END";
 
@@ -1697,6 +1700,12 @@ VALUES
             else
                 prim.DynAttrs = new DAMap();             
 
+            prim.PhysicsShapeType = Convert.ToByte(primRow["PhysicsShapeType"]);
+            prim.Density = Convert.ToSingle(primRow["Density"]);
+            prim.GravityModifier = Convert.ToSingle(primRow["GravityModifier"]);
+            prim.Friction = Convert.ToSingle(primRow["Friction"]);
+            prim.Restitution = Convert.ToSingle(primRow["Restitution"]);
+
             return prim;
         }
 
@@ -2095,6 +2104,12 @@ VALUES
                 parameters.Add(_Database.CreateParameter("DynAttrs", prim.DynAttrs.ToXml()));
             else
                 parameters.Add(_Database.CreateParameter("DynAttrs", null));
+            
+            parameters.Add(_Database.CreateParameter("PhysicsShapeType", prim.PhysicsShapeType));
+            parameters.Add(_Database.CreateParameter("Density", (double)prim.Density));
+            parameters.Add(_Database.CreateParameter("GravityModifier", (double)prim.GravityModifier));
+            parameters.Add(_Database.CreateParameter("Friction", (double)prim.Friction));
+            parameters.Add(_Database.CreateParameter("Restitution", (double)prim.Restitution));
 
             return parameters.ToArray();
         }

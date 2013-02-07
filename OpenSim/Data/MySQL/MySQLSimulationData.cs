@@ -173,9 +173,9 @@ namespace OpenSim.Data.MySQL
                                     "ParticleSystem, ClickAction, Material, " +
                                     "CollisionSound, CollisionSoundVolume, " +
                                     "PassTouches, " +
-                                    "LinkNumber, MediaURL, " +
+                                    "LinkNumber, MediaURL, DynAttrs, " +
                                     "PhysicsShapeType, Density, GravityModifier, " +
-                                    "Friction, Restitution, DynAttrs " +
+                                    "Friction, Restitution " +
                                     ") values (" + "?UUID, " +
                                     "?CreationDate, ?Name, ?Text, " +
                                     "?Description, ?SitName, ?TouchName, " +
@@ -208,9 +208,9 @@ namespace OpenSim.Data.MySQL
                                     "?ColorB, ?ColorA, ?ParticleSystem, " +
                                     "?ClickAction, ?Material, ?CollisionSound, " +
                                     "?CollisionSoundVolume, ?PassTouches, " +
-                                    "?LinkNumber, ?MediaURL, " +
+                                    "?LinkNumber, ?MediaURL, ?DynAttrs, " +
                                     "?PhysicsShapeType, ?Density, ?GravityModifier, " +
-                                    "?Friction, ?Restitution, ?DynAttrs)";
+                                    "?Friction, ?Restitution)";
 
                             FillPrimCommand(cmd, prim, obj.UUID, regionUUID);
 
@@ -1659,16 +1659,17 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("LinkNumber", prim.LinkNum);
             cmd.Parameters.AddWithValue("MediaURL", prim.MediaUrl);
 
-            cmd.Parameters.AddWithValue("PhysicsShapeType", prim.PhysicsShapeType);
-            cmd.Parameters.AddWithValue("Density", (double)prim.Density);
-            cmd.Parameters.AddWithValue("GravityModifier", (double)prim.GravityModifier);
-            cmd.Parameters.AddWithValue("Friction", (double)prim.Friction);
-            cmd.Parameters.AddWithValue("Restitution", (double)prim.Restitution);
 
             if (prim.DynAttrs.Count > 0)
                 cmd.Parameters.AddWithValue("DynAttrs", prim.DynAttrs.ToXml());
             else
                 cmd.Parameters.AddWithValue("DynAttrs", null);
+
+            cmd.Parameters.AddWithValue("PhysicsShapeType", prim.PhysicsShapeType);
+            cmd.Parameters.AddWithValue("Density", (double)prim.Density);
+            cmd.Parameters.AddWithValue("GravityModifier", (double)prim.GravityModifier);
+            cmd.Parameters.AddWithValue("Friction", (double)prim.Friction);
+            cmd.Parameters.AddWithValue("Restitution", (double)prim.Restitution);
         }
 
         /// <summary>

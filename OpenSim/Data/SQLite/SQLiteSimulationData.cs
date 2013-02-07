@@ -1235,6 +1235,12 @@ namespace OpenSim.Data.SQLite
             
             createCol(prims, "DynAttrs", typeof(String));
 
+            createCol(prims, "PhysicsShapeType", typeof(Byte));
+            createCol(prims, "Density", typeof(Double));
+            createCol(prims, "GravityModifier", typeof(Double));
+            createCol(prims, "Friction", typeof(Double));
+            createCol(prims, "Restitution", typeof(Double));
+
             // Add in contraints
             prims.PrimaryKey = new DataColumn[] { prims.Columns["UUID"] };
 
@@ -1724,6 +1730,12 @@ namespace OpenSim.Data.SQLite
                 prim.DynAttrs = new DAMap();
             }
 
+            prim.PhysicsShapeType = Convert.ToByte(row["PhysicsShapeType"]);
+            prim.Density = Convert.ToSingle(row["Density"]);
+            prim.GravityModifier = Convert.ToSingle(row["GravityModifier"]);
+            prim.Friction = Convert.ToSingle(row["Friction"]);
+            prim.Restitution = Convert.ToSingle(row["Restitution"]);
+
             return prim;
         }
 
@@ -2150,6 +2162,12 @@ namespace OpenSim.Data.SQLite
                 row["DynAttrs"] = prim.DynAttrs.ToXml();
             else
                 row["DynAttrs"] = null;
+
+            row["PhysicsShapeType"] = prim.PhysicsShapeType;
+            row["Density"] = (double)prim.Density;
+            row["GravityModifier"] = (double)prim.GravityModifier;
+            row["Friction"] = (double)prim.Friction;
+            row["Restitution"] = (double)prim.Restitution;
         }
 
         /// <summary>
