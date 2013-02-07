@@ -96,6 +96,8 @@ namespace OpenSim.Region.ClientStack.Linden
         //        private static readonly string m_fetchInventoryPath = "0006/";
         private static readonly string m_copyFromNotecardPath = "0007/";
         // private static readonly string m_remoteParcelRequestPath = "0009/";// This is in the LandManagementModule.
+        private static readonly string m_getObjectPhysicsDataPath = "0101/";
+        /* 0102 - 0103 RESERVED */
         private static readonly string m_UpdateAgentInformationPath = "0500/";
         
         // These are callbacks which will be setup by the scene so that we can update scene data when we
@@ -204,6 +206,8 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_HostCapsObj.RegisterHandler("UpdateNotecardAgentInventory", req);
                 m_HostCapsObj.RegisterHandler("UpdateScriptAgentInventory", req);
                 m_HostCapsObj.RegisterHandler("UpdateScriptAgent", req);
+                IRequestHandler getObjectPhysicsDataHandler = new RestStreamHandler("POST", capsBase + m_getObjectPhysicsDataPath, GetObjectPhysicsData);
+                m_HostCapsObj.RegisterHandler("GetObjectPhysicsData", getObjectPhysicsDataHandler);
                 IRequestHandler UpdateAgentInformationHandler = new RestStreamHandler("POST", capsBase + m_UpdateAgentInformationPath, UpdateAgentInformation);
                 m_HostCapsObj.RegisterHandler("UpdateAgentInformation", UpdateAgentInformationHandler);
 
@@ -871,6 +875,37 @@ namespace OpenSim.Region.ClientStack.Linden
 
             response["int_response_code"] = 200;
             return LLSDHelpers.SerialiseLLSDReply(response);
+        }
+
+        public string GetObjectPhysicsData(string request, string path,
+                string param, IOSHttpRequest httpRequest,
+                IOSHttpResponse httpResponse)
+        {
+            OSDMap req = (OSDMap)OSDParser.DeserializeLLSDXml(request);
+            OSDMap resp = new OSDMap();
+            OSDArray object_ids = (OSDArray)req["object_ids"];
+
+            for (int i = 0 ; i < object_ids.Count ; i++)
+            {
+                UUID uuid = object_ids[i].AsUUID();
+
+                SceneObjectPart obj = m_Scene.GetSceneObjectPart(uuid);
+                if (obj != null)
+                {
+                    OSDMap object_data = new OSDMap();
+
+                    object_data["PhysicsShapeType"] = obj.PhysicsShapeType;
+                    object_data["Density"] = obj.Density;
+                    object_data["Friction"] = obj.Friction;
+                    object_data["Restitution"] = obj.Restitution;
+                    object_data["GravityMultiplier"] = obj.GravityModifier;
+
+                    resp[uuid.ToString()] = object_data;
+                }
+            }
+
+            string response = OSDParser.SerializeLLSDXmlString(resp);
+            return response;
         }
 
         public string UpdateAgentInformation(string request, string path,

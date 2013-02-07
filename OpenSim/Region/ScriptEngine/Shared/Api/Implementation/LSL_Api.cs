@@ -7602,7 +7602,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                             ExtraPhysicsData physdata = new ExtraPhysicsData();
                             physdata.Density = part.Density;
-                            physdata.Bounce = part.Bounciness;
+                            physdata.Bounce = part.Restitution;
                             physdata.GravitationModifier = part.GravityModifier;
                             physdata.PhysShapeType = (PhysShapeType)shape_type;
 

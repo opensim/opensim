@@ -1042,6 +1042,7 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         public UpdateRequired UpdateFlag { get; set; }
+        public bool UpdatePhysRequired { get; set; }
         
         /// <summary>
         /// Used for media on a prim.
@@ -1390,7 +1391,7 @@ namespace OpenSim.Region.Framework.Scenes
         public float Density { get; set; }
         public float GravityModifier { get; set; }
         public float Friction { get; set; }
-        public float Bounciness { get; set; }
+        public float Restitution { get; set; }
 
         #endregion Public Properties with only Get
 
@@ -3964,8 +3965,8 @@ namespace OpenSim.Region.Framework.Scenes
                 GravityModifier = physdata.GravitationModifier;
             if(Friction != physdata.Friction)
                 Friction = physdata.Friction;
-            if(Bounciness != physdata.Bounce)
-                Bounciness = physdata.Bounce;
+            if(Restitution != physdata.Bounce)
+                Restitution = physdata.Bounce;
         }
         /// <summary>
         /// Update the flags on this prim.  This covers properties such as phantom, physics and temporary.

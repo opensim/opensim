@@ -124,7 +124,7 @@ namespace OpenSim.Framework
     public delegate void ObjectDrop(uint localID, IClientAPI remoteClient);
 
     public delegate void UpdatePrimFlags(
-        uint localID, bool UsePhysics, bool IsTemporary, bool IsPhantom, IClientAPI remoteClient);
+        uint localID, bool UsePhysics, bool IsTemporary, bool IsPhantom, ExtraPhysicsData PhysData, IClientAPI remoteClient);
 
     public delegate void UpdatePrimTexture(uint localID, byte[] texture, IClientAPI remoteClient);
 
@@ -1355,6 +1355,8 @@ namespace OpenSim.Framework
         void SendObjectPropertiesFamilyData(ISceneEntity Entity, uint RequestFlags);
 
         void SendObjectPropertiesReply(ISceneEntity Entity);
+
+        void SendPartPhysicsProprieties(ISceneEntity Entity);
 
         void SendAgentOffline(UUID[] agentIDs);
 

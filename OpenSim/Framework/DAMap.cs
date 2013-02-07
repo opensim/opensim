@@ -176,6 +176,10 @@ namespace OpenSim.Framework
             }
         }
 
+        /// <summary>
+        /// Validate the key used for storing separate data stores.
+        /// </summary>
+        /// <param name='key'></param>
         private static void ValidateKey(string key)
         {
             if (key.Length < MIN_STORE_NAME_LENGTH)
@@ -196,7 +200,8 @@ namespace OpenSim.Framework
         }    
 
         public void Add(KeyValuePair<string, OSDMap> kvp) 
-        {    
+        {   
+            ValidateKey(kvp.Key);
             lock (this)
                 m_map.Add(kvp.Key, kvp.Value);
         }    

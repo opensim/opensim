@@ -220,7 +220,7 @@ public static class BSParam
             (s) => { return BSParam.NumericBool(ShouldUseHullsForPhysicalObjects); },
             (s,p,l,v) => { ShouldUseHullsForPhysicalObjects = BSParam.BoolNumeric(v); } ),
         new ParameterDefn("ShouldRemoveZeroWidthTriangles", "If true, remove degenerate triangles from meshes",
-            ConfigurationParameters.numericFalse,
+            ConfigurationParameters.numericTrue,
             (s,cf,p,v) => { ShouldRemoveZeroWidthTriangles = cf.GetBoolean(p, BSParam.BoolNumeric(v)); },
             (s) => { return BSParam.NumericBool(ShouldRemoveZeroWidthTriangles); },
             (s,p,l,v) => { ShouldRemoveZeroWidthTriangles = BSParam.BoolNumeric(v); } ),
@@ -641,24 +641,6 @@ public static class BSParam
         return (b == ConfigurationParameters.numericTrue ? true : false);
     }
 
-    private static void ResetBroadphasePoolTainted(BSScene pPhysScene, float v)
-    {
-        BSScene physScene = pPhysScene;
-        physScene.TaintedObject("BSParam.ResetBroadphasePoolTainted", delegate()
-        {
-            physScene.PE.ResetBroadphasePool(physScene.World);
-        });
-    }
-
-    private static void ResetConstraintSolverTainted(BSScene pPhysScene, float v)
-    {
-        BSScene physScene = pPhysScene;
-        physScene.TaintedObject("BSParam.ResetConstraintSolver", delegate()
-        {
-            physScene.PE.ResetConstraintSolver(physScene.World);
-        });
-    }
-
     // Search through the parameter definitions and return the matching
     //    ParameterDefn structure.
     // Case does not matter as names are compared after converting to lower case.
@@ -722,6 +704,22 @@ public static class BSParam
         }
     }
 
+    private static void ResetBroadphasePoolTainted(BSScene pPhysScene, float v)
+    {
+        BSScene physScene = pPhysScene;
+        physScene.TaintedObject("BSParam.ResetBroadphasePoolTainted", delegate()
+        {
+            physScene.PE.ResetBroadphasePool(physScene.World);
+        });
+    }
 
+    private static void ResetConstraintSolverTainted(BSScene pPhysScene, float v)
+    {
+        BSScene physScene = pPhysScene;
+        physScene.TaintedObject("BSParam.ResetConstraintSolver", delegate()
+        {
+            physScene.PE.ResetConstraintSolver(physScene.World);
+        });
+    }
 }
 }

@@ -1311,7 +1311,7 @@ namespace OpenSim.Data.MySQL
             prim.Density = (float)(double)row["Density"];
             prim.GravityModifier = (float)(double)row["GravityModifier"];
             prim.Friction = (float)(double)row["Friction"];
-            prim.Bounciness = (float)(double)row["Restitution"];
+            prim.Restitution = (float)(double)row["Restitution"];
             
             return prim;
         }
@@ -1663,7 +1663,7 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("Density", (double)prim.Density);
             cmd.Parameters.AddWithValue("GravityModifier", (double)prim.GravityModifier);
             cmd.Parameters.AddWithValue("Friction", (double)prim.Friction);
-            cmd.Parameters.AddWithValue("Restitution", (double)prim.Bounciness);
+            cmd.Parameters.AddWithValue("Restitution", (double)prim.Restitution);
 
             if (prim.DynAttrs.Count > 0)
                 cmd.Parameters.AddWithValue("DynAttrs", prim.DynAttrs.ToXml());

@@ -1276,5 +1276,10 @@ namespace OpenSim.Tests.Common.Mock
         public void SendPlacesReply(UUID queryID, UUID transactionID, PlacesReplyData[] data)
         {
         }
+
+        public void SendPartPhysicsProprieties(ISceneEntity entity)
+        {
+        }
+
     }
 }

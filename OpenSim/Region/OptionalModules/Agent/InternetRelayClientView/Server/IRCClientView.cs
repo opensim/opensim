@@ -1678,5 +1678,10 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         public void SendPlacesReply(UUID queryID, UUID transactionID, PlacesReplyData[] data)
         {
         }
+
+        public void SendPartPhysicsProprieties(ISceneEntity entity)
+        {
+        }
+
     }
 }
