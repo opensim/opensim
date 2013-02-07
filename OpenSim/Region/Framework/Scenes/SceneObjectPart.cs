@@ -1729,7 +1729,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public float Bounciness
+        public float Restitution
         {
             get { return m_bounce; }
             set
@@ -4493,8 +4493,8 @@ namespace OpenSim.Region.Framework.Scenes
                 GravityModifier = physdata.GravitationModifier;
             if(Friction != physdata.Friction)
                 Friction = physdata.Friction;
-            if(Bounciness != physdata.Bounce)
-                Bounciness = physdata.Bounce;
+            if(Restitution != physdata.Bounce)
+                Restitution = physdata.Bounce;
         }
         /// <summary>
         /// Update the flags on this prim.  This covers properties such as phantom, physics and temporary.

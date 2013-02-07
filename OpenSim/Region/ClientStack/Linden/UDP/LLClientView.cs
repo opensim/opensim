@@ -2654,7 +2654,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         byte physshapetype = part.PhysicsShapeType;
                         float density = part.Density;
                         float friction = part.Friction;
-                        float bounce = part.Bounciness;
+                        float bounce = part.Restitution;
                         float gravmod = part.GravityModifier;
 
                         eq.partPhysicsProperties(localid, physshapetype, density, friction, bounce, gravmod,AgentId);

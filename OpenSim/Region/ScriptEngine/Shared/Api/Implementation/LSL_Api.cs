@@ -7845,7 +7845,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             physdata.PhysShapeType = (PhysShapeType)part.PhysicsShapeType;
             physdata.Density = part.Density;
             physdata.Friction = part.Friction;
-            physdata.Bounce = part.Bounciness;
+            physdata.Bounce = part.Restitution;
             physdata.GravitationModifier = part.GravityModifier;
 
             if ((material_bits & (int)ScriptBaseClass.DENSITY) != 0)
@@ -8238,7 +8238,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                             ExtraPhysicsData physdata = new ExtraPhysicsData();
                             physdata.Density = part.Density;
-                            physdata.Bounce = part.Bounciness;
+                            physdata.Bounce = part.Restitution;
                             physdata.GravitationModifier = part.GravityModifier;
                             physdata.PhysShapeType = (PhysShapeType)shape_type;
 
