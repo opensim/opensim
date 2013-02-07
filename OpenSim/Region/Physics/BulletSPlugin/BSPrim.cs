@@ -587,7 +587,8 @@ public sealed class BSPrim : BSPhysObject
         base.SetMaterial(material);
         PhysicsScene.TaintedObject("BSPrim.SetMaterial", delegate()
         {
-            UpdatePhysicalParameters();
+            if (PhysBody.HasPhysicalBody)
+                UpdatePhysicalParameters();
         });
     }
     public override float Friction
@@ -600,7 +601,8 @@ public sealed class BSPrim : BSPhysObject
                 base.Friction = value;
                 PhysicsScene.TaintedObject("BSPrim.setFriction", delegate()
                 {
-                    UpdatePhysicalParameters();
+                    if (PhysBody.HasPhysicalBody)
+                        UpdatePhysicalParameters();
                 });
             }
         }
@@ -615,7 +617,8 @@ public sealed class BSPrim : BSPhysObject
                 base.Restitution = value;
                 PhysicsScene.TaintedObject("BSPrim.setRestitution", delegate()
                 {
-                    UpdatePhysicalParameters();
+                    if (PhysBody.HasPhysicalBody)
+                        UpdatePhysicalParameters();
                 });
             }
         }
@@ -630,7 +633,8 @@ public sealed class BSPrim : BSPhysObject
                 base.Density = value;
                 PhysicsScene.TaintedObject("BSPrim.setDensity", delegate()
                 {
-                    UpdatePhysicalParameters();
+                    if (PhysBody.HasPhysicalBody)
+                        UpdatePhysicalParameters();
                 });
             }
         }
@@ -645,7 +649,8 @@ public sealed class BSPrim : BSPhysObject
                 base.GravityModifier = value;
                 PhysicsScene.TaintedObject("BSPrim.setGravityModifier", delegate()
                 {
-                    UpdatePhysicalParameters();
+                    if (PhysBody.HasPhysicalBody)
+                        UpdatePhysicalParameters();
                 });
             }
         }
