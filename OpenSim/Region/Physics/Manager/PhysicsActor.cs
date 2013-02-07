@@ -274,7 +274,7 @@ namespace OpenSim.Region.Physics.Manager
         public virtual float Density { get; set; }
         public virtual float GravModifier { get; set; }
         public virtual float Friction { get; set; }
-        public virtual float Bounce { get; set; }
+        public virtual float Restitution { get; set; }
 
         /// <summary>
         /// Position of this actor.
