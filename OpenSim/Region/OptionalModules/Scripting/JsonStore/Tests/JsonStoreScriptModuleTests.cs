@@ -321,7 +321,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
         }
 
         /// <summary>
-        /// Test for reading and writing json to a notecard
+        /// Test for reading json from a notecard
         /// </summary>
         /// <remarks>
         /// TODO: Really needs to test correct receipt of the link_message event.  Could do this by directly fetching
@@ -338,20 +338,44 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
             SceneObjectGroup so = SceneHelpers.CreateSceneObject(1, TestHelpers.ParseTail(0x1));
             m_scene.AddSceneObject(so);
 
-            UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ 'Hello':'World' }"); 
+            UUID creatingStoreId = (UUID)InvokeOp("JsonCreateStore", "{ 'Hello':'World' }"); 
 
             // Write notecard
-            InvokeOpOnHost("JsonWriteNotecard", so.UUID, storeId, "/", notecardName);
+            InvokeOpOnHost("JsonWriteNotecard", so.UUID, creatingStoreId, "/", notecardName);
 
-            // Read notecard
-            UUID receivingStoreId = (UUID)InvokeOp("JsonCreateStore", "{ }"); 
-            UUID readNotecardRequestId = (UUID)InvokeOpOnHost("JsonReadNotecard", so.UUID, receivingStoreId, "/", notecardName);
-            Assert.That(readNotecardRequestId, Is.Not.EqualTo(UUID.Zero));
+            {
+                // Read notecard
+                UUID receivingStoreId = (UUID)InvokeOp("JsonCreateStore", "{ }"); 
+                UUID readNotecardRequestId = (UUID)InvokeOpOnHost("JsonReadNotecard", so.UUID, receivingStoreId, "/", notecardName);
+                Assert.That(readNotecardRequestId, Is.Not.EqualTo(UUID.Zero));
 
-            string value = (string)InvokeOp("JsonGetValue", storeId, "Hello");
-            Assert.That(value, Is.EqualTo("World"));
+                string value = (string)InvokeOp("JsonGetValue", receivingStoreId, "Hello");
+                Assert.That(value, Is.EqualTo("World"));
+            }
 
+            {
+                // Read notecard to non-root path
+                UUID receivingStoreId = (UUID)InvokeOp("JsonCreateStore", "{ }"); 
+                UUID readNotecardRequestId = (UUID)InvokeOpOnHost("JsonReadNotecard", so.UUID, receivingStoreId, "make/it/so", notecardName);
+                Assert.That(readNotecardRequestId, Is.Not.EqualTo(UUID.Zero));
 
+                // These don't behave as I expect yet - reading to a path still seems to place the notecard contents at the root.
+//                string value = (string)InvokeOp("JsonGetValue", receivingStoreId, "Hello");
+//                Assert.That(value, Is.EqualTo(""));
+//
+//                value = (string)InvokeOp("JsonGetValue", receivingStoreId, "make/it/so/Hello");
+//                Assert.That(value, Is.EqualTo("World"));
+            }
+
+            {
+                // Try read notecard to fake store.
+                UUID fakeStoreId = TestHelpers.ParseTail(0x500);
+                UUID readNotecardRequestId = (UUID)InvokeOpOnHost("JsonReadNotecard", so.UUID, fakeStoreId, "/", notecardName);
+                Assert.That(fakeStoreId, Is.Not.EqualTo(UUID.Zero));
+
+                string value = (string)InvokeOp("JsonGetValue", fakeStoreId, "Hello");
+                Assert.That(value, Is.EqualTo(""));
+            }
         }
 
         public object DummyTestMethod(object o1, object o2, object o3, object o4, object o5) { return null; }
