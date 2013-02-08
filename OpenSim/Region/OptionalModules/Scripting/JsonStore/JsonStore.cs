@@ -250,6 +250,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
                 return true;
             }
 
+            // pkey will be the final element in the path, we pull it out here to make sure
+            // that the assignment works correctly
             string pkey = path.Pop();
             string pexpr = PathExpressionToKey(path);
             if (pexpr != "")
@@ -259,7 +261,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             if (result == null)
                 return false;
 
-            // Check for and extract array references
+            // Check pkey, the last element in the path, for and extract array references
             MatchCollection amatches = m_ArrayPattern.Matches(pkey,0);
             if (amatches.Count > 0)
             {
@@ -307,16 +309,23 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
                 
                 if (result is OSDMap)
                 {
+                    // this is the assignment case
                     OSDMap hmap = result as OSDMap;
                     if (ovalue != null)
                     {
                         hmap[hkey] = ovalue;
                         InvokeNextCallback(pexpr + pkey);
+                        return true;
                     }
-                    else if (hmap.ContainsKey(hkey))
+
+                    // this is the remove case
+                    if (hmap.ContainsKey(hkey))
+                    {
                         hmap.Remove(hkey);
-                    
-                    return true;
+                        return true;
+                    }
+
+                    return false;
                 }
 
                 return false;

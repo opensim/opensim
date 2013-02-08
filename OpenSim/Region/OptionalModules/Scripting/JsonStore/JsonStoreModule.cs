@@ -239,7 +239,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             if (! m_enabled) return false;
 
             lock (m_JsonValueStore)
-                m_JsonValueStore.Remove(storeID);
+                return m_JsonValueStore.Remove(storeID);
             
             return true;
         }
@@ -311,8 +311,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             try
             {
                 lock (map)
-                    if (map.SetValue(path,value,useJson))
-                        return true;
+                    return map.SetValue(path,value,useJson);
             }
             catch (Exception e)
             {
@@ -344,8 +343,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             try
             {
                 lock (map)
-                    if (map.RemoveValue(path))
-                        return true;
+                    return map.RemoveValue(path);
             }
             catch (Exception e)
             {
