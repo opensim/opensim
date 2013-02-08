@@ -231,6 +231,14 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 
             int result = (int)InvokeOp("JsonTestPath", storeId, "Hello");
             Assert.That(result, Is.EqualTo(1));
+
+            int result2 = (int)InvokeOp("JsonTestPath", storeId, "foo");
+            Assert.That(result2, Is.EqualTo(0));
+
+            // Test with fake store
+            UUID fakeStoreId = TestHelpers.ParseTail(0x500);
+            int fakeStoreValueRemove = (int)InvokeOp("JsonTestPath", fakeStoreId, "Hello");
+            Assert.That(fakeStoreValueRemove, Is.EqualTo(0));
         }
 
         [Test]
