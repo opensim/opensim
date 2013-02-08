@@ -145,7 +145,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             if (result == null)
                 return false;
             
-            if (useJson || result.Type == OSDType.String)
+            if (useJson || OSDBaseType(result.Type))
                 return true;
             
             return false;
@@ -531,7 +531,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
                 return true;
             }
 
-            if (result.Type == OSDType.String)
+            if (OSDBaseType(result.Type))
             {
                 value = result.AsString(); 
                 return true;
@@ -555,6 +555,33 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
                 pkey = (pkey == "") ? k : (k + "." + pkey);
             
             return pkey;
+        }
+
+        // -----------------------------------------------------------------
+        /// <summary>
+        /// 
+        /// </summary>
+        // -----------------------------------------------------------------
+        protected static bool OSDBaseType(OSDType type)
+        {
+            // Should be the list of base types for which AsString() returns
+            // something useful
+            if (type == OSDType.Boolean)
+                return true;
+            if (type == OSDType.Integer)
+                return true;
+            if (type == OSDType.Real)
+                return true;
+            if (type == OSDType.String)
+                return true;
+            if (type == OSDType.UUID)
+                return true;
+            if (type == OSDType.Date)
+                return true;
+            if (type == OSDType.URI)
+                return true;
+
+            return false;
         }
 
         // -----------------------------------------------------------------
