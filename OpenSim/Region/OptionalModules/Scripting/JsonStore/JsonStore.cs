@@ -95,6 +95,15 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
 
         // -----------------------------------------------------------------
         /// <summary>
+        /// This is a simple estimator for the size of the stored data, it
+        /// is not precise, but should be close enough to implement reasonable
+        /// limits on the storage space used
+        /// </summary>
+        // -----------------------------------------------------------------
+        public int StringSpace { get; set; }
+        
+        // -----------------------------------------------------------------
+        /// <summary>
         /// 
         /// </summary>
         // -----------------------------------------------------------------
@@ -110,6 +119,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         // -----------------------------------------------------------------
         public JsonStore() 
         {
+            StringSpace = 0;
             m_TakeStore = new List<TakeValueCallbackClass>();
             m_ReadStore = new List<TakeValueCallbackClass>();
         }
@@ -247,9 +257,12 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             if (path.Count == 0)
             {
                 ValueStore = ovalue;
+                StringSpace = 0;
                 return true;
             }
 
+            // pkey will be the final element in the path, we pull it out here to make sure
+            // that the assignment works correctly
             string pkey = path.Pop();
             string pexpr = PathExpressionToKey(path);
             if (pexpr != "")
@@ -259,7 +272,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             if (result == null)
                 return false;
 
-            // Check for and extract array references
+            // Check pkey, the last element in the path, for and extract array references
             MatchCollection amatches = m_ArrayPattern.Matches(pkey,0);
             if (amatches.Count > 0)
             {
@@ -276,8 +289,13 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
                 {
                     string npkey = String.Format("[{0}]",amap.Count);
 
-                    amap.Add(ovalue);
-                    InvokeNextCallback(pexpr + npkey);
+                    if (ovalue != null)
+                    {
+                        StringSpace += ComputeSizeOf(ovalue);
+
+                        amap.Add(ovalue);
+                        InvokeNextCallback(pexpr + npkey);
+                    }
                     return true;
                 }
 
@@ -285,9 +303,14 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
                 if (0 <= aval && aval < amap.Count)
                 {
                     if (ovalue == null)
+                    {
+                        StringSpace -= ComputeSizeOf(amap[aval]);
                         amap.RemoveAt(aval);
+                    }
                     else
                     {
+                        StringSpace -= ComputeSizeOf(amap[aval]);
+                        StringSpace += ComputeSizeOf(ovalue);
                         amap[aval] = ovalue;
                         InvokeNextCallback(pexpr + pkey);
                     }
@@ -307,16 +330,27 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
                 
                 if (result is OSDMap)
                 {
+                    // this is the assignment case
                     OSDMap hmap = result as OSDMap;
                     if (ovalue != null)
                     {
+                        StringSpace -= ComputeSizeOf(hmap[hkey]);
+                        StringSpace += ComputeSizeOf(ovalue);
+                        
                         hmap[hkey] = ovalue;
                         InvokeNextCallback(pexpr + pkey);
+                        return true;
                     }
-                    else if (hmap.ContainsKey(hkey))
+
+                    // this is the remove case
+                    if (hmap.ContainsKey(hkey))
+                    {
+                        StringSpace -= ComputeSizeOf(hmap[hkey]);
                         hmap.Remove(hkey);
-                    
-                    return true;
+                        return true;
+                    }
+
+                    return false;
                 }
 
                 return false;
@@ -522,8 +556,27 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             
             return pkey;
         }
+
+        // -----------------------------------------------------------------
+        /// <summary>
+        /// 
+        /// </summary>
+        // -----------------------------------------------------------------
+        protected static int ComputeSizeOf(OSD value)
+        {
+            string sval;
+
+            if (ConvertOutputValue(value,out sval,true))
+                return sval.Length;
+
+            return 0;
+        }
     }
 
+    // -----------------------------------------------------------------
+    /// <summary>
+    /// </summary>
+    // -----------------------------------------------------------------
     public class JsonObjectStore : JsonStore
     {
         private static readonly ILog m_log =
@@ -557,6 +610,9 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         {
             m_scene = scene;
             m_objectID = oid;
+
+            // the size limit is imposed on whatever is already in the store
+            StringSpace = ComputeSizeOf(ValueStore);
         }
     }
     

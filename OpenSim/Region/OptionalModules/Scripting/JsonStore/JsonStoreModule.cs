@@ -54,6 +54,9 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
 
         private IConfig m_config = null;
         private bool m_enabled = false;
+        private bool m_enableObjectStore = false;
+        private int m_maxStringSpace = Int32.MaxValue;
+
         private Scene m_scene = null;
 
         private Dictionary<UUID,JsonStore> m_JsonValueStore;
@@ -90,6 +93,10 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
                 }
 
                 m_enabled = m_config.GetBoolean("Enabled", m_enabled);
+                m_enableObjectStore = m_config.GetBoolean("EnableObjectStore", m_enableObjectStore);
+                m_maxStringSpace = m_config.GetInt("MaxStringSpace", m_maxStringSpace);
+                if (m_maxStringSpace == 0)
+                    m_maxStringSpace = Int32.MaxValue;
             }
             catch (Exception e)
             {
@@ -178,6 +185,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         public bool AttachObjectStore(UUID objectID)
         {
             if (! m_enabled) return false;
+            if (! m_enableObjectStore) return false;
 
             SceneObjectPart sop = m_scene.GetSceneObjectPart(objectID);
             if (sop == null)
@@ -239,7 +247,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             if (! m_enabled) return false;
 
             lock (m_JsonValueStore)
-                m_JsonValueStore.Remove(storeID);
+                return m_JsonValueStore.Remove(storeID);
             
             return true;
         }
@@ -311,8 +319,16 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             try
             {
                 lock (map)
-                    if (map.SetValue(path,value,useJson))
-                        return true;
+                {
+                    if (map.StringSpace > m_maxStringSpace)
+                    {
+                        m_log.WarnFormat("[JsonStore] {0} exceeded string size; {1} bytes used of {2} limit",
+                                         storeID,map.StringSpace,m_maxStringSpace);
+                        return false;
+                    }
+                    
+                    return map.SetValue(path,value,useJson);
+                }
             }
             catch (Exception e)
             {
@@ -344,8 +360,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             try
             {
                 lock (map)
-                    if (map.RemoveValue(path))
-                        return true;
+                    return map.RemoveValue(path);
             }
             catch (Exception e)
             {

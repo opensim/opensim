@@ -55,7 +55,6 @@ public sealed class BSPrim : BSPhysObject
     private OMV.Vector3 _position;
 
     private float _mass;    // the mass of this object
-    private float _density;
     private OMV.Vector3 _force;
     private OMV.Vector3 _velocity;
     private OMV.Vector3 _torque;
@@ -64,8 +63,6 @@ public sealed class BSPrim : BSPhysObject
     private int _physicsActorType;
     private bool _isPhysical;
     private bool _flying;
-    private float _friction;
-    private float _restitution;
     private bool _setAlwaysRun;
     private bool _throttleUpdates;
     private bool _floatOnWater;
@@ -100,12 +97,6 @@ public sealed class BSPrim : BSPhysObject
         BaseShape = pbs;
         _isPhysical = pisPhysical;
         _isVolumeDetect = false;
-
-        // Someday set default attributes based on the material but, for now, we don't know the prim material yet.
-        // MaterialAttributes primMat = BSMaterials.GetAttributes(Material, pisPhysical);
-        _density = PhysicsScene.Params.defaultDensity;
-        _friction = PhysicsScene.Params.defaultFriction;
-        _restitution = PhysicsScene.Params.defaultRestitution;
 
         VehicleController = new BSDynamics(PhysicsScene, this);            // add vehicleness
 
@@ -432,8 +423,6 @@ public sealed class BSPrim : BSPhysObject
             }
             else
             {
-                OMV.Vector3 grav = ComputeGravity(Buoyancy);
-
                 if (inWorld)
                 {
                     // Changing interesting properties doesn't change proxy and collision cache
@@ -443,25 +432,20 @@ public sealed class BSPrim : BSPhysObject
                 }
 
                 // The computation of mass props requires gravity to be set on the object.
-                PhysicsScene.PE.SetGravity(PhysBody, grav);
+                Gravity = ComputeGravity(Buoyancy);
+                PhysicsScene.PE.SetGravity(PhysBody, Gravity);
 
                 Inertia = PhysicsScene.PE.CalculateLocalInertia(PhysShape, physMass);
                 PhysicsScene.PE.SetMassProps(PhysBody, physMass, Inertia);
                 PhysicsScene.PE.UpdateInertiaTensor(PhysBody);
 
-                // center of mass is at the zero of the object
-                // DEBUG DEBUG PhysicsScene.PE.SetCenterOfMassByPosRot(PhysBody, ForcePosition, ForceOrientation);
-                DetailLog("{0},BSPrim.UpdateMassProperties,mass={1},localInertia={2},grav={3},inWorld={4}", LocalID, physMass, Inertia, grav, inWorld);
+                DetailLog("{0},BSPrim.UpdateMassProperties,mass={1},localInertia={2},grav={3},inWorld={4}",
+                                            LocalID, physMass, Inertia, Gravity, inWorld);
 
                 if (inWorld)
                 {
                     AddObjectToPhysicalWorld();
                 }
-
-                // Must set gravity after it has been added to the world because, for unknown reasons,
-                //     adding the object resets the object's gravity to world gravity
-                PhysicsScene.PE.SetGravity(PhysBody, grav);
-
             }
         }
     }
@@ -472,7 +456,10 @@ public sealed class BSPrim : BSPhysObject
         OMV.Vector3 ret = PhysicsScene.DefaultGravity;
 
         if (!IsStatic)
+        {
             ret *= (1f - buoyancy);
+            ret *= GravModifier;
+        }
 
         return ret;
     }
@@ -595,6 +582,74 @@ public sealed class BSPrim : BSPhysObject
             });
         }
         return;
+    }
+    public override void SetMaterial(int material)
+    {
+        base.SetMaterial(material);
+        PhysicsScene.TaintedObject("BSPrim.SetMaterial", delegate()
+        {
+            UpdatePhysicalParameters();
+        });
+    }
+    public override float Friction
+    {
+        get { return base.Friction; }
+        set
+        {
+            if (base.Friction != value)
+            {
+                base.Friction = value;
+                PhysicsScene.TaintedObject("BSPrim.setFriction", delegate()
+                {
+                    UpdatePhysicalParameters();
+                });
+            }
+        }
+    }
+    public override float Restitution
+    {
+        get { return base.Restitution; }
+        set
+        {
+            if (base.Restitution != value)
+            {
+                base.Restitution = value;
+                PhysicsScene.TaintedObject("BSPrim.setRestitution", delegate()
+                {
+                    UpdatePhysicalParameters();
+                });
+            }
+        }
+    }
+    public override float Density
+    {
+        get { return base.Density; }
+        set
+        {
+            if (base.Density != value)
+            {
+                base.Density = value;
+                PhysicsScene.TaintedObject("BSPrim.setDensity", delegate()
+                {
+                    UpdatePhysicalParameters();
+                });
+            }
+        }
+    }
+    public override float GravModifier
+    {
+        get { return base.GravModifier; }
+        set
+        {
+            if (base.GravModifier != value)
+            {
+                base.GravModifier = value;
+                PhysicsScene.TaintedObject("BSPrim.setGravityModifier", delegate()
+                {
+                    UpdatePhysicalParameters();
+                });
+            }
+        }
     }
     public override OMV.Vector3 RawVelocity
     {
@@ -761,7 +816,12 @@ public sealed class BSPrim : BSPhysObject
     //     collisionEvents: whether this object returns collision events
     public void UpdatePhysicalParameters()
     {
-        // DetailLog("{0},BSPrim.UpdatePhysicalParameters,entry,body={1},shape={2}", LocalID, BSBody, BSShape);
+        if (!PhysBody.HasPhysicalBody)
+        {
+            // This would only happen if updates are called for during initialization when the body is not set up yet.
+            DetailLog("{0},BSPrim.UpdatePhysicalParameters,taint,calledWithNoPhysBody", LocalID);
+            return;
+        }
 
         // Mangling all the physical properties requires the object not be in the physical world.
         // This is a NOOP if the object is not in the world (BulletSim and Bullet ignore objects not found).
@@ -810,8 +870,8 @@ public sealed class BSPrim : BSPhysObject
 
             // Set various physical properties so other object interact properly
             MaterialAttributes matAttrib = BSMaterials.GetAttributes(Material, false);
-            PhysicsScene.PE.SetFriction(PhysBody, matAttrib.friction);
-            PhysicsScene.PE.SetRestitution(PhysBody, matAttrib.restitution);
+            PhysicsScene.PE.SetFriction(PhysBody, Friction);
+            PhysicsScene.PE.SetRestitution(PhysBody, Restitution);
 
             // Mass is zero which disables a bunch of physics stuff in Bullet
             UpdatePhysicalMassProperties(0f, false);
@@ -839,9 +899,9 @@ public sealed class BSPrim : BSPhysObject
             CurrentCollisionFlags = PhysicsScene.PE.RemoveFromCollisionFlags(PhysBody, CollisionFlags.CF_STATIC_OBJECT);
 
             // Set various physical properties so other object interact properly
-            MaterialAttributes matAttrib = BSMaterials.GetAttributes(Material, true);
-            PhysicsScene.PE.SetFriction(PhysBody, matAttrib.friction);
-            PhysicsScene.PE.SetRestitution(PhysBody, matAttrib.restitution);
+            PhysicsScene.PE.SetFriction(PhysBody, Friction);
+            PhysicsScene.PE.SetRestitution(PhysBody, Restitution);
+            // DetailLog("{0},BSPrim.MakeDynamic,frict={1},rest={2}", LocalID, Friction, Restitution);
 
             // per http://www.bulletphysics.org/Bullet/phpBB3/viewtopic.php?t=3382
             // Since this can be called multiple times, only zero forces when becoming physical
@@ -944,7 +1004,7 @@ public sealed class BSPrim : BSPhysObject
         else
         {
             m_log.ErrorFormat("{0} Attempt to add physical object without body. id={1}", LogHeader, LocalID);
-            DetailLog("{0},BSPrim.UpdatePhysicalParameters,addObjectWithoutBody,cType={1}", LocalID, PhysBody.collisionType);
+            DetailLog("{0},BSPrim.AddObjectToPhysicalWorld,addObjectWithoutBody,cType={1}", LocalID, PhysBody.collisionType);
         }
     }
 
@@ -1581,7 +1641,7 @@ public sealed class BSPrim : BSPhysObject
         profileEnd = 1.0f - (float)BaseShape.ProfileEnd * 2.0e-5f;
         volume *= (profileEnd - profileBegin);
 
-        returnMass = _density * volume;
+        returnMass = Density * volume;
 
         /* Comment out code that computes the mass of the linkset. That is done in the Linkset class.
         if (IsRootOfLinkset)

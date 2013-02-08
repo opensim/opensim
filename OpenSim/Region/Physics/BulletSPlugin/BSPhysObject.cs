@@ -78,6 +78,10 @@ public abstract class BSPhysObject : PhysicsActor
         Name = name;    // PhysicsActor also has the name of the object. Someday consolidate.
         TypeName = typeName;
 
+        // Initialize variables kept in base.
+        GravModifier = 1.0f;
+        Gravity = new OMV.Vector3(0f, 0f, BSParam.Gravity);
+
         // We don't have any physical representation yet.
         PhysBody = new BulletBody(localID);
         PhysShape = new BulletShape();
@@ -88,8 +92,8 @@ public abstract class BSPhysObject : PhysicsActor
 
         LastAssetBuildFailed = false;
 
-        // Default material type
-        Material = MaterialAttributes.Material.Wood;
+        // Default material type. Also sets Friction, Restitution and Density.
+        SetMaterial((int)MaterialAttributes.Material.Wood);
 
         CollisionCollection = new CollisionEventUpdate();
         CollisionsLastTick = CollisionCollection;
@@ -122,6 +126,8 @@ public abstract class BSPhysObject : PhysicsActor
     // 'inWorld' true if the object has already been added to the dynamic world.
     public abstract void UpdatePhysicalMassProperties(float mass, bool inWorld);
 
+    // The gravity being applied to the object. A function of default grav, GravityModifier and Buoyancy.
+    public virtual OMV.Vector3 Gravity { get; set; }
     // The last value calculated for the prim's inertia
     public OMV.Vector3 Inertia { get; set; }
 
@@ -164,14 +170,17 @@ public abstract class BSPhysObject : PhysicsActor
     public override void SetMaterial(int material)
     {
         Material = (MaterialAttributes.Material)material;
+
+        // Setting the material sets the material attributes also.
+        MaterialAttributes matAttrib = BSMaterials.GetAttributes(Material, false);
+        Friction = matAttrib.friction;
+        Restitution = matAttrib.restitution;
+        Density = matAttrib.density;
     }
 
     // Stop all physical motion.
     public abstract void ZeroMotion(bool inTaintTime);
     public abstract void ZeroAngularMotion(bool inTaintTime);
-
-    // Step the vehicle simulation for this object. A NOOP if the vehicle was not configured.
-    public virtual void StepVehicle(float timeStep) { }
 
     // Update the physical location and motion of the object. Called with data from Bullet.
     public abstract void UpdateProperties(EntityProperties entprop);

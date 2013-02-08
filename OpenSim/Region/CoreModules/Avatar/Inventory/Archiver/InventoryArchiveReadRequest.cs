@@ -487,6 +487,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                         {
 //                            m_log.DebugFormat(
 //                                "[INVENTORY ARCHIVER]: Loaded coalescence {0} has {1} objects", assetId, coa.Count);
+
+                            if (coa.Objects.Count == 0)
+                            {
+                                m_log.WarnFormat(
+                                    "[INVENTORY ARCHIVE READ REQUEST]: Aborting load of coalesced object from asset {0} as it has zero loaded components", 
+                                    assetId);
+                                return false;
+                            }
                             
                             sceneObjects.AddRange(coa.Objects);
                         }
@@ -495,7 +503,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                             SceneObjectGroup deserializedObject = SceneObjectSerializer.FromOriginalXmlFormat(xmlData);
 
                             if (deserializedObject != null)
+                            {
                                 sceneObjects.Add(deserializedObject);
+                            }
+                            else
+                            {
+                                m_log.WarnFormat(
+                                    "[INVENTORY ARCHIVE READ REQUEST]: Aborting load of object from asset {0} as deserialization failed", 
+                                    assetId);
+
+                                return false;
+                            }
                         }
                         
                         foreach (SceneObjectGroup sog in sceneObjects)

@@ -749,9 +749,10 @@ public sealed class BSCharacter : BSPhysObject
             _buoyancy = value;
             DetailLog("{0},BSCharacter.setForceBuoyancy,taint,buoy={1}", LocalID, _buoyancy);
             // Buoyancy is faked by changing the gravity applied to the object
-            float grav = PhysicsScene.Params.gravity * (1f - _buoyancy);
+            float  grav = BSParam.Gravity * (1f - _buoyancy);
+            Gravity = new OMV.Vector3(0f, 0f, grav);
             if (PhysBody.HasPhysicalBody)
-                PhysicsScene.PE.SetGravity(PhysBody, new OMV.Vector3(0f, 0f, grav));
+                PhysicsScene.PE.SetGravity(PhysBody, Gravity);
         }
     }
 
