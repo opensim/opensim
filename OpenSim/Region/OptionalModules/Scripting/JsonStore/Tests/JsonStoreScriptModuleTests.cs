@@ -344,12 +344,14 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
             InvokeOpOnHost("JsonWriteNotecard", so.UUID, storeId, "/", notecardName);
 
             // Read notecard
-            UUID receivingStoreId = (UUID)InvokeOp("JsonCreateStore", "{ 'Hello':'World' }"); 
+            UUID receivingStoreId = (UUID)InvokeOp("JsonCreateStore", "{ }"); 
             UUID readNotecardRequestId = (UUID)InvokeOpOnHost("JsonReadNotecard", so.UUID, receivingStoreId, "/", notecardName);
             Assert.That(readNotecardRequestId, Is.Not.EqualTo(UUID.Zero));
 
             string value = (string)InvokeOp("JsonGetValue", storeId, "Hello");
             Assert.That(value, Is.EqualTo("World"));
+
+
         }
 
         public object DummyTestMethod(object o1, object o2, object o3, object o4, object o5) { return null; }
