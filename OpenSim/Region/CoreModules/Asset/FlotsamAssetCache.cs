@@ -299,7 +299,7 @@ namespace OpenSim.Region.CoreModules.Asset
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat(
+                m_log.WarnFormat(
                     "[FLOTSAM ASSET CACHE]: Failed to update cache for asset {0}.  Exception {1} {2}",
                     asset.ID, e.Message, e.StackTrace);
             }
@@ -339,12 +339,13 @@ namespace OpenSim.Region.CoreModules.Asset
         /// Try to get an asset from the file cache.
         /// </summary>
         /// <param name="id"></param>
-        /// <returns></returns>
+        /// <returns>An asset retrieved from the file cache.  null if there was a problem retrieving an asset.</returns>
         private AssetBase GetFromFileCache(string id)
         {
             AssetBase asset = null;
-
+           
             string filename = GetFileName(id);
+
             if (File.Exists(filename))
             {
                 FileStream stream = null;
@@ -359,7 +360,7 @@ namespace OpenSim.Region.CoreModules.Asset
                 }
                 catch (System.Runtime.Serialization.SerializationException e)
                 {
-                    m_log.ErrorFormat(
+                    m_log.WarnFormat(
                         "[FLOTSAM ASSET CACHE]: Failed to get file {0} for asset {1}.  Exception {2} {3}",
                         filename, id, e.Message, e.StackTrace);
 
@@ -371,7 +372,7 @@ namespace OpenSim.Region.CoreModules.Asset
                 }
                 catch (Exception e)
                 {
-                    m_log.ErrorFormat(
+                    m_log.WarnFormat(
                         "[FLOTSAM ASSET CACHE]: Failed to get file {0} for asset {1}.  Exception {2} {3}",
                         filename, id, e.Message, e.StackTrace);
                 }
@@ -469,7 +470,7 @@ namespace OpenSim.Region.CoreModules.Asset
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat(
+                m_log.WarnFormat(
                     "[FLOTSAM ASSET CACHE]: Failed to expire cached file {0}.  Exception {1} {2}",
                     id, e.Message, e.StackTrace);
             }
@@ -520,29 +521,39 @@ namespace OpenSim.Region.CoreModules.Asset
         /// <param name="purgeLine"></param>
         private void CleanExpiredFiles(string dir, DateTime purgeLine)
         {
-            foreach (string file in Directory.GetFiles(dir))
+            try
             {
-                if (File.GetLastAccessTime(file) < purgeLine)
+                foreach (string file in Directory.GetFiles(dir))
                 {
-                    File.Delete(file);
+                    if (File.GetLastAccessTime(file) < purgeLine)
+                    {
+                        File.Delete(file);
+                    }
+                }
+
+                // Recurse into lower tiers
+                foreach (string subdir in Directory.GetDirectories(dir))
+                {
+                    CleanExpiredFiles(subdir, purgeLine);
+                }
+
+                // Check if a tier directory is empty, if so, delete it
+                int dirSize = Directory.GetFiles(dir).Length + Directory.GetDirectories(dir).Length;
+                if (dirSize == 0)
+                {
+                    Directory.Delete(dir);
+                }
+                else if (dirSize >= m_CacheWarnAt)
+                {
+                    m_log.WarnFormat(
+                        "[FLOTSAM ASSET CACHE]: Cache folder exceeded CacheWarnAt limit {0} {1}.  Suggest increasing tiers, tier length, or reducing cache expiration", 
+                        dir, dirSize);
                 }
             }
-
-            // Recurse into lower tiers
-            foreach (string subdir in Directory.GetDirectories(dir))
+            catch (Exception e)
             {
-                CleanExpiredFiles(subdir, purgeLine);
-            }
-
-            // Check if a tier directory is empty, if so, delete it
-            int dirSize = Directory.GetFiles(dir).Length + Directory.GetDirectories(dir).Length;
-            if (dirSize == 0)
-            {
-                Directory.Delete(dir);
-            }
-            else if (dirSize >= m_CacheWarnAt)
-            {
-                m_log.WarnFormat("[FLOTSAM ASSET CACHE]: Cache folder exceeded CacheWarnAt limit {0} {1}.  Suggest increasing tiers, tier length, or reducing cache expiration", dir, dirSize);
+                m_log.Warn(
+                    string.Format("[FLOTSAM ASSET CACHE]: Could not complete clean of expired files in {0}, exception  ", dir), e);
             }
         }
 
@@ -601,7 +612,7 @@ namespace OpenSim.Region.CoreModules.Asset
                 }
                 catch (IOException e)
                 {
-                    m_log.ErrorFormat(
+                    m_log.WarnFormat(
                         "[FLOTSAM ASSET CACHE]: Failed to write asset {0} to temporary location {1} (final {2}) on cache in {3}.  Exception {4} {5}.",
                         asset.ID, tempname, filename, directory, e.Message, e.StackTrace);
 
@@ -680,17 +691,31 @@ namespace OpenSim.Region.CoreModules.Asset
         /// <summary>
         /// This notes the last time the Region had a deep asset scan performed on it.
         /// </summary>
-        /// <param name="RegionID"></param>
-        private void StampRegionStatusFile(UUID RegionID)
+        /// <param name="regionID"></param>
+        private void StampRegionStatusFile(UUID regionID)
         {
-            string RegionCacheStatusFile = Path.Combine(m_CacheDirectory, "RegionStatus_" + RegionID.ToString() + ".fac");
-            if (File.Exists(RegionCacheStatusFile))
+            string RegionCacheStatusFile = Path.Combine(m_CacheDirectory, "RegionStatus_" + regionID.ToString() + ".fac");
+
+            try 
             {
-                File.SetLastWriteTime(RegionCacheStatusFile, DateTime.Now);
+                if (File.Exists(RegionCacheStatusFile))
+                {
+                    File.SetLastWriteTime(RegionCacheStatusFile, DateTime.Now);
+                }
+                else
+                {
+                    File.WriteAllText(
+                        RegionCacheStatusFile, 
+                        "Please do not delete this file unless you are manually clearing your Flotsam Asset Cache.");
+                }
             }
-            else
+            catch (Exception e)
             {
-                File.WriteAllText(RegionCacheStatusFile, "Please do not delete this file unless you are manually clearing your Flotsam Asset Cache.");
+                m_log.Warn(
+                    string.Format(
+                        "[FLOTSAM ASSET CACHE]: Could not stamp region status file for region {0}.  Exception  ", 
+                        regionID), 
+                    e);
             }
         }
 
@@ -759,7 +784,7 @@ namespace OpenSim.Region.CoreModules.Asset
                 }
                 catch (Exception e)
                 {
-                    m_log.ErrorFormat(
+                    m_log.WarnFormat(
                         "[FLOTSAM ASSET CACHE]: Couldn't clear asset cache directory {0} from {1}.  Exception {2} {3}",
                         dir, m_CacheDirectory, e.Message, e.StackTrace);
                 }
@@ -773,7 +798,7 @@ namespace OpenSim.Region.CoreModules.Asset
                 }
                 catch (Exception e)
                 {
-                    m_log.ErrorFormat(
+                    m_log.WarnFormat(
                         "[FLOTSAM ASSET CACHE]: Couldn't clear asset cache file {0} from {1}.  Exception {1} {2}",
                         file, m_CacheDirectory, e.Message, e.StackTrace);
                 }
