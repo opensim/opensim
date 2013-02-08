@@ -158,6 +158,15 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 
             string value = (string)InvokeOp("JsonGetValue", storeId, "Hello");
             Assert.That(value, Is.EqualTo("World"));
+
+            // Test get of non-existing value
+            string fakeValueGet = (string)InvokeOp("JsonGetValue", storeId, "foo");
+            Assert.That(fakeValueGet, Is.EqualTo(""));
+
+            // Test get from non-existing store
+            UUID fakeStoreId = TestHelpers.ParseTail(0x500);
+            string fakeStoreValueGet = (string)InvokeOp("JsonGetValue", fakeStoreId, "Hello");
+            Assert.That(fakeStoreValueGet, Is.EqualTo(""));
         }
 
 //        [Test]
@@ -199,6 +208,17 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 
             string returnValue2 = (string)InvokeOp("JsonGetValue", storeId, "Hello");
             Assert.That(returnValue2, Is.EqualTo(""));
+
+            // Test remove of non-existing value
+            int fakeValueRemove = (int)InvokeOp("JsonRemoveValue", storeId, "Hello");
+
+            // XXX: Is this the best response to removing a value that isn't there?
+            Assert.That(fakeValueRemove, Is.EqualTo(1));
+
+            // Test get from non-existing store
+            UUID fakeStoreId = TestHelpers.ParseTail(0x500);
+            int fakeStoreValueRemove = (int)InvokeOp("JsonRemoveValue", fakeStoreId, "Hello");
+            Assert.That(fakeStoreValueRemove, Is.EqualTo(0));
         }
 
         [Test]
@@ -211,6 +231,14 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 
             int result = (int)InvokeOp("JsonTestPath", storeId, "Hello");
             Assert.That(result, Is.EqualTo(1));
+
+            int result2 = (int)InvokeOp("JsonTestPath", storeId, "foo");
+            Assert.That(result2, Is.EqualTo(0));
+
+            // Test with fake store
+            UUID fakeStoreId = TestHelpers.ParseTail(0x500);
+            int fakeStoreValueRemove = (int)InvokeOp("JsonTestPath", fakeStoreId, "Hello");
+            Assert.That(fakeStoreValueRemove, Is.EqualTo(0));
         }
 
         [Test]
@@ -226,6 +254,70 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 
             string value = (string)InvokeOp("JsonGetValue", storeId, "Fun");
             Assert.That(value, Is.EqualTo("Times"));
+
+            // Test with fake store
+            UUID fakeStoreId = TestHelpers.ParseTail(0x500);
+            int fakeStoreValueSet = (int)InvokeOp("JsonSetValue", fakeStoreId, "Hello", "World");
+            Assert.That(fakeStoreValueSet, Is.EqualTo(0));
+        }
+
+        /// <summary>
+        /// Test for writing json to a notecard
+        /// </summary>
+        /// <remarks>
+        /// TODO: Really needs to test correct receipt of the link_message event.  Could do this by directly fetching
+        /// it via the MockScriptEngine or perhaps by a dummy script instance.
+        /// </remarks>
+        [Test]
+        public void TestJsonWriteNotecard()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            SceneObjectGroup so = SceneHelpers.CreateSceneObject(1, TestHelpers.ParseTail(0x1));
+            m_scene.AddSceneObject(so);
+
+            UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ 'Hello':'World' }"); 
+
+            {
+                string notecardName = "nc1";
+
+                // Write notecard
+                UUID writeNotecardRequestId = (UUID)InvokeOpOnHost("JsonWriteNotecard", so.UUID, storeId, "/", notecardName);
+                Assert.That(writeNotecardRequestId, Is.Not.EqualTo(UUID.Zero));
+
+                TaskInventoryItem nc1Item = so.RootPart.Inventory.GetInventoryItem(notecardName);
+                Assert.That(nc1Item, Is.Not.Null);
+
+                // TODO: Should independently check the contents.
+            }
+
+            {
+                // Try to write notecard against bad path
+                // In this case we do get a request id but no notecard is written.
+                string badPathNotecardName = "badPathNotecardName";
+
+                UUID writeNotecardBadPathRequestId
+                    = (UUID)InvokeOpOnHost("JsonWriteNotecard", so.UUID, storeId, "flibble", badPathNotecardName);
+                Assert.That(writeNotecardBadPathRequestId, Is.Not.EqualTo(UUID.Zero));
+
+                TaskInventoryItem badPathItem = so.RootPart.Inventory.GetInventoryItem(badPathNotecardName);
+                Assert.That(badPathItem, Is.Null);
+            }
+
+            {
+                // Test with fake store
+                // In this case we do get a request id but no notecard is written.
+                string fakeStoreNotecardName = "fakeStoreNotecardName";
+
+                UUID fakeStoreId = TestHelpers.ParseTail(0x500);
+                UUID fakeStoreWriteNotecardValue
+                    = (UUID)InvokeOpOnHost("JsonWriteNotecard", so.UUID, fakeStoreId, "/", fakeStoreNotecardName);
+                Assert.That(fakeStoreWriteNotecardValue, Is.Not.EqualTo(UUID.Zero));
+
+                TaskInventoryItem fakeStoreItem = so.RootPart.Inventory.GetInventoryItem(fakeStoreNotecardName);
+                Assert.That(fakeStoreItem, Is.Null);
+            }
         }
 
         /// <summary>
@@ -236,10 +328,10 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
         /// it via the MockScriptEngine or perhaps by a dummy script instance.
         /// </remarks>
         [Test]
-        public void TestJsonWriteReadNotecard()
+        public void TestJsonReadNotecard()
         {
             TestHelpers.InMethod();
-            TestHelpers.EnableLogging();
+//            TestHelpers.EnableLogging();
 
             string notecardName = "nc1";
 
@@ -249,21 +341,17 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
             UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ 'Hello':'World' }"); 
 
             // Write notecard
-            UUID writeNotecardRequestId = (UUID)InvokeOpOnHost("JsonWriteNotecard", so.UUID, storeId, "/", notecardName);
-            Assert.That(writeNotecardRequestId, Is.Not.EqualTo(UUID.Zero));
-
-            TaskInventoryItem nc1Item = so.RootPart.Inventory.GetInventoryItem(notecardName);
-            Assert.That(nc1Item, Is.Not.Null);
-
-            // TODO: Should probably independently check the contents.
+            InvokeOpOnHost("JsonWriteNotecard", so.UUID, storeId, "/", notecardName);
 
             // Read notecard
-            UUID receivingStoreId = (UUID)InvokeOp("JsonCreateStore", "{ 'Hello':'World' }"); 
+            UUID receivingStoreId = (UUID)InvokeOp("JsonCreateStore", "{ }"); 
             UUID readNotecardRequestId = (UUID)InvokeOpOnHost("JsonReadNotecard", so.UUID, receivingStoreId, "/", notecardName);
             Assert.That(readNotecardRequestId, Is.Not.EqualTo(UUID.Zero));
 
             string value = (string)InvokeOp("JsonGetValue", storeId, "Hello");
             Assert.That(value, Is.EqualTo("World"));
+
+
         }
 
         public object DummyTestMethod(object o1, object o2, object o3, object o4, object o5) { return null; }
