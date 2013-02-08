@@ -86,10 +86,6 @@ public abstract class BSPhysObject : PhysicsActor
         PhysBody = new BulletBody(localID);
         PhysShape = new BulletShape();
 
-        // A linkset of just me
-        Linkset = BSLinkset.Factory(PhysicsScene, this);
-        PositionDisplacement = OMV.Vector3.Zero;
-
         LastAssetBuildFailed = false;
 
         // Default material type. Also sets Friction, Restitution and Density.
@@ -117,8 +113,6 @@ public abstract class BSPhysObject : PhysicsActor
     public string PhysObjectName { get; protected set; }
     public string TypeName { get; protected set; }
 
-    public BSLinkset Linkset { get; set; }
-    public BSLinksetInfo LinksetInfo { get; set; }
 
     // Return the object mass without calculating it or having side effects
     public abstract float RawMass { get; }
@@ -187,15 +181,6 @@ public abstract class BSPhysObject : PhysicsActor
 
     public abstract OMV.Vector3 RawPosition { get; set; }
     public abstract OMV.Vector3 ForcePosition { get; set; }
-
-    // 'Position' and 'Orientation' is what the simulator thinks the positions of the prim is.
-    // Because Bullet needs the zero coordinate to be the center of mass of the linkset,
-    //     sometimes it is necessary to displace the position the physics engine thinks
-    //     the position is. PositionDisplacement must be added and removed from the
-    //     position as the simulator position is stored and fetched from the physics
-    //     engine. Similar to OrientationDisplacement.
-    public virtual OMV.Vector3 PositionDisplacement { get; set; }
-    public virtual OMV.Quaternion OrientationDisplacement { get; set; }
 
     public abstract OMV.Quaternion RawOrientation { get; set; }
     public abstract OMV.Quaternion ForceOrientation { get; set; }
@@ -300,12 +285,6 @@ public abstract class BSPhysObject : PhysicsActor
         else
         {
             CollidingObjectStep = PhysicsScene.SimulationStep;
-        }
-
-        // prims in the same linkset cannot collide with each other
-        if (collidee != null && (this.Linkset.LinksetID == collidee.Linkset.LinksetID))
-        {
-            return ret;
         }
 
         CollisionAccumulation++;

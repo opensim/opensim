@@ -434,7 +434,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     {
         if (!m_initialized) return;
 
-        BSPrim bsprim = prim as BSPrim;
+        BSPhysObject bsprim = prim as BSPhysObject;
         if (bsprim != null)
         {
             DetailLog("{0},RemovePrim,call", bsprim.LocalID);
@@ -465,7 +465,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
         DetailLog("{0},AddPrimShape,call", localID);
 
-        BSPrim prim = new BSPrim(localID, primName, this, position, size, rotation, pbs, isPhysical);
+        BSPhysObject prim = new BSPrimLinkable(localID, primName, this, position, size, rotation, pbs, isPhysical);
         lock (PhysObjects) PhysObjects.Add(localID, prim);
         return prim;
     }

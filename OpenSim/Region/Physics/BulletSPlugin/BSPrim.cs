@@ -39,7 +39,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 {
 
     [Serializable]
-public sealed class BSPrim : BSPhysObject
+public class BSPrim : BSPhysObject
 {
     private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
     private static readonly string LogHeader = "[BULLETS PRIM]";
@@ -102,9 +102,6 @@ public sealed class BSPrim : BSPhysObject
 
         _mass = CalculateMass();
 
-        // Cause linkset variables to be initialized (like mass)
-        Linkset.Refresh(this);
-
         DetailLog("{0},BSPrim.constructor,call", LocalID);
         // do the actual object creation at taint time
         PhysicsScene.TaintedObject("BSPrim.create", delegate()
@@ -120,15 +117,6 @@ public sealed class BSPrim : BSPhysObject
     {
         // m_log.DebugFormat("{0}: Destroy, id={1}", LogHeader, LocalID);
         base.Destroy();
-
-        // Undo any links between me and any other object
-        BSPhysObject parentBefore = Linkset.LinksetRoot;    // DEBUG DEBUG
-        int childrenBefore = Linkset.NumberOfChildren;      // DEBUG DEBUG
-
-        Linkset = Linkset.RemoveMeFromLinkset(this);
-
-        DetailLog("{0},BSPrim.Destroy,call,parentBefore={1},childrenBefore={2},parentAfter={3},childrenAfter={4}",
-            LocalID, parentBefore.LocalID, childrenBefore, Linkset.LinksetRoot.LocalID, Linkset.NumberOfChildren);
 
         // Undo any vehicle properties
         this.VehicleType = (int)Vehicle.TYPE_NONE;
@@ -166,9 +154,9 @@ public sealed class BSPrim : BSPhysObject
             ForceBodyShapeRebuild(false);
         }
     }
-    // Whatever the linkset wants is what I want.
+    // 'unknown' says to choose the best type
     public override BSPhysicsShapeType PreferredPhysicalShape
-        { get { return Linkset.PreferredPhysicalShape(this); } }
+        { get { return BSPhysicsShapeType.SHAPE_UNKNOWN; } }
 
     public override bool ForceBodyShapeRebuild(bool inTaintTime)
     {
@@ -213,33 +201,10 @@ public sealed class BSPrim : BSPhysObject
 
     // link me to the specified parent
     public override void link(PhysicsActor obj) {
-        BSPrim parent = obj as BSPrim;
-        if (parent != null)
-        {
-            BSPhysObject parentBefore = Linkset.LinksetRoot;
-            int childrenBefore = Linkset.NumberOfChildren;
-
-            Linkset = parent.Linkset.AddMeToLinkset(this);
-
-            DetailLog("{0},BSPrim.link,call,parentBefore={1}, childrenBefore=={2}, parentAfter={3}, childrenAfter={4}",
-                LocalID, parentBefore.LocalID, childrenBefore, Linkset.LinksetRoot.LocalID, Linkset.NumberOfChildren);
-        }
-        return;
     }
 
     // delink me from my linkset
     public override void delink() {
-        // TODO: decide if this parent checking needs to happen at taint time
-        // Race condition here: if link() and delink() in same simulation tick, the delink will not happen
-
-        BSPhysObject parentBefore = Linkset.LinksetRoot;
-        int childrenBefore = Linkset.NumberOfChildren;
-
-        Linkset = Linkset.RemoveMeFromLinkset(this);
-
-        DetailLog("{0},BSPrim.delink,parentBefore={1},childrenBefore={2},parentAfter={3},childrenAfter={4}, ",
-            LocalID, parentBefore.LocalID, childrenBefore, Linkset.LinksetRoot.LocalID, Linkset.NumberOfChildren);
-        return;
     }
 
     // Set motion values to zero.
@@ -287,15 +252,8 @@ public sealed class BSPrim : BSPhysObject
     }
     public override OMV.Vector3 Position {
         get {
-            /* NOTE: this refetch is not necessary. The simulator knows about linkset children
-             *    and does not fetch this position info for children. Thus this is commented out.
-            // child prims move around based on their parent. Need to get the latest location
-            if (!Linkset.IsRoot(this))
-                _position = Linkset.PositionGet(this);
-            */
-
             // don't do the GetObjectPosition for root elements because this function is called a zillion times.
-            // _position = PhysicsScene.PE.GetObjectPosition2(PhysicsScene.World, BSBody) - PositionDisplacement;
+            // _position = ForcePosition;
             return _position;
         }
         set {
@@ -313,24 +271,20 @@ public sealed class BSPrim : BSPhysObject
             {
                 DetailLog("{0},BSPrim.SetPosition,taint,pos={1},orient={2}", LocalID, _position, _orientation);
                 ForcePosition = _position;
-
-                // A linkset might need to know if a component information changed.
-                Linkset.UpdateProperties(UpdatedProperties.Position, this);
-
             });
         }
     }
 
     public override OMV.Vector3 ForcePosition {
         get {
-            _position = PhysicsScene.PE.GetPosition(PhysBody) - PositionDisplacement;
+            _position = PhysicsScene.PE.GetPosition(PhysBody);
             return _position;
         }
         set {
             _position = value;
             if (PhysBody.HasPhysicalBody)
             {
-                PhysicsScene.PE.SetTranslation(PhysBody, _position + PositionDisplacement, _orientation);
+                PhysicsScene.PE.SetTranslation(PhysBody, _position, _orientation);
                 ActivateIfPhysical(false);
             }
         }
@@ -398,12 +352,13 @@ public sealed class BSPrim : BSPhysObject
         // If the simulator cares about the mass of the linkset, it will sum it itself.
     public override float Mass
     {
-        get
-        {
-            return _mass;
-        }
+        get { return _mass; }
     }
-
+    // TotalMass returns the mass of the large object the prim may be in (overridden by linkset code)
+    public virtual float TotalMass
+    {
+        get { return _mass; }
+    }
     // used when we only want this prim's mass and not the linkset thing
     public override float RawMass { 
         get { return _mass; }
@@ -467,13 +422,13 @@ public sealed class BSPrim : BSPhysObject
     // Is this used?
     public override OMV.Vector3 CenterOfMass
     {
-        get { return Linkset.CenterOfMass; }
+        get { return RawPosition; }
     }
 
     // Is this used?
     public override OMV.Vector3 GeometricCenter
     {
-        get { return Linkset.GeometricCenter; }
+        get { return RawPosition; }
     }
 
     public override OMV.Vector3 Force {
@@ -721,14 +676,6 @@ public sealed class BSPrim : BSPhysObject
     }
     public override OMV.Quaternion Orientation {
         get {
-            /* NOTE: this refetch is not necessary. The simulator knows about linkset children
-             *    and does not fetch this position info for children. Thus this is commented out.
-            // Children move around because tied to parent. Get a fresh value.
-            if (!Linkset.IsRoot(this))
-            {
-                _orientation = Linkset.OrientationGet(this);
-            }
-             */
             return _orientation;
         }
         set {
@@ -739,10 +686,6 @@ public sealed class BSPrim : BSPhysObject
             PhysicsScene.TaintedObject("BSPrim.setOrientation", delegate()
             {
                 ForceOrientation = _orientation;
-
-                // A linkset might need to know if a component information changed.
-                Linkset.UpdateProperties(UpdatedProperties.Orientation, this);
-
             });
         }
     }
@@ -758,7 +701,7 @@ public sealed class BSPrim : BSPhysObject
         {
             _orientation = value;
             if (PhysBody.HasPhysicalBody)
-                PhysicsScene.PE.SetTranslation(PhysBody, _position + PositionDisplacement, _orientation);
+                PhysicsScene.PE.SetTranslation(PhysBody, _position, _orientation);
         }
     }
     public override int PhysicsActorType {
@@ -814,7 +757,7 @@ public sealed class BSPrim : BSPhysObject
     //     isSolid: other objects bounce off of this object
     //     isVolumeDetect: other objects pass through but can generate collisions
     //     collisionEvents: whether this object returns collision events
-    public void UpdatePhysicalParameters()
+    public virtual void UpdatePhysicalParameters()
     {
         if (!PhysBody.HasPhysicalBody)
         {
@@ -844,12 +787,6 @@ public sealed class BSPrim : BSPhysObject
         // Rebuild its shape
         PhysicsScene.PE.UpdateSingleAabb(PhysicsScene.World, PhysBody);
 
-        // Recompute any linkset parameters.
-        // When going from non-physical to physical, this re-enables the constraints that
-        //     had been automatically disabled when the mass was set to zero.
-        // For compound based linksets, this enables and disables interactions of the children.
-        Linkset.Refresh(this);
-
         DetailLog("{0},BSPrim.UpdatePhysicalParameters,taintExit,static={1},solid={2},mass={3},collide={4},cf={5:X},cType={6},body={7},shape={8}",
                         LocalID, IsStatic, IsSolid, Mass, SubscribedEvents(), CurrentCollisionFlags, PhysBody.collisionType, PhysBody, PhysShape);
     }
@@ -859,7 +796,7 @@ public sealed class BSPrim : BSPhysObject
     // When dynamic, the object can fall and be pushed by others.
     // This is independent of its 'solidness' which controls what passes through
     //    this object and what interacts with it.
-    private void MakeDynamic(bool makeStatic)
+    protected virtual void MakeDynamic(bool makeStatic)
     {
         if (makeStatic)
         {
@@ -889,9 +826,6 @@ public sealed class BSPrim : BSPhysObject
 
             // This collides like a static object
             PhysBody.collisionType = CollisionType.Static;
-
-            // There can be special things needed for implementing linksets
-            Linkset.MakeStatic(this);
         }
         else
         {
@@ -908,10 +842,7 @@ public sealed class BSPrim : BSPhysObject
             // PhysicsScene.PE.ClearAllForces(BSBody);
 
             // For good measure, make sure the transform is set through to the motion state
-            PhysicsScene.PE.SetTranslation(PhysBody, _position + PositionDisplacement, _orientation);
-
-            // Center of mass is at the center of the object
-            // DEBUG DEBUG PhysicsScene.PE.SetCenterOfMassByPosRot(Linkset.LinksetRoot.PhysBody, _position, _orientation);
+            ForcePosition = _position;
 
             // A dynamic object has mass
             UpdatePhysicalMassProperties(RawMass, false);
@@ -935,9 +866,6 @@ public sealed class BSPrim : BSPhysObject
             // Force activation of the object so Bullet will act on it.
             // Must do the ForceActivationState2() to overcome the DISABLE_SIMULATION from static objects.
             PhysicsScene.PE.ForceActivationState(PhysBody, ActivationState.ACTIVE_TAG);
-
-            // There might be special things needed for implementing linksets.
-            Linkset.MakeDynamic(this);
         }
     }
 
@@ -1643,16 +1571,6 @@ public sealed class BSPrim : BSPhysObject
 
         returnMass = Density * volume;
 
-        /* Comment out code that computes the mass of the linkset. That is done in the Linkset class.
-        if (IsRootOfLinkset)
-        {
-            foreach (BSPrim prim in _childrenPrims)
-            {
-                returnMass += prim.CalculateMass();
-            }
-        }
-         */
-
         returnMass = Util.Clamp(returnMass, BSParam.MinimumObjectMass, BSParam.MaximumObjectMass);
 
         return returnMass;
@@ -1672,8 +1590,7 @@ public sealed class BSPrim : BSPhysObject
             // Called if the current prim body is about to be destroyed.
             // Remove all the physical dependencies on the old body.
             // (Maybe someday make the changing of BSShape an event to be subscribed to by BSLinkset, ...)
-            Linkset.RemoveBodyDependencies(this);
-            VehicleController.RemoveBodyDependencies(this);
+            RemoveBodyDependencies();
         });
 
         // Make sure the properties are set on the new object
@@ -1681,57 +1598,50 @@ public sealed class BSPrim : BSPhysObject
         return;
     }
 
+    protected virtual void RemoveBodyDependencies()
+    {
+        VehicleController.RemoveBodyDependencies(this);
+    }
+
     // The physics engine says that properties have updated. Update same and inform
     // the world that things have changed.
     public override void UpdateProperties(EntityProperties entprop)
     {
-        // Updates only for individual prims and for the root object of a linkset.
-        if (Linkset.IsRoot(this))
+        // A temporary kludge to suppress the rotational effects introduced on vehicles by Bullet
+        // TODO: handle physics introduced by Bullet with computed vehicle physics.
+        if (VehicleController.IsActive)
         {
-            // A temporary kludge to suppress the rotational effects introduced on vehicles by Bullet
-            // TODO: handle physics introduced by Bullet with computed vehicle physics.
-            if (VehicleController.IsActive)
-            {
-                entprop.RotationalVelocity = OMV.Vector3.Zero;
-            }
-
-            // DetailLog("{0},BSPrim.UpdateProperties,entry,entprop={1}", LocalID, entprop);   // DEBUG DEBUG
-
-            // Undo any center-of-mass displacement that might have been done.
-            if (PositionDisplacement != OMV.Vector3.Zero)
-            {
-                // Correct for any rotation around the center-of-mass
-                // TODO!!!
-                entprop.Position -= PositionDisplacement;
-            }
-
-            // Assign directly to the local variables so the normal set actions do not happen
-            _position = entprop.Position;
-            _orientation = entprop.Rotation;
-            _velocity = entprop.Velocity;
-            _acceleration = entprop.Acceleration;
-            _rotationalVelocity = entprop.RotationalVelocity;
-
-            // DetailLog("{0},BSPrim.UpdateProperties,afterAssign,entprop={1}", LocalID, entprop);   // DEBUG DEBUG
-
-            // The sanity check can change the velocity and/or position.
-            if (PositionSanityCheck(true /* inTaintTime */ ))
-            {
-                entprop.Position = _position;
-                entprop.Velocity = _velocity;
-                entprop.RotationalVelocity = _rotationalVelocity;
-                entprop.Acceleration = _acceleration;
-            }
-
-            OMV.Vector3 direction = OMV.Vector3.UnitX * _orientation;   // DEBUG DEBUG DEBUG
-            DetailLog("{0},BSPrim.UpdateProperties,call,entProp={1},dir={2}", LocalID, entprop, direction);
-
-            // remember the current and last set values
-            LastEntityProperties = CurrentEntityProperties;
-            CurrentEntityProperties = entprop;
-
-            base.RequestPhysicsterseUpdate();
+            entprop.RotationalVelocity = OMV.Vector3.Zero;
         }
+
+        // DetailLog("{0},BSPrim.UpdateProperties,entry,entprop={1}", LocalID, entprop);   // DEBUG DEBUG
+
+        // Assign directly to the local variables so the normal set actions do not happen
+        _position = entprop.Position;
+        _orientation = entprop.Rotation;
+        _velocity = entprop.Velocity;
+        _acceleration = entprop.Acceleration;
+        _rotationalVelocity = entprop.RotationalVelocity;
+
+        // DetailLog("{0},BSPrim.UpdateProperties,afterAssign,entprop={1}", LocalID, entprop);   // DEBUG DEBUG
+
+        // The sanity check can change the velocity and/or position.
+        if (PositionSanityCheck(true /* inTaintTime */ ))
+        {
+            entprop.Position = _position;
+            entprop.Velocity = _velocity;
+            entprop.RotationalVelocity = _rotationalVelocity;
+            entprop.Acceleration = _acceleration;
+        }
+
+        OMV.Vector3 direction = OMV.Vector3.UnitX * _orientation;   // DEBUG DEBUG DEBUG
+        DetailLog("{0},BSPrim.UpdateProperties,call,entProp={1},dir={2}", LocalID, entprop, direction);
+
+        // remember the current and last set values
+        LastEntityProperties = CurrentEntityProperties;
+        CurrentEntityProperties = entprop;
+
+        base.RequestPhysicsterseUpdate();
             /*
         else
         {
@@ -1741,9 +1651,6 @@ public sealed class BSPrim : BSPhysObject
                     entprop.Acceleration, entprop.RotationalVelocity);
         }
              */
-
-        // The linkset implimentation might want to know about this.
-        Linkset.UpdateProperties(UpdatedProperties.EntPropUpdates, this);
     }
 }
 }
