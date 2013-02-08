@@ -262,6 +262,65 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
         }
 
         /// <summary>
+        /// Test for writing json to a notecard
+        /// </summary>
+        /// <remarks>
+        /// TODO: Really needs to test correct receipt of the link_message event.  Could do this by directly fetching
+        /// it via the MockScriptEngine or perhaps by a dummy script instance.
+        /// </remarks>
+        [Test]
+        public void TestJsonWriteNotecard()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            SceneObjectGroup so = SceneHelpers.CreateSceneObject(1, TestHelpers.ParseTail(0x1));
+            m_scene.AddSceneObject(so);
+
+            UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ 'Hello':'World' }"); 
+
+            {
+                string notecardName = "nc1";
+
+                // Write notecard
+                UUID writeNotecardRequestId = (UUID)InvokeOpOnHost("JsonWriteNotecard", so.UUID, storeId, "/", notecardName);
+                Assert.That(writeNotecardRequestId, Is.Not.EqualTo(UUID.Zero));
+
+                TaskInventoryItem nc1Item = so.RootPart.Inventory.GetInventoryItem(notecardName);
+                Assert.That(nc1Item, Is.Not.Null);
+
+                // TODO: Should independently check the contents.
+            }
+
+            {
+                // Try to write notecard against bad path
+                // In this case we do get a request id but no notecard is written.
+                string badPathNotecardName = "badPathNotecardName";
+
+                UUID writeNotecardBadPathRequestId
+                    = (UUID)InvokeOpOnHost("JsonWriteNotecard", so.UUID, storeId, "flibble", badPathNotecardName);
+                Assert.That(writeNotecardBadPathRequestId, Is.Not.EqualTo(UUID.Zero));
+
+                TaskInventoryItem badPathItem = so.RootPart.Inventory.GetInventoryItem(badPathNotecardName);
+                Assert.That(badPathItem, Is.Null);
+            }
+
+            {
+                // Test with fake store
+                // In this case we do get a request id but no notecard is written.
+                string fakeStoreNotecardName = "fakeStoreNotecardName";
+
+                UUID fakeStoreId = TestHelpers.ParseTail(0x500);
+                UUID fakeStoreWriteNotecardValue
+                    = (UUID)InvokeOpOnHost("JsonWriteNotecard", so.UUID, fakeStoreId, "/", fakeStoreNotecardName);
+                Assert.That(fakeStoreWriteNotecardValue, Is.Not.EqualTo(UUID.Zero));
+
+                TaskInventoryItem fakeStoreItem = so.RootPart.Inventory.GetInventoryItem(fakeStoreNotecardName);
+                Assert.That(fakeStoreItem, Is.Null);
+            }
+        }
+
+        /// <summary>
         /// Test for reading and writing json to a notecard
         /// </summary>
         /// <remarks>
@@ -269,7 +328,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
         /// it via the MockScriptEngine or perhaps by a dummy script instance.
         /// </remarks>
         [Test]
-        public void TestJsonWriteReadNotecard()
+        public void TestJsonReadNotecard()
         {
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
@@ -282,13 +341,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
             UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ 'Hello':'World' }"); 
 
             // Write notecard
-            UUID writeNotecardRequestId = (UUID)InvokeOpOnHost("JsonWriteNotecard", so.UUID, storeId, "/", notecardName);
-            Assert.That(writeNotecardRequestId, Is.Not.EqualTo(UUID.Zero));
-
-            TaskInventoryItem nc1Item = so.RootPart.Inventory.GetInventoryItem(notecardName);
-            Assert.That(nc1Item, Is.Not.Null);
-
-            // TODO: Should probably independently check the contents.
+            InvokeOpOnHost("JsonWriteNotecard", so.UUID, storeId, "/", notecardName);
 
             // Read notecard
             UUID receivingStoreId = (UUID)InvokeOp("JsonCreateStore", "{ 'Hello':'World' }"); 
