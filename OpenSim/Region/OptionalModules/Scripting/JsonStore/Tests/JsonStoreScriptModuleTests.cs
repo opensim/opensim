@@ -254,6 +254,11 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 
             string value = (string)InvokeOp("JsonGetValue", storeId, "Fun");
             Assert.That(value, Is.EqualTo("Times"));
+
+            // Test with fake store
+            UUID fakeStoreId = TestHelpers.ParseTail(0x500);
+            int fakeStoreValueSet = (int)InvokeOp("JsonSetValue", fakeStoreId, "Hello", "World");
+            Assert.That(fakeStoreValueSet, Is.EqualTo(0));
         }
 
         /// <summary>
