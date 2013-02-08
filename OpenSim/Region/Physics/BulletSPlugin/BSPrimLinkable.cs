@@ -160,8 +160,8 @@ public class BSPrimLinkable : BSPrimDisplaced
             // TODO: this will have to change when linksets are articulated.
             base.UpdateProperties(entprop);
         }
+        // The linkset might like to know about changing locations
         Linkset.UpdateProperties(UpdatedProperties.EntPropUpdates, this);
-
     }
 
     public override bool Collide(uint collidingWith, BSPhysObject collidee,

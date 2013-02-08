@@ -71,6 +71,10 @@ public abstract class BSLinkset
                 ret = new BSLinksetCompound(physScene, parent);
                 break;
         }
+        if (ret == null)
+        {
+            physScene.Logger.ErrorFormat("[BULLETSIM LINKSET] Factory could not create linkset. Parent name={1}, ID={2}", parent.Name, parent.LocalID);
+        }
         return ret;
     }
 

@@ -77,13 +77,14 @@ public class ExtendedPhysics : INonSharedRegionModule
             m_log.ErrorFormat("{0} Initialization error: {0}", LogHeader, e);
         }
 
-        m_log.ErrorFormat("{0} module {1} enabled", LogHeader, (Enabled ? "is" : "is not"));
+        m_log.InfoFormat("{0} module {1} enabled", LogHeader, (Enabled ? "is" : "is not"));
     }
 
     public void Close()
     {
         if (BaseScene != null)
         {
+            BaseScene.EventManager.OnObjectAddedToScene -= EventManager_OnObjectAddedToScene;
             BaseScene.EventManager.OnSceneObjectPartUpdated -= EventManager_OnSceneObjectPartUpdated;
             BaseScene = null;
         }
@@ -120,12 +121,19 @@ public class ExtendedPhysics : INonSharedRegionModule
         Comms.RegisterScriptInvocations(this);
 
         // When an object is modified, we might need to update its extended physics parameters
+        BaseScene.EventManager.OnObjectAddedToScene += EventManager_OnObjectAddedToScene;
         BaseScene.EventManager.OnSceneObjectPartUpdated += EventManager_OnSceneObjectPartUpdated;
+
     }
 
     public Type ReplaceableInterface { get { return null; } }
 
     #endregion // INonSharedRegionModule
+
+    private void EventManager_OnObjectAddedToScene(SceneObjectGroup obj)
+    {
+        throw new NotImplementedException();
+    }
 
     // Event generated when some property of a prim changes.
     private void EventManager_OnSceneObjectPartUpdated(SceneObjectPart sop, bool isFullUpdate)

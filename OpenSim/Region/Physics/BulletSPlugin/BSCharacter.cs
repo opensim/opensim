@@ -140,7 +140,7 @@ public sealed class BSCharacter : BSPhysObject
         ZeroMotion(true);
         ForcePosition = _position;
 
-        // Set the velocity and compute the proper friction
+        // Set the velocity
         _velocityMotor.Reset();
         _velocityMotor.SetTarget(_velocity);
         _velocityMotor.SetCurrent(_velocity);
@@ -214,25 +214,28 @@ public sealed class BSCharacter : BSPhysObject
             _velocityMotor.Step(timeStep);
 
             // If we're not supposed to be moving, make sure things are zero.
-            if (_velocityMotor.ErrorIsZero() && _velocityMotor.TargetValue == OMV.Vector3.Zero && IsColliding)
+            if (_velocityMotor.ErrorIsZero() && _velocityMotor.TargetValue == OMV.Vector3.Zero)
             {
                 // The avatar shouldn't be moving
                 _velocityMotor.Zero();
 
-                // If we are colliding with a stationary object, presume we're standing and don't move around
-                if (!ColliderIsMoving)
+                if (IsColliding)
                 {
-                    DetailLog("{0},BSCharacter.MoveMotor,collidingWithStationary,zeroingMotion", LocalID);
-                    ZeroMotion(true /* inTaintTime */);
-                }
+                    // If we are colliding with a stationary object, presume we're standing and don't move around
+                    if (!ColliderIsMoving)
+                    {
+                        DetailLog("{0},BSCharacter.MoveMotor,collidingWithStationary,zeroingMotion", LocalID);
+                        ZeroMotion(true /* inTaintTime */);
+                    }
 
-                // Standing has more friction on the ground
-                if (_currentFriction != BSParam.AvatarStandingFriction)
-                {
-                    _currentFriction = BSParam.AvatarStandingFriction;
-                    PhysicsScene.PE.SetFriction(PhysBody, _currentFriction);
+                    // Standing has more friction on the ground
+                    if (_currentFriction != BSParam.AvatarStandingFriction)
+                    {
+                        _currentFriction = BSParam.AvatarStandingFriction;
+                        PhysicsScene.PE.SetFriction(PhysBody, _currentFriction);
+                    }
                 }
-                DetailLog("{0},BSCharacter.MoveMotor,taint,stopping,target={1}", LocalID, _velocityMotor.TargetValue);
+                DetailLog("{0},BSCharacter.MoveMotor,taint,stopping,target={1},colliding={2}", LocalID, _velocityMotor.TargetValue, IsColliding);
             }
             else
             {

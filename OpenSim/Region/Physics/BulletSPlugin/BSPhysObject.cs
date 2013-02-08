@@ -290,13 +290,13 @@ public abstract class BSPhysObject : PhysicsActor
         CollisionAccumulation++;
 
         // For movement tests, remember if we are colliding with an object that is moving.
-        ColliderIsMoving = collidee != null ? collidee.RawVelocity != OMV.Vector3.Zero : false;
+        ColliderIsMoving = collidee != null ? (collidee.RawVelocity != OMV.Vector3.Zero) : false;
 
         // If someone has subscribed for collision events log the collision so it will be reported up
         if (SubscribedEvents()) {
             CollisionCollection.AddCollider(collidingWith, new ContactPoint(contactPoint, contactNormal, pentrationDepth));
-            DetailLog("{0},{1}.Collison.AddCollider,call,with={2},point={3},normal={4},depth={5}",
-                            LocalID, TypeName, collidingWith, contactPoint, contactNormal, pentrationDepth);
+            DetailLog("{0},{1}.Collison.AddCollider,call,with={2},point={3},normal={4},depth={5},colliderMoving={6}",
+                            LocalID, TypeName, collidingWith, contactPoint, contactNormal, pentrationDepth, ColliderIsMoving);
 
             ret = true;
         }
