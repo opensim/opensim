@@ -42,9 +42,6 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
     /// <summary>
     /// Serialize and deserialize coalesced scene objects.
     /// </summary>
-    /// <remarks>
-    /// Deserialization not yet here.
-    /// </remarks>
     public class CoalescedSceneObjectsSerializer
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -128,6 +125,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 //            m_log.DebugFormat("[COALESCED SCENE OBJECTS SERIALIZER]: TryFromXml() deserializing {0}", xml);
             
             coa = null;
+            int i = 0;
             
             using (StringReader sr = new StringReader(xml))
             {                
@@ -153,7 +151,23 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                             if (reader.Name == "SceneObjectGroup")
                             {
                                 string soXml = reader.ReadOuterXml();
-                                coa.Add(SceneObjectSerializer.FromOriginalXmlFormat(soXml));
+
+                                SceneObjectGroup so = SceneObjectSerializer.FromOriginalXmlFormat(soXml);
+
+                                if (so != null)
+                                {
+                                    coa.Add(so);
+                                }
+                                else
+                                {
+                                    // XXX: Possibly we should fail outright here rather than continuing if a particular component of the 
+                                    // coalesced object fails to load.
+                                    m_log.WarnFormat(
+                                        "[COALESCED SCENE OBJECTS SERIALIZER]: Deserialization of xml for component {0} failed.  Continuing.", 
+                                        i);
+                                }
+
+                                i++;
                             }
                         }
                         
