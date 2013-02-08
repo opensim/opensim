@@ -424,7 +424,7 @@ public static class BSParam
             (s) => { return AvatarFriction; },
             (s,p,l,v) => { AvatarFriction = v; } ),
         new ParameterDefn("AvatarStandingFriction", "Avatar friction when standing. Changed on avatar recreation.",
-            10.0f,
+            0.95f,
             (s,cf,p,v) => { AvatarStandingFriction = cf.GetFloat(p, v); },
             (s) => { return AvatarStandingFriction; },
             (s,p,l,v) => { AvatarStandingFriction = v; } ),
