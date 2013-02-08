@@ -79,7 +79,7 @@ public abstract class BSPhysObject : PhysicsActor
         TypeName = typeName;
 
         // Initialize variables kept in base.
-        GravityModifier = 1.0f;
+        GravModifier = 1.0f;
         Gravity = new OMV.Vector3(0f, 0f, BSParam.Gravity);
 
         // We don't have any physical representation yet.
@@ -170,6 +170,8 @@ public abstract class BSPhysObject : PhysicsActor
     public override void SetMaterial(int material)
     {
         Material = (MaterialAttributes.Material)material;
+
+        // Setting the material sets the material attributes also.
         MaterialAttributes matAttrib = BSMaterials.GetAttributes(Material, false);
         Friction = matAttrib.friction;
         Restitution = matAttrib.restitution;
