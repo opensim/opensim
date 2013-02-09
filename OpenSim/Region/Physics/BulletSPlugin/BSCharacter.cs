@@ -45,7 +45,6 @@ public sealed class BSCharacter : BSPhysObject
     private bool _selected;
     private OMV.Vector3 _position;
     private float _mass;
-    private float _avatarDensity;
     private float _avatarVolume;
     private OMV.Vector3 _force;
     private OMV.Vector3 _velocity;
@@ -62,9 +61,6 @@ public sealed class BSCharacter : BSPhysObject
     private OMV.Vector3 _rotationalVelocity;
     private bool _kinematic;
     private float _buoyancy;
-
-    // The friction and velocity of the avatar is modified depending on whether walking or not.
-    private float _currentFriction;         // the friction currently being used (changed by setVelocity).
 
     private BSVMotor _velocityMotor;
 
@@ -86,8 +82,8 @@ public sealed class BSCharacter : BSPhysObject
         _orientation = OMV.Quaternion.Identity;
         _velocity = OMV.Vector3.Zero;
         _buoyancy = ComputeBuoyancyFromFlying(isFlying);
-        _currentFriction = BSParam.AvatarStandingFriction;
-        _avatarDensity = BSParam.AvatarDensity;
+        Friction = BSParam.AvatarStandingFriction;
+        Density = BSParam.AvatarDensity;
 
         // Old versions of ScenePresence passed only the height. If width and/or depth are zero,
         //     replace with the default values.
@@ -104,7 +100,7 @@ public sealed class BSCharacter : BSPhysObject
         SetupMovementMotor();
 
         DetailLog("{0},BSCharacter.create,call,size={1},scale={2},density={3},volume={4},mass={5}",
-                            LocalID, _size, Scale, _avatarDensity, _avatarVolume, RawMass);
+                            LocalID, _size, Scale, Density, _avatarVolume, RawMass);
 
         // do actual creation in taint time
         PhysicsScene.TaintedObject("BSCharacter.create", delegate()
@@ -140,7 +136,7 @@ public sealed class BSCharacter : BSPhysObject
         ZeroMotion(true);
         ForcePosition = _position;
 
-        // Set the velocity and compute the proper friction
+        // Set the velocity
         _velocityMotor.Reset();
         _velocityMotor.SetTarget(_velocity);
         _velocityMotor.SetCurrent(_velocity);
@@ -214,35 +210,38 @@ public sealed class BSCharacter : BSPhysObject
             _velocityMotor.Step(timeStep);
 
             // If we're not supposed to be moving, make sure things are zero.
-            if (_velocityMotor.ErrorIsZero() && _velocityMotor.TargetValue == OMV.Vector3.Zero && IsColliding)
+            if (_velocityMotor.ErrorIsZero() && _velocityMotor.TargetValue == OMV.Vector3.Zero)
             {
                 // The avatar shouldn't be moving
                 _velocityMotor.Zero();
 
-                // If we are colliding with a stationary object, presume we're standing and don't move around
-                if (!ColliderIsMoving)
+                if (IsColliding)
                 {
-                    DetailLog("{0},BSCharacter.MoveMotor,collidingWithStationary,zeroingMotion", LocalID);
-                    ZeroMotion(true /* inTaintTime */);
-                }
+                    // If we are colliding with a stationary object, presume we're standing and don't move around
+                    if (!ColliderIsMoving)
+                    {
+                        DetailLog("{0},BSCharacter.MoveMotor,collidingWithStationary,zeroingMotion", LocalID);
+                        ZeroMotion(true /* inTaintTime */);
+                    }
 
-                // Standing has more friction on the ground
-                if (_currentFriction != BSParam.AvatarStandingFriction)
-                {
-                    _currentFriction = BSParam.AvatarStandingFriction;
-                    PhysicsScene.PE.SetFriction(PhysBody, _currentFriction);
+                    // Standing has more friction on the ground
+                    if (Friction != BSParam.AvatarStandingFriction)
+                    {
+                        Friction = BSParam.AvatarStandingFriction;
+                        PhysicsScene.PE.SetFriction(PhysBody, Friction);
+                    }
                 }
-                DetailLog("{0},BSCharacter.MoveMotor,taint,stopping,target={1}", LocalID, _velocityMotor.TargetValue);
+                DetailLog("{0},BSCharacter.MoveMotor,taint,stopping,target={1},colliding={2}", LocalID, _velocityMotor.TargetValue, IsColliding);
             }
             else
             {
                 OMV.Vector3 stepVelocity = _velocityMotor.CurrentValue;
 
-                if (_currentFriction != BSParam.AvatarFriction)
+                if (Friction != BSParam.AvatarFriction)
                 {
                     // Probably starting up walking. Set friction to moving friction.
-                    _currentFriction = BSParam.AvatarFriction;
-                    PhysicsScene.PE.SetFriction(PhysBody, _currentFriction);
+                    Friction = BSParam.AvatarFriction;
+                    PhysicsScene.PE.SetFriction(PhysBody, Friction);
                 }
 
                 // If falling, we keep the world's downward vector no matter what the other axis specify.
@@ -342,7 +341,7 @@ public sealed class BSCharacter : BSPhysObject
             Scale = ComputeAvatarScale(_size);
             ComputeAvatarVolumeAndMass();
             DetailLog("{0},BSCharacter.setSize,call,size={1},scale={2},density={3},volume={4},mass={5}",
-                            LocalID, _size, Scale, _avatarDensity, _avatarVolume, RawMass);
+                            LocalID, _size, Scale, Density, _avatarVolume, RawMass);
 
             PhysicsScene.TaintedObject("BSCharacter.setSize", delegate()
             {
@@ -870,7 +869,7 @@ public sealed class BSCharacter : BSPhysObject
                         * Math.Min(Size.X, Size.Y) / 2
                         * Size.Y / 2f    // plus the volume of the capsule end caps
                         );
-        _mass = _avatarDensity * _avatarVolume;
+        _mass = Density * _avatarVolume;
     }
 
     // The physics engine says that properties have updated. Update same and inform
@@ -901,7 +900,7 @@ public sealed class BSCharacter : BSPhysObject
         CurrentEntityProperties = entprop;
 
         // Tell the linkset about value changes
-        Linkset.UpdateProperties(UpdatedProperties.EntPropUpdates, this);
+        // Linkset.UpdateProperties(UpdatedProperties.EntPropUpdates, this);
 
         // Avatars don't report their changes the usual way. Changes are checked for in the heartbeat loop.
         // base.RequestPhysicsterseUpdate();

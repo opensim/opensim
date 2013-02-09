@@ -597,7 +597,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             if (IsActive)
             {
                 // Remember the mass so we don't have to fetch it every step
-                m_vehicleMass = Prim.Linkset.LinksetMass;
+                m_vehicleMass = Prim.TotalMass;
 
                 // Friction affects are handled by this vehicle code
                 PhysicsScene.PE.SetFriction(Prim.PhysBody, BSParam.VehicleFriction);

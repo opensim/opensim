@@ -86,10 +86,6 @@ public abstract class BSPhysObject : PhysicsActor
         PhysBody = new BulletBody(localID);
         PhysShape = new BulletShape();
 
-        // A linkset of just me
-        Linkset = BSLinkset.Factory(PhysicsScene, this);
-        PositionDisplacement = OMV.Vector3.Zero;
-
         LastAssetBuildFailed = false;
 
         // Default material type. Also sets Friction, Restitution and Density.
@@ -117,8 +113,6 @@ public abstract class BSPhysObject : PhysicsActor
     public string PhysObjectName { get; protected set; }
     public string TypeName { get; protected set; }
 
-    public BSLinkset Linkset { get; set; }
-    public BSLinksetInfo LinksetInfo { get; set; }
 
     // Return the object mass without calculating it or having side effects
     public abstract float RawMass { get; }
@@ -187,15 +181,6 @@ public abstract class BSPhysObject : PhysicsActor
 
     public abstract OMV.Vector3 RawPosition { get; set; }
     public abstract OMV.Vector3 ForcePosition { get; set; }
-
-    // 'Position' and 'Orientation' is what the simulator thinks the positions of the prim is.
-    // Because Bullet needs the zero coordinate to be the center of mass of the linkset,
-    //     sometimes it is necessary to displace the position the physics engine thinks
-    //     the position is. PositionDisplacement must be added and removed from the
-    //     position as the simulator position is stored and fetched from the physics
-    //     engine. Similar to OrientationDisplacement.
-    public virtual OMV.Vector3 PositionDisplacement { get; set; }
-    public virtual OMV.Quaternion OrientationDisplacement { get; set; }
 
     public abstract OMV.Quaternion RawOrientation { get; set; }
     public abstract OMV.Quaternion ForceOrientation { get; set; }
@@ -302,22 +287,16 @@ public abstract class BSPhysObject : PhysicsActor
             CollidingObjectStep = PhysicsScene.SimulationStep;
         }
 
-        // prims in the same linkset cannot collide with each other
-        if (collidee != null && (this.Linkset.LinksetID == collidee.Linkset.LinksetID))
-        {
-            return ret;
-        }
-
         CollisionAccumulation++;
 
         // For movement tests, remember if we are colliding with an object that is moving.
-        ColliderIsMoving = collidee != null ? collidee.RawVelocity != OMV.Vector3.Zero : false;
+        ColliderIsMoving = collidee != null ? (collidee.RawVelocity != OMV.Vector3.Zero) : false;
 
         // If someone has subscribed for collision events log the collision so it will be reported up
         if (SubscribedEvents()) {
             CollisionCollection.AddCollider(collidingWith, new ContactPoint(contactPoint, contactNormal, pentrationDepth));
-            DetailLog("{0},{1}.Collison.AddCollider,call,with={2},point={3},normal={4},depth={5}",
-                            LocalID, TypeName, collidingWith, contactPoint, contactNormal, pentrationDepth);
+            DetailLog("{0},{1}.Collison.AddCollider,call,with={2},point={3},normal={4},depth={5},colliderMoving={6}",
+                            LocalID, TypeName, collidingWith, contactPoint, contactNormal, pentrationDepth, ColliderIsMoving);
 
             ret = true;
         }

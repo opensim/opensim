@@ -36,7 +36,7 @@ public sealed class BSLinksetConstraints : BSLinkset
 {
     // private static string LogHeader = "[BULLETSIM LINKSET CONSTRAINTS]";
 
-    public BSLinksetConstraints(BSScene scene, BSPhysObject parent) : base(scene, parent)
+    public BSLinksetConstraints(BSScene scene, BSPrimLinkable parent) : base(scene, parent)
     {
     }
 
@@ -44,7 +44,7 @@ public sealed class BSLinksetConstraints : BSLinkset
     //   its internal properties.
     // This is queued in the 'post taint' queue so the
     //   refresh will happen once after all the other taints are applied.
-    public override void Refresh(BSPhysObject requestor)
+    public override void Refresh(BSPrimLinkable requestor)
     {
         base.Refresh(requestor);
 
@@ -65,7 +65,7 @@ public sealed class BSLinksetConstraints : BSLinkset
     //     has not yet been fully constructed.
     // Return 'true' if any properties updated on the passed object.
     // Called at taint-time!
-    public override bool MakeDynamic(BSPhysObject child)
+    public override bool MakeDynamic(BSPrimLinkable child)
     {
         // What is done for each object in BSPrim is what we want.
         return false;
@@ -76,14 +76,14 @@ public sealed class BSLinksetConstraints : BSLinkset
     // This doesn't normally happen -- OpenSim removes the objects from the physical
     //     world if it is a static linkset.
     // Called at taint-time!
-    public override bool MakeStatic(BSPhysObject child)
+    public override bool MakeStatic(BSPrimLinkable child)
     {
         // What is done for each object in BSPrim is what we want.
         return false;
     }
 
     // Called at taint-time!!
-    public override void UpdateProperties(UpdatedProperties whichUpdated, BSPhysObject pObj)
+    public override void UpdateProperties(UpdatedProperties whichUpdated, BSPrimLinkable pObj)
     {
         // Nothing to do for constraints on property updates
     }
@@ -93,7 +93,7 @@ public sealed class BSLinksetConstraints : BSLinkset
     //     up to rebuild the constraints before the next simulation step.
     // Returns 'true' of something was actually removed and would need restoring
     // Called at taint-time!!
-    public override bool RemoveBodyDependencies(BSPrim child)
+    public override bool RemoveBodyDependencies(BSPrimLinkable child)
     {
         bool ret = false;
 
@@ -114,7 +114,7 @@ public sealed class BSLinksetConstraints : BSLinkset
 
     // Add a new child to the linkset.
     // Called while LinkActivity is locked.
-    protected override void AddChildToLinkset(BSPhysObject child)
+    protected override void AddChildToLinkset(BSPrimLinkable child)
     {
         if (!HasChild(child))
         {
@@ -130,12 +130,12 @@ public sealed class BSLinksetConstraints : BSLinkset
 
     // Remove the specified child from the linkset.
     // Safe to call even if the child is not really in my linkset.
-    protected override void RemoveChildFromLinkset(BSPhysObject child)
+    protected override void RemoveChildFromLinkset(BSPrimLinkable child)
     {
         if (m_children.Remove(child))
         {
-            BSPhysObject rootx = LinksetRoot; // capture the root and body as of now
-            BSPhysObject childx = child;
+            BSPrimLinkable rootx = LinksetRoot; // capture the root and body as of now
+            BSPrimLinkable childx = child;
 
             DetailLog("{0},BSLinksetConstraints.RemoveChildFromLinkset,call,rID={1},rBody={2},cID={3},cBody={4}",
                             childx.LocalID,
@@ -159,13 +159,13 @@ public sealed class BSLinksetConstraints : BSLinkset
 
     // Create a constraint between me (root of linkset) and the passed prim (the child).
     // Called at taint time!
-    private void PhysicallyLinkAChildToRoot(BSPhysObject rootPrim, BSPhysObject childPrim)
+    private void PhysicallyLinkAChildToRoot(BSPrimLinkable rootPrim, BSPrimLinkable childPrim)
     {
         // Don't build the constraint when asked. Put it off until just before the simulation step.
         Refresh(rootPrim);
     }
 
-    private BSConstraint BuildConstraint(BSPhysObject rootPrim, BSPhysObject childPrim)
+    private BSConstraint BuildConstraint(BSPrimLinkable rootPrim, BSPrimLinkable childPrim)
     {
         // Zero motion for children so they don't interpolate
         childPrim.ZeroMotion(true);
@@ -239,7 +239,7 @@ public sealed class BSLinksetConstraints : BSLinkset
     // The root and child bodies are passed in because we need to remove the constraint between
     //      the bodies that were present at unlink time.
     // Called at taint time!
-    private bool PhysicallyUnlinkAChildFromRoot(BSPhysObject rootPrim, BSPhysObject childPrim)
+    private bool PhysicallyUnlinkAChildFromRoot(BSPrimLinkable rootPrim, BSPrimLinkable childPrim)
     {
         bool ret = false;
         DetailLog("{0},BSLinksetConstraint.PhysicallyUnlinkAChildFromRoot,taint,root={1},rBody={2},child={3},cBody={4}",
@@ -261,7 +261,7 @@ public sealed class BSLinksetConstraints : BSLinkset
     // Remove linkage between myself and any possible children I might have.
     // Returns 'true' of any constraints were destroyed.
     // Called at taint time!
-    private bool PhysicallyUnlinkAllChildrenFromRoot(BSPhysObject rootPrim)
+    private bool PhysicallyUnlinkAllChildrenFromRoot(BSPrimLinkable rootPrim)
     {
         DetailLog("{0},BSLinksetConstraint.PhysicallyUnlinkAllChildren,taint", rootPrim.LocalID);
 
@@ -281,7 +281,7 @@ public sealed class BSLinksetConstraints : BSLinkset
         DetailLog("{0},BSLinksetConstraint.RecomputeLinksetConstraints,set,rBody={1},linksetMass={2}",
                             LinksetRoot.LocalID, LinksetRoot.PhysBody.AddrString, linksetMass);
 
-        foreach (BSPhysObject child in m_children)
+        foreach (BSPrimLinkable child in m_children)
         {
             // A child in the linkset physically shows the mass of the whole linkset.
             // This allows Bullet to apply enough force on the child to move the whole linkset.
