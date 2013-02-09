@@ -87,6 +87,7 @@ public static class BSParam
 	public static float NumberOfSolverIterations;
     public static bool UseSingleSidedMeshes { get { return UseSingleSidedMeshesF != ConfigurationParameters.numericFalse; } }
     public static float UseSingleSidedMeshesF;
+    public static float GlobalContactBreakingThreshold;
 
     // Avatar parameters
     public static float AvatarFriction { get; private set; }
@@ -570,6 +571,11 @@ public static class BSParam
             (s,cf,p,v) => { UseSingleSidedMeshesF = BSParam.NumericBool(cf.GetBoolean(p, BSParam.BoolNumeric(v))); },
             (s) => { return UseSingleSidedMeshesF; },
             (s,p,l,v) => { UseSingleSidedMeshesF = v; s.UnmanagedParams[0].useSingleSidedMeshes = v; } ),
+	    new ParameterDefn("GlobalContactBreakingThreshold", "Amount of shape radius before breaking a collision contact (0 says Bullet default (0.2))",
+            0f,
+            (s,cf,p,v) => { GlobalContactBreakingThreshold = cf.GetFloat(p, v); },
+            (s) => { return GlobalContactBreakingThreshold; },
+            (s,p,l,v) => { GlobalContactBreakingThreshold = v; s.UnmanagedParams[0].globalContactBreakingThreshold = v; } ),
 
 	    new ParameterDefn("LinksetImplementation", "Type of linkset implementation (0=Constraint, 1=Compound, 2=Manual)",
             (float)BSLinkset.LinksetImplementation.Compound,
