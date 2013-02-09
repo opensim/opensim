@@ -301,7 +301,16 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         [ScriptInvocation]
         public string JsonList2Path(UUID hostID, UUID scriptID, object[] pathlist)
         {
-            return JsonStore.CanonicalPathExpression(ConvertList2Path(pathlist));
+            string ipath = ConvertList2Path(pathlist);
+            string opath;
+            
+            if (JsonStore.CanonicalPathExpression(ipath,out opath))
+                return opath;
+
+            // This won't parse if passed to the other routines as opposed to
+            // returning an empty string which is a valid path and would overwrite
+            // the entire store
+            return "**INVALID**";
         }
         
         // -----------------------------------------------------------------
@@ -421,6 +430,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         // -----------------------------------------------------------------
         protected void GenerateRuntimeError(string msg)
         {
+            m_log.InfoFormat("[JsonStore] runtime error: {0}",msg);
             throw new Exception("JsonStore Runtime Error: " + msg);
         }
         
