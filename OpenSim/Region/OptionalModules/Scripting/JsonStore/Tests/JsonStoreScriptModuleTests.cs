@@ -144,8 +144,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 
             int dsrv = (int)InvokeOp("JsonDestroyStore", fakeStoreId);
 
-            // XXX: Current returns 'true' even though no such store existed.  Need to ask if this is best behaviour.
-            Assert.That(dsrv, Is.EqualTo(1));
+            Assert.That(dsrv, Is.EqualTo(0));
         }
 
         [Test]
@@ -211,9 +210,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 
             // Test remove of non-existing value
             int fakeValueRemove = (int)InvokeOp("JsonRemoveValue", storeId, "Hello");
-
-            // XXX: Is this the best response to removing a value that isn't there?
-            Assert.That(fakeValueRemove, Is.EqualTo(1));
+            Assert.That(fakeValueRemove, Is.EqualTo(0));
 
             // Test get from non-existing store
             UUID fakeStoreId = TestHelpers.ParseTail(0x500);

@@ -52,7 +52,7 @@ sealed class BSLinksetCompoundInfo : BSLinksetInfo
         OffsetRot = r;
     }
     // 'centerDisplacement' is the distance from the root the the center-of-mass (Bullet 'zero' of the shape)
-    public BSLinksetCompoundInfo(int indx, BSPhysObject root, BSPhysObject child, OMV.Vector3 centerDisplacement)
+    public BSLinksetCompoundInfo(int indx, BSPrimLinkable root, BSPrimLinkable child, OMV.Vector3 centerDisplacement)
     {
         // Each child position and rotation is given relative to the center-of-mass.
         OMV.Quaternion invRootOrientation = OMV.Quaternion.Inverse(root.RawOrientation);
@@ -93,12 +93,12 @@ public sealed class BSLinksetCompound : BSLinkset
 {
     private static string LogHeader = "[BULLETSIM LINKSET COMPOUND]";
 
-    public BSLinksetCompound(BSScene scene, BSPhysObject parent) : base(scene, parent)
+    public BSLinksetCompound(BSScene scene, BSPrimLinkable parent) : base(scene, parent)
     {
     }
 
     // For compound implimented linksets, if there are children, use compound shape for the root.
-    public override BSPhysicsShapeType PreferredPhysicalShape(BSPhysObject requestor)
+    public override BSPhysicsShapeType PreferredPhysicalShape(BSPrimLinkable requestor)
     { 
         // Returning 'unknown' means we don't have a preference.
         BSPhysicsShapeType ret = BSPhysicsShapeType.SHAPE_UNKNOWN;
@@ -112,7 +112,7 @@ public sealed class BSLinksetCompound : BSLinkset
 
     // When physical properties are changed the linkset needs to recalculate
     //   its internal properties.
-    public override void Refresh(BSPhysObject requestor)
+    public override void Refresh(BSPrimLinkable requestor)
     {
         base.Refresh(requestor);
 
@@ -121,7 +121,7 @@ public sealed class BSLinksetCompound : BSLinkset
     }
 
     // Schedule a refresh to happen after all the other taint processing.
-    private void ScheduleRebuild(BSPhysObject requestor)
+    private void ScheduleRebuild(BSPrimLinkable requestor)
     {
         DetailLog("{0},BSLinksetCompound.ScheduleRebuild,,rebuilding={1},hasChildren={2},actuallyScheduling={3}", 
                             requestor.LocalID, Rebuilding, HasAnyChildren, (!Rebuilding && HasAnyChildren));
@@ -143,7 +143,7 @@ public sealed class BSLinksetCompound : BSLinkset
     //     has not yet been fully constructed.
     // Return 'true' if any properties updated on the passed object.
     // Called at taint-time!
-    public override bool MakeDynamic(BSPhysObject child)
+    public override bool MakeDynamic(BSPrimLinkable child)
     {
         bool ret = false;
         DetailLog("{0},BSLinksetCompound.MakeDynamic,call,IsRoot={1}", child.LocalID, IsRoot(child));
@@ -173,7 +173,7 @@ public sealed class BSLinksetCompound : BSLinkset
     // This doesn't normally happen -- OpenSim removes the objects from the physical
     //     world if it is a static linkset.
     // Called at taint-time!
-    public override bool MakeStatic(BSPhysObject child)
+    public override bool MakeStatic(BSPrimLinkable child)
     {
         bool ret = false;
         DetailLog("{0},BSLinksetCompound.MakeStatic,call,IsRoot={1}", child.LocalID, IsRoot(child));
@@ -197,7 +197,7 @@ public sealed class BSLinksetCompound : BSLinkset
 
     // 'physicalUpdate' is true if these changes came directly from the physics engine. Don't need to rebuild then.
     // Called at taint-time.
-    public override void UpdateProperties(UpdatedProperties whichUpdated, BSPhysObject updated)
+    public override void UpdateProperties(UpdatedProperties whichUpdated, BSPrimLinkable updated)
     {
         // The user moving a child around requires the rebuilding of the linkset compound shape
         // One problem is this happens when a border is crossed -- the simulator implementation
@@ -222,7 +222,7 @@ public sealed class BSLinksetCompound : BSLinkset
                 if (lsi != null)
                 {
                     // Since the child moved or rotationed, it needs a new relative position within the linkset
-                    BSLinksetCompoundInfo newLsi = new BSLinksetCompoundInfo(lsi.Index, LinksetRoot, updated, LinksetRoot.PositionDisplacement);
+                    BSLinksetCompoundInfo newLsi = new BSLinksetCompoundInfo(lsi.Index, LinksetRoot, updated, OMV.Vector3.Zero);
                     updated.LinksetInfo = newLsi;
 
                     // Find the physical instance of the child 
@@ -291,7 +291,7 @@ public sealed class BSLinksetCompound : BSLinkset
     // Since we don't keep in world relationships, do nothing unless it's a child changing.
     // Returns 'true' of something was actually removed and would need restoring
     // Called at taint-time!!
-    public override bool RemoveBodyDependencies(BSPrim child)
+    public override bool RemoveBodyDependencies(BSPrimLinkable child)
     {
         bool ret = false;
 
@@ -316,7 +316,7 @@ public sealed class BSLinksetCompound : BSLinkset
     // When the linkset is built, the child shape is added to the compound shape relative to the
     //    root shape. The linkset then moves around but this does not move the actual child
     //    prim. The child prim's location must be recomputed based on the location of the root shape.
-    private void RecomputeChildWorldPosition(BSPhysObject child, bool inTaintTime)
+    private void RecomputeChildWorldPosition(BSPrimLinkable child, bool inTaintTime)
     {
         // For the moment (20130201), disable this computation (converting the child physical addr back to
         //    a region address) until we have a good handle on center-of-mass offsets and what the physics
@@ -361,7 +361,7 @@ public sealed class BSLinksetCompound : BSLinkset
 
     // Add a new child to the linkset.
     // Called while LinkActivity is locked.
-    protected override void AddChildToLinkset(BSPhysObject child)
+    protected override void AddChildToLinkset(BSPrimLinkable child)
     {
         if (!HasChild(child))
         {
@@ -377,7 +377,7 @@ public sealed class BSLinksetCompound : BSLinkset
 
     // Remove the specified child from the linkset.
     // Safe to call even if the child is not really in the linkset.
-    protected override void RemoveChildFromLinkset(BSPhysObject child)
+    protected override void RemoveChildFromLinkset(BSPrimLinkable child)
     {
         if (m_children.Remove(child))
         {
@@ -429,7 +429,7 @@ public sealed class BSLinksetCompound : BSLinkset
             if (disableCOM)                             // DEBUG DEBUG
             {                                           // DEBUG DEBUG
                 centerOfMass = LinksetRoot.RawPosition; // DEBUG DEBUG
-                LinksetRoot.PositionDisplacement = OMV.Vector3.Zero;
+                // LinksetRoot.PositionDisplacement = OMV.Vector3.Zero;
             }                                           // DEBUG DEBUG
             else
             {
@@ -438,7 +438,7 @@ public sealed class BSLinksetCompound : BSLinkset
                 centerDisplacement = LinksetRoot.RawPosition - centerOfMass;
 
                 // Since we're displacing the center of the shape, we need to move the body in the world
-                LinksetRoot.PositionDisplacement = centerDisplacement;
+                // LinksetRoot.PositionDisplacement = centerDisplacement;
 
                 // This causes the root prim position to be set properly based on the new PositionDisplacement
                 LinksetRoot.ForcePosition = LinksetRoot.RawPosition;
@@ -453,7 +453,7 @@ public sealed class BSLinksetCompound : BSLinkset
 
             // Add a shape for each of the other children in the linkset
             int memberIndex = 1;
-            ForEachMember(delegate(BSPhysObject cPrim)
+            ForEachMember(delegate(BSPrimLinkable cPrim)
             {
                 if (!IsRoot(cPrim))
                 {

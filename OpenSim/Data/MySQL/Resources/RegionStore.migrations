@@ -911,7 +911,7 @@ ALTER TABLE prims ADD COLUMN DynAttrs TEXT;
 
 COMMIT;
 
-:VERSION 47       #---------------- Extra prim params
+:VERSION 47       #---------------- Extra physics params
 
 BEGIN;
 

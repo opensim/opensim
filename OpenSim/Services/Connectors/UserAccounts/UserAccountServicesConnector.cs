@@ -162,7 +162,7 @@ namespace OpenSim.Services.Connectors
 
             if (replyData != null)
             {
-                if (replyData.ContainsKey("result") && replyData.ContainsKey("result").ToString() == "null")
+                if (replyData.ContainsKey("result") && replyData["result"].ToString() == "null")
                 {
                     return accounts;
                 }
