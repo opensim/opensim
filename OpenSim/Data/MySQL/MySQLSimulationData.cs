@@ -1727,12 +1727,6 @@ namespace OpenSim.Data.MySQL
             else
                 cmd.Parameters.AddWithValue("KeyframeMotion", new Byte[0]);
 
-            cmd.Parameters.AddWithValue("PhysicsShapeType", prim.PhysicsShapeType);
-            cmd.Parameters.AddWithValue("Density", (double)prim.Density);
-            cmd.Parameters.AddWithValue("GravityModifier", (double)prim.GravityModifier);
-            cmd.Parameters.AddWithValue("Friction", (double)prim.Friction);
-            cmd.Parameters.AddWithValue("Restitution", (double)prim.Restitution);
-
             if (prim.VehicleParams != null)
                 cmd.Parameters.AddWithValue("Vehicle", prim.VehicleParams.ToXml2());
             else
@@ -1742,6 +1736,12 @@ namespace OpenSim.Data.MySQL
                 cmd.Parameters.AddWithValue("DynAttrs", prim.DynAttrs.ToXml());
             else
                 cmd.Parameters.AddWithValue("DynAttrs", null);
+
+            cmd.Parameters.AddWithValue("PhysicsShapeType", prim.PhysicsShapeType);
+            cmd.Parameters.AddWithValue("Density", (double)prim.Density);
+            cmd.Parameters.AddWithValue("GravityModifier", (double)prim.GravityModifier);
+            cmd.Parameters.AddWithValue("Friction", (double)prim.Friction);
+            cmd.Parameters.AddWithValue("Restitution", (double)prim.Restitution);
         }
 
         /// <summary>

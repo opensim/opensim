@@ -81,7 +81,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         protected static Regex m_ParsePassFour = new Regex("\\.+");
 
         // expression used to validate the full path, this is canonical representation
-        protected static Regex m_ValidatePath = new Regex("^\\.(({[^}]+}|\\[[0-9]+\\]|\\[\\+\\])\\.)+$");
+        protected static Regex m_ValidatePath = new Regex("^\\.(({[^}]+}|\\[[0-9]+\\]|\\[\\+\\])\\.)*$");
 
         // expression used to match path components
         protected static Regex m_PathComponent = new Regex("\\.({[^}]+}|\\[[0-9]+\\]|\\[\\+\\]+)");
@@ -107,9 +107,17 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         /// 
         /// </summary>
         // -----------------------------------------------------------------
-        public static string CanonicalPathExpression(string path)
+        public static bool CanonicalPathExpression(string ipath, out string opath)
         {
-            return PathExpressionToKey(ParsePathExpression(path));
+            Stack<string> path;
+            if (! ParsePathExpression(ipath,out path))
+            {
+                opath = "";
+                return false;
+            }
+
+            opath = PathExpressionToKey(path);
+            return true;
         }
         
         // -----------------------------------------------------------------
@@ -139,13 +147,16 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         // -----------------------------------------------------------------
         public bool TestPath(string expr, bool useJson)
         {
-            Stack<string> path = ParsePathExpression(expr);
+            Stack<string> path;
+            if (! ParsePathExpression(expr,out path))
+                return false;
+            
             OSD result = ProcessPathExpression(ValueStore,path);
 
             if (result == null)
                 return false;
             
-            if (useJson || result.Type == OSDType.String)
+            if (useJson || OSDBaseType(result.Type))
                 return true;
             
             return false;
@@ -158,7 +169,13 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         // -----------------------------------------------------------------
         public bool GetValue(string expr, out string value, bool useJson)
         {
-            Stack<string> path = ParsePathExpression(expr);
+            Stack<string> path;
+            if (! ParsePathExpression(expr,out path))
+            {
+                value = "";
+                return false;
+            }
+
             OSD result = ProcessPathExpression(ValueStore,path);
             return ConvertOutputValue(result,out value,useJson); 
         }
@@ -192,7 +209,10 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         // -----------------------------------------------------------------
         public bool TakeValue(string expr, bool useJson, TakeValueCallback cback)
         {
-            Stack<string> path = ParsePathExpression(expr);
+            Stack<string> path;
+            if (! ParsePathExpression(expr,out path))
+                return false;
+
             string pexpr = PathExpressionToKey(path);
 
             OSD result = ProcessPathExpression(ValueStore,path);
@@ -223,7 +243,10 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         // -----------------------------------------------------------------
         public bool ReadValue(string expr, bool useJson, TakeValueCallback cback)
         {
-            Stack<string> path = ParsePathExpression(expr);
+            Stack<string> path;
+            if (! ParsePathExpression(expr,out path))
+                return false;
+
             string pexpr = PathExpressionToKey(path);
 
             OSD result = ProcessPathExpression(ValueStore,path);
@@ -253,7 +276,10 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         // -----------------------------------------------------------------
         protected bool SetValueFromExpression(string expr, OSD ovalue)
         {
-            Stack<string> path = ParsePathExpression(expr);
+            Stack<string> path;
+            if (! ParsePathExpression(expr,out path))
+                return false;
+
             if (path.Count == 0)
             {
                 ValueStore = ovalue;
@@ -399,34 +425,36 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         /// use a stack because we process the path in inverse order later
         /// </summary>
         // -----------------------------------------------------------------
-        protected static Stack<string> ParsePathExpression(string path)
+        protected static bool ParsePathExpression(string expr, out Stack<string> path)
         {
-            Stack<string> m_path = new Stack<string>();
+            path = new Stack<string>();
 
             // add front and rear separators
-            path = "." + path + ".";
+            expr = "." + expr + ".";
             
-            // add separators for quoted paths
-            path = m_ParsePassOne.Replace(path,".$0.",-1,0);
+            // add separators for quoted exprs
+            expr = m_ParsePassOne.Replace(expr,".$0.",-1,0);
                 
             // add separators for array references
-            path = m_ParsePassTwo.Replace(path,".$0.",-1,0);
+            expr = m_ParsePassTwo.Replace(expr,".$0.",-1,0);
                 
             // add quotes to bare identifier
-            path = m_ParsePassThree.Replace(path,".{$1}",-1,0);
+            expr = m_ParsePassThree.Replace(expr,".{$1}",-1,0);
                 
             // remove extra separators
-            path = m_ParsePassFour.Replace(path,".",-1,0);
+            expr = m_ParsePassFour.Replace(expr,".",-1,0);
 
             // validate the results (catches extra quote characters for example)
-            if (m_ValidatePath.IsMatch(path))
+            if (m_ValidatePath.IsMatch(expr))
             {
-                MatchCollection matches = m_PathComponent.Matches(path,0);
+                MatchCollection matches = m_PathComponent.Matches(expr,0);
                 foreach (Match match in matches)
-                    m_path.Push(match.Groups[1].Value);
+                    path.Push(match.Groups[1].Value);
+
+                return true;
             }
 
-            return m_path;
+            return false;
         }
 
         // -----------------------------------------------------------------
@@ -531,7 +559,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
                 return true;
             }
 
-            if (result.Type == OSDType.String)
+            if (OSDBaseType(result.Type))
             {
                 value = result.AsString(); 
                 return true;
@@ -555,6 +583,33 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
                 pkey = (pkey == "") ? k : (k + "." + pkey);
             
             return pkey;
+        }
+
+        // -----------------------------------------------------------------
+        /// <summary>
+        /// 
+        /// </summary>
+        // -----------------------------------------------------------------
+        protected static bool OSDBaseType(OSDType type)
+        {
+            // Should be the list of base types for which AsString() returns
+            // something useful
+            if (type == OSDType.Boolean)
+                return true;
+            if (type == OSDType.Integer)
+                return true;
+            if (type == OSDType.Real)
+                return true;
+            if (type == OSDType.String)
+                return true;
+            if (type == OSDType.UUID)
+                return true;
+            if (type == OSDType.Date)
+                return true;
+            if (type == OSDType.URI)
+                return true;
+
+            return false;
         }
 
         // -----------------------------------------------------------------

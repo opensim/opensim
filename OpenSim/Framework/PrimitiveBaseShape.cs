@@ -622,6 +622,8 @@ namespace OpenSim.Framework
             }
         }
 
+        // This is only used at runtime. For sculpties this holds the texture data, and for meshes
+        // the mesh data.
         public byte[] SculptData
         {
             get
@@ -1175,14 +1177,13 @@ namespace OpenSim.Framework
 
         public void ReadSculptData(byte[] data, int pos)
         {
-            byte[] SculptTextureUUID = new byte[16];
-            UUID SculptUUID = UUID.Zero;
-            byte SculptTypel = data[16+pos];
+            UUID SculptUUID;
+            byte SculptTypel;
 
-            if (data.Length+pos >= 17)
+            if (data.Length-pos >= 17)
             {
                 _sculptEntry = true;
-                SculptTextureUUID = new byte[16];
+                byte[] SculptTextureUUID = new byte[16];
                 SculptTypel = data[16 + pos];
                 Array.Copy(data, pos, SculptTextureUUID,0, 16);
                 SculptUUID = new UUID(SculptTextureUUID, 0);
