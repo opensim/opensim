@@ -4021,6 +4021,7 @@ namespace OpenSim.Region.Framework.Scenes
                 (m_teleportFlags & TeleportFlags.ViaLocation) != 0 ||
                 (m_teleportFlags & Constants.TeleportFlags.ViaHGLogin) != 0)
             {
+
                 if (GodLevel < 200 &&
                     ((!m_scene.Permissions.IsGod(m_uuid) &&
                     !m_scene.RegionInfo.EstateSettings.IsEstateManagerOrOwner(m_uuid)) || 
@@ -4029,7 +4030,14 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     SpawnPoint[] spawnPoints = m_scene.RegionInfo.RegionSettings.SpawnPoints().ToArray();
                     if (spawnPoints.Length == 0)
+                    {
+                        if(m_scene.RegionInfo.EstateSettings.IsEstateManagerOrOwner(m_uuid))
+                        {
+                            pos.X = 128.0f;
+                            pos.Y = 128.0f;
+                        }
                         return;
+                    }
 
                     int index;
                     bool selected = false;
@@ -4049,7 +4057,8 @@ namespace OpenSim.Region.Framework.Scenes
                                 // SpawnPoint sp = spawnPoints[index];
 
                                 ILandObject land = m_scene.LandChannel.GetLandObject(spawnPosition.X, spawnPosition.Y);
-                                if (land == null || land.IsEitherBannedOrRestricted(UUID))
+                        if (spawnPoints.Length == 0)
+                        return;        if (land == null || land.IsEitherBannedOrRestricted(UUID))
                                     selected = false;
                                 else
                                     selected = true;

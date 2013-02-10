@@ -5506,8 +5506,13 @@ namespace OpenSim.Region.Framework.Scenes
 
                         if (banned)
                         {
-                            reason = "No suitable landing point found";
-                            return false;
+                            if(Permissions.IsAdministrator(agentID) == false || Permissions.IsGridGod(agentID) == false)
+                            {
+                                reason = "No suitable landing point found";
+                                return false;
+                            }
+                            reason = "Administrative access only";
+                            return true;
                         }
                     }
                 }
