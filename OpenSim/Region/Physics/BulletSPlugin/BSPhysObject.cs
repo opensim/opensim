@@ -136,6 +136,7 @@ public abstract class BSPhysObject : PhysicsActor
 
     // The objects base shape information. Null if not a prim type shape.
     public PrimitiveBaseShape BaseShape { get; protected set; }
+
     // Some types of objects have preferred physical representations.
     // Returns SHAPE_UNKNOWN if there is no preference.
     public virtual BSPhysicsShapeType PreferredPhysicalShape
@@ -150,14 +151,16 @@ public abstract class BSPhysObject : PhysicsActor
     public EntityProperties LastEntityProperties { get; set; }
 
     public virtual OMV.Vector3 Scale { get; set; }
-    public abstract bool IsSolid { get; }
-    public abstract bool IsStatic { get; }
-    public abstract bool IsSelected { get; }
 
     // It can be confusing for an actor to know if it should move or update an object
     //    depeneding on the setting of 'selected', 'physical, ...
     // This flag is the true test -- if true, the object is being acted on in the physical world
     public abstract bool IsPhysicallyActive { get; }
+
+    // Detailed state of the object.
+    public abstract bool IsSolid { get; }
+    public abstract bool IsStatic { get; }
+    public abstract bool IsSelected { get; }
 
     // Materialness
     public MaterialAttributes.Material Material { get; private set; }
@@ -185,14 +188,6 @@ public abstract class BSPhysObject : PhysicsActor
     public abstract OMV.Quaternion RawOrientation { get; set; }
     public abstract OMV.Quaternion ForceOrientation { get; set; }
 
-    public virtual float TargetSpeed
-    {
-        get
-        {
-            OMV.Vector3 characterOrientedVelocity = TargetVelocity * OMV.Quaternion.Inverse(OMV.Quaternion.Normalize(RawOrientation));
-            return characterOrientedVelocity.X;
-        }
-    }
     public abstract OMV.Vector3 RawVelocity { get; set; }
     public abstract OMV.Vector3 ForceVelocity { get; set; }
 
@@ -202,6 +197,7 @@ public abstract class BSPhysObject : PhysicsActor
 
     public virtual bool ForceBodyShapeRebuild(bool inTaintTime) { return false; }
 
+    // The current velocity forward
     public virtual float ForwardSpeed
     {
         get
@@ -210,6 +206,19 @@ public abstract class BSPhysObject : PhysicsActor
             return characterOrientedVelocity.X;
         }
     }
+    // The forward speed we are trying to achieve (TargetVelocity)
+    public virtual float TargetVelocitySpeed
+    {
+        get
+        {
+            OMV.Vector3 characterOrientedVelocity = TargetVelocity * OMV.Quaternion.Inverse(OMV.Quaternion.Normalize(RawOrientation));
+            return characterOrientedVelocity.X;
+        }
+    }
+
+    // The user can optionally set the center of mass. The user's setting will override any
+    //    computed center-of-mass (like in linksets).
+    public OMV.Vector3? UserSetCenterOfMass { get; set; }
 
     #region Collisions
 

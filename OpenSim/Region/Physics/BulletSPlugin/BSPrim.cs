@@ -442,7 +442,7 @@ public class BSPrim : BSPhysObject
                 RegisterPreStepAction("BSPrim.setForce", LocalID,
                     delegate(float timeStep)
                     {
-                        if (!IsPhysicallyActive)
+                        if (!IsPhysicallyActive || _force == OMV.Vector3.Zero)
                         {
                             UnRegisterPreStepAction("BSPrim.setForce", LocalID);
                             return;
@@ -647,7 +647,7 @@ public class BSPrim : BSPhysObject
                 RegisterPreStepAction("BSPrim.setTorque", LocalID,
                     delegate(float timeStep)
                     {
-                        if (!IsPhysicallyActive)
+                        if (!IsPhysicallyActive || _torque == OMV.Vector3.Zero)
                         {
                             UnRegisterPreStepAction("BSPrim.setTorque", LocalID);
                             return;

@@ -274,7 +274,7 @@ public sealed class BSCharacter : BSPhysObject
         // This test is done if moving forward, not flying and is colliding with something.
         // DetailLog("{0},BSCharacter.WalkUpStairs,IsColliding={1},flying={2},targSpeed={3},collisions={4}",
         //                 LocalID, IsColliding, Flying, TargetSpeed, CollisionsLastTick.Count);
-        if (IsColliding && !Flying && TargetSpeed > 0.1f /* && ForwardSpeed < 0.1f */)
+        if (IsColliding && !Flying && TargetVelocitySpeed > 0.1f /* && ForwardSpeed < 0.1f */)
         {
             // The range near the character's feet where we will consider stairs
             float nearFeetHeightMin = RawPosition.Z - (Size.Z / 2f) + 0.05f;
