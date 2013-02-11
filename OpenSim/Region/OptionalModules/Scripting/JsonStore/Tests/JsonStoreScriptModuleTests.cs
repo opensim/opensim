@@ -263,6 +263,38 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
         }
 
         [Test]
+        public void TestJsonTestPathJson()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ 'Hello' : { 'World' : 'One' } }"); 
+
+            {
+                int result = (int)InvokeOp("JsonTestPathJson", storeId, "Hello.World");
+                Assert.That(result, Is.EqualTo(1));
+            }
+
+            // Test for path which does not resolve to a value.
+            {
+                int result = (int)InvokeOp("JsonTestPathJson", storeId, "Hello");
+                Assert.That(result, Is.EqualTo(1));
+            }
+
+            {
+                int result2 = (int)InvokeOp("JsonTestPathJson", storeId, "foo");
+                Assert.That(result2, Is.EqualTo(0));
+            }
+
+            // Test with fake store
+            {
+                UUID fakeStoreId = TestHelpers.ParseTail(0x500);
+                int fakeStoreValueRemove = (int)InvokeOp("JsonTestPathJson", fakeStoreId, "Hello");
+                Assert.That(fakeStoreValueRemove, Is.EqualTo(0));
+            }
+        }
+
+        [Test]
         public void TestJsonSetValue()
         {
             TestHelpers.InMethod();
