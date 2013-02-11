@@ -244,18 +244,33 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
 
-            UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ }"); 
+            {
+                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ }"); 
 
-            int result = (int)InvokeOp("JsonSetValue", storeId, "Fun", "Times");
-            Assert.That(result, Is.EqualTo(1));
+                int result = (int)InvokeOp("JsonSetValue", storeId, "Fun", "Times");
+                Assert.That(result, Is.EqualTo(1));
 
-            string value = (string)InvokeOp("JsonGetValue", storeId, "Fun");
-            Assert.That(value, Is.EqualTo("Times"));
+                string value = (string)InvokeOp("JsonGetValue", storeId, "Fun");
+                Assert.That(value, Is.EqualTo("Times"));
+            }
+
+            // Test setting to location that does not exist.  This should fail.
+            {
+                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ }"); 
+
+                int result = (int)InvokeOp("JsonSetValue", storeId, "Fun.Circus", "Times");
+                Assert.That(result, Is.EqualTo(0));
+
+                string value = (string)InvokeOp("JsonGetValue", storeId, "Fun.Circus");
+                Assert.That(value, Is.EqualTo(""));
+            }
 
             // Test with fake store
-            UUID fakeStoreId = TestHelpers.ParseTail(0x500);
-            int fakeStoreValueSet = (int)InvokeOp("JsonSetValue", fakeStoreId, "Hello", "World");
-            Assert.That(fakeStoreValueSet, Is.EqualTo(0));
+            {
+                UUID fakeStoreId = TestHelpers.ParseTail(0x500);
+                int fakeStoreValueSet = (int)InvokeOp("JsonSetValue", fakeStoreId, "Hello", "World");
+                Assert.That(fakeStoreValueSet, Is.EqualTo(0));
+            }
         }
 
         /// <summary>
