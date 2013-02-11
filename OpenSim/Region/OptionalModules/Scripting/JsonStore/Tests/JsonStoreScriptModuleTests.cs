@@ -357,8 +357,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
                 UUID receivingStoreId = (UUID)InvokeOp("JsonCreateStore", "{}"); 
                 UUID readNotecardRequestId = (UUID)InvokeOpOnHost("JsonReadNotecard", so.UUID, receivingStoreId, "make", notecardName);
                 Assert.That(readNotecardRequestId, Is.Not.EqualTo(UUID.Zero));
-
-                // These don't behave as I expect yet - reading to a path still seems to place the notecard contents at the root.
+            
                 string value = (string)InvokeOp("JsonGetValue", receivingStoreId, "Hello");
                 Assert.That(value, Is.EqualTo(""));
 
@@ -367,32 +366,39 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
             }
 
             {
-                // Read notecard to new multi-component path
+                // Read notecard to new multi-component path.  This should not work.
                 UUID receivingStoreId = (UUID)InvokeOp("JsonCreateStore", "{}"); 
                 UUID readNotecardRequestId = (UUID)InvokeOpOnHost("JsonReadNotecard", so.UUID, receivingStoreId, "make.it", notecardName);
                 Assert.That(readNotecardRequestId, Is.Not.EqualTo(UUID.Zero));
 
-                // These don't behave as I expect yet - reading to a path still seems to place the notecard contents at the root.
                 string value = (string)InvokeOp("JsonGetValue", receivingStoreId, "Hello");
                 Assert.That(value, Is.EqualTo(""));
 
-                // TODO: Check that we are not expecting reading to a new path to work.
                 value = (string)InvokeOp("JsonGetValue", receivingStoreId, "make.it.Hello");
                 Assert.That(value, Is.EqualTo(""));
             }
 
             {
-                // Read notecard to existing multi-component path
+                // Read notecard to existing multi-component path.  This should work
                 UUID receivingStoreId = (UUID)InvokeOp("JsonCreateStore", "{ 'make' : { 'it' : 'so' } }"); 
                 UUID readNotecardRequestId = (UUID)InvokeOpOnHost("JsonReadNotecard", so.UUID, receivingStoreId, "make.it", notecardName);
                 Assert.That(readNotecardRequestId, Is.Not.EqualTo(UUID.Zero));
 
-                // These don't behave as I expect yet - reading to a path still seems to place the notecard contents at the root.
                 string value = (string)InvokeOp("JsonGetValue", receivingStoreId, "Hello");
                 Assert.That(value, Is.EqualTo(""));
 
                 value = (string)InvokeOp("JsonGetValue", receivingStoreId, "make.it.Hello");
                 Assert.That(value, Is.EqualTo("World"));
+            }
+
+            {
+                // Read notecard to invalid path.  This should not work.
+                UUID receivingStoreId = (UUID)InvokeOp("JsonCreateStore", "{ 'make' : { 'it' : 'so' } }"); 
+                UUID readNotecardRequestId = (UUID)InvokeOpOnHost("JsonReadNotecard", so.UUID, receivingStoreId, "/", notecardName);
+                Assert.That(readNotecardRequestId, Is.Not.EqualTo(UUID.Zero));
+
+                string value = (string)InvokeOp("JsonGetValue", receivingStoreId, "Hello");
+                Assert.That(value, Is.EqualTo(""));
             }
 
             {
