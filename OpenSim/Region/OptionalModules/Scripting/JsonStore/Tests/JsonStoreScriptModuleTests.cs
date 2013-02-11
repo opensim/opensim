@@ -180,6 +180,39 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
             }
         }
 
+        [Test]
+        public void TestJsonGetValueJson()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ 'Hello' : { 'World' : 'Two' } }"); 
+
+            {
+                string value = (string)InvokeOp("JsonGetValueJson", storeId, "Hello.World");
+                Assert.That(value, Is.EqualTo("'Two'"));
+            }
+
+            // Test get of path section instead of leaf
+            {
+                string value = (string)InvokeOp("JsonGetValueJson", storeId, "Hello");
+                Assert.That(value, Is.EqualTo("{\"World\":\"Two\"}"));
+            }
+
+            // Test get of non-existing value
+            {
+                string fakeValueGet = (string)InvokeOp("JsonGetValueJson", storeId, "foo");
+                Assert.That(fakeValueGet, Is.EqualTo(""));
+            }
+
+            // Test get from non-existing store
+            {
+                UUID fakeStoreId = TestHelpers.ParseTail(0x500);
+                string fakeStoreValueGet = (string)InvokeOp("JsonGetValueJson", fakeStoreId, "Hello");
+                Assert.That(fakeStoreValueGet, Is.EqualTo(""));
+            }
+        }
+
 //        [Test]
 //        public void TestJsonTakeValue()
 //        {
