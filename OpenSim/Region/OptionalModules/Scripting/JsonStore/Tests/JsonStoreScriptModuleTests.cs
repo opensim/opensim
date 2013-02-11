@@ -153,19 +153,31 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
 
-            UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ 'Hello' : 'World' }"); 
+            UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ 'Hello' : { 'World' : 'Two' } }"); 
 
-            string value = (string)InvokeOp("JsonGetValue", storeId, "Hello");
-            Assert.That(value, Is.EqualTo("World"));
+            {
+                string value = (string)InvokeOp("JsonGetValue", storeId, "Hello.World");
+                Assert.That(value, Is.EqualTo("Two"));
+            }
+
+            // Test get of path section instead of leaf
+            {
+                string value = (string)InvokeOp("JsonGetValue", storeId, "Hello");
+                Assert.That(value, Is.EqualTo(""));
+            }
 
             // Test get of non-existing value
-            string fakeValueGet = (string)InvokeOp("JsonGetValue", storeId, "foo");
-            Assert.That(fakeValueGet, Is.EqualTo(""));
+            {
+                string fakeValueGet = (string)InvokeOp("JsonGetValue", storeId, "foo");
+                Assert.That(fakeValueGet, Is.EqualTo(""));
+            }
 
             // Test get from non-existing store
-            UUID fakeStoreId = TestHelpers.ParseTail(0x500);
-            string fakeStoreValueGet = (string)InvokeOp("JsonGetValue", fakeStoreId, "Hello");
-            Assert.That(fakeStoreValueGet, Is.EqualTo(""));
+            {
+                UUID fakeStoreId = TestHelpers.ParseTail(0x500);
+                string fakeStoreValueGet = (string)InvokeOp("JsonGetValue", fakeStoreId, "Hello");
+                Assert.That(fakeStoreValueGet, Is.EqualTo(""));
+            }
         }
 
 //        [Test]
@@ -432,7 +444,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
                 // Try read notecard to fake store.
                 UUID fakeStoreId = TestHelpers.ParseTail(0x500);
                 UUID readNotecardRequestId = (UUID)InvokeOpOnHost("JsonReadNotecard", so.UUID, fakeStoreId, "", notecardName);
-                Assert.That(fakeStoreId, Is.Not.EqualTo(UUID.Zero));
+                Assert.That(readNotecardRequestId, Is.Not.EqualTo(UUID.Zero));
 
                 string value = (string)InvokeOp("JsonGetValue", fakeStoreId, "Hello");
                 Assert.That(value, Is.EqualTo(""));
