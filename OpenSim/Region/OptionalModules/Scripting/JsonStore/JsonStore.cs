@@ -198,7 +198,37 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         // -----------------------------------------------------------------
         public bool SetValue(string expr, string value, bool useJson)
         {
-            OSD ovalue = useJson ? OSDParser.DeserializeJson(value) :  new OSDString(value);
+            OSD ovalue;
+
+            // One note of caution... if you use an empty string in the
+            // structure it will be assumed to be a default value and will
+            // not be seialized in the json
+
+            if (useJson)
+            {
+                // There doesn't appear to be a good way to determine if the
+                // value is valid Json other than to let the parser crash
+                try 
+                {
+                    ovalue = OSDParser.DeserializeJson(value);
+                }
+                catch (Exception e)
+                {
+                    if (value.StartsWith("'") && value.EndsWith("'"))
+                    {
+                        ovalue = new OSDString(value.Substring(1,value.Length - 2));
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+            }
+            else
+            {
+                ovalue = new OSDString(value);
+            }
+            
             return SetValueFromExpression(expr,ovalue);
         }
         
