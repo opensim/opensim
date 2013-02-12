@@ -4087,7 +4087,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 = (ImprovedTerseObjectUpdatePacket)PacketPool.Instance.GetPacket(
                     PacketType.ImprovedTerseObjectUpdate);
             packet.RegionData.RegionHandle = m_scene.RegionInfo.RegionHandle;
-            packet.RegionData.TimeDilation = Utils.FloatToUInt16(m_scene.TimeDilation, 0.0f, 1.0f);
+            packet.RegionData.TimeDilation = Utils.FloatToUInt16(1.0f, 0.0f, 1.0f);
             packet.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
 
             packet.ObjectData[0] = CreateImprovedTerseBlock(part, false);
