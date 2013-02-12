@@ -52,7 +52,12 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
     {
         bool Cancel();
         void Abort();
-        bool Wait(TimeSpan t);
+
+        /// <summary>
+        /// Wait for the work item to complete.
+        /// </summary>
+        /// <param name='t'>The number of milliseconds to wait.  Must be >= -1 (Timeout.Infinite).</param>
+        bool Wait(int t);
     }
 
     /// <summary>

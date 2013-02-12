@@ -603,7 +603,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                 if (!m_coopTermination)
                 {
                     // If we're not co-operative terminating then try and wait for the event to complete before stopping
-                    if (workItem.Wait(new TimeSpan((long)timeout * 100000)))
+                    if (workItem.Wait(timeout))
                         return true;
                 }
                 else
@@ -618,7 +618,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
                     // For now, we will wait forever since the event should always cleanly terminate once LSL loop
                     // checking is implemented.  May want to allow a shorter timeout option later.
-                    if (workItem.Wait(TimeSpan.MaxValue))
+                    if (workItem.Wait(Timeout.Infinite))
                     {
                         if (DebugLevel >= 1)
                             m_log.DebugFormat(

@@ -131,15 +131,18 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             m_TakeStore = new List<TakeValueCallbackClass>();
             m_ReadStore = new List<TakeValueCallbackClass>();
         }
-        
+
         public JsonStore(string value) : this()
         {
+            // This is going to throw an exception if the value is not
+            // a valid JSON chunk. Calling routines should catch the 
+            // exception and handle it appropriately
             if (String.IsNullOrEmpty(value))
                 ValueStore = new OSDMap();
             else
                 ValueStore = OSDParser.DeserializeJson(value);
         }
-
+        
         // -----------------------------------------------------------------
         /// <summary>
         /// 
@@ -198,7 +201,37 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         // -----------------------------------------------------------------
         public bool SetValue(string expr, string value, bool useJson)
         {
-            OSD ovalue = useJson ? OSDParser.DeserializeJson(value) :  new OSDString(value);
+            OSD ovalue;
+
+            // One note of caution... if you use an empty string in the
+            // structure it will be assumed to be a default value and will
+            // not be seialized in the json
+
+            if (useJson)
+            {
+                // There doesn't appear to be a good way to determine if the
+                // value is valid Json other than to let the parser crash
+                try 
+                {
+                    ovalue = OSDParser.DeserializeJson(value);
+                }
+                catch (Exception e)
+                {
+                    if (value.StartsWith("'") && value.EndsWith("'"))
+                    {
+                        ovalue = new OSDString(value.Substring(1,value.Length - 2));
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+            }
+            else
+            {
+                ovalue = new OSDString(value);
+            }
+            
             return SetValueFromExpression(expr,ovalue);
         }
         
@@ -544,14 +577,14 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
                 // The path pointed to an intermediate hash structure
                 if (result.Type == OSDType.Map)
                 {
-                    value = OSDParser.SerializeJsonString(result as OSDMap);
+                    value = OSDParser.SerializeJsonString(result as OSDMap,true);
                     return true;
                 }
 
                 // The path pointed to an intermediate hash structure
                 if (result.Type == OSDType.Array)
                 {
-                    value = OSDParser.SerializeJsonString(result as OSDArray);
+                    value = OSDParser.SerializeJsonString(result as OSDArray,true);
                     return true;
                 }
 
