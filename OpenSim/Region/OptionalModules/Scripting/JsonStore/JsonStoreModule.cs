@@ -227,7 +227,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             }
             catch (Exception e)
             {
-                m_log.Error(string.Format("[JsonStore]: Unable to initialize store from {0}", value), e);
+                m_log.ErrorFormat("[JsonStore]: Unable to initialize store from {0}", value);
                 return false;
             }
 

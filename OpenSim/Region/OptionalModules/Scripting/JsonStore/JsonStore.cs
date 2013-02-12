@@ -131,15 +131,18 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             m_TakeStore = new List<TakeValueCallbackClass>();
             m_ReadStore = new List<TakeValueCallbackClass>();
         }
-        
+
         public JsonStore(string value) : this()
         {
+            // This is going to throw an exception if the value is not
+            // a valid JSON chunk. Calling routines should catch the 
+            // exception and handle it appropriately
             if (String.IsNullOrEmpty(value))
                 ValueStore = new OSDMap();
             else
                 ValueStore = OSDParser.DeserializeJson(value);
         }
-
+        
         // -----------------------------------------------------------------
         /// <summary>
         /// 
@@ -574,14 +577,14 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
                 // The path pointed to an intermediate hash structure
                 if (result.Type == OSDType.Map)
                 {
-                    value = OSDParser.SerializeJsonString(result as OSDMap);
+                    value = OSDParser.SerializeJsonString(result as OSDMap,true);
                     return true;
                 }
 
                 // The path pointed to an intermediate hash structure
                 if (result.Type == OSDType.Array)
                 {
-                    value = OSDParser.SerializeJsonString(result as OSDArray);
+                    value = OSDParser.SerializeJsonString(result as OSDArray,true);
                     return true;
                 }
 
