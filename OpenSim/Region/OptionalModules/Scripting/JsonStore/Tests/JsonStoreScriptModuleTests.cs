@@ -115,8 +115,26 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
 
-            UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}");
-            Assert.That(storeId, Is.Not.EqualTo(UUID.Zero));
+            // Test blank store
+            {
+                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}");
+                Assert.That(storeId, Is.Not.EqualTo(UUID.Zero));
+            }
+
+            // Test single element store
+            {
+                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ 'Hello' : 'World' }");
+                Assert.That(storeId, Is.Not.EqualTo(UUID.Zero));
+            }
+
+            // Test with an integer value
+            {
+                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ 'Hello' : 42.15 }");
+                Assert.That(storeId, Is.Not.EqualTo(UUID.Zero));
+
+                string value = (string)InvokeOp("JsonGetValue", storeId, "Hello");
+                Assert.That(value, Is.EqualTo("42.15"));
+            }
         }
 
         [Test]
