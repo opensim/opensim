@@ -369,15 +369,15 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 //            TestHelpers.EnableLogging();
 
             // Single quoted token case
-//            {
-//                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ }"); 
-//
-//                int result = (int)InvokeOp("JsonSetValueJson", storeId, "Fun", "'Times'");
-//                Assert.That(result, Is.EqualTo(1));
-//
-//                string value = (string)InvokeOp("JsonGetValue", storeId, "Fun");
-//                Assert.That(value, Is.EqualTo("Times"));
-//            }
+            {
+                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ }"); 
+
+                int result = (int)InvokeOp("JsonSetValueJson", storeId, "Fun", "'Times'");
+                Assert.That(result, Is.EqualTo(1));
+
+                string value = (string)InvokeOp("JsonGetValue", storeId, "Fun");
+                Assert.That(value, Is.EqualTo("Times"));
+            }
 
             // Sub-tree case
             {
