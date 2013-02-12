@@ -362,6 +362,64 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
             }
         }
 
+        [Test]
+        public void TestJsonSetValueJson()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            // Single quoted token case
+//            {
+//                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ }"); 
+//
+//                int result = (int)InvokeOp("JsonSetValueJson", storeId, "Fun", "'Times'");
+//                Assert.That(result, Is.EqualTo(1));
+//
+//                string value = (string)InvokeOp("JsonGetValue", storeId, "Fun");
+//                Assert.That(value, Is.EqualTo("Times"));
+//            }
+
+            // Sub-tree case
+            {
+                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ }"); 
+
+                int result = (int)InvokeOp("JsonSetValueJson", storeId, "Fun", "{ 'Filled' : 'Times' }");
+                Assert.That(result, Is.EqualTo(1));
+
+                string value = (string)InvokeOp("JsonGetValue", storeId, "Fun.Filled");
+                Assert.That(value, Is.EqualTo("Times"));
+            }
+
+            // If setting single strings in JsonSetValueJson, these must be single quoted tokens, not bare strings.
+            {
+                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ }"); 
+
+                int result = (int)InvokeOp("JsonSetValueJson", storeId, "Fun", "Times");
+                Assert.That(result, Is.EqualTo(0));
+
+                string value = (string)InvokeOp("JsonGetValue", storeId, "Fun");
+                Assert.That(value, Is.EqualTo(""));
+            }
+
+            // Test setting to location that does not exist.  This should fail.
+            {
+                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ }"); 
+
+                int result = (int)InvokeOp("JsonSetValueJson", storeId, "Fun.Circus", "'Times'");
+                Assert.That(result, Is.EqualTo(0));
+
+                string value = (string)InvokeOp("JsonGetValue", storeId, "Fun.Circus");
+                Assert.That(value, Is.EqualTo(""));
+            }
+
+            // Test with fake store
+            {
+                UUID fakeStoreId = TestHelpers.ParseTail(0x500);
+                int fakeStoreValueSet = (int)InvokeOp("JsonSetValueJson", fakeStoreId, "Hello", "'World'");
+                Assert.That(fakeStoreValueSet, Is.EqualTo(0));
+            }
+        }
+
         /// <summary>
         /// Test for writing json to a notecard
         /// </summary>
