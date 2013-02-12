@@ -27,11 +27,12 @@ namespace OpenSim.Region.Framework.Scenes
         private static Dictionary<Scene, KeyframeTimer>m_timers =
                 new Dictionary<Scene, KeyframeTimer>();
 
+        private Timer m_timer;
         private Dictionary<KeyframeMotion, object> m_motions = new Dictionary<KeyframeMotion, object>();
         private object m_lockObject = new object();
+        private object m_timerLock = new object();
         private const double m_tickDuration = 50.0;
         private Scene m_scene;
-        private int m_prevTick;
 
         public double TickDuration
         {
@@ -40,18 +41,20 @@ namespace OpenSim.Region.Framework.Scenes
 
         public KeyframeTimer(Scene scene)
         {
-            m_prevTick = Util.EnvironmentTickCount();
+            m_timer = new Timer();
+            m_timer.Interval = TickDuration;
+            m_timer.AutoReset = true;
+            m_timer.Elapsed += OnTimer;
 
             m_scene = scene;
 
-            m_scene.EventManager.OnFrame += OnTimer;
+            m_timer.Start();
         }
 
-        private void OnTimer()
+        private void OnTimer(object sender, ElapsedEventArgs ea)
         {
-            int thisTick = Util.EnvironmentTickCount();
-            int tickdiff = Util.EnvironmentTickCountSubtract(thisTick, m_prevTick);
-            m_prevTick = thisTick;
+            if (!Monitor.TryEnter(m_timerLock))
+                return;
 
             try
             {
@@ -66,7 +69,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     try
                     {
-                        m.OnTimer(tickdiff);
+                        m.OnTimer(TickDuration);
                     }
                     catch (Exception inner)
                     {
@@ -77,6 +80,10 @@ namespace OpenSim.Region.Framework.Scenes
             catch (Exception e)
             {
                 // Keep running no matter what
+            }
+            finally
+            {
+                Monitor.Exit(m_timerLock);
             }
         }
 
