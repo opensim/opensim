@@ -83,7 +83,7 @@ public sealed class BSCharacter : BSPhysObject
         _velocity = OMV.Vector3.Zero;
         _buoyancy = ComputeBuoyancyFromFlying(isFlying);
         Friction = BSParam.AvatarStandingFriction;
-        Density = BSParam.AvatarDensity;
+        Density = BSParam.AvatarDensity / BSParam.DensityScaleFactor;
 
         // Old versions of ScenePresence passed only the height. If width and/or depth are zero,
         //     replace with the default values.
@@ -231,6 +231,15 @@ public sealed class BSCharacter : BSPhysObject
                         PhysicsScene.PE.SetFriction(PhysBody, Friction);
                     }
                 }
+                else
+                {
+                    if (Flying)
+                    {
+                        // Flying and not collising and velocity nearly zero.
+                        ZeroMotion(true /* inTaintTime */);
+                    }
+                }
+
                 DetailLog("{0},BSCharacter.MoveMotor,taint,stopping,target={1},colliding={2}", LocalID, _velocityMotor.TargetValue, IsColliding);
             }
             else
@@ -869,7 +878,7 @@ public sealed class BSCharacter : BSPhysObject
                         * Math.Min(Size.X, Size.Y) / 2
                         * Size.Y / 2f    // plus the volume of the capsule end caps
                         );
-        _mass = Density * _avatarVolume;
+        _mass = Density * BSParam.DensityScaleFactor * _avatarVolume;
     }
 
     // The physics engine says that properties have updated. Update same and inform

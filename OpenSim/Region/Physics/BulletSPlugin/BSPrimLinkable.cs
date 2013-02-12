@@ -135,7 +135,8 @@ public class BSPrimLinkable : BSPrimDisplaced
         // When going from non-physical to physical, this re-enables the constraints that
         //     had been automatically disabled when the mass was set to zero.
         // For compound based linksets, this enables and disables interactions of the children.
-        Linkset.Refresh(this);
+        if (Linkset != null)    // null can happen during initialization
+            Linkset.Refresh(this);
     }
 
     protected override void MakeDynamic(bool makeStatic)

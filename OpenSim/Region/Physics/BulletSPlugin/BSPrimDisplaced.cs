@@ -144,7 +144,7 @@ public class BSPrimDisplaced : BSPrim
             // Correct for any rotation around the center-of-mass
             // TODO!!!
             entprop.Position = entprop.Position + (PositionDisplacement * entprop.Rotation);
-            entprop.Rotation = something;
+            // entprop.Rotation = something;
         }
 
         base.UpdateProperties(entprop);

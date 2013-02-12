@@ -399,7 +399,7 @@ public sealed class BSLinksetCompound : BSLinkset
     // Constraint linksets are rebuilt every time.
     // Note that this works for rebuilding just the root after a linkset is taken apart.
     // Called at taint time!!
-    private bool disableCOM = false;     // DEBUG DEBUG: disable until we get this debugged
+    private bool disableCOM = true;     // DEBUG DEBUG: disable until we get this debugged
     private void RecomputeLinksetCompound()
     {
         try
@@ -430,10 +430,10 @@ public sealed class BSLinksetCompound : BSLinkset
             LinksetRoot.ForcePosition = LinksetRoot.RawPosition;
 
             // Update the local transform for the root child shape so it is offset from the <0,0,0> which is COM
-            PhysicsScene.PE.UpdateChildTransform(LinksetRoot.PhysShape, 0,
-                                        -centerDisplacement, 
-                                        LinksetRoot.RawOrientation,
-                                        false /* shouldRecalculateLocalAabb */);
+            PhysicsScene.PE.UpdateChildTransform(LinksetRoot.PhysShape, 0 /* childIndex */,
+                                                -centerDisplacement,
+                                                OMV.Quaternion.Identity, // LinksetRoot.RawOrientation,
+                                                false /* shouldRecalculateLocalAabb (is done later after linkset built) */);
 
             DetailLog("{0},BSLinksetCompound.RecomputeLinksetCompound,COM,com={1},rootPos={2},centerDisp={3}",
                                     LinksetRoot.LocalID, centerOfMassW, LinksetRoot.RawPosition, centerDisplacement);
@@ -463,7 +463,6 @@ public sealed class BSLinksetCompound : BSLinkset
                         //    Use call to CreateGeomNonSpecial().
                         BulletShape saveShape = cPrim.PhysShape;
                         cPrim.PhysShape.Clear();        // Don't let the create free the child's shape
-                        // PhysicsScene.Shapes.CreateGeomNonSpecial(true, cPrim, null);
                         PhysicsScene.Shapes.CreateGeomMeshOrHull(cPrim, null);
                         BulletShape newShape = cPrim.PhysShape;
                         cPrim.PhysShape = saveShape;
@@ -471,6 +470,8 @@ public sealed class BSLinksetCompound : BSLinkset
                         OMV.Vector3 offsetPos = (cPrim.RawPosition - LinksetRoot.RawPosition) * invRootOrientation - centerDisplacement;
                         OMV.Quaternion offsetRot = cPrim.RawOrientation * invRootOrientation;
                         PhysicsScene.PE.AddChildShapeToCompoundShape(LinksetRoot.PhysShape, newShape, offsetPos, offsetRot);
+                        DetailLog("{0},BSLinksetCompound.RecomputeLinksetCompound,addNative,indx={1},rShape={2},cShape={3},offPos={4},offRot={5}",
+                                    LinksetRoot.LocalID, memberIndex, LinksetRoot.PhysShape, newShape, offsetPos, offsetRot);
                     }
                     else
                     {
@@ -485,6 +486,9 @@ public sealed class BSLinksetCompound : BSLinkset
                         OMV.Vector3 offsetPos = (cPrim.RawPosition - LinksetRoot.RawPosition) * invRootOrientation - centerDisplacement;
                         OMV.Quaternion offsetRot = cPrim.RawOrientation * invRootOrientation;
                         PhysicsScene.PE.AddChildShapeToCompoundShape(LinksetRoot.PhysShape, cPrim.PhysShape, offsetPos, offsetRot);
+                        DetailLog("{0},BSLinksetCompound.RecomputeLinksetCompound,addNonNative,indx={1},rShape={2},cShape={3},offPos={4},offRot={5}",
+                                    LinksetRoot.LocalID, memberIndex, LinksetRoot.PhysShape, cPrim.PhysShape, offsetPos, offsetRot);
+
                     }
                     memberIndex++;
                 }
@@ -503,6 +507,7 @@ public sealed class BSLinksetCompound : BSLinkset
             Rebuilding = false;
         }
 
+        // See that the Aabb surrounds the new shape
         PhysicsScene.PE.RecalculateCompoundShapeLocalAabb(LinksetRoot.PhysShape);
     }
 }
