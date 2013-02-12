@@ -417,7 +417,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_group.RootPart.Velocity = Vector3.Zero;
             m_group.RootPart.AngularVelocity = Vector3.Zero;
-            m_group.SendGroupRootTerseUpdate();
+            m_group.SendGroupRootTerseUpdate(PrimUpdateFlags.Immediate);
 //            m_group.RootPart.ScheduleTerseUpdate();
             m_frames.Clear();
         }
@@ -429,7 +429,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_group.RootPart.Velocity = Vector3.Zero;
             m_group.RootPart.AngularVelocity = Vector3.Zero;
-            m_group.SendGroupRootTerseUpdate();
+            m_group.SendGroupRootTerseUpdate(PrimUpdateFlags.Immediate);
 //            m_group.RootPart.ScheduleTerseUpdate();
 
         }
@@ -551,7 +551,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (m_group.RootPart.Velocity != Vector3.Zero)
                 {
                     m_group.RootPart.Velocity = Vector3.Zero;
-                    m_group.SendGroupRootTerseUpdate();
+                    m_group.SendGroupRootTerseUpdate(PrimUpdateFlags.Immediate);
 
                 }
                 return;
@@ -695,7 +695,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (update)
             {
-                m_group.SendGroupRootTerseUpdate();
+                m_group.SendGroupRootTerseUpdate(PrimUpdateFlags.Immediate);
             }
         }
 
@@ -731,7 +731,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (m_group.RootPart.Velocity != Vector3.Zero)
             {
                 m_group.RootPart.Velocity = Vector3.Zero;
-                m_group.SendGroupRootTerseUpdate();
+                m_group.SendGroupRootTerseUpdate(PrimUpdateFlags.Immediate);
 //                m_group.RootPart.ScheduleTerseUpdate();
             }
         }
@@ -743,7 +743,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (m_group != null)
             {
                 m_group.RootPart.Velocity = Vector3.Zero;
-                m_group.SendGroupRootTerseUpdate();
+                m_group.SendGroupRootTerseUpdate(PrimUpdateFlags.Immediate);
 //                m_group.RootPart.ScheduleTerseUpdate();
 
                 if (m_running)

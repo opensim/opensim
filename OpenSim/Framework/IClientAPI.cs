@@ -698,7 +698,8 @@ namespace OpenSim.Framework
         ExtraData = 1 << 20,
         Sound = 1 << 21,
         Joint = 1 << 22,
-        FullUpdate = UInt32.MaxValue
+        Immediate = 1 << 23,
+        FullUpdate = UInt32.MaxValue & (uint)~((uint)1<<23)
     }
 
     public static class PrimUpdateFlagsExtensions
