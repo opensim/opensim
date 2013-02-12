@@ -3721,12 +3721,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         public void SendEntityUpdate(ISceneEntity entity, PrimUpdateFlags updateFlags)
         {
-            if ((updateFlags & PrimUpdateFlags.Immediate) != 0)
-            {
-                SendUnqueuedTerseUpdate((SceneObjectPart)entity);
-                return;
-            }
-
             if (entity is SceneObjectPart)
             {
                 SceneObjectPart e = (SceneObjectPart)entity;
@@ -4079,20 +4073,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             while (m_entityUpdates.Count > 0)
                 ProcessEntityUpdates(-1);
-        }
-
-        public void SendUnqueuedTerseUpdate(SceneObjectPart part)
-        {
-            ImprovedTerseObjectUpdatePacket packet
-                = (ImprovedTerseObjectUpdatePacket)PacketPool.Instance.GetPacket(
-                    PacketType.ImprovedTerseObjectUpdate);
-            packet.RegionData.RegionHandle = m_scene.RegionInfo.RegionHandle;
-            packet.RegionData.TimeDilation = Utils.FloatToUInt16(1.0f, 0.0f, 1.0f);
-            packet.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
-
-            packet.ObjectData[0] = CreateImprovedTerseBlock(part, false);
-
-            OutPacket(packet, ThrottleOutPacketType.Task | ThrottleOutPacketType.HighPriority);
         }
 
         #endregion Primitive Packet/Data Sending Methods

@@ -3315,11 +3315,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void SendTerseUpdateToAllClients()
         {
-            SendTerseUpdateToAllClients(0);
-        }
-
-        public void SendTerseUpdateToAllClients(PrimUpdateFlags flags)
-        {
             if (ParentGroup == null || ParentGroup.Scene == null)
                 return;
 
@@ -3333,7 +3328,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             ParentGroup.Scene.ForEachClient(delegate(IClientAPI client)
             {
-                SendTerseUpdateToClient(client, flags);
+                SendTerseUpdateToClient(client);
             });
         }
 
@@ -5138,11 +5133,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SendTerseUpdateToClient(IClientAPI remoteClient)
         {
-            SendTerseUpdateToClient(remoteClient, 0);
-        }
-
-        public void SendTerseUpdateToClient(IClientAPI remoteClient, PrimUpdateFlags flags)
-        {
             if (ParentGroup.IsDeleted)
                 return;
 
@@ -5156,7 +5146,7 @@ namespace OpenSim.Region.Framework.Scenes
             remoteClient.SendEntityUpdate(
                 this,
                 PrimUpdateFlags.Position | PrimUpdateFlags.Rotation | PrimUpdateFlags.Velocity
-                    | PrimUpdateFlags.Acceleration | PrimUpdateFlags.AngularVelocity | flags);
+                    | PrimUpdateFlags.Acceleration | PrimUpdateFlags.AngularVelocity);
 
             ParentGroup.Scene.StatsReporter.AddObjectUpdates(1);            
         }

@@ -2638,15 +2638,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void SendGroupRootTerseUpdate()
         {
-            SendGroupRootTerseUpdate(0);
-        }
-
-        public void SendGroupRootTerseUpdate(PrimUpdateFlags flags)
-        {
             if (IsDeleted)
                 return;
 
-            RootPart.SendTerseUpdateToAllClients(flags);
+            RootPart.SendTerseUpdateToAllClients();
         }
 
         public void QueueForUpdateCheck()
