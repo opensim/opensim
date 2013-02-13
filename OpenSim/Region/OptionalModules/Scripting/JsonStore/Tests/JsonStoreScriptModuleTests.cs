@@ -260,25 +260,69 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
 
-            UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ 'Hello' : 'World' }"); 
+            // Test remove of node in object pointing to a string
+            {
+                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ 'Hello' : 'World' }"); 
 
-            int returnValue = (int)InvokeOp( "JsonRemoveValue", storeId, "Hello");
-            Assert.That(returnValue, Is.EqualTo(1));
+                int returnValue = (int)InvokeOp( "JsonRemoveValue", storeId, "Hello");
+                Assert.That(returnValue, Is.EqualTo(1));
 
-            int result = (int)InvokeOp("JsonTestPath", storeId, "Hello");
-            Assert.That(result, Is.EqualTo(0));
+                int result = (int)InvokeOp("JsonTestPath", storeId, "Hello");
+                Assert.That(result, Is.EqualTo(0));
 
-            string returnValue2 = (string)InvokeOp("JsonGetValue", storeId, "Hello");
-            Assert.That(returnValue2, Is.EqualTo(""));
+                string returnValue2 = (string)InvokeOp("JsonGetValue", storeId, "Hello");
+                Assert.That(returnValue2, Is.EqualTo(""));
+            }
+
+            // Test remove of node in object pointing to another object
+            {
+                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ 'Hello' : { 'World' : 'Wally' } }"); 
+
+                int returnValue = (int)InvokeOp( "JsonRemoveValue", storeId, "Hello");
+                Assert.That(returnValue, Is.EqualTo(1));
+
+                int result = (int)InvokeOp("JsonTestPath", storeId, "Hello");
+                Assert.That(result, Is.EqualTo(0));
+
+                string returnValue2 = (string)InvokeOp("JsonGetValueJson", storeId, "Hello");
+                Assert.That(returnValue2, Is.EqualTo(""));
+            }
+
+            // Test remove of node in an array
+            {
+                UUID storeId 
+                    = (UUID)InvokeOp("JsonCreateStore", "{ 'Hello' : [ 'value1', 'value2' ] }");
+
+                int returnValue = (int)InvokeOp( "JsonRemoveValue", storeId, "Hello[0]");
+                Assert.That(returnValue, Is.EqualTo(1));
+
+                int result = (int)InvokeOp("JsonTestPath", storeId, "Hello[0]");
+                Assert.That(result, Is.EqualTo(1));
+
+                result = (int)InvokeOp("JsonTestPath", storeId, "Hello[1]");
+                Assert.That(result, Is.EqualTo(0));
+
+                string stringReturnValue = (string)InvokeOp("JsonGetValue", storeId, "Hello[0]");
+                Assert.That(stringReturnValue, Is.EqualTo("value2"));
+
+                stringReturnValue = (string)InvokeOp("JsonGetValueJson", storeId, "Hello[1]");
+                Assert.That(stringReturnValue, Is.EqualTo(""));
+            }
 
             // Test remove of non-existing value
-            int fakeValueRemove = (int)InvokeOp("JsonRemoveValue", storeId, "Hello");
-            Assert.That(fakeValueRemove, Is.EqualTo(0));
+            {
+                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ 'Hello' : 'World' }"); 
 
-            // Test get from non-existing store
-            UUID fakeStoreId = TestHelpers.ParseTail(0x500);
-            int fakeStoreValueRemove = (int)InvokeOp("JsonRemoveValue", fakeStoreId, "Hello");
-            Assert.That(fakeStoreValueRemove, Is.EqualTo(0));
+                int fakeValueRemove = (int)InvokeOp("JsonRemoveValue", storeId, "Cheese");
+                Assert.That(fakeValueRemove, Is.EqualTo(0));
+            }
+
+            {
+                // Test get from non-existing store
+                UUID fakeStoreId = TestHelpers.ParseTail(0x500);
+                int fakeStoreValueRemove = (int)InvokeOp("JsonRemoveValue", fakeStoreId, "Hello");
+                Assert.That(fakeStoreValueRemove, Is.EqualTo(0));
+            }
         }
 
         [Test]
