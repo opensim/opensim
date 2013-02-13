@@ -99,6 +99,9 @@ public abstract class BSPhysObject : PhysicsActor
         CollisionAccumulation = 0;
         ColliderIsMoving = false;
         CollisionScore = 0;
+
+        // All axis free.
+        LockedAxis = LockedAxisFree;
     }
 
     // Tell the object to clean up.
@@ -136,6 +139,7 @@ public abstract class BSPhysObject : PhysicsActor
 
     // The objects base shape information. Null if not a prim type shape.
     public PrimitiveBaseShape BaseShape { get; protected set; }
+
     // Some types of objects have preferred physical representations.
     // Returns SHAPE_UNKNOWN if there is no preference.
     public virtual BSPhysicsShapeType PreferredPhysicalShape
@@ -150,14 +154,16 @@ public abstract class BSPhysObject : PhysicsActor
     public EntityProperties LastEntityProperties { get; set; }
 
     public virtual OMV.Vector3 Scale { get; set; }
-    public abstract bool IsSolid { get; }
-    public abstract bool IsStatic { get; }
-    public abstract bool IsSelected { get; }
 
     // It can be confusing for an actor to know if it should move or update an object
     //    depeneding on the setting of 'selected', 'physical, ...
     // This flag is the true test -- if true, the object is being acted on in the physical world
     public abstract bool IsPhysicallyActive { get; }
+
+    // Detailed state of the object.
+    public abstract bool IsSolid { get; }
+    public abstract bool IsStatic { get; }
+    public abstract bool IsSelected { get; }
 
     // Materialness
     public MaterialAttributes.Material Material { get; private set; }
@@ -169,7 +175,8 @@ public abstract class BSPhysObject : PhysicsActor
         MaterialAttributes matAttrib = BSMaterials.GetAttributes(Material, false);
         Friction = matAttrib.friction;
         Restitution = matAttrib.restitution;
-        Density = matAttrib.density;
+        Density = matAttrib.density / BSParam.DensityScaleFactor;
+        DetailLog("{0},{1}.SetMaterial,Mat={2},frict={3},rest={4},den={5}", LocalID, TypeName, Material, Friction, Restitution, Density);
     }
 
     // Stop all physical motion.
@@ -185,14 +192,6 @@ public abstract class BSPhysObject : PhysicsActor
     public abstract OMV.Quaternion RawOrientation { get; set; }
     public abstract OMV.Quaternion ForceOrientation { get; set; }
 
-    public virtual float TargetSpeed
-    {
-        get
-        {
-            OMV.Vector3 characterOrientedVelocity = TargetVelocity * OMV.Quaternion.Inverse(OMV.Quaternion.Normalize(RawOrientation));
-            return characterOrientedVelocity.X;
-        }
-    }
     public abstract OMV.Vector3 RawVelocity { get; set; }
     public abstract OMV.Vector3 ForceVelocity { get; set; }
 
@@ -202,6 +201,7 @@ public abstract class BSPhysObject : PhysicsActor
 
     public virtual bool ForceBodyShapeRebuild(bool inTaintTime) { return false; }
 
+    // The current velocity forward
     public virtual float ForwardSpeed
     {
         get
@@ -210,6 +210,22 @@ public abstract class BSPhysObject : PhysicsActor
             return characterOrientedVelocity.X;
         }
     }
+    // The forward speed we are trying to achieve (TargetVelocity)
+    public virtual float TargetVelocitySpeed
+    {
+        get
+        {
+            OMV.Vector3 characterOrientedVelocity = TargetVelocity * OMV.Quaternion.Inverse(OMV.Quaternion.Normalize(RawOrientation));
+            return characterOrientedVelocity.X;
+        }
+    }
+
+    // The user can optionally set the center of mass. The user's setting will override any
+    //    computed center-of-mass (like in linksets).
+    public OMV.Vector3? UserSetCenterOfMass { get; set; }
+
+    public OMV.Vector3 LockedAxis { get; set; } // zero means locked. one means free.
+    public readonly OMV.Vector3 LockedAxisFree = new OMV.Vector3(1f, 1f, 1f);  // All axis are free
 
     #region Collisions
 
@@ -407,9 +423,7 @@ public abstract class BSPhysObject : PhysicsActor
         {
             // Clean out any existing action
             UnRegisterPreStepAction(op, id);
-
             RegisteredPrestepActions[identifier] = actn;
-
             PhysicsScene.BeforeStep += actn;
         }
         DetailLog("{0},BSPhysObject.RegisterPreStepAction,id={1}", LocalID, identifier);
@@ -455,9 +469,7 @@ public abstract class BSPhysObject : PhysicsActor
         {
             // Clean out any existing action
             UnRegisterPostStepAction(op, id);
-
             RegisteredPoststepActions[identifier] = actn;
-
             PhysicsScene.AfterStep += actn;
         }
         DetailLog("{0},BSPhysObject.RegisterPostStepAction,id={1}", LocalID, identifier);
@@ -494,7 +506,58 @@ public abstract class BSPhysObject : PhysicsActor
         }
         DetailLog("{0},BSPhysObject.UnRegisterAllPostStepActions,", LocalID);
     }
-    
+
+    // When an update to the physical properties happens, this event is fired to let
+    //    different actors to modify the update before it is passed around
+    public delegate void PreUpdatePropertyAction(ref EntityProperties entprop);
+    public event PreUpdatePropertyAction OnPreUpdateProperty;
+    protected void TriggerPreUpdatePropertyAction(ref EntityProperties entprop)
+    {
+        PreUpdatePropertyAction actions = OnPreUpdateProperty;
+        if (actions != null)
+            actions(ref entprop);
+    }
+
+    private Dictionary<string, PreUpdatePropertyAction> RegisteredPreUpdatePropertyActions = new Dictionary<string, PreUpdatePropertyAction>();
+    public void RegisterPreUpdatePropertyAction(string identifier, PreUpdatePropertyAction actn)
+    {
+        lock (RegisteredPreUpdatePropertyActions)
+        {
+            // Clean out any existing action
+            UnRegisterPreUpdatePropertyAction(identifier);
+            RegisteredPreUpdatePropertyActions[identifier] = actn;
+            OnPreUpdateProperty += actn;
+        }
+        DetailLog("{0},BSPhysObject.RegisterPreUpdatePropertyAction,id={1}", LocalID, identifier);
+    }
+    public bool UnRegisterPreUpdatePropertyAction(string identifier)
+    {
+        bool removed = false;
+        lock (RegisteredPreUpdatePropertyActions)
+        {
+            if (RegisteredPreUpdatePropertyActions.ContainsKey(identifier))
+            {
+                OnPreUpdateProperty -= RegisteredPreUpdatePropertyActions[identifier];
+                RegisteredPreUpdatePropertyActions.Remove(identifier);
+                removed = true;
+            }
+        }
+        DetailLog("{0},BSPhysObject.UnRegisterPreUpdatePropertyAction,id={1},removed={2}", LocalID, identifier, removed);
+        return removed;
+    }
+    public void UnRegisterAllPreUpdatePropertyActions()
+    {
+        lock (RegisteredPreUpdatePropertyActions)
+        {
+            foreach (KeyValuePair<string, PreUpdatePropertyAction> kvp in RegisteredPreUpdatePropertyActions)
+            {
+                OnPreUpdateProperty -= kvp.Value;
+            }
+            RegisteredPreUpdatePropertyActions.Clear();
+        }
+        DetailLog("{0},BSPhysObject.UnRegisterAllPreUpdatePropertyAction,", LocalID);
+    }
+
     #endregion // Per Simulation Step actions
 
     // High performance detailed logging routine used by the physical objects.
