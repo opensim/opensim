@@ -31,6 +31,16 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.Framework.Interfaces
 {
+    // these could be expanded at some point to provide more type information
+    // for now value accounts for all base types
+    public enum JsonStoreNodeType
+    {
+        Undefined = 0,
+        Object = 1,
+        Array = 2,
+        Value = 3
+    }
+    
     public delegate void TakeValueCallback(string s);
 
     public interface IJsonStoreModule
@@ -38,13 +48,18 @@ namespace OpenSim.Region.Framework.Interfaces
         bool AttachObjectStore(UUID objectID);
         bool CreateStore(string value, ref UUID result);
         bool DestroyStore(UUID storeID);
+
+        JsonStoreNodeType PathType(UUID storeID, string path);
         bool TestStore(UUID storeID);
         bool TestPath(UUID storeID, string path, bool useJson);
+
         bool SetValue(UUID storeID, string path, string value, bool useJson);
         bool RemoveValue(UUID storeID, string path);
         bool GetValue(UUID storeID, string path, bool useJson, out string value);
 
         void TakeValue(UUID storeID, string path, bool useJson, TakeValueCallback cback);
         void ReadValue(UUID storeID, string path, bool useJson, TakeValueCallback cback);
+
+        int ArrayLength(UUID storeID, string path);
     }
 }

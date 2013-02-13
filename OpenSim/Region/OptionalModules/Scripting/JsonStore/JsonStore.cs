@@ -145,6 +145,34 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         /// 
         /// </summary>
         // -----------------------------------------------------------------
+        public JsonStoreNodeType PathType(string expr)
+        {
+            Stack<string> path;
+            if (! ParsePathExpression(expr,out path))
+                return JsonStoreNodeType.Undefined;
+            
+            OSD result = ProcessPathExpression(ValueStore,path);
+
+            if (result == null)
+                return JsonStoreNodeType.Undefined;
+            
+            if (result is OSDMap)
+                return JsonStoreNodeType.Object;
+            
+            if (result is OSDArray)
+                return JsonStoreNodeType.Array;
+            
+            if (OSDBaseType(result.Type))
+                return JsonStoreNodeType.Value;
+            
+            return JsonStoreNodeType.Undefined;
+        }
+        
+        // -----------------------------------------------------------------
+        /// <summary>
+        /// 
+        /// </summary>
+        // -----------------------------------------------------------------
         public bool TestPath(string expr, bool useJson)
         {
             Stack<string> path;
@@ -162,6 +190,27 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             return false;
         }
         
+        // -----------------------------------------------------------------
+        /// <summary>
+        /// 
+        /// </summary>
+        // -----------------------------------------------------------------
+        public int ArrayLength(string expr)
+        {
+            Stack<string> path;
+            if (! ParsePathExpression(expr,out path))
+                return -1;
+
+            OSD result = ProcessPathExpression(ValueStore,path);
+            if (result != null && result.Type == OSDType.Array)
+            {
+                OSDArray arr = result as OSDArray;
+                return arr.Count;
+            }
+
+            return -1;
+        }
+
         // -----------------------------------------------------------------
         /// <summary>
         /// 

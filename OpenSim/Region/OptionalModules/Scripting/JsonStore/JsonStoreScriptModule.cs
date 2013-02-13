@@ -167,7 +167,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
                 try
                 {
                     m_comms.RegisterScriptInvocations(this);
-
+                    m_comms.RegisterConstants(this);
+        
                     // m_comms.RegisterScriptInvocation(this, "JsonCreateStore");
                     // m_comms.RegisterScriptInvocation(this, "JsonAttachObjectStore");
                     // m_comms.RegisterScriptInvocation(this, "JsonDestroyStore");
@@ -211,6 +212,22 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         {
             get { return null; }
         }
+
+#endregion
+
+#region ScriptConstantInteface
+
+        [ScriptConstant]
+        public static readonly int JSONTYPEUNDEF = (int)JsonStoreNodeType.Undefined;
+
+        [ScriptConstant]
+        public static readonly int JSONTYPEOBJECT = (int)JsonStoreNodeType.Object;
+
+        [ScriptConstant]
+        public static readonly int JSONTYPEARRAY = (int)JsonStoreNodeType.Array;
+
+        [ScriptConstant]
+        public static readonly int JSONTYPEVALUE = (int)JsonStoreNodeType.Value;
 
 #endregion
 
@@ -319,6 +336,12 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         /// </summary>
         // -----------------------------------------------------------------
         [ScriptInvocation]
+        public int JsonPathType(UUID hostID, UUID scriptID, UUID storeID, string path)
+        {
+            return (int)m_store.PathType(storeID,path);
+        }
+
+        [ScriptInvocation]
         public int JsonTestPath(UUID hostID, UUID scriptID, UUID storeID, string path)
         {
             return m_store.TestPath(storeID,path,false) ? 1 : 0;
@@ -356,6 +379,17 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         public int JsonRemoveValue(UUID hostID, UUID scriptID, UUID storeID, string path)
         {
             return m_store.RemoveValue(storeID,path) ? 1 : 0;
+        }
+        
+        // -----------------------------------------------------------------
+        /// <summary>
+        /// 
+        /// </summary>
+        // -----------------------------------------------------------------
+        [ScriptInvocation]
+        public int JsonArrayLength(UUID hostID, UUID scriptID, UUID storeID, string path)
+        {
+            return m_store.ArrayLength(storeID,path);
         }
         
         // -----------------------------------------------------------------
