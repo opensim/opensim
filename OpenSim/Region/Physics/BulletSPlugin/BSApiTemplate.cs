@@ -225,9 +225,10 @@ public enum CollisionFlags : uint
     CF_DISABLE_VISUALIZE_OBJECT      = 1 << 5,
     CF_DISABLE_SPU_COLLISION_PROCESS = 1 << 6,
     // Following used by BulletSim to control collisions and updates
-    BS_SUBSCRIBE_COLLISION_EVENTS    = 1 << 10,
-    BS_FLOATS_ON_WATER               = 1 << 11,
-    BS_VEHICLE_COLLISIONS            = 1 << 12,
+    BS_SUBSCRIBE_COLLISION_EVENTS    = 1 << 10, // return collision events from unmanaged to managed
+    BS_FLOATS_ON_WATER               = 1 << 11, // the object should float at water level
+    BS_VEHICLE_COLLISIONS            = 1 << 12, // return collisions for vehicle ground checking
+    BS_RETURN_ROOT_COMPOUND_SHAPE    = 1 << 13, // return the pos/rot of the root shape in a compound shape
     BS_NONE                          = 0,
     BS_ALL                           = 0xFFFFFFFF
 };
