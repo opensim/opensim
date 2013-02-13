@@ -415,7 +415,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
             }
 
             // Commented out as this currently unexpectedly fails.
-            // Test setting a key containing periods.
+            // Test setting a key containing periods with delineation
 //            {
 //                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}"); 
 //
@@ -426,7 +426,64 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 //                Assert.That(value, Is.EqualTo("Times"));
 //            }
 
-            // Test setting a key containing empty brackets
+            // *** Test [] ***
+
+            // Test setting a key containing unbalanced ] without delineation.  Expecting failure
+            {
+                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}"); 
+
+                int result = (int)InvokeOp("JsonSetValue", storeId, "Fun]Circus", "Times");
+                Assert.That(result, Is.EqualTo(0));
+
+                string value = (string)InvokeOp("JsonGetValue", storeId, "Fun]Circus");
+                Assert.That(value, Is.EqualTo(""));
+            }
+
+            // Test setting a key containing unbalanced [ without delineation.  Expecting failure
+            {
+                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}"); 
+
+                int result = (int)InvokeOp("JsonSetValue", storeId, "Fun[Circus", "Times");
+                Assert.That(result, Is.EqualTo(0));
+
+                string value = (string)InvokeOp("JsonGetValue", storeId, "Fun[Circus");
+                Assert.That(value, Is.EqualTo(""));
+            }
+
+            // Test setting a key containing unbalanced [] without delineation.  Expecting failure
+            {
+                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}"); 
+
+                int result = (int)InvokeOp("JsonSetValue", storeId, "Fun[]Circus", "Times");
+                Assert.That(result, Is.EqualTo(0));
+
+                string value = (string)InvokeOp("JsonGetValue", storeId, "Fun[]Circus");
+                Assert.That(value, Is.EqualTo(""));
+            }
+
+            // Test setting a key containing unbalanced ] with delineation
+            {
+                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}"); 
+
+                int result = (int)InvokeOp("JsonSetValue", storeId, "{Fun]Circus}", "Times");
+                Assert.That(result, Is.EqualTo(1));
+
+                string value = (string)InvokeOp("JsonGetValue", storeId, "{Fun]Circus}");
+                Assert.That(value, Is.EqualTo("Times"));
+            }
+
+            // Test setting a key containing unbalanced [ with delineation
+            {
+                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}"); 
+
+                int result = (int)InvokeOp("JsonSetValue", storeId, "{Fun[Circus}", "Times");
+                Assert.That(result, Is.EqualTo(1));
+
+                string value = (string)InvokeOp("JsonGetValue", storeId, "{Fun[Circus}");
+                Assert.That(value, Is.EqualTo("Times"));
+            }
+
+            // Test setting a key containing empty balanced [] with delineation
             {
                 UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}"); 
 
@@ -438,7 +495,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
             }
 
             // Commented out as this currently unexpectedly fails.
-//            // Test setting a key containing brackets with an integer
+//            // Test setting a key containing brackets around an integer with delineation
 //            {
 //                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}"); 
 //
@@ -448,6 +505,30 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 //                string value = (string)InvokeOp("JsonGetValue", storeId, "{Fun[]Circus}");
 //                Assert.That(value, Is.EqualTo("Times"));
 //            }
+
+            // *** Test {} ***
+           
+            // Test setting a key containing unbalanced } without delineation.  Expecting failure (?)
+            {
+                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}"); 
+
+                int result = (int)InvokeOp("JsonSetValue", storeId, "Fun}Circus", "Times");
+                Assert.That(result, Is.EqualTo(0));
+
+                string value = (string)InvokeOp("JsonGetValue", storeId, "Fun}Circus");
+                Assert.That(value, Is.EqualTo(""));
+            }
+
+            // Test setting a key containing unbalanced { without delineation.  Expecting failure (?)
+            {
+                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}"); 
+
+                int result = (int)InvokeOp("JsonSetValue", storeId, "Fun{Circus", "Times");
+                Assert.That(result, Is.EqualTo(0));
+
+                string value = (string)InvokeOp("JsonGetValue", storeId, "Fun}Circus");
+                Assert.That(value, Is.EqualTo(""));
+            }
 
             // Commented out as this currently unexpectedly fails.
 //            // Test setting a key containing unbalanced }
@@ -461,7 +542,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 //                Assert.That(value, Is.EqualTo("Times"));
 //            }
 
-            // Test setting a key containing unbalanced {
+            // Test setting a key containing unbalanced { with delineation
             {
                 UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}"); 
 
@@ -472,7 +553,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
                 Assert.That(value, Is.EqualTo("Times"));
             }
 
-            // Test setting a key containing balanced {}.  This should fail.
+            // Test setting a key containing balanced {} with delineation.  This should fail.
             {
                 UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}"); 
 
