@@ -242,6 +242,45 @@ public class BSPrim : BSPhysObject
     public override void LockAngularMotion(OMV.Vector3 axis)
     {
         DetailLog("{0},BSPrim.LockAngularMotion,call,axis={1}", LocalID, axis);
+
+        OMV.Vector3 locking = new OMV.Vector3(1f, 1f, 1f);
+        if (axis.X != 1) locking.X = 0f;
+        if (axis.Y != 1) locking.Y = 0f;
+        if (axis.Z != 1) locking.Z = 0f;
+        LockedAxis = locking;
+
+        /*  Not implemented yet
+        if (LockedAxis != LockedAxisFree)
+        {
+            // Something is locked so start the thingy that keeps that axis from changing
+            RegisterPreUpdatePropertyAction("BSPrim.LockAngularMotion", delegate(ref EntityProperties entprop)
+            {
+                if (LockedAxis != LockedAxisFree)
+                {
+                    if (IsPhysicallyActive)
+                    {
+                        // Bullet can lock axis but it only works for global axis.
+                        // Check if this prim is aligned on global axis and use Bullet's
+                        //    system if so.
+
+                        ForceOrientation = entprop.Rotation;
+                        ForceRotationalVelocity = entprop.RotationalVelocity;
+                    }
+                }
+                else
+                {
+                    UnRegisterPreUpdatePropertyAction("BSPrim.LockAngularMotion");
+                }
+
+            });
+        }
+        else
+        {
+            // Everything seems unlocked
+            UnRegisterPreUpdatePropertyAction("BSPrim.LockAngularMotion");
+        }
+         */
+
         return;
     }
 
@@ -311,7 +350,8 @@ public class BSPrim : BSPhysObject
 
         float terrainHeight = PhysicsScene.TerrainManager.GetTerrainHeightAtXYZ(RawPosition);
         OMV.Vector3 upForce = OMV.Vector3.Zero;
-        if (RawPosition.Z < terrainHeight)
+        float approxSize = Math.Max(Size.X, Math.Max(Size.Y, Size.Z));
+        if ((RawPosition.Z + approxSize / 2f) < terrainHeight)
         {
             DetailLog("{0},BSPrim.PositionAdjustUnderGround,call,pos={1},terrain={2}", LocalID, RawPosition, terrainHeight);
             float targetHeight = terrainHeight + (Size.Z / 2f);
@@ -442,7 +482,7 @@ public class BSPrim : BSPhysObject
                 RegisterPreStepAction("BSPrim.setForce", LocalID,
                     delegate(float timeStep)
                     {
-                        if (!IsPhysicallyActive)
+                        if (!IsPhysicallyActive || _force == OMV.Vector3.Zero)
                         {
                             UnRegisterPreStepAction("BSPrim.setForce", LocalID);
                             return;
@@ -576,6 +616,8 @@ public class BSPrim : BSPhysObject
             }
         }
     }
+    // The simulator/viewer keep density as 100kg/m3.
+    // Remember to use BSParam.DensityScaleFactor to create the physical density.
     public override float Density
     {
         get { return base.Density; }
@@ -647,7 +689,7 @@ public class BSPrim : BSPhysObject
                 RegisterPreStepAction("BSPrim.setTorque", LocalID,
                     delegate(float timeStep)
                     {
-                        if (!IsPhysicallyActive)
+                        if (!IsPhysicallyActive || _torque == OMV.Vector3.Zero)
                         {
                             UnRegisterPreStepAction("BSPrim.setTorque", LocalID);
                             return;
@@ -1569,7 +1611,8 @@ public class BSPrim : BSPhysObject
         profileEnd = 1.0f - (float)BaseShape.ProfileEnd * 2.0e-5f;
         volume *= (profileEnd - profileBegin);
 
-        returnMass = Density * volume;
+        returnMass = Density * BSParam.DensityScaleFactor * volume;
+        DetailLog("{0},BSPrim.CalculateMass,den={1},vol={2},mass={3}", LocalID, Density, volume, returnMass);
 
         returnMass = Util.Clamp(returnMass, BSParam.MinimumObjectMass, BSParam.MaximumObjectMass);
 
@@ -1607,6 +1650,8 @@ public class BSPrim : BSPhysObject
     // the world that things have changed.
     public override void UpdateProperties(EntityProperties entprop)
     {
+        TriggerPreUpdatePropertyAction(ref entprop);
+
         // A temporary kludge to suppress the rotational effects introduced on vehicles by Bullet
         // TODO: handle physics introduced by Bullet with computed vehicle physics.
         if (VehicleController.IsActive)
@@ -1619,7 +1664,11 @@ public class BSPrim : BSPhysObject
         // Assign directly to the local variables so the normal set actions do not happen
         _position = entprop.Position;
         _orientation = entprop.Rotation;
-        _velocity = entprop.Velocity;
+        // _velocity = entprop.Velocity;
+        // DEBUG DEBUG DEBUG -- smooth velocity changes a bit. The simulator seems to be
+        //    very sensitive to velocity changes.
+        if (!entprop.Velocity.ApproxEquals(_velocity, 0.1f))
+            _velocity = entprop.Velocity;
         _acceleration = entprop.Acceleration;
         _rotationalVelocity = entprop.RotationalVelocity;
 

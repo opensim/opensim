@@ -38,6 +38,9 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 public class BSPrimLinkable : BSPrimDisplaced
 {
     public BSLinkset Linkset { get; set; }
+    // The index of this child prim.
+    public int LinksetChildIndex { get; set; }
+
     public BSLinksetInfo LinksetInfo { get; set; }
 
     public BSPrimLinkable(uint localID, String primName, BSScene parent_scene, OMV.Vector3 pos, OMV.Vector3 size,
@@ -90,7 +93,6 @@ public class BSPrimLinkable : BSPrimDisplaced
         DetailLog("{0},BSPrimLinkset.delink,parentBefore={1},childrenBefore={2},parentAfter={3},childrenAfter={4}, ",
             LocalID, parentBefore.LocalID, childrenBefore, Linkset.LinksetRoot.LocalID, Linkset.NumberOfChildren);
         return;
-        base.delink();
     }
 
     // When simulator changes position, this might be moving a child of the linkset.
@@ -133,7 +135,8 @@ public class BSPrimLinkable : BSPrimDisplaced
         // When going from non-physical to physical, this re-enables the constraints that
         //     had been automatically disabled when the mass was set to zero.
         // For compound based linksets, this enables and disables interactions of the children.
-        Linkset.Refresh(this);
+        if (Linkset != null)    // null can happen during initialization
+            Linkset.Refresh(this);
     }
 
     protected override void MakeDynamic(bool makeStatic)

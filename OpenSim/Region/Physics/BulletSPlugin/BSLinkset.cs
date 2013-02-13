@@ -127,6 +127,8 @@ public abstract class BSLinkset
         m_children = new HashSet<BSPrimLinkable>();
         LinksetMass = parent.RawMass;
         Rebuilding = false;
+
+        parent.ClearDisplacement();
     }
 
     // Link to a linkset where the child knows the parent.
@@ -280,6 +282,7 @@ public abstract class BSLinkset
         return mass;
     }
 
+    // Computes linkset's center of mass in world coordinates.
     protected virtual OMV.Vector3 ComputeLinksetCenterOfMass()
     {
         OMV.Vector3 com;
