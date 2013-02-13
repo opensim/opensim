@@ -405,7 +405,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 //            TestHelpers.EnableLogging();
 
             {
-                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ }"); 
+                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}"); 
 
                 int result = (int)InvokeOp("JsonSetValue", storeId, "Fun", "Times");
                 Assert.That(result, Is.EqualTo(1));
@@ -414,9 +414,78 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
                 Assert.That(value, Is.EqualTo("Times"));
             }
 
+            // Commented out as this currently unexpectedly fails.
+            // Test setting a key containing periods.
+//            {
+//                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}"); 
+//
+//                int result = (int)InvokeOp("JsonSetValue", storeId, "{Fun.Circus}", "Times");
+//                Assert.That(result, Is.EqualTo(1));
+//
+//                string value = (string)InvokeOp("JsonGetValue", storeId, "{Fun.Circus}");
+//                Assert.That(value, Is.EqualTo("Times"));
+//            }
+
+            // Test setting a key containing empty brackets
+            {
+                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}"); 
+
+                int result = (int)InvokeOp("JsonSetValue", storeId, "{Fun[]Circus}", "Times");
+                Assert.That(result, Is.EqualTo(1));
+
+                string value = (string)InvokeOp("JsonGetValue", storeId, "{Fun[]Circus}");
+                Assert.That(value, Is.EqualTo("Times"));
+            }
+
+            // Commented out as this currently unexpectedly fails.
+//            // Test setting a key containing brackets with an integer
+//            {
+//                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}"); 
+//
+//                int result = (int)InvokeOp("JsonSetValue", storeId, "{Fun[0]Circus}", "Times");
+//                Assert.That(result, Is.EqualTo(1));
+//
+//                string value = (string)InvokeOp("JsonGetValue", storeId, "{Fun[]Circus}");
+//                Assert.That(value, Is.EqualTo("Times"));
+//            }
+
+            // Commented out as this currently unexpectedly fails.
+//            // Test setting a key containing unbalanced }
+//            {
+//                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}"); 
+//
+//                int result = (int)InvokeOp("JsonSetValue", storeId, "{Fun}Circus}", "Times");
+//                Assert.That(result, Is.EqualTo(1));
+//
+//                string value = (string)InvokeOp("JsonGetValue", storeId, "{Fun}Circus}");
+//                Assert.That(value, Is.EqualTo("Times"));
+//            }
+
+            // Test setting a key containing unbalanced {
+            {
+                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}"); 
+
+                int result = (int)InvokeOp("JsonSetValue", storeId, "{Fun{Circus}", "Times");
+                Assert.That(result, Is.EqualTo(1));
+
+                string value = (string)InvokeOp("JsonGetValue", storeId, "{Fun{Circus}");
+                Assert.That(value, Is.EqualTo("Times"));
+            }
+
+            // Test setting a key containing balanced {}.  This should fail.
+            {
+                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}"); 
+
+                int result = (int)InvokeOp("JsonSetValue", storeId, "{Fun{Filled}Circus}", "Times");
+                Assert.That(result, Is.EqualTo(0));
+
+                string value = (string)InvokeOp("JsonGetValue", storeId, "{Fun{Filled}Circus}");
+                Assert.That(value, Is.EqualTo(""));
+            }
+
             // Test setting to location that does not exist.  This should fail.
             {
-                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ }"); 
+                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}"); 
 
                 int result = (int)InvokeOp("JsonSetValue", storeId, "Fun.Circus", "Times");
                 Assert.That(result, Is.EqualTo(0));
