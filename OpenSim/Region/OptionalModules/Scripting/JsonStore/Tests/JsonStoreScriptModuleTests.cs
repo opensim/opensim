@@ -135,6 +135,15 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
                 string value = (string)InvokeOp("JsonGetValue", storeId, "Hello");
                 Assert.That(value, Is.EqualTo("42.15"));
             }
+
+            // Test with an array as the root node
+            {
+                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "[ 'one', 'two', 'three' ]");
+                Assert.That(storeId, Is.Not.EqualTo(UUID.Zero));
+
+                string value = (string)InvokeOp("JsonGetValue", storeId, "[1]");
+                Assert.That(value, Is.EqualTo("two"));
+            }
         }
 
         [Test]
