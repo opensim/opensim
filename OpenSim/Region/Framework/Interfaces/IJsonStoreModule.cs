@@ -49,7 +49,7 @@ namespace OpenSim.Region.Framework.Interfaces
         bool CreateStore(string value, ref UUID result);
         bool DestroyStore(UUID storeID);
 
-        JsonStoreNodeType PathType(UUID storeID, string path);
+        JsonStoreNodeType GetPathType(UUID storeID, string path);
         bool TestStore(UUID storeID);
         bool TestPath(UUID storeID, string path, bool useJson);
 
@@ -60,6 +60,6 @@ namespace OpenSim.Region.Framework.Interfaces
         void TakeValue(UUID storeID, string path, bool useJson, TakeValueCallback cback);
         void ReadValue(UUID storeID, string path, bool useJson, TakeValueCallback cback);
 
-        int ArrayLength(UUID storeID, string path);
+        int GetArrayLength(UUID storeID, string path);
     }
 }
