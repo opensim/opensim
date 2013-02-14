@@ -399,6 +399,53 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
         }
 
         [Test]
+        public void TestJsonGetPathType()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ 'Hello' : { 'World' : [ 'one', 2 ] } }"); 
+
+            {
+                int result = (int)InvokeOp("JsonGetPathType", storeId, ".");
+                Assert.That(result, Is.EqualTo(JsonStoreScriptModule.JSON_TYPE_OBJECT));
+            }
+
+            {
+                int result = (int)InvokeOp("JsonGetPathType", storeId, "Hello");
+                Assert.That(result, Is.EqualTo(JsonStoreScriptModule.JSON_TYPE_OBJECT));
+            }
+
+            {
+                int result = (int)InvokeOp("JsonGetPathType", storeId, "Hello.World");
+                Assert.That(result, Is.EqualTo(JsonStoreScriptModule.JSON_TYPE_ARRAY));
+            }
+
+            {
+                int result = (int)InvokeOp("JsonGetPathType", storeId, "Hello.World[0]");
+                Assert.That(result, Is.EqualTo(JsonStoreScriptModule.JSON_TYPE_VALUE));
+            }
+
+            {
+                int result = (int)InvokeOp("JsonGetPathType", storeId, "Hello.World[1]");
+                Assert.That(result, Is.EqualTo(JsonStoreScriptModule.JSON_TYPE_VALUE));
+            }
+
+            // Test for non-existant path
+            {
+                int result = (int)InvokeOp("JsonGetPathType", storeId, "foo");
+                Assert.That(result, Is.EqualTo(JsonStoreScriptModule.JSON_TYPE_UNDEF));
+            }
+
+            // Test for non-existant store
+            {
+                UUID fakeStoreId = TestHelpers.ParseTail(0x500);
+                int result = (int)InvokeOp("JsonGetPathType", fakeStoreId, ".");
+                Assert.That(result, Is.EqualTo(JsonStoreScriptModule.JSON_TYPE_UNDEF));
+            }
+        }
+
+        [Test]
         public void TestJsonSetValue()
         {
             TestHelpers.InMethod();
