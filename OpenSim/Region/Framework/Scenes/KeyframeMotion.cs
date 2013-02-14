@@ -22,25 +22,36 @@ using log4net;
 
 namespace OpenSim.Region.Framework.Scenes
 {
-    public static class KeyframeTimer
+    public class KeyframeTimer
     {
-        private static Timer m_timer;
-        private static Dictionary<KeyframeMotion, object> m_motions = new Dictionary<KeyframeMotion, object>();
-        private static object m_lockObject = new object();
-        private static object m_timerLock = new object();
-        public const double timerInterval = 50.0;
+        private static Dictionary<Scene, KeyframeTimer>m_timers =
+                new Dictionary<Scene, KeyframeTimer>();
 
-        static KeyframeTimer()
+        private Timer m_timer;
+        private Dictionary<KeyframeMotion, object> m_motions = new Dictionary<KeyframeMotion, object>();
+        private object m_lockObject = new object();
+        private object m_timerLock = new object();
+        private const double m_tickDuration = 50.0;
+        private Scene m_scene;
+
+        public double TickDuration
+        {
+            get { return m_tickDuration; }
+        }
+
+        public KeyframeTimer(Scene scene)
         {
             m_timer = new Timer();
-            m_timer.Interval = timerInterval;
+            m_timer.Interval = TickDuration;
             m_timer.AutoReset = true;
             m_timer.Elapsed += OnTimer;
+
+            m_scene = scene;
 
             m_timer.Start();
         }
 
-        private static void OnTimer(object sender, ElapsedEventArgs ea)
+        private void OnTimer(object sender, ElapsedEventArgs ea)
         {
             if (!Monitor.TryEnter(m_timerLock))
                 return;
@@ -58,7 +69,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     try
                     {
-                        m.OnTimer();
+                        m.OnTimer(TickDuration);
                     }
                     catch (Exception inner)
                     {
@@ -78,17 +89,44 @@ namespace OpenSim.Region.Framework.Scenes
 
         public static void Add(KeyframeMotion motion)
         {
-            lock (m_lockObject)
+            KeyframeTimer timer;
+
+            if (motion.Scene == null)
+                return;
+
+            lock (m_timers)
             {
-                m_motions[motion] = null;
+                if (!m_timers.TryGetValue(motion.Scene, out timer))
+                {
+                    timer = new KeyframeTimer(motion.Scene);
+                    m_timers[motion.Scene] = timer;
+                }
+            }
+
+            lock (timer.m_lockObject)
+            {
+                timer.m_motions[motion] = null;
             }
         }
 
         public static void Remove(KeyframeMotion motion)
         {
-            lock (m_lockObject)
+            KeyframeTimer timer;
+
+            if (motion.Scene == null)
+                return;
+
+            lock (m_timers)
             {
-                m_motions.Remove(motion);
+                if (!m_timers.TryGetValue(motion.Scene, out timer))
+                {
+                    return;
+                }
+            }
+
+            lock (timer.m_lockObject)
+            {
+                timer.m_motions.Remove(motion);
             }
         }
     }
@@ -156,12 +194,21 @@ namespace OpenSim.Region.Framework.Scenes
         private DataFormat m_data = DataFormat.Translation | DataFormat.Rotation;
 
         private bool m_running = false;
+
         [NonSerialized()]
         private bool m_selected = false;
 
         private int m_iterations = 0;
 
         private int m_skipLoops = 0;
+
+        [NonSerialized()]
+        private Scene m_scene;
+
+        public Scene Scene
+        {
+            get { return m_scene; }
+        }
 
         public DataFormat Data
         {
@@ -221,8 +268,12 @@ namespace OpenSim.Region.Framework.Scenes
 
                 newMotion.m_group = grp;
 
-                if (grp != null && grp.IsSelected)
-                    newMotion.m_selected = true;
+                if (grp != null)
+                {
+                    newMotion.m_scene = grp.Scene;
+                    if (grp.IsSelected)
+                        newMotion.m_selected = true;
+                }
 
                 newMotion.m_timerStopped = false;
                 newMotion.m_isCrossing = false;
@@ -246,6 +297,8 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
 
             m_group = grp;
+            m_scene = grp.Scene;
+
             Vector3 grppos = grp.AbsolutePosition;
             Vector3 offset = grppos - m_serializedPosition;
             // avoid doing it more than once
@@ -278,6 +331,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_basePosition = grp.AbsolutePosition;
                 m_baseRotation = grp.GroupRotation;
+                m_scene = grp.Scene;
             }
 
             m_timerStopped = true;
@@ -297,6 +351,7 @@ namespace OpenSim.Region.Framework.Scenes
             KeyframeMotion newmotion = new KeyframeMotion(null, m_mode, m_data);
 
             newmotion.m_group = newgrp;
+            newmotion.m_scene = newgrp.Scene;
 
             if (m_keyframes != null)
             {
@@ -482,7 +537,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void OnTimer()
+        public void OnTimer(double tickDuration)
         {
             if (m_skipLoops > 0)
             {
@@ -546,16 +601,16 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 m_currentFrame = m_frames[0];
-                m_currentFrame.TimeMS += (int)KeyframeTimer.timerInterval;
+                m_currentFrame.TimeMS += (int)tickDuration;
 
                 //force a update on a keyframe transition
                 update = true;
             }
 
-            m_currentFrame.TimeMS -= (int)KeyframeTimer.timerInterval;
+            m_currentFrame.TimeMS -= (int)tickDuration;
 
             // Do the frame processing
-            double steps = (double)m_currentFrame.TimeMS / KeyframeTimer.timerInterval;
+            double steps = (double)m_currentFrame.TimeMS / tickDuration;
 
             if (steps <= 0.0)
             {
