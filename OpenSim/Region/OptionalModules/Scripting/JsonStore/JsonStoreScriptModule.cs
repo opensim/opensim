@@ -215,19 +215,19 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
 
 #endregion
 
-#region ScriptConstantInteface
+#region ScriptConstantsInterface
 
         [ScriptConstant]
-        public static readonly int JSONTYPEUNDEF = (int)JsonStoreNodeType.Undefined;
+        public static readonly int JSON_TYPE_UNDEF = (int)JsonStoreNodeType.Undefined;
 
         [ScriptConstant]
-        public static readonly int JSONTYPEOBJECT = (int)JsonStoreNodeType.Object;
+        public static readonly int JSON_TYPE_OBJECT = (int)JsonStoreNodeType.Object;
 
         [ScriptConstant]
-        public static readonly int JSONTYPEARRAY = (int)JsonStoreNodeType.Array;
+        public static readonly int JSON_TYPE_ARRAY = (int)JsonStoreNodeType.Array;
 
         [ScriptConstant]
-        public static readonly int JSONTYPEVALUE = (int)JsonStoreNodeType.Value;
+        public static readonly int JSON_TYPE_VALUE = (int)JsonStoreNodeType.Value;
 
 #endregion
 
