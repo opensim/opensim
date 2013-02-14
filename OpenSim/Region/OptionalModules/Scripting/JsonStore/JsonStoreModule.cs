@@ -270,6 +270,38 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         /// 
         /// </summary>
         // -----------------------------------------------------------------
+        public JsonStoreNodeType PathType(UUID storeID, string path)
+        {
+            if (! m_enabled) return JsonStoreNodeType.Undefined;
+
+            JsonStore map = null;
+            lock (m_JsonValueStore)
+            {
+                if (! m_JsonValueStore.TryGetValue(storeID,out map))
+                {
+                    m_log.InfoFormat("[JsonStore] Missing store {0}",storeID);
+                    return JsonStoreNodeType.Undefined;
+                }
+            }
+            
+            try
+            {
+                lock (map)
+                    return map.PathType(path);
+            }
+            catch (Exception e)
+            {
+                m_log.Error(string.Format("[JsonStore]: Path test failed for {0} in {1}", path, storeID), e);
+            }
+
+            return JsonStoreNodeType.Undefined;
+        }
+
+        // -----------------------------------------------------------------
+        /// <summary>
+        /// 
+        /// </summary>
+        // -----------------------------------------------------------------
         public bool TestPath(UUID storeID, string path, bool useJson)
         {
             if (! m_enabled) return false;
@@ -370,6 +402,37 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             return false;
         }
         
+        // -----------------------------------------------------------------
+        /// <summary>
+        /// 
+        /// </summary>
+        // -----------------------------------------------------------------
+        public int ArrayLength(UUID storeID, string path)
+        {
+            if (! m_enabled) return -1;
+
+            JsonStore map = null;
+            lock (m_JsonValueStore)
+            {
+                if (! m_JsonValueStore.TryGetValue(storeID,out map))
+                    return -1;
+            }
+
+            try
+            {
+                lock (map)
+                {
+                    return map.ArrayLength(path);
+                }
+            }
+            catch (Exception e)
+            {
+                m_log.Error("[JsonStore]: unable to retrieve value", e);
+            }
+            
+            return -1;
+        }
+
         // -----------------------------------------------------------------
         /// <summary>
         /// 

@@ -68,14 +68,11 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         protected List<TakeValueCallbackClass> m_TakeStore;
         protected List<TakeValueCallbackClass> m_ReadStore;
         
-        // add separators for quoted paths
-        protected static Regex m_ParsePassOne = new Regex("{[^}]+}");
-
-        // add separators for array references
-        protected static Regex m_ParsePassTwo = new Regex("(\\[[0-9]+\\]|\\[\\+\\])");
+        // add separators for quoted paths and array references
+        protected static Regex m_ParsePassOne = new Regex("({[^}]+}|\\[[0-9]+\\]|\\[\\+\\])");
 
         // add quotes to bare identifiers which are limited to alphabetic characters
-        protected static Regex m_ParsePassThree = new Regex("\\.([a-zA-Z]+)");
+        protected static Regex m_ParsePassThree = new Regex("(?<!{[^}]*)\\.([a-zA-Z]+)(?=\\.)");
 
         // remove extra separator characters
         protected static Regex m_ParsePassFour = new Regex("\\.+");
@@ -84,7 +81,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         protected static Regex m_ValidatePath = new Regex("^\\.(({[^}]+}|\\[[0-9]+\\]|\\[\\+\\])\\.)*$");
 
         // expression used to match path components
-        protected static Regex m_PathComponent = new Regex("\\.({[^}]+}|\\[[0-9]+\\]|\\[\\+\\]+)");
+        protected static Regex m_PathComponent = new Regex("\\.({[^}]+}|\\[[0-9]+\\]|\\[\\+\\])");
 
         // extract the internals of an array reference
         protected static Regex m_SimpleArrayPattern = new Regex("\\[([0-9]+)\\]");
@@ -148,6 +145,34 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         /// 
         /// </summary>
         // -----------------------------------------------------------------
+        public JsonStoreNodeType PathType(string expr)
+        {
+            Stack<string> path;
+            if (! ParsePathExpression(expr,out path))
+                return JsonStoreNodeType.Undefined;
+            
+            OSD result = ProcessPathExpression(ValueStore,path);
+
+            if (result == null)
+                return JsonStoreNodeType.Undefined;
+            
+            if (result is OSDMap)
+                return JsonStoreNodeType.Object;
+            
+            if (result is OSDArray)
+                return JsonStoreNodeType.Array;
+            
+            if (OSDBaseType(result.Type))
+                return JsonStoreNodeType.Value;
+            
+            return JsonStoreNodeType.Undefined;
+        }
+        
+        // -----------------------------------------------------------------
+        /// <summary>
+        /// 
+        /// </summary>
+        // -----------------------------------------------------------------
         public bool TestPath(string expr, bool useJson)
         {
             Stack<string> path;
@@ -165,6 +190,27 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             return false;
         }
         
+        // -----------------------------------------------------------------
+        /// <summary>
+        /// 
+        /// </summary>
+        // -----------------------------------------------------------------
+        public int ArrayLength(string expr)
+        {
+            Stack<string> path;
+            if (! ParsePathExpression(expr,out path))
+                return -1;
+
+            OSD result = ProcessPathExpression(ValueStore,path);
+            if (result != null && result.Type == OSDType.Array)
+            {
+                OSDArray arr = result as OSDArray;
+                return arr.Count;
+            }
+
+            return -1;
+        }
+
         // -----------------------------------------------------------------
         /// <summary>
         /// 
@@ -465,11 +511,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             // add front and rear separators
             expr = "." + expr + ".";
             
-            // add separators for quoted exprs
-            expr = m_ParsePassOne.Replace(expr,".$0.",-1,0);
-                
-            // add separators for array references
-            expr = m_ParsePassTwo.Replace(expr,".$0.",-1,0);
+            // add separators for quoted exprs and array references
+            expr = m_ParsePassOne.Replace(expr,".$1.",-1,0);
                 
             // add quotes to bare identifier
             expr = m_ParsePassThree.Replace(expr,".{$1}",-1,0);
