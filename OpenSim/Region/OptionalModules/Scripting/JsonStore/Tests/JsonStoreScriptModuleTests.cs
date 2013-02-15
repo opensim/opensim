@@ -53,6 +53,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
         private Scene m_scene;
         private MockScriptEngine m_engine;
         private ScriptModuleCommsModule m_smcm;
+        private JsonStoreScriptModule m_jssm;
 
         [TestFixtureSetUp]
         public void FixtureInit()
@@ -82,10 +83,10 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
             m_engine = new MockScriptEngine();
             m_smcm = new ScriptModuleCommsModule();
             JsonStoreModule jsm = new JsonStoreModule();
-            JsonStoreScriptModule jssm = new JsonStoreScriptModule();
+            m_jssm = new JsonStoreScriptModule();
 
             m_scene = new SceneHelpers().SetupScene();
-            SceneHelpers.SetupSceneModules(m_scene, configSource, m_engine, m_smcm, jsm, jssm);
+            SceneHelpers.SetupSceneModules(m_scene, configSource, m_engine, m_smcm, jsm, m_jssm);
 
             try
             {
@@ -475,6 +476,30 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
                 UUID fakeStoreId = TestHelpers.ParseTail(0x500);
                 int result = (int)InvokeOp("JsonGetPathType", fakeStoreId, ".");
                 Assert.That(result, Is.EqualTo(JsonStoreScriptModule.JSON_TYPE_UNDEF));
+            }
+        }
+
+        [Test]
+        public void TestJsonList2Path()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            // Invoking these methods directly since I just couldn't get comms module invocation to work for some reason
+            // - some confusion with the methods that take a params object[] invocation.
+            {
+                string result = m_jssm.JsonList2Path(UUID.Zero, UUID.Zero, new object[] { "foo" });
+                Assert.That(result, Is.EqualTo("{foo}"));
+            }
+
+            {
+                string result = m_jssm.JsonList2Path(UUID.Zero, UUID.Zero, new object[] { "foo", "bar" });
+                Assert.That(result, Is.EqualTo("{foo}.{bar}"));
+            }
+
+            {
+                string result = m_jssm.JsonList2Path(UUID.Zero, UUID.Zero, new object[] { "foo", 1, "bar" });
+                Assert.That(result, Is.EqualTo("{foo}.[1].{bar}"));
             }
         }
 
