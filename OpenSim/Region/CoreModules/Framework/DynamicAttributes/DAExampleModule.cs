@@ -44,7 +44,7 @@ namespace OpenSim.Region.Framework.DynamicAttributes.DAExampleModule
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "DAExampleModule")]
     public class DAExampleModule : INonSharedRegionModule
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private static readonly bool ENABLED = false;   // enable for testing
 

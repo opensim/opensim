@@ -59,6 +59,8 @@ namespace OpenSim.Region.ClientStack.Linden
 //        private static readonly ILog m_log =
 //            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        public event SimulatorFeaturesRequestDelegate OnSimulatorFeaturesRequest;
+
         private Scene m_scene;
 
         /// <summary>
@@ -94,6 +96,8 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             m_scene = s;
             m_scene.EventManager.OnRegisterCaps += RegisterCaps;
+
+            m_scene.RegisterModuleInterface<ISimulatorFeaturesModule>(this);
         }
 
         public void RemoveRegion(Scene s)
@@ -156,7 +160,7 @@ namespace OpenSim.Region.ClientStack.Linden
             IRequestHandler reqHandler
                 = new RestHTTPHandler(
                     "GET", "/CAPS/" + UUID.Random(),
-                    HandleSimulatorFeaturesRequest, "SimulatorFeatures", agentID.ToString());
+                    x => { return HandleSimulatorFeaturesRequest(x, agentID); }, "SimulatorFeatures", agentID.ToString());
 
             caps.RegisterHandler("SimulatorFeatures", reqHandler);
         }
@@ -185,9 +189,25 @@ namespace OpenSim.Region.ClientStack.Linden
                 return new OSDMap(m_features);
         }
 
-        private Hashtable HandleSimulatorFeaturesRequest(Hashtable mDhttpMethod)
+        private OSDMap DeepCopy()
+        {
+            // This isn't the cheapest way of doing this but the rate
+            // of occurrence is low (on sim entry only) and it's a sure
+            // way to get a true deep copy.
+            OSD copy = OSDParser.DeserializeLLSDXml(OSDParser.SerializeLLSDXmlString(m_features));
+
+            return (OSDMap)copy;
+        }
+
+        private Hashtable HandleSimulatorFeaturesRequest(Hashtable mDhttpMethod, UUID agentID)
         {
 //            m_log.DebugFormat("[SIMULATOR FEATURES MODULE]: SimulatorFeatures request");
+
+            OSDMap copy = DeepCopy();
+
+            SimulatorFeaturesRequestDelegate handlerOnSimulatorFeaturesRequest = OnSimulatorFeaturesRequest;
+            if (handlerOnSimulatorFeaturesRequest != null)
+                handlerOnSimulatorFeaturesRequest(agentID, ref copy);
 
             //Send back data
             Hashtable responsedata = new Hashtable();
@@ -195,8 +215,7 @@ namespace OpenSim.Region.ClientStack.Linden
             responsedata["content_type"] = "text/plain";
             responsedata["keepalive"] = false;
 
-            lock (m_features)
-                responsedata["str_response_string"] = OSDParser.SerializeLLSDXmlString(m_features);
+            responsedata["str_response_string"] = OSDParser.SerializeLLSDXmlString(copy);
 
             return responsedata;
         }

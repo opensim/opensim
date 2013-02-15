@@ -535,6 +535,8 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// <param name="message"></param>
         public void Close(string message)
         {
+            if (_networkContext == null)
+                return;
             if (_networkContext.Stream != null)
             {
                 if (_networkContext.Stream.CanWrite)

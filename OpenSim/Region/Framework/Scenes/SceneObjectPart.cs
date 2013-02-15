@@ -4316,6 +4316,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             PhysActor = pa;
+            ParentGroup.Scene.EventManager.TriggerObjectAddedToPhysicalScene(this);
         }
 
         /// <summary>
@@ -4328,6 +4329,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </remarks>
         public void RemoveFromPhysics()
         {
+            ParentGroup.Scene.EventManager.TriggerObjectRemovedFromPhysicalScene(this);
             ParentGroup.Scene.PhysicsScene.RemovePrim(PhysActor);
             PhysActor = null;
         }

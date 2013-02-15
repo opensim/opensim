@@ -167,7 +167,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
                 try
                 {
                     m_comms.RegisterScriptInvocations(this);
-
+                    m_comms.RegisterConstants(this);
+        
                     // m_comms.RegisterScriptInvocation(this, "JsonCreateStore");
                     // m_comms.RegisterScriptInvocation(this, "JsonAttachObjectStore");
                     // m_comms.RegisterScriptInvocation(this, "JsonDestroyStore");
@@ -211,6 +212,22 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         {
             get { return null; }
         }
+
+#endregion
+
+#region ScriptConstantsInterface
+
+        [ScriptConstant]
+        public static readonly int JSON_TYPE_UNDEF = (int)JsonStoreNodeType.Undefined;
+
+        [ScriptConstant]
+        public static readonly int JSON_TYPE_OBJECT = (int)JsonStoreNodeType.Object;
+
+        [ScriptConstant]
+        public static readonly int JSON_TYPE_ARRAY = (int)JsonStoreNodeType.Array;
+
+        [ScriptConstant]
+        public static readonly int JSON_TYPE_VALUE = (int)JsonStoreNodeType.Value;
 
 #endregion
 
@@ -319,6 +336,12 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         /// </summary>
         // -----------------------------------------------------------------
         [ScriptInvocation]
+        public int JsonGetPathType(UUID hostID, UUID scriptID, UUID storeID, string path)
+        {
+            return (int)m_store.GetPathType(storeID,path);
+        }
+
+        [ScriptInvocation]
         public int JsonTestPath(UUID hostID, UUID scriptID, UUID storeID, string path)
         {
             return m_store.TestPath(storeID,path,false) ? 1 : 0;
@@ -342,7 +365,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         }
 
         [ScriptInvocation]
-        public int JsonSetValueJson(UUID hostID, UUID scriptID, UUID storeID, string path, string value)
+        public int JsonSetJson(UUID hostID, UUID scriptID, UUID storeID, string path, string value)
         {
             return m_store.SetValue(storeID,path,value,true) ? 1 : 0;
         }
@@ -364,6 +387,17 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         /// </summary>
         // -----------------------------------------------------------------
         [ScriptInvocation]
+        public int JsonGetArrayLength(UUID hostID, UUID scriptID, UUID storeID, string path)
+        {
+            return m_store.GetArrayLength(storeID,path);
+        }
+        
+        // -----------------------------------------------------------------
+        /// <summary>
+        /// 
+        /// </summary>
+        // -----------------------------------------------------------------
+        [ScriptInvocation]
         public string JsonGetValue(UUID hostID, UUID scriptID, UUID storeID, string path)
         {
             string value = String.Empty;
@@ -372,7 +406,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         }
 
         [ScriptInvocation]
-        public string JsonGetValueJson(UUID hostID, UUID scriptID, UUID storeID, string path)
+        public string JsonGetJson(UUID hostID, UUID scriptID, UUID storeID, string path)
         {
             string value = String.Empty;
             m_store.GetValue(storeID,path,true, out value);

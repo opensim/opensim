@@ -57,8 +57,12 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             wr.Abort();
         }
 
-        public bool Wait(TimeSpan t)
+        public bool Wait(int t)
         {
+            // We use the integer version of WaitAll because the current version of SmartThreadPool has a bug with the
+            // TimeSpan version.  The number of milliseconds in TimeSpan is an int64 so when STP casts it down to an 
+            // int (32-bit) we can end up with bad values.  This occurs on Windows though curious not on Mono 2.10.8
+            // (or very likely other versions of Mono at least up until 3.0.3).
             return SmartThreadPool.WaitAll(new IWorkItemResult[] {wr}, t, false);
         }
     }

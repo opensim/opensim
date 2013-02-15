@@ -4479,6 +4479,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     }
                 }
             }
+
             if (pushAllowed)
             {
                 float distance = (PusheePos - m_host.AbsolutePosition).Length();
@@ -4507,17 +4508,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     applied_linear_impulse *= scaling_factor;
 
                 }
+
                 if (pusheeIsAvatar)
                 {
                     if (pusheeav != null)
                     {
-                        if (pusheeav.PhysicsActor != null)
+                        PhysicsActor pa = pusheeav.PhysicsActor;
+
+                        if (pa != null)
                         {
                             if (local != 0)
                             {
                                 applied_linear_impulse *= m_host.GetWorldRotation();
                             }
-                            pusheeav.PhysicsActor.AddForce(applied_linear_impulse, true);
+
+                            pa.AddForce(applied_linear_impulse, true);
                         }
                     }
                 }

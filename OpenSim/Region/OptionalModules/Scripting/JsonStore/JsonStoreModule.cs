@@ -227,7 +227,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             }
             catch (Exception e)
             {
-                m_log.Error(string.Format("[JsonStore]: Unable to initialize store from {0}", value), e);
+                m_log.ErrorFormat("[JsonStore]: Unable to initialize store from {0}", value);
                 return false;
             }
 
@@ -263,6 +263,38 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
 
             lock (m_JsonValueStore)
                 return m_JsonValueStore.ContainsKey(storeID);
+        }
+
+        // -----------------------------------------------------------------
+        /// <summary>
+        /// 
+        /// </summary>
+        // -----------------------------------------------------------------
+        public JsonStoreNodeType GetPathType(UUID storeID, string path)
+        {
+            if (! m_enabled) return JsonStoreNodeType.Undefined;
+
+            JsonStore map = null;
+            lock (m_JsonValueStore)
+            {
+                if (! m_JsonValueStore.TryGetValue(storeID,out map))
+                {
+                    m_log.InfoFormat("[JsonStore] Missing store {0}",storeID);
+                    return JsonStoreNodeType.Undefined;
+                }
+            }
+            
+            try
+            {
+                lock (map)
+                    return map.PathType(path);
+            }
+            catch (Exception e)
+            {
+                m_log.Error(string.Format("[JsonStore]: Path test failed for {0} in {1}", path, storeID), e);
+            }
+
+            return JsonStoreNodeType.Undefined;
         }
 
         // -----------------------------------------------------------------
@@ -370,6 +402,37 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             return false;
         }
         
+        // -----------------------------------------------------------------
+        /// <summary>
+        /// 
+        /// </summary>
+        // -----------------------------------------------------------------
+        public int GetArrayLength(UUID storeID, string path)
+        {
+            if (! m_enabled) return -1;
+
+            JsonStore map = null;
+            lock (m_JsonValueStore)
+            {
+                if (! m_JsonValueStore.TryGetValue(storeID,out map))
+                    return -1;
+            }
+
+            try
+            {
+                lock (map)
+                {
+                    return map.ArrayLength(path);
+                }
+            }
+            catch (Exception e)
+            {
+                m_log.Error("[JsonStore]: unable to retrieve value", e);
+            }
+            
+            return -1;
+        }
+
         // -----------------------------------------------------------------
         /// <summary>
         /// 

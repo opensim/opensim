@@ -49,6 +49,7 @@ public static class BSParam
     public static float MaxLinearVelocity { get; private set; }
     public static float MaxAngularVelocity { get; private set; }
     public static float MaxAddForceMagnitude { get; private set; }
+    public static float DensityScaleFactor { get; private set; }
 
     public static float LinearDamping { get; private set; }
     public static float AngularDamping { get; private set; }
@@ -281,29 +282,35 @@ public static class BSParam
         new ParameterDefn("MinObjectMass", "Minimum object mass (0.0001)",
             0.0001f,
             (s,cf,p,v) => { MinimumObjectMass = cf.GetFloat(p, v); },
-            (s) => { return (float)MinimumObjectMass; },
+            (s) => { return MinimumObjectMass; },
             (s,p,l,v) => { MinimumObjectMass = v; } ),
         new ParameterDefn("MaxObjectMass", "Maximum object mass (10000.01)",
             10000.01f,
             (s,cf,p,v) => { MaximumObjectMass = cf.GetFloat(p, v); },
-            (s) => { return (float)MaximumObjectMass; },
+            (s) => { return MaximumObjectMass; },
             (s,p,l,v) => { MaximumObjectMass = v; } ),
         new ParameterDefn("MaxLinearVelocity", "Maximum velocity magnitude that can be assigned to an object",
             1000.0f,
             (s,cf,p,v) => { MaxLinearVelocity = cf.GetFloat(p, v); },
-            (s) => { return (float)MaxLinearVelocity; },
+            (s) => { return MaxLinearVelocity; },
             (s,p,l,v) => { MaxLinearVelocity = v; } ),
         new ParameterDefn("MaxAngularVelocity", "Maximum rotational velocity magnitude that can be assigned to an object",
             1000.0f,
             (s,cf,p,v) => { MaxAngularVelocity = cf.GetFloat(p, v); },
-            (s) => { return (float)MaxAngularVelocity; },
+            (s) => { return MaxAngularVelocity; },
             (s,p,l,v) => { MaxAngularVelocity = v; } ),
         // LL documentation says thie number should be 20f for llApplyImpulse and 200f for llRezObject
         new ParameterDefn("MaxAddForceMagnitude", "Maximum force that can be applied by llApplyImpulse (SL says 20f)",
             20000.0f,
             (s,cf,p,v) => { MaxAddForceMagnitude = cf.GetFloat(p, v); },
-            (s) => { return (float)MaxAddForceMagnitude; },
+            (s) => { return MaxAddForceMagnitude; },
             (s,p,l,v) => { MaxAddForceMagnitude = v; } ),
+        // Density is passed around as 100kg/m3. This scales that to 1kg/m3.
+        new ParameterDefn("DensityScaleFactor", "Conversion for simulator/viewer density (100kg/m3) to physical density (1kg/m3)",
+            0.01f,
+            (s,cf,p,v) => { DensityScaleFactor = cf.GetFloat(p, v); },
+            (s) => { return DensityScaleFactor; },
+            (s,p,l,v) => { DensityScaleFactor = v; } ),
 
         new ParameterDefn("PID_D", "Derivitive factor for motion smoothing",
             2200f,
