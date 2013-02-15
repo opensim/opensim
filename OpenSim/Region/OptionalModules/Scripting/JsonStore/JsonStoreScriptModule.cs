@@ -215,19 +215,19 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
 
 #endregion
 
-#region ScriptConstantInteface
+#region ScriptConstantsInterface
 
         [ScriptConstant]
-        public static readonly int JSONTYPEUNDEF = (int)JsonStoreNodeType.Undefined;
+        public static readonly int JSON_TYPE_UNDEF = (int)JsonStoreNodeType.Undefined;
 
         [ScriptConstant]
-        public static readonly int JSONTYPEOBJECT = (int)JsonStoreNodeType.Object;
+        public static readonly int JSON_TYPE_OBJECT = (int)JsonStoreNodeType.Object;
 
         [ScriptConstant]
-        public static readonly int JSONTYPEARRAY = (int)JsonStoreNodeType.Array;
+        public static readonly int JSON_TYPE_ARRAY = (int)JsonStoreNodeType.Array;
 
         [ScriptConstant]
-        public static readonly int JSONTYPEVALUE = (int)JsonStoreNodeType.Value;
+        public static readonly int JSON_TYPE_VALUE = (int)JsonStoreNodeType.Value;
 
 #endregion
 
@@ -336,9 +336,9 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         /// </summary>
         // -----------------------------------------------------------------
         [ScriptInvocation]
-        public int JsonPathType(UUID hostID, UUID scriptID, UUID storeID, string path)
+        public int JsonGetPathType(UUID hostID, UUID scriptID, UUID storeID, string path)
         {
-            return (int)m_store.PathType(storeID,path);
+            return (int)m_store.GetPathType(storeID,path);
         }
 
         [ScriptInvocation]
@@ -365,7 +365,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         }
 
         [ScriptInvocation]
-        public int JsonSetValueJson(UUID hostID, UUID scriptID, UUID storeID, string path, string value)
+        public int JsonSetJson(UUID hostID, UUID scriptID, UUID storeID, string path, string value)
         {
             return m_store.SetValue(storeID,path,value,true) ? 1 : 0;
         }
@@ -387,9 +387,9 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         /// </summary>
         // -----------------------------------------------------------------
         [ScriptInvocation]
-        public int JsonArrayLength(UUID hostID, UUID scriptID, UUID storeID, string path)
+        public int JsonGetArrayLength(UUID hostID, UUID scriptID, UUID storeID, string path)
         {
-            return m_store.ArrayLength(storeID,path);
+            return m_store.GetArrayLength(storeID,path);
         }
         
         // -----------------------------------------------------------------
@@ -406,7 +406,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         }
 
         [ScriptInvocation]
-        public string JsonGetValueJson(UUID hostID, UUID scriptID, UUID storeID, string path)
+        public string JsonGetJson(UUID hostID, UUID scriptID, UUID storeID, string path)
         {
             string value = String.Empty;
             m_store.GetValue(storeID,path,true, out value);

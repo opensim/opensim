@@ -270,7 +270,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         /// 
         /// </summary>
         // -----------------------------------------------------------------
-        public JsonStoreNodeType PathType(UUID storeID, string path)
+        public JsonStoreNodeType GetPathType(UUID storeID, string path)
         {
             if (! m_enabled) return JsonStoreNodeType.Undefined;
 
@@ -407,7 +407,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         /// 
         /// </summary>
         // -----------------------------------------------------------------
-        public int ArrayLength(UUID storeID, string path)
+        public int GetArrayLength(UUID storeID, string path)
         {
             if (! m_enabled) return -1;
 

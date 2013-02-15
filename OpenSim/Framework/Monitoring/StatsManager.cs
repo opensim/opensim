@@ -51,8 +51,8 @@ namespace OpenSim.Framework.Monitoring
         /// <remarks>
         /// Do not add or remove directly from this dictionary.
         /// </remarks>
-        public static Dictionary<string, Dictionary<string, Dictionary<string, Stat>>> RegisteredStats
-            = new Dictionary<string, Dictionary<string, Dictionary<string, Stat>>>();
+        public static SortedDictionary<string, SortedDictionary<string, SortedDictionary<string, Stat>>> RegisteredStats
+            = new SortedDictionary<string, SortedDictionary<string, SortedDictionary<string, Stat>>>();
 
         private static AssetStatsCollector assetStats;
         private static UserStatsCollector userStats;
@@ -101,7 +101,7 @@ namespace OpenSim.Framework.Monitoring
                 }
                 else
                 {
-                    Dictionary<string, Dictionary<string, Stat>> category;
+                    SortedDictionary<string, SortedDictionary<string, Stat>> category;
                     if (!RegisteredStats.TryGetValue(categoryName, out category))
                     {
                         con.OutputFormat("No such category as {0}", categoryName);
@@ -120,7 +120,7 @@ namespace OpenSim.Framework.Monitoring
         }
 
         private static void OutputCategoryStatsToConsole(
-            ICommandConsole con, Dictionary<string, Dictionary<string, Stat>> category)
+            ICommandConsole con, SortedDictionary<string, SortedDictionary<string, Stat>> category)
         {
             foreach (var container in category.Values)
             {
@@ -160,8 +160,8 @@ namespace OpenSim.Framework.Monitoring
         /// <returns></returns>
         public static bool RegisterStat(Stat stat)
         {
-            Dictionary<string, Dictionary<string, Stat>> category = null, newCategory;
-            Dictionary<string, Stat> container = null, newContainer;
+            SortedDictionary<string, SortedDictionary<string, Stat>> category = null, newCategory;
+            SortedDictionary<string, Stat> container = null, newContainer;
 
             lock (RegisteredStats)
             {
@@ -175,14 +175,14 @@ namespace OpenSim.Framework.Monitoring
                 // This means that we don't need to lock or copy them on iteration, which will be a much more
                 // common operation after startup.
                 if (container != null)
-                    newContainer = new Dictionary<string, Stat>(container);
+                    newContainer = new SortedDictionary<string, Stat>(container);
                 else
-                    newContainer = new Dictionary<string, Stat>();
+                    newContainer = new SortedDictionary<string, Stat>();
 
                 if (category != null)
-                    newCategory = new Dictionary<string, Dictionary<string, Stat>>(category);
+                    newCategory = new SortedDictionary<string, SortedDictionary<string, Stat>>(category);
                 else
-                    newCategory = new Dictionary<string, Dictionary<string, Stat>>();
+                    newCategory = new SortedDictionary<string, SortedDictionary<string, Stat>>();
 
                 newContainer[stat.ShortName] = stat;
                 newCategory[stat.Container] = newContainer;
@@ -196,21 +196,21 @@ namespace OpenSim.Framework.Monitoring
         /// Deregister a statistic
         /// </summary>>
         /// <param name='stat'></param>
-        /// <returns></returns
+        /// <returns></returns>
         public static bool DeregisterStat(Stat stat)
         {
-            Dictionary<string, Dictionary<string, Stat>> category = null, newCategory;
-            Dictionary<string, Stat> container = null, newContainer;
+            SortedDictionary<string, SortedDictionary<string, Stat>> category = null, newCategory;
+            SortedDictionary<string, Stat> container = null, newContainer;
 
             lock (RegisteredStats)
             {
                 if (!TryGetStat(stat, out category, out container))
                     return false;
 
-                newContainer = new Dictionary<string, Stat>(container);
+                newContainer = new SortedDictionary<string, Stat>(container);
                 newContainer.Remove(stat.ShortName);
 
-                newCategory = new Dictionary<string, Dictionary<string, Stat>>(category);
+                newCategory = new SortedDictionary<string, SortedDictionary<string, Stat>>(category);
                 newCategory.Remove(stat.Container);
 
                 newCategory[stat.Container] = newContainer;
@@ -220,15 +220,15 @@ namespace OpenSim.Framework.Monitoring
             }
         }
 
-        public static bool TryGetStats(string category, out Dictionary<string, Dictionary<string, Stat>> stats)
+        public static bool TryGetStats(string category, out SortedDictionary<string, SortedDictionary<string, Stat>> stats)
         {
             return RegisteredStats.TryGetValue(category, out stats);
         }
 
         public static bool TryGetStat(
             Stat stat,
-            out Dictionary<string, Dictionary<string, Stat>> category,
-            out Dictionary<string, Stat> container)
+            out SortedDictionary<string, SortedDictionary<string, Stat>> category,
+            out SortedDictionary<string, Stat> container)
         {
             category = null;
             container = null;
@@ -252,9 +252,9 @@ namespace OpenSim.Framework.Monitoring
         {
             lock (RegisteredStats)
             {
-                foreach (Dictionary<string, Dictionary<string, Stat>> category in RegisteredStats.Values)
+                foreach (SortedDictionary<string, SortedDictionary<string, Stat>> category in RegisteredStats.Values)
                 {
-                    foreach (Dictionary<string, Stat> container in category.Values)
+                    foreach (SortedDictionary<string, Stat> container in category.Values)
                     {
                         foreach (Stat stat in container.Values)
                         {

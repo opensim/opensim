@@ -792,6 +792,19 @@ namespace OpenSim.Region.Framework.Scenes
         public delegate void ObjectBeingRemovedFromScene(SceneObjectGroup obj);
 
         /// <summary>
+        /// Triggered when an object is placed into the physical scene (PhysicsActor created).
+        /// </summary>
+        public event Action<SceneObjectPart> OnObjectAddedToPhysicalScene;
+        /// <summary>
+        /// Triggered when an object is removed from the physical scene (PhysicsActor destroyed).
+        /// </summary>
+        /// <remarks>
+        /// Note: this is triggered just before the PhysicsActor is removed from the
+        /// physics engine so the receiver can do any necessary cleanup before its destruction.
+        /// </remarks>
+        public event Action<SceneObjectPart> OnObjectRemovedFromPhysicalScene;
+
+        /// <summary>
         /// Triggered when an object is removed from the scene.
         /// </summary>
         /// <remarks>
@@ -1535,6 +1548,48 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         m_log.ErrorFormat(
                             "[EVENT MANAGER]: Delegate for TriggerObjectBeingRemovedFromScene failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }
+        }
+
+        public void TriggerObjectAddedToPhysicalScene(SceneObjectPart obj)
+        {
+            Action<SceneObjectPart> handler = OnObjectAddedToPhysicalScene;
+            if (handler != null)
+            {
+                foreach (Action<SceneObjectPart> d in handler.GetInvocationList())
+                {
+                    try
+                    {
+                        d(obj);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerObjectAddedToPhysicalScene failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }
+        }
+
+        public void TriggerObjectRemovedFromPhysicalScene(SceneObjectPart obj)
+        {
+            Action<SceneObjectPart> handler = OnObjectRemovedFromPhysicalScene;
+            if (handler != null)
+            {
+                foreach (Action<SceneObjectPart> d in handler.GetInvocationList())
+                {
+                    try
+                    {
+                        d(obj);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerObjectRemovedFromPhysicalScene failed - continuing.  {0} {1}", 
                             e.Message, e.StackTrace);
                     }
                 }

@@ -4738,7 +4738,9 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             PhysActor = pa;
-    }
+
+            ParentGroup.Scene.EventManager.TriggerObjectAddedToPhysicalScene(this);
+        }
 
         /// <summary>
         /// This removes the part from the physics scene.
@@ -4757,6 +4759,8 @@ namespace OpenSim.Region.Framework.Scenes
                 pa.OnOutOfBounds -= PhysicsOutOfBounds;
 
                 ParentGroup.Scene.PhysicsScene.RemovePrim(pa);
+
+                ParentGroup.Scene.EventManager.TriggerObjectRemovedFromPhysicalScene(this);
             }
             PhysActor = null;
         }
