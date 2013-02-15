@@ -519,17 +519,16 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
                 Assert.That(value, Is.EqualTo("Times"));
             }
 
-            // Commented out as this currently unexpectedly fails.
             // Test setting a key containing periods with delineation
-//            {
-//                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}"); 
-//
-//                int result = (int)InvokeOp("JsonSetValue", storeId, "{Fun.Circus}", "Times");
-//                Assert.That(result, Is.EqualTo(1));
-//
-//                string value = (string)InvokeOp("JsonGetValue", storeId, "{Fun.Circus}");
-//                Assert.That(value, Is.EqualTo("Times"));
-//            }
+            {
+                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}"); 
+
+                int result = (int)InvokeOp("JsonSetValue", storeId, "{Fun.Circus}", "Times");
+                Assert.That(result, Is.EqualTo(1));
+
+                string value = (string)InvokeOp("JsonGetValue", storeId, "{Fun.Circus}");
+                Assert.That(value, Is.EqualTo("Times"));
+            }
 
             // *** Test [] ***
 
@@ -599,7 +598,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
                 Assert.That(value, Is.EqualTo("Times"));
             }
 
-            // Commented out as this currently unexpectedly fails.
+//            // Commented out as this currently unexpectedly fails.
 //            // Test setting a key containing brackets around an integer with delineation
 //            {
 //                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}"); 
@@ -607,7 +606,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 //                int result = (int)InvokeOp("JsonSetValue", storeId, "{Fun[0]Circus}", "Times");
 //                Assert.That(result, Is.EqualTo(1));
 //
-//                string value = (string)InvokeOp("JsonGetValue", storeId, "{Fun[]Circus}");
+//                string value = (string)InvokeOp("JsonGetValue", storeId, "{Fun[0]Circus}");
 //                Assert.That(value, Is.EqualTo("Times"));
 //            }
 
@@ -635,16 +634,13 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
                 Assert.That(value, Is.EqualTo(""));
             }
 
-            // Commented out as this currently unexpectedly fails.
+//            // Commented out as this currently unexpectedly fails.
 //            // Test setting a key containing unbalanced }
 //            {
 //                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}"); 
 //
 //                int result = (int)InvokeOp("JsonSetValue", storeId, "{Fun}Circus}", "Times");
-//                Assert.That(result, Is.EqualTo(1));
-//
-//                string value = (string)InvokeOp("JsonGetValue", storeId, "{Fun}Circus}");
-//                Assert.That(value, Is.EqualTo("Times"));
+//                Assert.That(result, Is.EqualTo(0));
 //            }
 
             // Test setting a key containing unbalanced { with delineation
