@@ -365,7 +365,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         }
 
         [ScriptInvocation]
-        public int JsonSetValueJson(UUID hostID, UUID scriptID, UUID storeID, string path, string value)
+        public int JsonSetJson(UUID hostID, UUID scriptID, UUID storeID, string path, string value)
         {
             return m_store.SetValue(storeID,path,value,true) ? 1 : 0;
         }
@@ -406,7 +406,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         }
 
         [ScriptInvocation]
-        public string JsonGetValueJson(UUID hostID, UUID scriptID, UUID storeID, string path)
+        public string JsonGetJson(UUID hostID, UUID scriptID, UUID storeID, string path)
         {
             string value = String.Empty;
             m_store.GetValue(storeID,path,true, out value);

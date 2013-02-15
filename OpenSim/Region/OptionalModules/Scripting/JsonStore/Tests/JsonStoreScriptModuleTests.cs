@@ -209,7 +209,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
         }
 
         [Test]
-        public void TestJsonGetValueJson()
+        public void TestJsonGetJson()
         {
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
@@ -217,26 +217,26 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
             UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ 'Hello' : { 'World' : 'Two' } }"); 
 
             {
-                string value = (string)InvokeOp("JsonGetValueJson", storeId, "Hello.World");
+                string value = (string)InvokeOp("JsonGetJson", storeId, "Hello.World");
                 Assert.That(value, Is.EqualTo("'Two'"));
             }
 
             // Test get of path section instead of leaf
             {
-                string value = (string)InvokeOp("JsonGetValueJson", storeId, "Hello");
+                string value = (string)InvokeOp("JsonGetJson", storeId, "Hello");
                 Assert.That(value, Is.EqualTo("{\"World\":\"Two\"}"));
             }
 
             // Test get of non-existing value
             {
-                string fakeValueGet = (string)InvokeOp("JsonGetValueJson", storeId, "foo");
+                string fakeValueGet = (string)InvokeOp("JsonGetJson", storeId, "foo");
                 Assert.That(fakeValueGet, Is.EqualTo(""));
             }
 
             // Test get from non-existing store
             {
                 UUID fakeStoreId = TestHelpers.ParseTail(0x500);
-                string fakeStoreValueGet = (string)InvokeOp("JsonGetValueJson", fakeStoreId, "Hello");
+                string fakeStoreValueGet = (string)InvokeOp("JsonGetJson", fakeStoreId, "Hello");
                 Assert.That(fakeStoreValueGet, Is.EqualTo(""));
             }
         }
@@ -294,7 +294,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
                 int result = (int)InvokeOp("JsonTestPath", storeId, "Hello");
                 Assert.That(result, Is.EqualTo(0));
 
-                string returnValue2 = (string)InvokeOp("JsonGetValueJson", storeId, "Hello");
+                string returnValue2 = (string)InvokeOp("JsonGetJson", storeId, "Hello");
                 Assert.That(returnValue2, Is.EqualTo(""));
             }
 
@@ -315,7 +315,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
                 string stringReturnValue = (string)InvokeOp("JsonGetValue", storeId, "Hello[0]");
                 Assert.That(stringReturnValue, Is.EqualTo("value2"));
 
-                stringReturnValue = (string)InvokeOp("JsonGetValueJson", storeId, "Hello[1]");
+                stringReturnValue = (string)InvokeOp("JsonGetJson", storeId, "Hello[1]");
                 Assert.That(stringReturnValue, Is.EqualTo(""));
             }
 
@@ -689,7 +689,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
         }
 
         [Test]
-        public void TestJsonSetValueJson()
+        public void TestJsonSetJson()
         {
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
@@ -698,7 +698,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
             {
                 UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ }"); 
 
-                int result = (int)InvokeOp("JsonSetValueJson", storeId, "Fun", "'Times'");
+                int result = (int)InvokeOp("JsonSetJson", storeId, "Fun", "'Times'");
                 Assert.That(result, Is.EqualTo(1));
 
                 string value = (string)InvokeOp("JsonGetValue", storeId, "Fun");
@@ -709,7 +709,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
             {
                 UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ }"); 
 
-                int result = (int)InvokeOp("JsonSetValueJson", storeId, "Fun", "{ 'Filled' : 'Times' }");
+                int result = (int)InvokeOp("JsonSetJson", storeId, "Fun", "{ 'Filled' : 'Times' }");
                 Assert.That(result, Is.EqualTo(1));
 
                 string value = (string)InvokeOp("JsonGetValue", storeId, "Fun.Filled");
@@ -720,7 +720,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
             {
                 UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ }"); 
 
-                int result = (int)InvokeOp("JsonSetValueJson", storeId, "Fun", "Times");
+                int result = (int)InvokeOp("JsonSetJson", storeId, "Fun", "Times");
                 Assert.That(result, Is.EqualTo(0));
 
                 string value = (string)InvokeOp("JsonGetValue", storeId, "Fun");
@@ -731,7 +731,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
             {
                 UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ }"); 
 
-                int result = (int)InvokeOp("JsonSetValueJson", storeId, "Fun.Circus", "'Times'");
+                int result = (int)InvokeOp("JsonSetJson", storeId, "Fun.Circus", "'Times'");
                 Assert.That(result, Is.EqualTo(0));
 
                 string value = (string)InvokeOp("JsonGetValue", storeId, "Fun.Circus");
@@ -741,7 +741,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
             // Test with fake store
             {
                 UUID fakeStoreId = TestHelpers.ParseTail(0x500);
-                int fakeStoreValueSet = (int)InvokeOp("JsonSetValueJson", fakeStoreId, "Hello", "'World'");
+                int fakeStoreValueSet = (int)InvokeOp("JsonSetJson", fakeStoreId, "Hello", "'World'");
                 Assert.That(fakeStoreValueSet, Is.EqualTo(0));
             }
         }
