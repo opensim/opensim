@@ -359,11 +359,11 @@ Asset service request failures: {3}" + Environment.NewLine,
                     inPacketsPerSecond, outPacketsPerSecond, pendingDownloads, pendingUploads, unackedBytes, totalFrameTime,
                     netFrameTime, physicsFrameTime, otherFrameTime, agentFrameTime, imageFrameTime));
 
-            Dictionary<string, Dictionary<string, Stat>> sceneStats;
+            SortedDictionary<string, SortedDictionary<string, Stat>> sceneStats;
 
             if (StatsManager.TryGetStats("scene", out sceneStats))
             {
-                foreach (KeyValuePair<string, Dictionary<string, Stat>> kvp in sceneStats)
+                foreach (KeyValuePair<string, SortedDictionary<string, Stat>> kvp in sceneStats)
                 {
                     foreach (Stat stat in kvp.Value.Values)
                     {
