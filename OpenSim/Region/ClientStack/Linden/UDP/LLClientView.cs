@@ -3893,6 +3893,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             part.Shape.LightEntry = false;
                         }
                     }
+
+                    if (part.Shape != null && (part.Shape.SculptType == (byte)SculptType.Mesh))
+                    {
+                        // Ensure that mesh has at least 8 valid faces
+                        part.Shape.ProfileBegin = 12500;
+                        part.Shape.ProfileEnd = 0;
+                        part.Shape.ProfileHollow = 27500;
+                    }
                 }
 
                 ++updatesThisCall;
