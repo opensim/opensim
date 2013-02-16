@@ -123,10 +123,63 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         }
 
         [Test]
+        public void TestSaveRootFolderToIar()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            string userFirstName = "Jock";
+            string userLastName = "Stirrup";
+            string userPassword = "troll";
+            UUID userId = TestHelpers.ParseTail(0x20);
+
+            UserAccountHelpers.CreateUserWithInventory(m_scene, userFirstName, userLastName, userId, userPassword);
+
+            MemoryStream archiveWriteStream = new MemoryStream();
+            m_archiverModule.OnInventoryArchiveSaved += SaveCompleted;
+
+            mre.Reset();
+            m_archiverModule.ArchiveInventory(
+                Guid.NewGuid(), userFirstName, userLastName, "/", userPassword, archiveWriteStream);
+            mre.WaitOne(60000, false);
+
+            // Test created iar
+            byte[] archive = archiveWriteStream.ToArray();
+            MemoryStream archiveReadStream = new MemoryStream(archive);
+            TarArchiveReader tar = new TarArchiveReader(archiveReadStream);
+
+//            InventoryArchiveUtils.
+            bool gotObjectsFolder = false;
+
+            string objectsFolderName 
+                = string.Format(
+                    "{0}{1}", 
+                    ArchiveConstants.INVENTORY_PATH, 
+                    InventoryArchiveWriteRequest.CreateArchiveFolderName(
+                        UserInventoryHelpers.GetInventoryFolder(m_scene.InventoryService, userId, "Objects")));
+
+            string filePath;
+            TarArchiveReader.TarEntryType tarEntryType;
+            
+            while (tar.ReadEntry(out filePath, out tarEntryType) != null)
+            {
+//                Console.WriteLine("Got {0}", filePath);
+
+                // Lazily, we only bother to look for the system objects folder created when we call CreateUserWithInventory()
+                // XXX: But really we need to stop all that stuff being created in tests or check for such folders 
+                // more thoroughly
+                if (filePath == objectsFolderName)
+                    gotObjectsFolder = true;
+            }
+
+            Assert.That(gotObjectsFolder, Is.True);
+        }
+
+        [Test]
         public void TestSaveNonRootFolderToIar()
         {
             TestHelpers.InMethod();
-            TestHelpers.EnableLogging();
+//            TestHelpers.EnableLogging();
 
             string userFirstName = "Jock";
             string userLastName = "Stirrup";

@@ -272,6 +272,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     saveFolderContentsOnly = true;
                     maxComponentIndex--;
                 }
+                else if (maxComponentIndex == -1)
+                {
+                    // If the user has just specified "/", then don't save the root "My Inventory" folder.  This is
+                    // more intuitive then requiring the user to specify "/*" for this.
+                    saveFolderContentsOnly = true;
+                }
 
                 m_invPath = String.Empty;
                 for (int i = 0; i <= maxComponentIndex; i++)
