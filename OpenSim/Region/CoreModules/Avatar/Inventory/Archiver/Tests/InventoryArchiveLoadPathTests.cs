@@ -48,124 +48,8 @@ using OpenSim.Tests.Common.Mock;
 namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 {
     [TestFixture]
-    public class PathTests : InventoryArchiveTestCase
+    public class InventoryArchiveLoadPathTests : InventoryArchiveTestCase
     {
-        /// <summary>
-        /// Test saving an inventory path to a V0.1 OpenSim Inventory Archive 
-        /// (subject to change since there is no fixed format yet).
-        /// </summary>
-        [Test]
-        public void TestSavePathToIarV0_1()
-        {
-            TestHelpers.InMethod();
-//            log4net.Config.XmlConfigurator.Configure();
-
-            InventoryArchiverModule archiverModule = new InventoryArchiverModule();
-
-            Scene scene = new SceneHelpers().SetupScene();
-            SceneHelpers.SetupSceneModules(scene, archiverModule);
-
-            // Create user
-            string userFirstName = "Jock";
-            string userLastName = "Stirrup";
-            string userPassword = "troll";
-            UUID userId = UUID.Parse("00000000-0000-0000-0000-000000000020");
-            UserAccountHelpers.CreateUserWithInventory(scene, userFirstName, userLastName, userId, userPassword);
-            
-            // Create asset
-            SceneObjectGroup object1;
-            SceneObjectPart part1;
-            {
-                string partName = "My Little Dog Object";
-                UUID ownerId = UUID.Parse("00000000-0000-0000-0000-000000000040");
-                PrimitiveBaseShape shape = PrimitiveBaseShape.CreateSphere();
-                Vector3 groupPosition = new Vector3(10, 20, 30);
-                Quaternion rotationOffset = new Quaternion(20, 30, 40, 50);
-                Vector3 offsetPosition = new Vector3(5, 10, 15);
-
-                part1 = new SceneObjectPart(ownerId, shape, groupPosition, rotationOffset, offsetPosition);
-                part1.Name = partName;
-
-                object1 = new SceneObjectGroup(part1);
-                scene.AddNewSceneObject(object1, false);
-            }
-
-            UUID asset1Id = UUID.Parse("00000000-0000-0000-0000-000000000060");
-            AssetBase asset1 = AssetHelpers.CreateAsset(asset1Id, object1);
-            scene.AssetService.Store(asset1);
-
-            // Create item
-            UUID item1Id = UUID.Parse("00000000-0000-0000-0000-000000000080");
-            InventoryItemBase item1 = new InventoryItemBase();
-            item1.Name = "My Little Dog";
-            item1.AssetID = asset1.FullID;
-            item1.ID = item1Id;
-            InventoryFolderBase objsFolder 
-                = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, userId, "Objects")[0];
-            item1.Folder = objsFolder.ID;
-            scene.AddInventoryItem(item1);
-
-            MemoryStream archiveWriteStream = new MemoryStream();
-            archiverModule.OnInventoryArchiveSaved += SaveCompleted;
-
-            // Test saving a particular path
-            mre.Reset();
-            archiverModule.ArchiveInventory(
-                Guid.NewGuid(), userFirstName, userLastName, "Objects", userPassword, archiveWriteStream);
-            mre.WaitOne(60000, false);
-
-            byte[] archive = archiveWriteStream.ToArray();
-            MemoryStream archiveReadStream = new MemoryStream(archive);
-            TarArchiveReader tar = new TarArchiveReader(archiveReadStream);
-
-            //bool gotControlFile = false;
-            bool gotObject1File = false;
-            //bool gotObject2File = false;
-            string expectedObject1FileName = InventoryArchiveWriteRequest.CreateArchiveItemName(item1);
-            string expectedObject1FilePath = string.Format(
-                "{0}{1}{2}",
-                ArchiveConstants.INVENTORY_PATH,
-                InventoryArchiveWriteRequest.CreateArchiveFolderName(objsFolder),
-                expectedObject1FileName);
-
-            string filePath;
-            TarArchiveReader.TarEntryType tarEntryType;
-
-//            Console.WriteLine("Reading archive");
-            
-            while (tar.ReadEntry(out filePath, out tarEntryType) != null)
-            {
-//                Console.WriteLine("Got {0}", filePath);
-
-//                if (ArchiveConstants.CONTROL_FILE_PATH == filePath)
-//                {
-//                    gotControlFile = true;
-//                }
-                
-                if (filePath.StartsWith(ArchiveConstants.INVENTORY_PATH) && filePath.EndsWith(".xml"))
-                {
-//                    string fileName = filePath.Remove(0, "Objects/".Length);
-//
-//                    if (fileName.StartsWith(part1.Name))
-//                    {
-                        Assert.That(expectedObject1FilePath, Is.EqualTo(filePath));
-                        gotObject1File = true;
-//                    }
-//                    else if (fileName.StartsWith(part2.Name))
-//                    {
-//                        Assert.That(fileName, Is.EqualTo(expectedObject2FileName));
-//                        gotObject2File = true;
-//                    }
-                }
-            }
-
-//            Assert.That(gotControlFile, Is.True, "No control file in archive");
-            Assert.That(gotObject1File, Is.True, "No item1 file in archive");
-//            Assert.That(gotObject2File, Is.True, "No object2 file in archive");
-
-            // TODO: Test presence of more files and contents of files.
-        }
-        
         /// <summary>
         /// Test loading an IAR to various different inventory paths.
         /// </summary>
@@ -193,7 +77,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             Assert.That(foundItem1, Is.Not.Null, "Didn't find loaded item 1");            
 
             // Now try loading to a root child folder
-            UserInventoryHelpers.CreateInventoryFolder(scene.InventoryService, m_uaMT.PrincipalID, "xA");
+            UserInventoryHelpers.CreateInventoryFolder(scene.InventoryService, m_uaMT.PrincipalID, "xA", false);
             MemoryStream archiveReadStream = new MemoryStream(m_iarStream.ToArray());
             archiverModule.DearchiveInventory(m_uaMT.FirstName, m_uaMT.LastName, "xA", "meowfood", archiveReadStream);
 
@@ -202,7 +86,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             Assert.That(foundItem2, Is.Not.Null, "Didn't find loaded item 2");
 
             // Now try loading to a more deeply nested folder
-            UserInventoryHelpers.CreateInventoryFolder(scene.InventoryService, m_uaMT.PrincipalID, "xB/xC");
+            UserInventoryHelpers.CreateInventoryFolder(scene.InventoryService, m_uaMT.PrincipalID, "xB/xC", false);
             archiveReadStream = new MemoryStream(archiveReadStream.ToArray());
             archiverModule.DearchiveInventory(m_uaMT.FirstName, m_uaMT.LastName, "xB/xC", "meowfood", archiveReadStream);
 
@@ -287,7 +171,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             item1.AssetID = asset1.FullID;
             item1.ID = item1Id;
             InventoryFolderBase objsFolder 
-                = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, userId, "Objects")[0];
+                = InventoryArchiveUtils.FindFoldersByPath(scene.InventoryService, userId, "Objects")[0];
             item1.Folder = objsFolder.ID;
             scene.AddInventoryItem(item1);
 
@@ -351,12 +235,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
                         foldersCreated, nodesLoaded);
     
                 List<InventoryFolderBase> folder1Candidates
-                    = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, ua1.PrincipalID, folder1Name);
+                    = InventoryArchiveUtils.FindFoldersByPath(scene.InventoryService, ua1.PrincipalID, folder1Name);
                 Assert.That(folder1Candidates.Count, Is.EqualTo(1));
                 
                 InventoryFolderBase folder1 = folder1Candidates[0];
                 List<InventoryFolderBase> folder2aCandidates 
-                    = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, folder1, folder2aName);
+                    = InventoryArchiveUtils.FindFoldersByPath(scene.InventoryService, folder1, folder2aName);
                 Assert.That(folder2aCandidates.Count, Is.EqualTo(1));
             }
             
@@ -368,17 +252,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
                         foldersCreated, nodesLoaded);
     
                 List<InventoryFolderBase> folder1Candidates
-                    = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, ua1.PrincipalID, folder1Name);
+                    = InventoryArchiveUtils.FindFoldersByPath(scene.InventoryService, ua1.PrincipalID, folder1Name);
                 Assert.That(folder1Candidates.Count, Is.EqualTo(1));
                 
                 InventoryFolderBase folder1 = folder1Candidates[0]; 
                 
                 List<InventoryFolderBase> folder2aCandidates 
-                    = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, folder1, folder2aName);
+                    = InventoryArchiveUtils.FindFoldersByPath(scene.InventoryService, folder1, folder2aName);
                 Assert.That(folder2aCandidates.Count, Is.EqualTo(1));
                 
                 List<InventoryFolderBase> folder2bCandidates 
-                    = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, folder1, folder2bName);
+                    = InventoryArchiveUtils.FindFoldersByPath(scene.InventoryService, folder1, folder2bName);
                 Assert.That(folder2bCandidates.Count, Is.EqualTo(1));
             }
         }
@@ -401,7 +285,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             
             InventoryFolderBase folder1 
                 = UserInventoryHelpers.CreateInventoryFolder(
-                    scene.InventoryService, ua1.PrincipalID, folder1ExistingName);
+                    scene.InventoryService, ua1.PrincipalID, folder1ExistingName, false);
             
             string folder1ArchiveName = InventoryArchiveWriteRequest.CreateArchiveFolderName(folder1ExistingName, UUID.Random());
             string folder2ArchiveName = InventoryArchiveWriteRequest.CreateArchiveFolderName(folder2Name, UUID.Random());
@@ -414,7 +298,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
                     new Dictionary<string, InventoryFolderBase>(), new HashSet<InventoryNodeBase>());
 
             List<InventoryFolderBase> folder1PostCandidates 
-                = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, ua1.PrincipalID, folder1ExistingName);
+                = InventoryArchiveUtils.FindFoldersByPath(scene.InventoryService, ua1.PrincipalID, folder1ExistingName);
             Assert.That(folder1PostCandidates.Count, Is.EqualTo(2));
             
             // FIXME: Temporarily, we're going to do something messy to make sure we pick up the created folder.
@@ -430,7 +314,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 //            Assert.That(folder1Post.ID, Is.EqualTo(folder1.ID));
 
             List<InventoryFolderBase> folder2PostCandidates 
-                = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, folder1Post, "b");
+                = InventoryArchiveUtils.FindFoldersByPath(scene.InventoryService, folder1Post, "b");
             Assert.That(folder2PostCandidates.Count, Is.EqualTo(1));
         }
         
@@ -452,7 +336,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             
             InventoryFolderBase folder1 
                 = UserInventoryHelpers.CreateInventoryFolder(
-                    scene.InventoryService, ua1.PrincipalID, folder1ExistingName);
+                    scene.InventoryService, ua1.PrincipalID, folder1ExistingName, false);
             
             string folder1ArchiveName = InventoryArchiveWriteRequest.CreateArchiveFolderName(folder1ExistingName, UUID.Random());
             string folder2ArchiveName = InventoryArchiveWriteRequest.CreateArchiveFolderName(folder2Name, UUID.Random());
@@ -465,13 +349,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
                     new Dictionary<string, InventoryFolderBase>(), new HashSet<InventoryNodeBase>());
 
             List<InventoryFolderBase> folder1PostCandidates 
-                = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, ua1.PrincipalID, folder1ExistingName);
+                = InventoryArchiveUtils.FindFoldersByPath(scene.InventoryService, ua1.PrincipalID, folder1ExistingName);
             Assert.That(folder1PostCandidates.Count, Is.EqualTo(1));
             Assert.That(folder1PostCandidates[0].ID, Is.EqualTo(folder1.ID));
 
             List<InventoryFolderBase> folder2PostCandidates 
-                = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, folder1PostCandidates[0], "b");
+                = InventoryArchiveUtils.FindFoldersByPath(scene.InventoryService, folder1PostCandidates[0], "b");
             Assert.That(folder2PostCandidates.Count, Is.EqualTo(1));
         }
     }
 }
+

@@ -133,7 +133,7 @@ namespace OpenSim.Region.Framework.Tests
                     scene, sop1, "ncItem", TestHelpers.ParseTail(0x800), TestHelpers.ParseTail(0x900));
 
             InventoryFolderBase folder 
-                = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, user1.PrincipalID, "Objects")[0];
+                = InventoryArchiveUtils.FindFoldersByPath(scene.InventoryService, user1.PrincipalID, "Objects")[0];
             
             // Perform test
             scene.MoveTaskInventoryItem(user1.PrincipalID, folder.ID, sop1, sopItem1.ItemID);

@@ -164,7 +164,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
             UserAccount ua = UserAccountHelpers.CreateUserWithInventory(scene, agentId);
             InventoryFolderBase folder1
-                = UserInventoryHelpers.CreateInventoryFolder(scene.InventoryService, ua.PrincipalID, "folder1");
+                = UserInventoryHelpers.CreateInventoryFolder(scene.InventoryService, ua.PrincipalID, "folder1", false);
 
             IClientAPI client = SceneHelpers.AddScenePresence(scene, agentId).ControllingClient;
             scene.DeRezObjects(client, new List<uint>() { so.LocalId }, UUID.Zero, DeRezAction.Take, folder1.ID);

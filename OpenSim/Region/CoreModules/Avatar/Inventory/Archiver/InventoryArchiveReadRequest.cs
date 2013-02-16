@@ -161,7 +161,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 string filePath = "ERROR";
                
                 List<InventoryFolderBase> folderCandidates
-                    = InventoryArchiveUtils.FindFolderByPath(
+                    = InventoryArchiveUtils.FindFoldersByPath(
                         m_scene.InventoryService, m_userInfo.PrincipalID, m_invPath);
     
                 if (folderCandidates.Count == 0)
@@ -296,7 +296,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                         // iar name and try to find that instead.
                         string plainPath = ArchiveConstants.ExtractPlainPathFromIarPath(archivePath);
                         List<InventoryFolderBase> folderCandidates
-                            = InventoryArchiveUtils.FindFolderByPath(
+                            = InventoryArchiveUtils.FindFoldersByPath(
                                 m_scene.InventoryService, m_userInfo.PrincipalID, plainPath);
             
                         if (folderCandidates.Count != 0)

@@ -272,6 +272,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     saveFolderContentsOnly = true;
                     maxComponentIndex--;
                 }
+                else if (maxComponentIndex == -1)
+                {
+                    // If the user has just specified "/", then don't save the root "My Inventory" folder.  This is
+                    // more intuitive then requiring the user to specify "/*" for this.
+                    saveFolderContentsOnly = true;
+                }
 
                 m_invPath = String.Empty;
                 for (int i = 0; i <= maxComponentIndex; i++)
@@ -289,7 +295,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 {
                     m_invPath = m_invPath.Remove(m_invPath.LastIndexOf(InventoryFolderImpl.PATH_DELIMITER));
                     List<InventoryFolderBase> candidateFolders
-                        = InventoryArchiveUtils.FindFolderByPath(m_scene.InventoryService, rootFolder, m_invPath);
+                        = InventoryArchiveUtils.FindFoldersByPath(m_scene.InventoryService, rootFolder, m_invPath);
                     if (candidateFolders.Count > 0)
                         inventoryFolder = candidateFolders[0];
                 }

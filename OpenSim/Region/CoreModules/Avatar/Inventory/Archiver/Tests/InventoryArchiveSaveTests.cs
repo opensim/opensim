@@ -48,7 +48,7 @@ using OpenSim.Tests.Common.Mock;
 namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 {
     [TestFixture]
-    public class InventoryArchiverTests : InventoryArchiveTestCase
+    public class InventoryArchiveSaveTests : InventoryArchiveTestCase
     {
         protected TestScene m_scene;
         protected InventoryArchiverModule m_archiverModule;
@@ -64,36 +64,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             m_scene = new SceneHelpers().SetupScene();
             SceneHelpers.SetupSceneModules(m_scene, serialiserModule, m_archiverModule);            
         }
-                
-        [Test]
-        public void TestLoadCoalesecedItem()
-        {
-            TestHelpers.InMethod();
-//            TestHelpers.EnableLogging();
-            
-            UserAccountHelpers.CreateUserWithInventory(m_scene, m_uaLL1, "password");
-            m_archiverModule.DearchiveInventory(m_uaLL1.FirstName, m_uaLL1.LastName, "/", "password", m_iarStream);            
-            
-            InventoryItemBase coaItem
-                = InventoryArchiveUtils.FindItemByPath(m_scene.InventoryService, m_uaLL1.PrincipalID, m_coaItemName);
-            
-            Assert.That(coaItem, Is.Not.Null, "Didn't find loaded item 1");            
-            
-            string assetXml = AssetHelpers.ReadAssetAsString(m_scene.AssetService, coaItem.AssetID);
-            
-            CoalescedSceneObjects coa;            
-            bool readResult = CoalescedSceneObjectsSerializer.TryFromXml(assetXml, out coa);
-            
-            Assert.That(readResult, Is.True);
-            Assert.That(coa.Count, Is.EqualTo(2));
-            
-            List<SceneObjectGroup> coaObjects = coa.Objects;
-            Assert.That(coaObjects[0].UUID, Is.EqualTo(UUID.Parse("00000000-0000-0000-0000-000000000120")));
-            Assert.That(coaObjects[0].AbsolutePosition, Is.EqualTo(new Vector3(15, 30, 45)));
-            
-            Assert.That(coaObjects[1].UUID, Is.EqualTo(UUID.Parse("00000000-0000-0000-0000-000000000140")));
-            Assert.That(coaObjects[1].AbsolutePosition, Is.EqualTo(new Vector3(25, 50, 75)));            
-        }   
         
         /// <summary>
         /// Test that the IAR has the required files in the right order.
@@ -120,6 +90,139 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             iarr.LoadControlFile(filePath, data);
             
             Assert.That(iarr.ControlFileLoaded, Is.True);
+        }
+
+        [Test]
+        public void TestSaveRootFolderToIar()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            string userFirstName = "Jock";
+            string userLastName = "Stirrup";
+            string userPassword = "troll";
+            UUID userId = TestHelpers.ParseTail(0x20);
+
+            UserAccountHelpers.CreateUserWithInventory(m_scene, userFirstName, userLastName, userId, userPassword);
+
+            MemoryStream archiveWriteStream = new MemoryStream();
+            m_archiverModule.OnInventoryArchiveSaved += SaveCompleted;
+
+            mre.Reset();
+            m_archiverModule.ArchiveInventory(
+                Guid.NewGuid(), userFirstName, userLastName, "/", userPassword, archiveWriteStream);
+            mre.WaitOne(60000, false);
+
+            // Test created iar
+            byte[] archive = archiveWriteStream.ToArray();
+            MemoryStream archiveReadStream = new MemoryStream(archive);
+            TarArchiveReader tar = new TarArchiveReader(archiveReadStream);
+
+//            InventoryArchiveUtils.
+            bool gotObjectsFolder = false;
+
+            string objectsFolderName 
+                = string.Format(
+                    "{0}{1}", 
+                    ArchiveConstants.INVENTORY_PATH, 
+                    InventoryArchiveWriteRequest.CreateArchiveFolderName(
+                        UserInventoryHelpers.GetInventoryFolder(m_scene.InventoryService, userId, "Objects")));
+
+            string filePath;
+            TarArchiveReader.TarEntryType tarEntryType;
+            
+            while (tar.ReadEntry(out filePath, out tarEntryType) != null)
+            {
+//                Console.WriteLine("Got {0}", filePath);
+
+                // Lazily, we only bother to look for the system objects folder created when we call CreateUserWithInventory()
+                // XXX: But really we need to stop all that stuff being created in tests or check for such folders 
+                // more thoroughly
+                if (filePath == objectsFolderName)
+                    gotObjectsFolder = true;
+            }
+
+            Assert.That(gotObjectsFolder, Is.True);
+        }
+
+        [Test]
+        public void TestSaveNonRootFolderToIar()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            string userFirstName = "Jock";
+            string userLastName = "Stirrup";
+            string userPassword = "troll";
+            UUID userId = TestHelpers.ParseTail(0x20);
+
+            UserAccountHelpers.CreateUserWithInventory(m_scene, userFirstName, userLastName, userId, userPassword);
+
+            // Create base folder
+            InventoryFolderBase f1 
+                = UserInventoryHelpers.CreateInventoryFolder(m_scene.InventoryService, userId, "f1", true);
+            
+            // Create item1
+            SceneObjectGroup so1 = SceneHelpers.CreateSceneObject(1, userId, "My Little Dog Object", 0x5);         
+            InventoryItemBase i1 = UserInventoryHelpers.AddInventoryItem(m_scene, so1, 0x50, 0x60, "f1");
+
+            // Create embedded folder
+            InventoryFolderBase f1_1 
+                = UserInventoryHelpers.CreateInventoryFolder(m_scene.InventoryService, userId, "f1/f1.1", true);
+
+            // Create embedded item
+            SceneObjectGroup so1_1 = SceneHelpers.CreateSceneObject(1, userId, "My Little Cat Object", 0x6);         
+            InventoryItemBase i2 = UserInventoryHelpers.AddInventoryItem(m_scene, so1_1, 0x500, 0x600, "f1/f1.1");
+
+            MemoryStream archiveWriteStream = new MemoryStream();
+            m_archiverModule.OnInventoryArchiveSaved += SaveCompleted;
+
+            mre.Reset();
+            m_archiverModule.ArchiveInventory(
+                Guid.NewGuid(), userFirstName, userLastName, "f1", userPassword, archiveWriteStream);
+            mre.WaitOne(60000, false);
+
+            // Test created iar
+            byte[] archive = archiveWriteStream.ToArray();
+            MemoryStream archiveReadStream = new MemoryStream(archive);
+            TarArchiveReader tar = new TarArchiveReader(archiveReadStream);
+
+//            InventoryArchiveUtils.
+            bool gotf1 = false, gotf1_1 = false, gotso1 = false, gotso2 = false;
+
+            string f1FileName 
+                = string.Format("{0}{1}", ArchiveConstants.INVENTORY_PATH, InventoryArchiveWriteRequest.CreateArchiveFolderName(f1));
+            string f1_1FileName 
+                = string.Format("{0}{1}", f1FileName, InventoryArchiveWriteRequest.CreateArchiveFolderName(f1_1));
+            string so1FileName 
+                = string.Format("{0}{1}", f1FileName, InventoryArchiveWriteRequest.CreateArchiveItemName(i1));
+            string so2FileName
+                = string.Format("{0}{1}", f1_1FileName, InventoryArchiveWriteRequest.CreateArchiveItemName(i2));
+
+            string filePath;
+            TarArchiveReader.TarEntryType tarEntryType;
+            
+            while (tar.ReadEntry(out filePath, out tarEntryType) != null)
+            {
+//                Console.WriteLine("Got {0}", filePath);
+
+                if (filePath == f1FileName)
+                    gotf1 = true;
+                else if (filePath == f1_1FileName)
+                    gotf1_1 = true;
+                else if (filePath == so1FileName)
+                    gotso1 = true;
+                else if (filePath == so2FileName)
+                    gotso2 = true;
+            }
+
+//            Assert.That(gotControlFile, Is.True, "No control file in archive");
+            Assert.That(gotf1, Is.True);
+            Assert.That(gotf1_1, Is.True);
+            Assert.That(gotso1, Is.True);
+            Assert.That(gotso2, Is.True);
+
+            // TODO: Test presence of more files and contents of files.
         }
         
         /// <summary>
@@ -155,7 +258,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             item1.AssetID = asset1.FullID;
             item1.ID = item1Id;
             InventoryFolderBase objsFolder 
-                = InventoryArchiveUtils.FindFolderByPath(m_scene.InventoryService, userId, "Objects")[0];
+                = InventoryArchiveUtils.FindFoldersByPath(m_scene.InventoryService, userId, "Objects")[0];
             item1.Folder = objsFolder.ID;
             m_scene.AddInventoryItem(item1);
 
@@ -250,7 +353,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             item1.AssetID = asset1.FullID;
             item1.ID = item1Id;
             InventoryFolderBase objsFolder
-                = InventoryArchiveUtils.FindFolderByPath(m_scene.InventoryService, userId, "Objects")[0];
+                = InventoryArchiveUtils.FindFoldersByPath(m_scene.InventoryService, userId, "Objects")[0];
             item1.Folder = objsFolder.ID;
             m_scene.AddInventoryItem(item1);
 
@@ -316,102 +419,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 //            Assert.That(gotObject2File, Is.True, "No object2 file in archive");
 
             // TODO: Test presence of more files and contents of files.
-        }
-        
-        /// <summary>
-        /// Test case where a creator account exists for the creator UUID embedded in item metadata and serialized
-        /// objects.
-        /// </summary>        
-        [Test]
-        public void TestLoadIarCreatorAccountPresent()
-        {
-            TestHelpers.InMethod();
-//            log4net.Config.XmlConfigurator.Configure();
-
-            UserAccountHelpers.CreateUserWithInventory(m_scene, m_uaLL1, "meowfood");
-            
-            m_archiverModule.DearchiveInventory(m_uaLL1.FirstName, m_uaLL1.LastName, "/", "meowfood", m_iarStream);            
-            InventoryItemBase foundItem1
-                = InventoryArchiveUtils.FindItemByPath(m_scene.InventoryService, m_uaLL1.PrincipalID, m_item1Name);
-
-            Assert.That(
-                foundItem1.CreatorId, Is.EqualTo(m_uaLL1.PrincipalID.ToString()), 
-                "Loaded item non-uuid creator doesn't match original");            
-            Assert.That(
-                foundItem1.CreatorIdAsUuid, Is.EqualTo(m_uaLL1.PrincipalID), 
-                "Loaded item uuid creator doesn't match original");
-            Assert.That(foundItem1.Owner, Is.EqualTo(m_uaLL1.PrincipalID),
-                "Loaded item owner doesn't match inventory reciever");
-            
-            AssetBase asset1 = m_scene.AssetService.Get(foundItem1.AssetID.ToString());            
-            string xmlData = Utils.BytesToString(asset1.Data);
-            SceneObjectGroup sog1 = SceneObjectSerializer.FromOriginalXmlFormat(xmlData);
-            
-            Assert.That(sog1.RootPart.CreatorID, Is.EqualTo(m_uaLL1.PrincipalID));            
-        }
-        
-//        /// <summary>
-//        /// Test loading a V0.1 OpenSim Inventory Archive (subject to change since there is no fixed format yet) where
-//        /// an account exists with the same name as the creator, though not the same id.
-//        /// </summary>
-//        [Test]
-//        public void TestLoadIarV0_1SameNameCreator()
-//        {
-//            TestHelpers.InMethod();
-//            TestHelpers.EnableLogging();
-//
-//            UserAccountHelpers.CreateUserWithInventory(m_scene, m_uaMT, "meowfood");
-//            UserAccountHelpers.CreateUserWithInventory(m_scene, m_uaLL2, "hampshire");
-//            
-//            m_archiverModule.DearchiveInventory(m_uaMT.FirstName, m_uaMT.LastName, "/", "meowfood", m_iarStream);            
-//            InventoryItemBase foundItem1
-//                = InventoryArchiveUtils.FindItemByPath(m_scene.InventoryService, m_uaMT.PrincipalID, m_item1Name);
-//
-//            Assert.That(
-//                foundItem1.CreatorId, Is.EqualTo(m_uaLL2.PrincipalID.ToString()), 
-//                "Loaded item non-uuid creator doesn't match original");            
-//            Assert.That(
-//                foundItem1.CreatorIdAsUuid, Is.EqualTo(m_uaLL2.PrincipalID), 
-//                "Loaded item uuid creator doesn't match original");
-//            Assert.That(foundItem1.Owner, Is.EqualTo(m_uaMT.PrincipalID),
-//                "Loaded item owner doesn't match inventory reciever");
-//            
-//            AssetBase asset1 = m_scene.AssetService.Get(foundItem1.AssetID.ToString());            
-//            string xmlData = Utils.BytesToString(asset1.Data);
-//            SceneObjectGroup sog1 = SceneObjectSerializer.FromOriginalXmlFormat(xmlData);
-//            
-//            Assert.That(sog1.RootPart.CreatorID, Is.EqualTo(m_uaLL2.PrincipalID));
-//        }
-
-        /// <summary>
-        /// Test loading a V0.1 OpenSim Inventory Archive (subject to change since there is no fixed format yet) where
-        /// the creator or an account with the creator's name does not exist within the system.
-        /// </summary>
-        [Test]
-        public void TestLoadIarV0_1AbsentCreator()
-        {
-            TestHelpers.InMethod();
-//            log4net.Config.XmlConfigurator.Configure();
-            
-            UserAccountHelpers.CreateUserWithInventory(m_scene, m_uaMT, "password");
-            m_archiverModule.DearchiveInventory(m_uaMT.FirstName, m_uaMT.LastName, "/", "password", m_iarStream);
-
-            InventoryItemBase foundItem1
-                = InventoryArchiveUtils.FindItemByPath(m_scene.InventoryService, m_uaMT.PrincipalID, m_item1Name);
-            
-            Assert.That(foundItem1, Is.Not.Null, "Didn't find loaded item 1");
-            Assert.That(
-                foundItem1.CreatorId, Is.EqualTo(m_uaMT.PrincipalID.ToString()), 
-                "Loaded item non-uuid creator doesn't match that of the loading user");
-            Assert.That(
-                foundItem1.CreatorIdAsUuid, Is.EqualTo(m_uaMT.PrincipalID), 
-                "Loaded item uuid creator doesn't match that of the loading user");
-            
-            AssetBase asset1 = m_scene.AssetService.Get(foundItem1.AssetID.ToString());            
-            string xmlData = Utils.BytesToString(asset1.Data);
-            SceneObjectGroup sog1 = SceneObjectSerializer.FromOriginalXmlFormat(xmlData);
-            
-            Assert.That(sog1.RootPart.CreatorID, Is.EqualTo(m_uaMT.PrincipalID));            
         }
     }
 }
