@@ -121,6 +121,86 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             
             Assert.That(iarr.ControlFileLoaded, Is.True);
         }
+
+        [Test]
+        public void TestSaveNonRootFolderToIar()
+        {
+            TestHelpers.InMethod();
+            TestHelpers.EnableLogging();
+
+            string userFirstName = "Jock";
+            string userLastName = "Stirrup";
+            string userPassword = "troll";
+            UUID userId = TestHelpers.ParseTail(0x20);
+
+            UserAccountHelpers.CreateUserWithInventory(m_scene, userFirstName, userLastName, userId, userPassword);
+
+            // Create base folder
+            InventoryFolderBase f1 
+                = UserInventoryHelpers.CreateInventoryFolder(m_scene.InventoryService, userId, "f1", true);
+            
+            // Create item1
+            SceneObjectGroup so1 = SceneHelpers.CreateSceneObject(1, userId, "My Little Dog Object", 0x5);         
+            InventoryItemBase i1 = UserInventoryHelpers.AddInventoryItem(m_scene, so1, 0x50, 0x60, "f1");
+
+            // Create embedded folder
+            InventoryFolderBase f1_1 
+                = UserInventoryHelpers.CreateInventoryFolder(m_scene.InventoryService, userId, "f1/f1.1", true);
+
+            // Create embedded item
+            SceneObjectGroup so1_1 = SceneHelpers.CreateSceneObject(1, userId, "My Little Cat Object", 0x6);         
+            InventoryItemBase i2 = UserInventoryHelpers.AddInventoryItem(m_scene, so1_1, 0x500, 0x600, "f1/f1.1");
+
+            MemoryStream archiveWriteStream = new MemoryStream();
+            m_archiverModule.OnInventoryArchiveSaved += SaveCompleted;
+
+            mre.Reset();
+            m_archiverModule.ArchiveInventory(
+                Guid.NewGuid(), userFirstName, userLastName, "f1", userPassword, archiveWriteStream);
+            mre.WaitOne(60000, false);
+
+            // Test created iar
+            byte[] archive = archiveWriteStream.ToArray();
+            MemoryStream archiveReadStream = new MemoryStream(archive);
+            TarArchiveReader tar = new TarArchiveReader(archiveReadStream);
+
+//            InventoryArchiveUtils.
+            bool gotf1 = false, gotf1_1 = false, gotso1 = false, gotso2 = false;
+
+            string f1FileName 
+                = string.Format("{0}{1}", ArchiveConstants.INVENTORY_PATH, InventoryArchiveWriteRequest.CreateArchiveFolderName(f1));
+            string f1_1FileName 
+                = string.Format("{0}{1}", f1FileName, InventoryArchiveWriteRequest.CreateArchiveFolderName(f1_1));
+            string so1FileName 
+                = string.Format("{0}{1}", f1FileName, InventoryArchiveWriteRequest.CreateArchiveItemName(i1));
+            string so2FileName
+                = string.Format("{0}{1}", f1_1FileName, InventoryArchiveWriteRequest.CreateArchiveItemName(i2));
+
+            string filePath;
+            TarArchiveReader.TarEntryType tarEntryType;
+            
+            while (tar.ReadEntry(out filePath, out tarEntryType) != null)
+            {
+//                Console.WriteLine("Got {0}", filePath);
+
+                if (filePath == f1FileName)
+                    gotf1 = true;
+                else if (filePath == f1_1FileName)
+                    gotf1_1 = true;
+                else if (filePath == so1FileName)
+                    gotso1 = true;
+                else if (filePath == so2FileName)
+                    gotso2 = true;
+            }
+
+//            Assert.That(gotControlFile, Is.True, "No control file in archive");
+            Assert.That(gotf1, Is.True);
+            Assert.That(gotf1_1, Is.True);
+            Assert.That(gotso1, Is.True);
+            Assert.That(gotso2, Is.True);
+
+            // TODO: Test presence of more files and contents of files.
+        }
         
         /// <summary>
         /// Test saving a single inventory item to an IAR
@@ -155,7 +235,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             item1.AssetID = asset1.FullID;
             item1.ID = item1Id;
             InventoryFolderBase objsFolder 
-                = InventoryArchiveUtils.FindFolderByPath(m_scene.InventoryService, userId, "Objects")[0];
+                = InventoryArchiveUtils.FindFoldersByPath(m_scene.InventoryService, userId, "Objects")[0];
             item1.Folder = objsFolder.ID;
             m_scene.AddInventoryItem(item1);
 
@@ -250,7 +330,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             item1.AssetID = asset1.FullID;
             item1.ID = item1Id;
             InventoryFolderBase objsFolder
-                = InventoryArchiveUtils.FindFolderByPath(m_scene.InventoryService, userId, "Objects")[0];
+                = InventoryArchiveUtils.FindFoldersByPath(m_scene.InventoryService, userId, "Objects")[0];
             item1.Folder = objsFolder.ID;
             m_scene.AddInventoryItem(item1);
 

@@ -289,7 +289,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 {
                     m_invPath = m_invPath.Remove(m_invPath.LastIndexOf(InventoryFolderImpl.PATH_DELIMITER));
                     List<InventoryFolderBase> candidateFolders
-                        = InventoryArchiveUtils.FindFolderByPath(m_scene.InventoryService, rootFolder, m_invPath);
+                        = InventoryArchiveUtils.FindFoldersByPath(m_scene.InventoryService, rootFolder, m_invPath);
                     if (candidateFolders.Count > 0)
                         inventoryFolder = candidateFolders[0];
                 }

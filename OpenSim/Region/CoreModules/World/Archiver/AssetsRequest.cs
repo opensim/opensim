@@ -156,6 +156,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
             foreach (KeyValuePair<UUID, AssetType> kvp in m_uuids)
             {
+//                m_log.DebugFormat("[ARCHIVER]: Requesting asset {0}", kvp.Key);
+
 //                m_assetService.Get(kvp.Key.ToString(), kvp.Value, PreAssetRequestCallback);
                 AssetBase asset = m_assetService.Get(kvp.Key.ToString());
                 PreAssetRequestCallback(kvp.Key.ToString(), kvp.Value, asset);
