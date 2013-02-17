@@ -1667,7 +1667,7 @@ public class BSPrim : BSPhysObject
         // _velocity = entprop.Velocity;
         // DEBUG DEBUG DEBUG -- smooth velocity changes a bit. The simulator seems to be
         //    very sensitive to velocity changes.
-        if (!entprop.Velocity.ApproxEquals(_velocity, 0.1f))
+        if (entprop.Velocity == OMV.Vector3.Zero || !entprop.Velocity.ApproxEquals(_velocity, 0.1f))
             _velocity = entprop.Velocity;
         _acceleration = entprop.Acceleration;
         _rotationalVelocity = entprop.RotationalVelocity;
