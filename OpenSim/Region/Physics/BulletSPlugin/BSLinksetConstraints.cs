@@ -223,8 +223,8 @@ public sealed class BSLinksetConstraints : BSLinkset
         constrain.SetAngularLimits(OMV.Vector3.Zero, OMV.Vector3.Zero);
 
         // tweek the constraint to increase stability
-        constrain.UseFrameOffset(BSParam.BoolNumeric(BSParam.LinkConstraintUseFrameOffset));
-        constrain.TranslationalLimitMotor(BSParam.BoolNumeric(BSParam.LinkConstraintEnableTransMotor),
+        constrain.UseFrameOffset(BSParam.LinkConstraintUseFrameOffset);
+        constrain.TranslationalLimitMotor(BSParam.LinkConstraintEnableTransMotor,
                         BSParam.LinkConstraintTransMotorMaxVel,
                         BSParam.LinkConstraintTransMotorMaxForce);
         constrain.SetCFMAndERP(BSParam.LinkConstraintCFM, BSParam.LinkConstraintERP);

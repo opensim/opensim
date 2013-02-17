@@ -1133,8 +1133,8 @@ private sealed class BulletConstraintXNA : BulletConstraint
         p.numberOfSolverIterations = o[0].numberOfSolverIterations;
 
         p.linksetImplementation = BSParam.LinksetImplementation;
-        p.linkConstraintUseFrameOffset = BSParam.LinkConstraintUseFrameOffset;
-        p.linkConstraintEnableTransMotor = BSParam.LinkConstraintEnableTransMotor;
+        p.linkConstraintUseFrameOffset = BSParam.NumericBool(BSParam.LinkConstraintUseFrameOffset);
+        p.linkConstraintEnableTransMotor = BSParam.NumericBool(BSParam.LinkConstraintEnableTransMotor);
         p.linkConstraintTransMotorMaxVel = BSParam.LinkConstraintTransMotorMaxVel;
         p.linkConstraintTransMotorMaxForce = BSParam.LinkConstraintTransMotorMaxForce;
         p.linkConstraintERP = BSParam.LinkConstraintERP;
