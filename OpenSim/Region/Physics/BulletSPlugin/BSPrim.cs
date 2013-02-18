@@ -239,49 +239,97 @@ public class BSPrim : BSPhysObject
         });
     }
 
+    bool TryExperimentalLockAxisCode = false;
+    BSConstraint LockAxisConstraint = null;
     public override void LockAngularMotion(OMV.Vector3 axis)
     {
         DetailLog("{0},BSPrim.LockAngularMotion,call,axis={1}", LocalID, axis);
 
+        // "1" means free, "0" means locked
         OMV.Vector3 locking = new OMV.Vector3(1f, 1f, 1f);
         if (axis.X != 1) locking.X = 0f;
         if (axis.Y != 1) locking.Y = 0f;
         if (axis.Z != 1) locking.Z = 0f;
         LockedAxis = locking;
 
-        /*  Not implemented yet
-        if (LockedAxis != LockedAxisFree)
+        if (TryExperimentalLockAxisCode && LockedAxis != LockedAxisFree)
         {
-            // Something is locked so start the thingy that keeps that axis from changing
-            RegisterPreUpdatePropertyAction("BSPrim.LockAngularMotion", delegate(ref EntityProperties entprop)
+            // Lock that axis by creating a 6DOF constraint that has one end in the world and
+            //    the other in the object.
+            // http://www.bulletphysics.org/Bullet/phpBB3/viewtopic.php?p=20817
+            // http://www.bulletphysics.org/Bullet/phpBB3/viewtopic.php?p=26380
+
+            PhysicsScene.TaintedObject("BSPrim.LockAngularMotion", delegate()
             {
-                if (LockedAxis != LockedAxisFree)
-                {
-                    if (IsPhysicallyActive)
-                    {
-                        // Bullet can lock axis but it only works for global axis.
-                        // Check if this prim is aligned on global axis and use Bullet's
-                        //    system if so.
+                CleanUpLockAxisPhysicals(true /* inTaintTime */);
 
-                        ForceOrientation = entprop.Rotation;
-                        ForceRotationalVelocity = entprop.RotationalVelocity;
-                    }
-                }
-                else
-                {
-                    UnRegisterPreUpdatePropertyAction("BSPrim.LockAngularMotion");
-                }
+                BSConstraint6Dof axisConstrainer = new BSConstraint6Dof(PhysicsScene.World, PhysBody, 
+                                    OMV.Vector3.Zero, OMV.Quaternion.Inverse(RawOrientation),
+                                    true /* useLinearReferenceFrameB */, true /* disableCollisionsBetweenLinkedBodies */);
+                LockAxisConstraint = axisConstrainer;
+                PhysicsScene.Constraints.AddConstraint(LockAxisConstraint);
 
+                // The constraint is tied to the world and oriented to the prim.
+
+                // Free to move linearly
+                OMV.Vector3 linearLow = OMV.Vector3.Zero;
+                OMV.Vector3 linearHigh = PhysicsScene.TerrainManager.DefaultRegionSize;
+                axisConstrainer.SetLinearLimits(linearLow, linearHigh);
+
+                // Angular with some axis locked
+                float f2PI = (float)Math.PI * 2f;
+                OMV.Vector3 angularLow = new OMV.Vector3(-f2PI, -f2PI, -f2PI);
+                OMV.Vector3 angularHigh = new OMV.Vector3(f2PI, f2PI, f2PI);
+                if (LockedAxis.X != 1f)
+                {
+                    angularLow.X = 0f;
+                    angularHigh.X = 0f;
+                }
+                if (LockedAxis.Y != 1f)
+                {
+                    angularLow.Y = 0f;
+                    angularHigh.Y = 0f;
+                }
+                if (LockedAxis.Z != 1f)
+                {
+                    angularLow.Z = 0f;
+                    angularHigh.Z = 0f;
+                }
+                axisConstrainer.SetAngularLimits(angularLow, angularHigh);
+
+                DetailLog("{0},BSPrim.LockAngularMotion,create,linLow={1},linHi={2},angLow={3},angHi={4}",
+                                            LocalID, linearLow, linearHigh, angularLow, angularHigh);
+
+                // Constants from one of the posts mentioned above and used in Bullet's ConstraintDemo.
+                axisConstrainer.TranslationalLimitMotor(true /* enable */, 5.0f, 0.1f);
+
+                axisConstrainer.RecomputeConstraintVariables(RawMass);
             });
         }
         else
         {
             // Everything seems unlocked
-            UnRegisterPreUpdatePropertyAction("BSPrim.LockAngularMotion");
+            CleanUpLockAxisPhysicals(false /* inTaintTime */);
         }
-         */
 
         return;
+    }
+    // Get rid of any constraint built for LockAxis
+    // Most often the constraint is removed when the constraint collection is cleaned for this prim.
+    private void CleanUpLockAxisPhysicals(bool inTaintTime)
+    {
+        if (LockAxisConstraint != null)
+        {
+            PhysicsScene.TaintedObject(inTaintTime, "BSPrim.CleanUpLockAxisPhysicals", delegate()
+            {
+                if (LockAxisConstraint != null)
+                {
+                    PhysicsScene.Constraints.RemoveAndDestroyConstraint(LockAxisConstraint);
+                    LockAxisConstraint = null;
+                    DetailLog("{0},BSPrim.CleanUpLockAxisPhysicals,destroyingConstraint", LocalID);
+                }
+            });
+        }
     }
 
     public override OMV.Vector3 RawPosition
@@ -762,6 +810,7 @@ public class BSPrim : BSPhysObject
                     SetObjectDynamic(true);
                     // whether phys-to-static or static-to-phys, the object is not moving.
                     ZeroMotion(true);
+
                 });
             }
         }
@@ -885,6 +934,8 @@ public class BSPrim : BSPhysObject
 
             // For good measure, make sure the transform is set through to the motion state
             ForcePosition = _position;
+            ForceVelocity = _velocity;
+            ForceRotationalVelocity = _rotationalVelocity;
 
             // A dynamic object has mass
             UpdatePhysicalMassProperties(RawMass, false);
@@ -1064,8 +1115,8 @@ public class BSPrim : BSPhysObject
             _buoyancy = value;
             // DetailLog("{0},BSPrim.setForceBuoyancy,taint,buoy={1}", LocalID, _buoyancy);
             // Force the recalculation of the various inertia,etc variables in the object
-            DetailLog("{0},BSPrim.ForceBuoyancy,buoy={1},mass={2}", LocalID, _buoyancy, _mass);
-            UpdatePhysicalMassProperties(_mass, true);
+            UpdatePhysicalMassProperties(RawMass, true);
+            DetailLog("{0},BSPrim.ForceBuoyancy,buoy={1},mass={2},grav={3}", LocalID, _buoyancy, RawMass, Gravity);
             ActivateIfPhysical(false);
         }
     }
@@ -1303,6 +1354,7 @@ public class BSPrim : BSPhysObject
             {
                 if (PhysBody.HasPhysicalBody)
                 {
+                    DetailLog("{0},BSPrim.AddAngularForce,taint,angForce={1}", LocalID, angForce);
                     PhysicsScene.PE.ApplyTorque(PhysBody, angForce);
                     ActivateIfPhysical(false);
                 }
