@@ -365,10 +365,37 @@ public abstract BulletConstraint Create6DofConstraintToPoint(BulletWorld world, 
                     Vector3 joinPoint,
                     bool useLinearReferenceFrameA, bool disableCollisionsBetweenLinkedBodies);
 
+public abstract BulletConstraint Create6DofConstraintFixed(BulletWorld world, BulletBody obj1,
+                    Vector3 frameInBloc, Quaternion frameInBrot, 
+                    bool useLinearReferenceFrameB, bool disableCollisionsBetweenLinkedBodies);
+
+public abstract BulletConstraint Create6DofSpringConstraint(BulletWorld world, BulletBody obj1, BulletBody obj2,
+                    Vector3 frame1loc, Quaternion frame1rot,
+                    Vector3 frame2loc, Quaternion frame2rot,
+                    bool useLinearReferenceFrameA, bool disableCollisionsBetweenLinkedBodies);
+
 public abstract BulletConstraint CreateHingeConstraint(BulletWorld world, BulletBody obj1, BulletBody obj2,
                     Vector3 pivotinA, Vector3 pivotinB,
                     Vector3 axisInA, Vector3 axisInB,
                     bool useLinearReferenceFrameA, bool disableCollisionsBetweenLinkedBodies);
+
+public abstract BulletConstraint CreateSliderConstraint(BulletWorld world, BulletBody obj1, BulletBody obj2,
+                    Vector3 frameInAloc, Quaternion frameInArot,
+                    Vector3 frameInBloc, Quaternion frameInBrot,
+                    bool useLinearReferenceFrameA, bool disableCollisionsBetweenLinkedBodies);
+
+public abstract BulletConstraint CreateConeTwistConstraint(BulletWorld world, BulletBody obj1, BulletBody obj2,
+                    Vector3 frameInAloc, Quaternion frameInArot,
+                    Vector3 frameInBloc, Quaternion frameInBrot,
+                    bool disableCollisionsBetweenLinkedBodies);
+
+public abstract BulletConstraint CreateGearConstraint(BulletWorld world, BulletBody obj1, BulletBody obj2,
+                    Vector3 axisInA, Vector3 axisInB,
+                    float ratio, bool disableCollisionsBetweenLinkedBodies);
+
+public abstract BulletConstraint CreatePoint2PointConstraint(BulletWorld world, BulletBody obj1, BulletBody obj2,
+                    Vector3 pivotInA, Vector3 pivotInB,
+                    bool disableCollisionsBetweenLinkedBodies);
 
 public abstract void SetConstraintEnable(BulletConstraint constrain, float numericTrueFalse);
 
