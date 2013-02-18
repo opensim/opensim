@@ -531,14 +531,20 @@
 
 
 [Messaging]
-    ;# {OfflineMessageModule} {} {Module to use for offline message storage} {OfflineMessageModule *}
+    ;# {OfflineMessageModule} {} {Module to use for offline message storage} {OfflineMessageModule "Offline Message Module V2" *}
     ;; Module to handle offline messaging. The core module requires an external
     ;; web service to do this. See OpenSim wiki.
     ; OfflineMessageModule = OfflineMessageModule
+	;; Or, alternatively, use this one, which works for both standalones and grids
+    ; OfflineMessageModule = "Offline Message Module V2"
 
-    ;# {OfflineMessageURL} {OfflineMessageModule:OfflineMessageModule} {URL of offline messaging service} {}
-    ;; URL of web service for offline message storage
-    ; OfflineMessageURL = http://yourserver/Offline.php
+    ;# {OfflineMessageURL} {OfflineMessageModule:OfflineMessageModule Offline Message Module V2:Offline Message Module V2} {URL of offline messaging service} {}
+    ;; URL of web service for offline message storage. Leave it commented if your service is local to the sim.
+    ; OfflineMessageURL = http://yourserver/Offline.php or http://yourrobustserver:8003
+
+    ;# {StorageProvider} {Offline Message Module V2:Offline Message Module V2} {DLL that provides the storage interface} {OpenSim.Addons.OfflineIM}
+	;; For standalones, use the service directly. This is the storage dll.
+	; StorageProvider = OpenSim.Addons.OfflineIM.dll
 
     ;# {MuteListModule} {OfflineMessageModule:OfflineMessageModule} {} {} MuteListModule
     ;; Mute list handler (not yet implemented). MUST BE SET to allow offline

@@ -51,6 +51,8 @@ GridUserServiceConnector = "8003/OpenSim.Server.Handlers.dll:GridUserServiceConn
 FriendsServiceConnector = "8003/OpenSim.Server.Handlers.dll:FriendsServiceConnector"
 MapAddServiceConnector = "8003/OpenSim.Server.Handlers.dll:MapAddServiceConnector"
 MapGetServiceConnector = "8002/OpenSim.Server.Handlers.dll:MapGetServiceConnector"
+;; Uncomment this if you want offline IM to work
+;OfflineIMServiceConnector = "8003/OpenSim.Addons.OfflineIM.dll:OfflineIMServiceRobustConnector"
 
 ;; Additions for Hypergrid
 
@@ -545,15 +547,7 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
     InGatekeeper = True
 
 [Messaging]
-    ; If you have an Offline IM server, set the vars in this section, so that
-    ; incomming IMs to local users from foreign grids can be saved
-    ;
-    ;# {OfflineMessageURL} {OfflineMessageModule:OfflineMessageModule} {URL of offline messaging service} {}
-    ;; URL of web service for offline message storage
-    ; OfflineMessageURL = http://yourserver/Offline.php
-
-    ;; Control whether group messages are forwarded to offline users.
-    ;; Default is true.
-    ;; This applies to the core groups module (Flotsam) only.
-    ; ForwardOfflineGroupMessages = true
+    ; OfflineIM
+    StorageProvider = "OpenSim.Addons.OfflineIM.dll"
+    OfflineIMService = "OpenSim.Addons.OfflineIM.dll:OfflineIMService"
 

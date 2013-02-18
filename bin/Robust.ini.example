@@ -43,6 +43,9 @@ GridUserServiceConnector = "8003/OpenSim.Server.Handlers.dll:GridUserServiceConn
 FriendsServiceConnector = "8003/OpenSim.Server.Handlers.dll:FriendsServiceConnector"
 MapAddServiceConnector = "8003/OpenSim.Server.Handlers.dll:MapAddServiceConnector"
 MapGetServiceConnector = "8002/OpenSim.Server.Handlers.dll:MapGetServiceConnector"
+;; Uncomment this if you want offline IM to work
+;OfflineIMServiceConnector = "8003/OpenSim.Addons.OfflineIM.dll:OfflineIMServiceRobustConnector"
+
 
 ; * This is common for all services, it's the network setup for the entire
 ; * server instance, if none is specified above
@@ -329,6 +332,10 @@ MapGetServiceConnector = "8002/OpenSim.Server.Handlers.dll:MapGetServiceConnecto
     ; HasProxy = false
 
 
+[Messaging]
+    ; OfflineIM
+    StorageProvider = "OpenSim.Addons.OfflineIM.dll"
+    OfflineIMService = "OpenSim.Addons.OfflineIM.dll:OfflineIMService"
 
 [GridInfoService]
     ; These settings are used to return information on a get_grid_info call.
