@@ -343,6 +343,9 @@ namespace OpenSim.Region.ClientStack.Linden
             m_log.DebugFormat(
                 "[CAPS]: Received SEED caps request in {0} for agent {1}", m_regionName, m_HostCapsObj.AgentID);
 
+            if (!m_HostCapsObj.WaitForActivation())
+                return string.Empty;
+
             if (!m_Scene.CheckClient(m_HostCapsObj.AgentID, httpRequest.RemoteIPEndPoint))
             {
                 m_log.WarnFormat(

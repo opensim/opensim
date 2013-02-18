@@ -3622,7 +3622,7 @@ namespace OpenSim.Region.Framework.Scenes
                     // TODO: We shouldn't use closeChildAgents here - it's being used by the NPC module to stop
                     // unnecessary operations.  This should go away once NPCs have no accompanying IClientAPI
                     if (closeChildAgents && CapsModule != null)
-                        CapsModule.RemoveCaps(agentID);
+                        CapsModule.RemoveCaps(agentID, avatar.ControllingClient.CircuitCode);
     
 //                    // REFACTORING PROBLEM -- well not really a problem, but just to point out that whatever
 //                    // this method is doing is HORRIBLE!!!
@@ -3853,20 +3853,36 @@ namespace OpenSim.Region.Framework.Scenes
                 return false;
             }           
 
-
             ScenePresence sp = GetScenePresence(agent.AgentID);
 
-            if (sp != null && !sp.IsChildAgent)
+            // If we have noo presence here or if that presence is a zombie root
+            // presence that will be kicled, we need a new CAPS object.
+            if (sp == null || (sp != null && !sp.IsChildAgent))
             {
-                // We have a zombie from a crashed session. 
-                // Or the same user is trying to be root twice here, won't work.
-                // Kill it.
-                m_log.WarnFormat(
-                    "[SCENE]: Existing root scene presence detected for {0} {1} in {2} when connecting.  Removing existing presence.",
-                    sp.Name, sp.UUID, RegionInfo.RegionName);
+                if (CapsModule != null)
+                {
+                    lock (agent)
+                    {
+                        CapsModule.SetAgentCapsSeeds(agent);
+                        CapsModule.CreateCaps(agent.AgentID, agent.circuitcode);
+                    }
+                }
+            }
 
-                sp.ControllingClient.Close(true, true);
-                sp = null;
+            if (sp != null)
+            {
+                if (!sp.IsChildAgent)
+                {
+                    // We have a zombie from a crashed session. 
+                    // Or the same user is trying to be root twice here, won't work.
+                    // Kill it.
+                    m_log.WarnFormat(
+                        "[SCENE]: Existing root scene presence detected for {0} {1} in {2} when connecting.  Removing existing presence.",
+                        sp.Name, sp.UUID, RegionInfo.RegionName);
+
+                    sp.ControllingClient.Close(true, true);
+                    sp = null;
+                }
             }
 
             lock (agent)
@@ -3907,7 +3923,9 @@ namespace OpenSim.Region.Framework.Scenes
                         if (vialogin || (!m_seeIntoBannedRegion))
                         {
                             if (!AuthorizeUser(agent, out reason))
+                            {
                                 return false;
+                            }
                         }
                     }
                     catch (Exception e)
@@ -3922,11 +3940,6 @@ namespace OpenSim.Region.Framework.Scenes
                         RegionInfo.RegionName, (agent.child ? "child" : "root"), agent.firstname, agent.lastname,
                         agent.AgentID, agent.circuitcode);
 
-                    if (CapsModule != null)
-                    {
-                        CapsModule.SetAgentCapsSeeds(agent);
-                        CapsModule.CreateCaps(agent.AgentID);
-                    }
                 }
                 else
                 {
@@ -3951,6 +3964,11 @@ namespace OpenSim.Region.Framework.Scenes
             // In all cases, add or update the circuit data with the new agent circuit data and teleport flags
             agent.teleportFlags = teleportFlags;
             m_authenticateHandler.AddNewCircuit(agent.circuitcode, agent);
+
+            if (CapsModule != null)
+            {
+                CapsModule.ActivateCaps(agent.circuitcode);
+            }
 
             if (vialogin)
             {
