@@ -542,9 +542,9 @@
     ;; URL of web service for offline message storage. Leave it commented if your service is local to the sim.
     ; OfflineMessageURL = http://yourserver/Offline.php or http://yourrobustserver:8003
 
-    ;# {StorageProvider} {Offline Message Module V2:Offline Message Module V2} {DLL that provides the storage interface} {OpenSim.Addons.OfflineIM}
-	;; For standalones, use the service directly. This is the storage dll.
-	; StorageProvider = OpenSim.Addons.OfflineIM.dll
+    ;# {StorageProvider} {Offline Message Module V2:Offline Message Module V2} {DLL that provides the storage interface} {OpenSim.Data.MySQL.dll}
+	;; For standalones, this is the storage dll.
+	; StorageProvider = OpenSim.Data.MySQL.dll
 
     ;# {MuteListModule} {OfflineMessageModule:OfflineMessageModule} {} {} MuteListModule
     ;; Mute list handler (not yet implemented). MUST BE SET to allow offline

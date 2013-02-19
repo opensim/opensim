@@ -334,7 +334,6 @@ MapGetServiceConnector = "8002/OpenSim.Server.Handlers.dll:MapGetServiceConnecto
 
 [Messaging]
     ; OfflineIM
-    StorageProvider = "OpenSim.Addons.OfflineIM.dll"
     OfflineIMService = "OpenSim.Addons.OfflineIM.dll:OfflineIMService"
 
 [GridInfoService]

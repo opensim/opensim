@@ -29,7 +29,7 @@ using System.Collections.Generic;
 using OpenSim.Data;
 using OpenMetaverse;
 
-namespace OpenSim.OfflineIM
+namespace OpenSim.Data
 {
     public class OfflineIMData
     {

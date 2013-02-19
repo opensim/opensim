@@ -36,16 +36,10 @@ using OpenSim.Data.MySQL;
 using OpenMetaverse;
 using MySql.Data.MySqlClient;
 
-namespace OpenSim.OfflineIM
+namespace OpenSim.Data.MySQL
 {
     public class MySQLOfflineIMData : MySQLGenericTableHandler<OfflineIMData>, IOfflineIMData
     {
-        protected override Assembly Assembly
-        {
-            // WARNING! Moving migrations to this assembly!!!
-            get { return GetType().Assembly; }
-        }
-
         public MySQLOfflineIMData(string connectionString, string realm)
             : base(connectionString, realm, "IM_Store")
         {
