@@ -53,6 +53,8 @@ MapAddServiceConnector = "8003/OpenSim.Server.Handlers.dll:MapAddServiceConnecto
 MapGetServiceConnector = "8002/OpenSim.Server.Handlers.dll:MapGetServiceConnector"
 ;; Uncomment this if you want offline IM to work
 ;OfflineIMServiceConnector = "8003/OpenSim.Addons.OfflineIM.dll:OfflineIMServiceRobustConnector"
+;; Uncomment this if you want Groups V2 to work
+;GroupsServiceConnector = "8003/OpenSim.Addons.Groups.dll:GroupsServiceRobustConnector"
 
 ;; Additions for Hypergrid
 
@@ -63,6 +65,8 @@ HGFriendsServerConnector = "8002/OpenSim.Server.Handlers.dll:HGFriendsServerConn
 InstantMessageServerConnector = "8002/OpenSim.Server.Handlers.dll:InstantMessageServerConnector"
 HGInventoryServiceConnector = "HGInventoryService@8002/OpenSim.Server.Handlers.dll:XInventoryInConnector"
 HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:AssetServiceConnector"
+;; Uncomment this if you want Groups V2, HG to work
+;HGGroupsServiceConnector = "8002/Diva.Groups.dll:HGGroupsServiceRobustConnector"
 
 ;; Additions for other add-on modules. For example:
 ;; WifiServerConnector = "8002/Diva.Wifi.dll:WifiServerConnector"
@@ -550,3 +554,9 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
     ; OfflineIM
     OfflineIMService = "OpenSim.Addons.OfflineIM.dll:OfflineIMService"
 
+[Groups]
+    ;; for the HG Groups service
+    OfflineIMService = "OpenSim.Addons.OfflineIM.dll:OfflineIMService"
+    ; What is the HomeURI of users associated with this grid?
+    HomeURI = "http://127.0.0.1:8002"
+    UserAccountService = "OpenSim.Services.UserAccountService.dll:UserAccountService"

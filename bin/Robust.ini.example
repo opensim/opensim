@@ -45,6 +45,8 @@ MapAddServiceConnector = "8003/OpenSim.Server.Handlers.dll:MapAddServiceConnecto
 MapGetServiceConnector = "8002/OpenSim.Server.Handlers.dll:MapGetServiceConnector"
 ;; Uncomment this if you want offline IM to work
 ;OfflineIMServiceConnector = "8003/OpenSim.Addons.OfflineIM.dll:OfflineIMServiceRobustConnector"
+;; Uncomment this if you want Groups V2 to work
+;GroupsServiceConnector = "8003/OpenSim.Addons.Groups.dll:GroupsServiceRobustConnector"
 
 
 ; * This is common for all services, it's the network setup for the entire

@@ -931,33 +931,47 @@
     ;; Enables the groups module
     ; Enabled = false
 
-    ;# {Module} {Enabled:true} {Groups module to use? (Use GroupsModule to use Flotsam/Simian)} {} Default
-    ;; This is the current groups stub in Region.CoreModules.Avatar.Groups.
-    ;; All the other settings below only really apply to the Flotsam/SimianGrid
-    ;; GroupsModule.
-    ;; This module can use a PHP XmlRpc server from the Flotsam project at
+    ;# {Module} {Enabled:true} {Groups module to use? (Use GroupsModule to use Flotsam/Simian)} {Default "Groups Module V2"} Default
+    ;; The default module can use a PHP XmlRpc server from the Flotsam project at
     ;; http://code.google.com/p/flotsam/
     ;; or from the SimianGrid project at http://code.google.com/p/openmetaverse
     ; Module = Default
+	;; or... use Groups Module V2, which works for standalones and robust grids
+	; Module = "Groups Module V2"
 
-    ;# {MessagingEnabled} {Module:GroupsModule} {Is groups messaging enabled?} {true false} true
-    ; MessagingEnabled = true
+    ;# {StorageProvider} {Module:Groups Module V2} {The DLL that provides the storage for V2} {OpenSim.Data.MySQL.dll} 
+    ; StorageProvider = OpenSim.Data.MySQL.dll
 
-    ;# {MessagingModule} {MessagingEnabled:true} {Module to use for groups messaging} {GroupsMessagingModule} GroupsMessagingModule
-    ; MessagingModule = GroupsMessagingModule
-
-    ;# {ServicesConnectorModule} {Module:GroupsModule} {Service connector to use for groups} {XmlRpcGroupsServicesConnector SimianGroupsServicesConnector} XmlRpcGroupsServicesConnector
+    ;# {ServicesConnectorModule} {Module:GroupsModule Module:Groups Module V2} {Service connector to use for groups} {XmlRpcGroupsServicesConnector SimianGroupsServicesConnector "Groups Local Service Connector" "Groups Remote Service Connector" "Groups HG Service Connector"} XmlRpcGroupsServicesConnector
     ;; Service connectors to the Groups Service as used in the GroupsModule.  Select one depending on
-    ;; whether you're using a Flotsam XmlRpc backend or a SimianGrid backend
+    ;; whether you're using a Flotsam XmlRpc backend or a SimianGrid backend or several flavours of V2, Hypergrided or not, standalone or grided.
     ; ServicesConnectorModule = XmlRpcGroupsServicesConnector
 
-    ;# {GroupsServerURI} {Module:GroupsModule} {Groups Server URI} {}
-    ;; URI for the groups services
+    ;# {LocalService} {ServicesConnectorModule:Groups HG Service Connector} {Is the group service in this process or elsewhere?} {local remote} local
+	;; Used for V2 in HG only. If standalone, set this to local; if grided sim, set this to remote
+    ; LocalService = local
+
+    ;# {GroupsServerURI} {Module:GroupsModule (ServicesConnectorModule:Groups Remote Service Connector or (ServicesConnectorModule:Groups HG Service Connector and LocalService:remote))} {Groups Server URI} {}
+    ;; URI for the groups services of this grid
     ;; e.g. http://yourxmlrpcserver.com/xmlrpc.php for Flotsam XmlRpc
     ;; or http://mygridserver.com:82/Grid/ for SimianGrid
+	;; or http:://mygridserver.com:8003 for robust, V2
     ; GroupsServerURI = ""
 
-    ;# {NoticesEnabled} {Module:GroupsModule} {Enable group notices?} {true false} true
+    ;# {HomeURI} {ServicesConnectorModule:Groups HG Service Connector} {What's the home address of this world?} {} 
+	;; Used for V2 in HG only. For example
+	;; http://mygridserver.com:9000 or http://mygridserver.com:8002
+    ; HomeURI = "" 
+
+    ;# {MessagingEnabled} {Module:GroupsModule Module:Groups Module V2} {Is groups messaging enabled?} {true false} true
+    ; MessagingEnabled = true
+
+    ;# {MessagingModule} {MessagingEnabled:true} {Module to use for groups messaging} {GroupsMessagingModule "Groups Messaging Module V2"} GroupsMessagingModule
+    ; MessagingModule = GroupsMessagingModule
+	;; or use V2 for Groups V2
+	; MessagingModule = "Groups Messaging Module V2"
+
+    ;# {NoticesEnabled} {Module:GroupsModule Module:Groups Module V2} {Enable group notices?} {true false} true
     ;; Enable Group Notices
     ; NoticesEnabled = true
 
