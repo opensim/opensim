@@ -400,7 +400,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 //        }
 
         [Test]
-        public void TestGetArrayLength()
+        public void TestJsonGetArrayLength()
         {
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
