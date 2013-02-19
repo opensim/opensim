@@ -19,5 +19,6 @@ BEGIN;
 
 INSERT INTO `im_offline` SELECT * from `diva_im_offline`;
 DROP TABLE `diva_im_offline`;
+DELETE FROM `migrations` WHERE name='diva_im_Store';
 
 COMMIT;
