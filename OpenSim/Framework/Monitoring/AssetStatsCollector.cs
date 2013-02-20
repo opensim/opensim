@@ -28,6 +28,8 @@
 using System;
 using System.Timers;
 
+using OpenMetaverse.StructuredData;
+
 namespace OpenSim.Framework.Monitoring
 {
     /// <summary>
@@ -99,6 +101,30 @@ namespace OpenSim.Framework.Monitoring
 Asset requests yesterday : {3}  ({4} per hour)  of which {5} were not found",
                 AssetRequestsToday, assetRequestsTodayPerHour, AssetRequestsNotFoundToday,
                 AssetRequestsYesterday, assetRequestsYesterdayPerHour, AssetRequestsNotFoundYesterday);
+        }
+
+        public override string XReport(string uptime, string version)
+        {
+            return OSDParser.SerializeJsonString(OReport(uptime, version));
+        }
+
+        public override OSDMap OReport(string uptime, string version)
+        {
+            double elapsedHours = (DateTime.Now - startTime).TotalHours;
+            if (elapsedHours <= 0) { elapsedHours = 1; }  // prevent divide by zero
+
+            long assetRequestsTodayPerHour = (long)Math.Round(AssetRequestsToday / elapsedHours);
+            long assetRequestsYesterdayPerHour = (long)Math.Round(AssetRequestsYesterday / 24.0);
+
+            OSDMap ret = new OSDMap();
+            ret.Add("AssetRequestsToday", OSD.FromLong(AssetRequestsToday));
+            ret.Add("AssetRequestsTodayPerHour", OSD.FromLong(assetRequestsTodayPerHour));
+            ret.Add("AssetRequestsNotFoundToday", OSD.FromLong(AssetRequestsNotFoundToday));
+            ret.Add("AssetRequestsYesterday", OSD.FromLong(AssetRequestsYesterday));
+            ret.Add("AssetRequestsYesterdayPerHour", OSD.FromLong(assetRequestsYesterdayPerHour));
+            ret.Add("AssetRequestsNotFoundYesterday", OSD.FromLong(assetRequestsNotFoundYesterday));
+
+            return ret;
         }
     }
 }

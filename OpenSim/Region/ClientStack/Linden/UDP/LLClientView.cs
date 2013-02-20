@@ -12138,6 +12138,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return String.Empty;
         }
 
+        public OSDMap OReport(string uptime, string version)
+        {
+            return new OSDMap();
+        }
+
         /// <summary>
         /// Make an asset request to the asset service in response to a client request.
         /// </summary>
