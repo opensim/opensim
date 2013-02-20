@@ -416,7 +416,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
             if (!ConsoleUtil.TryParseConsoleMinVector(rawConsoleStartVector, out startVector))
             {
-                m_console.OutputFormat("Error: Start vector {0} does not have a valid format", rawConsoleStartVector);
+                m_console.OutputFormat("Error: Start vector '{0}' does not have a valid format", rawConsoleStartVector);
                 return;
             }
 
@@ -425,7 +425,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
             if (!ConsoleUtil.TryParseConsoleMaxVector(rawConsoleEndVector, out endVector))
             {
-                m_console.OutputFormat("Error: End vector {0} does not have a valid format", rawConsoleEndVector);
+                m_console.OutputFormat("Error: End vector '{0}' does not have a valid format", rawConsoleEndVector);
                 return;
             }
 
@@ -896,17 +896,17 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
             if (!ConsoleUtil.TryParseConsoleMinVector(rawConsoleStartVector, out startVector))
             {
-                m_console.OutputFormat("Error: Start vector {0} does not have a valid format", rawConsoleStartVector);
+                m_console.OutputFormat("Error: Start vector '{0}' does not have a valid format", rawConsoleStartVector);
                 endVector = Vector3.Zero;
                 
                 return false;
             }
 
-            string rawConsoleEndVector = rawComponents.Skip(1).Take(1).Single();
+            string rawConsoleEndVector = rawComponents.Skip(2).Take(1).Single();
 
             if (!ConsoleUtil.TryParseConsoleMaxVector(rawConsoleEndVector, out endVector))
             {
-                m_console.OutputFormat("Error: End vector {0} does not have a valid format", rawConsoleEndVector);
+                m_console.OutputFormat("Error: End vector '{0}' does not have a valid format", rawConsoleEndVector);
                 return false;
             }
 
