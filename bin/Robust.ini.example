@@ -261,7 +261,12 @@ MapGetServiceConnector = "8002/OpenSim.Server.Handlers.dll:MapGetServiceConnecto
     LibraryService = "OpenSim.Services.InventoryService.dll:LibraryService"
     FriendsService = "OpenSim.Services.FriendsService.dll:FriendsService"
 
-    ;; Ask co-operative viewers to use a different currency name
+    ; The minimum user level required for a user to be able to login.  0 by default
+    ; If you disable a particular user's account then you can set their login level below this number.
+    ; You can also change this level from the console though these changes will not be persisted.
+    ; MinLoginLevel = 0
+
+    ; Ask co-operative viewers to use a different currency name
     ;Currency = ""
 
     WelcomeMessage = "Welcome, Avatar!"
