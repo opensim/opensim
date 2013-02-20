@@ -302,38 +302,6 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         /// 
         /// </summary>
         // -----------------------------------------------------------------
-        public bool TestPath(UUID storeID, string path, bool useJson)
-        {
-            if (! m_enabled) return false;
-
-            JsonStore map = null;
-            lock (m_JsonValueStore)
-            {
-                if (! m_JsonValueStore.TryGetValue(storeID,out map))
-                {
-                    m_log.InfoFormat("[JsonStore] Missing store {0}",storeID);
-                    return false;
-                }
-            }
-            
-            try
-            {
-                lock (map)
-                    return map.TestPath(path,useJson);
-            }
-            catch (Exception e)
-            {
-                m_log.Error(string.Format("[JsonStore]: Path test failed for {0} in {1}", path, storeID), e);
-            }
-
-            return false;
-        }
-
-        // -----------------------------------------------------------------
-        /// <summary>
-        /// 
-        /// </summary>
-        // -----------------------------------------------------------------
         public bool SetValue(UUID storeID, string path, string value, bool useJson)
         {
             if (! m_enabled) return false;

@@ -84,11 +84,11 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         protected static Regex m_PathComponent = new Regex("\\.({[^}]+}|\\[[0-9]+\\]|\\[\\+\\])");
 
         // extract the internals of an array reference
-        protected static Regex m_SimpleArrayPattern = new Regex("\\[([0-9]+)\\]");
-        protected static Regex m_ArrayPattern = new Regex("\\[([0-9]+|\\+)\\]");
+        protected static Regex m_SimpleArrayPattern = new Regex("^\\[([0-9]+)\\]$");
+        protected static Regex m_ArrayPattern = new Regex("^\\[([0-9]+|\\+)\\]$");
 
         // extract the internals of a has reference
-        protected static Regex m_HashPattern = new Regex("{([^}]+)}");
+        protected static Regex m_HashPattern = new Regex("^{([^}]+)}$");
 
         // -----------------------------------------------------------------
         /// <summary>
@@ -166,28 +166,6 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
                 return JsonStoreNodeType.Value;
             
             return JsonStoreNodeType.Undefined;
-        }
-        
-        // -----------------------------------------------------------------
-        /// <summary>
-        /// 
-        /// </summary>
-        // -----------------------------------------------------------------
-        public bool TestPath(string expr, bool useJson)
-        {
-            Stack<string> path;
-            if (! ParsePathExpression(expr,out path))
-                return false;
-            
-            OSD result = ProcessPathExpression(ValueStore,path);
-
-            if (result == null)
-                return false;
-            
-            if (useJson || OSDBaseType(result.Type))
-                return true;
-            
-            return false;
         }
         
         // -----------------------------------------------------------------

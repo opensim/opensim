@@ -51,7 +51,6 @@ namespace OpenSim.Region.Framework.Interfaces
 
         JsonStoreNodeType GetPathType(UUID storeID, string path);
         bool TestStore(UUID storeID);
-        bool TestPath(UUID storeID, string path, bool useJson);
 
         bool SetValue(UUID storeID, string path, string value, bool useJson);
         bool RemoveValue(UUID storeID, string path);
