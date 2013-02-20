@@ -961,14 +961,25 @@ namespace OpenSim.Services.LLLoginService
                     // or fixing critical issues
                     //
                     if (cmd.Length > 2)
-                        Int32.TryParse(cmd[2], out m_MinLoginLevel);
+                    {
+                        if (Int32.TryParse(cmd[2], out m_MinLoginLevel))
+                            MainConsole.Instance.OutputFormat("Set minimum login level to {0}", m_MinLoginLevel);
+                        else
+                            MainConsole.Instance.OutputFormat("ERROR: {0} is not a valid login level", cmd[2]);
+                    }
                     break;
-                case "reset":
+
+                case "reset":                    
                     m_MinLoginLevel = 0;
+                    MainConsole.Instance.OutputFormat("Reset min login level to {0}", m_MinLoginLevel);
                     break;
+
                 case "text":
                     if (cmd.Length > 2)
+                    {
                         m_WelcomeMessage = cmd[2];
+                        MainConsole.Instance.OutputFormat("Login welcome message set to '{0}'", m_WelcomeMessage);
+                    }
                     break;
             }
         }
