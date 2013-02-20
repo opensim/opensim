@@ -85,6 +85,11 @@
     ;; For Viewer 2
     MapTileURL = "http://127.0.0.1:9000/"
 
+    ; The minimum user level required for a user to be able to login.  0 by default
+    ; If you disable a particular user's account then you can set their login level below this number.
+    ; You can also change this level from the console though these changes will not be persisted.
+    ; MinLoginLevel = 0
+
     ;; Ask co-operative viewers to use a different currency name
     ;Currency = ""
 
