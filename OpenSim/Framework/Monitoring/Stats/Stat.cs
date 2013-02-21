@@ -34,7 +34,7 @@ namespace OpenSim.Framework.Monitoring
     /// <summary>
     /// Holds individual statistic details
     /// </summary>
-    public class Stat
+    public class Stat : IDisposable
     {
         /// <summary>
         /// Category of this stat (e.g. cache, scene, etc).
@@ -179,6 +179,12 @@ namespace OpenSim.Framework.Monitoring
                 m_samples = new Queue<double>(m_maxSamples);
 
             Verbosity = verbosity;
+        }
+
+        // IDisposable.Dispose()
+        public virtual void Dispose()
+        {
+            return;
         }
 
         /// <summary>
