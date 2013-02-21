@@ -29,6 +29,8 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
+using OpenMetaverse.StructuredData;
+
 namespace OpenSim.Framework.Monitoring
 {
     /// <summary>
@@ -214,6 +216,20 @@ namespace OpenSim.Framework.Monitoring
             AppendMeasuresOfInterest(sb);
 
             return sb.ToString();
+        }
+
+        public virtual OSDMap ToOSDMap()
+        {
+            OSDMap ret = new OSDMap();
+            ret.Add("Category", OSD.FromString(Category));
+            ret.Add("Container", OSD.FromString(Container));
+            ret.Add("ShortName", OSD.FromString(ShortName));
+            ret.Add("Name", OSD.FromString(Name));
+            ret.Add("Description", OSD.FromString(Description));
+            ret.Add("UnitName", OSD.FromString(UnitName));
+            ret.Add("Value", OSD.FromReal(Value));
+
+            return ret;
         }
 
         protected void AppendMeasuresOfInterest(StringBuilder sb)
