@@ -46,6 +46,8 @@ public static class BSParam
     public static float MeshMegaPrimThreshold { get; private set; }
     public static float SculptLOD { get; private set; }
 
+    public static int CrossingFailuresBeforeOutOfBounds { get; private set; }
+
     public static float MinimumObjectMass { get; private set; }
     public static float MaximumObjectMass { get; private set; }
     public static float MaxLinearVelocity { get; private set; }
@@ -73,23 +75,23 @@ public static class BSParam
     public static float TerrainRestitution { get; private set; }
     public static float TerrainCollisionMargin { get; private set; }
 
-    public static float DefaultFriction;
-    public static float DefaultDensity;
-    public static float DefaultRestitution;
-    public static float CollisionMargin;
-    public static float Gravity;
+    public static float DefaultFriction { get; private set; }
+    public static float DefaultDensity { get; private set; }
+    public static float DefaultRestitution { get; private set; }
+    public static float CollisionMargin { get; private set; }
+    public static float Gravity { get; private set; }
 
     // Physics Engine operation
-	public static float MaxPersistantManifoldPoolSize;
-	public static float MaxCollisionAlgorithmPoolSize;
-	public static bool ShouldDisableContactPoolDynamicAllocation;
-	public static bool ShouldForceUpdateAllAabbs;
-	public static bool ShouldRandomizeSolverOrder;
-	public static bool ShouldSplitSimulationIslands;
-	public static bool ShouldEnableFrictionCaching;
-	public static float NumberOfSolverIterations;
-    public static bool UseSingleSidedMeshes;
-    public static float GlobalContactBreakingThreshold;
+	public static float MaxPersistantManifoldPoolSize { get; private set; }
+	public static float MaxCollisionAlgorithmPoolSize { get; private set; }
+	public static bool ShouldDisableContactPoolDynamicAllocation { get; private set; }
+	public static bool ShouldForceUpdateAllAabbs { get; private set; }
+	public static bool ShouldRandomizeSolverOrder { get; private set; }
+	public static bool ShouldSplitSimulationIslands { get; private set; }
+	public static bool ShouldEnableFrictionCaching { get; private set; }
+	public static float NumberOfSolverIterations { get; private set; }
+    public static bool UseSingleSidedMeshes { get; private set; }
+    public static float GlobalContactBreakingThreshold { get; private set; }
 
     // Avatar parameters
     public static float AvatarFriction { get; private set; }
@@ -118,6 +120,7 @@ public static class BSParam
     public static float VehicleGroundGravityFudge { get; private set; }
     public static bool VehicleDebuggingEnabled { get; private set; }
 
+    // Linkset implementation parameters
     public static float LinksetImplementation { get; private set; }
     public static bool LinkConstraintUseFrameOffset { get; private set; }
     public static bool LinkConstraintEnableTransMotor { get; private set; }
@@ -281,6 +284,11 @@ public static class BSParam
             true,
             (s) => { return ShouldRemoveZeroWidthTriangles; },
             (s,v) => { ShouldRemoveZeroWidthTriangles = v; } ),
+
+        new ParameterDefn<int>("CrossingFailuresBeforeOutOfBounds", "How forgiving we are about getting into adjactent regions",
+            5,
+            (s) => { return CrossingFailuresBeforeOutOfBounds; },
+            (s,v) => { CrossingFailuresBeforeOutOfBounds = v; } ),
 
         new ParameterDefn<float>("MeshLevelOfDetail", "Level of detail to render meshes (32, 16, 8 or 4. 32=most detailed)",
             32f,
@@ -695,6 +703,10 @@ public static class BSParam
         }
     }
 
+    // =====================================================================
+    // =====================================================================
+    // There are parameters that, when set, cause things to happen in the physics engine.
+    // This causes the broadphase collision cache to be cleared.
     private static void ResetBroadphasePoolTainted(BSScene pPhysScene, float v)
     {
         BSScene physScene = pPhysScene;
@@ -704,6 +716,7 @@ public static class BSParam
         });
     }
 
+    // This causes the constraint solver cache to be cleared and reset.
     private static void ResetConstraintSolverTainted(BSScene pPhysScene, float v)
     {
         BSScene physScene = pPhysScene;

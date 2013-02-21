@@ -70,6 +70,8 @@ public class BSPrim : BSPhysObject
     private bool _kinematic;
     private float _buoyancy;
 
+    private int CrossingFailures { get; set; }
+
     public BSDynamics VehicleController { get; private set; }
 
     private BSVMotor _targetMotor;
@@ -197,7 +199,20 @@ public class BSPrim : BSPhysObject
     {
         get { return _isSelected; }
     }
-    public override void CrossingFailure() { return; }
+
+    public override void CrossingFailure()
+    {
+        CrossingFailures++;
+        if (CrossingFailures > BSParam.CrossingFailuresBeforeOutOfBounds)
+        {
+            base.RaiseOutOfBounds(RawPosition);
+        }
+        else if (CrossingFailures == BSParam.CrossingFailuresBeforeOutOfBounds)
+        {
+            m_log.WarnFormat("{0} Too many crossing failures for {1}", LogHeader, Name);
+        }
+        return;
+    }
 
     // link me to the specified parent
     public override void link(PhysicsActor obj) {
@@ -1123,7 +1138,11 @@ public class BSPrim : BSPhysObject
 
     // Used for MoveTo
     public override OMV.Vector3 PIDTarget {
-        set { _PIDTarget = value; }
+        set
+        {
+            // TODO: add a sanity check -- don't move more than a region or something like that.
+            _PIDTarget = value;
+        }
     }
     public override float PIDTau {
         set { _PIDTau = value; }
@@ -1177,7 +1196,9 @@ public class BSPrim : BSPhysObject
                     }
                     else
                     {
-                        ForcePosition = movePosition;
+                        _position = movePosition;
+                        PositionSanityCheck(true /* intaintTime */);
+                        ForcePosition = _position;
                     }
                     DetailLog("{0},BSPrim.PIDTarget,move,fromPos={1},movePos={2}", LocalID, origPosition, movePosition);
                 });
