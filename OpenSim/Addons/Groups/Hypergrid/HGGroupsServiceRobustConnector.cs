@@ -65,13 +65,13 @@ namespace OpenSim.Groups
 
             m_log.DebugFormat("[Groups.RobustHGConnector]: Starting with config name {0}", m_ConfigName);
 
+            string homeURI = Util.GetConfigVarWithDefaultSection(config, "HomeURI", m_ConfigName); //cnf.GetString("HomeURI", string.Empty);
+            if (homeURI == string.Empty)
+                throw new Exception(String.Format("[Groups.RobustHGConnector]: please provide the HomeURI [Startup] or in section {0}", m_ConfigName));
+
             IConfig cnf = config.Configs[m_ConfigName];
             if (cnf == null)
                 throw new Exception(String.Format("[Groups.RobustHGConnector]: {0} section does not exist", m_ConfigName));
-
-            string homeURI = cnf.GetString("HomeURI", string.Empty);
-            if (homeURI == string.Empty)
-                throw new Exception(String.Format("[Groups.RobustHGConnector]: please provide the HomeURI in section {0}", m_ConfigName));
 
             if (im == null)
             {

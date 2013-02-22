@@ -22,17 +22,31 @@
 ; *
 [Startup]
 
-; Plugin Registry Location
-; Set path to directory for plugin registry. Information
-; about the registered repositories and installed plugins
-; will be stored here
-; The Robust.exe process must hvae R/W access to the location 
-RegistryLocation = "."
+	; Plugin Registry Location
+	; Set path to directory for plugin registry. Information
+	; about the registered repositories and installed plugins
+	; will be stored here
+	; The Robust.exe process must hvae R/W access to the location 
+	RegistryLocation = "."
 
-; Modular configurations
-; Set path to directory for modular ini files...
-; The Robust.exe process must hvae R/W access to the location 
-ConfigDirectory = "/home/opensim/etc/Configs"
+	; Modular configurations
+	; Set path to directory for modular ini files...
+	; The Robust.exe process must hvae R/W access to the location 
+	ConfigDirectory = "/home/opensim/etc/Configs"
+
+    ;# {HomeURI} {Hypergrid} {The Home URL of this world} {}
+	;; This is the address of the external robust server that
+	;; runs the UserAgentsService, possibly this server.
+	;; For example http://myworld.com:8002
+	;; This is a default that can be overwritten in some sections.
+	; HomeURI = "http://127.0.0.1:8002"
+
+    ;# {GatekeeperURI} {Hypergrid} {The URL of the gatekeeper of this world} {}
+	;; This is the address of the external robust server
+	;; that runs the Gatekeeper service, possibly this server.
+	;; For example http://myworld.com:8002
+	;; This is a default that can be overwritten in some sections.
+	; GatekeeperURI = "http://127.0.0.1:8002"
 
 [ServiceList]
 
@@ -155,7 +169,8 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
 	;; Allow Hyperlinks to be created at the console
     HypergridLinker = true
 
-	Gatekeeper = "http://127.0.0.1:8002"
+	;; If you have this set under [Startup], no need to set it here, leave it commented
+	; GatekeeperURI = "http://127.0.0.1:8002"
 
 
 ; * This is the configuration for the freeswitch server in grid mode
@@ -309,8 +324,8 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
     ; HasProxy = false
     
     ; Defaults for the users, if none is specified in the useraccounts table entry (ServiceURLs)
-    ; CHANGE THIS
-	GatekeeperURI = "http://127.0.0.1:8002"
+	;; If you have Gatekeeper set under [Startup], no need to set it here, leave it commented
+	; GatekeeperURI = "http://127.0.0.1:8002"
 
     SRV_HomeURI = "http://127.0.0.1:8002"
     SRV_InventoryServerURI = "http://127.0.0.1:8002"
@@ -417,8 +432,8 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
     AuthenticationService = "OpenSim.Services.Connectors.dll:AuthenticationServicesConnector"
     SimulationService ="OpenSim.Services.Connectors.dll:SimulationServiceConnector"
     ; how does the outside world reach me? This acts as public key too.
-    ; CHANGE THIS
-    ExternalName = "http://127.0.0.1:8002"
+	;; If you have GatekeeperURI set under [Startup], no need to set it here, leave it commented
+    ; ExternalName = "http://127.0.0.1:8002"
 
     ; Does this grid allow incoming links to any region in it? 
     ; If false, HG TPs happen only to the Default regions specified in [GridService] section
@@ -511,7 +526,9 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
 
 	UserAccountsService = "OpenSim.Services.UserAccountService.dll:UserAccountService"
 	AvatarService = "OpenSim.Services.AvatarService.dll:AvatarService"
-	HomeURI = "http://127.0.0.1:8002"
+
+	;; Can overwrite the default in [Startup], but probably shouldn't
+	; HomeURI = "http://127.0.0.1:8002"
 
 ; * The interface that local users get when they are in other grids.
 ; * This restricts the access that the rest of the world has to
@@ -520,7 +537,9 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
 [HGAssetService]
     LocalServiceModule = "OpenSim.Services.HypergridService.dll:HGAssetService"
     UserAccountsService = "OpenSim.Services.UserAccountService.dll:UserAccountService"
-    HomeURI = "http://127.0.0.1:8002"
+
+	;; Can overwrite the default in [Startup], but probably shouldn't
+	; HomeURI = "http://127.0.0.1:8002"
 
     ;; The asset types that this grid can export to / import from other grids.
 	;; Comma separated.
@@ -557,6 +576,10 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
 [Groups]
     ;; for the HG Groups service
     OfflineIMService = "OpenSim.Addons.OfflineIM.dll:OfflineIMService"
-    ; What is the HomeURI of users associated with this grid?
-    HomeURI = "http://127.0.0.1:8002"
     UserAccountService = "OpenSim.Services.UserAccountService.dll:UserAccountService"
+
+    ;; What is the HomeURI of users associated with this grid?
+	;; Can overwrite the default in [Startup], but probably shouldn't
+	; HomeURI = "http://127.0.0.1:8002"
+
+
