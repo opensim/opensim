@@ -131,7 +131,7 @@ namespace OpenSim.Services.HypergridService
                 LoadDomainExceptionsFromConfig(serverConfig, "AllowExcept", m_TripsAllowedExceptions);
                 LoadDomainExceptionsFromConfig(serverConfig, "DisallowExcept", m_TripsDisallowedExceptions);
 
-                m_GridName = Util.GetConfigVarWithDefaultSection(config, "GatekeeperURI", "UserAgentService");
+                m_GridName = Util.GetConfigVarFromSections<string>(config, "GatekeeperURI", new string[] {"Startup", "UserAgentService"});
                 if (string.IsNullOrEmpty(m_GridName)) // Legacy. Remove soon.
                 {
                     m_GridName = serverConfig.GetString("ExternalName", string.Empty);

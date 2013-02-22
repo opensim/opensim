@@ -65,7 +65,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
                 {
                     m_Enabled = true;
 
-                    m_ThisGridURL = Util.GetConfigVarWithDefaultSection(config, "GatekeeperURI", "Messaging");
+                    m_ThisGridURL = Util.GetConfigVarFromSections<string>(config, "GatekeeperURI", new string[] {"Startup", "Messaging"});
                     // Legacy. Remove soon!
                     m_ThisGridURL = config.Configs["Messaging"].GetString("Gatekeeper", m_ThisGridURL);
                     m_log.DebugFormat("[LURE MODULE]: {0} enabled", Name);
