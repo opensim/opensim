@@ -381,3 +381,5 @@ MapGetServiceConnector = "8002/OpenSim.Server.Handlers.dll:MapGetServiceConnecto
 
     ; password help: optional: page providing password assistance for users of your grid
     ;password = http://127.0.0.1/password
+
+
