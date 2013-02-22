@@ -3892,6 +3892,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         {
                             part.Shape.LightEntry = false;
                         }
+
+                        if (part.Shape != null && (part.Shape.SculptType == (byte)SculptType.Mesh))
+                        {
+                            // Ensure that mesh has at least 8 valid faces
+                            part.Shape.ProfileBegin = 12500;
+                            part.Shape.ProfileEnd = 0;
+                            part.Shape.ProfileHollow = 27500;
+                        }
                     }
                 }
 
@@ -12446,6 +12454,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public string XReport(string uptime, string version)
         {
             return String.Empty;
+        }
+
+        public OSDMap OReport(string uptime, string version)
+        {
+            return new OSDMap();
         }
 
         /// <summary>

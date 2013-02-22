@@ -405,6 +405,15 @@ Asset service request failures: {3}" + Environment.NewLine,
         /// <returns></returns>
         public override string XReport(string uptime, string version)
         {
+            return OSDParser.SerializeJsonString(OReport(uptime, version));
+        }
+
+        /// <summary>
+        /// Report back collected statistical information as an OSDMap
+        /// </summary>
+        /// <returns></returns>
+        public override OSDMap OReport(string uptime, string version)
+        {
             OSDMap args = new OSDMap(30);
 //            args["AssetsInCache"] = OSD.FromString (String.Format ("{0:0.##}", AssetsInCache));
 //            args["TimeAfterCacheMiss"] = OSD.FromString (String.Format ("{0:0.##}",
@@ -442,12 +451,10 @@ Asset service request failures: {3}" + Environment.NewLine,
             args["Uptime"] = OSD.FromString (uptime);
             args["Version"] = OSD.FromString (version);
             
-            string strBuffer = "";
-            strBuffer = OSDParser.SerializeJsonString(args);
-
-            return strBuffer;
+            return args;
         }
     }
+
 
     /// <summary>
     /// Pull packet queue stats from packet queues and report
@@ -473,6 +480,12 @@ Asset service request failures: {3}" + Environment.NewLine,
         public string XReport(string uptime, string version)
         {
             return "";
+        }
+        
+        public OSDMap OReport(string uptime, string version)
+        {
+            OSDMap ret = new OSDMap();
+            return ret;
         }
     }
 }

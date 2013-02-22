@@ -1,17 +1,16 @@
 CURRENT PRIORITIES
 =================================================
-One sided meshes? Should terrain be built into a closed shape?
-	When meshes get partially wedged into the terrain, they cannot push themselves out.
-	It is possible that Bullet processes collisions whether entering or leaving a mesh.
-	Ref: http://bulletphysics.org/Bullet/phpBB3/viewtopic.php?t=4869
 Deleting a linkset while standing on the root will leave the physical shape of the root behind.
 	Not sure if it is because standing on it. Done with large prim linksets.
-Terrain detail: double terrain mesh detail
 Vehicle angular vertical attraction
 vehicle angular banking
 Center-of-gravity
 Vehicle angular deflection
 	Preferred orientation angular correction fix
+Enable vehicle border crossings (at least as poorly as ODE)
+	Terrain skirts
+	Avatar created in previous region and not new region when crossing border
+	Vehicle recreated in new sim at small Z value (offset from root value?) (DONE)
 when should angular and linear motor targets be zeroed? when selected?
 	Need a vehicle.clear()? Or an 'else' in prestep if not physical.
 Teravus llMoveToTarget script debug
@@ -26,14 +25,16 @@ Avatar movement
 	flying into a wall doesn't stop avatar who keeps appearing to move through the obstacle (DONE)
 	walking up stairs is not calibrated correctly (stairs out of Kepler cabin)
 	avatar capsule rotation completed (NOT DONE - Bullet's capsule shape is not the solution)
-Enable vehicle border crossings (at least as poorly as ODE)
-	Terrain skirts
-	Avatar created in previous region and not new region when crossing border
-	Vehicle recreated in new sim at small Z value (offset from root value?) (DONE)
 Vehicle script tuning/debugging
 	Avanti speed script
 	Weapon shooter script
-Add material densities to the material types
+Move material definitions (friction, ...) into simulator.
+Add material densities to the material types.
+Terrain detail: double terrain mesh detail
+One sided meshes? Should terrain be built into a closed shape?
+	When meshes get partially wedged into the terrain, they cannot push themselves out.
+	It is possible that Bullet processes collisions whether entering or leaving a mesh.
+	Ref: http://bulletphysics.org/Bullet/phpBB3/viewtopic.php?t=4869
 
 VEHICLES TODO LIST:
 =================================================
@@ -65,6 +66,7 @@ Vehicle attributes are not restored when a vehicle is rezzed on region creation
 
 GENERAL TODO LIST:
 =================================================
+Add a sanity check for PIDTarget location.
 Level-of-detail for mesh creation. Prims with circular interiors require lod of 32.
 	Is much saved with lower LODs? At the moment, all set to 32.
 Collisions are inconsistant: arrows are supposed to hit and report collision. Often don't.

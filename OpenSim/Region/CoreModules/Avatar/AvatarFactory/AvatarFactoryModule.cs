@@ -1090,7 +1090,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             }
 
             bool bakedTextureValid = m_scene.AvatarFactory.ValidateBakedTextureCache(sp);
-            outputAction("{0} baked appearance texture is {1}", sp.Name, bakedTextureValid ? "OK" : "corrupt");
+            outputAction("{0} baked appearance texture is {1}", sp.Name, bakedTextureValid ? "OK" : "incomplete");
         }
     }
 }

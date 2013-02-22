@@ -25,6 +25,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using OpenMetaverse.StructuredData;
+
 namespace OpenSim.Framework.Monitoring
 {
     /// <summary>
@@ -45,5 +47,12 @@ namespace OpenSim.Framework.Monitoring
         /// A <see cref="System.String"/>
         /// </returns>
         string XReport(string uptime, string version);
+
+        /// <summary>
+        /// Report back collected statistical information as an OSDMap of key/values
+        /// </summary>
+        /// <returns>
+        /// </returns>
+        OSDMap OReport(string uptime, string version);
     }
 }

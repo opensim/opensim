@@ -158,8 +158,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 
             Assert.That(dsrv, Is.EqualTo(1));
 
-            int tprv = (int)InvokeOp("JsonTestPath", storeId, "Hello");
-            Assert.That(tprv, Is.EqualTo(0));
+            int tprv = (int)InvokeOp("JsonGetPathType", storeId, "Hello");
+            Assert.That(tprv, Is.EqualTo(JsonStoreScriptModule.JSON_TYPE_UNDEF));
         }
 
         [Test]
@@ -277,8 +277,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
                 int returnValue = (int)InvokeOp( "JsonRemoveValue", storeId, "Hello");
                 Assert.That(returnValue, Is.EqualTo(1));
 
-                int result = (int)InvokeOp("JsonTestPath", storeId, "Hello");
-                Assert.That(result, Is.EqualTo(0));
+                int result = (int)InvokeOp("JsonGetPathType", storeId, "Hello");
+                Assert.That(result, Is.EqualTo(JsonStoreScriptModule.JSON_TYPE_UNDEF));
 
                 string returnValue2 = (string)InvokeOp("JsonGetValue", storeId, "Hello");
                 Assert.That(returnValue2, Is.EqualTo(""));
@@ -291,8 +291,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
                 int returnValue = (int)InvokeOp( "JsonRemoveValue", storeId, "Hello");
                 Assert.That(returnValue, Is.EqualTo(1));
 
-                int result = (int)InvokeOp("JsonTestPath", storeId, "Hello");
-                Assert.That(result, Is.EqualTo(0));
+                int result = (int)InvokeOp("JsonGetPathType", storeId, "Hello");
+                Assert.That(result, Is.EqualTo(JsonStoreScriptModule.JSON_TYPE_UNDEF));
 
                 string returnValue2 = (string)InvokeOp("JsonGetJson", storeId, "Hello");
                 Assert.That(returnValue2, Is.EqualTo(""));
@@ -306,11 +306,11 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
                 int returnValue = (int)InvokeOp( "JsonRemoveValue", storeId, "Hello[0]");
                 Assert.That(returnValue, Is.EqualTo(1));
 
-                int result = (int)InvokeOp("JsonTestPath", storeId, "Hello[0]");
-                Assert.That(result, Is.EqualTo(1));
+                int result = (int)InvokeOp("JsonGetPathType", storeId, "Hello[0]");
+                Assert.That(result, Is.EqualTo(JsonStoreScriptModule.JSON_TYPE_VALUE));
 
-                result = (int)InvokeOp("JsonTestPath", storeId, "Hello[1]");
-                Assert.That(result, Is.EqualTo(0));
+                result = (int)InvokeOp("JsonGetPathType", storeId, "Hello[1]");
+                Assert.That(result, Is.EqualTo(JsonStoreScriptModule.JSON_TYPE_UNDEF));
 
                 string stringReturnValue = (string)InvokeOp("JsonGetValue", storeId, "Hello[0]");
                 Assert.That(stringReturnValue, Is.EqualTo("value2"));
@@ -400,7 +400,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 //        }
 
         [Test]
-        public void TestGetArrayLength()
+        public void TestJsonGetArrayLength()
         {
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();

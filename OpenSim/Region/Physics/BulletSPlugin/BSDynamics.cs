@@ -144,7 +144,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             enableAngularVerticalAttraction = true;
             enableAngularDeflection = false;
             enableAngularBanking = false;
-            if (BSParam.VehicleDebuggingEnabled != ConfigurationParameters.numericFalse)
+            if (BSParam.VehicleDebuggingEnabled)
             {
                 enableAngularVerticalAttraction = true;
                 enableAngularDeflection = false;
@@ -607,8 +607,8 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 // TODO: possibly set AngularFactor and LinearFactor for the type of vehicle.
                 //     Maybe compute linear and angular factor and damping from params.
                 PhysicsScene.PE.SetAngularDamping(Prim.PhysBody, BSParam.VehicleAngularDamping);
-                PhysicsScene.PE.SetLinearFactor(Prim.PhysBody, BSParam.VehicleLinearFactorV);
-                PhysicsScene.PE.SetAngularFactorV(Prim.PhysBody, BSParam.VehicleAngularFactorV);
+                PhysicsScene.PE.SetLinearFactor(Prim.PhysBody, BSParam.VehicleLinearFactor);
+                PhysicsScene.PE.SetAngularFactorV(Prim.PhysBody, BSParam.VehicleAngularFactor);
 
                 // Vehicles report collision events so we know when it's on the ground
                 PhysicsScene.PE.AddToCollisionFlags(Prim.PhysBody, CollisionFlags.BS_VEHICLE_COLLISIONS);

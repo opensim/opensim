@@ -57,6 +57,7 @@ public sealed class BSConstraint6Dof : BSConstraint
                             obj1.ID, obj1.AddrString, obj2.ID, obj2.AddrString);
     }
 
+    // 6 Dof constraint based on a midpoint between the two constrained bodies
     public BSConstraint6Dof(BulletWorld world, BulletBody obj1, BulletBody obj2,
                     Vector3 joinPoint,
                     bool useLinearReferenceFrameA, bool disableCollisionsBetweenLinkedBodies)
@@ -92,6 +93,21 @@ public sealed class BSConstraint6Dof : BSConstraint
                 m_enabled = true;
             }
         }
+    }
+
+    // A 6 Dof constraint that is fixed in the world and constrained to a on-the-fly created static object
+    public BSConstraint6Dof(BulletWorld world, BulletBody obj1, Vector3 frameInBloc, Quaternion frameInBrot,
+                    bool useLinearReferenceFrameA, bool disableCollisionsBetweenLinkedBodies)
+        : base(world)
+    {
+        m_body1 = obj1;
+        m_body2 = obj1; // Look out for confusion down the road
+        m_constraint = PhysicsScene.PE.Create6DofConstraintFixed(m_world, m_body1,
+                                frameInBloc, frameInBrot,
+                                useLinearReferenceFrameA, disableCollisionsBetweenLinkedBodies);
+        m_enabled = true;
+        world.physicsScene.DetailLog("{0},BS6DofConstraint,createFixed,wID={1},rID={2},rBody={3}",
+                            BSScene.DetailLogZero, world.worldID, obj1.ID, obj1.AddrString);
     }
 
     public bool SetFrames(Vector3 frameA, Quaternion frameArot, Vector3 frameB, Quaternion frameBrot)

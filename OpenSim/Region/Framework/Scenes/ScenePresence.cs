@@ -2075,7 +2075,11 @@ namespace OpenSim.Region.Framework.Scenes
             // Get terrain height for sub-region in a megaregion if necessary
             int X = (int)((m_scene.RegionInfo.RegionLocX * Constants.RegionSize) + pos.X);
             int Y = (int)((m_scene.RegionInfo.RegionLocY * Constants.RegionSize) + pos.Y);
-            UUID target_regionID = m_scene.GridService.GetRegionByPosition(m_scene.RegionInfo.ScopeID, X, Y).RegionID;
+            GridRegion target_region = m_scene.GridService.GetRegionByPosition(m_scene.RegionInfo.ScopeID, X, Y);
+            // If X and Y is NaN, target_region will be null
+            if (target_region == null)
+                return;
+            UUID target_regionID = target_region.RegionID;
             Scene targetScene = m_scene;
 
             if (!SceneManager.Instance.TryGetScene(target_regionID, out targetScene))

@@ -2172,9 +2172,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.Moderate, "osGetGridHomeURI");
             m_host.AddScriptLPS(1);
 
-            string HomeURI = String.Empty;
             IConfigSource config = m_ScriptEngine.ConfigSource;
+            string HomeURI = Util.GetConfigVarWithDefaultSection(config, "HomeURI", string.Empty);
 
+            if (!string.IsNullOrEmpty(HomeURI))
+                return HomeURI;
+
+            // Legacy. Remove soon!
             if (config.Configs["LoginService"] != null)
                 HomeURI = config.Configs["LoginService"].GetString("SRV_HomeURI", HomeURI);
 
@@ -2189,9 +2193,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.Moderate, "osGetGridGatekeeperURI");
             m_host.AddScriptLPS(1);
 
-            string gatekeeperURI = String.Empty;
             IConfigSource config = m_ScriptEngine.ConfigSource;
+            string gatekeeperURI = Util.GetConfigVarWithDefaultSection(config, "GatekeeperURI", string.Empty);
 
+            if (!string.IsNullOrEmpty(gatekeeperURI))
+                return gatekeeperURI;
+
+            // Legacy. Remove soon!
             if (config.Configs["GridService"] != null)
                 gatekeeperURI = config.Configs["GridService"].GetString("Gatekeeper", gatekeeperURI);
 

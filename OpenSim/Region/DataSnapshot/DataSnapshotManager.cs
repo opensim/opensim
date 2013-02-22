@@ -113,9 +113,16 @@ namespace OpenSim.Region.DataSnapshot
                     try
                     {
                         m_enabled = config.Configs["DataSnapshot"].GetBoolean("index_sims", m_enabled);
-                        IConfig conf = config.Configs["GridService"];
-                        if (conf != null)
-                            m_gridinfo.Add("gatekeeperURL", conf.GetString("Gatekeeper", String.Empty));
+                        string gatekeeper = Util.GetConfigVarWithDefaultSection(config, "GatekeeperURI", "GridService");
+                        // Legacy. Remove soon!
+                        if (string.IsNullOrEmpty(gatekeeper))
+                        {
+                            IConfig conf = config.Configs["GridService"];
+                            if (conf != null)
+                                gatekeeper = conf.GetString("Gatekeeper", gatekeeper);
+                        }
+                        if (!string.IsNullOrEmpty(gatekeeper))
+                            m_gridinfo.Add("gatekeeperURL", gatekeeper);
 
                         m_gridinfo.Add(
                             "name", config.Configs["DataSnapshot"].GetString("gridname", "the lost continent of hippo"));

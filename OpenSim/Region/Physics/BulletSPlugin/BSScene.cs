@@ -161,7 +161,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     private int m_physicsLoggingFileMinutes;
     private bool m_physicsLoggingDoFlush;
     private bool m_physicsPhysicalDumpEnabled;
-    public float PhysicsMetricDumpFrames { get; set; }
+    public int PhysicsMetricDumpFrames { get; set; }
     // 'true' of the vehicle code is to log lots of details
     public bool VehicleLoggingEnabled { get; private set; }
     public bool VehiclePhysicalLoggingEnabled { get; private set; }
@@ -542,7 +542,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             collidersCount = 0;
         }
 
-        if ((m_simulationStep % PhysicsMetricDumpFrames) == 0)
+        if (PhysicsMetricDumpFrames != 0 && ((m_simulationStep % PhysicsMetricDumpFrames) == 0))
             PE.DumpPhysicsStatistics(World);
 
         // Get a value for 'now' so all the collision and update routines don't have to get their own.
@@ -880,38 +880,14 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     {
         bool ret = false;
 
-        float valf = 0f;
-        if (val.ToLower() == "true")
-        {
-            valf = PhysParameterEntry.NUMERIC_TRUE;
-        }
-        else
-        {
-            if (val.ToLower() == "false")
-            {
-                valf = PhysParameterEntry.NUMERIC_FALSE;
-            }
-            else
-            {
-                try
-                {
-                    valf = float.Parse(val);
-                }
-                catch
-                {
-                    valf = 0f;
-                }
-            }
-        }
-
-        BSParam.ParameterDefn theParam;
+        BSParam.ParameterDefnBase theParam;
         if (BSParam.TryGetParameter(parm, out theParam))
         {
             // Set the value in the C# code
-            theParam.setter(this, parm, localID, valf);
+            theParam.SetValue(this, val);
 
             // Optionally set the parameter in the unmanaged code
-            if (theParam.onObject != null)
+            if (theParam.HasSetOnObject)
             {
                 // update all the localIDs specified
                 // If the local ID is APPLY_TO_NONE, just change the default value
@@ -923,16 +899,16 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
                     case PhysParameterEntry.APPLY_TO_NONE:
                         // This will cause a call into the physical world if some operation is specified (SetOnObject).
                         objectIDs.Add(TERRAIN_ID);
-                        TaintedUpdateParameter(parm, objectIDs, valf);
+                        TaintedUpdateParameter(parm, objectIDs, val);
                         break;
                     case PhysParameterEntry.APPLY_TO_ALL:
                         lock (PhysObjects) objectIDs = new List<uint>(PhysObjects.Keys);
-                        TaintedUpdateParameter(parm, objectIDs, valf);
+                        TaintedUpdateParameter(parm, objectIDs, val);
                         break;
                     default:
                         // setting only one localID
                         objectIDs.Add(localID);
-                        TaintedUpdateParameter(parm, objectIDs, valf);
+                        TaintedUpdateParameter(parm, objectIDs, val);
                         break;
                 }
             }
@@ -943,22 +919,22 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     }
 
     // schedule the actual updating of the paramter to when the phys engine is not busy
-    private void TaintedUpdateParameter(string parm, List<uint> lIDs, float val)
+    private void TaintedUpdateParameter(string parm, List<uint> lIDs, string val)
     {
-        float xval = val;
+        string xval = val;
         List<uint> xlIDs = lIDs;
         string xparm = parm;
         TaintedObject("BSScene.UpdateParameterSet", delegate() {
-            BSParam.ParameterDefn thisParam;
+            BSParam.ParameterDefnBase thisParam;
             if (BSParam.TryGetParameter(xparm, out thisParam))
             {
-                if (thisParam.onObject != null)
+                if (thisParam.HasSetOnObject)
                 {
                     foreach (uint lID in xlIDs)
                     {
                         BSPhysObject theObject = null;
                         if (PhysObjects.TryGetValue(lID, out theObject))
-                            thisParam.onObject(this, theObject, xval);
+                            thisParam.SetOnObject(this, theObject);
                     }
                 }
             }
@@ -971,10 +947,10 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     {
         string val = String.Empty;
         bool ret = false;
-        BSParam.ParameterDefn theParam;
+        BSParam.ParameterDefnBase theParam;
         if (BSParam.TryGetParameter(parm, out theParam))
         {
-            val = theParam.getter(this).ToString();
+            val = theParam.GetValue(this);
             ret = true;
         }
         value = val;

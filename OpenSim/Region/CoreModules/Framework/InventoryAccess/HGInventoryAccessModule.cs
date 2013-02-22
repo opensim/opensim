@@ -88,12 +88,11 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     IConfig thisModuleConfig = source.Configs["HGInventoryAccessModule"];
                     if (thisModuleConfig != null)
                     {
-                        // legacy configuration [obsolete]
-                        m_HomeURI = thisModuleConfig.GetString("ProfileServerURI", string.Empty);
-                        // preferred
-                        m_HomeURI = thisModuleConfig.GetString("HomeURI", m_HomeURI);
+                        m_HomeURI = Util.GetConfigVarWithDefaultSection(source, "HomeURI", "HGInventoryAccessModule"); 
                         m_OutboundPermission = thisModuleConfig.GetBoolean("OutboundPermission", true);
-                        m_ThisGatekeeper = thisModuleConfig.GetString("Gatekeeper", string.Empty);
+                        m_ThisGatekeeper = Util.GetConfigVarWithDefaultSection(source, "GatekeeperURI", "HGInventoryAccessModule");
+                        // Legacy. Renove soon!
+                        m_ThisGatekeeper = thisModuleConfig.GetString("Gatekeeper", m_ThisGatekeeper);
                         m_RestrictInventoryAccessAbroad = thisModuleConfig.GetBoolean("RestrictInventoryAccessAbroad", true);
                     }
                     else

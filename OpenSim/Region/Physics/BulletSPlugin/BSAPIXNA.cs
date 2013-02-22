@@ -559,8 +559,9 @@ private sealed class BulletConstraintXNA : BulletConstraint
     }
 
 
-    //BulletSimAPI.Create6DofConstraint(m_world.ptr, m_body1.ptr, m_body2.ptr,frame1, frame1rot,frame2, frame2rot,useLinearReferenceFrameA, disableCollisionsBetweenLinkedBodies));
-    public override BulletConstraint Create6DofConstraint(BulletWorld pWorld, BulletBody pBody1, BulletBody pBody2, Vector3 pframe1, Quaternion pframe1rot, Vector3 pframe2, Quaternion pframe2rot, bool puseLinearReferenceFrameA, bool pdisableCollisionsBetweenLinkedBodies)
+    public override BulletConstraint Create6DofConstraint(BulletWorld pWorld, BulletBody pBody1, BulletBody pBody2, 
+                                    Vector3 pframe1, Quaternion pframe1rot, Vector3 pframe2, Quaternion pframe2rot, 
+                                    bool puseLinearReferenceFrameA, bool pdisableCollisionsBetweenLinkedBodies)
 
     {
         DiscreteDynamicsWorld world = (pWorld as BulletWorldXNA).world;
@@ -584,7 +585,24 @@ private sealed class BulletConstraintXNA : BulletConstraint
         return new BulletConstraintXNA(consttr);
     }
 
-    
+    public override BulletConstraint Create6DofConstraintFixed(BulletWorld pWorld, BulletBody pBody1,
+                                        Vector3 pframe1, Quaternion pframe1rot,
+                                        bool pUseLinearReferenceFrameB, bool pdisableCollisionsBetweenLinkedBodies)
+    {
+        DiscreteDynamicsWorld world = (pWorld as BulletWorldXNA).world;
+        RigidBody body1 = (pBody1 as BulletBodyXNA).rigidBody;
+        IndexedVector3 frame1v = new IndexedVector3(pframe1.X, pframe1.Y, pframe1.Z);
+        IndexedQuaternion frame1rot = new IndexedQuaternion(pframe1rot.X, pframe1rot.Y, pframe1rot.Z, pframe1rot.W);
+        IndexedMatrix frame1 = IndexedMatrix.CreateFromQuaternion(frame1rot);
+        frame1._origin = frame1v;
+
+        Generic6DofConstraint consttr = new Generic6DofConstraint(body1, ref frame1, pUseLinearReferenceFrameB);
+        consttr.CalculateTransforms();
+        world.AddConstraint(consttr,pdisableCollisionsBetweenLinkedBodies);
+
+        return new BulletConstraintXNA(consttr);
+    }
+
     /// <summary>
     /// 
     /// </summary>
@@ -1133,8 +1151,8 @@ private sealed class BulletConstraintXNA : BulletConstraint
         p.numberOfSolverIterations = o[0].numberOfSolverIterations;
 
         p.linksetImplementation = BSParam.LinksetImplementation;
-        p.linkConstraintUseFrameOffset = BSParam.LinkConstraintUseFrameOffset;
-        p.linkConstraintEnableTransMotor = BSParam.LinkConstraintEnableTransMotor;
+        p.linkConstraintUseFrameOffset = BSParam.NumericBool(BSParam.LinkConstraintUseFrameOffset);
+        p.linkConstraintEnableTransMotor = BSParam.NumericBool(BSParam.LinkConstraintEnableTransMotor);
         p.linkConstraintTransMotorMaxVel = BSParam.LinkConstraintTransMotorMaxVel;
         p.linkConstraintTransMotorMaxForce = BSParam.LinkConstraintTransMotorMaxForce;
         p.linkConstraintERP = BSParam.LinkConstraintERP;
@@ -1443,129 +1461,130 @@ private sealed class BulletConstraintXNA : BulletConstraint
 
     public BSPhysicsShapeType BSShapeTypeFromBroadPhaseNativeType(BroadphaseNativeTypes pin)
     {
+        BSPhysicsShapeType ret = BSPhysicsShapeType.SHAPE_UNKNOWN;
         switch (pin)
         {
             case BroadphaseNativeTypes.BOX_SHAPE_PROXYTYPE:
-                return BSPhysicsShapeType.SHAPE_BOX;
+                ret =  BSPhysicsShapeType.SHAPE_BOX;
                 break;
             case BroadphaseNativeTypes.TRIANGLE_SHAPE_PROXYTYPE:
-                return BSPhysicsShapeType.SHAPE_UNKNOWN;
+                ret =  BSPhysicsShapeType.SHAPE_UNKNOWN;
                 break;
 
             case BroadphaseNativeTypes.TETRAHEDRAL_SHAPE_PROXYTYPE:
-                return BSPhysicsShapeType.SHAPE_UNKNOWN;
+                ret =  BSPhysicsShapeType.SHAPE_UNKNOWN;
                 break;
             case BroadphaseNativeTypes.CONVEX_TRIANGLEMESH_SHAPE_PROXYTYPE:
-                return BSPhysicsShapeType.SHAPE_MESH;
+                ret =  BSPhysicsShapeType.SHAPE_MESH;
                 break;
             case BroadphaseNativeTypes.CONVEX_HULL_SHAPE_PROXYTYPE:
-                return BSPhysicsShapeType.SHAPE_HULL;
+                ret =  BSPhysicsShapeType.SHAPE_HULL;
                 break;
             case BroadphaseNativeTypes.CONVEX_POINT_CLOUD_SHAPE_PROXYTYPE:
-                return BSPhysicsShapeType.SHAPE_UNKNOWN;
+                ret =  BSPhysicsShapeType.SHAPE_UNKNOWN;
                 break;
             case BroadphaseNativeTypes.CUSTOM_POLYHEDRAL_SHAPE_TYPE:
-                return BSPhysicsShapeType.SHAPE_UNKNOWN;
+                ret =  BSPhysicsShapeType.SHAPE_UNKNOWN;
                 break;
             //implicit convex shapes
             case BroadphaseNativeTypes.IMPLICIT_CONVEX_SHAPES_START_HERE:
-                return BSPhysicsShapeType.SHAPE_UNKNOWN;
+                ret =  BSPhysicsShapeType.SHAPE_UNKNOWN;
                 break;
             case BroadphaseNativeTypes.SPHERE_SHAPE_PROXYTYPE:
-                return BSPhysicsShapeType.SHAPE_SPHERE;
+                ret =  BSPhysicsShapeType.SHAPE_SPHERE;
                 break;
             case BroadphaseNativeTypes.MULTI_SPHERE_SHAPE_PROXYTYPE:
-                return BSPhysicsShapeType.SHAPE_UNKNOWN;
+                ret =  BSPhysicsShapeType.SHAPE_UNKNOWN;
                 break;
             case BroadphaseNativeTypes.CAPSULE_SHAPE_PROXYTYPE:
-                return BSPhysicsShapeType.SHAPE_CAPSULE;
+                ret =  BSPhysicsShapeType.SHAPE_CAPSULE;
                 break;
             case BroadphaseNativeTypes.CONE_SHAPE_PROXYTYPE:
-                return BSPhysicsShapeType.SHAPE_CONE;
+                ret =  BSPhysicsShapeType.SHAPE_CONE;
                 break;
             case BroadphaseNativeTypes.CONVEX_SHAPE_PROXYTYPE:
-                return BSPhysicsShapeType.SHAPE_UNKNOWN;
+                ret =  BSPhysicsShapeType.SHAPE_UNKNOWN;
                 break;
             case BroadphaseNativeTypes.CYLINDER_SHAPE_PROXYTYPE:
-                return BSPhysicsShapeType.SHAPE_CYLINDER;
+                ret =  BSPhysicsShapeType.SHAPE_CYLINDER;
                 break;
             case BroadphaseNativeTypes.UNIFORM_SCALING_SHAPE_PROXYTYPE:
-                return BSPhysicsShapeType.SHAPE_UNKNOWN;
+                ret =  BSPhysicsShapeType.SHAPE_UNKNOWN;
                 break;
             case BroadphaseNativeTypes.MINKOWSKI_SUM_SHAPE_PROXYTYPE:
-                return BSPhysicsShapeType.SHAPE_UNKNOWN;
+                ret =  BSPhysicsShapeType.SHAPE_UNKNOWN;
                 break;
             case BroadphaseNativeTypes.MINKOWSKI_DIFFERENCE_SHAPE_PROXYTYPE:
-                return BSPhysicsShapeType.SHAPE_UNKNOWN;
+                ret =  BSPhysicsShapeType.SHAPE_UNKNOWN;
                 break;
             case BroadphaseNativeTypes.BOX_2D_SHAPE_PROXYTYPE:
-                return BSPhysicsShapeType.SHAPE_UNKNOWN;
+                ret =  BSPhysicsShapeType.SHAPE_UNKNOWN;
                 break;
             case BroadphaseNativeTypes.CONVEX_2D_SHAPE_PROXYTYPE:
-                return BSPhysicsShapeType.SHAPE_UNKNOWN;
+                ret =  BSPhysicsShapeType.SHAPE_UNKNOWN;
                 break;
             case BroadphaseNativeTypes.CUSTOM_CONVEX_SHAPE_TYPE:
-                return BSPhysicsShapeType.SHAPE_UNKNOWN;
+                ret =  BSPhysicsShapeType.SHAPE_UNKNOWN;
                 break;
             //concave shape
             case BroadphaseNativeTypes.CONCAVE_SHAPES_START_HERE:
-                return BSPhysicsShapeType.SHAPE_UNKNOWN;
+                ret =  BSPhysicsShapeType.SHAPE_UNKNOWN;
                 break;
             //keep all the convex shapetype below here, for the check IsConvexShape in broadphase proxy!
             case BroadphaseNativeTypes.TRIANGLE_MESH_SHAPE_PROXYTYPE:
-                return BSPhysicsShapeType.SHAPE_MESH;
+                ret =  BSPhysicsShapeType.SHAPE_MESH;
                 break;
             case BroadphaseNativeTypes.SCALED_TRIANGLE_MESH_SHAPE_PROXYTYPE:
-                return BSPhysicsShapeType.SHAPE_MESH;
+                ret =  BSPhysicsShapeType.SHAPE_MESH;
                 break;
             ///used for demo integration FAST/Swift collision library and Bullet
             case BroadphaseNativeTypes.FAST_CONCAVE_MESH_PROXYTYPE:
-                return BSPhysicsShapeType.SHAPE_MESH;
+                ret =  BSPhysicsShapeType.SHAPE_MESH;
                 break;
             //terrain
             case BroadphaseNativeTypes.TERRAIN_SHAPE_PROXYTYPE:
-                return BSPhysicsShapeType.SHAPE_HEIGHTMAP;
+                ret =  BSPhysicsShapeType.SHAPE_HEIGHTMAP;
                 break;
             ///Used for GIMPACT Trimesh integration
             case BroadphaseNativeTypes.GIMPACT_SHAPE_PROXYTYPE:
-                return BSPhysicsShapeType.SHAPE_MESH;
+                ret =  BSPhysicsShapeType.SHAPE_MESH;
                 break;
             ///Multimaterial mesh
             case BroadphaseNativeTypes.MULTIMATERIAL_TRIANGLE_MESH_PROXYTYPE:
-                return BSPhysicsShapeType.SHAPE_MESH;
+                ret =  BSPhysicsShapeType.SHAPE_MESH;
                 break;
 
             case BroadphaseNativeTypes.EMPTY_SHAPE_PROXYTYPE:
-                return BSPhysicsShapeType.SHAPE_UNKNOWN;
+                ret =  BSPhysicsShapeType.SHAPE_UNKNOWN;
                 break;
             case BroadphaseNativeTypes.STATIC_PLANE_PROXYTYPE:
-                return BSPhysicsShapeType.SHAPE_GROUNDPLANE;
+                ret =  BSPhysicsShapeType.SHAPE_GROUNDPLANE;
                 break;
             case BroadphaseNativeTypes.CUSTOM_CONCAVE_SHAPE_TYPE:
-                return BSPhysicsShapeType.SHAPE_UNKNOWN;
+                ret =  BSPhysicsShapeType.SHAPE_UNKNOWN;
                 break;
             case BroadphaseNativeTypes.CONCAVE_SHAPES_END_HERE:
-                return BSPhysicsShapeType.SHAPE_UNKNOWN;
+                ret =  BSPhysicsShapeType.SHAPE_UNKNOWN;
                 break;
 
             case BroadphaseNativeTypes.COMPOUND_SHAPE_PROXYTYPE:
-                return BSPhysicsShapeType.SHAPE_COMPOUND;
+                ret =  BSPhysicsShapeType.SHAPE_COMPOUND;
                 break;
 
             case BroadphaseNativeTypes.SOFTBODY_SHAPE_PROXYTYPE:
-                return BSPhysicsShapeType.SHAPE_MESH;
+                ret =  BSPhysicsShapeType.SHAPE_MESH;
                 break;
             case BroadphaseNativeTypes.HFFLUID_SHAPE_PROXYTYPE:
-                return BSPhysicsShapeType.SHAPE_UNKNOWN;
+                ret =  BSPhysicsShapeType.SHAPE_UNKNOWN;
                 break;
             case BroadphaseNativeTypes.HFFLUID_BUOYANT_CONVEX_SHAPE_PROXYTYPE:
-                return BSPhysicsShapeType.SHAPE_UNKNOWN;
+                ret =  BSPhysicsShapeType.SHAPE_UNKNOWN;
                 break;
             case BroadphaseNativeTypes.INVALID_SHAPE_PROXYTYPE:
-                return BSPhysicsShapeType.SHAPE_UNKNOWN;
+                ret =  BSPhysicsShapeType.SHAPE_UNKNOWN;
                 break;
         }
-        return BSPhysicsShapeType.SHAPE_UNKNOWN;
+        return ret;
     }
 
     public override void RemoveChildShapeFromCompoundShape(BulletShape cShape, BulletShape removeShape) { /* TODO */ }
@@ -1579,7 +1598,39 @@ private sealed class BulletConstraintXNA : BulletConstraint
         return new BulletShapeXNA(m_planeshape, BSPhysicsShapeType.SHAPE_GROUNDPLANE);
     }
 
-    public override BulletConstraint CreateHingeConstraint(BulletWorld pWorld, BulletBody pBody1, BulletBody pBody2, Vector3 ppivotInA, Vector3 ppivotInB, Vector3 paxisInA, Vector3 paxisInB, bool puseLinearReferenceFrameA, bool pdisableCollisionsBetweenLinkedBodies)
+    public override BulletConstraint Create6DofSpringConstraint(BulletWorld pWorld, BulletBody pBody1, BulletBody pBody2, 
+                                    Vector3 pframe1, Quaternion pframe1rot, Vector3 pframe2, Quaternion pframe2rot, 
+                                    bool puseLinearReferenceFrameA, bool pdisableCollisionsBetweenLinkedBodies)
+
+    {
+        Generic6DofSpringConstraint constrain = null;
+        DiscreteDynamicsWorld world = (pWorld as BulletWorldXNA).world;
+        RigidBody body1 = (pBody1 as BulletBodyXNA).rigidBody;
+        RigidBody body2 = (pBody2 as BulletBodyXNA).rigidBody;
+        if (body1 != null && body2 != null)
+        {
+            IndexedVector3 frame1v = new IndexedVector3(pframe1.X, pframe1.Y, pframe1.Z);
+            IndexedQuaternion frame1rot = new IndexedQuaternion(pframe1rot.X, pframe1rot.Y, pframe1rot.Z, pframe1rot.W);
+            IndexedMatrix frame1 = IndexedMatrix.CreateFromQuaternion(frame1rot);
+            frame1._origin = frame1v;
+
+            IndexedVector3 frame2v = new IndexedVector3(pframe2.X, pframe2.Y, pframe2.Z);
+            IndexedQuaternion frame2rot = new IndexedQuaternion(pframe2rot.X, pframe2rot.Y, pframe2rot.Z, pframe2rot.W);
+            IndexedMatrix frame2 = IndexedMatrix.CreateFromQuaternion(frame2rot);
+            frame2._origin = frame1v;
+
+            constrain = new Generic6DofSpringConstraint(body1, body2, ref frame1, ref frame2, puseLinearReferenceFrameA);
+            world.AddConstraint(constrain, pdisableCollisionsBetweenLinkedBodies);
+
+            constrain.CalculateTransforms();
+        }
+
+        return new BulletConstraintXNA(constrain);
+    }
+
+    public override BulletConstraint CreateHingeConstraint(BulletWorld pWorld, BulletBody pBody1, BulletBody pBody2,
+                        Vector3 ppivotInA, Vector3 ppivotInB, Vector3 paxisInA, Vector3 paxisInB,
+                        bool puseLinearReferenceFrameA, bool pdisableCollisionsBetweenLinkedBodies)
     {
         HingeConstraint constrain = null;
         DiscreteDynamicsWorld world = (pWorld as BulletWorldXNA).world;
@@ -1591,6 +1642,100 @@ private sealed class BulletConstraintXNA : BulletConstraint
             IndexedVector3 pivotInB = new IndexedVector3(ppivotInB.X, ppivotInB.Y, ppivotInB.Z);
             IndexedVector3 axisInA = new IndexedVector3(paxisInA.X, paxisInA.Y, paxisInA.Z);
             IndexedVector3 axisInB = new IndexedVector3(paxisInB.X, paxisInB.Y, paxisInB.Z);
+            constrain = new HingeConstraint(rb1, rb2, ref pivotInA, ref pivotInB, ref axisInA, ref axisInB, puseLinearReferenceFrameA);
+            world.AddConstraint(constrain, pdisableCollisionsBetweenLinkedBodies);
+        }
+        return new BulletConstraintXNA(constrain);
+    }
+
+    public override BulletConstraint CreateSliderConstraint(BulletWorld pWorld, BulletBody pBody1, BulletBody pBody2,
+                        Vector3 pframe1, Quaternion pframe1rot,
+                        Vector3 pframe2, Quaternion pframe2rot,
+                        bool puseLinearReferenceFrameA, bool pdisableCollisionsBetweenLinkedBodies)
+    {
+        SliderConstraint constrain = null;
+        DiscreteDynamicsWorld world = (pWorld as BulletWorldXNA).world;
+        RigidBody rb1 = (pBody1 as BulletBodyXNA).rigidBody;
+        RigidBody rb2 = (pBody2 as BulletBodyXNA).rigidBody;
+        if (rb1 != null && rb2 != null)
+        {
+            IndexedVector3 frame1v = new IndexedVector3(pframe1.X, pframe1.Y, pframe1.Z);
+            IndexedQuaternion frame1rot = new IndexedQuaternion(pframe1rot.X, pframe1rot.Y, pframe1rot.Z, pframe1rot.W);
+            IndexedMatrix frame1 = IndexedMatrix.CreateFromQuaternion(frame1rot);
+            frame1._origin = frame1v;
+
+            IndexedVector3 frame2v = new IndexedVector3(pframe2.X, pframe2.Y, pframe2.Z);
+            IndexedQuaternion frame2rot = new IndexedQuaternion(pframe2rot.X, pframe2rot.Y, pframe2rot.Z, pframe2rot.W);
+            IndexedMatrix frame2 = IndexedMatrix.CreateFromQuaternion(frame2rot);
+            frame2._origin = frame1v;
+
+            constrain = new SliderConstraint(rb1, rb2, ref frame1, ref frame2, puseLinearReferenceFrameA);
+            world.AddConstraint(constrain, pdisableCollisionsBetweenLinkedBodies);
+        }
+        return new BulletConstraintXNA(constrain);
+    }
+
+    public override BulletConstraint CreateConeTwistConstraint(BulletWorld pWorld, BulletBody pBody1, BulletBody pBody2,
+                        Vector3 pframe1, Quaternion pframe1rot,
+                        Vector3 pframe2, Quaternion pframe2rot,
+                        bool pdisableCollisionsBetweenLinkedBodies)
+    {
+        ConeTwistConstraint constrain = null;
+        DiscreteDynamicsWorld world = (pWorld as BulletWorldXNA).world;
+        RigidBody rb1 = (pBody1 as BulletBodyXNA).rigidBody;
+        RigidBody rb2 = (pBody2 as BulletBodyXNA).rigidBody;
+        if (rb1 != null && rb2 != null)
+        {
+            IndexedVector3 frame1v = new IndexedVector3(pframe1.X, pframe1.Y, pframe1.Z);
+            IndexedQuaternion frame1rot = new IndexedQuaternion(pframe1rot.X, pframe1rot.Y, pframe1rot.Z, pframe1rot.W);
+            IndexedMatrix frame1 = IndexedMatrix.CreateFromQuaternion(frame1rot);
+            frame1._origin = frame1v;
+
+            IndexedVector3 frame2v = new IndexedVector3(pframe2.X, pframe2.Y, pframe2.Z);
+            IndexedQuaternion frame2rot = new IndexedQuaternion(pframe2rot.X, pframe2rot.Y, pframe2rot.Z, pframe2rot.W);
+            IndexedMatrix frame2 = IndexedMatrix.CreateFromQuaternion(frame2rot);
+            frame2._origin = frame1v;
+
+            constrain = new ConeTwistConstraint(rb1, rb2, ref frame1, ref frame2);
+            world.AddConstraint(constrain, pdisableCollisionsBetweenLinkedBodies);
+        }
+        return new BulletConstraintXNA(constrain);
+    }
+
+    public override BulletConstraint CreateGearConstraint(BulletWorld pWorld, BulletBody pBody1, BulletBody pBody2,
+                        Vector3 paxisInA, Vector3 paxisInB,
+                        float pratio, bool pdisableCollisionsBetweenLinkedBodies)
+    {
+        Generic6DofConstraint constrain = null;
+        /*   BulletXNA does not have a gear constraint
+        GearConstraint constrain = null;
+        DiscreteDynamicsWorld world = (pWorld as BulletWorldXNA).world;
+        RigidBody rb1 = (pBody1 as BulletBodyXNA).rigidBody;
+        RigidBody rb2 = (pBody2 as BulletBodyXNA).rigidBody;
+        if (rb1 != null && rb2 != null)
+        {
+            IndexedVector3 axis1 = new IndexedVector3(paxisInA.X, paxisInA.Y, paxisInA.Z);
+            IndexedVector3 axis2 = new IndexedVector3(paxisInB.X, paxisInB.Y, paxisInB.Z);
+            constrain = new GearConstraint(rb1, rb2, ref axis1, ref axis2, pratio);
+            world.AddConstraint(constrain, pdisableCollisionsBetweenLinkedBodies);
+        }
+        */
+        return new BulletConstraintXNA(constrain);
+    }
+
+    public override BulletConstraint CreatePoint2PointConstraint(BulletWorld pWorld, BulletBody pBody1, BulletBody pBody2,
+                        Vector3 ppivotInA, Vector3 ppivotInB,
+                        bool pdisableCollisionsBetweenLinkedBodies)
+    {
+        Point2PointConstraint constrain = null;
+        DiscreteDynamicsWorld world = (pWorld as BulletWorldXNA).world;
+        RigidBody rb1 = (pBody1 as BulletBodyXNA).rigidBody;
+        RigidBody rb2 = (pBody2 as BulletBodyXNA).rigidBody;
+        if (rb1 != null && rb2 != null)
+        {
+            IndexedVector3 pivotInA = new IndexedVector3(ppivotInA.X, ppivotInA.Y, ppivotInA.Z);
+            IndexedVector3 pivotInB = new IndexedVector3(ppivotInB.X, ppivotInB.Y, ppivotInB.Z);
+            constrain = new Point2PointConstraint(rb1, rb2, ref pivotInA, ref pivotInB);
             world.AddConstraint(constrain, pdisableCollisionsBetweenLinkedBodies);
         }
         return new BulletConstraintXNA(constrain);

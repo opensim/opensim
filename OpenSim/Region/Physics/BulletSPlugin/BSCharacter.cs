@@ -443,6 +443,7 @@ public sealed class BSCharacter : BSPhysObject
             PhysicsScene.TaintedObject("BSCharacter.setPosition", delegate()
             {
                 DetailLog("{0},BSCharacter.SetPosition,taint,pos={1},orient={2}", LocalID, _position, _orientation);
+                PositionSanityCheck();
                 ForcePosition = _position;
             });
         }
@@ -456,7 +457,6 @@ public sealed class BSCharacter : BSPhysObject
             _position = value;
             if (PhysBody.HasPhysicalBody)
             {
-                PositionSanityCheck();
                 PhysicsScene.PE.SetTranslation(PhysBody, _position, _orientation);
             }
         }
@@ -513,8 +513,7 @@ public sealed class BSCharacter : BSPhysObject
             PhysicsScene.TaintedObject(inTaintTime, "BSCharacter.PositionSanityCheck", delegate()
             {
                 DetailLog("{0},BSCharacter.PositionSanityCheck,taint,pos={1},orient={2}", LocalID, _position, _orientation);
-                if (PhysBody.HasPhysicalBody)
-                    PhysicsScene.PE.SetTranslation(PhysBody, _position, _orientation);
+                ForcePosition = _position;
             });
             ret = true;
         }

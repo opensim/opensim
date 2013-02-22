@@ -875,7 +875,7 @@ namespace OpenSim.Framework
             return FileName;
         }
 
-        // Nini (config) related Methods
+        #region Nini (config) related Methods
         public static IConfigSource ConvertDataRowToXMLConfig(DataRow row, string fileName)
         {
             if (!File.Exists(fileName))
@@ -897,6 +897,26 @@ namespace OpenSim.Framework
                 config.Configs[(string) row[0]].Set(row.Table.Columns[i].ColumnName, row[i]);
             }
         }
+
+        public static string GetConfigVarWithDefaultSection(IConfigSource config, string varname, string section)
+        {
+            // First, check the Startup section, the default section
+            IConfig cnf = config.Configs["Startup"];
+            if (cnf == null)
+                return string.Empty;
+            string val = cnf.GetString(varname, string.Empty);
+
+            // Then check for an overwrite of the default in the given section
+            if (!string.IsNullOrEmpty(section))
+            {
+                cnf = config.Configs[section];
+                if (cnf != null)
+                    val = cnf.GetString(varname, val);
+            }
+
+            return val;
+        }
+        #endregion
 
         public static float Clip(float x, float min, float max)
         {

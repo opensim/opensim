@@ -306,5 +306,65 @@ namespace OpenSim.Data.MySQL
                 return ExecuteNonQuery(cmd) > 0;
             }
         }
+
+        public long GetCount(string field, string key)
+        {
+            return GetCount(new string[] { field }, new string[] { key });
+        }
+
+        public long GetCount(string[] fields, string[] keys)
+        {
+            if (fields.Length != keys.Length)
+                return 0;
+
+            List<string> terms = new List<string>();
+
+            using (MySqlCommand cmd = new MySqlCommand())
+            {
+                for (int i = 0; i < fields.Length; i++)
+                {
+                    cmd.Parameters.AddWithValue(fields[i], keys[i]);
+                    terms.Add("`" + fields[i] + "` = ?" + fields[i]);
+                }
+
+                string where = String.Join(" and ", terms.ToArray());
+
+                string query = String.Format("select count(*) from {0} where {1}",
+                                             m_Realm, where);
+
+                cmd.CommandText = query;
+
+                Object result = DoQueryScalar(cmd);
+
+                return Convert.ToInt64(result);
+            }
+        }
+
+        public long GetCount(string where)
+        {
+            using (MySqlCommand cmd = new MySqlCommand())
+            {
+                string query = String.Format("select count(*) from {0} where {1}",
+                                             m_Realm, where);
+
+                cmd.CommandText = query;
+
+                object result = DoQueryScalar(cmd);
+
+                return Convert.ToInt64(result);
+            }
+        }
+
+        public object DoQueryScalar(MySqlCommand cmd)
+        {
+            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            {
+                dbcon.Open();
+                cmd.Connection = dbcon;
+
+                return cmd.ExecuteScalar();
+            }
+        }
+
     }
 }

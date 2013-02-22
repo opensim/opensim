@@ -568,7 +568,7 @@ public sealed class BSShapeCollection : IDisposable
         {
 
             newShape = PhysicsScene.PE.BuildCapsuleShape(PhysicsScene.World, 1f, 1f, prim.Scale);
-            if (DDetail) DetailLog("{0},BSShapeCollection.BuiletPhysicalNativeShape,capsule,scale={1}", prim.LocalID, prim.Scale);
+            if (DDetail) DetailLog("{0},BSShapeCollection.BuildPhysicalNativeShape,capsule,scale={1}", prim.LocalID, prim.Scale);
         }
         else
         {

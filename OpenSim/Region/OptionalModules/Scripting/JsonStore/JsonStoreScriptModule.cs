@@ -168,32 +168,6 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
                 {
                     m_comms.RegisterScriptInvocations(this);
                     m_comms.RegisterConstants(this);
-        
-                    // m_comms.RegisterScriptInvocation(this, "JsonCreateStore");
-                    // m_comms.RegisterScriptInvocation(this, "JsonAttachObjectStore");
-                    // m_comms.RegisterScriptInvocation(this, "JsonDestroyStore");
-                    // m_comms.RegisterScriptInvocation(this, "JsonTestStore");
-
-                    // m_comms.RegisterScriptInvocation(this, "JsonReadNotecard");
-                    // m_comms.RegisterScriptInvocation(this, "JsonWriteNotecard");
-
-                    // m_comms.RegisterScriptInvocation(this, "JsonTestPathList");
-                    // m_comms.RegisterScriptInvocation(this, "JsonTestPath");
-                    // m_comms.RegisterScriptInvocation(this, "JsonTestPathJson");
-
-                    // m_comms.RegisterScriptInvocation(this, "JsonGetValue");
-                    // m_comms.RegisterScriptInvocation(this, "JsonGetValueJson");
-
-                    // m_comms.RegisterScriptInvocation(this, "JsonTakeValue");
-                    // m_comms.RegisterScriptInvocation(this, "JsonTakeValueJson");
-
-                    // m_comms.RegisterScriptInvocation(this, "JsonReadValue");
-                    // m_comms.RegisterScriptInvocation(this, "JsonReadValueJson");
-
-                    // m_comms.RegisterScriptInvocation(this, "JsonSetValue");
-                    // m_comms.RegisterScriptInvocation(this, "JsonSetValueJson");
-
-                    // m_comms.RegisterScriptInvocation(this, "JsonRemoveValue");
                 }
                 catch (Exception e)
                 {
@@ -339,18 +313,6 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         public int JsonGetPathType(UUID hostID, UUID scriptID, UUID storeID, string path)
         {
             return (int)m_store.GetPathType(storeID,path);
-        }
-
-        [ScriptInvocation]
-        public int JsonTestPath(UUID hostID, UUID scriptID, UUID storeID, string path)
-        {
-            return m_store.TestPath(storeID,path,false) ? 1 : 0;
-        }
-
-        [ScriptInvocation]
-        public int JsonTestPathJson(UUID hostID, UUID scriptID, UUID storeID, string path)
-        {
-            return m_store.TestPath(storeID,path,true) ? 1 : 0;
         }
 
         // -----------------------------------------------------------------
