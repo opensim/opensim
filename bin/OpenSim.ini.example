@@ -964,6 +964,7 @@
 	;; -- for V2 Groups, standalone, non-HG use "Groups Local Service Connector"
 	;; -- for V2 Groups, grided sim, non-HG use "Groups Remote Service Connector"
 	;; -- for V2 Groups, HG, both standalone and grided sim, use "Groups HG Service Connector"
+	;; Note that the quotes "" around the words are important!
     ; ServicesConnectorModule = XmlRpcGroupsServicesConnector
 
     ;# {LocalService} {ServicesConnectorModule:Groups HG Service Connector} {Is the group service in this process or elsewhere?} {local remote} local
