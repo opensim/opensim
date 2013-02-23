@@ -1132,10 +1132,16 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             bool isFlying, string version)
         {
             if (!CrossAgentToNewRegionPrep(agent, neighbourRegion))
+            {
+                m_entityTransferStateMachine.ResetFromTransit(agent.UUID);
                 return agent;
+            }
 
             if (!CrossAgentIntoNewRegionMain(agent, pos, neighbourRegion, isFlying))
+            {
+                m_entityTransferStateMachine.ResetFromTransit(agent.UUID);
                 return agent;
+            }
 
             CrossAgentToNewRegionPost(agent, pos, neighbourRegion, isFlying, version);
             return agent;
