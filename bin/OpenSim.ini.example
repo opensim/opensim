@@ -976,6 +976,7 @@
     ;; e.g. http://yourxmlrpcserver.com/xmlrpc.php for Flotsam XmlRpc
     ;; or http://mygridserver.com:82/Grid/ for SimianGrid
 	;; or http:://mygridserver.com:8003 for robust, V2
+	;; Leave it commented for standalones, V2
     ; GroupsServerURI = ""
 
     ;# {HomeURI} {ServicesConnectorModule:Groups HG Service Connector} {What's the home address of this world?} {} 
