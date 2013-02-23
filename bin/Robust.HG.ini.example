@@ -80,7 +80,7 @@ InstantMessageServerConnector = "8002/OpenSim.Server.Handlers.dll:InstantMessage
 HGInventoryServiceConnector = "HGInventoryService@8002/OpenSim.Server.Handlers.dll:XInventoryInConnector"
 HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:AssetServiceConnector"
 ;; Uncomment this if you want Groups V2, HG to work
-; HGGroupsServiceConnector = "8002/Diva.Groups.dll:HGGroupsServiceRobustConnector"
+; HGGroupsServiceConnector = "8002/OpenSim.Addons.Groups.dll:HGGroupsServiceRobustConnector"
 
 ;; Additions for other add-on modules. For example:
 ;; WifiServerConnector = "8002/Diva.Wifi.dll:WifiServerConnector"

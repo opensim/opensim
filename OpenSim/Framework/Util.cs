@@ -916,6 +916,44 @@ namespace OpenSim.Framework
 
             return val;
         }
+
+        /// <summary>
+        /// Gets the value of a configuration variable by looking into
+        /// multiple sections in order. The latter sections overwrite 
+        /// any values previously found.
+        /// </summary>
+        /// <typeparam name="T">Type of the variable</typeparam>
+        /// <param name="config">The configuration object</param>
+        /// <param name="varname">The configuration variable</param>
+        /// <param name="sections">Ordered sequence of sections to look at</param>
+        /// <returns></returns>
+        public static T GetConfigVarFromSections<T>(IConfigSource config, string varname, string[] sections)
+        {
+            object val = default(T);
+            foreach (string section in sections)
+            {
+                IConfig cnf = config.Configs[section];
+                if (cnf == null)
+                    continue;
+
+                if (typeof(T) == typeof(String))
+                {
+                    if (val == null) // no null strings, please
+                        val = string.Empty;
+                    val = cnf.GetString(varname, (string)val);
+                }
+                else if (typeof(T) == typeof(Boolean))
+                    val = cnf.GetBoolean(varname, (bool)val);
+                else if (typeof(T) == typeof(Int32))
+                    val = cnf.GetInt(varname, (int)val);
+                else if (typeof(T) == typeof(float))
+                    val = cnf.GetFloat(varname, (int)val);
+                else
+                    m_log.WarnFormat("[UTIL]: Unhandled type {0}", typeof(T));
+            }
+            return (T)val;
+        }
+
         #endregion
 
         public static float Clip(float x, float min, float max)

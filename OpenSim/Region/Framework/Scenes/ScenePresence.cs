@@ -703,6 +703,12 @@ namespace OpenSim.Region.Framework.Scenes
 
         private bool m_inTransit;
 
+        /// <summary>
+        /// This signals whether the presence is in transit between neighbouring regions.
+        /// </summary>
+        /// <remarks> 
+        /// It is not set when the presence is teleporting or logging in/out directly to a region.
+        /// </remarks>
         public bool IsInTransit
         {
             get { return m_inTransit; }

@@ -954,8 +954,13 @@
     ; StorageProvider = OpenSim.Data.MySQL.dll
 
     ;# {ServicesConnectorModule} {Module:GroupsModule Module:Groups Module V2} {Service connector to use for groups} {XmlRpcGroupsServicesConnector SimianGroupsServicesConnector "Groups Local Service Connector" "Groups Remote Service Connector" "Groups HG Service Connector"} XmlRpcGroupsServicesConnector
-    ;; Service connectors to the Groups Service as used in the GroupsModule.  Select one depending on
-    ;; whether you're using a Flotsam XmlRpc backend or a SimianGrid backend or several flavours of V2, Hypergrided or not, standalone or grided.
+    ;; Service connectors to the Groups Service as used in the GroupsModule.  Select one as follows:
+	;; -- for Flotsam Groups use XmlRpcGroupsServicesConnector
+	;; -- for Simian Groups use SimianGroupsServicesConnector
+	;; -- for V2 Groups, standalone, non-HG use "Groups Local Service Connector"
+	;; -- for V2 Groups, grided sim, non-HG use "Groups Remote Service Connector"
+	;; -- for V2 Groups, HG, both standalone and grided sim, use "Groups HG Service Connector"
+	;; Note that the quotes "" around the words are important!
     ; ServicesConnectorModule = XmlRpcGroupsServicesConnector
 
     ;# {LocalService} {ServicesConnectorModule:Groups HG Service Connector} {Is the group service in this process or elsewhere?} {local remote} local
@@ -967,6 +972,7 @@
     ;; e.g. http://yourxmlrpcserver.com/xmlrpc.php for Flotsam XmlRpc
     ;; or http://mygridserver.com:82/Grid/ for SimianGrid
 	;; or http:://mygridserver.com:8003 for robust, V2
+	;; Leave it commented for standalones, V2
     ; GroupsServerURI = ""
 
     ;# {HomeURI} {ServicesConnectorModule:Groups HG Service Connector} {What's the home address of this world?} {} 
