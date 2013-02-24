@@ -211,7 +211,7 @@ namespace OpenSim.Framework.Monitoring
         public virtual string ToConsoleString()
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("{0}.{1}.{2} : {3}{4}", Category, Container, ShortName, Value, UnitName);
+            sb.AppendFormat("{0}.{1}.{2} : {3} {4}", Category, Container, ShortName, Value, UnitName);
 
             AppendMeasuresOfInterest(sb);
 
