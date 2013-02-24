@@ -1138,7 +1138,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[VivoxVoice] Error in admin call : {0}", e.Message);
+                m_log.ErrorFormat("[VivoxVoice] Error in admin call : {0}, url={1}", e.Message, requrl);
             }
 
             // If we're debugging server responses, dump the whole
