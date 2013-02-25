@@ -393,7 +393,7 @@ namespace OpenSim.Groups
             }
         }
 
-        public bool AddGroupRole(UUID roleID, string description, string name, ulong powers, string title, BooleanDelegate d)
+        public bool AddGroupRole(UUID groupID, UUID roleID, string description, string name, ulong powers, string title, BooleanDelegate d)
         {
             if (d())
             {
@@ -406,7 +406,14 @@ namespace OpenSim.Groups
                 role.Title = title;
 
                 lock (m_Cache)
+                {
                     m_Cache.AddOrUpdate("role-" + roleID.ToString(), role, GROUPS_CACHE_TIMEOUT);
+
+                    // also remove this list
+                    if (m_Cache.Contains("roles-" + groupID.ToString()))
+                        m_Cache.Remove("roles-" + groupID.ToString());
+
+                }
 
                 return true;
             }

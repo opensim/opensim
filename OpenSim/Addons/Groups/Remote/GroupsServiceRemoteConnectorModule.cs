@@ -273,7 +273,7 @@ namespace OpenSim.Groups
         public bool AddGroupRole(string RequestingAgentID, UUID groupID, UUID roleID, string name, string description, string title, ulong powers, out string reason)
         {
             string r = string.Empty;
-            bool success = m_CacheWrapper.AddGroupRole(roleID, description, name, powers, title, delegate
+            bool success = m_CacheWrapper.AddGroupRole(groupID, roleID, description, name, powers, title, delegate
             {
                 return m_GroupsService.AddGroupRole(RequestingAgentID, groupID, roleID, name, description, title, powers, out r);
             });
