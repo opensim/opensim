@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -125,6 +125,23 @@ public class EventHistogram
         return ret;
     }
 
+    public OSDMap GetHistogramAsOSDMap()
+    {
+        OSDMap ret = new OSDMap();
+
+        ret.Add("Buckets", OSD.FromInteger(m_numBuckets));
+        ret.Add("BucketMilliseconds", OSD.FromInteger(m_bucketMilliseconds));
+        ret.Add("TotalMilliseconds", OSD.FromInteger(m_totalHistogramMilliseconds));
+
+        // Compute a number for the first bucket in the histogram.
+        // This will allow readers to know how this histogram relates to any previously read histogram.
+        int baseBucketNum = (m_timeBase / m_bucketMilliseconds) + m_lastBucket + 1;
+        ret.Add("BaseNumber", OSD.FromInteger(baseBucketNum));
+
+        ret.Add("Values", GetHistogramAsOSDArray());
+
+        return ret;
+    }
     // Get a copy of the current histogram
     public OSDArray GetHistogramAsOSDArray()
     {
