@@ -333,6 +333,7 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
     SRV_ProfileServerURI = "http://127.0.0.1:8002"
     SRV_FriendsServerURI = "http://127.0.0.1:8002"
     SRV_IMServerURI = "http://127.0.0.1:8002"
+    SRV_GroupsServerURI = "http://127.0.0.1:8002"
 
 	;; Regular expressions for controlling which client versions are accepted/denied.
 	;; An empty string means nothing is checked.
