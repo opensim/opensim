@@ -929,7 +929,25 @@ namespace OpenSim.Framework
         /// <returns></returns>
         public static T GetConfigVarFromSections<T>(IConfigSource config, string varname, string[] sections)
         {
-            object val = default(T);
+            return GetConfigVarFromSections<T>(config, varname, sections, default(T));
+        }
+
+        /// <summary>
+        /// Gets the value of a configuration variable by looking into
+        /// multiple sections in order. The latter sections overwrite 
+        /// any values previously found.
+        /// </summary>
+        /// <remarks>
+        /// If no value is found then the given default value is returned
+        /// </remarks>
+        /// <typeparam name="T">Type of the variable</typeparam>
+        /// <param name="config">The configuration object</param>
+        /// <param name="varname">The configuration variable</param>
+        /// <param name="sections">Ordered sequence of sections to look at</param>
+        /// <param name="val">Default value</param>
+        /// <returns></returns>
+        public static T GetConfigVarFromSections<T>(IConfigSource config, string varname, string[] sections, object val)
+        {
             foreach (string section in sections)
             {
                 IConfig cnf = config.Configs[section];
@@ -937,11 +955,7 @@ namespace OpenSim.Framework
                     continue;
 
                 if (typeof(T) == typeof(String))
-                {
-                    if (val == null) // no null strings, please
-                        val = string.Empty;
                     val = cnf.GetString(varname, (string)val);
-                }
                 else if (typeof(T) == typeof(Boolean))
                     val = cnf.GetBoolean(varname, (bool)val);
                 else if (typeof(T) == typeof(Int32))
@@ -949,8 +963,9 @@ namespace OpenSim.Framework
                 else if (typeof(T) == typeof(float))
                     val = cnf.GetFloat(varname, (int)val);
                 else
-                    m_log.WarnFormat("[UTIL]: Unhandled type {0}", typeof(T));
+                    m_log.ErrorFormat("[UTIL]: Unhandled type {0}", typeof(T));
             }
+
             return (T)val;
         }
 

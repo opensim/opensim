@@ -89,11 +89,14 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         #region INonSharedRegionModule Members
         public virtual void Initialise (IConfigSource config)
         {
-            IConfig startupConfig = config.Configs["Startup"];
-            if (startupConfig.GetString("WorldMapModule", "WorldMap") == "WorldMap")
+            string[] configSections = new string[] { "Map", "Startup" };
+
+            if (Util.GetConfigVarFromSections<string>(
+                config, "WorldMapModule", configSections, "WorldMap") == "WorldMap")
                 m_Enabled = true;
 
-            blacklistTimeout = startupConfig.GetInt("BlacklistTimeout", 10*60) * 1000;
+            blacklistTimeout 
+                = Util.GetConfigVarFromSections<int>(config, "BlacklistTimeout", configSections, 10 * 60) * 1000;
         }
 
         public virtual void AddRegion (Scene scene)

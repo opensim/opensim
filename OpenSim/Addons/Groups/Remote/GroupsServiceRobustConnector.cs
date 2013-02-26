@@ -371,7 +371,7 @@ namespace OpenSim.Groups
             Dictionary<string, object> result = new Dictionary<string, object>();
 
             if (!request.ContainsKey("RequestingAgentID") || !request.ContainsKey("GroupID") || !request.ContainsKey("RoleID") ||
-                !request.ContainsKey("Name") || !request.ContainsKey("Descrption") || !request.ContainsKey("Title") ||
+                !request.ContainsKey("Name") || !request.ContainsKey("Description") || !request.ContainsKey("Title") ||
                 !request.ContainsKey("Powers") || !request.ContainsKey("OP")) 
                 NullResult(result, "Bad network data");
 

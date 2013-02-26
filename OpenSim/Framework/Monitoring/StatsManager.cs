@@ -85,6 +85,7 @@ namespace OpenSim.Framework.Monitoring
             if (cmd.Length > 2)
             {
                 var categoryName = cmd[2];
+                var containerName = cmd.Length > 3 ? cmd[3] : String.Empty;
 
                 if (categoryName == AllSubCommand)
                 {
@@ -108,7 +109,20 @@ namespace OpenSim.Framework.Monitoring
                     }
                     else
                     {
-                        OutputCategoryStatsToConsole(con, category);
+                        if (String.IsNullOrEmpty(containerName))
+                            OutputCategoryStatsToConsole(con, category);
+                        else
+                        {
+                            SortedDictionary<string, Stat> container;
+                            if (category.TryGetValue(containerName, out container))
+                            {
+                                OutputContainerStatsToConsole(con, container);
+                            }
+                            else
+                            {
+                                con.OutputFormat("No such container {0} in category {1}", containerName, categoryName);
+                            }
+                        }
                     }
                 }
             }
@@ -124,10 +138,15 @@ namespace OpenSim.Framework.Monitoring
         {
             foreach (var container in category.Values)
             {
-                foreach (Stat stat in container.Values)
-                {
-                    con.Output(stat.ToConsoleString());
-                }
+                OutputContainerStatsToConsole(con, container);
+            }
+        }
+
+        private static void OutputContainerStatsToConsole( ICommandConsole con, SortedDictionary<string, Stat> container)
+        {
+            foreach (Stat stat in container.Values)
+            {
+                con.Output(stat.ToConsoleString());
             }
         }
 

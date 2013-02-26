@@ -921,7 +921,11 @@ namespace OpenSim.Region.Framework.Scenes
                 m_seeIntoBannedRegion = startupConfig.GetBoolean("SeeIntoBannedRegion", m_seeIntoBannedRegion);
                 CombineRegions = startupConfig.GetBoolean("CombineContiguousRegions", false);
 
-                m_generateMaptiles = startupConfig.GetBoolean("GenerateMaptiles", true);
+                string[] possibleMapConfigSections = new string[] { "Map", "Startup" };
+
+                m_generateMaptiles 
+                    = Util.GetConfigVarFromSections<bool>(config, "GenerateMaptiles", possibleMapConfigSections, true);
+
                 if (m_generateMaptiles)
                 {
                     int maptileRefresh = startupConfig.GetInt("MaptileRefresh", 0);
@@ -935,7 +939,10 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 else
                 {
-                    string tile = startupConfig.GetString("MaptileStaticUUID", UUID.Zero.ToString());
+                    string tile 
+                        = Util.GetConfigVarFromSections<string>(
+                            config, "MaptileStaticUUID", possibleMapConfigSections, UUID.Zero.ToString());
+
                     UUID tileID;
 
                     if (tile != UUID.Zero.ToString() && UUID.TryParse(tile, out tileID))

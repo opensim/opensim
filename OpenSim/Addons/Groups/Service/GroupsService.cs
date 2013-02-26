@@ -785,10 +785,16 @@ namespace OpenSim.Groups
             RoleData data = m_Database.RetrieveRole(groupID, roleID);
 
             if (add && data != null) // it already exists, can't create
+            {
+                m_log.DebugFormat("[Groups]: Group {0} already exists. Can't create it again", groupID);
                 return false;
+            }
 
             if (!add && data == null) // it deosn't exist, can't update
+            {
+                m_log.DebugFormat("[Groups]: Group {0} doesn't exist. Can't update it", groupID);
                 return false;
+            }
 
             if (add)
                 data = new RoleData();

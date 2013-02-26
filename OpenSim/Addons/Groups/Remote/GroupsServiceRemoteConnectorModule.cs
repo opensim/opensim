@@ -74,11 +74,8 @@ namespace OpenSim.Groups
         {
             IConfig groupsConfig = config.Configs["Groups"];
             string url = groupsConfig.GetString("GroupsServerURI", string.Empty);
-            if (url == string.Empty)
-            {
-                m_log.WarnFormat("[Groups.RemoteConnector]: Groups server URL not provided. Groups will not work.");
-                return;
-            }
+            if (!Uri.IsWellFormedUriString(url, UriKind.Absolute))
+                throw new Exception(string.Format("[Groups.RemoteConnector]: Malformed groups server URL {0}. Fix it or disable the Groups feature.", url));
 
             m_GroupsService = new GroupsServiceRemoteConnector(url);
             m_Scenes = new List<Scene>();
@@ -273,7 +270,7 @@ namespace OpenSim.Groups
         public bool AddGroupRole(string RequestingAgentID, UUID groupID, UUID roleID, string name, string description, string title, ulong powers, out string reason)
         {
             string r = string.Empty;
-            bool success = m_CacheWrapper.AddGroupRole(roleID, description, name, powers, title, delegate
+            bool success = m_CacheWrapper.AddGroupRole(groupID, roleID, description, name, powers, title, delegate
             {
                 return m_GroupsService.AddGroupRole(RequestingAgentID, groupID, roleID, name, description, title, powers, out r);
             });

@@ -264,32 +264,6 @@
     ;; Default script engine to use. Currently, we only have XEngine
     ; DefaultScriptEngine = "XEngine"
 
-    ;# {GenerateMaptiles} {} {Generate map tiles?} {true false} true
-    ;; Map tile options. You can choose to generate normal maptiles or nominate an uploaded texture to
-    ;; be the map tile using the MaptileStaticUUID parameter in this section or for individual regions in
-    ;; the regions config file(s).  If you do not want to upload map tiles at all, then you will need 
-    ;; to disable the MapImageServiceModule entirely.
-    ; GenerateMaptiles = true
-
-    ;# {MaptileRefresh} {GenerateMaptiles} {Maptile refresh period?} {} 0
-    ;; If desired, a running region can update the map tiles periodically
-    ;; to reflect building activity. This names no sense of you don't have
-    ;; prims on maptiles. Value is in seconds.
-    ; MaptileRefresh = 0
-
-    ;# {MaptileStaticUUID} {} {Asset ID for static map texture} {} 00000000-0000-0000-0000-000000000000
-    ;; If not generating maptiles, use this static texture asset ID
-    ; MaptileStaticUUID = "00000000-0000-0000-0000-000000000000"
-
-    ;# {TextureOnMapTile} {} {Use terrain textures for map tiles?} {true false} true
-    ;; Use terrain texture for maptiles if true, use shaded green if false
-    ; TextureOnMapTile = true
-
-    ;# {DrawPrimOnMapTile} {} {Draw prim shapes on map tiles?} {true false} false
-    ;; Draw objects on maptile.  This step might take a long time if you've
-    ;; got a large number of objects, so you can turn it off here if you'd like.
-    ; DrawPrimOnMapTile = true
-
     ;# {HttpProxy} {} {Proxy URL for llHTTPRequest and dynamic texture loading} {} http://proxy.com:8080
     ;; Http proxy setting for llHTTPRequest and dynamic texture loading, if
     ;; required
@@ -357,6 +331,35 @@
 	;; For example http://myworld.com:9000 or http://myworld.com:8002
 	;; This is a default that can be overwritten in some sections.
 	; GatekeeperURI = "http://127.0.0.1:9000"
+
+
+[Map]
+    ;# {GenerateMaptiles} {} {Generate map tiles?} {true false} true
+    ;; Map tile options. You can choose to generate normal maptiles or nominate an uploaded texture to
+    ;; be the map tile using the MaptileStaticUUID parameter in this section or for individual regions in
+    ;; the regions config file(s).  If you do not want to upload map tiles at all, then you will need 
+    ;; to disable the MapImageServiceModule entirely.
+    ; GenerateMaptiles = true
+
+    ;# {MaptileRefresh} {GenerateMaptiles} {Maptile refresh period?} {} 0
+    ;; If desired, a running region can update the map tiles periodically
+    ;; to reflect building activity. This names no sense of you don't have
+    ;; prims on maptiles. Value is in seconds.
+    ; MaptileRefresh = 0
+
+    ;# {MaptileStaticUUID} {} {Asset ID for static map texture} {} 00000000-0000-0000-0000-000000000000
+    ;; If not generating maptiles, use this static texture asset ID
+    ; MaptileStaticUUID = "00000000-0000-0000-0000-000000000000"
+
+    ;# {TextureOnMapTile} {} {Use terrain textures for map tiles?} {true false} true
+    ;; Use terrain texture for maptiles if true, use shaded green if false
+    ; TextureOnMapTile = true
+
+    ;# {DrawPrimOnMapTile} {} {Draw prim shapes on map tiles?} {true false} false
+    ;; Draw objects on maptile.  This step might take a long time if you've
+    ;; got a large number of objects, so you can turn it off here if you'd like.
+    ; DrawPrimOnMapTile = true
+
 
 [Estates]
     ; If these values are commented out then the user will be asked for estate details when required (this is the normal case).
