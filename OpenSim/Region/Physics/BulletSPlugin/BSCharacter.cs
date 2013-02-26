@@ -204,7 +204,7 @@ public sealed class BSCharacter : BSPhysObject
             //   move. Thus, the velocity cannot be forced to zero. The problem is that small velocity
             //   errors can creap in and the avatar will slowly float off in some direction.
             // So, the problem is that, when an avatar is standing, we cannot tell creaping error
-            //   from real pushing.OMV.Vector3.Zero;
+            //   from real pushing.
             // The code below keeps setting the velocity to zero hoping the world will keep pushing.
 
             _velocityMotor.Step(timeStep);
@@ -254,9 +254,11 @@ public sealed class BSCharacter : BSPhysObject
                 }
 
                 // If falling, we keep the world's downward vector no matter what the other axis specify.
+                // The check for _velocity.Z < 0 makes jumping work (temporary upward force).
                 if (!Flying && !IsColliding)
                 {
-                    stepVelocity.Z = _velocity.Z;
+                    if (_velocity.Z < 0)
+                        stepVelocity.Z = _velocity.Z;
                     // DetailLog("{0},BSCharacter.MoveMotor,taint,overrideStepZWithWorldZ,stepVel={1}", LocalID, stepVelocity);
                 }
 
@@ -572,7 +574,7 @@ public sealed class BSCharacter : BSPhysObject
             m_targetVelocity = value;
             OMV.Vector3 targetVel = value;
             if (_setAlwaysRun)
-                targetVel *= BSParam.AvatarAlwaysRunFactor;
+                targetVel *= new OMV.Vector3(BSParam.AvatarAlwaysRunFactor, BSParam.AvatarAlwaysRunFactor, 0f);
 
             PhysicsScene.TaintedObject("BSCharacter.setTargetVelocity", delegate()
             {
