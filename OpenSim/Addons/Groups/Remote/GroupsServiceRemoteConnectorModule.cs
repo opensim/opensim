@@ -74,11 +74,8 @@ namespace OpenSim.Groups
         {
             IConfig groupsConfig = config.Configs["Groups"];
             string url = groupsConfig.GetString("GroupsServerURI", string.Empty);
-            if (url == string.Empty)
-            {
-                m_log.WarnFormat("[Groups.RemoteConnector]: Groups server URL not provided. Groups will not work.");
-                return;
-            }
+            if (!Uri.IsWellFormedUriString(url, UriKind.Absolute))
+                throw new Exception(string.Format("[Groups.RemoteConnector]: Malformed groups server URL {0}. Fix it or disable the Groups feature.", url));
 
             m_GroupsService = new GroupsServiceRemoteConnector(url);
             m_Scenes = new List<Scene>();
