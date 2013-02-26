@@ -40,10 +40,33 @@ namespace OpenSim.Tests.Common
 {
     public class MockScriptEngine : INonSharedRegionModule, IScriptModule, IScriptEngine
     {      
+        public IConfigSource ConfigSource { get; private set; }
+
+        public IConfig Config { get; private set; }
+
         private Scene m_scene;
+
+        /// <summary>
+        /// Expose posted events to tests.
+        /// </summary>
+        public Dictionary<UUID, List<EventParams>> PostedEvents { get; private set; }
+
+        /// <summary>
+        /// A very primitive way of hooking text cose to a posed event.
+        /// </summary>
+        /// <remarks>
+        /// May be replaced with something that uses more original code in the future.
+        /// </remarks>
+        public event Action<UUID, EventParams> PostEventHook;
 
         public void Initialise(IConfigSource source)
         {
+            ConfigSource = source;
+
+            // Can set later on if required
+            Config = new IniConfig("MockScriptEngine", ConfigSource);
+
+            PostedEvents = new Dictionary<UUID, List<EventParams>>();
         }
 
         public void Close()
@@ -85,7 +108,28 @@ namespace OpenSim.Tests.Common
 
         public bool PostScriptEvent(UUID itemID, string name, object[] args)
         {
-            return false;
+//            Console.WriteLine("Posting event {0} for {1}", name, itemID);
+
+            EventParams evParams = new EventParams(name, args, null);
+
+            List<EventParams> eventsForItem;
+
+            if (!PostedEvents.ContainsKey(itemID))
+            {
+                eventsForItem = new List<EventParams>();
+                PostedEvents.Add(itemID, eventsForItem);
+            }
+            else
+            {
+                eventsForItem = PostedEvents[itemID];
+            }
+
+            eventsForItem.Add(evParams);
+
+            if (PostEventHook != null)
+                PostEventHook(itemID, evParams);
+
+            return true;
         }
 
         public bool PostObjectEvent(UUID itemID, string name, object[] args)
@@ -195,11 +239,7 @@ namespace OpenSim.Tests.Common
 
         public Scene World { get { return m_scene; } }
 
-        public IScriptModule ScriptModule { get { throw new System.NotImplementedException(); } }
-
-        public IConfig Config { get { throw new System.NotImplementedException (); } }
-
-        public IConfigSource ConfigSource { get { throw new System.NotImplementedException (); } }
+        public IScriptModule ScriptModule { get { return this; } }
 
         public string ScriptEnginePath { get { throw new System.NotImplementedException (); }}
 
@@ -210,5 +250,10 @@ namespace OpenSim.Tests.Common
         public string[] ScriptReferencedAssemblies { get { throw new System.NotImplementedException (); } }
 
         public ParameterInfo[] ScriptBaseClassParameters { get { throw new System.NotImplementedException (); } }       
+
+        public void ClearPostedEvents()
+        {
+            PostedEvents.Clear();
+        }
     }
 }
