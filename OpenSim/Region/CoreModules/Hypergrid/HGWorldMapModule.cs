@@ -52,8 +52,8 @@ namespace OpenSim.Region.CoreModules.Hypergrid
 
         public override void Initialise(IConfigSource config)
         {
-            IConfig startupConfig = config.Configs["Startup"];
-            if (startupConfig.GetString("WorldMapModule", "WorldMap") == "HGWorldMap")
+            if (Util.GetConfigVarFromSections<string>(
+                config, "WorldMapModule", new string[] { "Map", "Startup" }, "WorldMap") == "HGWorldMap")
                 m_Enabled = true;
         }
 

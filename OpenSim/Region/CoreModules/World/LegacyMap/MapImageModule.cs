@@ -80,17 +80,14 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
             bool generateMaptiles = true;
             Bitmap mapbmp;
 
-            try
-            {
-                IConfig startupConfig = m_config.Configs["Startup"];
-                drawPrimVolume = startupConfig.GetBoolean("DrawPrimOnMapTile", drawPrimVolume);
-                textureTerrain = startupConfig.GetBoolean("TextureOnMapTile", textureTerrain);
-                generateMaptiles = startupConfig.GetBoolean("GenerateMaptiles", generateMaptiles);
-            }
-            catch
-            {
-                m_log.Warn("[MAPTILE]: Failed to load StartupConfig");
-            }
+            string[] configSections = new string[] { "Map", "Startup" };
+
+            drawPrimVolume 
+                = Util.GetConfigVarFromSections<bool>(m_config, "DrawPrimOnMapTile", configSections, drawPrimVolume);
+            textureTerrain 
+                = Util.GetConfigVarFromSections<bool>(m_config, "TextureOnMapTile", configSections, textureTerrain);
+            generateMaptiles 
+                = Util.GetConfigVarFromSections<bool>(m_config, "GenerateMaptiles", configSections, generateMaptiles);
 
             if (generateMaptiles)
             {
@@ -148,9 +145,8 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
         {
             m_config = source;
 
-            IConfig startupConfig = m_config.Configs["Startup"];
-            if (startupConfig.GetString("MapImageModule", "MapImageModule") !=
-                    "MapImageModule")
+            if (Util.GetConfigVarFromSections<string>(
+                m_config, "MapImageModule", new string[] { "Startup", "Map" }, "MapImageModule") != "MapImageModule")
                 return;
 
             m_Enabled = true;
