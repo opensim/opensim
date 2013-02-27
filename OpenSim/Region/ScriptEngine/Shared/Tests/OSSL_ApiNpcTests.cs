@@ -222,7 +222,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             // Store an avatar with a different height from default in a notecard.
             UUID userId = TestHelpers.ParseTail(0x1);
             float firstHeight = 1.9f;
-            float secondHeight = 2.1f;
+//            float secondHeight = 2.1f;
             string firstAppearanceNcName = "appearanceNc1";
             string secondAppearanceNcName = "appearanceNc2";
 
