@@ -338,6 +338,12 @@
 
 
 [Map]
+    ;# {MapImageModule} [] {The map image module to use} {MapImageModule Warp3DImageModule} MapImageModule
+    ;; The module to use in order to generate map images.
+    ;; MapImageModule is the default.  Warp3DImageModule is an alternative experimental module that can 
+    ;; generate better images.
+    ;MapImageModule = "MapImageModule"
+    
     ;# {GenerateMaptiles} {} {Generate map tiles?} {true false} true
     ;; Map tile options. You can choose to generate normal maptiles or nominate an uploaded texture to
     ;; be the map tile using the MaptileStaticUUID parameter in this section or for individual regions in
