@@ -228,8 +228,8 @@ namespace OpenSim.Framework
                 errorMessage = we.Message;
                 if (we.Status == WebExceptionStatus.ProtocolError)
                 {
-                    HttpWebResponse webResponse = (HttpWebResponse)we.Response;
-                    errorMessage = String.Format("[{0}] {1}",webResponse.StatusCode,webResponse.StatusDescription);
+                    using (HttpWebResponse webResponse = (HttpWebResponse)we.Response)
+                        errorMessage = String.Format("[{0}] {1}", webResponse.StatusCode, webResponse.StatusDescription);
                 }
             }
             catch (Exception ex)
@@ -388,8 +388,8 @@ namespace OpenSim.Framework
                 errorMessage = we.Message;
                 if (we.Status == WebExceptionStatus.ProtocolError)
                 {
-                    HttpWebResponse webResponse = (HttpWebResponse)we.Response;
-                    errorMessage = String.Format("[{0}] {1}",webResponse.StatusCode,webResponse.StatusDescription);
+                    using (HttpWebResponse webResponse = (HttpWebResponse)we.Response)
+                        errorMessage = String.Format("[{0}] {1}",webResponse.StatusCode,webResponse.StatusDescription);
                 }
             }
             catch (Exception ex)
@@ -837,15 +837,16 @@ namespace OpenSim.Framework
                         {
                             if (e.Response is HttpWebResponse)
                             {
-                                HttpWebResponse httpResponse = (HttpWebResponse)e.Response;
-    
-                                if (httpResponse.StatusCode != HttpStatusCode.NotFound)
-                                {
-                                    // We don't appear to be handling any other status codes, so log these feailures to that
-                                    // people don't spend unnecessary hours hunting phantom bugs.
-                                    m_log.DebugFormat(
-                                        "[ASYNC REQUEST]: Request {0} {1} failed with unexpected status code {2}",
-                                        verb, requestUrl, httpResponse.StatusCode);
+                                using (HttpWebResponse httpResponse = (HttpWebResponse)e.Response)
+                                {        
+                                    if (httpResponse.StatusCode != HttpStatusCode.NotFound)
+                                    {
+                                        // We don't appear to be handling any other status codes, so log these feailures to that
+                                        // people don't spend unnecessary hours hunting phantom bugs.
+                                        m_log.DebugFormat(
+                                            "[ASYNC REQUEST]: Request {0} {1} failed with unexpected status code {2}",
+                                            verb, requestUrl, httpResponse.StatusCode);
+                                    }
                                 }
                             }
                         }
@@ -995,11 +996,9 @@ namespace OpenSim.Framework
                             Stream respStream = null;
                             try
                             {
-                                respStream = resp.GetResponseStream();
-                                using (StreamReader reader = new StreamReader(respStream))
-                                {
-                                    respstring = reader.ReadToEnd();
-                                }
+                                using (respStream = resp.GetResponseStream())
+                                    using (StreamReader reader = new StreamReader(respStream))
+                                        respstring = reader.ReadToEnd();
                             }
                             catch (Exception e)
                             {
@@ -1142,10 +1141,11 @@ namespace OpenSim.Framework
                 {
                     if (resp.ContentLength != 0)
                     {
-                        Stream respStream = resp.GetResponseStream();
-                        XmlSerializer deserializer = new XmlSerializer(typeof(TResponse));
-                        deserial = (TResponse)deserializer.Deserialize(respStream);
-                        respStream.Close();
+                        using (Stream respStream = resp.GetResponseStream())
+                        {
+                            XmlSerializer deserializer = new XmlSerializer(typeof(TResponse));
+                            deserial = (TResponse)deserializer.Deserialize(respStream);
+                        }
                     }
                     else
                     {
@@ -1157,14 +1157,15 @@ namespace OpenSim.Framework
             }
             catch (WebException e)
             {
-                HttpWebResponse hwr = (HttpWebResponse)e.Response;
-
-                if (hwr != null && hwr.StatusCode == HttpStatusCode.NotFound)
-                    return deserial;
-                else
-                    m_log.ErrorFormat(
-                        "[SynchronousRestObjectRequester]: WebException for {0} {1} {2}: {3} {4}",
-                        verb, requestUrl, typeof(TResponse).ToString(), e.Message, e.StackTrace);
+                using (HttpWebResponse hwr = (HttpWebResponse)e.Response)
+                {
+                    if (hwr != null && hwr.StatusCode == HttpStatusCode.NotFound)
+                        return deserial;
+                    else
+                        m_log.ErrorFormat(
+                            "[SynchronousRestObjectRequester]: WebException for {0} {1} {2}: {3} {4}",
+                            verb, requestUrl, typeof(TResponse).ToString(), e.Message, e.StackTrace);
+                }
             }
             catch (System.InvalidOperationException)
             {

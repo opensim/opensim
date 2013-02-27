@@ -101,20 +101,11 @@ namespace OpenSim.Framework.Servers.HttpServer
             using (WebResponse resp = request.GetResponse())
             {
                 XmlSerializer deserializer = new XmlSerializer(typeof(TResponse));
-                Stream respStream = null;
-                try
-                {
-                    respStream = resp.GetResponseStream();
+
+                using (Stream respStream = resp.GetResponseStream())
                     deserial = (TResponse)deserializer.Deserialize(respStream);
-                }
-                catch { }
-                finally
-                {
-                    if (respStream != null)
-                        respStream.Close();
-                    resp.Close();
-                }
             }
+
             return deserial;
         }
     }

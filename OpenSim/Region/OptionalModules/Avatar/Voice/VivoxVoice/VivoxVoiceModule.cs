@@ -1123,18 +1123,16 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
                 // Otherwise prepare the request
 //                m_log.DebugFormat("[VivoxVoice] Sending request <{0}>", requrl);
 
-                HttpWebRequest  req = (HttpWebRequest)WebRequest.Create(requrl);
-                HttpWebResponse rsp = null;
+                HttpWebRequest req = (HttpWebRequest)WebRequest.Create(requrl);
 
                 // We are sending just parameters, no content
                 req.ContentLength = 0;
 
                 // Send request and retrieve the response
-                rsp = (HttpWebResponse)req.GetResponse();
-
-                XmlTextReader rdr = new XmlTextReader(rsp.GetResponseStream());
-                doc.Load(rdr);
-                rdr.Close();
+                using (HttpWebResponse rsp = (HttpWebResponse)req.GetResponse())
+                    using (Stream s = rsp.GetResponseStream())
+                        using (XmlTextReader rdr = new XmlTextReader(s))
+                            doc.Load(rdr);
             }
             catch (Exception e)
             {

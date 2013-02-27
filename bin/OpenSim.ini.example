@@ -335,11 +335,18 @@
 
 [Map]
     ;# {GenerateMaptiles} {} {Generate map tiles?} {true false} true
-    ;; Map tile options. You can choose to generate normal maptiles or nominate an uploaded texture to
-    ;; be the map tile using the MaptileStaticUUID parameter in this section or for individual regions in
-    ;; the regions config file(s).  If you do not want to upload map tiles at all, then you will need 
-    ;; to disable the MapImageServiceModule entirely.
+    ;; Map tile options.  
+    ;; If true, then maptiles are generated using the MapImageModule below.
+    ;; If false then the texture referenced by MaptileStaticUUID is used instead, which can also be overriden
+    ;; in individual region config file(s).  If you do not want to upload map tiles at all, then you will need 
+    ;; both to set this to false and comment out the [Modules] MapImageServiceModule setting in config-include/
     ; GenerateMaptiles = true
+
+    ;# {MapImageModule} [] {The map image module to use} {MapImageModule Warp3DImageModule} MapImageModule
+    ;; The module to use in order to generate map images.
+    ;; MapImageModule is the default.  Warp3DImageModule is an alternative experimental module that can 
+    ;; generate better images.
+    ;MapImageModule = "MapImageModule"
 
     ;# {MaptileRefresh} {GenerateMaptiles} {Maptile refresh period?} {} 0
     ;; If desired, a running region can update the map tiles periodically

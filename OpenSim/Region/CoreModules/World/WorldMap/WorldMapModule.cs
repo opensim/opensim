@@ -94,7 +94,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             if (Util.GetConfigVarFromSections<string>(
                 config, "WorldMapModule", configSections, "WorldMap") == "WorldMap")
                 m_Enabled = true;
-
+  
             blacklistTimeout 
                 = Util.GetConfigVarFromSections<int>(config, "BlacklistTimeout", configSections, 10 * 60) * 1000;
         }
