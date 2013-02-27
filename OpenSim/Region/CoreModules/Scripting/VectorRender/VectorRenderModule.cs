@@ -838,13 +838,17 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
             try
             {
                 WebRequest request = HttpWebRequest.Create(url);
-//Ckrinke: Comment out for now as 'str' is unused. Bring it back into play later when it is used.
-//Ckrinke            Stream str = null;
-                HttpWebResponse response = (HttpWebResponse)(request).GetResponse();
-                if (response.StatusCode == HttpStatusCode.OK)
+
+                using (HttpWebResponse response = (HttpWebResponse)(request).GetResponse())
                 {
-                    Bitmap image = new Bitmap(response.GetResponseStream());
-                    return image;
+                    if (response.StatusCode == HttpStatusCode.OK)
+                    {
+                        using (Stream s = response.GetResponseStream())
+                        {
+                            Bitmap image = new Bitmap(s);
+                            return image;
+                        }
+                    }
                 }
             }
             catch { }

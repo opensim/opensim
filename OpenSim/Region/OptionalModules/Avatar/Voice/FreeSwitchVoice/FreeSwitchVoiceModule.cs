@@ -551,13 +551,20 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                 reqStream.Close();
             }
 
-            HttpWebResponse fwdrsp = (HttpWebResponse)forwardreq.GetResponse();
-            Encoding encoding = Util.UTF8;
-            StreamReader fwdresponsestream = new StreamReader(fwdrsp.GetResponseStream(), encoding);
-            fwdresponsestr = fwdresponsestream.ReadToEnd();
-            fwdresponsecontenttype = fwdrsp.ContentType;
-            fwdresponsecode = (int)fwdrsp.StatusCode;
-            fwdresponsestream.Close();
+            using (HttpWebResponse fwdrsp = (HttpWebResponse)forwardreq.GetResponse())
+            {
+                Encoding encoding = Util.UTF8;
+
+                using (Stream s = fwdrsp.GetResponseStream())
+                {
+                    using (StreamReader fwdresponsestream = new StreamReader(s))
+                    {
+                        fwdresponsestr = fwdresponsestream.ReadToEnd();
+                        fwdresponsecontenttype = fwdrsp.ContentType;
+                        fwdresponsecode = (int)fwdrsp.StatusCode;
+                    }
+                }
+            }
 
             response["content_type"] = fwdresponsecontenttype;
             response["str_response_string"] = fwdresponsestr;

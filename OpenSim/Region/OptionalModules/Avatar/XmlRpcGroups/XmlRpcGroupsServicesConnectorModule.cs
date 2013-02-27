@@ -1146,28 +1146,38 @@ namespace Nwc.XmlRpc
             request.AllowWriteStreamBuffering = true;
             request.KeepAlive = !_disableKeepAlive;
 
-            Stream stream = request.GetRequestStream();
-            XmlTextWriter xml = new XmlTextWriter(stream, Encoding.ASCII);
-            _serializer.Serialize(xml, this);
-            xml.Flush();
-            xml.Close();
+            using (Stream stream = request.GetRequestStream())
+            {
+                using (XmlTextWriter xml = new XmlTextWriter(stream, Encoding.ASCII))
+                {
+                    _serializer.Serialize(xml, this);
+                    xml.Flush();
+                }            
+            }
 
-            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-            StreamReader input = new StreamReader(response.GetResponseStream());
-
-            string inputXml = input.ReadToEnd();
             XmlRpcResponse resp;
-            try
+
+            using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
             {
-                resp = (XmlRpcResponse)_deserializer.Deserialize(inputXml);
+                using (Stream s = response.GetResponseStream())
+                {
+                    using (StreamReader input = new StreamReader(s))
+                    {
+                        string inputXml = input.ReadToEnd();
+
+                        try
+                        {
+                            resp = (XmlRpcResponse)_deserializer.Deserialize(inputXml);
+                        }
+                        catch (Exception e)
+                        {
+                            RequestResponse = inputXml;
+                            throw e;
+                        }
+                    }
+                }
             }
-            catch (Exception e)
-            {
-                RequestResponse = inputXml;
-                throw e;
-            }
-            input.Close();
-            response.Close();
+
             return resp;
         }
     }

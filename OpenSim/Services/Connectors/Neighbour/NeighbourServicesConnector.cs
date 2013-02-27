@@ -168,22 +168,27 @@ namespace OpenSim.Services.Connectors
             // Let's wait for the response
             //m_log.Info("[REST COMMS]: Waiting for a reply after DoHelloNeighbourCall");
 
-            StreamReader sr = null;
             try
             {
-                WebResponse webResponse = helloNeighbourRequest.GetResponse();
-                if (webResponse == null)
+                using (WebResponse webResponse = helloNeighbourRequest.GetResponse())
                 {
-                    m_log.DebugFormat(
-                        "[REST COMMS]: Null reply on DoHelloNeighbourCall post from {0} to {1}",
-                        thisRegion.RegionName, region.RegionName);
+                    if (webResponse == null)
+                    {
+                        m_log.DebugFormat(
+                            "[REST COMMS]: Null reply on DoHelloNeighbourCall post from {0} to {1}",
+                            thisRegion.RegionName, region.RegionName);
+                    }
+
+                    using (Stream s = webResponse.GetResponseStream())
+                    {
+                        using (StreamReader sr = new StreamReader(s))
+                        {
+                            //reply = sr.ReadToEnd().Trim();
+                            sr.ReadToEnd().Trim();
+                            //m_log.InfoFormat("[REST COMMS]: DoHelloNeighbourCall reply was {0} ", reply);
+                        }
+                    }
                 }
-
-                sr = new StreamReader(webResponse.GetResponseStream());
-                //reply = sr.ReadToEnd().Trim();
-                sr.ReadToEnd().Trim();
-                //m_log.InfoFormat("[REST COMMS]: DoHelloNeighbourCall reply was {0} ", reply);
-
             }
             catch (Exception e)
             {
@@ -192,11 +197,6 @@ namespace OpenSim.Services.Connectors
                     region.RegionName, thisRegion.RegionName, e.Message, e.StackTrace);
 
                 return false;
-            }
-            finally
-            {
-                if (sr != null)
-                    sr.Close();
             }
 
             return true;
