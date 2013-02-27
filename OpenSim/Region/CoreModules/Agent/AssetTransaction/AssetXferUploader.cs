@@ -391,6 +391,11 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
 //                m_asset.FullID, item.Name, ourClient.Name);
 
             m_Scene.AssetService.Store(m_asset);
+            if (m_asset.FullID != UUID.Zero)
+            {
+                item.AssetID = m_asset.FullID;
+                m_Scene.InventoryService.UpdateItem(item);
+            }
 
             m_transactions.RemoveXferUploader(m_transactionID);
         }
