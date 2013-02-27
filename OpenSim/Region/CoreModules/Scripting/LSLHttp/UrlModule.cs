@@ -117,16 +117,21 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
         /// </summary>
         private Dictionary<string, UrlData> m_UrlMap = new Dictionary<string, UrlData>();
 
-        /// <summary>
-        /// Maximum number of external urls that can be set up by this module.
-        /// </summary>
-        private int m_TotalUrls = 100;
-
         private uint m_HttpsPort = 0;
         private IHttpServer m_HttpServer = null;
         private IHttpServer m_HttpsServer = null;
 
         public string ExternalHostNameForLSL { get; private set; }
+
+        /// <summary>
+        /// The default maximum number of urls
+        /// </summary>
+        public const int DefaultTotalUrls = 100;
+
+        /// <summary>
+        /// Maximum number of external urls that can be set up by this module.
+        /// </summary>
+        public int TotalUrls { get; set; }
 
         public Type ReplaceableInterface 
         {
@@ -158,7 +163,9 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
             IConfig llFunctionsConfig = config.Configs["LL-Functions"];
 
             if (llFunctionsConfig != null)
-                m_TotalUrls = llFunctionsConfig.GetInt("max_external_urls_per_simulator", m_TotalUrls);
+                TotalUrls = llFunctionsConfig.GetInt("max_external_urls_per_simulator", DefaultTotalUrls);
+            else
+                TotalUrls = DefaultTotalUrls;
         }
 
         public void PostInitialise()
@@ -209,7 +216,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
 
             lock (m_UrlMap)
             {
-                if (m_UrlMap.Count >= m_TotalUrls)
+                if (m_UrlMap.Count >= TotalUrls)
                 {
                     engine.PostScriptEvent(itemID, "http_request", new Object[] { urlcode.ToString(), "URL_REQUEST_DENIED", "" });
                     return urlcode;
@@ -254,7 +261,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
 
             lock (m_UrlMap)
             {
-                if (m_UrlMap.Count >= m_TotalUrls)
+                if (m_UrlMap.Count >= TotalUrls)
                 {
                     engine.PostScriptEvent(itemID, "http_request", new Object[] { urlcode.ToString(), "URL_REQUEST_DENIED", "" });
                     return urlcode;
@@ -382,7 +389,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
         public int GetFreeUrls()
         {
             lock (m_UrlMap)
-                return m_TotalUrls - m_UrlMap.Count;
+                return TotalUrls - m_UrlMap.Count;
         }
 
         public void ScriptRemoved(UUID itemID)
