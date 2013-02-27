@@ -809,7 +809,7 @@ namespace OpenSim
                     break;
 
                 case "modules":
-                    SceneManager.ForEachScene(
+                    SceneManager.ForEachSelectedScene(
                         scene => 
                         {
                             MainConsole.Instance.OutputFormat("Loaded region modules in {0} are:", scene.Name);
