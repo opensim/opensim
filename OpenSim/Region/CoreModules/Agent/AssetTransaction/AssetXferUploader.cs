@@ -260,10 +260,10 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                 {
                     CompleteTaskItemUpdate(m_updateTaskItemData);
                 }
-//                else if (m_storeLocal)
-//                {
-//                    m_Scene.AssetService.Store(m_asset);
-//                }
+                else if (m_asset.Local)
+                {
+                    m_Scene.AssetService.Store(m_asset);
+                }
             }
 
             m_log.DebugFormat(
