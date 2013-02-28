@@ -470,7 +470,7 @@ public class BSPrim : BSPhysObject
     // Note that this does not change _mass!
     public override void UpdatePhysicalMassProperties(float physMass, bool inWorld)
     {
-        if (PhysBody.HasPhysicalBody)
+        if (PhysBody.HasPhysicalBody && PhysShape.HasPhysicalShape)
         {
             if (IsStatic)
             {

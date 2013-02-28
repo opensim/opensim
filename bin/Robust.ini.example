@@ -30,7 +30,8 @@
 [ServiceList]
 AssetServiceConnector = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector"
 InventoryInConnector = "8003/OpenSim.Server.Handlers.dll:XInventoryInConnector"
-VoiceConnector = "8004/OpenSim.Server.Handlers.dll:FreeswitchServerConnector"
+;; Uncomment if you have set up Freeswitch (see [FreeswitchService] below)
+;VoiceConnector = "8004/OpenSim.Server.Handlers.dll:FreeswitchServerConnector"
 GridServiceConnector = "8003/OpenSim.Server.Handlers.dll:GridServiceConnector"
 GridInfoServerInConnector = "8002/OpenSim.Server.Handlers.dll:GridInfoServerInConnector"
 AuthenticationServiceConnector = "8003/OpenSim.Server.Handlers.dll:AuthenticationServiceConnector"

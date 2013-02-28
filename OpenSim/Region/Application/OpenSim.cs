@@ -30,6 +30,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -808,16 +809,28 @@ namespace OpenSim
                     break;
 
                 case "modules":
-                    SceneManager.ForEachScene(
-                        delegate(Scene scene) {
-                        MainConsole.Instance.Output("Loaded region modules in" + scene.RegionInfo.RegionName + " are:");
-                        foreach (IRegionModuleBase module in scene.RegionModules.Values)
+                    SceneManager.ForEachSelectedScene(
+                        scene => 
                         {
-                            Type type = module.GetType().GetInterface("ISharedRegionModule");
-                            string module_type = type != null ? "Shared" : "Non-Shared";
-                            MainConsole.Instance.OutputFormat("New Region Module ({0}): {1}", module_type, module.Name);
+                            MainConsole.Instance.OutputFormat("Loaded region modules in {0} are:", scene.Name);
+
+                            List<IRegionModuleBase> sharedModules = new List<IRegionModuleBase>();
+                            List<IRegionModuleBase> nonSharedModules = new List<IRegionModuleBase>();
+
+                            foreach (IRegionModuleBase module in scene.RegionModules.Values)
+                            {
+                                if (module.GetType().GetInterface("ISharedRegionModule") != null)
+                                    nonSharedModules.Add(module);
+                                else
+                                    sharedModules.Add(module);
+                            }
+
+                            foreach (IRegionModuleBase module in sharedModules.OrderBy(m => m.Name))
+                                MainConsole.Instance.OutputFormat("New Region Module (Shared): {0}", module.Name);
+
+                            foreach (IRegionModuleBase module in sharedModules.OrderBy(m => m.Name))
+                                MainConsole.Instance.OutputFormat("New Region Module (Non-Shared): {0}", module.Name);
                         }
-                    }
                     );
 
                     MainConsole.Instance.Output("");

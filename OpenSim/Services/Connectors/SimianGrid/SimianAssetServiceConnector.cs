@@ -339,35 +339,37 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 // Simian does not require the asset ID to be in the URL because it's in the post data.
                 // By appending it to the URL also, we allow caching proxies (squid) to invalidate asset URLs
                 HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(m_serverUrl + asset.FullID.ToString());
-                
-                HttpWebResponse response = MultipartForm.Post(request, postParameters);
-                using (Stream responseStream = response.GetResponseStream())
-                {
-                    string responseStr = null;
 
-                    try
+                using (HttpWebResponse response = MultipartForm.Post(request, postParameters))
+                {
+                    using (Stream responseStream = response.GetResponseStream())
                     {
-                        responseStr = responseStream.GetStreamString();
-                        OSD responseOSD = OSDParser.Deserialize(responseStr);
-                        if (responseOSD.Type == OSDType.Map)
+                        string responseStr = null;
+
+                        try
                         {
-                            OSDMap responseMap = (OSDMap)responseOSD;
-                            if (responseMap["Success"].AsBoolean())
-                                return asset.ID;
+                            responseStr = responseStream.GetStreamString();
+                            OSD responseOSD = OSDParser.Deserialize(responseStr);
+                            if (responseOSD.Type == OSDType.Map)
+                            {
+                                OSDMap responseMap = (OSDMap)responseOSD;
+                                if (responseMap["Success"].AsBoolean())
+                                    return asset.ID;
+                                else
+                                    errorMessage = "Upload failed: " + responseMap["Message"].AsString();
+                            }
                             else
-                                errorMessage = "Upload failed: " + responseMap["Message"].AsString();
+                            {
+                                errorMessage = "Response format was invalid:\n" + responseStr;
+                            }
                         }
-                        else
+                        catch (Exception ex)
                         {
-                            errorMessage = "Response format was invalid:\n" + responseStr;
+                            if (!String.IsNullOrEmpty(responseStr))
+                                errorMessage = "Failed to parse the response:\n" + responseStr;
+                            else
+                                errorMessage = "Failed to retrieve the response: " + ex.Message;
                         }
-                    }
-                    catch (Exception ex)
-                    {
-                        if (!String.IsNullOrEmpty(responseStr))
-                            errorMessage = "Failed to parse the response:\n" + responseStr;
-                        else
-                            errorMessage = "Failed to retrieve the response: " + ex.Message;
                     }
                 }
             }
@@ -378,6 +380,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
             m_log.WarnFormat("[SIMIAN ASSET CONNECTOR]: Failed to store asset \"{0}\" ({1}, {2}): {3}",
                 asset.Name, asset.ID, asset.Metadata.ContentType, errorMessage);
+
             return null;
         }
 

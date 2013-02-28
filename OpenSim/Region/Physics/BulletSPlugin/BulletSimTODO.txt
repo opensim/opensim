@@ -1,5 +1,12 @@
 CURRENT PRIORITIES
 =================================================
+Use the HACD convex hull routine in Bullet rather than the C# version.	
+	Speed up hullifying large meshes.
+Enable vehicle border crossings (at least as poorly as ODE)
+	Terrain skirts
+	Avatar created in previous region and not new region when crossing border
+	Vehicle recreated in new sim at small Z value (offset from root value?) (DONE)
+Lock axis
 Deleting a linkset while standing on the root will leave the physical shape of the root behind.
 	Not sure if it is because standing on it. Done with large prim linksets.
 Vehicle angular vertical attraction
@@ -7,16 +14,11 @@ vehicle angular banking
 Center-of-gravity
 Vehicle angular deflection
 	Preferred orientation angular correction fix
-Enable vehicle border crossings (at least as poorly as ODE)
-	Terrain skirts
-	Avatar created in previous region and not new region when crossing border
-	Vehicle recreated in new sim at small Z value (offset from root value?) (DONE)
 when should angular and linear motor targets be zeroed? when selected?
 	Need a vehicle.clear()? Or an 'else' in prestep if not physical.
 Teravus llMoveToTarget script debug
 	Mixing of hover, buoyancy/gravity, moveToTarget, into one force
 	Setting hover height to zero disables hover even if hover flags are on (from SL wiki)
-Nebadon vehicles turning funny in arena
 limitMotorUp calibration (more down?)
 llRotLookAt
 llLookAt
@@ -66,6 +68,8 @@ Vehicle attributes are not restored when a vehicle is rezzed on region creation
 
 GENERAL TODO LIST:
 =================================================
+Resitution of a prim works on another prim but not on terrain.
+	The dropped prim doesn't bounce properly on the terrain.
 Add a sanity check for PIDTarget location.
 Level-of-detail for mesh creation. Prims with circular interiors require lod of 32.
 	Is much saved with lower LODs? At the moment, all set to 32.
@@ -163,7 +167,6 @@ Create tests for different interface components
 	Have test objects/scripts measure themselves and turn color if correct/bad
 	Test functions in SL and calibrate correctness there
 	Create auto rezzer and tracker to run through the tests
-Use the HACD convex hull routine in Bullet rather than the C# version.
 Do we need to do convex hulls all the time? Can complex meshes be left meshes?
 	There is some problem with meshes and collisions
 	Hulls are not as detailed as meshes. Hulled vehicles insides are different shape.
@@ -335,3 +338,4 @@ Avatar standing on a moving object should start to move with the object. (DONE 2
 Angular motion around Z moves the vehicle in world Z and not vehicle Z in ODE.
 	Verify that angular motion specified around Z moves in the vehicle coordinates.
 	DONE 20130120: BulletSim properly applies force in vehicle relative coordinates.
+Nebadon vehicles turning funny in arena (DONE)

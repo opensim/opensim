@@ -52,7 +52,18 @@ namespace OpenSim.Region.Framework.Interfaces
         string GetXMLState(UUID itemID);
         bool SetXMLState(UUID itemID, string xml);
 
+        /// <summary>
+        /// Post a script event to a single script.
+        /// </summary>
+        /// <returns>true if the post suceeded, false if it did not</returns>
+        /// <param name='itemID'>The item ID of the script.</param>
+        /// <param name='name'>The name of the event.</param>
+        /// <param name='args'>
+        /// The arguments of the event.  These are in the order in which they appear.
+        /// e.g. for http_request this will be an object array of key request_id, string method, string body
+        /// </param>
         bool PostScriptEvent(UUID itemID, string name, Object[] args);
+
         bool PostObjectEvent(UUID itemID, string name, Object[] args);
 
         /// <summary>

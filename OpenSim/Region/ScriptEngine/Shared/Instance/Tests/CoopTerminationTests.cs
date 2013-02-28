@@ -443,7 +443,6 @@ default
             string itemName = "TestNoStop";
 
             SceneObjectPart partWhereRezzed = CreateScript(script, itemName, userId);
-            TaskInventoryItem rezzedItem = partWhereRezzed.Inventory.GetInventoryItem(itemName);
 
             // Wait for the script to start the event before we try stopping it.
             m_chatEvent.WaitOne(60000);
