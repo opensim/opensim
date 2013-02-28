@@ -151,7 +151,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
 
             // Create an object embedded inside the first
             TaskInventoryHelpers.AddNotecard(
-                m_scene, inWorldObj.RootPart, taskInvObjItemName, taskInvObjItemId, TestHelpers.ParseTail(0x900));
+                m_scene, inWorldObj.RootPart, taskInvObjItemName, taskInvObjItemId, TestHelpers.ParseTail(0x900), "Hello World!");
 
             bool exceptionCaught = false;
 
