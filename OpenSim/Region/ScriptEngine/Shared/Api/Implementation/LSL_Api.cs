@@ -11689,7 +11689,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public static void Cache(UUID assetID, string text)
         {
-            CacheCheck();
+            CheckCache();
 
             lock (m_Notecards)
             {
@@ -11774,13 +11774,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return line;
         }
 
-        public static void CacheCheck()
+        public static void CheckCache()
         {
-            foreach (UUID key in new List<UUID>(m_Notecards.Keys))
+            lock (m_Notecards)
             {
-                Notecard nc = m_Notecards[key];
-                if (nc.lastRef.AddSeconds(30) < DateTime.Now)
-                    m_Notecards.Remove(key);
+                foreach (UUID key in new List<UUID>(m_Notecards.Keys))
+                {
+                    Notecard nc = m_Notecards[key];
+                    if (nc.lastRef.AddSeconds(30) < DateTime.Now)
+                        m_Notecards.Remove(key);
+                }
             }
         }
     }
