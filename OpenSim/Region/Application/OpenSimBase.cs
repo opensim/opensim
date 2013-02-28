@@ -752,7 +752,7 @@ namespace OpenSim
             //    listenIP = IPAddress.Parse("0.0.0.0");
 
             uint port = (uint) regionInfo.InternalEndPoint.Port;
-            IClientNetworkServer clientNetworkServer;
+
             if (m_autoCreateClientStack)
             {
                 clientNetworkServers = m_clientStackManager.CreateServers(

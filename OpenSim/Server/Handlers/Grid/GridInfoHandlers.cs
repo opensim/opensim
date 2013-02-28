@@ -177,7 +177,8 @@ namespace OpenSim.Server.Handlers.Grid
                 map[k] = OSD.FromString(_info[k].ToString());
             }
 
-            string HomeURI = Util.GetConfigVarFromSections<string>(m_Config, "HomeURI", new string[] {"Startup"});
+            string HomeURI = Util.GetConfigVarFromSections<string>(m_Config, "HomeURI",
+                new string[] { "Startup", "Hypergrid" }, String.Empty);
 
             if (!String.IsNullOrEmpty(HomeURI))
                 map["home"] = OSD.FromString(HomeURI); 

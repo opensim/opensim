@@ -45,7 +45,7 @@ namespace OpenSim.Tests
         /// Set up a test directory.
         /// </summary>
         [SetUp]
-        public void SetUp()
+        public override void SetUp()
         {
             base.SetUp();
 

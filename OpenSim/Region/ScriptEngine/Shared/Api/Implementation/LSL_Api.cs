@@ -11728,14 +11728,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return UUID.Zero.ToString();
             }
 
+            string reqIdentifier = UUID.Random().ToString();
+
             // was: UUID tid = tid = AsyncCommands.
-            UUID tid = AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId, m_item.ItemID, assetID.ToString());
+            UUID tid = AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId, m_item.ItemID, reqIdentifier);
 
             if (NotecardCache.IsCached(assetID))
             {
-                AsyncCommands.
-                DataserverPlugin.DataserverReply(assetID.ToString(),
-                NotecardCache.GetLines(assetID).ToString());
+                AsyncCommands.DataserverPlugin.DataserverReply(reqIdentifier, NotecardCache.GetLines(assetID).ToString());
+
                 ScriptSleep(100);
                 return tid.ToString();
             }
@@ -11751,9 +11752,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 string data = Encoding.UTF8.GetString(a.Data);
                 //m_log.Debug(data);
                 NotecardCache.Cache(id, data);
-                AsyncCommands.
-                        DataserverPlugin.DataserverReply(id.ToString(),
-                        NotecardCache.GetLines(id).ToString());
+                AsyncCommands.DataserverPlugin.DataserverReply(reqIdentifier, NotecardCache.GetLines(id).ToString());
             });
 
             ScriptSleep(100);
@@ -11782,13 +11781,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return UUID.Zero.ToString();
             }
 
+            string reqIdentifier = UUID.Random().ToString();
+
             // was: UUID tid = tid = AsyncCommands.
-            UUID tid = AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId, m_item.ItemID, assetID.ToString());
+            UUID tid = AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId, m_item.ItemID, reqIdentifier);
 
             if (NotecardCache.IsCached(assetID))
             {
-                AsyncCommands.DataserverPlugin.DataserverReply(assetID.ToString(),
-                                                               NotecardCache.GetLine(assetID, line, m_notecardLineReadCharsMax));
+                AsyncCommands.DataserverPlugin.DataserverReply(
+                    reqIdentifier, NotecardCache.GetLine(assetID, line, m_notecardLineReadCharsMax));
+
                 ScriptSleep(100);
                 return tid.ToString();
             }
@@ -11804,8 +11806,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                              string data = Encoding.UTF8.GetString(a.Data);
                              //m_log.Debug(data);
                              NotecardCache.Cache(id, data);
-                             AsyncCommands.DataserverPlugin.DataserverReply(id.ToString(),
-                                                                            NotecardCache.GetLine(id, line, m_notecardLineReadCharsMax));
+                             AsyncCommands.DataserverPlugin.DataserverReply(
+                                reqIdentifier, NotecardCache.GetLine(assetID, line, m_notecardLineReadCharsMax));
                          });
 
             ScriptSleep(100);
@@ -13287,7 +13289,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public static void Cache(UUID assetID, string text)
         {
-            CacheCheck();
+            CheckCache();
 
             lock (m_Notecards)
             {
@@ -13372,13 +13374,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return line;
         }
 
-        public static void CacheCheck()
+        public static void CheckCache()
         {
-            foreach (UUID key in new List<UUID>(m_Notecards.Keys))
+            lock (m_Notecards)
             {
-                Notecard nc = m_Notecards[key];
-                if (nc.lastRef.AddSeconds(30) < DateTime.Now)
-                    m_Notecards.Remove(key);
+                foreach (UUID key in new List<UUID>(m_Notecards.Keys))
+                {
+                    Notecard nc = m_Notecards[key];
+                    if (nc.lastRef.AddSeconds(30) < DateTime.Now)
+                        m_Notecards.Remove(key);
+                }
             }
         }
     }

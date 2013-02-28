@@ -34,25 +34,12 @@
 	; The Robust.exe process must hvae R/W access to the location 
 	ConfigDirectory = "/home/opensim/etc/Configs"
 
-    ;# {HomeURI} {Hypergrid} {The Home URL of this world} {}
-	;; This is the address of the external robust server that
-	;; runs the UserAgentsService, possibly this server.
-	;; For example http://myworld.com:8002
-	;; This is a default that can be overwritten in some sections.
-	; HomeURI = "http://127.0.0.1:8002"
-
-    ;# {GatekeeperURI} {Hypergrid} {The URL of the gatekeeper of this world} {}
-	;; This is the address of the external robust server
-	;; that runs the Gatekeeper service, possibly this server.
-	;; For example http://myworld.com:8002
-	;; This is a default that can be overwritten in some sections.
-	; GatekeeperURI = "http://127.0.0.1:8002"
-
 [ServiceList]
 
 AssetServiceConnector = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector"
 InventoryInConnector = "8003/OpenSim.Server.Handlers.dll:XInventoryInConnector"
-VoiceConnector = "8004/OpenSim.Server.Handlers.dll:FreeswitchServerConnector"
+;; Uncomment if you have set up Freeswitch (see [FreeswitchService] below)
+;VoiceConnector = "8004/OpenSim.Server.Handlers.dll:FreeswitchServerConnector"
 GridServiceConnector = "8003/OpenSim.Server.Handlers.dll:GridServiceConnector"
 GridInfoServerInConnector = "8002/OpenSim.Server.Handlers.dll:GridInfoServerInConnector"
 AuthenticationServiceConnector = "8003/OpenSim.Server.Handlers.dll:AuthenticationServiceConnector"
@@ -117,6 +104,21 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
 ;ConsoleUser = Test
 ;ConsolePass = secret
 ;ConsolePort = 0
+
+[Hypergrid]
+    ;# {HomeURI} {Hypergrid} {The Home URL of this world} {}
+	;; This is the address of the external robust server that
+	;; runs the UserAgentsService, possibly this server.
+	;; For example http://myworld.com:8002
+	;; This is a default that can be overwritten in some sections.
+	; HomeURI = "http://127.0.0.1:8002"
+
+    ;# {GatekeeperURI} {Hypergrid} {The URL of the gatekeeper of this world} {}
+	;; This is the address of the external robust server
+	;; that runs the Gatekeeper service, possibly this server.
+	;; For example http://myworld.com:8002
+	;; This is a default that can be overwritten in some sections.
+	; GatekeeperURI = "http://127.0.0.1:8002"
 
 [DatabaseService]
     StorageProvider = "OpenSim.Data.MySQL.dll"

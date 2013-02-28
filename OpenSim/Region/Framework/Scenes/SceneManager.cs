@@ -313,35 +313,30 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SendCommandToPluginModules(string[] cmdparams)
         {
-            ForEachCurrentScene(delegate(Scene scene) { scene.SendCommandToPlugins(cmdparams); });
+            ForEachSelectedScene(delegate(Scene scene) { scene.SendCommandToPlugins(cmdparams); });
         }
 
         public void SetBypassPermissionsOnCurrentScene(bool bypassPermissions)
         {
-            ForEachCurrentScene(delegate(Scene scene) { scene.Permissions.SetBypassPermissions(bypassPermissions); });
+            ForEachSelectedScene(delegate(Scene scene) { scene.Permissions.SetBypassPermissions(bypassPermissions); });
         }
 
-        private void ForEachCurrentScene(Action<Scene> func)
+        public void ForEachSelectedScene(Action<Scene> func)
         {
             if (CurrentScene == null)
-            {
-                List<Scene> sceneList = Scenes;
-                sceneList.ForEach(func);
-            }
+                ForEachScene(func);
             else
-            {
                 func(CurrentScene);
-            }
         }
 
         public void RestartCurrentScene()
         {
-            ForEachCurrentScene(delegate(Scene scene) { scene.RestartNow(); });
+            ForEachSelectedScene(delegate(Scene scene) { scene.RestartNow(); });
         }
 
         public void BackupCurrentScene()
         {
-            ForEachCurrentScene(delegate(Scene scene) { scene.Backup(true); });
+            ForEachSelectedScene(delegate(Scene scene) { scene.Backup(true); });
         }
 
         public bool TrySetCurrentScene(string regionName)
@@ -434,7 +429,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="name">Name of avatar to debug</param>
         public void SetDebugPacketLevelOnCurrentScene(int newDebug, string name)
         {
-            ForEachCurrentScene(scene =>
+            ForEachSelectedScene(scene =>
                 scene.ForEachScenePresence(sp =>
                 {
                     if (name == null || sp.Name == name)
@@ -453,7 +448,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             List<ScenePresence> avatars = new List<ScenePresence>();
 
-            ForEachCurrentScene(
+            ForEachSelectedScene(
                 delegate(Scene scene)
                 {
                     scene.ForEachRootScenePresence(delegate(ScenePresence scenePresence)
@@ -470,7 +465,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             List<ScenePresence> presences = new List<ScenePresence>();
 
-            ForEachCurrentScene(delegate(Scene scene)
+            ForEachSelectedScene(delegate(Scene scene)
             {
                 scene.ForEachScenePresence(delegate(ScenePresence sp)
                 {
@@ -494,12 +489,12 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void ForceCurrentSceneClientUpdate()
         {
-            ForEachCurrentScene(delegate(Scene scene) { scene.ForceClientUpdate(); });
+            ForEachSelectedScene(delegate(Scene scene) { scene.ForceClientUpdate(); });
         }
 
         public void HandleEditCommandOnCurrentScene(string[] cmdparams)
         {
-            ForEachCurrentScene(delegate(Scene scene) { scene.HandleEditCommand(cmdparams); });
+            ForEachSelectedScene(delegate(Scene scene) { scene.HandleEditCommand(cmdparams); });
         }
 
         public bool TryGetScenePresence(UUID avatarId, out ScenePresence avatar)

@@ -31,6 +31,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using Nini.Config;
 using OpenMetaverse;
+using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.ScriptEngine.Interfaces;
@@ -110,8 +111,11 @@ namespace OpenSim.Tests.Common
         {
 //            Console.WriteLine("Posting event {0} for {1}", name, itemID);
 
-            EventParams evParams = new EventParams(name, args, null);
+            return PostScriptEvent(itemID, new EventParams(name, args, null));
+        }
 
+        public bool PostScriptEvent(UUID itemID, EventParams evParams)
+        {
             List<EventParams> eventsForItem;
 
             if (!PostedEvents.ContainsKey(itemID))
@@ -132,9 +136,22 @@ namespace OpenSim.Tests.Common
             return true;
         }
 
+        public bool PostObjectEvent(uint localID, EventParams evParams)
+        {
+            return PostObjectEvent(m_scene.GetSceneObjectPart(localID), evParams);
+        }
+
         public bool PostObjectEvent(UUID itemID, string name, object[] args)
         {
-            throw new System.NotImplementedException ();
+            return PostObjectEvent(m_scene.GetSceneObjectPart(itemID), new EventParams(name, args, null));
+        }
+
+        private bool PostObjectEvent(SceneObjectPart part, EventParams evParams)
+        {
+            foreach (TaskInventoryItem item in part.Inventory.GetInventoryItems(InventoryType.LSL))
+                PostScriptEvent(item.ItemID, evParams);
+
+            return true;
         }
 
         public void SuspendScript(UUID itemID)
@@ -183,16 +200,6 @@ namespace OpenSim.Tests.Common
         }
        
         public IScriptWorkItem QueueEventHandler(object parms)
-        {
-            throw new System.NotImplementedException ();
-        }
-
-        public bool PostScriptEvent(UUID itemID,EventParams parms)
-        {
-            throw new System.NotImplementedException ();
-        }
-
-        public bool PostObjectEvent (uint localID, EventParams parms)
         {
             throw new System.NotImplementedException ();
         }

@@ -65,7 +65,8 @@ namespace OpenSim.Groups
 
             m_log.DebugFormat("[Groups.RobustHGConnector]: Starting with config name {0}", m_ConfigName);
 
-            string homeURI = Util.GetConfigVarFromSections<string>(config, "HomeURI", new string[] { "Startup", m_ConfigName} ); //cnf.GetString("HomeURI", string.Empty);
+            string homeURI = Util.GetConfigVarFromSections<string>(config, "HomeURI", 
+                new string[] { "Startup", "Hypergrid", m_ConfigName}, string.Empty); 
             if (homeURI == string.Empty)
                 throw new Exception(String.Format("[Groups.RobustHGConnector]: please provide the HomeURI [Startup] or in section {0}", m_ConfigName));
 

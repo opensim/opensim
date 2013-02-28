@@ -113,7 +113,8 @@ namespace OpenSim.Region.DataSnapshot
                     try
                     {
                         m_enabled = config.Configs["DataSnapshot"].GetBoolean("index_sims", m_enabled);
-                        string gatekeeper = Util.GetConfigVarFromSections<string>(config, "GatekeeperURI", new string[] {"Startup", "GridService"});
+                        string gatekeeper = Util.GetConfigVarFromSections<string>(config, "GatekeeperURI",
+                            new string[] { "Startup", "Hypergrid", "GridService" }, String.Empty);
                         // Legacy. Remove soon!
                         if (string.IsNullOrEmpty(gatekeeper))
                         {
