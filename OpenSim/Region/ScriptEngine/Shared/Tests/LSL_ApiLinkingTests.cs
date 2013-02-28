@@ -93,7 +93,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             // FIXME: This should really be a script item (with accompanying script)
             TaskInventoryItem grp1Item
                 = TaskInventoryHelpers.AddNotecard(
-                    m_scene, grp1.RootPart, "ncItem", TestHelpers.ParseTail(0x800), TestHelpers.ParseTail(0x900));
+                    m_scene, grp1.RootPart, "ncItem", TestHelpers.ParseTail(0x800), TestHelpers.ParseTail(0x900), "Hello World!");
             grp1Item.PermsMask |= ScriptBaseClass.PERMISSION_CHANGE_LINKS;
 
             SceneObjectGroup grp2 = SceneHelpers.CreateSceneObject(2, ownerId, "grp2-", 0x20);
@@ -127,7 +127,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             // FIXME: This should really be a script item (with accompanying script)
             TaskInventoryItem grp1Item
                 = TaskInventoryHelpers.AddNotecard(
-                    m_scene, grp1.RootPart, "ncItem", TestHelpers.ParseTail(0x800), TestHelpers.ParseTail(0x900));
+                    m_scene, grp1.RootPart, "ncItem", TestHelpers.ParseTail(0x800), TestHelpers.ParseTail(0x900), "Hello World!");
             
             grp1Item.PermsMask |= ScriptBaseClass.PERMISSION_CHANGE_LINKS;
 
