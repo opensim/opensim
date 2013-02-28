@@ -2138,7 +2138,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
 
             IConfigSource config = m_ScriptEngine.ConfigSource;
-            string HomeURI = Util.GetConfigVarFromSections<string>(config, "HomeURI", new string[]{"Startup"});
+            string HomeURI = Util.GetConfigVarFromSections<string>(config, "HomeURI", new string[] { "Startup", "Hypergrid" });
 
             if (!string.IsNullOrEmpty(HomeURI))
                 return HomeURI;
@@ -2159,7 +2159,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
 
             IConfigSource config = m_ScriptEngine.ConfigSource;
-            string gatekeeperURI = Util.GetConfigVarFromSections<string>(config, "GatekeeperURI", new string[] {"Startup"});
+            string gatekeeperURI = Util.GetConfigVarFromSections<string>(config, "GatekeeperURI", new string[] { "Startup", "Hypergrid" });
 
             if (!string.IsNullOrEmpty(gatekeeperURI))
                 return gatekeeperURI;
