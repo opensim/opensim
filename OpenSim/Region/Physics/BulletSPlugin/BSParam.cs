@@ -47,12 +47,16 @@ public static class BSParam
     public static float SculptLOD { get; private set; }
 
     public static int CrossingFailuresBeforeOutOfBounds { get; private set; }
+    public static float UpdateVelocityChangeThreshold { get; private set; }
 
     public static float MinimumObjectMass { get; private set; }
     public static float MaximumObjectMass { get; private set; }
     public static float MaxLinearVelocity { get; private set; }
+    public static float MaxLinearVelocitySquared { get; private set; }
     public static float MaxAngularVelocity { get; private set; }
+    public static float MaxAngularVelocitySquared { get; private set; }
     public static float MaxAddForceMagnitude { get; private set; }
+    public static float MaxAddForceMagnitudeSquared { get; private set; }
     public static float DensityScaleFactor { get; private set; }
 
     public static float LinearDamping { get; private set; }
@@ -109,7 +113,7 @@ public static class BSParam
 
     // Vehicle parameters
     public static float VehicleMaxLinearVelocity { get; private set; }
-    public static float VehicleMaxLinearVelocitySq { get; private set; }
+    public static float VehicleMaxLinearVelocitySquared { get; private set; }
     public static float VehicleMaxAngularVelocity { get; private set; }
     public static float VehicleMaxAngularVelocitySq { get; private set; }
     public static float VehicleAngularDamping { get; private set; }
@@ -265,7 +269,7 @@ public static class BSParam
     // The single letter parameters for the delegates are:
     //    s = BSScene
     //    o = BSPhysObject
-    //    v = value (float)
+    //    v = value (appropriate type)
     private static ParameterDefnBase[] ParameterDefinitions =
     {
         new ParameterDefn<bool>("MeshSculptedPrim", "Whether to create meshes for sculpties",
@@ -289,6 +293,10 @@ public static class BSParam
             5,
             (s) => { return CrossingFailuresBeforeOutOfBounds; },
             (s,v) => { CrossingFailuresBeforeOutOfBounds = v; } ),
+        new ParameterDefn<float>("UpdateVelocityChangeThreshold", "Change in updated velocity required before reporting change to simulator",
+            0.1f,
+            (s) => { return UpdateVelocityChangeThreshold; },
+            (s,v) => { UpdateVelocityChangeThreshold = v; } ),
 
         new ParameterDefn<float>("MeshLevelOfDetail", "Level of detail to render meshes (32, 16, 8 or 4. 32=most detailed)",
             32f,
@@ -343,16 +351,16 @@ public static class BSParam
         new ParameterDefn<float>("MaxLinearVelocity", "Maximum velocity magnitude that can be assigned to an object",
             1000.0f,
             (s) => { return MaxLinearVelocity; },
-            (s,v) => { MaxLinearVelocity = v; } ),
+            (s,v) => { MaxLinearVelocity = v; MaxLinearVelocitySquared = v * v; } ),
         new ParameterDefn<float>("MaxAngularVelocity", "Maximum rotational velocity magnitude that can be assigned to an object",
             1000.0f,
             (s) => { return MaxAngularVelocity; },
-            (s,v) => { MaxAngularVelocity = v; } ),
+            (s,v) => { MaxAngularVelocity = v;  MaxAngularVelocitySquared = v * v; } ),
         // LL documentation says thie number should be 20f for llApplyImpulse and 200f for llRezObject
         new ParameterDefn<float>("MaxAddForceMagnitude", "Maximum force that can be applied by llApplyImpulse (SL says 20f)",
             20000.0f,
             (s) => { return MaxAddForceMagnitude; },
-            (s,v) => { MaxAddForceMagnitude = v; } ),
+            (s,v) => { MaxAddForceMagnitude = v; MaxAddForceMagnitudeSquared = v * v; } ),
         // Density is passed around as 100kg/m3. This scales that to 1kg/m3.
         new ParameterDefn<float>("DensityScaleFactor", "Conversion for simulator/viewer density (100kg/m3) to physical density (1kg/m3)",
             0.01f,
@@ -505,7 +513,7 @@ public static class BSParam
         new ParameterDefn<float>("VehicleMaxLinearVelocity", "Maximum velocity magnitude that can be assigned to a vehicle",
             1000.0f,
             (s) => { return (float)VehicleMaxLinearVelocity; },
-            (s,v) => { VehicleMaxLinearVelocity = v; VehicleMaxLinearVelocitySq = v * v; } ),
+            (s,v) => { VehicleMaxLinearVelocity = v; VehicleMaxLinearVelocitySquared = v * v; } ),
         new ParameterDefn<float>("VehicleMaxAngularVelocity", "Maximum rotational velocity magnitude that can be assigned to a vehicle",
             12.0f,
             (s) => { return (float)VehicleMaxAngularVelocity; },
