@@ -220,50 +220,6 @@
     ; physics = basicphysics
     ; physics = POS
 
-    ;# {permissionmodules} {} {Permission modules to use (may specify multiple modules, separated by comma} {} DefaultPermissionsModule
-    ;; Permission modules to use, separated by comma.
-    ;; Possible modules are DefaultPermissionsModule, PrimLimitsModule
-    ; permissionmodules = DefaultPermissionsModule
-
-    ;# {serverside_object_permissions} {permissionmodules:DefaultPermissionsModule} {Activate permission handling by the sim?} {true false} true
-    ;; These are the parameters for the default permissions module
-    ;;
-    ;; If set to false, then, in theory, the server never carries out
-    ;; permission checks (allowing anybody to copy
-    ;; any item, etc.  This may not yet be implemented uniformally.
-    ;; If set to true, then all permissions checks are carried out
-    ; serverside_object_permissions = true
-
-    ;# {allow_grid_gods} {} {Allow grid gods?} {true false} false
-    ;; This allows users with a UserLevel of 200 or more to assume god
-    ;; powers in the regions in this simulator.
-    ; allow_grid_gods = false
-
-    ;; This allows some control over permissions
-    ;; please note that this still doesn't duplicate SL, and is not intended to
-    ;# {region_owner_is_god} {} {Allow region owner gods} {true false} true
-    ;; Allow region owners to assume god powers in their regions
-    ; region_owner_is_god = true
-
-    ;# {region_manager_is_god} {} {Allow region manager gods} {true false} false
-    ;; Allow region managers to assume god powers in regions they manage
-    ; region_manager_is_god = false
-
-    ;# {parcel_owner_is_god} {} {Allow parcel owner gods} {true false} true
-    ;; Allow parcel owners to assume god powers in their parcels
-    ; parcel_owner_is_god = true
-
-    ;# {simple_build_permissions} {} {Allow building in parcel by access list (no groups)} {true false} false
-    ;; More control over permissions
-    ;; This is definitely not SL!
-    ;; Provides a simple control for land owners to give build rights to
-    ;; specific avatars in publicly accessible parcels that disallow object
-    ;; creation in general. 
-    ;; Owners specific avatars by adding them to the Access List of the parcel
-    ;; without having to use the Groups feature
-    ; simple_build_permissions = false
-
-
     ;# {DefaultScriptEngine} {} {Default script engine} {XEngine} XEngine
     ;; Default script engine to use. Currently, we only have XEngine
     ; DefaultScriptEngine = "XEngine"
@@ -333,6 +289,50 @@
     ;; Draw objects on maptile.  This step might take a long time if you've
     ;; got a large number of objects, so you can turn it off here if you'd like.
     ; DrawPrimOnMapTile = true
+
+[Permissions]
+    ;# {permissionmodules} {} {Permission modules to use (may specify multiple modules, separated by comma} {} DefaultPermissionsModule
+    ;; Permission modules to use, separated by comma.
+    ;; Possible modules are DefaultPermissionsModule, PrimLimitsModule
+    ; permissionmodules = DefaultPermissionsModule
+
+    ;# {serverside_object_permissions} {permissionmodules:DefaultPermissionsModule} {Activate permission handling by the sim?} {true false} true
+    ;; These are the parameters for the default permissions module
+    ;;
+    ;; If set to false, then, in theory, the server never carries out
+    ;; permission checks (allowing anybody to copy
+    ;; any item, etc.  This may not yet be implemented uniformally.
+    ;; If set to true, then all permissions checks are carried out
+    ; serverside_object_permissions = true
+
+    ;# {allow_grid_gods} {} {Allow grid gods?} {true false} false
+    ;; This allows users with a UserLevel of 200 or more to assume god
+    ;; powers in the regions in this simulator.
+    ; allow_grid_gods = false
+
+    ;; This allows some control over permissions
+    ;; please note that this still doesn't duplicate SL, and is not intended to
+    ;# {region_owner_is_god} {} {Allow region owner gods} {true false} true
+    ;; Allow region owners to assume god powers in their regions
+    ; region_owner_is_god = true
+
+    ;# {region_manager_is_god} {} {Allow region manager gods} {true false} false
+    ;; Allow region managers to assume god powers in regions they manage
+    ; region_manager_is_god = false
+
+    ;# {parcel_owner_is_god} {} {Allow parcel owner gods} {true false} true
+    ;; Allow parcel owners to assume god powers in their parcels
+    ; parcel_owner_is_god = true
+
+    ;# {simple_build_permissions} {} {Allow building in parcel by access list (no groups)} {true false} false
+    ;; More control over permissions
+    ;; This is definitely not SL!
+    ;; Provides a simple control for land owners to give build rights to
+    ;; specific avatars in publicly accessible parcels that disallow object
+    ;; creation in general. 
+    ;; Owners specific avatars by adding them to the Access List of the parcel
+    ;; without having to use the Groups feature
+    ; simple_build_permissions = false
 
 
 [Estates]
