@@ -211,6 +211,10 @@ namespace OpenSim.Region.ClientStack.Linden
                         m_log.Error("Request: " + request);
                         return;
                     }
+                    catch (System.Xml.XmlException)
+                    {
+                        m_log.ErrorFormat("[INVENTORY]: XML Format error");
+                    }
 
                     ArrayList foldersrequested = (ArrayList)hash["folders"];
 
