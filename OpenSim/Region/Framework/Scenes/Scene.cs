@@ -2769,8 +2769,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (newPosition != Vector3.Zero)
                 newObject.RootPart.GroupPosition = newPosition;
-            if (newObject.RootPart.KeyframeMotion != null)
-                newObject.RootPart.KeyframeMotion.UpdateSceneObject(newObject);
 
             if (!AddSceneObject(newObject))
             {
@@ -2798,6 +2796,9 @@ namespace OpenSim.Region.Framework.Scenes
                 // before we restart the scripts, or else some functions won't work.
                 newObject.RootPart.ParentGroup.CreateScriptInstances(0, false, DefaultScriptEngine, GetStateSource(newObject));
                 newObject.ResumeScripts();
+
+                if (newObject.RootPart.KeyframeMotion != null)
+                    newObject.RootPart.KeyframeMotion.UpdateSceneObject(newObject);
             }
 
             // Do this as late as possible so that listeners have full access to the incoming object
