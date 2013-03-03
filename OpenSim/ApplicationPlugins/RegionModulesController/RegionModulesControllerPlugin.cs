@@ -85,16 +85,26 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
             if (modulesConfig == null)
                 modulesConfig = m_openSim.ConfigSource.Source.AddConfig("Modules");
 
+            Dictionary<RuntimeAddin, IList<int>> loadedModules = new Dictionary<RuntimeAddin, IList<int>>();
+
             // Scan modules and load all that aren't disabled
             foreach (TypeExtensionNode node in
                     AddinManager.GetExtensionNodes("/OpenSim/RegionModules"))
             {
+                IList<int> loadedModuleData;
+
+                if (!loadedModules.ContainsKey(node.Addin))
+                    loadedModules.Add(node.Addin, new List<int> { 0, 0, 0 });
+
+                loadedModuleData = loadedModules[node.Addin];
+                      
                 if (node.Type.GetInterface(typeof(ISharedRegionModule).ToString()) != null)
                 {
                     if (CheckModuleEnabled(node, modulesConfig))
                     {
                         m_log.DebugFormat("[REGIONMODULES]: Found shared region module {0}, class {1}", node.Id, node.Type);
                         m_sharedModules.Add(node);
+                        loadedModuleData[0]++;
                     }
                 }
                 else if (node.Type.GetInterface(typeof(INonSharedRegionModule).ToString()) != null)
@@ -103,12 +113,24 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
                     {
                         m_log.DebugFormat("[REGIONMODULES]: Found non-shared region module {0}, class {1}", node.Id, node.Type);
                         m_nonSharedModules.Add(node);
+                        loadedModuleData[1]++;
                     }
                 }
                 else
                 {
-                    m_log.DebugFormat("[REGIONMODULES]: Found unknown type of module {0}, class {1}", node.Id, node.Type);
+                    m_log.WarnFormat("[REGIONMODULES]: Found unknown type of module {0}, class {1}", node.Id, node.Type);
+                    loadedModuleData[2]++;
                 }
+            }
+
+            foreach (KeyValuePair<RuntimeAddin, IList<int>> loadedModuleData in loadedModules)
+            {
+                m_log.InfoFormat(
+                    "[REGIONMODULES]: From plugin {0}, (version {1}), loaded {2} modules, {3} shared, {4} non-shared {5} unknown",
+                    loadedModuleData.Key.Id, 
+                    loadedModuleData.Key.Version,
+                    loadedModuleData.Value[0] + loadedModuleData.Value[1] + loadedModuleData.Value[2],
+                    loadedModuleData.Value[0], loadedModuleData.Value[1], loadedModuleData.Value[2]);
             }
 
             // Load and init the module. We try a constructor with a port
