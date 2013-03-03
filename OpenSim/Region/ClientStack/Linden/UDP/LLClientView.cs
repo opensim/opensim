@@ -3901,6 +3901,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             part.Shape.ProfileHollow = 27500;
                         }
                     }
+
+                    if (part.Shape != null && (part.Shape.SculptType == (byte)SculptType.Mesh))
+                    {
+                        // Ensure that mesh has at least 8 valid faces
+                        part.Shape.ProfileBegin = 12500;
+                        part.Shape.ProfileEnd = 0;
+                        part.Shape.ProfileHollow = 27500;
+                    }
                 }
 
                 ++updatesThisCall;
@@ -4960,6 +4968,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         position = part.OffsetPosition + presence.OffsetPosition * part.RotationOffset;
                         rotation = part.RotationOffset * presence.Rotation;
                     }
+                    angularVelocity = Vector3.Zero;
+                }
+                else
+                {
+                    angularVelocity = presence.AngularVelocity;
+                    rotation = presence.Rotation;
                 }
 
                 attachPoint = 0;
@@ -4972,9 +4986,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // may improve movement smoothness.
 //                acceleration = new Vector3(1, 0, 0);
                 
-                angularVelocity = presence.AngularVelocity;
-                rotation = presence.Rotation;
-
                 if (sendTexture)
                     textureEntry = presence.Appearance.Texture.GetBytes();
                 else

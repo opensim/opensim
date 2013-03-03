@@ -1655,7 +1655,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
-        public Object osParseJSONNew(string JSON)
+        private Object osParseJSONNew(string JSON)
         {
             CheckThreatLevel(ThreatLevel.None, "osParseJSONNew");
 

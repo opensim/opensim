@@ -30,6 +30,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Threading;
 using log4net;
 using Nini.Config;
 using OpenMetaverse;
@@ -68,6 +69,7 @@ namespace OpenSim.Framework.Capabilities
         private IHttpServer m_httpListener;
         private UUID m_agentID;
         private string m_regionName;
+        private ManualResetEvent m_capsActive = new ManualResetEvent(false);
 
         public UUID AgentID
         {
@@ -170,6 +172,17 @@ namespace OpenSim.Framework.Capabilities
                     m_capsHandlers.Remove(capsName);
                 }
             }
+        }
+
+        public void Activate()
+        {
+            m_capsActive.Set();
+        }
+
+        public bool WaitForActivation()
+        {
+            // Wait for 30s. If that elapses, return false and run without caps
+            return m_capsActive.WaitOne(30000);
         }
     }
 }

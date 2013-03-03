@@ -150,7 +150,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         {
             client.OnTeleportHomeRequest += TriggerTeleportHome;
             client.OnTeleportLandmarkRequest += RequestTeleportLandmark;
-            client.OnTeleportCancel += TeleportCancel;
         }
 
         public virtual void Close() {}
@@ -1018,11 +1017,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             }
 
             return neighbourRegion;
-        }
-
-        private void TeleportCancel(IClientAPI remoteClient)
-        {
-            m_entityTransferStateMachine.ResetFromTransit(remoteClient.AgentId);
         }
 
         public bool Cross(ScenePresence agent, bool isFlying)

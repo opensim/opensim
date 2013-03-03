@@ -50,6 +50,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
         public string url;
         public UUID urlcode;
         public Dictionary<UUID, RequestData> requests;
+        public bool isSsl;
     }
 
     public class RequestData
@@ -195,6 +196,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                 urlData.engine = engine;
                 urlData.url = url;
                 urlData.urlcode = urlcode;
+                urlData.isSsl = false;
                 urlData.requests = new Dictionary<UUID, RequestData>();
 
                 m_UrlMap[url] = urlData;
@@ -240,6 +242,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                 urlData.engine = engine;
                 urlData.url = url;
                 urlData.urlcode = urlcode;
+                urlData.isSsl = true;
                 urlData.requests = new Dictionary<UUID, RequestData>();
 
                 
@@ -421,7 +424,10 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
 
         private void RemoveUrl(UrlData data)
         {
-            m_HttpServer.RemoveHTTPHandler("", "/lslhttp/"+data.urlcode.ToString()+"/");
+            if (data.isSsl)
+                m_HttpsServer.RemoveHTTPHandler("", "/lslhttps/"+data.urlcode.ToString()+"/");
+            else
+                m_HttpServer.RemoveHTTPHandler("", "/lslhttp/"+data.urlcode.ToString()+"/");
         }
 
         private Hashtable NoEvents(UUID requestID, UUID sessionID)

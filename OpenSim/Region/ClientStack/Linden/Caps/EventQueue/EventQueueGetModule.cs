@@ -467,8 +467,8 @@ namespace OpenSim.Region.ClientStack.Linden
             responsedata["content_type"] = "text/plain";
             responsedata["keepalive"] = false;
             responsedata["reusecontext"] = false;
-            responsedata["str_response_string"] = "Upstream error: ";
-            responsedata["error_status_text"] = "Upstream error:";
+            responsedata["str_response_string"] = "<llsd></llsd>";
+            responsedata["error_status_text"] = "<llsd></llsd>";
             responsedata["http_protocol_version"] = "HTTP/1.0";
             return responsedata;
         }
