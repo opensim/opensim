@@ -431,6 +431,7 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
     UserAccountService = "OpenSim.Services.UserAccountService.dll:UserAccountService"
     UserAgentService = "OpenSim.Services.HypergridService.dll:UserAgentService"
     PresenceService = "OpenSim.Services.PresenceService.dll:PresenceService"
+    GridUserService = "OpenSim.Services.UserAccountService.dll:GridUserService"
     GridService = "OpenSim.Services.GridService.dll:GridService"
     AuthenticationService = "OpenSim.Services.Connectors.dll:AuthenticationServicesConnector"
     SimulationService ="OpenSim.Services.Connectors.dll:SimulationServiceConnector"
