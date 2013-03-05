@@ -45,6 +45,7 @@ namespace OpenSim.Region.OptionalModules.WebSocketEchoModule
     public class WebSocketEchoModule : ISharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         private bool enabled;
         public string Name { get { return "WebSocketEchoModule"; } }
 
@@ -55,9 +56,9 @@ namespace OpenSim.Region.OptionalModules.WebSocketEchoModule
 
         public void Initialise(IConfigSource pConfig)
         {
-            enabled =(pConfig.Configs["WebSocketEcho"] != null);
-            if (enabled)
-                m_log.DebugFormat("[WebSocketEchoModule]: INITIALIZED MODULE");
+            enabled = (pConfig.Configs["WebSocketEcho"] != null);
+//            if (enabled)
+//                m_log.DebugFormat("[WebSocketEchoModule]: INITIALIZED MODULE");
         }
 
         /// <summary>
@@ -158,17 +159,17 @@ namespace OpenSim.Region.OptionalModules.WebSocketEchoModule
 
         public void AddRegion(Scene scene)
         {
-            m_log.DebugFormat("[WebSocketEchoModule]: REGION {0} ADDED", scene.RegionInfo.RegionName);
+//            m_log.DebugFormat("[WebSocketEchoModule]: REGION {0} ADDED", scene.RegionInfo.RegionName);
         }
 
         public void RemoveRegion(Scene scene)
         {
-            m_log.DebugFormat("[WebSocketEchoModule]: REGION {0} REMOVED", scene.RegionInfo.RegionName);
+//            m_log.DebugFormat("[WebSocketEchoModule]: REGION {0} REMOVED", scene.RegionInfo.RegionName);
         }
 
         public void RegionLoaded(Scene scene)
         {
-            m_log.DebugFormat("[WebSocketEchoModule]: REGION {0} LOADED", scene.RegionInfo.RegionName);
+//            m_log.DebugFormat("[WebSocketEchoModule]: REGION {0} LOADED", scene.RegionInfo.RegionName);
         }
     }
 }

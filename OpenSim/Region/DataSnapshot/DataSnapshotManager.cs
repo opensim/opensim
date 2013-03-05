@@ -148,8 +148,6 @@ namespace OpenSim.Region.DataSnapshot
                         return;
                     }
 
-                    if (m_enabled)
-                        m_snapStore = new SnapshotStore(m_snapsDir, m_gridinfo, m_listener_port, m_hostname);
                 }
 
             }
@@ -163,8 +161,22 @@ namespace OpenSim.Region.DataSnapshot
 
             m_log.DebugFormat("[DATASNAPSHOT]: Module added to Scene {0}.", scene.RegionInfo.RegionName);
 
-            m_snapStore.AddScene(scene);
+            if (!m_servicesNotified)
+            {
+                m_hostname = scene.RegionInfo.ExternalHostName;
+                m_snapStore = new SnapshotStore(m_snapsDir, m_gridinfo, m_listener_port, m_hostname);
+
+                //Hand it the first scene, assuming that all scenes have the same BaseHTTPServer
+                new DataRequestHandler(scene, this);
+
+                if (m_dataServices != "" && m_dataServices != "noservices")
+                    NotifyDataServices(m_dataServices, "online");
+
+                m_servicesNotified = true;
+            }
+
             m_scenes.Add(scene);
+            m_snapStore.AddScene(scene);
 
             Assembly currentasm = Assembly.GetExecutingAssembly();
 
@@ -189,22 +201,6 @@ namespace OpenSim.Region.DataSnapshot
                 }
             }
 
-            // Must be done here because on shared modules, PostInitialise() will run
-            // BEFORE any scenes are registered. There is no "all scenes have been loaded"
-            // kind of callback because scenes may be created dynamically, so we cannot
-            // have that info, ever.
-            if (!m_servicesNotified)
-            {
-                //Hand it the first scene, assuming that all scenes have the same BaseHTTPServer
-                new DataRequestHandler(m_scenes[0], this);
-
-                m_hostname = m_scenes[0].RegionInfo.ExternalHostName;
-
-                if (m_dataServices != "" && m_dataServices != "noservices")
-                    NotifyDataServices(m_dataServices, "online");
-
-                m_servicesNotified = true;
-            }
         }
 
         public void RemoveRegion(Scene scene)

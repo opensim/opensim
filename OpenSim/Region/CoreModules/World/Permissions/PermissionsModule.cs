@@ -156,9 +156,8 @@ namespace OpenSim.Region.CoreModules.World.Permissions
 
         public void Initialise(IConfigSource config)
         {
-            IConfig myConfig = config.Configs["Startup"];
-
-            string permissionModules = myConfig.GetString("permissionmodules", "DefaultPermissionsModule");
+            string permissionModules = Util.GetConfigVarFromSections<string>(config, "permissionmodules",
+                new string[] { "Startup", "Permissions" }, "DefaultPermissionsModule");
 
             List<string> modules = new List<string>(permissionModules.Split(','));
 
@@ -167,26 +166,34 @@ namespace OpenSim.Region.CoreModules.World.Permissions
 
             m_Enabled = true;
 
-            m_allowGridGods = myConfig.GetBoolean("allow_grid_gods", false);
-            m_bypassPermissions = !myConfig.GetBoolean("serverside_object_permissions", true);
-            m_propagatePermissions = myConfig.GetBoolean("propagate_permissions", true);
-            m_RegionOwnerIsGod = myConfig.GetBoolean("region_owner_is_god", true);
-            m_RegionManagerIsGod = myConfig.GetBoolean("region_manager_is_god", false);
-            m_ParcelOwnerIsGod = myConfig.GetBoolean("parcel_owner_is_god", true);
+            m_allowGridGods = Util.GetConfigVarFromSections<bool>(config, "allow_grid_gods",
+                new string[] { "Startup", "Permissions" }, false); 
+            m_bypassPermissions = !Util.GetConfigVarFromSections<bool>(config, "serverside_object_permissions",
+                new string[] { "Startup", "Permissions" }, true); 
+            m_propagatePermissions = Util.GetConfigVarFromSections<bool>(config, "propagate_permissions",
+                new string[] { "Startup", "Permissions" }, true); 
+            m_RegionOwnerIsGod = Util.GetConfigVarFromSections<bool>(config, "region_owner_is_god",
+                new string[] { "Startup", "Permissions" }, true); 
+            m_RegionManagerIsGod = Util.GetConfigVarFromSections<bool>(config, "region_manager_is_god",
+                new string[] { "Startup", "Permissions" }, false); 
+            m_ParcelOwnerIsGod = Util.GetConfigVarFromSections<bool>(config, "parcel_owner_is_god",
+                new string[] { "Startup", "Permissions" }, true);
 
-            m_SimpleBuildPermissions = myConfig.GetBoolean("simple_build_permissions", false);
+            m_SimpleBuildPermissions = Util.GetConfigVarFromSections<bool>(config, "simple_build_permissions",
+                new string[] { "Startup", "Permissions" }, false); 
 
             m_allowedScriptCreators
-                = ParseUserSetConfigSetting(myConfig, "allowed_script_creators", m_allowedScriptCreators);
+                = ParseUserSetConfigSetting(config, "allowed_script_creators", m_allowedScriptCreators);
             m_allowedScriptEditors
-                = ParseUserSetConfigSetting(myConfig, "allowed_script_editors", m_allowedScriptEditors);
+                = ParseUserSetConfigSetting(config, "allowed_script_editors", m_allowedScriptEditors);
 
             if (m_bypassPermissions)
                 m_log.Info("[PERMISSIONS]: serverside_object_permissions = false in ini file so disabling all region service permission checks");
             else
                 m_log.Debug("[PERMISSIONS]: Enabling all region service permission checks");
 
-            string grant = myConfig.GetString("GrantLSL", "");
+            string grant = Util.GetConfigVarFromSections<string>(config, "GrantLSL",
+                new string[] { "Startup", "Permissions" }, string.Empty);
             if (grant.Length > 0)
             {
                 foreach (string uuidl in grant.Split(','))
@@ -196,7 +203,8 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 }
             }
 
-            grant = myConfig.GetString("GrantCS", "");
+            grant = Util.GetConfigVarFromSections<string>(config, "GrantCS",
+                new string[] { "Startup", "Permissions" }, string.Empty); 
             if (grant.Length > 0)
             {
                 foreach (string uuidl in grant.Split(','))
@@ -206,7 +214,8 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 }
             }
 
-            grant = myConfig.GetString("GrantVB", "");
+            grant = Util.GetConfigVarFromSections<string>(config, "GrantVB",
+                new string[] { "Startup", "Permissions" }, string.Empty);
             if (grant.Length > 0)
             {
                 foreach (string uuidl in grant.Split(','))
@@ -216,7 +225,8 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 }
             }
 
-            grant = myConfig.GetString("GrantJS", "");
+            grant = Util.GetConfigVarFromSections<string>(config, "GrantJS",
+                new string[] { "Startup", "Permissions" }, string.Empty);
             if (grant.Length > 0)
             {
                 foreach (string uuidl in grant.Split(','))
@@ -226,7 +236,8 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 }
             }
 
-            grant = myConfig.GetString("GrantYP", "");
+            grant = Util.GetConfigVarFromSections<string>(config, "GrantYP",
+                new string[] { "Startup", "Permissions" }, string.Empty);
             if (grant.Length > 0)
             {
                 foreach (string uuidl in grant.Split(','))
@@ -464,11 +475,12 @@ namespace OpenSim.Region.CoreModules.World.Permissions
         /// <param name="settingName"></param>
         /// <param name="defaultValue">The default value for this attribute</param>
         /// <returns>The parsed value</returns>
-        private static UserSet ParseUserSetConfigSetting(IConfig config, string settingName, UserSet defaultValue)
+        private static UserSet ParseUserSetConfigSetting(IConfigSource config, string settingName, UserSet defaultValue)
         {
             UserSet userSet = defaultValue;
-            
-            string rawSetting = config.GetString(settingName, defaultValue.ToString());
+
+            string rawSetting = Util.GetConfigVarFromSections<string>(config, settingName, 
+                new string[] {"Startup", "Permissions"}, defaultValue.ToString()); 
             
             // Temporary measure to allow 'gods' to be specified in config for consistency's sake.  In the long term
             // this should disappear.

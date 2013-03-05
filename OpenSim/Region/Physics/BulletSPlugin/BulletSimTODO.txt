@@ -9,6 +9,9 @@ Enable vehicle border crossings (at least as poorly as ODE)
 Lock axis
 Deleting a linkset while standing on the root will leave the physical shape of the root behind.
 	Not sure if it is because standing on it. Done with large prim linksets.
+Linkset child rotations.
+	Nebadon spiral tube has middle sections which are rotated wrong.
+	Select linked spiral tube. Delink and note where the middle section ends up.
 Vehicle angular vertical attraction
 vehicle angular banking
 Center-of-gravity
@@ -68,6 +71,8 @@ Vehicle attributes are not restored when a vehicle is rezzed on region creation
 
 GENERAL TODO LIST:
 =================================================
+Explore btGImpactMeshShape as alternative to convex hulls for simplified physical objects.
+	Regular triangle meshes don't do physical collisions.
 Resitution of a prim works on another prim but not on terrain.
 	The dropped prim doesn't bounce properly on the terrain.
 Add a sanity check for PIDTarget location.
