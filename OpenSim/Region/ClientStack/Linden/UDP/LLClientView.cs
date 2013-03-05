@@ -822,6 +822,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             handshake.RegionInfo3.ProductName = Util.StringToBytes256(regionInfo.RegionType);
             handshake.RegionInfo3.ProductSKU = Utils.EmptyBytes;
 
+            handshake.RegionInfo4 = new RegionHandshakePacket.RegionInfo4Block[0];
 //            OutPacket(handshake, ThrottleOutPacketType.Task);
             // use same as MoveAgentIntoRegion (both should be task )
             OutPacket(handshake, ThrottleOutPacketType.Unknown);
@@ -3604,7 +3605,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             avp.Sender.IsTrial = false;
             avp.Sender.ID = agentID;
-            m_log.DebugFormat("[CLIENT]: Sending appearance for {0} to {1}", agentID.ToString(), AgentId.ToString());
+            avp.AppearanceData = new AvatarAppearancePacket.AppearanceDataBlock[0];
+            //m_log.DebugFormat("[CLIENT]: Sending appearance for {0} to {1}", agentID.ToString(), AgentId.ToString());
             OutPacket(avp, ThrottleOutPacketType.Task);
         }
 
@@ -4224,7 +4226,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             pack.Stat = stats.StatsBlock;
 
             pack.Header.Reliable = false;
-
+            pack.RegionInfo = new SimStatsPacket.RegionInfoBlock[0];
             OutPacket(pack, ThrottleOutPacketType.Task);
         }
 

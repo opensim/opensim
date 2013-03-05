@@ -76,7 +76,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
 
                 if (m_console != null)
                 {
-                    m_console.AddCommand("TempAttachModule", false, "set auto_grant_attach_perms", "set auto_grant_attach_perms true|false", "Allow objects owned by the region owner os estate managers to obtain attach permissions without asking the user", SetAutoGrantAttachPerms);
+                    m_console.AddCommand("TempAttachModule", false, "set auto_grant_attach_perms", "set auto_grant_attach_perms true|false", "Allow objects owned by the region owner or estate managers to obtain attach permissions without asking the user", SetAutoGrantAttachPerms);
                 }
             }
             else

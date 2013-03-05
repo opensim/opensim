@@ -956,7 +956,12 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
-                string grant = startupConfig.GetString("AllowedClients", String.Empty);
+                string[] possibleAccessControlConfigSections = new string[] { "AccessControl", "Startup" };
+
+                string grant 
+                    = Util.GetConfigVarFromSections<string>(
+                        config, "AllowedClients", possibleAccessControlConfigSections, "");
+
                 if (grant.Length > 0)
                 {
                     foreach (string viewer in grant.Split(','))
@@ -965,7 +970,10 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
-                grant = startupConfig.GetString("BannedClients", String.Empty);
+                grant 
+                    = Util.GetConfigVarFromSections<string>(
+                        config, "BannedClients", possibleAccessControlConfigSections, "");
+
                 if (grant.Length > 0)
                 {
                     foreach (string viewer in grant.Split(','))

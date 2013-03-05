@@ -414,8 +414,6 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
         }
         private void RegisterStatsManagerRegionStatistics()
         {
-            string regionName = m_scene.RegionInfo.RegionName;
-
             MakeStat("RootAgents", "avatars", (s) => { s.Value = m_scene.SceneGraph.GetRootAgentCount(); });
             MakeStat("ChildAgents", "avatars", (s) => { s.Value = m_scene.SceneGraph.GetChildAgentCount(); });
             MakeStat("TotalPrims", "objects", (s) => { s.Value = m_scene.SceneGraph.GetTotalObjectsCount(); });

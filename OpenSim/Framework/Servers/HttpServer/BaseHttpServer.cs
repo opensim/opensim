@@ -1960,6 +1960,12 @@ namespace OpenSim.Framework.Servers.HttpServer
                 m_rpcHandlers.Remove(method);
         }
 
+        public void RemoveJsonRPCHandler(string method)
+        {
+            lock(jsonRpcHandlers)
+                jsonRpcHandlers.Remove(method);
+        }
+
         public bool RemoveLLSDHandler(string path, LLSDMethod handler)
         {
             lock (m_llsdHandlers)
