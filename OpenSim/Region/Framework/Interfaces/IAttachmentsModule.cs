@@ -84,7 +84,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="AttachmentPt"></param>
         /// <param name="silent"></param>
         /// <returns>true if the object was successfully attached, false otherwise</returns>
-        bool AttachObject(IScenePresence sp, SceneObjectGroup grp, uint AttachmentPt, bool silent, bool useAttachmentInfo, bool temp);
+        bool AttachObject(IScenePresence sp, SceneObjectGroup grp, uint AttachmentPt, bool silent, bool useAttachmentInfo, bool temp, bool append);
 
         /// <summary>
         /// Rez an attachment from user inventory and change inventory status to match.

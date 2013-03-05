@@ -180,11 +180,18 @@ namespace OpenSim.Services.Interfaces
 
             // Attachments
             List<AvatarAttachment> attachments = appearance.GetAttachments();
+            Dictionary<int, List<string>> atts = new Dictionary<int, List<string>>();
             foreach (AvatarAttachment attach in attachments)
             {
                 if (attach.ItemID != UUID.Zero)
-                    Data["_ap_" + attach.AttachPoint] = attach.ItemID.ToString();
+                {
+                    if (!atts.ContainsKey(attach.AttachPoint))
+                        atts[attach.AttachPoint] = new List<string>();
+                    atts[attach.AttachPoint].Add(attach.ItemID.ToString());
+                }
             }
+            foreach (KeyValuePair<int, List<string>> kvp in atts)
+                Data["_ap_" + kvp.Key] = string.Join(",", kvp.Value.ToArray());
         }
 
         public AvatarAppearance ToAvatarAppearance()
