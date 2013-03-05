@@ -381,14 +381,24 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
         private void UpdateUserInventoryWithAttachment(IScenePresence sp, SceneObjectGroup group, uint attachmentPt, bool temp, bool append)
         {
-            // Remove any previous attachments
             List<SceneObjectGroup> attachments = sp.GetAttachments(attachmentPt);
 
-            // At the moment we can only deal with a single attachment
-            if (attachments.Count != 0 && !append)
+            // If we already have 5, remove the oldest until only 4 are left. Skip over temp ones
+            while (attachments.Count >= 5)
             {
                 if (attachments[0].FromItemID != UUID.Zero)
                     DetachSingleAttachmentToInvInternal(sp, attachments[0]);
+                attachments.RemoveAt(0);
+            }
+
+            // If we're not appending, remove the rest as well
+            if (attachments.Count != 0 && !append)
+            {
+                foreach (SceneObjectGroup g in attachments)
+                {
+                    if (g.FromItemID != UUID.Zero)
+                        DetachSingleAttachmentToInvInternal(sp, g);
+                }
             }
 
             // Add the new attachment to inventory if we don't already have it.
