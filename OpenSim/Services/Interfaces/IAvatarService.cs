@@ -327,10 +327,16 @@ namespace OpenSim.Services.Interfaces
                     if (!Int32.TryParse(pointStr, out point))
                         continue;
 
-                    UUID uuid = UUID.Zero;
-                    UUID.TryParse(_kvp.Value, out uuid);
+                    List<string> idList = new List<string>(_kvp.Value.Split(new char[] {','}));
 
-                    appearance.SetAttachment(point, uuid, UUID.Zero);
+                    appearance.SetAttachment(point, UUID.Zero, UUID.Zero);
+                    foreach (string id in idList)
+                    {
+                        UUID uuid = UUID.Zero;
+                        UUID.TryParse(id, out uuid);
+
+                        appearance.SetAttachment(point | 0x80, uuid, UUID.Zero);
+                    }
                 }
 
                 if (appearance.Wearables[AvatarWearable.BODY].Count == 0)
