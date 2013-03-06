@@ -4574,7 +4574,8 @@ namespace OpenSim.Region.Framework.Scenes
                 if (ParentGroup.RootPart == this)
                     AngularVelocity = new Vector3(0, 0, 0);
             }
-            else if (SetVD != wasVD)
+            
+            else 
             {
                 if (ParentGroup.Scene.CollidablePrims)
                 {
@@ -4620,9 +4621,31 @@ namespace OpenSim.Region.Framework.Scenes
                     UpdatePhysicsSubscribedEvents();
                 }
             }         
-
+            if (SetVD)
+            {
+                // If the above logic worked (this is urgent candidate to unit tests!)
+                // we now have a physicsactor.
+                // Defensive programming calls for a check here.
+                // Better would be throwing an exception that could be catched by a unit test as the internal 
+                // logic should make sure, this Physactor is always here.
+                if (pa != null)
+                {
+                    pa.SetVolumeDetect(1);
+                    AddFlag(PrimFlags.Phantom); // We set this flag also if VD is active
+                    VolumeDetectActive = true;
+                }
             //            m_log.Debug("Update:  PHY:" + UsePhysics.ToString() + ", T:" + IsTemporary.ToString() + ", PHA:" + IsPhantom.ToString() + " S:" + CastsShadows.ToString());
+            }
+            else if (SetVD != wasVD)
+            {
+                // Remove VolumeDetect in any case. Note, it's safe to call SetVolumeDetect as often as you like
+                // (mumbles, well, at least if you have infinte CPU powers :-))
+                if (pa != null)
+                    pa.SetVolumeDetect(0);
 
+                RemFlag(PrimFlags.Phantom);
+                VolumeDetectActive = false;
+            }
            // and last in case we have a new actor and not building
 
             if (ParentGroup != null)
