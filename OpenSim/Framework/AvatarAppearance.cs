@@ -497,8 +497,6 @@ namespace OpenSim.Framework
         /// </remarks>
         public List<AvatarAttachment> GetAttachments()
         {
-            
-
             lock (m_attachments)
             {
 				List<AvatarAttachment> alist = new List<AvatarAttachment>();
@@ -508,7 +506,8 @@ namespace OpenSim.Framework
                         alist.Add(new AvatarAttachment(attach));
                 }
 				return alist;
-			}        }
+			}
+        }
 
         internal void AppendAttachment(AvatarAttachment attach)
         {
