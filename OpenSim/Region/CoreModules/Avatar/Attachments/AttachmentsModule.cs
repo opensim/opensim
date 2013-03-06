@@ -324,7 +324,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             // Remove any previous attachments
             List<SceneObjectGroup> existingAttachments = sp.GetAttachments(attachmentPt);
-            string existingAttachmentScriptState = null;
 
             // At the moment we can only deal with a single attachment
             if (existingAttachments.Count != 0 && existingAttachments[0].FromItemID != UUID.Zero)
@@ -849,7 +848,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             // Remove any previous attachments
             List<SceneObjectGroup> attachments = sp.GetAttachments(attachmentPt);
-            string previousAttachmentScriptedState = null;
 
             // At the moment we can only deal with a single attachment
             if (attachments.Count != 0)
