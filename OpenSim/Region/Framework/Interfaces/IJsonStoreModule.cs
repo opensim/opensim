@@ -41,6 +41,16 @@ namespace OpenSim.Region.Framework.Interfaces
         Value = 3
     }
     
+    public enum JsonStoreValueType
+    {
+        Undefined = 0,
+        Boolean = 1,
+        Integer = 2,
+        Float = 3,
+        String = 4,
+        UUID = 5
+    }
+    
     public delegate void TakeValueCallback(string s);
 
     public interface IJsonStoreModule
@@ -49,7 +59,9 @@ namespace OpenSim.Region.Framework.Interfaces
         bool CreateStore(string value, ref UUID result);
         bool DestroyStore(UUID storeID);
 
-        JsonStoreNodeType GetPathType(UUID storeID, string path);
+        JsonStoreNodeType GetNodeType(UUID storeID, string path);
+        JsonStoreValueType GetValueType(UUID storeID, string path);
+
         bool TestStore(UUID storeID);
 
         bool SetValue(UUID storeID, string path, string value, bool useJson);
