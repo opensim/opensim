@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using Nini.Config;
 using NUnit.Framework;
@@ -65,10 +66,11 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         public void TestCrossOnSameSimulator()
         {
             TestHelpers.InMethod();
-            TestHelpers.EnableLogging();
+//            TestHelpers.EnableLogging();
 
             UUID userId = TestHelpers.ParseTail(0x1);
 
+//            TestEventQueueGetModule eqmA = new TestEventQueueGetModule();
             EntityTransferModule etmA = new EntityTransferModule();
             EntityTransferModule etmB = new EntityTransferModule();
             LocalSimulationConnectorModule lscm = new LocalSimulationConnectorModule();
@@ -77,7 +79,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             IConfig modulesConfig = config.AddConfig("Modules");
             modulesConfig.Set("EntityTransferModule", etmA.Name);
             modulesConfig.Set("SimulationServices", lscm.Name);
-            IConfig entityTransferConfig = config.AddConfig("EntityTransfer");
+//            IConfig entityTransferConfig = config.AddConfig("EntityTransfer");
 
             // In order to run a single threaded regression test we do not want the entity transfer module waiting
             // for a callback from the destination scene before removing its avatar data.
@@ -89,6 +91,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
             SceneHelpers.SetupSceneModules(new Scene[] { sceneA, sceneB }, config, lscm);
             SceneHelpers.SetupSceneModules(sceneA, config, new CapabilitiesModule(), etmA);
+//            SceneHelpers.SetupSceneModules(sceneA, config, new CapabilitiesModule(), etmA, eqmA);
             SceneHelpers.SetupSceneModules(sceneB, config, new CapabilitiesModule(), etmB);
 
             ScenePresence originalSp = SceneHelpers.AddScenePresence(sceneA, userId, sh.SceneManager);
@@ -97,6 +100,8 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 //            originalSp.Flying = true;
 
 //            Console.WriteLine("First pos {0}", originalSp.AbsolutePosition);
+
+//            eqmA.ClearEvents();
 
             AgentUpdateArgs moveArgs = new AgentUpdateArgs();
             //moveArgs.BodyRotation = Quaternion.CreateFromEulers(Vector3.Zero);
@@ -117,6 +122,18 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 //                Console.WriteLine("Pos {0}", originalSp.AbsolutePosition);
             }
 
+            // Need to sort processing of EnableSimulator message on adding scene presences before we can test eqm
+            // messages
+//            Dictionary<UUID, List<TestEventQueueGetModule.Event>> eqmEvents = eqmA.Events;
+//
+//            Assert.That(eqmEvents.Count, Is.EqualTo(1));
+//            Assert.That(eqmEvents.ContainsKey(originalSp.UUID), Is.True);
+//
+//            List<TestEventQueueGetModule.Event> spEqmEvents = eqmEvents[originalSp.UUID];
+//
+//            Assert.That(spEqmEvents.Count, Is.EqualTo(1));
+//            Assert.That(spEqmEvents[0].Name, Is.EqualTo("CrossRegion"));
+
             // sceneA should now only have a child agent
             ScenePresence spAfterCrossSceneA = sceneA.GetScenePresence(originalSp.UUID);
             Assert.That(spAfterCrossSceneA.IsChildAgent, Is.True);
@@ -128,12 +145,12 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
             TestClient sceneBTc = ((TestClient)spAfterCrossSceneB.ControllingClient);
 
-            bool receivedCompleteMovement = false;
-            sceneBTc.OnReceivedMoveAgentIntoRegion += (ri, pos, look) => receivedCompleteMovement = true;
+            int agentMovementCompleteReceived = 0;
+            sceneBTc.OnReceivedMoveAgentIntoRegion += (ri, pos, look) => agentMovementCompleteReceived++;
 
             sceneBTc.CompleteMovement();
 
-            Assert.That(receivedCompleteMovement, Is.True);
+            Assert.That(agentMovementCompleteReceived, Is.EqualTo(1));
             Assert.That(spAfterCrossSceneB.IsChildAgent, Is.False);
         }
     }
