@@ -326,7 +326,7 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
     ; HasProxy = false
     
     ; Defaults for the users, if none is specified in the useraccounts table entry (ServiceURLs)
-	;; If you have Gatekeeper set under [Hypergrid], no need to set it here, leave it commented
+	;; If you have GatekeeperURI set under [Hypergrid], no need to set it here, leave it commented
 	; GatekeeperURI = "http://127.0.0.1:8002"
 
     SRV_HomeURI = "http://127.0.0.1:8002"
