@@ -158,8 +158,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 
             Assert.That(dsrv, Is.EqualTo(1));
 
-            int tprv = (int)InvokeOp("JsonGetPathType", storeId, "Hello");
-            Assert.That(tprv, Is.EqualTo(JsonStoreScriptModule.JSON_TYPE_UNDEF));
+            int tprv = (int)InvokeOp("JsonGetNodeType", storeId, "Hello");
+            Assert.That(tprv, Is.EqualTo(JsonStoreScriptModule.JSON_NODETYPE_UNDEF));
         }
 
         [Test]
@@ -277,8 +277,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
                 int returnValue = (int)InvokeOp( "JsonRemoveValue", storeId, "Hello");
                 Assert.That(returnValue, Is.EqualTo(1));
 
-                int result = (int)InvokeOp("JsonGetPathType", storeId, "Hello");
-                Assert.That(result, Is.EqualTo(JsonStoreScriptModule.JSON_TYPE_UNDEF));
+                int result = (int)InvokeOp("JsonGetNodeType", storeId, "Hello");
+                Assert.That(result, Is.EqualTo(JsonStoreScriptModule.JSON_NODETYPE_UNDEF));
 
                 string returnValue2 = (string)InvokeOp("JsonGetValue", storeId, "Hello");
                 Assert.That(returnValue2, Is.EqualTo(""));
@@ -291,8 +291,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
                 int returnValue = (int)InvokeOp( "JsonRemoveValue", storeId, "Hello");
                 Assert.That(returnValue, Is.EqualTo(1));
 
-                int result = (int)InvokeOp("JsonGetPathType", storeId, "Hello");
-                Assert.That(result, Is.EqualTo(JsonStoreScriptModule.JSON_TYPE_UNDEF));
+                int result = (int)InvokeOp("JsonGetNodeType", storeId, "Hello");
+                Assert.That(result, Is.EqualTo(JsonStoreScriptModule.JSON_NODETYPE_UNDEF));
 
                 string returnValue2 = (string)InvokeOp("JsonGetJson", storeId, "Hello");
                 Assert.That(returnValue2, Is.EqualTo(""));
@@ -306,11 +306,11 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
                 int returnValue = (int)InvokeOp( "JsonRemoveValue", storeId, "Hello[0]");
                 Assert.That(returnValue, Is.EqualTo(1));
 
-                int result = (int)InvokeOp("JsonGetPathType", storeId, "Hello[0]");
-                Assert.That(result, Is.EqualTo(JsonStoreScriptModule.JSON_TYPE_VALUE));
+                int result = (int)InvokeOp("JsonGetNodeType", storeId, "Hello[0]");
+                Assert.That(result, Is.EqualTo(JsonStoreScriptModule.JSON_NODETYPE_VALUE));
 
-                result = (int)InvokeOp("JsonGetPathType", storeId, "Hello[1]");
-                Assert.That(result, Is.EqualTo(JsonStoreScriptModule.JSON_TYPE_UNDEF));
+                result = (int)InvokeOp("JsonGetNodeType", storeId, "Hello[1]");
+                Assert.That(result, Is.EqualTo(JsonStoreScriptModule.JSON_NODETYPE_UNDEF));
 
                 string stringReturnValue = (string)InvokeOp("JsonGetValue", storeId, "Hello[0]");
                 Assert.That(stringReturnValue, Is.EqualTo("value2"));
@@ -433,7 +433,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
         }
 
         [Test]
-        public void TestJsonGetPathType()
+        public void TestJsonGetNodeType()
         {
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
@@ -441,41 +441,41 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
             UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ 'Hello' : { 'World' : [ 'one', 2 ] } }"); 
 
             {
-                int result = (int)InvokeOp("JsonGetPathType", storeId, ".");
-                Assert.That(result, Is.EqualTo(JsonStoreScriptModule.JSON_TYPE_OBJECT));
+                int result = (int)InvokeOp("JsonGetNodeType", storeId, ".");
+                Assert.That(result, Is.EqualTo(JsonStoreScriptModule.JSON_NODETYPE_OBJECT));
             }
 
             {
-                int result = (int)InvokeOp("JsonGetPathType", storeId, "Hello");
-                Assert.That(result, Is.EqualTo(JsonStoreScriptModule.JSON_TYPE_OBJECT));
+                int result = (int)InvokeOp("JsonGetNodeType", storeId, "Hello");
+                Assert.That(result, Is.EqualTo(JsonStoreScriptModule.JSON_NODETYPE_OBJECT));
             }
 
             {
-                int result = (int)InvokeOp("JsonGetPathType", storeId, "Hello.World");
-                Assert.That(result, Is.EqualTo(JsonStoreScriptModule.JSON_TYPE_ARRAY));
+                int result = (int)InvokeOp("JsonGetNodeType", storeId, "Hello.World");
+                Assert.That(result, Is.EqualTo(JsonStoreScriptModule.JSON_NODETYPE_ARRAY));
             }
 
             {
-                int result = (int)InvokeOp("JsonGetPathType", storeId, "Hello.World[0]");
-                Assert.That(result, Is.EqualTo(JsonStoreScriptModule.JSON_TYPE_VALUE));
+                int result = (int)InvokeOp("JsonGetNodeType", storeId, "Hello.World[0]");
+                Assert.That(result, Is.EqualTo(JsonStoreScriptModule.JSON_NODETYPE_VALUE));
             }
 
             {
-                int result = (int)InvokeOp("JsonGetPathType", storeId, "Hello.World[1]");
-                Assert.That(result, Is.EqualTo(JsonStoreScriptModule.JSON_TYPE_VALUE));
+                int result = (int)InvokeOp("JsonGetNodeType", storeId, "Hello.World[1]");
+                Assert.That(result, Is.EqualTo(JsonStoreScriptModule.JSON_NODETYPE_VALUE));
             }
 
             // Test for non-existant path
             {
-                int result = (int)InvokeOp("JsonGetPathType", storeId, "foo");
-                Assert.That(result, Is.EqualTo(JsonStoreScriptModule.JSON_TYPE_UNDEF));
+                int result = (int)InvokeOp("JsonGetNodeType", storeId, "foo");
+                Assert.That(result, Is.EqualTo(JsonStoreScriptModule.JSON_NODETYPE_UNDEF));
             }
 
             // Test for non-existant store
             {
                 UUID fakeStoreId = TestHelpers.ParseTail(0x500);
-                int result = (int)InvokeOp("JsonGetPathType", fakeStoreId, ".");
-                Assert.That(result, Is.EqualTo(JsonStoreScriptModule.JSON_TYPE_UNDEF));
+                int result = (int)InvokeOp("JsonGetNodeType", fakeStoreId, ".");
+                Assert.That(result, Is.EqualTo(JsonStoreScriptModule.JSON_NODETYPE_UNDEF));
             }
         }
 

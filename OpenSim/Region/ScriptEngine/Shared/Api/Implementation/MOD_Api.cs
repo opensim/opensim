@@ -266,6 +266,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     llist[i] = new LSL_Float((float)result[i]);
                 }
+                else if (result[i] is double)
+                {
+                    llist[i] = new LSL_Float((double)result[i]);
+                }
                 else if (result[i] is UUID)
                 {
                     llist[i] = new LSL_Key(result[i].ToString());

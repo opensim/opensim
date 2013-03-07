@@ -108,6 +108,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         private int _bufferLength;
         private bool _closing;
         private bool _upgraded;
+        private int _maxPayloadBytes = 41943040;
 
         private const string HandshakeAcceptText =
             "HTTP/1.1 101 Switching Protocols\r\n" +
@@ -193,6 +194,15 @@ namespace OpenSim.Framework.Servers.HttpServer
         public void Start()
         {
             HandshakeAndUpgrade();
+        }
+
+        /// <summary>
+        /// Max Payload Size in bytes.  Defaults to 40MB, but could be set upon connection before calling handshake and upgrade.
+        /// </summary>
+        public int MaxPayloadSize
+        {
+            get { return _maxPayloadBytes; }
+            set { _maxPayloadBytes = value; }
         }
 
         /// <summary>
@@ -367,7 +377,12 @@ namespace OpenSim.Framework.Servers.HttpServer
                         if (headerread)
                         {
                             _socketState.FrameComplete = false;
-
+                            if (pheader.PayloadLen > (ulong) _maxPayloadBytes)
+                            {
+                                Close("Invalid Payload size");
+                                
+                                return;
+                            }
                             if (pheader.PayloadLen > 0)
                             {
                                 if ((int) pheader.PayloadLen > _bufferPosition - offset)

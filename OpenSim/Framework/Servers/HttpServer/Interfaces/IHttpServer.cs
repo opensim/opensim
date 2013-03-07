@@ -140,6 +140,8 @@ namespace OpenSim.Framework.Servers.HttpServer
         void RemoveStreamHandler(string httpMethod, string path);
 
         void RemoveXmlRPCHandler(string method);
+
+        void RemoveJsonRPCHandler(string method);
         
         string GetHTTP404(string host);
 
