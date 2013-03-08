@@ -339,7 +339,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             // Remove any previous attachments
             List<SceneObjectGroup> existingAttachments = sp.GetAttachments(attachmentPt);
-            string existingAttachmentScriptState = null;
 
             // At the moment we can only deal with a single attachment
             if (existingAttachments.Count != 0 && existingAttachments[0].FromItemID != UUID.Zero)
@@ -881,7 +880,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             }
 
             List<SceneObjectGroup> attachments = sp.GetAttachments(attachmentPt);
-            string previousAttachmentScriptedState = null;
 
             // If we already have 5, remove the oldest until only 4 are left. Skip over temp ones
             while (attachments.Count >= 5)

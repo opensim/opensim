@@ -102,6 +102,8 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
 
         public override float Simulate(float timeStep)
         {
+//            Console.WriteLine("Simulating");
+
             float fps = 0;
             for (int i = 0; i < _actors.Count; ++i)
             {
@@ -109,8 +111,11 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
                 Vector3 actorPosition = actor.Position;
                 Vector3 actorVelocity = actor.Velocity;
 
-                actorPosition.X += actor.Velocity.X*timeStep;
-                actorPosition.Y += actor.Velocity.Y*timeStep;
+//                Console.WriteLine(
+//                    "Processing actor {0}, starting pos {1}, starting vel {2}", i, actorPosition, actorVelocity);
+
+                actorPosition.X += actor.Velocity.X * timeStep;
+                actorPosition.Y += actor.Velocity.Y * timeStep;
 
                 if (actor.Position.Y < 0)
                 {

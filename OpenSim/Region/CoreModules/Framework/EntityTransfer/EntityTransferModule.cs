@@ -1162,6 +1162,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     // region doesn't take it
                     m_entityTransferStateMachine.UpdateInTransit(agent.UUID, AgentTransferState.CleaningUp);
 
+                    m_log.WarnFormat(
+                        "[ENTITY TRANSFER MODULE]: Region {0} would not accept update for agent {1} on cross attempt.  Returning to original region.", 
+                        neighbourRegion.RegionName, agent.Name);
+
                     ReInstantiateScripts(agent);
                     agent.AddToPhysicalScene(isFlying);
 

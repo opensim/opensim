@@ -4617,7 +4617,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             rinfopack.AgentData = new RegionInfoPacket.AgentDataBlock();
             rinfopack.AgentData.AgentID = AgentId;
             rinfopack.AgentData.SessionID = SessionId;
-
+            rinfopack.RegionInfo3 = new RegionInfoPacket.RegionInfo3Block[0];
 
             OutPacket(rinfopack, ThrottleOutPacketType.Task);
         }

@@ -11842,7 +11842,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             LSL_List result = new LSL_List();
 
-            if (obj != null && obj.OwnerID != m_host.OwnerID)
+            if (obj != null && obj.OwnerID == m_host.OwnerID)
             {
                 LSL_List remaining = GetPrimParams(obj, rules, ref result);
 

@@ -60,6 +60,8 @@ namespace OpenSim.Tests.Common.Mock
         public List<ImagePacketPacket> SentImagePacketPackets { get; private set; }
         public List<ImageNotInDatabasePacket> SentImageNotInDatabasePackets { get; private set; }
 
+        public event Action<RegionInfo, Vector3, Vector3> OnReceivedMoveAgentIntoRegion;
+
 // disable warning: public events, part of the public API
 #pragma warning disable 67
 
@@ -575,6 +577,8 @@ namespace OpenSim.Tests.Common.Mock
 
         public virtual void MoveAgentIntoRegion(RegionInfo regInfo, Vector3 pos, Vector3 look)
         {
+            if (OnReceivedMoveAgentIntoRegion != null)
+                OnReceivedMoveAgentIntoRegion(regInfo, pos, look);
         }
 
         public virtual AgentCircuitData RequestClientInfo()
