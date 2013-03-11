@@ -4959,8 +4959,25 @@ namespace OpenSim.Region.Framework.Scenes
 
             Changed changeFlags = 0;
 
+            Primitive.TextureEntryFace fallbackNewFace = newTex.DefaultTexture;
+            Primitive.TextureEntryFace fallbackOldFace = oldTex.DefaultTexture;
+           
+            // On Incoming packets, sometimes newText.DefaultTexture is null.  The assumption is that all 
+            // other prim-sides are set, but apparently that's not always the case.  Lets assume packet/data corruption at this point.
+            if (fallbackNewFace == null)
+            {
+                fallbackNewFace = new Primitive.TextureEntry(Util.BLANK_TEXTURE_UUID).CreateFace(0);
+                newTex.DefaultTexture = fallbackNewFace;
+            }
+            if (fallbackOldFace == null)
+            {
+                fallbackOldFace = new Primitive.TextureEntry(Util.BLANK_TEXTURE_UUID).CreateFace(0);
+                oldTex.DefaultTexture = fallbackOldFace;
+            }
+
             for (int i = 0 ; i < GetNumberOfSides(); i++)
             {
+
                 Primitive.TextureEntryFace newFace = newTex.DefaultTexture;
                 Primitive.TextureEntryFace oldFace = oldTex.DefaultTexture;
 

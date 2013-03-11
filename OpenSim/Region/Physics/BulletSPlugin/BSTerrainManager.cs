@@ -337,6 +337,54 @@ public sealed class BSTerrainManager : IDisposable
         return GetTerrainPhysicalAtXYZ(pos, out physTerrain, out terrainBaseXYZ);
     }
 
+    // Return a new position that is over known terrain if the position is outside our terrain.
+    public Vector3 ClampPositionIntoKnownTerrain(Vector3 pPos)
+    {
+        Vector3 ret = pPos;
+
+        // Can't do this function if we don't know about any terrain.
+        if (m_terrains.Count == 0)
+            return ret;
+
+        int loopPrevention = 5;
+        Vector3 terrainBaseXYZ;
+        BSTerrainPhys physTerrain;
+        while (!GetTerrainPhysicalAtXYZ(ret, out physTerrain, out terrainBaseXYZ))
+        {
+            // The passed position is not within a known terrain area.
+
+            // First, base addresses are never negative so correct for that possible problem.
+            if (ret.X < 0f || ret.Y < 0f)
+            {
+                if (ret.X < 0f)
+                    ret.X = 0f;
+                if (ret.Y < 0f)
+                    ret.Y = 0f;
+                DetailLog("{0},BSTerrainManager.ClampPositionToKnownTerrain,zeroingNegXorY,oldPos={1},newPos={2}",
+                                            BSScene.DetailLogZero, pPos, ret);
+            }
+            else
+            {
+                // Must be off the top of a region. Find an adjacent region to move into.
+                Vector3 adjacentTerrainBase = FindAdjacentTerrainBase(terrainBaseXYZ);
+
+                ret.X = Math.Min(ret.X, adjacentTerrainBase.X + DefaultRegionSize.X);
+                ret.Y = Math.Min(ret.Y, adjacentTerrainBase.Y + DefaultRegionSize.Y);
+                DetailLog("{0},BSTerrainManager.ClampPositionToKnownTerrain,findingAdjacentRegion,adjacentRegBase={1},oldPos={2},newPos={3}",
+                                            BSScene.DetailLogZero, adjacentTerrainBase, pPos, ret);
+            }
+            if (loopPrevention-- < 0f)
+            {
+                // The 'while' is a little dangerous so this prevents looping forever if the
+                //    mapping of the terrains ever gets messed up (like nothing at <0,0>) or
+                //    the list of terrains is in transition.
+                DetailLog("{0},BSTerrainManager.ClampPositionToKnownTerrain,suppressingFindAdjacentRegionLoop", BSScene.DetailLogZero);
+                break;
+            }
+        }
+        return ret;
+    }
+
     // Given an X and Y, find the height of the terrain.
     // Since we could be handling multiple terrains for a mega-region,
     //    the base of the region is calcuated assuming all regions are
@@ -400,18 +448,60 @@ public sealed class BSTerrainManager : IDisposable
     //    the descriptor class and the 'base' fo the addresses therein.
     private bool GetTerrainPhysicalAtXYZ(Vector3 pos, out BSTerrainPhys outPhysTerrain, out Vector3 outTerrainBase)
     {
-        int offsetX = ((int)(pos.X / (int)DefaultRegionSize.X)) * (int)DefaultRegionSize.X;
-        int offsetY = ((int)(pos.Y / (int)DefaultRegionSize.Y)) * (int)DefaultRegionSize.Y;
-        Vector3 terrainBaseXYZ = new Vector3(offsetX, offsetY, 0f);
+        bool ret = false;
+
+        Vector3 terrainBaseXYZ = Vector3.Zero;
+        if (pos.X < 0f || pos.Y < 0f)
+        {
+            // We don't handle negative addresses so just make up a base that will not be found.
+            terrainBaseXYZ = new Vector3(-DefaultRegionSize.X, -DefaultRegionSize.Y, 0f);
+        }
+        else
+        {
+            int offsetX = ((int)(pos.X / (int)DefaultRegionSize.X)) * (int)DefaultRegionSize.X;
+            int offsetY = ((int)(pos.Y / (int)DefaultRegionSize.Y)) * (int)DefaultRegionSize.Y;
+            terrainBaseXYZ = new Vector3(offsetX, offsetY, 0f);
+        }
 
         BSTerrainPhys physTerrain = null;
         lock (m_terrains)
         {
-            m_terrains.TryGetValue(terrainBaseXYZ, out physTerrain);
+            ret = m_terrains.TryGetValue(terrainBaseXYZ, out physTerrain);
         }
         outTerrainBase = terrainBaseXYZ;
         outPhysTerrain = physTerrain;
-        return (physTerrain != null);
+        return ret;
+    }
+
+    // Given a terrain base, return a terrain base for a terrain that is closer to <0,0> than
+    //   this one. Usually used to return an out of bounds object to a known place.
+    private Vector3 FindAdjacentTerrainBase(Vector3 pTerrainBase)
+    {
+        Vector3 ret = pTerrainBase;
+        ret.Z = 0f;
+        lock (m_terrains)
+        {
+            // Once down to the <0,0> region, we have to be done.
+            while (ret.X > 0f && ret.Y > 0f)
+            {
+                if (ret.X > 0f)
+                {
+                    ret.X = Math.Max(0f, ret.X - DefaultRegionSize.X);
+                    DetailLog("{0},BSTerrainManager.FindAdjacentTerrainBase,reducingX,terrainBase={1}", BSScene.DetailLogZero, ret);
+                    if (m_terrains.ContainsKey(ret))
+                        break;
+                }
+                if (ret.Y > 0f)
+                {
+                    ret.Y = Math.Max(0f, ret.Y - DefaultRegionSize.Y);
+                    DetailLog("{0},BSTerrainManager.FindAdjacentTerrainBase,reducingY,terrainBase={1}", BSScene.DetailLogZero, ret);
+                    if (m_terrains.ContainsKey(ret))
+                        break;
+                }
+            }
+        }
+
+        return ret;
     }
 
     // Although no one seems to check this, I do support combining.

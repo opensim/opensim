@@ -107,6 +107,7 @@ public static class BSParam
     public static float AvatarCapsuleDepth { get; private set; }
     public static float AvatarCapsuleHeight { get; private set; }
 	public static float AvatarContactProcessingThreshold { get; private set; }
+	public static float AvatarBelowGroundUpCorrectionMeters { get; private set; }
 	public static float AvatarStepHeight { get; private set; }
 	public static float AvatarStepApproachFactor { get; private set; }
 	public static float AvatarStepForceFactor { get; private set; }
@@ -497,6 +498,10 @@ public static class BSParam
             0.1f,
             (s) => { return AvatarContactProcessingThreshold; },
             (s,v) => { AvatarContactProcessingThreshold = v; } ),
+	    new ParameterDefn<float>("AvatarBelowGroundUpCorrectionMeters", "Meters to move avatar up if it seems to be below ground",
+            1.0f,
+            (s) => { return AvatarBelowGroundUpCorrectionMeters; },
+            (s,v) => { AvatarBelowGroundUpCorrectionMeters = v; } ),
 	    new ParameterDefn<float>("AvatarStepHeight", "Height of a step obstacle to consider step correction",
             0.3f,
             (s) => { return AvatarStepHeight; },
