@@ -148,6 +148,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         protected virtual void OnNewClient(IClientAPI client)
         {
+            client.OnTeleportCancel += OnClientCancelTeleport;
             client.OnTeleportHomeRequest += TeleportHome;
             client.OnTeleportLandmarkRequest += RequestTeleportLandmark;
         }
@@ -167,6 +168,14 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         #endregion
 
         #region Agent Teleports
+
+        private void OnClientCancelTeleport(IClientAPI client)
+        {
+            m_entityTransferStateMachine.UpdateInTransit(client.AgentId, AgentTransferState.Cancelling);
+
+            m_log.DebugFormat(
+                "[ENTITY TRANSFER MODULE]: Received teleport cancel request from {0} in {1}", client.Name, Scene.Name);
+        }
 
         public void Teleport(ScenePresence sp, ulong regionHandle, Vector3 position, Vector3 lookAt, uint teleportFlags)
         {
@@ -567,6 +576,15 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 return;
             }
 
+            if (m_entityTransferStateMachine.GetAgentTransferState(sp.UUID) == AgentTransferState.Cancelling)
+            {
+                m_log.DebugFormat(
+                    "[ENTITY TRANSFER MODULE]: Cancelled teleport of {0} to {1} from {2} after CreateAgent on client request", 
+                    sp.Name, finalDestination.RegionName, sp.Scene.Name);
+
+                return;
+            }
+
             // Past this point we have to attempt clean up if the teleport fails, so update transfer state.
             m_entityTransferStateMachine.UpdateInTransit(sp.UUID, AgentTransferState.Transferring);
 
@@ -631,7 +649,16 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 return;
             }
 
-            sp.ControllingClient.SendTeleportProgress(teleportFlags | (uint)TeleportFlags.DisableCancel, "sending_dest");
+            if (m_entityTransferStateMachine.GetAgentTransferState(sp.UUID) == AgentTransferState.Cancelling)
+            {
+                m_log.DebugFormat(
+                    "[ENTITY TRANSFER MODULE]: Cancelled teleport of {0} to {1} from {2} after UpdateAgent on client request", 
+                    sp.Name, finalDestination.RegionName, sp.Scene.Name);
+
+                CleanupAbortedInterRegionTeleport(sp, finalDestination);
+
+                return;
+            }
 
             m_log.DebugFormat(
                 "[ENTITY TRANSFER MODULE]: Sending new CAPS seed url {0} from {1} to {2}",
@@ -714,14 +741,19 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 //            }
         }
 
-        protected virtual void Fail(ScenePresence sp, GridRegion finalDestination, bool logout)
+        /// <summary>
+        /// Clean up an inter-region teleport that did not complete, either because of simulator failure or cancellation.
+        /// </summary>
+        /// <remarks>
+        /// All operations here must be idempotent so that we can call this method at any point in the teleport process
+        /// up until we send the TeleportFinish event quene event to the viewer.
+        /// <remarks>
+        /// <param name='sp'> </param>
+        /// <param name='finalDestination'></param>
+        protected virtual void CleanupAbortedInterRegionTeleport(ScenePresence sp, GridRegion finalDestination)
         {
             m_entityTransferStateMachine.UpdateInTransit(sp.UUID, AgentTransferState.CleaningUp);
 
-            // Client never contacted destination. Let's restore everything back
-            sp.ControllingClient.SendTeleportFailed("Problems connecting to destination.");
-
-            // Fail. Reset it back
             sp.IsChildAgent = false;
             ReInstantiateScripts(sp);
 
@@ -729,7 +761,20 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             // Finally, kill the agent we just created at the destination.
             Scene.SimulationService.CloseAgent(finalDestination, sp.UUID);
+        }
 
+        /// <summary>
+        /// Signal that the inter-region teleport failed and perform cleanup.
+        /// </summary>
+        /// <param name='sp'></param>
+        /// <param name='finalDestination'></param>
+        /// <param name='logout'></param>
+        protected virtual void Fail(ScenePresence sp, GridRegion finalDestination, bool logout)
+        {
+            CleanupAbortedInterRegionTeleport(sp, finalDestination);
+
+            sp.ControllingClient.SendTeleportFailed(
+                string.Format("Problems connecting to destination {0}", finalDestination.RegionName));
             sp.Scene.EventManager.TriggerTeleportFail(sp.ControllingClient, logout);
         }
 
@@ -2097,7 +2142,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         public bool IsInTransit(UUID id)
         {
-            return m_entityTransferStateMachine.IsInTransit(id);
+            return m_entityTransferStateMachine.GetAgentTransferState(id) != null;
         }
 
         protected void ReInstantiateScripts(ScenePresence sp)
