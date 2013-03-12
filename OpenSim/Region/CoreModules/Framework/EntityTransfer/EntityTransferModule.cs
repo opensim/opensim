@@ -66,6 +66,17 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         /// </summary>
         public bool WaitForAgentArrivedAtDestination { get; set; }
 
+        /// <summary>
+        /// If true then we ask the viewer to disable teleport cancellation and ignore teleport requests.
+        /// </summary>
+        /// <remarks>
+        /// This is useful in situations where teleport is very likely to always succeed and we want to avoid a 
+        /// situation where avatars can be come 'stuck' due to a failed teleport cancellation.  Unfortunately, the
+        /// nature of the teleport protocol makes it extremely difficult (maybe impossible) to make teleport 
+        /// cancellation consistently suceed.
+        /// </remarks>
+        public bool DisableInterRegionTeleportCancellation { get; set; }
+
         protected bool m_Enabled = false;
 
         public Scene Scene { get; private set; }
@@ -116,6 +127,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             IConfig transferConfig = source.Configs["EntityTransfer"];
             if (transferConfig != null)
             {
+                DisableInterRegionTeleportCancellation 
+                    = transferConfig.GetBoolean("DisableInterRegionTeleportCancellation", false);
+
                 WaitForAgentArrivedAtDestination
                     = transferConfig.GetBoolean("wait_for_callback", WaitForAgentArrivedAtDestinationDefault);
                 
@@ -148,9 +162,11 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         protected virtual void OnNewClient(IClientAPI client)
         {
-            client.OnTeleportCancel += OnClientCancelTeleport;
             client.OnTeleportHomeRequest += TeleportHome;
             client.OnTeleportLandmarkRequest += RequestTeleportLandmark;
+
+            if (!DisableInterRegionTeleportCancellation)
+                client.OnTeleportCancel += OnClientCancelTeleport;
         }
 
         public virtual void Close() {}
@@ -527,6 +543,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // both regions
             if (sp.ParentID != (uint)0)
                 sp.StandUp();
+
+            if (DisableInterRegionTeleportCancellation)
+                teleportFlags |= (uint)TeleportFlags.DisableCancel;
 
             // At least on LL 3.3.4, this is not strictly necessary - a teleport will succeed without sending this to
             // the viewer.  However, it might mean that the viewer does not see the black teleport screen (untested).
