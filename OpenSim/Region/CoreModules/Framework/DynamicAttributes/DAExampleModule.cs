@@ -85,19 +85,27 @@ namespace OpenSim.Region.Framework.DynamicAttributes.DAExampleModule
         {
             OSDMap attrs = null;
             SceneObjectPart sop = m_scene.GetSceneObjectPart(groupId);
+
+            if (sop == null)
+                return true;
+
             if (!sop.DynAttrs.TryGetValue(Name, out attrs))
                 attrs = new OSDMap();
             
             OSDInteger newValue;
-                
-            if (!attrs.ContainsKey("moves"))
-                newValue = new OSDInteger(1);
-            else
-                newValue = new OSDInteger(((OSDInteger)attrs["moves"]).AsInteger() + 1);
-                    
-            attrs["moves"] = newValue;
 
-            sop.DynAttrs[Name] = attrs;
+            // We have to lock on the entire dynamic attributes map to avoid race conditions with serialization code.
+            lock (sop.DynAttrs)            
+            {
+                if (!attrs.ContainsKey("moves"))
+                    newValue = new OSDInteger(1);
+                else
+                    newValue = new OSDInteger(attrs["moves"].AsInteger() + 1);
+                        
+                attrs["moves"] = newValue;
+
+                sop.DynAttrs[Name] = attrs;
+            }
     
             m_dialogMod.SendGeneralAlert(string.Format("{0} {1} moved {2} times", sop.Name, sop.UUID, newValue));
             
