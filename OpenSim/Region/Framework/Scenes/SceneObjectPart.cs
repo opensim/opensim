@@ -129,6 +129,27 @@ namespace OpenSim.Region.Framework.Scenes
         /// Dynamic attributes can be created and deleted as required.
         /// </summary>
         public DAMap DynAttrs { get; set; }
+
+        private DOMap m_dynObjs;
+
+        /// <summary>
+        /// Dynamic objects that can be created and deleted as required.
+        /// </summary>
+        public DOMap DynObjs 
+        { 
+            get
+            {
+                if (m_dynObjs == null)
+                    m_dynObjs = new DOMap();
+
+                return m_dynObjs;
+            }
+
+            set
+            {
+                m_dynObjs = value;
+            }
+        }
         
         /// <value>
         /// Is this a root part?
@@ -348,6 +369,7 @@ namespace OpenSim.Region.Framework.Scenes
             Rezzed = DateTime.UtcNow;
             Description = String.Empty;
             DynAttrs = new DAMap();
+            DynObjs = new DOMap();
 
             // Prims currently only contain a single folder (Contents).  From looking at the Second Life protocol,
             // this appears to have the same UUID (!) as the prim.  If this isn't the case, one can't drag items from
