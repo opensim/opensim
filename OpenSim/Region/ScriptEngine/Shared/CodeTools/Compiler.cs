@@ -662,13 +662,18 @@ namespace SecondLife
                 {
                     string severity = CompErr.IsWarning ? "Warning" : "Error";
 
-                    KeyValuePair<int, int> lslPos;
+                    KeyValuePair<int, int> errorPos;
 
                     // Show 5 errors max, but check entire list for errors
 
                     if (severity == "Error")
                     {
-                        lslPos = FindErrorPosition(CompErr.Line, CompErr.Column, m_lineMaps[assembly]);
+                        // C# scripts will not have a linemap since theres no line translation involved.
+                        if (!m_lineMaps.ContainsKey(assembly))
+                            errorPos = new KeyValuePair<int, int>(CompErr.Line, CompErr.Column);
+                        else
+                            errorPos = FindErrorPosition(CompErr.Line, CompErr.Column, m_lineMaps[assembly]);
+
                         string text = CompErr.ErrorText;
 
                         // Use LSL type names
@@ -678,7 +683,7 @@ namespace SecondLife
                         // The Second Life viewer's script editor begins
                         // countingn lines and columns at 0, so we subtract 1.
                         errtext += String.Format("({0},{1}): {4} {2}: {3}\n",
-                                lslPos.Key - 1, lslPos.Value - 1,
+                                errorPos.Key - 1, errorPos.Value - 1,
                                 CompErr.ErrorNumber, text, severity);
                         hadErrors = true;
                     }
