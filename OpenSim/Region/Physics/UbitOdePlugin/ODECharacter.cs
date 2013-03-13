@@ -1014,8 +1014,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 offset.Y += contact.pos.Y;
                 offset.Z += contact.pos.Z;
 
-                _position = offset;
-                return false;
+                //_position = offset;
+                //return false;
             }
 
             offset.X = contact.pos.X - _position.X;
