@@ -537,6 +537,13 @@
     ; shout_distance = 100
 
 
+[EntityTransfer]
+    ;# {DisableInterRegionTeleportCancellation} {} {Determine whether the cancel button is shown at all during teleports.} {false true} false
+    ;; This option exists because cancelling at certain points can result in an unuseable session (frozen avatar, etc.)
+    ;; Disabling cancellation can be okay in small closed grids where all teleports are highly likely to suceed.
+    ;DisableInterRegionTeleportCancellation = false
+
+
 [Messaging]
     ;# {OfflineMessageModule} {} {Module to use for offline message storage} {OfflineMessageModule "Offline Message Module V2" *}
     ;; Module to handle offline messaging. The core module requires an external

@@ -209,7 +209,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
                     += (itemId, evp) => m_lslApi.llHTTPResponse(evp.Params[0].ToString(), 200, testResponse);
 
 //                Console.WriteLine("Trying {0}", returnedUri);
-                HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(returnedUri);
 
                 AssertHttpResponse(returnedUri, testResponse);
 

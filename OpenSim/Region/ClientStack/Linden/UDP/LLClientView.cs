@@ -7206,7 +7206,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if (handlerUpdatePrimFlags != null)
             {
-                byte[] data = Pack.ToBytes();
+//                byte[] data = Pack.ToBytes();
                 // 46,47,48 are special positions within the packet
                 // This may change so perhaps we need a better way
                 // of storing this (OMV.FlagUpdatePacket.UsePhysics,etc?)

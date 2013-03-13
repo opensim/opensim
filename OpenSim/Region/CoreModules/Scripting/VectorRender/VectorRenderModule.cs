@@ -516,6 +516,9 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                 foreach (string line in GetLines(data, dataDelim))
                 {
                     string nextLine = line.Trim();
+
+//                    m_log.DebugFormat("[VECTOR RENDER MODULE]: Processing line '{0}'", nextLine);
+
                     //replace with switch, or even better, do some proper parsing
                     if (nextLine.StartsWith("MoveTo"))
                     {
@@ -829,6 +832,8 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                     float y = Convert.ToSingle(yVal, CultureInfo.InvariantCulture);
                     PointF point = new PointF(x, y);
                     points[i / 2] = point;
+
+//                    m_log.DebugFormat("[VECTOR RENDER MODULE]: Got point {0}", points[i / 2]);
                 }
             }
         }

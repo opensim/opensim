@@ -49,8 +49,10 @@ namespace OpenSim.Region.ClientStack.Linden.Tests
         private TestScene m_scene;
 
         [SetUp]
-        public void SetUp()
+        public override void SetUp()
         {
+            base.SetUp();
+
             uint port = 9999;
             uint sslPort = 9998;
 
