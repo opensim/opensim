@@ -369,7 +369,6 @@ namespace OpenSim.Region.Framework.Scenes
             Rezzed = DateTime.UtcNow;
             Description = String.Empty;
             DynAttrs = new DAMap();
-            DynObjs = new DOMap();
 
             // Prims currently only contain a single folder (Contents).  From looking at the Second Life protocol,
             // this appears to have the same UUID (!) as the prim.  If this isn't the case, one can't drag items from
