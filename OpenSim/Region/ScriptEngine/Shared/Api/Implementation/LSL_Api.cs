@@ -2174,7 +2174,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         if ((avatar.AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_MOUSELOOK) != 0)
                             q = avatar.CameraRotation; // Mouselook
                         else
-                            q = avatar.Rotation; // Currently infrequently updated so may be inaccurate
+                            q = avatar.GetWorldRotation(); // Currently infrequently updated so may be inaccurate
                     }
                     else
                         q = part.ParentGroup.GroupRotation; // Likely never get here but just in case
@@ -7831,7 +7831,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if ((avatar.AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_MOUSELOOK) != 0)
                         q = avatar.CameraRotation; // Mouselook
                     else
-                        q = avatar.Rotation; // Currently infrequently updated so may be inaccurate
+                        q = avatar.GetWorldRotation(); // Currently infrequently updated so may be inaccurate
                 else
                     q = m_host.ParentGroup.GroupRotation; // Likely never get here but just in case
             }
