@@ -141,6 +141,27 @@ namespace OpenSim.Region.Framework.Scenes
         /// Dynamic attributes can be created and deleted as required.
         /// </summary>
         public DAMap DynAttrs { get; set; }
+
+        private DOMap m_dynObjs;
+
+        /// <summary>
+        /// Dynamic objects that can be created and deleted as required.
+        /// </summary>
+        public DOMap DynObjs 
+        { 
+            get
+            {
+                if (m_dynObjs == null)
+                    m_dynObjs = new DOMap();
+
+                return m_dynObjs;
+            }
+
+            set
+            {
+                m_dynObjs = value;
+            }
+        }
         
         /// <value>
         /// Is this a root part?

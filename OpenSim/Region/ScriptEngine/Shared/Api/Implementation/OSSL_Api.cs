@@ -2641,18 +2641,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 UUID npcId;
                 if (!UUID.TryParse(npc.m_string, out npcId))
-                    return new LSL_Rotation(Quaternion.Identity.X, Quaternion.Identity.Y, Quaternion.Identity.Z, Quaternion.Identity.W);
+                    return new LSL_Rotation(Quaternion.Identity);
 
                 if (!npcModule.CheckPermissions(npcId, m_host.OwnerID))
-                    return new LSL_Rotation(Quaternion.Identity.X, Quaternion.Identity.Y, Quaternion.Identity.Z, Quaternion.Identity.W);
+                    return new LSL_Rotation(Quaternion.Identity);
 
                 ScenePresence sp = World.GetScenePresence(npcId);
 
                 if (sp != null)
-                {
-                    Quaternion rot = sp.Rotation;
-                    return new LSL_Rotation(rot.X, rot.Y, rot.Z, rot.W);
-                }
+                    return new LSL_Rotation(sp.GetWorldRotation());
             }
 
             return new LSL_Rotation(Quaternion.Identity.X, Quaternion.Identity.Y, Quaternion.Identity.Z, Quaternion.Identity.W);

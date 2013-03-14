@@ -2441,14 +2441,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         if ((avatar.AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_MOUSELOOK) != 0)
                             q = avatar.CameraRotation; // Mouselook
                         else
-                            q = avatar.Rotation; // Currently infrequently updated so may be inaccurate
+                            q = avatar.GetWorldRotation(); // Currently infrequently updated so may be inaccurate
                     }
                     else
                         q = part.ParentGroup.GroupRotation; // Likely never get here but just in case
                 }
                 else
                     q = part.ParentGroup.GroupRotation; // just the group rotation
-                return new LSL_Rotation(q.X, q.Y, q.Z, q.W);
+
+                return new LSL_Rotation(q);
             }
 
             q = part.GetWorldRotation();
@@ -2572,8 +2573,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Vector llGetTorque()
         {
             m_host.AddScriptLPS(1);
-            Vector3 torque = m_host.ParentGroup.GetTorque();
-            return new LSL_Vector(torque.X,torque.Y,torque.Z);
+
+            return new LSL_Vector(m_host.ParentGroup.GetTorque());
         }
 
         public void llSetForceAndTorque(LSL_Vector force, LSL_Vector torque, int local)
@@ -2606,13 +2607,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 vel = m_host.ParentGroup.RootPart.Velocity;
             }
 
-            return new LSL_Vector(vel.X, vel.Y, vel.Z);
+            return new LSL_Vector(vel);
         }
 
         public LSL_Vector llGetAccel()
         {
             m_host.AddScriptLPS(1);
-            return new LSL_Vector(m_host.Acceleration.X, m_host.Acceleration.Y, m_host.Acceleration.Z);
+
+            return new LSL_Vector(m_host.Acceleration);
         }
 
         public void llSetAngularVelocity(LSL_Vector avel, int local)
@@ -3447,14 +3449,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             msg.offline = (byte)0; //offline;
             msg.ParentEstateID = World.RegionInfo.EstateSettings.EstateID;
             msg.Position = new Vector3(m_host.AbsolutePosition);
-            msg.RegionID = World.RegionInfo.RegionID.Guid;
+            msg.RegionID = World.RegionInfo.RegionID.Guid;//RegionID.Guid;
+
+            Vector3 pos = m_host.AbsolutePosition;
             msg.binaryBucket 
                 = Util.StringToBytes256(
                     "{0}/{1}/{2}/{3}", 
                     World.RegionInfo.RegionName, 
-                    (int)Math.Floor(m_host.AbsolutePosition.X), 
-                    (int)Math.Floor(m_host.AbsolutePosition.Y), 
-                    (int)Math.Floor(m_host.AbsolutePosition.Z));
+                    (int)Math.Floor(pos.X), 
+                    (int)Math.Floor(pos.Y), 
+                    (int)Math.Floor(pos.Z));
 
             if (m_TransferModule != null)
             {
@@ -4594,9 +4598,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if (destination == String.Empty)
                         destination = World.RegionInfo.RegionName;
 
+                    Vector3 pos = presence.AbsolutePosition;
+
                     // agent must be over the owners land
-                    if (m_host.OwnerID == World.LandChannel.GetLandObject(
-                            presence.AbsolutePosition.X, presence.AbsolutePosition.Y).LandData.OwnerID)
+                    if (m_host.OwnerID == World.LandChannel.GetLandObject(pos.X, pos.Y).LandData.OwnerID)
                     {
                         DoLLTeleport(presence, destination, targetPos, targetLookAt);
                     }
@@ -4626,9 +4631,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     // agent must not be a god
                     if (presence.GodLevel >= 200) return;
 
+                    Vector3 pos = presence.AbsolutePosition;
+
                     // agent must be over the owners land
-                    if (m_host.OwnerID == World.LandChannel.GetLandObject(
-                            presence.AbsolutePosition.X, presence.AbsolutePosition.Y).LandData.OwnerID)
+                    if (m_host.OwnerID == World.LandChannel.GetLandObject(pos.X, pos.Y).LandData.OwnerID)
                     {
                         World.RequestTeleportLocation(presence.ControllingClient, regionHandle, targetPos, targetLookAt, (uint)TeleportFlags.ViaLocation);
                     }
@@ -5282,8 +5288,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Vector llGetCenterOfMass()
         {
             m_host.AddScriptLPS(1);
-            Vector3 center = m_host.GetCenterOfMass();
-            return new LSL_Vector(center.X,center.Y,center.Z);
+
+            return new LSL_Vector(m_host.GetCenterOfMass());
         }
 
         public LSL_List llListSort(LSL_List src, int stride, int ascending)
@@ -6302,15 +6308,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 ScenePresence presence = World.GetScenePresence(agentID);
                 if (presence != null)
                 {
+                    Vector3 pos = presence.AbsolutePosition;
+
                     // agent must be over the owners land
-                    ILandObject land = World.LandChannel.GetLandObject(presence.AbsolutePosition.X, presence.AbsolutePosition.Y);
+                    ILandObject land = World.LandChannel.GetLandObject(pos.X, pos.Y);
                     if (land == null)
                         return;
 
                     if (m_host.OwnerID == land.LandData.OwnerID)
                     {
-                        Vector3 pos = World.GetNearestAllowedPosition(presence, land);
-                        presence.TeleportWithMomentum(pos, null);
+                        Vector3 p = World.GetNearestAllowedPosition(presence, land);
+                        presence.TeleportWithMomentum(p, null);
                         presence.ControllingClient.SendAlertMessage("You have been ejected from this land");
                     }
                 }
@@ -6332,19 +6340,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 ScenePresence presence = World.GetScenePresence(key);
                 if (presence != null) // object is an avatar
                 {
-                    if (m_host.OwnerID
-                        == World.LandChannel.GetLandObject(
-                            presence.AbsolutePosition.X, presence.AbsolutePosition.Y).LandData.OwnerID)
+                    Vector3 pos = presence.AbsolutePosition;
+
+                    if (m_host.OwnerID == World.LandChannel.GetLandObject(pos.X, pos.Y).LandData.OwnerID)
                         return 1;
                 }
                 else // object is not an avatar
                 {
                     SceneObjectPart obj = World.GetSceneObjectPart(key);
+
                     if (obj != null)
-                        if (m_host.OwnerID
-                            == World.LandChannel.GetLandObject(
-                                obj.AbsolutePosition.X, obj.AbsolutePosition.Y).LandData.OwnerID)
+                    {
+                        Vector3 pos = obj.AbsolutePosition;
+
+                        if (m_host.OwnerID == World.LandChannel.GetLandObject(pos.X, pos.Y).LandData.OwnerID)
                             return 1;
+                    }
                 }
             }
 
@@ -6453,7 +6464,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         // or
                         // if the object is owned by a person with estate access.
 
-                        ILandObject parcel = World.LandChannel.GetLandObject(av.AbsolutePosition.X, av.AbsolutePosition.Y);
+                        Vector3 pos = av.AbsolutePosition;
+
+                        ILandObject parcel = World.LandChannel.GetLandObject(pos.X, pos.Y);
                         if (parcel != null)
                         {
                             if (m_host.OwnerID == parcel.LandData.OwnerID ||
@@ -6465,14 +6478,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         }
                     }
                 }
-
             }
-
         }
 
         public LSL_Vector llGroundSlope(LSL_Vector offset)
         {
             m_host.AddScriptLPS(1);
+
             //Get the slope normal.  This gives us the equation of the plane tangent to the slope.
             LSL_Vector vsn = llGroundNormal(offset);
 
@@ -6483,7 +6495,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             vsl.Normalize();
             //Normalization might be overkill here
 
-            return new LSL_Vector(vsl.X, vsl.Y, vsl.Z);
+            vsn.x = vsl.X;
+            vsn.y = vsl.Y;
+            vsn.z = vsl.Z;
+
+            return vsn;
         }
 
         public LSL_Vector llGroundNormal(LSL_Vector offset)
@@ -6533,7 +6549,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             //I believe the crossproduct of two normalized vectors is a normalized vector so
             //this normalization may be overkill
 
-            return new LSL_Vector(vsn.X, vsn.Y, vsn.Z);
+            return new LSL_Vector(vsn);
         }
 
         public LSL_Vector llGroundContour(LSL_Vector offset)
@@ -7037,7 +7053,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             UUID key;
-            ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y);
+            Vector3 pos = m_host.AbsolutePosition;
+
+            ILandObject land = World.LandChannel.GetLandObject(pos.X, pos.Y);
             if (World.Permissions.CanEditParcelProperties(m_host.OwnerID, land, GroupPowers.LandManageBanned))
             {
                 int expires = 0;
@@ -8474,7 +8492,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y);
+            Vector3 pos = m_host.AbsolutePosition;
+            ILandObject land = World.LandChannel.GetLandObject(pos.X, pos.Y);
 
             if (land.LandData.OwnerID != m_host.OwnerID)
                 return;
@@ -8488,7 +8507,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y);
+            Vector3 pos = m_host.AbsolutePosition;
+            ILandObject land = World.LandChannel.GetLandObject(pos.X, pos.Y);
 
             if (land.LandData.OwnerID != m_host.OwnerID)
                 return String.Empty;
@@ -8499,8 +8519,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Vector llGetRootPosition()
         {
             m_host.AddScriptLPS(1);
-            return new LSL_Vector(m_host.ParentGroup.AbsolutePosition.X, m_host.ParentGroup.AbsolutePosition.Y,
-                                  m_host.ParentGroup.AbsolutePosition.Z);
+
+            return new LSL_Vector(m_host.ParentGroup.AbsolutePosition);
         }
 
         /// <summary>
@@ -8523,13 +8543,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if ((avatar.AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_MOUSELOOK) != 0)
                         q = avatar.CameraRotation; // Mouselook
                     else
-                        q = avatar.Rotation; // Currently infrequently updated so may be inaccurate
+                        q = avatar.GetWorldRotation(); // Currently infrequently updated so may be inaccurate
                 else
                     q = m_host.ParentGroup.GroupRotation; // Likely never get here but just in case
             }
             else
                 q = m_host.ParentGroup.GroupRotation; // just the group rotation
-            return new LSL_Rotation(q.X, q.Y, q.Z, q.W);
+
+            return new LSL_Rotation(q);
         }
 
         public LSL_String llGetObjectDesc()
