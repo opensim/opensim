@@ -4877,8 +4877,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Vector llGetCenterOfMass()
         {
             m_host.AddScriptLPS(1);
-            Vector3 center = m_host.GetCenterOfMass();
-            return new LSL_Vector(center.X,center.Y,center.Z);
+
+            return new LSL_Vector(m_host.GetCenterOfMass());
         }
 
         public LSL_List llListSort(LSL_List src, int stride, int ascending)
