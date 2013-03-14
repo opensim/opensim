@@ -3014,20 +3014,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             UUID avatarId = new UUID(avatar);
             ScenePresence presence = World.GetScenePresence(avatarId);
-            Vector3 pos = m_host.GetWorldPosition();
-            bool result = World.ScriptDanger(m_host.LocalId, new Vector3((float)pos.X, (float)pos.Y, (float)pos.Z));
-            if (result)
+
+            if (presence != null && World.ScriptDanger(m_host.LocalId, m_host.GetWorldPosition()))
             {
-                if (presence != null)
-                {
-                    float health = presence.Health;
-                    health += (float)healing;
-                    if (health >= 100)
-                    {
-                        health = 100;
-                    }
-                    presence.setHealthWithUpdate(health);
-                }
+                float health = presence.Health;
+                health += (float)healing;
+
+                if (health >= 100)
+                    health = 100;
+
+                presence.setHealthWithUpdate(health);
             }
         }
 
