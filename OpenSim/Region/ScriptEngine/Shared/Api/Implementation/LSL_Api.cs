@@ -9939,21 +9939,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
 
             if (m_item.PermsGranter == UUID.Zero)
-               return new LSL_Rotation();
+                return Quaternion.Identity;
 
             if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_TRACK_CAMERA) == 0)
             {
                 ShoutError("No permissions to track the camera");
-                return new LSL_Rotation();
+                return Quaternion.Identity;
             }
 
             ScenePresence presence = World.GetScenePresence(m_host.OwnerID);
             if (presence != null)
             {
-                return new LSL_Rotation(presence.CameraRotation.X, presence.CameraRotation.Y, presence.CameraRotation.Z, presence.CameraRotation.W);
+                return new LSL_Rotation(presence.CameraRotation);
             }
 
-            return new LSL_Rotation();
+            return Quaternion.Identity;
         }
 
         /// <summary>
