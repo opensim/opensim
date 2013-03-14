@@ -559,16 +559,28 @@ namespace OpenSim.Region.Framework.Scenes
 
         private Quaternion m_bodyRot = Quaternion.Identity;
 
+        /// <summary>
+        /// The rotation of the avatar.
+        /// </summary>
+        /// <remarks>
+        /// If the avatar is not sitting, this is with respect to the world
+        /// If the avatar is sitting, this is a with respect to the part that it's sitting upon (a local rotation).
+        /// If you always want the world rotation, use GetWorldRotation()
+        /// </remarks>
         public Quaternion Rotation
         {
-            get { return m_bodyRot; }
+            get 
+            { 
+                return m_bodyRot; 
+            }
+
             set
             {
                 m_bodyRot = value;
+
                 if (PhysicsActor != null)
-                {
                     PhysicsActor.Orientation = m_bodyRot;
-                }
+
 //                m_log.DebugFormat("[SCENE PRESENCE]: Body rot for {0} set to {1}", Name, m_bodyRot);
             }
         }
@@ -606,6 +618,26 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get { return m_health; }
             set { m_health = value; }
+        }
+
+        /// <summary>
+        /// Gets the world rotation of this presence.
+        /// </summary>
+        /// <remarks>
+        /// Unlike Rotation, this returns the world rotation no matter whether the avatar is sitting on a prim or not.
+        /// </remarks>
+        /// <returns></returns>
+        public Quaternion GetWorldRotation()
+        {
+            if (IsSatOnObject)
+            {
+                SceneObjectPart sitPart = ParentPart;
+
+                if (sitPart != null)
+                    return sitPart.GetWorldRotation() * Rotation;
+            }
+
+            return Rotation;
         }
 
         public void AdjustKnownSeeds()
@@ -708,8 +740,6 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         #endregion
-
-
 
         #region Constructor(s)
 
