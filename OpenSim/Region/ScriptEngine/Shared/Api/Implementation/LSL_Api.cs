@@ -2327,7 +2327,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Vector llGetOmega()
         {
             m_host.AddScriptLPS(1);
-            return new LSL_Vector(m_host.AngularVelocity.X, m_host.AngularVelocity.Y, m_host.AngularVelocity.Z);
+
+            return new LSL_Vector(m_host.AngularVelocity);
         }
 
         public LSL_Float llGetTimeOfDay()
