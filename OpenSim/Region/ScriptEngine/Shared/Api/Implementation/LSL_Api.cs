@@ -6071,7 +6071,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             //I believe the crossproduct of two normalized vectors is a normalized vector so
             //this normalization may be overkill
 
-            return new LSL_Vector(vsn.X, vsn.Y, vsn.Z);
+            return new LSL_Vector(vsn);
         }
 
         public LSL_Vector llGroundContour(LSL_Vector offset)
