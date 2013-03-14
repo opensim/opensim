@@ -2513,13 +2513,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 ScenePresence sp = World.GetScenePresence(npcId);
 
                 if (sp != null)
-                {
-                    Vector3 pos = sp.AbsolutePosition;
-                    return new LSL_Vector(pos.X, pos.Y, pos.Z);
-                }
+                    return new LSL_Vector(sp.AbsolutePosition);
             }
 
-            return new LSL_Vector(0, 0, 0);
+            return Vector3.Zero;
         }
 
         public void osNpcMoveTo(LSL_Key npc, LSL_Vector pos)
@@ -2587,7 +2584,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return new LSL_Rotation(sp.GetWorldRotation());
             }
 
-            return new LSL_Rotation(Quaternion.Identity.X, Quaternion.Identity.Y, Quaternion.Identity.Z, Quaternion.Identity.W);
+            return Quaternion.Identity;
         }
 
         public void osNpcSetRot(LSL_Key npc, LSL_Rotation rotation)
