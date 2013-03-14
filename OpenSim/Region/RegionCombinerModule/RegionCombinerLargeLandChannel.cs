@@ -68,6 +68,11 @@ public class RegionCombinerLargeLandChannel : ILandChannel
             RootRegionLandChannel.Clear(setupDefaultParcel);
         }
 
+        public ILandObject GetLandObject(Vector3 position)
+        {
+            return GetLandObject(position.X, position.Y);
+        }
+
         public ILandObject GetLandObject(int x, int y)
         {
             //m_log.DebugFormat("[BIGLANDTESTINT]: <{0},{1}>", x, y);
