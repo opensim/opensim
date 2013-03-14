@@ -9916,21 +9916,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
 
             if (m_item.PermsGranter == UUID.Zero)
-               return new LSL_Vector();
+                return Vector3.Zero;
 
             if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_TRACK_CAMERA) == 0)
             {
                 ShoutError("No permissions to track the camera");
-                return new LSL_Vector();
+                return Vector3.Zero;
             }
 
             ScenePresence presence = World.GetScenePresence(m_host.OwnerID);
             if (presence != null)
             {
-                LSL_Vector pos = new LSL_Vector(presence.CameraPosition.X, presence.CameraPosition.Y, presence.CameraPosition.Z);
+                LSL_Vector pos = new LSL_Vector(presence.CameraPosition);
                 return pos;
             }
-            return new LSL_Vector();
+
+            return Vector3.Zero;
         }
 
         public LSL_Rotation llGetCameraRot()
