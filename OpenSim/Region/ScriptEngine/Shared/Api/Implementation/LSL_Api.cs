@@ -2181,10 +2181,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
                 else
                     q = part.ParentGroup.GroupRotation; // just the group rotation
-                return new LSL_Rotation(q.X, q.Y, q.Z, q.W);
+
+                return new LSL_Rotation(q);
             }
-            q = part.GetWorldRotation();
-            return new LSL_Rotation(q.X, q.Y, q.Z, q.W);
+
+            return new LSL_Rotation(part.GetWorldRotation());
         }
 
         public LSL_Rotation llGetLocalRot()
