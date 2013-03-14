@@ -4202,9 +4202,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if (destination == String.Empty)
                         destination = World.RegionInfo.RegionName;
 
+                    Vector3 pos = presence.AbsolutePosition;
+
                     // agent must be over the owners land
-                    if (m_host.OwnerID == World.LandChannel.GetLandObject(
-                            presence.AbsolutePosition.X, presence.AbsolutePosition.Y).LandData.OwnerID)
+                    if (m_host.OwnerID == World.LandChannel.GetLandObject(pos.X, pos.Y).LandData.OwnerID)
                     {
                         DoLLTeleport(presence, destination, targetPos, targetLookAt);
                     }
@@ -4234,9 +4235,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     // agent must not be a god
                     if (presence.GodLevel >= 200) return;
 
+                    Vector3 pos = presence.AbsolutePosition;
+
                     // agent must be over the owners land
-                    if (m_host.OwnerID == World.LandChannel.GetLandObject(
-                            presence.AbsolutePosition.X, presence.AbsolutePosition.Y).LandData.OwnerID)
+                    if (m_host.OwnerID == World.LandChannel.GetLandObject(pos.X, pos.Y).LandData.OwnerID)
                     {
                         World.RequestTeleportLocation(presence.ControllingClient, regionHandle, targetPos, targetLookAt, (uint)TeleportFlags.ViaLocation);
                     }
@@ -5865,8 +5867,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 ScenePresence presence = World.GetScenePresence(agentID);
                 if (presence != null)
                 {
+                    Vector3 pos = presence.AbsolutePosition;
+
                     // agent must be over the owners land
-                    ILandObject land = World.LandChannel.GetLandObject(presence.AbsolutePosition.X, presence.AbsolutePosition.Y);
+                    ILandObject land = World.LandChannel.GetLandObject(pos.X, pos.Y);
                     if (land == null)
                         return;
 
@@ -5888,19 +5892,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 ScenePresence presence = World.GetScenePresence(key);
                 if (presence != null) // object is an avatar
                 {
-                    if (m_host.OwnerID
-                        == World.LandChannel.GetLandObject(
-                            presence.AbsolutePosition.X, presence.AbsolutePosition.Y).LandData.OwnerID)
+                    Vector3 pos = presence.AbsolutePosition;
+
+                    if (m_host.OwnerID == World.LandChannel.GetLandObject(pos.X, pos.Y).LandData.OwnerID)
                         return 1;
                 }
                 else // object is not an avatar
                 {
                     SceneObjectPart obj = World.GetSceneObjectPart(key);
+
                     if (obj != null)
-                        if (m_host.OwnerID
-                            == World.LandChannel.GetLandObject(
-                                obj.AbsolutePosition.X, obj.AbsolutePosition.Y).LandData.OwnerID)
+                    {
+                        Vector3 pos = obj.AbsolutePosition;
+
+                        if (m_host.OwnerID == World.LandChannel.GetLandObject(pos.X, pos.Y).LandData.OwnerID)
                             return 1;
+                    }
                 }
             }
 
@@ -5979,7 +5986,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         // or
                         // if the object is owned by a person with estate access.
 
-                        ILandObject parcel = World.LandChannel.GetLandObject(av.AbsolutePosition.X, av.AbsolutePosition.Y);
+                        Vector3 pos = av.AbsolutePosition;
+
+                        ILandObject parcel = World.LandChannel.GetLandObject(pos.X, pos.Y);
                         if (parcel != null)
                         {
                             if (m_host.OwnerID == parcel.LandData.OwnerID ||
@@ -5991,9 +6000,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         }
                     }
                 }
-
             }
-
         }
 
         public LSL_Vector llGroundSlope(LSL_Vector offset)
