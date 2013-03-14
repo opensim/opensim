@@ -2320,7 +2320,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Vector llGetAccel()
         {
             m_host.AddScriptLPS(1);
-            return new LSL_Vector(m_host.Acceleration.X, m_host.Acceleration.Y, m_host.Acceleration.Z);
+
+            return new LSL_Vector(m_host.Acceleration);
         }
 
         public LSL_Vector llGetOmega()
