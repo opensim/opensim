@@ -2191,7 +2191,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Rotation llGetLocalRot()
         {
             m_host.AddScriptLPS(1);
-            return new LSL_Rotation(m_host.RotationOffset.X, m_host.RotationOffset.Y, m_host.RotationOffset.Z, m_host.RotationOffset.W);
+
+            return new LSL_Rotation(m_host.RotationOffset);
         }
 
         public void llSetForce(LSL_Vector force, int local)
