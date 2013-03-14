@@ -180,7 +180,7 @@ namespace OpenSim.Framework
         /// Validate the key used for storing separate data stores.
         /// </summary>
         /// <param name='key'></param>
-        private static void ValidateKey(string key)
+        public static void ValidateKey(string key)
         {
             if (key.Length < MIN_STORE_NAME_LENGTH)
                 throw new Exception("Minimum store name length is " + MIN_STORE_NAME_LENGTH);
