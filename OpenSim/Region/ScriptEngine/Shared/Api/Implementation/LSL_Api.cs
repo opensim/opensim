@@ -9595,7 +9595,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             // according to the docs, this command only works if script owner and land owner are the same
             // lets add estate owners and gods, too, and use the generic permission check.
-            ILandObject landObject = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y);
+            Vector3 pos = m_host.AbsolutePosition;
+
+            ILandObject landObject = World.LandChannel.GetLandObject(pos.X, pos.Y);
             if (!World.Permissions.CanEditParcelProperties(m_host.OwnerID, landObject, GroupPowers.ChangeMedia)) return;
 
             bool update = false; // send a ParcelMediaUpdate (and possibly change the land's media URL)?
