@@ -6006,6 +6006,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Vector llGroundSlope(LSL_Vector offset)
         {
             m_host.AddScriptLPS(1);
+
             //Get the slope normal.  This gives us the equation of the plane tangent to the slope.
             LSL_Vector vsn = llGroundNormal(offset);
 
@@ -6016,7 +6017,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             vsl.Normalize();
             //Normalization might be overkill here
 
-            return new LSL_Vector(vsl.X, vsl.Y, vsl.Z);
+            vsn.x = vsl.X;
+            vsn.y = vsl.Y;
+            vsn.z = vsl.Z;
+
+            return vsn;
         }
 
         public LSL_Vector llGroundNormal(LSL_Vector offset)
