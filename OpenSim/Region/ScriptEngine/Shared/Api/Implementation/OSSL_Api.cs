@@ -3100,8 +3100,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (avatar != null && avatar.UUID != m_host.OwnerID)
                 {
                     result.Add(new LSL_String(avatar.UUID.ToString()));
-                    OpenMetaverse.Vector3 ap = avatar.AbsolutePosition;
-                    result.Add(new LSL_Vector(ap.X, ap.Y, ap.Z));
+                    result.Add(new LSL_Vector(avatar.AbsolutePosition));
                     result.Add(new LSL_String(avatar.Name));
                 }
             });
