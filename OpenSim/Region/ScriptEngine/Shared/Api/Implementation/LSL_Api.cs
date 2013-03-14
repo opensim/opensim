@@ -7829,8 +7829,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Vector llGetRootPosition()
         {
             m_host.AddScriptLPS(1);
-            return new LSL_Vector(m_host.ParentGroup.AbsolutePosition.X, m_host.ParentGroup.AbsolutePosition.Y,
-                                  m_host.ParentGroup.AbsolutePosition.Z);
+
+            return new LSL_Vector(m_host.ParentGroup.AbsolutePosition);
         }
 
         /// <summary>
