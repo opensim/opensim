@@ -11462,7 +11462,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     list.Add(new LSL_Integer(linkNum));
 
                 if ((dataFlags & ScriptBaseClass.RC_GET_NORMAL) == ScriptBaseClass.RC_GET_NORMAL)
-                    list.Add(new LSL_Vector(result.Normal.X, result.Normal.Y, result.Normal.Z));
+                    list.Add(new LSL_Vector(result.Normal));
 
                 values++;
                 if (values >= count)
