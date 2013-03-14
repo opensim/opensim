@@ -8054,23 +8054,24 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         break;
 
                     case (int)ScriptBaseClass.PRIM_POSITION:
-                        LSL_Vector v = new LSL_Vector(part.AbsolutePosition.X,
-                                                      part.AbsolutePosition.Y,
-                                                      part.AbsolutePosition.Z);
+                        LSL_Vector v = new LSL_Vector(part.AbsolutePosition);
+
                         // For some reason, the part.AbsolutePosition.* values do not change if the
                         // linkset is rotated; they always reflect the child prim's world position
                         // as though the linkset is unrotated. This is incompatible behavior with SL's
                         // implementation, so will break scripts imported from there (not to mention it
                         // makes it more difficult to determine a child prim's actual inworld position).
-                        if (part.ParentID != 0)
-                            v = ((v - llGetRootPosition()) * llGetRootRotation()) + llGetRootPosition();
+                        if (!part.IsRoot)
+                        {
+                            LSL_Vector rootPos = new LSL_Vector(m_host.ParentGroup.AbsolutePosition);
+                            v = ((v - rootPos) * llGetRootRotation()) + rootPos;
+                        }
+
                         res.Add(v);
                         break;
 
                     case (int)ScriptBaseClass.PRIM_SIZE:
-                        res.Add(new LSL_Vector(part.Scale.X,
-                                                      part.Scale.Y,
-                                                      part.Scale.Z));
+                        res.Add(new LSL_Vector(part.Scale));
                         break;
 
                     case (int)ScriptBaseClass.PRIM_ROTATION:
@@ -8384,8 +8385,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     case (int)ScriptBaseClass.PRIM_DESC:
                         res.Add(new LSL_String(part.Description));
                         break;
-                    case (int)ScriptBaseClass.PRIM_ROT_LOCAL:
-                        res.Add(new LSL_Rotation(part.RotationOffset.X, part.RotationOffset.Y, part.RotationOffset.Z, part.RotationOffset.W));
+                    case (int)ScriptBaseClass.PRIM_ROT_LOCAL:                        
+                        res.Add(new LSL_Rotation(part.RotationOffset));
                         break;
                     case (int)ScriptBaseClass.PRIM_POS_LOCAL:
                         res.Add(new LSL_Vector(GetPartLocalPos(part)));
