@@ -39,7 +39,7 @@ using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
-namespace OpenSim.Region.Framework.DynamicAttributes.DAExampleModule
+namespace OpenSim.Region.CoreModules.Framework.DynamicAttributes.DAExampleModule
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "DAExampleModule")]
     public class DAExampleModule : INonSharedRegionModule
@@ -47,6 +47,8 @@ namespace OpenSim.Region.Framework.DynamicAttributes.DAExampleModule
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private static readonly bool ENABLED = false;   // enable for testing
+
+        public const string DANamespace = "DAExample Module";
 
         protected Scene m_scene;
         protected IDialogModule m_dialogMod;
@@ -89,7 +91,7 @@ namespace OpenSim.Region.Framework.DynamicAttributes.DAExampleModule
             if (sop == null)
                 return true;
 
-            if (!sop.DynAttrs.TryGetValue(Name, out attrs))
+            if (!sop.DynAttrs.TryGetValue(DANamespace, out attrs))
                 attrs = new OSDMap();
             
             OSDInteger newValue;
@@ -104,8 +106,10 @@ namespace OpenSim.Region.Framework.DynamicAttributes.DAExampleModule
                         
                 attrs["moves"] = newValue;
 
-                sop.DynAttrs[Name] = attrs;
+                sop.DynAttrs[DANamespace] = attrs;
             }
+
+            sop.ParentGroup.HasGroupChanged = true;
     
             m_dialogMod.SendGeneralAlert(string.Format("{0} {1} moved {2} times", sop.Name, sop.UUID, newValue));
             

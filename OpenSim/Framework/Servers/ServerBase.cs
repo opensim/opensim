@@ -113,6 +113,26 @@ namespace OpenSim.Framework.Servers
             }
         }
 
+        /// <summary>
+        /// Log information about the circumstances in which we're running (OpenSimulator version number, CLR details,
+        /// etc.).
+        /// </summary>
+        public void LogEnvironmentInformation()
+        {
+            // FIXME: This should be done down in ServerBase but we need to sort out and refactor the log4net
+            // XmlConfigurator calls first accross servers.
+            m_log.InfoFormat("[SERVER BASE]: Starting in {0}", m_startupDirectory);
+
+            m_log.InfoFormat("[SERVER BASE]: OpenSimulator version: {0}", m_version);
+
+            // clr version potentially is more confusing than helpful, since it doesn't tell us if we're running under Mono/MS .NET and
+            // the clr version number doesn't match the project version number under Mono.
+            //m_log.Info("[STARTUP]: Virtual machine runtime version: " + Environment.Version + Environment.NewLine);
+            m_log.InfoFormat(
+                "[SERVER BASE]: Operating system version: {0}, .NET platform {1}, {2}-bit",
+                Environment.OSVersion, Environment.OSVersion.Platform, Util.Is64BitProcess() ? "64" : "32");
+        }
+
         public void RegisterCommonAppenders(IConfig startupConfig)
         {
             ILoggerRepository repository = LogManager.GetRepository();

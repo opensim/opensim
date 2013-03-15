@@ -36,6 +36,7 @@ using OpenMetaverse.Packets;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Region.Framework;
+using OpenSim.Region.CoreModules.Framework.DynamicAttributes.DAExampleModule;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
@@ -50,9 +51,14 @@ namespace OpenSim.Region.Framework.DynamicAttributes.DOExampleModule
         public class MyObject
         {
             public int Moves { get; set; }
+
+            public MyObject(int moves)
+            {
+                Moves = moves;
+            }
         }
 
- //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private static readonly bool ENABLED = false;   // enable for testing
 
@@ -92,7 +98,23 @@ namespace OpenSim.Region.Framework.DynamicAttributes.DOExampleModule
 
         private void OnObjectAddedToScene(SceneObjectGroup so)
         {
-            so.RootPart.DynObjs.Add(Name, new MyObject());
+            SceneObjectPart rootPart = so.RootPart;
+
+            OSDMap attrs;
+
+            int movesSoFar = 0;
+
+//            Console.WriteLine("Here for {0}", so.Name);
+
+            if (rootPart.DynAttrs.TryGetValue(DAExampleModule.DANamespace, out attrs))
+            {
+                movesSoFar = attrs["moves"].AsInteger();
+
+                m_log.DebugFormat(
+                    "[DO EXAMPLE MODULE]: Found saved moves {0} for {1} in {2}", movesSoFar, so.Name, m_scene.Name);
+            }
+
+            rootPart.DynObjs.Add(Name, new MyObject(movesSoFar));
         }
         
         private bool OnSceneGroupMove(UUID groupId, Vector3 delta)

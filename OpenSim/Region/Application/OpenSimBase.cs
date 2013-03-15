@@ -138,10 +138,6 @@ namespace OpenSim
         /// <param name="configSource"></param>
         public OpenSimBase(IConfigSource configSource) : base()
         {
-            // FIXME: This should be done down in ServerBase but we need to sort out and refactor the log4net
-            // XmlConfigurator calls first accross servers.
-            m_log.InfoFormat("[SERVER BASE]: Starting in {0}", m_startupDirectory);
-
             LoadConfigSettings(configSource);
         }
 

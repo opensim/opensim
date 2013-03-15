@@ -371,6 +371,80 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
+        /// <summary>
+        /// Get a given link entity from a linkset (linked objects and any sitting avatars).
+        /// </summary>
+        /// <remarks>
+        /// If there are any ScenePresence's in the linkset (i.e. because they are sat upon one of the prims), then
+        /// these are counted as extra entities that correspond to linknums beyond the number of prims in the linkset.
+        /// The ScenePresences receive linknums in the order in which they sat.
+        /// </remarks>
+        /// <returns>
+        /// The link entity.  null if not found.
+        /// </returns>
+        /// <param name='linknum'>
+        /// Can be either a non-negative integer or ScriptBaseClass.LINK_THIS (-4).
+        /// If ScriptBaseClass.LINK_THIS then the entity containing the script is returned.
+        /// If the linkset has one entity and a linknum of zero is given, then the single entity is returned.  If any
+        /// positive integer is given in this case then null is returned.
+        /// If the linkset has more than one entity and a linknum greater than zero but equal to or less than the number
+        /// of entities, then the entity which corresponds to that linknum is returned.
+        /// Otherwise, if a positive linknum is given which is greater than the number of entities in the linkset, then
+        /// null is returned.       
+        /// </param>
+        public ISceneEntity GetLinkEntity(int linknum)
+        {
+            if (linknum < 0)
+            {
+                if (linknum == ScriptBaseClass.LINK_THIS)
+                    return m_host;
+                else
+                    return null;
+            }
+
+            int actualPrimCount = m_host.ParentGroup.PrimCount;
+            List<UUID> sittingAvatarIds = m_host.ParentGroup.GetSittingAvatars();
+            int adjustedPrimCount = actualPrimCount + sittingAvatarIds.Count;
+
+            // Special case for a single prim.  In this case the linknum is zero.  However, this will not match a single
+            // prim that has any avatars sat upon it (in which case the root prim is link 1).
+            if (linknum == 0)
+            {
+                if (actualPrimCount == 1 && sittingAvatarIds.Count == 0)
+                    return m_host;
+
+                return null;
+            }
+            // Special case to handle a single prim with sitting avatars.  GetLinkPart() would only match zero but
+            // here we must match 1 (ScriptBaseClass.LINK_ROOT).
+            else if (linknum == ScriptBaseClass.LINK_ROOT && actualPrimCount == 1)
+            {
+                if (sittingAvatarIds.Count > 0)
+                    return m_host.ParentGroup.RootPart;
+                else
+                    return null;
+            }
+            else if (linknum <= adjustedPrimCount)
+            {
+                if (linknum <= actualPrimCount)
+                {
+                    return m_host.ParentGroup.GetLinkNumPart(linknum);
+                }
+                else
+                {
+                    ScenePresence sp = World.GetScenePresence(sittingAvatarIds[linknum - actualPrimCount - 1]);
+                    if (sp != null)
+                        return sp;
+                    else
+                        return null;
+                }
+            }
+            else
+            {
+                return null;
+            }
+        }
+
         public List<SceneObjectPart> GetLinkParts(int linkType)
         {
             return GetLinkParts(m_host, linkType);
@@ -4149,55 +4223,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            if (linknum < 0)
-            {
-                if (linknum == ScriptBaseClass.LINK_THIS)
-                    return m_host.Name;
-                else
-                    return ScriptBaseClass.NULL_KEY;
-            }
+            ISceneEntity entity = GetLinkEntity(linknum);
 
-            int actualPrimCount = m_host.ParentGroup.PrimCount;
-            List<UUID> sittingAvatarIds = m_host.ParentGroup.GetSittingAvatars();
-            int adjustedPrimCount = actualPrimCount + sittingAvatarIds.Count;
-
-            // Special case for a single prim.  In this case the linknum is zero.  However, this will not match a single
-            // prim that has any avatars sat upon it (in which case the root prim is link 1).
-            if (linknum == 0)
-            {
-                if (actualPrimCount == 1 && sittingAvatarIds.Count == 0)
-                    return m_host.Name;
-
-                return ScriptBaseClass.NULL_KEY;
-            }
-            // Special case to handle a single prim with sitting avatars.  GetLinkPart() would only match zero but
-            // here we must match 1 (ScriptBaseClass.LINK_ROOT).
-            else if (linknum == 1 && actualPrimCount == 1)
-            {
-                if (sittingAvatarIds.Count > 0)
-                    return m_host.ParentGroup.RootPart.Name;
-                else
-                    return ScriptBaseClass.NULL_KEY;
-            }
-            else if (linknum <= adjustedPrimCount)
-            {
-                if (linknum <= actualPrimCount)
-                {
-                    return m_host.ParentGroup.GetLinkNumPart(linknum).Name;
-                }
-                else
-                {
-                    ScenePresence sp = World.GetScenePresence(sittingAvatarIds[linknum - actualPrimCount - 1]);
-                    if (sp != null)
-                        return sp.Name;
-                    else
-                        return ScriptBaseClass.NULL_KEY;
-                }
-            }
+            if (entity != null)
+                return entity.Name;
             else
-            {
                 return ScriptBaseClass.NULL_KEY;
-            }
         }
 
         public LSL_Integer llGetInventoryNumber(int type)
@@ -4562,8 +4593,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if (presence.UserLevel >= 200) return;
 
                     // agent must be over the owners land
-                    if (m_host.OwnerID == World.LandChannel.GetLandObject(
-                            presence.AbsolutePosition.X, presence.AbsolutePosition.Y).LandData.OwnerID)
+                    if (m_host.OwnerID == World.LandChannel.GetLandObject(presence.AbsolutePosition).LandData.OwnerID)
                     {
                         if (!World.TeleportClientHome(agentId, presence.ControllingClient))
                         {
@@ -4579,6 +4609,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     }
                 }
             }
+
             ScriptSleep(5000);
         }
 
@@ -4598,10 +4629,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if (destination == String.Empty)
                         destination = World.RegionInfo.RegionName;
 
-                    Vector3 pos = presence.AbsolutePosition;
-
                     // agent must be over the owners land
-                    if (m_host.OwnerID == World.LandChannel.GetLandObject(pos.X, pos.Y).LandData.OwnerID)
+                    if (m_host.OwnerID == World.LandChannel.GetLandObject(presence.AbsolutePosition).LandData.OwnerID)
                     {
                         DoLLTeleport(presence, destination, targetPos, targetLookAt);
                     }
@@ -4631,10 +4660,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     // agent must not be a god
                     if (presence.GodLevel >= 200) return;
 
-                    Vector3 pos = presence.AbsolutePosition;
-
                     // agent must be over the owners land
-                    if (m_host.OwnerID == World.LandChannel.GetLandObject(pos.X, pos.Y).LandData.OwnerID)
+                    if (m_host.OwnerID == World.LandChannel.GetLandObject(presence.AbsolutePosition).LandData.OwnerID)
                     {
                         World.RequestTeleportLocation(presence.ControllingClient, regionHandle, targetPos, targetLookAt, (uint)TeleportFlags.ViaLocation);
                     }
@@ -4849,7 +4876,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 if (pushrestricted)
                 {
-                    ILandObject targetlandObj = World.LandChannel.GetLandObject(PusheePos.X, PusheePos.Y);
+                    ILandObject targetlandObj = World.LandChannel.GetLandObject(PusheePos);
 
                     // We didn't find the parcel but region is push restricted so assume it is NOT ok
                     if (targetlandObj == null)
@@ -4864,7 +4891,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
                 else
                 {
-                    ILandObject targetlandObj = World.LandChannel.GetLandObject(PusheePos.X, PusheePos.Y);
+                    ILandObject targetlandObj = World.LandChannel.GetLandObject(PusheePos);
                     if (targetlandObj == null)
                     {
                         // We didn't find the parcel but region isn't push restricted so assume it's ok
@@ -6146,12 +6173,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             ILandObject land;
-            Vector3 pos;
             UUID id = UUID.Zero;
+
             if (parcel || parcelOwned)
             {
-                pos = m_host.ParentGroup.RootPart.GetWorldPosition();
-                land = World.LandChannel.GetLandObject(pos.X, pos.Y);
+                land = World.LandChannel.GetLandObject(m_host.ParentGroup.RootPart.GetWorldPosition());
                 if (land == null)
                 {
                     id = UUID.Zero;
@@ -6177,8 +6203,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     {
                         if (!regionWide)
                         {
-                            pos = ssp.AbsolutePosition;
-                            land = World.LandChannel.GetLandObject(pos.X, pos.Y);
+                            land = World.LandChannel.GetLandObject(ssp.AbsolutePosition);
                             if (land != null)
                             {
                                 if (parcelOwned && land.LandData.OwnerID == id ||
@@ -6308,10 +6333,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 ScenePresence presence = World.GetScenePresence(agentID);
                 if (presence != null)
                 {
-                    Vector3 pos = presence.AbsolutePosition;
-
                     // agent must be over the owners land
-                    ILandObject land = World.LandChannel.GetLandObject(pos.X, pos.Y);
+                    ILandObject land = World.LandChannel.GetLandObject(presence.AbsolutePosition);
                     if (land == null)
                         return;
 
@@ -6340,9 +6363,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 ScenePresence presence = World.GetScenePresence(key);
                 if (presence != null) // object is an avatar
                 {
-                    Vector3 pos = presence.AbsolutePosition;
-
-                    if (m_host.OwnerID == World.LandChannel.GetLandObject(pos.X, pos.Y).LandData.OwnerID)
+                    if (m_host.OwnerID == World.LandChannel.GetLandObject(presence.AbsolutePosition).LandData.OwnerID)
                         return 1;
                 }
                 else // object is not an avatar
@@ -6351,9 +6372,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     if (obj != null)
                     {
-                        Vector3 pos = obj.AbsolutePosition;
-
-                        if (m_host.OwnerID == World.LandChannel.GetLandObject(pos.X, pos.Y).LandData.OwnerID)
+                        if (m_host.OwnerID == World.LandChannel.GetLandObject(obj.AbsolutePosition).LandData.OwnerID)
                             return 1;
                     }
                 }
@@ -6463,10 +6482,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         // if the land is group owned and the object is group owned by the same group
                         // or
                         // if the object is owned by a person with estate access.
-
-                        Vector3 pos = av.AbsolutePosition;
-
-                        ILandObject parcel = World.LandChannel.GetLandObject(pos.X, pos.Y);
+                        ILandObject parcel = World.LandChannel.GetLandObject(av.AbsolutePosition);
                         if (parcel != null)
                         {
                             if (m_host.OwnerID == parcel.LandData.OwnerID ||
@@ -7053,9 +7069,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             UUID key;
-            Vector3 pos = m_host.AbsolutePosition;
+            ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition);
 
-            ILandObject land = World.LandChannel.GetLandObject(pos.X, pos.Y);
             if (World.Permissions.CanEditParcelProperties(m_host.OwnerID, land, GroupPowers.LandManageBanned))
             {
                 int expires = 0;
@@ -8492,8 +8507,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            Vector3 pos = m_host.AbsolutePosition;
-            ILandObject land = World.LandChannel.GetLandObject(pos.X, pos.Y);
+            ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition);
 
             if (land.LandData.OwnerID != m_host.OwnerID)
                 return;
@@ -8507,8 +8521,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            Vector3 pos = m_host.AbsolutePosition;
-            ILandObject land = World.LandChannel.GetLandObject(pos.X, pos.Y);
+            ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition);
 
             if (land.LandData.OwnerID != m_host.OwnerID)
                 return String.Empty;
@@ -8717,8 +8730,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Vector llGetGeometricCenter()
         {
-            Vector3 tmp = m_host.GetGeometricCenter();
-            return new LSL_Vector(tmp.X, tmp.Y, tmp.Z);
+            return new LSL_Vector(m_host.GetGeometricCenter());
         }
 
         public LSL_List llGetPrimitiveParams(LSL_List rules)
@@ -8825,9 +8837,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         break;
 
                     case (int)ScriptBaseClass.PRIM_SIZE:
-                        res.Add(new LSL_Vector(part.Scale.X,
-                                                      part.Scale.Y,
-                                                      part.Scale.Z));
+                        res.Add(new LSL_Vector(part.Scale));
                         break;
 
                     case (int)ScriptBaseClass.PRIM_ROTATION:
@@ -9188,9 +9198,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     case (int)ScriptBaseClass.PRIM_DESC:
                         res.Add(new LSL_String(part.Description));
                         break;
-
-                    case (int)ScriptBaseClass.PRIM_ROT_LOCAL:
-                        res.Add(new LSL_Rotation(part.RotationOffset.X, part.RotationOffset.Y, part.RotationOffset.Z, part.RotationOffset.W));
+                    case (int)ScriptBaseClass.PRIM_ROT_LOCAL:                        
+                        res.Add(new LSL_Rotation(part.RotationOffset));
                         break;
 
                     case (int)ScriptBaseClass.PRIM_POS_LOCAL:
@@ -10374,7 +10383,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             // according to the docs, this command only works if script owner and land owner are the same
             // lets add estate owners and gods, too, and use the generic permission check.
-            ILandObject landObject = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y);
+            ILandObject landObject = World.LandChannel.GetLandObject(m_host.AbsolutePosition);
             if (!World.Permissions.CanEditParcelProperties(m_host.OwnerID, landObject, GroupPowers.ChangeMedia)) return;
 
             bool update = false; // send a ParcelMediaUpdate (and possibly change the land's media URL)?
@@ -10697,22 +10706,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
 
             if (m_item.PermsGranter == UUID.Zero)
-               return new LSL_Vector();
+                return Vector3.Zero;
 
             if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_TRACK_CAMERA) == 0)
             {
                 ShoutError("No permissions to track the camera");
-                return new LSL_Vector();
+                return Vector3.Zero;
             }
 
 //            ScenePresence presence = World.GetScenePresence(m_host.OwnerID);
             ScenePresence presence = World.GetScenePresence(m_item.PermsGranter);
             if (presence != null)
             {
-                LSL_Vector pos = new LSL_Vector(presence.CameraPosition.X, presence.CameraPosition.Y, presence.CameraPosition.Z);
+                LSL_Vector pos = new LSL_Vector(presence.CameraPosition);
                 return pos;
             }
-            return new LSL_Vector();
+
+            return Vector3.Zero;
         }
 
         public LSL_Rotation llGetCameraRot()
@@ -10720,22 +10730,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
 
             if (m_item.PermsGranter == UUID.Zero)
-               return new LSL_Rotation();
+                return Quaternion.Identity;
 
             if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_TRACK_CAMERA) == 0)
             {
                 ShoutError("No permissions to track the camera");
-                return new LSL_Rotation();
+                return Quaternion.Identity;
             }
 
 //            ScenePresence presence = World.GetScenePresence(m_host.OwnerID);
             ScenePresence presence = World.GetScenePresence(m_item.PermsGranter);
             if (presence != null)
             {
-                return new LSL_Rotation(presence.CameraRotation.X, presence.CameraRotation.Y, presence.CameraRotation.Z, presence.CameraRotation.W);
+                return new LSL_Rotation(presence.CameraRotation);
             }
 
-            return new LSL_Rotation();
+            return Quaternion.Identity;
         }
 
         /// <summary>
@@ -10816,7 +10826,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             UUID key;
-            ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y);
+            ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition);
             if (World.Permissions.CanEditParcelProperties(m_host.OwnerID, land, GroupPowers.LandManageBanned))
             {
                 int expires = 0;
@@ -10857,7 +10867,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             UUID key;
-            ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y);
+            ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition);
             if (World.Permissions.CanEditParcelProperties(m_host.OwnerID, land, GroupPowers.LandManageAllowed))
             {
                 if (UUID.TryParse(avatar, out key))
@@ -10884,7 +10894,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             UUID key;
-            ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y);
+            ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition);
             if (World.Permissions.CanEditParcelProperties(m_host.OwnerID, land, GroupPowers.LandManageBanned))
             {
                 if (UUID.TryParse(avatar, out key))
@@ -11250,7 +11260,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llResetLandBanList()
         {
             m_host.AddScriptLPS(1);
-            LandData land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).LandData;
+            LandData land = World.LandChannel.GetLandObject(m_host.AbsolutePosition).LandData;
             if (land.OwnerID == m_host.OwnerID)
             {
                 foreach (LandAccessEntry entry in land.ParcelAccessList)
@@ -11267,7 +11277,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llResetLandPassList()
         {
             m_host.AddScriptLPS(1);
-            LandData land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).LandData;
+            LandData land = World.LandChannel.GetLandObject(m_host.AbsolutePosition).LandData;
             if (land.OwnerID == m_host.OwnerID)
             {
                 foreach (LandAccessEntry entry in land.ParcelAccessList)
@@ -11967,7 +11977,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             World.ForEachScenePresence(delegate(ScenePresence sp)
             {
                 Vector3 ac = sp.AbsolutePosition - rayStart;
-                Vector3 bc = sp.AbsolutePosition - rayEnd;
+//                Vector3 bc = sp.AbsolutePosition - rayEnd;
 
                 double d = Math.Abs(Vector3.Mag(Vector3.Cross(ab, ac)) / Vector3.Distance(rayStart, rayEnd));
 
@@ -12057,7 +12067,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     radius = Math.Abs(maxZ);
                 radius = radius*1.413f;
                 Vector3 ac = group.AbsolutePosition - rayStart;
-                Vector3 bc = group.AbsolutePosition - rayEnd;
+//                Vector3 bc = group.AbsolutePosition - rayEnd;
 
                 double d = Math.Abs(Vector3.Mag(Vector3.Cross(ab, ac)) / Vector3.Distance(rayStart, rayEnd));
                 
@@ -12435,7 +12445,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     list.Add(new LSL_Integer(linkNum));
 
                 if ((dataFlags & ScriptBaseClass.RC_GET_NORMAL) == ScriptBaseClass.RC_GET_NORMAL)
-                    list.Add(new LSL_Vector(result.Normal.X, result.Normal.Y, result.Normal.Z));
+                    list.Add(new LSL_Vector(result.Normal));
 
                 values++;
                 if (values >= count)
