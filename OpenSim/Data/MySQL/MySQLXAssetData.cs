@@ -50,6 +50,11 @@ namespace OpenSim.Data.MySQL
             get { return GetType().Assembly; }
         }
 
+        /// <summary>
+        /// Number of days that must pass before we update the access time on an asset when it has been fetched.
+        /// </summary>
+        private const int DaysBetweenAccessTimeUpdates = 30;
+
         private bool m_enableCompression = false;
         private string m_connectionString;
         private object m_dbLock = new object();
@@ -133,7 +138,7 @@ namespace OpenSim.Data.MySQL
                     dbcon.Open();
 
                     using (MySqlCommand cmd = new MySqlCommand(
-                        "SELECT name, description, asset_type, local, temporary, asset_flags, creator_id, data FROM xassetsmeta JOIN xassetsdata ON xassetsmeta.hash = xassetsdata.hash WHERE id=?id",
+                        "SELECT name, description, access_time, asset_type, local, temporary, asset_flags, creator_id, data FROM xassetsmeta JOIN xassetsdata ON xassetsmeta.hash = xassetsdata.hash WHERE id=?id",
                         dbcon))
                     {
                         cmd.Parameters.AddWithValue("?id", assetID.ToString());
@@ -171,12 +176,14 @@ namespace OpenSim.Data.MySQL
     //                                            asset.ID, asset.Name, asset.Data.Length, compressedLength);
                                         }
                                     }
+
+                                    UpdateAccessTime(asset.Metadata, (int)dbReader["access_time"]);
                                 }
                             }
                         }
                         catch (Exception e)
                         {
-                            m_log.Error("[MYSQL XASSET DATA]: MySql failure fetching asset " + assetID + ": " + e.Message);
+                            m_log.Error("[MYSQL XASSET DATA]: Failure fetching asset " + assetID + ": " + e.Message);
                         }
                     }
                 }
@@ -303,41 +310,49 @@ namespace OpenSim.Data.MySQL
             }
         }
 
-//        private void UpdateAccessTime(AssetBase asset)
-//        {
-//            lock (m_dbLock)
-//            {
-//                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
-//                {
-//                    dbcon.Open();
-//                    MySqlCommand cmd =
-//                        new MySqlCommand("update assets set access_time=?access_time where id=?id",
-//                                         dbcon);
-//
-//                    // need to ensure we dispose
-//                    try
-//                    {
-//                        using (cmd)
-//                        {
-//                            // create unix epoch time
-//                            int now = (int)Utils.DateTimeToUnixTime(DateTime.UtcNow);
-//                            cmd.Parameters.AddWithValue("?id", asset.ID);
-//                            cmd.Parameters.AddWithValue("?access_time", now);
-//                            cmd.ExecuteNonQuery();
-//                            cmd.Dispose();
-//                        }
-//                    }
-//                    catch (Exception e)
-//                    {
-//                        m_log.ErrorFormat(
-//                            "[ASSETS DB]: " +
-//                            "MySql failure updating access_time for asset {0} with name {1}" + Environment.NewLine + e.ToString()
-//                            + Environment.NewLine + "Attempting reconnection", asset.FullID, asset.Name);
-//                    }
-//                }
-//            }
-//
-//        }
+        /// <summary>
+        /// Updates the access time of the asset if it was accessed above a given threshhold amount of time.
+        /// </summary>
+        /// <remarks>
+        /// This gives us some insight into assets which haven't ben accessed for a long period.  This is only done
+        /// over the threshold time to avoid excessive database writes as assets are fetched.
+        /// </remarks>
+        /// <param name='asset'></param>
+        /// <param name='accessTime'></param>
+        private void UpdateAccessTime(AssetMetadata assetMetadata, int accessTime)
+        {
+            DateTime now = DateTime.UtcNow;
+
+            if ((now - Utils.UnixTimeToDateTime(accessTime)).TotalDays < DaysBetweenAccessTimeUpdates)
+                return;
+
+            lock (m_dbLock)
+            {
+                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+                {
+                    dbcon.Open();
+                    MySqlCommand cmd =
+                        new MySqlCommand("update assets set access_time=?access_time where id=?id", dbcon);
+
+                    try
+                    {
+                        using (cmd)
+                        {
+                            // create unix epoch time
+                            cmd.Parameters.AddWithValue("?id", assetMetadata.ID);
+                            cmd.Parameters.AddWithValue("?access_time", (int)Utils.DateTimeToUnixTime(now));
+                            cmd.ExecuteNonQuery();
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[XASSET MYSQL DB]: Failure updating access_time for asset {0} with name {1}", 
+                            assetMetadata.ID, assetMetadata.Name);
+                    }
+                }
+            }
+        }
 
         /// <summary>
         /// We assume we already have the m_dbLock.
@@ -422,6 +437,8 @@ namespace OpenSim.Data.MySQL
             return assetExists;
         }
 
+
+
         /// <summary>
         /// Returns a list of AssetMetadata objects. The list is a subset of
         /// the entire data set offset by <paramref name="start" /> containing
@@ -439,7 +456,7 @@ namespace OpenSim.Data.MySQL
                 using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
                 {
                     dbcon.Open();
-                    MySqlCommand cmd = new MySqlCommand("SELECT name,description,asset_type,temporary,id,asset_flags,creator_id FROM xassetsmeta LIMIT ?start, ?count", dbcon);
+                    MySqlCommand cmd = new MySqlCommand("SELECT name,description,access_time,asset_type,temporary,id,asset_flags,creator_id FROM xassetsmeta LIMIT ?start, ?count", dbcon);
                     cmd.Parameters.AddWithValue("?start", start);
                     cmd.Parameters.AddWithValue("?count", count);
 
@@ -460,6 +477,8 @@ namespace OpenSim.Data.MySQL
 
                                 // We'll ignore this for now - it appears unused!
 //                                metadata.SHA1 = dbReader["hash"]);
+
+                                UpdateAccessTime(metadata, (int)dbReader["access_time"]);
 
                                 retList.Add(metadata);
                             }
