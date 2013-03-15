@@ -106,6 +106,8 @@ namespace OpenSim.Region.Framework.DynamicAttributes.DAExampleModule
 
                 sop.DynAttrs[Name] = attrs;
             }
+
+            sop.ParentGroup.HasGroupChanged = true;
     
             m_dialogMod.SendGeneralAlert(string.Format("{0} {1} moved {2} times", sop.Name, sop.UUID, newValue));
             
