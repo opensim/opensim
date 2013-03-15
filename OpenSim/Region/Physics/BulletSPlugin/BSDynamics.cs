@@ -1335,7 +1335,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 Vector3 unscaledContribVerticalErrorV = vertContributionV;     // DEBUG DEBUG
                 vertContributionV /= m_verticalAttractionTimescale;
 
-                VehicleRotationalVelocity += vertContributionV * VehicleOrientation;
+                VehicleRotationalVelocity += vertContributionV;
 
                 VDetailLog("{0},  MoveAngular,verticalAttraction,,origRotVW={1},vertError={2},unscaledV={3},eff={4},ts={5},vertContribV={6}",
                                 Prim.LocalID, origRotVelW, verticalError, unscaledContribVerticalErrorV, 
