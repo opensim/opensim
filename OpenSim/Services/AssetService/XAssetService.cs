@@ -39,8 +39,7 @@ using OpenMetaverse;
 namespace OpenSim.Services.AssetService
 {
     /// <summary>
-    /// This will be developed into a de-duplicating asset service.
-    /// XXX: Currently it's a just a copy of the existing AssetService. so please don't attempt to use it.
+    /// A de-duplicating asset service.
     /// </summary>
     public class XAssetService : XAssetServiceBase, IAssetService
     {
@@ -48,7 +47,9 @@ namespace OpenSim.Services.AssetService
 
         protected static XAssetService m_RootInstance;
 
-        public XAssetService(IConfigSource config) : base(config)
+        public XAssetService(IConfigSource config) : this(config, "AssetService") {}
+
+        public XAssetService(IConfigSource config, string configName) : base(config, configName)
         {
             if (m_RootInstance == null)
             {
@@ -56,22 +57,21 @@ namespace OpenSim.Services.AssetService
 
                 if (m_AssetLoader != null)
                 {
-                    IConfig assetConfig = config.Configs["AssetService"];
+                    IConfig assetConfig = config.Configs[configName];
                     if (assetConfig == null)
                         throw new Exception("No AssetService configuration");
 
-                    string loaderArgs = assetConfig.GetString("AssetLoaderArgs",
-                            String.Empty);
+                    string loaderArgs = assetConfig.GetString("AssetLoaderArgs", String.Empty);
 
                     bool assetLoaderEnabled = assetConfig.GetBoolean("AssetLoaderEnabled", true);
 
-                    if (assetLoaderEnabled)
+                    if (assetLoaderEnabled && !HasChainedAssetService)
                     {
                         m_log.DebugFormat("[XASSET SERVICE]: Loading default asset set from {0}", loaderArgs);
 
                         m_AssetLoader.ForEachDefaultXmlAsset(
                             loaderArgs,
-                            delegate(AssetBase a)
+                            a =>
                             {
                                 AssetBase existingAsset = Get(a.ID);
 //                                AssetMetadata existingMetadata = GetMetadata(a.ID);
@@ -103,7 +103,14 @@ namespace OpenSim.Services.AssetService
 
             try
             {
-                return m_Database.GetAsset(assetID);
+                AssetBase asset = m_Database.GetAsset(assetID);
+
+                if (asset != null)
+                    return asset;
+                else if (HasChainedAssetService)
+                    return m_ChainedAssetService.Get(id);
+                else
+                    return null;
             }
             catch (Exception e)
             {
@@ -128,9 +135,17 @@ namespace OpenSim.Services.AssetService
 
             AssetBase asset = m_Database.GetAsset(assetID);
             if (asset != null)
+            {
                 return asset.Metadata;
-
-            return null;
+            }
+            else if (HasChainedAssetService)
+            {
+                return m_ChainedAssetService.GetMetadata(id);
+            }
+            else
+            {
+                return null;
+            }
         }
 
         public virtual byte[] GetData(string id)
@@ -143,7 +158,13 @@ namespace OpenSim.Services.AssetService
                 return null;
 
             AssetBase asset = m_Database.GetAsset(assetID);
-            return asset.Data;
+
+            if (asset != null)
+                return asset.Data;
+            else if (HasChainedAssetService)
+                return m_ChainedAssetService.GetData(id);
+            else
+                return null;
         }
 
         public virtual bool Get(string id, Object sender, AssetRetrieved handler)
@@ -156,6 +177,9 @@ namespace OpenSim.Services.AssetService
                 return false;
 
             AssetBase asset = m_Database.GetAsset(assetID);
+
+            if (asset == null && HasChainedAssetService)
+                asset = m_ChainedAssetService.Get(id);
 
             //m_log.DebugFormat("[XASSET SERVICE]: Got asset {0}", asset);
             
@@ -193,6 +217,9 @@ namespace OpenSim.Services.AssetService
             UUID assetID;
             if (!UUID.TryParse(id, out assetID))
                 return false;
+
+            // Don't bother deleting from a chained asset service.  This isn't a big deal since deleting happens
+            // very rarely.
 
             return m_Database.Delete(id);
         }
