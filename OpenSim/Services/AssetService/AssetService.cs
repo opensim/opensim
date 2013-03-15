@@ -146,7 +146,11 @@ namespace OpenSim.Services.AssetService
                 return null;
 
             AssetBase asset = m_Database.GetAsset(assetID);
-            return asset.Data;
+
+            if (asset != null)
+                return asset.Data;
+            else
+                return null;
         }
 
         public virtual bool Get(string id, Object sender, AssetRetrieved handler)
