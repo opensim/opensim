@@ -138,10 +138,10 @@ namespace OpenSim.Data.MySQL
                     dbcon.Open();
 
                     using (MySqlCommand cmd = new MySqlCommand(
-                        "SELECT name, description, access_time, asset_type, local, temporary, asset_flags, creator_id, data FROM xassetsmeta JOIN xassetsdata ON xassetsmeta.hash = xassetsdata.hash WHERE id=?id",
+                        "SELECT Name, Description, AccessTime, AssetType, Local, Temporary, AssetFlags, CreatorID, Data FROM XAssetsMeta JOIN XAssetsData ON XAssetsMeta.Hash = XAssetsData.Hash WHERE ID=?ID",
                         dbcon))
                     {
-                        cmd.Parameters.AddWithValue("?id", assetID.ToString());
+                        cmd.Parameters.AddWithValue("?ID", assetID.ToString());
 
                         try
                         {
@@ -149,18 +149,18 @@ namespace OpenSim.Data.MySQL
                             {
                                 if (dbReader.Read())
                                 {
-                                    asset = new AssetBase(assetID, (string)dbReader["name"], (sbyte)dbReader["asset_type"], dbReader["creator_id"].ToString());
-                                    asset.Data = (byte[])dbReader["data"];
-                                    asset.Description = (string)dbReader["description"];
+                                    asset = new AssetBase(assetID, (string)dbReader["Name"], (sbyte)dbReader["AssetType"], dbReader["CreatorID"].ToString());
+                                    asset.Data = (byte[])dbReader["Data"];
+                                    asset.Description = (string)dbReader["Description"];
 
-                                    string local = dbReader["local"].ToString();
+                                    string local = dbReader["Local"].ToString();
                                     if (local.Equals("1") || local.Equals("true", StringComparison.InvariantCultureIgnoreCase))
                                         asset.Local = true;
                                     else
                                         asset.Local = false;
 
-                                    asset.Temporary = Convert.ToBoolean(dbReader["temporary"]);
-                                    asset.Flags = (AssetFlags)Convert.ToInt32(dbReader["asset_flags"]);
+                                    asset.Temporary = Convert.ToBoolean(dbReader["Temporary"]);
+                                    asset.Flags = (AssetFlags)Convert.ToInt32(dbReader["AssetFlags"]);
 
                                     if (m_enableCompression)
                                     {
@@ -177,13 +177,13 @@ namespace OpenSim.Data.MySQL
                                         }
                                     }
 
-                                    UpdateAccessTime(asset.Metadata, (int)dbReader["access_time"]);
+                                    UpdateAccessTime(asset.Metadata, (int)dbReader["AccessTime"]);
                                 }
                             }
                         }
                         catch (Exception e)
                         {
-                            m_log.Error("[MYSQL XASSET DATA]: Failure fetching asset " + assetID + ": " + e.Message);
+                            m_log.Error(string.Format("[MYSQL XASSET DATA]: Failure fetching asset {0}", assetID), e);
                         }
                     }
                 }
@@ -249,23 +249,23 @@ namespace OpenSim.Data.MySQL
                         {
                             using (MySqlCommand cmd =
                                 new MySqlCommand(
-                                    "replace INTO xassetsmeta(id, hash, name, description, asset_type, local, temporary, create_time, access_time, asset_flags, creator_id)" +
-                                    "VALUES(?id, ?hash, ?name, ?description, ?asset_type, ?local, ?temporary, ?create_time, ?access_time, ?asset_flags, ?creator_id)",
+                                    "replace INTO XAssetsMeta(ID, Hash, Name, Description, AssetType, Local, Temporary, CreateTime, AccessTime, AssetFlags, CreatorID)" +
+                                    "VALUES(?ID, ?Hash, ?Name, ?Description, ?AssetType, ?Local, ?Temporary, ?CreateTime, ?AccessTime, ?AssetFlags, ?CreatorID)",
                                     dbcon))
                             {
                                 // create unix epoch time
                                 int now = (int)Utils.DateTimeToUnixTime(DateTime.UtcNow);
-                                cmd.Parameters.AddWithValue("?id", asset.ID);
-                                cmd.Parameters.AddWithValue("?hash", hash);
-                                cmd.Parameters.AddWithValue("?name", assetName);
-                                cmd.Parameters.AddWithValue("?description", assetDescription);
-                                cmd.Parameters.AddWithValue("?asset_type", asset.Type);
-                                cmd.Parameters.AddWithValue("?local", asset.Local);
-                                cmd.Parameters.AddWithValue("?temporary", asset.Temporary);
-                                cmd.Parameters.AddWithValue("?create_time", now);
-                                cmd.Parameters.AddWithValue("?access_time", now);
-                                cmd.Parameters.AddWithValue("?creator_id", asset.Metadata.CreatorID);
-                                cmd.Parameters.AddWithValue("?asset_flags", (int)asset.Flags);
+                                cmd.Parameters.AddWithValue("?ID", asset.ID);
+                                cmd.Parameters.AddWithValue("?Hash", hash);
+                                cmd.Parameters.AddWithValue("?Name", assetName);
+                                cmd.Parameters.AddWithValue("?Description", assetDescription);
+                                cmd.Parameters.AddWithValue("?AssetType", asset.Type);
+                                cmd.Parameters.AddWithValue("?Local", asset.Local);
+                                cmd.Parameters.AddWithValue("?Temporary", asset.Temporary);
+                                cmd.Parameters.AddWithValue("?CreateTime", now);
+                                cmd.Parameters.AddWithValue("?AccessTime", now);
+                                cmd.Parameters.AddWithValue("?CreatorID", asset.Metadata.CreatorID);
+                                cmd.Parameters.AddWithValue("?AssetFlags", (int)asset.Flags);
                                 cmd.ExecuteNonQuery();
                             }
                         }
@@ -285,11 +285,11 @@ namespace OpenSim.Data.MySQL
                             {
                                 using (MySqlCommand cmd =
                                     new MySqlCommand(
-                                        "INSERT INTO xassetsdata(hash, data) VALUES(?hash, ?data)",
+                                        "INSERT INTO XAssetsData(Hash, Data) VALUES(?Hash, ?Data)",
                                         dbcon))
                                 {
-                                    cmd.Parameters.AddWithValue("?hash", hash);
-                                    cmd.Parameters.AddWithValue("?data", asset.Data);
+                                    cmd.Parameters.AddWithValue("?Hash", hash);
+                                    cmd.Parameters.AddWithValue("?Data", asset.Data);
                                     cmd.ExecuteNonQuery();
                                 }
                             }
@@ -332,15 +332,15 @@ namespace OpenSim.Data.MySQL
                 {
                     dbcon.Open();
                     MySqlCommand cmd =
-                        new MySqlCommand("update assets set access_time=?access_time where id=?id", dbcon);
+                        new MySqlCommand("update XAssetsMeta set AccessTime=?AccessTime where ID=?ID", dbcon);
 
                     try
                     {
                         using (cmd)
                         {
                             // create unix epoch time
-                            cmd.Parameters.AddWithValue("?id", assetMetadata.ID);
-                            cmd.Parameters.AddWithValue("?access_time", (int)Utils.DateTimeToUnixTime(now));
+                            cmd.Parameters.AddWithValue("?ID", assetMetadata.ID);
+                            cmd.Parameters.AddWithValue("?AccessTime", (int)Utils.DateTimeToUnixTime(now));
                             cmd.ExecuteNonQuery();
                         }
                     }
@@ -368,9 +368,9 @@ namespace OpenSim.Data.MySQL
 
             bool exists = false;
 
-            using (MySqlCommand cmd = new MySqlCommand("SELECT hash FROM xassetsdata WHERE hash=?hash", dbcon))
+            using (MySqlCommand cmd = new MySqlCommand("SELECT Hash FROM XAssetsData WHERE Hash=?Hash", dbcon))
             {
-                cmd.Parameters.AddWithValue("?hash", hash);
+                cmd.Parameters.AddWithValue("?Hash", hash);
 
                 try
                 {
@@ -410,9 +410,9 @@ namespace OpenSim.Data.MySQL
                 using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
                 {
                     dbcon.Open();
-                    using (MySqlCommand cmd = new MySqlCommand("SELECT id FROM xassetsmeta WHERE id=?id", dbcon))
+                    using (MySqlCommand cmd = new MySqlCommand("SELECT ID FROM XAssetsMeta WHERE ID=?ID", dbcon))
                     {
-                        cmd.Parameters.AddWithValue("?id", uuid.ToString());
+                        cmd.Parameters.AddWithValue("?ID", uuid.ToString());
 
                         try
                         {
@@ -427,8 +427,7 @@ namespace OpenSim.Data.MySQL
                         }
                         catch (Exception e)
                         {
-                            m_log.ErrorFormat(
-                                "[XASSETS DB]: MySql failure fetching asset {0}" + Environment.NewLine + e.ToString(), uuid);
+                            m_log.Error(string.Format("[XASSETS DB]: MySql failure fetching asset {0}", uuid), e);
                         }
                     }
                 }
@@ -436,7 +435,6 @@ namespace OpenSim.Data.MySQL
 
             return assetExists;
         }
-
 
 
         /// <summary>
@@ -456,7 +454,7 @@ namespace OpenSim.Data.MySQL
                 using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
                 {
                     dbcon.Open();
-                    MySqlCommand cmd = new MySqlCommand("SELECT name,description,access_time,asset_type,temporary,id,asset_flags,creator_id FROM xassetsmeta LIMIT ?start, ?count", dbcon);
+                    MySqlCommand cmd = new MySqlCommand("SELECT Name, Description, AccessTime, AssetType, Temporary, ID, AssetFlags, CreatorID FROM XAssetsMeta LIMIT ?start, ?count", dbcon);
                     cmd.Parameters.AddWithValue("?start", start);
                     cmd.Parameters.AddWithValue("?count", count);
 
@@ -467,18 +465,18 @@ namespace OpenSim.Data.MySQL
                             while (dbReader.Read())
                             {
                                 AssetMetadata metadata = new AssetMetadata();
-                                metadata.Name = (string)dbReader["name"];
-                                metadata.Description = (string)dbReader["description"];
-                                metadata.Type = (sbyte)dbReader["asset_type"];
-                                metadata.Temporary = Convert.ToBoolean(dbReader["temporary"]); // Not sure if this is correct.
-                                metadata.Flags = (AssetFlags)Convert.ToInt32(dbReader["asset_flags"]);
-                                metadata.FullID = DBGuid.FromDB(dbReader["id"]);
-                                metadata.CreatorID = dbReader["creator_id"].ToString();
+                                metadata.Name = (string)dbReader["Name"];
+                                metadata.Description = (string)dbReader["Description"];
+                                metadata.Type = (sbyte)dbReader["AssetType"];
+                                metadata.Temporary = Convert.ToBoolean(dbReader["Temporary"]); // Not sure if this is correct.
+                                metadata.Flags = (AssetFlags)Convert.ToInt32(dbReader["AssetFlags"]);
+                                metadata.FullID = DBGuid.FromDB(dbReader["ID"]);
+                                metadata.CreatorID = dbReader["CreatorID"].ToString();
 
                                 // We'll ignore this for now - it appears unused!
 //                                metadata.SHA1 = dbReader["hash"]);
 
-                                UpdateAccessTime(metadata, (int)dbReader["access_time"]);
+                                UpdateAccessTime(metadata, (int)dbReader["AccessTime"]);
 
                                 retList.Add(metadata);
                             }
@@ -504,9 +502,9 @@ namespace OpenSim.Data.MySQL
                 {
                     dbcon.Open();
 
-                    using (MySqlCommand cmd = new MySqlCommand("delete from xassetsmeta where id=?id", dbcon))
+                    using (MySqlCommand cmd = new MySqlCommand("delete from XAssetsMeta where ID=?ID", dbcon))
                     {
-                        cmd.Parameters.AddWithValue("?id", id);
+                        cmd.Parameters.AddWithValue("?ID", id);
                         cmd.ExecuteNonQuery();
                     }
 

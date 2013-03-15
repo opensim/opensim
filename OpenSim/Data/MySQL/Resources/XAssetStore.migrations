@@ -3,24 +3,24 @@
 
 BEGIN;
 
-CREATE TABLE `xassetsmeta` (
-  `id` char(36) NOT NULL,
-  `hash` binary(32) NOT NULL,
-  `name` varchar(64) NOT NULL,
-  `description` varchar(64) NOT NULL,
-  `asset_type` tinyint(4) NOT NULL,
-  `local` tinyint(1) NOT NULL,
-  `temporary` tinyint(1) NOT NULL,
-  `create_time` int(11) NOT NULL,
-  `access_time` int(11) NOT NULL,
-  `asset_flags` int(11) NOT NULL,
-  `creator_id` varchar(128) NOT NULL,
+CREATE TABLE `XAssetsMeta` (
+  `ID` char(36) NOT NULL,
+  `Hash` binary(32) NOT NULL,
+  `Name` varchar(64) NOT NULL,
+  `Description` varchar(64) NOT NULL,
+  `AssetType` tinyint(4) NOT NULL,
+  `Local` tinyint(1) NOT NULL,
+  `Temporary` tinyint(1) NOT NULL,
+  `CreateTime` int(11) NOT NULL,
+  `AccessTime` int(11) NOT NULL,
+  `AssetFlags` int(11) NOT NULL,
+  `CreatorID` varchar(128) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Version 1';
 
-CREATE TABLE `xassetsdata` (
-  `hash` binary(32) NOT NULL,
-  `data` longblob NOT NULL,
+CREATE TABLE `XAssetsData` (
+  `Hash` binary(32) NOT NULL,
+  `Data` longblob NOT NULL,
   PRIMARY KEY (`hash`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Version 1';
 
