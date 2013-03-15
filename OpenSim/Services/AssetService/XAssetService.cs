@@ -106,11 +106,20 @@ namespace OpenSim.Services.AssetService
                 AssetBase asset = m_Database.GetAsset(assetID);
 
                 if (asset != null)
+                {
                     return asset;
+                }
                 else if (HasChainedAssetService)
-                    return m_ChainedAssetService.Get(id);
-                else
-                    return null;
+                {
+                    asset = m_ChainedAssetService.Get(id);
+
+                    if (asset != null)
+                        MigrateFromChainedService(asset);
+
+                    return asset;
+                }
+
+                return null;
             }
             catch (Exception e)
             {
@@ -127,42 +136,23 @@ namespace OpenSim.Services.AssetService
         public virtual AssetMetadata GetMetadata(string id)
         {
 //            m_log.DebugFormat("[XASSET SERVICE]: Get asset metadata for {0}", id);
-            
-            UUID assetID;
 
-            if (!UUID.TryParse(id, out assetID))
-                return null;
+            AssetBase asset = Get(id);
 
-            AssetBase asset = m_Database.GetAsset(assetID);
             if (asset != null)
-            {
                 return asset.Metadata;
-            }
-            else if (HasChainedAssetService)
-            {
-                return m_ChainedAssetService.GetMetadata(id);
-            }
             else
-            {
                 return null;
-            }
         }
 
         public virtual byte[] GetData(string id)
         {
 //            m_log.DebugFormat("[XASSET SERVICE]: Get asset data for {0}", id);
 
-            UUID assetID;
-
-            if (!UUID.TryParse(id, out assetID))
-                return null;
-
-            AssetBase asset = m_Database.GetAsset(assetID);
+            AssetBase asset = Get(id);
 
             if (asset != null)
                 return asset.Data;
-            else if (HasChainedAssetService)
-                return m_ChainedAssetService.GetData(id);
             else
                 return null;
         }
@@ -176,10 +166,7 @@ namespace OpenSim.Services.AssetService
             if (!UUID.TryParse(id, out assetID))
                 return false;
 
-            AssetBase asset = m_Database.GetAsset(assetID);
-
-            if (asset == null && HasChainedAssetService)
-                asset = m_ChainedAssetService.Get(id);
+            AssetBase asset = Get(id);
 
             //m_log.DebugFormat("[XASSET SERVICE]: Got asset {0}", asset);
             
@@ -222,6 +209,11 @@ namespace OpenSim.Services.AssetService
             // very rarely.
 
             return m_Database.Delete(id);
+        }
+
+        private void MigrateFromChainedService(AssetBase asset)
+        {
+            Util.FireAndForget(o => { Store(asset); m_ChainedAssetService.Delete(asset.ID); });
         }
     }
 }
