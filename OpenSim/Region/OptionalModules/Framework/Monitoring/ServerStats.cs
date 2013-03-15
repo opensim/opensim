@@ -140,9 +140,12 @@ public class ServerStats : ISharedRegionModule
     }
     #endregion ISharedRegionModule
 
-    private void MakeStat(string pName, string pUnit, string pContainer, Action<Stat> act)
+    private void MakeStat(string pName, string pDesc, string pUnit, string pContainer, Action<Stat> act)
     {
-        Stat stat = new Stat(pName, pName, "", pUnit, CategoryServer, pContainer, StatType.Pull, act, StatVerbosity.Info);
+        string desc = pDesc;
+        if (desc == null)
+            desc = pName;
+        Stat stat = new Stat(pName, pName, desc, pUnit, CategoryServer, pContainer, StatType.Pull, act, StatVerbosity.Info);
         StatsManager.RegisterStat(stat);
         RegisteredStats.Add(pName, stat);
     }
@@ -166,16 +169,16 @@ public class ServerStats : ISharedRegionModule
             StatsManager.RegisterStat(tempStat);
             RegisteredStats.Add(tempName, tempStat);
 
-            MakeStat("TotalProcessorTime", "sec", ContainerProcessor, 
+            MakeStat("TotalProcessorTime", null, "sec", ContainerProcessor, 
                                 (s) => { s.Value = Process.GetCurrentProcess().TotalProcessorTime.TotalSeconds; });
 
-            MakeStat("UserProcessorTime", "sec", ContainerProcessor,
+            MakeStat("UserProcessorTime", null, "sec", ContainerProcessor,
                                 (s) => { s.Value = Process.GetCurrentProcess().UserProcessorTime.TotalSeconds; });
 
-            MakeStat("PrivilegedProcessorTime", "sec", ContainerProcessor,
+            MakeStat("PrivilegedProcessorTime", null, "sec", ContainerProcessor,
                                 (s) => { s.Value = Process.GetCurrentProcess().PrivilegedProcessorTime.TotalSeconds; });
 
-            MakeStat("Threads", "threads", ContainerProcessor,
+            MakeStat("Threads", null, "threads", ContainerProcessor,
                                 (s) => { s.Value = Process.GetCurrentProcess().Threads.Count; });
         }
         catch (Exception e)
@@ -196,8 +199,10 @@ public class ServerStats : ISharedRegionModule
                 string nicInterfaceType = nic.NetworkInterfaceType.ToString();
                 if (!okInterfaceTypes.Contains(nicInterfaceType))
                 {
-                    m_log.DebugFormat("{0} Not including stats for network interface '{1}' of type '{2}'. To include, add to [Monitoring]NetworkInterfaceTypes='Ethernet,Loopback'",
+                    m_log.DebugFormat("{0} Not including stats for network interface '{1}' of type '{2}'.",
                                             LogHeader, nic.Name, nicInterfaceType);
+                    m_log.DebugFormat("{0}     To include, add to comma separated list in [Monitoring]NetworkInterfaceTypes={1}",
+                                            LogHeader, NetworkInterfaceTypes);
                     continue;
                 }
 
@@ -206,14 +211,15 @@ public class ServerStats : ISharedRegionModule
                     IPv4InterfaceStatistics nicStats = nic.GetIPv4Statistics();
                     if (nicStats != null)
                     {
-                        MakeStat("BytesRcvd/" + nic.Name, "KB", ContainerNetwork,
+                        MakeStat("BytesRcvd/" + nic.Name, nic.Name, "KB", ContainerNetwork,
                                         (s) => { LookupNic(s, (ns) => { return ns.BytesReceived; }, 1024.0); });
-                        MakeStat("BytesSent/" + nic.Name, "KB", ContainerNetwork,
+                        MakeStat("BytesSent/" + nic.Name, nic.Name, "KB", ContainerNetwork,
                                         (s) => { LookupNic(s, (ns) => { return ns.BytesSent; }, 1024.0); });
-                        MakeStat("TotalBytes/" + nic.Name, "KB", ContainerNetwork,
+                        MakeStat("TotalBytes/" + nic.Name, nic.Name, "KB", ContainerNetwork,
                                         (s) => { LookupNic(s, (ns) => { return ns.BytesSent + ns.BytesReceived; }, 1024.0); });
                     }
                 }
+                // TODO: add IPv6 (it may actually happen someday)
             }
         }
         catch (Exception e)
@@ -221,13 +227,13 @@ public class ServerStats : ISharedRegionModule
             m_log.ErrorFormat("{0} Exception creating 'Network Interface': {1}", LogHeader, e);
         }
 
-        MakeStat("ProcessMemory", "MB", ContainerMemory,
+        MakeStat("ProcessMemory", null, "MB", ContainerMemory,
                             (s) => { s.Value = Process.GetCurrentProcess().WorkingSet64 / 1024d / 1024d; });
-        MakeStat("ObjectMemory", "MB", ContainerMemory,
+        MakeStat("ObjectMemory", null, "MB", ContainerMemory,
                             (s) => { s.Value = GC.GetTotalMemory(false) / 1024d / 1024d; });
-        MakeStat("LastMemoryChurn", "MB/sec", ContainerMemory,
+        MakeStat("LastMemoryChurn", null, "MB/sec", ContainerMemory,
                             (s) => { s.Value = Math.Round(MemoryWatchdog.LastMemoryChurn * 1000d / 1024d / 1024d, 3); });
-        MakeStat("AverageMemoryChurn", "MB/sec", ContainerMemory,
+        MakeStat("AverageMemoryChurn", null, "MB/sec", ContainerMemory,
                             (s) => { s.Value = Math.Round(MemoryWatchdog.AverageMemoryChurn * 1000d / 1024d / 1024d, 3); });
     }
 
@@ -263,6 +269,8 @@ public class ServerStats : ISharedRegionModule
         }
     }
 
+    // Lookup the nic that goes with this stat and set the value by using a fetch action.
+    // Not sure about closure with delegates inside delegates.
     private delegate double GetIPv4StatValue(IPv4InterfaceStatistics interfaceStat);
     private void LookupNic(Stat stat, GetIPv4StatValue getter, double factor)
     {
@@ -275,7 +283,10 @@ public class ServerStats : ISharedRegionModule
             {
                 IPv4InterfaceStatistics intrStats = nic.GetIPv4Statistics();
                 if (intrStats != null)
-                    stat.Value = Math.Round(getter(intrStats) / factor, 3);
+                {
+                    double newVal = Math.Round(getter(intrStats) / factor, 3);
+                    stat.Value = newVal;
+                }
                 break;
             }
         }
