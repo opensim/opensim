@@ -1526,17 +1526,42 @@ namespace OpenSim.Region.Framework.Scenes
             m_doingCamRayCast = false;
             if (hitYN && localid != LocalId)
             {
-                CameraConstraintActive = true;
-                pNormal.X = (float)Math.Round(pNormal.X, 2);
-                pNormal.Y = (float)Math.Round(pNormal.Y, 2);
-                pNormal.Z = (float)Math.Round(pNormal.Z, 2);
-                pNormal.Normalize();
-                collisionPoint.X = (float)Math.Round(collisionPoint.X, 1);
-                collisionPoint.Y = (float)Math.Round(collisionPoint.Y, 1);
-                collisionPoint.Z = (float)Math.Round(collisionPoint.Z, 1);
+                SceneObjectGroup group = m_scene.GetGroupByPrim(localid);
+                bool IsPrim = group != null;
+                if (IsPrim)
+                {
+                    SceneObjectPart part = group.GetPart(localid);
+                    if (part != null && !part.VolumeDetectActive)
+                    {
+                        CameraConstraintActive = true;
+                        pNormal.X = (float) Math.Round(pNormal.X, 2);
+                        pNormal.Y = (float) Math.Round(pNormal.Y, 2);
+                        pNormal.Z = (float) Math.Round(pNormal.Z, 2);
+                        pNormal.Normalize();
+                        collisionPoint.X = (float) Math.Round(collisionPoint.X, 1);
+                        collisionPoint.Y = (float) Math.Round(collisionPoint.Y, 1);
+                        collisionPoint.Z = (float) Math.Round(collisionPoint.Z, 1);
 
-                Vector4 plane = new Vector4(pNormal.X, pNormal.Y, pNormal.Z, Vector3.Dot(collisionPoint, pNormal));
-                UpdateCameraCollisionPlane(plane);
+                        Vector4 plane = new Vector4(pNormal.X, pNormal.Y, pNormal.Z,
+                                                    Vector3.Dot(collisionPoint, pNormal));
+                        UpdateCameraCollisionPlane(plane);
+                    }
+                }
+                else
+                {
+                    CameraConstraintActive = true;
+                    pNormal.X = (float) Math.Round(pNormal.X, 2);
+                    pNormal.Y = (float) Math.Round(pNormal.Y, 2);
+                    pNormal.Z = (float) Math.Round(pNormal.Z, 2);
+                    pNormal.Normalize();
+                    collisionPoint.X = (float) Math.Round(collisionPoint.X, 1);
+                    collisionPoint.Y = (float) Math.Round(collisionPoint.Y, 1);
+                    collisionPoint.Z = (float) Math.Round(collisionPoint.Z, 1);
+
+                    Vector4 plane = new Vector4(pNormal.X, pNormal.Y, pNormal.Z,
+                                                Vector3.Dot(collisionPoint, pNormal));
+                    UpdateCameraCollisionPlane(plane);
+                }
             }
             else if (!m_pos.ApproxEquals(m_lastPosition, POSITION_TOLERANCE) ||
                      !Rotation.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE))
