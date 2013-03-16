@@ -1437,21 +1437,21 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 // As the vehicle rolls to the right or left, the Y value will increase from
                 //     zero (straight up) to 1 or -1 (full tilt right  or left)
                 Vector3 rollComponents = Vector3.UnitZ * VehicleOrientation;
+
                 // Figure out the yaw value for this much roll.
-                // Squared because that seems to give a good value
-               // float yawAngle = (float)Math.Asin(rollComponents.X * rollComponents.X) * m_bankingEfficiency;
                 float yawAngle = m_angularMotorDirection.X * m_bankingEfficiency;
                 //        actual error  =       static turn error            +           dynamic turn error
                 float mixedYawAngle =(yawAngle * (1f - m_bankingMix)) + ((yawAngle * m_bankingMix) * VehicleForwardSpeed);
-                // TODO: the banking effect should not go to infinity but what to limit it to? and what should happen when this is 
-                //  being added to a user defined yaw that is already PI*4?
+
+                // TODO: the banking effect should not go to infinity but what to limit it to?
+                //     And what should happen when this is being added to a user defined yaw that is already PI*4?
                 mixedYawAngle = ClampInRange(-12, mixedYawAngle, 12);
 
                 // Build the force vector to change rotation from what it is to what it should be
                 bankingContributionV.Z = -mixedYawAngle;
 
-                // Don't do it all at once. 60 becouse 1 second is too fast with most user defined roll as PI*4
-                bankingContributionV /= m_bankingTimescale*60;
+                // Don't do it all at once. Fudge because 1 second is too fast with most user defined roll as PI*4.
+                bankingContributionV /= m_bankingTimescale * BSParam.VehicleAngularBankingTimescaleFudge;
 
                 //VehicleRotationalVelocity += bankingContributionV * VehicleOrientation;
                 VehicleRotationalVelocity += bankingContributionV;
