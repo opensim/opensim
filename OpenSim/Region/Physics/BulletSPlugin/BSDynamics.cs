@@ -143,7 +143,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         {
             enableAngularVerticalAttraction = true;
             enableAngularDeflection = false;
-            enableAngularBanking = false;
+            enableAngularBanking = true;
             if (BSParam.VehicleDebuggingEnabled)
             {
                 enableAngularVerticalAttraction = true;
@@ -1280,11 +1280,11 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             // That is, NO_DEFLECTION_UP says angular motion should not add any pitch or roll movement
             // TODO: This is here because this is where ODE put it but documentation says it
             //    is a linear effect. Where should this check go?
-            if ((m_flags & (VehicleFlag.NO_DEFLECTION_UP)) != 0)
-            {
-                angularMotorContributionV.X = 0f;
-                angularMotorContributionV.Y = 0f;
-            }
+            //if ((m_flags & (VehicleFlag.NO_DEFLECTION_UP)) != 0)
+           // {
+            //    angularMotorContributionV.X = 0f;
+            //    angularMotorContributionV.Y = 0f;
+          //  }
 
             VehicleRotationalVelocity += angularMotorContributionV * VehicleOrientation;
             VDetailLog("{0},  MoveAngular,angularTurning,angularMotorContrib={1}", Prim.LocalID, angularMotorContributionV);
@@ -1437,24 +1437,25 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 // As the vehicle rolls to the right or left, the Y value will increase from
                 //     zero (straight up) to 1 or -1 (full tilt right  or left)
                 Vector3 rollComponents = Vector3.UnitZ * VehicleOrientation;
-                
-                // Figure out the yaw value for this much roll.
-                // Squared because that seems to give a good value
-                float yawAngle = (float)Math.Asin(rollComponents.Y * rollComponents.Y) * m_bankingEfficiency;
 
+                // Figure out the yaw value for this much roll.
+                float yawAngle = m_angularMotorDirection.X * m_bankingEfficiency;
                 //        actual error  =       static turn error            +           dynamic turn error
-                float mixedYawAngle = yawAngle * (1f - m_bankingMix) + yawAngle * m_bankingMix * VehicleForwardSpeed;
+                float mixedYawAngle =(yawAngle * (1f - m_bankingMix)) + ((yawAngle * m_bankingMix) * VehicleForwardSpeed);
 
                 // TODO: the banking effect should not go to infinity but what to limit it to?
-                mixedYawAngle = ClampInRange(-20f, mixedYawAngle, 20f);
+                //     And what should happen when this is being added to a user defined yaw that is already PI*4?
+                mixedYawAngle = ClampInRange(-12, mixedYawAngle, 12);
 
                 // Build the force vector to change rotation from what it is to what it should be
                 bankingContributionV.Z = -mixedYawAngle;
 
-                // Don't do it all at once.
-                bankingContributionV /= m_bankingTimescale;
+                // Don't do it all at once. Fudge because 1 second is too fast with most user defined roll as PI*4.
+                bankingContributionV /= m_bankingTimescale * BSParam.VehicleAngularBankingTimescaleFudge;
 
-                VehicleRotationalVelocity += bankingContributionV * VehicleOrientation;
+                //VehicleRotationalVelocity += bankingContributionV * VehicleOrientation;
+                VehicleRotationalVelocity += bankingContributionV;
+                
 
                 VDetailLog("{0},  MoveAngular,Banking,rollComp={1},speed={2},rollComp={3},yAng={4},mYAng={5},ret={6}",
                             Prim.LocalID, rollComponents, VehicleForwardSpeed, rollComponents, yawAngle, mixedYawAngle, bankingContributionV);

@@ -123,6 +123,7 @@ public static class BSParam
     public static Vector3 VehicleLinearFactor { get; private set; }
     public static Vector3 VehicleAngularFactor { get; private set; }
     public static float VehicleGroundGravityFudge { get; private set; }
+    public static float VehicleAngularBankingTimescaleFudge { get; private set; }
     public static bool VehicleDebuggingEnabled { get; private set; }
 
     // Linkset implementation parameters
@@ -543,10 +544,14 @@ public static class BSParam
             0.0f,
             (s) => { return VehicleRestitution; },
             (s,v) => { VehicleRestitution = v; } ),
-        new ParameterDefn<float>("VehicleGroundGravityFudge", "Factor to multiple gravity if a ground vehicle is probably on the ground (0.0 - 1.0)",
+        new ParameterDefn<float>("VehicleGroundGravityFudge", "Factor to multiply gravity if a ground vehicle is probably on the ground (0.0 - 1.0)",
             0.2f,
             (s) => { return VehicleGroundGravityFudge; },
             (s,v) => { VehicleGroundGravityFudge = v; } ),
+        new ParameterDefn<float>("VehicleAngularBankingTimescaleFudge", "Factor to multiple angular banking timescale. Tune to increase realism.",
+            60.0f,
+            (s) => { return VehicleAngularBankingTimescaleFudge; },
+            (s,v) => { VehicleAngularBankingTimescaleFudge = v; } ),
         new ParameterDefn<bool>("VehicleDebuggingEnable", "Turn on/off vehicle debugging",
             false,
             (s) => { return VehicleDebuggingEnabled; },
