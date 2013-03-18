@@ -305,6 +305,15 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         private bool AttachObjectInternal(
             IScenePresence sp, SceneObjectGroup group, uint attachmentPt, bool silent, bool temp, bool resumeScripts)
         {
+            if (sp.GetAttachments().Contains(group))
+            {
+//                m_log.WarnFormat(
+//                    "[ATTACHMENTS MODULE]: Ignoring request to attach {0} {1} to {2} on {3} since it's already attached",
+//                    group.Name, group.LocalId, sp.Name, AttachmentPt);
+
+                return false;
+            }
+
 //                m_log.DebugFormat(
 //                    "[ATTACHMENTS MODULE]: Attaching object {0} {1} to {2} point {3} from ground (silent = {4})",
 //                    group.Name, group.LocalId, sp.Name, attachmentPt, silent);
@@ -318,15 +327,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 return false;
             }
 
-            if (sp.GetAttachments(attachmentPt).Contains(group))
-            {
-//                m_log.WarnFormat(
-//                    "[ATTACHMENTS MODULE]: Ignoring request to attach {0} {1} to {2} on {3} since it's already attached",
-//                    group.Name, group.LocalId, sp.Name, AttachmentPt);
-
-                return false;
-            }
-
             Vector3 attachPos = group.AbsolutePosition;
 
             // TODO: this short circuits multiple attachments functionality  in  LL viewer 2.1+ and should
@@ -336,13 +336,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             // If the attachment point isn't the same as the one previously used
             // set it's offset position = 0 so that it appears on the attachment point
             // and not in a weird location somewhere unknown.
-            if (attachmentPt != 0 && attachmentPt != group.AttachmentPoint)
+            if (attachmentPt != (uint)AttachmentPoint.Default && attachmentPt != group.AttachmentPoint)
             {
                 attachPos = Vector3.Zero;
             }
 
-            // AttachmentPt 0 means the client chose to 'wear' the attachment.
-            if (attachmentPt == 0)
+            // AttachmentPt 0 (default) means the client chose to 'wear' the attachment.
+            if (attachmentPt == (uint)AttachmentPoint.Default)
             {
                 // Check object for stored attachment point
                 attachmentPt = group.AttachmentPoint;
