@@ -39,6 +39,20 @@ public static class BSParam
 {
     private static string LogHeader = "[BULLETSIM PARAMETERS]"; 
 
+    // Tuning notes:
+    // From: http://bulletphysics.org/Bullet/phpBB3/viewtopic.php?t=6575
+    //    Contact points can be added even if the distance is positive. The constraint solver can deal with
+    //    contacts with positive distances as well as negative (penetration). Contact points are discarded
+    //    if the distance exceeds a certain threshold.
+    //    Bullet has a contact processing threshold and a contact breaking threshold.
+    //    If the distance is larger than the contact breaking threshold, it will be removed after one frame.
+    //    If the distance is larger than the contact processing threshold, the constraint solver will ignore it.
+
+    //    This is separate/independent from the collision margin. The collision margin increases the object a bit
+    //    to improve collision detection performance and accuracy.
+    // ===================
+    // From: 
+
     // Level of Detail values kept as float because that's what the Meshmerizer wants
     public static float MeshLOD { get; private set; }
     public static float MeshCircularLOD { get; private set; }
@@ -77,6 +91,7 @@ public static class BSParam
     public static float TerrainFriction { get; private set; }
     public static float TerrainHitFraction { get; private set; }
     public static float TerrainRestitution { get; private set; }
+    public static float TerrainContactProcessingThreshold { get; private set; }
     public static float TerrainCollisionMargin { get; private set; }
 
     public static float DefaultFriction { get; private set; }
@@ -458,6 +473,10 @@ public static class BSParam
             0f,
             (s) => { return TerrainRestitution; },
             (s,v) => { TerrainRestitution = v;  /* TODO: set on real terrain */ } ),
+        new ParameterDefn<float>("TerrainContactProcessingThreshold", "Distance from terrain to stop processing collisions" ,
+            0.0f,
+            (s) => { return TerrainContactProcessingThreshold; },
+            (s,v) => { TerrainContactProcessingThreshold = v;  /* TODO: set on real terrain */ } ),
         new ParameterDefn<float>("TerrainCollisionMargin", "Margin where collision checking starts" ,
             0.08f,
             (s) => { return TerrainCollisionMargin; },

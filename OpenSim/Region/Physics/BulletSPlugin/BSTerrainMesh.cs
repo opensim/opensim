@@ -112,11 +112,13 @@ public sealed class BSTerrainMesh : BSTerrainPhys
             // Something is very messed up and a crash is in our future.
             return;
         }
+        physicsScene.PE.SetShapeCollisionMargin(m_terrainShape, BSParam.TerrainCollisionMargin);
 
         // Set current terrain attributes
         PhysicsScene.PE.SetFriction(m_terrainBody, BSParam.TerrainFriction);
         PhysicsScene.PE.SetHitFraction(m_terrainBody, BSParam.TerrainHitFraction);
         PhysicsScene.PE.SetRestitution(m_terrainBody, BSParam.TerrainRestitution);
+        PhysicsScene.PE.SetContactProcessingThreshold(m_terrainBody, BSParam.TerrainContactProcessingThreshold);
         PhysicsScene.PE.SetCollisionFlags(m_terrainBody, CollisionFlags.CF_STATIC_OBJECT);
 
         // Static objects are not very massive.

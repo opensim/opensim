@@ -947,9 +947,9 @@ public class BSPrim : BSPhysObject
             ZeroMotion(true);
 
             // Set various physical properties so other object interact properly
-            MaterialAttributes matAttrib = BSMaterials.GetAttributes(Material, false);
             PhysicsScene.PE.SetFriction(PhysBody, Friction);
             PhysicsScene.PE.SetRestitution(PhysBody, Restitution);
+            PhysicsScene.PE.SetContactProcessingThreshold(PhysBody, BSParam.ContactProcessingThreshold);
 
             // Mass is zero which disables a bunch of physics stuff in Bullet
             UpdatePhysicalMassProperties(0f, false);
