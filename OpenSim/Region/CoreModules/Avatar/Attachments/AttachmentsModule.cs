@@ -289,7 +289,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             if (!Enabled)
                 return false;
 
-            return AttachObjectInternal(sp, group, attachmentPt, silent, temp, append);
+            return AttachObjectInternal(sp, group, attachmentPt, silent, temp, true, append);
         }
 
         /// <summary>
@@ -303,7 +303,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         /// <param name='temp'></param>
         /// <param name='resumeScripts'>If true then scripts are resumed on the attached object.</param>
         private bool AttachObjectInternal(
-            IScenePresence sp, SceneObjectGroup group, uint attachmentPt, bool silent, bool temp, bool resumeScripts)
+            IScenePresence sp, SceneObjectGroup group, uint attachmentPt, bool silent, bool temp, bool resumeScripts, bool append)
         {
             if (group.GetSittingAvatarsCount() != 0)
             {
@@ -889,7 +889,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             // This will throw if the attachment fails
             try
             {
-                AttachObjectInternal(sp, objatt, attachmentPt, false, false, append);
+                AttachObjectInternal(sp, objatt, attachmentPt, false, false, true, append);
             }
             catch (Exception e)
             {
