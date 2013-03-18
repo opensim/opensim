@@ -353,7 +353,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                 // Position of a sensor in a child prim attached to an avatar
                 // will be still wrong. 
                 ScenePresence avatar = m_CmdManager.m_ScriptEngine.World.GetScenePresence(SensePoint.ParentGroup.AttachedAvatar);
-                q = avatar.Rotation * q;
+                q = avatar.GetWorldRotation() * q;
             }
 
             LSL_Types.Quaternion r = new LSL_Types.Quaternion(q);
@@ -480,7 +480,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                 // Position of a sensor in a child prim attached to an avatar
                 // will be still wrong. 
                 ScenePresence avatar = m_CmdManager.m_ScriptEngine.World.GetScenePresence(SensePoint.ParentGroup.AttachedAvatar);
-                q = avatar.Rotation * q;
+                q = avatar.GetWorldRotation() * q;
             }
 
             LSL_Types.Quaternion r = new LSL_Types.Quaternion(q);

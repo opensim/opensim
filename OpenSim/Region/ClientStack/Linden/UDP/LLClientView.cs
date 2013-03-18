@@ -4581,7 +4581,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             rinfopack.AgentData = new RegionInfoPacket.AgentDataBlock();
             rinfopack.AgentData.AgentID = AgentId;
             rinfopack.AgentData.SessionID = SessionId;
-
+            rinfopack.RegionInfo3 = new RegionInfoPacket.RegionInfo3Block[0];
 
             OutPacket(rinfopack, ThrottleOutPacketType.Task);
         }
@@ -7069,7 +7069,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if (handlerUpdatePrimFlags != null)
             {
-                byte[] data = Pack.ToBytes();
+//                byte[] data = Pack.ToBytes();
                 // 46,47,48 are special positions within the packet
                 // This may change so perhaps we need a better way
                 // of storing this (OMV.FlagUpdatePacket.UsePhysics,etc?)

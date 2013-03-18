@@ -210,13 +210,12 @@
     ;; Choose one of the physics engines below
     ;# {physics} {} {Select physics engine} {OpenDynamicsEngine BulletSim basicphysics POS} OpenDynamicsEngine
     ;; OpenDynamicsEngine is by some distance the most developed physics engine
-    ;; BulletSim is incomplete and experimental but in active development.  BulletSimN is a purely C# version of BulletSim.
+    ;; BulletSim is experimental and in active development.
     ;; basicphysics effectively does not model physics at all, making all
     ;; objects phantom.   
     ;; Default is OpenDynamicsEngine
     ; physics = OpenDynamicsEngine
     ; physics = BulletSim
-    ; physics = BulletSimN
     ; physics = basicphysics
     ; physics = POS
 
@@ -540,6 +539,13 @@
     ;# {shout_distance} {Distance at which a shout is heard, in meters?} {} 100
     ;; Distance in meters that shouts should travel.
     ; shout_distance = 100
+
+
+[EntityTransfer]
+    ;# {DisableInterRegionTeleportCancellation} {} {Determine whether the cancel button is shown at all during teleports.} {false true} false
+    ;; This option exists because cancelling at certain points can result in an unuseable session (frozen avatar, etc.)
+    ;; Disabling cancellation can be okay in small closed grids where all teleports are highly likely to suceed.
+    ;DisableInterRegionTeleportCancellation = false
 
 
 [Messaging]

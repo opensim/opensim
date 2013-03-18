@@ -81,6 +81,11 @@ namespace OpenSim.Tests.Common.Mock
             return obj;
         }
 
+        public ILandObject GetLandObject(Vector3 position)
+        {
+            return GetLandObject(position.X, position.Y);
+        }
+
         public ILandObject GetLandObject(int x, int y)
         {
             return GetNoLand();

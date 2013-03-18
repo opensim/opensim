@@ -186,10 +186,7 @@ namespace OpenSim.Server.Base
                 XmlConfigurator.Configure();
             }
 
-            // FIXME: This should be done down in ServerBase but we need to sort out and refactor the log4net
-            // XmlConfigurator calls first accross servers.
-            m_log.InfoFormat("[SERVER BASE]: Starting in {0}", m_startupDirectory);
-
+            LogEnvironmentInformation();
             RegisterCommonAppenders(startupConfig);
 
             if (startupConfig.GetString("PIDFile", String.Empty) != String.Empty)

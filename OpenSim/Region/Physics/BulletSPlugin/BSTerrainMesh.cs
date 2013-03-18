@@ -215,7 +215,8 @@ public sealed class BSTerrainMesh : BSTerrainPhys
 
             float magX = (float)sizeX / extentX;
             float magY = (float)sizeY / extentY;
-            physicsScene.DetailLog("{0},BSTerrainMesh.ConvertHeightMapToMesh,totVert={1},totInd={2},extentBase={3},magX={4},magY={5}",
+            if (physicsScene != null)
+                physicsScene.DetailLog("{0},BSTerrainMesh.ConvertHeightMapToMesh,totVert={1},totInd={2},extentBase={3},magX={4},magY={5}",
                                     BSScene.DetailLogZero, totalVertices, totalIndices, extentBase, magX, magY);
             float minHeight = float.MaxValue;
             // Note that sizeX+1 vertices are created since there is land between this and the next region.
@@ -257,7 +258,8 @@ public sealed class BSTerrainMesh : BSTerrainPhys
         }
         catch (Exception e)
         {
-            physicsScene.Logger.ErrorFormat("{0} Failed conversion of heightmap to mesh. For={1}/{2}, e={3}",
+            if (physicsScene != null)
+                physicsScene.Logger.ErrorFormat("{0} Failed conversion of heightmap to mesh. For={1}/{2}, e={3}",
                                                 LogHeader, physicsScene.RegionName, extentBase, e);
         }
 

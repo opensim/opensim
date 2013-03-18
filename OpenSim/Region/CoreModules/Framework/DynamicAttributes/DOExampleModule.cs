@@ -36,24 +36,36 @@ using OpenMetaverse.Packets;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Region.Framework;
+using OpenSim.Region.CoreModules.Framework.DynamicAttributes.DAExampleModule;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
-namespace OpenSim.Region.CoreModules.Framework.DynamicAttributes.DAExampleModule
+namespace OpenSim.Region.Framework.DynamicAttributes.DOExampleModule
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "DAExampleModule")]
-    public class DAExampleModule : INonSharedRegionModule
+    /// <summary>
+    /// Example module for experimenting with and demonstrating dynamic object ideas.
+    /// </summary>
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "DOExampleModule")]
+    public class DOExampleModule : INonSharedRegionModule
     {
-//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        public class MyObject
+        {
+            public int Moves { get; set; }
+
+            public MyObject(int moves)
+            {
+                Moves = moves;
+            }
+        }
+
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private static readonly bool ENABLED = false;   // enable for testing
 
-        public const string DANamespace = "DAExample Module";
-
-        protected Scene m_scene;
-        protected IDialogModule m_dialogMod;
+        private Scene m_scene;
+        private IDialogModule m_dialogMod;
         
-        public string Name { get { return "DAExample Module"; } }        
+        public string Name { get { return "DOExample Module"; } }        
         public Type ReplaceableInterface { get { return null; } }        
 
         public void Initialise(IConfigSource source) {}
@@ -63,6 +75,7 @@ namespace OpenSim.Region.CoreModules.Framework.DynamicAttributes.DAExampleModule
             if (ENABLED)
             {
                 m_scene = scene;
+                m_scene.EventManager.OnObjectAddedToScene += OnObjectAddedToScene;
                 m_scene.EventManager.OnSceneGroupMove += OnSceneGroupMove;
                 m_dialogMod = m_scene.RequestModuleInterface<IDialogModule>();
             }
@@ -82,38 +95,45 @@ namespace OpenSim.Region.CoreModules.Framework.DynamicAttributes.DAExampleModule
         {
             RemoveRegion(m_scene);
         }
-        
-        protected bool OnSceneGroupMove(UUID groupId, Vector3 delta)
+
+        private void OnObjectAddedToScene(SceneObjectGroup so)
         {
-            OSDMap attrs = null;
-            SceneObjectPart sop = m_scene.GetSceneObjectPart(groupId);
+            SceneObjectPart rootPart = so.RootPart;
 
-            if (sop == null)
-                return true;
+            OSDMap attrs;
 
-            if (!sop.DynAttrs.TryGetValue(DANamespace, out attrs))
-                attrs = new OSDMap();
-            
-            OSDInteger newValue;
+            int movesSoFar = 0;
 
-            // We have to lock on the entire dynamic attributes map to avoid race conditions with serialization code.
-            lock (sop.DynAttrs)            
+//            Console.WriteLine("Here for {0}", so.Name);
+
+            if (rootPart.DynAttrs.TryGetValue(DAExampleModule.DANamespace, out attrs))
             {
-                if (!attrs.ContainsKey("moves"))
-                    newValue = new OSDInteger(1);
-                else
-                    newValue = new OSDInteger(attrs["moves"].AsInteger() + 1);
-                        
-                attrs["moves"] = newValue;
+                movesSoFar = attrs["moves"].AsInteger();
 
-                sop.DynAttrs[DANamespace] = attrs;
+                m_log.DebugFormat(
+                    "[DO EXAMPLE MODULE]: Found saved moves {0} for {1} in {2}", movesSoFar, so.Name, m_scene.Name);
             }
 
-            sop.ParentGroup.HasGroupChanged = true;
-    
-            m_dialogMod.SendGeneralAlert(string.Format("{0} {1} moved {2} times", sop.Name, sop.UUID, newValue));
+            rootPart.DynObjs.Add(Name, new MyObject(movesSoFar));
+        }
+        
+        private bool OnSceneGroupMove(UUID groupId, Vector3 delta)
+        {
+            SceneObjectGroup so = m_scene.GetSceneObjectGroup(groupId);
+
+            if (so == null)
+                return true;
+
+            object rawObj = so.RootPart.DynObjs.Get(Name);
+
+            if (rawObj != null)
+            {
+                MyObject myObj = (MyObject)rawObj;
+               
+                m_dialogMod.SendGeneralAlert(string.Format("{0} {1} moved {2} times", so.Name, so.UUID, ++myObj.Moves));
+            }
             
             return true;
-        }
+        }        
     }
 }

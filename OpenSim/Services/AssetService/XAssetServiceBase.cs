@@ -27,9 +27,11 @@
 
 using System;
 using System.Reflection;
+using log4net;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Data;
+using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
 using OpenSim.Services.Base;
 
@@ -37,10 +39,15 @@ namespace OpenSim.Services.AssetService
 {
     public class XAssetServiceBase : ServiceBase
     {
-        protected IXAssetDataPlugin m_Database = null;
-        protected IAssetLoader m_AssetLoader = null;
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public XAssetServiceBase(IConfigSource config) : base(config)
+        protected IXAssetDataPlugin m_Database;
+        protected IAssetLoader m_AssetLoader;
+        protected IAssetService m_ChainedAssetService;
+
+        protected bool HasChainedAssetService { get { return m_ChainedAssetService != null; } }
+
+        public XAssetServiceBase(IConfigSource config, string configName) : base(config)
         {
             string dllName = String.Empty;
             string connString = String.Empty;
@@ -48,7 +55,7 @@ namespace OpenSim.Services.AssetService
             //
             // Try reading the [AssetService] section first, if it exists
             //
-            IConfig assetConfig = config.Configs["AssetService"];
+            IConfig assetConfig = config.Configs[configName];
             if (assetConfig != null)
             {
                 dllName = assetConfig.GetString("StorageProvider", dllName);
@@ -77,17 +84,35 @@ namespace OpenSim.Services.AssetService
             if (m_Database == null)
                 throw new Exception("Could not find a storage interface in the given module");
 
+            string chainedAssetServiceDesignator = assetConfig.GetString("ChainedServiceModule", null);
+
+            if (chainedAssetServiceDesignator != null)
+            {
+                m_log.InfoFormat(
+                    "[XASSET SERVICE BASE]: Loading chained asset service from {0}", chainedAssetServiceDesignator);
+
+                Object[] args = new Object[] { config, configName };
+                m_ChainedAssetService = ServerUtils.LoadPlugin<IAssetService>(chainedAssetServiceDesignator, args);
+
+                if (!HasChainedAssetService)
+                    throw new Exception(
+                        String.Format("Failed to load ChainedAssetService from {0}", chainedAssetServiceDesignator));
+            }
+
             m_Database.Initialise(connString);
 
-            string loaderName = assetConfig.GetString("DefaultAssetLoader",
-                    String.Empty);
-
-            if (loaderName != String.Empty)
+            if (HasChainedAssetService)
             {
-                m_AssetLoader = LoadPlugin<IAssetLoader>(loaderName);
+                string loaderName = assetConfig.GetString("DefaultAssetLoader",
+                        String.Empty);
 
-                if (m_AssetLoader == null)
-                    throw new Exception("Asset loader could not be loaded");
+                if (loaderName != String.Empty)
+                {
+                    m_AssetLoader = LoadPlugin<IAssetLoader>(loaderName);
+
+                    if (m_AssetLoader == null)
+                        throw new Exception("Asset loader could not be loaded");
+                }
             }
         }
     }

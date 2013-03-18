@@ -26,69 +26,73 @@
  */
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
+using System.Xml;
+using System.Xml.Schema;
 using System.Xml.Serialization;
+using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 
-namespace OpenSim.ApplicationPlugins.Rest.Regions
+namespace OpenSim.Framework
 {
-    public partial class RestRegionPlugin : RestPlugin
+    /// <summary>
+    /// This class stores and retrieves dynamic objects.
+    /// </summary>
+    /// <remarks>
+    /// Experimental - DO NOT USE.
+    /// </remarks>
+    public class DOMap
     {
-        private static XmlSerializerNamespaces _xmlNs;
-
-        static RestRegionPlugin()
+        private IDictionary<string, object> m_map;
+        
+        public void Add(string key, object dynObj)
         {
-            _xmlNs = new XmlSerializerNamespaces();
-            _xmlNs.Add(String.Empty, String.Empty);
+            DAMap.ValidateKey(key);
+
+            lock (this)
+            {
+                if (m_map == null)
+                    m_map = new Dictionary<string, object>();
+
+                m_map.Add(key, dynObj);
+            }
         }
 
-        #region overriding properties
-        public override string Name
+        public bool ContainsKey(string key)
         {
-            get { return "REGION"; }
+            return Get(key) != null;
         }
 
-        public override string ConfigName
-        {
-            get { return "RestRegionPlugin"; }
-        }
-        #endregion overriding properties
-
-        #region overriding methods
         /// <summary>
-        /// This method is called by OpenSimMain immediately after loading the
-        /// plugin and after basic server setup,  but before running any server commands.
+        /// Get a dynamic object
         /// </summary>
         /// <remarks>
-        /// Note that entries MUST be added to the active configuration files before
-        /// the plugin can be enabled.
+        /// Not providing an index method so that users can't casually overwrite each other's objects.
         /// </remarks>
-        public override void Initialise(OpenSimBase openSim)
+        /// <param name='key'></param>
+        public object Get(string key)
         {
-            try
+            lock (this)
             {
-                base.Initialise(openSim);
-                if (!IsEnabled)
-                {
-                    //m_log.WarnFormat("{0} Rest Plugins are disabled", MsgID);
-                    return;
-                }
-                
-                m_log.InfoFormat("{0} REST region plugin enabled", MsgID);
-
-                // add REST method handlers
-                AddRestStreamHandler("GET", "/regions/", GetHandler);
-                AddRestStreamHandler("POST", "/regions/", PostHandler);
-                AddRestStreamHandler("GET", "/regioninfo/", GetRegionInfoHandler);
-            }
-            catch (Exception e)
-            {
-                m_log.WarnFormat("{0} Initialization failed: {1}", MsgID, e.Message);
-                m_log.DebugFormat("{0} Initialization failed: {1}", MsgID, e.ToString());
+                if (m_map == null)
+                    return null;
+                else
+                    return m_map[key];
             }
         }
 
-        public override void Close()
+        public bool Remove(string key)
         {
+            lock (this)
+            {
+                if (m_map == null)
+                    return false;
+                else
+                    return m_map.Remove(key);
+            }
         }
-        #endregion overriding methods
     }
 }

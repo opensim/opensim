@@ -192,16 +192,32 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
 #region ScriptConstantsInterface
 
         [ScriptConstant]
-        public static readonly int JSON_TYPE_UNDEF = (int)JsonStoreNodeType.Undefined;
+        public static readonly int JSON_NODETYPE_UNDEF = (int)JsonStoreNodeType.Undefined;
 
         [ScriptConstant]
-        public static readonly int JSON_TYPE_OBJECT = (int)JsonStoreNodeType.Object;
+        public static readonly int JSON_NODETYPE_OBJECT = (int)JsonStoreNodeType.Object;
 
         [ScriptConstant]
-        public static readonly int JSON_TYPE_ARRAY = (int)JsonStoreNodeType.Array;
+        public static readonly int JSON_NODETYPE_ARRAY = (int)JsonStoreNodeType.Array;
 
         [ScriptConstant]
-        public static readonly int JSON_TYPE_VALUE = (int)JsonStoreNodeType.Value;
+        public static readonly int JSON_NODETYPE_VALUE = (int)JsonStoreNodeType.Value;
+
+        [ScriptConstant]
+        public static readonly int JSON_VALUETYPE_UNDEF = (int)JsonStoreValueType.Undefined;
+
+        [ScriptConstant]
+        public static readonly int JSON_VALUETYPE_BOOLEAN = (int)JsonStoreValueType.Boolean;
+
+        [ScriptConstant]
+        public static readonly int JSON_VALUETYPE_INTEGER = (int)JsonStoreValueType.Integer;
+
+        [ScriptConstant]
+        public static readonly int JSON_VALUETYPE_FLOAT = (int)JsonStoreValueType.Float;
+
+        [ScriptConstant]
+        public static readonly int JSON_VALUETYPE_STRING = (int)JsonStoreValueType.String;
+
 
 #endregion
 
@@ -310,9 +326,20 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         /// </summary>
         // -----------------------------------------------------------------
         [ScriptInvocation]
-        public int JsonGetPathType(UUID hostID, UUID scriptID, UUID storeID, string path)
+        public int JsonGetNodeType(UUID hostID, UUID scriptID, UUID storeID, string path)
         {
-            return (int)m_store.GetPathType(storeID,path);
+            return (int)m_store.GetNodeType(storeID,path);
+        }
+
+        // -----------------------------------------------------------------
+        /// <summary>
+        /// 
+        /// </summary>
+        // -----------------------------------------------------------------
+        [ScriptInvocation]
+        public int JsonGetValueType(UUID hostID, UUID scriptID, UUID storeID, string path)
+        {
+            return (int)m_store.GetValueType(storeID,path);
         }
 
         // -----------------------------------------------------------------

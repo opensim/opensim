@@ -363,7 +363,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     //OSSL only may be used if object is in the same group as the parcel
                     if (m_FunctionPerms[function].AllowedOwnerClasses.Contains("PARCEL_GROUP_MEMBER"))
                     {
-                        ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y);
+                        ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition);
 
                         if (land.LandData.GroupID == m_item.GroupID && land.LandData.GroupID != UUID.Zero)
                         {
@@ -374,7 +374,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     //Only Parcelowners may use the function
                     if (m_FunctionPerms[function].AllowedOwnerClasses.Contains("PARCEL_OWNER"))
                     {
-                        ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y);
+                        ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition);
 
                         if (land.LandData.OwnerID == ownerID)
                         {
@@ -1502,8 +1502,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             m_host.AddScriptLPS(1);
 
-            ILandObject land
-                = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y);
+            ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition);
 
             if (land.LandData.OwnerID != m_host.OwnerID)
                 return;
@@ -1519,8 +1518,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             m_host.AddScriptLPS(1);
 
-            ILandObject land
-                = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y);
+            ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition);
 
             if (land.LandData.OwnerID != m_host.OwnerID)
             {
@@ -2515,13 +2513,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 ScenePresence sp = World.GetScenePresence(npcId);
 
                 if (sp != null)
-                {
-                    Vector3 pos = sp.AbsolutePosition;
-                    return new LSL_Vector(pos.X, pos.Y, pos.Z);
-                }
+                    return new LSL_Vector(sp.AbsolutePosition);
             }
 
-            return new LSL_Vector(0, 0, 0);
+            return Vector3.Zero;
         }
 
         public void osNpcMoveTo(LSL_Key npc, LSL_Vector pos)
@@ -2578,21 +2573,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 UUID npcId;
                 if (!UUID.TryParse(npc.m_string, out npcId))
-                    return new LSL_Rotation(Quaternion.Identity.X, Quaternion.Identity.Y, Quaternion.Identity.Z, Quaternion.Identity.W);
+                    return new LSL_Rotation(Quaternion.Identity);
 
                 if (!npcModule.CheckPermissions(npcId, m_host.OwnerID))
-                    return new LSL_Rotation(Quaternion.Identity.X, Quaternion.Identity.Y, Quaternion.Identity.Z, Quaternion.Identity.W);
+                    return new LSL_Rotation(Quaternion.Identity);
 
                 ScenePresence sp = World.GetScenePresence(npcId);
 
                 if (sp != null)
-                {
-                    Quaternion rot = sp.Rotation;
-                    return new LSL_Rotation(rot.X, rot.Y, rot.Z, rot.W);
-                }
+                    return new LSL_Rotation(sp.GetWorldRotation());
             }
 
-            return new LSL_Rotation(Quaternion.Identity.X, Quaternion.Identity.Y, Quaternion.Identity.Z, Quaternion.Identity.W);
+            return Quaternion.Identity;
         }
 
         public void osNpcSetRot(LSL_Key npc, LSL_Rotation rotation)
@@ -3022,20 +3014,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             UUID avatarId = new UUID(avatar);
             ScenePresence presence = World.GetScenePresence(avatarId);
-            Vector3 pos = m_host.GetWorldPosition();
-            bool result = World.ScriptDanger(m_host.LocalId, new Vector3((float)pos.X, (float)pos.Y, (float)pos.Z));
-            if (result)
+
+            if (presence != null && World.ScriptDanger(m_host.LocalId, m_host.GetWorldPosition()))
             {
-                if (presence != null)
-                {
-                    float health = presence.Health;
-                    health += (float)healing;
-                    if (health >= 100)
-                    {
-                        health = 100;
-                    }
-                    presence.setHealthWithUpdate(health);
-                }
+                float health = presence.Health;
+                health += (float)healing;
+
+                if (health >= 100)
+                    health = 100;
+
+                presence.setHealthWithUpdate(health);
             }
         }
 
@@ -3112,8 +3100,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (avatar != null && avatar.UUID != m_host.OwnerID)
                 {
                     result.Add(new LSL_String(avatar.UUID.ToString()));
-                    OpenMetaverse.Vector3 ap = avatar.AbsolutePosition;
-                    result.Add(new LSL_Vector(ap.X, ap.Y, ap.Z));
+                    result.Add(new LSL_Vector(avatar.AbsolutePosition));
                     result.Add(new LSL_String(avatar.Name));
                 }
             });

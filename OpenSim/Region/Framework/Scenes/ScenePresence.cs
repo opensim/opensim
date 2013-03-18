@@ -559,16 +559,28 @@ namespace OpenSim.Region.Framework.Scenes
 
         private Quaternion m_bodyRot = Quaternion.Identity;
 
+        /// <summary>
+        /// The rotation of the avatar.
+        /// </summary>
+        /// <remarks>
+        /// If the avatar is not sitting, this is with respect to the world
+        /// If the avatar is sitting, this is a with respect to the part that it's sitting upon (a local rotation).
+        /// If you always want the world rotation, use GetWorldRotation()
+        /// </remarks>
         public Quaternion Rotation
         {
-            get { return m_bodyRot; }
+            get 
+            { 
+                return m_bodyRot; 
+            }
+
             set
             {
                 m_bodyRot = value;
+
                 if (PhysicsActor != null)
-                {
                     PhysicsActor.Orientation = m_bodyRot;
-                }
+
 //                m_log.DebugFormat("[SCENE PRESENCE]: Body rot for {0} set to {1}", Name, m_bodyRot);
             }
         }
@@ -606,6 +618,26 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get { return m_health; }
             set { m_health = value; }
+        }
+
+        /// <summary>
+        /// Gets the world rotation of this presence.
+        /// </summary>
+        /// <remarks>
+        /// Unlike Rotation, this returns the world rotation no matter whether the avatar is sitting on a prim or not.
+        /// </remarks>
+        /// <returns></returns>
+        public Quaternion GetWorldRotation()
+        {
+            if (IsSatOnObject)
+            {
+                SceneObjectPart sitPart = ParentPart;
+
+                if (sitPart != null)
+                    return sitPart.GetWorldRotation() * Rotation;
+            }
+
+            return Rotation;
         }
 
         public void AdjustKnownSeeds()
@@ -708,8 +740,6 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         #endregion
-
-
 
         #region Constructor(s)
 
@@ -1613,32 +1643,28 @@ namespace OpenSim.Region.Framework.Scenes
                     bool controlland = (((flags & AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0) ||
                                         ((flags & AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG) != 0));
 
-
                    //m_log.Debug("[CONTROL]: " +flags);
                     // Applies a satisfying roll effect to the avatar when flying.
-                    if (((flags & AgentManager.ControlFlags.AGENT_CONTROL_TURN_LEFT) != 0) && ((flags & AgentManager.ControlFlags.AGENT_CONTROL_YAW_POS) != 0))
+                    if ((flags & AgentManager.ControlFlags.AGENT_CONTROL_TURN_LEFT) != 0 && (flags & AgentManager.ControlFlags.AGENT_CONTROL_YAW_POS) != 0)
                     {
-
-                        ApplyFlyingRoll(FLY_ROLL_RADIANS_PER_UPDATE, ((flags & AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) != 0), ((flags & AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0));
-                        
-                        
+                        ApplyFlyingRoll(
+                            FLY_ROLL_RADIANS_PER_UPDATE, 
+                            (flags & AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) != 0, 
+                            (flags & AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0);
                     } 
-                    else if (((flags & AgentManager.ControlFlags.AGENT_CONTROL_TURN_RIGHT) != 0) &&
-                             ((flags & AgentManager.ControlFlags.AGENT_CONTROL_YAW_NEG) != 0))
+                    else if ((flags & AgentManager.ControlFlags.AGENT_CONTROL_TURN_RIGHT) != 0 &&
+                             (flags & AgentManager.ControlFlags.AGENT_CONTROL_YAW_NEG) != 0)
                     {
-                        ApplyFlyingRoll(-FLY_ROLL_RADIANS_PER_UPDATE, ((flags & AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) != 0), ((flags & AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0));
-                       
-
+                        ApplyFlyingRoll(
+                            -FLY_ROLL_RADIANS_PER_UPDATE, 
+                            (flags & AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) != 0, 
+                            (flags & AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0);                      
                     }
                     else
                     {
                         if (m_AngularVelocity.Z != 0)
-                            m_AngularVelocity.Z += CalculateFlyingRollResetToZero(FLY_ROLL_RESET_RADIANS_PER_UPDATE);
-                        
-                    }
-
-                   
-
+                            m_AngularVelocity.Z += CalculateFlyingRollResetToZero(FLY_ROLL_RESET_RADIANS_PER_UPDATE);                        
+                    }                  
 
                     if (Flying && IsColliding && controlland)
                     {
@@ -2400,7 +2426,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="vec">The vector in which to move.  This is relative to the rotation argument</param>
         public void AddNewMovement(Vector3 vec)
         {
-//            m_log.DebugFormat("[SCENE PRESENCE]: Adding new movement {0} for {1}", vec, Name);
+//            m_log.DebugFormat(
+//                "[SCENE PRESENCE]: Adding new movement {0} with rotation {1} for {2}", vec, Rotation, Name);
 
             Vector3 direc = vec * Rotation;
             direc.Normalize();
@@ -2419,6 +2446,8 @@ namespace OpenSim.Region.Framework.Scenes
                 direc.Z = 0f; // Prevent camera WASD up.
 
             direc *= 0.03f * 128f * SpeedModifier;
+
+//            m_log.DebugFormat("[SCENE PRESENCE]: Force to apply before modification was {0} for {1}", direc, Name);
 
             if (PhysicsActor != null)
             {
@@ -2452,6 +2481,8 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
             }
+
+//            m_log.DebugFormat("[SCENE PRESENCE]: Setting force to apply to {0} for {1}", direc, Name);
 
             // TODO: Add the force instead of only setting it to support multiple forces per frame?
             m_forceToApply = direc;

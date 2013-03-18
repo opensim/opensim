@@ -218,7 +218,7 @@ namespace OpenSim.Framework
             Console.WriteLine ("Looking for updates...");
             Repositories.UpdateAllRepositories (ps);
             Console.WriteLine ("Available add-in updates:");
-            bool found = false;
+
             AddinRepositoryEntry[] entries = Repositories.GetAvailableUpdates();
 
             foreach (AddinRepositoryEntry entry in entries)
@@ -541,7 +541,7 @@ namespace OpenSim.Framework
 			{
             	list.AddRange(PluginRegistry.GetAddins());
 			}
-			catch(Exception e)
+			catch (Exception)
 			{
 				Addin[] x = xlist.ToArray(typeof(Addin)) as Addin[];
 				return x;

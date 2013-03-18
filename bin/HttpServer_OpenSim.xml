@@ -1669,6 +1669,65 @@
             A header have been received.
             </summary>
         </member>
+        <member name="T:HttpServer.LocklessQueue`1">
+            <summary>
+            A thread-safe lockless queue that supports multiple readers and 
+            multiple writers
+            </summary>
+        </member>
+        <member name="F:HttpServer.LocklessQueue`1.head">
+            <summary>Queue head</summary>
+        </member>
+        <member name="F:HttpServer.LocklessQueue`1.tail">
+            <summary>Queue tail</summary>
+        </member>
+        <member name="F:HttpServer.LocklessQueue`1.count">
+            <summary>Queue item count</summary>
+        </member>
+        <member name="M:HttpServer.LocklessQueue`1.#ctor">
+            <summary>
+            Constructor
+            </summary>
+        </member>
+        <member name="M:HttpServer.LocklessQueue`1.Enqueue(`0)">
+            <summary>
+            Enqueue an item
+            </summary>
+            <param name="item">Item to enqeue</param>
+        </member>
+        <member name="M:HttpServer.LocklessQueue`1.TryDequeue(`0@)">
+            <summary>
+            Try to dequeue an item
+            </summary>
+            <param name="item">Dequeued item if the dequeue was successful</param>
+            <returns>True if an item was successfully deqeued, otherwise false</returns>
+        </member>
+        <member name="P:HttpServer.LocklessQueue`1.Count">
+            <summary>Gets the current number of items in the queue. Since this
+            is a lockless collection this value should be treated as a close
+            estimate</summary>
+        </member>
+        <member name="T:HttpServer.LocklessQueue`1.SingleLinkNode">
+            <summary>
+            Provides a node container for data in a singly linked list
+            </summary>
+        </member>
+        <member name="F:HttpServer.LocklessQueue`1.SingleLinkNode.Next">
+            <summary>Pointer to the next node in list</summary>
+        </member>
+        <member name="F:HttpServer.LocklessQueue`1.SingleLinkNode.Item">
+            <summary>The data contained by the node</summary>
+        </member>
+        <member name="M:HttpServer.LocklessQueue`1.SingleLinkNode.#ctor">
+            <summary>
+            Constructor
+            </summary>
+        </member>
+        <member name="M:HttpServer.LocklessQueue`1.SingleLinkNode.#ctor(`0)">
+            <summary>
+            Constructor
+            </summary>
+        </member>
         <member name="T:HttpServer.IHttpRequest">
             <summary>
             Contains server side HTTP request information.
@@ -2825,6 +2884,11 @@
             <param name="protocol">Kind of HTTPS protocol. Usually TLS or SSL.</param>
             <returns>A created <see cref="T:HttpServer.IHttpClientContext"/>.</returns>
         </member>
+        <member name="M:HttpServer.IHttpContextFactory.Shutdown">
+            <summary>
+            Server is shutting down so shut down the factory
+            </summary>
+        </member>
         <member name="E:HttpServer.IHttpContextFactory.RequestReceived">
             <summary>
             A request have been received from one of the contexts.
@@ -2875,6 +2939,11 @@
             <returns>
             A creates <see cref="T:HttpServer.IHttpClientContext"/>.
             </returns>
+        </member>
+        <member name="M:HttpServer.HttpContextFactory.Shutdown">
+            <summary>
+            Server is shutting down so shut down the factory
+            </summary>
         </member>
         <member name="P:HttpServer.HttpContextFactory.UseTraceLogs">
             <summary>
@@ -4314,6 +4383,58 @@
             Create a new exception
             </summary>
             <param name="message">message describing the error</param>
+        </member>
+        <member name="T:HttpServer.ContextTimeoutManager">
+            <summary>
+            Timeout Manager.   Checks for dead clients.  Clients with open connections that are not doing anything.   Closes sessions opened with keepalive.
+            </summary>
+        </member>
+        <member name="M:HttpServer.ContextTimeoutManager.ProcessContextTimeouts">
+            <summary>
+            Causes the watcher to immediately check the connections. 
+            </summary>
+        </member>
+        <member name="M:HttpServer.ContextTimeoutManager.EnvironmentTickCount">
+            <summary>
+            Environment.TickCount is an int but it counts all 32 bits so it goes positive
+            and negative every 24.9 days. This trims down TickCount so it doesn't wrap
+            for the callers. 
+            This trims it to a 12 day interval so don't let your frame time get too long.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:HttpServer.ContextTimeoutManager.EnvironmentTickCountSubtract(System.Int32,System.Int32)">
+            <summary>
+            Environment.TickCount is an int but it counts all 32 bits so it goes positive
+            and negative every 24.9 days. Subtracts the passed value (previously fetched by
+            'EnvironmentTickCount()') and accounts for any wrapping.
+            </summary>
+            <param name="newValue"></param>
+            <param name="prevValue"></param>
+            <returns>subtraction of passed prevValue from current Environment.TickCount</returns>
+        </member>
+        <member name="M:HttpServer.ContextTimeoutManager.EnvironmentTickCountAdd(System.Int32,System.Int32)">
+            <summary>
+            Environment.TickCount is an int but it counts all 32 bits so it goes positive
+            and negative every 24.9 days. Subtracts the passed value (previously fetched by
+            'EnvironmentTickCount()') and accounts for any wrapping.
+            </summary>
+            <param name="newValue"></param>
+            <param name="prevValue"></param>
+            <returns>subtraction of passed prevValue from current Environment.TickCount</returns>
+        </member>
+        <member name="M:HttpServer.ContextTimeoutManager.EnvironmentTickCountSubtract(System.Int32)">
+            <summary>
+            Environment.TickCount is an int but it counts all 32 bits so it goes positive
+            and negative every 24.9 days. Subtracts the passed value (previously fetched by
+            'EnvironmentTickCount()') and accounts for any wrapping.
+            </summary>
+            <returns>subtraction of passed prevValue from current Environment.TickCount</returns>
+        </member>
+        <member name="T:HttpServer.ContextTimeoutManager.MonitorType">
+            <summary>
+            Use a Thread or a Timer to monitor the ugly
+            </summary>
         </member>
         <member name="T:HttpServer.Sessions.MemorySessionStore">
             <summary>
