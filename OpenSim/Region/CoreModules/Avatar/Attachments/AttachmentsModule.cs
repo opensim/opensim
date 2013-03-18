@@ -289,16 +289,21 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             if (!Enabled)
                 return false;
 
-            if (AttachObjectInternal(sp, group, attachmentPt, silent, temp))
-            {
-                m_scene.EventManager.TriggerOnAttach(group.LocalId, group.FromItemID, sp.UUID);
-                return true;
-            }
-
-            return false;
+            return AttachObjectInternal(sp, group, attachmentPt, silent, temp, false);
         }
-        
-        private bool AttachObjectInternal(IScenePresence sp, SceneObjectGroup group, uint attachmentPt, bool silent, bool temp)
+
+        /// <summary>
+        /// Internal method which actually does all the work for attaching an object.
+        /// </summary>
+        /// <returns>The object attached.</returns>
+        /// <param name='sp'></param>
+        /// <param name='group'>The object to attach.</param>
+        /// <param name='attachmentPt'></param>
+        /// <param name='silent'></param>
+        /// <param name='temp'></param>
+        /// <param name='resumeScripts'>If true then scripts are resumed on the attached object.</param>
+        private bool AttachObjectInternal(
+            IScenePresence sp, SceneObjectGroup group, uint attachmentPt, bool silent, bool temp, bool resumeScripts)
         {
 //                m_log.DebugFormat(
 //                    "[ATTACHMENTS MODULE]: Attaching object {0} {1} to {2} point {3} from ground (silent = {4})",
@@ -322,44 +327,44 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 return false;
             }
 
+            Vector3 attachPos = group.AbsolutePosition;
+
+            // TODO: this short circuits multiple attachments functionality  in  LL viewer 2.1+ and should
+            // be removed when that functionality is implemented in opensim
+            attachmentPt &= 0x7f;
+            
+            // If the attachment point isn't the same as the one previously used
+            // set it's offset position = 0 so that it appears on the attachment point
+            // and not in a weird location somewhere unknown.
+            if (attachmentPt != 0 && attachmentPt != group.AttachmentPoint)
+            {
+                attachPos = Vector3.Zero;
+            }
+
+            // AttachmentPt 0 means the client chose to 'wear' the attachment.
+            if (attachmentPt == 0)
+            {
+                // Check object for stored attachment point
+                attachmentPt = group.AttachmentPoint;
+            }
+
+            // if we still didn't find a suitable attachment point.......
+            if (attachmentPt == 0)
+            {
+                // Stick it on left hand with Zero Offset from the attachment point.
+                attachmentPt = (uint)AttachmentPoint.LeftHand;
+                attachPos = Vector3.Zero;
+            }
+
             // Remove any previous attachments
             List<SceneObjectGroup> existingAttachments = sp.GetAttachments(attachmentPt);
 
             // At the moment we can only deal with a single attachment
             if (existingAttachments.Count != 0 && existingAttachments[0].FromItemID != UUID.Zero)
-                DetachSingleAttachmentToInv(sp, group);
+                DetachSingleAttachmentToInv(sp, existingAttachments[0]);
 
             lock (sp.AttachmentsSyncLock)
             {
-                Vector3 attachPos = group.AbsolutePosition;
-
-                // TODO: this short circuits multiple attachments functionality  in  LL viewer 2.1+ and should
-                // be removed when that functionality is implemented in opensim
-                attachmentPt &= 0x7f;
-                
-                // If the attachment point isn't the same as the one previously used
-                // set it's offset position = 0 so that it appears on the attachment point
-                // and not in a weird location somewhere unknown.
-                if (attachmentPt != 0 && attachmentPt != group.AttachmentPoint)
-                {
-                    attachPos = Vector3.Zero;
-                }
-
-                // AttachmentPt 0 means the client chose to 'wear' the attachment.
-                if (attachmentPt == 0)
-                {
-                    // Check object for stored attachment point
-                    attachmentPt = group.AttachmentPoint;
-                }
-
-                // if we still didn't find a suitable attachment point.......
-                if (attachmentPt == 0)
-                {
-                    // Stick it on left hand with Zero Offset from the attachment point.
-                    attachmentPt = (uint)AttachmentPoint.LeftHand;
-                    attachPos = Vector3.Zero;
-                }
-
                 group.AttachmentPoint = attachmentPt;
                 group.AbsolutePosition = attachPos;
 
@@ -367,6 +372,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     UpdateUserInventoryWithAttachment(sp, group, attachmentPt, temp);
 
                 AttachToAgent(sp, group, attachmentPt, attachPos, silent);
+
+                if (resumeScripts)
+                {
+                    // Fire after attach, so we don't get messy perms dialogs
+                    // 4 == AttachedRez
+                    group.CreateScriptInstances(0, true, m_scene.DefaultScriptEngine, 4);
+                    group.ResumeScripts();
+                }
+
+                // Do this last so that event listeners have access to all the effects of the attachment
+                m_scene.EventManager.TriggerOnAttach(group.LocalId, group.FromItemID, sp.UUID);
             }
 
             return true;
@@ -391,8 +407,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 return null;
 
 //            m_log.DebugFormat(
-//                "[ATTACHMENTS MODULE]: RezSingleAttachmentFromInventory to point {0} from item {1} for {2}",
-//                (AttachmentPoint)AttachmentPt, itemID, sp.Name);
+//                "[ATTACHMENTS MODULE]: RezSingleAttachmentFromInventory to point {0} from item {1} for {2} in {3}",
+//                (AttachmentPoint)AttachmentPt, itemID, sp.Name, m_scene.Name);
 
             // TODO: this short circuits multiple attachments functionality  in  LL viewer 2.1+ and should
             // be removed when that functionality is implemented in opensim
@@ -524,6 +540,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
                 return;
             }
+
+//            m_log.DebugFormat(
+//                "[ATTACHMENTS MODULE]: Detaching object {0} {1} for {2} in {3}", 
+//                so.Name, so.LocalId, sp.Name, m_scene.Name);
 
             // Scripts MUST be snapshotted before the object is
             // removed from the scene because doing otherwise will
@@ -846,60 +866,42 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 return null;
             }
 
-            // Remove any previous attachments
-            List<SceneObjectGroup> attachments = sp.GetAttachments(attachmentPt);
-
-            // At the moment we can only deal with a single attachment
-            if (attachments.Count != 0)
-                DetachSingleAttachmentToInv(sp, attachments[0]);
-
-            lock (sp.AttachmentsSyncLock)
-            {
 //                    m_log.DebugFormat(
 //                        "[ATTACHMENTS MODULE]: Rezzed single object {0} for attachment to {1} on point {2} in {3}",
 //                        objatt.Name, sp.Name, attachmentPt, m_scene.Name);
 
-                // HasGroupChanged is being set from within RezObject.  Ideally it would be set by the caller.
-                objatt.HasGroupChanged = false;
-                bool tainted = false;
-                if (attachmentPt != 0 && attachmentPt != objatt.AttachmentPoint)
-                    tainted = true;
+            // HasGroupChanged is being set from within RezObject.  Ideally it would be set by the caller.
+            objatt.HasGroupChanged = false;
+            bool tainted = false;
+            if (attachmentPt != 0 && attachmentPt != objatt.AttachmentPoint)
+                tainted = true;
 
-                // FIXME: Detect whether it's really likely for AttachObject to throw an exception in the normal
-                // course of events.  If not, then it's probably not worth trying to recover the situation
-                // since this is more likely to trigger further exceptions and confuse later debugging.  If
-                // exceptions can be thrown in expected error conditions (not NREs) then make this consistent
-                // since other normal error conditions will simply return false instead.
-                // This will throw if the attachment fails
-                try
-                {
-                    AttachObjectInternal(sp, objatt, attachmentPt, false, false);
-                }
-                catch (Exception e)
-                {
-                    m_log.ErrorFormat(
-                        "[ATTACHMENTS MODULE]: Failed to attach {0} {1} for {2}, exception {3}{4}",
-                        objatt.Name, objatt.UUID, sp.Name, e.Message, e.StackTrace);
-
-                    // Make sure the object doesn't stick around and bail
-                    sp.RemoveAttachment(objatt);
-                    m_scene.DeleteSceneObject(objatt, false);
-                    return null;
-                }
-
-                if (tainted)
-                    objatt.HasGroupChanged = true;
-
-                // Fire after attach, so we don't get messy perms dialogs
-                // 4 == AttachedRez
-                objatt.CreateScriptInstances(0, true, m_scene.DefaultScriptEngine, 4);
-                objatt.ResumeScripts();
-
-                // Do this last so that event listeners have access to all the effects of the attachment
-                m_scene.EventManager.TriggerOnAttach(objatt.LocalId, itemID, sp.UUID);
-
-                return objatt;
+            // FIXME: Detect whether it's really likely for AttachObject to throw an exception in the normal
+            // course of events.  If not, then it's probably not worth trying to recover the situation
+            // since this is more likely to trigger further exceptions and confuse later debugging.  If
+            // exceptions can be thrown in expected error conditions (not NREs) then make this consistent
+            // since other normal error conditions will simply return false instead.
+            // This will throw if the attachment fails
+            try
+            {
+                AttachObjectInternal(sp, objatt, attachmentPt, false, false, true);
             }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat(
+                    "[ATTACHMENTS MODULE]: Failed to attach {0} {1} for {2}, exception {3}{4}",
+                    objatt.Name, objatt.UUID, sp.Name, e.Message, e.StackTrace);
+
+                // Make sure the object doesn't stick around and bail
+                sp.RemoveAttachment(objatt);
+                m_scene.DeleteSceneObject(objatt, false);
+                return null;
+            }
+
+            if (tainted)
+                objatt.HasGroupChanged = true;
+
+            return objatt;
         }
 
         /// <summary>
