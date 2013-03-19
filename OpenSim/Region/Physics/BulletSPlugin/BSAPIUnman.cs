@@ -286,7 +286,7 @@ public override void SetShapeCollisionMargin(BulletShape shape, float margin)
 {
     BulletShapeUnman shapeu = shape as BulletShapeUnman;
     if (shapeu != null && shapeu.HasPhysicalShape)
-        BSAPICPP.SetShapeCollisionMargin2(shapeu.ptr, margin);
+        BSAPICPP.SetShapeCollisionMargin(shapeu.ptr, margin);
 }
 
 public override BulletShape BuildCapsuleShape(BulletWorld world, float radius, float height, Vector3 scale)
@@ -1420,7 +1420,7 @@ public static extern IntPtr BuildNativeShape2(IntPtr world, ShapeData shapeData)
 public static extern bool IsNativeShape2(IntPtr shape);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern void SetShapeCollisionMargin2(IntPtr shape, float margin);
+public static extern void SetShapeCollisionMargin(IntPtr shape, float margin);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern IntPtr BuildCapsuleShape2(IntPtr world, float radius, float height, Vector3 scale);

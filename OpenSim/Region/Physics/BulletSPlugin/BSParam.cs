@@ -88,6 +88,7 @@ public static class BSParam
     public static bool ShouldRemoveZeroWidthTriangles { get; private set; }
 
     public static float TerrainImplementation { get; private set; }
+    public static int TerrainMeshMagnification { get; private set; }
     public static float TerrainFriction { get; private set; }
     public static float TerrainHitFraction { get; private set; }
     public static float TerrainRestitution { get; private set; }
@@ -461,6 +462,10 @@ public static class BSParam
             (float)BSTerrainPhys.TerrainImplementation.Mesh,
             (s) => { return TerrainImplementation; },
             (s,v) => { TerrainImplementation = v; } ),
+        new ParameterDefn<int>("TerrainMeshMagnification", "Number of times the 256x256 heightmap is multiplied to create the terrain mesh" ,
+            3,
+            (s) => { return TerrainMeshMagnification; },
+            (s,v) => { TerrainMeshMagnification = v; } ),
         new ParameterDefn<float>("TerrainFriction", "Factor to reduce movement against terrain surface" ,
             0.3f,
             (s) => { return TerrainFriction; },
