@@ -314,6 +314,33 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 return false;
             }
 
+            Vector3 attachPos = group.AbsolutePosition;
+            // If the attachment point isn't the same as the one previously used
+            // set it's offset position = 0 so that it appears on the attachment point
+            // and not in a weird location somewhere unknown.
+            if (attachmentPt != (uint)AttachmentPoint.Default && attachmentPt != group.AttachmentPoint)
+            {
+                attachPos = Vector3.Zero;
+            }
+
+            // AttachmentPt 0 means the client chose to 'wear' the attachment.
+            if (attachmentPt == (uint)AttachmentPoint.Default)
+            {
+                // Check object for stored attachment point
+                attachmentPt = group.AttachmentPoint;
+            }
+
+            // if we still didn't find a suitable attachment point.......
+            if (attachmentPt == 0)
+            {
+                // Stick it on left hand with Zero Offset from the attachment point.
+                attachmentPt = (uint)AttachmentPoint.LeftHand;
+                attachPos = Vector3.Zero;
+            }
+
+            group.AttachmentPoint = attachmentPt;
+            group.AbsolutePosition = attachPos;
+
             List<SceneObjectGroup> attachments = sp.GetAttachments(attachmentPt);
 
             if (attachments.Contains(group))
@@ -345,33 +372,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             lock (sp.AttachmentsSyncLock)
             {
-                Vector3 attachPos = group.AbsolutePosition;
-                // If the attachment point isn't the same as the one previously used
-                // set it's offset position = 0 so that it appears on the attachment point
-                // and not in a weird location somewhere unknown.
-                if (attachmentPt != 0 && attachmentPt != group.AttachmentPoint)
-                {
-                    attachPos = Vector3.Zero;
-                }
-
-                // AttachmentPt 0 means the client chose to 'wear' the attachment.
-                if (attachmentPt == 0)
-                {
-                    // Check object for stored attachment point
-                    attachmentPt = group.AttachmentPoint;
-                }
-
-                // if we still didn't find a suitable attachment point.......
-                if (attachmentPt == 0)
-                {
-                    // Stick it on left hand with Zero Offset from the attachment point.
-                    attachmentPt = (uint)AttachmentPoint.LeftHand;
-                    attachPos = Vector3.Zero;
-                }
-
-                group.AttachmentPoint = attachmentPt;
-                group.AbsolutePosition = attachPos;
-
                 if (sp.PresenceType != PresenceType.Npc)
                     UpdateUserInventoryWithAttachment(sp, group, attachmentPt, temp, append);
     
