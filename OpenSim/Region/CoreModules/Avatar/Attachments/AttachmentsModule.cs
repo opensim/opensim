@@ -304,7 +304,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             if (!Enabled)
                 return false;
 
-            AttachObjectInternal(sp, group, attachmentPt, silent, useAttachData, temp, append);
+            return AttachObjectInternal(sp, group, attachmentPt, silent, useAttachData, temp, false, append);
         }
 
         /// <summary>
@@ -317,7 +317,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         /// <param name='silent'></param>
         /// <param name='temp'></param>
         /// <param name='resumeScripts'>If true then scripts are resumed on the attached object.</param>
-        private bool AttachObjectInternal(IScenePresence sp, SceneObjectGroup group, uint attachmentPt, bool silent, bool useAttachData, bool temp, bool append)
+        private bool AttachObjectInternal(IScenePresence sp, SceneObjectGroup group, uint attachmentPt, bool silent, bool useAttachData, bool temp, bool resumeScripts, bool append)
         {
 //                m_log.DebugFormat(
 //                    "[ATTACHMENTS MODULE]: Attaching object {0} {1} to {2} point {3} from ground (silent = {4})",
@@ -917,7 +917,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     objatt.ResetOwnerChangeFlag();
                 }
 
-                AttachObjectInternal(sp, objatt, attachmentPt, false, true, false, append);
+                AttachObjectInternal(sp, objatt, attachmentPt, false, true, false, true, append);
             }
             catch (Exception e)
             {

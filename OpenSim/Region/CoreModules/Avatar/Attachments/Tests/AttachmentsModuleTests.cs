@@ -244,7 +244,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
                 SceneObjectGroup so = SceneHelpers.AddSceneObject(scene, "att1", sp.UUID);
 
                 m_numberOfAttachEventsFired = 0;
-                scene.AttachmentsModule.AttachObject(sp, so, (uint)AttachmentPoint.Default, false, false);
+                scene.AttachmentsModule.AttachObject(sp, so, (uint)AttachmentPoint.Default, false, false, false, false);
 
                 // Check status on scene presence
                 Assert.That(sp.HasAttachments(), Is.True);
@@ -277,7 +277,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
 
             // Test wearing a different attachment from the ground.
             {
-                scene.AttachmentsModule.AttachObject(sp, so2, (uint)AttachmentPoint.Default, false, false);
+                scene.AttachmentsModule.AttachObject(sp, so2, (uint)AttachmentPoint.Default, false, false, false, false);
 
                 // Check status on scene presence
                 Assert.That(sp.HasAttachments(), Is.True);
@@ -310,7 +310,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
 
             // Test rewearing an already worn attachment from ground.  Nothing should happen.
             {
-                scene.AttachmentsModule.AttachObject(sp, so2, (uint)AttachmentPoint.Default, false, false);
+                scene.AttachmentsModule.AttachObject(sp, so2, (uint)AttachmentPoint.Default, false, false, false, false);
 
                 // Check status on scene presence
                 Assert.That(sp.HasAttachments(), Is.True);
