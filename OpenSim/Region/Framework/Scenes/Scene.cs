@@ -2832,7 +2832,7 @@ namespace OpenSim.Region.Framework.Scenes
                         sp.IsChildAgent = false;
     
                         if (AttachmentsModule != null)
-                            Util.FireAndForget(delegate(object o) { AttachmentsModule.RezAttachments(sp); });
+                            Util.FireAndForget(o => { Thread.Sleep(5000); AttachmentsModule.RezAttachments(sp); });
                     }
                 }
                 else
