@@ -2831,8 +2831,22 @@ namespace OpenSim.Region.Framework.Scenes
                         // XXX: This is convoluted.
                         sp.IsChildAgent = false;
     
+                        // We leave a 5 second pause before attempting to rez attachments to avoid a clash with 
+                        // version 3 viewers that maybe doing their own attachment rezzing related to their current
+                        // outfit folder on startup.  If these operations do clash, then the symptoms are invisible
+                        // attachments until one zooms in on the avatar.
+                        //
+                        // We do not pause if we are launching on the same thread anyway in order to avoid pointlessly
+                        // delaying any attachment related regression tests.
                         if (AttachmentsModule != null)
-                            Util.FireAndForget(o => { Thread.Sleep(5000); AttachmentsModule.RezAttachments(sp); });
+                            Util.FireAndForget(
+                                o => 
+                                { 
+                                    if (Util.FireAndForgetMethod != FireAndForgetMethod.None) 
+                                        Thread.Sleep(5000); 
+
+                                    AttachmentsModule.RezAttachments(sp); 
+                                });
                     }
                 }
                 else
