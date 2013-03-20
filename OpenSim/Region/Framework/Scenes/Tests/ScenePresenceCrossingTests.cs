@@ -66,7 +66,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         public void TestCrossOnSameSimulator()
         {
             TestHelpers.InMethod();
-            TestHelpers.EnableLogging();
+//            TestHelpers.EnableLogging();
 
             UUID userId = TestHelpers.ParseTail(0x1);
 
