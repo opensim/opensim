@@ -686,6 +686,11 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 "[ENTITY TRANSFER MODULE]: Sending new CAPS seed url {0} from {1} to {2}",
                 capsPath, sp.Scene.RegionInfo.RegionName, sp.Name);
 
+            // We need to set this here to avoid an unlikely race condition when teleporting to a neighbour simulator,
+            // where that neighbour simulator could otherwise request a child agent create on the source which then 
+            // closes our existing agent which is still signalled as root.
+            sp.IsChildAgent = true;
+
             if (m_eqModule != null)
             {
                 m_eqModule.TeleportFinishEvent(destinationHandle, 13, endPoint, 0, teleportFlags, capsPath, sp.UUID);
@@ -695,9 +700,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 sp.ControllingClient.SendRegionTeleport(destinationHandle, 13, endPoint, 4,
                                                             teleportFlags, capsPath);
             }
-
-            // Let's set this to true tentatively. This does not trigger OnChildAgent
-            sp.IsChildAgent = true;
 
             // TeleportFinish makes the client send CompleteMovementIntoRegion (at the destination), which
             // trigers a whole shebang of things there, including MakeRoot. So let's wait for confirmation
@@ -730,8 +732,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             // Now let's make it officially a child agent
             sp.MakeChildAgent();
-
-//                sp.Scene.CleanDroppedAttachments();
 
             // Finally, let's close this previously-known-as-root agent, when the jump is outside the view zone
 
