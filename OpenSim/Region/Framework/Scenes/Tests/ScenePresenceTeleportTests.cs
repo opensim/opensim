@@ -107,7 +107,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         }
 
         [Test]
-        public void TestSameSimulatorSeparatedRegions()
+        public void TestSameSimulatorIsolatedRegions()
         {
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
@@ -180,7 +180,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         /// Test teleport procedures when the target simulator returns false when queried about access.
         /// </summary>
         [Test]
-        public void TestSameSimulatorSeparatedRegions_DeniedOnQueryAccess()
+        public void TestSameSimulatorIsolatedRegions_DeniedOnQueryAccess()
         {
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
@@ -264,7 +264,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         /// Test teleport procedures when the target simulator create agent step is refused.
         /// </summary>
         [Test]
-        public void TestSameSimulatorSeparatedRegions_DeniedOnCreateAgent()
+        public void TestSameSimulatorIsolatedRegions_DeniedOnCreateAgent()
         {
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
@@ -345,7 +345,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         /// (for CreateAgent) but the viewer cannot reach the destination region due to network issues.
         /// </remarks>
         [Test]
-        public void TestSameSimulatorSeparatedRegions_DestinationDidNotProcessViewerConnection()
+        public void TestSameSimulatorIsolatedRegions_DestinationDidNotProcessViewerConnection()
         {
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
