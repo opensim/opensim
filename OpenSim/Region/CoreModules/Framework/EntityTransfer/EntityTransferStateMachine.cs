@@ -51,11 +51,12 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
     /// This is a state machine.
     ///
     /// [Entry]               => Preparing
-    /// Preparing             => { Transferring || Cancelling || CleaningUp || [Exit] }
-    /// Transferring          => { ReceivedAtDestination || Cancelling || CleaningUp }
-    /// Cancelling            => CleaningUp
-    /// ReceivedAtDestination => CleaningUp
+    /// Preparing             => { Transferring || Cancelling || CleaningUp || Aborting || [Exit] }
+    /// Transferring          => { ReceivedAtDestination || Cancelling || CleaningUp || Aborting }
+    /// Cancelling            => CleaningUp || Aborting
+    /// ReceivedAtDestination => CleaningUp || Aborting
     /// CleaningUp            => [Exit]
+    /// Aborting              => [Exit]
     ///
     /// In other words, agents normally travel throwing Preparing => Transferring => ReceivedAtDestination => CleaningUp
     /// However, any state can transition to CleaningUp if the teleport has failed.
@@ -66,7 +67,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         Transferring,           // The agent is in the process of being transferred to a destination
         ReceivedAtDestination,  // The destination has notified us that the agent has been successfully received
         CleaningUp,             // The agent is being changed to child/removed after a transfer
-        Cancelling              // The user has cancelled the teleport but we have yet to act upon this.
+        Cancelling,             // The user has cancelled the teleport but we have yet to act upon this.
+        Aborting                // The transfer is aborting.  Unlike Cancelling, no compensating actions should be performed
     }
 
     /// <summary>
@@ -134,7 +136,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 // Illegal to try and update an agent that's not actually in transit.
                 if (!m_agentsInTransit.ContainsKey(id))
                 {
-                    if (newState != AgentTransferState.Cancelling)
+                    if (newState != AgentTransferState.Cancelling && newState != AgentTransferState.Aborting)
                         failureMessage = string.Format(
                                 "Agent with ID {0} is not registered as in transit in {1}",
                                 id, m_mod.Scene.RegionInfo.RegionName);
@@ -145,7 +147,11 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 {
                     oldState = m_agentsInTransit[id];
 
-                    if (newState == AgentTransferState.CleaningUp && oldState != AgentTransferState.CleaningUp)
+                    if (newState == AgentTransferState.Aborting)
+                    {
+                        transitionOkay = true;
+                    }
+                    else if (newState == AgentTransferState.CleaningUp && oldState != AgentTransferState.CleaningUp)
                     {
                         transitionOkay = true;
                     }
