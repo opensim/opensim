@@ -687,7 +687,7 @@ public sealed class BSShapeCollection : IDisposable
                 }
                 else
                 {
-                    PhysicsScene.Logger.ErrorFormat("{0} All mesh triangles degenerate. Prim {1} at {2} in {3}",
+                    PhysicsScene.Logger.DebugFormat("{0} All mesh triangles degenerate. Prim {1} at {2} in {3}",
                                         LogHeader, prim.PhysObjectName, prim.RawPosition, PhysicsScene.Name);
                 }
             }

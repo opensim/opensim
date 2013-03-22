@@ -573,8 +573,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             }
 
 //            m_log.DebugFormat(
-//                "[ATTACHMENTS MODULE]: Detaching object {0} {1} for {2} in {3}", 
-//                so.Name, so.LocalId, sp.Name, m_scene.Name);
+//                "[ATTACHMENTS MODULE]: Detaching object {0} {1} (FromItemID {2}) for {3} in {4}", 
+//                so.Name, so.LocalId, so.FromItemID, sp.Name, m_scene.Name);
 
             // Scripts MUST be snapshotted before the object is
             // removed from the scene because doing otherwise will

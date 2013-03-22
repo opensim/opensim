@@ -292,8 +292,15 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             // There should be no race condition here since no other code should be removing the agent transfer or
             // changing the state to another other than Transferring => ReceivedAtDestination.
-            while (m_agentsInTransit[id] != AgentTransferState.ReceivedAtDestination && count-- > 0)
+
+            while (count-- > 0)
             {
+                lock (m_agentsInTransit)
+                {
+                    if (m_agentsInTransit[id] == AgentTransferState.ReceivedAtDestination)
+                        break;
+                }
+
 //                m_log.Debug("  >>> Waiting... " + count);
                 Thread.Sleep(100);
             }

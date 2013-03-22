@@ -561,45 +561,59 @@ namespace OpenSim.Framework
             if (attachpoint == 0)
                 return false;
 
-            if (item == UUID.Zero)
+            lock (m_attachments)
             {
-                lock (m_attachments)
+                if (item == UUID.Zero)
                 {
                     if (m_attachments.ContainsKey(attachpoint))
                     {
                         m_attachments.Remove(attachpoint);
                         return true;
                     }
+                    
+                    return false;
+                }
+
+                // When a user logs in, the attachment item ids are pulled from persistence in the Avatars table.  However,
+                // the asset ids are not saved.  When the avatar enters a simulator the attachments are set again.  If
+                // we simply perform an item check here then the asset ids (which are now present) are never set, and NPC attachments
+                // later fail unless the attachment is detached and reattached.
+                //
+                // Therefore, we will carry on with the set if the existing attachment has no asset id.
+                AvatarAttachment existingAttachment = GetAttachmentForItem(item);
+                if (existingAttachment != null)
+                {
+//                    m_log.DebugFormat(
+//                        "[AVATAR APPEARANCE]: Found existing attachment for {0}, asset {1} at point {2}", 
+//                        existingAttachment.ItemID, existingAttachment.AssetID, existingAttachment.AttachPoint);
+
+                    if (existingAttachment.AssetID != UUID.Zero && existingAttachment.AttachPoint == (attachpoint & 0x7F))
+                    {
+                        m_log.DebugFormat(
+                            "[AVATAR APPEARANCE]: Ignoring attempt to attach an already attached item {0} at point {1}", 
+                            item, attachpoint);
+
+                        return false;
+                    }
+                    else
+                    {
+                        // Remove it here so that the later append does not add a second attachment but we still update
+                        // the assetID
+                        DetachAttachment(existingAttachment.ItemID);
+                    }
                 }
                 
-                return false;
-            }
-
-            // When a user logs in, the attachment item ids are pulled from persistence in the Avatars table.  However,
-            // the asset ids are not saved.  When the avatar enters a simulator the attachments are set again.  If
-            // we simply perform an item check here then the asset ids (which are now present) are never set, and NPC attachments
-            // later fail unless the attachment is detached and reattached.
-            //
-            // Therefore, we will carry on with the set if the existing attachment has no asset id.
-            AvatarAttachment existingAttachment = GetAttachmentForItem(item);
-            if (existingAttachment != null
-                && existingAttachment.AssetID != UUID.Zero
-                && existingAttachment.AttachPoint == (attachpoint & 0x7F))
-            {
-                // m_log.DebugFormat("[AVATAR APPEARANCE] attempt to attach an already attached item {0}",item);
-                return false;
-            }
-            
-            // check if this is an append or a replace, 0x80 marks it as an append
-            if ((attachpoint & 0x80) > 0)
-            {
-                // strip the append bit
-                int point = attachpoint & 0x7F;
-                AppendAttachment(new AvatarAttachment(point, item, asset));
-            }
-            else
-            {
-                ReplaceAttachment(new AvatarAttachment(attachpoint,item, asset));
+                // check if this is an append or a replace, 0x80 marks it as an append
+                if ((attachpoint & 0x80) > 0)
+                {
+                    // strip the append bit
+                    int point = attachpoint & 0x7F;
+                    AppendAttachment(new AvatarAttachment(point, item, asset));
+                }
+                else
+                {
+                    ReplaceAttachment(new AvatarAttachment(attachpoint,item, asset));
+                }
             }
 
             return true;
@@ -648,6 +662,10 @@ namespace OpenSim.Framework
                     int index = kvp.Value.FindIndex(delegate(AvatarAttachment a) { return a.ItemID == itemID; });
                     if (index >= 0)
                     {
+//                        m_log.DebugFormat(
+//                            "[AVATAR APPEARANCE]: Detaching attachment {0}, index {1}, point {2}", 
+//                            m_attachments[kvp.Key][index].ItemID, index, m_attachments[kvp.Key][index].AttachPoint);
+
                         // Remove it from the list of attachments at that attach point
                         m_attachments[kvp.Key].RemoveAt(index);
     

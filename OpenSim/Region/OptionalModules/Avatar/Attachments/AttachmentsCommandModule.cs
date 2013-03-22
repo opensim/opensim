@@ -176,16 +176,13 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
 //                        "  {0,-36}  {1,-10}  {2,-36}  {3,-14}  {4,-15}\n",
 //                        attachmentObject.Name, attachmentObject.LocalId, attachmentObject.FromItemID,
 //                        (AttachmentPoint)attachmentObject.AttachmentPoint, attachmentObject.RootPart.AttachedPos);
-                    ct.Rows.Add(
-                        new ConsoleDisplayTableRow(
-                            new List<string>()
-                            {
-                                attachmentObject.Name,
-                                attachmentObject.LocalId.ToString(),
-                                attachmentObject.FromItemID.ToString(),
-                                ((AttachmentPoint)attachmentObject.AttachmentPoint).ToString(),
-                                attachmentObject.RootPart.AttachedPos.ToString()
-                            }));
+
+                    ct.AddRow(
+                        attachmentObject.Name,
+                        attachmentObject.LocalId,
+                        attachmentObject.FromItemID,
+                        ((AttachmentPoint)attachmentObject.AttachmentPoint),
+                        attachmentObject.RootPart.AttachedPos);
 //                }
             }
 

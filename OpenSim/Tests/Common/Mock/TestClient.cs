@@ -46,8 +46,6 @@ namespace OpenSim.Tests.Common.Mock
 
         EventWaitHandle wh = new EventWaitHandle (false, EventResetMode.AutoReset, "Crossing");
 
-        private TestClient TeleportSceneClient;
-
         private Scene m_scene;
         private SceneManager m_sceneManager;
 
@@ -60,7 +58,9 @@ namespace OpenSim.Tests.Common.Mock
         public List<ImagePacketPacket> SentImagePacketPackets { get; private set; }
         public List<ImageNotInDatabasePacket> SentImageNotInDatabasePackets { get; private set; }
 
+        // Test client specific events - for use by tests to implement some IClientAPI behaviour.
         public event Action<RegionInfo, Vector3, Vector3> OnReceivedMoveAgentIntoRegion;
+        public event Action<ulong, IPEndPoint> OnTestClientInformClientOfNeighbour;
 
 // disable warning: public events, part of the public API
 #pragma warning disable 67
@@ -604,23 +604,8 @@ namespace OpenSim.Tests.Common.Mock
 
         public virtual void InformClientOfNeighbour(ulong neighbourHandle, IPEndPoint neighbourExternalEndPoint)
         {
-            m_log.DebugFormat("[TEST CLIENT]: Processing inform client of neighbour");
-
-            // In response to this message, we are going to make a teleport to the scene we've previous been told
-            // about by test code (this needs to be improved).
-            AgentCircuitData newAgent = RequestClientInfo();
-
-            // Stage 2: add the new client as a child agent to the scene
-            uint x, y;
-            Utils.LongToUInts(neighbourHandle, out x, out y);
-            x /= Constants.RegionSize;
-            y /= Constants.RegionSize;
-
-            Scene neighbourScene;
-            m_sceneManager.TryGetScene(x, y, out neighbourScene);
-
-            TeleportSceneClient = new TestClient(newAgent, neighbourScene, m_sceneManager);
-            neighbourScene.AddNewClient(TeleportSceneClient, PresenceType.User);
+            if (OnTestClientInformClientOfNeighbour != null)
+                OnTestClientInformClientOfNeighbour(neighbourHandle, neighbourExternalEndPoint);
         }
 
         public virtual void SendRegionTeleport(ulong regionHandle, byte simAccess, IPEndPoint regionExternalEndPoint,
@@ -633,12 +618,6 @@ namespace OpenSim.Tests.Common.Mock
             // We don't do this here so that the source region can complete processing first in a single-threaded
             // regression test scenario.  The test itself will have to call CompleteTeleportClientSide() after a teleport
             // CompleteTeleportClientSide();
-        }
-
-        public void CompleteTeleportClientSide()
-        {
-            TeleportSceneClient.CompleteMovement();
-            //TeleportTargetScene.AgentCrossing(newAgent.AgentID, new Vector3(90, 90, 90), false);
         }
 
         public virtual void SendTeleportFailed(string reason)

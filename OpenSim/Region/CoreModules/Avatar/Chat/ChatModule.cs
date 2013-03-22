@@ -256,7 +256,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                 // If camera is moved into client, then camera position can be used
                 // MT: No, it can't, as chat is heard from the avatar position, not
                 // the camera position.
-                s.ForEachRootScenePresence(
+                s.ForEachScenePresence(
                     delegate(ScenePresence presence)
                     {
                         if (destination != UUID.Zero && presence.UUID != destination)
