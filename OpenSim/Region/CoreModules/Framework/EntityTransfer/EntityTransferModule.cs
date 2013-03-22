@@ -604,8 +604,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 return;
             }
 
-            Thread.Sleep(30000);
-
             if (m_entityTransferStateMachine.GetAgentTransferState(sp.UUID) == AgentTransferState.Cancelling)
             {
                 m_log.DebugFormat(
