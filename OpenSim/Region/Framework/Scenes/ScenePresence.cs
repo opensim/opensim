@@ -456,9 +456,9 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     m_pos = PhysicsActor.Position;
 
-                    //m_log.DebugFormat(
-                    //    "[SCENE PRESENCE]: Set position {0} for {1} in {2} via getting AbsolutePosition!",
-                    //    m_pos, Name, Scene.RegionInfo.RegionName);
+//                    m_log.DebugFormat(
+//                        "[SCENE PRESENCE]: Set position of {0} in {1} to {2} via getting AbsolutePosition!",
+//                        Name, Scene.Name, m_pos);
                 }
                 else
                 {
@@ -485,6 +485,9 @@ namespace OpenSim.Region.Framework.Scenes
             }
             set
             {
+//                m_log.DebugFormat("[SCENE PRESENCE]: Setting position of {0} in {1} to {2}", Name, Scene.Name, value);
+//                Util.PrintCallStack();
+
                 if (PhysicsActor != null)
                 {
                     try
@@ -1064,6 +1067,13 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 else
                     AddToPhysicalScene(isFlying);
+
+                // XXX: This is to trigger any secondary teleport needed for a megaregion when the user has teleported to a 
+                // location outside the 'root region' (the south-west 256x256 corner).  This is the earlist we can do it
+                // since it requires a physics actor to be present.  If it is left any later, then physics appears to reset
+                // the value to a negative position which does not trigger the border cross.
+                // This may not be the best location for this.
+                CheckForBorderCrossing();
 
                 if (ForceFly)
                 {
@@ -3121,6 +3131,10 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (!IsInTransit)
                 {
+//                    m_log.DebugFormat(
+//                        "[SCENE PRESENCE]: Testing border check for projected position {0} of {1} in {2}", 
+//                        pos2, Name, Scene.Name);
+
                     // Checks if where it's headed exists a region
                     bool needsTransit = false;
                     if (m_scene.TestBorderCross(pos2, Cardinals.W))
