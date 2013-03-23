@@ -369,8 +369,7 @@ namespace OpenSim.Region.CoreModules.Asset
             AssetBase asset = null;
            
             string filename = GetFileName(id);
-
-            if (File.Exists(filename))
+            while (File.Exists(filename))
             {
                 FileStream stream = null;
                 try
@@ -381,6 +380,8 @@ namespace OpenSim.Region.CoreModules.Asset
                     asset = (AssetBase)bformatter.Deserialize(stream);
 
                     m_DiskHits++;
+
+                    break;
                 }
                 catch (System.Runtime.Serialization.SerializationException e)
                 {
@@ -393,12 +394,24 @@ namespace OpenSim.Region.CoreModules.Asset
                     // {different version of AssetBase} -- we should attempt to
                     // delete it and re-cache
                     File.Delete(filename);
+
+                    break;
+                }
+                catch (IOException e)
+                {
+                    // This is a sharing violation: File exists but can't be opened because it's
+                    // being written
+                    Thread.Sleep(100);
+
+                    continue;
                 }
                 catch (Exception e)
                 {
                     m_log.WarnFormat(
                         "[FLOTSAM ASSET CACHE]: Failed to get file {0} for asset {1}.  Exception {2} {3}",
                         filename, id, e.Message, e.StackTrace);
+
+                    break;
                 }
                 finally
                 {
