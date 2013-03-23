@@ -930,11 +930,15 @@ public sealed class BSShapeCollection : IDisposable
             return newShape;
 
         // If this mesh has an underlying asset and we have not failed getting it before, fetch the asset
-        if (prim.BaseShape.SculptEntry && !prim.LastAssetBuildFailed && prim.BaseShape.SculptTexture != OMV.UUID.Zero)
+        if (prim.BaseShape.SculptEntry 
+            && prim.PrimAssetState != BSPhysObject.PrimAssetCondition.Failed
+            && prim.PrimAssetState != BSPhysObject.PrimAssetCondition.Waiting
+            && prim.BaseShape.SculptTexture != OMV.UUID.Zero
+            )
         {
-            DetailLog("{0},BSShapeCollection.VerifyMeshCreated,fetchAsset,lastFailed={1}", prim.LocalID, prim.LastAssetBuildFailed);
-            // This will prevent looping through this code as we keep trying to get the failed shape
-            prim.LastAssetBuildFailed = true;
+            DetailLog("{0},BSShapeCollection.VerifyMeshCreated,fetchAsset", prim.LocalID);
+            // Multiple requestors will know we're waiting for this asset
+            prim.PrimAssetState = BSPhysObject.PrimAssetCondition.Waiting;
 
             BSPhysObject xprim = prim;
             Util.FireAndForget(delegate
@@ -945,7 +949,7 @@ public sealed class BSShapeCollection : IDisposable
                         BSPhysObject yprim = xprim; // probably not necessary, but, just in case.
                         assetProvider(yprim.BaseShape.SculptTexture, delegate(AssetBase asset)
                         {
-                            bool assetFound = false;            // DEBUG DEBUG
+                            bool assetFound = false;
                             string mismatchIDs = String.Empty;  // DEBUG DEBUG
                             if (asset != null && yprim.BaseShape.SculptEntry)
                             {
@@ -963,6 +967,10 @@ public sealed class BSShapeCollection : IDisposable
                                     mismatchIDs = yprim.BaseShape.SculptTexture.ToString() + "/" + asset.ID;
                                 }
                             }
+                            if (assetFound)
+                                yprim.PrimAssetState = BSPhysObject.PrimAssetCondition.Fetched;
+                            else
+                                yprim.PrimAssetState = BSPhysObject.PrimAssetCondition.Failed;
                             DetailLog("{0},BSShapeCollection,fetchAssetCallback,found={1},isSculpt={2},ids={3}",
                                         yprim.LocalID, assetFound, yprim.BaseShape.SculptEntry, mismatchIDs );
 
@@ -970,6 +978,7 @@ public sealed class BSShapeCollection : IDisposable
                     }
                     else
                     {
+                        xprim.PrimAssetState = BSPhysObject.PrimAssetCondition.Failed;
                         PhysicsScene.Logger.ErrorFormat("{0} Physical object requires asset but no asset provider. Name={1}",
                                                     LogHeader, PhysicsScene.Name);
                     }
@@ -977,7 +986,7 @@ public sealed class BSShapeCollection : IDisposable
         }
         else
         {
-            if (prim.LastAssetBuildFailed)
+            if (prim.PrimAssetState == BSPhysObject.PrimAssetCondition.Failed)
             {
                 PhysicsScene.Logger.ErrorFormat("{0} Mesh failed to fetch asset. lID={1}, texture={2}",
                                             LogHeader, prim.LocalID, prim.BaseShape.SculptTexture);

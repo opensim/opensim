@@ -86,7 +86,7 @@ public abstract class BSPhysObject : PhysicsActor
         PhysBody = new BulletBody(localID);
         PhysShape = new BulletShape();
 
-        LastAssetBuildFailed = false;
+        PrimAssetState = PrimAssetCondition.Unknown;
 
         // Default material type. Also sets Friction, Restitution and Density.
         SetMaterial((int)MaterialAttributes.Material.Wood);
@@ -133,9 +133,13 @@ public abstract class BSPhysObject : PhysicsActor
     // Reference to the physical shape (btCollisionShape) of this object
     public BulletShape PhysShape;
 
-    // 'true' if the mesh's underlying asset failed to build.
-    // This will keep us from looping after the first time the build failed.
-    public bool LastAssetBuildFailed { get; set; }
+    // The physical representation of the prim might require an asset fetch.
+    // The asset state is first 'Unknown' then 'Waiting' then either 'Failed' or 'Fetched'.
+    public enum PrimAssetCondition
+    {
+        Unknown, Waiting, Failed, Fetched
+    }
+    public PrimAssetCondition PrimAssetState { get; set; }
 
     // The objects base shape information. Null if not a prim type shape.
     public PrimitiveBaseShape BaseShape { get; protected set; }
