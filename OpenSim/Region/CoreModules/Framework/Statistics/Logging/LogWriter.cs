@@ -136,7 +136,7 @@ namespace OpenSim.Region.CoreModules.Framework.Statistics.Logging
             {
                 lock (m_logFileWriteLock)
                 {
-                    DateTime now = DateTime.Now;
+                    DateTime now = DateTime.UtcNow;
                     if (m_logFile == null || now > m_logFileEndTime)
                     {
                         if (m_logFile != null)

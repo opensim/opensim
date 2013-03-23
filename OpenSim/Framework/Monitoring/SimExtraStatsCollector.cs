@@ -359,8 +359,9 @@ Asset service request failures: {3}" + Environment.NewLine,
                     inPacketsPerSecond, outPacketsPerSecond, pendingDownloads, pendingUploads, unackedBytes, totalFrameTime,
                     netFrameTime, physicsFrameTime, otherFrameTime, agentFrameTime, imageFrameTime));
 
+            /* 20130319 RA: For the moment, disable the dump of 'scene' catagory as they are mostly output by
+             * the two formatted printouts above.
             SortedDictionary<string, SortedDictionary<string, Stat>> sceneStats;
-
             if (StatsManager.TryGetStats("scene", out sceneStats))
             {
                 foreach (KeyValuePair<string, SortedDictionary<string, Stat>> kvp in sceneStats)
@@ -374,6 +375,7 @@ Asset service request failures: {3}" + Environment.NewLine,
                     }
                 }
             }
+             */
 
             /*
             sb.Append(Environment.NewLine);

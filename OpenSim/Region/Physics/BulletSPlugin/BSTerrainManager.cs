@@ -263,6 +263,7 @@ public sealed class BSTerrainManager : IDisposable
 
                 if (MegaRegionParentPhysicsScene == null)
                 {
+                    // This terrain is not part of the mega-region scheme. Create vanilla terrain.
                     BSTerrainPhys newTerrainPhys = BuildPhysicalTerrain(terrainRegionBase, id, heightMap, minCoords, maxCoords);
                     m_terrains.Add(terrainRegionBase, newTerrainPhys);
 

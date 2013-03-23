@@ -26,7 +26,10 @@
  */
 
 using System;
-using System.Reflection;
+using System.Collections.Generic;
+using System.IO;
+using System.Net;
+using System.Text;
 using Nini.Config;
 using NUnit.Framework;
 using OpenMetaverse;
@@ -40,8 +43,6 @@ using OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation;
 using OpenSim.Region.CoreModules.World.Permissions;
 using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Mock;
-using System.IO;
-using System.Text;
 
 namespace OpenSim.Region.Framework.Scenes.Tests
 {
@@ -68,7 +69,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         }
 
         [Test]
-        public void TestSameRegionTeleport()
+        public void TestSameRegion()
         {
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
@@ -106,10 +107,10 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         }
 
         [Test]
-        public void TestSameSimulatorSeparatedRegionsTeleport()
+        public void TestSameSimulatorIsolatedRegions()
         {
             TestHelpers.InMethod();
-//            log4net.Config.XmlConfigurator.Configure();
+//            TestHelpers.EnableLogging();
 
             UUID userId = TestHelpers.ParseTail(0x1);
 
@@ -141,9 +142,8 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             ScenePresence sp = SceneHelpers.AddScenePresence(sceneA, userId, sh.SceneManager);
             sp.AbsolutePosition = new Vector3(30, 31, 32);
 
-            // XXX: A very nasty hack to tell the client about the destination scene without having to crank the whole
-            // UDP stack (?)
-//            ((TestClient)sp.ControllingClient).TeleportTargetScene = sceneB;
+            List<TestClient> destinationTestClients = new List<TestClient>();
+            EntityTransferHelpers.SetUpInformClientOfNeighbour((TestClient)sp.ControllingClient, destinationTestClients);
 
             sceneA.RequestTeleportLocation(
                 sp.ControllingClient,
@@ -152,7 +152,10 @@ namespace OpenSim.Region.Framework.Scenes.Tests
                 teleportLookAt,
                 (uint)TeleportFlags.ViaLocation);
 
-            ((TestClient)sp.ControllingClient).CompleteTeleportClientSide();
+            // SetupInformClientOfNeighbour() will have handled the callback into the target scene to setup the child
+            // agent.  This call will now complete the movement of the user into the destination and upgrade the agent
+            // from child to root.
+            destinationTestClients[0].CompleteMovement();
 
             Assert.That(sceneA.GetScenePresence(userId), Is.Null);
 
@@ -177,7 +180,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         /// Test teleport procedures when the target simulator returns false when queried about access.
         /// </summary>
         [Test]
-        public void TestSameSimulatorSeparatedRegionsQueryAccessFails()
+        public void TestSameSimulatorIsolatedRegions_DeniedOnQueryAccess()
         {
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
@@ -261,7 +264,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         /// Test teleport procedures when the target simulator create agent step is refused.
         /// </summary>
         [Test]
-        public void TestSameSimulatorSeparatedRegionsCreateAgentFails()
+        public void TestSameSimulatorIsolatedRegions_DeniedOnCreateAgent()
         {
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
@@ -333,11 +336,99 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 //            TestHelpers.DisableLogging();
         }
 
+        /// <summary>
+        /// Test teleport when the destination region does not process (or does not receive) the connection attempt
+        /// from the viewer.
+        /// </summary>
+        /// <remarks>
+        /// This could be quite a common case where the source region can connect to a remove destination region
+        /// (for CreateAgent) but the viewer cannot reach the destination region due to network issues.
+        /// </remarks>
         [Test]
-        public void TestSameSimulatorNeighbouringRegionsTeleport()
+        public void TestSameSimulatorIsolatedRegions_DestinationDidNotProcessViewerConnection()
         {
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
+
+            UUID userId = TestHelpers.ParseTail(0x1);
+            Vector3 preTeleportPosition = new Vector3(30, 31, 32);
+
+            EntityTransferModule etmA = new EntityTransferModule();
+            EntityTransferModule etmB = new EntityTransferModule();
+
+            LocalSimulationConnectorModule lscm = new LocalSimulationConnectorModule();
+
+            IConfigSource config = new IniConfigSource();
+            config.AddConfig("Modules");
+            config.Configs["Modules"].Set("EntityTransferModule", etmA.Name);
+            config.Configs["Modules"].Set("SimulationServices", lscm.Name);
+
+            config.AddConfig("EntityTransfer");
+
+            // In order to run a single threaded regression test we do not want the entity transfer module waiting
+            // for a callback from the destination scene before removing its avatar data.
+            config.Configs["EntityTransfer"].Set("wait_for_callback", false);
+
+//            config.AddConfig("Startup");
+//            config.Configs["Startup"].Set("serverside_object_permissions", true);
+
+            SceneHelpers sh = new SceneHelpers();
+            TestScene sceneA = sh.SetupScene("sceneA", TestHelpers.ParseTail(0x100), 1000, 1000);
+            TestScene sceneB = sh.SetupScene("sceneB", TestHelpers.ParseTail(0x200), 1002, 1000);
+
+            SceneHelpers.SetupSceneModules(sceneA, config, etmA );
+
+            // We need to set up the permisions module on scene B so that our later use of agent limit to deny
+            // QueryAccess won't succeed anyway because administrators are always allowed in and the default
+            // IsAdministrator if no permissions module is present is true.
+            SceneHelpers.SetupSceneModules(sceneB, config, new object[] { new PermissionsModule(), etmB });
+
+            // Shared scene modules
+            SceneHelpers.SetupSceneModules(new Scene[] { sceneA, sceneB }, config, lscm);
+
+            Vector3 teleportPosition = new Vector3(10, 11, 12);
+            Vector3 teleportLookAt = new Vector3(20, 21, 22);
+
+            ScenePresence sp = SceneHelpers.AddScenePresence(sceneA, userId, sh.SceneManager);
+            sp.AbsolutePosition = preTeleportPosition;
+
+            sceneA.RequestTeleportLocation(
+                sp.ControllingClient,
+                sceneB.RegionInfo.RegionHandle,
+                teleportPosition,
+                teleportLookAt,
+                (uint)TeleportFlags.ViaLocation);
+
+            // FIXME: Not setting up InformClientOfNeighbour on the TestClient means that it does not initiate 
+            // communication with the destination region.  But this is a very non-obvious way of doing it - really we
+            // should be forced to expicitly set this up.
+
+            Assert.That(sceneB.GetScenePresence(userId), Is.Null);
+
+            ScenePresence sceneASp = sceneA.GetScenePresence(userId);
+            Assert.That(sceneASp, Is.Not.Null);
+            Assert.That(sceneASp.Scene.RegionInfo.RegionName, Is.EqualTo(sceneA.RegionInfo.RegionName));
+            Assert.That(sceneASp.AbsolutePosition, Is.EqualTo(preTeleportPosition));
+
+            Assert.That(sceneA.GetRootAgentCount(), Is.EqualTo(1));
+            Assert.That(sceneA.GetChildAgentCount(), Is.EqualTo(0));
+            Assert.That(sceneB.GetRootAgentCount(), Is.EqualTo(0));
+            Assert.That(sceneB.GetChildAgentCount(), Is.EqualTo(0));
+
+            // TODO: Add assertions to check correct circuit details in both scenes.
+
+            // Lookat is sent to the client only - sp.Lookat does not yield the same thing (calculation from camera
+            // position instead).
+//            Assert.That(sp.Lookat, Is.EqualTo(teleportLookAt));
+
+//            TestHelpers.DisableLogging();
+        }
+
+        [Test]
+        public void TestSameSimulatorNeighbouringRegions()
+        {
+            TestHelpers.InMethod();
+            TestHelpers.EnableLogging();
 
             UUID userId = TestHelpers.ParseTail(0x1);
 
@@ -366,10 +457,14 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Vector3 teleportPosition = new Vector3(10, 11, 12);
             Vector3 teleportLookAt = new Vector3(20, 21, 22);
 
-            ScenePresence originalSp = SceneHelpers.AddScenePresence(sceneA, userId, sh.SceneManager);
-            originalSp.AbsolutePosition = new Vector3(30, 31, 32);
+            AgentCircuitData acd = SceneHelpers.GenerateAgentData(userId);
+            TestClient tc = new TestClient(acd, sceneA, sh.SceneManager);
+            List<TestClient> destinationTestClients = new List<TestClient>();
+            EntityTransferHelpers.SetUpInformClientOfNeighbour(tc, destinationTestClients);
 
-            ScenePresence beforeSceneASp = sceneA.GetScenePresence(userId);
+            ScenePresence beforeSceneASp = SceneHelpers.AddScenePresence(sceneA, tc, acd, sh.SceneManager);
+            beforeSceneASp.AbsolutePosition = new Vector3(30, 31, 32);
+
             Assert.That(beforeSceneASp, Is.Not.Null);
             Assert.That(beforeSceneASp.IsChildAgent, Is.False);
 
@@ -377,10 +472,8 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Assert.That(beforeSceneBSp, Is.Not.Null);
             Assert.That(beforeSceneBSp.IsChildAgent, Is.True);
 
-            // XXX: A very nasty hack to tell the client about the destination scene without having to crank the whole
-            // UDP stack (?)
-//            ((TestClient)beforeSceneASp.ControllingClient).TeleportTargetScene = sceneB;
-
+            // In this case, we will not receieve a second InformClientOfNeighbour since the viewer already knows
+            // about the neighbour region it is teleporting to.
             sceneA.RequestTeleportLocation(
                 beforeSceneASp.ControllingClient,
                 sceneB.RegionInfo.RegionHandle,
@@ -388,7 +481,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
                 teleportLookAt,
                 (uint)TeleportFlags.ViaLocation);
 
-            ((TestClient)beforeSceneASp.ControllingClient).CompleteTeleportClientSide();
+            destinationTestClients[0].CompleteMovement();
 
             ScenePresence afterSceneASp = sceneA.GetScenePresence(userId);
             Assert.That(afterSceneASp, Is.Not.Null);

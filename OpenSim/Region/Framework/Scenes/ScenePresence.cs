@@ -1529,6 +1529,15 @@ namespace OpenSim.Region.Framework.Scenes
 
             }
 
+            // XXX: If we force an update here, then multiple attachments do appear correctly on a destination region
+            // If we do it a little bit earlier (e.g. when converting the child to a root agent) then this does not work.
+            // This may be due to viewer code or it may be something we're not doing properly simulator side.
+            lock (m_attachments)
+            {
+                foreach (SceneObjectGroup sog in m_attachments)
+                    sog.ScheduleGroupForFullUpdate();
+            }
+
 //            m_log.DebugFormat(
 //                "[SCENE PRESENCE]: Completing movement of {0} into region {1} took {2}ms", 
 //                client.Name, Scene.RegionInfo.RegionName, (DateTime.Now - startTime).Milliseconds);

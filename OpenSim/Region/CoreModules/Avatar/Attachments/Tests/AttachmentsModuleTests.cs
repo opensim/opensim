@@ -829,7 +829,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
                 sceneB, config, new CapabilitiesModule(), etmB, attModB, new BasicInventoryAccessModule());
 
             UserAccount ua1 = UserAccountHelpers.CreateUserWithInventory(sceneA, 0x1);
-            ScenePresence beforeTeleportSp = SceneHelpers.AddScenePresence(sceneA, ua1.PrincipalID, sh.SceneManager);
+
+            AgentCircuitData acd = SceneHelpers.GenerateAgentData(ua1.PrincipalID);
+            TestClient tc = new TestClient(acd, sceneA, sh.SceneManager);
+            List<TestClient> destinationTestClients = new List<TestClient>();
+            EntityTransferHelpers.SetUpInformClientOfNeighbour(tc, destinationTestClients);
+
+            ScenePresence beforeTeleportSp = SceneHelpers.AddScenePresence(sceneA, tc, acd, sh.SceneManager);
             beforeTeleportSp.AbsolutePosition = new Vector3(30, 31, 32);
 
             InventoryItemBase attItem = CreateAttachmentItem(sceneA, ua1.PrincipalID, "att", 0x10, 0x20);
@@ -848,7 +854,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
                 teleportLookAt,
                 (uint)TeleportFlags.ViaLocation);
 
-            ((TestClient)beforeTeleportSp.ControllingClient).CompleteTeleportClientSide();
+            destinationTestClients[0].CompleteMovement();
 
             // Check attachments have made it into sceneB
             ScenePresence afterTeleportSceneBSp = sceneB.GetScenePresence(ua1.PrincipalID);
