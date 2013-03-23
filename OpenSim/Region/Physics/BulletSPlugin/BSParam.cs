@@ -203,10 +203,10 @@ public static class BSParam
     public delegate void PSetOnObject<T>(BSScene scene, BSPhysObject obj);
     public sealed class ParameterDefn<T> : ParameterDefnBase
     {
-        T defaultValue;
-        PSetValue<T> setter;
-        PGetValue<T> getter;
-        PSetOnObject<T> objectSet;
+        private T defaultValue;
+        private PSetValue<T> setter;
+        private PGetValue<T> getter;
+        private PSetOnObject<T> objectSet;
         public ParameterDefn(string pName, string pDesc, T pDefault, PGetValue<T> pGetter, PSetValue<T> pSetter)
             : base(pName, pDesc)
         {
@@ -223,13 +223,23 @@ public static class BSParam
             getter = pGetter;
             objectSet = pObjSetter;
         }
+        /* Wish I could simplify using this definition but CLR doesn't store references so closure around delegates of references won't work
+        public ParameterDefn(string pName, string pDesc, T pDefault, ref T loc)
+            : base(pName, pDesc)
+        {
+            defaultValue = pDefault;
+            setter = (s, v) => { loc = v; };
+            getter = (s) => { return loc; };
+            objectSet = null;
+        }
+         */
         public override void AssignDefault(BSScene s)
         {
             setter(s, defaultValue);
         }
         public override string GetValue(BSScene s)
         {
-            return String.Format("{0}", getter(s));
+            return getter(s).ToString();
         }
         public override void SetValue(BSScene s, string valAsString)
         {
@@ -252,6 +262,7 @@ public static class BSParam
                 try
                 {
                     T setValue = (T)parser.Invoke(genericType, new Object[] { valAsString });
+                    // Store the parsed value
                     setter(s, setValue);
                     // s.Logger.DebugFormat("{0} Parameter {1} = {2}", LogHeader, name, setValue);
                 }
