@@ -925,6 +925,13 @@ namespace OpenSim.Region.Framework.Scenes
 
             AddToPhysicalScene(isFlying);
 
+            // XXX: This is to trigger any secondary teleport needed for a megaregion when the user has teleported to a 
+            // location outside the 'root region' (the south-west 256x256 corner).  This is the earlist we can do it
+            // since it requires a physics actor to be present.  If it is left any later, then physics appears to reset
+            // the value to a negative position which does not trigger the border cross.
+            // This may not be the best location for this.
+            CheckForBorderCrossing();
+
             if (ForceFly)
             {
                 Flying = true;
