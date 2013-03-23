@@ -994,6 +994,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         {
             Scene scene = agent.Scene;
             Vector3 pos = agent.AbsolutePosition;
+
+//            m_log.DebugFormat(
+//                "[ENTITY TRANSFER MODULE]: Crossing agent {0} at pos {1} in {2}", agent.Name, pos, scene.Name);
+
             Vector3 newpos = new Vector3(pos.X, pos.Y, pos.Z);
             uint neighbourx = scene.RegionInfo.RegionLocX;
             uint neighboury = scene.RegionInfo.RegionLocY;
