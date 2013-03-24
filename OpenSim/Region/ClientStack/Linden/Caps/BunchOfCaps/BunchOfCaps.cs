@@ -50,6 +50,7 @@ using OpenSim.Services.Interfaces;
 using Caps = OpenSim.Framework.Capabilities.Caps;
 using OSDArray = OpenMetaverse.StructuredData.OSDArray;
 using OSDMap = OpenMetaverse.StructuredData.OSDMap;
+using PermissionMask = OpenSim.Framework.PermissionMask;
 
 namespace OpenSim.Region.ClientStack.Linden
 {
@@ -830,9 +831,9 @@ namespace OpenSim.Region.ClientStack.Linden
                             texitem.Folder = texturesFolder;
 
                             texitem.CurrentPermissions
-                                = (uint)(PermissionMask.Move | PermissionMask.Copy | PermissionMask.Modify | PermissionMask.Transfer);
+                                = (uint)(PermissionMask.Move | PermissionMask.Copy | PermissionMask.Modify | PermissionMask.Transfer | PermissionMask.Export);
 
-                            texitem.BasePermissions = (uint)PermissionMask.All;
+                            texitem.BasePermissions = (uint)PermissionMask.All | (uint)PermissionMask.Export;
                             texitem.EveryOnePermissions = 0;
                             texitem.NextPermissions = (uint)PermissionMask.All;
                             texitem.CreationDate = Util.UnixTimeSinceEpoch();
@@ -1097,9 +1098,9 @@ namespace OpenSim.Region.ClientStack.Linden
             else
             {
                 item.CurrentPermissions
-                    = (uint)(PermissionMask.Move | PermissionMask.Copy | PermissionMask.Modify | PermissionMask.Transfer);
+                    = (uint)(PermissionMask.Move | PermissionMask.Copy | PermissionMask.Modify | PermissionMask.Transfer | PermissionMask.Export);
 
-                item.BasePermissions = (uint)PermissionMask.All;
+                item.BasePermissions = (uint)PermissionMask.All | (uint)PermissionMask.Export;
                 item.EveryOnePermissions = 0;
                 item.NextPermissions = (uint)PermissionMask.All;
             }

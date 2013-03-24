@@ -62,6 +62,7 @@ using LSL_List = OpenSim.Region.ScriptEngine.Shared.LSL_Types.list;
 using LSL_Rotation = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Quaternion;
 using LSL_String = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
 using LSL_Vector = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Vector3;
+using PermissionMask = OpenSim.Framework.PermissionMask;
 
 namespace OpenSim.Region.ScriptEngine.Shared.Api
 {
@@ -1796,8 +1797,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             taskItem.InvType = (int)InventoryType.Notecard;
             taskItem.OwnerID = m_host.OwnerID;
             taskItem.CreatorID = m_host.OwnerID;
-            taskItem.BasePermissions = (uint)PermissionMask.All;
-            taskItem.CurrentPermissions = (uint)PermissionMask.All;
+            taskItem.BasePermissions = (uint)PermissionMask.All | (uint)PermissionMask.Export;
+            taskItem.CurrentPermissions = (uint)PermissionMask.All | (uint)PermissionMask.Export;
             taskItem.EveryonePermissions = 0;
             taskItem.NextPermissions = (uint)PermissionMask.All;
             taskItem.GroupID = m_host.GroupID;

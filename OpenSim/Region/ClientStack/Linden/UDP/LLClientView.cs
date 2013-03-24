@@ -51,6 +51,7 @@ using RegionFlags = OpenMetaverse.RegionFlags;
 using Nini.Config;
 
 using System.IO;
+using PermissionMask = OpenSim.Framework.PermissionMask;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
@@ -1802,7 +1803,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendInventoryItemDetails(UUID ownerID, InventoryItemBase item)
         {
-            const uint FULL_MASK_PERMISSIONS = (uint)PermissionMask.All;
+            // Fudge this value. It's only needed to make the CRC anyway
+            const uint FULL_MASK_PERMISSIONS = (uint)0x7fffffff;
 
             FetchInventoryReplyPacket inventoryReply = (FetchInventoryReplyPacket)PacketPool.Instance.GetPacket(PacketType.FetchInventoryReply);
             // TODO: don't create new blocks if recycling an old packet
@@ -2007,7 +2009,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         protected void SendBulkUpdateInventoryItem(InventoryItemBase item)
         {
-            const uint FULL_MASK_PERMISSIONS = (uint)PermissionMask.All;
+            const uint FULL_MASK_PERMISSIONS = (uint)0x7ffffff;
 
             BulkUpdateInventoryPacket bulkUpdate
                 = (BulkUpdateInventoryPacket)PacketPool.Instance.GetPacket(PacketType.BulkUpdateInventory);
@@ -2066,7 +2068,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <see>IClientAPI.SendInventoryItemCreateUpdate(InventoryItemBase)</see>
         public void SendInventoryItemCreateUpdate(InventoryItemBase Item, UUID transactionID, uint callbackId)
         {
-            const uint FULL_MASK_PERMISSIONS = (uint)PermissionMask.All;
+            const uint FULL_MASK_PERMISSIONS = (uint)0x7fffffff;
 
             UpdateCreateInventoryItemPacket InventoryReply
                 = (UpdateCreateInventoryItemPacket)PacketPool.Instance.GetPacket(

@@ -39,6 +39,7 @@ using OpenSim.Region.Framework;
 using OpenSim.Framework.Client;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes.Serialization;
+using PermissionMask = OpenSim.Framework.PermissionMask;
 
 namespace OpenSim.Region.Framework.Scenes
 {
@@ -907,7 +908,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             CreateNewInventoryItem(
                 remoteClient, creatorID, creatorData, folderID, name, description, flags, callbackID, asset, invType,
-                (uint)PermissionMask.All, (uint)PermissionMask.All, 0, nextOwnerMask, 0, creationDate, transationID);
+                (uint)PermissionMask.All | (uint)PermissionMask.Export, (uint)PermissionMask.All | (uint)PermissionMask.Export, 0, nextOwnerMask, 0, creationDate, transationID);
         }
 
 
@@ -1036,8 +1037,8 @@ namespace OpenSim.Region.Framework.Scenes
                 CreateNewInventoryItem(
                     remoteClient, remoteClient.AgentId.ToString(), string.Empty, folderID,
                     name, description, 0, callbackID, asset, invType,
-                    (uint)PermissionMask.All, (uint)PermissionMask.All, (uint)PermissionMask.All,
-                    (uint)PermissionMask.All, (uint)PermissionMask.All, Util.UnixTimeSinceEpoch());
+                    (uint)PermissionMask.All | (uint)PermissionMask.Export, (uint)PermissionMask.All | (uint)PermissionMask.Export, (uint)PermissionMask.All,
+                    (uint)PermissionMask.All | (uint)PermissionMask.Export, (uint)PermissionMask.All | (uint)PermissionMask.Export, Util.UnixTimeSinceEpoch());
             }
             else
             {
