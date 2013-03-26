@@ -40,6 +40,7 @@ using OpenSim.Framework.Monitoring;
 using OpenSim.Region.ClientStack.LindenUDP;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using PermissionMask = OpenSim.Framework.PermissionMask;
 
 namespace OpenSim.Region.OptionalModules.Avatar.Attachments
 {

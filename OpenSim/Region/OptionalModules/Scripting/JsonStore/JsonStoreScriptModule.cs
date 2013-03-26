@@ -42,6 +42,7 @@ using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Scenes.Scripting;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using PermissionMask = OpenSim.Framework.PermissionMask;
 
 namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
 {

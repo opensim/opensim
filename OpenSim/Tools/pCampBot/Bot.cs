@@ -40,6 +40,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using pCampBot.Interfaces;
 using Timer = System.Timers.Timer;
+using PermissionMask = OpenSim.Framework.PermissionMask;
 
 namespace pCampBot
 {
@@ -362,7 +363,7 @@ namespace pCampBot
                     asset.Encode();
                     transid = Client.Assets.RequestUpload(asset,true);
                     Client.Inventory.RequestCreateItem(clothfolder.UUID, "MyClothing" + i.ToString(), "MyClothing", AssetType.Clothing,
-                         transid, InventoryType.Wearable, asset.WearableType, PermissionMask.All, delegate(bool success, InventoryItem item)
+                         transid, InventoryType.Wearable, asset.WearableType, (OpenMetaverse.PermissionMask)PermissionMask.All, delegate(bool success, InventoryItem item)
                     {
                         if (success)
                         {
@@ -386,7 +387,7 @@ namespace pCampBot
                     asset.Encode();
                     transid = Client.Assets.RequestUpload(asset,true);
                     Client.Inventory.RequestCreateItem(clothfolder.UUID, "MyBodyPart" + i.ToString(), "MyBodyPart", AssetType.Bodypart,
-                         transid, InventoryType.Wearable, asset.WearableType, PermissionMask.All, delegate(bool success, InventoryItem item)
+                         transid, InventoryType.Wearable, asset.WearableType, (OpenMetaverse.PermissionMask)PermissionMask.All, delegate(bool success, InventoryItem item)
                     {
                         if (success)
                         {

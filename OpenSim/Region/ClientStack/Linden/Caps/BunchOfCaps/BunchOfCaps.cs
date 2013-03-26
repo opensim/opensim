@@ -49,6 +49,7 @@ using OpenSim.Services.Interfaces;
 using Caps = OpenSim.Framework.Capabilities.Caps;
 using OSDArray = OpenMetaverse.StructuredData.OSDArray;
 using OSDMap = OpenMetaverse.StructuredData.OSDMap;
+using PermissionMask = OpenSim.Framework.PermissionMask;
 
 namespace OpenSim.Region.ClientStack.Linden
 {
@@ -705,9 +706,9 @@ namespace OpenSim.Region.ClientStack.Linden
             // If we set PermissionMask.All then when we rez the item the next permissions will replace the current
             // (owner) permissions.  This becomes a problem if next permissions are changed.
             item.CurrentPermissions
-                = (uint)(PermissionMask.Move | PermissionMask.Copy | PermissionMask.Modify | PermissionMask.Transfer);
+                = (uint)(PermissionMask.Move | PermissionMask.Copy | PermissionMask.Modify | PermissionMask.Transfer | PermissionMask.Export);
 
-            item.BasePermissions = (uint)PermissionMask.All;
+            item.BasePermissions = (uint)PermissionMask.All | (uint)PermissionMask.Export;
             item.EveryOnePermissions = 0;
             item.NextPermissions = (uint)PermissionMask.All;
             item.CreationDate = Util.UnixTimeSinceEpoch();

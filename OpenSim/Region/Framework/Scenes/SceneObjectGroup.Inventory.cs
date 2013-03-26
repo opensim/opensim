@@ -34,6 +34,7 @@ using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using System.Collections.Generic;
 using System.Xml;
+using PermissionMask = OpenSim.Framework.PermissionMask;
 
 namespace OpenSim.Region.Framework.Scenes
 {
