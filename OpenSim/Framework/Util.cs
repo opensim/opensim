@@ -54,6 +54,21 @@ using Amib.Threading;
 
 namespace OpenSim.Framework
 {
+    [Flags]
+    public enum PermissionMask : uint
+    { 
+        None = 0,
+        Transfer = 1 << 13,
+        Modify = 1 << 14,
+        Copy = 1 << 15,
+        Export = 1 << 16,
+        Move = 1 << 19,
+        Damage = 1 << 20,
+        // All does not contain Export, which is special and must be
+        // explicitly given
+        All = (1 << 13) | (1 << 14) | (1 << 15) | (1 << 19)
+    } 
+
     /// <summary>
     /// The method used by Util.FireAndForget for asynchronously firing events
     /// </summary>

@@ -100,7 +100,6 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         private readonly DoubleDictionary<UUID, string, Scene> m_localScenes = new DoubleDictionary<UUID, string, Scene>();
-        private Scene m_currentScene = null;
 
         public List<Scene> Scenes
         {
@@ -354,7 +353,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (m_localScenes.TryGetValue(regionName, out s))
                 {
-                    m_currentScene = s;
+                    CurrentScene = s;
                     return true;
                 }
 
@@ -370,7 +369,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (m_localScenes.TryGetValue(regionID, out s))
             {
-                m_currentScene = s;
+                CurrentScene = s;
                 return true;
             }
 
