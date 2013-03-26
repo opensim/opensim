@@ -47,6 +47,7 @@ using OpenMetaverse;
 using log4net;
 using Nini.Config;
 using Mono.Addins;
+using PermissionMask = OpenSim.Framework.PermissionMask;
 
 namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 {
@@ -377,7 +378,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 objectGroup.RootPart.NextOwnerMask &=
                         ((uint)PermissionMask.Copy |
                          (uint)PermissionMask.Transfer |
-                         (uint)PermissionMask.Modify);
+                         (uint)PermissionMask.Modify |
+                         (uint)PermissionMask.Export);
                 objectGroup.RootPart.NextOwnerMask |=
                         (uint)PermissionMask.Move;
                 
@@ -485,7 +487,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             InventoryItemBase item, SceneObjectGroup so, List<SceneObjectGroup> objsForEffectivePermissions, 
             IClientAPI remoteClient)
         {
-            uint effectivePerms = (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify | PermissionMask.Move) | 7;
+            uint effectivePerms = (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify | PermissionMask.Move | PermissionMask.Export) | 7;
             foreach (SceneObjectGroup grp in objsForEffectivePermissions)
                 effectivePerms &= grp.GetEffectivePermissions();
             effectivePerms |= (uint)PermissionMask.Move;
@@ -525,6 +527,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                          (uint)PermissionMask.Transfer |
                          (uint)PermissionMask.Modify |
                          (uint)PermissionMask.Move |
+                         (uint)PermissionMask.Export |
                          7); // Preserve folded permissions
             }    
             
