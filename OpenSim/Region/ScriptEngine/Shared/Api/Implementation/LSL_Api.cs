@@ -5923,8 +5923,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else
             {
-                agentSize = new LSL_Vector(0.45, 0.6, avatar.Appearance.AvatarHeight);
+                agentSize = GetAgentSize(avatar);
             }
+
             return agentSize;
         }
 
@@ -7948,61 +7949,224 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return new LSL_Vector(m_host.GetGeometricCenter());
         }
 
+        public LSL_List GetEntityParams(ISceneEntity entity, LSL_List rules)
+        {
+            LSL_List result = new LSL_List();
+            LSL_List remaining = null;
+
+            while (true)
+            {           
+                if (entity is SceneObjectPart)           
+                    remaining = GetPrimParams((SceneObjectPart)entity, rules, ref result);
+                else
+                    remaining = GetAgentParams((ScenePresence)entity, rules, ref result);
+
+                if (remaining == null || remaining.Length <= 2)
+                    return result;
+
+                int linknumber = remaining.GetLSLIntegerItem(0);
+                rules = remaining.GetSublist(1, -1);
+                entity = GetLinkEntity(linknumber);
+            }
+        }
+
         public LSL_List llGetPrimitiveParams(LSL_List rules)
         {
             m_host.AddScriptLPS(1);
 
-            LSL_List result = new LSL_List();
-
-            LSL_List remaining = GetPrimParams(m_host, rules, ref result);
-
-            while (remaining != null && remaining.Length > 2)
-            {
-                int linknumber = remaining.GetLSLIntegerItem(0);
-                rules = remaining.GetSublist(1, -1);
-                List<SceneObjectPart> parts = GetLinkParts(linknumber);
-
-                foreach (SceneObjectPart part in parts)
-                    remaining = GetPrimParams(part, rules, ref result);
-            }
-
-            return result;
+            return GetEntityParams(m_host, rules);
         }
 
         public LSL_List llGetLinkPrimitiveParams(int linknumber, LSL_List rules)
         {
             m_host.AddScriptLPS(1);
 
-            List<SceneObjectPart> parts = GetLinkParts(linknumber);
+            return GetEntityParams(GetLinkEntity(linknumber), rules);
+        }
 
-            LSL_List res = new LSL_List();
-            LSL_List remaining = null;
+        public LSL_Vector GetAgentSize(ScenePresence sp)
+        {
+            return new LSL_Vector(0.45, 0.6, sp.Appearance.AvatarHeight);
+        }
 
-            foreach (SceneObjectPart part in parts)
+        /// <summary>
+        /// Gets params for a seated avatar in a linkset.
+        /// </summary>
+        /// <returns></returns>
+        /// <param name='sp'></param>
+        /// <param name='rules'></param>
+        /// <param name='res'></param>
+        public LSL_List GetAgentParams(ScenePresence sp, LSL_List rules, ref LSL_List res)
+        {
+            int idx = 0;
+            while (idx < rules.Length)
             {
-                remaining = GetPrimParams(part, rules, ref res);
+                int code = (int)rules.GetLSLIntegerItem(idx++);
+                int remain = rules.Length-idx;
+
+                switch (code)
+                {
+                    case (int)ScriptBaseClass.PRIM_MATERIAL:
+                        res.Add(new LSL_Integer(ScriptBaseClass.PRIM_MATERIAL_FLESH));
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_PHYSICS:
+                        res.Add(ScriptBaseClass.FALSE);
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_TEMP_ON_REZ:
+                        res.Add(ScriptBaseClass.FALSE);
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_PHANTOM:
+                        res.Add(ScriptBaseClass.FALSE);
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_POSITION:
+                        res.Add(new LSL_Vector(sp.AbsolutePosition));
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_SIZE:
+                        res.Add(GetAgentSize(sp));
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_ROTATION:
+                        res.Add(sp.GetWorldRotation());
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_TYPE:
+                        res.Add(new LSL_Integer(ScriptBaseClass.PRIM_TYPE_BOX));
+                        res.Add(new LSL_Integer(ScriptBaseClass.PRIM_HOLE_DEFAULT));
+                        res.Add(new LSL_Vector(0, 1, 0));
+                        res.Add(new LSL_Float(0));
+                        res.Add(new LSL_Vector(0, 0, 0));
+                        res.Add(new LSL_Vector(1, 1, 0));
+                        res.Add(new LSL_Vector(0, 0, 0));
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_TEXTURE:
+                        if (remain < 1)
+                            return null;
+
+                        int face = (int)rules.GetLSLIntegerItem(idx++);
+                        if (face > 21)
+                            break;
+
+                        res.Add(new LSL_String(""));
+                        res.Add(ScriptBaseClass.ZERO_VECTOR);
+                        res.Add(ScriptBaseClass.ZERO_VECTOR);
+                        res.Add(new LSL_Float(0));
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_COLOR:
+                        if (remain < 1)
+                            return null;
+
+                        face = (int)rules.GetLSLIntegerItem(idx++);
+                        if (face > 21)
+                            break;
+
+                        res.Add(ScriptBaseClass.ZERO_VECTOR);
+                        res.Add(new LSL_Float(0));
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_BUMP_SHINY:
+                        if (remain < 1)
+                            return null;
+
+                        face = (int)rules.GetLSLIntegerItem(idx++);
+                        if (face > 21)
+                            break;
+
+                        res.Add(ScriptBaseClass.PRIM_SHINY_NONE);
+                        res.Add(ScriptBaseClass.PRIM_BUMP_NONE);
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_FULLBRIGHT:
+                        if (remain < 1)
+                            return null;
+
+                        face = (int)rules.GetLSLIntegerItem(idx++);
+                        if (face > 21)
+                            break;
+
+                        res.Add(ScriptBaseClass.FALSE);
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_FLEXIBLE:
+                        res.Add(ScriptBaseClass.FALSE);
+                        res.Add(new LSL_Integer(0));
+                        res.Add(new LSL_Float(0));
+                        res.Add(new LSL_Float(0));
+                        res.Add(new LSL_Float(0));
+                        res.Add(new LSL_Float(0));
+                        res.Add(ScriptBaseClass.ZERO_VECTOR);
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_TEXGEN:
+                        if (remain < 1)
+                            return null;
+
+                        face = (int)rules.GetLSLIntegerItem(idx++);
+                        if (face > 21)
+                            break;
+
+                        res.Add(ScriptBaseClass.PRIM_TEXGEN_DEFAULT);
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_POINT_LIGHT:
+                        res.Add(ScriptBaseClass.FALSE);
+                        res.Add(ScriptBaseClass.ZERO_VECTOR);
+                        res.Add(ScriptBaseClass.ZERO_VECTOR);
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_GLOW:
+                        if (remain < 1)
+                            return null;
+
+                        face = (int)rules.GetLSLIntegerItem(idx++);
+                        if (face > 21)
+                            break;
+
+                        res.Add(new LSL_Float(0));
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_TEXT:
+                        res.Add(new LSL_String(""));
+                        res.Add(ScriptBaseClass.ZERO_VECTOR);
+                        res.Add(new LSL_Float(1));
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_ROT_LOCAL:                        
+                        res.Add(new LSL_Rotation(sp.Rotation));
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_POS_LOCAL:
+                        res.Add(new LSL_Vector(sp.OffsetPosition));
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_SLICE:
+                        res.Add(new LSL_Vector(0, 1, 0));
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_LINK_TARGET:
+                        if(remain < 3)
+                            return null;
+
+                        return rules.GetSublist(idx, -1);
+                }
             }
 
-            while (remaining != null && remaining.Length > 2)
-            {
-                linknumber = remaining.GetLSLIntegerItem(0);
-                rules = remaining.GetSublist(1, -1);
-                parts = GetLinkParts(linknumber);
-
-                foreach (SceneObjectPart part in parts)
-                    remaining = GetPrimParams(part, rules, ref res);
-            }
-
-            return res;
+            return null;
         }
 
         public LSL_List GetPrimParams(SceneObjectPart part, LSL_List rules, ref LSL_List res)
         {
-            int idx=0;
+            int idx = 0;
             while (idx < rules.Length)
             {
-                int code=(int)rules.GetLSLIntegerItem(idx++);
-                int remain=rules.Length-idx;
+                int code = (int)rules.GetLSLIntegerItem(idx++);
+                int remain = rules.Length-idx;
 
                 switch (code)
                 {
@@ -8245,7 +8409,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         if (remain < 1)
                             return null;
 
-                        face=(int)rules.GetLSLIntegerItem(idx++);
+                        face = (int)rules.GetLSLIntegerItem(idx++);
 
                         tex = part.Shape.Textures;
                         if (face == ScriptBaseClass.ALL_SIDES)
