@@ -155,7 +155,7 @@ public class BSPrim : BSPhysObject
     public override PrimitiveBaseShape Shape {
         set {
             BaseShape = value;
-            LastAssetBuildFailed = false;
+            PrimAssetState = PrimAssetCondition.Unknown;
             ForceBodyShapeRebuild(false);
         }
     }

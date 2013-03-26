@@ -33,6 +33,7 @@ using System.Threading;
 using OpenSim.Framework;
 using OpenSim.Framework.Capabilities;
 using OpenSim.Framework.Client;
+using OpenSim.Framework.Monitoring;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Physics.Manager;
@@ -76,6 +77,31 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         /// cancellation consistently suceed.
         /// </remarks>
         public bool DisableInterRegionTeleportCancellation { get; set; }
+
+        /// <summary>
+        /// Number of times inter-region teleport was attempted.
+        /// </summary>
+        private Stat m_interRegionTeleportAttempts;
+
+        /// <summary>
+        /// Number of times inter-region teleport was aborted (due to simultaneous client logout).
+        /// </summary>
+        private Stat m_interRegionTeleportAborts;
+
+        /// <summary>
+        /// Number of times inter-region teleport was successfully cancelled by the client.
+        /// </summary>
+        private Stat m_interRegionTeleportCancels;
+
+        /// <summary>
+        /// Number of times inter-region teleport failed due to server/client/network problems (e.g. viewer failed to
+        /// connect with destination region).
+        /// </summary>
+        /// <remarks>
+        /// This is not necessarily a problem for this simulator - in open-grid/hg conditions, viewer connectivity to
+        /// destination simulator is unknown.
+        /// </remarks>
+        private Stat m_interRegionTeleportFailures;
 
         protected bool m_Enabled = false;
 
@@ -156,6 +182,60 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             Scene = scene;
 
+            m_interRegionTeleportAttempts = 
+                new Stat(
+                    "InterRegionTeleportAttempts",
+                    "Number of inter-region teleports attempted.",
+                    "This does not count attempts which failed due to pre-conditions (e.g. target simulator refused access).\n"
+                        + "You can get successfully teleports by subtracting aborts, cancels and teleport failures from this figure.",
+                    "",
+                    "entitytransfer",
+                    Scene.Name,
+                    StatType.Push,
+                    null,
+                    StatVerbosity.Debug);
+
+            m_interRegionTeleportAborts = 
+                new Stat(
+                    "InterRegionTeleportAborts",
+                    "Number of inter-region teleports aborted due to client actions.",
+                    "The chief action is simultaneous logout whilst teleporting.",
+                    "",
+                    "entitytransfer",
+                    Scene.Name,
+                    StatType.Push,
+                    null,
+                    StatVerbosity.Debug);
+
+            m_interRegionTeleportCancels = 
+                new Stat(
+                    "InterRegionTeleportCancels",
+                    "Number of inter-region teleports cancelled by the client.",
+                    null,
+                    "",
+                    "entitytransfer",
+                    Scene.Name,
+                    StatType.Push,
+                    null,
+                    StatVerbosity.Debug);
+
+            m_interRegionTeleportFailures = 
+                new Stat(
+                    "InterRegionTeleportFailures",
+                    "Number of inter-region teleports that failed due to server/client/network issues.",
+                    "This number may not be very helpful in open-grid/hg situations as the network connectivity/quality of destinations is uncontrollable.",
+                    "",
+                    "entitytransfer",
+                    Scene.Name,
+                    StatType.Push,
+                    null,
+                    StatVerbosity.Debug);
+
+            StatsManager.RegisterStat(m_interRegionTeleportAttempts);
+            StatsManager.RegisterStat(m_interRegionTeleportAborts);
+            StatsManager.RegisterStat(m_interRegionTeleportCancels);
+            StatsManager.RegisterStat(m_interRegionTeleportFailures);
+
             scene.RegisterModuleInterface<IEntityTransferModule>(this);
             scene.EventManager.OnNewClient += OnNewClient;
         }
@@ -173,7 +253,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         public virtual void Close() {}
 
-        public virtual void RemoveRegion(Scene scene) {}
+        public virtual void RemoveRegion(Scene scene) 
+        {
+            StatsManager.DeregisterStat(m_interRegionTeleportAttempts);
+            StatsManager.DeregisterStat(m_interRegionTeleportAborts);
+            StatsManager.DeregisterStat(m_interRegionTeleportCancels);
+            StatsManager.DeregisterStat(m_interRegionTeleportFailures);
+        }
 
         public virtual void RegionLoaded(Scene scene)
         {
@@ -548,6 +634,11 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 return;
             }
 
+            // Before this point, teleport 'failure' is due to checkable pre-conditions such as whether the target
+            // simulator can be found and is explicitly prepared to allow access.  Therefore, we will not count these
+            // as server attempts.
+            m_interRegionTeleportAttempts.Value++;
+
             m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Destination is running version {0}", version);
 
             // Fixing a bug where teleporting while sitting results in the avatar ending up removed from
@@ -600,6 +691,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             bool logout = false;
             if (!CreateAgent(sp, reg, finalDestination, agentCircuit, teleportFlags, out reason, out logout))
             {
+                m_interRegionTeleportFailures.Value++;
+
                 sp.ControllingClient.SendTeleportFailed(String.Format("Teleport refused: {0}", reason));
 
                 m_log.DebugFormat(
@@ -611,6 +704,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             if (m_entityTransferStateMachine.GetAgentTransferState(sp.UUID) == AgentTransferState.Cancelling)
             {
+                m_interRegionTeleportCancels.Value++;
+
                 m_log.DebugFormat(
                     "[ENTITY TRANSFER MODULE]: Cancelled teleport of {0} to {1} from {2} after CreateAgent on client request", 
                     sp.Name, finalDestination.RegionName, sp.Scene.Name);
@@ -619,6 +714,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             }
             else if (m_entityTransferStateMachine.GetAgentTransferState(sp.UUID) == AgentTransferState.Aborting)
             {
+                m_interRegionTeleportAborts.Value++;
+
                 m_log.DebugFormat(
                     "[ENTITY TRANSFER MODULE]: Aborted teleport of {0} to {1} from {2} after CreateAgent due to previous client close.",
                     sp.Name, finalDestination.RegionName, sp.Scene.Name);
@@ -688,6 +785,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // establish th econnection to the destination which makes it return true.
             if (m_entityTransferStateMachine.GetAgentTransferState(sp.UUID) == AgentTransferState.Aborting)
             {
+                m_interRegionTeleportAborts.Value++;
+
                 m_log.DebugFormat(
                     "[ENTITY TRANSFER MODULE]: Aborted teleport of {0} to {1} from {2} before UpdateAgent",
                     sp.Name, finalDestination.RegionName, sp.Scene.Name);
@@ -703,6 +802,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             {
                 if (m_entityTransferStateMachine.GetAgentTransferState(sp.UUID) == AgentTransferState.Aborting)
                 {
+                    m_interRegionTeleportAborts.Value++;
+
                     m_log.DebugFormat(
                         "[ENTITY TRANSFER MODULE]: Aborted teleport of {0} to {1} from {2} after UpdateAgent due to previous client close.",
                         sp.Name, finalDestination.RegionName, sp.Scene.Name);
@@ -720,6 +821,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             if (m_entityTransferStateMachine.GetAgentTransferState(sp.UUID) == AgentTransferState.Cancelling)
             {
+                m_interRegionTeleportCancels.Value++;
+
                 m_log.DebugFormat(
                     "[ENTITY TRANSFER MODULE]: Cancelled teleport of {0} to {1} from {2} after UpdateAgent on client request", 
                     sp.Name, finalDestination.RegionName, sp.Scene.Name);
@@ -755,6 +858,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             {
                 if (m_entityTransferStateMachine.GetAgentTransferState(sp.UUID) == AgentTransferState.Aborting)
                 {
+                    m_interRegionTeleportAborts.Value++;
+
                     m_log.DebugFormat(
                         "[ENTITY TRANSFER MODULE]: Aborted teleport of {0} to {1} from {2} after WaitForAgentArrivedAtDestination due to previous client close.",
                         sp.Name, finalDestination.RegionName, sp.Scene.Name);
@@ -767,6 +872,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     sp.Name, finalDestination.RegionName, sp.Scene.RegionInfo.RegionName);
                 
                 Fail(sp, finalDestination, logout, "Destination region did not signal teleport completion.");
+
                 return;
             }
 
@@ -808,15 +914,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 // now we have a child agent in this region. 
                 sp.Reset();
             }
-
-            // Commented pending deletion since this method no longer appears to do anything at all
-//            // REFACTORING PROBLEM. Well, not a problem, but this method is HORRIBLE!
-//            if (sp.Scene.NeedSceneCacheClear(sp.UUID))
-//            {
-//                m_log.DebugFormat(
-//                    "[ENTITY TRANSFER MODULE]: User {0} is going to another region, profile cache removed",
-//                    sp.UUID);
-//            }
         }
 
         /// <summary>
@@ -851,6 +948,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         protected virtual void Fail(ScenePresence sp, GridRegion finalDestination, bool logout, string reason)
         {
             CleanupFailedInterRegionTeleport(sp, finalDestination);
+
+            m_interRegionTeleportFailures.Value++;
 
             sp.ControllingClient.SendTeleportFailed(
                 string.Format(
