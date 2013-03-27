@@ -66,6 +66,7 @@ using LSL_Rotation = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Quaternion;
 using LSL_String = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
 using LSL_Vector = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Vector3;
 using System.Reflection;
+using System.Linq;
 
 namespace OpenSim.Region.ScriptEngine.Shared.Api
 {
@@ -109,6 +110,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected Dictionary<UUID, UserInfoCacheEntry> m_userInfoCache = new Dictionary<UUID, UserInfoCacheEntry>();
         protected int EMAIL_PAUSE_TIME = 20;  // documented delay value for smtp.
         protected ISoundModule m_SoundModule = null;
+
+        //An array of HTTP/1.1 headers that are not allowed to be used
+        //as custom headers by llHTTPRequest.
+        private string[] HttpStandardHeaders =
+        {
+            "Accept", "Accept-Charset", "Accept-Encoding", "Accept-Language",
+            "Accept-Ranges", "Age", "Allow", "Authorization", "Cache-Control",
+            "Connection", "Content-Encoding", "Content-Language",
+            "Content-Length", "Content-Location", "Content-MD5",
+            "Content-Range", "Content-Type", "Date", "ETag", "Expect",
+            "Expires", "From", "Host", "If-Match", "If-Modified-Since",
+            "If-None-Match", "If-Range", "If-Unmodified-Since", "Last-Modified",
+            "Location", "Max-Forwards", "Pragma", "Proxy-Authenticate",
+            "Proxy-Authorization", "Range", "Referer", "Retry-After", "Server",
+            "TE", "Trailer", "Transfer-Encoding", "Upgrade", "User-Agent",
+            "Vary", "Via", "Warning", "WWW-Authenticate"
+        };
 
         public void Initialize(IScriptEngine ScriptEngine, SceneObjectPart host, TaskInventoryItem item)
         {
@@ -1522,7 +1540,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if (tex.FaceTextures[i] != null)
                     {
                         tex.FaceTextures[i].Shiny = sval;
-                        tex.FaceTextures[i].Bump = bump;;
+                        tex.FaceTextures[i].Bump = bump;
                     }
                     tex.DefaultTexture.Shiny = sval;
                     tex.DefaultTexture.Bump = bump;
@@ -1631,7 +1649,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     texcolor.A = Util.Clip((float)alpha, 0.0f, 1.0f);
                     tex.DefaultTexture.RGBA = texcolor;
                 }
-                
+
                 part.UpdateTextureEntry(tex.GetBytes());
                 return;
             }
@@ -1752,7 +1770,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 rgb.x = texcolor.R;
                 rgb.y = texcolor.G;
                 rgb.z = texcolor.B;
-                
+
                 return rgb;
             }
             else
@@ -1784,12 +1802,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             UUID textureID = new UUID();
 
-		    textureID = InventoryKey(texture, (int)AssetType.Texture);
-		    if (textureID == UUID.Zero)
-		    {
-			    if (!UUID.TryParse(texture, out textureID))
-			        return;
-		    }
+            textureID = InventoryKey(texture, (int)AssetType.Texture);
+            if (textureID == UUID.Zero)
+            {
+                if (!UUID.TryParse(texture, out textureID))
+                    return;
+            }
 
             Primitive.TextureEntry tex = part.Shape.Textures;
 
@@ -1986,7 +2004,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // IF YOU GET REGION CROSSINGS WORKING WITH THIS FUNCTION, REPLACE THE WORKAROUND.
             //
             // This workaround is to prevent silent failure of this function.
-            // According to the specification on the SL Wiki, providing a position outside of the 
+            // According to the specification on the SL Wiki, providing a position outside of the
             if (pos.x < 0 || pos.x > Constants.RegionSize || pos.y < 0 || pos.y > Constants.RegionSize)
             {
                 return 0;
@@ -2195,7 +2213,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 return llGetRootRotation();
             }
-            
+
             m_host.AddScriptLPS(1);
             Quaternion q = m_host.GetWorldRotation();
             return new LSL_Rotation(q.X, q.Y, q.Z, q.W);
@@ -2882,7 +2900,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // we need to convert from a vector describing
             // the angles of rotation in radians into rotation value
             LSL_Rotation rot = llEuler2Rot(angle);
-            
+
             // Per discussion with Melanie, for non-physical objects llLookAt appears to simply
             // set the rotation of the object, copy that behavior
             PhysicsActor pa = m_host.PhysActor;
@@ -2958,7 +2976,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (!UUID.TryParse(id, out objectID))
                 objectID = UUID.Zero;
-            
+
             if (objectID == UUID.Zero && name == "")
                 return;
 
@@ -3142,19 +3160,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             msg.ParentEstateID = 0; //ParentEstateID;
             msg.Position = new Vector3(m_host.AbsolutePosition);
             msg.RegionID = World.RegionInfo.RegionID.Guid;//RegionID.Guid;
-            msg.binaryBucket 
+            msg.binaryBucket
                 = Util.StringToBytes256(
-                    "{0}/{1}/{2}/{3}", 
-                    World.RegionInfo.RegionName, 
-                    (int)Math.Floor(m_host.AbsolutePosition.X), 
-                    (int)Math.Floor(m_host.AbsolutePosition.Y), 
+                    "{0}/{1}/{2}/{3}",
+                    World.RegionInfo.RegionName,
+                    (int)Math.Floor(m_host.AbsolutePosition.X),
+                    (int)Math.Floor(m_host.AbsolutePosition.Y),
                     (int)Math.Floor(m_host.AbsolutePosition.Z));
 
             if (m_TransferModule != null)
             {
                 m_TransferModule.SendInstantMessage(msg, delegate(bool success) {});
             }
-            
+
             ScriptSleep(2000);
       }
 
@@ -3279,7 +3297,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llRotLookAt(LSL_Rotation target, double strength, double damping)
         {
             m_host.AddScriptLPS(1);
-            
+
             // Per discussion with Melanie, for non-physical objects llLookAt appears to simply
             // set the rotation of the object, copy that behavior
             PhysicsActor pa = m_host.PhysActor;
@@ -4353,7 +4371,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llCollisionSound(string impact_sound, double impact_volume)
         {
             m_host.AddScriptLPS(1);
-            
+
             // TODO: Parameter check logic required.
             m_host.CollisionSound = KeyOrName(impact_sound, AssetType.Sound);
             m_host.CollisionSoundVolume = (float)impact_volume;
@@ -5043,7 +5061,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // SL spits out an empty string for types other than key & string
             // At the time of patching, LSL_Key is currently LSL_String,
             // so the OR check may be a little redundant, but it's being done
-            // for completion and should LSL_Key ever be implemented 
+            // for completion and should LSL_Key ever be implemented
             // as it's own struct
             else if (!(src.Data[index] is LSL_String ||
                     src.Data[index] is LSL_Key))
@@ -5179,8 +5197,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            return string.Join(", ", 
-                    (new List<object>(src.Data)).ConvertAll<string>(o => 
+            return string.Join(", ",
+                    (new List<object>(src.Data)).ConvertAll<string>(o =>
                     {
                         return o.ToString();
                     }).ToArray());
@@ -6223,7 +6241,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             SetParticleSystem(m_host, rules);
         }
 
-        private void SetParticleSystem(SceneObjectPart part, LSL_List rules) 
+        private void SetParticleSystem(SceneObjectPart part, LSL_List rules)
         {
             if (rules.Length == 0)
             {
@@ -6460,7 +6478,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         m_host.OwnerID, m_host.Name, destID,
                         (byte)InstantMessageDialog.TaskInventoryOffered,
                         false, string.Format("'{0}'", category),
-// We won't go so far as to add a SLURL, but this is the format used by LL as of 2012-10-06                                       
+// We won't go so far as to add a SLURL, but this is the format used by LL as of 2012-10-06
 // false, string.Format("'{0}'  ( http://slurl.com/secondlife/{1}/{2}/{3}/{4} )", category, World.Name, (int)pos.X, (int)pos.Y, (int)pos.Z),
                         folderID, false, pos,
                         bucket, false);
@@ -6575,12 +6593,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_String llAvatarOnLinkSitTarget(int linknum)
         {
             m_host.AddScriptLPS(1);
-            if(linknum == ScriptBaseClass.LINK_SET || 
+            if(linknum == ScriptBaseClass.LINK_SET ||
                 linknum == ScriptBaseClass.LINK_ALL_CHILDREN ||
                 linknum == ScriptBaseClass.LINK_ALL_OTHERS) return UUID.Zero.ToString();
-           
+
             List<SceneObjectPart> parts = GetLinkParts(linknum);
-            if (parts.Count == 0) return UUID.Zero.ToString(); 
+            if (parts.Count == 0) return UUID.Zero.ToString();
             return parts[0].SitTargetAvatar.ToString();
         }
 
@@ -6952,7 +6970,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     hollow = 0.70f;
                 }
             }
-            // Otherwise, hollow is limited to 95%. 
+            // Otherwise, hollow is limited to 95%.
             else
             {
                 if (hollow > 0.95f)
@@ -8133,16 +8151,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 res.Add(new LSL_Vector(Shape.PathTaperX / 100.0, Shape.PathTaperY / 100.0, 0));
 
                                 // float revolutions
-                                res.Add(new LSL_Float(Math.Round(Shape.PathRevolutions * 0.015d, 2, MidpointRounding.AwayFromZero)) + 1.0d); 
+                                res.Add(new LSL_Float(Math.Round(Shape.PathRevolutions * 0.015d, 2, MidpointRounding.AwayFromZero)) + 1.0d);
                                 // Slightly inaccurate, because an unsigned byte is being used to represent
-                                // the entire range of floating-point values from 1.0 through 4.0 (which is how 
+                                // the entire range of floating-point values from 1.0 through 4.0 (which is how
                                 // SL does it).
                                 //
-                                // Using these formulas to store and retrieve PathRevolutions, it is not 
-                                // possible to use all values between 1.00 and 4.00. For instance, you can't 
+                                // Using these formulas to store and retrieve PathRevolutions, it is not
+                                // possible to use all values between 1.00 and 4.00. For instance, you can't
                                 // represent 1.10. You can represent 1.09 and 1.11, but not 1.10. So, if you
                                 // use llSetPrimitiveParams to set revolutions to 1.10 and then retreive them
-                                // with llGetPrimitiveParams, you'll retrieve 1.09. You can also see a similar 
+                                // with llGetPrimitiveParams, you'll retrieve 1.09. You can also see a similar
                                 // behavior in the viewer as you cannot set 1.10. The viewer jumps to 1.11.
                                 // In SL, llSetPrimitveParams and llGetPrimitiveParams can set and get a value
                                 // such as 1.10. So, SL must store and retreive the actual user input rather
@@ -10264,9 +10282,60 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             IHttpRequestModule httpScriptMod =
                 m_ScriptEngine.World.RequestModuleInterface<IHttpRequestModule>();
             List<string> param = new List<string>();
-            foreach (object o in parameters.Data)
+            bool  ok;
+            Int32 flag;
+
+            for (int i = 0; i < parameters.Data.Length; i += 2)
             {
-                param.Add(o.ToString());
+                ok = Int32.TryParse(parameters.Data[i].ToString(), out flag);
+                if (!ok || flag < 0 ||
+                    flag > (int)HttpRequestConstants.HTTP_PRAGMA_NO_CACHE)
+                {
+                    throw new ScriptException("Parameter " + i.ToString() + " is an invalid flag");
+                }
+
+                param.Add(parameters.Data[i].ToString());       //Add parameter flag
+
+                if (flag != (int)HttpRequestConstants.HTTP_CUSTOM_HEADER)
+                {
+                    param.Add(parameters.Data[i+1].ToString()); //Add parameter value
+                }
+                else
+                {
+                    //Parameters are in pairs and custom header takes
+                    //arguments in pairs so adjust for header marker.
+                    ++i;
+
+                    //Maximum of 8 headers are allowed based on the
+                    //Second Life documentation for llHTTPRequest.
+                    for (int count = 1; count <= 8; ++count)
+                    {
+                        //Enough parameters remaining for (another) header?
+                        if (parameters.Data.Length - i < 2)
+                        {
+                            //There must be at least one name/value pair for custom header
+                            if (count == 1)
+                                throw new ScriptException("Missing name/value for custom header at parameter " + i.ToString());
+                            break;
+                        }
+
+                        if (HttpStandardHeaders.Contains(parameters.Data[i].ToString(), StringComparer.OrdinalIgnoreCase))
+                            throw new ScriptException("Name is invalid as a custom header at parameter " + i.ToString());
+
+                        param.Add(parameters.Data[i].ToString());
+                        param.Add(parameters.Data[i+1].ToString());
+
+                        //Have we reached the end of the list of headers?
+                        //End is marked by a string with a single digit.
+                        if (i+2 >= parameters.Data.Length ||
+                            Char.IsDigit(parameters.Data[i].ToString()[0]))
+                        {
+                            break;
+                        }
+
+                        i += 2;
+                    }
+                }
             }
 
             Vector3 position = m_host.AbsolutePosition;
@@ -10376,12 +10445,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Integer llGetParcelPrimCount(LSL_Vector pos, int category, int sim_wide)
         {
             m_host.AddScriptLPS(1);
-            
+
             ILandObject lo = World.LandChannel.GetLandObject((float)pos.x, (float)pos.y);
 
             if (lo == null)
                 return 0;
-            
+
             IPrimCounts pc = lo.PrimCounts;
 
             if (sim_wide != ScriptBaseClass.FALSE)
@@ -10411,7 +10480,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 else if (category == ScriptBaseClass.PARCEL_COUNT_TEMP)
                     return 0; // counts not implemented yet
             }
-            
+
             return 0;
         }
 
@@ -10754,7 +10823,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return ret;
                 }
             }
-            
+
             return new LSL_List();
         }
 
@@ -11381,7 +11450,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 else
                 {
                     ScenePresence sp = World.GetScenePresence(result.ConsumerID);
-                    /// It it a boy? a girl? 
+                    /// It it a boy? a girl?
                     if (sp != null)
                         itemID = sp.UUID;
                 }
