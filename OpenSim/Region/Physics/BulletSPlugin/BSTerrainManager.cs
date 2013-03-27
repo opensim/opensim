@@ -343,37 +343,35 @@ public sealed class BSTerrainManager : IDisposable
     {
         Vector3 ret = pPos;
 
+        // First, base addresses are never negative so correct for that possible problem.
+        if (ret.X < 0f || ret.Y < 0f)
+        {
+            ret.X = Util.Clamp<float>(ret.X, 0f, 1000000f);
+            ret.Y = Util.Clamp<float>(ret.Y, 0f, 1000000f);
+            DetailLog("{0},BSTerrainManager.ClampPositionToKnownTerrain,zeroingNegXorY,oldPos={1},newPos={2}",
+                                        BSScene.DetailLogZero, pPos, ret);
+        }
+
         // Can't do this function if we don't know about any terrain.
         if (m_terrains.Count == 0)
             return ret;
 
-        int loopPrevention = 5;
+        int loopPrevention = 10;
         Vector3 terrainBaseXYZ;
         BSTerrainPhys physTerrain;
         while (!GetTerrainPhysicalAtXYZ(ret, out physTerrain, out terrainBaseXYZ))
         {
             // The passed position is not within a known terrain area.
+            // NOTE that GetTerrainPhysicalAtXYZ will set 'terrainBaseXYZ' to the base of the unfound region.
 
-            // First, base addresses are never negative so correct for that possible problem.
-            if (ret.X < 0f || ret.Y < 0f)
-            {
-                if (ret.X < 0f)
-                    ret.X = 0f;
-                if (ret.Y < 0f)
-                    ret.Y = 0f;
-                DetailLog("{0},BSTerrainManager.ClampPositionToKnownTerrain,zeroingNegXorY,oldPos={1},newPos={2}",
-                                            BSScene.DetailLogZero, pPos, ret);
-            }
-            else
-            {
-                // Must be off the top of a region. Find an adjacent region to move into.
-                Vector3 adjacentTerrainBase = FindAdjacentTerrainBase(terrainBaseXYZ);
+            // Must be off the top of a region. Find an adjacent region to move into.
+            Vector3 adjacentTerrainBase = FindAdjacentTerrainBase(terrainBaseXYZ);
 
-                ret.X = Math.Min(ret.X, adjacentTerrainBase.X + DefaultRegionSize.X);
-                ret.Y = Math.Min(ret.Y, adjacentTerrainBase.Y + DefaultRegionSize.Y);
-                DetailLog("{0},BSTerrainManager.ClampPositionToKnownTerrain,findingAdjacentRegion,adjacentRegBase={1},oldPos={2},newPos={3}",
-                                            BSScene.DetailLogZero, adjacentTerrainBase, pPos, ret);
-            }
+            ret.X = Math.Min(ret.X, adjacentTerrainBase.X + (ret.X % DefaultRegionSize.X));
+            ret.Y = Math.Min(ret.Y, adjacentTerrainBase.Y + (ret.X % DefaultRegionSize.Y));
+            DetailLog("{0},BSTerrainManager.ClampPositionToKnownTerrain,findingAdjacentRegion,adjacentRegBase={1},oldPos={2},newPos={3}",
+                                        BSScene.DetailLogZero, adjacentTerrainBase, pPos, ret);
+
             if (loopPrevention-- < 0f)
             {
                 // The 'while' is a little dangerous so this prevents looping forever if the
@@ -383,6 +381,7 @@ public sealed class BSTerrainManager : IDisposable
                 break;
             }
         }
+
         return ret;
     }
 
@@ -479,11 +478,20 @@ public sealed class BSTerrainManager : IDisposable
     private Vector3 FindAdjacentTerrainBase(Vector3 pTerrainBase)
     {
         Vector3 ret = pTerrainBase;
+
+        // Can't do this function if we don't know about any terrain.
+        if (m_terrains.Count == 0)
+            return ret;
+
+        // Just some sanity
+        ret.X = Util.Clamp<float>(ret.X, 0f, 1000000f);
+        ret.Y = Util.Clamp<float>(ret.Y, 0f, 1000000f);
         ret.Z = 0f;
+
         lock (m_terrains)
         {
             // Once down to the <0,0> region, we have to be done.
-            while (ret.X > 0f && ret.Y > 0f)
+            while (ret.X > 0f || ret.Y > 0f)
             {
                 if (ret.X > 0f)
                 {
