@@ -931,67 +931,79 @@ public sealed class BSShapeCollection : IDisposable
         if (newShape.HasPhysicalShape)
             return newShape;
 
-        // If this mesh has an underlying asset and we have not failed getting it before, fetch the asset
-        if (prim.BaseShape.SculptEntry 
-            && prim.PrimAssetState != BSPhysObject.PrimAssetCondition.Failed
-            && prim.PrimAssetState != BSPhysObject.PrimAssetCondition.Waiting
-            && prim.BaseShape.SculptTexture != OMV.UUID.Zero
-            )
+        // VerifyMeshCreated is called after trying to create the mesh. If we think the asset had been
+        //    fetched but we end up here again, the meshing of the asset must have failed.
+        // Prevent trying to keep fetching the mesh by declaring failure.
+        if (prim.PrimAssetState == BSPhysObject.PrimAssetCondition.Fetched)
         {
-            DetailLog("{0},BSShapeCollection.VerifyMeshCreated,fetchAsset", prim.LocalID);
-            // Multiple requestors will know we're waiting for this asset
-            prim.PrimAssetState = BSPhysObject.PrimAssetCondition.Waiting;
-
-            BSPhysObject xprim = prim;
-            Util.FireAndForget(delegate
-                {
-                    RequestAssetDelegate assetProvider = PhysicsScene.RequestAssetMethod;
-                    if (assetProvider != null)
-                    {
-                        BSPhysObject yprim = xprim; // probably not necessary, but, just in case.
-                        assetProvider(yprim.BaseShape.SculptTexture, delegate(AssetBase asset)
-                        {
-                            bool assetFound = false;
-                            string mismatchIDs = String.Empty;  // DEBUG DEBUG
-                            if (asset != null && yprim.BaseShape.SculptEntry)
-                            {
-                                if (yprim.BaseShape.SculptTexture.ToString() == asset.ID)
-                                {
-                                    yprim.BaseShape.SculptData = asset.Data;
-                                    // This will cause the prim to see that the filler shape is not the right
-                                    //    one and try again to build the object.
-                                    // No race condition with the normal shape setting since the rebuild is at taint time.
-                                    yprim.ForceBodyShapeRebuild(false /* inTaintTime */);
-                                    assetFound = true;
-                                }
-                                else
-                                {
-                                    mismatchIDs = yprim.BaseShape.SculptTexture.ToString() + "/" + asset.ID;
-                                }
-                            }
-                            if (assetFound)
-                                yprim.PrimAssetState = BSPhysObject.PrimAssetCondition.Fetched;
-                            else
-                                yprim.PrimAssetState = BSPhysObject.PrimAssetCondition.Failed;
-                            DetailLog("{0},BSShapeCollection,fetchAssetCallback,found={1},isSculpt={2},ids={3}",
-                                        yprim.LocalID, assetFound, yprim.BaseShape.SculptEntry, mismatchIDs );
-
-                        });
-                    }
-                    else
-                    {
-                        xprim.PrimAssetState = BSPhysObject.PrimAssetCondition.Failed;
-                        PhysicsScene.Logger.ErrorFormat("{0} Physical object requires asset but no asset provider. Name={1}",
-                                                    LogHeader, PhysicsScene.Name);
-                    }
-                });
+            prim.PrimAssetState = BSPhysObject.PrimAssetCondition.Failed;
+            PhysicsScene.Logger.WarnFormat("{0} Fetched asset would not mesh. {1}, texture={2}",
+                                            LogHeader, prim.PhysObjectName, prim.BaseShape.SculptTexture);
         }
         else
         {
-            if (prim.PrimAssetState == BSPhysObject.PrimAssetCondition.Failed)
+            // If this mesh has an underlying asset and we have not failed getting it before, fetch the asset
+            if (prim.BaseShape.SculptEntry 
+                && prim.PrimAssetState != BSPhysObject.PrimAssetCondition.Failed
+                && prim.PrimAssetState != BSPhysObject.PrimAssetCondition.Waiting
+                && prim.BaseShape.SculptTexture != OMV.UUID.Zero
+                )
             {
-                PhysicsScene.Logger.ErrorFormat("{0} Mesh failed to fetch asset. lID={1}, texture={2}",
-                                            LogHeader, prim.LocalID, prim.BaseShape.SculptTexture);
+                DetailLog("{0},BSShapeCollection.VerifyMeshCreated,fetchAsset", prim.LocalID);
+                // Multiple requestors will know we're waiting for this asset
+                prim.PrimAssetState = BSPhysObject.PrimAssetCondition.Waiting;
+
+                BSPhysObject xprim = prim;
+                Util.FireAndForget(delegate
+                    {
+                        RequestAssetDelegate assetProvider = PhysicsScene.RequestAssetMethod;
+                        if (assetProvider != null)
+                        {
+                            BSPhysObject yprim = xprim; // probably not necessary, but, just in case.
+                            assetProvider(yprim.BaseShape.SculptTexture, delegate(AssetBase asset)
+                            {
+                                bool assetFound = false;
+                                string mismatchIDs = String.Empty;  // DEBUG DEBUG
+                                if (asset != null && yprim.BaseShape.SculptEntry)
+                                {
+                                    if (yprim.BaseShape.SculptTexture.ToString() == asset.ID)
+                                    {
+                                        yprim.BaseShape.SculptData = asset.Data;
+                                        // This will cause the prim to see that the filler shape is not the right
+                                        //    one and try again to build the object.
+                                        // No race condition with the normal shape setting since the rebuild is at taint time.
+                                        yprim.ForceBodyShapeRebuild(false /* inTaintTime */);
+                                        assetFound = true;
+                                    }
+                                    else
+                                    {
+                                        mismatchIDs = yprim.BaseShape.SculptTexture.ToString() + "/" + asset.ID;
+                                    }
+                                }
+                                if (assetFound)
+                                    yprim.PrimAssetState = BSPhysObject.PrimAssetCondition.Fetched;
+                                else
+                                    yprim.PrimAssetState = BSPhysObject.PrimAssetCondition.Failed;
+                                DetailLog("{0},BSShapeCollection,fetchAssetCallback,found={1},isSculpt={2},ids={3}",
+                                            yprim.LocalID, assetFound, yprim.BaseShape.SculptEntry, mismatchIDs );
+
+                            });
+                        }
+                        else
+                        {
+                            xprim.PrimAssetState = BSPhysObject.PrimAssetCondition.Failed;
+                            PhysicsScene.Logger.ErrorFormat("{0} Physical object requires asset but no asset provider. Name={1}",
+                                                        LogHeader, PhysicsScene.Name);
+                        }
+                    });
+            }
+            else
+            {
+                if (prim.PrimAssetState == BSPhysObject.PrimAssetCondition.Failed)
+                {
+                    PhysicsScene.Logger.WarnFormat("{0} Mesh failed to fetch asset. obj={1}, texture={2}",
+                                                LogHeader, prim.PhysObjectName, prim.BaseShape.SculptTexture);
+                }
             }
         }
 
