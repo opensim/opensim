@@ -1901,8 +1901,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             }
 
             // Loss of fraction on purpose
-            extent.X = ((int)extent.X / (int)Constants.RegionSize) + 1;
-            extent.Y = ((int)extent.Y / (int)Constants.RegionSize) + 1;
+            extent.X = ((int)extent.X / (int)Constants.RegionSize);
+            extent.Y = ((int)extent.Y / (int)Constants.RegionSize);
 
             swCorner.X = Scene.RegionInfo.RegionLocX - 1;
             swCorner.Y = Scene.RegionInfo.RegionLocY - 1;
