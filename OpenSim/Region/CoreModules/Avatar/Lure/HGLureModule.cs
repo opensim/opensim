@@ -154,7 +154,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
 
         void OnIncomingInstantMessage(GridInstantMessage im)
         {
-            if (im.dialog == (byte)InstantMessageDialog.RequestTeleport)
+            if (im.dialog == (byte)InstantMessageDialog.RequestTeleport 
+                || im.dialog == (byte)InstantMessageDialog.GodLikeRequestTeleport)
             {
                 UUID sessionID = new UUID(im.imSessionID);
 
