@@ -1350,6 +1350,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         {
             Thread.Sleep(10000);
 
+            m_log.DebugFormat(
+                "[ENTITY TRANSFER MODULE]: Auto-reteleporting {0} to correct megaregion location {1},{2},{3} from {4}", 
+                agent.Name, regionX, regionY, position, initiatingScene.Name);
+
             agent.Scene.RequestTeleportLocation(
                 agent.ControllingClient, 
                 Utils.UIntsToLong(regionX * (uint)Constants.RegionSize, regionY * (uint)Constants.RegionSize), 
