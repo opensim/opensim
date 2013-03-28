@@ -482,7 +482,7 @@ public static class BSParam
             (s) => { return TerrainImplementation; },
             (s,v) => { TerrainImplementation = v; } ),
         new ParameterDefn<int>("TerrainMeshMagnification", "Number of times the 256x256 heightmap is multiplied to create the terrain mesh" ,
-            3,
+            2,
             (s) => { return TerrainMeshMagnification; },
             (s,v) => { TerrainMeshMagnification = v; } ),
         new ParameterDefn<float>("TerrainFriction", "Factor to reduce movement against terrain surface" ,

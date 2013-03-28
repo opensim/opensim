@@ -180,11 +180,14 @@ public static class BSMaterials
     // Use reflection to set the value in the attribute structure.
     private static void SetAttributeValue(int matType, string attribName, float val)
     {
+        // Get the current attribute values for this material
         MaterialAttributes thisAttrib = Attributes[matType];
+        // Find the field for the passed attribute name (eg, find field named 'friction')
         FieldInfo fieldInfo = thisAttrib.GetType().GetField(attribName.ToLower());
         if (fieldInfo != null)
         {
             fieldInfo.SetValue(thisAttrib, val);
+            // Copy new attributes back to array -- since MaterialAttributes is 'struct', passed by value, not reference.
             Attributes[matType] = thisAttrib;
         }
     }
