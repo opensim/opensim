@@ -146,7 +146,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
             if (!(args.Length == 3 && int.TryParse(args[2], out debugLevel)))
             {
-                MainConsole.Instance.OutputFormat("Usage: debug eq [0|1]");
+                MainConsole.Instance.OutputFormat("Usage: debug eq [0|1|2]");
             }
             else
             {
