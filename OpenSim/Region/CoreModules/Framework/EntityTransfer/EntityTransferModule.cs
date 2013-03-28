@@ -732,6 +732,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             IClientIPEndpoint ipepClient;  
             if (NeedsNewAgent(sp.DrawDistance, oldRegionX, newRegionX, oldRegionY, newRegionY))
             {
+                m_log.DebugFormat(
+                    "[ENTITY TRANSFER MODULE]: Determined that region {0} at {1},{2} needs new child agent for incoming agent {3} from {4}", 
+                    finalDestination.RegionName, newRegionX, newRegionY, sp.Name, Scene.Name);
+
                 //sp.ControllingClient.SendTeleportProgress(teleportFlags, "Creating agent...");
                 #region IP Translation for NAT
                 // Uses ipepClient above
@@ -1006,7 +1010,46 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         protected virtual bool NeedsNewAgent(float drawdist, uint oldRegionX, uint newRegionX, uint oldRegionY, uint newRegionY)
         {
-            return Util.IsOutsideView(drawdist, oldRegionX, newRegionX, oldRegionY, newRegionY);
+            Border[] northBorders = Scene.NorthBorders.ToArray();
+            Border[] southBorders = Scene.SouthBorders.ToArray();
+            Border[] eastBorders = Scene.EastBorders.ToArray();
+            Border[] westBorders = Scene.WestBorders.ToArray();
+
+            // Leaving this as a "megaregions" computation vs "non-megaregions" computation; it isn't
+            // clear what should be done with a "far view" given that megaregions already extended the
+            // view to include everything in the megaregion
+            if (northBorders.Length > 1 || southBorders.Length > 1 || eastBorders.Length > 1 || westBorders.Length > 1)
+            {
+                Vector2 extent = Vector2.Zero;
+                for (int i = 0; i < eastBorders.Length; i++)
+                {
+                    extent.X = (eastBorders[i].BorderLine.Z > extent.X) ? eastBorders[i].BorderLine.Z : extent.X;
+                }
+                for (int i = 0; i < northBorders.Length; i++)
+                {
+                    extent.Y = (northBorders[i].BorderLine.Z > extent.Y) ? northBorders[i].BorderLine.Z : extent.Y;
+                }
+
+                // Loss of fraction on purpose
+                extent.X = ((int)extent.X / (int)Constants.RegionSize) + 1;
+                extent.Y = ((int)extent.Y / (int)Constants.RegionSize) + 1;
+
+                uint startX = oldRegionX - 1;
+                uint startY = oldRegionY - 1;
+
+                uint endX = oldRegionX + (uint)extent.X;
+                uint endY = oldRegionY + (uint)extent.Y;
+
+                m_log.DebugFormat(
+                    "[ENTITY TRANSFER MODULE]: Megaregion view of {0} is from {1},{2} to {3},{4} with new agent check for {5},{6}",
+                    Scene.Name, startX, startY, endX, endY, newRegionX, newRegionY);
+
+                return !(newRegionX >= startX && newRegionX <= endX && newRegionY >= startY && newRegionY <= endY);
+            }
+            else
+            {
+                return Util.IsOutsideView(drawdist, oldRegionX, newRegionX, oldRegionY, newRegionY);
+            }
         }
 
         protected virtual bool NeedsClosing(float drawdist, uint oldRegionX, uint newRegionX, uint oldRegionY, uint newRegionY, GridRegion reg)
