@@ -866,7 +866,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             //m_log.DebugFormat("[SCENE]: known regions in {0}: {1}", Scene.RegionInfo.RegionName, KnownChildRegionHandles.Count);
 
-            bool wasChild = IsChildAgent;
             IsChildAgent = false;
 
             IGroupsModule gm = m_scene.RequestModuleInterface<IGroupsModule>();
@@ -952,18 +951,40 @@ namespace OpenSim.Region.Framework.Scenes
             // and it has already rezzed the attachments and started their scripts.
             // We do the following only for non-login agents, because their scripts
             // haven't started yet.
-            lock (m_attachments)
+            if ((TeleportFlags & TeleportFlags.ViaLogin) != 0)
             {
-                if (wasChild && HasAttachments())
+                // We leave a 5 second pause before attempting to rez attachments to avoid a clash with 
+                // version 3 viewers that maybe doing their own attachment rezzing related to their current
+                // outfit folder on startup.  If these operations do clash, then the symptoms are invisible
+                // attachments until one zooms in on the avatar.
+                //
+                // We do not pause if we are launching on the same thread anyway in order to avoid pointlessly
+                // delaying any attachment related regression tests.
+                if (Scene.AttachmentsModule != null)
+                    Util.FireAndForget(
+                        o => 
+                        { 
+                            if (Util.FireAndForgetMethod != FireAndForgetMethod.None) 
+                                System.Threading.Thread.Sleep(5000); 
+
+                            Scene.AttachmentsModule.RezAttachments(this); 
+                        });
+            }
+            else
+            {
+                lock (m_attachments)
                 {
-                    m_log.DebugFormat(
-                        "[SCENE PRESENCE]: Restarting scripts in attachments for {0} in {1}", Name, Scene.Name);
-                    
-                    // Resume scripts
-                    foreach (SceneObjectGroup sog in m_attachments)
+                    if (HasAttachments())
                     {
-                        sog.RootPart.ParentGroup.CreateScriptInstances(0, false, m_scene.DefaultScriptEngine, GetStateSource());
-                        sog.ResumeScripts();
+                        m_log.DebugFormat(
+                            "[SCENE PRESENCE]: Restarting scripts in attachments for {0} in {1}", Name, Scene.Name);
+                        
+                        // Resume scripts
+                        foreach (SceneObjectGroup sog in m_attachments)
+                        {
+                            sog.RootPart.ParentGroup.CreateScriptInstances(0, false, m_scene.DefaultScriptEngine, GetStateSource());
+                            sog.ResumeScripts();
+                        }
                     }
                 }
             }
