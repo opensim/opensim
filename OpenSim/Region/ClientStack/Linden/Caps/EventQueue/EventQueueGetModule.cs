@@ -97,6 +97,14 @@ namespace OpenSim.Region.ClientStack.Linden
                     + "  >= 1 - turns on outgoing event logging\n"
                     + "  >= 2 - turns on poll notification",
                 HandleDebugEq);
+
+            MainConsole.Instance.Commands.AddCommand(
+                "Debug",
+                false,
+                "show eq",
+                "show eq",
+                "Show contents of event queues for logged in avatars.  Used for debugging.",
+                HandleShowEq);
         }
 
         public void RemoveRegion(Scene scene)
@@ -145,6 +153,21 @@ namespace OpenSim.Region.ClientStack.Linden
                 DebugLevel = debugLevel;
                 MainConsole.Instance.OutputFormat(
                     "Set event queue debug level to {0} in {1}", DebugLevel, m_scene.RegionInfo.RegionName);
+            }
+        }
+
+        protected void HandleShowEq(string module, string[] args)
+        {
+            MainConsole.Instance.OutputFormat("For scene {0}", m_scene.Name);
+
+            lock (queues)
+            {
+                foreach (KeyValuePair<UUID, Queue<OSD>> kvp in queues)
+                {
+                    MainConsole.Instance.OutputFormat(
+                        "For agent {0} there are {1} messages queued for send.", 
+                        kvp.Key, kvp.Value.Count);
+                }
             }
         }
 
