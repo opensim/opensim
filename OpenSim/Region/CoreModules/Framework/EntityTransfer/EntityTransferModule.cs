@@ -1932,7 +1932,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // view to include everything in the megaregion
             if (m_regionCombinerModule == null || !m_regionCombinerModule.IsRootForMegaregion(Scene.RegionInfo.RegionID))
             {
-                Console.WriteLine("NOT MEGA");
                 int dd = avatar.DrawDistance < Constants.RegionSize ? (int)Constants.RegionSize : (int)avatar.DrawDistance;
 
                 int startX = (int)pRegionLocX * (int)Constants.RegionSize - dd + (int)(Constants.RegionSize/2);
@@ -1949,7 +1948,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             }
             else
             {
-                Console.WriteLine("MEGA");
                 Vector2 swCorner, neCorner;
                 GetMegaregionViewRange(out swCorner, out neCorner);
 
