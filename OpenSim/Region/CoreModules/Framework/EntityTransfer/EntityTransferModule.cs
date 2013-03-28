@@ -256,10 +256,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         public virtual void RemoveRegion(Scene scene) 
         {
-            StatsManager.DeregisterStat(m_interRegionTeleportAttempts);
-            StatsManager.DeregisterStat(m_interRegionTeleportAborts);
-            StatsManager.DeregisterStat(m_interRegionTeleportCancels);
-            StatsManager.DeregisterStat(m_interRegionTeleportFailures);
+            if (m_Enabled)
+            {
+                StatsManager.DeregisterStat(m_interRegionTeleportAttempts);
+                StatsManager.DeregisterStat(m_interRegionTeleportAborts);
+                StatsManager.DeregisterStat(m_interRegionTeleportCancels);
+                StatsManager.DeregisterStat(m_interRegionTeleportFailures);
+            }
         }
 
         public virtual void RegionLoaded(Scene scene)
