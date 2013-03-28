@@ -98,20 +98,20 @@ public sealed class BSTerrainMesh : BSTerrainPhys
         if (!meshCreationSuccess)
         {
             // DISASTER!!
-            PhysicsScene.DetailLog("{0},BSTerrainMesh.create,failedConversionOfHeightmap", ID);
+            PhysicsScene.DetailLog("{0},BSTerrainMesh.create,failedConversionOfHeightmap,id={1}", BSScene.DetailLogZero, ID);
             PhysicsScene.Logger.ErrorFormat("{0} Failed conversion of heightmap to mesh! base={1}", LogHeader, TerrainBase);
             // Something is very messed up and a crash is in our future.
             return;
         }
 
-        PhysicsScene.DetailLog("{0},BSTerrainMesh.create,meshed,indices={1},indSz={2},vertices={3},vertSz={4}", 
-                                ID, indicesCount, indices.Length, verticesCount, vertices.Length);
+        PhysicsScene.DetailLog("{0},BSTerrainMesh.create,meshed,id={1},indices={2},indSz={3},vertices={4},vertSz={5}", 
+                                BSScene.DetailLogZero, ID, indicesCount, indices.Length, verticesCount, vertices.Length);
 
         m_terrainShape = PhysicsScene.PE.CreateMeshShape(PhysicsScene.World, indicesCount, indices, verticesCount, vertices);
         if (!m_terrainShape.HasPhysicalShape)
         {
             // DISASTER!!
-            PhysicsScene.DetailLog("{0},BSTerrainMesh.create,failedCreationOfShape", ID);
+            PhysicsScene.DetailLog("{0},BSTerrainMesh.create,failedCreationOfShape,id={1}", BSScene.DetailLogZero, ID);
             PhysicsScene.Logger.ErrorFormat("{0} Failed creation of terrain mesh! base={1}", LogHeader, TerrainBase);
             // Something is very messed up and a crash is in our future.
             return;
@@ -151,7 +151,7 @@ public sealed class BSTerrainMesh : BSTerrainPhys
 
         if (BSParam.UseSingleSidedMeshes)
         {
-            PhysicsScene.DetailLog("{0},BSTerrainMesh.settingCustomMaterial", id);
+            PhysicsScene.DetailLog("{0},BSTerrainMesh.settingCustomMaterial,id={1}", BSScene.DetailLogZero, id);
             PhysicsScene.PE.AddToCollisionFlags(m_terrainBody, CollisionFlags.CF_CUSTOM_MATERIAL_CALLBACK);
         }
 
