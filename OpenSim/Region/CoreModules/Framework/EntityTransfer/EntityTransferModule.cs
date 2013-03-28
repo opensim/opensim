@@ -379,8 +379,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 Vector3 emergencyPos = new Vector3(128, 128, 128);
 
                 m_log.WarnFormat(
-                    "[ENTITY TRANSFER MODULE]: RequestTeleportToLocation() was given an illegal position of {0} for avatar {1}, {2}.  Substituting {3}",
-                    position, sp.Name, sp.UUID, emergencyPos);
+                    "[ENTITY TRANSFER MODULE]: RequestTeleportToLocation() was given an illegal position of {0} for avatar {1}, {2} in {3}.  Substituting {4}",
+                    position, sp.Name, sp.UUID, Scene.Name, emergencyPos);
 
                 position = emergencyPos;
             }
@@ -1346,7 +1346,15 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             Scene initiatingScene)
         {
             Thread.Sleep(10000);
-            
+
+            agent.Scene.RequestTeleportLocation(
+                agent.ControllingClient, 
+                Utils.UIntsToLong(regionX * (uint)Constants.RegionSize, regionY * (uint)Constants.RegionSize), 
+                position, 
+                agent.Lookat, 
+                (uint)Constants.TeleportFlags.ViaLocation);
+
+            /*
             IMessageTransferModule im = initiatingScene.RequestModuleInterface<IMessageTransferModule>();
             if (im != null)
             {
@@ -1381,6 +1389,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 });
 
             }
+            */
         }
 
         private void InformClientToInitiateTeleportToLocationCompleted(IAsyncResult iar)
