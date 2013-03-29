@@ -2978,35 +2978,6 @@ namespace OpenSim.Region.Framework.Scenes
                     m_eventManager.TriggerOnNewPresence(sp);
     
                     sp.TeleportFlags = (TPFlags)aCircuit.teleportFlags;
-    
-                    // The first agent upon login is a root agent by design.
-                    // For this agent we will have to rez the attachments.
-                    // All other AddNewClient calls find aCircuit.child to be true.
-                    if (aCircuit.child == false)
-                    {
-                        // We have to set SP to be a root agent here so that SP.MakeRootAgent() will later not try to
-                        // start the scripts again (since this is done in RezAttachments()).
-                        // XXX: This is convoluted.
-                        sp.IsChildAgent = false;
-                        sp.IsLoggingIn = true;
-    
-                        // We leave a 5 second pause before attempting to rez attachments to avoid a clash with 
-                        // version 3 viewers that maybe doing their own attachment rezzing related to their current
-                        // outfit folder on startup.  If these operations do clash, then the symptoms are invisible
-                        // attachments until one zooms in on the avatar.
-                        //
-                        // We do not pause if we are launching on the same thread anyway in order to avoid pointlessly
-                        // delaying any attachment related regression tests.
-                        if (AttachmentsModule != null)
-                            Util.FireAndForget(
-                                o => 
-                                { 
-                                    if (Util.FireAndForgetMethod != FireAndForgetMethod.None) 
-                                        Thread.Sleep(5000); 
-
-                                    AttachmentsModule.RezAttachments(sp); 
-                                });
-                    }
                 }
                 else
                 {

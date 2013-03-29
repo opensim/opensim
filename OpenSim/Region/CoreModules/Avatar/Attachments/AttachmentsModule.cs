@@ -168,7 +168,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 return;
             }
 
-//            m_log.DebugFormat("[ATTACHMENTS MODULE]: Rezzing any attachments for {0}", sp.Name);
+//            m_log.DebugFormat("[ATTACHMENTS MODULE]: Rezzing any attachments for {0} from simulator-side", sp.Name);
 
             XmlDocument doc = new XmlDocument();
             string stateData = String.Empty;
