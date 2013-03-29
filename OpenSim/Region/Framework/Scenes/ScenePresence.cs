@@ -968,24 +968,6 @@ namespace OpenSim.Region.Framework.Scenes
                             Scene.AttachmentsModule.RezAttachments(this); 
                         });
             }
-            else
-            {
-                lock (m_attachments)
-                {
-                    if (HasAttachments())
-                    {
-                        m_log.DebugFormat(
-                            "[SCENE PRESENCE]: Restarting scripts in attachments for {0} in {1}", Name, Scene.Name);
-                        
-                        // Resume scripts
-                        foreach (SceneObjectGroup sog in m_attachments)
-                        {
-                            sog.RootPart.ParentGroup.CreateScriptInstances(0, false, m_scene.DefaultScriptEngine, GetStateSource());
-                            sog.ResumeScripts();
-                        }
-                    }
-                }
-            }
 
             // send the animations of the other presences to me
             m_scene.ForEachRootScenePresence(delegate(ScenePresence presence)
