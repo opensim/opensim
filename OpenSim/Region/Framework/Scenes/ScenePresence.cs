@@ -1096,7 +1096,7 @@ namespace OpenSim.Region.Framework.Scenes
             // and it has already rezzed the attachments and started their scripts.
             // We do the following only for non-login agents, because their scripts
             // haven't started yet.
-            if ((TeleportFlags & TeleportFlags.ViaLogin) != 0)
+            if (PresenceType == PresenceType.Npc || (TeleportFlags & TeleportFlags.ViaLogin) != 0)
             {
                 // We leave a 5 second pause before attempting to rez attachments to avoid a clash with 
                 // version 3 viewers that maybe doing their own attachment rezzing related to their current
@@ -1109,7 +1109,7 @@ namespace OpenSim.Region.Framework.Scenes
                     Util.FireAndForget(
                         o => 
                         { 
-                            if (Util.FireAndForgetMethod != FireAndForgetMethod.None) 
+                            if (PresenceType != PresenceType.Npc && Util.FireAndForgetMethod != FireAndForgetMethod.None) 
                                 System.Threading.Thread.Sleep(5000); 
 
                             Scene.AttachmentsModule.RezAttachments(this); 
