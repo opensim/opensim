@@ -130,7 +130,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             config.AddConfig("Modules");
             config.Configs["Modules"].Set("InventoryAccessModule", "BasicInventoryAccessModule");
 
-            modules.Add(new AttachmentsModule());
+            AttachmentsModule attMod = new AttachmentsModule();
+            attMod.DebugLevel = 1;
+            modules.Add(attMod);
             modules.Add(new BasicInventoryAccessModule());
         }
 
@@ -728,7 +730,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
         public void TestRezAttachmentsOnAvatarEntrance()
         {
             TestHelpers.InMethod();
-//            log4net.Config.XmlConfigurator.Configure();
+//            TestHelpers.EnableLogging();
 
             Scene scene = CreateTestScene();
             UserAccount ua1 = UserAccountHelpers.CreateUserWithInventory(scene, 0x1);

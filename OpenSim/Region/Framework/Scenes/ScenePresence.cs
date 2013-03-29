@@ -1100,15 +1100,12 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 // Viewers which have a current outfit folder will actually rez their own attachments.  However,
                 // viewers without (e.g. v1 viewers) will not, so we still need to make this call.
-                // 
-                // However, we leave a 5 second pause to try and avoid a clash with viewers that are rezzing 
-                // attachments themselves.  This should then mean that this call ends up doing nothing.
                 if (Scene.AttachmentsModule != null)
                     Util.FireAndForget(
                         o => 
                         { 
-                            if (PresenceType != PresenceType.Npc && Util.FireAndForgetMethod != FireAndForgetMethod.None) 
-                                System.Threading.Thread.Sleep(5000); 
+//                            if (PresenceType != PresenceType.Npc && Util.FireAndForgetMethod != FireAndForgetMethod.None) 
+//                                System.Threading.Thread.Sleep(7000); 
 
                             Scene.AttachmentsModule.RezAttachments(this); 
                         });

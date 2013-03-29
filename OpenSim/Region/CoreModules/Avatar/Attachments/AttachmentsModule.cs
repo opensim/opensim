@@ -301,10 +301,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
                     // If we're an NPC then skip all the item checks and manipulations since we don't have an
                     // inventory right now.
-                    if (sp.PresenceType == PresenceType.Npc)
-                        RezSingleAttachmentFromInventoryInternal(sp, UUID.Zero, attach.AssetID, p, null, true);
-                    else
-                        RezSingleAttachmentFromInventory(sp, attach.ItemID, p | (uint)0x80, d);
+                    RezSingleAttachmentFromInventoryInternal(sp, sp.PresenceType == PresenceType.Npc ? UUID.Zero : attach.ItemID, attach.AssetID, p | (uint)0x80, null);
                 }
                 catch (Exception e)
                 {
@@ -519,26 +516,21 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     "[ATTACHMENTS MODULE]: RezSingleAttachmentFromInventory to point {0} from item {1} for {2} in {3}",
                     (AttachmentPoint)AttachmentPt, itemID, sp.Name, m_scene.Name);
 
-            bool append = (AttachmentPt & 0x80) != 0;
-            AttachmentPt &= 0x7f;
-
-            // Viewer 2/3 sometimes asks to re-wear items that are already worn (and show up in it's inventory as such).
-            // This often happens during login - not sure the exact reason.
-            // For now, we will ignore the request.  Unfortunately, this means that we need to dig through all the
-            // ScenePresence attachments.  We can't use the data in AvatarAppearance because that's present at login
-            // before anything has actually been attached.
+            // We check the attachments in the avatar appearance here rather than the objects attached to the
+            // ScenePresence itself so that we can ignore calls by viewer 2/3 to attach objects on startup.  We are 
+            // already doing this in ScenePresence.MakeRootAgent().  Simulator-side attaching needs to be done 
+            // because pre-outfit folder viewers (most version 1 viewers) require it.
             bool alreadyOn = false;
-            List<SceneObjectGroup> existingAttachments = sp.GetAttachments();
-            foreach (SceneObjectGroup so in existingAttachments)
+            List<AvatarAttachment> existingAttachments = sp.Appearance.GetAttachments();
+            foreach (AvatarAttachment existingAttachment in existingAttachments)
             {
-                if (so.FromItemID == itemID)
+                if (existingAttachment.ItemID == itemID)
                 {
                     alreadyOn = true;
                     break;
                 }
             }
 
-//            if (sp.Appearance.GetAttachmentForItem(itemID) != null)
             if (alreadyOn)
             {
                 if (DebugLevel > 0)
@@ -549,7 +541,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 return null;
             }
 
-            return RezSingleAttachmentFromInventoryInternal(sp, itemID, UUID.Zero, AttachmentPt, doc, append);
+            return RezSingleAttachmentFromInventoryInternal(sp, itemID, UUID.Zero, AttachmentPt, doc);
         }
 
         public void RezMultipleAttachmentsFromInventory(IScenePresence sp, List<KeyValuePair<UUID, uint>> rezlist)
@@ -558,7 +550,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 return;
 
             if (DebugLevel > 0)
-                m_log.DebugFormat("[ATTACHMENTS MODULE]: Rezzing multiple attachments from inventory for {0}", sp.Name);
+                m_log.DebugFormat(
+                    "[ATTACHMENTS MODULE]: Rezzing {0} attachments from inventory for {1} in {2}", 
+                    rezlist.Count, sp.Name, m_scene.Name);
 
             foreach (KeyValuePair<UUID, uint> rez in rezlist)
             {
@@ -957,10 +951,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         }
 
         protected SceneObjectGroup RezSingleAttachmentFromInventoryInternal(
-            IScenePresence sp, UUID itemID, UUID assetID, uint attachmentPt, XmlDocument doc, bool append)
+            IScenePresence sp, UUID itemID, UUID assetID, uint attachmentPt, XmlDocument doc)
         {
             if (m_invAccessModule == null)
                 return null;
+
+            bool append = (attachmentPt & 0x80) != 0;
+            attachmentPt &= 0x7f;
 
             SceneObjectGroup objatt;
 
