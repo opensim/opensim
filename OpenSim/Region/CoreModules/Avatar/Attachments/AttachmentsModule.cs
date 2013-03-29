@@ -328,7 +328,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             if (!Enabled)
                 return false;
 
-            return AttachObjectInternal(sp, group, attachmentPt, silent, addToInventory, true, append);
+            return AttachObjectInternal(sp, group, attachmentPt, silent, addToInventory, false, append);
         }
 
         /// <summary>

@@ -968,6 +968,28 @@ namespace OpenSim.Region.Framework.Scenes
                             Scene.AttachmentsModule.RezAttachments(this); 
                         });
             }
+            else
+            {
+                // We need to restart scripts here so that they receive the correct changed events (CHANGED_TELEPORT
+                // and CHANGED_REGION) when the attachments have been rezzed in the new region.  This cannot currently
+                // be done in AttachmentsModule.CopyAttachments(AgentData ad, IScenePresence sp) itself since we are
+                // not transporting the required data.
+                lock (m_attachments)
+                {
+                    if (HasAttachments())
+                    {
+                        m_log.DebugFormat(
+                            "[SCENE PRESENCE]: Restarting scripts in attachments for {0} in {1}", Name, Scene.Name);
+
+                        // Resume scripts
+                        foreach (SceneObjectGroup sog in m_attachments)
+                        {
+                            sog.RootPart.ParentGroup.CreateScriptInstances(0, false, m_scene.DefaultScriptEngine, GetStateSource());
+                            sog.ResumeScripts();
+                        }
+                    }
+                }
+            }
 
             // send the animations of the other presences to me
             m_scene.ForEachRootScenePresence(delegate(ScenePresence presence)
