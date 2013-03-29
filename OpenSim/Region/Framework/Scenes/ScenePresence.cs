@@ -1113,27 +1113,6 @@ namespace OpenSim.Region.Framework.Scenes
                             Scene.AttachmentsModule.RezAttachments(this); 
                         });
             }
-            else
-            {
-                lock (m_attachments)
-                {
-                    if (HasAttachments())
-                    {
-                        m_log.DebugFormat(
-                            "[SCENE PRESENCE]: Restarting scripts in attachments for {0} in {1}", Name, Scene.Name);
-                    
-                        // Resume scripts
-                        Util.FireAndForget(delegate(object x) {
-                            foreach (SceneObjectGroup sog in m_attachments)
-                            {
-                                sog.ScheduleGroupForFullUpdate();
-                                sog.RootPart.ParentGroup.CreateScriptInstances(0, false, m_scene.DefaultScriptEngine, GetStateSource());
-                                sog.ResumeScripts();
-                            }
-                        });
-                    }
-                }
-            }
 
             SendAvatarDataToAllAgents();
 
