@@ -1906,11 +1906,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             Scene pScene = avatar.Scene;
             RegionInfo m_regionInfo = pScene.RegionInfo;
 
-            Border[] northBorders = pScene.NorthBorders.ToArray();
-            Border[] southBorders = pScene.SouthBorders.ToArray();
-            Border[] eastBorders = pScene.EastBorders.ToArray();
-            Border[] westBorders = pScene.WestBorders.ToArray();
-
             // Leaving this as a "megaregions" computation vs "non-megaregions" computation; it isn't
             // clear what should be done with a "far view" given that megaregions already extended the
             // view to include everything in the megaregion
