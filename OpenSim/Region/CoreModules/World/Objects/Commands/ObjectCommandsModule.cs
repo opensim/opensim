@@ -597,6 +597,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                 cdl.AddRow("LightFalloff", s.LightFalloff);
                 cdl.AddRow("LightIntensity", s.LightIntensity);
                 cdl.AddRow("LightRadius", s.LightRadius);
+                cdl.AddRow("Location (relative)", sop.RelativePosition);
                 cdl.AddRow("Media", string.Format("{0} entries", s.Media != null ? s.Media.Count.ToString() : "n/a"));
                 cdl.AddRow("PathBegin", s.PathBegin);
                 cdl.AddRow("PathEnd", s.PathEnd);
@@ -619,6 +620,8 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                 cdl.AddRow("ProjectionFocus", s.ProjectionFocus);
                 cdl.AddRow("ProjectionFOV", s.ProjectionFOV);
                 cdl.AddRow("ProjectionTextureUUID", s.ProjectionTextureUUID);
+                cdl.AddRow("Rotation (Relative)", sop.RotationOffset);
+                cdl.AddRow("Rotation (World)", sop.GetWorldRotation());
                 cdl.AddRow("Scale", s.Scale);
                 cdl.AddRow(
                     "SculptData", 
