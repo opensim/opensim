@@ -3743,6 +3743,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="events"></param>
         public void SetScriptEvents(UUID scriptid, int events)
         {
+//            m_log.DebugFormat(
+//                "[SCENE OBJECT PART]: Set script events for script with id {0} on {1}/{2} to {3} in {4}", 
+//                scriptid, Name, ParentGroup.Name, events, ParentGroup.Scene.Name);
+
             // scriptEvents oldparts;
             lock (m_scriptEvents)
             {

@@ -2861,7 +2861,10 @@ namespace OpenSim.Region.Framework.Scenes
 //                        "[ATTACHMENT]: Attach to avatar {0} at position {1}", sp.UUID, grp.AbsolutePosition);
 
                     RootPrim.RemFlag(PrimFlags.TemporaryOnRez);
-                    
+
+                    // We must currently not resume scripts at this stage since AttachmentsModule does not have the 
+                    // information that this is due to a teleport/border cross rather than an ordinary attachment.
+                    // We currently do this in Scene.MakeRootAgent() instead.
                     if (AttachmentsModule != null)
                         AttachmentsModule.AttachObject(sp, grp, 0, false, false, false, true);
                 }
