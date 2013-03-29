@@ -367,12 +367,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             sp.ClearAttachments();
         }
         
-        public bool AttachObject(IScenePresence sp, SceneObjectGroup group, uint attachmentPt, bool silent, bool useAttachData, bool temp, bool append)
+        public bool AttachObject(IScenePresence sp, SceneObjectGroup group, uint attachmentPt, bool silent, bool useAttachData, bool addToInventory, bool append)
         {
             if (!Enabled)
                 return false;
 
-            return AttachObjectInternal(sp, group, attachmentPt, silent, useAttachData, temp, false, append);
+            return AttachObjectInternal(sp, group, attachmentPt, silent, useAttachData, addToInventory, false, append);
         }
 
         /// <summary>
@@ -383,9 +383,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         /// <param name='group'>The object to attach.</param>
         /// <param name='attachmentPt'></param>
         /// <param name='silent'></param>
-        /// <param name='temp'></param>
+        /// <param name='addToInventory'>If true then add object to user inventory.</param>
         /// <param name='resumeScripts'>If true then scripts are resumed on the attached object.</param>
-        private bool AttachObjectInternal(IScenePresence sp, SceneObjectGroup group, uint attachmentPt, bool silent, bool useAttachData, bool temp, bool resumeScripts, bool append)
+        private bool AttachObjectInternal(IScenePresence sp, SceneObjectGroup group, uint attachmentPt, bool silent, bool useAttachData, bool addToInventory, bool resumeScripts, bool append)
         {
 //                m_log.DebugFormat(
 //                    "[ATTACHMENTS MODULE]: Attaching object {0} {1} to {2} point {3} from ground (silent = {4})",
@@ -474,8 +474,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 group.AttachmentPoint = attachmentPt;
                 group.AbsolutePosition = attachPos;
 
-                if (sp.PresenceType != PresenceType.Npc)
-                    UpdateUserInventoryWithAttachment(sp, group, attachmentPt, temp, append);
+                if (addToInventory && sp.PresenceType != PresenceType.Npc)
+                    UpdateUserInventoryWithAttachment(sp, group, attachmentPt, append);
     
                 AttachToAgent(sp, group, attachmentPt, attachPos, silent);
 
@@ -494,17 +494,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             return true;
         }
 
-        private void UpdateUserInventoryWithAttachment(IScenePresence sp, SceneObjectGroup group, uint attachmentPt, bool temp, bool append)
+        private void UpdateUserInventoryWithAttachment(IScenePresence sp, SceneObjectGroup group, uint attachmentPt, bool append)
         {
             // Add the new attachment to inventory if we don't already have it.
-            if (!temp)
-            {
-                UUID newAttachmentItemID = group.FromItemID;
-                if (newAttachmentItemID == UUID.Zero)
-                    newAttachmentItemID = AddSceneObjectAsNewAttachmentInInv(sp, group).ID;
+            UUID newAttachmentItemID = group.FromItemID;
+            if (newAttachmentItemID == UUID.Zero)
+                newAttachmentItemID = AddSceneObjectAsNewAttachmentInInv(sp, group).ID;
 
-                ShowAttachInUserInventory(sp, attachmentPt, newAttachmentItemID, group, append);
-            }
+            ShowAttachInUserInventory(sp, attachmentPt, newAttachmentItemID, group, append);
         }
 
         public ISceneEntity RezSingleAttachmentFromInventory(IScenePresence sp, UUID itemID, uint AttachmentPt)
@@ -1010,7 +1007,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     objatt.ResetOwnerChangeFlag();
                 }
 
-                AttachObjectInternal(sp, objatt, attachmentPt, false, true, false, true, append);
+                AttachObjectInternal(sp, objatt, attachmentPt, false, true, true, true, append);
             }
             catch (Exception e)
             {
@@ -1152,7 +1149,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 AttachmentPt &= 0x7f;
 
                 // Calls attach with a Zero position
-                if (AttachObject(sp, part.ParentGroup, AttachmentPt, false, true, false, append))
+                if (AttachObject(sp, part.ParentGroup, AttachmentPt, false, false, false, append))
                 {
                     if (DebugLevel > 0)
                         m_log.Debug(
