@@ -1307,7 +1307,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         public void InformClientToInitiateTeleportToLocationAsync(ScenePresence agent, uint regionX, uint regionY, Vector3 position,
             Scene initiatingScene)
         {
-            Thread.Sleep(10000);
+//            Thread.Sleep(10000);
 
             m_log.DebugFormat(
                 "[ENTITY TRANSFER MODULE]: Auto-reteleporting {0} to correct megaregion location {1},{2},{3} from {4}", 
