@@ -153,10 +153,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             }
         }
 
-        /// <summary>
-        /// RezAttachments. This should only be called upon login on the first region.
-        /// Attachment rezzings on crossings and TPs are done in a different way.
-        /// </summary>
         public void RezAttachments(IScenePresence sp)
         {
             if (!Enabled)
@@ -165,7 +161,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             if (null == sp.Appearance)
             {
                 m_log.WarnFormat("[ATTACHMENTS MODULE]: Appearance has not been initialized for agent {0}", sp.UUID);
+
                 return;
+            }
+
+            if (sp.GetAttachments().Count > 0)
+            {
+//                m_log.DebugFormat(
+//                    "[ATTACHMENTS MODULE]: Not doing simulator-side attachment rez for {0} in {1} as their viewer has already rezzed attachments", 
+//                    m_scene.Name, sp.Name);
+
+                  return;
             }
 
 //            m_log.DebugFormat("[ATTACHMENTS MODULE]: Rezzing any attachments for {0} from simulator-side", sp.Name);

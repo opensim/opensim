@@ -1098,13 +1098,11 @@ namespace OpenSim.Region.Framework.Scenes
             // haven't started yet.
             if (PresenceType == PresenceType.Npc || (TeleportFlags & TeleportFlags.ViaLogin) != 0)
             {
-                // We leave a 5 second pause before attempting to rez attachments to avoid a clash with 
-                // version 3 viewers that maybe doing their own attachment rezzing related to their current
-                // outfit folder on startup.  If these operations do clash, then the symptoms are invisible
-                // attachments until one zooms in on the avatar.
-                //
-                // We do not pause if we are launching on the same thread anyway in order to avoid pointlessly
-                // delaying any attachment related regression tests.
+                // Viewers which have a current outfit folder will actually rez their own attachments.  However,
+                // viewers without (e.g. v1 viewers) will not, so we still need to make this call.
+                // 
+                // However, we leave a 5 second pause to try and avoid a clash with viewers that are rezzing 
+                // attachments themselves.  This should then mean that this call ends up doing nothing.
                 if (Scene.AttachmentsModule != null)
                     Util.FireAndForget(
                         o => 

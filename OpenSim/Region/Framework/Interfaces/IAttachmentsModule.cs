@@ -54,6 +54,10 @@ namespace OpenSim.Region.Framework.Interfaces
         /// RezAttachments. This should only be called upon login on the first region.
         /// Attachment rezzings on crossings and TPs are done in a different way.
         /// </summary>
+        /// <remarks>
+        /// This is only actually necessary for viewers which do not have a current outfit folder (these viewers make
+        /// their own attachment calls on login) and agents which have attachments but no viewer (e.g. NPCs).
+        /// </remarks>
         /// <param name="sp"></param>
         void RezAttachments(IScenePresence sp);
 
