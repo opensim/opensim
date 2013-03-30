@@ -341,10 +341,34 @@ namespace OpenSim.Region.CoreModules.Asset
         /// <param name="id"></param>
         /// <returns>An asset retrieved from the file cache.  null if there was a problem retrieving an asset.</returns>
         private AssetBase GetFromFileCache(string id)
-        {
-            AssetBase asset = null;
-           
+        {          
             string filename = GetFileName(id);
+
+#if WAIT_ON_INPROGRESS_REQUESTS
+            // Check if we're already downloading this asset.  If so, try to wait for it to
+            // download.
+            if (m_WaitOnInprogressTimeout > 0)
+            {
+                m_RequestsForInprogress++;
+
+                ManualResetEvent waitEvent;
+                if (m_CurrentlyWriting.TryGetValue(filename, out waitEvent))
+                {
+                    waitEvent.WaitOne(m_WaitOnInprogressTimeout);
+                    return Get(id);
+                }
+            }
+#else
+            // Track how often we have the problem that an asset is requested while
+            // it is still being downloaded by a previous request.
+            if (m_CurrentlyWriting.Contains(filename))
+            {
+                m_RequestsForInprogress++;
+                return null;
+            }
+#endif
+
+            AssetBase asset = null;
 
             if (File.Exists(filename))
             {
@@ -383,28 +407,6 @@ namespace OpenSim.Region.CoreModules.Asset
                 }
             }
 
-#if WAIT_ON_INPROGRESS_REQUESTS
-            // Check if we're already downloading this asset.  If so, try to wait for it to
-            // download.
-            if (m_WaitOnInprogressTimeout > 0)
-            {
-                m_RequestsForInprogress++;
-
-                ManualResetEvent waitEvent;
-                if (m_CurrentlyWriting.TryGetValue(filename, out waitEvent))
-                {
-                    waitEvent.WaitOne(m_WaitOnInprogressTimeout);
-                    return Get(id);
-                }
-            }
-#else
-            // Track how often we have the problem that an asset is requested while
-            // it is still being downloaded by a previous request.
-            if (m_CurrentlyWriting.Contains(filename))
-            {
-                m_RequestsForInprogress++;
-            }
-#endif
             return asset;
         }
 
