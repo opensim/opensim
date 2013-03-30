@@ -1159,7 +1159,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                         newposition.Y += (scene.RegionInfo.RegionLocY - neighboury) * Constants.RegionSize;
                         agent.ControllingClient.SendAgentAlertMessage(
                             String.Format("Moving you to region {0},{1}", neighbourx, neighboury), false);
-                        InformClientToInitateTeleportToLocation(agent, neighbourx, neighboury, newposition, scene);
+                        InformClientToInitiateTeleportToLocation(agent, neighbourx, neighboury, newposition, scene);
                         return true;
                     }
                 }
@@ -1182,7 +1182,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     newposition.Y += (scene.RegionInfo.RegionLocY - neighboury) * Constants.RegionSize;
                     agent.ControllingClient.SendAgentAlertMessage(
                             String.Format("Moving you to region {0},{1}", neighbourx, neighboury), false);
-                    InformClientToInitateTeleportToLocation(agent, neighbourx, neighboury, newposition, scene);
+                    InformClientToInitiateTeleportToLocation(agent, neighbourx, neighboury, newposition, scene);
 
                     return true;
                 }
@@ -1213,7 +1213,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                         newposition.Y += (scene.RegionInfo.RegionLocY - neighboury) * Constants.RegionSize;
                         agent.ControllingClient.SendAgentAlertMessage(
                             String.Format("Moving you to region {0},{1}", neighbourx, neighboury), false);
-                        InformClientToInitateTeleportToLocation(agent, neighbourx, neighboury, newposition, scene);
+                        InformClientToInitiateTeleportToLocation(agent, neighbourx, neighboury, newposition, scene);
                         return true;
                     }
                 }
@@ -1243,7 +1243,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     newposition.Y += (scene.RegionInfo.RegionLocY - neighboury) * Constants.RegionSize;
                     agent.ControllingClient.SendAgentAlertMessage(
                             String.Format("Moving you to region {0},{1}", neighbourx, neighboury), false);
-                    InformClientToInitateTeleportToLocation(agent, neighbourx, neighboury, newposition, scene);
+                    InformClientToInitiateTeleportToLocation(agent, neighbourx, neighboury, newposition, scene);
                     return true;
                 }
             }
@@ -1330,16 +1330,16 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         }
 
 
-        public delegate void InformClientToInitateTeleportToLocationDelegate(ScenePresence agent, uint regionX, uint regionY,
+        public delegate void InformClientToInitiateTeleportToLocationDelegate(ScenePresence agent, uint regionX, uint regionY,
                                                             Vector3 position,
                                                             Scene initiatingScene);
 
-        private void InformClientToInitateTeleportToLocation(ScenePresence agent, uint regionX, uint regionY, Vector3 position, Scene initiatingScene)
+        private void InformClientToInitiateTeleportToLocation(ScenePresence agent, uint regionX, uint regionY, Vector3 position, Scene initiatingScene)
         {
 
             // This assumes that we know what our neighbours are.
 
-            InformClientToInitateTeleportToLocationDelegate d = InformClientToInitiateTeleportToLocationAsync;
+            InformClientToInitiateTeleportToLocationDelegate d = InformClientToInitiateTeleportToLocationAsync;
             d.BeginInvoke(agent, regionX, regionY, position, initiatingScene,
                           InformClientToInitiateTeleportToLocationCompleted,
                           d);
@@ -1401,8 +1401,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         private void InformClientToInitiateTeleportToLocationCompleted(IAsyncResult iar)
         {
-            InformClientToInitateTeleportToLocationDelegate icon =
-                (InformClientToInitateTeleportToLocationDelegate)iar.AsyncState;
+            InformClientToInitiateTeleportToLocationDelegate icon =
+                (InformClientToInitiateTeleportToLocationDelegate)iar.AsyncState;
             icon.EndInvoke(iar);
         }
 
