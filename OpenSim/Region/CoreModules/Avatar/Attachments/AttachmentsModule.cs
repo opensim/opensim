@@ -301,7 +301,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
                     // If we're an NPC then skip all the item checks and manipulations since we don't have an
                     // inventory right now.
-                    RezSingleAttachmentFromInventoryInternal(sp, sp.PresenceType == PresenceType.Npc ? UUID.Zero : attach.ItemID, attach.AssetID, p | (uint)0x80, null);
+                    RezSingleAttachmentFromInventoryInternal(
+                        sp, sp.PresenceType == PresenceType.Npc ? UUID.Zero : attach.ItemID, attach.AssetID, p, true, null);
                 }
                 catch (Exception e)
                 {
@@ -541,7 +542,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 return null;
             }
 
-            return RezSingleAttachmentFromInventoryInternal(sp, itemID, UUID.Zero, AttachmentPt, doc);
+            bool append = (AttachmentPt & 0x80) != 0;
+            AttachmentPt &= 0x7f;
+
+            return RezSingleAttachmentFromInventoryInternal(sp, itemID, UUID.Zero, AttachmentPt, append, doc);
         }
 
         public void RezMultipleAttachmentsFromInventory(IScenePresence sp, List<KeyValuePair<UUID, uint>> rezlist)
@@ -951,13 +955,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         }
 
         protected SceneObjectGroup RezSingleAttachmentFromInventoryInternal(
-            IScenePresence sp, UUID itemID, UUID assetID, uint attachmentPt, XmlDocument doc)
+            IScenePresence sp, UUID itemID, UUID assetID, uint attachmentPt, bool append, XmlDocument doc)
         {
             if (m_invAccessModule == null)
                 return null;
-
-            bool append = (attachmentPt & 0x80) != 0;
-            attachmentPt &= 0x7f;
 
             SceneObjectGroup objatt;
 
