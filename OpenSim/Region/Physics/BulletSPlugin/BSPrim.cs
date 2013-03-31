@@ -126,7 +126,7 @@ public class BSPrim : BSPhysObject
         // Undo any vehicle properties
         this.VehicleType = (int)Vehicle.TYPE_NONE;
 
-        PhysicsScene.TaintedObject("BSPrim.destroy", delegate()
+        PhysicsScene.TaintedObject("BSPrim.Destroy", delegate()
         {
             DetailLog("{0},BSPrim.Destroy,taint,", LocalID);
             // If there are physical body and shape, release my use of same.
@@ -257,97 +257,30 @@ public class BSPrim : BSPhysObject
         });
     }
 
-    bool TryExperimentalLockAxisCode = false;
-    BSConstraint LockAxisConstraint = null;
     public override void LockAngularMotion(OMV.Vector3 axis)
     {
         DetailLog("{0},BSPrim.LockAngularMotion,call,axis={1}", LocalID, axis);
 
         // "1" means free, "0" means locked
-        OMV.Vector3 locking = new OMV.Vector3(1f, 1f, 1f);
+        OMV.Vector3 locking = LockedAxisFree;
         if (axis.X != 1) locking.X = 0f;
         if (axis.Y != 1) locking.Y = 0f;
         if (axis.Z != 1) locking.Z = 0f;
         LockedAxis = locking;
 
-        if (TryExperimentalLockAxisCode && LockedAxis != LockedAxisFree)
+        if (LockedAxis != LockedAxisFree)
         {
-            // Lock that axis by creating a 6DOF constraint that has one end in the world and
-            //    the other in the object.
-            // http://www.bulletphysics.org/Bullet/phpBB3/viewtopic.php?p=20817
-            // http://www.bulletphysics.org/Bullet/phpBB3/viewtopic.php?p=26380
-
             PhysicsScene.TaintedObject("BSPrim.LockAngularMotion", delegate()
             {
-                CleanUpLockAxisPhysicals(true /* inTaintTime */);
-
-                BSConstraint6Dof axisConstrainer = new BSConstraint6Dof(PhysicsScene.World, PhysBody, 
-                                    OMV.Vector3.Zero, OMV.Quaternion.Inverse(RawOrientation),
-                                    true /* useLinearReferenceFrameB */, true /* disableCollisionsBetweenLinkedBodies */);
-                LockAxisConstraint = axisConstrainer;
-                PhysicsScene.Constraints.AddConstraint(LockAxisConstraint);
-
-                // The constraint is tied to the world and oriented to the prim.
-
-                // Free to move linearly
-                OMV.Vector3 linearLow = OMV.Vector3.Zero;
-                OMV.Vector3 linearHigh = PhysicsScene.TerrainManager.DefaultRegionSize;
-                axisConstrainer.SetLinearLimits(linearLow, linearHigh);
-
-                // Angular with some axis locked
-                float f2PI = (float)Math.PI * 2f;
-                OMV.Vector3 angularLow = new OMV.Vector3(-f2PI, -f2PI, -f2PI);
-                OMV.Vector3 angularHigh = new OMV.Vector3(f2PI, f2PI, f2PI);
-                if (LockedAxis.X != 1f)
+                // If there is not already an axis locker, make one
+                if (!PhysicalActors.HasActor(LockedAxisActorName))
                 {
-                    angularLow.X = 0f;
-                    angularHigh.X = 0f;
+                    PhysicalActors.Add(LockedAxisActorName, new BSActorLockAxis(PhysicsScene, this, LockedAxisActorName));
                 }
-                if (LockedAxis.Y != 1f)
-                {
-                    angularLow.Y = 0f;
-                    angularHigh.Y = 0f;
-                }
-                if (LockedAxis.Z != 1f)
-                {
-                    angularLow.Z = 0f;
-                    angularHigh.Z = 0f;
-                }
-                axisConstrainer.SetAngularLimits(angularLow, angularHigh);
-
-                DetailLog("{0},BSPrim.LockAngularMotion,create,linLow={1},linHi={2},angLow={3},angHi={4}",
-                                            LocalID, linearLow, linearHigh, angularLow, angularHigh);
-
-                // Constants from one of the posts mentioned above and used in Bullet's ConstraintDemo.
-                axisConstrainer.TranslationalLimitMotor(true /* enable */, 5.0f, 0.1f);
-
-                axisConstrainer.RecomputeConstraintVariables(RawMass);
+                UpdatePhysicalParameters();
             });
         }
-        else
-        {
-            // Everything seems unlocked
-            CleanUpLockAxisPhysicals(false /* inTaintTime */);
-        }
-
         return;
-    }
-    // Get rid of any constraint built for LockAxis
-    // Most often the constraint is removed when the constraint collection is cleaned for this prim.
-    private void CleanUpLockAxisPhysicals(bool inTaintTime)
-    {
-        if (LockAxisConstraint != null)
-        {
-            PhysicsScene.TaintedObject(inTaintTime, "BSPrim.CleanUpLockAxisPhysicals", delegate()
-            {
-                if (LockAxisConstraint != null)
-                {
-                    PhysicsScene.Constraints.RemoveAndDestroyConstraint(LockAxisConstraint);
-                    LockAxisConstraint = null;
-                    DetailLog("{0},BSPrim.CleanUpLockAxisPhysicals,destroyingConstraint", LocalID);
-                }
-            });
-        }
     }
 
     public override OMV.Vector3 RawPosition
@@ -916,6 +849,7 @@ public class BSPrim : BSPhysObject
 
         // Update vehicle specific parameters (after MakeDynamic() so can change physical parameters)
         VehicleController.Refresh();
+        PhysicalActors.Refresh();
 
         // Arrange for collision events if the simulator wants them
         EnableCollisions(SubscribedEvents());
@@ -1753,6 +1687,7 @@ public class BSPrim : BSPhysObject
     protected virtual void RemoveBodyDependencies()
     {
         VehicleController.RemoveBodyDependencies(this);
+        PhysicalActors.RemoveBodyDependencies();
     }
 
     // The physics engine says that properties have updated. Update same and inform
