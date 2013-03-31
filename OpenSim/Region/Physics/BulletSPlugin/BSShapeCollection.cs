@@ -447,17 +447,10 @@ public sealed class BSShapeCollection : IDisposable
 
         // If the prim attributes are simple, this could be a simple Bullet native shape
         if (!haveShape
+                && nativeShapePossible
                 && pbs != null
                 && !pbs.SculptEntry
-                && nativeShapePossible
-                && ((pbs.SculptEntry && !BSParam.ShouldMeshSculptedPrim)
-                    || (pbs.ProfileBegin == 0 && pbs.ProfileEnd == 0
-                        && pbs.ProfileHollow == 0
-                        && pbs.PathTwist == 0 && pbs.PathTwistBegin == 0
-                        && pbs.PathBegin == 0 && pbs.PathEnd == 0
-                        && pbs.PathTaperX == 0 && pbs.PathTaperY == 0
-                        && pbs.PathScaleX == 100 && pbs.PathScaleY == 100
-                        && pbs.PathShearX == 0 && pbs.PathShearY == 0) ) )
+                && ((pbs.SculptEntry && !BSParam.ShouldMeshSculptedPrim) || PrimHasNoCuts(pbs)) )
         {
             // Get the scale of any existing shape so we can see if the new shape is same native type and same size.
             OMV.Vector3 scaleOfExistingShape = OMV.Vector3.Zero;
@@ -508,6 +501,18 @@ public sealed class BSShapeCollection : IDisposable
         return ret;
     }
 
+    // return 'true' if this shape description does not include any cutting or twisting.
+    private bool PrimHasNoCuts(PrimitiveBaseShape pbs)
+    {
+        return pbs.ProfileBegin == 0 && pbs.ProfileEnd == 0
+            && pbs.ProfileHollow == 0
+            && pbs.PathTwist == 0 && pbs.PathTwistBegin == 0
+            && pbs.PathBegin == 0 && pbs.PathEnd == 0
+            && pbs.PathTaperX == 0 && pbs.PathTaperY == 0
+            && pbs.PathScaleX == 100 && pbs.PathScaleY == 100
+            && pbs.PathShearX == 0 && pbs.PathShearY == 0;
+    }
+
     // return 'true' if the prim's shape was changed.
     public bool CreateGeomMeshOrHull(BSPhysObject prim, ShapeDestructionCallback shapeCallback)
     {
@@ -518,7 +523,7 @@ public sealed class BSShapeCollection : IDisposable
         if (prim.IsPhysical && BSParam.ShouldUseHullsForPhysicalObjects)
         {
             // Update prim.BSShape to reference a hull of this shape.
-            ret = GetReferenceToHull(prim,shapeCallback);
+            ret = GetReferenceToHull(prim, shapeCallback);
             if (DDetail) DetailLog("{0},BSShapeCollection.CreateGeom,hull,shape={1},key={2}",
                                     prim.LocalID, prim.PhysShape, prim.PhysShape.shapeKey.ToString("X"));
         }
@@ -699,6 +704,7 @@ public sealed class BSShapeCollection : IDisposable
 
     // See that hull shape exists in the physical world and update prim.BSShape.
     // We could be creating the hull because scale changed or whatever.
+    // Return 'true' if a new hull was built. Otherwise, returning a shared hull instance.
     private bool GetReferenceToHull(BSPhysObject prim, ShapeDestructionCallback shapeCallback)
     {
         BulletShape newShape;
@@ -717,6 +723,7 @@ public sealed class BSShapeCollection : IDisposable
         DereferenceShape(prim.PhysShape, shapeCallback);
 
         newShape = CreatePhysicalHull(prim.PhysObjectName, newHullKey, prim.BaseShape, prim.Size, lod);
+        // It might not have been created if we're waiting for an asset.
         newShape = VerifyMeshCreated(newShape, prim);
 
         ReferenceShape(newShape);
@@ -735,13 +742,13 @@ public sealed class BSShapeCollection : IDisposable
         HullDesc hullDesc;
         if (Hulls.TryGetValue(newHullKey, out hullDesc))
         {
-            // If the hull shape already is created, just use it.
+            // If the hull shape already has been created, just use the one shared instance.
             newShape = hullDesc.shape.Clone();
         }
         else
         {
-            // Build a new hull in the physical world
-            // Pass true for physicalness as this creates some sort of bounding box which we don't need
+            // Build a new hull in the physical world.
+            // Pass true for physicalness as this prevents the creation of bounding box which is not needed
             IMesh meshData = PhysicsScene.mesher.CreateMesh(objName, pbs, size, lod, true, false, false, false);
             if (meshData != null)
             {
@@ -761,14 +768,34 @@ public sealed class BSShapeCollection : IDisposable
                     convVertices.Add(new float3(vv.X, vv.Y, vv.Z));
                 }
 
+                uint maxDepthSplit = (uint)BSParam.CSHullMaxDepthSplit;
+                if (BSParam.CSHullMaxDepthSplit != BSParam.CSHullMaxDepthSplitForSimpleShapes)
+                {
+                    // Simple primitive shapes we know are convex so they are better implemented with
+                    //    fewer hulls.
+                    // Check for simple shape (prim without cuts) and reduce split parameter if so.
+                    if (PrimHasNoCuts(pbs))
+                    {
+                        maxDepthSplit = (uint)BSParam.CSHullMaxDepthSplitForSimpleShapes;
+                    }
+                }
+
                 // setup and do convex hull conversion
                 m_hulls = new List<ConvexResult>();
                 DecompDesc dcomp = new DecompDesc();
                 dcomp.mIndices = convIndices;
                 dcomp.mVertices = convVertices;
+                dcomp.mDepth = maxDepthSplit;
+                dcomp.mCpercent = BSParam.CSHullConcavityThresholdPercent;
+                dcomp.mPpercent = BSParam.CSHullVolumeConservationThresholdPercent;
+                dcomp.mMaxVertices = (uint)BSParam.CSHullMaxVertices;
+                dcomp.mSkinWidth = BSParam.CSHullMaxSkinWidth;
                 ConvexBuilder convexBuilder = new ConvexBuilder(HullReturn);
                 // create the hull into the _hulls variable
                 convexBuilder.process(dcomp);
+
+                DetailLog("{0},BSShapeCollection.CreatePhysicalHull,key={1},inVert={2},inInd={3},split={4},hulls={5}",
+                                    BSScene.DetailLogZero, newHullKey, indices.GetLength(0), vertices.Count, maxDepthSplit, m_hulls.Count);
 
                 // Convert the vertices and indices for passing to unmanaged.
                 // The hull information is passed as a large floating point array.
@@ -904,58 +931,79 @@ public sealed class BSShapeCollection : IDisposable
         if (newShape.HasPhysicalShape)
             return newShape;
 
-        // If this mesh has an underlying asset and we have not failed getting it before, fetch the asset
-        if (prim.BaseShape.SculptEntry && !prim.LastAssetBuildFailed && prim.BaseShape.SculptTexture != OMV.UUID.Zero)
+        // VerifyMeshCreated is called after trying to create the mesh. If we think the asset had been
+        //    fetched but we end up here again, the meshing of the asset must have failed.
+        // Prevent trying to keep fetching the mesh by declaring failure.
+        if (prim.PrimAssetState == BSPhysObject.PrimAssetCondition.Fetched)
         {
-            DetailLog("{0},BSShapeCollection.VerifyMeshCreated,fetchAsset,lastFailed={1}", prim.LocalID, prim.LastAssetBuildFailed);
-            // This will prevent looping through this code as we keep trying to get the failed shape
-            prim.LastAssetBuildFailed = true;
-
-            BSPhysObject xprim = prim;
-            Util.FireAndForget(delegate
-                {
-                    RequestAssetDelegate assetProvider = PhysicsScene.RequestAssetMethod;
-                    if (assetProvider != null)
-                    {
-                        BSPhysObject yprim = xprim; // probably not necessary, but, just in case.
-                        assetProvider(yprim.BaseShape.SculptTexture, delegate(AssetBase asset)
-                        {
-                            bool assetFound = false;            // DEBUG DEBUG
-                            string mismatchIDs = String.Empty;  // DEBUG DEBUG
-                            if (asset != null && yprim.BaseShape.SculptEntry)
-                            {
-                                if (yprim.BaseShape.SculptTexture.ToString() == asset.ID)
-                                {
-                                    yprim.BaseShape.SculptData = asset.Data;
-                                    // This will cause the prim to see that the filler shape is not the right
-                                    //    one and try again to build the object.
-                                    // No race condition with the normal shape setting since the rebuild is at taint time.
-                                    yprim.ForceBodyShapeRebuild(false /* inTaintTime */);
-                                    assetFound = true;
-                                }
-                                else
-                                {
-                                    mismatchIDs = yprim.BaseShape.SculptTexture.ToString() + "/" + asset.ID;
-                                }
-                            }
-                            DetailLog("{0},BSShapeCollection,fetchAssetCallback,found={1},isSculpt={2},ids={3}",
-                                        yprim.LocalID, assetFound, yprim.BaseShape.SculptEntry, mismatchIDs );
-
-                        });
-                    }
-                    else
-                    {
-                        PhysicsScene.Logger.ErrorFormat("{0} Physical object requires asset but no asset provider. Name={1}",
-                                                    LogHeader, PhysicsScene.Name);
-                    }
-                });
+            prim.PrimAssetState = BSPhysObject.PrimAssetCondition.Failed;
+            PhysicsScene.Logger.WarnFormat("{0} Fetched asset would not mesh. {1}, texture={2}",
+                                            LogHeader, prim.PhysObjectName, prim.BaseShape.SculptTexture);
         }
         else
         {
-            if (prim.LastAssetBuildFailed)
+            // If this mesh has an underlying asset and we have not failed getting it before, fetch the asset
+            if (prim.BaseShape.SculptEntry 
+                && prim.PrimAssetState != BSPhysObject.PrimAssetCondition.Failed
+                && prim.PrimAssetState != BSPhysObject.PrimAssetCondition.Waiting
+                && prim.BaseShape.SculptTexture != OMV.UUID.Zero
+                )
             {
-                PhysicsScene.Logger.ErrorFormat("{0} Mesh failed to fetch asset. lID={1}, texture={2}",
-                                            LogHeader, prim.LocalID, prim.BaseShape.SculptTexture);
+                DetailLog("{0},BSShapeCollection.VerifyMeshCreated,fetchAsset", prim.LocalID);
+                // Multiple requestors will know we're waiting for this asset
+                prim.PrimAssetState = BSPhysObject.PrimAssetCondition.Waiting;
+
+                BSPhysObject xprim = prim;
+                Util.FireAndForget(delegate
+                    {
+                        RequestAssetDelegate assetProvider = PhysicsScene.RequestAssetMethod;
+                        if (assetProvider != null)
+                        {
+                            BSPhysObject yprim = xprim; // probably not necessary, but, just in case.
+                            assetProvider(yprim.BaseShape.SculptTexture, delegate(AssetBase asset)
+                            {
+                                bool assetFound = false;
+                                string mismatchIDs = String.Empty;  // DEBUG DEBUG
+                                if (asset != null && yprim.BaseShape.SculptEntry)
+                                {
+                                    if (yprim.BaseShape.SculptTexture.ToString() == asset.ID)
+                                    {
+                                        yprim.BaseShape.SculptData = asset.Data;
+                                        // This will cause the prim to see that the filler shape is not the right
+                                        //    one and try again to build the object.
+                                        // No race condition with the normal shape setting since the rebuild is at taint time.
+                                        yprim.ForceBodyShapeRebuild(false /* inTaintTime */);
+                                        assetFound = true;
+                                    }
+                                    else
+                                    {
+                                        mismatchIDs = yprim.BaseShape.SculptTexture.ToString() + "/" + asset.ID;
+                                    }
+                                }
+                                if (assetFound)
+                                    yprim.PrimAssetState = BSPhysObject.PrimAssetCondition.Fetched;
+                                else
+                                    yprim.PrimAssetState = BSPhysObject.PrimAssetCondition.Failed;
+                                DetailLog("{0},BSShapeCollection,fetchAssetCallback,found={1},isSculpt={2},ids={3}",
+                                            yprim.LocalID, assetFound, yprim.BaseShape.SculptEntry, mismatchIDs );
+
+                            });
+                        }
+                        else
+                        {
+                            xprim.PrimAssetState = BSPhysObject.PrimAssetCondition.Failed;
+                            PhysicsScene.Logger.ErrorFormat("{0} Physical object requires asset but no asset provider. Name={1}",
+                                                        LogHeader, PhysicsScene.Name);
+                        }
+                    });
+            }
+            else
+            {
+                if (prim.PrimAssetState == BSPhysObject.PrimAssetCondition.Failed)
+                {
+                    PhysicsScene.Logger.WarnFormat("{0} Mesh failed to fetch asset. obj={1}, texture={2}",
+                                                LogHeader, prim.PhysObjectName, prim.BaseShape.SculptTexture);
+                }
             }
         }
 

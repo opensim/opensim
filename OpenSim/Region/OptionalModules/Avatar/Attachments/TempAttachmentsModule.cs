@@ -184,7 +184,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
                 hostPart.ParentGroup.RootPart.ScheduleFullUpdate();
             }
 
-            return attachmentsModule.AttachObject(target, hostPart.ParentGroup, (uint)attachmentPoint, false, true, true, true) ? 1 : 0;
+            return attachmentsModule.AttachObject(target, hostPart.ParentGroup, (uint)attachmentPoint, false, false, true, true) ? 1 : 0;
         }
     }
 }

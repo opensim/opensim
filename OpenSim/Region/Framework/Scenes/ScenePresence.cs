@@ -456,9 +456,9 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     m_pos = PhysicsActor.Position;
 
-                    //m_log.DebugFormat(
-                    //    "[SCENE PRESENCE]: Set position {0} for {1} in {2} via getting AbsolutePosition!",
-                    //    m_pos, Name, Scene.RegionInfo.RegionName);
+//                    m_log.DebugFormat(
+//                        "[SCENE PRESENCE]: Set position of {0} in {1} to {2} via getting AbsolutePosition!",
+//                        Name, Scene.Name, m_pos);
                 }
                 else
                 {
@@ -485,6 +485,9 @@ namespace OpenSim.Region.Framework.Scenes
             }
             set
             {
+//                m_log.DebugFormat("[SCENE PRESENCE]: Setting position of {0} in {1} to {2}", Name, Scene.Name, value);
+//                Util.PrintCallStack();
+
                 if (PhysicsActor != null)
                 {
                     try
@@ -938,8 +941,6 @@ namespace OpenSim.Region.Framework.Scenes
                 "[SCENE]: Upgrading child to root agent for {0} in {1}",
                 Name, m_scene.RegionInfo.RegionName);
 
-            bool wasChild = IsChildAgent;
-
             if (ParentUUID != UUID.Zero)
             {
                 m_log.DebugFormat("[SCENE PRESENCE]: Sitting avatar back on prim {0}", ParentUUID);
@@ -972,6 +973,9 @@ namespace OpenSim.Region.Framework.Scenes
                 IsLoggingIn = false;
             }
 
+            //m_log.DebugFormat("[SCENE]: known regions in {0}: {1}", Scene.RegionInfo.RegionName, KnownChildRegionHandles.Count);
+
+            IsChildAgent = false;
 
             IGroupsModule gm = m_scene.RequestModuleInterface<IGroupsModule>();
             if (gm != null)
@@ -1065,6 +1069,13 @@ namespace OpenSim.Region.Framework.Scenes
                 else
                     AddToPhysicalScene(isFlying);
 
+                // XXX: This is to trigger any secondary teleport needed for a megaregion when the user has teleported to a 
+                // location outside the 'root region' (the south-west 256x256 corner).  This is the earlist we can do it
+                // since it requires a physics actor to be present.  If it is left any later, then physics appears to reset
+                // the value to a negative position which does not trigger the border cross.
+                // This may not be the best location for this.
+                CheckForBorderCrossing();
+
                 if (ForceFly)
                 {
                     Flying = true;
@@ -1085,22 +1096,43 @@ namespace OpenSim.Region.Framework.Scenes
             // and it has already rezzed the attachments and started their scripts.
             // We do the following only for non-login agents, because their scripts
             // haven't started yet.
-            lock (m_attachments)
+            if (PresenceType == PresenceType.Npc || (TeleportFlags & TeleportFlags.ViaLogin) != 0)
             {
-                if (wasChild && HasAttachments())
+                // Viewers which have a current outfit folder will actually rez their own attachments.  However,
+                // viewers without (e.g. v1 viewers) will not, so we still need to make this call.
+                if (Scene.AttachmentsModule != null)
+                    Util.FireAndForget(
+                        o => 
+                        { 
+//                            if (PresenceType != PresenceType.Npc && Util.FireAndForgetMethod != FireAndForgetMethod.None) 
+//                                System.Threading.Thread.Sleep(7000); 
+
+                            Scene.AttachmentsModule.RezAttachments(this); 
+                        });
+            }
+            else
+            {
+                // We need to restart scripts here so that they receive the correct changed events (CHANGED_TELEPORT
+                // and CHANGED_REGION) when the attachments have been rezzed in the new region.  This cannot currently
+                // be done in AttachmentsModule.CopyAttachments(AgentData ad, IScenePresence sp) itself since we are
+                // not transporting the required data.
+                lock (m_attachments)
                 {
-                    m_log.DebugFormat(
-                        "[SCENE PRESENCE]: Restarting scripts in attachments for {0} in {1}", Name, Scene.Name);
-                    
-                    // Resume scripts
-                    Util.FireAndForget(delegate(object x) {
-                        foreach (SceneObjectGroup sog in m_attachments)
-                        {
-                            sog.ScheduleGroupForFullUpdate();
-                            sog.RootPart.ParentGroup.CreateScriptInstances(0, false, m_scene.DefaultScriptEngine, GetStateSource());
-                            sog.ResumeScripts();
-                        }
-                    });
+                    if (HasAttachments())
+                    {
+                        m_log.DebugFormat(
+                            "[SCENE PRESENCE]: Restarting scripts in attachments for {0} in {1}", Name, Scene.Name);
+
+                        // Resume scripts
+                        Util.FireAndForget(delegate(object x) {
+                            foreach (SceneObjectGroup sog in m_attachments)
+                            {
+                                sog.ScheduleGroupForFullUpdate();
+                                sog.RootPart.ParentGroup.CreateScriptInstances(0, false, m_scene.DefaultScriptEngine, GetStateSource());
+                                sog.ResumeScripts();
+                            }
+                        });
+                    }
                 }
             }
 
@@ -3121,6 +3153,10 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (!IsInTransit)
                 {
+//                    m_log.DebugFormat(
+//                        "[SCENE PRESENCE]: Testing border check for projected position {0} of {1} in {2}", 
+//                        pos2, Name, Scene.Name);
+
                     // Checks if where it's headed exists a region
                     bool needsTransit = false;
                     if (m_scene.TestBorderCross(pos2, Cardinals.W))

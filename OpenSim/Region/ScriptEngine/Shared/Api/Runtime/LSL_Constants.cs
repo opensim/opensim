@@ -356,6 +356,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int HTTP_MIMETYPE = 1;
         public const int HTTP_BODY_MAXLENGTH = 2;
         public const int HTTP_VERIFY_CERT = 3;
+        public const int HTTP_VERBOSE_THROTTLE = 4;
+        public const int HTTP_CUSTOM_HEADER = 5;
+        public const int HTTP_PRAGMA_NO_CACHE = 6;
 
         public const int PRIM_MATERIAL = 2;
         public const int PRIM_PHYSICS = 3;
@@ -636,7 +639,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int TOUCH_INVALID_FACE = -1;
         public static readonly vector TOUCH_INVALID_TEXCOORD = new vector(-1.0, -1.0, 0.0);
         public static readonly vector TOUCH_INVALID_VECTOR = ZERO_VECTOR;
-        
+
         // constants for llGetPrimMediaParams/llSetPrimMediaParams
         public const int PRIM_MEDIA_ALT_IMAGE_ENABLE = 0;
         public const int PRIM_MEDIA_CONTROLS = 1;
@@ -653,10 +656,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int PRIM_MEDIA_WHITELIST = 12;
         public const int PRIM_MEDIA_PERMS_INTERACT = 13;
         public const int PRIM_MEDIA_PERMS_CONTROL = 14;
-        
+
         public const int PRIM_MEDIA_CONTROLS_STANDARD = 0;
         public const int PRIM_MEDIA_CONTROLS_MINI = 1;
-        
+
         public const int PRIM_MEDIA_PERM_NONE = 0;
         public const int PRIM_MEDIA_PERM_OWNER = 1;
         public const int PRIM_MEDIA_PERM_GROUP = 2;
@@ -689,7 +692,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const string TEXTURE_PLYWOOD = "89556747-24cb-43ed-920b-47caed15465f";
         public const string TEXTURE_TRANSPARENT = "8dcd4a48-2d37-4909-9f78-f7a9eb4ef903";
         public const string TEXTURE_MEDIA = "8b5fec65-8d8d-9dc5-cda8-8fdf2716e361";
-        
+
         // Constants for osGetRegionStats
         public const int STATS_TIME_DILATION = 0;
         public const int STATS_SIM_FPS = 1;
@@ -742,7 +745,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public static readonly LSLInteger RC_GET_ROOT_KEY = 2;
         public static readonly LSLInteger RC_GET_LINK_NUM = 4;
 
-        public static readonly LSLInteger RCERR_UNKNOWN = -1;        
+        public static readonly LSLInteger RCERR_UNKNOWN = -1;
         public static readonly LSLInteger RCERR_SIM_PERF_LOW = -2;
         public static readonly LSLInteger RCERR_CAST_TIME_EXCEEDED = -3;
 

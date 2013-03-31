@@ -321,7 +321,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             }
         }
 
-        internal void ProcessTypeChange(Vehicle pType)
+        public void ProcessTypeChange(Vehicle pType)
         {
             VDetailLog("{0},ProcessTypeChange,type={1}", Prim.LocalID, pType);
             // Set Defaults For Type
@@ -1301,14 +1301,52 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         //      efficiency of 1.0 will cause the spring to reach its equilibrium with exponential decay.
         public void ComputeAngularVerticalAttraction()
         {
+
             // If vertical attaction timescale is reasonable
             if (enableAngularVerticalAttraction && m_verticalAttractionTimescale < m_verticalAttractionCutoff)
             {
+                // Possible solution derived from a discussion at:
+                // http://stackoverflow.com/questions/14939657/computing-vector-from-quaternion-works-computing-quaternion-from-vector-does-no
+
+                // Create a rotation that is only the vehicle's rotation around Z
+                Vector3 currentEuler = Vector3.Zero;
+                VehicleOrientation.GetEulerAngles(out currentEuler.X, out currentEuler.Y, out currentEuler.Z);
+                Quaternion justZOrientation = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, currentEuler.Z);
+
+                // Create the axis that is perpendicular to the up vector and the rotated up vector.
+                Vector3 differenceAxis = Vector3.Cross(Vector3.UnitZ * justZOrientation, Vector3.UnitZ * VehicleOrientation);
+                // Compute the angle between those to vectors.
+                double differenceAngle = Math.Acos((double)Vector3.Dot(Vector3.UnitZ, Vector3.Normalize(Vector3.UnitZ * VehicleOrientation)));
+                // 'differenceAngle' is the angle to rotate and 'differenceAxis' is the plane to rotate in to get the vehicle vertical
+
+                // Reduce the change by the time period it is to change in. Timestep is handled when velocity is applied.
+                // TODO: add 'efficiency'.
+                differenceAngle /= m_verticalAttractionTimescale;
+
+                // Create the quaterian representing the correction angle
+                Quaternion correctionRotation = Quaternion.CreateFromAxisAngle(differenceAxis, (float)differenceAngle);
+
+                // Turn that quaternion into Euler values to make it into velocities to apply.
+                Vector3 vertContributionV = Vector3.Zero;
+                correctionRotation.GetEulerAngles(out vertContributionV.X, out vertContributionV.Y, out vertContributionV.Z);
+                vertContributionV *= -1f;
+
+                VehicleRotationalVelocity += vertContributionV;
+
+                VDetailLog("{0},  MoveAngular,verticalAttraction,diffAxis={1},diffAng={2},corrRot={3},contrib={4}",
+                                Prim.LocalID,
+                                differenceAxis,
+                                differenceAngle,
+                                correctionRotation,
+                                vertContributionV);
+
+                // ===================================================================
+                /*
                 Vector3 vertContributionV = Vector3.Zero;
                 Vector3 origRotVelW = VehicleRotationalVelocity;        // DEBUG DEBUG
 
                 // Take a vector pointing up and convert it from world to vehicle relative coords.
-                Vector3 verticalError = Vector3.UnitZ * VehicleOrientation;
+                Vector3 verticalError = Vector3.Normalize(Vector3.UnitZ * VehicleOrientation);
 
                 // If vertical attraction correction is needed, the vector that was pointing up (UnitZ)
                 //    is now:
@@ -1334,13 +1372,17 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 // 'vertContrbution' is now the necessary angular correction to correct tilt in one second.
                 //     Correction happens over a number of seconds.
                 Vector3 unscaledContribVerticalErrorV = vertContributionV;     // DEBUG DEBUG
+
+                // The correction happens over the user's time period
                 vertContributionV /= m_verticalAttractionTimescale;
 
-                VehicleRotationalVelocity += vertContributionV;
+                // Rotate the vehicle rotation to the world coordinates.
+                VehicleRotationalVelocity += (vertContributionV * VehicleOrientation);
 
                 VDetailLog("{0},  MoveAngular,verticalAttraction,,origRotVW={1},vertError={2},unscaledV={3},eff={4},ts={5},vertContribV={6}",
                                 Prim.LocalID, origRotVelW, verticalError, unscaledContribVerticalErrorV, 
                                 m_verticalAttractionEfficiency, m_verticalAttractionTimescale, vertContributionV);
+                */
             }
         }
 

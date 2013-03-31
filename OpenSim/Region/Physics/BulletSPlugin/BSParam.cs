@@ -142,6 +142,14 @@ public static class BSParam
     public static float VehicleAngularBankingTimescaleFudge { get; private set; }
     public static bool VehicleDebuggingEnabled { get; private set; }
 
+    // Convex Hulls
+    public static int CSHullMaxDepthSplit { get; private set; }
+    public static int CSHullMaxDepthSplitForSimpleShapes { get; private set; }
+    public static float CSHullConcavityThresholdPercent { get; private set; }
+    public static float CSHullVolumeConservationThresholdPercent { get; private set; }
+    public static int CSHullMaxVertices { get; private set; }
+    public static float CSHullMaxSkinWidth { get; private set; }
+
     // Linkset implementation parameters
     public static float LinksetImplementation { get; private set; }
     public static bool LinkConstraintUseFrameOffset { get; private set; }
@@ -195,10 +203,10 @@ public static class BSParam
     public delegate void PSetOnObject<T>(BSScene scene, BSPhysObject obj);
     public sealed class ParameterDefn<T> : ParameterDefnBase
     {
-        T defaultValue;
-        PSetValue<T> setter;
-        PGetValue<T> getter;
-        PSetOnObject<T> objectSet;
+        private T defaultValue;
+        private PSetValue<T> setter;
+        private PGetValue<T> getter;
+        private PSetOnObject<T> objectSet;
         public ParameterDefn(string pName, string pDesc, T pDefault, PGetValue<T> pGetter, PSetValue<T> pSetter)
             : base(pName, pDesc)
         {
@@ -215,13 +223,23 @@ public static class BSParam
             getter = pGetter;
             objectSet = pObjSetter;
         }
+        /* Wish I could simplify using this definition but CLR doesn't store references so closure around delegates of references won't work
+        public ParameterDefn(string pName, string pDesc, T pDefault, ref T loc)
+            : base(pName, pDesc)
+        {
+            defaultValue = pDefault;
+            setter = (s, v) => { loc = v; };
+            getter = (s) => { return loc; };
+            objectSet = null;
+        }
+         */
         public override void AssignDefault(BSScene s)
         {
             setter(s, defaultValue);
         }
         public override string GetValue(BSScene s)
         {
-            return String.Format("{0}", getter(s));
+            return getter(s).ToString();
         }
         public override void SetValue(BSScene s, string valAsString)
         {
@@ -244,6 +262,7 @@ public static class BSParam
                 try
                 {
                     T setValue = (T)parser.Invoke(genericType, new Object[] { valAsString });
+                    // Store the parsed value
                     setter(s, setValue);
                     // s.Logger.DebugFormat("{0} Parameter {1} = {2}", LogHeader, name, setValue);
                 }
@@ -463,7 +482,7 @@ public static class BSParam
             (s) => { return TerrainImplementation; },
             (s,v) => { TerrainImplementation = v; } ),
         new ParameterDefn<int>("TerrainMeshMagnification", "Number of times the 256x256 heightmap is multiplied to create the terrain mesh" ,
-            3,
+            2,
             (s) => { return TerrainMeshMagnification; },
             (s,v) => { TerrainMeshMagnification = v; } ),
         new ParameterDefn<float>("TerrainFriction", "Factor to reduce movement against terrain surface" ,
@@ -622,6 +641,31 @@ public static class BSParam
             0f,
             (s) => { return GlobalContactBreakingThreshold; },
             (s,v) => { GlobalContactBreakingThreshold = v; s.UnmanagedParams[0].globalContactBreakingThreshold = v; } ),
+
+	    new ParameterDefn<int>("CSHullMaxDepthSplit", "CS impl: max depth to split for hull. 1-10 but > 7 is iffy",
+            7,
+            (s) => { return CSHullMaxDepthSplit; },
+            (s,v) => { CSHullMaxDepthSplit = v; } ),
+	    new ParameterDefn<int>("CSHullMaxDepthSplitForSimpleShapes", "CS impl: max depth setting for simple prim shapes",
+            2,
+            (s) => { return CSHullMaxDepthSplitForSimpleShapes; },
+            (s,v) => { CSHullMaxDepthSplitForSimpleShapes = v; } ),
+	    new ParameterDefn<float>("CSHullConcavityThresholdPercent", "CS impl: concavity threshold percent (0-20)",
+            5f,
+            (s) => { return CSHullConcavityThresholdPercent; },
+            (s,v) => { CSHullConcavityThresholdPercent = v; } ),
+	    new ParameterDefn<float>("CSHullVolumeConservationThresholdPercent", "percent volume conservation to collapse hulls (0-30)",
+            5f,
+            (s) => { return CSHullVolumeConservationThresholdPercent; },
+            (s,v) => { CSHullVolumeConservationThresholdPercent = v; } ),
+	    new ParameterDefn<int>("CSHullMaxVertices", "CS impl: maximum number of vertices in output hulls. Keep < 50.",
+            32,
+            (s) => { return CSHullMaxVertices; },
+            (s,v) => { CSHullMaxVertices = v; } ),
+	    new ParameterDefn<float>("CSHullMaxSkinWidth", "CS impl: skin width to apply to output hulls.",
+            0,
+            (s) => { return CSHullMaxSkinWidth; },
+            (s,v) => { CSHullMaxSkinWidth = v; } ),
 
 	    new ParameterDefn<float>("LinksetImplementation", "Type of linkset implementation (0=Constraint, 1=Compound, 2=Manual)",
             (float)BSLinkset.LinksetImplementation.Compound,

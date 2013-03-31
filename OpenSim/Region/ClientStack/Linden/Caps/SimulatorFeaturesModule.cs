@@ -70,6 +70,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private string m_MapImageServerURL = string.Empty;
         private string m_SearchURL = string.Empty;
+        private bool m_ExportSupported = false;
 
         #region ISharedRegionModule Members
 
@@ -87,6 +88,8 @@ namespace OpenSim.Region.ClientStack.Linden
                 }
     
                 m_SearchURL = config.GetString("SearchServerURI", string.Empty);
+
+                m_ExportSupported = config.GetBoolean("ExportSupported", m_ExportSupported);
             }
 
             AddDefaultFeatures();
@@ -152,6 +155,9 @@ namespace OpenSim.Region.ClientStack.Linden
                 if (m_SearchURL != string.Empty)
                     gridServicesMap["search"] = m_SearchURL;
                 m_features["GridServices"] = gridServicesMap;
+
+                if (m_ExportSupported)
+                    m_features["ExportSupported"] = true;
             }
         }
 

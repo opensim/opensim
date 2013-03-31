@@ -116,6 +116,37 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
                     + "If teleport   is true  then some extra teleport debug information is logged.\n"
                     + "If updates    is true  then any frame which exceeds double the maximum desired frame time is logged.",
                 HandleDebugSceneSetCommand);
+
+            scene.AddCommand(
+                "Regions", 
+                this, "show borders", "show borders", "Show border information for regions", HandleShowBordersCommand);
+        }
+
+        private void HandleShowBordersCommand(string module, string[] args)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendFormat("Borders for {0}:\n", m_scene.Name);
+
+            ConsoleDisplayTable cdt = new ConsoleDisplayTable();
+            cdt.AddColumn("Cross Direction", 15);
+            cdt.AddColumn("Line", 34);
+            cdt.AddColumn("Trigger Region", 14);
+
+            foreach (Border b in m_scene.NorthBorders)
+                cdt.AddRow(b.CrossDirection, b.BorderLine, string.Format("{0}, {1}", b.TriggerRegionX, b.TriggerRegionY));
+
+            foreach (Border b in m_scene.EastBorders)
+                cdt.AddRow(b.CrossDirection, b.BorderLine, string.Format("{0}, {1}", b.TriggerRegionX, b.TriggerRegionY));
+
+            foreach (Border b in m_scene.SouthBorders)
+                cdt.AddRow(b.CrossDirection, b.BorderLine, string.Format("{0}, {1}", b.TriggerRegionX, b.TriggerRegionY));
+
+            foreach (Border b in m_scene.WestBorders)
+                cdt.AddRow(b.CrossDirection, b.BorderLine, string.Format("{0}, {1}", b.TriggerRegionX, b.TriggerRegionY));
+
+            cdt.AddToStringBuilder(sb);
+
+            MainConsole.Instance.Output(sb.ToString());
         }
 
         private void HandleDebugSceneGetCommand(string module, string[] args)

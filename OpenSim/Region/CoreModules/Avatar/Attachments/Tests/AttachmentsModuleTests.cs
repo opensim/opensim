@@ -130,7 +130,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             config.AddConfig("Modules");
             config.Configs["Modules"].Set("InventoryAccessModule", "BasicInventoryAccessModule");
 
-            modules.Add(new AttachmentsModule());
+            AttachmentsModule attMod = new AttachmentsModule();
+            attMod.DebugLevel = 1;
+            modules.Add(attMod);
             modules.Add(new BasicInventoryAccessModule());
         }
 
@@ -197,7 +199,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             SceneObjectGroup so = SceneHelpers.AddSceneObject(scene, attName, sp.UUID);
 
             m_numberOfAttachEventsFired = 0;
-            scene.AttachmentsModule.AttachObject(sp, so, (uint)AttachmentPoint.Chest, false, false, false, false);
+            scene.AttachmentsModule.AttachObject(sp, so, (uint)AttachmentPoint.Chest, false, true, false, false);
 
             // Check status on scene presence
             Assert.That(sp.HasAttachments(), Is.True);
@@ -244,7 +246,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
                 SceneObjectGroup so = SceneHelpers.AddSceneObject(scene, "att1", sp.UUID);
 
                 m_numberOfAttachEventsFired = 0;
-                scene.AttachmentsModule.AttachObject(sp, so, (uint)AttachmentPoint.Default, false, false, false, false);
+                scene.AttachmentsModule.AttachObject(sp, so, (uint)AttachmentPoint.Default, false, true, false, false);
 
                 // Check status on scene presence
                 Assert.That(sp.HasAttachments(), Is.True);
@@ -277,7 +279,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
 
             // Test wearing a different attachment from the ground.
             {
-                scene.AttachmentsModule.AttachObject(sp, so2, (uint)AttachmentPoint.Default, false, false, false, false);
+                scene.AttachmentsModule.AttachObject(sp, so2, (uint)AttachmentPoint.Default, false, true, false, false);
 
                 // Check status on scene presence
                 Assert.That(sp.HasAttachments(), Is.True);
@@ -310,7 +312,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
 
             // Test rewearing an already worn attachment from ground.  Nothing should happen.
             {
-                scene.AttachmentsModule.AttachObject(sp, so2, (uint)AttachmentPoint.Default, false, false, false, false);
+                scene.AttachmentsModule.AttachObject(sp, so2, (uint)AttachmentPoint.Default, false, true, false, false);
 
                 // Check status on scene presence
                 Assert.That(sp.HasAttachments(), Is.True);
@@ -368,7 +370,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             sp2.AbsolutePosition = new Vector3(0, 0, 0);
             sp2.HandleAgentRequestSit(sp2.ControllingClient, sp2.UUID, so.UUID, Vector3.Zero);
 
-            scene.AttachmentsModule.AttachObject(sp, so, (uint)AttachmentPoint.Chest, false, false, false, false);
+            scene.AttachmentsModule.AttachObject(sp, so, (uint)AttachmentPoint.Chest, false, true, false, false);
 
             Assert.That(sp.HasAttachments(), Is.False);
             Assert.That(scene.GetSceneObjectGroups().Count, Is.EqualTo(1));
@@ -728,7 +730,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
         public void TestRezAttachmentsOnAvatarEntrance()
         {
             TestHelpers.InMethod();
-//            log4net.Config.XmlConfigurator.Configure();
+//            TestHelpers.EnableLogging();
 
             Scene scene = CreateTestScene();
             UserAccount ua1 = UserAccountHelpers.CreateUserWithInventory(scene, 0x1);
