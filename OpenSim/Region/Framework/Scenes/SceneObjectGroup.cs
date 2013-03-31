@@ -3468,7 +3468,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void AdjustChildPrimPermissions()
         {
-            uint newOwnerMask = (uint)PermissionMask.All & 0xfffffff8; // Mask folded bits
+            uint newOwnerMask = (uint)(PermissionMask.All | PermissionMask.Export) & 0xfffffff8; // Mask folded bits
             uint foldedPerms = RootPart.OwnerMask & 3;
 
             ForEachPart(part =>

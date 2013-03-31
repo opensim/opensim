@@ -413,18 +413,57 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (itemUpd.NextPermissions != 0) // Use this to determine validity. Can never be 0 if valid
                 {
+                    // Create a set of base permissions that will not include export if the user
+                    // is not allowed to change the export flag.
+                    bool denyExportChange = false;
+
+                    m_log.InfoFormat("[XXX]: B: {0} O: {1} E: {2}", itemUpd.BasePermissions, itemUpd.CurrentPermissions, itemUpd.EveryOnePermissions);
+
+                    // If the user is not the creator or doesn't have "E" in both "B" and "O", deny setting export
+                    if ((item.BasePermissions & (uint)(PermissionMask.All | PermissionMask.Export)) != (uint)(PermissionMask.All | PermissionMask.Export) || (item.CurrentPermissions & (uint)PermissionMask.Export) == 0 || item.CreatorIdAsUuid != item.Owner)
+                        denyExportChange = true;
+
+                    m_log.InfoFormat("[XXX]: Deny Export Update {0}", denyExportChange);
+
+                    // If it is already set, force it set and also force full perm
+                    // else prevent setting it. It can and should never be set unless
+                    // set in base, so the condition above is valid
+                    if (denyExportChange)
+                    {
+                        // If we are not allowed to change it, then force it to the
+                        // original item's setting and if it was on, also force full perm
+                        if ((item.EveryOnePermissions & (uint)PermissionMask.Export) != 0)
+                        {
+                            itemUpd.NextPermissions = (uint)(PermissionMask.All);
+                            itemUpd.EveryOnePermissions |= (uint)PermissionMask.Export;
+                        }
+                        else
+                        {
+                            itemUpd.EveryOnePermissions &= ~(uint)PermissionMask.Export;
+                        }
+                    }
+                    else
+                    {
+                        // If the new state is exportable, force full perm
+                        if ((itemUpd.EveryOnePermissions & (uint)PermissionMask.Export) != 0)
+                        {
+                            m_log.InfoFormat("[XXX]: Force full perm");
+                            itemUpd.NextPermissions = (uint)(PermissionMask.All);
+                        }
+                    }
+
                     if (item.NextPermissions != (itemUpd.NextPermissions & item.BasePermissions))
                         item.Flags |= (uint)InventoryItemFlags.ObjectOverwriteNextOwner;
                     item.NextPermissions = itemUpd.NextPermissions & item.BasePermissions;
+
                     if (item.EveryOnePermissions != (itemUpd.EveryOnePermissions & item.BasePermissions))
                         item.Flags |= (uint)InventoryItemFlags.ObjectOverwriteEveryone;
                     item.EveryOnePermissions = itemUpd.EveryOnePermissions & item.BasePermissions;
+
                     if (item.GroupPermissions != (itemUpd.GroupPermissions & item.BasePermissions))
                         item.Flags |= (uint)InventoryItemFlags.ObjectOverwriteGroup;
-
-//                    m_log.DebugFormat("[USER INVENTORY]: item.Flags {0}", item.Flags);
-
                     item.GroupPermissions = itemUpd.GroupPermissions & item.BasePermissions;
+
                     item.GroupID = itemUpd.GroupID;
                     item.GroupOwned = itemUpd.GroupOwned;
                     item.CreationDate = itemUpd.CreationDate;
@@ -446,6 +485,7 @@ namespace OpenSim.Region.Framework.Scenes
                     item.SaleType = itemUpd.SaleType;
 
                     InventoryService.UpdateItem(item);
+                    remoteClient.SendBulkUpdateInventory(item);
                 }
 
                 if (UUID.Zero != transactionID)
