@@ -365,60 +365,8 @@ namespace OpenSim.Region.CoreModules.Asset
         /// <param name="id"></param>
         /// <returns>An asset retrieved from the file cache.  null if there was a problem retrieving an asset.</returns>
         private AssetBase GetFromFileCache(string id)
-        {
-            AssetBase asset = null;
-           
+        {          
             string filename = GetFileName(id);
-            while (File.Exists(filename))
-            {
-                FileStream stream = null;
-                try
-                {
-                    stream = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.Read);
-                    BinaryFormatter bformatter = new BinaryFormatter();
-
-                    asset = (AssetBase)bformatter.Deserialize(stream);
-
-                    m_DiskHits++;
-
-                    break;
-                }
-                catch (System.Runtime.Serialization.SerializationException e)
-                {
-                    m_log.WarnFormat(
-                        "[FLOTSAM ASSET CACHE]: Failed to get file {0} for asset {1}.  Exception {2} {3}",
-                        filename, id, e.Message, e.StackTrace);
-
-                    // If there was a problem deserializing the asset, the asset may
-                    // either be corrupted OR was serialized under an old format
-                    // {different version of AssetBase} -- we should attempt to
-                    // delete it and re-cache
-                    File.Delete(filename);
-
-                    break;
-                }
-                catch (IOException e)
-                {
-                    // This is a sharing violation: File exists but can't be opened because it's
-                    // being written
-                    Thread.Sleep(100);
-
-                    continue;
-                }
-                catch (Exception e)
-                {
-                    m_log.WarnFormat(
-                        "[FLOTSAM ASSET CACHE]: Failed to get file {0} for asset {1}.  Exception {2} {3}",
-                        filename, id, e.Message, e.StackTrace);
-
-                    break;
-                }
-                finally
-                {
-                    if (stream != null)
-                        stream.Close();
-                }
-            }
 
 #if WAIT_ON_INPROGRESS_REQUESTS
             // Check if we're already downloading this asset.  If so, try to wait for it to
@@ -440,8 +388,50 @@ namespace OpenSim.Region.CoreModules.Asset
             if (m_CurrentlyWriting.Contains(filename))
             {
                 m_RequestsForInprogress++;
+                return null;
             }
 #endif
+
+            AssetBase asset = null;
+
+            if (File.Exists(filename))
+            {
+                FileStream stream = null;
+                try
+                {
+                    stream = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.Read);
+                    BinaryFormatter bformatter = new BinaryFormatter();
+
+                    asset = (AssetBase)bformatter.Deserialize(stream);
+
+                    m_DiskHits++;
+                }
+                catch (System.Runtime.Serialization.SerializationException e)
+                {
+                    m_log.WarnFormat(
+                        "[FLOTSAM ASSET CACHE]: Failed to get file {0} for asset {1}.  Exception {2} {3}",
+                        filename, id, e.Message, e.StackTrace);
+
+                    // If there was a problem deserializing the asset, the asset may
+                    // either be corrupted OR was serialized under an old format
+                    // {different version of AssetBase} -- we should attempt to
+                    // delete it and re-cache
+                    File.Delete(filename);
+                }
+                catch (Exception e)
+                {
+                    m_log.WarnFormat(
+                        "[FLOTSAM ASSET CACHE]: Failed to get file {0} for asset {1}.  Exception {2} {3}",
+                        filename, id, e.Message, e.StackTrace);
+
+                }
+                finally
+                {
+                    if (stream != null)
+                        stream.Close();
+                }
+            }
+
             return asset;
         }
 
