@@ -42,6 +42,7 @@ public class BSActorLockAxis : BSActor
     public BSActorLockAxis(BSScene physicsScene, BSPhysObject pObj, string actorName)
         : base(physicsScene, pObj,actorName)
     {
+        PhysicsScene.DetailLog("{0},BSActorLockAxis,constructor", Prim.LocalID);
         LockAxisConstraint = null;
     }
 
@@ -52,8 +53,8 @@ public class BSActorLockAxis : BSActor
     }
 
     // Release any connections and resources used by the actor.
-    // BSActor.Release()
-    public override void Release()
+    // BSActor.Dispose()
+    public override void Dispose()
     {
         RemoveAxisLockConstraint();
     }
@@ -63,6 +64,8 @@ public class BSActorLockAxis : BSActor
     // BSActor.Refresh()
     public override void Refresh()
     {
+        PhysicsScene.DetailLog("{0},BSActorLockAxis,refresh,lockedAxis={1},enabled={2},pActive={3}", 
+                                    Prim.LocalID, Prim.LockedAxis, Enabled, Prim.IsPhysicallyActive);
         // If all the axis are free, we don't need to exist
         if (Prim.LockedAxis == Prim.LockedAxisFree)
         {

@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -50,7 +50,7 @@ public class BSActorCollection
         if (m_actors.ContainsKey(name))
         {
             BSActor beingRemoved = m_actors[name];
-            beingRemoved.Release();
+            beingRemoved.Dispose();
             m_actors.Remove(name);
             ret = true;
         }
@@ -73,7 +73,7 @@ public class BSActorCollection
 
     public void Release()
     {
-        ForEachActor(a => a.Release());
+        ForEachActor(a => a.Dispose());
     }
     public void Refresh()
     {
@@ -86,6 +86,14 @@ public class BSActorCollection
 }
 
 // =============================================================================
+/// <summary>
+/// Each physical object can have 'actors' who are pushing the object around.
+/// This can be used for hover, locking axis, making vehicles, etc.
+/// Each physical object can have multiple actors acting on it.
+/// 
+/// An actor usually registers itself with physics scene events (pre-step action)
+/// and modifies the parameters on the host physical object.
+/// </summary>
 public abstract class BSActor
 {
     protected BSScene PhysicsScene { get; private set; }
@@ -112,7 +120,7 @@ public abstract class BSActor
         Enabled = setEnabled;
     }
     // Release any connections and resources used by the actor.
-    public abstract void Release();
+    public abstract void Dispose();
     // Called when physical parameters (properties set in Bullet) need to be re-applied.
     public abstract void Refresh();
     // The object's physical representation is being rebuilt so pick up any physical dependencies (constraints, ...).
