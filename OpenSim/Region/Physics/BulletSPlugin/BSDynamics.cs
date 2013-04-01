@@ -565,12 +565,12 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             m_linearMotor = new BSVMotor("LinearMotor", m_linearMotorTimescale,
                                 m_linearMotorDecayTimescale, m_linearFrictionTimescale,
                                 1f);
-            m_linearMotor.PhysicsScene = PhysicsScene;  // DEBUG DEBUG DEBUG (enables detail logging)
+            m_linearMotor.PhysicsScene = m_physicsScene;  // DEBUG DEBUG DEBUG (enables detail logging)
 
             m_angularMotor = new BSVMotor("AngularMotor", m_angularMotorTimescale,
                                 m_angularMotorDecayTimescale, m_angularFrictionTimescale,
                                 1f);
-            m_angularMotor.PhysicsScene = PhysicsScene;  // DEBUG DEBUG DEBUG (enables detail logging)
+            m_angularMotor.PhysicsScene = m_physicsScene;  // DEBUG DEBUG DEBUG (enables detail logging)
 
             /*  Not implemented
             m_verticalAttractionMotor = new BSVMotor("VerticalAttraction", m_verticalAttractionTimescale,
@@ -596,7 +596,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         public override void Refresh()
         {
             // If asking for a refresh, reset the physical parameters before the next simulation step.
-            PhysicsScene.PostTaintObject("BSDynamics.Refresh", ControllingPrim.LocalID, delegate()
+            m_physicsScene.PostTaintObject("BSDynamics.Refresh", ControllingPrim.LocalID, delegate()
             {
                 SetPhysicalParameters();
             });
@@ -612,28 +612,28 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 m_vehicleMass = ControllingPrim.TotalMass;
 
                 // Friction affects are handled by this vehicle code
-                PhysicsScene.PE.SetFriction(ControllingPrim.PhysBody, BSParam.VehicleFriction);
-                PhysicsScene.PE.SetRestitution(ControllingPrim.PhysBody, BSParam.VehicleRestitution);
+                m_physicsScene.PE.SetFriction(ControllingPrim.PhysBody, BSParam.VehicleFriction);
+                m_physicsScene.PE.SetRestitution(ControllingPrim.PhysBody, BSParam.VehicleRestitution);
 
                 // Moderate angular movement introduced by Bullet.
                 // TODO: possibly set AngularFactor and LinearFactor for the type of vehicle.
                 //     Maybe compute linear and angular factor and damping from params.
-                PhysicsScene.PE.SetAngularDamping(ControllingPrim.PhysBody, BSParam.VehicleAngularDamping);
-                PhysicsScene.PE.SetLinearFactor(ControllingPrim.PhysBody, BSParam.VehicleLinearFactor);
-                PhysicsScene.PE.SetAngularFactorV(ControllingPrim.PhysBody, BSParam.VehicleAngularFactor);
+                m_physicsScene.PE.SetAngularDamping(ControllingPrim.PhysBody, BSParam.VehicleAngularDamping);
+                m_physicsScene.PE.SetLinearFactor(ControllingPrim.PhysBody, BSParam.VehicleLinearFactor);
+                m_physicsScene.PE.SetAngularFactorV(ControllingPrim.PhysBody, BSParam.VehicleAngularFactor);
 
                 // Vehicles report collision events so we know when it's on the ground
-                PhysicsScene.PE.AddToCollisionFlags(ControllingPrim.PhysBody, CollisionFlags.BS_VEHICLE_COLLISIONS);
+                m_physicsScene.PE.AddToCollisionFlags(ControllingPrim.PhysBody, CollisionFlags.BS_VEHICLE_COLLISIONS);
 
-                ControllingPrim.Inertia = PhysicsScene.PE.CalculateLocalInertia(ControllingPrim.PhysShape, m_vehicleMass);
-                PhysicsScene.PE.SetMassProps(ControllingPrim.PhysBody, m_vehicleMass, ControllingPrim.Inertia);
-                PhysicsScene.PE.UpdateInertiaTensor(ControllingPrim.PhysBody);
+                ControllingPrim.Inertia = m_physicsScene.PE.CalculateLocalInertia(ControllingPrim.PhysShape, m_vehicleMass);
+                m_physicsScene.PE.SetMassProps(ControllingPrim.PhysBody, m_vehicleMass, ControllingPrim.Inertia);
+                m_physicsScene.PE.UpdateInertiaTensor(ControllingPrim.PhysBody);
 
                 // Set the gravity for the vehicle depending on the buoyancy
                 // TODO: what should be done if prim and vehicle buoyancy differ?
                 m_VehicleGravity = ControllingPrim.ComputeGravity(m_VehicleBuoyancy);
                 // The actual vehicle gravity is set to zero in Bullet so we can do all the application of same.
-                PhysicsScene.PE.SetGravity(ControllingPrim.PhysBody, Vector3.Zero);
+                m_physicsScene.PE.SetGravity(ControllingPrim.PhysBody, Vector3.Zero);
 
                 VDetailLog("{0},BSDynamics.SetPhysicalParameters,mass={1},inert={2},vehGrav={3},aDamp={4},frict={5},rest={6},lFact={7},aFact={8}",
                         ControllingPrim.LocalID, m_vehicleMass, ControllingPrim.Inertia, m_VehicleGravity,
@@ -644,7 +644,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             else
             {
                 if (ControllingPrim.PhysBody.HasPhysicalBody)
-                    PhysicsScene.PE.RemoveFromCollisionFlags(ControllingPrim.PhysBody, CollisionFlags.BS_VEHICLE_COLLISIONS);
+                    m_physicsScene.PE.RemoveFromCollisionFlags(ControllingPrim.PhysBody, CollisionFlags.BS_VEHICLE_COLLISIONS);
             }
         }
 
@@ -667,8 +667,8 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         {
             if (!m_haveRegisteredForSceneEvents)
             {
-                PhysicsScene.BeforeStep += this.Step;
-                PhysicsScene.AfterStep += this.PostStep;
+                m_physicsScene.BeforeStep += this.Step;
+                m_physicsScene.AfterStep += this.PostStep;
                 ControllingPrim.OnPreUpdateProperty += this.PreUpdateProperty;
                 m_haveRegisteredForSceneEvents = true;
             }
@@ -678,8 +678,8 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         {
             if (m_haveRegisteredForSceneEvents)
             {
-                PhysicsScene.BeforeStep -= this.Step;
-                PhysicsScene.AfterStep -= this.PostStep;
+                m_physicsScene.BeforeStep -= this.Step;
+                m_physicsScene.AfterStep -= this.PostStep;
                 ControllingPrim.OnPreUpdateProperty -= this.PreUpdateProperty;
                 m_haveRegisteredForSceneEvents = false;
             }
@@ -776,7 +776,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 
                 // If we set one of the values (ie, the physics engine didn't do it) we must force
                 //      an UpdateProperties event to send the changes up to the simulator.
-                PhysicsScene.PE.PushUpdate(ControllingPrim.PhysBody);
+                m_physicsScene.PE.PushUpdate(ControllingPrim.PhysBody);
             }
             m_knownChanged = 0;
         }
@@ -967,8 +967,8 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             //      for the physics engine to note the changes so an UpdateProperties event will happen.
             PushKnownChanged();
 
-            if (PhysicsScene.VehiclePhysicalLoggingEnabled)
-                PhysicsScene.PE.DumpRigidBody(PhysicsScene.World, ControllingPrim.PhysBody);
+            if (m_physicsScene.VehiclePhysicalLoggingEnabled)
+                m_physicsScene.PE.DumpRigidBody(m_physicsScene.World, ControllingPrim.PhysBody);
 
             VDetailLog("{0},BSDynamics.Step,done,pos={1}, force={2},velocity={3},angvel={4}",
                     ControllingPrim.LocalID, VehiclePosition, m_knownForce, VehicleVelocity, VehicleRotationalVelocity);
@@ -979,8 +979,8 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         {
             if (!IsActive) return;
 
-            if (PhysicsScene.VehiclePhysicalLoggingEnabled)
-                PhysicsScene.PE.DumpRigidBody(PhysicsScene.World, ControllingPrim.PhysBody);
+            if (m_physicsScene.VehiclePhysicalLoggingEnabled)
+                m_physicsScene.PE.DumpRigidBody(m_physicsScene.World, ControllingPrim.PhysBody);
         }
 
         // Apply the effect of the linear motor and other linear motions (like hover and float).
