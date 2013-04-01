@@ -424,8 +424,8 @@ namespace OpenSim.Region.Framework.Scenes
         private uint _category;
         private Int32 _creationDate;
         private uint _parentID = 0;
-        private uint _baseMask = (uint)PermissionMask.All;
-        private uint _ownerMask = (uint)PermissionMask.All;
+        private uint _baseMask = (uint)(PermissionMask.All | PermissionMask.Export);
+        private uint _ownerMask = (uint)(PermissionMask.All | PermissionMask.Export);
         private uint _groupMask = (uint)PermissionMask.None;
         private uint _everyoneMask = (uint)PermissionMask.None;
         private uint _nextOwnerMask = (uint)PermissionMask.All;
@@ -3876,10 +3876,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void TrimPermissions()
         {
-            BaseMask &= (uint)PermissionMask.All;
-            OwnerMask &= (uint)PermissionMask.All;
+            BaseMask &= (uint)(PermissionMask.All | PermissionMask.Export);
+            OwnerMask &= (uint)(PermissionMask.All | PermissionMask.Export);
             GroupMask &= (uint)PermissionMask.All;
-            EveryoneMask &= (uint)PermissionMask.All;
+            EveryoneMask &= (uint)(PermissionMask.All | PermissionMask.Export);
             NextOwnerMask &= (uint)PermissionMask.All;
         }
 
@@ -3982,10 +3982,22 @@ namespace OpenSim.Region.Framework.Scenes
                                 baseMask;
                         break;
                     case 8:
+                        // Trying to set export permissions - extra checks
+                        if (set && (mask & (uint)PermissionMask.Export) != 0)
+                        {
+                            if ((OwnerMask & (uint)PermissionMask.Export) == 0 || (BaseMask & (uint)PermissionMask.Export) == 0 || (NextOwnerMask & (uint)PermissionMask.All) != (uint)PermissionMask.All)
+                                mask &= ~(uint)PermissionMask.Export;
+                        }
                         EveryoneMask = ApplyMask(EveryoneMask, set, mask) &
                                 baseMask;
                         break;
                     case 16:
+                        // Force full perm if export
+                        if ((EveryoneMask & (uint)PermissionMask.Export) != 0)
+                        {
+                            NextOwnerMask = (uint)PermissionMask.All;
+                            break;
+                        }
                         NextOwnerMask = ApplyMask(NextOwnerMask, set, mask) &
                                 baseMask;
                         // Prevent the client from creating no mod, no copy
@@ -4743,9 +4755,12 @@ namespace OpenSim.Region.Framework.Scenes
         
         public void ApplyNextOwnerPermissions()
         {
-            BaseMask &= NextOwnerMask;
+            // Export needs to be preserved in the base and everyone
+            // mask, but removed in the owner mask as a next owner
+            // can never change the export status
+            BaseMask &= NextOwnerMask | (uint)PermissionMask.Export;
             OwnerMask &= NextOwnerMask;
-            EveryoneMask &= NextOwnerMask;
+            EveryoneMask &= NextOwnerMask | (uint)PermissionMask.Export;
 
             Inventory.ApplyNextOwnerPermissions();
         }

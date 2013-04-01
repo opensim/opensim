@@ -85,7 +85,9 @@ public abstract class BSConstraint : IDisposable
     {
         bool ret = false;
         if (m_enabled)
+        {
             ret = PhysicsScene.PE.SetAngularLimits(m_constraint, low, high);
+        }
         return ret;
     }
 
