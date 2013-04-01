@@ -42,14 +42,14 @@ public class BSActorLockAxis : BSActor
     public BSActorLockAxis(BSScene physicsScene, BSPhysObject pObj, string actorName)
         : base(physicsScene, pObj,actorName)
     {
-        PhysicsScene.DetailLog("{0},BSActorLockAxis,constructor", Prim.LocalID);
+        m_physicsScene.DetailLog("{0},BSActorLockAxis,constructor", m_controllingPrim.LocalID);
         LockAxisConstraint = null;
     }
 
     // BSActor.isActive
     public override bool isActive
     {
-        get { return Enabled && Prim.IsPhysicallyActive; }
+        get { return Enabled && m_controllingPrim.IsPhysicallyActive; }
     }
 
     // Release any connections and resources used by the actor.
@@ -64,21 +64,22 @@ public class BSActorLockAxis : BSActor
     // BSActor.Refresh()
     public override void Refresh()
     {
-        PhysicsScene.DetailLog("{0},BSActorLockAxis,refresh,lockedAxis={1},enabled={2},pActive={3}", 
-                                    Prim.LocalID, Prim.LockedAxis, Enabled, Prim.IsPhysicallyActive);
+        m_physicsScene.DetailLog("{0},BSActorLockAxis,refresh,lockedAxis={1},enabled={2},pActive={3}", 
+                                    m_controllingPrim.LocalID, m_controllingPrim.LockedAxis, Enabled, m_controllingPrim.IsPhysicallyActive);
         // If all the axis are free, we don't need to exist
-        if (Prim.LockedAxis == Prim.LockedAxisFree)
+        if (m_controllingPrim.LockedAxis == m_controllingPrim.LockedAxisFree)
         {
-            Prim.PhysicalActors.RemoveAndRelease(ActorName);
+            m_physicsScene.DetailLog("{0},BSActorLockAxis,refresh,allAxisFree,removing={1}", m_controllingPrim.LocalID, ActorName);
+            m_controllingPrim.PhysicalActors.RemoveAndRelease(ActorName);
             return;
         }
         // If the object is physically active, add the axis locking constraint
         if (Enabled
-                && Prim.IsPhysicallyActive
+                && m_controllingPrim.IsPhysicallyActive
                 && TryExperimentalLockAxisCode
-                && Prim.LockedAxis != Prim.LockedAxisFree)
+                && m_controllingPrim.LockedAxis != m_controllingPrim.LockedAxisFree)
         {
-            if (LockAxisConstraint != null)
+            if (LockAxisConstraint == null)
                 AddAxisLockConstraint();
         }
         else
@@ -98,7 +99,7 @@ public class BSActorLockAxis : BSActor
             // If a constraint is set up, remove it from the physical scene
             RemoveAxisLockConstraint();
             // Schedule a call before the next simulation step to restore the constraint.
-            PhysicsScene.PostTaintObject(Prim.LockedAxisActorName, Prim.LocalID, delegate()
+            m_physicsScene.PostTaintObject(m_controllingPrim.LockedAxisActorName, m_controllingPrim.LocalID, delegate()
             {
                 Refresh();
             });
@@ -115,56 +116,61 @@ public class BSActorLockAxis : BSActor
         // Remove any existing axis constraint (just to be sure)
         RemoveAxisLockConstraint();
 
-        BSConstraint6Dof axisConstrainer = new BSConstraint6Dof(PhysicsScene.World, Prim.PhysBody, 
-                            OMV.Vector3.Zero, OMV.Quaternion.Inverse(Prim.RawOrientation),
-                            true /* useLinearReferenceFrameB */, true /* disableCollisionsBetweenLinkedBodies */);
+        BSConstraint6Dof axisConstrainer = new BSConstraint6Dof(m_physicsScene.World, m_controllingPrim.PhysBody, 
+                            // OMV.Vector3.Zero, OMV.Quaternion.Identity,
+                            OMV.Vector3.Zero, OMV.Quaternion.Inverse(m_controllingPrim.RawOrientation),
+                            // OMV.Vector3.Zero, m_controllingPrim.RawOrientation,
+                            false /* useLinearReferenceFrameB */, true /* disableCollisionsBetweenLinkedBodies */);
         LockAxisConstraint = axisConstrainer;
-        PhysicsScene.Constraints.AddConstraint(LockAxisConstraint);
+        m_physicsScene.Constraints.AddConstraint(LockAxisConstraint);
 
         // The constraint is tied to the world and oriented to the prim.
 
-        // Free to move linearly
+        // Free to move linearly in the region
         OMV.Vector3 linearLow = OMV.Vector3.Zero;
-        OMV.Vector3 linearHigh = PhysicsScene.TerrainManager.DefaultRegionSize;
+        OMV.Vector3 linearHigh = m_physicsScene.TerrainManager.DefaultRegionSize;
         axisConstrainer.SetLinearLimits(linearLow, linearHigh);
 
         // Angular with some axis locked
-        float f2PI = (float)Math.PI * 2f;
-        OMV.Vector3 angularLow = new OMV.Vector3(-f2PI, -f2PI, -f2PI);
-        OMV.Vector3 angularHigh = new OMV.Vector3(f2PI, f2PI, f2PI);
-        if (Prim.LockedAxis.X != 1f)
+        float fPI = (float)Math.PI;
+        OMV.Vector3 angularLow = new OMV.Vector3(-fPI, -fPI, -fPI);
+        OMV.Vector3 angularHigh = new OMV.Vector3(fPI, fPI, fPI);
+        if (m_controllingPrim.LockedAxis.X != 1f)
         {
             angularLow.X = 0f;
             angularHigh.X = 0f;
         }
-        if (Prim.LockedAxis.Y != 1f)
+        if (m_controllingPrim.LockedAxis.Y != 1f)
         {
             angularLow.Y = 0f;
             angularHigh.Y = 0f;
         }
-        if (Prim.LockedAxis.Z != 1f)
+        if (m_controllingPrim.LockedAxis.Z != 1f)
         {
             angularLow.Z = 0f;
             angularHigh.Z = 0f;
         }
-        axisConstrainer.SetAngularLimits(angularLow, angularHigh);
+        if (!axisConstrainer.SetAngularLimits(angularLow, angularHigh))
+        {
+            m_physicsScene.DetailLog("{0},BSActorLockAxis.AddAxisLockConstraint,failedSetAngularLimits", m_controllingPrim.LocalID);
+        }
 
-        PhysicsScene.DetailLog("{0},BSPrim.LockAngularMotion,create,linLow={1},linHi={2},angLow={3},angHi={4}",
-                                    Prim.LocalID, linearLow, linearHigh, angularLow, angularHigh);
+        m_physicsScene.DetailLog("{0},BSActorLockAxis.AddAxisLockConstraint,create,linLow={1},linHi={2},angLow={3},angHi={4}",
+                                    m_controllingPrim.LocalID, linearLow, linearHigh, angularLow, angularHigh);
 
         // Constants from one of the posts mentioned above and used in Bullet's ConstraintDemo.
         axisConstrainer.TranslationalLimitMotor(true /* enable */, 5.0f, 0.1f);
 
-        axisConstrainer.RecomputeConstraintVariables(Prim.RawMass);
+        axisConstrainer.RecomputeConstraintVariables(m_controllingPrim.RawMass);
     }
 
     private void RemoveAxisLockConstraint()
     {
         if (LockAxisConstraint != null)
         {
-            PhysicsScene.Constraints.RemoveAndDestroyConstraint(LockAxisConstraint);
+            m_physicsScene.Constraints.RemoveAndDestroyConstraint(LockAxisConstraint);
             LockAxisConstraint = null;
-            PhysicsScene.DetailLog("{0},BSPrim.CleanUpLockAxisPhysicals,destroyingConstraint", Prim.LocalID);
+            m_physicsScene.DetailLog("{0},BSActorLockAxis.RemoveAxisLockConstraint,destroyingConstraint", m_controllingPrim.LocalID);
         }
     }
 }

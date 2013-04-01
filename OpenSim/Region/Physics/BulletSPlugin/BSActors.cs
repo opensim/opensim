@@ -96,15 +96,15 @@ public class BSActorCollection
 /// </summary>
 public abstract class BSActor
 {
-    protected BSScene PhysicsScene { get; private set; }
-    protected BSPhysObject Prim { get; private set; }
+    protected BSScene m_physicsScene { get; private set; }
+    protected BSPhysObject m_controllingPrim { get; private set; }
     protected bool Enabled { get; set; }
     public string ActorName { get; private set; }
 
     public BSActor(BSScene physicsScene, BSPhysObject pObj, string actorName)
     {
-        PhysicsScene = physicsScene;
-        Prim = pObj;
+        m_physicsScene = physicsScene;
+        m_controllingPrim = pObj;
         ActorName = actorName;
         Enabled = true;
     }

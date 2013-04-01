@@ -274,10 +274,10 @@ public class BSPrim : BSPhysObject
         {
             PhysicsScene.TaintedObject("BSPrim.LockAngularMotion", delegate()
             {
-                DetailLog("{0},BSPrim.LockAngularMotion,taint,registeringLockAxisActor", LocalID);
                 // If there is not already an axis locker, make one
                 if (!PhysicalActors.HasActor(LockedAxisActorName))
                 {
+                    DetailLog("{0},BSPrim.LockAngularMotion,taint,registeringLockAxisActor", LocalID);
                     PhysicalActors.Add(LockedAxisActorName, new BSActorLockAxis(PhysicsScene, this, LockedAxisActorName));
                 }
                 UpdatePhysicalParameters();
