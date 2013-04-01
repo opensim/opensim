@@ -187,7 +187,7 @@ public abstract class BSPhysObject : PhysicsActor
         Friction = matAttrib.friction;
         Restitution = matAttrib.restitution;
         Density = matAttrib.density / BSParam.DensityScaleFactor;
-        DetailLog("{0},{1}.SetMaterial,Mat={2},frict={3},rest={4},den={5}", LocalID, TypeName, Material, Friction, Restitution, Density);
+        // DetailLog("{0},{1}.SetMaterial,Mat={2},frict={3},rest={4},den={5}", LocalID, TypeName, Material, Friction, Restitution, Density);
     }
 
     // Stop all physical motion.

@@ -72,7 +72,8 @@ public class BSPrim : BSPhysObject
 
     private int CrossingFailures { get; set; }
 
-    public BSDynamics VehicleController { get; private set; }
+    public BSDynamics VehicleActor;
+    public string VehicleActorName = "BasicVehicle";
 
     private BSVMotor _targetMotor;
     private OMV.Vector3 _PIDTarget;
@@ -100,11 +101,12 @@ public class BSPrim : BSPhysObject
         _isPhysical = pisPhysical;
         _isVolumeDetect = false;
 
-        VehicleController = new BSDynamics(PhysicsScene, this);            // add vehicleness
+        VehicleActor = new BSDynamics(PhysicsScene, this, VehicleActorName);
+        PhysicalActors.Add(VehicleActorName, VehicleActor);
 
         _mass = CalculateMass();
 
-        DetailLog("{0},BSPrim.constructor,call", LocalID);
+        // DetailLog("{0},BSPrim.constructor,call", LocalID);
         // do the actual object creation at taint time
         PhysicsScene.TaintedObject("BSPrim.create", delegate()
         {
@@ -272,6 +274,7 @@ public class BSPrim : BSPhysObject
         {
             PhysicsScene.TaintedObject("BSPrim.LockAngularMotion", delegate()
             {
+                DetailLog("{0},BSPrim.LockAngularMotion,taint,registeringLockAxisActor", LocalID);
                 // If there is not already an axis locker, make one
                 if (!PhysicalActors.HasActor(LockedAxisActorName))
                 {
@@ -537,7 +540,7 @@ public class BSPrim : BSPhysObject
 
     public override int VehicleType {
         get {
-            return (int)VehicleController.Type;   // if we are a vehicle, return that type
+            return (int)VehicleActor.Type;   // if we are a vehicle, return that type
         }
         set {
             Vehicle type = (Vehicle)value;
@@ -546,20 +549,8 @@ public class BSPrim : BSPhysObject
             {
                 // Done at taint time so we're sure the physics engine is not using the variables
                 // Vehicle code changes the parameters for this vehicle type.
-                VehicleController.ProcessTypeChange(type);
+                VehicleActor.ProcessTypeChange(type);
                 ActivateIfPhysical(false);
-
-                // If an active vehicle, register the vehicle code to be called before each step
-                if (VehicleController.Type == Vehicle.TYPE_NONE)
-                {
-                    UnRegisterPreStepAction("BSPrim.Vehicle", LocalID);
-                    UnRegisterPostStepAction("BSPrim.Vehicle", LocalID);
-                }
-                else
-                {
-                    RegisterPreStepAction("BSPrim.Vehicle", LocalID, VehicleController.Step);
-                    RegisterPostStepAction("BSPrim.Vehicle", LocalID, VehicleController.PostStep);
-                }
             });
         }
     }
@@ -567,7 +558,7 @@ public class BSPrim : BSPhysObject
     {
         PhysicsScene.TaintedObject("BSPrim.VehicleFloatParam", delegate()
         {
-            VehicleController.ProcessFloatVehicleParam((Vehicle)param, value);
+            VehicleActor.ProcessFloatVehicleParam((Vehicle)param, value);
             ActivateIfPhysical(false);
         });
     }
@@ -575,7 +566,7 @@ public class BSPrim : BSPhysObject
     {
         PhysicsScene.TaintedObject("BSPrim.VehicleVectorParam", delegate()
         {
-            VehicleController.ProcessVectorVehicleParam((Vehicle)param, value);
+            VehicleActor.ProcessVectorVehicleParam((Vehicle)param, value);
             ActivateIfPhysical(false);
         });
     }
@@ -583,7 +574,7 @@ public class BSPrim : BSPhysObject
     {
         PhysicsScene.TaintedObject("BSPrim.VehicleRotationParam", delegate()
         {
-            VehicleController.ProcessRotationVehicleParam((Vehicle)param, rotation);
+            VehicleActor.ProcessRotationVehicleParam((Vehicle)param, rotation);
             ActivateIfPhysical(false);
         });
     }
@@ -591,7 +582,7 @@ public class BSPrim : BSPhysObject
     {
         PhysicsScene.TaintedObject("BSPrim.VehicleFlags", delegate()
         {
-            VehicleController.ProcessVehicleFlags(param, remove);
+            VehicleActor.ProcessVehicleFlags(param, remove);
         });
     }
 
@@ -848,7 +839,7 @@ public class BSPrim : BSPhysObject
         MakeDynamic(IsStatic);
 
         // Update vehicle specific parameters (after MakeDynamic() so can change physical parameters)
-        VehicleController.Refresh();
+        VehicleActor.Refresh();
         PhysicalActors.Refresh();
 
         // Arrange for collision events if the simulator wants them
@@ -1655,9 +1646,9 @@ public class BSPrim : BSPhysObject
         volume *= (profileEnd - profileBegin);
 
         returnMass = Density * BSParam.DensityScaleFactor * volume;
-        DetailLog("{0},BSPrim.CalculateMass,den={1},vol={2},mass={3}", LocalID, Density, volume, returnMass);
 
         returnMass = Util.Clamp(returnMass, BSParam.MinimumObjectMass, BSParam.MaximumObjectMass);
+        // DetailLog("{0},BSPrim.CalculateMass,den={1},vol={2},mass={3}", LocalID, Density, volume, returnMass);
 
         return returnMass;
     }// end CalculateMass
@@ -1686,7 +1677,7 @@ public class BSPrim : BSPhysObject
 
     protected virtual void RemoveBodyDependencies()
     {
-        VehicleController.RemoveBodyDependencies(this);
+        VehicleActor.RemoveBodyDependencies();
         PhysicalActors.RemoveBodyDependencies();
     }
 
@@ -1695,13 +1686,6 @@ public class BSPrim : BSPhysObject
     public override void UpdateProperties(EntityProperties entprop)
     {
         TriggerPreUpdatePropertyAction(ref entprop);
-
-        // A temporary kludge to suppress the rotational effects introduced on vehicles by Bullet
-        // TODO: handle physics introduced by Bullet with computed vehicle physics.
-        if (VehicleController.IsActive)
-        {
-            entprop.RotationalVelocity = OMV.Vector3.Zero;
-        }
 
         // DetailLog("{0},BSPrim.UpdateProperties,entry,entprop={1}", LocalID, entprop);   // DEBUG DEBUG
 
