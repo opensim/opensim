@@ -36,7 +36,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 {
 public class BSActorLockAxis : BSActor
 {
-    bool TryExperimentalLockAxisCode = false;
+    bool TryExperimentalLockAxisCode = true;
     BSConstraint LockAxisConstraint = null;
 
     public BSActorLockAxis(BSScene physicsScene, BSPhysObject pObj, string actorName)
@@ -117,9 +117,7 @@ public class BSActorLockAxis : BSActor
         RemoveAxisLockConstraint();
 
         BSConstraint6Dof axisConstrainer = new BSConstraint6Dof(m_physicsScene.World, m_controllingPrim.PhysBody, 
-                            // OMV.Vector3.Zero, OMV.Quaternion.Identity,
-                            OMV.Vector3.Zero, OMV.Quaternion.Inverse(m_controllingPrim.RawOrientation),
-                            // OMV.Vector3.Zero, m_controllingPrim.RawOrientation,
+                            OMV.Vector3.Zero, OMV.Quaternion.Identity,
                             false /* useLinearReferenceFrameB */, true /* disableCollisionsBetweenLinkedBodies */);
         LockAxisConstraint = axisConstrainer;
         m_physicsScene.Constraints.AddConstraint(LockAxisConstraint);
