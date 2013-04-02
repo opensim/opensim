@@ -434,8 +434,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
         private void UpdateUserInventoryWithAttachment(IScenePresence sp, SceneObjectGroup group, uint attachmentPt, bool append)
         {
-            List<SceneObjectGroup> attachments = sp.GetAttachments(attachmentPt);
-
             // Add the new attachment to inventory if we don't already have it.
             UUID newAttachmentItemID = group.FromItemID;
             if (newAttachmentItemID == UUID.Zero)
