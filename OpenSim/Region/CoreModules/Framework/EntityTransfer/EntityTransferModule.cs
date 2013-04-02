@@ -280,10 +280,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         private void OnConnectionClosed(IClientAPI client)
         {
-            if (client.IsLoggingOut)
+            if (client.IsLoggingOut && m_entityTransferStateMachine.UpdateInTransit(client.AgentId, AgentTransferState.Aborting))
             {
-                m_entityTransferStateMachine.UpdateInTransit(client.AgentId, AgentTransferState.Aborting);
-
                 m_log.DebugFormat(
                     "[ENTITY TRANSFER MODULE]: Aborted teleport request from {0} in {1} due to simultaneous logout", 
                     client.Name, Scene.Name);
