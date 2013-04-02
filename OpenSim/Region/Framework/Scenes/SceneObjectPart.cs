@@ -4349,13 +4349,14 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void UpdateGroupPosition(Vector3 pos)
+        public void UpdateGroupPosition(Vector3 newPos)
         {
-            if ((pos.X != GroupPosition.X) ||
-                (pos.Y != GroupPosition.Y) ||
-                (pos.Z != GroupPosition.Z))
+            Vector3 oldPos = GroupPosition;
+
+            if ((newPos.X != oldPos.X) ||
+                (newPos.Y != oldPos.Y) ||
+                (newPos.Z != oldPos.Z))
             {
-                Vector3 newPos = new Vector3(pos.X, pos.Y, pos.Z);
                 GroupPosition = newPos;
                 ScheduleTerseUpdate();
             }
