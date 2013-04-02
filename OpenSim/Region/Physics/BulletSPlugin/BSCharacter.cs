@@ -61,6 +61,7 @@ public sealed class BSCharacter : BSPhysObject
     private OMV.Vector3 _rotationalVelocity;
     private bool _kinematic;
     private float _buoyancy;
+    private bool _isStationaryStanding; // true is standing on a stationary object
 
     private BSVMotor _velocityMotor;
 
@@ -84,6 +85,7 @@ public sealed class BSCharacter : BSPhysObject
         _buoyancy = ComputeBuoyancyFromFlying(isFlying);
         Friction = BSParam.AvatarStandingFriction;
         Density = BSParam.AvatarDensity / BSParam.DensityScaleFactor;
+        _isStationaryStanding = false;
 
         // Old versions of ScenePresence passed only the height. If width and/or depth are zero,
         //     replace with the default values.
@@ -208,6 +210,7 @@ public sealed class BSCharacter : BSPhysObject
             // The code below uses whether the collider is static or moving to decide whether to zero motion.
 
             _velocityMotor.Step(timeStep);
+            _isStationaryStanding = false;
 
             // If we're not supposed to be moving, make sure things are zero.
             if (_velocityMotor.ErrorIsZero() && _velocityMotor.TargetValue == OMV.Vector3.Zero)
@@ -221,6 +224,7 @@ public sealed class BSCharacter : BSPhysObject
                     if (!ColliderIsMoving)
                     {
                         DetailLog("{0},BSCharacter.MoveMotor,collidingWithStationary,zeroingMotion", LocalID);
+                        _isStationaryStanding = true;
                         ZeroMotion(true /* inTaintTime */);
                     }
 
@@ -882,7 +886,10 @@ public sealed class BSCharacter : BSPhysObject
     // the world that things have changed.
     public override void UpdateProperties(EntityProperties entprop)
     {
-        _position = entprop.Position;
+        // Don't change position if standing on a stationary object.
+        if (!_isStationaryStanding)
+            _position = entprop.Position;
+
         _orientation = entprop.Rotation;
 
         // Smooth velocity. OpenSimulator is VERY sensitive to changes in velocity of the avatar
