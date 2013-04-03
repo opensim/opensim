@@ -293,19 +293,13 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
         {
             lock (HttpListLock)
             {
-                foreach (UUID luid in m_pendingRequests.Keys)
+                foreach (HttpRequestClass req in m_pendingRequests.Values)
                 {
-                    HttpRequestClass tmpReq;
-
-                    if (m_pendingRequests.TryGetValue(luid, out tmpReq))
-                    {
-                        if (tmpReq.Finished)
-                        {
-                            return tmpReq;
-                        }
-                    }
+                    if (req.Finished)
+                        return req;
                 }
             }
+
             return null;
         }
 
