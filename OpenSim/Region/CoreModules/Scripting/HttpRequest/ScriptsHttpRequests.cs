@@ -28,12 +28,15 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Mail;
 using System.Net.Security;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Security.Cryptography.X509Certificates;
+using log4net;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -250,18 +253,29 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
             return reqID;
         }
 
-        public void StopHttpRequest(uint m_localID, UUID m_itemID)
+        public void StopHttpRequestsForScript(UUID id)
         {
             if (m_pendingRequests != null)
             {
+                List<UUID> keysToRemove = null;
+
                 lock (HttpListLock)
                 {
-                    HttpRequestClass tmpReq;
-                    if (m_pendingRequests.TryGetValue(m_itemID, out tmpReq))
+                    foreach (HttpRequestClass req in m_pendingRequests.Values)
                     {
-                        tmpReq.Stop();
-                        m_pendingRequests.Remove(m_itemID);
+                        if (req.ItemID == id)
+                        {
+                            req.Stop();
+
+                            if (keysToRemove == null)
+                                keysToRemove = new List<UUID>();
+
+                            keysToRemove.Add(req.ReqID);
+                        }
                     }
+
+                    if (keysToRemove != null)
+                        keysToRemove.ForEach(keyToRemove => m_pendingRequests.Remove(keyToRemove));
                 }
             }
         }
@@ -362,6 +376,8 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
 
     public class HttpRequestClass: IServiceRequest
     {
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         // Constants for parameters
         // public const int HTTP_BODY_MAXLENGTH = 2;
         // public const int HTTP_METHOD = 0;
@@ -419,12 +435,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
 
         public void Process()
         {
-            httpThread = new Thread(SendRequest);
-            httpThread.Name = "HttpRequestThread";
-            httpThread.Priority = ThreadPriority.BelowNormal;
-            httpThread.IsBackground = true;
-            _finished = false;
-            httpThread.Start();
+            SendRequest();
         }
 
         /*
@@ -435,10 +446,6 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
         public void SendRequest()
         {
             HttpWebResponse response = null;
-            StringBuilder sb = new StringBuilder();
-            byte[] buf = new byte[8192];
-            string tempString = null;
-            int count = 0;
 
             try
             {
@@ -497,11 +504,12 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                     bstream.Close();
                 }
 
-                Request.Timeout = HttpTimeout;
                 try
                 {
-                    // execute the request
-                    response = (HttpWebResponse) Request.GetResponse();
+                    IAsyncResult result = (IAsyncResult)Request.BeginGetResponse(ResponseCallback, null);
+
+                    ThreadPool.RegisterWaitForSingleObject(
+                        result.AsyncWaitHandle, new WaitOrTimerCallback(TimeoutCallback), null, HttpTimeout, true);
                 }
                 catch (WebException e)
                 {
@@ -510,11 +518,31 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                         throw;
                     }
                     response = (HttpWebResponse)e.Response;
+                    _finished = true;
                 }
+            }
+            catch (Exception e)
+            {
+                Status = (int)OSHttpStatusCode.ClientErrorJoker;
+                ResponseBody = e.Message;
+                _finished = true;
+            }
+        }
 
+        private void ResponseCallback(IAsyncResult ar)
+        {
+            HttpWebResponse response = null;
+
+            try
+            {
+                response = (HttpWebResponse)Request.EndGetResponse(ar);
                 Status = (int)response.StatusCode;
 
                 Stream resStream = response.GetResponseStream();
+                StringBuilder sb = new StringBuilder();
+                byte[] buf = new byte[8192];
+                string tempString = null;
+                int count = 0;
 
                 do
                 {
@@ -530,36 +558,40 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                         // continue building the string
                         sb.Append(tempString);
                     }
-                } while (count > 0); // any more data to read?
+                } 
+                while (count > 0); // any more data to read?
 
-                ResponseBody = sb.ToString();
+                ResponseBody = sb.ToString();         
             }
             catch (Exception e)
             {
                 Status = (int)OSHttpStatusCode.ClientErrorJoker;
                 ResponseBody = e.Message;
 
-                _finished = true;
-                return;
+//                m_log.Debug(
+//                    string.Format("[SCRIPTS HTTP REQUESTS]: Exception on response to {0} for {1}  ", Url, ItemID), e);
             }
             finally
             {
                 if (response != null)
                     response.Close();
-            }
 
-            _finished = true;
+                _finished = true;
+            }
+        }
+
+        private void TimeoutCallback(object state, bool timedOut)
+        {
+            if (timedOut)
+                Request.Abort();
         }
 
         public void Stop()
         {
-            try
-            {
-                httpThread.Abort();
-            }
-            catch (Exception)
-            {
-            }
+//            m_log.DebugFormat("[SCRIPTS HTTP REQUESTS]: Stopping request to {0} for {1}  ", Url, ItemID);
+
+            if (Request != null)
+                Request.Abort();
         }
     }
 }

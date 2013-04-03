@@ -45,7 +45,13 @@ namespace OpenSim.Region.Framework.Interfaces
     {
         UUID MakeHttpRequest(string url, string parameters, string body);
         UUID StartHttpRequest(uint localID, UUID itemID, string url, List<string> parameters, Dictionary<string, string> headers, string body);
-        void StopHttpRequest(uint m_localID, UUID m_itemID);
+
+        /// <summary>
+        /// Stop and remove all http requests for the given script.
+        /// </summary>
+        /// <param name='id'></param>
+        void StopHttpRequestsForScript(UUID id);
+
         IServiceRequest GetNextCompletedRequest();
         void RemoveCompletedRequest(UUID id);
     }

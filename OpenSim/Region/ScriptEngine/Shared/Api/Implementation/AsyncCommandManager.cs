@@ -28,7 +28,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Threading;
+using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Monitoring;
@@ -45,6 +47,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
     /// </summary>
     public class AsyncCommandManager
     {
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         private static Thread cmdHandlerThread;
         private static int cmdHandlerThreadCycleSleepms;
 
@@ -225,6 +229,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// <param name="itemID"></param>
         public static void RemoveScript(IScriptEngine engine, uint localID, UUID itemID)
         {
+//            m_log.DebugFormat("[ASYNC COMMAND MANAGER]: Removing facilities for script {0}", itemID);
+
             // Remove a specific script
 
             // Remove dataserver events
@@ -236,7 +242,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // Remove from: HttpRequest
             IHttpRequestModule iHttpReq = engine.World.RequestModuleInterface<IHttpRequestModule>();
             if (iHttpReq != null)
-                iHttpReq.StopHttpRequest(localID, itemID);
+                iHttpReq.StopHttpRequestsForScript(itemID);
 
             IWorldComm comms = engine.World.RequestModuleInterface<IWorldComm>();
             if (comms != null)
