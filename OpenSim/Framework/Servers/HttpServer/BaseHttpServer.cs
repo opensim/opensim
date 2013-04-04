@@ -453,7 +453,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
             
             OSHttpResponse resp = new OSHttpResponse(new HttpResponse(context, request),context);
-            
+            resp.ReuseContext = true;
             HandleRequest(req, resp);
            
 
