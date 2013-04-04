@@ -1225,7 +1225,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             {
                 GridUserInfo userInfo = m_application.SceneManager.CurrentOrFirstScene.GridUserService.GetGridUserInfo(account.PrincipalID.ToString());
                 if (userInfo != null)
-                    responseData["lastlogin"] = userInfo.Login;
+                    responseData["lastlogin"] = Util.ToUnixTime(userInfo.Login);
                 else
                     responseData["lastlogin"] = 0;
 
