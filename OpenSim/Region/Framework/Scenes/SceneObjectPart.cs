@@ -1224,17 +1224,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         public Quaternion SitTargetOrientationLL
         {
-            get
-            {
-                return new Quaternion(
-                                        m_sitTargetOrientation.X,
-                                        m_sitTargetOrientation.Y,
-                                        m_sitTargetOrientation.Z,
-                                        m_sitTargetOrientation.W
-                                        );
-            }
-
-            set { m_sitTargetOrientation = new Quaternion(value.X, value.Y, value.Z, value.W); }
+            get { return m_sitTargetOrientation; }
+            set { m_sitTargetOrientation = value; }
         }
 
         public bool Stopped
