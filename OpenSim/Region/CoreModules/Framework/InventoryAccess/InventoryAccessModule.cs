@@ -357,19 +357,19 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
             foreach (SceneObjectGroup objectGroup in objlist)
             {
-                Vector3 inventoryStoredPosition = new Vector3
-                            (((objectGroup.AbsolutePosition.X > (int)Constants.RegionSize)
-                                  ? 250
-                                  : objectGroup.AbsolutePosition.X)
-                             ,
-                             (objectGroup.AbsolutePosition.Y > (int)Constants.RegionSize)
-                                 ? 250
-                                 : objectGroup.AbsolutePosition.Y,
-                             objectGroup.AbsolutePosition.Z);
-
-                originalPositions[objectGroup.UUID] = objectGroup.AbsolutePosition;
-
-                objectGroup.AbsolutePosition = inventoryStoredPosition;
+//                Vector3 inventoryStoredPosition = new Vector3
+//                            (((objectGroup.AbsolutePosition.X > (int)Constants.RegionSize)
+//                                  ? 250
+//                                  : objectGroup.AbsolutePosition.X)
+//                             ,
+//                             (objectGroup.AbsolutePosition.Y > (int)Constants.RegionSize)
+//                                 ? 250
+//                                 : objectGroup.AbsolutePosition.Y,
+//                             objectGroup.AbsolutePosition.Z);
+//
+//                originalPositions[objectGroup.UUID] = objectGroup.AbsolutePosition;
+//
+//                objectGroup.AbsolutePosition = inventoryStoredPosition;
 
                 // Make sure all bits but the ones we want are clear
                 // on take.
@@ -397,9 +397,9 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             else
                 itemXml = SceneObjectSerializer.ToOriginalXmlFormat(objlist[0], !asAttachment);
             
-            // Restore the position of each group now that it has been stored to inventory.
-            foreach (SceneObjectGroup objectGroup in objlist)
-                objectGroup.AbsolutePosition = originalPositions[objectGroup.UUID];
+//            // Restore the position of each group now that it has been stored to inventory.
+//            foreach (SceneObjectGroup objectGroup in objlist)
+//                objectGroup.AbsolutePosition = originalPositions[objectGroup.UUID];
 
             InventoryItemBase item = CreateItemForObject(action, remoteClient, objlist[0], folderID);
 
