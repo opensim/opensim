@@ -70,8 +70,8 @@ public class BSActorSetTorque : BSActor
         // If not active any more, get rid of me (shouldn't ever happen, but just to be safe)
         if (m_controllingPrim.RawTorque == OMV.Vector3.Zero)
         {
-            m_physicsScene.DetailLog("{0},BSActorSetTorque,refresh,notSetTorque,removing={1}", m_controllingPrim.LocalID, ActorName);
-            m_controllingPrim.PhysicalActors.RemoveAndRelease(ActorName);
+            m_physicsScene.DetailLog("{0},BSActorSetTorque,refresh,notSetTorque,disabling={1}", m_controllingPrim.LocalID, ActorName);
+            Enabled = false;
             return;
         }
 

@@ -67,12 +67,10 @@ public class BSActorHover : BSActor
     {
         m_physicsScene.DetailLog("{0},BSActorHover,refresh", m_controllingPrim.LocalID);
 
-        // If not active any more, get rid of me (shouldn't ever happen, but just to be safe)
+        // If not active any more, turn me off
         if (!m_controllingPrim.HoverActive)
         {
-            m_physicsScene.DetailLog("{0},BSActorHover,refresh,notHovering,removing={1}", m_controllingPrim.LocalID, ActorName);
-            m_controllingPrim.PhysicalActors.RemoveAndRelease(ActorName);
-            return;
+            SetEnabled(false);
         }
 
         // If the object is physically active, add the hoverer prestep action

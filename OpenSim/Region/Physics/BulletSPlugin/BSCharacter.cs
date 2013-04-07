@@ -160,6 +160,9 @@ public sealed class BSCharacter : BSPhysObject
         // Make so capsule does not fall over
         PhysicsScene.PE.SetAngularFactorV(PhysBody, OMV.Vector3.Zero);
 
+        // The avatar mover sets some parameters.
+        PhysicalActors.Refresh();
+
         PhysicsScene.PE.AddToCollisionFlags(PhysBody, CollisionFlags.CF_CHARACTER_OBJECT);
 
         PhysicsScene.PE.AddObjectToWorld(PhysicsScene.World, PhysBody);

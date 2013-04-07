@@ -95,6 +95,7 @@ public class BSPrim : BSPhysObject
         _isPhysical = pisPhysical;
         _isVolumeDetect = false;
 
+        // We keep a handle to the vehicle actor so we can set vehicle parameters later.
         VehicleActor = new BSDynamics(PhysicsScene, this, VehicleActorName);
         PhysicalActors.Add(VehicleActorName, VehicleActor);
 
@@ -264,7 +265,7 @@ public class BSPrim : BSPhysObject
         if (axis.Z != 1) locking.Z = 0f;
         LockedAxis = locking;
 
-        CreateRemoveActor(LockedAxis != LockedAxisFree /* creatActor */, LockedAxisActorName, false /* inTaintTime */, delegate()
+        EnableActor(LockedAxis != LockedAxisFree, LockedAxisActorName, delegate()
         {
             return new BSActorLockAxis(PhysicsScene, this, LockedAxisActorName);
         });
@@ -501,7 +502,7 @@ public class BSPrim : BSPhysObject
         get { return RawForce; }
         set {
             RawForce = value;
-            CreateRemoveActor(RawForce == OMV.Vector3.Zero, SetForceActorName, false /* inTaintTime */, delegate()
+            EnableActor(RawForce != OMV.Vector3.Zero, SetForceActorName, delegate()
             {
                 return new BSActorSetForce(PhysicsScene, this, SetForceActorName);
             });
@@ -510,14 +511,13 @@ public class BSPrim : BSPhysObject
 
     public override int VehicleType {
         get {
-            return (int)VehicleActor.Type;   // if we are a vehicle, return that type
+            return (int)VehicleActor.Type;
         }
         set {
             Vehicle type = (Vehicle)value;
 
             PhysicsScene.TaintedObject("setVehicleType", delegate()
             {
-                // Done at taint time so we're sure the physics engine is not using the variables
                 // Vehicle code changes the parameters for this vehicle type.
                 VehicleActor.ProcessTypeChange(type);
                 ActivateIfPhysical(false);
@@ -669,11 +669,11 @@ public class BSPrim : BSPhysObject
         get { return RawTorque; }
         set {
             RawTorque = value;
-            CreateRemoveActor(RawTorque == OMV.Vector3.Zero, SetTorqueActorName, false /* inTaintTime */, delegate()
+            EnableActor(RawTorque != OMV.Vector3.Zero, SetTorqueActorName, delegate()
             {
                 return new BSActorSetTorque(PhysicsScene, this, SetTorqueActorName);
             });
-            // DetailLog("{0},BSPrim.SetTorque,call,torque={1}", LocalID, _torque);
+            DetailLog("{0},BSPrim.SetTorque,call,torque={1}", LocalID, RawTorque);
         }
     }
     public override OMV.Vector3 Acceleration {
@@ -786,7 +786,6 @@ public class BSPrim : BSPhysObject
         MakeDynamic(IsStatic);
 
         // Update vehicle specific parameters (after MakeDynamic() so can change physical parameters)
-        VehicleActor.Refresh();
         PhysicalActors.Refresh();
 
         // Arrange for collision events if the simulator wants them
@@ -1037,7 +1036,7 @@ public class BSPrim : BSPhysObject
     public override bool PIDActive {
         set {
             base.MoveToTargetActive = value;
-            CreateRemoveActor(MoveToTargetActive, MoveToTargetActorName, false /* inTaintTime */, delegate()
+            EnableActor(MoveToTargetActive, MoveToTargetActorName, delegate()
             {
                 return new BSActorMoveToTarget(PhysicsScene, this, MoveToTargetActorName);
             });
@@ -1049,7 +1048,7 @@ public class BSPrim : BSPhysObject
     public override bool PIDHoverActive {
         set {
             base.HoverActive = value;
-            CreateRemoveActor(HoverActive /* creatActor */, HoverActorName, false /* inTaintTime */, delegate()
+            EnableActor(HoverActive, HoverActorName, delegate()
             {
                 return new BSActorHover(PhysicsScene, this, HoverActorName);
             });
@@ -1458,7 +1457,7 @@ public class BSPrim : BSPhysObject
     {
         // Create the correct physical representation for this type of object.
         // Updates base.PhysBody and base.PhysShape with the new information.
-        // Ignore 'forceRebuild'. This routine makes the right choices and changes of necessary.
+        // Ignore 'forceRebuild'. 'GetBodyAndShape' makes the right choices and changes of necessary.
         PhysicsScene.Shapes.GetBodyAndShape(false /*forceRebuild */, PhysicsScene.World, this, null, delegate(BulletBody dBody)
         {
             // Called if the current prim body is about to be destroyed.
@@ -1472,9 +1471,9 @@ public class BSPrim : BSPhysObject
         return;
     }
 
+    // Called at taint-time
     protected virtual void RemoveBodyDependencies()
     {
-        VehicleActor.RemoveBodyDependencies();
         PhysicalActors.RemoveBodyDependencies();
     }
 
@@ -1482,6 +1481,7 @@ public class BSPrim : BSPhysObject
     // the world that things have changed.
     public override void UpdateProperties(EntityProperties entprop)
     {
+        // Let anyone (like the actors) modify the updated properties before they are pushed into the object and the simulator.
         TriggerPreUpdatePropertyAction(ref entprop);
 
         // DetailLog("{0},BSPrim.UpdateProperties,entry,entprop={1}", LocalID, entprop);   // DEBUG DEBUG

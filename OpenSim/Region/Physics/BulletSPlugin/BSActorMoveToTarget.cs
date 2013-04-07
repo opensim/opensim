@@ -67,15 +67,12 @@ public class BSActorMoveToTarget : BSActor
     {
         m_physicsScene.DetailLog("{0},BSActorMoveToTarget,refresh", m_controllingPrim.LocalID);
 
-        // If not active any more, get rid of me (shouldn't ever happen, but just to be safe)
-        if (!m_controllingPrim.HoverActive)
+        // If not active any more...
+        if (!m_controllingPrim.MoveToTargetActive)
         {
-            m_physicsScene.DetailLog("{0},BSActorMoveToTarget,refresh,notMoveToTarget,removing={1}", m_controllingPrim.LocalID, ActorName);
-            m_controllingPrim.PhysicalActors.RemoveAndRelease(ActorName);
-            return;
+            Enabled = false;
         }
 
-        // If the object is physically active, add the hoverer prestep action
         if (isActive)
         {
             ActivateMoveToTarget();
@@ -92,7 +89,7 @@ public class BSActorMoveToTarget : BSActor
     // BSActor.RemoveBodyDependencies()
     public override void RemoveBodyDependencies()
     {
-        // Nothing to do for the hoverer since it is all software at pre-step action time.
+        // Nothing to do for the moveToTarget since it is all software at pre-step action time.
     }
 
     // If a hover motor has not been created, create one and start the hovering.
@@ -144,7 +141,6 @@ public class BSActorMoveToTarget : BSActor
             m_physicsScene.DetailLog("{0},BSPrim.PIDTarget,zeroMovement,movePos={1},pos={2},mass={3}",
                                     m_controllingPrim.LocalID, movePosition, m_controllingPrim.RawPosition, m_controllingPrim.Mass);
             m_controllingPrim.ForcePosition = m_targetMotor.TargetValue;
-            m_targetMotor.Enabled = false;
         }
         else
         {

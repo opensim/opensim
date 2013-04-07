@@ -282,30 +282,31 @@ public abstract class BSPhysObject : PhysicsActor
 
     // 'actors' act on the physical object to change or constrain its motion. These can range from
     //       hovering to complex vehicle motion.
+    // May be called at non-taint time as this just adds the actor to the action list and the real
+    //    work is done during the simulation step.
+    // Note that, if the actor is already in the list and we are disabling same, the actor is just left
+    //    in the list disabled.
     public delegate BSActor CreateActor();
-    public void CreateRemoveActor(bool createRemove, string actorName, bool inTaintTime, CreateActor creator)
+    public void EnableActor(bool enableActor, string actorName, CreateActor creator)
     {
-        if (createRemove)
+        lock (PhysicalActors)
         {
-            PhysicsScene.TaintedObject(inTaintTime, "BSPrim.CreateRemoveActor:" + actorName, delegate()
+            BSActor theActor;
+            if (PhysicalActors.TryGetActor(actorName, out theActor))
             {
-                if (!PhysicalActors.HasActor(actorName))
-                {
-                    DetailLog("{0},BSPrim.CreateRemoveActor,taint,registerActor,a={1}", LocalID, actorName);
-                    PhysicalActors.Add(actorName, creator());
-                }
-            });
-        }
-        else
-        {
-            PhysicsScene.TaintedObject(inTaintTime, "BSPrim.CreateRemoveActor:" + actorName, delegate()
+                // The actor already exists so just turn it on or off
+                theActor.Enabled = enableActor;
+            }
+            else
             {
-                if (PhysicalActors.HasActor(actorName))
+                // The actor does not exist. If it should, create it.
+                if (enableActor)
                 {
-                    DetailLog("{0},BSPrim.CreateRemoveActor,taint,unregisterActor,a={1}", LocalID, actorName);
-                    PhysicalActors.RemoveAndRelease(actorName);
+                    theActor = creator();
+                    PhysicalActors.Add(actorName, theActor);
+                    theActor.Enabled = true;
                 }
-            });
+            }
         }
     }
 

@@ -67,14 +67,6 @@ public class BSActorAvatarMove : BSActor
     {
         m_physicsScene.DetailLog("{0},BSActorAvatarMove,refresh", m_controllingPrim.LocalID);
 
-        // If not active any more, get rid of me (shouldn't ever happen, but just to be safe)
-        if (m_controllingPrim.RawForce == OMV.Vector3.Zero)
-        {
-            m_physicsScene.DetailLog("{0},BSActorAvatarMove,refresh,notAvatarMove,removing={1}", m_controllingPrim.LocalID, ActorName);
-            m_controllingPrim.PhysicalActors.RemoveAndRelease(ActorName);
-            return;
-        }
-
         // If the object is physically active, add the hoverer prestep action
         if (isActive)
         {
@@ -95,14 +87,19 @@ public class BSActorAvatarMove : BSActor
         // Nothing to do for the hoverer since it is all software at pre-step action time.
     }
 
+    // Usually called when target velocity changes to set the current velocity and the target
+    //     into the movement motor.
     public void SetVelocityAndTarget(OMV.Vector3 vel, OMV.Vector3 targ, bool inTaintTime)
     {
         m_physicsScene.TaintedObject(inTaintTime, "BSActorAvatarMove.setVelocityAndTarget", delegate()
         {
-            m_velocityMotor.Reset();
-            m_velocityMotor.SetTarget(targ);
-            m_velocityMotor.SetCurrent(vel);
-            m_velocityMotor.Enabled = true;
+            if (m_velocityMotor != null)
+            {
+                m_velocityMotor.Reset();
+                m_velocityMotor.SetTarget(targ);
+                m_velocityMotor.SetCurrent(vel);
+                m_velocityMotor.Enabled = true;
+            }
         });
     }
 
@@ -119,6 +116,7 @@ public class BSActorAvatarMove : BSActor
                                                 1f                          // efficiency
             );
             // _velocityMotor.PhysicsScene = PhysicsScene; // DEBUG DEBUG so motor will output detail log messages.
+            SetVelocityAndTarget(m_controllingPrim.RawVelocity, m_controllingPrim.TargetVelocity, true /* inTaintTime */);
 
             m_physicsScene.BeforeStep += Mover;
         }

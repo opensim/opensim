@@ -71,7 +71,7 @@ public class BSActorSetForce : BSActor
         if (m_controllingPrim.RawForce == OMV.Vector3.Zero)
         {
             m_physicsScene.DetailLog("{0},BSActorSetForce,refresh,notSetForce,removing={1}", m_controllingPrim.LocalID, ActorName);
-            m_controllingPrim.PhysicalActors.RemoveAndRelease(ActorName);
+            Enabled = false;
             return;
         }
 
