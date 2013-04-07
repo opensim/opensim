@@ -40,7 +40,7 @@ public class BSActorLockAxis : BSActor
     BSConstraint LockAxisConstraint = null;
 
     public BSActorLockAxis(BSScene physicsScene, BSPhysObject pObj, string actorName)
-        : base(physicsScene, pObj,actorName)
+        : base(physicsScene, pObj, actorName)
     {
         m_physicsScene.DetailLog("{0},BSActorLockAxis,constructor", m_controllingPrim.LocalID);
         LockAxisConstraint = null;
@@ -99,7 +99,7 @@ public class BSActorLockAxis : BSActor
             // If a constraint is set up, remove it from the physical scene
             RemoveAxisLockConstraint();
             // Schedule a call before the next simulation step to restore the constraint.
-            m_physicsScene.PostTaintObject(m_controllingPrim.LockedAxisActorName, m_controllingPrim.LocalID, delegate()
+            m_physicsScene.PostTaintObject("BSActorLockAxis:" + ActorName, m_controllingPrim.LocalID, delegate()
             {
                 Refresh();
             });

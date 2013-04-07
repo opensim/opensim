@@ -32,12 +32,12 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 {
 public class BSActorCollection
 {
-    private BSScene PhysicsScene { get; set; }
+    private BSScene m_physicsScene { get; set; }
     private Dictionary<string, BSActor> m_actors;
 
     public BSActorCollection(BSScene physicsScene)
     {
-        PhysicsScene = physicsScene;
+        m_physicsScene = physicsScene;
         m_actors = new Dictionary<string, BSActor>();
     }
     public void Add(string name, BSActor actor)
@@ -61,6 +61,10 @@ public class BSActorCollection
         Release();
         m_actors.Clear();
     }
+    public void Dispose()
+    {
+        Clear();
+    }
     public bool HasActor(string name)
     {
         return m_actors.ContainsKey(name);
@@ -71,6 +75,10 @@ public class BSActorCollection
             act(kvp.Value);
     }
 
+    public void Enable(bool enabl)
+    {
+        ForEachActor(a => a.Enable(enabl));
+    }
     public void Release()
     {
         ForEachActor(a => a.Dispose());
