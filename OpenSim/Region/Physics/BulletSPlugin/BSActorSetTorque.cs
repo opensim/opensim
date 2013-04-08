@@ -65,7 +65,7 @@ public class BSActorSetTorque : BSActor
     // BSActor.Refresh()
     public override void Refresh()
     {
-        m_physicsScene.DetailLog("{0},BSActorSetTorque,refresh", m_controllingPrim.LocalID);
+        m_physicsScene.DetailLog("{0},BSActorSetTorque,refresh,torque={1}", m_controllingPrim.LocalID, m_controllingPrim.RawTorque);
 
         // If not active any more, get rid of me (shouldn't ever happen, but just to be safe)
         if (m_controllingPrim.RawTorque == OMV.Vector3.Zero)

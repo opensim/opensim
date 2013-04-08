@@ -1514,16 +1514,8 @@ public class BSPrim : BSPhysObject
         LastEntityProperties = CurrentEntityProperties;
         CurrentEntityProperties = entprop;
 
+        // Note that BSPrim can be overloaded by BSPrimLinkable which controls updates from root and children prims.
         base.RequestPhysicsterseUpdate();
-            /*
-        else
-        {
-            // For debugging, report the movement of children
-            DetailLog("{0},BSPrim.UpdateProperties,child,pos={1},orient={2},vel={3},accel={4},rotVel={5}",
-                    LocalID, entprop.Position, entprop.Rotation, entprop.Velocity,
-                    entprop.Acceleration, entprop.RotationalVelocity);
-        }
-             */
     }
 }
 }
