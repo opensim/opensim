@@ -213,13 +213,13 @@ public sealed class BSTerrainManager : IDisposable
         });
     }
 
-    // Another region is calling this region passing a terrain.
+    // Another region is calling this region and passing a terrain.
     // A region that is not the mega-region root will pass its terrain to the root region so the root region
     //      physics engine will have all the terrains.
     private void AddMegaRegionChildTerrain(uint id, float[] heightMap, Vector3 minCoords, Vector3 maxCoords)
     {
         // Since we are called by another region's thread, the action must be rescheduled onto our processing thread.
-        PhysicsScene.PostTaintObject("TerrainManager.AddMegaRegionChild" + m_worldOffset.ToString(), 0, delegate()
+        PhysicsScene.PostTaintObject("TerrainManager.AddMegaRegionChild" + minCoords.ToString(), id, delegate()
         {
             UpdateTerrain(id, heightMap, minCoords, maxCoords);
         });
@@ -306,7 +306,7 @@ public sealed class BSTerrainManager : IDisposable
                     newTerrainID = ++m_terrainCount;
 
                 DetailLog("{0},BSTerrainManager.UpdateTerrain:NewTerrain,taint,newID={1},minCoord={2},maxCoord={3}",
-                                            BSScene.DetailLogZero, newTerrainID, minCoords, minCoords);
+                                            BSScene.DetailLogZero, newTerrainID, minCoords, maxCoords);
                 BSTerrainPhys newTerrainPhys = BuildPhysicalTerrain(terrainRegionBase, id, heightMap, minCoords, maxCoords);
                 m_terrains.Add(terrainRegionBase, newTerrainPhys);
 
