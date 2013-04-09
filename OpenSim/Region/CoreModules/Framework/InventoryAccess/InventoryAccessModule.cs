@@ -353,7 +353,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             bool asAttachment)
         {
             CoalescedSceneObjects coa = new CoalescedSceneObjects(UUID.Zero);                
-            Dictionary<UUID, Vector3> originalPositions = new Dictionary<UUID, Vector3>();
+//            Dictionary<UUID, Vector3> originalPositions = new Dictionary<UUID, Vector3>();
 
             foreach (SceneObjectGroup objectGroup in objlist)
             {
@@ -936,8 +936,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 }
             }
 
-            int primcount = 0;
-            for(int i = 0; i < objlist.Count; i++)
+            for (int i = 0; i < objlist.Count; i++)
             {
                 SceneObjectGroup g = objlist[i];
 
