@@ -50,7 +50,7 @@ public class BSActorMoveToTarget : BSActor
     // BSActor.isActive
     public override bool isActive
     {
-        get { return Enabled && m_controllingPrim.IsPhysicallyActive; }
+        get { return Enabled; }
     }
 
     // Release any connections and resources used by the actor.
@@ -65,7 +65,9 @@ public class BSActorMoveToTarget : BSActor
     // BSActor.Refresh()
     public override void Refresh()
     {
-        m_physicsScene.DetailLog("{0},BSActorMoveToTarget,refresh", m_controllingPrim.LocalID);
+        m_physicsScene.DetailLog("{0},BSActorMoveToTarget,refresh,enabled={1},active={2},target={3},tau={4}",
+            m_controllingPrim.LocalID, Enabled, m_controllingPrim.MoveToTargetActive,
+            m_controllingPrim.MoveToTargetTarget, m_controllingPrim.MoveToTargetTau );
 
         // If not active any more...
         if (!m_controllingPrim.MoveToTargetActive)
@@ -100,7 +102,7 @@ public class BSActorMoveToTarget : BSActor
             // We're taking over after this.
             m_controllingPrim.ZeroMotion(true);
 
-            m_targetMotor = new BSVMotor("BSPrim.PIDTarget",
+            m_targetMotor = new BSVMotor("BSActorMoveToTargget.Activate",
                                         m_controllingPrim.MoveToTargetTau,                    // timeScale
                                         BSMotor.Infinite,           // decay time scale
                                         BSMotor.InfiniteVector,     // friction timescale
@@ -138,15 +140,19 @@ public class BSActorMoveToTarget : BSActor
         // If we are very close to our target, turn off the movement motor.
         if (m_targetMotor.ErrorIsZero())
         {
-            m_physicsScene.DetailLog("{0},BSPrim.PIDTarget,zeroMovement,movePos={1},pos={2},mass={3}",
+            m_physicsScene.DetailLog("{0},BSActorMoveToTarget.Mover,zeroMovement,movePos={1},pos={2},mass={3}",
                                     m_controllingPrim.LocalID, movePosition, m_controllingPrim.RawPosition, m_controllingPrim.Mass);
             m_controllingPrim.ForcePosition = m_targetMotor.TargetValue;
+            // Setting the position does not cause the physics engine to generate a property update. Force it.
+            m_physicsScene.PE.PushUpdate(m_controllingPrim.PhysBody);
         }
         else
         {
             m_controllingPrim.ForcePosition = movePosition;
+            // Setting the position does not cause the physics engine to generate a property update. Force it.
+            m_physicsScene.PE.PushUpdate(m_controllingPrim.PhysBody);
         }
-        m_physicsScene.DetailLog("{0},BSPrim.PIDTarget,move,fromPos={1},movePos={2}", m_controllingPrim.LocalID, origPosition, movePosition);
+        m_physicsScene.DetailLog("{0},BSActorMoveToTarget.Mover,move,fromPos={1},movePos={2}", m_controllingPrim.LocalID, origPosition, movePosition);
     }
 }
 }

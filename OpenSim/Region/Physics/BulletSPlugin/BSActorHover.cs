@@ -50,7 +50,7 @@ public class BSActorHover : BSActor
     // BSActor.isActive
     public override bool isActive
     {
-        get { return Enabled && m_controllingPrim.IsPhysicallyActive; }
+        get { return Enabled; }
     }
 
     // Release any connections and resources used by the actor.

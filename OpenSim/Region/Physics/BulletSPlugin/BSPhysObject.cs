@@ -295,6 +295,7 @@ public abstract class BSPhysObject : PhysicsActor
             if (PhysicalActors.TryGetActor(actorName, out theActor))
             {
                 // The actor already exists so just turn it on or off
+                DetailLog("{0},BSPhysObject.EnableActor,enablingExistingActor,name={1},enable={2}", LocalID, actorName, enableActor);
                 theActor.Enabled = enableActor;
             }
             else
@@ -302,9 +303,14 @@ public abstract class BSPhysObject : PhysicsActor
                 // The actor does not exist. If it should, create it.
                 if (enableActor)
                 {
+                    DetailLog("{0},BSPhysObject.EnableActor,creatingActor,name={1}", LocalID, actorName);
                     theActor = creator();
                     PhysicalActors.Add(actorName, theActor);
                     theActor.Enabled = true;
+                }
+                else
+                {
+                    DetailLog("{0},BSPhysObject.EnableActor,notCreatingActorSinceNotEnabled,name={1}", LocalID, actorName);
                 }
             }
         }
