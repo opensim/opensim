@@ -137,10 +137,11 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 userID, sessionID, secureSessionID);
 
             NameValueCollection requestArgs = new NameValueCollection
-            {
-                { "RequestMethod", "AddSession" },
-                { "UserID", userID.ToString() }
-            };
+                {
+                        { "RequestMethod", "AddSession" },
+                        { "UserID", userID.ToString() }
+                };
+
             if (sessionID != UUID.Zero)
             {
                 requestArgs["SessionID"] = sessionID.ToString();
@@ -158,13 +159,13 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public bool LogoutAgent(UUID sessionID)
         {
-//            m_log.InfoFormat("[SIMIAN PRESENCE CONNECTOR]: Logout requested for agent with sessionID " + sessionID);
+            // m_log.InfoFormat("[SIMIAN PRESENCE CONNECTOR]: Logout requested for agent with sessionID " + sessionID);
 
             NameValueCollection requestArgs = new NameValueCollection
-            {
-                { "RequestMethod", "RemoveSession" },
-                { "SessionID", sessionID.ToString() }
-            };
+                {
+                        { "RequestMethod", "RemoveSession" },
+                        { "SessionID", sessionID.ToString() }
+                };
 
             OSDMap response = WebUtil.PostToService(m_serverUrl, requestArgs);
             bool success = response["Success"].AsBoolean();
@@ -177,13 +178,13 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public bool LogoutRegionAgents(UUID regionID)
         {
-//            m_log.InfoFormat("[SIMIAN PRESENCE CONNECTOR]: Logout requested for all agents in region " + regionID);
+            // m_log.InfoFormat("[SIMIAN PRESENCE CONNECTOR]: Logout requested for all agents in region " + regionID);
 
             NameValueCollection requestArgs = new NameValueCollection
-            {
-                { "RequestMethod", "RemoveSessions" },
-                { "SceneID", regionID.ToString() }
-            };
+                {
+                        { "RequestMethod", "RemoveSessions" },
+                        { "SceneID", regionID.ToString() }
+                };
 
             OSDMap response = WebUtil.PostToService(m_serverUrl, requestArgs);
             bool success = response["Success"].AsBoolean();
@@ -202,49 +203,46 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public PresenceInfo GetAgent(UUID sessionID)
         {
-//            m_log.DebugFormat("[SIMIAN PRESENCE CONNECTOR]: Requesting session data for agent with sessionID " + sessionID);
-
-            NameValueCollection requestArgs = new NameValueCollection
+            OSDMap sessionResponse = GetSessionDataFromSessionID(sessionID);
+            if (sessionResponse == null)
             {
-                { "RequestMethod", "GetSession" },
-                { "SessionID", sessionID.ToString() }
-            };
-
-            OSDMap sessionResponse = WebUtil.PostToService(m_serverUrl, requestArgs);
-            if (sessionResponse["Success"].AsBoolean())
-            {
-                UUID userID = sessionResponse["UserID"].AsUUID();
-                m_log.DebugFormat("[SIMIAN PRESENCE CONNECTOR]: Requesting user data for " + userID);
-
-                requestArgs = new NameValueCollection
-                {
-                    { "RequestMethod", "GetUser" },
-                    { "UserID", userID.ToString() }
-                };
-
-                OSDMap userResponse = WebUtil.PostToService(m_serverUrl, requestArgs);
-                if (userResponse["Success"].AsBoolean())
-                    return ResponseToPresenceInfo(sessionResponse, userResponse);
-                else
-                    m_log.Warn("[SIMIAN PRESENCE CONNECTOR]: Failed to retrieve user data for " + userID + ": " + userResponse["Message"].AsString());
+                m_log.WarnFormat("[SIMIAN PRESENCE CONNECTOR]: Failed to retrieve session {0}: {1}",sessionID.ToString(),sessionResponse["Message"].AsString());
+                return null;
             }
-            else
+            
+            UUID userID = sessionResponse["UserID"].AsUUID();
+            OSDMap userResponse = GetUserData(userID);
+            if (userResponse == null)
             {
-                m_log.Warn("[SIMIAN PRESENCE CONNECTOR]: Failed to retrieve session " + sessionID + ": " + sessionResponse["Message"].AsString());
+                m_log.WarnFormat("[SIMIAN PRESENCE CONNECTOR]: Failed to retrieve user data for {0}: {1}",userID.ToString(),userResponse["Message"].AsString());
+                return null;
             }
 
-            return null;
+            return ResponseToPresenceInfo(sessionResponse);
         }
 
         public PresenceInfo[] GetAgents(string[] userIDs)
         {
-            List<PresenceInfo> presences = new List<PresenceInfo>(userIDs.Length);
+            List<PresenceInfo> presences = new List<PresenceInfo>();
 
-            for (int i = 0; i < userIDs.Length; i++)
+            NameValueCollection requestArgs = new NameValueCollection
             {
-                UUID userID;
-                if (UUID.TryParse(userIDs[i], out userID) && userID != UUID.Zero)
-                    presences.AddRange(GetSessions(userID));
+                { "RequestMethod", "GetSessions" },
+                { "UserIDList", String.Join(",",userIDs) }
+            };
+
+            OSDMap sessionListResponse = WebUtil.PostToService(m_serverUrl, requestArgs);
+            if (! sessionListResponse["Success"].AsBoolean())
+            {
+                m_log.WarnFormat("[SIMIAN PRESENCE CONNECTOR]: Failed to retrieve sessions: {0}",sessionListResponse["Message"].AsString());
+                return null;
+            }
+            
+            OSDArray sessionList = sessionListResponse["Sessions"] as OSDArray;
+            for (int i = 0; i < sessionList.Count; i++)
+            {
+                OSDMap sessionInfo = sessionList[i] as OSDMap;
+                presences.Add(ResponseToPresenceInfo(sessionInfo));
             }
 
             return presences.ToArray();
@@ -262,7 +260,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public bool LoggedOut(string userID, UUID sessionID, UUID regionID, Vector3 lastPosition, Vector3 lastLookAt)
         {
-//            m_log.DebugFormat("[SIMIAN PRESENCE CONNECTOR]: Logging out user " + userID);
+            // m_log.DebugFormat("[SIMIAN PRESENCE CONNECTOR]: Logging out user " + userID);
 
             // Remove the session to mark this user offline
             if (!LogoutAgent(sessionID))
@@ -270,11 +268,11 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
             // Save our last position as user data
             NameValueCollection requestArgs = new NameValueCollection
-            {
-                { "RequestMethod", "AddUserData" },
-                { "UserID", userID.ToString() },
-                { "LastLocation", SerializeLocation(regionID, lastPosition, lastLookAt) }
-            };
+                {
+                        { "RequestMethod", "AddUserData" },
+                        { "UserID", userID.ToString() },
+                        { "LastLocation", SerializeLocation(regionID, lastPosition, lastLookAt) }
+                };
 
             OSDMap response = WebUtil.PostToService(m_serverUrl, requestArgs);
             bool success = response["Success"].AsBoolean();
@@ -287,14 +285,14 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public bool SetHome(string userID, UUID regionID, Vector3 position, Vector3 lookAt)
         {
-//            m_log.DebugFormat("[SIMIAN PRESENCE CONNECTOR]: Setting home location for user  " + userID);
+            // m_log.DebugFormat("[SIMIAN PRESENCE CONNECTOR]: Setting home location for user  " + userID);
 
             NameValueCollection requestArgs = new NameValueCollection
-            {
-                { "RequestMethod", "AddUserData" },
-                { "UserID", userID.ToString() },
-                { "HomeLocation", SerializeLocation(regionID, position, lookAt) }
-            };
+                {
+                        { "RequestMethod", "AddUserData" },
+                        { "UserID", userID.ToString() },
+                        { "HomeLocation", SerializeLocation(regionID, position, lookAt) }
+                };
 
             OSDMap response = WebUtil.PostToService(m_serverUrl, requestArgs);
             bool success = response["Success"].AsBoolean();
@@ -312,23 +310,14 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public GridUserInfo GetGridUserInfo(string user)
         {
-//            m_log.DebugFormat("[SIMIAN PRESENCE CONNECTOR]: Requesting session data for agent " + user);
+            // m_log.DebugFormat("[SIMIAN PRESENCE CONNECTOR]: Requesting session data for agent " + user); 
 
             UUID userID = new UUID(user);
-//            m_log.DebugFormat("[SIMIAN PRESENCE CONNECTOR]: Requesting user data for " + userID);
-
-            NameValueCollection requestArgs = new NameValueCollection
-            {
-                { "RequestMethod", "GetUser" },
-                { "UserID", userID.ToString() }
-            };
-
-            OSDMap userResponse = WebUtil.PostToService(m_serverUrl, requestArgs);
-            if (userResponse["Success"].AsBoolean())
+            OSDMap userResponse = GetUserData(userID);
+            if (userResponse != null)
                 return ResponseToGridUserInfo(userResponse);
-            else
-                m_log.Warn("[SIMIAN PRESENCE CONNECTOR]: Failed to retrieve user data for " + userID + ": " + userResponse["Message"].AsString());
 
+            m_log.WarnFormat("[SIMIAN PRESENCE CONNECTOR]: Failed to retrieve user data for {0}: {1}",userID,userResponse["Message"].AsString());
             return null;
         }
 
@@ -338,65 +327,49 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         private OSDMap GetUserData(UUID userID)
         {
-//            m_log.DebugFormat("[SIMIAN PRESENCE CONNECTOR]: Requesting user data for " + userID);
+            // m_log.DebugFormat("[SIMIAN PRESENCE CONNECTOR]: Requesting user data for " + userID);
 
             NameValueCollection requestArgs = new NameValueCollection
-            {
-                { "RequestMethod", "GetUser" },
-                { "UserID", userID.ToString() }
-            };
+                {
+                        { "RequestMethod", "GetUser" },
+                        { "UserID", userID.ToString() }
+                };
 
             OSDMap response = WebUtil.PostToService(m_serverUrl, requestArgs);
             if (response["Success"].AsBoolean() && response["User"] is OSDMap)
                 return response;
-            else
-                m_log.Warn("[SIMIAN PRESENCE CONNECTOR]: Failed to retrieve user data for " + userID + ": " + response["Message"].AsString());
 
+            m_log.WarnFormat("[SIMIAN PRESENCE CONNECTOR]: Failed to retrieve user data for {0}; {1}",userID.ToString(),response["Message"].AsString());
             return null;
         }
 
-        private List<PresenceInfo> GetSessions(UUID userID)
+        private OSDMap GetSessionDataFromSessionID(UUID sessionID)
         {
-            List<PresenceInfo> presences = new List<PresenceInfo>(1);
-
-            OSDMap userResponse = GetUserData(userID);
-            if (userResponse != null)
-            {
-//                m_log.DebugFormat("[SIMIAN PRESENCE CONNECTOR]: Requesting sessions for " + userID);
-
-                NameValueCollection requestArgs = new NameValueCollection
+            NameValueCollection requestArgs = new NameValueCollection
                 {
-                    { "RequestMethod", "GetSession" },
-                    { "UserID", userID.ToString() }
+                        { "RequestMethod", "GetSession" },
+                        { "SessionID", sessionID.ToString() }
                 };
 
-                OSDMap response = WebUtil.PostToService(m_serverUrl, requestArgs);
-                if (response["Success"].AsBoolean())
-                {
-                    PresenceInfo presence = ResponseToPresenceInfo(response, userResponse);
-                    if (presence != null)
-                        presences.Add(presence);
-                }
-//                else
-//                {
-//                    m_log.Debug("[SIMIAN PRESENCE CONNECTOR]: No session returned for " + userID + ": " + response["Message"].AsString());
-//                }
-            }
+            OSDMap response = WebUtil.PostToService(m_serverUrl, requestArgs);
+            if (response["Success"].AsBoolean())
+                return response;
 
-            return presences;
+            m_log.WarnFormat("[SIMIAN PRESENCE CONNECTOR]: Failed to retrieve session data for {0}; {1}",sessionID.ToString(),response["Message"].AsString());
+            return null;
         }
 
         private bool UpdateSession(UUID sessionID, UUID regionID, Vector3 lastPosition, Vector3 lastLookAt)
         {
             // Save our current location as session data
             NameValueCollection requestArgs = new NameValueCollection
-            {
-                { "RequestMethod", "UpdateSession" },
-                { "SessionID", sessionID.ToString() },
-                { "SceneID", regionID.ToString() },
-                { "ScenePosition", lastPosition.ToString() },
-                { "SceneLookAt", lastLookAt.ToString() }
-            };
+                {
+                        { "RequestMethod", "UpdateSession" },
+                        { "SessionID", sessionID.ToString() },
+                        { "SceneID", regionID.ToString() },
+                        { "ScenePosition", lastPosition.ToString() },
+                        { "SceneLookAt", lastLookAt.ToString() }
+                };
 
             OSDMap response = WebUtil.PostToService(m_serverUrl, requestArgs);
             bool success = response["Success"].AsBoolean();
@@ -407,7 +380,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             return success;
         }
 
-        private PresenceInfo ResponseToPresenceInfo(OSDMap sessionResponse, OSDMap userResponse)
+        private PresenceInfo ResponseToPresenceInfo(OSDMap sessionResponse)
         {
             if (sessionResponse == null)
                 return null;

@@ -6,7 +6,6 @@ Enable vehicle border crossings (at least as poorly as ODE)
 	Terrain skirts
 	Avatar created in previous region and not new region when crossing border
 	Vehicle recreated in new sim at small Z value (offset from root value?) (DONE)
-Lock axis
 Deleting a linkset while standing on the root will leave the physical shape of the root behind.
 	Not sure if it is because standing on it. Done with large prim linksets.
 Linkset child rotations.
@@ -344,3 +343,5 @@ Angular motion around Z moves the vehicle in world Z and not vehicle Z in ODE.
 	Verify that angular motion specified around Z moves in the vehicle coordinates.
 	DONE 20130120: BulletSim properly applies force in vehicle relative coordinates.
 Nebadon vehicles turning funny in arena (DONE)
+Lock axis (DONE 20130401)
+

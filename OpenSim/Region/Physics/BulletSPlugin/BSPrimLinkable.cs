@@ -163,6 +163,15 @@ public class BSPrimLinkable : BSPrimDisplaced
             // TODO: this will have to change when linksets are articulated.
             base.UpdateProperties(entprop);
         }
+            /*
+        else
+        {
+            // For debugging, report the movement of children
+            DetailLog("{0},BSPrim.UpdateProperties,child,pos={1},orient={2},vel={3},accel={4},rotVel={5}",
+                    LocalID, entprop.Position, entprop.Rotation, entprop.Velocity,
+                    entprop.Acceleration, entprop.RotationalVelocity);
+        }
+             */
         // The linkset might like to know about changing locations
         Linkset.UpdateProperties(UpdatedProperties.EntPropUpdates, this);
     }

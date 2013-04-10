@@ -76,6 +76,11 @@ namespace OpenSim.Framework.Servers
 
         protected void CreatePIDFile(string path)
         {
+            if (File.Exists(path))
+                m_log.ErrorFormat(
+                    "[SERVER BASE]: Previous pid file {0} still exists on startup.  Possibly previously unclean shutdown.", 
+                    path);
+
             try
             {
                 string pidstring = System.Diagnostics.Process.GetCurrentProcess().Id.ToString();

@@ -358,7 +358,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             bool asAttachment)
         {
             CoalescedSceneObjects coa = new CoalescedSceneObjects(UUID.Zero);                
-            Dictionary<UUID, Vector3> originalPositions = new Dictionary<UUID, Vector3>();
+//            Dictionary<UUID, Vector3> originalPositions = new Dictionary<UUID, Vector3>();
 
             foreach (SceneObjectGroup objectGroup in objlist)
             {
@@ -379,7 +379,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                              objectGroup.AbsolutePosition.Z);
 
                 Quaternion inventoryStoredRotation = objectGroup.GroupRotation;
-                originalPositions[objectGroup.UUID] = objectGroup.AbsolutePosition;
+                //originalPositions[objectGroup.UUID] = objectGroup.AbsolutePosition;
 
                 // Restore attachment data after trip through the sim
                 if (objectGroup.RootPart.AttachPoint > 0)
@@ -418,9 +418,9 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             else
                 itemXml = SceneObjectSerializer.ToOriginalXmlFormat(objlist[0], !asAttachment);
             
-            // Restore the position of each group now that it has been stored to inventory.
-            foreach (SceneObjectGroup objectGroup in objlist)
-                objectGroup.AbsolutePosition = originalPositions[objectGroup.UUID];
+//            // Restore the position of each group now that it has been stored to inventory.
+//            foreach (SceneObjectGroup objectGroup in objlist)
+//                objectGroup.AbsolutePosition = originalPositions[objectGroup.UUID];
 
             InventoryItemBase item = CreateItemForObject(action, remoteClient, objlist[0], folderID);
 
@@ -866,7 +866,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 return null;
             }
 
-            if (item != null && !DoPreRezWhenFromItem(remoteClient, item, objlist, pos, attachment))
+            if (item != null && !DoPreRezWhenFromItem(remoteClient, item, objlist, pos, veclist, attachment))
                 return null;
 
             for (int i = 0; i < objlist.Count; i++)
@@ -965,10 +965,15 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         /// <param name="item"></param>
         /// <param name="objlist"></param>
         /// <param name="pos"></param>
+        /// <param name="veclist">
+        /// List of vector position adjustments for a coalesced objects.  For ordinary objects
+        /// this list will contain just Vector3.Zero.  The order of adjustments must match the order of objlist
+        /// </param>
         /// <param name="isAttachment"></param>
         /// <returns>true if we can processed with rezzing, false if we need to abort</returns>
         private bool DoPreRezWhenFromItem(
-            IClientAPI remoteClient, InventoryItemBase item, List<SceneObjectGroup> objlist, Vector3 pos, bool isAttachment)
+            IClientAPI remoteClient, InventoryItemBase item, List<SceneObjectGroup> objlist, 
+            Vector3 pos, List<Vector3> veclist, bool isAttachment)
         {
             UUID fromUserInventoryItemId = UUID.Zero;
 
@@ -991,28 +996,29 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 }
             }
 
-            int primcount = 0;
-            foreach (SceneObjectGroup g in objlist)
-                primcount += g.PrimCount;
-
-            if (!m_Scene.Permissions.CanRezObject(
-                primcount, remoteClient.AgentId, pos)
-                && !isAttachment)
+            for (int i = 0; i < objlist.Count; i++)
             {
-                // The client operates in no fail mode. It will
-                // have already removed the item from the folder
-                // if it's no copy.
-                // Put it back if it's not an attachment
-                //
-                if (((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0) && (!isAttachment))
-                    remoteClient.SendBulkUpdateInventory(item);
+                SceneObjectGroup g = objlist[i];
 
-                ILandObject land = m_Scene.LandChannel.GetLandObject(pos.X, pos.Y);
-                remoteClient.SendAlertMessage(string.Format(
-                    "Can't rez object '{0}' at <{1:F3}, {2:F3}, {3:F3}> on parcel '{4}' in region {5}.",
-                    item.Name, pos.X, pos.Y, pos.Z, land != null ? land.LandData.Name : "Unknown", m_Scene.RegionInfo.RegionName));
+                if (!m_Scene.Permissions.CanRezObject(
+                    g.PrimCount, remoteClient.AgentId, pos + veclist[i])
+                    && !isAttachment)
+                {
+                    // The client operates in no fail mode. It will
+                    // have already removed the item from the folder
+                    // if it's no copy.
+                    // Put it back if it's not an attachment
+                    //
+                    if (((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0) && (!isAttachment))
+                        remoteClient.SendBulkUpdateInventory(item);
 
-                return false;
+                    ILandObject land = m_Scene.LandChannel.GetLandObject(pos.X, pos.Y);
+                    remoteClient.SendAlertMessage(string.Format(
+                        "Can't rez object '{0}' at <{1:F3}, {2:F3}, {3:F3}> on parcel '{4}' in region {5}.",
+                        item.Name, pos.X, pos.Y, pos.Z, land != null ? land.LandData.Name : "Unknown", m_Scene.Name));
+
+                    return false;
+                }
             }
 
             for (int i = 0; i < objlist.Count; i++)
