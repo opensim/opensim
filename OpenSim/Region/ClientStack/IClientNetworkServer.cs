@@ -38,11 +38,22 @@ namespace OpenSim.Region.ClientStack
             IPAddress _listenIP, ref uint port, int proxyPortOffsetParm, bool allow_alternate_port, IConfigSource configSource, 
             AgentCircuitManager authenticateClass);
 
-        void NetworkStop();
         bool HandlesRegion(Location x);
-        void AddScene(IScene x);
 
+        /// <summary>
+        /// Add the given scene to be handled by this IClientNetworkServer.
+        /// </summary>
+        /// <param name='scene'></param>
+        void AddScene(IScene scene);
+
+        /// <summary>
+        /// Start sending and receiving data.
+        /// </summary>
         void Start();
+
+        /// <summary>
+        /// Stop sending and receiving data.
+        /// </summary>
         void Stop();
     }
 }
