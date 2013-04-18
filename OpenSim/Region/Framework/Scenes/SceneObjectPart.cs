@@ -4571,6 +4571,8 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (oldFace.TextureID != newFace.TextureID)
                     changeFlags |= Changed.TEXTURE;
+                if (oldFace.MaterialID != newFace.MaterialID)
+                    changeFlags |= Changed.TEXTURE;
 
                 // Max change, skip the rest of testing
                 if (changeFlags == (Changed.TEXTURE | Changed.COLOR))
