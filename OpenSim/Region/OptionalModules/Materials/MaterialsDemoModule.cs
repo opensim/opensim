@@ -327,7 +327,7 @@ namespace OpenSim.Region.OptionalModules.MaterialsDemoModule
                     return new UUID(md5.ComputeHash(ms), 0);
         }
 
-        public static OSD ZCompressOSD(OSD inOsd, bool useHeader = true)
+        public static OSD ZCompressOSD(OSD inOsd, bool useHeader)
         {
             OSD osd = null;
 
