@@ -31,17 +31,33 @@
         </member>
         <member name="M:OpenMetaverse.StructuredData.OSDParser.SerializeLLSDBinary(OpenMetaverse.StructuredData.OSD)">
             <summary>
-            
+            Serializes OSD to binary format. It does no prepend header
             </summary>
-            <param name="osd"></param>
-            <returns></returns>
+            <param name="osd">OSD to serialize</param>
+            <returns>Serialized data</returns>
+        </member>
+        <member name="M:OpenMetaverse.StructuredData.OSDParser.SerializeLLSDBinary(OpenMetaverse.StructuredData.OSD,System.Boolean)">
+            <summary>
+            Serializes OSD to binary format
+            </summary>
+            <param name="osd">OSD to serialize</param>
+            <param name="prependHeader"></param>
+            <returns>Serialized data</returns>
         </member>
         <member name="M:OpenMetaverse.StructuredData.OSDParser.SerializeLLSDBinaryStream(OpenMetaverse.StructuredData.OSD)">
             <summary>
-            
+            Serializes OSD to binary format. It does no prepend header
             </summary>
-            <param name="data"></param>
-            <returns></returns>
+            <param name="data">OSD to serialize</param>
+            <returns>Serialized data</returns>
+        </member>
+        <member name="M:OpenMetaverse.StructuredData.OSDParser.SerializeLLSDBinaryStream(OpenMetaverse.StructuredData.OSD,System.Boolean)">
+            <summary>
+            Serializes OSD to binary format
+            </summary>
+            <param name="data">OSD to serialize</param>
+            <param name="prependHeader"></param>
+            <returns>Serialized data</returns>
         </member>
         <member name="M:OpenMetaverse.StructuredData.OSDParser.SkipWhiteSpace(System.IO.Stream)">
             <summary>
