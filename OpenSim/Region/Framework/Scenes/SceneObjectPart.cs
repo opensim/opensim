@@ -4549,6 +4549,14 @@ namespace OpenSim.Region.Framework.Scenes
                 oldTex.DefaultTexture = fallbackOldFace;
             }
 
+            // Materials capable viewers can send a ObjectImage packet
+            // when nothing in TE has changed. MaterialID should be updated
+            // by the RenderMaterials CAP handler, so updating it here may cause a
+            // race condtion. Therefore, if no non-materials TE fields have changed, 
+            // we should ignore any changes and not update Shape.TextureEntry
+
+            bool otherFieldsChanged = false;
+
             for (int i = 0 ; i < GetNumberOfSides(); i++)
             {
 
@@ -4571,24 +4579,40 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (oldFace.TextureID != newFace.TextureID)
                     changeFlags |= Changed.TEXTURE;
-                if (oldFace.MaterialID != newFace.MaterialID)
-                    changeFlags |= Changed.TEXTURE;
 
                 // Max change, skip the rest of testing
                 if (changeFlags == (Changed.TEXTURE | Changed.COLOR))
                     break;
+
+                if (!otherFieldsChanged)
+                {
+                    if (oldFace.Bump != newFace.Bump) otherFieldsChanged = true;
+                    if (oldFace.Fullbright != newFace.Fullbright) otherFieldsChanged = true;
+                    if (oldFace.Glow != newFace.Glow) otherFieldsChanged = true;
+                    if (oldFace.MediaFlags != newFace.MediaFlags) otherFieldsChanged = true;
+                    if (oldFace.OffsetU != newFace.OffsetU) otherFieldsChanged = true;
+                    if (oldFace.OffsetV != newFace.OffsetV) otherFieldsChanged = true;
+                    if (oldFace.RepeatU != newFace.RepeatU) otherFieldsChanged = true;
+                    if (oldFace.RepeatV != newFace.RepeatV) otherFieldsChanged = true;
+                    if (oldFace.Rotation != newFace.Rotation) otherFieldsChanged = true;
+                    if (oldFace.Shiny != newFace.Shiny) otherFieldsChanged = true;
+                    if (oldFace.TexMapType != newFace.TexMapType) otherFieldsChanged = true;
+                }
             }
 
-            m_shape.TextureEntry = newTex.GetBytes();
-            if (changeFlags != 0)
-                TriggerScriptChangedEvent(changeFlags);
-            UpdateFlag = UpdateRequired.FULL;
-            ParentGroup.HasGroupChanged = true;
+            if (changeFlags != 0 || otherFieldsChanged)
+            {
+                m_shape.TextureEntry = newTex.GetBytes();
+                if (changeFlags != 0)
+                    TriggerScriptChangedEvent(changeFlags);
+                UpdateFlag = UpdateRequired.FULL;
+                ParentGroup.HasGroupChanged = true;
 
-            //This is madness..
-            //ParentGroup.ScheduleGroupForFullUpdate();
-            //This is sparta
-            ScheduleFullUpdate();
+                //This is madness..
+                //ParentGroup.ScheduleGroupForFullUpdate();
+                //This is sparta
+                ScheduleFullUpdate();
+            }
         }
 
         public void aggregateScriptEvents()
