@@ -130,7 +130,11 @@ namespace OpenSim.Region.OptionalModules.MaterialsDemoModule
             // handler normally and then add a GET handler via MainServer
 
             IRequestHandler renderMaterialsGetHandler = new RestStreamHandler("GET", capsBase + "/", RenderMaterialsGetCap);
-            MainServer.Instance.AddStreamHandler(renderMaterialsGetHandler); 
+            MainServer.Instance.AddStreamHandler(renderMaterialsGetHandler);
+
+            // materials viewer seems to use either POST or PUT, so assign POST handler for PUT as well
+            IRequestHandler renderMaterialsPutHandler = new RestStreamHandler("PUT", capsBase + "/", RenderMaterialsPostCap);
+            MainServer.Instance.AddStreamHandler(renderMaterialsPutHandler);
         }
         
         public void RemoveRegion(Scene scene)
