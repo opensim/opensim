@@ -823,11 +823,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             handshake.RegionInfo3.ProductName = Util.StringToBytes256(regionInfo.RegionType);
             handshake.RegionInfo3.ProductSKU = Utils.EmptyBytes;
 
-            handshake.RegionInfo4 = new RegionHandshakePacket.RegionInfo4Block[0];
-//            OutPacket(handshake, ThrottleOutPacketType.Task);
-            // use same as MoveAgentIntoRegion (both should be task )
+            handshake.RegionInfo4 = new RegionHandshakePacket.RegionInfo4Block[1];
+            handshake.RegionInfo4[0] = new RegionHandshakePacket.RegionInfo4Block();
+            handshake.RegionInfo4[0].RegionFlagsExtended = args.regionFlags;
+            handshake.RegionInfo4[0].RegionProtocols = 0; // 1 here would indicate that SSB is supported
+
             OutPacket(handshake, ThrottleOutPacketType.Unknown);
         }
+
 
         public void MoveAgentIntoRegion(RegionInfo regInfo, Vector3 pos, Vector3 look)
         {

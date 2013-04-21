@@ -1,130 +1,18 @@
 <?xml version="1.0"?>
 <doc>
     <assembly>
-        <name>/home/root/libomv-0.9.1-source/bin/OpenMetaverse.StructuredData</name>
+        <name>OpenMetaverse.StructuredData</name>
     </assembly>
     <members>
-        <member name="T:OpenMetaverse.StructuredData.OSDType">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.StructuredData.OSDType.Unknown">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.StructuredData.OSDType.Boolean">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.StructuredData.OSDType.Integer">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.StructuredData.OSDType.Real">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.StructuredData.OSDType.String">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.StructuredData.OSDType.UUID">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.StructuredData.OSDType.Date">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.StructuredData.OSDType.URI">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.StructuredData.OSDType.Binary">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.StructuredData.OSDType.Map">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.StructuredData.OSDType.Array">
-            <summary>
-            </summary>
-        </member>
-        <member name="T:OpenMetaverse.StructuredData.OSDException">
-            <summary>
-            </summary>
-        </member>
-        <member name="T:OpenMetaverse.StructuredData.OSD">
-            <summary>
-            </summary>
-        </member>
-        <member name="M:OpenMetaverse.StructuredData.OSD.SerializeMembers(System.Object)">
-            <summary>
-            Uses reflection to create an SDMap from all of the SD
-            serializable types in an object
-            </summary>
-            <param name="obj">Class or struct containing serializable types</param>
-            <returns>An SDMap holding the serialized values from the
-            container object</returns>
-        </member>
-        <member name="M:OpenMetaverse.StructuredData.OSD.DeserializeMembers(System.Object@,OpenMetaverse.StructuredData.OSDMap)">
-            <summary>
-            Uses reflection to deserialize member variables in an object from
-            an SDMap
-            </summary>
-            <param name="obj">Reference to an object to fill with deserialized
-            values</param>
-            <param name="serialized">Serialized values to put in the target
-            object</param>
-        </member>
-        <member name="T:OpenMetaverse.StructuredData.OSDBoolean">
-            <summary>
-            </summary>
-        </member>
-        <member name="T:OpenMetaverse.StructuredData.OSDInteger">
-            <summary>
-            </summary>
-        </member>
-        <member name="T:OpenMetaverse.StructuredData.OSDReal">
-            <summary>
-            </summary>
-        </member>
-        <member name="T:OpenMetaverse.StructuredData.OSDString">
-            <summary>
-            </summary>
-        </member>
-        <member name="T:OpenMetaverse.StructuredData.OSDUUID">
-            <summary>
-            </summary>
-        </member>
-        <member name="T:OpenMetaverse.StructuredData.OSDDate">
-            <summary>
-            </summary>
-        </member>
-        <member name="T:OpenMetaverse.StructuredData.OSDUri">
-            <summary>
-            </summary>
-        </member>
-        <member name="T:OpenMetaverse.StructuredData.OSDBinary">
-            <summary>
-            </summary>
-        </member>
-        <member name="T:OpenMetaverse.StructuredData.OSDMap">
-            <summary>
-            </summary>
-        </member>
-        <member name="T:OpenMetaverse.StructuredData.OSDArray">
-            <summary>
-            </summary>
-        </member>
         <member name="T:OpenMetaverse.StructuredData.OSDParser">
             <summary>
+            
             </summary>
             <summary>
+            
             </summary>
             <summary>
+            
             </summary>
         </member>
         <member name="M:OpenMetaverse.StructuredData.OSDParser.DeserializeLLSDBinary(System.Byte[])">
@@ -153,8 +41,7 @@
             Serializes OSD to binary format
             </summary>
             <param name="osd">OSD to serialize</param>
-            <param name="prependHeader">
-            </param>
+            <param name="prependHeader"></param>
             <returns>Serialized data</returns>
         </member>
         <member name="M:OpenMetaverse.StructuredData.OSDParser.SerializeLLSDBinaryStream(OpenMetaverse.StructuredData.OSD)">
@@ -169,209 +56,294 @@
             Serializes OSD to binary format
             </summary>
             <param name="data">OSD to serialize</param>
-            <param name="prependHeader">
-            </param>
+            <param name="prependHeader"></param>
             <returns>Serialized data</returns>
         </member>
         <member name="M:OpenMetaverse.StructuredData.OSDParser.SkipWhiteSpace(System.IO.Stream)">
             <summary>
+            
             </summary>
-            <param name="stream">
-            </param>
+            <param name="stream"></param>
         </member>
         <member name="M:OpenMetaverse.StructuredData.OSDParser.FindByte(System.IO.Stream,System.Byte)">
             <summary>
+            
             </summary>
-            <param name="stream">
-            </param>
-            <param name="toFind">
-            </param>
-            <returns>
-            </returns>
+            <param name="stream"></param>
+            <param name="toFind"></param>
+            <returns></returns>
         </member>
         <member name="M:OpenMetaverse.StructuredData.OSDParser.FindString(System.IO.Stream,System.String)">
             <summary>
+            
             </summary>
-            <param name="stream">
-            </param>
-            <param name="toFind">
-            </param>
-            <returns>
-            </returns>
+            <param name="stream"></param>
+            <param name="toFind"></param>
+            <returns></returns>
         </member>
         <member name="M:OpenMetaverse.StructuredData.OSDParser.ConsumeBytes(System.IO.Stream,System.Int32)">
             <summary>
+            
             </summary>
-            <param name="stream">
-            </param>
-            <param name="consumeBytes">
-            </param>
-            <returns>
-            </returns>
+            <param name="stream"></param>
+            <param name="consumeBytes"></param>
+            <returns></returns>
         </member>
         <member name="M:OpenMetaverse.StructuredData.OSDParser.NetworkToHostInt(System.Byte[])">
             <summary>
+            
             </summary>
-            <param name="binaryNetEnd">
-            </param>
-            <returns>
-            </returns>
+            <param name="binaryNetEnd"></param>
+            <returns></returns>
         </member>
         <member name="M:OpenMetaverse.StructuredData.OSDParser.NetworkToHostDouble(System.Byte[])">
             <summary>
+            
             </summary>
-            <param name="binaryNetEnd">
-            </param>
-            <returns>
-            </returns>
+            <param name="binaryNetEnd"></param>
+            <returns></returns>
         </member>
         <member name="M:OpenMetaverse.StructuredData.OSDParser.HostToNetworkIntBytes(System.Int32)">
             <summary>
+            
             </summary>
-            <param name="intHostEnd">
-            </param>
-            <returns>
-            </returns>
-        </member>
-        <member name="M:OpenMetaverse.StructuredData.OSDParser.DeserializeLLSDNotationElement(System.IO.StringReader)">
-            <summary>
-            </summary>
-            <param name="reader">
-            </param>
-            <returns>
-            </returns>
-        </member>
-        <member name="M:OpenMetaverse.StructuredData.OSDParser.PeekAndSkipWhitespace(System.IO.StringReader)">
-            <summary>
-            </summary>
-            <param name="reader">
-            </param>
-            <returns>
-            </returns>
-        </member>
-        <member name="M:OpenMetaverse.StructuredData.OSDParser.ReadAndSkipWhitespace(System.IO.StringReader)">
-            <summary>
-            </summary>
-            <param name="reader">
-            </param>
-            <returns>
-            </returns>
-        </member>
-        <member name="M:OpenMetaverse.StructuredData.OSDParser.GetLengthInBrackets(System.IO.StringReader)">
-            <summary>
-            </summary>
-            <param name="reader">
-            </param>
-            <returns>
-            </returns>
-        </member>
-        <member name="M:OpenMetaverse.StructuredData.OSDParser.GetStringDelimitedBy(System.IO.StringReader,System.Char)">
-            <summary>
-            </summary>
-            <param name="reader">
-            </param>
-            <param name="delimiter">
-            </param>
-            <returns>
-            </returns>
-        </member>
-        <member name="M:OpenMetaverse.StructuredData.OSDParser.BufferCharactersEqual(System.IO.StringReader,System.Char[],System.Int32)">
-            <summary>
-            </summary>
-            <param name="reader">
-            </param>
-            <param name="buffer">
-            </param>
-            <param name="offset">
-            </param>
-            <returns>
-            </returns>
-        </member>
-        <member name="M:OpenMetaverse.StructuredData.OSDParser.UnescapeCharacter(System.String,System.Char)">
-            <summary>
-            </summary>
-            <param name="s">
-            </param>
-            <param name="c">
-            </param>
-            <returns>
-            </returns>
-        </member>
-        <member name="M:OpenMetaverse.StructuredData.OSDParser.EscapeCharacter(System.String,System.Char)">
-            <summary>
-            </summary>
-            <param name="s">
-            </param>
-            <param name="c">
-            </param>
-            <returns>
-            </returns>
+            <param name="intHostEnd"></param>
+            <returns></returns>   
         </member>
         <member name="M:OpenMetaverse.StructuredData.OSDParser.DeserializeLLSDXml(System.Byte[])">
             <summary>
+            
             </summary>
-            <param name="xmlData">
-            </param>
-            <returns>
-            </returns>
+            <param name="xmlData"></param>
+            <returns></returns>
         </member>
         <member name="M:OpenMetaverse.StructuredData.OSDParser.DeserializeLLSDXml(System.String)">
             <summary>
+            
             </summary>
-            <param name="xmlData">
-            </param>
-            <returns>
-            </returns>
+            <param name="xmlData"></param>
+            <returns></returns>
         </member>
         <member name="M:OpenMetaverse.StructuredData.OSDParser.DeserializeLLSDXml(System.Xml.XmlTextReader)">
             <summary>
+            
             </summary>
-            <param name="xmlData">
-            </param>
-            <returns>
-            </returns>
+            <param name="xmlData"></param>
+            <returns></returns>
         </member>
         <member name="M:OpenMetaverse.StructuredData.OSDParser.SerializeLLSDXmlBytes(OpenMetaverse.StructuredData.OSD)">
             <summary>
+            
             </summary>
-            <param name="data">
-            </param>
-            <returns>
-            </returns>
+            <param name="data"></param>
+            <returns></returns>
         </member>
         <member name="M:OpenMetaverse.StructuredData.OSDParser.SerializeLLSDXmlString(OpenMetaverse.StructuredData.OSD)">
             <summary>
+            
             </summary>
-            <param name="data">
-            </param>
-            <returns>
-            </returns>
+            <param name="data"></param>
+            <returns></returns>
         </member>
         <member name="M:OpenMetaverse.StructuredData.OSDParser.SerializeLLSDXmlElement(System.Xml.XmlTextWriter,OpenMetaverse.StructuredData.OSD)">
             <summary>
+            
             </summary>
-            <param name="writer">
-            </param>
-            <param name="data">
-            </param>
+            <param name="writer"></param>
+            <param name="data"></param>
         </member>
         <member name="M:OpenMetaverse.StructuredData.OSDParser.TryValidateLLSDXml(System.Xml.XmlTextReader,System.String@)">
             <summary>
+            
             </summary>
-            <param name="xmlData">
-            </param>
-            <param name="error">
-            </param>
-            <returns>
-            </returns>
+            <param name="xmlData"></param>
+            <param name="error"></param>
+            <returns></returns>
         </member>
         <member name="M:OpenMetaverse.StructuredData.OSDParser.ParseLLSDXmlElement(System.Xml.XmlTextReader)">
             <summary>
+            
             </summary>
-            <param name="reader">
-            </param>
-            <returns>
-            </returns>
+            <param name="reader"></param>
+            <returns></returns>
+        </member>
+        <member name="M:OpenMetaverse.StructuredData.OSDParser.DeserializeLLSDNotationElement(System.IO.StringReader)">
+            <summary>
+            
+            </summary>
+            <param name="reader"></param>
+            <returns></returns>
+        </member>
+        <member name="M:OpenMetaverse.StructuredData.OSDParser.PeekAndSkipWhitespace(System.IO.StringReader)">
+            <summary>
+            
+            </summary>
+            <param name="reader"></param>
+            <returns></returns>
+        </member>
+        <member name="M:OpenMetaverse.StructuredData.OSDParser.ReadAndSkipWhitespace(System.IO.StringReader)">
+            <summary>
+            
+            </summary>
+            <param name="reader"></param>
+            <returns></returns>
+        </member>
+        <member name="M:OpenMetaverse.StructuredData.OSDParser.GetLengthInBrackets(System.IO.StringReader)">
+            <summary>
+            
+            </summary>
+            <param name="reader"></param>
+            <returns></returns>
+        </member>
+        <member name="M:OpenMetaverse.StructuredData.OSDParser.GetStringDelimitedBy(System.IO.StringReader,System.Char)">
+            <summary>
+            
+            </summary>
+            <param name="reader"></param>
+            <param name="delimiter"></param>
+            <returns></returns>
+        </member>
+        <member name="M:OpenMetaverse.StructuredData.OSDParser.BufferCharactersEqual(System.IO.StringReader,System.Char[],System.Int32)">
+            <summary>
+            
+            </summary>
+            <param name="reader"></param>
+            <param name="buffer"></param>
+            <param name="offset"></param>
+            <returns></returns>
+        </member>
+        <member name="M:OpenMetaverse.StructuredData.OSDParser.UnescapeCharacter(System.String,System.Char)">
+            <summary>
+            
+            </summary>
+            <param name="s"></param>
+            <param name="c"></param>
+            <returns></returns>
+        </member>
+        <member name="M:OpenMetaverse.StructuredData.OSDParser.EscapeCharacter(System.String,System.Char)">
+            <summary>
+            
+            </summary>
+            <param name="s"></param>
+            <param name="c"></param>
+            <returns></returns>
+        </member>
+        <member name="T:OpenMetaverse.StructuredData.OSDType">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="F:OpenMetaverse.StructuredData.OSDType.Unknown">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.StructuredData.OSDType.Boolean">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.StructuredData.OSDType.Integer">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.StructuredData.OSDType.Real">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.StructuredData.OSDType.String">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.StructuredData.OSDType.UUID">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.StructuredData.OSDType.Date">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.StructuredData.OSDType.URI">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.StructuredData.OSDType.Binary">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.StructuredData.OSDType.Map">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.StructuredData.OSDType.Array">
+            <summary></summary>
+        </member>
+        <member name="T:OpenMetaverse.StructuredData.OSDException">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="T:OpenMetaverse.StructuredData.OSD">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:OpenMetaverse.StructuredData.OSD.SerializeMembers(System.Object)">
+            <summary>
+            Uses reflection to create an SDMap from all of the SD
+            serializable types in an object
+            </summary>
+            <param name="obj">Class or struct containing serializable types</param>
+            <returns>An SDMap holding the serialized values from the
+            container object</returns>
+        </member>
+        <member name="M:OpenMetaverse.StructuredData.OSD.DeserializeMembers(System.Object@,OpenMetaverse.StructuredData.OSDMap)">
+            <summary>
+            Uses reflection to deserialize member variables in an object from
+            an SDMap
+            </summary>
+            <param name="obj">Reference to an object to fill with deserialized
+            values</param>
+            <param name="serialized">Serialized values to put in the target
+            object</param>
+        </member>
+        <member name="T:OpenMetaverse.StructuredData.OSDBoolean">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="T:OpenMetaverse.StructuredData.OSDInteger">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="T:OpenMetaverse.StructuredData.OSDReal">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="T:OpenMetaverse.StructuredData.OSDString">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="T:OpenMetaverse.StructuredData.OSDUUID">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="T:OpenMetaverse.StructuredData.OSDDate">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="T:OpenMetaverse.StructuredData.OSDUri">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="T:OpenMetaverse.StructuredData.OSDBinary">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="T:OpenMetaverse.StructuredData.OSDMap">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="T:OpenMetaverse.StructuredData.OSDArray">
+            <summary>
+            
+            </summary>
         </member>
     </members>
 </doc>

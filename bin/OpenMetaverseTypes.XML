@@ -1,237 +1,80 @@
 <?xml version="1.0"?>
 <doc>
     <assembly>
-        <name>/home/root/libomv-0.9.1-source/bin/OpenMetaverseTypes</name>
+        <name>OpenMetaverseTypes</name>
     </assembly>
     <members>
-        <member name="T:OpenMetaverse.BlockingQueue`1">
+        <member name="T:OpenMetaverse.LocklessQueue`1">
             <summary>
-            Same as Queue except Dequeue function blocks until there is an object to return.
-            Note: This class does not need to be synchronized
+            A thread-safe lockless queue that supports multiple readers and 
+            multiple writers
             </summary>
         </member>
-        <member name="M:OpenMetaverse.BlockingQueue`1.#ctor(System.Collections.Generic.IEnumerable{`0})">
-            <summary>
-            Create new BlockingQueue.
-            </summary>
-            <param name="col">The System.Collections.ICollection to copy elements from</param>
+        <member name="F:OpenMetaverse.LocklessQueue`1.head">
+            <summary>Queue head</summary>
         </member>
-        <member name="M:OpenMetaverse.BlockingQueue`1.#ctor(System.Int32)">
-            <summary>
-            Create new BlockingQueue.
-            </summary>
-            <param name="capacity">The initial number of elements that the queue can contain</param>
+        <member name="F:OpenMetaverse.LocklessQueue`1.tail">
+            <summary>Queue tail</summary>
         </member>
-        <member name="M:OpenMetaverse.BlockingQueue`1.#ctor">
+        <member name="F:OpenMetaverse.LocklessQueue`1.count">
+            <summary>Queue item count</summary>
+        </member>
+        <member name="M:OpenMetaverse.LocklessQueue`1.#ctor">
             <summary>
-            Create new BlockingQueue.
+            Constructor
             </summary>
         </member>
-        <member name="P:OpenMetaverse.BlockingQueue`1.Closed">
+        <member name="M:OpenMetaverse.LocklessQueue`1.Enqueue(`0)">
             <summary>
-            Gets flag indicating if queue has been closed.
+            Enqueue an item
+            </summary>
+            <param name="item">Item to enqeue</param>
+        </member>
+        <member name="M:OpenMetaverse.LocklessQueue`1.TryDequeue(`0@)">
+            <summary>
+            Try to dequeue an item
+            </summary>
+            <param name="item">Dequeued item if the dequeue was successful</param>
+            <returns>True if an item was successfully deqeued, otherwise false</returns>
+        </member>
+        <member name="P:OpenMetaverse.LocklessQueue`1.Count">
+            <summary>Gets the current number of items in the queue. Since this
+            is a lockless collection this value should be treated as a close
+            estimate</summary>
+        </member>
+        <member name="T:OpenMetaverse.LocklessQueue`1.SingleLinkNode">
+            <summary>
+            Provides a node container for data in a singly linked list
             </summary>
         </member>
-        <member name="M:OpenMetaverse.BlockingQueue`1.Finalize">
+        <member name="F:OpenMetaverse.LocklessQueue`1.SingleLinkNode.Next">
+            <summary>Pointer to the next node in list</summary>
+        </member>
+        <member name="F:OpenMetaverse.LocklessQueue`1.SingleLinkNode.Item">
+            <summary>The data contained by the node</summary>
+        </member>
+        <member name="M:OpenMetaverse.LocklessQueue`1.SingleLinkNode.#ctor">
             <summary>
-            BlockingQueue Destructor (Close queue, resume any waiting thread).
+            Constructor
             </summary>
         </member>
-        <member name="M:OpenMetaverse.BlockingQueue`1.Clear">
+        <member name="M:OpenMetaverse.LocklessQueue`1.SingleLinkNode.#ctor(`0)">
             <summary>
-            Remove all objects from the Queue.
+            Constructor
             </summary>
-        </member>
-        <member name="M:OpenMetaverse.BlockingQueue`1.Close">
-            <summary>
-            Remove all objects from the Queue, resume all dequeue threads.
-            </summary>
-        </member>
-        <member name="M:OpenMetaverse.BlockingQueue`1.Dequeue">
-            <summary>
-            Removes and returns the object at the beginning of the Queue.
-            </summary>
-            <returns>Object in queue.</returns>
-        </member>
-        <member name="M:OpenMetaverse.BlockingQueue`1.Dequeue(System.TimeSpan)">
-            <summary>
-            Removes and returns the object at the beginning of the Queue.
-            </summary>
-            <param name="timeout">time to wait before returning</param>
-            <returns>Object in queue.</returns>
-        </member>
-        <member name="M:OpenMetaverse.BlockingQueue`1.Dequeue(System.Int32)">
-            <summary>
-            Removes and returns the object at the beginning of the Queue.
-            </summary>
-            <param name="timeout">time to wait before returning (in milliseconds)</param>
-            <returns>Object in queue.</returns>
-        </member>
-        <member name="M:OpenMetaverse.BlockingQueue`1.Enqueue(`0)">
-            <summary>
-            Adds an object to the end of the Queue
-            </summary>
-            <param name="obj">Object to put in queue</param>
-        </member>
-        <member name="M:OpenMetaverse.BlockingQueue`1.Open">
-            <summary>
-            Open Queue.
-            </summary>
-        </member>
-        <member name="M:OpenMetaverse.CircularQueue`1.#ctor(OpenMetaverse.CircularQueue{`0})">
-            <summary>
-            Copy constructor
-            </summary>
-            <param name="queue">Circular queue to copy</param>
-        </member>
-        <member name="T:OpenMetaverse.Color4">
-            <summary>
-            An 8-bit color structure including an alpha channel
-            </summary>
-        </member>
-        <member name="M:OpenMetaverse.Color4.#ctor(System.Byte,System.Byte,System.Byte,System.Byte)">
-            <summary>
-            </summary>
-            <param name="r">
-            </param>
-            <param name="g">
-            </param>
-            <param name="b">
-            </param>
-            <param name="a">
-            </param>
-        </member>
-        <member name="M:OpenMetaverse.Color4.#ctor(System.Byte[],System.Int32,System.Boolean)">
-            <summary>
-            Builds a color from a byte array
-            </summary>
-            <param name="byteArray">Byte array containing a 16 byte color</param>
-            <param name="pos">Beginning position in the byte array</param>
-            <param name="inverted">True if the byte array stores inverted values,
-            otherwise false. For example the color black (fully opaque) inverted
-            would be 0xFF 0xFF 0xFF 0x00</param>
-        </member>
-        <member name="M:OpenMetaverse.Color4.#ctor(System.Byte[],System.Int32,System.Boolean,System.Boolean)">
-            <summary>
-            Returns the raw bytes for this vector
-            </summary>
-            <param name="byteArray">Byte array containing a 16 byte color</param>
-            <param name="pos">Beginning position in the byte array</param>
-            <param name="inverted">True if the byte array stores inverted values,
-            otherwise false. For example the color black (fully opaque) inverted
-            would be 0xFF 0xFF 0xFF 0x00</param>
-            <param name="alphaInverted">True if the alpha value is inverted in
-            addition to whatever the inverted parameter is. Setting inverted true
-            and alphaInverted true will flip the alpha value back to non-inverted,
-            but keep the other color bytes inverted</param>
-            <returns>A 16 byte array containing R, G, B, and A</returns>
-        </member>
-        <member name="M:OpenMetaverse.Color4.#ctor(OpenMetaverse.Color4)">
-            <summary>
-            Copy constructor
-            </summary>
-            <param name="color">Color to copy</param>
-        </member>
-        <member name="F:OpenMetaverse.Color4.R">
-            <summary>Red</summary>
-        </member>
-        <member name="F:OpenMetaverse.Color4.G">
-            <summary>Green</summary>
-        </member>
-        <member name="F:OpenMetaverse.Color4.B">
-            <summary>Blue</summary>
-        </member>
-        <member name="F:OpenMetaverse.Color4.A">
-            <summary>Alpha</summary>
-        </member>
-        <member name="F:OpenMetaverse.Color4.Black">
-            <summary>A Color4 with zero RGB values and fully opaque (alpha 1.0)</summary>
-        </member>
-        <member name="F:OpenMetaverse.Color4.White">
-            <summary>A Color4 with full RGB values (1.0) and fully opaque (alpha 1.0)</summary>
-        </member>
-        <member name="M:OpenMetaverse.Color4.CompareTo(OpenMetaverse.Color4)">
-            <summary>
-            IComparable.CompareTo implementation
-            </summary>
-            <remarks>Sorting ends up like this: |--Grayscale--||--Color--|.
-            Alpha is only used when the colors are otherwise equivalent</remarks>
-        </member>
-        <member name="M:OpenMetaverse.Color4.FromBytes(System.Byte[],System.Int32,System.Boolean,System.Boolean)">
-            <summary>
-            Builds a color from a byte array
-            </summary>
-            <param name="byteArray">Byte array containing a 16 byte color</param>
-            <param name="pos">Beginning position in the byte array</param>
-            <param name="inverted">True if the byte array stores inverted values,
-            otherwise false. For example the color black (fully opaque) inverted
-            would be 0xFF 0xFF 0xFF 0x00</param>
-            <param name="alphaInverted">True if the alpha value is inverted in
-            addition to whatever the inverted parameter is. Setting inverted true
-            and alphaInverted true will flip the alpha value back to non-inverted,
-            but keep the other color bytes inverted</param>
-        </member>
-        <member name="M:OpenMetaverse.Color4.ToBytes(System.Byte[],System.Int32)">
-            <summary>
-            Writes the raw bytes for this color to a byte array
-            </summary>
-            <param name="dest">Destination byte array</param>
-            <param name="pos">Position in the destination array to start
-            writing. Must be at least 16 bytes before the end of the array</param>
-        </member>
-        <member name="M:OpenMetaverse.Color4.ToBytes(System.Byte[],System.Int32,System.Boolean)">
-            <summary>
-            Serializes this color into four bytes in a byte array
-            </summary>
-            <param name="dest">Destination byte array</param>
-            <param name="pos">Position in the destination array to start
-            writing. Must be at least 4 bytes before the end of the array</param>
-            <param name="inverted">True to invert the output (1.0 becomes 0
-            instead of 255)</param>
-        </member>
-        <member name="M:OpenMetaverse.Color4.ToFloatBytes(System.Byte[],System.Int32)">
-            <summary>
-            Writes the raw bytes for this color to a byte array
-            </summary>
-            <param name="dest">Destination byte array</param>
-            <param name="pos">Position in the destination array to start
-            writing. Must be at least 16 bytes before the end of the array</param>
-        </member>
-        <member name="M:OpenMetaverse.Color4.ClampValues">
-            <summary>
-            Ensures that values are in range 0-1
-            </summary>
-        </member>
-        <member name="M:OpenMetaverse.Color4.FromHSV(System.Double,System.Double,System.Double)">
-            <summary>
-            Create an RGB color from a hue, saturation, value combination
-            </summary>
-            <param name="hue">Hue</param>
-            <param name="saturation">Saturation</param>
-            <param name="value">Value</param>
-            <returns>An fully opaque RGB color (alpha is 1.0)</returns>
-        </member>
-        <member name="M:OpenMetaverse.Color4.Lerp(OpenMetaverse.Color4,OpenMetaverse.Color4,System.Single)">
-            <summary>
-            Performs linear interpolation between two colors
-            </summary>
-            <param name="value1">Color to start at</param>
-            <param name="value2">Color to end at</param>
-            <param name="amount">Amount to interpolate</param>
-            <returns>The interpolated color</returns>
         </member>
         <member name="T:OpenMetaverse.EnumInfoAttribute">
             <summary>
             Attribute class that allows extra attributes to be attached to ENUMs
             </summary>
         </member>
+        <member name="F:OpenMetaverse.EnumInfoAttribute.Text">
+            <summary>Text used when presenting ENUM to user</summary>
+        </member>
         <member name="M:OpenMetaverse.EnumInfoAttribute.#ctor">
             <summary>Default initializer</summary>
         </member>
         <member name="M:OpenMetaverse.EnumInfoAttribute.#ctor(System.String)">
-            <summary>Text used when presenting ENUM to user</summary>
-        </member>
-        <member name="F:OpenMetaverse.EnumInfoAttribute.Text">
             <summary>Text used when presenting ENUM to user</summary>
         </member>
         <member name="T:OpenMetaverse.AssetType">
@@ -255,11 +98,11 @@
             <summary>Link to a location in world</summary>
         </member>
         <member name="F:OpenMetaverse.AssetType.Clothing">
-            <summary>Collection of textures and parameters that can be
+            <summary>Collection of textures and parameters that can be 
             worn by an avatar</summary>
         </member>
         <member name="F:OpenMetaverse.AssetType.Object">
-            <summary>Primitive that can contain textures, sounds,
+            <summary>Primitive that can contain textures, sounds, 
             scripts and more</summary>
         </member>
         <member name="F:OpenMetaverse.AssetType.Notecard">
@@ -343,6 +186,15 @@
         <member name="F:OpenMetaverse.AssetType.Mesh">
             <summary>Linden mesh format</summary>
         </member>
+        <member name="F:OpenMetaverse.AssetType.Inbox">
+            <summary>Marketplace direct delivery inbox ("Received Items")</summary>
+        </member>
+        <member name="F:OpenMetaverse.AssetType.Outbox">
+            <summary>Marketplace direct delivery outbox</summary>
+        </member>
+        <member name="F:OpenMetaverse.AssetType.BasicRoot">
+            <summary></summary>
+        </member>
         <member name="T:OpenMetaverse.InventoryType">
             <summary>
             Inventory Item Types, eg Script, Notecard, Folder, etc
@@ -367,42 +219,34 @@
             <summary>Notecard</summary>
         </member>
         <member name="F:OpenMetaverse.InventoryType.Category">
-            <summary>
-            </summary>
+            <summary></summary>
         </member>
         <member name="F:OpenMetaverse.InventoryType.Folder">
             <summary>Folder</summary>
         </member>
         <member name="F:OpenMetaverse.InventoryType.RootCategory">
-            <summary>
-            </summary>
+            <summary></summary>
         </member>
         <member name="F:OpenMetaverse.InventoryType.LSL">
             <summary>an LSL Script</summary>
         </member>
         <member name="F:OpenMetaverse.InventoryType.Snapshot">
-            <summary>
-            </summary>
+            <summary></summary>
         </member>
         <member name="F:OpenMetaverse.InventoryType.Attachment">
-            <summary>
-            </summary>
+            <summary></summary>
         </member>
         <member name="F:OpenMetaverse.InventoryType.Wearable">
-            <summary>
-            </summary>
+            <summary></summary>
         </member>
         <member name="F:OpenMetaverse.InventoryType.Animation">
-            <summary>
-            </summary>
+            <summary></summary>
         </member>
         <member name="F:OpenMetaverse.InventoryType.Gesture">
-            <summary>
-            </summary>
+            <summary></summary>
         </member>
         <member name="F:OpenMetaverse.InventoryType.Mesh">
-            <summary>
-            </summary>
+            <summary></summary>
         </member>
         <member name="T:OpenMetaverse.SaleType">
             <summary>
@@ -477,797 +321,284 @@
         <member name="F:OpenMetaverse.WearableType.Invalid">
             <summary>Invalid wearable asset</summary>
         </member>
-        <member name="T:OpenMetaverse.PCode">
+        <member name="T:OpenMetaverse.Color4">
             <summary>
-            Identifier code for primitive types
+            An 8-bit color structure including an alpha channel
             </summary>
         </member>
-        <member name="F:OpenMetaverse.PCode.None">
-            <summary>None</summary>
+        <member name="F:OpenMetaverse.Color4.R">
+            <summary>Red</summary>
         </member>
-        <member name="F:OpenMetaverse.PCode.Prim">
-            <summary>A Primitive</summary>
+        <member name="F:OpenMetaverse.Color4.G">
+            <summary>Green</summary>
         </member>
-        <member name="F:OpenMetaverse.PCode.Avatar">
-            <summary>A Avatar</summary>
+        <member name="F:OpenMetaverse.Color4.B">
+            <summary>Blue</summary>
         </member>
-        <member name="F:OpenMetaverse.PCode.Grass">
-            <summary>Linden grass</summary>
+        <member name="F:OpenMetaverse.Color4.A">
+            <summary>Alpha</summary>
         </member>
-        <member name="F:OpenMetaverse.PCode.NewTree">
-            <summary>Linden tree</summary>
-        </member>
-        <member name="F:OpenMetaverse.PCode.ParticleSystem">
-            <summary>A primitive that acts as the source for a particle stream</summary>
-        </member>
-        <member name="F:OpenMetaverse.PCode.Tree">
-            <summary>A Linden tree</summary>
-        </member>
-        <member name="T:OpenMetaverse.PrimFlags">
-            <summary>
-            Primary parameters for primitives such as Physics Enabled or Phantom
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.PrimFlags.None">
-            <summary>Deprecated</summary>
-        </member>
-        <member name="F:OpenMetaverse.PrimFlags.Physics">
-            <summary>Whether physics are enabled for this object</summary>
-        </member>
-        <member name="F:OpenMetaverse.PrimFlags.CreateSelected">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.PrimFlags.ObjectModify">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.PrimFlags.ObjectCopy">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.PrimFlags.ObjectAnyOwner">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.PrimFlags.ObjectYouOwner">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.PrimFlags.Scripted">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.PrimFlags.Touch">
-            <summary>Whether this object contains an active touch script</summary>
-        </member>
-        <member name="F:OpenMetaverse.PrimFlags.ObjectMove">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.PrimFlags.Money">
-            <summary>Whether this object can receive payments</summary>
-        </member>
-        <member name="F:OpenMetaverse.PrimFlags.Phantom">
-            <summary>Whether this object is phantom (no collisions)</summary>
-        </member>
-        <member name="F:OpenMetaverse.PrimFlags.InventoryEmpty">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.PrimFlags.JointHinge">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.PrimFlags.JointP2P">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.PrimFlags.JointLP2P">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.PrimFlags.JointWheel">
-            <summary>Deprecated</summary>
-        </member>
-        <member name="F:OpenMetaverse.PrimFlags.AllowInventoryDrop">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.PrimFlags.ObjectTransfer">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.PrimFlags.ObjectGroupOwned">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.PrimFlags.ObjectYouOfficer">
-            <summary>Deprecated</summary>
-        </member>
-        <member name="F:OpenMetaverse.PrimFlags.CameraDecoupled">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.PrimFlags.AnimSource">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.PrimFlags.CameraSource">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.PrimFlags.CastShadows">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.PrimFlags.DieAtEdge">
-            <summary>Server flag, will not be sent to clients. Specifies that
-            the object is destroyed when it touches a simulator edge</summary>
-        </member>
-        <member name="F:OpenMetaverse.PrimFlags.ReturnAtEdge">
-            <summary>Server flag, will not be sent to clients. Specifies that
-            the object will be returned to the owner's inventory when it
-            touches a simulator edge</summary>
-        </member>
-        <member name="F:OpenMetaverse.PrimFlags.Sandbox">
-            <summary>Server flag, will not be sent to clients.</summary>
-        </member>
-        <member name="F:OpenMetaverse.PrimFlags.Flying">
-            <summary>Server flag, will not be sent to client. Specifies that
-            the object is hovering/flying</summary>
-        </member>
-        <member name="F:OpenMetaverse.PrimFlags.ObjectOwnerModify">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.PrimFlags.TemporaryOnRez">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.PrimFlags.Temporary">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.PrimFlags.ZlibCompressed">
-            <summary>
-            </summary>
-        </member>
-        <member name="T:OpenMetaverse.SoundFlags">
-            <summary>
-            Sound flags for sounds attached to primitives
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.SoundFlags.None">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.SoundFlags.Loop">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.SoundFlags.SyncMaster">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.SoundFlags.SyncSlave">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.SoundFlags.SyncPending">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.SoundFlags.Queue">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.SoundFlags.Stop">
-            <summary>
-            </summary>
-        </member>
-        <member name="T:OpenMetaverse.Material">
-            <summary>
-            Material type for a primitive
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.Material.Stone">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.Material.Metal">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.Material.Glass">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.Material.Wood">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.Material.Flesh">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.Material.Plastic">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.Material.Rubber">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.Material.Light">
-            <summary>
-            </summary>
-        </member>
-        <member name="T:OpenMetaverse.PrimType">
-            <summary>
-            Used in a helper function to roughly determine prim shape
-            </summary>
-        </member>
-        <member name="T:OpenMetaverse.ExtraParamType">
-            <summary>
-            Extra parameters for primitives, these flags are for features that have
-            been added after the original ObjectFlags that has all eight bits
-            reserved already
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.ExtraParamType.Flexible">
-            <summary>Whether this object has flexible parameters</summary>
-        </member>
-        <member name="F:OpenMetaverse.ExtraParamType.Light">
-            <summary>Whether this object has light parameters</summary>
-        </member>
-        <member name="F:OpenMetaverse.ExtraParamType.Sculpt">
-            <summary>Whether this object is a sculpted prim</summary>
-        </member>
-        <member name="F:OpenMetaverse.ExtraParamType.Mesh">
-            <summary>Whether this object is a mesh</summary>
-        </member>
-        <member name="T:OpenMetaverse.JointType">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.JointType.Invalid">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.JointType.Hinge">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.JointType.Point">
-            <summary>
-            </summary>
-        </member>
-        <member name="T:OpenMetaverse.SculptType">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.SculptType.None">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.SculptType.Sphere">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.SculptType.Torus">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.SculptType.Plane">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.SculptType.Cylinder">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.SculptType.Mesh">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.SculptType.Invert">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.SculptType.Mirror">
-            <summary>
-            </summary>
-        </member>
-        <member name="T:OpenMetaverse.FaceType">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.FaceType.PathBegin">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.FaceType.PathEnd">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.FaceType.InnerSide">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.FaceType.ProfileBegin">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.FaceType.ProfileEnd">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.FaceType.OuterSide0">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.FaceType.OuterSide1">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.FaceType.OuterSide2">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.FaceType.OuterSide3">
-            <summary>
-            </summary>
-        </member>
-        <member name="T:OpenMetaverse.ObjectCategory">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.ObjectCategory.Invalid">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.ObjectCategory.None">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.ObjectCategory.Owner">
+        <member name="M:OpenMetaverse.Color4.#ctor(System.Byte,System.Byte,System.Byte,System.Byte)">
             <summary>
+            
             </summary>
+            <param name="r"></param>
+            <param name="g"></param>
+            <param name="b"></param>
+            <param name="a"></param>
         </member>
-        <member name="F:OpenMetaverse.ObjectCategory.Group">
+        <member name="M:OpenMetaverse.Color4.#ctor(System.Byte[],System.Int32,System.Boolean)">
             <summary>
+            Builds a color from a byte array
             </summary>
+            <param name="byteArray">Byte array containing a 16 byte color</param>
+            <param name="pos">Beginning position in the byte array</param>
+            <param name="inverted">True if the byte array stores inverted values,
+            otherwise false. For example the color black (fully opaque) inverted
+            would be 0xFF 0xFF 0xFF 0x00</param>
         </member>
-        <member name="F:OpenMetaverse.ObjectCategory.Other">
+        <member name="M:OpenMetaverse.Color4.#ctor(System.Byte[],System.Int32,System.Boolean,System.Boolean)">
             <summary>
+            Returns the raw bytes for this vector
             </summary>
-        </member>
-        <member name="F:OpenMetaverse.ObjectCategory.Selected">
-            <summary>
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.ObjectCategory.Temporary">
-            <summary>
-            </summary>
-        </member>
-        <member name="T:OpenMetaverse.AttachmentPoint">
-            <summary>
-            Attachment points for objects on avatar bodies
-            </summary>
-            <remarks>
-            Both InventoryObject and InventoryAttachment types can be attached
-            </remarks>
-        </member>
-        <member name="F:OpenMetaverse.AttachmentPoint.Default">
-            <summary>Right hand if object was not previously attached</summary>
+            <param name="byteArray">Byte array containing a 16 byte color</param>
+            <param name="pos">Beginning position in the byte array</param>
+            <param name="inverted">True if the byte array stores inverted values,
+            otherwise false. For example the color black (fully opaque) inverted
+            would be 0xFF 0xFF 0xFF 0x00</param>
+            <param name="alphaInverted">True if the alpha value is inverted in
+            addition to whatever the inverted parameter is. Setting inverted true
+            and alphaInverted true will flip the alpha value back to non-inverted,
+            but keep the other color bytes inverted</param>
+            <returns>A 16 byte array containing R, G, B, and A</returns>
         </member>
-        <member name="F:OpenMetaverse.AttachmentPoint.Chest">
-            <summary>Chest</summary>
-        </member>
-        <member name="F:OpenMetaverse.AttachmentPoint.Skull">
-            <summary>Skull</summary>
-        </member>
-        <member name="F:OpenMetaverse.AttachmentPoint.LeftShoulder">
-            <summary>Left shoulder</summary>
-        </member>
-        <member name="F:OpenMetaverse.AttachmentPoint.RightShoulder">
-            <summary>Right shoulder</summary>
-        </member>
-        <member name="F:OpenMetaverse.AttachmentPoint.LeftHand">
-            <summary>Left hand</summary>
-        </member>
-        <member name="F:OpenMetaverse.AttachmentPoint.RightHand">
-            <summary>Right hand</summary>
-        </member>
-        <member name="F:OpenMetaverse.AttachmentPoint.LeftFoot">
-            <summary>Left foot</summary>
-        </member>
-        <member name="F:OpenMetaverse.AttachmentPoint.RightFoot">
-            <summary>Right foot</summary>
-        </member>
-        <member name="F:OpenMetaverse.AttachmentPoint.Spine">
-            <summary>Spine</summary>
-        </member>
-        <member name="F:OpenMetaverse.AttachmentPoint.Pelvis">
-            <summary>Pelvis</summary>
-        </member>
-        <member name="F:OpenMetaverse.AttachmentPoint.Mouth">
-            <summary>Mouth</summary>
-        </member>
-        <member name="F:OpenMetaverse.AttachmentPoint.Chin">
-            <summary>Chin</summary>
-        </member>
-        <member name="F:OpenMetaverse.AttachmentPoint.LeftEar">
-            <summary>Left ear</summary>
-        </member>
-        <member name="F:OpenMetaverse.AttachmentPoint.RightEar">
-            <summary>Right ear</summary>
-        </member>
-        <member name="F:OpenMetaverse.AttachmentPoint.LeftEyeball">
-            <summary>Left eyeball</summary>
-        </member>
-        <member name="F:OpenMetaverse.AttachmentPoint.RightEyeball">
-            <summary>Right eyeball</summary>
-        </member>
-        <member name="F:OpenMetaverse.AttachmentPoint.Nose">
-            <summary>Nose</summary>
-        </member>
-        <member name="F:OpenMetaverse.AttachmentPoint.RightUpperArm">
-            <summary>Right upper arm</summary>
-        </member>
-        <member name="F:OpenMetaverse.AttachmentPoint.RightForearm">
-            <summary>Right forearm</summary>
-        </member>
-        <member name="F:OpenMetaverse.AttachmentPoint.LeftUpperArm">
-            <summary>Left upper arm</summary>
-        </member>
-        <member name="F:OpenMetaverse.AttachmentPoint.LeftForearm">
-            <summary>Left forearm</summary>
-        </member>
-        <member name="F:OpenMetaverse.AttachmentPoint.RightHip">
-            <summary>Right hip</summary>
-        </member>
-        <member name="F:OpenMetaverse.AttachmentPoint.RightUpperLeg">
-            <summary>Right upper leg</summary>
-        </member>
-        <member name="F:OpenMetaverse.AttachmentPoint.RightLowerLeg">
-            <summary>Right lower leg</summary>
-        </member>
-        <member name="F:OpenMetaverse.AttachmentPoint.LeftHip">
-            <summary>Left hip</summary>
-        </member>
-        <member name="F:OpenMetaverse.AttachmentPoint.LeftUpperLeg">
-            <summary>Left upper leg</summary>
-        </member>
-        <member name="F:OpenMetaverse.AttachmentPoint.LeftLowerLeg">
-            <summary>Left lower leg</summary>
-        </member>
-        <member name="F:OpenMetaverse.AttachmentPoint.Stomach">
-            <summary>Stomach</summary>
-        </member>
-        <member name="F:OpenMetaverse.AttachmentPoint.LeftPec">
-            <summary>Left pectoral</summary>
-        </member>
-        <member name="F:OpenMetaverse.AttachmentPoint.RightPec">
-            <summary>Right pectoral</summary>
-        </member>
-        <member name="F:OpenMetaverse.AttachmentPoint.HUDCenter2">
-            <summary>HUD Center position 2</summary>
-        </member>
-        <member name="F:OpenMetaverse.AttachmentPoint.HUDTopRight">
-            <summary>HUD Top-right</summary>
-        </member>
-        <member name="F:OpenMetaverse.AttachmentPoint.HUDTop">
-            <summary>HUD Top</summary>
-        </member>
-        <member name="F:OpenMetaverse.AttachmentPoint.HUDTopLeft">
-            <summary>HUD Top-left</summary>
-        </member>
-        <member name="F:OpenMetaverse.AttachmentPoint.HUDCenter">
-            <summary>HUD Center</summary>
-        </member>
-        <member name="F:OpenMetaverse.AttachmentPoint.HUDBottomLeft">
-            <summary>HUD Bottom-left</summary>
-        </member>
-        <member name="F:OpenMetaverse.AttachmentPoint.HUDBottom">
-            <summary>HUD Bottom</summary>
-        </member>
-        <member name="F:OpenMetaverse.AttachmentPoint.HUDBottomRight">
-            <summary>HUD Bottom-right</summary>
-        </member>
-        <member name="T:OpenMetaverse.Tree">
+        <member name="M:OpenMetaverse.Color4.#ctor(OpenMetaverse.Color4)">
             <summary>
-            Tree foliage types
+            Copy constructor
             </summary>
-        </member>
-        <member name="F:OpenMetaverse.Tree.Pine1">
-            <summary>Pine1 tree</summary>
+            <param name="color">Color to copy</param>
         </member>
-        <member name="F:OpenMetaverse.Tree.Oak">
-            <summary>Oak tree</summary>
-        </member>
-        <member name="F:OpenMetaverse.Tree.TropicalBush1">
-            <summary>Tropical Bush1</summary>
-        </member>
-        <member name="F:OpenMetaverse.Tree.Palm1">
-            <summary>Palm1 tree</summary>
-        </member>
-        <member name="F:OpenMetaverse.Tree.Dogwood">
-            <summary>Dogwood tree</summary>
-        </member>
-        <member name="F:OpenMetaverse.Tree.TropicalBush2">
-            <summary>Tropical Bush2</summary>
-        </member>
-        <member name="F:OpenMetaverse.Tree.Palm2">
-            <summary>Palm2 tree</summary>
-        </member>
-        <member name="F:OpenMetaverse.Tree.Cypress1">
-            <summary>Cypress1 tree</summary>
-        </member>
-        <member name="F:OpenMetaverse.Tree.Cypress2">
-            <summary>Cypress2 tree</summary>
-        </member>
-        <member name="F:OpenMetaverse.Tree.Pine2">
-            <summary>Pine2 tree</summary>
-        </member>
-        <member name="F:OpenMetaverse.Tree.Plumeria">
-            <summary>Plumeria</summary>
-        </member>
-        <member name="F:OpenMetaverse.Tree.WinterPine1">
-            <summary>Winter pinetree1</summary>
-        </member>
-        <member name="F:OpenMetaverse.Tree.WinterAspen">
-            <summary>Winter Aspen tree</summary>
-        </member>
-        <member name="F:OpenMetaverse.Tree.WinterPine2">
-            <summary>Winter pinetree2</summary>
-        </member>
-        <member name="F:OpenMetaverse.Tree.Eucalyptus">
-            <summary>Eucalyptus tree</summary>
-        </member>
-        <member name="F:OpenMetaverse.Tree.Fern">
-            <summary>Fern</summary>
-        </member>
-        <member name="F:OpenMetaverse.Tree.Eelgrass">
-            <summary>Eelgrass</summary>
-        </member>
-        <member name="F:OpenMetaverse.Tree.SeaSword">
-            <summary>Sea Sword</summary>
-        </member>
-        <member name="F:OpenMetaverse.Tree.Kelp1">
-            <summary>Kelp1 plant</summary>
-        </member>
-        <member name="F:OpenMetaverse.Tree.BeachGrass1">
-            <summary>Beach grass</summary>
-        </member>
-        <member name="F:OpenMetaverse.Tree.Kelp2">
-            <summary>Kelp2 plant</summary>
-        </member>
-        <member name="T:OpenMetaverse.Grass">
+        <member name="M:OpenMetaverse.Color4.CompareTo(OpenMetaverse.Color4)">
             <summary>
-            Grass foliage types
+            IComparable.CompareTo implementation
             </summary>
+            <remarks>Sorting ends up like this: |--Grayscale--||--Color--|.
+            Alpha is only used when the colors are otherwise equivalent</remarks>
         </member>
-        <member name="F:OpenMetaverse.Grass.Grass0">
+        <member name="M:OpenMetaverse.Color4.FromBytes(System.Byte[],System.Int32,System.Boolean,System.Boolean)">
             <summary>
+            Builds a color from a byte array
             </summary>
+            <param name="byteArray">Byte array containing a 16 byte color</param>
+            <param name="pos">Beginning position in the byte array</param>
+            <param name="inverted">True if the byte array stores inverted values,
+            otherwise false. For example the color black (fully opaque) inverted
+            would be 0xFF 0xFF 0xFF 0x00</param>
+            <param name="alphaInverted">True if the alpha value is inverted in
+            addition to whatever the inverted parameter is. Setting inverted true
+            and alphaInverted true will flip the alpha value back to non-inverted,
+            but keep the other color bytes inverted</param>
         </member>
-        <member name="F:OpenMetaverse.Grass.Grass1">
+        <member name="M:OpenMetaverse.Color4.ToBytes(System.Byte[],System.Int32)">
             <summary>
+            Writes the raw bytes for this color to a byte array
             </summary>
+            <param name="dest">Destination byte array</param>
+            <param name="pos">Position in the destination array to start
+            writing. Must be at least 16 bytes before the end of the array</param>
         </member>
-        <member name="F:OpenMetaverse.Grass.Grass2">
+        <member name="M:OpenMetaverse.Color4.ToBytes(System.Byte[],System.Int32,System.Boolean)">
             <summary>
+            Serializes this color into four bytes in a byte array
             </summary>
+            <param name="dest">Destination byte array</param>
+            <param name="pos">Position in the destination array to start
+            writing. Must be at least 4 bytes before the end of the array</param>
+            <param name="inverted">True to invert the output (1.0 becomes 0
+            instead of 255)</param>
         </member>
-        <member name="F:OpenMetaverse.Grass.Grass3">
+        <member name="M:OpenMetaverse.Color4.ToFloatBytes(System.Byte[],System.Int32)">
             <summary>
+            Writes the raw bytes for this color to a byte array
             </summary>
+            <param name="dest">Destination byte array</param>
+            <param name="pos">Position in the destination array to start
+            writing. Must be at least 16 bytes before the end of the array</param>
         </member>
-        <member name="F:OpenMetaverse.Grass.Grass4">
+        <member name="M:OpenMetaverse.Color4.ClampValues">
             <summary>
+            Ensures that values are in range 0-1
             </summary>
         </member>
-        <member name="F:OpenMetaverse.Grass.Undergrowth1">
+        <member name="M:OpenMetaverse.Color4.FromHSV(System.Double,System.Double,System.Double)">
             <summary>
+            Create an RGB color from a hue, saturation, value combination
             </summary>
+            <param name="hue">Hue</param>
+            <param name="saturation">Saturation</param>
+            <param name="value">Value</param>
+            <returns>An fully opaque RGB color (alpha is 1.0)</returns>
         </member>
-        <member name="T:OpenMetaverse.ClickAction">
+        <member name="M:OpenMetaverse.Color4.Lerp(OpenMetaverse.Color4,OpenMetaverse.Color4,System.Single)">
             <summary>
-            Action associated with clicking on an object
+            Performs linear interpolation between two colors
             </summary>
-        </member>
-        <member name="F:OpenMetaverse.ClickAction.Touch">
-            <summary>Touch object</summary>
-        </member>
-        <member name="F:OpenMetaverse.ClickAction.Sit">
-            <summary>Sit on object</summary>
-        </member>
-        <member name="F:OpenMetaverse.ClickAction.Buy">
-            <summary>Purchase object or contents</summary>
-        </member>
-        <member name="F:OpenMetaverse.ClickAction.Pay">
-            <summary>Pay the object</summary>
+            <param name="value1">Color to start at</param>
+            <param name="value2">Color to end at</param>
+            <param name="amount">Amount to interpolate</param>
+            <returns>The interpolated color</returns>
         </member>
-        <member name="F:OpenMetaverse.ClickAction.OpenTask">
-            <summary>Open task inventory</summary>
+        <member name="F:OpenMetaverse.Color4.Black">
+            <summary>A Color4 with zero RGB values and fully opaque (alpha 1.0)</summary>
         </member>
-        <member name="F:OpenMetaverse.ClickAction.PlayMedia">
-            <summary>Play parcel media</summary>
+        <member name="F:OpenMetaverse.Color4.White">
+            <summary>A Color4 with full RGB values (1.0) and fully opaque (alpha 1.0)</summary>
         </member>
-        <member name="F:OpenMetaverse.ClickAction.OpenMedia">
-            <summary>Open parcel media</summary>
-        </member>
-        <member name="T:OpenMetaverse.PhysicsShapeType">
+        <member name="T:OpenMetaverse.Vector3d">
             <summary>
-            Type of physics representation used for this prim in the simulator
+            A three-dimensional vector with doubleing-point values
             </summary>
-        </member>
-        <member name="F:OpenMetaverse.PhysicsShapeType.Prim">
-            <summary>Use prim physics form this object</summary>
         </member>
-        <member name="F:OpenMetaverse.PhysicsShapeType.None">
-            <summary>No physics, prim doesn't collide</summary>
+        <member name="F:OpenMetaverse.Vector3d.X">
+            <summary>X value</summary>
         </member>
-        <member name="F:OpenMetaverse.PhysicsShapeType.ConvexHull">
-            <summary>Use convex hull represantion of this prim</summary>
+        <member name="F:OpenMetaverse.Vector3d.Y">
+            <summary>Y value</summary>
         </member>
-        <member name="F:OpenMetaverse.ExpiringCache`2.syncRoot">
-            <summary>For thread safety</summary>
+        <member name="F:OpenMetaverse.Vector3d.Z">
+            <summary>Z value</summary>
         </member>
-        <member name="F:OpenMetaverse.ExpiringCache`2.isPurging">
-            <summary>For thread safety</summary>
-        </member>
-        <member name="M:OpenMetaverse.ExpiringCache`2.PurgeCache(System.Object,System.Timers.ElapsedEventArgs)">
+        <member name="M:OpenMetaverse.Vector3d.#ctor(System.Byte[],System.Int32)">
             <summary>
-            Purges expired objects from the cache. Called automatically by the purge timer.
+            Constructor, builds a vector from a byte array
             </summary>
+            <param name="byteArray">Byte array containing three eight-byte doubles</param>
+            <param name="pos">Beginning position in the byte array</param>
         </member>
-        <member name="T:OpenMetaverse.LocklessQueue`1">
+        <member name="M:OpenMetaverse.Vector3d.ApproxEquals(OpenMetaverse.Vector3d,System.Double)">
             <summary>
-            A thread-safe lockless queue that supports multiple readers and
-            multiple writers
+            Test if this vector is equal to another vector, within a given
+            tolerance range
             </summary>
+            <param name="vec">Vector to test against</param>
+            <param name="tolerance">The acceptable magnitude of difference
+            between the two vectors</param>
+            <returns>True if the magnitude of difference between the two vectors
+            is less than the given tolerance, otherwise false</returns>
         </member>
-        <member name="M:OpenMetaverse.LocklessQueue`1.#ctor">
+        <member name="M:OpenMetaverse.Vector3d.CompareTo(OpenMetaverse.Vector3d)">
             <summary>
-            Constructor
+            IComparable.CompareTo implementation
             </summary>
         </member>
-        <member name="T:OpenMetaverse.LocklessQueue`1.SingleLinkNode">
+        <member name="M:OpenMetaverse.Vector3d.IsFinite">
             <summary>
-            Provides a node container for data in a singly linked list
+            Test if this vector is composed of all finite numbers
             </summary>
         </member>
-        <member name="M:OpenMetaverse.LocklessQueue`1.SingleLinkNode.#ctor">
+        <member name="M:OpenMetaverse.Vector3d.FromBytes(System.Byte[],System.Int32)">
             <summary>
-            Constructor
+            Builds a vector from a byte array
             </summary>
+            <param name="byteArray">Byte array containing a 24 byte vector</param>
+            <param name="pos">Beginning position in the byte array</param>
         </member>
-        <member name="M:OpenMetaverse.LocklessQueue`1.SingleLinkNode.#ctor(`0)">
+        <member name="M:OpenMetaverse.Vector3d.GetBytes">
             <summary>
-            Constructor
+            Returns the raw bytes for this vector
             </summary>
-        </member>
-        <member name="F:OpenMetaverse.LocklessQueue`1.SingleLinkNode.Next">
-            <summary>Pointer to the next node in list</summary>
-        </member>
-        <member name="F:OpenMetaverse.LocklessQueue`1.SingleLinkNode.Item">
-            <summary>The data contained by the node</summary>
+            <returns>A 24 byte array containing X, Y, and Z</returns>
         </member>
-        <member name="F:OpenMetaverse.LocklessQueue`1.head">
-            <summary>Queue head</summary>
-        </member>
-        <member name="F:OpenMetaverse.LocklessQueue`1.tail">
-            <summary>Queue tail</summary>
-        </member>
-        <member name="F:OpenMetaverse.LocklessQueue`1.count">
-            <summary>Queue item count</summary>
-        </member>
-        <member name="P:OpenMetaverse.LocklessQueue`1.Count">
-            <summary>Gets the current number of items in the queue. Since this
-            is a lockless collection this value should be treated as a close
-            estimate</summary>
-        </member>
-        <member name="M:OpenMetaverse.LocklessQueue`1.Enqueue(`0)">
+        <member name="M:OpenMetaverse.Vector3d.ToBytes(System.Byte[],System.Int32)">
             <summary>
-            Enqueue an item
+            Writes the raw bytes for this vector to a byte array
             </summary>
-            <param name="item">Item to enqeue</param>
+            <param name="dest">Destination byte array</param>
+            <param name="pos">Position in the destination array to start
+            writing. Must be at least 24 bytes before the end of the array</param>
         </member>
-        <member name="M:OpenMetaverse.LocklessQueue`1.TryDequeue(`0@)">
+        <member name="M:OpenMetaverse.Vector3d.Parse(System.String)">
             <summary>
-            Try to dequeue an item
+            Parse a vector from a string
             </summary>
-            <param name="item">Dequeued item if the dequeue was successful</param>
-            <returns>True if an item was successfully deqeued, otherwise false</returns>
-        </member>
-        <member name="F:OpenMetaverse.Matrix4.Zero">
-            <summary>A 4x4 matrix containing all zeroes</summary>
+            <param name="val">A string representation of a 3D vector, enclosed 
+            in arrow brackets and separated by commas</param>
         </member>
-        <member name="F:OpenMetaverse.Matrix4.Identity">
-            <summary>A 4x4 identity matrix</summary>
-        </member>
-        <member name="M:OpenMetaverse.Matrix4.GetEulerAngles(System.Single@,System.Single@,System.Single@)">
-            <summary>
-            Convert this matrix to euler rotations
-            </summary>
-            <param name="roll">X euler angle</param>
-            <param name="pitch">Y euler angle</param>
-            <param name="yaw">Z euler angle</param>
-        </member>
-        <member name="M:OpenMetaverse.Matrix4.GetQuaternion">
+        <member name="M:OpenMetaverse.Vector3d.SmoothStep(OpenMetaverse.Vector3d,OpenMetaverse.Vector3d,System.Double)">
             <summary>
-            Convert this matrix to a quaternion rotation
+            Interpolates between two vectors using a cubic equation
             </summary>
-            <returns>A quaternion representation of this rotation matrix</returns>
         </member>
-        <member name="M:OpenMetaverse.Matrix4.CreateFromEulers(System.Single,System.Single,System.Single)">
-            <summary>
-            Construct a matrix from euler rotation values in radians
-            </summary>
-            <param name="roll">X euler angle in radians</param>
-            <param name="pitch">Y euler angle in radians</param>
-            <param name="yaw">Z euler angle in radians</param>
-        </member>
-        <member name="M:OpenMetaverse.Matrix4.ToString">
+        <member name="M:OpenMetaverse.Vector3d.ToString">
             <summary>
             Get a formatted string representation of the vector
             </summary>
             <returns>A string representation of the vector</returns>
         </member>
-        <member name="T:OpenMetaverse.Parallel">
+        <member name="M:OpenMetaverse.Vector3d.ToRawString">
             <summary>
-            Provides helper methods for parallelizing loops
+            Get a string representation of the vector elements with up to three
+            decimal digits and separated by spaces only
+            </summary>
+            <returns>Raw string representation of the vector</returns>
+        </member>
+        <member name="M:OpenMetaverse.Vector3d.op_Modulus(OpenMetaverse.Vector3d,OpenMetaverse.Vector3d)">
+            <summary>
+            Cross product between two vectors
             </summary>
         </member>
-        <member name="M:OpenMetaverse.Parallel.For(System.Int32,System.Int32,System.Action{System.Int32})">
+        <member name="M:OpenMetaverse.Vector3d.op_Implicit(OpenMetaverse.Vector3)~OpenMetaverse.Vector3d">
             <summary>
-            Executes a for loop in which iterations may run in parallel
+            Implicit casting for Vector3 > Vector3d
             </summary>
-            <param name="fromInclusive">The loop will be started at this index</param>
-            <param name="toExclusive">The loop will be terminated before this index is reached</param>
-            <param name="body">Method body to run for each iteration of the loop</param>
+            <param name="value"></param>
+            <returns></returns>
         </member>
-        <member name="M:OpenMetaverse.Parallel.For(System.Int32,System.Int32,System.Int32,System.Action{System.Int32})">
-            <summary>
-            Executes a for loop in which iterations may run in parallel
-            </summary>
-            <param name="threadCount">The number of concurrent execution threads to run</param>
-            <param name="fromInclusive">The loop will be started at this index</param>
-            <param name="toExclusive">The loop will be terminated before this index is reached</param>
-            <param name="body">Method body to run for each iteration of the loop</param>
+        <member name="F:OpenMetaverse.Vector3d.Zero">
+            <summary>A vector with a value of 0,0,0</summary>
         </member>
-        <member name="M:OpenMetaverse.Parallel.ForEach``1(System.Collections.Generic.IEnumerable{``0},System.Action{``0})">
-            <summary>
-            Executes a foreach loop in which iterations may run in parallel
-            </summary>
-            <typeparam name="T">Object type that the collection wraps</typeparam>
-            <param name="enumerable">An enumerable collection to iterate over</param>
-            <param name="body">Method body to run for each object in the collection</param>
+        <member name="F:OpenMetaverse.Vector3d.One">
+            <summary>A vector with a value of 1,1,1</summary>
         </member>
-        <member name="M:OpenMetaverse.Parallel.ForEach``1(System.Int32,System.Collections.Generic.IEnumerable{``0},System.Action{``0})">
-            <summary>
-            Executes a foreach loop in which iterations may run in parallel
-            </summary>
-            <typeparam name="T">Object type that the collection wraps</typeparam>
-            <param name="threadCount">The number of concurrent execution threads to run</param>
-            <param name="enumerable">An enumerable collection to iterate over</param>
-            <param name="body">Method body to run for each object in the collection</param>
+        <member name="F:OpenMetaverse.Vector3d.UnitX">
+            <summary>A unit vector facing forward (X axis), value of 1,0,0</summary>
         </member>
-        <member name="M:OpenMetaverse.Parallel.Invoke(System.Action[])">
-            <summary>
-            Executes a series of tasks in parallel
-            </summary>
-            <param name="actions">A series of method bodies to execute</param>
+        <member name="F:OpenMetaverse.Vector3d.UnitY">
+            <summary>A unit vector facing left (Y axis), value of 0,1,0</summary>
         </member>
-        <member name="M:OpenMetaverse.Parallel.Invoke(System.Int32,System.Action[])">
+        <member name="F:OpenMetaverse.Vector3d.UnitZ">
+            <summary>A unit vector facing up (Z axis), value of 0,0,1</summary>
+        </member>
+        <member name="M:OpenMetaverse.ReaderWriterLockSlim.ExitAndWakeUpAppropriateWaiters">
             <summary>
-            Executes a series of tasks in parallel
+            Determines the appropriate events to set, leaves the locks, and sets the events. 
             </summary>
-            <param name="threadCount">The number of concurrent execution threads to run</param>
-            <param name="actions">A series of method bodies to execute</param>
+        </member>
+        <member name="M:OpenMetaverse.ReaderWriterLockSlim.LazyCreateEvent(System.Threading.EventWaitHandle@,System.Boolean)">
+            <summary>
+            A routine for lazily creating a event outside the lock (so if errors
+            happen they are outside the lock and that we don't do much work
+            while holding a spin lock).  If all goes well, reenter the lock and
+            set 'waitEvent' 
+            </summary>
+        </member>
+        <member name="M:OpenMetaverse.ReaderWriterLockSlim.WaitOnEvent(System.Threading.EventWaitHandle,System.UInt32@,System.Int32)">
+            <summary>
+            Waits on 'waitEvent' with a timeout of 'millisceondsTimeout.  
+            Before the wait 'numWaiters' is incremented and is restored before leaving this routine.
+            </summary>
+        </member>
+        <member name="F:OpenMetaverse.Quaternion.X">
+            <summary>X value</summary>
+        </member>
+        <member name="F:OpenMetaverse.Quaternion.Y">
+            <summary>Y value</summary>
+        </member>
+        <member name="F:OpenMetaverse.Quaternion.Z">
+            <summary>Z value</summary>
+        </member>
+        <member name="F:OpenMetaverse.Quaternion.W">
+            <summary>W value</summary>
         </member>
         <member name="M:OpenMetaverse.Quaternion.#ctor(System.Single,System.Single,System.Single)">
             <summary>
@@ -1286,21 +617,6 @@
             <param name="normalized">Whether the source data is normalized or
             not. If this is true 12 bytes will be read, otherwise 16 bytes will
             be read.</param>
-        </member>
-        <member name="F:OpenMetaverse.Quaternion.X">
-            <summary>X value</summary>
-        </member>
-        <member name="F:OpenMetaverse.Quaternion.Y">
-            <summary>Y value</summary>
-        </member>
-        <member name="F:OpenMetaverse.Quaternion.Z">
-            <summary>Z value</summary>
-        </member>
-        <member name="F:OpenMetaverse.Quaternion.W">
-            <summary>W value</summary>
-        </member>
-        <member name="F:OpenMetaverse.Quaternion.Identity">
-            <summary>A quaternion with a value of 0,0,0,1</summary>
         </member>
         <member name="M:OpenMetaverse.Quaternion.Normalize">
             <summary>
@@ -1402,328 +718,88 @@
             </summary>
             <returns>Raw string representation of the quaternion</returns>
         </member>
-        <member name="M:OpenMetaverse.ReaderWriterLockSlim.ExitAndWakeUpAppropriateWaiters">
-            <summary>
-            Determines the appropriate events to set, leaves the locks, and sets the events.
-            </summary>
+        <member name="F:OpenMetaverse.Quaternion.Identity">
+            <summary>A quaternion with a value of 0,0,0,1</summary>
         </member>
-        <member name="M:OpenMetaverse.ReaderWriterLockSlim.LazyCreateEvent(System.Threading.EventWaitHandle@,System.Boolean)">
-            <summary>
-            A routine for lazily creating a event outside the lock (so if errors
-            happen they are outside the lock and that we don't do much work
-            while holding a spin lock).  If all goes well, reenter the lock and
-            set 'waitEvent'
-            </summary>
-        </member>
-        <member name="M:OpenMetaverse.ReaderWriterLockSlim.WaitOnEvent(System.Threading.EventWaitHandle,System.UInt32@,System.Int32)">
-            <summary>
-            Waits on 'waitEvent' with a timeout of 'millisceondsTimeout.
-            Before the wait 'numWaiters' is incremented and is restored before leaving this routine.
-            </summary>
-        </member>
-        <member name="T:OpenMetaverse.TokenBucket">
-            <summary>
-            A hierarchical token bucket for bandwidth throttling. See
-            http://en.wikipedia.org/wiki/Token_bucket for more information
-            </summary>
-        </member>
-        <member name="M:OpenMetaverse.TokenBucket.#ctor(OpenMetaverse.TokenBucket,System.Int32,System.Int32)">
-            <summary>
-            Default constructor
-            </summary>
-            <param name="parent">Parent bucket if this is a child bucket, or
-            null if this is a root bucket</param>
-            <param name="maxBurst">Maximum size of the bucket in bytes, or
-            zero if this bucket has no maximum capacity</param>
-            <param name="dripRate">Rate that the bucket fills, in bytes per
-            second. If zero, the bucket always remains full</param>
-        </member>
-        <member name="F:OpenMetaverse.TokenBucket.parent">
-            <summary>Parent bucket to this bucket, or null if this is a root
-            bucket</summary>
-        </member>
-        <member name="F:OpenMetaverse.TokenBucket.maxBurst">
-            <summary>Size of the bucket in bytes. If zero, the bucket has
-            infinite capacity</summary>
-        </member>
-        <member name="F:OpenMetaverse.TokenBucket.tokensPerMS">
-            <summary>Rate that the bucket fills, in bytes per millisecond. If
-            zero, the bucket always remains full</summary>
-        </member>
-        <member name="F:OpenMetaverse.TokenBucket.content">
-            <summary>Number of tokens currently in the bucket</summary>
-        </member>
-        <member name="F:OpenMetaverse.TokenBucket.lastDrip">
-            <summary>Time of the last drip, in system ticks</summary>
-        </member>
-        <member name="P:OpenMetaverse.TokenBucket.Parent">
-            <summary>
-            The parent bucket of this bucket, or null if this bucket has no
-            parent. The parent bucket will limit the aggregate bandwidth of all
-            of its children buckets
-            </summary>
-        </member>
-        <member name="P:OpenMetaverse.TokenBucket.MaxBurst">
-            <summary>
-            Maximum burst rate in bytes per second. This is the maximum number
-            of tokens that can accumulate in the bucket at any one time
-            </summary>
-        </member>
-        <member name="P:OpenMetaverse.TokenBucket.DripRate">
-            <summary>
-            The speed limit of this bucket in bytes per second. This is the
-            number of tokens that are added to the bucket per second
-            </summary>
-            <remarks>Tokens are added to the bucket any time
-            <seealso cref="M:OpenMetaverse.TokenBucket.RemoveTokens(System.Int32,System.Boolean)" /> is called, at the granularity of
-            the system tick interval (typically around 15-22ms)</remarks>
-        </member>
-        <member name="P:OpenMetaverse.TokenBucket.Content">
-            <summary>
-            The number of bytes that can be sent at this moment. This is the
-            current number of tokens in the bucket
-            <remarks>If this bucket has a parent bucket that does not have
-            enough tokens for a request, <seealso cref="M:OpenMetaverse.TokenBucket.RemoveTokens(System.Int32,System.Boolean)" /> will
-            return false regardless of the content of this bucket</remarks></summary>
-        </member>
-        <member name="M:OpenMetaverse.TokenBucket.RemoveTokens(System.Int32)">
-            <summary>
-            Remove a given number of tokens from the bucket
-            </summary>
-            <param name="amount">Number of tokens to remove from the bucket</param>
-            <returns>True if the requested number of tokens were removed from
-            the bucket, otherwise false</returns>
-        </member>
-        <member name="M:OpenMetaverse.TokenBucket.RemoveTokens(System.Int32,System.Boolean@)">
-            <summary>
-            Remove a given number of tokens from the bucket
-            </summary>
-            <param name="amount">Number of tokens to remove from the bucket</param>
-            <param name="dripSucceeded">True if tokens were added to the bucket
-            during this call, otherwise false</param>
-            <returns>True if the requested number of tokens were removed from
-            the bucket, otherwise false</returns>
-        </member>
-        <member name="M:OpenMetaverse.TokenBucket.Drip">
-            <summary>
-            Add tokens to the bucket over time. The number of tokens added each
-            call depends on the length of time that has passed since the last
-            call to Drip
-            </summary>
-            <returns>True if tokens were added to the bucket, otherwise false</returns>
-        </member>
-        <member name="T:OpenMetaverse.UUID">
-            <summary>
-            A 128-bit Universally Unique Identifier, used throughout the Second
-            Life networking protocol
-            </summary>
-        </member>
-        <member name="M:OpenMetaverse.UUID.#ctor(System.String)">
-            <summary>
-            Constructor that takes a string UUID representation
-            </summary>
-            <param name="val">A string representation of a UUID, case
-            insensitive and can either be hyphenated or non-hyphenated</param>
-            <example>UUID("11f8aa9c-b071-4242-836b-13b7abe0d489")</example>
-        </member>
-        <member name="M:OpenMetaverse.UUID.#ctor(System.Guid)">
-            <summary>
-            Constructor that takes a System.Guid object
-            </summary>
-            <param name="val">A Guid object that contains the unique identifier
-            to be represented by this UUID</param>
-        </member>
-        <member name="M:OpenMetaverse.UUID.#ctor(System.Byte[],System.Int32)">
-            <summary>
-            Constructor that takes a byte array containing a UUID
-            </summary>
-            <param name="source">Byte array containing a 16 byte UUID</param>
-            <param name="pos">Beginning offset in the array</param>
-        </member>
-        <member name="M:OpenMetaverse.UUID.#ctor(System.UInt64)">
-            <summary>
-            Constructor that takes an unsigned 64-bit unsigned integer to
-            convert to a UUID
-            </summary>
-            <param name="val">64-bit unsigned integer to convert to a UUID</param>
-        </member>
-        <member name="M:OpenMetaverse.UUID.#ctor(OpenMetaverse.UUID)">
+        <member name="M:OpenMetaverse.CircularQueue`1.#ctor(OpenMetaverse.CircularQueue{`0})">
             <summary>
             Copy constructor
             </summary>
-            <param name="val">UUID to copy</param>
+            <param name="queue">Circular queue to copy</param>
         </member>
-        <member name="F:OpenMetaverse.UUID.Guid">
-            <summary>The System.Guid object this struct wraps around</summary>
-        </member>
-        <member name="F:OpenMetaverse.UUID.Zero">
-            <summary>An UUID with a value of all zeroes</summary>
-        </member>
-        <member name="F:OpenMetaverse.UUID.ZeroString">
-            <summary>A cache of UUID.Zero as a string to optimize a common path</summary>
-        </member>
-        <member name="M:OpenMetaverse.UUID.CompareTo(OpenMetaverse.UUID)">
+        <member name="T:OpenMetaverse.BlockingQueue`1">
             <summary>
-            IComparable.CompareTo implementation
+            Same as Queue except Dequeue function blocks until there is an object to return.
+            Note: This class does not need to be synchronized
             </summary>
         </member>
-        <member name="M:OpenMetaverse.UUID.FromBytes(System.Byte[],System.Int32)">
+        <member name="M:OpenMetaverse.BlockingQueue`1.#ctor(System.Collections.Generic.IEnumerable{`0})">
             <summary>
-            Assigns this UUID from 16 bytes out of a byte array
+            Create new BlockingQueue.
             </summary>
-            <param name="source">Byte array containing the UUID to assign this UUID to</param>
-            <param name="pos">Starting position of the UUID in the byte array</param>
+            <param name="col">The System.Collections.ICollection to copy elements from</param>
         </member>
-        <member name="M:OpenMetaverse.UUID.GetBytes">
+        <member name="M:OpenMetaverse.BlockingQueue`1.#ctor(System.Int32)">
             <summary>
-            Returns a copy of the raw bytes for this UUID
+            Create new BlockingQueue.
             </summary>
-            <returns>A 16 byte array containing this UUID</returns>
+            <param name="capacity">The initial number of elements that the queue can contain</param>
         </member>
-        <member name="M:OpenMetaverse.UUID.ToBytes(System.Byte[],System.Int32)">
+        <member name="M:OpenMetaverse.BlockingQueue`1.#ctor">
             <summary>
-            Writes the raw bytes for this UUID to a byte array
-            </summary>
-            <param name="dest">Destination byte array</param>
-            <param name="pos">Position in the destination array to start
-            writing. Must be at least 16 bytes before the end of the array</param>
-        </member>
-        <member name="M:OpenMetaverse.UUID.CRC">
-            <summary>
-            Calculate an LLCRC (cyclic redundancy check) for this UUID
-            </summary>
-            <returns>The CRC checksum for this UUID</returns>
-        </member>
-        <member name="M:OpenMetaverse.UUID.GetULong">
-            <summary>
-            Create a 64-bit integer representation from the second half of this UUID
-            </summary>
-            <returns>An integer created from the last eight bytes of this UUID</returns>
-        </member>
-        <member name="M:OpenMetaverse.UUID.Parse(System.String)">
-            <summary>
-            Generate a UUID from a string
-            </summary>
-            <param name="val">A string representation of a UUID, case
-            insensitive and can either be hyphenated or non-hyphenated</param>
-            <example>UUID.Parse("11f8aa9c-b071-4242-836b-13b7abe0d489")</example>
-        </member>
-        <member name="M:OpenMetaverse.UUID.TryParse(System.String,OpenMetaverse.UUID@)">
-            <summary>
-            Generate a UUID from a string
-            </summary>
-            <param name="val">A string representation of a UUID, case
-            insensitive and can either be hyphenated or non-hyphenated</param>
-            <param name="result">Will contain the parsed UUID if successful,
-            otherwise null</param>
-            <returns>True if the string was successfully parse, otherwise false</returns>
-            <example>UUID.TryParse("11f8aa9c-b071-4242-836b-13b7abe0d489", result)</example>
-        </member>
-        <member name="M:OpenMetaverse.UUID.Combine(OpenMetaverse.UUID,OpenMetaverse.UUID)">
-            <summary>
-            Combine two UUIDs together by taking the MD5 hash of a byte array
-            containing both UUIDs
-            </summary>
-            <param name="first">First UUID to combine</param>
-            <param name="second">Second UUID to combine</param>
-            <returns>The UUID product of the combination</returns>
-        </member>
-        <member name="M:OpenMetaverse.UUID.Random">
-            <summary>
-            </summary>
-            <returns>
-            </returns>
-        </member>
-        <member name="M:OpenMetaverse.UUID.GetHashCode">
-            <summary>
-            Return a hash code for this UUID, used by .NET for hash tables
-            </summary>
-            <returns>An integer composed of all the UUID bytes XORed together</returns>
-        </member>
-        <member name="M:OpenMetaverse.UUID.Equals(System.Object)">
-            <summary>
-            Comparison function
-            </summary>
-            <param name="o">An object to compare to this UUID</param>
-            <returns>True if the object is a UUID and both UUIDs are equal</returns>
-        </member>
-        <member name="M:OpenMetaverse.UUID.Equals(OpenMetaverse.UUID)">
-            <summary>
-            Comparison function
-            </summary>
-            <param name="uuid">UUID to compare to</param>
-            <returns>True if the UUIDs are equal, otherwise false</returns>
-        </member>
-        <member name="M:OpenMetaverse.UUID.ToString">
-            <summary>
-            Get a hyphenated string representation of this UUID
-            </summary>
-            <returns>A string representation of this UUID, lowercase and
-            with hyphens</returns>
-            <example>11f8aa9c-b071-4242-836b-13b7abe0d489</example>
-        </member>
-        <member name="M:OpenMetaverse.UUID.op_Equality(OpenMetaverse.UUID,OpenMetaverse.UUID)">
-            <summary>
-            Equals operator
-            </summary>
-            <param name="lhs">First UUID for comparison</param>
-            <param name="rhs">Second UUID for comparison</param>
-            <returns>True if the UUIDs are byte for byte equal, otherwise false</returns>
-        </member>
-        <member name="M:OpenMetaverse.UUID.op_Inequality(OpenMetaverse.UUID,OpenMetaverse.UUID)">
-            <summary>
-            Not equals operator
-            </summary>
-            <param name="lhs">First UUID for comparison</param>
-            <param name="rhs">Second UUID for comparison</param>
-            <returns>True if the UUIDs are not equal, otherwise true</returns>
-        </member>
-        <member name="M:OpenMetaverse.UUID.op_ExclusiveOr(OpenMetaverse.UUID,OpenMetaverse.UUID)">
-            <summary>
-            XOR operator
-            </summary>
-            <param name="lhs">First UUID</param>
-            <param name="rhs">Second UUID</param>
-            <returns>A UUID that is a XOR combination of the two input UUIDs</returns>
-        </member>
-        <member name="M:OpenMetaverse.UUID.op_Explicit(System.String)~OpenMetaverse.UUID">
-            <summary>
-            String typecasting operator
-            </summary>
-            <param name="val">A UUID in string form. Case insensitive,
-            hyphenated or non-hyphenated</param>
-            <returns>A UUID built from the string representation</returns>
-        </member>
-        <member name="T:OpenMetaverse.Utils.Platform">
-            <summary>
-            Operating system
+            Create new BlockingQueue.
             </summary>
         </member>
-        <member name="F:OpenMetaverse.Utils.Platform.Unknown">
-            <summary>Unknown</summary>
-        </member>
-        <member name="F:OpenMetaverse.Utils.Platform.Windows">
-            <summary>Microsoft Windows</summary>
-        </member>
-        <member name="F:OpenMetaverse.Utils.Platform.WindowsCE">
-            <summary>Microsoft Windows CE</summary>
-        </member>
-        <member name="F:OpenMetaverse.Utils.Platform.Linux">
-            <summary>Linux</summary>
-        </member>
-        <member name="F:OpenMetaverse.Utils.Platform.OSX">
-            <summary>Apple OSX</summary>
-        </member>
-        <member name="T:OpenMetaverse.Utils.Runtime">
+        <member name="M:OpenMetaverse.BlockingQueue`1.Finalize">
             <summary>
-            Runtime platform
+            BlockingQueue Destructor (Close queue, resume any waiting thread).
             </summary>
         </member>
-        <member name="F:OpenMetaverse.Utils.Runtime.Windows">
-            <summary>.NET runtime</summary>
+        <member name="M:OpenMetaverse.BlockingQueue`1.Clear">
+            <summary>
+            Remove all objects from the Queue.
+            </summary>
         </member>
-        <member name="F:OpenMetaverse.Utils.Runtime.Mono">
-            <summary>Mono runtime: http://www.mono-project.com/</summary>
+        <member name="M:OpenMetaverse.BlockingQueue`1.Close">
+            <summary>
+            Remove all objects from the Queue, resume all dequeue threads.
+            </summary>
+        </member>
+        <member name="M:OpenMetaverse.BlockingQueue`1.Dequeue">
+            <summary>
+            Removes and returns the object at the beginning of the Queue.
+            </summary>
+            <returns>Object in queue.</returns>
+        </member>
+        <member name="M:OpenMetaverse.BlockingQueue`1.Dequeue(System.TimeSpan)">
+            <summary>
+            Removes and returns the object at the beginning of the Queue.
+            </summary>
+            <param name="timeout">time to wait before returning</param>
+            <returns>Object in queue.</returns>
+        </member>
+        <member name="M:OpenMetaverse.BlockingQueue`1.Dequeue(System.Int32)">
+            <summary>
+            Removes and returns the object at the beginning of the Queue.
+            </summary>
+            <param name="timeout">time to wait before returning (in milliseconds)</param>
+            <returns>Object in queue.</returns>
+        </member>
+        <member name="M:OpenMetaverse.BlockingQueue`1.Enqueue(`0)">
+            <summary>
+            Adds an object to the end of the Queue
+            </summary>
+            <param name="obj">Object to put in queue</param>
+        </member>
+        <member name="M:OpenMetaverse.BlockingQueue`1.Open">
+            <summary>
+            Open Queue.
+            </summary>
+        </member>
+        <member name="P:OpenMetaverse.BlockingQueue`1.Closed">
+            <summary>
+            Gets flag indicating if queue has been closed.
+            </summary>
         </member>
         <member name="F:OpenMetaverse.Utils.DEG_TO_RAD">
             <summary>Used for converting degrees to radians</summary>
@@ -1733,7 +809,7 @@
         </member>
         <member name="F:OpenMetaverse.Utils.EnUsCulture">
             <summary>Provide a single instance of the CultureInfo class to
-            help parsing in situations where the grid assumes an en-us
+            help parsing in situations where the grid assumes an en-us 
             culture</summary>
         </member>
         <member name="F:OpenMetaverse.Utils.Epoch">
@@ -2155,7 +1231,7 @@
             <summary>
             Takes an AssetType and returns the string representation
             </summary>
-            <param name="type">The source <seealso cref="T:OpenMetaverse.AssetType" /></param>
+            <param name="type">The source <seealso cref="T:OpenMetaverse.AssetType"/></param>
             <returns>The string version of the AssetType</returns>
         </member>
         <member name="M:OpenMetaverse.Utils.StringToAssetType(System.String)">
@@ -2169,7 +1245,7 @@
             <summary>
             Convert an InventoryType to a string
             </summary>
-            <param name="type">The <seealso cref="T:InventoryType" /> to convert</param>
+            <param name="type">The <seealso cref="T:InventoryType"/> to convert</param>
             <returns>A string representation of the source</returns>
         </member>
         <member name="M:OpenMetaverse.Utils.StringToInventoryType(System.String)">
@@ -2183,7 +1259,7 @@
             <summary>
             Convert a SaleType to a string
             </summary>
-            <param name="type">The <seealso cref="T:SaleType" /> to convert</param>
+            <param name="type">The <seealso cref="T:SaleType"/> to convert</param>
             <returns>A string representation of the source</returns>
         </member>
         <member name="M:OpenMetaverse.Utils.StringToSaleType(System.String)">
@@ -2258,7 +1334,7 @@
             <summary>
             Convert a native DateTime object to a UNIX timestamp
             </summary>
-            <param name="time">A DateTime object you want to convert to a
+            <param name="time">A DateTime object you want to convert to a 
             timestamp</param>
             <returns>An unsigned integer representing a UNIX timestamp</returns>
         </member>
@@ -2289,330 +1365,139 @@
         <member name="M:OpenMetaverse.Utils.HostnameToIPv4(System.String)">
             <summary>
             Attempts to convert a string representation of a hostname or IP
-            address to a <seealso cref="T:System.Net.IPAddress" /></summary>
+            address to a <seealso cref="T:System.Net.IPAddress"/>
+            </summary>
             <param name="hostname">Hostname to convert to an IPAddress</param>
             <returns>Converted IP address object, or null if the conversion
             failed</returns>
         </member>
-        <member name="T:OpenMetaverse.Vector2">
+        <member name="T:OpenMetaverse.Utils.Platform">
             <summary>
-            A two-dimensional vector with floating-point values
+            Operating system
             </summary>
         </member>
-        <member name="F:OpenMetaverse.Vector2.X">
-            <summary>X value</summary>
+        <member name="F:OpenMetaverse.Utils.Platform.Unknown">
+            <summary>Unknown</summary>
         </member>
-        <member name="F:OpenMetaverse.Vector2.Y">
-            <summary>Y value</summary>
+        <member name="F:OpenMetaverse.Utils.Platform.Windows">
+            <summary>Microsoft Windows</summary>
         </member>
-        <member name="F:OpenMetaverse.Vector2.Zero">
-            <summary>A vector with a value of 0,0</summary>
+        <member name="F:OpenMetaverse.Utils.Platform.WindowsCE">
+            <summary>Microsoft Windows CE</summary>
         </member>
-        <member name="F:OpenMetaverse.Vector2.One">
-            <summary>A vector with a value of 1,1</summary>
+        <member name="F:OpenMetaverse.Utils.Platform.Linux">
+            <summary>Linux</summary>
         </member>
-        <member name="F:OpenMetaverse.Vector2.UnitX">
-            <summary>A vector with a value of 1,0</summary>
+        <member name="F:OpenMetaverse.Utils.Platform.OSX">
+            <summary>Apple OSX</summary>
         </member>
-        <member name="F:OpenMetaverse.Vector2.UnitY">
-            <summary>A vector with a value of 0,1</summary>
-        </member>
-        <member name="M:OpenMetaverse.Vector2.ApproxEquals(OpenMetaverse.Vector2,System.Single)">
+        <member name="T:OpenMetaverse.Utils.Runtime">
             <summary>
-            Test if this vector is equal to another vector, within a given
-            tolerance range
-            </summary>
-            <param name="vec">Vector to test against</param>
-            <param name="tolerance">The acceptable magnitude of difference
-            between the two vectors</param>
-            <returns>True if the magnitude of difference between the two vectors
-            is less than the given tolerance, otherwise false</returns>
-        </member>
-        <member name="M:OpenMetaverse.Vector2.IsFinite">
-            <summary>
-            Test if this vector is composed of all finite numbers
+            Runtime platform
             </summary>
         </member>
-        <member name="M:OpenMetaverse.Vector2.CompareTo(OpenMetaverse.Vector2)">
+        <member name="F:OpenMetaverse.Utils.Runtime.Windows">
+            <summary>.NET runtime</summary>
+        </member>
+        <member name="F:OpenMetaverse.Utils.Runtime.Mono">
+            <summary>Mono runtime: http://www.mono-project.com/</summary>
+        </member>
+        <member name="F:OpenMetaverse.ExpiringCache`2.syncRoot">
+            <summary>For thread safety</summary>
+        </member>
+        <member name="F:OpenMetaverse.ExpiringCache`2.isPurging">
+            <summary>For thread safety</summary>
+        </member>
+        <member name="M:OpenMetaverse.ExpiringCache`2.PurgeCache(System.Object,System.Timers.ElapsedEventArgs)">
             <summary>
-            IComparable.CompareTo implementation
+            Purges expired objects from the cache. Called automatically by the purge timer.
             </summary>
         </member>
-        <member name="M:OpenMetaverse.Vector2.FromBytes(System.Byte[],System.Int32)">
+        <member name="M:OpenMetaverse.Matrix4.GetEulerAngles(System.Single@,System.Single@,System.Single@)">
             <summary>
-            Builds a vector from a byte array
+            Convert this matrix to euler rotations
             </summary>
-            <param name="byteArray">Byte array containing two four-byte floats</param>
-            <param name="pos">Beginning position in the byte array</param>
+            <param name="roll">X euler angle</param>
+            <param name="pitch">Y euler angle</param>
+            <param name="yaw">Z euler angle</param>
         </member>
-        <member name="M:OpenMetaverse.Vector2.GetBytes">
+        <member name="M:OpenMetaverse.Matrix4.GetQuaternion">
             <summary>
-            Returns the raw bytes for this vector
+            Convert this matrix to a quaternion rotation
             </summary>
-            <returns>An eight-byte array containing X and Y</returns>
+            <returns>A quaternion representation of this rotation matrix</returns>
         </member>
-        <member name="M:OpenMetaverse.Vector2.ToBytes(System.Byte[],System.Int32)">
+        <member name="M:OpenMetaverse.Matrix4.CreateFromEulers(System.Single,System.Single,System.Single)">
             <summary>
-            Writes the raw bytes for this vector to a byte array
+            Construct a matrix from euler rotation values in radians
             </summary>
-            <param name="dest">Destination byte array</param>
-            <param name="pos">Position in the destination array to start
-            writing. Must be at least 8 bytes before the end of the array</param>
+            <param name="roll">X euler angle in radians</param>
+            <param name="pitch">Y euler angle in radians</param>
+            <param name="yaw">Z euler angle in radians</param>
         </member>
-        <member name="M:OpenMetaverse.Vector2.Parse(System.String)">
-            <summary>
-            Parse a vector from a string
-            </summary>
-            <param name="val">A string representation of a 2D vector, enclosed
-            in arrow brackets and separated by commas</param>
-        </member>
-        <member name="M:OpenMetaverse.Vector2.SmoothStep(OpenMetaverse.Vector2,OpenMetaverse.Vector2,System.Single)">
-            <summary>
-            Interpolates between two vectors using a cubic equation
-            </summary>
-        </member>
-        <member name="M:OpenMetaverse.Vector2.ToString">
+        <member name="M:OpenMetaverse.Matrix4.ToString">
             <summary>
             Get a formatted string representation of the vector
             </summary>
             <returns>A string representation of the vector</returns>
         </member>
-        <member name="M:OpenMetaverse.Vector2.ToRawString">
+        <member name="F:OpenMetaverse.Matrix4.Zero">
+            <summary>A 4x4 matrix containing all zeroes</summary>
+        </member>
+        <member name="F:OpenMetaverse.Matrix4.Identity">
+            <summary>A 4x4 identity matrix</summary>
+        </member>
+        <member name="T:OpenMetaverse.Parallel">
             <summary>
-            Get a string representation of the vector elements with up to three
-            decimal digits and separated by spaces only
-            </summary>
-            <returns>Raw string representation of the vector</returns>
-        </member>
-        <member name="T:OpenMetaverse.Vector3">
-            <summary>
-            A three-dimensional vector with floating-point values
-            </summary>
-        </member>
-        <member name="M:OpenMetaverse.Vector3.#ctor(System.Byte[],System.Int32)">
-            <summary>
-            Constructor, builds a vector from a byte array
-            </summary>
-            <param name="byteArray">Byte array containing three four-byte floats</param>
-            <param name="pos">Beginning position in the byte array</param>
-        </member>
-        <member name="F:OpenMetaverse.Vector3.X">
-            <summary>X value</summary>
-        </member>
-        <member name="F:OpenMetaverse.Vector3.Y">
-            <summary>Y value</summary>
-        </member>
-        <member name="F:OpenMetaverse.Vector3.Z">
-            <summary>Z value</summary>
-        </member>
-        <member name="F:OpenMetaverse.Vector3.Zero">
-            <summary>A vector with a value of 0,0,0</summary>
-        </member>
-        <member name="F:OpenMetaverse.Vector3.One">
-            <summary>A vector with a value of 1,1,1</summary>
-        </member>
-        <member name="F:OpenMetaverse.Vector3.UnitX">
-            <summary>A unit vector facing forward (X axis), value 1,0,0</summary>
-        </member>
-        <member name="F:OpenMetaverse.Vector3.UnitY">
-            <summary>A unit vector facing left (Y axis), value 0,1,0</summary>
-        </member>
-        <member name="F:OpenMetaverse.Vector3.UnitZ">
-            <summary>A unit vector facing up (Z axis), value 0,0,1</summary>
-        </member>
-        <member name="M:OpenMetaverse.Vector3.ApproxEquals(OpenMetaverse.Vector3,System.Single)">
-            <summary>
-            Test if this vector is equal to another vector, within a given
-            tolerance range
-            </summary>
-            <param name="vec">Vector to test against</param>
-            <param name="tolerance">The acceptable magnitude of difference
-            between the two vectors</param>
-            <returns>True if the magnitude of difference between the two vectors
-            is less than the given tolerance, otherwise false</returns>
-        </member>
-        <member name="M:OpenMetaverse.Vector3.CompareTo(OpenMetaverse.Vector3)">
-            <summary>
-            IComparable.CompareTo implementation
+            Provides helper methods for parallelizing loops
             </summary>
         </member>
-        <member name="M:OpenMetaverse.Vector3.IsFinite">
+        <member name="M:OpenMetaverse.Parallel.For(System.Int32,System.Int32,System.Action{System.Int32})">
             <summary>
-            Test if this vector is composed of all finite numbers
+            Executes a for loop in which iterations may run in parallel
             </summary>
+            <param name="fromInclusive">The loop will be started at this index</param>
+            <param name="toExclusive">The loop will be terminated before this index is reached</param>
+            <param name="body">Method body to run for each iteration of the loop</param>
         </member>
-        <member name="M:OpenMetaverse.Vector3.FromBytes(System.Byte[],System.Int32)">
+        <member name="M:OpenMetaverse.Parallel.For(System.Int32,System.Int32,System.Int32,System.Action{System.Int32})">
             <summary>
-            Builds a vector from a byte array
+            Executes a for loop in which iterations may run in parallel
             </summary>
-            <param name="byteArray">Byte array containing a 12 byte vector</param>
-            <param name="pos">Beginning position in the byte array</param>
+            <param name="threadCount">The number of concurrent execution threads to run</param>
+            <param name="fromInclusive">The loop will be started at this index</param>
+            <param name="toExclusive">The loop will be terminated before this index is reached</param>
+            <param name="body">Method body to run for each iteration of the loop</param>
         </member>
-        <member name="M:OpenMetaverse.Vector3.GetBytes">
+        <member name="M:OpenMetaverse.Parallel.ForEach``1(System.Collections.Generic.IEnumerable{``0},System.Action{``0})">
             <summary>
-            Returns the raw bytes for this vector
+            Executes a foreach loop in which iterations may run in parallel
             </summary>
-            <returns>A 12 byte array containing X, Y, and Z</returns>
+            <typeparam name="T">Object type that the collection wraps</typeparam>
+            <param name="enumerable">An enumerable collection to iterate over</param>
+            <param name="body">Method body to run for each object in the collection</param>
         </member>
-        <member name="M:OpenMetaverse.Vector3.ToBytes(System.Byte[],System.Int32)">
+        <member name="M:OpenMetaverse.Parallel.ForEach``1(System.Int32,System.Collections.Generic.IEnumerable{``0},System.Action{``0})">
             <summary>
-            Writes the raw bytes for this vector to a byte array
+            Executes a foreach loop in which iterations may run in parallel
             </summary>
-            <param name="dest">Destination byte array</param>
-            <param name="pos">Position in the destination array to start
-            writing. Must be at least 12 bytes before the end of the array</param>
+            <typeparam name="T">Object type that the collection wraps</typeparam>
+            <param name="threadCount">The number of concurrent execution threads to run</param>
+            <param name="enumerable">An enumerable collection to iterate over</param>
+            <param name="body">Method body to run for each object in the collection</param>
         </member>
-        <member name="M:OpenMetaverse.Vector3.Parse(System.String)">
+        <member name="M:OpenMetaverse.Parallel.Invoke(System.Action[])">
             <summary>
-            Parse a vector from a string
+            Executes a series of tasks in parallel
             </summary>
-            <param name="val">A string representation of a 3D vector, enclosed
-            in arrow brackets and separated by commas</param>
+            <param name="actions">A series of method bodies to execute</param>
         </member>
-        <member name="M:OpenMetaverse.Vector3.RotationBetween(OpenMetaverse.Vector3,OpenMetaverse.Vector3)">
+        <member name="M:OpenMetaverse.Parallel.Invoke(System.Int32,System.Action[])">
             <summary>
-            Calculate the rotation between two vectors
+            Executes a series of tasks in parallel
             </summary>
-            <param name="a">Normalized directional vector (such as 1,0,0 for forward facing)</param>
-            <param name="b">Normalized target vector</param>
-        </member>
-        <member name="M:OpenMetaverse.Vector3.SmoothStep(OpenMetaverse.Vector3,OpenMetaverse.Vector3,System.Single)">
-            <summary>
-            Interpolates between two vectors using a cubic equation
-            </summary>
-        </member>
-        <member name="M:OpenMetaverse.Vector3.ToString">
-            <summary>
-            Get a formatted string representation of the vector
-            </summary>
-            <returns>A string representation of the vector</returns>
-        </member>
-        <member name="M:OpenMetaverse.Vector3.ToRawString">
-            <summary>
-            Get a string representation of the vector elements with up to three
-            decimal digits and separated by spaces only
-            </summary>
-            <returns>Raw string representation of the vector</returns>
-        </member>
-        <member name="M:OpenMetaverse.Vector3.op_Modulus(OpenMetaverse.Vector3,OpenMetaverse.Vector3)">
-            <summary>
-            Cross product between two vectors
-            </summary>
-        </member>
-        <member name="T:OpenMetaverse.Vector3d">
-            <summary>
-            A three-dimensional vector with doubleing-point values
-            </summary>
-        </member>
-        <member name="M:OpenMetaverse.Vector3d.#ctor(System.Byte[],System.Int32)">
-            <summary>
-            Constructor, builds a vector from a byte array
-            </summary>
-            <param name="byteArray">Byte array containing three eight-byte doubles</param>
-            <param name="pos">Beginning position in the byte array</param>
-        </member>
-        <member name="F:OpenMetaverse.Vector3d.X">
-            <summary>X value</summary>
-        </member>
-        <member name="F:OpenMetaverse.Vector3d.Y">
-            <summary>Y value</summary>
-        </member>
-        <member name="F:OpenMetaverse.Vector3d.Z">
-            <summary>Z value</summary>
-        </member>
-        <member name="F:OpenMetaverse.Vector3d.Zero">
-            <summary>A vector with a value of 0,0,0</summary>
-        </member>
-        <member name="F:OpenMetaverse.Vector3d.One">
-            <summary>A vector with a value of 1,1,1</summary>
-        </member>
-        <member name="F:OpenMetaverse.Vector3d.UnitX">
-            <summary>A unit vector facing forward (X axis), value of 1,0,0</summary>
-        </member>
-        <member name="F:OpenMetaverse.Vector3d.UnitY">
-            <summary>A unit vector facing left (Y axis), value of 0,1,0</summary>
-        </member>
-        <member name="F:OpenMetaverse.Vector3d.UnitZ">
-            <summary>A unit vector facing up (Z axis), value of 0,0,1</summary>
-        </member>
-        <member name="M:OpenMetaverse.Vector3d.ApproxEquals(OpenMetaverse.Vector3d,System.Double)">
-            <summary>
-            Test if this vector is equal to another vector, within a given
-            tolerance range
-            </summary>
-            <param name="vec">Vector to test against</param>
-            <param name="tolerance">The acceptable magnitude of difference
-            between the two vectors</param>
-            <returns>True if the magnitude of difference between the two vectors
-            is less than the given tolerance, otherwise false</returns>
-        </member>
-        <member name="M:OpenMetaverse.Vector3d.CompareTo(OpenMetaverse.Vector3d)">
-            <summary>
-            IComparable.CompareTo implementation
-            </summary>
-        </member>
-        <member name="M:OpenMetaverse.Vector3d.IsFinite">
-            <summary>
-            Test if this vector is composed of all finite numbers
-            </summary>
-        </member>
-        <member name="M:OpenMetaverse.Vector3d.FromBytes(System.Byte[],System.Int32)">
-            <summary>
-            Builds a vector from a byte array
-            </summary>
-            <param name="byteArray">Byte array containing a 24 byte vector</param>
-            <param name="pos">Beginning position in the byte array</param>
-        </member>
-        <member name="M:OpenMetaverse.Vector3d.GetBytes">
-            <summary>
-            Returns the raw bytes for this vector
-            </summary>
-            <returns>A 24 byte array containing X, Y, and Z</returns>
-        </member>
-        <member name="M:OpenMetaverse.Vector3d.ToBytes(System.Byte[],System.Int32)">
-            <summary>
-            Writes the raw bytes for this vector to a byte array
-            </summary>
-            <param name="dest">Destination byte array</param>
-            <param name="pos">Position in the destination array to start
-            writing. Must be at least 24 bytes before the end of the array</param>
-        </member>
-        <member name="M:OpenMetaverse.Vector3d.Parse(System.String)">
-            <summary>
-            Parse a vector from a string
-            </summary>
-            <param name="val">A string representation of a 3D vector, enclosed
-            in arrow brackets and separated by commas</param>
-        </member>
-        <member name="M:OpenMetaverse.Vector3d.SmoothStep(OpenMetaverse.Vector3d,OpenMetaverse.Vector3d,System.Double)">
-            <summary>
-            Interpolates between two vectors using a cubic equation
-            </summary>
-        </member>
-        <member name="M:OpenMetaverse.Vector3d.ToString">
-            <summary>
-            Get a formatted string representation of the vector
-            </summary>
-            <returns>A string representation of the vector</returns>
-        </member>
-        <member name="M:OpenMetaverse.Vector3d.ToRawString">
-            <summary>
-            Get a string representation of the vector elements with up to three
-            decimal digits and separated by spaces only
-            </summary>
-            <returns>Raw string representation of the vector</returns>
-        </member>
-        <member name="M:OpenMetaverse.Vector3d.op_Modulus(OpenMetaverse.Vector3d,OpenMetaverse.Vector3d)">
-            <summary>
-            Cross product between two vectors
-            </summary>
-        </member>
-        <member name="M:OpenMetaverse.Vector4.#ctor(System.Byte[],System.Int32)">
-            <summary>
-            Constructor, builds a vector from a byte array
-            </summary>
-            <param name="byteArray">Byte array containing four four-byte floats</param>
-            <param name="pos">Beginning position in the byte array</param>
+            <param name="threadCount">The number of concurrent execution threads to run</param>
+            <param name="actions">A series of method bodies to execute</param>
         </member>
         <member name="F:OpenMetaverse.Vector4.X">
             <summary>X value</summary>
@@ -2626,23 +1511,12 @@
         <member name="F:OpenMetaverse.Vector4.W">
             <summary>W value</summary>
         </member>
-        <member name="F:OpenMetaverse.Vector4.Zero">
-            <summary>A vector with a value of 0,0,0,0</summary>
-        </member>
-        <member name="F:OpenMetaverse.Vector4.One">
-            <summary>A vector with a value of 1,1,1,1</summary>
-        </member>
-        <member name="F:OpenMetaverse.Vector4.UnitX">
-            <summary>A vector with a value of 1,0,0,0</summary>
-        </member>
-        <member name="F:OpenMetaverse.Vector4.UnitY">
-            <summary>A vector with a value of 0,1,0,0</summary>
-        </member>
-        <member name="F:OpenMetaverse.Vector4.UnitZ">
-            <summary>A vector with a value of 0,0,1,0</summary>
-        </member>
-        <member name="F:OpenMetaverse.Vector4.UnitW">
-            <summary>A vector with a value of 0,0,0,1</summary>
+        <member name="M:OpenMetaverse.Vector4.#ctor(System.Byte[],System.Int32)">
+            <summary>
+            Constructor, builds a vector from a byte array
+            </summary>
+            <param name="byteArray">Byte array containing four four-byte floats</param>
+            <param name="pos">Beginning position in the byte array</param>
         </member>
         <member name="M:OpenMetaverse.Vector4.ApproxEquals(OpenMetaverse.Vector4,System.Single)">
             <summary>
@@ -2692,6 +1566,1089 @@
             decimal digits and separated by spaces only
             </summary>
             <returns>Raw string representation of the vector</returns>
+        </member>
+        <member name="F:OpenMetaverse.Vector4.Zero">
+            <summary>A vector with a value of 0,0,0,0</summary>
+        </member>
+        <member name="F:OpenMetaverse.Vector4.One">
+            <summary>A vector with a value of 1,1,1,1</summary>
+        </member>
+        <member name="F:OpenMetaverse.Vector4.UnitX">
+            <summary>A vector with a value of 1,0,0,0</summary>
+        </member>
+        <member name="F:OpenMetaverse.Vector4.UnitY">
+            <summary>A vector with a value of 0,1,0,0</summary>
+        </member>
+        <member name="F:OpenMetaverse.Vector4.UnitZ">
+            <summary>A vector with a value of 0,0,1,0</summary>
+        </member>
+        <member name="F:OpenMetaverse.Vector4.UnitW">
+            <summary>A vector with a value of 0,0,0,1</summary>
+        </member>
+        <member name="T:OpenMetaverse.UUID">
+            <summary>
+            A 128-bit Universally Unique Identifier, used throughout the Second
+            Life networking protocol
+            </summary>
+        </member>
+        <member name="F:OpenMetaverse.UUID.Guid">
+            <summary>The System.Guid object this struct wraps around</summary>
+        </member>
+        <member name="M:OpenMetaverse.UUID.#ctor(System.String)">
+            <summary>
+            Constructor that takes a string UUID representation
+            </summary>
+            <param name="val">A string representation of a UUID, case 
+            insensitive and can either be hyphenated or non-hyphenated</param>
+            <example>UUID("11f8aa9c-b071-4242-836b-13b7abe0d489")</example>
+        </member>
+        <member name="M:OpenMetaverse.UUID.#ctor(System.Guid)">
+            <summary>
+            Constructor that takes a System.Guid object
+            </summary>
+            <param name="val">A Guid object that contains the unique identifier
+            to be represented by this UUID</param>
+        </member>
+        <member name="M:OpenMetaverse.UUID.#ctor(System.Byte[],System.Int32)">
+            <summary>
+            Constructor that takes a byte array containing a UUID
+            </summary>
+            <param name="source">Byte array containing a 16 byte UUID</param>
+            <param name="pos">Beginning offset in the array</param>
+        </member>
+        <member name="M:OpenMetaverse.UUID.#ctor(System.UInt64)">
+            <summary>
+            Constructor that takes an unsigned 64-bit unsigned integer to 
+            convert to a UUID
+            </summary>
+            <param name="val">64-bit unsigned integer to convert to a UUID</param>
+        </member>
+        <member name="M:OpenMetaverse.UUID.#ctor(OpenMetaverse.UUID)">
+            <summary>
+            Copy constructor
+            </summary>
+            <param name="val">UUID to copy</param>
+        </member>
+        <member name="M:OpenMetaverse.UUID.CompareTo(OpenMetaverse.UUID)">
+            <summary>
+            IComparable.CompareTo implementation
+            </summary>
+        </member>
+        <member name="M:OpenMetaverse.UUID.FromBytes(System.Byte[],System.Int32)">
+            <summary>
+            Assigns this UUID from 16 bytes out of a byte array
+            </summary>
+            <param name="source">Byte array containing the UUID to assign this UUID to</param>
+            <param name="pos">Starting position of the UUID in the byte array</param>
+        </member>
+        <member name="M:OpenMetaverse.UUID.GetBytes">
+            <summary>
+            Returns a copy of the raw bytes for this UUID
+            </summary>
+            <returns>A 16 byte array containing this UUID</returns>
+        </member>
+        <member name="M:OpenMetaverse.UUID.ToBytes(System.Byte[],System.Int32)">
+            <summary>
+            Writes the raw bytes for this UUID to a byte array
+            </summary>
+            <param name="dest">Destination byte array</param>
+            <param name="pos">Position in the destination array to start
+            writing. Must be at least 16 bytes before the end of the array</param>
+        </member>
+        <member name="M:OpenMetaverse.UUID.CRC">
+            <summary>
+            Calculate an LLCRC (cyclic redundancy check) for this UUID
+            </summary>
+            <returns>The CRC checksum for this UUID</returns>
+        </member>
+        <member name="M:OpenMetaverse.UUID.GetULong">
+            <summary>
+            Create a 64-bit integer representation from the second half of this UUID
+            </summary>
+            <returns>An integer created from the last eight bytes of this UUID</returns>
+        </member>
+        <member name="M:OpenMetaverse.UUID.Parse(System.String)">
+            <summary>
+            Generate a UUID from a string
+            </summary>
+            <param name="val">A string representation of a UUID, case 
+            insensitive and can either be hyphenated or non-hyphenated</param>
+            <example>UUID.Parse("11f8aa9c-b071-4242-836b-13b7abe0d489")</example>
+        </member>
+        <member name="M:OpenMetaverse.UUID.TryParse(System.String,OpenMetaverse.UUID@)">
+            <summary>
+            Generate a UUID from a string
+            </summary>
+            <param name="val">A string representation of a UUID, case 
+            insensitive and can either be hyphenated or non-hyphenated</param>
+            <param name="result">Will contain the parsed UUID if successful,
+            otherwise null</param>
+            <returns>True if the string was successfully parse, otherwise false</returns>
+            <example>UUID.TryParse("11f8aa9c-b071-4242-836b-13b7abe0d489", result)</example>
+        </member>
+        <member name="M:OpenMetaverse.UUID.Combine(OpenMetaverse.UUID,OpenMetaverse.UUID)">
+            <summary>
+            Combine two UUIDs together by taking the MD5 hash of a byte array
+            containing both UUIDs
+            </summary>
+            <param name="first">First UUID to combine</param>
+            <param name="second">Second UUID to combine</param>
+            <returns>The UUID product of the combination</returns>
+        </member>
+        <member name="M:OpenMetaverse.UUID.Random">
+            <summary>
+            
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:OpenMetaverse.UUID.GetHashCode">
+            <summary>
+            Return a hash code for this UUID, used by .NET for hash tables
+            </summary>
+            <returns>An integer composed of all the UUID bytes XORed together</returns>
+        </member>
+        <member name="M:OpenMetaverse.UUID.Equals(System.Object)">
+            <summary>
+            Comparison function
+            </summary>
+            <param name="o">An object to compare to this UUID</param>
+            <returns>True if the object is a UUID and both UUIDs are equal</returns>
+        </member>
+        <member name="M:OpenMetaverse.UUID.Equals(OpenMetaverse.UUID)">
+            <summary>
+            Comparison function
+            </summary>
+            <param name="uuid">UUID to compare to</param>
+            <returns>True if the UUIDs are equal, otherwise false</returns>
+        </member>
+        <member name="M:OpenMetaverse.UUID.ToString">
+            <summary>
+            Get a hyphenated string representation of this UUID
+            </summary>
+            <returns>A string representation of this UUID, lowercase and 
+            with hyphens</returns>
+            <example>11f8aa9c-b071-4242-836b-13b7abe0d489</example>
+        </member>
+        <member name="M:OpenMetaverse.UUID.op_Equality(OpenMetaverse.UUID,OpenMetaverse.UUID)">
+            <summary>
+            Equals operator
+            </summary>
+            <param name="lhs">First UUID for comparison</param>
+            <param name="rhs">Second UUID for comparison</param>
+            <returns>True if the UUIDs are byte for byte equal, otherwise false</returns>
+        </member>
+        <member name="M:OpenMetaverse.UUID.op_Inequality(OpenMetaverse.UUID,OpenMetaverse.UUID)">
+            <summary>
+            Not equals operator
+            </summary>
+            <param name="lhs">First UUID for comparison</param>
+            <param name="rhs">Second UUID for comparison</param>
+            <returns>True if the UUIDs are not equal, otherwise true</returns>
+        </member>
+        <member name="M:OpenMetaverse.UUID.op_ExclusiveOr(OpenMetaverse.UUID,OpenMetaverse.UUID)">
+            <summary>
+            XOR operator
+            </summary>
+            <param name="lhs">First UUID</param>
+            <param name="rhs">Second UUID</param>
+            <returns>A UUID that is a XOR combination of the two input UUIDs</returns>
+        </member>
+        <member name="M:OpenMetaverse.UUID.op_Explicit(System.String)~OpenMetaverse.UUID">
+            <summary>
+            String typecasting operator
+            </summary>
+            <param name="val">A UUID in string form. Case insensitive, 
+            hyphenated or non-hyphenated</param>
+            <returns>A UUID built from the string representation</returns>
+        </member>
+        <member name="F:OpenMetaverse.UUID.Zero">
+            <summary>An UUID with a value of all zeroes</summary>
+        </member>
+        <member name="F:OpenMetaverse.UUID.ZeroString">
+            <summary>A cache of UUID.Zero as a string to optimize a common path</summary>
+        </member>
+        <member name="T:OpenMetaverse.Vector3">
+            <summary>
+            A three-dimensional vector with floating-point values
+            </summary>
+        </member>
+        <member name="F:OpenMetaverse.Vector3.X">
+            <summary>X value</summary>
+        </member>
+        <member name="F:OpenMetaverse.Vector3.Y">
+            <summary>Y value</summary>
+        </member>
+        <member name="F:OpenMetaverse.Vector3.Z">
+            <summary>Z value</summary>
+        </member>
+        <member name="M:OpenMetaverse.Vector3.#ctor(System.Byte[],System.Int32)">
+            <summary>
+            Constructor, builds a vector from a byte array
+            </summary>
+            <param name="byteArray">Byte array containing three four-byte floats</param>
+            <param name="pos">Beginning position in the byte array</param>
+        </member>
+        <member name="M:OpenMetaverse.Vector3.ApproxEquals(OpenMetaverse.Vector3,System.Single)">
+            <summary>
+            Test if this vector is equal to another vector, within a given
+            tolerance range
+            </summary>
+            <param name="vec">Vector to test against</param>
+            <param name="tolerance">The acceptable magnitude of difference
+            between the two vectors</param>
+            <returns>True if the magnitude of difference between the two vectors
+            is less than the given tolerance, otherwise false</returns>
+        </member>
+        <member name="M:OpenMetaverse.Vector3.CompareTo(OpenMetaverse.Vector3)">
+            <summary>
+            IComparable.CompareTo implementation
+            </summary>
+        </member>
+        <member name="M:OpenMetaverse.Vector3.IsFinite">
+            <summary>
+            Test if this vector is composed of all finite numbers
+            </summary>
+        </member>
+        <member name="M:OpenMetaverse.Vector3.FromBytes(System.Byte[],System.Int32)">
+            <summary>
+            Builds a vector from a byte array
+            </summary>
+            <param name="byteArray">Byte array containing a 12 byte vector</param>
+            <param name="pos">Beginning position in the byte array</param>
+        </member>
+        <member name="M:OpenMetaverse.Vector3.GetBytes">
+            <summary>
+            Returns the raw bytes for this vector
+            </summary>
+            <returns>A 12 byte array containing X, Y, and Z</returns>
+        </member>
+        <member name="M:OpenMetaverse.Vector3.ToBytes(System.Byte[],System.Int32)">
+            <summary>
+            Writes the raw bytes for this vector to a byte array
+            </summary>
+            <param name="dest">Destination byte array</param>
+            <param name="pos">Position in the destination array to start
+            writing. Must be at least 12 bytes before the end of the array</param>
+        </member>
+        <member name="M:OpenMetaverse.Vector3.Parse(System.String)">
+            <summary>
+            Parse a vector from a string
+            </summary>
+            <param name="val">A string representation of a 3D vector, enclosed 
+            in arrow brackets and separated by commas</param>
+        </member>
+        <member name="M:OpenMetaverse.Vector3.RotationBetween(OpenMetaverse.Vector3,OpenMetaverse.Vector3)">
+            <summary>
+            Calculate the rotation between two vectors
+            </summary>
+            <param name="a">Normalized directional vector (such as 1,0,0 for forward facing)</param>
+            <param name="b">Normalized target vector</param>
+        </member>
+        <member name="M:OpenMetaverse.Vector3.SmoothStep(OpenMetaverse.Vector3,OpenMetaverse.Vector3,System.Single)">
+            <summary>
+            Interpolates between two vectors using a cubic equation
+            </summary>
+        </member>
+        <member name="M:OpenMetaverse.Vector3.ToString">
+            <summary>
+            Get a formatted string representation of the vector
+            </summary>
+            <returns>A string representation of the vector</returns>
+        </member>
+        <member name="M:OpenMetaverse.Vector3.ToRawString">
+            <summary>
+            Get a string representation of the vector elements with up to three
+            decimal digits and separated by spaces only
+            </summary>
+            <returns>Raw string representation of the vector</returns>
+        </member>
+        <member name="M:OpenMetaverse.Vector3.op_Modulus(OpenMetaverse.Vector3,OpenMetaverse.Vector3)">
+            <summary>
+            Cross product between two vectors
+            </summary>
+        </member>
+        <member name="M:OpenMetaverse.Vector3.op_Explicit(OpenMetaverse.Vector3d)~OpenMetaverse.Vector3">
+            <summary>
+            Explicit casting for Vector3d > Vector3
+            </summary>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="F:OpenMetaverse.Vector3.Zero">
+            <summary>A vector with a value of 0,0,0</summary>
+        </member>
+        <member name="F:OpenMetaverse.Vector3.One">
+            <summary>A vector with a value of 1,1,1</summary>
+        </member>
+        <member name="F:OpenMetaverse.Vector3.UnitX">
+            <summary>A unit vector facing forward (X axis), value 1,0,0</summary>
+        </member>
+        <member name="F:OpenMetaverse.Vector3.UnitY">
+            <summary>A unit vector facing left (Y axis), value 0,1,0</summary>
+        </member>
+        <member name="F:OpenMetaverse.Vector3.UnitZ">
+            <summary>A unit vector facing up (Z axis), value 0,0,1</summary>
+        </member>
+        <member name="T:OpenMetaverse.TokenBucket">
+            <summary>
+            A hierarchical token bucket for bandwidth throttling. See
+            http://en.wikipedia.org/wiki/Token_bucket for more information
+            </summary>
+        </member>
+        <member name="F:OpenMetaverse.TokenBucket.parent">
+            <summary>Parent bucket to this bucket, or null if this is a root
+            bucket</summary>
+        </member>
+        <member name="F:OpenMetaverse.TokenBucket.maxBurst">
+            <summary>Size of the bucket in bytes. If zero, the bucket has 
+            infinite capacity</summary>
+        </member>
+        <member name="F:OpenMetaverse.TokenBucket.tokensPerMS">
+            <summary>Rate that the bucket fills, in bytes per millisecond. If
+            zero, the bucket always remains full</summary>
+        </member>
+        <member name="F:OpenMetaverse.TokenBucket.content">
+            <summary>Number of tokens currently in the bucket</summary>
+        </member>
+        <member name="F:OpenMetaverse.TokenBucket.lastDrip">
+            <summary>Time of the last drip, in system ticks</summary>
+        </member>
+        <member name="M:OpenMetaverse.TokenBucket.#ctor(OpenMetaverse.TokenBucket,System.Int32,System.Int32)">
+            <summary>
+            Default constructor
+            </summary>
+            <param name="parent">Parent bucket if this is a child bucket, or
+            null if this is a root bucket</param>
+            <param name="maxBurst">Maximum size of the bucket in bytes, or
+            zero if this bucket has no maximum capacity</param>
+            <param name="dripRate">Rate that the bucket fills, in bytes per
+            second. If zero, the bucket always remains full</param>
+        </member>
+        <member name="M:OpenMetaverse.TokenBucket.RemoveTokens(System.Int32)">
+            <summary>
+            Remove a given number of tokens from the bucket
+            </summary>
+            <param name="amount">Number of tokens to remove from the bucket</param>
+            <returns>True if the requested number of tokens were removed from
+            the bucket, otherwise false</returns>
+        </member>
+        <member name="M:OpenMetaverse.TokenBucket.RemoveTokens(System.Int32,System.Boolean@)">
+            <summary>
+            Remove a given number of tokens from the bucket
+            </summary>
+            <param name="amount">Number of tokens to remove from the bucket</param>
+            <param name="dripSucceeded">True if tokens were added to the bucket
+            during this call, otherwise false</param>
+            <returns>True if the requested number of tokens were removed from
+            the bucket, otherwise false</returns>
+        </member>
+        <member name="M:OpenMetaverse.TokenBucket.Drip">
+            <summary>
+            Add tokens to the bucket over time. The number of tokens added each
+            call depends on the length of time that has passed since the last 
+            call to Drip
+            </summary>
+            <returns>True if tokens were added to the bucket, otherwise false</returns>
+        </member>
+        <member name="P:OpenMetaverse.TokenBucket.Parent">
+            <summary>
+            The parent bucket of this bucket, or null if this bucket has no
+            parent. The parent bucket will limit the aggregate bandwidth of all
+            of its children buckets
+            </summary>
+        </member>
+        <member name="P:OpenMetaverse.TokenBucket.MaxBurst">
+            <summary>
+            Maximum burst rate in bytes per second. This is the maximum number
+            of tokens that can accumulate in the bucket at any one time
+            </summary>
+        </member>
+        <member name="P:OpenMetaverse.TokenBucket.DripRate">
+            <summary>
+            The speed limit of this bucket in bytes per second. This is the
+            number of tokens that are added to the bucket per second
+            </summary>
+            <remarks>Tokens are added to the bucket any time 
+            <seealso cref="M:OpenMetaverse.TokenBucket.RemoveTokens(System.Int32)"/> is called, at the granularity of
+            the system tick interval (typically around 15-22ms)</remarks>
+        </member>
+        <member name="P:OpenMetaverse.TokenBucket.Content">
+            <summary>
+            The number of bytes that can be sent at this moment. This is the
+            current number of tokens in the bucket
+            <remarks>If this bucket has a parent bucket that does not have
+            enough tokens for a request, <seealso cref="M:OpenMetaverse.TokenBucket.RemoveTokens(System.Int32)"/> will 
+            return false regardless of the content of this bucket</remarks>
+            </summary>
+        </member>
+        <member name="T:OpenMetaverse.PCode">
+            <summary>
+            Identifier code for primitive types
+            </summary>
+        </member>
+        <member name="F:OpenMetaverse.PCode.None">
+            <summary>None</summary>
+        </member>
+        <member name="F:OpenMetaverse.PCode.Prim">
+            <summary>A Primitive</summary>
+        </member>
+        <member name="F:OpenMetaverse.PCode.Avatar">
+            <summary>A Avatar</summary>
+        </member>
+        <member name="F:OpenMetaverse.PCode.Grass">
+            <summary>Linden grass</summary>
+        </member>
+        <member name="F:OpenMetaverse.PCode.NewTree">
+            <summary>Linden tree</summary>
+        </member>
+        <member name="F:OpenMetaverse.PCode.ParticleSystem">
+            <summary>A primitive that acts as the source for a particle stream</summary>
+        </member>
+        <member name="F:OpenMetaverse.PCode.Tree">
+            <summary>A Linden tree</summary>
+        </member>
+        <member name="T:OpenMetaverse.PrimFlags">
+            <summary>
+            Primary parameters for primitives such as Physics Enabled or Phantom
+            </summary>
+        </member>
+        <member name="F:OpenMetaverse.PrimFlags.None">
+            <summary>Deprecated</summary>
+        </member>
+        <member name="F:OpenMetaverse.PrimFlags.Physics">
+            <summary>Whether physics are enabled for this object</summary>
+        </member>
+        <member name="F:OpenMetaverse.PrimFlags.CreateSelected">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.PrimFlags.ObjectModify">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.PrimFlags.ObjectCopy">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.PrimFlags.ObjectAnyOwner">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.PrimFlags.ObjectYouOwner">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.PrimFlags.Scripted">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.PrimFlags.Touch">
+            <summary>Whether this object contains an active touch script</summary>
+        </member>
+        <member name="F:OpenMetaverse.PrimFlags.ObjectMove">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.PrimFlags.Money">
+            <summary>Whether this object can receive payments</summary>
+        </member>
+        <member name="F:OpenMetaverse.PrimFlags.Phantom">
+            <summary>Whether this object is phantom (no collisions)</summary>
+        </member>
+        <member name="F:OpenMetaverse.PrimFlags.InventoryEmpty">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.PrimFlags.JointHinge">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.PrimFlags.JointP2P">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.PrimFlags.JointLP2P">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.PrimFlags.JointWheel">
+            <summary>Deprecated</summary>
+        </member>
+        <member name="F:OpenMetaverse.PrimFlags.AllowInventoryDrop">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.PrimFlags.ObjectTransfer">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.PrimFlags.ObjectGroupOwned">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.PrimFlags.ObjectYouOfficer">
+            <summary>Deprecated</summary>
+        </member>
+        <member name="F:OpenMetaverse.PrimFlags.CameraDecoupled">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.PrimFlags.AnimSource">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.PrimFlags.CameraSource">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.PrimFlags.CastShadows">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.PrimFlags.DieAtEdge">
+            <summary>Server flag, will not be sent to clients. Specifies that
+            the object is destroyed when it touches a simulator edge</summary>
+        </member>
+        <member name="F:OpenMetaverse.PrimFlags.ReturnAtEdge">
+            <summary>Server flag, will not be sent to clients. Specifies that
+            the object will be returned to the owner's inventory when it
+            touches a simulator edge</summary>
+        </member>
+        <member name="F:OpenMetaverse.PrimFlags.Sandbox">
+            <summary>Server flag, will not be sent to clients.</summary>
+        </member>
+        <member name="F:OpenMetaverse.PrimFlags.Flying">
+            <summary>Server flag, will not be sent to client. Specifies that
+            the object is hovering/flying</summary>
+        </member>
+        <member name="F:OpenMetaverse.PrimFlags.ObjectOwnerModify">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.PrimFlags.TemporaryOnRez">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.PrimFlags.Temporary">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.PrimFlags.ZlibCompressed">
+            <summary></summary>
+        </member>
+        <member name="T:OpenMetaverse.SoundFlags">
+            <summary>
+            Sound flags for sounds attached to primitives
+            </summary>
+        </member>
+        <member name="F:OpenMetaverse.SoundFlags.None">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.SoundFlags.Loop">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.SoundFlags.SyncMaster">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.SoundFlags.SyncSlave">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.SoundFlags.SyncPending">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.SoundFlags.Queue">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.SoundFlags.Stop">
+            <summary></summary>
+        </member>
+        <member name="T:OpenMetaverse.Material">
+            <summary>
+            Material type for a primitive
+            </summary>
+        </member>
+        <member name="F:OpenMetaverse.Material.Stone">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.Material.Metal">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.Material.Glass">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.Material.Wood">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.Material.Flesh">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.Material.Plastic">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.Material.Rubber">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.Material.Light">
+            <summary></summary>
+        </member>
+        <member name="T:OpenMetaverse.PrimType">
+            <summary>
+            Used in a helper function to roughly determine prim shape
+            </summary>
+        </member>
+        <member name="T:OpenMetaverse.ExtraParamType">
+            <summary>
+            Extra parameters for primitives, these flags are for features that have
+            been added after the original ObjectFlags that has all eight bits 
+            reserved already
+            </summary>
+        </member>
+        <member name="F:OpenMetaverse.ExtraParamType.Flexible">
+            <summary>Whether this object has flexible parameters</summary>
+        </member>
+        <member name="F:OpenMetaverse.ExtraParamType.Light">
+            <summary>Whether this object has light parameters</summary>
+        </member>
+        <member name="F:OpenMetaverse.ExtraParamType.Sculpt">
+            <summary>Whether this object is a sculpted prim</summary>
+        </member>
+        <member name="F:OpenMetaverse.ExtraParamType.LightImage">
+            <summary>Whether this object is a light image map</summary>
+        </member>
+        <member name="F:OpenMetaverse.ExtraParamType.Mesh">
+            <summary>Whether this object is a mesh</summary>
+        </member>
+        <member name="T:OpenMetaverse.JointType">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="F:OpenMetaverse.JointType.Invalid">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.JointType.Hinge">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.JointType.Point">
+            <summary></summary>
+        </member>
+        <member name="T:OpenMetaverse.SculptType">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="F:OpenMetaverse.SculptType.None">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.SculptType.Sphere">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.SculptType.Torus">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.SculptType.Plane">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.SculptType.Cylinder">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.SculptType.Mesh">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.SculptType.Invert">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.SculptType.Mirror">
+            <summary></summary>
+        </member>
+        <member name="T:OpenMetaverse.FaceType">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="F:OpenMetaverse.FaceType.PathBegin">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.FaceType.PathEnd">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.FaceType.InnerSide">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.FaceType.ProfileBegin">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.FaceType.ProfileEnd">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.FaceType.OuterSide0">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.FaceType.OuterSide1">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.FaceType.OuterSide2">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.FaceType.OuterSide3">
+            <summary></summary>
+        </member>
+        <member name="T:OpenMetaverse.ObjectCategory">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="F:OpenMetaverse.ObjectCategory.Invalid">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.ObjectCategory.None">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.ObjectCategory.Owner">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.ObjectCategory.Group">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.ObjectCategory.Other">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.ObjectCategory.Selected">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.ObjectCategory.Temporary">
+            <summary></summary>
+        </member>
+        <member name="T:OpenMetaverse.AttachmentPoint">
+             <summary>
+             Attachment points for objects on avatar bodies
+             </summary>
+             <remarks>
+             Both InventoryObject and InventoryAttachment types can be attached
+            </remarks>
+        </member>
+        <member name="F:OpenMetaverse.AttachmentPoint.Default">
+            <summary>Right hand if object was not previously attached</summary>
+        </member>
+        <member name="F:OpenMetaverse.AttachmentPoint.Chest">
+            <summary>Chest</summary>
+        </member>
+        <member name="F:OpenMetaverse.AttachmentPoint.Skull">
+            <summary>Skull</summary>
+        </member>
+        <member name="F:OpenMetaverse.AttachmentPoint.LeftShoulder">
+            <summary>Left shoulder</summary>
+        </member>
+        <member name="F:OpenMetaverse.AttachmentPoint.RightShoulder">
+            <summary>Right shoulder</summary>
+        </member>
+        <member name="F:OpenMetaverse.AttachmentPoint.LeftHand">
+            <summary>Left hand</summary>
+        </member>
+        <member name="F:OpenMetaverse.AttachmentPoint.RightHand">
+            <summary>Right hand</summary>
+        </member>
+        <member name="F:OpenMetaverse.AttachmentPoint.LeftFoot">
+            <summary>Left foot</summary>
+        </member>
+        <member name="F:OpenMetaverse.AttachmentPoint.RightFoot">
+            <summary>Right foot</summary>
+        </member>
+        <member name="F:OpenMetaverse.AttachmentPoint.Spine">
+            <summary>Spine</summary>
+        </member>
+        <member name="F:OpenMetaverse.AttachmentPoint.Pelvis">
+            <summary>Pelvis</summary>
+        </member>
+        <member name="F:OpenMetaverse.AttachmentPoint.Mouth">
+            <summary>Mouth</summary>
+        </member>
+        <member name="F:OpenMetaverse.AttachmentPoint.Chin">
+            <summary>Chin</summary>
+        </member>
+        <member name="F:OpenMetaverse.AttachmentPoint.LeftEar">
+            <summary>Left ear</summary>
+        </member>
+        <member name="F:OpenMetaverse.AttachmentPoint.RightEar">
+            <summary>Right ear</summary>
+        </member>
+        <member name="F:OpenMetaverse.AttachmentPoint.LeftEyeball">
+            <summary>Left eyeball</summary>
+        </member>
+        <member name="F:OpenMetaverse.AttachmentPoint.RightEyeball">
+            <summary>Right eyeball</summary>
+        </member>
+        <member name="F:OpenMetaverse.AttachmentPoint.Nose">
+            <summary>Nose</summary>
+        </member>
+        <member name="F:OpenMetaverse.AttachmentPoint.RightUpperArm">
+            <summary>Right upper arm</summary>
+        </member>
+        <member name="F:OpenMetaverse.AttachmentPoint.RightForearm">
+            <summary>Right forearm</summary>
+        </member>
+        <member name="F:OpenMetaverse.AttachmentPoint.LeftUpperArm">
+            <summary>Left upper arm</summary>
+        </member>
+        <member name="F:OpenMetaverse.AttachmentPoint.LeftForearm">
+            <summary>Left forearm</summary>
+        </member>
+        <member name="F:OpenMetaverse.AttachmentPoint.RightHip">
+            <summary>Right hip</summary>
+        </member>
+        <member name="F:OpenMetaverse.AttachmentPoint.RightUpperLeg">
+            <summary>Right upper leg</summary>
+        </member>
+        <member name="F:OpenMetaverse.AttachmentPoint.RightLowerLeg">
+            <summary>Right lower leg</summary>
+        </member>
+        <member name="F:OpenMetaverse.AttachmentPoint.LeftHip">
+            <summary>Left hip</summary>
+        </member>
+        <member name="F:OpenMetaverse.AttachmentPoint.LeftUpperLeg">
+            <summary>Left upper leg</summary>
+        </member>
+        <member name="F:OpenMetaverse.AttachmentPoint.LeftLowerLeg">
+            <summary>Left lower leg</summary>
+        </member>
+        <member name="F:OpenMetaverse.AttachmentPoint.Stomach">
+            <summary>Stomach</summary>
+        </member>
+        <member name="F:OpenMetaverse.AttachmentPoint.LeftPec">
+            <summary>Left pectoral</summary>
+        </member>
+        <member name="F:OpenMetaverse.AttachmentPoint.RightPec">
+            <summary>Right pectoral</summary>
+        </member>
+        <member name="F:OpenMetaverse.AttachmentPoint.HUDCenter2">
+            <summary>HUD Center position 2</summary>
+        </member>
+        <member name="F:OpenMetaverse.AttachmentPoint.HUDTopRight">
+            <summary>HUD Top-right</summary>
+        </member>
+        <member name="F:OpenMetaverse.AttachmentPoint.HUDTop">
+            <summary>HUD Top</summary>
+        </member>
+        <member name="F:OpenMetaverse.AttachmentPoint.HUDTopLeft">
+            <summary>HUD Top-left</summary>
+        </member>
+        <member name="F:OpenMetaverse.AttachmentPoint.HUDCenter">
+            <summary>HUD Center</summary>
+        </member>
+        <member name="F:OpenMetaverse.AttachmentPoint.HUDBottomLeft">
+            <summary>HUD Bottom-left</summary>
+        </member>
+        <member name="F:OpenMetaverse.AttachmentPoint.HUDBottom">
+            <summary>HUD Bottom</summary>
+        </member>
+        <member name="F:OpenMetaverse.AttachmentPoint.HUDBottomRight">
+            <summary>HUD Bottom-right</summary>
+        </member>
+        <member name="F:OpenMetaverse.AttachmentPoint.Neck">
+            <summary>Neck</summary>
+        </member>
+        <member name="F:OpenMetaverse.AttachmentPoint.Root">
+            <summary>Avatar Center</summary>
+        </member>
+        <member name="T:OpenMetaverse.Tree">
+            <summary>
+            Tree foliage types
+            </summary>
+        </member>
+        <member name="F:OpenMetaverse.Tree.Pine1">
+            <summary>Pine1 tree</summary>
+        </member>
+        <member name="F:OpenMetaverse.Tree.Oak">
+            <summary>Oak tree</summary>
+        </member>
+        <member name="F:OpenMetaverse.Tree.TropicalBush1">
+            <summary>Tropical Bush1</summary>
+        </member>
+        <member name="F:OpenMetaverse.Tree.Palm1">
+            <summary>Palm1 tree</summary>
+        </member>
+        <member name="F:OpenMetaverse.Tree.Dogwood">
+            <summary>Dogwood tree</summary>
+        </member>
+        <member name="F:OpenMetaverse.Tree.TropicalBush2">
+            <summary>Tropical Bush2</summary>
+        </member>
+        <member name="F:OpenMetaverse.Tree.Palm2">
+            <summary>Palm2 tree</summary>
+        </member>
+        <member name="F:OpenMetaverse.Tree.Cypress1">
+            <summary>Cypress1 tree</summary>
+        </member>
+        <member name="F:OpenMetaverse.Tree.Cypress2">
+            <summary>Cypress2 tree</summary>
+        </member>
+        <member name="F:OpenMetaverse.Tree.Pine2">
+            <summary>Pine2 tree</summary>
+        </member>
+        <member name="F:OpenMetaverse.Tree.Plumeria">
+            <summary>Plumeria</summary>
+        </member>
+        <member name="F:OpenMetaverse.Tree.WinterPine1">
+            <summary>Winter pinetree1</summary>
+        </member>
+        <member name="F:OpenMetaverse.Tree.WinterAspen">
+            <summary>Winter Aspen tree</summary>
+        </member>
+        <member name="F:OpenMetaverse.Tree.WinterPine2">
+            <summary>Winter pinetree2</summary>
+        </member>
+        <member name="F:OpenMetaverse.Tree.Eucalyptus">
+            <summary>Eucalyptus tree</summary>
+        </member>
+        <member name="F:OpenMetaverse.Tree.Fern">
+            <summary>Fern</summary>
+        </member>
+        <member name="F:OpenMetaverse.Tree.Eelgrass">
+            <summary>Eelgrass</summary>
+        </member>
+        <member name="F:OpenMetaverse.Tree.SeaSword">
+            <summary>Sea Sword</summary>
+        </member>
+        <member name="F:OpenMetaverse.Tree.Kelp1">
+            <summary>Kelp1 plant</summary>
+        </member>
+        <member name="F:OpenMetaverse.Tree.BeachGrass1">
+            <summary>Beach grass</summary>
+        </member>
+        <member name="F:OpenMetaverse.Tree.Kelp2">
+            <summary>Kelp2 plant</summary>
+        </member>
+        <member name="T:OpenMetaverse.Grass">
+            <summary>
+            Grass foliage types
+            </summary>
+        </member>
+        <member name="F:OpenMetaverse.Grass.Grass0">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.Grass.Grass1">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.Grass.Grass2">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.Grass.Grass3">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.Grass.Grass4">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.Grass.Undergrowth1">
+            <summary></summary>
+        </member>
+        <member name="T:OpenMetaverse.ClickAction">
+            <summary>
+            Action associated with clicking on an object
+            </summary>
+        </member>
+        <member name="F:OpenMetaverse.ClickAction.Touch">
+            <summary>Touch object</summary>
+        </member>
+        <member name="F:OpenMetaverse.ClickAction.Sit">
+            <summary>Sit on object</summary>
+        </member>
+        <member name="F:OpenMetaverse.ClickAction.Buy">
+            <summary>Purchase object or contents</summary>
+        </member>
+        <member name="F:OpenMetaverse.ClickAction.Pay">
+            <summary>Pay the object</summary>
+        </member>
+        <member name="F:OpenMetaverse.ClickAction.OpenTask">
+            <summary>Open task inventory</summary>
+        </member>
+        <member name="F:OpenMetaverse.ClickAction.PlayMedia">
+            <summary>Play parcel media</summary>
+        </member>
+        <member name="F:OpenMetaverse.ClickAction.OpenMedia">
+            <summary>Open parcel media</summary>
+        </member>
+        <member name="T:OpenMetaverse.PhysicsShapeType">
+            <summary>
+            Type of physics representation used for this prim in the simulator
+            </summary>
+        </member>
+        <member name="F:OpenMetaverse.PhysicsShapeType.Prim">
+            <summary>Use prim physics form this object</summary>
+        </member>
+        <member name="F:OpenMetaverse.PhysicsShapeType.None">
+            <summary>No physics, prim doesn't collide</summary>
+        </member>
+        <member name="F:OpenMetaverse.PhysicsShapeType.ConvexHull">
+            <summary>Use convex hull represantion of this prim</summary>
+        </member>
+        <member name="T:OpenMetaverse.Vector2">
+            <summary>
+            A two-dimensional vector with floating-point values
+            </summary>
+        </member>
+        <member name="F:OpenMetaverse.Vector2.X">
+            <summary>X value</summary>
+        </member>
+        <member name="F:OpenMetaverse.Vector2.Y">
+            <summary>Y value</summary>
+        </member>
+        <member name="M:OpenMetaverse.Vector2.ApproxEquals(OpenMetaverse.Vector2,System.Single)">
+            <summary>
+            Test if this vector is equal to another vector, within a given
+            tolerance range
+            </summary>
+            <param name="vec">Vector to test against</param>
+            <param name="tolerance">The acceptable magnitude of difference
+            between the two vectors</param>
+            <returns>True if the magnitude of difference between the two vectors
+            is less than the given tolerance, otherwise false</returns>
+        </member>
+        <member name="M:OpenMetaverse.Vector2.IsFinite">
+            <summary>
+            Test if this vector is composed of all finite numbers
+            </summary>
+        </member>
+        <member name="M:OpenMetaverse.Vector2.CompareTo(OpenMetaverse.Vector2)">
+            <summary>
+            IComparable.CompareTo implementation
+            </summary>
+        </member>
+        <member name="M:OpenMetaverse.Vector2.FromBytes(System.Byte[],System.Int32)">
+            <summary>
+            Builds a vector from a byte array
+            </summary>
+            <param name="byteArray">Byte array containing two four-byte floats</param>
+            <param name="pos">Beginning position in the byte array</param>
+        </member>
+        <member name="M:OpenMetaverse.Vector2.GetBytes">
+            <summary>
+            Returns the raw bytes for this vector
+            </summary>
+            <returns>An eight-byte array containing X and Y</returns>
+        </member>
+        <member name="M:OpenMetaverse.Vector2.ToBytes(System.Byte[],System.Int32)">
+            <summary>
+            Writes the raw bytes for this vector to a byte array
+            </summary>
+            <param name="dest">Destination byte array</param>
+            <param name="pos">Position in the destination array to start
+            writing. Must be at least 8 bytes before the end of the array</param>
+        </member>
+        <member name="M:OpenMetaverse.Vector2.Parse(System.String)">
+            <summary>
+            Parse a vector from a string
+            </summary>
+            <param name="val">A string representation of a 2D vector, enclosed 
+            in arrow brackets and separated by commas</param>
+        </member>
+        <member name="M:OpenMetaverse.Vector2.SmoothStep(OpenMetaverse.Vector2,OpenMetaverse.Vector2,System.Single)">
+            <summary>
+            Interpolates between two vectors using a cubic equation
+            </summary>
+        </member>
+        <member name="M:OpenMetaverse.Vector2.ToString">
+            <summary>
+            Get a formatted string representation of the vector
+            </summary>
+            <returns>A string representation of the vector</returns>
+        </member>
+        <member name="M:OpenMetaverse.Vector2.ToRawString">
+            <summary>
+            Get a string representation of the vector elements with up to three
+            decimal digits and separated by spaces only
+            </summary>
+            <returns>Raw string representation of the vector</returns>
+        </member>
+        <member name="F:OpenMetaverse.Vector2.Zero">
+            <summary>A vector with a value of 0,0</summary>
+        </member>
+        <member name="F:OpenMetaverse.Vector2.One">
+            <summary>A vector with a value of 1,1</summary>
+        </member>
+        <member name="F:OpenMetaverse.Vector2.UnitX">
+            <summary>A vector with a value of 1,0</summary>
+        </member>
+        <member name="F:OpenMetaverse.Vector2.UnitY">
+            <summary>A vector with a value of 0,1</summary>
         </member>
     </members>
 </doc>
