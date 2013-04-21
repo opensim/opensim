@@ -162,11 +162,8 @@ public sealed class BSShapeCollection : IDisposable
             // If the caller needs to know the old body is going away, pass the event up.
             if (bodyCallback != null) bodyCallback(body);
 
-            if (PhysicsScene.PE.IsInWorld(PhysicsScene.World, body))
-            {
-                PhysicsScene.PE.RemoveObjectFromWorld(PhysicsScene.World, body);
-                if (DDetail) DetailLog("{0},BSShapeCollection.DereferenceBody,removingFromWorld. Body={1}", body.ID, body);
-            }
+            // Removing an object not in the world is a NOOP
+            PhysicsScene.PE.RemoveObjectFromWorld(PhysicsScene.World, body);
 
             // Zero any reference to the shape so it is not freed when the body is deleted.
             PhysicsScene.PE.SetCollisionShape(PhysicsScene.World, body, null);
