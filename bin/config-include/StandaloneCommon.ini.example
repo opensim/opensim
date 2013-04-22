@@ -85,7 +85,7 @@
     Region_Welcome_Area = "DefaultRegion, FallbackRegion"
 
     ; === HG ONLY ===
-	;; If you have this set under [Startup], no need to set it here, leave it commented
+	;; If you have this set under [Hypergrid], no need to set it here, leave it commented
     ; GatekeeperURI="http://127.0.0.1:9000"
 
 [LibraryModule]
@@ -94,7 +94,7 @@
 
 [LoginService]
     WelcomeMessage = "Welcome, Avatar!"
-	;; If you have Gatekeeper set under [Startup], no need to set it here, leave it commented
+	;; If you have Gatekeeper set under [Hypergrid], no need to set it here, leave it commented
     ; GatekeeperURI = "http://127.0.0.1:9000"
 
     SRV_HomeURI = "http://127.0.0.1:9000"    
@@ -240,7 +240,7 @@
 ;; HG configurations
 ;;
 [GatekeeperService]
-	;; If you have GatekeeperURI set under [Startup], no need to set it here, leave it commented
+	;; If you have GatekeeperURI set under [Hypergrid], no need to set it here, leave it commented
     ; ExternalName = "http://127.0.0.1:9000"
 
     ; Does this grid allow incoming links to any region in it?
@@ -297,11 +297,11 @@
     ; AllowExcept_Level_200 = "http://griefer.com:8002, http://enemy.com:8002"
 
 [HGInventoryService]
-	;; If you have this set under [Startup], no need to set it here, leave it commented
+	;; If you have this set under [Hypergrid], no need to set it here, leave it commented
     ; HomeURI = "http://127.0.0.1:9000"
 
 [HGAssetService]
-	;; If you have this set under [Startup], no need to set it here, leave it commented
+	;; If you have this set under [Hypergrid], no need to set it here, leave it commented
     ; HomeURI = "http://127.0.0.1:9000"
 
     ;; The asset types that this grid can export to / import from other grids.
@@ -318,7 +318,7 @@
 
 
 [HGInventoryAccessModule]
-	;; If you have these set under [Startup], no need to set it here, leave it commented
+	;; If you have these set under [Hypergrid], no need to set it here, leave it commented
     ; HomeURI = "http://127.0.0.1:9000"
 	; GatekeeperURI = "http://127.0.0.1:9000"
 
@@ -337,7 +337,7 @@
 
 [Messaging]
     ; === HG ONLY ===
-	;; If you have this set under [Startup], no need to set it here, leave it commented
+	;; If you have this set under [Hypergrid], no need to set it here, leave it commented
     ; GatekeeperURI = "http://127.0.0.1:9000"
 
 
