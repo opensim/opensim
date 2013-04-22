@@ -27,6 +27,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
+using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
@@ -34,10 +36,10 @@ using OpenSim.Region.CoreModules.World.Land;
 
 namespace OpenSim.Region.RegionCombinerModule
 {
-public class RegionCombinerLargeLandChannel : ILandChannel
+    public class RegionCombinerLargeLandChannel : ILandChannel
     {
-        // private static readonly ILog m_log =
-        //     LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         private RegionData RegData;
         private ILandChannel RootRegionLandChannel;
         private readonly List<RegionData> RegionConnections;
@@ -75,40 +77,51 @@ public class RegionCombinerLargeLandChannel : ILandChannel
 
         public ILandObject GetLandObject(int x, int y)
         {
-            //m_log.DebugFormat("[BIGLANDTESTINT]: <{0},{1}>", x, y);
+            return GetLandObject((float)x, (float)y);
 
-            if (x > 0 && x <= (int)Constants.RegionSize && y > 0 && y <= (int)Constants.RegionSize)
-            {
-                return RootRegionLandChannel.GetLandObject(x, y);
-            }
-            else
-            {
-                int offsetX = (x / (int)Constants.RegionSize);
-                int offsetY = (y / (int)Constants.RegionSize);
-                offsetX *= (int)Constants.RegionSize;
-                offsetY *= (int)Constants.RegionSize;
-
-                foreach (RegionData regionData in RegionConnections)
-                {
-                    if (regionData.Offset.X == offsetX && regionData.Offset.Y == offsetY)
-                    {
-                        return regionData.RegionScene.LandChannel.GetLandObject(x - offsetX, y - offsetY);
-                    }
-                }
-                ILandObject obj = new LandObject(UUID.Zero, false, RegData.RegionScene);
-                obj.LandData.Name = "NO LAND";
-                return obj;
-            }
+//            m_log.DebugFormat("[BIGLANDTESTINT]: <{0},{1}>", x, y);
+//
+//            if (x > 0 && x <= (int)Constants.RegionSize && y > 0 && y <= (int)Constants.RegionSize)
+//            {
+//                return RootRegionLandChannel.GetLandObject(x, y);
+//            }
+//            else
+//            {
+//                int offsetX = (x / (int)Constants.RegionSize);
+//                int offsetY = (y / (int)Constants.RegionSize);
+//                offsetX *= (int)Constants.RegionSize;
+//                offsetY *= (int)Constants.RegionSize;
+//
+//                foreach (RegionData regionData in RegionConnections)
+//                {
+//                    if (regionData.Offset.X == offsetX && regionData.Offset.Y == offsetY)
+//                    {
+//                        m_log.DebugFormat(
+//                            "[REGION COMBINER LARGE LAND CHANNEL]: Found region {0} at offset {1},{2}", 
+//                            regionData.RegionScene.Name, offsetX, offsetY);
+//
+//                        return regionData.RegionScene.LandChannel.GetLandObject(x - offsetX, y - offsetY);
+//                    }
+//                }
+//                //ILandObject obj = new LandObject(UUID.Zero, false, RegData.RegionScene);
+//                //obj.LandData.Name = "NO LAND";
+//                //return obj;
+//            }
+//
+//            m_log.DebugFormat("[REGION COMBINER LARGE LAND CHANNEL]: No region found at {0},{1}, returning null", x, y);
+//
+//            return null;
         }
 
         public ILandObject GetLandObject(int localID)
         {
+            // XXX: Possibly should be looking in every land channel, not just the root.
             return RootRegionLandChannel.GetLandObject(localID);
         }
 
         public ILandObject GetLandObject(float x, float y)
         {
-            //m_log.DebugFormat("[BIGLANDTESTFLOAT]: <{0},{1}>", x, y);
+//            m_log.DebugFormat("[BIGLANDTESTFLOAT]: <{0},{1}>", x, y);
             
             if (x > 0 && x <= (int)Constants.RegionSize && y > 0 && y <= (int)Constants.RegionSize)
             {
@@ -125,14 +138,22 @@ public class RegionCombinerLargeLandChannel : ILandChannel
                 {
                     if (regionData.Offset.X == offsetX && regionData.Offset.Y == offsetY)
                     {
+//                        m_log.DebugFormat(
+//                            "[REGION COMBINER LARGE LAND CHANNEL]: Found region {0} at offset {1},{2}", 
+//                            regionData.RegionScene.Name, offsetX, offsetY);
+
                         return regionData.RegionScene.LandChannel.GetLandObject(x - offsetX, y - offsetY);
                     }
                 }
 
-                ILandObject obj = new LandObject(UUID.Zero, false, RegData.RegionScene);
-                obj.LandData.Name = "NO LAND";
-                return obj;
+//                ILandObject obj = new LandObject(UUID.Zero, false, RegData.RegionScene);
+//                obj.LandData.Name = "NO LAND";
+//                return obj;
             }
+
+//            m_log.DebugFormat("[REGION COMBINER LARGE LAND CHANNEL]: No region found at {0},{1}, returning null", x, y);
+
+            return null;
         }
 
         public bool IsForcefulBansAllowed()

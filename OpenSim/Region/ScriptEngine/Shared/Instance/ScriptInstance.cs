@@ -528,8 +528,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             {
                 File.Delete(savedState);
             }
-            catch(Exception)
+            catch (Exception e)
             {
+                m_log.Warn(
+                    string.Format(
+                        "[SCRIPT INSTANCE]: Could not delete script state {0} for script {1} (id {2}) in part {3} (id {4}) in object {5} in {6}.  Exception  ", 
+                        ScriptTask.Name, ScriptTask.ItemID, Part.Name, Part.UUID, Part.ParentGroup.Name, Engine.World.Name), 
+                    e);
             }
         }
 

@@ -43,7 +43,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
  *      VariableName: used by the simulator and performs taint operations, etc
  *      RawVariableName: direct reference to the BulletSim storage for the variable value
  *      ForceVariableName: direct reference (store and fetch) to the value in the physics engine.
- *  The last two (and certainly the last one) should be referenced only in taint-time.
+ *  The last one should only be referenced in taint-time.
  */
 
 /*
@@ -84,6 +84,7 @@ public abstract class BSPhysObject : PhysicsActor
         // Initialize variables kept in base.
         GravModifier = 1.0f;
         Gravity = new OMV.Vector3(0f, 0f, BSParam.Gravity);
+        HoverActive = false;
 
         // We don't have any physical representation yet.
         PhysBody = new BulletBody(localID);
@@ -110,11 +111,10 @@ public abstract class BSPhysObject : PhysicsActor
     // Tell the object to clean up.
     public virtual void Destroy()
     {
-        UnRegisterAllPreStepActions();
-        UnRegisterAllPostStepActions();
+        PhysicalActors.Enable(false);
         PhysicsScene.TaintedObject("BSPhysObject.Destroy", delegate()
         {
-            PhysicalActors.Release();
+            PhysicalActors.Dispose();
         });
     }
 
@@ -203,14 +203,47 @@ public abstract class BSPhysObject : PhysicsActor
     public abstract OMV.Quaternion RawOrientation { get; set; }
     public abstract OMV.Quaternion ForceOrientation { get; set; }
 
-    public abstract OMV.Vector3 RawVelocity { get; set; }
+    public OMV.Vector3 RawVelocity { get; set; }
     public abstract OMV.Vector3 ForceVelocity { get; set; }
+
+    public OMV.Vector3 RawForce { get; set; }
+    public OMV.Vector3 RawTorque { get; set; }
+    public override void AddAngularForce(OMV.Vector3 force, bool pushforce)
+    {
+        AddAngularForce(force, pushforce, false);
+    }
+    public abstract void AddAngularForce(OMV.Vector3 force, bool pushforce, bool inTaintTime);
 
     public abstract OMV.Vector3 ForceRotationalVelocity { get; set; }
 
     public abstract float ForceBuoyancy { get; set; }
 
     public virtual bool ForceBodyShapeRebuild(bool inTaintTime) { return false; }
+
+    public override bool PIDActive { set { MoveToTargetActive = value; } }
+    public override OMV.Vector3 PIDTarget { set { MoveToTargetTarget = value; } }
+    public override float PIDTau { set { MoveToTargetTau = value; } }
+
+    public bool MoveToTargetActive { get; set; }
+    public OMV.Vector3 MoveToTargetTarget { get; set; }
+    public float MoveToTargetTau { get; set; }
+
+    // Used for llSetHoverHeight and maybe vehicle height. Hover Height will override MoveTo target's Z
+    public override bool PIDHoverActive { set { HoverActive = value; } }
+    public override float PIDHoverHeight { set { HoverHeight = value; } }
+    public override PIDHoverType PIDHoverType { set { HoverType = value; } }
+    public override float PIDHoverTau { set { HoverTau = value; } }
+
+    public bool HoverActive { get; set; }
+    public float HoverHeight { get;  set; }
+    public PIDHoverType HoverType { get;  set; }
+    public float HoverTau { get; set; }
+
+    // For RotLookAt
+    public override OMV.Quaternion APIDTarget { set { return; } }
+    public override bool APIDActive { set { return; } }
+    public override float APIDStrength { set { return; } }
+    public override float APIDDamping { set { return; } }
 
     // The current velocity forward
     public virtual float ForwardSpeed
@@ -237,7 +270,51 @@ public abstract class BSPhysObject : PhysicsActor
 
     public OMV.Vector3 LockedAxis { get; set; } // zero means locked. one means free.
     public readonly OMV.Vector3 LockedAxisFree = new OMV.Vector3(1f, 1f, 1f);  // All axis are free
-    public readonly String LockedAxisActorName = "BSPrim.LockedAxis";
+
+    // Enable physical actions. Bullet will keep sleeping non-moving physical objects so
+    //     they need waking up when parameters are changed.
+    // Called in taint-time!!
+    public void ActivateIfPhysical(bool forceIt)
+    {
+        if (IsPhysical && PhysBody.HasPhysicalBody)
+            PhysicsScene.PE.Activate(PhysBody, forceIt);
+    }
+
+    // 'actors' act on the physical object to change or constrain its motion. These can range from
+    //       hovering to complex vehicle motion.
+    // May be called at non-taint time as this just adds the actor to the action list and the real
+    //    work is done during the simulation step.
+    // Note that, if the actor is already in the list and we are disabling same, the actor is just left
+    //    in the list disabled.
+    public delegate BSActor CreateActor();
+    public void EnableActor(bool enableActor, string actorName, CreateActor creator)
+    {
+        lock (PhysicalActors)
+        {
+            BSActor theActor;
+            if (PhysicalActors.TryGetActor(actorName, out theActor))
+            {
+                // The actor already exists so just turn it on or off
+                DetailLog("{0},BSPhysObject.EnableActor,enablingExistingActor,name={1},enable={2}", LocalID, actorName, enableActor);
+                theActor.Enabled = enableActor;
+            }
+            else
+            {
+                // The actor does not exist. If it should, create it.
+                if (enableActor)
+                {
+                    DetailLog("{0},BSPhysObject.EnableActor,creatingActor,name={1}", LocalID, actorName);
+                    theActor = creator();
+                    PhysicalActors.Add(actorName, theActor);
+                    theActor.Enabled = true;
+                }
+                else
+                {
+                    DetailLog("{0},BSPhysObject.EnableActor,notCreatingActorSinceNotEnabled,name={1}", LocalID, actorName);
+                }
+            }
+        }
+    }
 
     #region Collisions
 
@@ -255,7 +332,9 @@ public abstract class BSPhysObject : PhysicsActor
     protected CollisionFlags CurrentCollisionFlags { get; set; }
     // On a collision, check the collider and remember if the last collider was moving
     //    Used to modify the standing of avatars (avatars on stationary things stand still)
-    protected bool ColliderIsMoving;
+    public bool ColliderIsMoving;
+    // Used by BSCharacter to manage standing (and not slipping)
+    public bool IsStationary;
 
     // Count of collisions for this object
     protected long CollisionAccumulation { get; set; }
@@ -293,7 +372,7 @@ public abstract class BSPhysObject : PhysicsActor
     protected CollisionEventUpdate CollisionCollection;
     // Remember collisions from last tick for fancy collision based actions
     //     (like a BSCharacter walking up stairs).
-    protected CollisionEventUpdate CollisionsLastTick;
+    public CollisionEventUpdate CollisionsLastTick;
 
     // The simulation step is telling this object about a collision.
     // Return 'true' if a collision was processed and should be sent up.
@@ -424,104 +503,6 @@ public abstract class BSPhysObject : PhysicsActor
 
     public BSActorCollection PhysicalActors;
 
-    // There are some actions that must be performed for a physical object before each simulation step.
-    // These actions are optional so, rather than scanning all the physical objects and asking them
-    //     if they have anything to do, a physical object registers for an event call before the step is performed.
-    // This bookkeeping makes it easy to add, remove and clean up after all these registrations.
-    private Dictionary<string, BSScene.PreStepAction> RegisteredPrestepActions = new Dictionary<string, BSScene.PreStepAction>();
-    private Dictionary<string, BSScene.PostStepAction> RegisteredPoststepActions = new Dictionary<string, BSScene.PostStepAction>();
-    protected void RegisterPreStepAction(string op, uint id, BSScene.PreStepAction actn)
-    {
-        string identifier = op + "-" + id.ToString();
-
-        lock (RegisteredPrestepActions)
-        {
-            // Clean out any existing action
-            UnRegisterPreStepAction(op, id);
-            RegisteredPrestepActions[identifier] = actn;
-            PhysicsScene.BeforeStep += actn;
-        }
-        DetailLog("{0},BSPhysObject.RegisterPreStepAction,id={1}", LocalID, identifier);
-    }
-
-    // Unregister a pre step action. Safe to call if the action has not been registered.
-    // Returns 'true' if an action was actually removed
-    protected bool UnRegisterPreStepAction(string op, uint id)
-    {
-        string identifier = op + "-" + id.ToString();
-        bool removed = false;
-        lock (RegisteredPrestepActions)
-        {
-            if (RegisteredPrestepActions.ContainsKey(identifier))
-            {
-                PhysicsScene.BeforeStep -= RegisteredPrestepActions[identifier];
-                RegisteredPrestepActions.Remove(identifier);
-                removed = true;
-            }
-        }
-        DetailLog("{0},BSPhysObject.UnRegisterPreStepAction,id={1},removed={2}", LocalID, identifier, removed);
-        return removed;
-    }
-
-    protected void UnRegisterAllPreStepActions()
-    {
-        lock (RegisteredPrestepActions)
-        {
-            foreach (KeyValuePair<string, BSScene.PreStepAction> kvp in RegisteredPrestepActions)
-            {
-                PhysicsScene.BeforeStep -= kvp.Value;
-            }
-            RegisteredPrestepActions.Clear();
-        }
-        DetailLog("{0},BSPhysObject.UnRegisterAllPreStepActions,", LocalID);
-    }
-    
-    protected void RegisterPostStepAction(string op, uint id, BSScene.PostStepAction actn)
-    {
-        string identifier = op + "-" + id.ToString();
-
-        lock (RegisteredPoststepActions)
-        {
-            // Clean out any existing action
-            UnRegisterPostStepAction(op, id);
-            RegisteredPoststepActions[identifier] = actn;
-            PhysicsScene.AfterStep += actn;
-        }
-        DetailLog("{0},BSPhysObject.RegisterPostStepAction,id={1}", LocalID, identifier);
-    }
-
-    // Unregister a pre step action. Safe to call if the action has not been registered.
-    // Returns 'true' if an action was actually removed.
-    protected bool UnRegisterPostStepAction(string op, uint id)
-    {
-        string identifier = op + "-" + id.ToString();
-        bool removed = false;
-        lock (RegisteredPoststepActions)
-        {
-            if (RegisteredPoststepActions.ContainsKey(identifier))
-            {
-                PhysicsScene.AfterStep -= RegisteredPoststepActions[identifier];
-                RegisteredPoststepActions.Remove(identifier);
-                removed = true;
-            }
-        }
-        DetailLog("{0},BSPhysObject.UnRegisterPostStepAction,id={1},removed={2}", LocalID, identifier, removed);
-        return removed;
-    }
-
-    protected void UnRegisterAllPostStepActions()
-    {
-        lock (RegisteredPoststepActions)
-        {
-            foreach (KeyValuePair<string, BSScene.PostStepAction> kvp in RegisteredPoststepActions)
-            {
-                PhysicsScene.AfterStep -= kvp.Value;
-            }
-            RegisteredPoststepActions.Clear();
-        }
-        DetailLog("{0},BSPhysObject.UnRegisterAllPostStepActions,", LocalID);
-    }
-
     // When an update to the physical properties happens, this event is fired to let
     //    different actors to modify the update before it is passed around
     public delegate void PreUpdatePropertyAction(ref EntityProperties entprop);
@@ -531,46 +512,6 @@ public abstract class BSPhysObject : PhysicsActor
         PreUpdatePropertyAction actions = OnPreUpdateProperty;
         if (actions != null)
             actions(ref entprop);
-    }
-
-    private Dictionary<string, PreUpdatePropertyAction> RegisteredPreUpdatePropertyActions = new Dictionary<string, PreUpdatePropertyAction>();
-    public void RegisterPreUpdatePropertyAction(string identifier, PreUpdatePropertyAction actn)
-    {
-        lock (RegisteredPreUpdatePropertyActions)
-        {
-            // Clean out any existing action
-            UnRegisterPreUpdatePropertyAction(identifier);
-            RegisteredPreUpdatePropertyActions[identifier] = actn;
-            OnPreUpdateProperty += actn;
-        }
-        DetailLog("{0},BSPhysObject.RegisterPreUpdatePropertyAction,id={1}", LocalID, identifier);
-    }
-    public bool UnRegisterPreUpdatePropertyAction(string identifier)
-    {
-        bool removed = false;
-        lock (RegisteredPreUpdatePropertyActions)
-        {
-            if (RegisteredPreUpdatePropertyActions.ContainsKey(identifier))
-            {
-                OnPreUpdateProperty -= RegisteredPreUpdatePropertyActions[identifier];
-                RegisteredPreUpdatePropertyActions.Remove(identifier);
-                removed = true;
-            }
-        }
-        DetailLog("{0},BSPhysObject.UnRegisterPreUpdatePropertyAction,id={1},removed={2}", LocalID, identifier, removed);
-        return removed;
-    }
-    public void UnRegisterAllPreUpdatePropertyActions()
-    {
-        lock (RegisteredPreUpdatePropertyActions)
-        {
-            foreach (KeyValuePair<string, PreUpdatePropertyAction> kvp in RegisteredPreUpdatePropertyActions)
-            {
-                OnPreUpdateProperty -= kvp.Value;
-            }
-            RegisteredPreUpdatePropertyActions.Clear();
-        }
-        DetailLog("{0},BSPhysObject.UnRegisterAllPreUpdatePropertyAction,", LocalID);
     }
 
     #endregion // Per Simulation Step actions

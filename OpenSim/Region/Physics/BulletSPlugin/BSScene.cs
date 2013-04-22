@@ -316,6 +316,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
                 break;
             case "bulletxna":
                 ret = new BSAPIXNA(engineName, this);
+                BSParam.ShouldUseBulletHACD = false;
                 break;
         }
 

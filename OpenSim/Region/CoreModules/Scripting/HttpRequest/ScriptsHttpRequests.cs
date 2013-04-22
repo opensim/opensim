@@ -412,7 +412,6 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
         //public bool HttpVerboseThrottle = true; // not implemented
         public List<string> HttpCustomHeaders = null;
         public bool HttpPragmaNoCache = true;
-        private Thread httpThread;
 
         // Request info
         private UUID _itemID;

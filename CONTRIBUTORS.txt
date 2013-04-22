@@ -101,6 +101,7 @@ what it is today.
 * jhurliman
 * John R Sohn (XenReborn)
 * jonc
+* Jon Cundill
 * Junta Kohime
 * Kayne
 * Kevin Cozens

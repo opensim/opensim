@@ -1358,6 +1358,35 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             // If vertical attaction timescale is reasonable
             if (enableAngularVerticalAttraction && m_verticalAttractionTimescale < m_verticalAttractionCutoff)
             {
+                //Another formula to try got from :
+                //http://answers.unity3d.com/questions/10425/how-to-stabilize-angular-motion-alignment-of-hover.html
+
+                Vector3 VehicleUpAxis = Vector3.UnitZ * VehicleOrientation;
+
+                // Flipping what was originally a timescale into a speed variable and then multiplying it by 2
+                //    since only computing half the distance between the angles.
+                float VerticalAttractionSpeed = (1 / m_verticalAttractionTimescale) * 2.0f;
+
+                // Make a prediction of where the up axis will be when this is applied rather then where it is now as
+                //     this makes for a smoother adjustment and less fighting between the various forces.
+                Vector3 predictedUp = VehicleUpAxis * Quaternion.CreateFromAxisAngle(VehicleRotationalVelocity, 0f);
+
+                // This is only half the distance to the target so it will take 2 seconds to complete the turn.
+                Vector3 torqueVector = Vector3.Cross(predictedUp, Vector3.UnitZ);
+
+                // Scale vector by our timescale since it is an acceleration it is r/s^2 or radians a timescale squared
+                Vector3 vertContributionV = torqueVector * VerticalAttractionSpeed * VerticalAttractionSpeed;
+
+                VehicleRotationalVelocity += vertContributionV;
+
+                VDetailLog("{0},  MoveAngular,verticalAttraction,UpAxis={1},PredictedUp={2},torqueVector={3},contrib={4}",
+                                ControllingPrim.LocalID,
+                                VehicleUpAxis,
+                                predictedUp,
+                                torqueVector,
+                                vertContributionV);
+                //=====================================================================
+                /*
                 // Possible solution derived from a discussion at:
                 // http://stackoverflow.com/questions/14939657/computing-vector-from-quaternion-works-computing-quaternion-from-vector-does-no
 
@@ -1392,6 +1421,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                                 differenceAngle,
                                 correctionRotation,
                                 vertContributionV);
+                 */
 
                 // ===================================================================
                 /*

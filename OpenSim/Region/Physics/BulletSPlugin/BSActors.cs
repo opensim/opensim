@@ -32,45 +32,72 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 {
 public class BSActorCollection
 {
-    private BSScene PhysicsScene { get; set; }
+    private BSScene m_physicsScene { get; set; }
     private Dictionary<string, BSActor> m_actors;
 
     public BSActorCollection(BSScene physicsScene)
     {
-        PhysicsScene = physicsScene;
+        m_physicsScene = physicsScene;
         m_actors = new Dictionary<string, BSActor>();
     }
     public void Add(string name, BSActor actor)
     {
-        m_actors[name] = actor;
+        lock (m_actors)
+        {
+            if (!m_actors.ContainsKey(name))
+            {
+                m_actors[name] = actor;
+            }
+        }
     }
     public bool RemoveAndRelease(string name)
     {
         bool ret = false;
-        if (m_actors.ContainsKey(name))
+        lock (m_actors)
         {
-            BSActor beingRemoved = m_actors[name];
-            beingRemoved.Dispose();
-            m_actors.Remove(name);
-            ret = true;
+            if (m_actors.ContainsKey(name))
+            {
+                BSActor beingRemoved = m_actors[name];
+                m_actors.Remove(name);
+                beingRemoved.Dispose();
+                ret = true;
+            }
         }
         return ret;
     }
     public void Clear()
     {
-        Release();
-        m_actors.Clear();
+        lock (m_actors)
+        {
+            Release();
+            m_actors.Clear();
+        }
+    }
+    public void Dispose()
+    {
+        Clear();
     }
     public bool HasActor(string name)
     {
         return m_actors.ContainsKey(name);
     }
+    public bool TryGetActor(string actorName, out BSActor theActor)
+    {
+        return m_actors.TryGetValue(actorName, out theActor);
+    }
     public void ForEachActor(Action<BSActor> act)
     {
-        foreach (KeyValuePair<string, BSActor> kvp in m_actors)
-            act(kvp.Value);
+        lock (m_actors)
+        {
+            foreach (KeyValuePair<string, BSActor> kvp in m_actors)
+                act(kvp.Value);
+        }
     }
 
+    public void Enable(bool enabl)
+    {
+        ForEachActor(a => a.SetEnabled(enabl));
+    }
     public void Release()
     {
         ForEachActor(a => a.Dispose());
@@ -98,7 +125,7 @@ public abstract class BSActor
 {
     protected BSScene m_physicsScene { get; private set; }
     protected BSPhysObject m_controllingPrim { get; private set; }
-    protected bool Enabled { get; set; }
+    public virtual bool Enabled { get; set; }
     public string ActorName { get; private set; }
 
     public BSActor(BSScene physicsScene, BSPhysObject pObj, string actorName)
@@ -114,8 +141,10 @@ public abstract class BSActor
     {
         get { return Enabled; }
     }
-    // Turn the actor on an off.
-    public virtual void Enable(bool setEnabled)
+
+    // Turn the actor on an off. Only used by ActorCollection to set all enabled/disabled.
+    // Anyone else should assign true/false to 'Enabled'.
+    public void SetEnabled(bool setEnabled)
     {
         Enabled = setEnabled;
     }

@@ -18,13 +18,13 @@
 	; Set path to directory for plugin registry. Information
 	; about the registered repositories and installed plugins
 	; will be stored here
-	; The Robust.exe process must hvae R/W access to the location 
+	; The Robust.exe process must have R/W access to the location 
 	RegistryLocation = "."
 
 
 	; Modular configurations
 	; Set path to directory for modular ini files...
-	; The Robust.exe process must hvae R/W access to the location 
+	; The Robust.exe process must have R/W access to the location 
 	ConfigDirectory = "/home/opensim/etc/Configs"
 
 [ServiceList]

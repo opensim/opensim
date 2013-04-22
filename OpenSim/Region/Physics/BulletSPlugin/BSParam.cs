@@ -86,6 +86,7 @@ public static class BSParam
     public static bool ShouldForceSimplePrimMeshing { get; private set; }   // if a cube or sphere, let Bullet do internal shapes
     public static bool ShouldUseHullsForPhysicalObjects { get; private set; }   // 'true' if should create hulls for physical objects
     public static bool ShouldRemoveZeroWidthTriangles { get; private set; }
+    public static bool ShouldUseBulletHACD { get; set; }
 
     public static float TerrainImplementation { get; private set; }
     public static int TerrainMeshMagnification { get; private set; }
@@ -149,6 +150,15 @@ public static class BSParam
     public static float CSHullVolumeConservationThresholdPercent { get; private set; }
     public static int CSHullMaxVertices { get; private set; }
     public static float CSHullMaxSkinWidth { get; private set; }
+	public static float BHullMaxVerticesPerHull { get; private set; }		// 100
+	public static float BHullMinClusters { get; private set; }				// 2
+	public static float BHullCompacityWeight { get; private set; }			// 0.1
+	public static float BHullVolumeWeight { get; private set; }				// 0.0
+	public static float BHullConcavity { get; private set; }				    // 100
+	public static bool BHullAddExtraDistPoints { get; private set; }		// false
+	public static bool BHullAddNeighboursDistPoints { get; private set; }	// false
+	public static bool BHullAddFacesPoints { get; private set; }			// false
+	public static bool BHullShouldAdjustCollisionMargin { get; private set; }	// false
 
     // Linkset implementation parameters
     public static float LinksetImplementation { get; private set; }
@@ -325,6 +335,10 @@ public static class BSParam
             true,
             (s) => { return ShouldRemoveZeroWidthTriangles; },
             (s,v) => { ShouldRemoveZeroWidthTriangles = v; } ),
+        new ParameterDefn<bool>("ShouldUseBulletHACD", "If true, use the Bullet version of HACD",
+            false,
+            (s) => { return ShouldUseBulletHACD; },
+            (s,v) => { ShouldUseBulletHACD = v; } ),
 
         new ParameterDefn<int>("CrossingFailuresBeforeOutOfBounds", "How forgiving we are about getting into adjactent regions",
             5,
@@ -663,9 +677,46 @@ public static class BSParam
             (s) => { return CSHullMaxVertices; },
             (s,v) => { CSHullMaxVertices = v; } ),
 	    new ParameterDefn<float>("CSHullMaxSkinWidth", "CS impl: skin width to apply to output hulls.",
-            0,
+            0f,
             (s) => { return CSHullMaxSkinWidth; },
             (s,v) => { CSHullMaxSkinWidth = v; } ),
+
+	    new ParameterDefn<float>("BHullMaxVerticesPerHull", "Bullet impl: max number of vertices per created hull",
+            100f,
+            (s) => { return BHullMaxVerticesPerHull; },
+            (s,v) => { BHullMaxVerticesPerHull = v; } ),
+	    new ParameterDefn<float>("BHullMinClusters", "Bullet impl: minimum number of hulls to create per mesh",
+            2f,
+            (s) => { return BHullMinClusters; },
+            (s,v) => { BHullMinClusters = v; } ),
+	    new ParameterDefn<float>("BHullCompacityWeight", "Bullet impl: weight factor for how compact to make hulls",
+            2f,
+            (s) => { return BHullCompacityWeight; },
+            (s,v) => { BHullCompacityWeight = v; } ),
+	    new ParameterDefn<float>("BHullVolumeWeight", "Bullet impl: weight factor for volume in created hull",
+            0.1f,
+            (s) => { return BHullVolumeWeight; },
+            (s,v) => { BHullVolumeWeight = v; } ),
+	    new ParameterDefn<float>("BHullConcavity", "Bullet impl: weight factor for how convex a created hull can be",
+            100f,
+            (s) => { return BHullConcavity; },
+            (s,v) => { BHullConcavity = v; } ),
+	    new ParameterDefn<bool>("BHullAddExtraDistPoints", "Bullet impl: whether to add extra vertices for long distance vectors",
+            false,
+            (s) => { return BHullAddExtraDistPoints; },
+            (s,v) => { BHullAddExtraDistPoints = v; } ),
+	    new ParameterDefn<bool>("BHullAddNeighboursDistPoints", "Bullet impl: whether to add extra vertices between neighbor hulls",
+            false,
+            (s) => { return BHullAddNeighboursDistPoints; },
+            (s,v) => { BHullAddNeighboursDistPoints = v; } ),
+	    new ParameterDefn<bool>("BHullAddFacesPoints", "Bullet impl: whether to add extra vertices to break up hull faces",
+            false,
+            (s) => { return BHullAddFacesPoints; },
+            (s,v) => { BHullAddFacesPoints = v; } ),
+	    new ParameterDefn<bool>("BHullShouldAdjustCollisionMargin", "Bullet impl: whether to shrink resulting hulls to account for collision margin",
+            false,
+            (s) => { return BHullShouldAdjustCollisionMargin; },
+            (s,v) => { BHullShouldAdjustCollisionMargin = v; } ),
 
 	    new ParameterDefn<float>("LinksetImplementation", "Type of linkset implementation (0=Constraint, 1=Compound, 2=Manual)",
             (float)BSLinkset.LinksetImplementation.Compound,

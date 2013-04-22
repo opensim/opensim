@@ -5647,12 +5647,12 @@ Environment.Exit(1);
            List<SceneObjectGroup> objects, 
            out float minX, out float maxX, out float minY, out float maxY, out float minZ, out float maxZ)
         {
-            minX = 256;
-            maxX = -256;
-            minY = 256;
-            maxY = -256;
-            minZ = 8192;
-            maxZ = -256;
+            minX = float.MaxValue;
+            maxX = float.MinValue;
+            minY = float.MaxValue;
+            maxY = float.MinValue;
+            minZ = float.MaxValue;
+            maxZ = float.MinValue;
 
             List<Vector3> offsets = new List<Vector3>();
 
