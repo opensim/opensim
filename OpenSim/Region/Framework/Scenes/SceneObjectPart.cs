@@ -1218,23 +1218,14 @@ namespace OpenSim.Region.Framework.Scenes
         // the mappings more consistant.
         public Vector3 SitTargetPositionLL
         {
-            get { return new Vector3(m_sitTargetPosition.X, m_sitTargetPosition.Y,m_sitTargetPosition.Z); }
+            get { return m_sitTargetPosition; }
             set { m_sitTargetPosition = value; }
         }
 
         public Quaternion SitTargetOrientationLL
         {
-            get
-            {
-                return new Quaternion(
-                                        m_sitTargetOrientation.X,
-                                        m_sitTargetOrientation.Y,
-                                        m_sitTargetOrientation.Z,
-                                        m_sitTargetOrientation.W
-                                        );
-            }
-
-            set { m_sitTargetOrientation = new Quaternion(value.X, value.Y, value.Z, value.W); }
+            get { return m_sitTargetOrientation; }
+            set { m_sitTargetOrientation = value; }
         }
 
         public bool Stopped
@@ -4349,30 +4340,31 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void UpdateGroupPosition(Vector3 pos)
+        public void UpdateGroupPosition(Vector3 newPos)
         {
-            if ((pos.X != GroupPosition.X) ||
-                (pos.Y != GroupPosition.Y) ||
-                (pos.Z != GroupPosition.Z))
+            Vector3 oldPos = GroupPosition;
+
+            if ((newPos.X != oldPos.X) ||
+                (newPos.Y != oldPos.Y) ||
+                (newPos.Z != oldPos.Z))
             {
-                Vector3 newPos = new Vector3(pos.X, pos.Y, pos.Z);
                 GroupPosition = newPos;
                 ScheduleTerseUpdate();
             }
         }
 
         /// <summary>
-        ///
+        /// Update this part's offset position.
         /// </summary>
         /// <param name="pos"></param>
-        public void UpdateOffSet(Vector3 pos)
+        public void UpdateOffSet(Vector3 newPos)
         {
-            if ((pos.X != OffsetPosition.X) ||
-                (pos.Y != OffsetPosition.Y) ||
-                (pos.Z != OffsetPosition.Z))
-            {
-                Vector3 newPos = new Vector3(pos.X, pos.Y, pos.Z);
+            Vector3 oldPos = OffsetPosition;
 
+            if ((newPos.X != oldPos.X) ||
+                (newPos.Y != oldPos.Y) ||
+                (newPos.Z != oldPos.Z))
+            {
                 if (ParentGroup.RootPart.GetStatusSandbox())
                 {
                     if (Util.GetDistanceTo(ParentGroup.RootPart.StatusSandboxPos, newPos) > 10)
