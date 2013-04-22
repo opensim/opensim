@@ -903,9 +903,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        public void SendGenericMessage(string method, List<string> message)
+        public void SendGenericMessage(string method, UUID invoice, List<string> message)
         {
             GenericMessagePacket gmp = new GenericMessagePacket();
+
+            gmp.AgentData.AgentID = AgentId;
+            gmp.AgentData.SessionID = m_sessionId;
+            gmp.AgentData.TransactionID = invoice;
+
             gmp.MethodData.Method = Util.StringToBytes256(method);
             gmp.ParamList = new GenericMessagePacket.ParamListBlock[message.Count];
             int i = 0;
@@ -918,9 +923,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(gmp, ThrottleOutPacketType.Task);
         }
 
-        public void SendGenericMessage(string method, List<byte[]> message)
+        public void SendGenericMessage(string method, UUID invoice, List<byte[]> message)
         {
             GenericMessagePacket gmp = new GenericMessagePacket();
+
+            gmp.AgentData.AgentID = AgentId;
+            gmp.AgentData.SessionID = m_sessionId;
+            gmp.AgentData.TransactionID = invoice;
+
             gmp.MethodData.Method = Util.StringToBytes256(method);
             gmp.ParamList = new GenericMessagePacket.ParamListBlock[message.Count];
             int i = 0;

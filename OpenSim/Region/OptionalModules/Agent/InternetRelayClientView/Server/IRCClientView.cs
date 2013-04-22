@@ -976,12 +976,12 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
             // TODO
         }
 
-        public void SendGenericMessage(string method, List<string> message)
+        public void SendGenericMessage(string method, UUID invoice, List<string> message)
         {
 
         }
 
-        public void SendGenericMessage(string method, List<byte[]> message)
+        public void SendGenericMessage(string method, UUID invoice, List<byte[]> message)
         {
             
         }
