@@ -541,12 +541,12 @@ namespace OpenSim.Tests.Common.Mock
 
         }
 
-        public void SendGenericMessage(string method, List<string> message)
+        public void SendGenericMessage(string method, UUID invoice, List<string> message)
         {
 
         }
 
-        public void SendGenericMessage(string method, List<byte[]> message)
+        public void SendGenericMessage(string method, UUID invoice, List<byte[]> message)
         {
 
         }
