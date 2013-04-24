@@ -70,6 +70,7 @@ public enum BSPhysicsShapeType
 	SHAPE_COMPOUND  = 22,
 	SHAPE_HEIGHTMAP = 23,
     SHAPE_AVATAR    = 24,
+    SHAPE_CONVEXHULL= 25,
 };
 
 // The native shapes have predefined shape hash keys
@@ -324,6 +325,12 @@ public abstract BulletShape CreateHullShape(BulletWorld world,
                 int hullCount, float[] hulls);
 
 public abstract BulletShape BuildHullShapeFromMesh(BulletWorld world, BulletShape meshShape, HACDParams parms);
+
+public abstract BulletShape BuildConvexHullShapeFromMesh(BulletWorld world, BulletShape meshShape);
+
+public abstract BulletShape CreateConvexHullShape(BulletWorld world,
+                int indicesCount, int[] indices,
+                int verticesCount, float[] vertices );
 
 public abstract BulletShape BuildNativeShape(BulletWorld world, ShapeData shapeData);
 
