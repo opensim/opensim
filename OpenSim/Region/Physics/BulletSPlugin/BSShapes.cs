@@ -29,6 +29,9 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
+using OpenSim.Framework;
+using OpenSim.Region.Physics.Manager;
+
 using OMV = OpenMetaverse;
 
 namespace OpenSim.Region.Physics.BulletSPlugin
@@ -37,11 +40,19 @@ public abstract class BSShape
 {
     public int referenceCount { get; set; }
     public DateTime lastReferenced { get; set; }
+    public BulletShape physShapeInfo { get; set; }
 
     public BSShape()
     {
         referenceCount = 0;
         lastReferenced = DateTime.Now;
+        physShapeInfo = new BulletShape();
+    }
+    public BSShape(BulletShape pShape)
+    {
+        referenceCount = 0;
+        lastReferenced = DateTime.Now;
+        physShapeInfo = pShape;
     }
 
     // Get a reference to a physical shape. Create if it doesn't exist
@@ -79,20 +90,29 @@ public abstract class BSShape
 
         return ret;
     }
-    public static BSShape GetShapeReferenceNonSpecial(BSScene physicsScene, bool forceRebuild, BSPhysObject prim)
+    private static BSShape GetShapeReferenceNonSpecial(BSScene physicsScene, bool forceRebuild, BSPhysObject prim)
     {
+        BSShapeMesh.GetReference(physicsScene, forceRebuild, prim);
+        BSShapeHull.GetReference(physicsScene, forceRebuild, prim);
         return null;
     }
-    public static BSShape GetShapeReferenceNonNative(BSScene physicsScene, bool forceRebuild, BSPhysObject prim)
+
+    // Called when this shape is being used again.
+    public virtual void IncrementReference()
     {
-        return null;
+        referenceCount++;
+        lastReferenced = DateTime.Now;
+    }
+
+    // Called when this shape is being used again.
+    public virtual void DecrementReference()
+    {
+        referenceCount--;
+        lastReferenced = DateTime.Now;
     }
 
     // Release the use of a physical shape.
     public abstract void Dereference(BSScene physicsScene);
-
-    // All shapes have a static call to get a reference to the physical shape
-    // protected abstract static BSShape GetReference();
 
     // Returns a string for debugging that uniquily identifies the memory used by this instance
     public virtual string AddrString
@@ -112,6 +132,7 @@ public abstract class BSShape
     }
 }
 
+// ============================================================================================================
 public class BSShapeNull : BSShape
 {
     public BSShapeNull() : base()
@@ -121,23 +142,39 @@ public class BSShapeNull : BSShape
     public override void Dereference(BSScene physicsScene) { /* The magic of garbage collection will make this go away */ }
 }
 
+// ============================================================================================================
 public class BSShapeNative : BSShape
 {
     private static string LogHeader = "[BULLETSIM SHAPE NATIVE]";
-    public BSShapeNative() : base()
+    public BSShapeNative(BulletShape pShape) : base(pShape)
     {
-    }
-    public static BSShape GetReference(BSScene physicsScene, BSPhysObject prim, 
-                    BSPhysicsShapeType shapeType, FixedShapeKey shapeKey) 
-    {
-        // Native shapes are not shared and are always built anew.
-        //return new BSShapeNative(physicsScene, prim, shapeType, shapeKey);
-        return null;
     }
 
-    private BSShapeNative(BSScene physicsScene, BSPhysObject prim,
-                    BSPhysicsShapeType shapeType, FixedShapeKey shapeKey)
+    public static BSShape GetReference(BSScene physicsScene, BSPhysObject prim, 
+                                            BSPhysicsShapeType shapeType, FixedShapeKey shapeKey) 
     {
+        // Native shapes are not shared and are always built anew.
+        return new BSShapeNative(CreatePhysicalNativeShape(physicsScene, prim, shapeType, shapeKey));
+    }
+
+    // Make this reference to the physical shape go away since native shapes are not shared.
+    public override void Dereference(BSScene physicsScene)
+    {
+        // Native shapes are not tracked and are released immediately
+        if (physShapeInfo.HasPhysicalShape)
+        {
+            physicsScene.DetailLog("{0},BSShapeNative.DereferenceShape,deleteNativeShape,shape={1}", BSScene.DetailLogZero, this);
+            physicsScene.PE.DeleteCollisionShape(physicsScene.World, physShapeInfo);
+        }
+        physShapeInfo.Clear();
+        // Garbage collection will free up this instance.
+    }
+
+    private static BulletShape CreatePhysicalNativeShape(BSScene physicsScene, BSPhysObject prim,
+                                            BSPhysicsShapeType shapeType, FixedShapeKey shapeKey)
+    {
+        BulletShape newShape;
+
         ShapeData nativeShapeData = new ShapeData();
         nativeShapeData.Type = shapeType;
         nativeShapeData.ID = prim.LocalID;
@@ -146,63 +183,164 @@ public class BSShapeNative : BSShape
         nativeShapeData.MeshKey = (ulong)shapeKey;
         nativeShapeData.HullKey = (ulong)shapeKey;
 
-       
-        /*
         if (shapeType == BSPhysicsShapeType.SHAPE_CAPSULE)
         {
-            ptr = PhysicsScene.PE.BuildCapsuleShape(physicsScene.World, 1f, 1f, prim.Scale);
-            physicsScene.DetailLog("{0},BSShapeCollection.BuiletPhysicalNativeShape,capsule,scale={1}", prim.LocalID, prim.Scale);
+            newShape = physicsScene.PE.BuildCapsuleShape(physicsScene.World, 1f, 1f, prim.Scale);
+            physicsScene.DetailLog("{0},BSShapeNative,capsule,scale={1}", prim.LocalID, prim.Scale);
         }
         else
         {
-            ptr = PhysicsScene.PE.BuildNativeShape(physicsScene.World, nativeShapeData);
+            newShape = physicsScene.PE.BuildNativeShape(physicsScene.World, nativeShapeData);
         }
-        if (ptr == IntPtr.Zero)
+        if (!newShape.HasPhysicalShape)
         {
             physicsScene.Logger.ErrorFormat("{0} BuildPhysicalNativeShape failed. ID={1}, shape={2}",
                                     LogHeader, prim.LocalID, shapeType);
         }
-        type = shapeType;
-        key = (UInt64)shapeKey;
-         */
+        newShape.type = shapeType;
+        newShape.isNativeShape = true;
+        newShape.shapeKey = (UInt64)shapeKey;
+        return newShape;
     }
-    // Make this reference to the physical shape go away since native shapes are not shared.
-    public override void Dereference(BSScene physicsScene)
-    {
-        /*
-        // Native shapes are not tracked and are released immediately
-        physicsScene.DetailLog("{0},BSShapeCollection.DereferenceShape,deleteNativeShape,shape={1}", BSScene.DetailLogZero, this);
-        PhysicsScene.PE.DeleteCollisionShape(physicsScene.World, this);
-        ptr = IntPtr.Zero;
-        // Garbage collection will free up this instance.
-         */
-    }
+
 }
 
+// ============================================================================================================
 public class BSShapeMesh : BSShape
 {
     private static string LogHeader = "[BULLETSIM SHAPE MESH]";
     private static Dictionary<System.UInt64, BSShapeMesh> Meshes = new Dictionary<System.UInt64, BSShapeMesh>();
 
-    public BSShapeMesh() : base()
+    public BSShapeMesh(BulletShape pShape) : base(pShape)
     {
     }
-    public static BSShape GetReference() { return new BSShapeNull();  }
-    public override void Dereference(BSScene physicsScene) { }
+    public static BSShape GetReference(BSScene physicsScene, bool forceRebuild, BSPhysObject prim)
+    {
+        float lod;
+        System.UInt64 newMeshKey = BSShapeCollection.ComputeShapeKey(prim.Size, prim.BaseShape, out lod);
+
+        physicsScene.DetailLog("{0},BSShapeMesh,create,oldKey={1},newKey={2},size={3},lod={4}",
+                                prim.LocalID, prim.PhysShape.shapeKey.ToString("X"), newMeshKey.ToString("X"), prim.Size, lod);
+
+        BSShapeMesh retMesh;
+        lock (Meshes)
+        {
+            if (Meshes.TryGetValue(newMeshKey, out retMesh))
+            {
+                // The mesh has already been created. Return a new reference to same.
+                retMesh.IncrementReference();
+            }
+            else
+            {
+                // An instance of this mesh has not been created. Build and remember same.
+                BulletShape newShape = CreatePhysicalMesh(physicsScene, prim, newMeshKey, prim.BaseShape, prim.Size, lod);
+                // Take evasive action if the mesh was not constructed.
+                newShape = BSShapeCollection.VerifyMeshCreated(physicsScene, newShape, prim);
+
+                retMesh = new BSShapeMesh(newShape);
+
+                Meshes.Add(newMeshKey, retMesh);
+            }
+        }
+        return retMesh;
+    }
+    public override void Dereference(BSScene physicsScene)
+    {
+        lock (Meshes)
+        {
+            this.DecrementReference();
+            // TODO: schedule aging and destruction of unused meshes.
+        }
+    }
+
+    private static BulletShape CreatePhysicalMesh(BSScene physicsScene, BSPhysObject prim, System.UInt64 newMeshKey,
+                                            PrimitiveBaseShape pbs, OMV.Vector3 size, float lod)
+    {
+        BulletShape newShape = null;
+
+        IMesh meshData = physicsScene.mesher.CreateMesh(prim.PhysObjectName, pbs, size, lod, 
+                                        false,  // say it is not physical so a bounding box is not built
+                                        false   // do not cache the mesh and do not use previously built versions
+                                        );
+
+        if (meshData != null)
+        {
+
+            int[] indices = meshData.getIndexListAsInt();
+            int realIndicesIndex = indices.Length;
+            float[] verticesAsFloats = meshData.getVertexListAsFloat();
+
+            if (BSParam.ShouldRemoveZeroWidthTriangles)
+            {
+                // Remove degenerate triangles. These are triangles with two of the vertices
+                //    are the same. This is complicated by the problem that vertices are not
+                //    made unique in sculpties so we have to compare the values in the vertex.
+                realIndicesIndex = 0;
+                for (int tri = 0; tri < indices.Length; tri += 3)
+                {
+                    // Compute displacements into vertex array for each vertex of the triangle
+                    int v1 = indices[tri + 0] * 3;
+                    int v2 = indices[tri + 1] * 3;
+                    int v3 = indices[tri + 2] * 3;
+                // Check to see if any two of the vertices are the same
+                    if (!( (  verticesAsFloats[v1 + 0] == verticesAsFloats[v2 + 0]
+                           && verticesAsFloats[v1 + 1] == verticesAsFloats[v2 + 1]
+                           && verticesAsFloats[v1 + 2] == verticesAsFloats[v2 + 2])
+                        || (  verticesAsFloats[v2 + 0] == verticesAsFloats[v3 + 0]
+                           && verticesAsFloats[v2 + 1] == verticesAsFloats[v3 + 1]
+                           && verticesAsFloats[v2 + 2] == verticesAsFloats[v3 + 2])
+                        || (  verticesAsFloats[v1 + 0] == verticesAsFloats[v3 + 0]
+                           && verticesAsFloats[v1 + 1] == verticesAsFloats[v3 + 1]
+                           && verticesAsFloats[v1 + 2] == verticesAsFloats[v3 + 2]) )
+                    )
+                    {
+                        // None of the vertices of the triangles are the same. This is a good triangle;
+                        indices[realIndicesIndex + 0] = indices[tri + 0];
+                        indices[realIndicesIndex + 1] = indices[tri + 1];
+                        indices[realIndicesIndex + 2] = indices[tri + 2];
+                        realIndicesIndex += 3;
+                    }
+                }
+            }
+            physicsScene.DetailLog("{0},BSShapeCollection.CreatePhysicalMesh,origTri={1},realTri={2},numVerts={3}",
+                        BSScene.DetailLogZero, indices.Length / 3, realIndicesIndex / 3, verticesAsFloats.Length / 3);
+
+            if (realIndicesIndex != 0)
+            {
+                newShape = physicsScene.PE.CreateMeshShape(physicsScene.World,
+                                    realIndicesIndex, indices, verticesAsFloats.Length / 3, verticesAsFloats);
+            }
+            else
+            {
+                physicsScene.Logger.DebugFormat("{0} All mesh triangles degenerate. Prim {1} at {2} in {3}",
+                                    LogHeader, prim.PhysObjectName, prim.RawPosition, physicsScene.Name);
+            }
+        }
+        newShape.shapeKey = newMeshKey;
+
+        return newShape;
+    }
 }
 
+// ============================================================================================================
 public class BSShapeHull : BSShape
 {
     private static string LogHeader = "[BULLETSIM SHAPE HULL]";
     private static Dictionary<System.UInt64, BSShapeHull> Hulls = new Dictionary<System.UInt64, BSShapeHull>();
 
-    public BSShapeHull() : base()
+    public BSShapeHull(BulletShape pShape) : base(pShape)
     {
     }
-    public static BSShape GetReference() { return new BSShapeNull();  }
-    public override void Dereference(BSScene physicsScene) { }
+    public static BSShape GetReference(BSScene physicsScene, bool forceRebuild, BSPhysObject prim)
+    {
+        return new BSShapeNull();
+    }
+    public override void Dereference(BSScene physicsScene)
+    {
+    }
 }
 
+// ============================================================================================================
 public class BSShapeCompound : BSShape
 {
     private static string LogHeader = "[BULLETSIM SHAPE COMPOUND]";
@@ -216,6 +354,7 @@ public class BSShapeCompound : BSShape
     public override void Dereference(BSScene physicsScene) { }
 }
 
+// ============================================================================================================
 public class BSShapeAvatar : BSShape
 {
     private static string LogHeader = "[BULLETSIM SHAPE AVATAR]";

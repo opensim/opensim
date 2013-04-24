@@ -96,7 +96,7 @@ public abstract class BSPhysObject : PhysicsActor
         SetMaterial((int)MaterialAttributes.Material.Wood);
 
         CollisionCollection = new CollisionEventUpdate();
-        CollisionsLastTick = CollisionCollection;
+        CollisionsLastReported = CollisionCollection;
         SubscribedEventsMs = 0;
         CollidingStep = 0;
         CollidingGroundStep = 0;
@@ -368,11 +368,14 @@ public abstract class BSPhysObject : PhysicsActor
         }
     }
 
-    // The collisions that have been collected this tick
+    // The collisions that have been collected for the next collision reporting (throttled by subscription)
     protected CollisionEventUpdate CollisionCollection;
-    // Remember collisions from last tick for fancy collision based actions
+    // This is the collision collection last reported to the Simulator.
+    public CollisionEventUpdate CollisionsLastReported;
+    // Remember the collisions recorded in the last tick for fancy collision checking
     //     (like a BSCharacter walking up stairs).
     public CollisionEventUpdate CollisionsLastTick;
+    private long CollisionsLastTickStep = -1;
 
     // The simulation step is telling this object about a collision.
     // Return 'true' if a collision was processed and should be sent up.
@@ -399,6 +402,15 @@ public abstract class BSPhysObject : PhysicsActor
         // For movement tests, remember if we are colliding with an object that is moving.
         ColliderIsMoving = collidee != null ? (collidee.RawVelocity != OMV.Vector3.Zero) : false;
 
+        // Make a collection of the collisions that happened the last simulation tick.
+        // This is different than the collection created for sending up to the simulator as it is cleared every tick.
+        if (CollisionsLastTickStep != PhysicsScene.SimulationStep)
+        {
+            CollisionsLastTick = new CollisionEventUpdate();
+            CollisionsLastTickStep = PhysicsScene.SimulationStep;
+        }
+        CollisionsLastTick.AddCollider(collidingWith, new ContactPoint(contactPoint, contactNormal, pentrationDepth));
+
         // If someone has subscribed for collision events log the collision so it will be reported up
         if (SubscribedEvents()) {
             CollisionCollection.AddCollider(collidingWith, new ContactPoint(contactPoint, contactNormal, pentrationDepth));
@@ -419,7 +431,7 @@ public abstract class BSPhysObject : PhysicsActor
         bool ret = true;
 
         // If the 'no collision' call, force it to happen right now so quick collision_end
-        bool force = (CollisionCollection.Count == 0 && CollisionsLastTick.Count != 0);
+        bool force = (CollisionCollection.Count == 0 && CollisionsLastReported.Count != 0);
 
         // throttle the collisions to the number of milliseconds specified in the subscription
         if (force || (PhysicsScene.SimulationNowTime >= NextCollisionOkTime))
@@ -438,7 +450,7 @@ public abstract class BSPhysObject : PhysicsActor
             base.SendCollisionUpdate(CollisionCollection);
 
             // Remember the collisions from this tick for some collision specific processing.
-            CollisionsLastTick = CollisionCollection;
+            CollisionsLastReported = CollisionCollection;
 
             // The CollisionCollection instance is passed around in the simulator.
             // Make sure we don't have a handle to that one and that a new one is used for next time.
