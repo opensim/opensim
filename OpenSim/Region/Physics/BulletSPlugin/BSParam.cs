@@ -128,6 +128,8 @@ public static class BSParam
 	public static float AvatarStepHeight { get; private set; }
 	public static float AvatarStepApproachFactor { get; private set; }
 	public static float AvatarStepForceFactor { get; private set; }
+	public static float AvatarStepUpCorrectionFactor { get; private set; }
+	public static int AvatarStepSmoothingSteps { get; private set; }
 
     // Vehicle parameters
     public static float VehicleMaxLinearVelocity { get; private set; }
@@ -234,6 +236,7 @@ public static class BSParam
             objectSet = pObjSetter;
         }
         /* Wish I could simplify using this definition but CLR doesn't store references so closure around delegates of references won't work
+         * TODO: Maybe use reflection and the name of the variable to create a reference for the getter/setter.
         public ParameterDefn(string pName, string pDesc, T pDefault, ref T loc)
             : base(pName, pDesc)
         {
@@ -561,7 +564,7 @@ public static class BSParam
             (s) => { return AvatarBelowGroundUpCorrectionMeters; },
             (s,v) => { AvatarBelowGroundUpCorrectionMeters = v; } ),
 	    new ParameterDefn<float>("AvatarStepHeight", "Height of a step obstacle to consider step correction",
-            0.3f,
+            0.6f,
             (s) => { return AvatarStepHeight; },
             (s,v) => { AvatarStepHeight = v; } ),
 	    new ParameterDefn<float>("AvatarStepApproachFactor", "Factor to control angle of approach to step (0=straight on)",
@@ -569,9 +572,17 @@ public static class BSParam
             (s) => { return AvatarStepApproachFactor; },
             (s,v) => { AvatarStepApproachFactor = v; } ),
 	    new ParameterDefn<float>("AvatarStepForceFactor", "Controls the amount of force up applied to step up onto a step",
-            2.0f,
+            1.0f,
             (s) => { return AvatarStepForceFactor; },
             (s,v) => { AvatarStepForceFactor = v; } ),
+	    new ParameterDefn<float>("AvatarStepUpCorrectionFactor", "Multiplied by height of step collision to create up movement at step",
+            1.0f,
+            (s) => { return AvatarStepUpCorrectionFactor; },
+            (s,v) => { AvatarStepUpCorrectionFactor = v; } ),
+	    new ParameterDefn<int>("AvatarStepSmoothingSteps", "Number of frames after a step collision that we continue walking up stairs",
+            2,
+            (s) => { return AvatarStepSmoothingSteps; },
+            (s,v) => { AvatarStepSmoothingSteps = v; } ),
 
         new ParameterDefn<float>("VehicleMaxLinearVelocity", "Maximum velocity magnitude that can be assigned to a vehicle",
             1000.0f,

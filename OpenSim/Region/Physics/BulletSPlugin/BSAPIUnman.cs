@@ -268,6 +268,25 @@ public override BulletShape BuildHullShapeFromMesh(BulletWorld world, BulletShap
                     BSPhysicsShapeType.SHAPE_HULL);
 }
 
+public override BulletShape BuildConvexHullShapeFromMesh(BulletWorld world, BulletShape meshShape)
+{
+    BulletWorldUnman worldu = world as BulletWorldUnman;
+    BulletShapeUnman shapeu = meshShape as BulletShapeUnman;
+    return new BulletShapeUnman(
+                    BSAPICPP.BuildConvexHullShapeFromMesh2(worldu.ptr, shapeu.ptr),
+                    BSPhysicsShapeType.SHAPE_CONVEXHULL);
+}
+
+public override BulletShape CreateConvexHullShape(BulletWorld world,
+                int indicesCount, int[] indices,
+                int verticesCount, float[] vertices)
+{
+    BulletWorldUnman worldu = world as BulletWorldUnman;
+    return new BulletShapeUnman(
+                    BSAPICPP.CreateConvexHullShape2(worldu.ptr, indicesCount, indices, verticesCount, vertices),
+                    BSPhysicsShapeType.SHAPE_CONVEXHULL);
+}
+
 public override BulletShape BuildNativeShape(BulletWorld world, ShapeData shapeData)
 {
     BulletWorldUnman worldu = world as BulletWorldUnman;
@@ -1412,6 +1431,14 @@ public static extern IntPtr CreateHullShape2(IntPtr world,
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern IntPtr BuildHullShapeFromMesh2(IntPtr world, IntPtr meshShape, HACDParams parms);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern IntPtr BuildConvexHullShapeFromMesh2(IntPtr world, IntPtr meshShape);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern IntPtr CreateConvexHullShape2(IntPtr world,
+                int indicesCount, [MarshalAs(UnmanagedType.LPArray)] int[] indices,
+                int verticesCount, [MarshalAs(UnmanagedType.LPArray)] float[] vertices );
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern IntPtr BuildNativeShape2(IntPtr world, ShapeData shapeData);

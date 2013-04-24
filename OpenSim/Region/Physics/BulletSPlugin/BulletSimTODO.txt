@@ -42,6 +42,8 @@ One sided meshes? Should terrain be built into a closed shape?
 
 VEHICLES TODO LIST:
 =================================================
+UBit improvements to remove rubber-banding of avatars sitting on vehicle child prims:
+	https://github.com/UbitUmarov/Ubit-opensim
 Border crossing with linked vehicle causes crash
 	20121129.1411: editting/moving phys object across region boundries causes crash
 	    getPos-> btRigidBody::upcast -> getBodyType -> BOOM
@@ -167,6 +169,7 @@ Eliminate collisions between objects in a linkset. (LinksetConstraint)
 
 MORE
 ======================================================
+Compute avatar size and scale correctly. Now it is a bit off from the capsule size.
 Create tests for different interface components
 	Have test objects/scripts measure themselves and turn color if correct/bad
 	Test functions in SL and calibrate correctness there

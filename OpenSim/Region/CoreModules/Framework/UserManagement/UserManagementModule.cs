@@ -200,7 +200,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             // search the local cache
             foreach (UserData data in m_UserCache.Values)
                 if (users.Find(delegate(UserData d) { return d.Id == data.Id; }) == null &&
-                    (data.FirstName.StartsWith(query) || data.LastName.StartsWith(query)))
+                    (data.FirstName.ToLower().StartsWith(query.ToLower()) || data.LastName.ToLower().StartsWith(query.ToLower())))
                     users.Add(data);
 
             AddAdditionalUsers(avatarID, query, users);

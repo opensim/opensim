@@ -1778,6 +1778,16 @@ private sealed class BulletConstraintXNA : BulletConstraint
         /* TODO */ return null;
     }
 
+    public override BulletShape BuildConvexHullShapeFromMesh(BulletWorld world, BulletShape meshShape)
+    {
+        /* TODO */ return null;
+    }
+
+    public override BulletShape CreateConvexHullShape(BulletWorld pWorld, int pIndicesCount, int[] indices, int pVerticesCount, float[] verticesAsFloats)
+    {
+        /* TODO */ return null;
+    }
+
     public override BulletShape CreateMeshShape(BulletWorld pWorld, int pIndicesCount, int[] indices, int pVerticesCount, float[] verticesAsFloats)
     {
         //DumpRaw(indices,verticesAsFloats,pIndicesCount,pVerticesCount);
