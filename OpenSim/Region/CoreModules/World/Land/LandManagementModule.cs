@@ -210,6 +210,9 @@ namespace OpenSim.Region.CoreModules.World.Land
             client.OnParcelInfoRequest += ClientOnParcelInfoRequest;
             client.OnParcelDeedToGroup += ClientOnParcelDeedToGroup;
             client.OnPreAgentUpdate += ClientOnPreAgentUpdate;
+            client.OnParcelEjectUser += ClientOnParcelEjectUser;
+            client.OnParcelFreezeUser += ClientOnParcelFreezeUser;
+
 
             EntityBase presenceEntity;
             if (m_scene.Entities.TryGetValue(client.AgentId, out presenceEntity) && presenceEntity is ScenePresence)
@@ -1738,6 +1741,88 @@ namespace OpenSim.Region.CoreModules.World.Land
             UpdateLandObject(localID, land.LandData);
         }
         
+        Dictionary<UUID, System.Threading.Timer> Timers = new Dictionary<UUID, System.Threading.Timer>();
+
+        public void ClientOnParcelFreezeUser(IClientAPI client, UUID parcelowner, uint flags, UUID target)
+        {
+            ScenePresence targetAvatar = null;
+            ((Scene)client.Scene).TryGetScenePresence(target, out targetAvatar);
+            ScenePresence parcelManager = null;
+            ((Scene)client.Scene).TryGetScenePresence(client.AgentId, out parcelManager);
+            System.Threading.Timer Timer;
+
+            if (targetAvatar.UserLevel == 0)
+            {
+                ILandObject land = ((Scene)client.Scene).LandChannel.GetLandObject(targetAvatar.AbsolutePosition.X, targetAvatar.AbsolutePosition.Y);
+                if (!((Scene)client.Scene).Permissions.CanEditParcelProperties(client.AgentId, land, GroupPowers.LandEjectAndFreeze))
+                    return;
+                if (flags == 0)
+                {
+                    targetAvatar.AllowMovement = false;
+                    targetAvatar.ControllingClient.SendAlertMessage(parcelManager.Firstname + " " + parcelManager.Lastname + " has frozen you for 30 seconds.  You cannot move or interact with the world.");
+                    parcelManager.ControllingClient.SendAlertMessage("Avatar Frozen.");
+                    System.Threading.TimerCallback timeCB = new System.Threading.TimerCallback(OnEndParcelFrozen);
+                    Timer = new System.Threading.Timer(timeCB, targetAvatar, 30000, 0);
+                    Timers.Add(targetAvatar.UUID, Timer);
+                }
+                else
+                {
+                    targetAvatar.AllowMovement = true;
+                    targetAvatar.ControllingClient.SendAlertMessage(parcelManager.Firstname + " " + parcelManager.Lastname + " has unfrozen you.");
+                    parcelManager.ControllingClient.SendAlertMessage("Avatar Unfrozen.");
+                    Timers.TryGetValue(targetAvatar.UUID, out Timer);
+                    Timers.Remove(targetAvatar.UUID);
+                    Timer.Dispose();
+                }
+            }
+        }
+
+        private void OnEndParcelFrozen(object avatar)
+        {
+            ScenePresence targetAvatar = (ScenePresence)avatar;
+            targetAvatar.AllowMovement = true;
+            System.Threading.Timer Timer;
+            Timers.TryGetValue(targetAvatar.UUID, out Timer);
+            Timers.Remove(targetAvatar.UUID);
+            targetAvatar.ControllingClient.SendAgentAlertMessage("The freeze has worn off; you may go about your business.", false);
+        }
+
+        public void ClientOnParcelEjectUser(IClientAPI client, UUID parcelowner, uint flags, UUID target)
+        {
+            ScenePresence targetAvatar = null;
+            ScenePresence parcelManager = null;
+
+            // Must have presences
+            if (!m_scene.TryGetScenePresence(target, out targetAvatar) ||
+                !m_scene.TryGetScenePresence(client.AgentId, out parcelManager))
+                return;
+
+            // Cannot eject estate managers or gods
+            if (m_scene.Permissions.IsAdministrator(target))
+                return;
+
+            // Check if you even have permission to do this
+            ILandObject land = m_scene.LandChannel.GetLandObject(targetAvatar.AbsolutePosition.X, targetAvatar.AbsolutePosition.Y);
+            if (!m_scene.Permissions.CanEditParcelProperties(client.AgentId, land, GroupPowers.LandEjectAndFreeze) &&
+                !m_scene.Permissions.IsAdministrator(client.AgentId))
+                return;
+            Vector3 pos = m_scene.GetNearestAllowedPosition(targetAvatar, land);
+
+            targetAvatar.TeleportWithMomentum(pos, null);
+            targetAvatar.ControllingClient.SendAlertMessage("You have been ejected by " + parcelManager.Firstname + " " + parcelManager.Lastname);
+            parcelManager.ControllingClient.SendAlertMessage("Avatar Ejected.");
+
+            if ((flags & 1) != 0) // Ban TODO: Remove magic number
+            {
+                LandAccessEntry entry = new LandAccessEntry();
+                entry.AgentID = targetAvatar.UUID;
+                entry.Flags = AccessList.Ban;
+                entry.Expires = 0; // Perm
+
+                land.LandData.ParcelAccessList.Add(entry);
+            }
+        }
+
         protected void InstallInterfaces()
         {
             Command clearCommand
