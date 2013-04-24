@@ -69,12 +69,17 @@ public class BSPrim : BSPhysObject
 
     private int CrossingFailures { get; set; }
 
+    // Keep a handle to the vehicle actor so it is easy to set parameters on same.
     public BSDynamics VehicleActor;
     public const string VehicleActorName = "BasicVehicle";
 
+    // Parameters for the hover actor
     public const string HoverActorName = "HoverActor";
+    // Parameters for the axis lock actor
     public const String LockedAxisActorName = "BSPrim.LockedAxis";
+    // Parameters for the move to target actor
     public const string MoveToTargetActorName = "MoveToTargetActor";
+    // Parameters for the setForce and setTorque actors
     public const string SetForceActorName = "SetForceActor";
     public const string SetTorqueActorName = "SetTorqueActor";
 
