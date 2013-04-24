@@ -612,7 +612,7 @@ public sealed class BSShapeCollection : IDisposable
 
         newShape = CreatePhysicalMesh(prim, newMeshKey, prim.BaseShape, prim.Size, lod);
         // Take evasive action if the mesh was not constructed.
-        newShape = VerifyMeshCreated(newShape, prim);
+        newShape = VerifyMeshCreated(PhysicsScene, newShape, prim);
 
         ReferenceShape(newShape);
 
@@ -719,7 +719,7 @@ public sealed class BSShapeCollection : IDisposable
 
         newShape = CreatePhysicalHull(prim, newHullKey, prim.BaseShape, prim.Size, lod);
         // It might not have been created if we're waiting for an asset.
-        newShape = VerifyMeshCreated(newShape, prim);
+        newShape = VerifyMeshCreated(PhysicsScene, newShape, prim);
 
         ReferenceShape(newShape);
 
@@ -923,7 +923,7 @@ public sealed class BSShapeCollection : IDisposable
 
     // Create a hash of all the shape parameters to be used as a key
     //    for this particular shape.
-    private System.UInt64 ComputeShapeKey(OMV.Vector3 size, PrimitiveBaseShape pbs, out float retLod)
+    public static System.UInt64 ComputeShapeKey(OMV.Vector3 size, PrimitiveBaseShape pbs, out float retLod)
     {
         // level of detail based on size and type of the object
         float lod = BSParam.MeshLOD;
@@ -944,7 +944,7 @@ public sealed class BSShapeCollection : IDisposable
         return pbs.GetMeshKey(size, lod);
     }
     // For those who don't want the LOD
-    private System.UInt64 ComputeShapeKey(OMV.Vector3 size, PrimitiveBaseShape pbs)
+    public static System.UInt64 ComputeShapeKey(OMV.Vector3 size, PrimitiveBaseShape pbs)
     {
         float lod;
         return ComputeShapeKey(size, pbs, out lod);
@@ -957,7 +957,7 @@ public sealed class BSShapeCollection : IDisposable
     //     us to not loop forever.
     // Called after creating a physical mesh or hull. If the physical shape was created,
     //     just return.
-    private BulletShape VerifyMeshCreated(BulletShape newShape, BSPhysObject prim)
+    public static BulletShape VerifyMeshCreated(BSScene physicsScene, BulletShape newShape, BSPhysObject prim)
     {
         // If the shape was successfully created, nothing more to do
         if (newShape.HasPhysicalShape)
@@ -969,7 +969,7 @@ public sealed class BSShapeCollection : IDisposable
         if (prim.PrimAssetState == BSPhysObject.PrimAssetCondition.Fetched)
         {
             prim.PrimAssetState = BSPhysObject.PrimAssetCondition.Failed;
-            PhysicsScene.Logger.WarnFormat("{0} Fetched asset would not mesh. {1}, texture={2}",
+            physicsScene.Logger.WarnFormat("{0} Fetched asset would not mesh. {1}, texture={2}",
                                             LogHeader, prim.PhysObjectName, prim.BaseShape.SculptTexture);
         }
         else
@@ -981,14 +981,14 @@ public sealed class BSShapeCollection : IDisposable
                 && prim.BaseShape.SculptTexture != OMV.UUID.Zero
                 )
             {
-                DetailLog("{0},BSShapeCollection.VerifyMeshCreated,fetchAsset", prim.LocalID);
+                physicsScene.DetailLog("{0},BSShapeCollection.VerifyMeshCreated,fetchAsset", prim.LocalID);
                 // Multiple requestors will know we're waiting for this asset
                 prim.PrimAssetState = BSPhysObject.PrimAssetCondition.Waiting;
 
                 BSPhysObject xprim = prim;
                 Util.FireAndForget(delegate
                     {
-                        RequestAssetDelegate assetProvider = PhysicsScene.RequestAssetMethod;
+                        RequestAssetDelegate assetProvider = physicsScene.RequestAssetMethod;
                         if (assetProvider != null)
                         {
                             BSPhysObject yprim = xprim; // probably not necessary, but, just in case.
@@ -1016,7 +1016,7 @@ public sealed class BSShapeCollection : IDisposable
                                     yprim.PrimAssetState = BSPhysObject.PrimAssetCondition.Fetched;
                                 else
                                     yprim.PrimAssetState = BSPhysObject.PrimAssetCondition.Failed;
-                                DetailLog("{0},BSShapeCollection,fetchAssetCallback,found={1},isSculpt={2},ids={3}",
+                                physicsScene.DetailLog("{0},BSShapeCollection,fetchAssetCallback,found={1},isSculpt={2},ids={3}",
                                             yprim.LocalID, assetFound, yprim.BaseShape.SculptEntry, mismatchIDs );
 
                             });
@@ -1024,8 +1024,8 @@ public sealed class BSShapeCollection : IDisposable
                         else
                         {
                             xprim.PrimAssetState = BSPhysObject.PrimAssetCondition.Failed;
-                            PhysicsScene.Logger.ErrorFormat("{0} Physical object requires asset but no asset provider. Name={1}",
-                                                        LogHeader, PhysicsScene.Name);
+                            physicsScene.Logger.ErrorFormat("{0} Physical object requires asset but no asset provider. Name={1}",
+                                                        LogHeader, physicsScene.Name);
                         }
                     });
             }
@@ -1033,15 +1033,15 @@ public sealed class BSShapeCollection : IDisposable
             {
                 if (prim.PrimAssetState == BSPhysObject.PrimAssetCondition.Failed)
                 {
-                    PhysicsScene.Logger.WarnFormat("{0} Mesh failed to fetch asset. obj={1}, texture={2}",
+                    physicsScene.Logger.WarnFormat("{0} Mesh failed to fetch asset. obj={1}, texture={2}",
                                                 LogHeader, prim.PhysObjectName, prim.BaseShape.SculptTexture);
                 }
             }
         }
 
         // While we wait for the mesh defining asset to be loaded, stick in a simple box for the object.
-        BulletShape fillinShape = BuildPhysicalNativeShape(prim, BSPhysicsShapeType.SHAPE_BOX, FixedShapeKey.KEY_BOX);
-        DetailLog("{0},BSShapeCollection.VerifyMeshCreated,boxTempShape", prim.LocalID);
+        BulletShape fillinShape = physicsScene.Shapes.BuildPhysicalNativeShape(prim, BSPhysicsShapeType.SHAPE_BOX, FixedShapeKey.KEY_BOX);
+        physicsScene.DetailLog("{0},BSShapeCollection.VerifyMeshCreated,boxTempShape", prim.LocalID);
 
         return fillinShape;
     }
