@@ -52,7 +52,7 @@ namespace OpenSim.Data.MySQL
         private string m_connectionString;
         private object m_dbLock = new object();
 
-        protected Assembly Assembly
+        protected virtual Assembly Assembly
         {
             get { return GetType().Assembly; }
         }
