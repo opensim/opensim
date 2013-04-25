@@ -34,6 +34,7 @@ using System.Threading;
 using log4net;
 using OpenMetaverse;
 using OpenMetaverse.Assets;
+using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes.Serialization;
 using OpenSim.Services.Interfaces;
@@ -180,6 +181,9 @@ namespace OpenSim.Region.Framework.Scenes
                         if (!assetUuids.ContainsKey(tii.AssetID))
                             GatherAssetUuids(tii.AssetID, (AssetType)tii.Type, assetUuids);
                     }
+
+                    // get any texture UUIDs used for materials such as normal and specular maps
+                    GatherMaterialsUuids(part, assetUuids);
                 }
                 catch (Exception e)
                 {
@@ -203,6 +207,68 @@ namespace OpenSim.Region.Framework.Scenes
 //                Monitor.Pulse(this);
 //            }
 //        }
+
+
+        /// <summary>
+        /// Gather all of the texture asset UUIDs used to reference "Materials" such as normal and specular maps
+        /// </summary>
+        /// <param name="part"></param>
+        /// <param name="assetUuids"></param>
+        public void GatherMaterialsUuids(SceneObjectPart part, IDictionary<UUID, AssetType> assetUuids)
+        {
+            // scan thru the dynAttrs map of this part for any textures used as materials
+            OSDMap OSMaterials = null;
+
+            lock (part.DynAttrs)
+            {
+                if (part.DynAttrs.ContainsKey("OS:Materials"))
+                    OSMaterials = part.DynAttrs["OS:Materials"];
+                if (OSMaterials != null && OSMaterials.ContainsKey("Materials"))
+                {
+                    OSD osd = OSMaterials["Materials"];
+                    //m_log.Info("[UUID Gatherer]: found Materials: " + OSDParser.SerializeJsonString(osd));
+
+                    if (osd is OSDArray)
+                    {
+                        OSDArray matsArr = osd as OSDArray;
+                        foreach (OSDMap matMap in matsArr)
+                        {
+                            try
+                            {
+                                if (matMap.ContainsKey("Material"))
+                                {
+                                    OSDMap mat = matMap["Material"] as OSDMap;
+                                    if (mat.ContainsKey("NormMap"))
+                                    {
+                                        UUID normalMapId = mat["NormMap"].AsUUID();
+                                        if (normalMapId != UUID.Zero)
+                                        {
+                                            assetUuids[normalMapId] = AssetType.Texture;
+                                            //m_log.Info("[UUID Gatherer]: found normal map ID: " + normalMapId.ToString());
+                                        }
+                                    }
+                                    if (mat.ContainsKey("SpecMap"))
+                                    {
+                                        UUID specularMapId = mat["SpecMap"].AsUUID();
+                                        if (specularMapId != UUID.Zero)
+                                        {
+                                            assetUuids[specularMapId] = AssetType.Texture;
+                                            //m_log.Info("[UUID Gatherer]: found specular map ID: " + specularMapId.ToString());
+                                        }
+                                    }
+                                }
+
+                            }
+                            catch (Exception e)
+                            {
+                                m_log.Warn("[UUID Gatherer]: exception getting materials: " + e.Message);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
 
         /// <summary>
         /// Get an asset synchronously, potentially using an asynchronous callback.  If the
