@@ -320,7 +320,7 @@ namespace OpenSim.Framework
     public delegate void ObjectPermissions(
         IClientAPI controller, UUID agentID, UUID sessionID, byte field, uint localId, uint mask, byte set);
 
-    public delegate void EconomyDataRequest(UUID agentID);
+    public delegate void EconomyDataRequest(IClientAPI client);
 
     public delegate void ObjectIncludeInSearch(IClientAPI remoteClient, bool IncludeInSearch, uint localID);
 

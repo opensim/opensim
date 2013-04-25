@@ -688,19 +688,14 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
         /// Event called Economy Data Request handler.
         /// </summary>
         /// <param name="agentId"></param>
-        public void EconomyDataRequestHandler(UUID agentId)
+        public void EconomyDataRequestHandler(IClientAPI user)
         {
-            IClientAPI user = LocateClientObject(agentId);
+            Scene s = LocateSceneClientIn(user.AgentId);
 
-            if (user != null)
-            {
-                Scene s = LocateSceneClientIn(user.AgentId);
-
-                user.SendEconomyData(EnergyEfficiency, s.RegionInfo.ObjectCapacity, ObjectCount, PriceEnergyUnit, PriceGroupCreate,
-                                     PriceObjectClaim, PriceObjectRent, PriceObjectScaleFactor, PriceParcelClaim, PriceParcelClaimFactor,
-                                     PriceParcelRent, PricePublicObjectDecay, PricePublicObjectDelete, PriceRentLight, PriceUpload,
-                                     TeleportMinPrice, TeleportPriceExponent);
-            }
+            user.SendEconomyData(EnergyEfficiency, s.RegionInfo.ObjectCapacity, ObjectCount, PriceEnergyUnit, PriceGroupCreate,
+                                 PriceObjectClaim, PriceObjectRent, PriceObjectScaleFactor, PriceParcelClaim, PriceParcelClaimFactor,
+                                 PriceParcelRent, PricePublicObjectDecay, PricePublicObjectDelete, PriceRentLight, PriceUpload,
+                                 TeleportMinPrice, TeleportPriceExponent);
         }
 
         private void ValidateLandBuy(Object osender, EventManager.LandBuyArgs e)
