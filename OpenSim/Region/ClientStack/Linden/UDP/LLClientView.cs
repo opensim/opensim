@@ -9860,7 +9860,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             EconomyDataRequest handlerEconomoyDataRequest = OnEconomyDataRequest;
             if (handlerEconomoyDataRequest != null)
             {
-                handlerEconomoyDataRequest(AgentId);
+                handlerEconomoyDataRequest(this);
             }
             return true;
         }
