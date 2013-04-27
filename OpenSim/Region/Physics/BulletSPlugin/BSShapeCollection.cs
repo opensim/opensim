@@ -499,7 +499,7 @@ public sealed class BSShapeCollection : IDisposable
     }
 
     // return 'true' if this shape description does not include any cutting or twisting.
-    private bool PrimHasNoCuts(PrimitiveBaseShape pbs)
+    public static bool PrimHasNoCuts(PrimitiveBaseShape pbs)
     {
         return pbs.ProfileBegin == 0 && pbs.ProfileEnd == 0
             && pbs.ProfileHollow == 0
