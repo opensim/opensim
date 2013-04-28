@@ -32,6 +32,7 @@ using System.Reflection;
 using System.Text;
 using Mono.Data.SqliteClient;
 using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Framework.Monitoring;
@@ -51,7 +52,6 @@ namespace OpenSim.Region.UserStatistics
 
         public Hashtable ProcessModel(Hashtable pParams)
         {
-            
             List<Scene> m_scene = (List<Scene>)pParams["Scenes"];
 
             Hashtable nh = new Hashtable();
@@ -129,6 +129,86 @@ namespace OpenSim.Region.UserStatistics
             return output.ToString();
         }
 
+        /// <summary>
+        /// Convert active connections information to JSON string. Returns a structure:
+        /// <pre>
+        /// {"regionName": {
+        ///     "presenceName": {
+        ///         "name": "presenceName",
+        ///         "position": "<x,y,z>",
+        ///         "isRoot": "false",
+        ///         "throttle": {
+        ///         },
+        ///         "queue": {
+        ///         }
+        ///     },
+        ///     ... // multiple presences in the scene
+        ///   },
+        ///   ...   // multiple regions in the sim
+        /// }
+        ///
+        /// </pre>
+        /// </summary>
+        /// <param name="pModelResult"></param>
+        /// <returns></returns>
+        public string RenderJson(Hashtable pModelResult)
+        {
+            List<Scene> all_scenes = (List<Scene>) pModelResult["hdata"];
+
+            OSDMap regionInfo = new OSDMap();
+            foreach (Scene scene in all_scenes)
+            {
+                OSDMap sceneInfo = new OpenMetaverse.StructuredData.OSDMap();
+                List<ScenePresence> avatarInScene = scene.GetScenePresences();
+                foreach (ScenePresence av in avatarInScene)
+                {
+                    OSDMap presenceInfo = new OSDMap();
+                    presenceInfo.Add("Name", new OSDString(av.Name));
+
+                    Dictionary<string,string> queues = new Dictionary<string, string>();
+                    if (av.ControllingClient is IStatsCollector)
+                    {
+                        IStatsCollector isClient = (IStatsCollector) av.ControllingClient;
+                        queues = decodeQueueReport(isClient.Report());
+                    }
+                    OSDMap queueInfo = new OpenMetaverse.StructuredData.OSDMap();
+                    foreach (KeyValuePair<string, string> kvp in queues) {
+                        queueInfo.Add(kvp.Key, new OSDString(kvp.Value));
+                    }
+                    sceneInfo.Add("queues", queueInfo);
+
+                    if (av.IsChildAgent)
+                        presenceInfo.Add("isRoot", new OSDString("false"));
+                    else
+                        presenceInfo.Add("isRoot", new OSDString("true"));
+
+                    if (av.AbsolutePosition == DefaultNeighborPosition)
+                    {
+                        presenceInfo.Add("position", new OSDString("<0, 0, 0>"));
+                    }
+                    else
+                    {
+                        presenceInfo.Add("position", new OSDString(string.Format("<{0},{1},{2}>",
+                                                    (int)av.AbsolutePosition.X,
+                                                    (int) av.AbsolutePosition.Y,
+                                                    (int) av.AbsolutePosition.Z)) );
+                    }
+
+                    Dictionary<string, int> throttles = DecodeClientThrottles(av.ControllingClient.GetThrottlesPacked(1));
+                    OSDMap throttleInfo = new OpenMetaverse.StructuredData.OSDMap();
+                    foreach (string throttlename in throttles.Keys)
+                    {
+                        throttleInfo.Add(throttlename, new OSDString(throttles[throttlename].ToString()));
+                    }
+                    presenceInfo.Add("throttle", throttleInfo);
+
+                    sceneInfo.Add(av.Name, presenceInfo);
+                }
+                regionInfo.Add(scene.RegionInfo.RegionName, sceneInfo);
+            }
+            return regionInfo.ToString();
+        }
+
         public Dictionary<string, int> DecodeClientThrottles(byte[] throttle)
         {
             Dictionary<string, int> returndict = new Dictionary<string, int>();
@@ -203,7 +283,7 @@ namespace OpenSim.Region.UserStatistics
                 returndic.Add("Cloud", rep.Substring((7 * pos) , 8)); pos++;
                 returndic.Add("Task", rep.Substring((7 * pos) , 8)); pos++;
                 returndic.Add("Texture", rep.Substring((7 * pos), 8)); pos++;
-                returndic.Add("Asset", rep.Substring((7 * pos), 8)); 
+                returndic.Add("Asset", rep.Substring((7 * pos), 8));
                 /*
                  * return string.Format("{0,7} {1,7} {2,7} {3,7} {4,7} {5,7} {6,7} {7,7} {8,7} {9,7}",
                                  SendQueue.Count(),

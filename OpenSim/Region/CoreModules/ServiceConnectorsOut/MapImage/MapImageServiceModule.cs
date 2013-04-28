@@ -75,7 +75,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
         public void Close() { }
         public void PostInitialise() { }
 
-        
         ///<summary>
         ///
         ///</summary>
@@ -136,7 +135,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
         ///</summary>
         public void AddRegion(Scene scene)
         {
-            if (! m_enabled)
+            if (!m_enabled)
                 return;
 
             // Every shared region module has to maintain an indepedent list of
@@ -209,6 +208,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
 
             using (Image mapTile = tileGenerator.CreateMapTile())
             {
+                // XXX: The MapImageModule will return a null if the user has chosen not to create map tiles and there
+                // is no static map tile.
+                if (mapTile == null)
+                    return;
+
                 using (MemoryStream stream = new MemoryStream())
                 {
                     mapTile.Save(stream, ImageFormat.Jpeg);

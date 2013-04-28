@@ -259,7 +259,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 
         string osGetScriptEngineName();
         string osGetSimulatorVersion();
-        Object osParseJSONNew(string JSON);
+        string osGetPhysicsEngineType();
         Hashtable osParseJSON(string JSON);
 
         void osMessageObject(key objectUUID,string message);

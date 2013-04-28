@@ -30,8 +30,8 @@ using Mono.Addins;
 //      Build Number
 //      Revision
 //
-[assembly: AssemblyVersion("0.7.5.*")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
+[assembly: AssemblyVersion("0.7.6.*")]
+
 
 [assembly: Addin("OpenSim.Region.CoreModules", "0.1")]
 [assembly: AddinDependency("OpenSim", "0.5")]

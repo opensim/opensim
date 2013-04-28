@@ -56,7 +56,7 @@ namespace OpenSim.Framework.Console
         public List<ConsoleDisplayTableRow> Rows { get; private set; }
 
         /// <summary>
-        /// Number of spaces to indent the table.
+        /// Number of spaces to indent the whole table.
         /// </summary>
         public int Indent { get; set; }
 
@@ -84,7 +84,7 @@ namespace OpenSim.Framework.Console
             Columns.Add(new ConsoleDisplayTableColumn(name, width));
         }
 
-        public void AddRow(params string[] cells)
+        public void AddRow(params object[] cells)
         {
             Rows.Add(new ConsoleDisplayTableRow(cells));
         }
@@ -113,7 +113,8 @@ namespace OpenSim.Framework.Console
 
             for (int i = 0; i < Columns.Count; i++)
             {
-                formatSb.Append(' ', TableSpacing);
+                if (i != 0)
+                    formatSb.Append(' ', TableSpacing);
 
                 // Can only do left formatting for now
                 formatSb.AppendFormat("{{{0},-{1}}}", i, Columns[i].Width);
@@ -139,16 +140,16 @@ namespace OpenSim.Framework.Console
 
     public struct ConsoleDisplayTableRow
     {
-        public List<string> Cells { get; private set; }
+        public List<object> Cells { get; private set; }
 
-        public ConsoleDisplayTableRow(List<string> cells) : this()
+        public ConsoleDisplayTableRow(List<object> cells) : this()
         {
             Cells = cells;
         }
 
-        public ConsoleDisplayTableRow(params string[] cells) : this()
+        public ConsoleDisplayTableRow(params object[] cells) : this()
         {
-            Cells = new List<string>(cells);
+            Cells = new List<object>(cells);
         }
     }
 }

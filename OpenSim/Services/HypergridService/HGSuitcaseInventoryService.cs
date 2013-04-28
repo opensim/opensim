@@ -96,8 +96,8 @@ namespace OpenSim.Services.HypergridService
                 if (m_AvatarService == null)
                     throw new Exception(String.Format("Unable to create m_AvatarService from {0}", avatarDll));
 
-                // Preferred
-                m_HomeURL = invConfig.GetString("HomeURI", m_HomeURL);
+                m_HomeURL = Util.GetConfigVarFromSections<string>(config, "HomeURI",
+                    new string[] { "Startup", "Hypergrid", m_ConfigName }, String.Empty); 
 
 //                m_Cache = UserAccountCache.CreateUserAccountCache(m_UserAccountService);
             }

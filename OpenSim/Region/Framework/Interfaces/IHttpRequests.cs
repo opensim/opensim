@@ -36,6 +36,9 @@ namespace OpenSim.Region.Framework.Interfaces
         HTTP_MIMETYPE = 1,
         HTTP_BODY_MAXLENGTH = 2,
         HTTP_VERIFY_CERT = 3,
+        HTTP_VERBOSE_THROTTLE = 4,
+        HTTP_CUSTOM_HEADER = 5,
+        HTTP_PRAGMA_NO_CACHE = 6
     }
 
     public interface IHttpRequestModule

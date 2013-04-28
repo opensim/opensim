@@ -40,6 +40,7 @@ using OpenSim.Framework.Monitoring;
 using OpenSim.Region.ClientStack.LindenUDP;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using PermissionMask = OpenSim.Framework.PermissionMask;
 
 namespace OpenSim.Region.OptionalModules.Avatar.Attachments
 {
@@ -76,7 +77,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
 
                 if (m_console != null)
                 {
-                    m_console.AddCommand("TempAttachModule", false, "set auto_grant_attach_perms", "set auto_grant_attach_perms true|false", "Allow objects owned by the region owner os estate managers to obtain attach permissions without asking the user", SetAutoGrantAttachPerms);
+                    m_console.AddCommand("TempAttachModule", false, "set auto_grant_attach_perms", "set auto_grant_attach_perms true|false", "Allow objects owned by the region owner or estate managers to obtain attach permissions without asking the user", SetAutoGrantAttachPerms);
                 }
             }
             else
@@ -183,7 +184,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
                 hostPart.ParentGroup.RootPart.ScheduleFullUpdate();
             }
 
-            return attachmentsModule.AttachObject(target, hostPart.ParentGroup, (uint)attachmentPoint, false, true, true) ? 1 : 0;
+            return attachmentsModule.AttachObject(target, hostPart.ParentGroup, (uint)attachmentPoint, false, false, true, true) ? 1 : 0;
         }
     }
 }

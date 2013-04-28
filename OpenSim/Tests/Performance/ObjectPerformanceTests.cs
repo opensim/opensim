@@ -47,7 +47,7 @@ namespace OpenSim.Tests.Performance
     /// earlier tests.
     /// </remarks>
     [TestFixture]
-    public class ObjectPerformanceTests
+    public class ObjectPerformanceTests : OpenSimTestCase
     {
         [TearDown]
         public void TearDown()

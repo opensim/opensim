@@ -281,25 +281,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_shouldCollectStats = false;
             if (config != null)
             {
-               if (config.Contains("enabled") && config.GetBoolean("enabled"))
-               {
-                   if (config.Contains("collect_packet_headers"))
-                       m_shouldCollectStats = config.GetBoolean("collect_packet_headers");
-                   if (config.Contains("packet_headers_period_seconds"))
-                   {
-                       binStatsMaxFilesize = TimeSpan.FromSeconds(config.GetInt("region_stats_period_seconds"));
-                   }
-                   if (config.Contains("stats_dir"))
-                   {
-                       binStatsDir = config.GetString("stats_dir");
-                   }
-               }
-               else
-               {
-                   m_shouldCollectStats = false;
-               }
-           }
-           #endregion BinaryStats
+                m_shouldCollectStats = config.GetBoolean("Enabled", false);
+                binStatsMaxFilesize = TimeSpan.FromSeconds(config.GetInt("packet_headers_period_seconds", 300));
+                binStatsDir = config.GetString("stats_dir", ".");
+                m_aggregatedBWStats = config.GetBoolean("aggregatedBWStats", false);
+            }
+            #endregion BinaryStats
 
             m_throttle = new TokenBucket(null, sceneThrottleBps);
             ThrottleRates = new ThrottleRates(configSource);
@@ -1309,8 +1296,34 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         static object binStatsLogLock = new object();
         static string binStatsDir = "";
 
+        //for Aggregated In/Out BW logging
+        static bool m_aggregatedBWStats = false;
+        static long m_aggregatedBytesIn = 0;
+        static long m_aggregatedByestOut = 0;
+        static object aggBWStatsLock = new object();
+
+        public static long AggregatedLLUDPBytesIn
+        {
+            get { return m_aggregatedBytesIn; }
+        }
+        public static long AggregatedLLUDPBytesOut
+        {
+            get {return m_aggregatedByestOut;}
+        }
+
         public static void LogPacketHeader(bool incoming, uint circuit, byte flags, PacketType packetType, ushort size)
         {
+            if (m_aggregatedBWStats)
+            {
+                lock (aggBWStatsLock)
+                {
+                    if (incoming)
+                        m_aggregatedBytesIn += size;
+                    else
+                        m_aggregatedByestOut += size;
+                }
+            }
+
             if (!m_shouldCollectStats) return;
 
             // Binary logging format is TTTTTTTTCCCCFPPPSS, T=Time, C=Circuit, F=Flags, P=PacketType, S=size
@@ -1900,114 +1913,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 client.IsLoggingOut = true;
                 client.Close(false, false);
-            }
-        }
-    }
-
-    internal class DoubleQueue<T> where T:class
-    {
-        private Queue<T> m_lowQueue = new Queue<T>();
-        private Queue<T> m_highQueue = new Queue<T>();
-
-        private object m_syncRoot = new object();
-        private Semaphore m_s = new Semaphore(0, 1);
-
-        public DoubleQueue()
-        {
-        }
-
-        public virtual int Count
-        {
-            get { return m_highQueue.Count + m_lowQueue.Count; }
-        }
-
-        public virtual void Enqueue(T data)
-        {
-            Enqueue(m_lowQueue, data);
-        }
-
-        public virtual void EnqueueLow(T data)
-        {
-            Enqueue(m_lowQueue, data);
-        }
-
-        public virtual void EnqueueHigh(T data)
-        {
-            Enqueue(m_highQueue, data);
-        }
-
-        private void Enqueue(Queue<T> q, T data)
-        {
-            lock (m_syncRoot)
-            {
-                m_lowQueue.Enqueue(data);
-                m_s.WaitOne(0);
-                m_s.Release();
-            }
-        }
-
-        public virtual T Dequeue()
-        {
-            return Dequeue(Timeout.Infinite);
-        }
-
-        public virtual T Dequeue(int tmo)
-        {
-            return Dequeue(TimeSpan.FromMilliseconds(tmo));
-        }
-
-        public virtual T Dequeue(TimeSpan wait)
-        {
-            T res = null;
-
-            if (!Dequeue(wait, ref res))
-                return null;
-
-            return res;
-        }
-
-        public bool Dequeue(int timeout, ref T res)
-        {
-            return Dequeue(TimeSpan.FromMilliseconds(timeout), ref res);
-        }
-
-        public bool Dequeue(TimeSpan wait, ref T res)
-        {
-            if (!m_s.WaitOne(wait))
-                return false;
-            
-            lock (m_syncRoot)
-            {
-                if (m_highQueue.Count > 0)
-                    res = m_highQueue.Dequeue();
-                else
-                    res = m_lowQueue.Dequeue();
-
-                if (m_highQueue.Count == 0 && m_lowQueue.Count == 0)
-                    return true;
-
-                try
-                {
-                    m_s.Release();
-                }
-                catch
-                {
-                }
-
-                return true;
-            }
-        }
-
-        public virtual void Clear()
-        {
-
-            lock (m_syncRoot)
-            {
-                // Make sure sem count is 0
-                m_s.WaitOne(0);
-
-                m_lowQueue.Clear();
-                m_highQueue.Clear();
             }
         }
     }

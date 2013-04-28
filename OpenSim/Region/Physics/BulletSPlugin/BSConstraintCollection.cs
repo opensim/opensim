@@ -41,9 +41,9 @@ public sealed class BSConstraintCollection : IDisposable
     delegate bool ConstraintAction(BSConstraint constrain);
 
     private List<BSConstraint> m_constraints;
-    private BulletSim m_world;
+    private BulletWorld m_world;
 
-    public BSConstraintCollection(BulletSim world)
+    public BSConstraintCollection(BulletWorld world)
     {
         m_world = world;
         m_constraints = new List<BSConstraint>();
@@ -117,8 +117,7 @@ public sealed class BSConstraintCollection : IDisposable
             if (this.TryGetConstraint(body1, body2, out constrain))
             {
                 // remove the constraint from our collection
-                RemoveAndDestroyConstraint(constrain);
-                ret = true;
+                ret = RemoveAndDestroyConstraint(constrain);
             }
         }
 
@@ -126,17 +125,19 @@ public sealed class BSConstraintCollection : IDisposable
     }
 
     // The constraint MUST exist in the collection
+    // Could be called if the constraint was previously removed.
+    // Return 'true' if the constraint was actually removed and disposed.
     public bool RemoveAndDestroyConstraint(BSConstraint constrain)
     {
+        bool removed = false;
         lock (m_constraints)
         {
             // remove the constraint from our collection
-            m_constraints.Remove(constrain);
+            removed = m_constraints.Remove(constrain);
         }
-        // tell the engine that all its structures need to be freed
+        // Dispose() is safe to call multiple times
         constrain.Dispose();
-        // we destroyed something
-        return true;
+        return removed;
     }
 
     // Remove all constraints that reference the passed body.

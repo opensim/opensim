@@ -64,15 +64,20 @@ namespace OpenSim.Region.Physics.Manager
     {
         public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod)
         {
-            return CreateMesh(primName, primShape, size, lod, false);
+            return CreateMesh(primName, primShape, size, lod, false, false);
         }
 
-        public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical, bool convex,bool forOde)
+        public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical, bool shouldCache, bool convex,bool forOde)
         {
             return CreateMesh(primName, primShape, size, lod, false);
         }
 
         public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical)
+        {
+            return CreateMesh(primName, primShape, size, lod, false, false);
+        }
+
+        public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical, bool shouldCache)
         {
             // Remove the reference to the encoded JPEG2000 data so it can be GCed
             primShape.SculptData = OpenMetaverse.Utils.EmptyBytes;

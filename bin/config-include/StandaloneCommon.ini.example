@@ -27,6 +27,27 @@
     ;StorageProvider = "OpenSim.Data.MSSQL.dll"
     ;ConnectionString = "Server=localhost\SQLEXPRESS;Database=opensim;User Id=opensim; password=***;"
 
+[Hypergrid]
+	; Uncomment the variables in this section only if you are in
+	; Hypergrid configuration. Otherwise, ignore.
+
+    ;# {HomeURI} {Hypergrid} {The Home URL of this world} {}
+	;; If this is a standalone world, this is the address of this instance.
+	;; If this is a grided simulator, this is the address of the external robust server that
+	;; runs the UserAgentsService.
+	;; For example http://myworld.com:9000 or http://myworld.com:8002
+	;; This is a default that can be overwritten in some sections.
+	; HomeURI = "http://127.0.0.1:9000"
+
+    ;# {GatekeeperURI} {Hypergrid} {The URL of the gatekeeper of this world} {}
+	;; If this is a standalone world, this is the address of this instance.
+	;; If this is a grided simulator, this is the address of the external robust server
+	;; that runs the Gatekeeper service.
+	;; For example http://myworld.com:9000 or http://myworld.com:8002
+	;; This is a default that can be overwritten in some sections.
+	; GatekeeperURI = "http://127.0.0.1:9000"
+
+
 [Modules]
     ;; Choose one cache module and the corresponding config file, if it exists.
     ;; Copy the config .example file into your own .ini file and alter that
@@ -64,8 +85,8 @@
     Region_Welcome_Area = "DefaultRegion, FallbackRegion"
 
     ; === HG ONLY ===
-    ;; change this to the address of your simulator
-    Gatekeeper="http://127.0.0.1:9000"
+	;; If you have this set under [Startup], no need to set it here, leave it commented
+    ; GatekeeperURI="http://127.0.0.1:9000"
 
 [LibraryModule]
     ; Set this if you want to change the name of the OpenSim Library
@@ -73,7 +94,8 @@
 
 [LoginService]
     WelcomeMessage = "Welcome, Avatar!"
-    GatekeeperURI = "http://127.0.0.1:9000"
+	;; If you have Gatekeeper set under [Startup], no need to set it here, leave it commented
+    ; GatekeeperURI = "http://127.0.0.1:9000"
 
     SRV_HomeURI = "http://127.0.0.1:9000"    
     SRV_InventoryServerURI = "http://127.0.0.1:9000"
@@ -84,6 +106,11 @@
 
     ;; For Viewer 2
     MapTileURL = "http://127.0.0.1:9000/"
+
+    ; The minimum user level required for a user to be able to login.  0 by default
+    ; If you disable a particular user's account then you can set their login level below this number.
+    ; You can also change this level from the console though these changes will not be persisted.
+    ; MinLoginLevel = 0
 
     ;; Ask co-operative viewers to use a different currency name
     ;Currency = ""
@@ -213,7 +240,8 @@
 ;; HG configurations
 ;;
 [GatekeeperService]
-    ExternalName = "http://127.0.0.1:9000"
+	;; If you have GatekeeperURI set under [Startup], no need to set it here, leave it commented
+    ; ExternalName = "http://127.0.0.1:9000"
 
     ; Does this grid allow incoming links to any region in it?
     ; If false, HG TPs happen only to the  Default regions specified in [GridService] section
@@ -269,10 +297,12 @@
     ; AllowExcept_Level_200 = "http://griefer.com:8002, http://enemy.com:8002"
 
 [HGInventoryService]
-    HomeURI = "http://127.0.0.1:9000"
+	;; If you have this set under [Startup], no need to set it here, leave it commented
+    ; HomeURI = "http://127.0.0.1:9000"
 
 [HGAssetService]
-    HomeURI = "http://127.0.0.1:9000"
+	;; If you have this set under [Startup], no need to set it here, leave it commented
+    ; HomeURI = "http://127.0.0.1:9000"
 
     ;; The asset types that this grid can export to / import from other grids.
 	;; Comma separated.
@@ -288,8 +318,9 @@
 
 
 [HGInventoryAccessModule]
-    HomeURI = "http://127.0.0.1:9000"
-	Gatekeeper = "http://127.0.0.1:9000"
+	;; If you have these set under [Startup], no need to set it here, leave it commented
+    ; HomeURI = "http://127.0.0.1:9000"
+	; GatekeeperURI = "http://127.0.0.1:9000"
 
     ;; If you want to protect your assets from being copied by foreign visitors
     ;; uncomment the next line. You may want to do this on sims that have licensed content.
@@ -306,8 +337,8 @@
 
 [Messaging]
     ; === HG ONLY ===
-    ;; change this to the address of your simulator
-    Gatekeeper = "http://127.0.0.1:9000"
+	;; If you have this set under [Startup], no need to set it here, leave it commented
+    ; GatekeeperURI = "http://127.0.0.1:9000"
 
 
 [EntityTransfer]

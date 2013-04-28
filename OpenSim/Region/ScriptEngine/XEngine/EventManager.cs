@@ -52,7 +52,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         {
             myScriptEngine = _ScriptEngine;
 
-            m_log.Info("[XEngine] Hooking up to server events");
+//            m_log.Info("[XEngine] Hooking up to server events");
             myScriptEngine.World.EventManager.OnAttach += attach;
             myScriptEngine.World.EventManager.OnObjectGrab += touch_start;
             myScriptEngine.World.EventManager.OnObjectGrabbing += touch;
@@ -62,6 +62,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             myScriptEngine.World.EventManager.OnScriptNotAtTargetEvent += not_at_target;
             myScriptEngine.World.EventManager.OnScriptAtRotTargetEvent += at_rot_target;
             myScriptEngine.World.EventManager.OnScriptNotAtRotTargetEvent += not_at_rot_target;
+            myScriptEngine.World.EventManager.OnScriptMovingStartEvent += moving_start;
+            myScriptEngine.World.EventManager.OnScriptMovingEndEvent += moving_end;
             myScriptEngine.World.EventManager.OnScriptControlEvent += control;
             myScriptEngine.World.EventManager.OnScriptColliderStart += collision_start;
             myScriptEngine.World.EventManager.OnScriptColliding += collision;
@@ -69,7 +71,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             myScriptEngine.World.EventManager.OnScriptLandColliderStart += land_collision_start;
             myScriptEngine.World.EventManager.OnScriptLandColliding += land_collision;
             myScriptEngine.World.EventManager.OnScriptLandColliderEnd += land_collision_end;
-            IMoneyModule money=myScriptEngine.World.RequestModuleInterface<IMoneyModule>();
+            IMoneyModule money = myScriptEngine.World.RequestModuleInterface<IMoneyModule>();
             if (money != null)
             {
                 money.OnObjectPaid+=HandleObjectPaid;
@@ -419,14 +421,14 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         // dataserver: not handled here
         // link_message: not handled here
 
-        public void moving_start(uint localID, UUID itemID)
+        public void moving_start(uint localID)
         {
             myScriptEngine.PostObjectEvent(localID, new EventParams(
                     "moving_start",new object[0],
                     new DetectParams[0]));
         }
 
-        public void moving_end(uint localID, UUID itemID)
+        public void moving_end(uint localID)
         {
             myScriptEngine.PostObjectEvent(localID, new EventParams(
                     "moving_end",new object[0],

@@ -29,11 +29,12 @@ using System.IO;
 using Nini.Config;
 using NUnit.Framework;
 using OpenSim.Framework;
+using OpenSim.Tests.Common;
 
 namespace OpenSim.Tests
 {
     [TestFixture]
-    public class ConfigurationLoaderTests
+    public class ConfigurationLoaderTests : OpenSimTestCase
     {
         private const string m_testSubdirectory = "test";
         private string m_basePath;
@@ -44,8 +45,10 @@ namespace OpenSim.Tests
         /// Set up a test directory.
         /// </summary>
         [SetUp]
-        public void SetUp()
+        public override void SetUp()
         {
+            base.SetUp();
+
             m_basePath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             string path = Path.Combine(m_basePath, m_testSubdirectory);
             Directory.CreateDirectory(path);

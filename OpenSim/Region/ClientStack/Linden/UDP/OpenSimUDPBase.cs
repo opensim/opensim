@@ -204,9 +204,12 @@ namespace OpenMetaverse
         {
             UDPPacketBuffer buf;
 
-            if (UsePools)
-                buf = Pool.GetObject();
-            else
+            // FIXME: Disabled for now as this causes issues with reused packet objects interfering with each other 
+            // on Windows with m_asyncPacketHandling = true, though this has not been seen on Linux.
+            // Possibly some unexpected issue with fetching UDP data concurrently with multiple threads.  Requires more investigation.
+//            if (UsePools)
+//                buf = Pool.GetObject();
+//            else
                 buf = new UDPPacketBuffer();
 
             if (IsRunningInbound)
@@ -287,8 +290,8 @@ namespace OpenMetaverse
                 catch (ObjectDisposedException) { }
                 finally
                 {
-                    if (UsePools)
-                        Pool.ReturnObject(buffer);
+//                    if (UsePools)
+//                        Pool.ReturnObject(buffer);
 
                     // Synchronous mode waits until the packet callback completes
                     // before starting the receive to fetch another packet

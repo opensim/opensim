@@ -47,14 +47,16 @@ namespace OpenSim.Region.CoreModules.Asset.Tests
     /// At the moment we're only test the in-memory part of the FlotsamAssetCache.  This is a considerable weakness.
     /// </summary>
     [TestFixture]
-    public class FlotsamAssetCacheTests
+    public class FlotsamAssetCacheTests : OpenSimTestCase
     {
         protected TestScene m_scene;
         protected FlotsamAssetCache m_cache;
 
         [SetUp]
-        public void SetUp()
+        public override void SetUp()
         {
+            base.SetUp();
+
             IConfigSource config = new IniConfigSource();
 
             config.AddConfig("Modules");

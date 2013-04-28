@@ -29,12 +29,14 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
+using OpenMetaverse.StructuredData;
+
 namespace OpenSim.Framework.Monitoring
 {
     /// <summary>
     /// Holds individual statistic details
     /// </summary>
-    public class Stat
+    public class Stat : IDisposable
     {
         /// <summary>
         /// Category of this stat (e.g. cache, scene, etc).
@@ -181,6 +183,12 @@ namespace OpenSim.Framework.Monitoring
             Verbosity = verbosity;
         }
 
+        // IDisposable.Dispose()
+        public virtual void Dispose()
+        {
+            return;
+        }
+
         /// <summary>
         /// Record a value in the sample set.
         /// </summary>
@@ -203,11 +211,25 @@ namespace OpenSim.Framework.Monitoring
         public virtual string ToConsoleString()
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("{0}.{1}.{2} : {3}{4}", Category, Container, ShortName, Value, UnitName);
+            sb.AppendFormat("{0}.{1}.{2} : {3} {4}", Category, Container, ShortName, Value, UnitName);
 
             AppendMeasuresOfInterest(sb);
 
             return sb.ToString();
+        }
+
+        public virtual OSDMap ToOSDMap()
+        {
+            OSDMap ret = new OSDMap();
+            ret.Add("Category", OSD.FromString(Category));
+            ret.Add("Container", OSD.FromString(Container));
+            ret.Add("ShortName", OSD.FromString(ShortName));
+            ret.Add("Name", OSD.FromString(Name));
+            ret.Add("Description", OSD.FromString(Description));
+            ret.Add("UnitName", OSD.FromString(UnitName));
+            ret.Add("Value", OSD.FromReal(Value));
+
+            return ret;
         }
 
         protected void AppendMeasuresOfInterest(StringBuilder sb)

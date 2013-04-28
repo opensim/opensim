@@ -1232,6 +1232,14 @@ namespace OpenSim.Data.SQLite
             createCol(prims, "VolumeDetect", typeof(Int16));
 
             createCol(prims, "MediaURL", typeof(String));
+            
+            createCol(prims, "DynAttrs", typeof(String));
+
+            createCol(prims, "PhysicsShapeType", typeof(Byte));
+            createCol(prims, "Density", typeof(Double));
+            createCol(prims, "GravityModifier", typeof(Double));
+            createCol(prims, "Friction", typeof(Double));
+            createCol(prims, "Restitution", typeof(Double));
 
             // Add in contraints
             prims.PrimaryKey = new DataColumn[] { prims.Columns["UUID"] };
@@ -1711,6 +1719,22 @@ namespace OpenSim.Data.SQLite
 //                m_log.DebugFormat("[SQLITE]: MediaUrl type [{0}]", row["MediaURL"].GetType());
                 prim.MediaUrl = (string)row["MediaURL"];
             }
+            
+            if (!(row["DynAttrs"] is System.DBNull))
+            {
+                //m_log.DebugFormat("[SQLITE]: DynAttrs type [{0}]", row["DynAttrs"].GetType());
+                prim.DynAttrs = DAMap.FromXml((string)row["DynAttrs"]);
+            }   
+            else
+            {
+                prim.DynAttrs = new DAMap();
+            }
+
+            prim.PhysicsShapeType = Convert.ToByte(row["PhysicsShapeType"]);
+            prim.Density = Convert.ToSingle(row["Density"]);
+            prim.GravityModifier = Convert.ToSingle(row["GravityModifier"]);
+            prim.Friction = Convert.ToSingle(row["Friction"]);
+            prim.Restitution = Convert.ToSingle(row["Restitution"]);
 
             return prim;
         }
@@ -2133,6 +2157,17 @@ namespace OpenSim.Data.SQLite
                 row["VolumeDetect"] = 0;
 
             row["MediaURL"] = prim.MediaUrl;
+
+            if (prim.DynAttrs.Count > 0)
+                row["DynAttrs"] = prim.DynAttrs.ToXml();
+            else
+                row["DynAttrs"] = null;
+
+            row["PhysicsShapeType"] = prim.PhysicsShapeType;
+            row["Density"] = (double)prim.Density;
+            row["GravityModifier"] = (double)prim.GravityModifier;
+            row["Friction"] = (double)prim.Friction;
+            row["Restitution"] = (double)prim.Restitution;
         }
 
         /// <summary>
@@ -2392,7 +2427,7 @@ namespace OpenSim.Data.SQLite
 
             if (!(row["Media"] is System.DBNull))
                 s.Media = PrimitiveBaseShape.MediaList.FromXml((string)row["Media"]);
-
+                        
             return s;
         }
 

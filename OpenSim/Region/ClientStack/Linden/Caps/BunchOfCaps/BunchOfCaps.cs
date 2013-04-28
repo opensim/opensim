@@ -50,6 +50,7 @@ using OpenSim.Services.Interfaces;
 using Caps = OpenSim.Framework.Capabilities.Caps;
 using OSDArray = OpenMetaverse.StructuredData.OSDArray;
 using OSDMap = OpenMetaverse.StructuredData.OSDMap;
+using PermissionMask = OpenSim.Framework.PermissionMask;
 
 namespace OpenSim.Region.ClientStack.Linden
 {
@@ -105,7 +106,6 @@ namespace OpenSim.Region.ClientStack.Linden
         private static readonly string m_ResourceCostSelectedPath = "0103/";
         private static readonly string m_UpdateAgentInformationPath = "0500/";
         
-
         // These are callbacks which will be setup by the scene so that we can update scene data when we
         // receive capability calls
         public NewInventoryItem AddNewInventoryItem = null;
@@ -342,6 +342,9 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             m_log.DebugFormat(
                 "[CAPS]: Received SEED caps request in {0} for agent {1}", m_regionName, m_HostCapsObj.AgentID);
+
+            if (!m_HostCapsObj.WaitForActivation())
+                return string.Empty;
 
             if (!m_Scene.CheckClient(m_HostCapsObj.AgentID, httpRequest.RemoteIPEndPoint))
             {
@@ -828,9 +831,9 @@ namespace OpenSim.Region.ClientStack.Linden
                             texitem.Folder = texturesFolder;
 
                             texitem.CurrentPermissions
-                                = (uint)(PermissionMask.Move | PermissionMask.Copy | PermissionMask.Modify | PermissionMask.Transfer);
+                                = (uint)(PermissionMask.Move | PermissionMask.Copy | PermissionMask.Modify | PermissionMask.Transfer | PermissionMask.Export);
 
-                            texitem.BasePermissions = (uint)PermissionMask.All;
+                            texitem.BasePermissions = (uint)PermissionMask.All | (uint)PermissionMask.Export;
                             texitem.EveryOnePermissions = 0;
                             texitem.NextPermissions = (uint)PermissionMask.All;
                             texitem.CreationDate = Util.UnixTimeSinceEpoch();
@@ -1095,9 +1098,9 @@ namespace OpenSim.Region.ClientStack.Linden
             else
             {
                 item.CurrentPermissions
-                    = (uint)(PermissionMask.Move | PermissionMask.Copy | PermissionMask.Modify | PermissionMask.Transfer);
+                    = (uint)(PermissionMask.Move | PermissionMask.Copy | PermissionMask.Modify | PermissionMask.Transfer | PermissionMask.Export);
 
-                item.BasePermissions = (uint)PermissionMask.All;
+                item.BasePermissions = (uint)PermissionMask.All | (uint)PermissionMask.Export;
                 item.EveryOnePermissions = 0;
                 item.NextPermissions = (uint)PermissionMask.All;
             }
@@ -1317,7 +1320,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     object_data["PhysicsShapeType"] = obj.PhysicsShapeType;
                     object_data["Density"] = obj.Density;
                     object_data["Friction"] = obj.Friction;
-                    object_data["Restitution"] = obj.Bounciness;
+                    object_data["Restitution"] = obj.Restitution;
                     object_data["GravityMultiplier"] = obj.GravityModifier;
 
                     resp[uuid.ToString()] = object_data;
@@ -1446,7 +1449,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 string param, IOSHttpRequest httpRequest,
                 IOSHttpResponse httpResponse)
         {
-            OSDMap req = (OSDMap)OSDParser.DeserializeLLSDXml(request);
+//            OSDMap req = (OSDMap)OSDParser.DeserializeLLSDXml(request);
             OSDMap resp = new OSDMap();
 
             OSDMap accessPrefs = new OSDMap();

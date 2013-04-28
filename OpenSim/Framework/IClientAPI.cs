@@ -320,7 +320,7 @@ namespace OpenSim.Framework
     public delegate void ObjectPermissions(
         IClientAPI controller, UUID agentID, UUID sessionID, byte field, uint localId, uint mask, byte set);
 
-    public delegate void EconomyDataRequest(UUID agentID);
+    public delegate void EconomyDataRequest(IClientAPI client);
 
     public delegate void ObjectIncludeInSearch(IClientAPI remoteClient, bool IncludeInSearch, uint localID);
 
@@ -1129,8 +1129,8 @@ namespace OpenSim.Framework
 
         void SendInstantMessage(GridInstantMessage im);
 
-        void SendGenericMessage(string method, List<string> message);
-        void SendGenericMessage(string method, List<byte[]> message);
+        void SendGenericMessage(string method, UUID invoice, List<string> message);
+        void SendGenericMessage(string method, UUID invoice, List<byte[]> message);
 
         void SendLayerData(float[] map);
         void SendLayerData(int px, int py, float[] map);

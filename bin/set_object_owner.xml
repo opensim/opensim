@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<floater can_close="true" can_drag_on_left="false" can_minimize="false" can_resize="false" height="100" name="set_owner_name" title="Set Owner Name" width="390">
+	<text bottom="-30" left="10">New Owner Name</text>
+	<line_editor enabled="false" bottom="-60" left="10" width="280" name="new_owner" height="20"/>
+	<button bottom_delta="0" left="300" height="20" width="80" label="Choose" name="picker"/>
+	<button bottom="-90" width="80" height="20" left="300" label="OK" name="ok" />
+	<button bottom="-90" width="80" height="20" left="210" label="Cancel" name="cancel" />
+</floater>

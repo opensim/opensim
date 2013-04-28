@@ -1,4 +1,4 @@
-=== The Quick Guide to OpenSim Unit Testing ===
+= The Quick Guide to OpenSim Unit Testing =
 
 == Running Tests ==
 
@@ -27,7 +27,7 @@ must list it in both ".nant/local.include"
 for it to be accessible to Linux users and to the continuous
 integration system.
 
-==TESTING ON WINDOWS==
+== TESTING ON WINDOWS ==
 
 To use nunit testing on opensim code, you have a variety of methods.  The
 easiast methods involve using IDE capabilities to test code.  Using
@@ -58,14 +58,14 @@ Nunit console allows you to execute the nunit tests of assemblies via console.
 Its output will show test failures and successes and a summary of what
 happened.  This is very useful for a quick overview and/or automated testing.
 
-Windows
+=== Windows ===
 Windows version of nunit-console is by default .Net 2.0 if you downloaded the
 .Net 2.0 version  of Nunit.  Be sure to setup your PATH environment variable.
 
-Linux & OSX
+=== Linux & OSX ===
 On these operating systems you will have to use the command "nunit-console2"
 
-Example
+=== Example ===
 
 nunit-console2 OpenSim.Framework.Tests.dll (on linux)
 nunit-console OpenSim.Framework.Tests.dll (on windows)

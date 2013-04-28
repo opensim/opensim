@@ -41,6 +41,7 @@ using OpenSim.Region.OptionalModules.World.NPC;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.ScriptEngine.Shared;
 using OpenSim.Region.ScriptEngine.Shared.Api;
+using OpenSim.Region.ScriptEngine.Shared.Instance;
 using OpenSim.Services.Interfaces;
 using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Mock;
@@ -51,14 +52,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
     /// Tests for inventory functions in LSL
     /// </summary>
     [TestFixture]
-    public class LSL_ApiInventoryTests
+    public class LSL_ApiInventoryTests : OpenSimTestCase
     {
         protected Scene m_scene;
         protected XEngine.XEngine m_engine;
 
         [SetUp]
-        public void SetUp()
+        public override void SetUp()
         {
+            base.SetUp();
+
             IConfigSource initConfigSource = new IniConfigSource();
             IConfig config = initConfigSource.AddConfig("XEngine");
             config.Set("Enabled", "true");
@@ -91,7 +94,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             TaskInventoryHelpers.AddSceneObject(m_scene, so1.RootPart, inventoryItemName, itemId, userId);
 
             LSL_Api api = new LSL_Api();
-            api.Initialize(m_engine, so1.RootPart, null);
+            api.Initialize(m_engine, so1.RootPart, null, null);
 
             // Create a second object
             SceneObjectGroup so2 = SceneHelpers.CreateSceneObject(1, userId, "so2", 0x100);
@@ -124,7 +127,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             SceneObjectGroup so1 = SceneHelpers.CreateSceneObject(1, user1Id, "so1", 0x10);
             m_scene.AddSceneObject(so1);
             LSL_Api api = new LSL_Api();
-            api.Initialize(m_engine, so1.RootPart, null);
+            api.Initialize(m_engine, so1.RootPart, null, null);
 
             // Create an object embedded inside the first
             UUID itemId = TestHelpers.ParseTail(0x20);
@@ -134,7 +137,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             SceneObjectGroup so2 = SceneHelpers.CreateSceneObject(1, user2Id, "so2", 0x100);
             m_scene.AddSceneObject(so2);
             LSL_Api api2 = new LSL_Api();
-            api2.Initialize(m_engine, so2.RootPart, null);
+            api2.Initialize(m_engine, so2.RootPart, null, null);
 
             // *** Firstly, we test where llAllowInventoryDrop() has not been called. ***
             api.llGiveInventory(so2.UUID.ToString(), inventoryItemName);

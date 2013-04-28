@@ -57,7 +57,6 @@ namespace OpenSim.Region.ClientStack.Linden
         public bool Enabled { get; private set; }
 
         private Scene m_scene;
-        private UUID m_agentID;
 
         #region ISharedRegionModule Members
 
@@ -118,13 +117,14 @@ namespace OpenSim.Region.ClientStack.Linden
         public void RegisterCaps(UUID agentID, Caps caps)
         {
             IRequestHandler reqHandler
-                = new RestHTTPHandler("GET", "/CAPS/" + UUID.Random(), MeshUploadFlag, "MeshUploadFlag", agentID.ToString());
+                = new RestHTTPHandler(
+                    "GET", "/CAPS/" + UUID.Random(), ht => MeshUploadFlag(ht, agentID), "MeshUploadFlag", agentID.ToString());
 
             caps.RegisterHandler("MeshUploadFlag", reqHandler);
-	        m_agentID = agentID;
+
         }
 
-        private Hashtable MeshUploadFlag(Hashtable mDhttpMethod)
+        private Hashtable MeshUploadFlag(Hashtable mDhttpMethod, UUID agentID)
         {
 //            m_log.DebugFormat("[MESH UPLOAD FLAG MODULE]: MeshUploadFlag request");
 

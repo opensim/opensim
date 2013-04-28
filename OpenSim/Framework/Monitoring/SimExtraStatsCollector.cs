@@ -359,11 +359,12 @@ Asset service request failures: {3}" + Environment.NewLine,
                     inPacketsPerSecond, outPacketsPerSecond, pendingDownloads, pendingUploads, unackedBytes, totalFrameTime,
                     netFrameTime, physicsFrameTime, otherFrameTime, agentFrameTime, imageFrameTime));
 
-            Dictionary<string, Dictionary<string, Stat>> sceneStats;
-
+            /* 20130319 RA: For the moment, disable the dump of 'scene' catagory as they are mostly output by
+             * the two formatted printouts above.
+            SortedDictionary<string, SortedDictionary<string, Stat>> sceneStats;
             if (StatsManager.TryGetStats("scene", out sceneStats))
             {
-                foreach (KeyValuePair<string, Dictionary<string, Stat>> kvp in sceneStats)
+                foreach (KeyValuePair<string, SortedDictionary<string, Stat>> kvp in sceneStats)
                 {
                     foreach (Stat stat in kvp.Value.Values)
                     {
@@ -374,6 +375,7 @@ Asset service request failures: {3}" + Environment.NewLine,
                     }
                 }
             }
+             */
 
             /*
             sb.Append(Environment.NewLine);
@@ -404,6 +406,15 @@ Asset service request failures: {3}" + Environment.NewLine,
         /// </summary>
         /// <returns></returns>
         public override string XReport(string uptime, string version)
+        {
+            return OSDParser.SerializeJsonString(OReport(uptime, version));
+        }
+
+        /// <summary>
+        /// Report back collected statistical information as an OSDMap
+        /// </summary>
+        /// <returns></returns>
+        public override OSDMap OReport(string uptime, string version)
         {
             OSDMap args = new OSDMap(30);
 //            args["AssetsInCache"] = OSD.FromString (String.Format ("{0:0.##}", AssetsInCache));
@@ -442,12 +453,10 @@ Asset service request failures: {3}" + Environment.NewLine,
             args["Uptime"] = OSD.FromString (uptime);
             args["Version"] = OSD.FromString (version);
             
-            string strBuffer = "";
-            strBuffer = OSDParser.SerializeJsonString(args);
-
-            return strBuffer;
+            return args;
         }
     }
+
 
     /// <summary>
     /// Pull packet queue stats from packet queues and report
@@ -473,6 +482,12 @@ Asset service request failures: {3}" + Environment.NewLine,
         public string XReport(string uptime, string version)
         {
             return "";
+        }
+        
+        public OSDMap OReport(string uptime, string version)
+        {
+            OSDMap ret = new OSDMap();
+            return ret;
         }
     }
 }

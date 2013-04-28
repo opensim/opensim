@@ -3367,6 +3367,11 @@ Console.WriteLine(" JointCreateFixed");
                 _pbs.SculptData = new byte[asset.Data.Length];
                 asset.Data.CopyTo(_pbs.SculptData, 0);
 //                m_assetFailed = false;
+
+//                m_log.DebugFormat(
+//                    "[ODE PRIM]: Received mesh/sculpt data asset {0} with {1} bytes for {2} at {3} in {4}", 
+//                    _pbs.SculptTexture, _pbs.SculptData.Length, Name, _position, _parent_scene.Name);
+
                 m_taintshape = true;
                _parent_scene.AddPhysicsActorTaint(this);
             }

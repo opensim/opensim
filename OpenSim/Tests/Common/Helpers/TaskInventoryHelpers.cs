@@ -46,13 +46,32 @@ namespace OpenSim.Tests.Common
         /// <param name="scene"></param>
         /// <param name="part"></param>
         /// <param name="itemName"></param>
+        /// <param name="itemIDFrag">UUID or UUID stem</param>
+        /// <param name="assetIDFrag">UUID or UUID stem</param>
+        /// <param name="text">The tex to put in the notecard.</param>
+        /// <returns>The item that was added</returns>
+        public static TaskInventoryItem AddNotecard(
+            Scene scene, SceneObjectPart part, string itemName, string itemIDStem, string assetIDStem, string text)
+        {
+            return AddNotecard(
+                scene, part, itemName, TestHelpers.ParseStem(itemIDStem), TestHelpers.ParseStem(assetIDStem), text);
+        }
+
+        /// <summary>
+        /// Add a notecard item to the given part.
+        /// </summary>
+        /// <param name="scene"></param>
+        /// <param name="part"></param>
+        /// <param name="itemName"></param>
         /// <param name="itemID"></param>
         /// <param name="assetID"></param>
+        /// <param name="text">The tex to put in the notecard.</param>
         /// <returns>The item that was added</returns>
-        public static TaskInventoryItem AddNotecard(Scene scene, SceneObjectPart part, string itemName, UUID itemID, UUID assetID)
+        public static TaskInventoryItem AddNotecard(
+            Scene scene, SceneObjectPart part, string itemName, UUID itemID, UUID assetID, string text)
         {
             AssetNotecard nc = new AssetNotecard();
-            nc.BodyText = "Hello World!";
+            nc.BodyText = text;
             nc.Encode();
 
             AssetBase ncAsset
@@ -87,8 +106,8 @@ namespace OpenSim.Tests.Common
         /// Add a simple script to the given part.
         /// </summary>
         /// <remarks>
-        /// TODO: Accept input for item and asset IDs to avoid mysterious script failures that try to use any of these
-        /// functions more than once in a test.
+        /// TODO: Accept input for item and asset IDs so that we have completely replicatable regression tests rather
+        /// than a random component.
         /// </remarks>
         /// <param name="scene"></param>
         /// <param name="part"></param>
@@ -102,8 +121,9 @@ namespace OpenSim.Tests.Common
             ast.Source = scriptSource;
             ast.Encode();
 
-            UUID assetUuid = new UUID("00000000-0000-0000-1000-000000000000");
-            UUID itemUuid = new UUID("00000000-0000-0000-1100-000000000000");
+            UUID assetUuid = UUID.Random();
+            UUID itemUuid = UUID.Random();
+
             AssetBase asset
                 = AssetHelpers.CreateAsset(assetUuid, AssetType.LSLText, ast.AssetData, UUID.Zero);
             scene.AssetService.Store(asset);

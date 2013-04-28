@@ -71,7 +71,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
         #region Internal functions
 
-        public AssetMetadata FetchMetadata(string url, UUID assetID)
+        private AssetMetadata FetchMetadata(string url, UUID assetID)
         {
             if (!url.EndsWith("/") && !url.EndsWith("="))
                 url = url + "/";
@@ -84,6 +84,27 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 m_log.DebugFormat("[HG ASSET MAPPER]: Unable to fetched metadata for asset {0} from {1} ", assetID, url);
 
             return meta;
+        }
+
+        private AssetBase FetchAsset(string url, UUID assetID)
+        {
+            // Test if it's already here
+            AssetBase asset = m_scene.AssetService.Get(assetID.ToString());
+            if (asset == null)
+            {
+                if (!url.EndsWith("/") && !url.EndsWith("="))
+                    url = url + "/";
+
+                asset = m_scene.AssetService.Get(url + assetID.ToString());
+
+                //if (asset != null)
+                //    m_log.DebugFormat("[HG ASSET MAPPER]: Fetched asset {0} of type {1} from {2} ", assetID, asset.Metadata.Type, url);
+                //else
+                //    m_log.DebugFormat("[HG ASSET MAPPER]: Unable to fetch asset {0} from {1} ", assetID, url);
+
+            }
+
+            return asset;
         }
 
         public bool PostAsset(string url, AssetBase asset)
@@ -228,11 +249,22 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             if (meta == null)
                 return;
 
-            // The act of gathering UUIDs downloads the assets from the remote server
+            // The act of gathering UUIDs downloads some assets from the remote server
+            // but not all...
             Dictionary<UUID, AssetType> ids = new Dictionary<UUID, AssetType>();
             HGUuidGatherer uuidGatherer = new HGUuidGatherer(m_scene.AssetService, userAssetURL);
             uuidGatherer.GatherAssetUuids(assetID, (AssetType)meta.Type, ids);
+            m_log.DebugFormat("[HG ASSET MAPPER]: Preparing to get {0} assets", ids.Count);
+            bool success = true;
+            foreach (UUID uuid in ids.Keys)
+                if (FetchAsset(userAssetURL, uuid) == null)
+                    success = false;
 
+            // maybe all pieces got here...
+            if (!success)
+                m_log.DebugFormat("[HG ASSET MAPPER]: Problems getting item {0} from asset server {1}", assetID, userAssetURL);
+            else
+                m_log.DebugFormat("[HG ASSET MAPPER]: Successfully got item {0} from asset server {1}", assetID, userAssetURL);
         }
 
 

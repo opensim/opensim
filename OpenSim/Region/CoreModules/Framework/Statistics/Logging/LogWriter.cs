@@ -52,6 +52,7 @@ namespace OpenSim.Region.CoreModules.Framework.Statistics.Logging
         private TimeSpan m_logFileLife;
         private DateTime m_logFileEndTime;
         private Object m_logFileWriteLock = new Object();
+        private bool m_flushWrite;
 
         // set externally when debugging. If let 'null', this does not write any error messages.
         public ILog ErrorLogger = null;
@@ -73,7 +74,9 @@ namespace OpenSim.Region.CoreModules.Framework.Statistics.Logging
         /// <param name="dir">The directory to create the log file in. May be 'null' for default.</param>
         /// <param name="headr">The characters that begin the log file name. May be 'null' for default.</param>
         /// <param name="maxFileTime">Maximum age of a log file in minutes. If zero, will set default.</param>
-        public LogWriter(string dir, string headr, int maxFileTime)
+        /// <param name="flushWrite">Whether to do a flush after every log write. Best left off but
+        /// if one is looking for a crash, this is a good thing to turn on.</param>
+        public LogWriter(string dir, string headr, int maxFileTime, bool flushWrite)
         {
             m_logDirectory = dir == null ? "." : dir;
 
@@ -86,7 +89,13 @@ namespace OpenSim.Region.CoreModules.Framework.Statistics.Logging
             m_logFileLife = new TimeSpan(0, m_logMaxFileTimeMin, 0);
             m_logFileEndTime = DateTime.Now + m_logFileLife;
 
+            m_flushWrite = flushWrite;
+
             Enabled = true;
+        }
+        // Constructor that assumes flushWrite is off.
+        public LogWriter(string dir, string headr, int maxFileTime) : this(dir, headr, maxFileTime, false)
+        {
         }
 
         public void Dispose()
@@ -127,7 +136,7 @@ namespace OpenSim.Region.CoreModules.Framework.Statistics.Logging
             {
                 lock (m_logFileWriteLock)
                 {
-                    DateTime now = DateTime.Now;
+                    DateTime now = DateTime.UtcNow;
                     if (m_logFile == null || now > m_logFileEndTime)
                     {
                         if (m_logFile != null)
@@ -153,6 +162,8 @@ namespace OpenSim.Region.CoreModules.Framework.Statistics.Logging
                         buff.Append(line);
                         buff.Append("\r\n");
                         m_logFile.Write(buff.ToString());
+                        if (m_flushWrite)
+                            m_logFile.Flush();
                     }
                 }
             }

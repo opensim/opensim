@@ -34,6 +34,7 @@ using OpenSim.Region.ScriptEngine.Shared;
 using OpenSim.Region.Framework.Scenes;
 using Nini.Config;
 using OpenSim.Region.ScriptEngine.Shared.Api;
+using OpenSim.Region.ScriptEngine.Shared.Instance;
 using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
 using OpenMetaverse;
 using OpenSim.Tests.Common.Mock;
@@ -46,13 +47,15 @@ using LSL_String = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
 namespace OpenSim.Region.ScriptEngine.Shared.Tests
 {
     [TestFixture]
-    public class LSL_ApiListTests
+    public class LSL_ApiListTests : OpenSimTestCase
     {
         private LSL_Api m_lslApi;
 
         [SetUp]
-        public void SetUp()
+        public override void SetUp()
         {
+            base.SetUp();
+
             IConfigSource initConfigSource = new IniConfigSource();
             IConfig config = initConfigSource.AddConfig("XEngine");
             config.Set("Enabled", "true");
@@ -65,7 +68,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             engine.AddRegion(scene);
 
             m_lslApi = new LSL_Api();
-            m_lslApi.Initialize(engine, part, null);
+            m_lslApi.Initialize(engine, part, null, null);
         }
  
         [Test]

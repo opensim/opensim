@@ -49,7 +49,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private OSD m_ValueStore;
+        protected virtual OSD ValueStore { get; set; }
 
         protected class TakeValueCallbackClass
         {
@@ -68,44 +68,164 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         protected List<TakeValueCallbackClass> m_TakeStore;
         protected List<TakeValueCallbackClass> m_ReadStore;
         
+        // add separators for quoted paths and array references
+        protected static Regex m_ParsePassOne = new Regex("({[^}]+}|\\[[0-9]+\\]|\\[\\+\\])");
 
+        // add quotes to bare identifiers which are limited to alphabetic characters
+        protected static Regex m_ParsePassThree = new Regex("(?<!{[^}]*)\\.([a-zA-Z]+)(?=\\.)");
+
+        // remove extra separator characters
+        protected static Regex m_ParsePassFour = new Regex("\\.+");
+
+        // expression used to validate the full path, this is canonical representation
+        protected static Regex m_ValidatePath = new Regex("^\\.(({[^}]+}|\\[[0-9]+\\]|\\[\\+\\])\\.)*$");
+
+        // expression used to match path components
+        protected static Regex m_PathComponent = new Regex("\\.({[^}]+}|\\[[0-9]+\\]|\\[\\+\\])");
+
+        // extract the internals of an array reference
+        protected static Regex m_SimpleArrayPattern = new Regex("^\\[([0-9]+)\\]$");
+        protected static Regex m_ArrayPattern = new Regex("^\\[([0-9]+|\\+)\\]$");
+
+        // extract the internals of a has reference
+        protected static Regex m_HashPattern = new Regex("^{([^}]+)}$");
+
+        // -----------------------------------------------------------------
+        /// <summary>
+        /// This is a simple estimator for the size of the stored data, it
+        /// is not precise, but should be close enough to implement reasonable
+        /// limits on the storage space used
+        /// </summary>
+        // -----------------------------------------------------------------
+        public int StringSpace { get; set; }
+        
         // -----------------------------------------------------------------
         /// <summary>
         /// 
         /// </summary>
         // -----------------------------------------------------------------
-        public JsonStore() : this("") {}
-        
-        public JsonStore(string value)
+        public static bool CanonicalPathExpression(string ipath, out string opath)
         {
+            Stack<string> path;
+            if (! ParsePathExpression(ipath,out path))
+            {
+                opath = "";
+                return false;
+            }
+
+            opath = PathExpressionToKey(path);
+            return true;
+        }
+        
+        // -----------------------------------------------------------------
+        /// <summary>
+        /// 
+        /// </summary>
+        // -----------------------------------------------------------------
+        public JsonStore() 
+        {
+            StringSpace = 0;
             m_TakeStore = new List<TakeValueCallbackClass>();
             m_ReadStore = new List<TakeValueCallbackClass>();
-           
-            if (String.IsNullOrEmpty(value))
-                m_ValueStore = new OSDMap();
-            else
-                m_ValueStore = OSDParser.DeserializeJson(value);
         }
 
+        public JsonStore(string value) : this()
+        {
+            // This is going to throw an exception if the value is not
+            // a valid JSON chunk. Calling routines should catch the 
+            // exception and handle it appropriately
+            if (String.IsNullOrEmpty(value))
+                ValueStore = new OSDMap();
+            else
+                ValueStore = OSDParser.DeserializeJson(value);
+        }
+        
         // -----------------------------------------------------------------
         /// <summary>
         /// 
         /// </summary>
         // -----------------------------------------------------------------
-        public bool TestPath(string expr, bool useJson)
+        public JsonStoreNodeType GetNodeType(string expr)
         {
-            Stack<string> path = ParsePathExpression(expr);
-            OSD result = ProcessPathExpression(m_ValueStore,path);
+            Stack<string> path;
+            if (! ParsePathExpression(expr,out path))
+                return JsonStoreNodeType.Undefined;
+            
+            OSD result = ProcessPathExpression(ValueStore,path);
 
             if (result == null)
-                return false;
+                return JsonStoreNodeType.Undefined;
             
-            if (useJson || result.Type == OSDType.String)
-                return true;
+            if (result is OSDMap)
+                return JsonStoreNodeType.Object;
             
-            return false;
+            if (result is OSDArray)
+                return JsonStoreNodeType.Array;
+            
+            if (OSDBaseType(result.Type))
+                return JsonStoreNodeType.Value;
+            
+            return JsonStoreNodeType.Undefined;
         }
         
+        // -----------------------------------------------------------------
+        /// <summary>
+        /// 
+        /// </summary>
+        // -----------------------------------------------------------------
+        public JsonStoreValueType GetValueType(string expr)
+        {
+            Stack<string> path;
+            if (! ParsePathExpression(expr,out path))
+                return JsonStoreValueType.Undefined;
+            
+            OSD result = ProcessPathExpression(ValueStore,path);
+
+            if (result == null)
+                return JsonStoreValueType.Undefined;
+            
+            if (result is OSDMap)
+                return JsonStoreValueType.Undefined;
+            
+            if (result is OSDArray)
+                return JsonStoreValueType.Undefined;
+            
+            if (result is OSDBoolean)
+                return JsonStoreValueType.Boolean;
+
+            if (result is OSDInteger)
+                return JsonStoreValueType.Integer;
+
+            if (result is OSDReal)
+                return JsonStoreValueType.Float;
+
+            if (result is OSDString)
+                return JsonStoreValueType.String;
+
+            return JsonStoreValueType.Undefined;
+        }
+        
+        // -----------------------------------------------------------------
+        /// <summary>
+        /// 
+        /// </summary>
+        // -----------------------------------------------------------------
+        public int ArrayLength(string expr)
+        {
+            Stack<string> path;
+            if (! ParsePathExpression(expr,out path))
+                return -1;
+
+            OSD result = ProcessPathExpression(ValueStore,path);
+            if (result != null && result.Type == OSDType.Array)
+            {
+                OSDArray arr = result as OSDArray;
+                return arr.Count;
+            }
+
+            return -1;
+        }
+
         // -----------------------------------------------------------------
         /// <summary>
         /// 
@@ -113,8 +233,14 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         // -----------------------------------------------------------------
         public bool GetValue(string expr, out string value, bool useJson)
         {
-            Stack<string> path = ParsePathExpression(expr);
-            OSD result = ProcessPathExpression(m_ValueStore,path);
+            Stack<string> path;
+            if (! ParsePathExpression(expr,out path))
+            {
+                value = "";
+                return false;
+            }
+
+            OSD result = ProcessPathExpression(ValueStore,path);
             return ConvertOutputValue(result,out value,useJson); 
         }
      
@@ -136,7 +262,37 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         // -----------------------------------------------------------------
         public bool SetValue(string expr, string value, bool useJson)
         {
-            OSD ovalue = useJson ? OSDParser.DeserializeJson(value) :  new OSDString(value);
+            OSD ovalue;
+
+            // One note of caution... if you use an empty string in the
+            // structure it will be assumed to be a default value and will
+            // not be seialized in the json
+
+            if (useJson)
+            {
+                // There doesn't appear to be a good way to determine if the
+                // value is valid Json other than to let the parser crash
+                try 
+                {
+                    ovalue = OSDParser.DeserializeJson(value);
+                }
+                catch (Exception e)
+                {
+                    if (value.StartsWith("'") && value.EndsWith("'"))
+                    {
+                        ovalue = new OSDString(value.Substring(1,value.Length - 2));
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+            }
+            else
+            {
+                ovalue = new OSDString(value);
+            }
+            
             return SetValueFromExpression(expr,ovalue);
         }
         
@@ -147,10 +303,13 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         // -----------------------------------------------------------------
         public bool TakeValue(string expr, bool useJson, TakeValueCallback cback)
         {
-            Stack<string> path = ParsePathExpression(expr);
+            Stack<string> path;
+            if (! ParsePathExpression(expr,out path))
+                return false;
+
             string pexpr = PathExpressionToKey(path);
 
-            OSD result = ProcessPathExpression(m_ValueStore,path);
+            OSD result = ProcessPathExpression(ValueStore,path);
             if (result == null)
             {
                 m_TakeStore.Add(new TakeValueCallbackClass(pexpr,useJson,cback));
@@ -178,10 +337,13 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         // -----------------------------------------------------------------
         public bool ReadValue(string expr, bool useJson, TakeValueCallback cback)
         {
-            Stack<string> path = ParsePathExpression(expr);
+            Stack<string> path;
+            if (! ParsePathExpression(expr,out path))
+                return false;
+
             string pexpr = PathExpressionToKey(path);
 
-            OSD result = ProcessPathExpression(m_ValueStore,path);
+            OSD result = ProcessPathExpression(ValueStore,path);
             if (result == null)
             {
                 m_ReadStore.Add(new TakeValueCallbackClass(pexpr,useJson,cback));
@@ -208,25 +370,30 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         // -----------------------------------------------------------------
         protected bool SetValueFromExpression(string expr, OSD ovalue)
         {
-            Stack<string> path = ParsePathExpression(expr);
+            Stack<string> path;
+            if (! ParsePathExpression(expr,out path))
+                return false;
+
             if (path.Count == 0)
             {
-                m_ValueStore = ovalue;
+                ValueStore = ovalue;
+                StringSpace = 0;
                 return true;
             }
 
+            // pkey will be the final element in the path, we pull it out here to make sure
+            // that the assignment works correctly
             string pkey = path.Pop();
             string pexpr = PathExpressionToKey(path);
             if (pexpr != "")
                 pexpr += ".";
 
-            OSD result = ProcessPathExpression(m_ValueStore,path);
+            OSD result = ProcessPathExpression(ValueStore,path);
             if (result == null)
                 return false;
 
-            Regex aPattern = new Regex("\\[([0-9]+|\\+)\\]");
-            MatchCollection amatches = aPattern.Matches(pkey,0);
-            
+            // Check pkey, the last element in the path, for and extract array references
+            MatchCollection amatches = m_ArrayPattern.Matches(pkey,0);
             if (amatches.Count > 0)
             {
                 if (result.Type != OSDType.Array)
@@ -242,8 +409,13 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
                 {
                     string npkey = String.Format("[{0}]",amap.Count);
 
-                    amap.Add(ovalue);
-                    InvokeNextCallback(pexpr + npkey);
+                    if (ovalue != null)
+                    {
+                        StringSpace += ComputeSizeOf(ovalue);
+
+                        amap.Add(ovalue);
+                        InvokeNextCallback(pexpr + npkey);
+                    }
                     return true;
                 }
 
@@ -251,9 +423,14 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
                 if (0 <= aval && aval < amap.Count)
                 {
                     if (ovalue == null)
+                    {
+                        StringSpace -= ComputeSizeOf(amap[aval]);
                         amap.RemoveAt(aval);
+                    }
                     else
                     {
+                        StringSpace -= ComputeSizeOf(amap[aval]);
+                        StringSpace += ComputeSizeOf(ovalue);
                         amap[aval] = ovalue;
                         InvokeNextCallback(pexpr + pkey);
                     }
@@ -263,9 +440,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
                 return false;
             }
 
-            Regex hPattern = new Regex("{([^}]+)}");
-            MatchCollection hmatches = hPattern.Matches(pkey,0);
-            
+            // Check for and extract hash references
+            MatchCollection hmatches = m_HashPattern.Matches(pkey,0);
             if (hmatches.Count > 0)
             {
                 Match match = hmatches[0];
@@ -274,16 +450,27 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
                 
                 if (result is OSDMap)
                 {
+                    // this is the assignment case
                     OSDMap hmap = result as OSDMap;
                     if (ovalue != null)
                     {
+                        StringSpace -= ComputeSizeOf(hmap[hkey]);
+                        StringSpace += ComputeSizeOf(ovalue);
+                        
                         hmap[hkey] = ovalue;
                         InvokeNextCallback(pexpr + pkey);
+                        return true;
                     }
-                    else if (hmap.ContainsKey(hkey))
+
+                    // this is the remove case
+                    if (hmap.ContainsKey(hkey))
+                    {
+                        StringSpace -= ComputeSizeOf(hmap[hkey]);
                         hmap.Remove(hkey);
-                    
-                    return true;
+                        return true;
+                    }
+
+                    return false;
                 }
 
                 return false;
@@ -332,39 +519,33 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         /// use a stack because we process the path in inverse order later
         /// </summary>
         // -----------------------------------------------------------------
-        protected static Stack<string> ParsePathExpression(string path)
+        protected static bool ParsePathExpression(string expr, out Stack<string> path)
         {
-            Stack<string> m_path = new Stack<string>();
+            path = new Stack<string>();
 
             // add front and rear separators
-            path = "." + path + ".";
+            expr = "." + expr + ".";
             
-            // add separators for quoted paths
-            Regex pass1 = new Regex("{[^}]+}");
-            path = pass1.Replace(path,".$0.",-1,0);
-                
-            // add separators for array references
-            Regex pass2 = new Regex("(\\[[0-9]+\\]|\\[\\+\\])");
-            path = pass2.Replace(path,".$0.",-1,0);
+            // add separators for quoted exprs and array references
+            expr = m_ParsePassOne.Replace(expr,".$1.",-1,0);
                 
             // add quotes to bare identifier
-            Regex pass3 = new Regex("\\.([a-zA-Z]+)");
-            path = pass3.Replace(path,".{$1}",-1,0);
+            expr = m_ParsePassThree.Replace(expr,".{$1}",-1,0);
                 
             // remove extra separators
-            Regex pass4 = new Regex("\\.+");
-            path = pass4.Replace(path,".",-1,0);
+            expr = m_ParsePassFour.Replace(expr,".",-1,0);
 
-            Regex validate = new Regex("^\\.(({[^}]+}|\\[[0-9]+\\]|\\[\\+\\])\\.)+$");
-            if (validate.IsMatch(path))
+            // validate the results (catches extra quote characters for example)
+            if (m_ValidatePath.IsMatch(expr))
             {
-                Regex parser = new Regex("\\.({[^}]+}|\\[[0-9]+\\]|\\[\\+\\]+)");
-                MatchCollection matches = parser.Matches(path,0);
+                MatchCollection matches = m_PathComponent.Matches(expr,0);
                 foreach (Match match in matches)
-                    m_path.Push(match.Groups[1].Value);
+                    path.Push(match.Groups[1].Value);
+
+                return true;
             }
 
-            return m_path;
+            return false;
         }
 
         // -----------------------------------------------------------------
@@ -385,9 +566,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
                 return null;
             
             // ---------- Check for an array index ----------
-            Regex aPattern = new Regex("\\[([0-9]+)\\]");
-            MatchCollection amatches = aPattern.Matches(pkey,0);
-            
+            MatchCollection amatches = m_SimpleArrayPattern.Matches(pkey,0);
+
             if (amatches.Count > 0)
             {
                 if (rmap.Type != OSDType.Array)
@@ -410,9 +590,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             }
 
             // ---------- Check for a hash index ----------
-            Regex hPattern = new Regex("{([^}]+)}");
-            MatchCollection hmatches = hPattern.Matches(pkey,0);
-            
+            MatchCollection hmatches = m_HashPattern.Matches(pkey,0);
+
             if (hmatches.Count > 0)
             {
                 if (rmap.Type != OSDType.Map)
@@ -456,14 +635,14 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
                 // The path pointed to an intermediate hash structure
                 if (result.Type == OSDType.Map)
                 {
-                    value = OSDParser.SerializeJsonString(result as OSDMap);
+                    value = OSDParser.SerializeJsonString(result as OSDMap,true);
                     return true;
                 }
 
                 // The path pointed to an intermediate hash structure
                 if (result.Type == OSDType.Array)
                 {
-                    value = OSDParser.SerializeJsonString(result as OSDArray);
+                    value = OSDParser.SerializeJsonString(result as OSDArray,true);
                     return true;
                 }
 
@@ -471,7 +650,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
                 return true;
             }
 
-            if (result.Type == OSDType.String)
+            if (OSDBaseType(result.Type))
             {
                 value = result.AsString(); 
                 return true;
@@ -496,5 +675,91 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             
             return pkey;
         }
+
+        // -----------------------------------------------------------------
+        /// <summary>
+        /// 
+        /// </summary>
+        // -----------------------------------------------------------------
+        protected static bool OSDBaseType(OSDType type)
+        {
+            // Should be the list of base types for which AsString() returns
+            // something useful
+            if (type == OSDType.Boolean)
+                return true;
+            if (type == OSDType.Integer)
+                return true;
+            if (type == OSDType.Real)
+                return true;
+            if (type == OSDType.String)
+                return true;
+            if (type == OSDType.UUID)
+                return true;
+            if (type == OSDType.Date)
+                return true;
+            if (type == OSDType.URI)
+                return true;
+
+            return false;
+        }
+
+        // -----------------------------------------------------------------
+        /// <summary>
+        /// 
+        /// </summary>
+        // -----------------------------------------------------------------
+        protected static int ComputeSizeOf(OSD value)
+        {
+            string sval;
+
+            if (ConvertOutputValue(value,out sval,true))
+                return sval.Length;
+
+            return 0;
+        }
     }
+
+    // -----------------------------------------------------------------
+    /// <summary>
+    /// </summary>
+    // -----------------------------------------------------------------
+    public class JsonObjectStore : JsonStore
+    {
+        private static readonly ILog m_log =
+            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        private Scene m_scene;
+        private UUID m_objectID;
+
+        protected override OSD ValueStore 
+        {
+            get
+            {
+                SceneObjectPart sop = m_scene.GetSceneObjectPart(m_objectID);
+                if (sop == null)
+                {
+                    // This is bad
+                    return null;
+                }
+                
+                return sop.DynAttrs.TopLevelMap;
+            }
+
+            // cannot set the top level
+            set
+            {
+                m_log.InfoFormat("[JsonStore] cannot set top level value in object store");
+            }
+        }
+
+        public JsonObjectStore(Scene scene, UUID oid) : base()
+        {
+            m_scene = scene;
+            m_objectID = oid;
+
+            // the size limit is imposed on whatever is already in the store
+            StringSpace = ComputeSizeOf(ValueStore);
+        }
+    }
+    
 }

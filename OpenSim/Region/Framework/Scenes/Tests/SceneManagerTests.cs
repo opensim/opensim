@@ -41,7 +41,7 @@ using OpenSim.Tests.Common.Mock;
 namespace OpenSim.Region.Framework.Scenes.Tests
 {
     [TestFixture]
-    public class SceneManagerTests
+    public class SceneManagerTests : OpenSimTestCase
     {
         [Test]
         public void TestClose()

@@ -185,15 +185,15 @@ namespace OpenSim.Services.GridService
 
             if (!m_AllowDuplicateNames)
             {
-                List<RegionData> dupe = m_Database.Get(regionInfos.RegionName, scopeID);
+                List<RegionData> dupe = m_Database.Get(Util.EscapeForLike(regionInfos.RegionName), scopeID);
                 if (dupe != null && dupe.Count > 0)
                 {
                     foreach (RegionData d in dupe)
                     {
                         if (d.RegionID != regionInfos.RegionID)
                         {
-                            m_log.WarnFormat("[GRID SERVICE]: Region {0} tried to register duplicate name with ID {1}.", 
-                                regionInfos.RegionName, regionInfos.RegionID);
+                            m_log.WarnFormat("[GRID SERVICE]: Region tried to register using a duplicate name. New region: {0} ({1}), existing region: {2} ({3}).", 
+                                regionInfos.RegionName, regionInfos.RegionID, d.RegionName, d.RegionID);
                             return "Duplicate region name";
                         }
                     }
@@ -359,7 +359,7 @@ namespace OpenSim.Services.GridService
 
         public GridRegion GetRegionByName(UUID scopeID, string name)
         {
-            List<RegionData> rdatas = m_Database.Get(name, scopeID);
+            List<RegionData> rdatas = m_Database.Get(Util.EscapeForLike(name), scopeID);
             if ((rdatas != null) && (rdatas.Count > 0))
                 return RegionData2RegionInfo(rdatas[0]); // get the first
 
@@ -377,7 +377,7 @@ namespace OpenSim.Services.GridService
         {
 //            m_log.DebugFormat("[GRID SERVICE]: GetRegionsByName {0}", name);
 
-            List<RegionData> rdatas = m_Database.Get(name + "%", scopeID);
+            List<RegionData> rdatas = m_Database.Get(Util.EscapeForLike(name) + "%", scopeID);
 
             int count = 0;
             List<GridRegion> rinfos = new List<GridRegion>();
@@ -586,7 +586,7 @@ namespace OpenSim.Services.GridService
 
             string regionName = cmd[3];
 
-            List<RegionData> regions = m_Database.Get(regionName, UUID.Zero);
+            List<RegionData> regions = m_Database.Get(Util.EscapeForLike(regionName), UUID.Zero);
             if (regions == null || regions.Count < 1)
             {
                 MainConsole.Instance.Output("No region with name {0} found", regionName);
@@ -716,7 +716,7 @@ namespace OpenSim.Services.GridService
                 return;
             }
 
-            List<RegionData> regions = m_Database.Get(cmd[3], UUID.Zero);
+            List<RegionData> regions = m_Database.Get(Util.EscapeForLike(cmd[3]), UUID.Zero);
             if (regions == null || regions.Count < 1)
             {
                 MainConsole.Instance.Output("Region not found");

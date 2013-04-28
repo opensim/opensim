@@ -33,6 +33,11 @@ namespace Amib.Threading
         private ThreadPriority _threadPriority;
 
         /// <summary>
+        /// The thread pool name. Threads will get names depending on this.
+        /// </summary>
+        private string _threadPoolName;
+
+        /// <summary>
         /// If this field is not null then the performance counters are enabled
         /// and use the string as the name of the instance.
         /// </summary>
@@ -46,6 +51,7 @@ namespace Amib.Threading
             _minWorkerThreads = SmartThreadPool.DefaultMinWorkerThreads;
             _maxWorkerThreads = SmartThreadPool.DefaultMaxWorkerThreads;
             _threadPriority = SmartThreadPool.DefaultThreadPriority;
+            _threadPoolName = SmartThreadPool.DefaultThreadPoolName;
             _pcInstanceName = SmartThreadPool.DefaultPerformanceCounterInstanceName;
             _stackSize = SmartThreadPool.DefaultStackSize;
         }
@@ -56,6 +62,7 @@ namespace Amib.Threading
             _minWorkerThreads = stpStartInfo._minWorkerThreads;
             _maxWorkerThreads = stpStartInfo._maxWorkerThreads;
             _threadPriority = stpStartInfo._threadPriority;
+            _threadPoolName = stpStartInfo._threadPoolName;
             _pcInstanceName = stpStartInfo._pcInstanceName;
             _stackSize = stpStartInfo._stackSize;
         }
@@ -83,6 +90,13 @@ namespace Amib.Threading
             get { return _threadPriority; }
             set { _threadPriority = value; }
         }
+
+        public virtual string ThreadPoolName
+        {
+            get { return _threadPoolName; }
+            set { _threadPoolName = value; }
+        }
+
 
         public string PerformanceCounterInstanceName
         {

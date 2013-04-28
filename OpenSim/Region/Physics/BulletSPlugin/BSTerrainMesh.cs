@@ -76,27 +76,43 @@ public sealed class BSTerrainMesh : BSTerrainPhys
         m_sizeX = (int)(maxCoords.X - minCoords.X);
         m_sizeY = (int)(maxCoords.Y - minCoords.Y);
 
-        if (!BSTerrainMesh.ConvertHeightmapToMesh(PhysicsScene, initialMap,
-                            m_sizeX, m_sizeY,
-                            (float)m_sizeX, (float)m_sizeY,
-                            Vector3.Zero, 1.0f,
-                            out indicesCount, out indices, out verticesCount, out vertices))
+        bool meshCreationSuccess = false;
+        if (BSParam.TerrainMeshMagnification == 1)
+        {
+            // If a magnification of one, use the old routine that is tried and true.
+            meshCreationSuccess = BSTerrainMesh.ConvertHeightmapToMesh(PhysicsScene,
+                                            initialMap, m_sizeX, m_sizeY,       // input size
+                                            Vector3.Zero,                       // base for mesh
+                                            out indicesCount, out indices, out verticesCount, out vertices);
+        }
+        else
+        {
+            // Other magnifications use the newer routine
+            meshCreationSuccess = BSTerrainMesh.ConvertHeightmapToMesh2(PhysicsScene,
+                                            initialMap, m_sizeX, m_sizeY,       // input size
+                                            BSParam.TerrainMeshMagnification,
+                                            physicsScene.TerrainManager.DefaultRegionSize,
+                                            Vector3.Zero,                       // base for mesh
+                                            out indicesCount, out indices, out verticesCount, out vertices);
+        }
+        if (!meshCreationSuccess)
         {
             // DISASTER!!
-            PhysicsScene.DetailLog("{0},BSTerrainMesh.create,failedConversionOfHeightmap", ID);
+            PhysicsScene.DetailLog("{0},BSTerrainMesh.create,failedConversionOfHeightmap,id={1}", BSScene.DetailLogZero, ID);
             PhysicsScene.Logger.ErrorFormat("{0} Failed conversion of heightmap to mesh! base={1}", LogHeader, TerrainBase);
             // Something is very messed up and a crash is in our future.
             return;
         }
 
-        m_terrainShape = new BulletShape(BulletSimAPI.CreateMeshShape2(PhysicsScene.World.ptr,
-                                        indicesCount, indices, verticesCount, vertices),
-                                        BSPhysicsShapeType.SHAPE_MESH);
-        if (m_terrainShape.ptr == IntPtr.Zero)
+        PhysicsScene.DetailLog("{0},BSTerrainMesh.create,meshed,id={1},indices={2},indSz={3},vertices={4},vertSz={5}", 
+                                BSScene.DetailLogZero, ID, indicesCount, indices.Length, verticesCount, vertices.Length);
+
+        m_terrainShape = PhysicsScene.PE.CreateMeshShape(PhysicsScene.World, indicesCount, indices, verticesCount, vertices);
+        if (!m_terrainShape.HasPhysicalShape)
         {
             // DISASTER!!
-            PhysicsScene.DetailLog("{0},BSTerrainMesh.create,failedCreationOfShape", ID);
-            physicsScene.Logger.ErrorFormat("{0} Failed creation of terrain mesh! base={1}", LogHeader, TerrainBase);
+            PhysicsScene.DetailLog("{0},BSTerrainMesh.create,failedCreationOfShape,id={1}", BSScene.DetailLogZero, ID);
+            PhysicsScene.Logger.ErrorFormat("{0} Failed creation of terrain mesh! base={1}", LogHeader, TerrainBase);
             // Something is very messed up and a crash is in our future.
             return;
         }
@@ -104,49 +120,58 @@ public sealed class BSTerrainMesh : BSTerrainPhys
         Vector3 pos = regionBase;
         Quaternion rot = Quaternion.Identity;
 
-        m_terrainBody = new BulletBody(id, BulletSimAPI.CreateBodyWithDefaultMotionState2( m_terrainShape.ptr, ID, pos, rot));
-        if (m_terrainBody.ptr == IntPtr.Zero)
+        m_terrainBody = PhysicsScene.PE.CreateBodyWithDefaultMotionState(m_terrainShape, ID, pos, rot);
+        if (!m_terrainBody.HasPhysicalBody)
         {
             // DISASTER!!
-            physicsScene.Logger.ErrorFormat("{0} Failed creation of terrain body! base={1}", LogHeader, TerrainBase);
+            PhysicsScene.Logger.ErrorFormat("{0} Failed creation of terrain body! base={1}", LogHeader, TerrainBase);
             // Something is very messed up and a crash is in our future.
             return;
         }
+        physicsScene.PE.SetShapeCollisionMargin(m_terrainShape, BSParam.TerrainCollisionMargin);
 
         // Set current terrain attributes
-        BulletSimAPI.SetFriction2(m_terrainBody.ptr, PhysicsScene.Params.terrainFriction);
-        BulletSimAPI.SetHitFraction2(m_terrainBody.ptr, PhysicsScene.Params.terrainHitFraction);
-        BulletSimAPI.SetRestitution2(m_terrainBody.ptr, PhysicsScene.Params.terrainRestitution);
-        BulletSimAPI.SetCollisionFlags2(m_terrainBody.ptr, CollisionFlags.CF_STATIC_OBJECT);
+        PhysicsScene.PE.SetFriction(m_terrainBody, BSParam.TerrainFriction);
+        PhysicsScene.PE.SetHitFraction(m_terrainBody, BSParam.TerrainHitFraction);
+        PhysicsScene.PE.SetRestitution(m_terrainBody, BSParam.TerrainRestitution);
+        PhysicsScene.PE.SetContactProcessingThreshold(m_terrainBody, BSParam.TerrainContactProcessingThreshold);
+        PhysicsScene.PE.SetCollisionFlags(m_terrainBody, CollisionFlags.CF_STATIC_OBJECT);
 
         // Static objects are not very massive.
-        BulletSimAPI.SetMassProps2(m_terrainBody.ptr, 0f, Vector3.Zero);
+        PhysicsScene.PE.SetMassProps(m_terrainBody, 0f, Vector3.Zero);
 
-        // Return the new terrain to the world of physical objects
-        BulletSimAPI.AddObjectToWorld2(PhysicsScene.World.ptr, m_terrainBody.ptr);
+        // Put the new terrain to the world of physical objects
+        PhysicsScene.PE.AddObjectToWorld(PhysicsScene.World, m_terrainBody);
 
-        // redo its bounding box now that it is in the world
-        BulletSimAPI.UpdateSingleAabb2(PhysicsScene.World.ptr, m_terrainBody.ptr);
+        // Redo its bounding box now that it is in the world
+        PhysicsScene.PE.UpdateSingleAabb(PhysicsScene.World, m_terrainBody);
 
-        BulletSimAPI.SetCollisionFilterMask2(m_terrainBody.ptr,
-                            (uint)CollisionFilterGroups.TerrainFilter,
-                            (uint)CollisionFilterGroups.TerrainMask);
+        m_terrainBody.collisionType = CollisionType.Terrain;
+        m_terrainBody.ApplyCollisionMask(PhysicsScene);
+
+        if (BSParam.UseSingleSidedMeshes)
+        {
+            PhysicsScene.DetailLog("{0},BSTerrainMesh.settingCustomMaterial,id={1}", BSScene.DetailLogZero, id);
+            PhysicsScene.PE.AddToCollisionFlags(m_terrainBody, CollisionFlags.CF_CUSTOM_MATERIAL_CALLBACK);
+        }
 
         // Make it so the terrain will not move or be considered for movement.
-        BulletSimAPI.ForceActivationState2(m_terrainBody.ptr, ActivationState.DISABLE_SIMULATION);
+        PhysicsScene.PE.ForceActivationState(m_terrainBody, ActivationState.DISABLE_SIMULATION);
     }
 
     public override void Dispose()
     {
-        if (m_terrainBody.ptr != IntPtr.Zero)
+        if (m_terrainBody.HasPhysicalBody)
         {
-            BulletSimAPI.RemoveObjectFromWorld2(PhysicsScene.World.ptr, m_terrainBody.ptr);
+            PhysicsScene.PE.RemoveObjectFromWorld(PhysicsScene.World, m_terrainBody);
             // Frees both the body and the shape.
-            BulletSimAPI.DestroyObject2(PhysicsScene.World.ptr, m_terrainBody.ptr);
+            PhysicsScene.PE.DestroyObject(PhysicsScene.World, m_terrainBody);
+            m_terrainBody.Clear();
+            m_terrainShape.Clear();
         }
     }
 
-    public override float GetHeightAtXYZ(Vector3 pos)
+    public override float GetTerrainHeightAtXYZ(Vector3 pos)
     {
         // For the moment use the saved heightmap to get the terrain height.
         // TODO: raycast downward to find the true terrain below the position.
@@ -167,14 +192,17 @@ public sealed class BSTerrainMesh : BSTerrainPhys
         return ret;
     }
 
+    // The passed position is relative to the base of the region.
+    public override float GetWaterLevelAtXYZ(Vector3 pos)
+    {
+        return PhysicsScene.SimpleWaterLevel;
+    }
+
     // Convert the passed heightmap to mesh information suitable for CreateMeshShape2().
     // Return 'true' if successfully created.
-    public static bool ConvertHeightmapToMesh(
-                                BSScene physicsScene,
+    public static bool ConvertHeightmapToMesh( BSScene physicsScene,
                                 float[] heightMap, int sizeX, int sizeY,    // parameters of incoming heightmap
-                                float extentX, float extentY,               // zero based range for output vertices
                                 Vector3 extentBase,                         // base to be added to all vertices
-                                float magnification,                        // number of vertices to create between heightMap coords
                                 out int indicesCountO, out int[] indicesO,
                                 out int verticesCountO, out float[] verticesO)
     {
@@ -188,43 +216,47 @@ public sealed class BSTerrainMesh : BSTerrainPhys
         // Simple mesh creation which assumes magnification == 1.
         // TODO: do a more general solution that scales, adds new vertices and smoothes the result.
 
+        // Create an array of vertices that is sizeX+1 by sizeY+1 (note the loop
+        //    from zero to <= sizeX). The triangle indices are then generated as two triangles
+        //    per heightmap point. There are sizeX by sizeY of these squares. The extra row and
+        //    column of vertices are used to complete the triangles of the last row and column
+        //    of the heightmap.
         try
         {
-            // One vertice per heightmap value plus the vertices off the top and bottom edge.
+            // One vertice per heightmap value plus the vertices off the side and bottom edge.
             int totalVertices = (sizeX + 1) * (sizeY + 1);
             vertices = new float[totalVertices * 3];
             int totalIndices = sizeX * sizeY * 6;
             indices = new int[totalIndices];
 
-            float magX = (float)sizeX / extentX;
-            float magY = (float)sizeY / extentY;
-            physicsScene.DetailLog("{0},BSTerrainMesh.ConvertHeightMapToMesh,totVert={1},totInd={2},extentBase={3},magX={4},magY={5}",
-                                    BSScene.DetailLogZero, totalVertices, totalIndices, extentBase, magX, magY);
+            if (physicsScene != null)
+                physicsScene.DetailLog("{0},BSTerrainMesh.ConvertHeightMapToMesh,totVert={1},totInd={2},extentBase={3}",
+                                    BSScene.DetailLogZero, totalVertices, totalIndices, extentBase);
+            float minHeight = float.MaxValue;
             // Note that sizeX+1 vertices are created since there is land between this and the next region.
             for (int yy = 0; yy <= sizeY; yy++)
             {
-                for (int xx = 0; xx <= sizeX; xx++)     // Hint: the "<=" means we got through sizeX + 1 times
+                for (int xx = 0; xx <= sizeX; xx++)     // Hint: the "<=" means we go around sizeX + 1 times
                 {
                     int offset = yy * sizeX + xx;
-                    // Extend the height from the height from the last row or column
+                    // Extend the height with the height from the last row or column
                     if (yy == sizeY) offset -= sizeX;
                     if (xx == sizeX) offset -= 1;
                     float height = heightMap[offset];
-                    vertices[verticesCount + 0] = (float)xx * magX + extentBase.X;
-                    vertices[verticesCount + 1] = (float)yy * magY + extentBase.Y;
+                    minHeight = Math.Min(minHeight, height);
+                    vertices[verticesCount + 0] = (float)xx + extentBase.X;
+                    vertices[verticesCount + 1] = (float)yy + extentBase.Y;
                     vertices[verticesCount + 2] = height + extentBase.Z;
                     verticesCount += 3;
                 }
             }
             verticesCount = verticesCount / 3;
-            physicsScene.DetailLog("{0},BSTerrainMesh.ConvertHeightMapToMesh,completeVerts,verCount={1}", 
-                                            BSScene.DetailLogZero, verticesCount);
 
             for (int yy = 0; yy < sizeY; yy++)
             {
                 for (int xx = 0; xx < sizeX; xx++)
                 {
-                    int offset = yy * sizeX + xx;
+                    int offset = yy * (sizeX + 1) + xx;
                     // Each vertices is presumed to be the upper left corner of a box of two triangles
                     indices[indicesCount + 0] = offset;
                     indices[indicesCount + 1] = offset + 1;
@@ -235,13 +267,166 @@ public sealed class BSTerrainMesh : BSTerrainPhys
                     indicesCount += 6;
                 }
             }
-            physicsScene.DetailLog("{0},BSTerrainMesh.ConvertHeightMapToMesh,completeIndices,indCount={1}",   // DEEBUG DEBUG DEBUG
-                                                        LogHeader, indicesCount);                        // DEBUG
+
             ret = true;
         }
         catch (Exception e)
         {
-            physicsScene.Logger.ErrorFormat("{0} Failed conversion of heightmap to mesh. For={1}/{2}, e={3}",
+            if (physicsScene != null)
+                physicsScene.Logger.ErrorFormat("{0} Failed conversion of heightmap to mesh. For={1}/{2}, e={3}",
+                                                LogHeader, physicsScene.RegionName, extentBase, e);
+        }
+
+        indicesCountO = indicesCount;
+        indicesO = indices;
+        verticesCountO = verticesCount;
+        verticesO = vertices;
+
+        return ret;
+    }
+
+    private class HeightMapGetter
+    {
+        private float[] m_heightMap;
+        private int m_sizeX;
+        private int m_sizeY;
+        public HeightMapGetter(float[] pHeightMap, int pSizeX, int pSizeY)
+        {
+            m_heightMap = pHeightMap;
+            m_sizeX = pSizeX;
+            m_sizeY = pSizeY;
+        }
+        // The heightmap is extended as an infinite plane at the last height
+        public float GetHeight(int xx, int yy)
+        {
+            int offset = 0;
+            // Extend the height with the height from the last row or column
+            if (yy >= m_sizeY)
+                if (xx >= m_sizeX)
+                    offset = (m_sizeY - 1) * m_sizeX + (m_sizeX - 1);
+                else
+                    offset = (m_sizeY - 1) * m_sizeX + xx;
+            else
+                if (xx >= m_sizeX)
+                    offset = yy * m_sizeX + (m_sizeX - 1);
+                else
+                    offset = yy * m_sizeX + xx;
+
+            return m_heightMap[offset];
+        }
+    }
+
+    // Convert the passed heightmap to mesh information suitable for CreateMeshShape2().
+    // Version that handles magnification.
+    // Return 'true' if successfully created.
+    public static bool ConvertHeightmapToMesh2( BSScene physicsScene,
+                                float[] heightMap, int sizeX, int sizeY,    // parameters of incoming heightmap
+                                int magnification,                          // number of vertices per heighmap step
+                                Vector3 extent,                             // dimensions of the output mesh
+                                Vector3 extentBase,                         // base to be added to all vertices
+                                out int indicesCountO, out int[] indicesO,
+                                out int verticesCountO, out float[] verticesO)
+    {
+        bool ret = false;
+
+        int indicesCount = 0;
+        int verticesCount = 0;
+        int[] indices = new int[0];
+        float[] vertices = new float[0];
+
+        HeightMapGetter hmap = new HeightMapGetter(heightMap, sizeX, sizeY);
+
+        // The vertices dimension of the output mesh
+        int meshX = sizeX * magnification;
+        int meshY = sizeY * magnification;
+        // The output size of one mesh step
+        float meshXStep = extent.X / meshX;
+        float meshYStep = extent.Y / meshY;
+
+        // Create an array of vertices that is meshX+1 by meshY+1 (note the loop
+        //    from zero to <= meshX). The triangle indices are then generated as two triangles
+        //    per heightmap point. There are meshX by meshY of these squares. The extra row and
+        //    column of vertices are used to complete the triangles of the last row and column
+        //    of the heightmap.
+        try
+        {
+            // Vertices for the output heightmap plus one on the side and bottom to complete triangles
+            int totalVertices = (meshX + 1) * (meshY + 1);
+            vertices = new float[totalVertices * 3];
+            int totalIndices = meshX * meshY * 6;
+            indices = new int[totalIndices];
+
+            if (physicsScene != null)
+                physicsScene.DetailLog("{0},BSTerrainMesh.ConvertHeightMapToMesh2,inSize={1},outSize={2},totVert={3},totInd={4},extentBase={5}",
+                                    BSScene.DetailLogZero, new Vector2(sizeX, sizeY), new Vector2(meshX, meshY),
+                                    totalVertices, totalIndices, extentBase);
+
+            float minHeight = float.MaxValue;
+            // Note that sizeX+1 vertices are created since there is land between this and the next region.
+            // Loop through the output vertices and compute the mediun height in between the input vertices
+            for (int yy = 0; yy <= meshY; yy++)
+            {
+                for (int xx = 0; xx <= meshX; xx++)     // Hint: the "<=" means we go around sizeX + 1 times
+                {
+                    float offsetY = (float)yy * (float)sizeY / (float)meshY;     // The Y that is closest to the mesh point
+                    int stepY = (int)offsetY;
+                    float fractionalY = offsetY - (float)stepY;
+                    float offsetX = (float)xx * (float)sizeX / (float)meshX;     // The X that is closest to the mesh point
+                    int stepX = (int)offsetX;
+                    float fractionalX = offsetX - (float)stepX;
+
+                    // physicsScene.DetailLog("{0},BSTerrainMesh.ConvertHeightMapToMesh2,xx={1},yy={2},offX={3},stepX={4},fractX={5},offY={6},stepY={7},fractY={8}",
+                    //                 BSScene.DetailLogZero, xx, yy, offsetX, stepX, fractionalX, offsetY, stepY, fractionalY);
+
+                    // get the four corners of the heightmap square the mesh point is in
+                    float heightUL = hmap.GetHeight(stepX    , stepY    );
+                    float heightUR = hmap.GetHeight(stepX + 1, stepY    );
+                    float heightLL = hmap.GetHeight(stepX    , stepY + 1);
+                    float heightLR = hmap.GetHeight(stepX + 1, stepY + 1);
+
+                    // bilinear interplolation
+                    float height = heightUL * (1 - fractionalX) * (1 - fractionalY)
+                                 + heightUR * fractionalX       * (1 - fractionalY)
+                                 + heightLL * (1 - fractionalX) * fractionalY
+                                 + heightLR * fractionalX       * fractionalY;
+
+                    // physicsScene.DetailLog("{0},BSTerrainMesh.ConvertHeightMapToMesh2,heightUL={1},heightUR={2},heightLL={3},heightLR={4},heightMap={5}",
+                    //                 BSScene.DetailLogZero, heightUL, heightUR, heightLL, heightLR, height);
+
+                    minHeight = Math.Min(minHeight, height);
+
+                    vertices[verticesCount + 0] = (float)xx * meshXStep + extentBase.X;
+                    vertices[verticesCount + 1] = (float)yy * meshYStep + extentBase.Y;
+                    vertices[verticesCount + 2] = height + extentBase.Z;
+                    verticesCount += 3;
+                }
+            }
+            // The number of vertices generated
+            verticesCount /= 3;
+
+            // Loop through all the heightmap squares and create indices for the two triangles for that square
+            for (int yy = 0; yy < meshY; yy++)
+            {
+                for (int xx = 0; xx < meshX; xx++)
+                {
+                    int offset = yy * (meshX + 1) + xx;
+                    // Each vertices is presumed to be the upper left corner of a box of two triangles
+                    indices[indicesCount + 0] = offset;
+                    indices[indicesCount + 1] = offset + 1;
+                    indices[indicesCount + 2] = offset + meshX + 1; // accounting for the extra column
+                    indices[indicesCount + 3] = offset + 1;
+                    indices[indicesCount + 4] = offset + meshX + 2;
+                    indices[indicesCount + 5] = offset + meshX + 1;
+                    indicesCount += 6;
+                }
+            }
+
+            ret = true;
+        }
+        catch (Exception e)
+        {
+            if (physicsScene != null)
+                physicsScene.Logger.ErrorFormat("{0} Failed conversion of heightmap to mesh. For={1}/{2}, e={3}",
                                                 LogHeader, physicsScene.RegionName, extentBase, e);
         }
 

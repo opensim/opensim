@@ -50,7 +50,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// Method called when all the necessary assets for an archive request have been received.
         /// </summary>
         public delegate void AssetsRequestCallback(
-            ICollection<UUID> assetsFoundUuids, ICollection<UUID> assetsNotFoundUuids);
+            ICollection<UUID> assetsFoundUuids, ICollection<UUID> assetsNotFoundUuids, bool timedOut);
 
         enum RequestState
         {
@@ -148,7 +148,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             if (m_repliesRequired == 0)
             {
                 m_requestState = RequestState.Completed;
-                PerformAssetsRequestCallback(null);
+                PerformAssetsRequestCallback(false);
                 return;
             }
 
@@ -156,6 +156,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
             foreach (KeyValuePair<UUID, AssetType> kvp in m_uuids)
             {
+//                m_log.DebugFormat("[ARCHIVER]: Requesting asset {0}", kvp.Key);
+
 //                m_assetService.Get(kvp.Key.ToString(), kvp.Value, PreAssetRequestCallback);
                 AssetBase asset = m_assetService.Get(kvp.Key.ToString());
                 PreAssetRequestCallback(kvp.Key.ToString(), kvp.Value, asset);
@@ -164,7 +166,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
         protected void OnRequestCallbackTimeout(object source, ElapsedEventArgs args)
         {
-            bool close = true;
+            bool timedOut = true;
 
             try
             {
@@ -174,7 +176,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     // the final request came in (assuming that such a thing is possible)
                     if (m_requestState == RequestState.Completed)
                     {
-                        close = false;
+                        timedOut = false;
                         return;
                     }
                     
@@ -223,8 +225,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             }
             finally
             {
-                if (close)
-                    m_assetsArchiver.ForceClose();
+                if (timedOut)
+                    Util.FireAndForget(PerformAssetsRequestCallback, true);
             }
         }
 
@@ -290,7 +292,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                         
                         // We want to stop using the asset cache thread asap 
                         // as we now need to do the work of producing the rest of the archive
-                        Util.FireAndForget(PerformAssetsRequestCallback);
+                        Util.FireAndForget(PerformAssetsRequestCallback, false);
                     }
                     else
                     {
@@ -311,9 +313,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         {
             Culture.SetCurrentCulture();
 
+            Boolean timedOut = (Boolean)o;
+
             try
             {
-                m_assetsRequestCallback(m_foundAssetUuids, m_notFoundAssetUuids);
+                m_assetsRequestCallback(m_foundAssetUuids, m_notFoundAssetUuids, timedOut);
             }
             catch (Exception e)
             {

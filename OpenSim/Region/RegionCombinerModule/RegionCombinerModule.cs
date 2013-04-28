@@ -415,18 +415,17 @@ namespace OpenSim.Region.RegionCombinerModule
                         */
                     #endregion
 
-                    // If we're one region over +x y
+                    // If we're one region over +x y (i.e. root region is to the west)
                     //xxx
                     //xxy
                     //xxx
-
                     if (rootConn.PosX + rootConn.XEnd >= newConn.PosX && rootConn.PosY >= newConn.PosY)
                     {
                         connectedYN = DoWorkForOneRegionOverPlusXY(rootConn, newConn, scene);
                         break;
                     }
 
-                    // If we're one region over x +y
+                    // If we're one region over x +y (i.e. root region is to the south)
                     //xyx
                     //xxx
                     //xxx
@@ -436,7 +435,7 @@ namespace OpenSim.Region.RegionCombinerModule
                         break;
                     }
 
-                    // If we're one region over +x +y
+                    // If we're one region over +x +y (i.e. root region is to the south-west)
                     //xxy
                     //xxx
                     //xxx
@@ -646,7 +645,6 @@ namespace OpenSim.Region.RegionCombinerModule
             {
                 if (rootConn.RegionScene.EastBorders.Count == 1)// && conn.RegionScene.EastBorders.Count == 2)
                 {
-
                     rootConn.RegionScene.EastBorders[0].BorderLine.Z += (int)Constants.RegionSize;
 
                     lock (rootConn.RegionScene.NorthBorders)

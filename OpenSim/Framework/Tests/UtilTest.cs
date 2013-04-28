@@ -33,7 +33,7 @@ using OpenSim.Tests.Common;
 namespace OpenSim.Framework.Tests
 {
     [TestFixture]
-    public class UtilTests
+    public class UtilTests : OpenSimTestCase
     {
         [Test]
         public void VectorOperationTests()

@@ -95,5 +95,19 @@ namespace OpenSim.Data.MySQL
 
             return true;
         }
+
+        public bool VerifyAgent(UUID agentId, UUID secureSessionID)
+        {
+            PresenceData[] ret = Get("SecureSessionID",
+                    secureSessionID.ToString());
+
+            if (ret.Length == 0)
+                return false;
+
+            if(ret[0].UserID != agentId.ToString())
+                return false;
+
+            return true;
+        }
     }
 }

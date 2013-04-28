@@ -41,7 +41,7 @@ using System.Linq.Expressions;
 namespace OpenSim.Region.CoreModules.Scripting.ScriptModuleComms
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "ScriptModuleCommsModule")]
-    class ScriptModuleCommsModule : INonSharedRegionModule, IScriptModuleComms
+    public class ScriptModuleCommsModule : INonSharedRegionModule, IScriptModuleComms
     {
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -262,6 +262,8 @@ namespace OpenSim.Region.CoreModules.Scripting.ScriptModuleComms
                         return "modInvokeR";
                     else if (sid.ReturnType == typeof(object[]))
                         return "modInvokeL";
+                    else if (sid.ReturnType == typeof(void))
+                        return "modInvokeN";
 
                     m_log.WarnFormat("[MODULE COMMANDS] failed to find match for {0} with return type {1}",fname,sid.ReturnType.Name);
                 }

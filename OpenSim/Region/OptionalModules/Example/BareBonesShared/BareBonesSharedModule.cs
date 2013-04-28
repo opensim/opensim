@@ -33,6 +33,12 @@ using Nini.Config;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
+// You will need to uncomment these lines if you are adding a region module to some other assembly which does not already
+// specify its assembly.  Otherwise, the region modules in the assembly will not be picked up when OpenSimulator scans
+// the available DLLs
+//[assembly: Addin("MyModule", "1.0")]
+//[assembly: AddinDependency("OpenSim", "0.5")]
+
 namespace OpenSim.Region.OptionalModules.Example.BareBonesShared
 {
     /// <summary>

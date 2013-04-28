@@ -490,11 +490,14 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             m_Scene.ForEachSOG(AddObject);
 
-            List<UUID> primcountKeys = new List<UUID>(m_PrimCounts.Keys);
-            foreach (UUID k in primcountKeys)
+            lock (m_PrimCounts)
             {
-                if (!m_OwnerMap.ContainsKey(k))
-                    m_PrimCounts.Remove(k);
+                List<UUID> primcountKeys = new List<UUID>(m_PrimCounts.Keys);
+                foreach (UUID k in primcountKeys)
+                {
+                    if (!m_OwnerMap.ContainsKey(k))
+                        m_PrimCounts.Remove(k);
+                }
             }
             
             m_Tainted = false;

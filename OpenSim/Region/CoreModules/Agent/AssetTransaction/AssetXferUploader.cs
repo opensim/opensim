@@ -34,6 +34,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
+using PermissionMask = OpenSim.Framework.PermissionMask;
 
 namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
 {
@@ -260,10 +261,10 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                 {
                     CompleteTaskItemUpdate(m_updateTaskItemData);
                 }
-//                else if (m_storeLocal)
-//                {
-//                    m_Scene.AssetService.Store(m_asset);
-//                }
+                else if (m_asset.Local)
+                {
+                    m_Scene.AssetService.Store(m_asset);
+                }
             }
 
             m_log.DebugFormat(
@@ -339,7 +340,8 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                 // to avoid a race condition when the appearance module retrieves the item to set the asset id in
                 // the AvatarAppearance structure.
                 item.AssetID = m_asset.FullID;
-                m_Scene.InventoryService.UpdateItem(item);
+                if (item.AssetID != UUID.Zero)
+                    m_Scene.InventoryService.UpdateItem(item);
 
                 if (m_uploadState == UploadState.Complete)
                 {
@@ -390,6 +392,11 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
 //                m_asset.FullID, item.Name, ourClient.Name);
 
             m_Scene.AssetService.Store(m_asset);
+            if (m_asset.FullID != UUID.Zero)
+            {
+                item.AssetID = m_asset.FullID;
+                m_Scene.InventoryService.UpdateItem(item);
+            }
 
             m_transactions.RemoveXferUploader(m_transactionID);
         }
@@ -424,8 +431,8 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             item.AssetType = type;
             item.InvType = invType;
             item.Folder = InventFolder;
-            item.BasePermissions = 0x7fffffff;
-            item.CurrentPermissions = 0x7fffffff;
+            item.BasePermissions = (uint)(PermissionMask.All | PermissionMask.Export);
+            item.CurrentPermissions = item.BasePermissions;
             item.GroupPermissions=0;
             item.EveryOnePermissions=0;
             item.NextPermissions = nextPerm;

@@ -189,6 +189,45 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                         case (int)HttpRequestConstants.HTTP_VERIFY_CERT:
                             htc.HttpVerifyCert = (int.Parse(parms[i + 1]) != 0);
                             break;
+
+                        case (int)HttpRequestConstants.HTTP_VERBOSE_THROTTLE:
+
+                            // TODO implement me
+                            break;
+
+                        case (int)HttpRequestConstants.HTTP_CUSTOM_HEADER:
+                            //Parameters are in pairs and custom header takes
+                            //arguments in pairs so adjust for header marker.
+                            ++i;
+
+                            //Maximum of 8 headers are allowed based on the
+                            //Second Life documentation for llHTTPRequest.
+                            for (int count = 1; count <= 8; ++count)
+                            {
+                                //Not enough parameters remaining for a header?
+                                if (parms.Length - i < 2)
+                                    break;
+
+                                //Have we reached the end of the list of headers?
+                                //End is marked by a string with a single digit.
+                                //We already know we have at least one parameter
+                                //so it is safe to do this check at top of loop.
+                                if (Char.IsDigit(parms[i][0]))
+                                    break;
+
+                                if (htc.HttpCustomHeaders == null)
+                                    htc.HttpCustomHeaders = new List<string>();
+
+                                htc.HttpCustomHeaders.Add(parms[i]);
+                                htc.HttpCustomHeaders.Add(parms[i+1]);
+
+                                i += 2;
+                            }
+                            break;
+
+                        case (int)HttpRequestConstants.HTTP_PRAGMA_NO_CACHE:
+                            htc.HttpPragmaNoCache = (int.Parse(parms[i + 1]) != 0);
+                            break;
                     }
                 }
             }
@@ -353,9 +392,12 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
         // public const int HTTP_METHOD = 0;
         // public const int HTTP_MIMETYPE = 1;
         // public const int HTTP_VERIFY_CERT = 3;
+        // public const int HTTP_VERBOSE_THROTTLE = 4;
+        // public const int HTTP_CUSTOM_HEADER = 5;
+        // public const int HTTP_PRAGMA_NO_CACHE = 6;
         private bool _finished;
         public bool Finished
-        { 
+        {
             get { return _finished; }
         }
         // public int HttpBodyMaxLen = 2048; // not implemented
@@ -367,9 +409,14 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
         public bool HttpVerifyCert = true;
         public IWorkItemResult WorkItem = null;
 
+        //public bool HttpVerboseThrottle = true; // not implemented
+        public List<string> HttpCustomHeaders = null;
+        public bool HttpPragmaNoCache = true;
+        private Thread httpThread;
+
         // Request info
         private UUID _itemID;
-        public UUID ItemID 
+        public UUID ItemID
         {
             get { return _itemID; }
             set { _itemID = value; }
@@ -385,7 +432,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
         public string proxyexcepts;
         public string OutboundBody;
         private UUID _reqID;
-        public UUID ReqID 
+        public UUID ReqID
         {
             get { return _reqID; }
             set { _reqID = value; }
@@ -434,20 +481,34 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                 Request.Method = HttpMethod;
                 Request.ContentType = HttpMIMEType;
 
-                if(!HttpVerifyCert)
+                if (!HttpVerifyCert)
                 {
                     // We could hijack Connection Group Name to identify
                     // a desired security exception.  But at the moment we'll use a dummy header instead.
                     Request.Headers.Add("NoVerifyCert", "true");
                 }
-                if (proxyurl != null && proxyurl.Length > 0) 
+//                else
+//                {
+//                    Request.ConnectionGroupName="Verify";
+//                }
+                if (!HttpPragmaNoCache)
                 {
-                    if (proxyexcepts != null && proxyexcepts.Length > 0) 
+                    Request.Headers.Add("Pragma", "no-cache");
+                }
+                if (HttpCustomHeaders != null)
+                {
+                    for (int i = 0; i < HttpCustomHeaders.Count; i += 2)
+                        Request.Headers.Add(HttpCustomHeaders[i],
+                                            HttpCustomHeaders[i+1]);
+                }
+                if (proxyurl != null && proxyurl.Length > 0)
+                {
+                    if (proxyexcepts != null && proxyexcepts.Length > 0)
                     {
                         string[] elist = proxyexcepts.Split(';');
                         Request.Proxy = new WebProxy(proxyurl, true, elist);
-                    } 
-                    else 
+                    }
+                    else
                     {
                         Request.Proxy = new WebProxy(proxyurl, true);
                     }
@@ -460,7 +521,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                         Request.Headers[entry.Key] = entry.Value;
 
                 // Encode outbound data
-                if (OutboundBody.Length > 0) 
+                if (OutboundBody.Length > 0)
                 {
                     byte[] data = Util.UTF8.GetBytes(OutboundBody);
 

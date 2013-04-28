@@ -526,11 +526,12 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// These settings need to be tweaked 'exactly' right or weird stuff happens.
         /// </summary>
         /// <param value="name">Name of the scene.  Useful in debug messages.</param>
-        public OdeScene(string name)
+        public OdeScene(string engineType, string name)
         {
             m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType.ToString() + "." + name);
 
             Name = name;
+            EngineType = engineType;
 
             nearCallback = near;
             triCallback = TriCallback;
@@ -4095,8 +4096,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             lock (_prims)
             {
                 List<OdePrim> orderedPrims = new List<OdePrim>(_prims);
-                orderedPrims.OrderByDescending(p => p.CollisionScore).Take(25);
-                topColliders = orderedPrims.ToDictionary(p => p.LocalID, p => p.CollisionScore);
+                orderedPrims.OrderByDescending(p => p.CollisionScore);
+                topColliders = orderedPrims.Take(25).ToDictionary(p => p.LocalID, p => p.CollisionScore);
 
                 foreach (OdePrim p in _prims)
                     p.CollisionScore = 0;

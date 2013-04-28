@@ -117,7 +117,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                     
                     m_module.Scene.RegionInfo.RegionSettings.Save();
                     m_module.TriggerRegionInfoChange();
-                    m_module.sendRegionInfoPacketToAll();
+                    m_module.sendRegionHandshakeToAll();
                 }
             }
         }

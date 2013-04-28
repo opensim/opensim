@@ -64,7 +64,7 @@ namespace OpenSim.Region.Framework.Tests
             Scene scene = new SceneHelpers().SetupScene();
             UserAccount user1 = UserAccountHelpers.CreateUserWithInventory(scene, TestHelpers.ParseTail(1001));
 
-            UserInventoryHelpers.CreateInventoryFolder(scene.InventoryService, user1.PrincipalID, foldersName);
+            UserInventoryHelpers.CreateInventoryFolder(scene.InventoryService, user1.PrincipalID, foldersName, false);
 
             List<InventoryFolderBase> oneFolder
                 = UserInventoryHelpers.GetInventoryFolders(scene.InventoryService, user1.PrincipalID, foldersName);
@@ -73,7 +73,7 @@ namespace OpenSim.Region.Framework.Tests
             InventoryFolderBase firstRetrievedFolder = oneFolder[0];
             Assert.That(firstRetrievedFolder.Name, Is.EqualTo(foldersName));
 
-            UserInventoryHelpers.CreateInventoryFolder(scene.InventoryService, user1.PrincipalID, foldersName);
+            UserInventoryHelpers.CreateInventoryFolder(scene.InventoryService, user1.PrincipalID, foldersName, false);
 
             List<InventoryFolderBase> twoFolders
                 = UserInventoryHelpers.GetInventoryFolders(scene.InventoryService, user1.PrincipalID, foldersName);
@@ -121,7 +121,7 @@ namespace OpenSim.Region.Framework.Tests
             UserAccount user1 = UserAccountHelpers.CreateUserWithInventory(scene, TestHelpers.ParseTail(1001));
             UserAccount user2 = UserAccountHelpers.CreateUserWithInventory(scene, TestHelpers.ParseTail(1002));
             InventoryFolderBase folder1
-                = UserInventoryHelpers.CreateInventoryFolder(scene.InventoryService, user1.PrincipalID, "folder1");
+                = UserInventoryHelpers.CreateInventoryFolder(scene.InventoryService, user1.PrincipalID, "folder1", false);
 
             scene.GiveInventoryFolder(user2.PrincipalID, user1.PrincipalID, folder1.ID, UUID.Zero);
 

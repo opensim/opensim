@@ -45,6 +45,9 @@ namespace OpenSim.Tests.Common
         /// <summary>
         /// Add an existing scene object as an item in the user's inventory.
         /// </summary>
+        /// <remarks>
+        /// Will be added to the system Objects folder.
+        /// </remarks>
         /// <param name='scene'></param>
         /// <param name='so'></param>
         /// <param name='inventoryIdTail'></param>
@@ -63,7 +66,29 @@ namespace OpenSim.Tests.Common
         }
 
         /// <summary>
-        /// Creates a notecard in the objects folder and specify an item id.
+        /// Add an existing scene object as an item in the user's inventory at the given path.
+        /// </summary>
+        /// <param name='scene'></param>
+        /// <param name='so'></param>
+        /// <param name='inventoryIdTail'></param>
+        /// <param name='assetIdTail'></param>
+        /// <returns>The inventory item created.</returns>
+        public static InventoryItemBase AddInventoryItem(
+            Scene scene, SceneObjectGroup so, int inventoryIdTail, int assetIdTail, string path)
+        {
+            return AddInventoryItem(
+                scene,
+                so.Name,
+                TestHelpers.ParseTail(inventoryIdTail),
+                InventoryType.Object,
+                AssetHelpers.CreateAsset(TestHelpers.ParseTail(assetIdTail), so),
+                so.OwnerID,
+                path);
+        }
+
+        /// <summary>
+        /// Adds the given item to the existing system folder for its type (e.g. an object will go in the "Objects"
+        /// folder).
         /// </summary>
         /// <param name="scene"></param>
         /// <param name="itemName"></param>
@@ -75,6 +100,25 @@ namespace OpenSim.Tests.Common
         private static InventoryItemBase AddInventoryItem(
             Scene scene, string itemName, UUID itemId, InventoryType itemType, AssetBase asset, UUID userId)
         {
+            return AddInventoryItem(
+                scene, itemName, itemId, itemType, asset, userId, 
+                scene.InventoryService.GetFolderForType(userId, (AssetType)asset.Type).Name);
+        }
+
+        /// <summary>
+        /// Adds the given item to an inventory folder
+        /// </summary>
+        /// <param name="scene"></param>
+        /// <param name="itemName"></param>
+        /// <param name="itemId"></param>
+        /// <param name="itemType"></param>
+        /// <param name="asset">The serialized asset for this item</param>
+        /// <param name="userId"></param>
+        /// <param name="path">Existing inventory path at which to add.</param>
+        /// <returns></returns>
+        private static InventoryItemBase AddInventoryItem(
+            Scene scene, string itemName, UUID itemId, InventoryType itemType, AssetBase asset, UUID userId, string path)
+        {
             scene.AssetService.Store(asset);
 
             InventoryItemBase item = new InventoryItemBase();
@@ -85,7 +129,7 @@ namespace OpenSim.Tests.Common
             item.AssetType = asset.Type;
             item.InvType = (int)itemType;
 
-            InventoryFolderBase folder = scene.InventoryService.GetFolderForType(userId, (AssetType)asset.Type);
+            InventoryFolderBase folder = InventoryArchiveUtils.FindFoldersByPath(scene.InventoryService, userId, path)[0];
 
             item.Folder = folder.ID;
             scene.AddInventoryItem(item);
@@ -156,58 +200,83 @@ namespace OpenSim.Tests.Common
         /// <summary>
         /// Create inventory folders starting from the user's root folder.
         /// </summary>
-        ///
-        /// Ignores any existing folders with the same name
-        /// 
         /// <param name="inventoryService"></param>
         /// <param name="userId"></param>
         /// <param name="path">
         /// The folders to create.  Multiple folders can be specified on a path delimited by the PATH_DELIMITER
+        /// </param>
+        /// <param name="useExistingFolders">
+        /// If true, then folders in the path which already the same name are
+        /// used.  This applies to the terminal folder as well.  
+        /// If false, then all folders in the path are created, even if there is already a folder at a particular
+        /// level with the same name.
         /// </param>
         /// <returns>
         /// The folder created.  If the path contains multiple folders then the last one created is returned.
         /// Will return null if the root folder could not be found.
         /// </returns>
         public static InventoryFolderBase CreateInventoryFolder(
-            IInventoryService inventoryService, UUID userId, string path)
+            IInventoryService inventoryService, UUID userId, string path, bool useExistingFolders)
         {
             InventoryFolderBase rootFolder = inventoryService.GetRootFolder(userId);
 
             if (null == rootFolder)
                 return null;
 
-            return CreateInventoryFolder(inventoryService, rootFolder, path);
+            return CreateInventoryFolder(inventoryService, rootFolder, path, useExistingFolders);
         }
 
         /// <summary>
         /// Create inventory folders starting from a given parent folder
         /// </summary>
-        ///
-        /// Ignores any existing folders with the same name
-        /// 
+        /// <remarks>
+        /// If any stem of the path names folders that already exist then these are not recreated.  This includes the 
+        /// final folder.
+        /// TODO: May need to make it an option to create duplicate folders.
+        /// </remarks>
         /// <param name="inventoryService"></param>
         /// <param name="parentFolder"></param>
         /// <param name="path">
-        /// The folders to create.  Multiple folders can be specified on a path delimited by the PATH_DELIMITER
+        /// The folder to create.
+        /// </param>
+        /// <param name="useExistingFolders">
+        /// If true, then folders in the path which already the same name are
+        /// used.  This applies to the terminal folder as well.  
+        /// If false, then all folders in the path are created, even if there is already a folder at a particular
+        /// level with the same name.
         /// </param>
         /// <returns>
         /// The folder created.  If the path contains multiple folders then the last one created is returned.
         /// </returns>
         public static InventoryFolderBase CreateInventoryFolder(
-            IInventoryService inventoryService, InventoryFolderBase parentFolder, string path)
+            IInventoryService inventoryService, InventoryFolderBase parentFolder, string path, bool useExistingFolders)
         {
             string[] components = path.Split(new string[] { PATH_DELIMITER }, 2, StringSplitOptions.None);
 
-            InventoryFolderBase newFolder 
-                = new InventoryFolderBase(
-                    UUID.Random(), components[0], parentFolder.Owner, (short)AssetType.Unknown, parentFolder.ID, 0);
-            
-            inventoryService.AddFolder(newFolder);
+            InventoryFolderBase folder = null;
+
+            if (useExistingFolders)
+                folder = InventoryArchiveUtils.FindFolderByPath(inventoryService, parentFolder, components[0]);
+
+            if (folder == null)
+            {
+//                Console.WriteLine("Creating folder {0} at {1}", components[0], parentFolder.Name);
+
+                folder 
+                    = new InventoryFolderBase(
+                        UUID.Random(), components[0], parentFolder.Owner, (short)AssetType.Unknown, parentFolder.ID, 0);
+                
+                inventoryService.AddFolder(folder);
+            }
+//            else
+//            {
+//                Console.WriteLine("Found existing folder {0}", folder.Name);
+//            }
 
             if (components.Length > 1)
-                return CreateInventoryFolder(inventoryService, newFolder, components[1]);
+                return CreateInventoryFolder(inventoryService, folder, components[1], useExistingFolders);
             else
-                return newFolder;
+                return folder;
         }
 
         /// <summary>
@@ -237,7 +306,7 @@ namespace OpenSim.Tests.Common
         /// <returns>An empty list if no matching folders were found</returns>
         public static List<InventoryFolderBase> GetInventoryFolders(IInventoryService inventoryService, UUID userId, string path)
         {
-            return InventoryArchiveUtils.FindFolderByPath(inventoryService, userId, path);
+            return InventoryArchiveUtils.FindFoldersByPath(inventoryService, userId, path);
         }
 
         /// <summary>

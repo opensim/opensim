@@ -38,6 +38,7 @@ using OpenSim.Services.Interfaces;
 using log4net;
 using Nini.Config;
 using OpenMetaverse;
+using PermissionMask = OpenSim.Framework.PermissionMask;
 
 namespace OpenSim.Services.InventoryService
 {

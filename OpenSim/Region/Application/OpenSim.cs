@@ -30,6 +30,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -158,6 +159,7 @@ namespace OpenSim
 
             MainConsole.Instance = m_console;
 
+            LogEnvironmentInformation();
             RegisterCommonAppenders(Config.Configs["Startup"]);
             RegisterConsoleCommands();
 
@@ -234,18 +236,6 @@ namespace OpenSim
                                           + "If level <=  50 then outgoing ImprovedTerseObjectUpdate packets are not logged.\n"
                                           + "If level <= 0 then no packets are logged.\n"
                                           + "If an avatar name is given then only packets from that avatar are logged",
-                                          Debug);
-
-            m_console.Commands.AddCommand("Debug", false, "debug teleport", "debug teleport", "Toggle teleport route debugging", Debug);
-
-            m_console.Commands.AddCommand("Debug", false, "debug scene",
-                                          "debug scene active|collisions|physics|scripting|teleport true|false",
-                                          "Turn on scene debugging.",
-                                            "If active     is false then main scene update and maintenance loops are suspended.\n"
-                                          + "If collisions is false then collisions with other objects are turned off.\n"
-                                          + "If physics    is false then all physics objects are non-physical.\n"
-                                          + "If scripting  is false then no scripting operations happen.\n"
-                                          + "If teleport   is true  then some extra teleport debug information is logged.",
                                           Debug);
 
             m_console.Commands.AddCommand("General", false, "change region",
@@ -744,31 +734,6 @@ namespace OpenSim
 
                     break;
 
-                case "scene":
-                    if (args.Length == 4)
-                    {
-                        if (SceneManager.CurrentScene == null)
-                        {
-                            MainConsole.Instance.Output("Please use 'change region <regioname>' first");
-                        }
-                        else
-                        {
-                            string key = args[2];
-                            string value = args[3];
-                            SceneManager.CurrentScene.SetSceneCoreDebug(
-                                new Dictionary<string, string>() { { key, value } });
-
-                            MainConsole.Instance.OutputFormat("Set debug scene {0} = {1}", key, value);
-                        }
-                    }
-                    else
-                    {
-                        MainConsole.Instance.Output(
-                            "Usage: debug scene active|scripting|collisions|physics|teleport true|false");
-                    }
-
-                    break;
-
                 default:
                     MainConsole.Instance.Output("Unknown debug command");
                     break;
@@ -845,16 +810,28 @@ namespace OpenSim
                     break;
 
                 case "modules":
-                    SceneManager.ForEachScene(
-                        delegate(Scene scene) {
-                        MainConsole.Instance.Output("Loaded region modules in" + scene.RegionInfo.RegionName + " are:");
-                        foreach (IRegionModuleBase module in scene.RegionModules.Values)
+                    SceneManager.ForEachSelectedScene(
+                        scene => 
                         {
-                            Type type = module.GetType().GetInterface("ISharedRegionModule");
-                            string module_type = type != null ? "Shared" : "Non-Shared";
-                            MainConsole.Instance.OutputFormat("New Region Module ({0}): {1}", module_type, module.Name);
+                            MainConsole.Instance.OutputFormat("Loaded region modules in {0} are:", scene.Name);
+
+                            List<IRegionModuleBase> sharedModules = new List<IRegionModuleBase>();
+                            List<IRegionModuleBase> nonSharedModules = new List<IRegionModuleBase>();
+
+                            foreach (IRegionModuleBase module in scene.RegionModules.Values)
+                            {
+                                if (module.GetType().GetInterface("ISharedRegionModule") != null)
+                                    nonSharedModules.Add(module);
+                                else
+                                    sharedModules.Add(module);
+                            }
+
+                            foreach (IRegionModuleBase module in sharedModules.OrderBy(m => m.Name))
+                                MainConsole.Instance.OutputFormat("New Region Module (Shared): {0}", module.Name);
+
+                            foreach (IRegionModuleBase module in sharedModules.OrderBy(m => m.Name))
+                                MainConsole.Instance.OutputFormat("New Region Module (Non-Shared): {0}", module.Name);
                         }
-                    }
                     );
 
                     MainConsole.Instance.Output("");

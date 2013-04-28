@@ -31,11 +31,12 @@ using NUnit.Framework;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
+using OpenSim.Tests.Common;
 
 namespace OpenSim.Framework.Tests
 {
     [TestFixture]
-    public class PrimeNumberHelperTests
+    public class PrimeNumberHelperTests : OpenSimTestCase
     {
         [Test]
         public void TestGetPrime()

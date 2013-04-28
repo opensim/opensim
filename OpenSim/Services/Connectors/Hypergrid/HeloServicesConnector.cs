@@ -73,7 +73,6 @@ namespace OpenSim.Services.Connectors
             }
         }
 
-
         public virtual string Helo()
         {
             HttpWebRequest req = (HttpWebRequest)HttpWebRequest.Create(m_ServerURI);
@@ -82,10 +81,12 @@ namespace OpenSim.Services.Connectors
 
             try
             {
-                WebResponse response = req.GetResponse();
-                if (response.Headers.Get("X-Handlers-Provided") == null) // just in case this ever returns a null
-                    return string.Empty;
-                return response.Headers.Get("X-Handlers-Provided");
+                using (WebResponse response = req.GetResponse())
+                {
+                    if (response.Headers.Get("X-Handlers-Provided") == null) // just in case this ever returns a null
+                        return string.Empty;
+                    return response.Headers.Get("X-Handlers-Provided");
+                }
             }
             catch (Exception e)
             {
@@ -95,6 +96,5 @@ namespace OpenSim.Services.Connectors
             // fail
             return string.Empty;
         }
-
     }
 }

@@ -54,6 +54,10 @@ namespace OpenSim.Region.Framework.Interfaces
         /// RezAttachments. This should only be called upon login on the first region.
         /// Attachment rezzings on crossings and TPs are done in a different way.
         /// </summary>
+        /// <remarks>
+        /// This is only actually necessary for viewers which do not have a current outfit folder (these viewers make
+        /// their own attachment calls on login) and agents which have attachments but no viewer (e.g. NPCs).
+        /// </remarks>
         /// <param name="sp"></param>
         void RezAttachments(IScenePresence sp);
 
@@ -77,14 +81,16 @@ namespace OpenSim.Region.Framework.Interfaces
         void DeleteAttachmentsFromScene(IScenePresence sp, bool silent);
 
         /// <summary>
-        /// Attach an object to an avatar
+        /// Attach an object to an avatar.
         /// </summary>
         /// <param name="sp"></param>
         /// <param name="grp"></param>
         /// <param name="AttachmentPt"></param>
         /// <param name="silent"></param>
+        /// <param name="addToInventory">If true then add object to user inventory</param>
+        /// <param name="append">Append to attachment point rather than replace.</param>
         /// <returns>true if the object was successfully attached, false otherwise</returns>
-        bool AttachObject(IScenePresence sp, SceneObjectGroup grp, uint AttachmentPt, bool silent, bool useAttachmentInfo, bool temp);
+        bool AttachObject(IScenePresence sp, SceneObjectGroup grp, uint AttachmentPt, bool silent, bool useAttachmentInfo, bool addToInventory, bool append);
 
         /// <summary>
         /// Rez an attachment from user inventory and change inventory status to match.

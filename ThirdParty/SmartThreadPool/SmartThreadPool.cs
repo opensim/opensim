@@ -135,6 +135,11 @@ namespace Amib.Threading
         /// </summary>
         public const ThreadPriority DefaultThreadPriority = ThreadPriority.Normal;
 
+        /// <summary>
+        /// The default thread pool name
+        /// </summary>
+        public const string DefaultThreadPoolName = "SmartThreadPool";
+
         #endregion
 
         #region Member Variables
@@ -143,7 +148,7 @@ namespace Amib.Threading
         /// Contains the name of this instance of SmartThreadPool.
         /// Can be changed by the user.
         /// </summary>
-        private string _name = "SmartThreadPool";
+        private string _name = DefaultThreadPoolName;
 
         /// <summary>
         /// Hashtable of all the threads in the thread pool.
@@ -307,6 +312,7 @@ namespace Amib.Threading
 
         private void Initialize()
         {
+            Name = _stpStartInfo.ThreadPoolName;
             ValidateSTPStartInfo();
 
             if (null != _stpStartInfo.PerformanceCounterInstanceName)

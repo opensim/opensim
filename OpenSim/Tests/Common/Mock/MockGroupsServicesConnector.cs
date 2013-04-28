@@ -26,12 +26,15 @@
  */
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using log4net;
 using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
+using OpenSim.Data;
+using OpenSim.Data.Null;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -43,6 +46,8 @@ namespace OpenSim.Tests.Common.Mock
     public class MockGroupsServicesConnector : ISharedRegionModule, IGroupsServicesConnector
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        IXGroupData m_data = new NullXGroupData(null, null);
 
         public string Name
         {
@@ -84,7 +89,33 @@ namespace OpenSim.Tests.Common.Mock
                                 int membershipFee, bool openEnrollment, bool allowPublish, 
                                 bool maturePublish, UUID founderID)
         {
-            return UUID.Zero;
+            XGroup group = new XGroup()
+            {
+                groupID = UUID.Random(),
+                ownerRoleID = UUID.Random(),
+                name = name,
+                charter = charter,
+                showInList = showInList,
+                insigniaID = insigniaID,
+                membershipFee = membershipFee,
+                openEnrollment = openEnrollment,
+                allowPublish = allowPublish,
+                maturePublish = maturePublish,
+                founderID = founderID,
+                everyonePowers = (ulong)XmlRpcGroupsServicesConnectorModule.DefaultEveryonePowers,
+                ownersPowers = (ulong)XmlRpcGroupsServicesConnectorModule.DefaultOwnerPowers
+            };
+
+            if (m_data.StoreGroup(group))
+            {
+                m_log.DebugFormat("[MOCK GROUPS SERVICES CONNECTOR]: Created group {0} {1}", group.name, group.groupID);
+                return group.groupID;
+            }
+            else
+            {
+                m_log.ErrorFormat("[MOCK GROUPS SERVICES CONNECTOR]: Failed to create group {0}", name);
+                return UUID.Zero;
+            }
         }
 
         public void UpdateGroup(UUID requestingAgentID, UUID groupID, string charter, bool showInList, 
@@ -107,9 +138,49 @@ namespace OpenSim.Tests.Common.Mock
         {
         }
 
-        public GroupRecord GetGroupRecord(UUID requestingAgentID, UUID GroupID, string GroupName)
+        public GroupRecord GetGroupRecord(UUID requestingAgentID, UUID groupID, string groupName)
         {
-            return null;
+            m_log.DebugFormat(
+                "[MOCK GROUPS SERVICES CONNECTOR]: Processing GetGroupRecord() for groupID {0}, name {1}", 
+                groupID, groupName);
+
+            XGroup[] groups;
+            string field, val;
+
+            if (groupID != UUID.Zero)
+            {
+                field = "groupID";
+                val = groupID.ToString();
+            }
+            else
+            {
+                field = "name";
+                val = groupName;
+            }
+
+            groups = m_data.GetGroups(field, val);
+
+            if (groups.Length == 0)
+                return null;
+
+            XGroup xg = groups[0];
+
+            GroupRecord gr = new GroupRecord()
+            {
+                GroupID = xg.groupID,
+                GroupName = xg.name,
+                AllowPublish = xg.allowPublish,
+                MaturePublish = xg.maturePublish,
+                Charter = xg.charter,
+                FounderID = xg.founderID,
+                // FIXME: group picture storage location unknown
+                MembershipFee = xg.membershipFee,
+                OpenEnrollment = xg.openEnrollment,
+                OwnerRoleID = xg.ownerRoleID,
+                ShowInList = xg.showInList
+            };
+
+            return gr;
         }
 
         public GroupProfileData GetMemberGroupProfile(UUID requestingAgentID, UUID GroupID, UUID AgentID)

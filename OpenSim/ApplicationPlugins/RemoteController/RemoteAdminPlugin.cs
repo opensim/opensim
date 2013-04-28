@@ -50,6 +50,7 @@ using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
 using PresenceInfo = OpenSim.Services.Interfaces.PresenceInfo;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
+using PermissionMask = OpenSim.Framework.PermissionMask;
 
 namespace OpenSim.ApplicationPlugins.RemoteController
 {
@@ -140,6 +141,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     availableMethods["admin_save_heightmap"] = (req, ep) => InvokeXmlRpcMethod(req, ep, XmlRpcSaveHeightmapMethod);
 
                     // Agent management
+                    availableMethods["admin_get_agents"] = (req, ep) => InvokeXmlRpcMethod(req, ep, XmlRpcGetAgentsMethod);
                     availableMethods["admin_teleport_agent"] = (req, ep) => InvokeXmlRpcMethod(req, ep, XmlRpcTeleportAgentMethod);
 
                     // User management
@@ -1898,6 +1900,71 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             responseData["success"] = true;
 
             m_log.Info("[RADMIN]: Access List List Request complete");
+        }
+
+        private void XmlRpcGetAgentsMethod(XmlRpcRequest request, XmlRpcResponse response, IPEndPoint remoteClient)
+        {
+            Hashtable responseData = (Hashtable)response.Value;
+            Hashtable requestData = (Hashtable)request.Params[0];
+
+            bool includeChildren = false;
+
+            if (requestData.Contains("include_children"))
+                bool.TryParse((string)requestData["include_children"], out includeChildren);
+
+            Scene scene;
+            GetSceneFromRegionParams(requestData, responseData, out scene);
+
+            ArrayList xmlRpcRegions = new ArrayList();
+            responseData["regions"] = xmlRpcRegions;
+
+            Hashtable xmlRpcRegion = new Hashtable();
+            xmlRpcRegions.Add(xmlRpcRegion);
+
+            xmlRpcRegion["name"] = scene.Name;
+            xmlRpcRegion["id"] = scene.RegionInfo.RegionID.ToString();
+
+            List<ScenePresence> agents = scene.GetScenePresences();
+            ArrayList xmlrpcAgents = new ArrayList();
+
+            foreach (ScenePresence agent in agents)
+            {
+                if (agent.IsChildAgent && !includeChildren)
+                    continue;
+
+                Hashtable xmlRpcAgent = new Hashtable();
+                xmlRpcAgent.Add("name", agent.Name);
+                xmlRpcAgent.Add("id", agent.UUID.ToString());
+                xmlRpcAgent.Add("type", agent.PresenceType.ToString());
+                xmlRpcAgent.Add("current_parcel_id", agent.currentParcelUUID.ToString());
+
+                Vector3 pos = agent.AbsolutePosition;
+                xmlRpcAgent.Add("pos_x", pos.X.ToString());
+                xmlRpcAgent.Add("pos_y", pos.Y.ToString());
+                xmlRpcAgent.Add("pos_z", pos.Z.ToString());
+
+                Vector3 lookAt = agent.Lookat;
+                xmlRpcAgent.Add("lookat_x", lookAt.X.ToString());
+                xmlRpcAgent.Add("lookat_y", lookAt.Y.ToString());
+                xmlRpcAgent.Add("lookat_z", lookAt.Z.ToString());
+
+                Vector3 vel = agent.Velocity;
+                xmlRpcAgent.Add("vel_x", vel.X.ToString());
+                xmlRpcAgent.Add("vel_y", vel.Y.ToString());
+                xmlRpcAgent.Add("vel_z", vel.Z.ToString());
+
+                xmlRpcAgent.Add("is_flying", agent.Flying.ToString());
+                xmlRpcAgent.Add("is_sat_on_ground", agent.SitGround.ToString());
+                xmlRpcAgent.Add("is_sat_on_object", agent.IsSatOnObject.ToString());
+
+                xmlrpcAgents.Add(xmlRpcAgent);
+            }
+
+            m_log.DebugFormat(
+                "[REMOTE ADMIN]: XmlRpcGetAgents found {0} agents in {1}", xmlrpcAgents.Count, scene.Name);
+
+            xmlRpcRegion["agents"] = xmlrpcAgents;
+            responseData["success"] = true;
         }
 
         private void XmlRpcTeleportAgentMethod(XmlRpcRequest request, XmlRpcResponse response, IPEndPoint remoteClient)

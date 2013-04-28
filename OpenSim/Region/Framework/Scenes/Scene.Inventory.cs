@@ -39,6 +39,7 @@ using OpenSim.Region.Framework;
 using OpenSim.Framework.Client;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes.Serialization;
+using PermissionMask = OpenSim.Framework.PermissionMask;
 
 namespace OpenSim.Region.Framework.Scenes
 {
@@ -401,29 +402,68 @@ namespace OpenSim.Region.Framework.Scenes
                 if (item.Owner != remoteClient.AgentId)
                     return;
 
-                if (UUID.Zero == transactionID)
-                {
-                    item.Flags = (item.Flags & ~(uint)255) | (itemUpd.Flags & (uint)255);
-                    item.Name = itemUpd.Name;
-                    item.Description = itemUpd.Description;
+                item.Flags = (item.Flags & ~(uint)255) | (itemUpd.Flags & (uint)255);
+                item.Name = itemUpd.Name;
+                item.Description = itemUpd.Description;
 
 //                    m_log.DebugFormat(
 //                        "[USER INVENTORY]: itemUpd {0} {1} {2} {3}, item {4} {5} {6} {7}",
 //                        itemUpd.NextPermissions, itemUpd.GroupPermissions, itemUpd.EveryOnePermissions, item.Flags,
 //                        item.NextPermissions, item.GroupPermissions, item.EveryOnePermissions, item.CurrentPermissions);
 
+                if (itemUpd.NextPermissions != 0) // Use this to determine validity. Can never be 0 if valid
+                {
+                    // Create a set of base permissions that will not include export if the user
+                    // is not allowed to change the export flag.
+                    bool denyExportChange = false;
+
+                    m_log.InfoFormat("[XXX]: B: {0} O: {1} E: {2}", itemUpd.BasePermissions, itemUpd.CurrentPermissions, itemUpd.EveryOnePermissions);
+
+                    // If the user is not the creator or doesn't have "E" in both "B" and "O", deny setting export
+                    if ((item.BasePermissions & (uint)(PermissionMask.All | PermissionMask.Export)) != (uint)(PermissionMask.All | PermissionMask.Export) || (item.CurrentPermissions & (uint)PermissionMask.Export) == 0 || item.CreatorIdAsUuid != item.Owner)
+                        denyExportChange = true;
+
+                    m_log.InfoFormat("[XXX]: Deny Export Update {0}", denyExportChange);
+
+                    // If it is already set, force it set and also force full perm
+                    // else prevent setting it. It can and should never be set unless
+                    // set in base, so the condition above is valid
+                    if (denyExportChange)
+                    {
+                        // If we are not allowed to change it, then force it to the
+                        // original item's setting and if it was on, also force full perm
+                        if ((item.EveryOnePermissions & (uint)PermissionMask.Export) != 0)
+                        {
+                            itemUpd.NextPermissions = (uint)(PermissionMask.All);
+                            itemUpd.EveryOnePermissions |= (uint)PermissionMask.Export;
+                        }
+                        else
+                        {
+                            itemUpd.EveryOnePermissions &= ~(uint)PermissionMask.Export;
+                        }
+                    }
+                    else
+                    {
+                        // If the new state is exportable, force full perm
+                        if ((itemUpd.EveryOnePermissions & (uint)PermissionMask.Export) != 0)
+                        {
+                            m_log.InfoFormat("[XXX]: Force full perm");
+                            itemUpd.NextPermissions = (uint)(PermissionMask.All);
+                        }
+                    }
+
                     if (item.NextPermissions != (itemUpd.NextPermissions & item.BasePermissions))
                         item.Flags |= (uint)InventoryItemFlags.ObjectOverwriteNextOwner;
                     item.NextPermissions = itemUpd.NextPermissions & item.BasePermissions;
+
                     if (item.EveryOnePermissions != (itemUpd.EveryOnePermissions & item.BasePermissions))
                         item.Flags |= (uint)InventoryItemFlags.ObjectOverwriteEveryone;
                     item.EveryOnePermissions = itemUpd.EveryOnePermissions & item.BasePermissions;
+
                     if (item.GroupPermissions != (itemUpd.GroupPermissions & item.BasePermissions))
                         item.Flags |= (uint)InventoryItemFlags.ObjectOverwriteGroup;
-
-//                    m_log.DebugFormat("[USER INVENTORY]: item.Flags {0}", item.Flags);
-
                     item.GroupPermissions = itemUpd.GroupPermissions & item.BasePermissions;
+
                     item.GroupID = itemUpd.GroupID;
                     item.GroupOwned = itemUpd.GroupOwned;
                     item.CreationDate = itemUpd.CreationDate;
@@ -445,8 +485,10 @@ namespace OpenSim.Region.Framework.Scenes
                     item.SaleType = itemUpd.SaleType;
 
                     InventoryService.UpdateItem(item);
+                    remoteClient.SendBulkUpdateInventory(item);
                 }
-                else
+
+                if (UUID.Zero != transactionID)
                 {
                     if (AgentTransactionsModule != null)
                     {
@@ -683,12 +725,10 @@ namespace OpenSim.Region.Framework.Scenes
             itemCopy.SalePrice = item.SalePrice;
             itemCopy.SaleType = item.SaleType;
 
-            if (AddInventoryItem(itemCopy))
-            {
-                IInventoryAccessModule invAccess = RequestModuleInterface<IInventoryAccessModule>();
-                if (invAccess != null)
-                    Util.FireAndForget(delegate { invAccess.TransferInventoryAssets(itemCopy, senderId, recipient); });
-            }
+            IInventoryAccessModule invAccess = RequestModuleInterface<IInventoryAccessModule>();
+            if (invAccess != null)
+                invAccess.TransferInventoryAssets(itemCopy, senderId, recipient);
+            AddInventoryItem(itemCopy);
 
             if (!Permissions.BypassPermissions())
             {
@@ -908,7 +948,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             CreateNewInventoryItem(
                 remoteClient, creatorID, creatorData, folderID, name, description, flags, callbackID, asset, invType,
-                (uint)PermissionMask.All, (uint)PermissionMask.All, 0, nextOwnerMask, 0, creationDate, transationID);
+                (uint)PermissionMask.All | (uint)PermissionMask.Export, (uint)PermissionMask.All | (uint)PermissionMask.Export, 0, nextOwnerMask, 0, creationDate, transationID);
         }
 
 
@@ -1037,8 +1077,8 @@ namespace OpenSim.Region.Framework.Scenes
                 CreateNewInventoryItem(
                     remoteClient, remoteClient.AgentId.ToString(), string.Empty, folderID,
                     name, description, 0, callbackID, asset, invType,
-                    (uint)PermissionMask.All, (uint)PermissionMask.All, (uint)PermissionMask.All,
-                    (uint)PermissionMask.All, (uint)PermissionMask.All, Util.UnixTimeSinceEpoch());
+                    (uint)PermissionMask.All | (uint)PermissionMask.Export, (uint)PermissionMask.All | (uint)PermissionMask.Export, (uint)PermissionMask.All,
+                    (uint)PermissionMask.All | (uint)PermissionMask.Export, (uint)PermissionMask.All | (uint)PermissionMask.Export, Util.UnixTimeSinceEpoch());
             }
             else
             {
@@ -1785,6 +1825,21 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>The part where the script was rezzed if successful.  False otherwise.</returns>
         public SceneObjectPart RezNewScript(UUID agentID, InventoryItemBase itemBase)
         {
+            return RezNewScript(
+                agentID,
+                itemBase,
+                "default\n{\n    state_entry()\n    {\n        llSay(0, \"Script running\");\n    }\n}");
+        }
+
+        /// <summary>
+        /// Rez a new script from nothing with given script text.
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="itemBase">Template item.</param>
+        /// <param name="scriptText"></param>
+        /// <returns>The part where the script was rezzed if successful.  False otherwise.</returns>
+        public SceneObjectPart RezNewScript(UUID agentID, InventoryItemBase itemBase, string scriptText)
+        {
             // The part ID is the folder ID!
             SceneObjectPart part = GetSceneObjectPart(itemBase.Folder);
             if (part == null)
@@ -1804,9 +1859,14 @@ namespace OpenSim.Region.Framework.Scenes
                 return null;
             }
 
-            AssetBase asset = CreateAsset(itemBase.Name, itemBase.Description, (sbyte)itemBase.AssetType,
-                Encoding.ASCII.GetBytes("default\n{\n    state_entry()\n    {\n        llSay(0, \"Script running\");\n    }\n\n    touch_start(integer num)\n    {\n    }\n}"),
-                agentID);
+            AssetBase asset 
+                = CreateAsset(
+                    itemBase.Name, 
+                    itemBase.Description, 
+                    (sbyte)itemBase.AssetType,
+                    Encoding.ASCII.GetBytes(scriptText), 
+                    agentID);
+
             AssetService.Store(asset);
 
             TaskInventoryItem taskItem = new TaskInventoryItem();

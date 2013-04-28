@@ -35,6 +35,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 {
     public class Timer
     {
+        public class TimerInfo
+        {
+            public uint localID;
+            public UUID itemID;
+            //public double interval;
+            public long interval;
+            //public DateTime next;
+            public long next;
+
+            public TimerInfo Clone()
+            {
+                return (TimerInfo)this.MemberwiseClone();
+            }
+        }
+
         public AsyncCommandManager m_CmdManager;
 
         public int TimersCount
@@ -59,17 +74,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             return localID.ToString() + itemID.ToString();
         }
 
-        private class TimerClass
-        {
-            public uint localID;
-            public UUID itemID;
-            //public double interval;
-            public long interval;
-            //public DateTime next;
-            public long next;
-        }
-
-        private Dictionary<string,TimerClass> Timers = new Dictionary<string,TimerClass>();
+        private Dictionary<string,TimerInfo> Timers = new Dictionary<string,TimerInfo>();
         private object TimerListLock = new object();
 
         public void SetTimerEvent(uint m_localID, UUID m_itemID, double sec)
@@ -81,7 +86,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             }
 
             // Add to timer
-            TimerClass ts = new TimerClass();
+            TimerInfo ts = new TimerInfo();
             ts.localID = m_localID;
             ts.itemID = m_itemID;
             ts.interval = Convert.ToInt64(sec * 10000000); // How many 100 nanoseconds (ticks) should we wait
@@ -118,14 +123,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             if (Timers.Count == 0)
                 return;
 
-            Dictionary<string, TimerClass>.ValueCollection tvals;
+            Dictionary<string, TimerInfo>.ValueCollection tvals;
             lock (TimerListLock)
             {
                 // Go through all timers
                 tvals = Timers.Values;
             }
 
-            foreach (TimerClass ts in tvals)
+            foreach (TimerInfo ts in tvals)
             {
                 // Time has passed?
                 if (ts.next < DateTime.Now.Ticks)
@@ -149,8 +154,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 
             lock (TimerListLock)
             {
-                Dictionary<string, TimerClass>.ValueCollection tvals = Timers.Values;
-                foreach (TimerClass ts in tvals)
+                Dictionary<string, TimerInfo>.ValueCollection tvals = Timers.Values;
+                foreach (TimerInfo ts in tvals)
                 {
                     if (ts.itemID == itemID)
                     {
@@ -169,7 +174,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 
             while (idx < data.Length)
             {
-                TimerClass ts = new TimerClass();
+                TimerInfo ts = new TimerInfo();
 
                 ts.localID = localID;
                 ts.itemID = itemID;
@@ -183,5 +188,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                 }
             }
         }
+
+        public List<TimerInfo> GetTimersInfo()
+        {
+            List<TimerInfo> retList = new List<TimerInfo>();
+
+            lock (TimerListLock)
+            {
+                foreach (TimerInfo i in Timers.Values)
+                    retList.Add(i.Clone());
+            }
+
+            return retList;
+        }  
     }
 }

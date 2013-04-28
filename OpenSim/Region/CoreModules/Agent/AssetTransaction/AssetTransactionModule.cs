@@ -42,7 +42,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
     public class AssetTransactionModule : INonSharedRegionModule,
             IAgentAssetTransactions
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         protected Scene m_Scene;
         private bool m_dumpAssetsToFile = false;
@@ -214,9 +214,9 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         public void HandleTaskItemUpdateFromTransaction(
             IClientAPI remoteClient, SceneObjectPart part, UUID transactionID, TaskInventoryItem item)
         {
-            m_log.DebugFormat(
-                "[ASSET TRANSACTION MODULE] Called HandleTaskItemUpdateFromTransaction with item {0} in {1} for {2} in {3}",
-                item.Name, part.Name, remoteClient.Name, m_Scene.RegionInfo.RegionName);
+//            m_log.DebugFormat(
+//                "[ASSET TRANSACTION MODULE]: Called HandleTaskItemUpdateFromTransaction with item {0} in {1} for {2} in {3}",
+//                item.Name, part.Name, remoteClient.Name, m_Scene.RegionInfo.RegionName);
 
             AgentAssetTransactions transactions =
                     GetUserTransactions(remoteClient.AgentId);
@@ -230,15 +230,17 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         /// </summary>
         /// <param name="remoteClient"></param>
         /// <param name="assetID"></param>
-        /// <param name="transaction"></param>
+        /// <param name="transactionID"></param>
         /// <param name="type"></param>
         /// <param name="data"></param></param>
         /// <param name="tempFile"></param>
         public void HandleUDPUploadRequest(IClientAPI remoteClient,
-                UUID assetID, UUID transaction, sbyte type, byte[] data,
+                UUID assetID, UUID transactionID, sbyte type, byte[] data,
                 bool storeLocal, bool tempFile)
         {
-//            m_log.Debug("HandleUDPUploadRequest - assetID: " + assetID.ToString() + " transaction: " + transaction.ToString() + " type: " + type.ToString() + " storelocal: " + storeLocal + " tempFile: " + tempFile);
+//            m_log.DebugFormat(
+//                "[ASSET TRANSACTION MODULE]: HandleUDPUploadRequest - assetID: {0}, transaction {1}, type {2}, storeLocal {3}, tempFile {4}, data.Length {5}",
+//                assetID, transactionID, type, storeLocal, tempFile, data.Length);
             
             if (((AssetType)type == AssetType.Texture ||
                 (AssetType)type == AssetType.Sound ||
@@ -274,8 +276,8 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             }
 
             AgentAssetTransactions transactions = GetUserTransactions(remoteClient.AgentId);
-            AssetXferUploader uploader = transactions.RequestXferUploader(transaction);
-            uploader.StartUpload(remoteClient, assetID, transaction, type, data, storeLocal, tempFile);
+            AssetXferUploader uploader = transactions.RequestXferUploader(transactionID);
+            uploader.StartUpload(remoteClient, assetID, transactionID, type, data, storeLocal, tempFile);
         }
 
         /// <summary>

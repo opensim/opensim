@@ -50,7 +50,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
     /// Scene presence tests
     /// </summary>
     [TestFixture]
-    public class SceneTests
+    public class SceneTests : OpenSimTestCase
     {
         /// <summary>
         /// Very basic scene update test.  Should become more elaborate with time.

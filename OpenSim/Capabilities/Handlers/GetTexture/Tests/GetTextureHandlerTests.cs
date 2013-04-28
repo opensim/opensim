@@ -43,7 +43,7 @@ using OpenSim.Tests.Common.Mock;
 namespace OpenSim.Capabilities.Handlers.GetTexture.Tests
 {
     [TestFixture]
-    public class GetTextureHandlerTests
+    public class GetTextureHandlerTests : OpenSimTestCase
     {
         [Test]
         public void TestTextureNotFound()

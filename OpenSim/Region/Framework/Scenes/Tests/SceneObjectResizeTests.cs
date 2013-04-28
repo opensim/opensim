@@ -41,7 +41,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
     /// Basic scene object resize tests
     /// </summary>
     [TestFixture]
-    public class SceneObjectResizeTests
+    public class SceneObjectResizeTests : OpenSimTestCase
     {
         /// <summary>
         /// Test resizing an object

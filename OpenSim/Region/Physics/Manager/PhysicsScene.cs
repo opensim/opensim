@@ -47,7 +47,7 @@ namespace OpenSim.Region.Physics.Manager
     public delegate void JointDeactivated(PhysicsJoint joint);
     public delegate void JointErrorMessage(PhysicsJoint joint, string message); // this refers to an "error message due to a problem", not "amount of joint constraint violation"
 
-    public enum RayFilterFlags:ushort
+    public enum RayFilterFlags : ushort
     {
         // the flags
         water = 0x01,
@@ -64,7 +64,7 @@ namespace OpenSim.Region.Physics.Manager
         ClosestHit = 0x8000,
 
         // some combinations
-        LSLPhanton = phantom | volumedtc,
+        LSLPhantom = phantom | volumedtc,
         PrimsNonPhantom = nonphysical | physical,
         PrimsNonPhantomAgents = nonphysical | physical | agent,
 
@@ -97,13 +97,20 @@ namespace OpenSim.Region.Physics.Manager
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
-        /// Name of this scene.  Useful in debug messages to distinguish one OdeScene instance from another.
+        /// A unique identifying string for this instance of the physics engine.
+        /// Useful in debug messages to distinguish one OdeScene instance from another.
+        /// Usually set to include the region name that the physics engine is acting for.
         /// </summary>
         public string Name { get; protected set; }
 
+        /// <summary>
+        /// A string identifying the family of this physics engine. Most common values returned
+        /// are "OpenDynamicsEngine" and "BulletSim" but others are possible.
+        /// </summary>
+        public string EngineType { get; protected set; }
+
         // The only thing that should register for this event is the SceneGraph
         // Anything else could cause problems.
-
         public event physicsCrash OnPhysicsCrash;
 
         public static PhysicsScene Null

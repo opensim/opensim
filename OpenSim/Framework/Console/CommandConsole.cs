@@ -110,10 +110,11 @@ namespace OpenSim.Framework.Console
             // Remove initial help keyword
             helpParts.RemoveAt(0);
 
+            help.Add(""); // Will become a newline.
+
             // General help
             if (helpParts.Count == 0)
             {
-                help.Add(""); // Will become a newline.
                 help.Add(GeneralHelpText);
                 help.AddRange(CollectAllCommandsHelp());
             }
@@ -128,6 +129,8 @@ namespace OpenSim.Framework.Console
             {
                 help.AddRange(CollectHelp(helpParts));
             }
+
+            help.Add(""); // Will become a newline.
 
             return help;
         }
@@ -199,14 +202,11 @@ namespace OpenSim.Framework.Console
 
                 string descriptiveHelp = commandInfo.descriptive_help;
 
-                // If we do have some descriptive help then insert a spacing line before and after for readability.
+                // If we do have some descriptive help then insert a spacing line before for readability.
                 if (descriptiveHelp != string.Empty)
                     help.Add(string.Empty);
                 
                 help.Add(commandInfo.descriptive_help);
-
-                if (descriptiveHelp != string.Empty)
-                    help.Add(string.Empty);
             }
             else
             {

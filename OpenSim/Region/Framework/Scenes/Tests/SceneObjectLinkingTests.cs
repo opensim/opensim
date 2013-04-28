@@ -40,7 +40,7 @@ using log4net;
 namespace OpenSim.Region.Framework.Scenes.Tests
 {
     [TestFixture]
-    public class SceneObjectLinkingTests
+    public class SceneObjectLinkingTests : OpenSimTestCase
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 

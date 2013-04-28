@@ -96,7 +96,9 @@ namespace OpenSim.Services.HypergridService
                 UUID.TryParse(scope, out m_ScopeID);
                 //m_WelcomeMessage = serverConfig.GetString("WelcomeMessage", "Welcome to OpenSim!");
                 m_AllowTeleportsToAnyRegion = serverConfig.GetBoolean("AllowTeleportsToAnyRegion", true);
-                m_ExternalName = serverConfig.GetString("ExternalName", string.Empty);
+                m_ExternalName = Util.GetConfigVarFromSections<string>(config, "GatekeeperURI",
+                    new string[] { "Startup", "Hypergrid", "GatekeeperService" }, String.Empty);
+                m_ExternalName = serverConfig.GetString("ExternalName", m_ExternalName);
                 if (m_ExternalName != string.Empty && !m_ExternalName.EndsWith("/"))
                     m_ExternalName = m_ExternalName + "/";
 

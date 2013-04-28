@@ -219,12 +219,15 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
             {
 //                    m_log.DebugFormat(
 //                        "[LOCAL SIMULATION CONNECTOR]: Found region {0} {1} to send AgentUpdate",
-//                        s.RegionInfo.RegionName, destination.RegionHandle);
+//                        destination.RegionName, destination.RegionID);
 
                 return m_scenes[destination.RegionID].IncomingChildAgentDataUpdate(cAgentData);
             }
 
-//            m_log.DebugFormat("[LOCAL COMMS]: Did not find region {0} for ChildAgentUpdate", regionHandle);
+//            m_log.DebugFormat(
+//                "[LOCAL COMMS]: Did not find region {0} {1} for ChildAgentUpdate", 
+//                destination.RegionName, destination.RegionID);
+
             return false;
         }
 
@@ -239,7 +242,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
             // note that we really don't need the GridRegion for this call
             foreach (Scene s in m_scenes.Values)
             {
-                //m_log.Debug("[LOCAL COMMS]: Found region to send ChildAgentUpdate");
+//                m_log.Debug("[LOCAL COMMS]: Found region to send ChildAgentUpdate");
                 s.IncomingChildAgentDataUpdate(cAgentData);
             }
 

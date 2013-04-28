@@ -66,7 +66,7 @@ namespace OpenSim.Region.CoreModules
         public void Initialise(IConfigSource config)
         {
             m_windConfig = config.Configs["Wind"];
-            string desiredWindPlugin = m_dWindPluginName;
+//            string desiredWindPlugin = m_dWindPluginName;
 
             if (m_windConfig != null)
             {

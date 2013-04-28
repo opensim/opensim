@@ -39,10 +39,13 @@ using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Framework.Capabilities;
 using OpenSim.Services.Interfaces;
 using Caps = OpenSim.Framework.Capabilities.Caps;
 using OpenSim.Capabilities.Handlers;
 using OpenSim.Framework.Monitoring;
+using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 
 namespace OpenSim.Region.ClientStack.Linden
 {
@@ -52,11 +55,13 @@ namespace OpenSim.Region.ClientStack.Linden
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "WebFetchInvDescModule")]
     public class WebFetchInvDescModule : INonSharedRegionModule
     {
-        struct aPollRequest
+        class aPollRequest
         {
             public PollServiceInventoryEventArgs thepoll;
             public UUID reqID;
             public Hashtable request;
+            public ScenePresence presence;
+            public List<UUID> folders;
         }
 
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -71,8 +76,8 @@ namespace OpenSim.Region.ClientStack.Linden
         private Dictionary<UUID, string> m_capsDict = new Dictionary<UUID, string>();
         private static Thread[] m_workerThreads = null;
 
-        private static OpenMetaverse.BlockingQueue<aPollRequest> m_queue =
-                new OpenMetaverse.BlockingQueue<aPollRequest>();
+        private static DoubleQueue<aPollRequest> m_queue =
+                new DoubleQueue<aPollRequest>();
 
         #region ISharedRegionModule Members
 
@@ -143,12 +148,18 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private class PollServiceInventoryEventArgs : PollServiceEventArgs
         {
+            private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
             private Dictionary<UUID, Hashtable> responses =
                     new Dictionary<UUID, Hashtable>();
 
-            public PollServiceInventoryEventArgs(UUID pId) :
+            private Scene m_scene;
+
+            public PollServiceInventoryEventArgs(Scene scene, UUID pId) :
                     base(null, null, null, null, pId, int.MaxValue)
             {
+                m_scene = scene;
+
                 HasEvents = (x, y) => { lock (responses) return responses.ContainsKey(x); };
                 GetEvents = (x, y) =>
                 {
@@ -167,12 +178,68 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 Request = (x, y) =>
                 {
+                    ScenePresence sp = m_scene.GetScenePresence(Id);
+                    if (sp == null)
+                    {
+                        m_log.ErrorFormat("[INVENTORY]: Unable to find ScenePresence for {0}", Id);
+                        return;
+                    }
+
                     aPollRequest reqinfo = new aPollRequest();
                     reqinfo.thepoll = this;
                     reqinfo.reqID = x;
                     reqinfo.request = y;
+                    reqinfo.presence = sp;
+                    reqinfo.folders = new List<UUID>();
 
-                    m_queue.Enqueue(reqinfo);
+                    // Decode the request here
+                    string request = y["body"].ToString();
+
+                    request = request.Replace("<string>00000000-0000-0000-0000-000000000000</string>", "<uuid>00000000-0000-0000-0000-000000000000</uuid>");
+
+                    request = request.Replace("<key>fetch_folders</key><integer>0</integer>", "<key>fetch_folders</key><boolean>0</boolean>");
+                    request = request.Replace("<key>fetch_folders</key><integer>1</integer>", "<key>fetch_folders</key><boolean>1</boolean>");
+
+                    Hashtable hash = new Hashtable();
+                    try
+                    {
+                        hash = (Hashtable)LLSD.LLSDDeserialize(Utils.StringToBytes(request));
+                    }
+                    catch (LLSD.LLSDParseException e)
+                    {
+                        m_log.ErrorFormat("[INVENTORY]: Fetch error: {0}{1}" + e.Message, e.StackTrace);
+                        m_log.Error("Request: " + request);
+                        return;
+                    }
+                    catch (System.Xml.XmlException)
+                    {
+                        m_log.ErrorFormat("[INVENTORY]: XML Format error");
+                    }
+
+                    ArrayList foldersrequested = (ArrayList)hash["folders"];
+
+                    bool highPriority = false;
+
+                    for (int i = 0; i < foldersrequested.Count; i++)
+                    {
+                        Hashtable inventoryhash = (Hashtable)foldersrequested[i];
+                        string folder = inventoryhash["folder_id"].ToString();
+                        UUID folderID;
+                        if (UUID.TryParse(folder, out folderID))
+                        {
+                            if (!reqinfo.folders.Contains(folderID))
+                            {
+                                if (sp.COF != UUID.Zero && sp.COF == folderID)
+                                    highPriority = true;
+                                reqinfo.folders.Add(folderID);
+                            }
+                        }
+                    }
+
+                    if (highPriority)
+                        m_queue.EnqueueHigh(reqinfo);
+                    else
+                        m_queue.EnqueueLow(reqinfo);
                 };
 
                 NoEvents = (x, y) =>
@@ -208,7 +275,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 response["reusecontext"] = false;
 
                 response["str_response_string"] = m_webFetchHandler.FetchInventoryDescendentsRequest(
-                    requestinfo.request["body"].ToString(), String.Empty, String.Empty, null, null);
+                        requestinfo.request["body"].ToString(), String.Empty, String.Empty, null, null);
 
                 lock (responses)
                     responses[requestID] = response; 
@@ -220,7 +287,7 @@ namespace OpenSim.Region.ClientStack.Linden
             string capUrl = "/CAPS/" + UUID.Random() + "/";
 
             // Register this as a poll service          
-            PollServiceInventoryEventArgs args = new PollServiceInventoryEventArgs(agentID);
+            PollServiceInventoryEventArgs args = new PollServiceInventoryEventArgs(m_scene, agentID);
             
             args.Type = PollServiceEventArgs.EventType.Inventory;
             MainServer.Instance.AddPollServiceHTTPHandler(capUrl, args);
