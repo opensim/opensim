@@ -690,7 +690,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
         /// <param name="agentId"></param>
         public void EconomyDataRequestHandler(IClientAPI user)
         {
-            Scene s = LocateSceneClientIn(user.AgentId);
+            Scene s = (Scene)user.Scene;
 
             user.SendEconomyData(EnergyEfficiency, s.RegionInfo.ObjectCapacity, ObjectCount, PriceEnergyUnit, PriceGroupCreate,
                                  PriceObjectClaim, PriceObjectRent, PriceObjectScaleFactor, PriceParcelClaim, PriceParcelClaimFactor,

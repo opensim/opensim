@@ -73,7 +73,7 @@ namespace OpenSim.Services.UserAccountService
             return info;
         }
 
-        public GridUserInfo[] GetGridUserInfo(string[] userIDs)
+        public virtual GridUserInfo[] GetGridUserInfo(string[] userIDs)
         {
             List<GridUserInfo> ret = new List<GridUserInfo>();
 

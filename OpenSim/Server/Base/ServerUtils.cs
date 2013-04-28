@@ -286,6 +286,7 @@ namespace OpenSim.Server.Base
                                         e.InnerException == null ? e.Message : e.InnerException.Message, 
                                         e.StackTrace);
                                 }
+                                m_log.ErrorFormat("[SERVER UTILS]: Error loading plugin {0}: {1}", dllName, e.Message);
                                 return null;
                             }
 

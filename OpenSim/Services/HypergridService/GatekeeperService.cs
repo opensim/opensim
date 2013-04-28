@@ -58,6 +58,7 @@ namespace OpenSim.Services.HypergridService
         private static IUserAgentService m_UserAgentService;
         private static ISimulationService m_SimulationService;
         private static IGridUserService m_GridUserService;
+        private static IBansService m_BansService;
 
         private static string m_AllowedClients = string.Empty;
         private static string m_DeniedClients = string.Empty;
@@ -87,6 +88,7 @@ namespace OpenSim.Services.HypergridService
                 string presenceService = serverConfig.GetString("PresenceService", String.Empty);
                 string simulationService = serverConfig.GetString("SimulationService", String.Empty);
                 string gridUserService = serverConfig.GetString("GridUserService", String.Empty);
+                string bansService = serverConfig.GetString("BansService", String.Empty);
 
                 // These are mandatory, the others aren't
                 if (gridService == string.Empty || presenceService == string.Empty)
@@ -121,6 +123,8 @@ namespace OpenSim.Services.HypergridService
                     m_UserAgentService = ServerUtils.LoadPlugin<IUserAgentService>(homeUsersService, args);
                 if (gridUserService != string.Empty)
                     m_GridUserService = ServerUtils.LoadPlugin<IGridUserService>(gridUserService, args);
+                if (bansService != string.Empty)
+                    m_BansService = ServerUtils.LoadPlugin<IBansService>(bansService, args);
 
                 if (simService != null)
                     m_SimulationService = simService;
@@ -223,7 +227,7 @@ namespace OpenSim.Services.HypergridService
             m_log.InfoFormat("[GATEKEEPER SERVICE]: Login request for {0} {1} @ {2} ({3}) at {4} using viewer {5}, channel {6}, IP {7}, Mac {8}, Id0 {9} Teleport Flags {10}",
                 aCircuit.firstname, aCircuit.lastname, authURL, aCircuit.AgentID, destination.RegionName,
                 aCircuit.Viewer, aCircuit.Channel, aCircuit.IPAddress, aCircuit.Mac, aCircuit.Id0, aCircuit.teleportFlags.ToString());
-            
+
             //
             // Check client
             //
@@ -287,17 +291,16 @@ namespace OpenSim.Services.HypergridService
                     }
                 }
             }
-            m_log.DebugFormat("[GATEKEEPER SERVICE]: User is ok");
 
             //
             // Foreign agents allowed? Exceptions?
             //
-            if (account == null) 
+            if (account == null)
             {
                 bool allowed = m_ForeignAgentsAllowed;
 
                 if (m_ForeignAgentsAllowed && IsException(aCircuit, m_ForeignsAllowedExceptions))
-                        allowed = false;
+                    allowed = false;
 
                 if (!m_ForeignAgentsAllowed && IsException(aCircuit, m_ForeignsDisallowedExceptions))
                     allowed = true;
@@ -310,6 +313,20 @@ namespace OpenSim.Services.HypergridService
                     return false;
                 }
             }
+
+            //
+            // Is the user banned?
+            // This uses a Ban service that's more powerful than the configs
+            //
+            string uui = (account != null ? aCircuit.AgentID.ToString() : Util.ProduceUserUniversalIdentifier(aCircuit));
+            if (m_BansService != null && m_BansService.IsBanned(uui, aCircuit.IPAddress, aCircuit.Id0, authURL))
+            {
+                reason = "You are banned from this world";
+                m_log.InfoFormat("[GATEKEEPER SERVICE]: Login failed, reason: user {0} is banned", uui);
+                return false;
+            }
+
+            m_log.DebugFormat("[GATEKEEPER SERVICE]: User is OK");
 
             bool isFirstLogin = false;
             //

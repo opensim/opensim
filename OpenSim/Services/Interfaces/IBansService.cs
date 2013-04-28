@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -24,36 +24,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Reflection;
 
 using OpenSim.Framework;
-using OpenSim.Data.MySQL;
-
 using OpenMetaverse;
-using MySql.Data.MySqlClient;
 
-namespace OpenSim.Data.MySQL
+namespace OpenSim.Services.Interfaces
 {
-    public class MySQLOfflineIMData : MySQLGenericTableHandler<OfflineIMData>, IOfflineIMData
+    public interface IBansService
     {
-        public MySQLOfflineIMData(string connectionString, string realm)
-            : base(connectionString, realm, "IM_Store")
-        {
-        }
-
-        public void DeleteOld()
-        {
-            using (MySqlCommand cmd = new MySqlCommand())
-            {
-                cmd.CommandText = String.Format("delete from {0} where TMStamp < NOW() - INTERVAL 2 WEEK", m_Realm);
-         
-                ExecuteNonQuery(cmd);
-            }
-
-        }
+        /// <summary>
+        /// Are any of the given arguments banned from the grid?
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="ip"></param>
+        /// <param name="id0"></param>
+        /// <param name="origin"></param>
+        /// <returns></returns>
+        bool IsBanned(string userID, string ip, string id0, string origin);
     }
+
 }
