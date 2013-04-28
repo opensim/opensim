@@ -236,9 +236,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     // If we're an NPC then skip all the item checks and manipulations since we don't have an
                     // inventory right now.
                     if (sp.PresenceType == PresenceType.Npc)
-                        RezSingleAttachmentFromInventoryInternal(sp, UUID.Zero, attach.AssetID, p, null);
+                        RezSingleAttachmentFromInventoryInternal(sp, UUID.Zero, attach.AssetID, p, null, true);
                     else
-                        RezSingleAttachmentFromInventory(sp, attach.ItemID, p, d);
+                        RezSingleAttachmentFromInventory(sp, attach.ItemID, p | (uint)0x80, d);
                 }
                 catch (Exception e)
                 {
@@ -284,12 +284,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             sp.ClearAttachments();
         }
         
-        public bool AttachObject(IScenePresence sp, SceneObjectGroup group, uint attachmentPt, bool silent, bool useAttachData, bool temp)
+        public bool AttachObject(IScenePresence sp, SceneObjectGroup group, uint attachmentPt, bool silent, bool useAttachData, bool temp, bool append)
         {
             if (!Enabled)
                 return false;
 
-            if (AttachObjectInternal(sp, group, attachmentPt, silent, useAttachData, temp))
+            if (AttachObjectInternal(sp, group, attachmentPt, silent, useAttachData, temp, append))
             {
                 m_scene.EventManager.TriggerOnAttach(group.LocalId, group.FromItemID, sp.UUID);
                 return true;
@@ -298,7 +298,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             return false;
         }
         
-        private bool AttachObjectInternal(IScenePresence sp, SceneObjectGroup group, uint attachmentPt, bool silent, bool useAttachData, bool temp)
+        private bool AttachObjectInternal(IScenePresence sp, SceneObjectGroup group, uint attachmentPt, bool silent, bool useAttachData, bool temp, bool append)
         {
             lock (sp.AttachmentsSyncLock)
             {
@@ -326,10 +326,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
     
                 Vector3 attachPos = group.AbsolutePosition;
     
-                // TODO: this short circuits multiple attachments functionality  in  LL viewer 2.1+ and should
-                // be removed when that functionality is implemented in opensim
-                attachmentPt &= 0x7f;
-                
                 // If the attachment point isn't the same as the one previously used
                 // set it's offset position = 0 so that it appears on the attachment point
                 // and not in a weird location somewhere unknown.
@@ -375,7 +371,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 group.AbsolutePosition = attachPos;
 
                 if (sp.PresenceType != PresenceType.Npc)
-                    UpdateUserInventoryWithAttachment(sp, group, attachmentPt, temp);
+                    UpdateUserInventoryWithAttachment(sp, group, attachmentPt, temp, append);
     
                 AttachToAgent(sp, group, attachmentPt, attachPos, silent);
             }
@@ -383,21 +379,26 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             return true;
         }
 
-        private void UpdateUserInventoryWithAttachment(IScenePresence sp, SceneObjectGroup group, uint attachmentPt, bool temp)
+        private void UpdateUserInventoryWithAttachment(IScenePresence sp, SceneObjectGroup group, uint attachmentPt, bool temp, bool append)
         {
-            // Remove any previous attachments
             List<SceneObjectGroup> attachments = sp.GetAttachments(attachmentPt);
 
-            // At the moment we can only deal with a single attachment
-            if (attachments.Count != 0)
+            // If we already have 5, remove the oldest until only 4 are left. Skip over temp ones
+            while (attachments.Count >= 5)
             {
                 if (attachments[0].FromItemID != UUID.Zero)
                     DetachSingleAttachmentToInvInternal(sp, attachments[0]);
-            // Error logging commented because UUID.Zero now means temp attachment
-//                else
-//                    m_log.WarnFormat(
-//                        "[ATTACHMENTS MODULE]: When detaching existing attachment {0} {1} at point {2} to make way for {3} {4} for {5}, couldn't find the associated item ID to adjust inventory attachment record!",
-//                        attachments[0].Name, attachments[0].LocalId, attachmentPt, group.Name, group.LocalId, sp.Name);
+                attachments.RemoveAt(0);
+            }
+
+            // If we're not appending, remove the rest as well
+            if (attachments.Count != 0 && !append)
+            {
+                foreach (SceneObjectGroup g in attachments)
+                {
+                    if (g.FromItemID != UUID.Zero)
+                        DetachSingleAttachmentToInvInternal(sp, g);
+                }
             }
 
             // Add the new attachment to inventory if we don't already have it.
@@ -407,7 +408,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 if (newAttachmentItemID == UUID.Zero)
                     newAttachmentItemID = AddSceneObjectAsNewAttachmentInInv(sp, group).ID;
 
-                ShowAttachInUserInventory(sp, attachmentPt, newAttachmentItemID, group);
+                ShowAttachInUserInventory(sp, attachmentPt, newAttachmentItemID, group, append);
             }
         }
 
@@ -425,8 +426,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 //                "[ATTACHMENTS MODULE]: RezSingleAttachmentFromInventory to point {0} from item {1} for {2}",
 //                (AttachmentPoint)AttachmentPt, itemID, sp.Name);
 
-            // TODO: this short circuits multiple attachments functionality  in  LL viewer 2.1+ and should
-            // be removed when that functionality is implemented in opensim
+            bool append = (AttachmentPt & 0x80) != 0;
             AttachmentPt &= 0x7f;
 
             // Viewer 2/3 sometimes asks to re-wear items that are already worn (and show up in it's inventory as such).
@@ -455,7 +455,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 return null;
             }
 
-            return RezSingleAttachmentFromInventoryInternal(sp, itemID, UUID.Zero, AttachmentPt, doc);
+            return RezSingleAttachmentFromInventoryInternal(sp, itemID, UUID.Zero, AttachmentPt, doc, append);
         }
 
         public void RezMultipleAttachmentsFromInventory(IScenePresence sp, List<KeyValuePair<UUID, uint>> rezlist)
@@ -847,7 +847,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         }
 
         protected SceneObjectGroup RezSingleAttachmentFromInventoryInternal(
-            IScenePresence sp, UUID itemID, UUID assetID, uint attachmentPt, XmlDocument doc)
+            IScenePresence sp, UUID itemID, UUID assetID, uint attachmentPt, XmlDocument doc, bool append)
         {
             if (m_invAccessModule == null)
                 return null;
@@ -885,7 +885,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     // This will throw if the attachment fails
                     try
                     {
-                        AttachObjectInternal(sp, objatt, attachmentPt, false, false, false);
+                        AttachObjectInternal(sp, objatt, attachmentPt, false, false, false, append);
                     }
                     catch (Exception e)
                     {
@@ -936,7 +936,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         /// <param name="AttachmentPt"></param>
         /// <param name="itemID"></param>
         /// <param name="att"></param>
-        private void ShowAttachInUserInventory(IScenePresence sp, uint AttachmentPt, UUID itemID, SceneObjectGroup att)
+        private void ShowAttachInUserInventory(IScenePresence sp, uint AttachmentPt, UUID itemID, SceneObjectGroup att, bool append)
         {
 //            m_log.DebugFormat(
 //                "[USER INVENTORY]: Updating attachment {0} for {1} at {2} using item ID {3}",
@@ -959,7 +959,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             if (item == null)
                 return;
 
-            bool changed = sp.Appearance.SetAttachment((int)AttachmentPt, itemID, item.AssetID);
+            int attFlag = append ? 0x80 : 0;
+            bool changed = sp.Appearance.SetAttachment((int)AttachmentPt | attFlag, itemID, item.AssetID);
             if (changed && m_scene.AvatarFactory != null)
             {
 //                m_log.DebugFormat(
@@ -1043,12 +1044,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     return;
                 }
 
-                // TODO: this short circuits multiple attachments functionality  in  LL viewer 2.1+ and should
-                // be removed when that functionality is implemented in opensim
+                bool append = (AttachmentPt & 0x80) != 0;
                 AttachmentPt &= 0x7f;
 
                 // Calls attach with a Zero position
-                if (AttachObject(sp, part.ParentGroup, AttachmentPt, false, true, false))
+                if (AttachObject(sp, part.ParentGroup, AttachmentPt, false, true, false, append))
                 {
 //                    m_log.Debug(
 //                        "[ATTACHMENTS MODULE]: Saving avatar attachment. AgentID: " + remoteClient.AgentId

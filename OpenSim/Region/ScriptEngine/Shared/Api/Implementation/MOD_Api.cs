@@ -123,7 +123,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void modInvokeN(string fname, params object[] parms)
         {
             Type returntype = m_comms.LookupReturnType(fname);
-            if (returntype != typeof(string))
+            if (returntype != typeof(void))
                 MODError(String.Format("return type mismatch for {0}",fname));
 
             modInvoke(fname,parms);
@@ -263,6 +263,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 object result = m_comms.InvokeOperation(m_host.UUID, m_item.ItemID, fname, convertedParms);
                 if (result != null)
                     return result;
+
+                Type returntype = m_comms.LookupReturnType(fname);
+                if (returntype == typeof(void))
+                    return null;
 
                 MODError(String.Format("Invocation of {0} failed; null return value",fname));
             }

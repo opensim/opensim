@@ -55,7 +55,7 @@ namespace OpenSim.Region.CoreModules.Framework
         /// <summary>
         /// Each agent has its own capabilities handler.
         /// </summary>
-        protected Dictionary<UUID, Caps> m_capsObjects = new Dictionary<UUID, Caps>();
+        protected Dictionary<uint, Caps> m_capsObjects = new Dictionary<uint, Caps>();
         
         protected Dictionary<UUID, string> capsPaths = new Dictionary<UUID, string>();
         protected Dictionary<UUID, Dictionary<ulong, string>> childrenSeeds 
@@ -100,7 +100,7 @@ namespace OpenSim.Region.CoreModules.Framework
             get { return null; }
         }
 
-        public void CreateCaps(UUID agentId)
+        public void CreateCaps(UUID agentId, uint circuitCode)
         {
             int flags = m_scene.GetUserFlags(agentId);
             if (m_scene.RegionInfo.EstateSettings.IsBanned(agentId, flags))
@@ -108,9 +108,9 @@ namespace OpenSim.Region.CoreModules.Framework
 
             String capsObjectPath = GetCapsPath(agentId);
 
-            if (m_capsObjects.ContainsKey(agentId))
+            if (m_capsObjects.ContainsKey(circuitCode))
             {
-                Caps oldCaps = m_capsObjects[agentId];
+                Caps oldCaps = m_capsObjects[circuitCode];
                 
                 m_log.DebugFormat(
                     "[CAPS]: Recreating caps for agent {0}.  Old caps path {1}, new caps path {2}. ", 
@@ -125,12 +125,12 @@ namespace OpenSim.Region.CoreModules.Framework
                     (MainServer.Instance == null) ? 0: MainServer.Instance.Port,
                     capsObjectPath, agentId, m_scene.RegionInfo.RegionName);
 
-            m_capsObjects[agentId] = caps;
+            m_capsObjects[circuitCode] = caps;
 
             m_scene.EventManager.TriggerOnRegisterCaps(agentId, caps);
         }
 
-        public void RemoveCaps(UUID agentId)
+        public void RemoveCaps(UUID agentId, uint circuitCode)
         {
             if (childrenSeeds.ContainsKey(agentId))
             {
@@ -139,11 +139,11 @@ namespace OpenSim.Region.CoreModules.Framework
 
             lock (m_capsObjects)
             {
-                if (m_capsObjects.ContainsKey(agentId))
+                if (m_capsObjects.ContainsKey(circuitCode))
                 {
-                    m_capsObjects[agentId].DeregisterHandlers();
-                    m_scene.EventManager.TriggerOnDeregisterCaps(agentId, m_capsObjects[agentId]);
-                    m_capsObjects.Remove(agentId);
+                    m_capsObjects[circuitCode].DeregisterHandlers();
+                    m_scene.EventManager.TriggerOnDeregisterCaps(agentId, m_capsObjects[circuitCode]);
+                    m_capsObjects.Remove(circuitCode);
                 }
                 else
                 {
@@ -154,19 +154,30 @@ namespace OpenSim.Region.CoreModules.Framework
             }
         }
         
-        public Caps GetCapsForUser(UUID agentId)
+        public Caps GetCapsForUser(uint circuitCode)
         {
             lock (m_capsObjects)
             {
-                if (m_capsObjects.ContainsKey(agentId))
+                if (m_capsObjects.ContainsKey(circuitCode))
                 {
-                    return m_capsObjects[agentId];
+                    return m_capsObjects[circuitCode];
                 }
             }
             
             return null;
         }
         
+        public void ActivateCaps(uint circuitCode)
+        {
+            lock (m_capsObjects)
+            {
+                if (m_capsObjects.ContainsKey(circuitCode))
+                {
+                    m_capsObjects[circuitCode].Activate();
+                }
+            }
+        }
+
         public void SetAgentCapsSeeds(AgentCircuitData agent)
         {
             capsPaths[agent.AgentID] = agent.CapsPath;
@@ -237,9 +248,9 @@ namespace OpenSim.Region.CoreModules.Framework
             StringBuilder caps = new StringBuilder();
             caps.AppendFormat("Region {0}:\n", m_scene.RegionInfo.RegionName);
 
-            foreach (KeyValuePair<UUID, Caps> kvp in m_capsObjects)
+            foreach (KeyValuePair<uint, Caps> kvp in m_capsObjects)
             {
-                caps.AppendFormat("** User {0}:\n", kvp.Key);
+                caps.AppendFormat("** Circuit {0}:\n", kvp.Key);
 
                 for (IDictionaryEnumerator kvp2 = kvp.Value.CapsHandlers.GetCapsDetails(false).GetEnumerator(); kvp2.MoveNext(); )
                 {

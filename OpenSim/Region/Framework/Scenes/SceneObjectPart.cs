@@ -1689,6 +1689,10 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (ParentGroup != null)
                     ParentGroup.HasGroupChanged = true;
+
+                PhysicsActor pa = PhysActor;
+                if (pa != null)
+                    pa.Density = Density;
             }
         }
 
@@ -1708,6 +1712,9 @@ namespace OpenSim.Region.Framework.Scenes
                 if (ParentGroup != null)
                     ParentGroup.HasGroupChanged = true;
 
+                PhysicsActor pa = PhysActor;
+                if (pa != null)
+                    pa.GravModifier = GravityModifier;
             }
         }
 
@@ -1726,10 +1733,14 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (ParentGroup != null)
                     ParentGroup.HasGroupChanged = true;
+
+                PhysicsActor pa = PhysActor;
+                if (pa != null)
+                    pa.Friction = Friction;
             }
         }
 
-        public float Bounciness
+        public float Restitution
         {
             get { return m_bounce; }
             set
@@ -1744,6 +1755,10 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (ParentGroup != null)
                     ParentGroup.HasGroupChanged = true;
+
+                PhysicsActor pa = PhysActor;
+                if (pa != null)
+                    pa.Restitution = Restitution;
             }
         }
 
@@ -4493,8 +4508,8 @@ namespace OpenSim.Region.Framework.Scenes
                 GravityModifier = physdata.GravitationModifier;
             if(Friction != physdata.Friction)
                 Friction = physdata.Friction;
-            if(Bounciness != physdata.Bounce)
-                Bounciness = physdata.Bounce;
+            if(Restitution != physdata.Bounce)
+                Restitution = physdata.Bounce;
         }
         /// <summary>
         /// Update the flags on this prim.  This covers properties such as phantom, physics and temporary.
@@ -4656,6 +4671,11 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 pa.SOPName = this.Name; // save object into the PhysActor so ODE internals know the joint/body info
                 pa.SetMaterial(Material);
+
+                pa.Density = Density;
+                pa.GravModifier = GravityModifier;
+                pa.Friction = Friction;
+                pa.Restitution = Restitution;
 
                 if (VolumeDetectActive) // change if not the default only
                     pa.SetVolumeDetect(1);

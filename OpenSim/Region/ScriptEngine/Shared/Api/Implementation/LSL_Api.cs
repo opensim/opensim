@@ -3332,7 +3332,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             IAttachmentsModule attachmentsModule = m_ScriptEngine.World.AttachmentsModule;
 
             if (attachmentsModule != null)
-                return attachmentsModule.AttachObject(presence, grp, (uint)attachmentPoint, false, true, false);
+                return attachmentsModule.AttachObject(presence, grp, (uint)attachmentPoint, false, true, false, true);
             else
                 return false;
         }
@@ -4724,7 +4724,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UUID av = new UUID();
             if (!UUID.TryParse(agent,out av))
             {
-                //LSLError("First parameter to llDialog needs to be a key");
                 return;
             }
 
@@ -7222,20 +7221,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             if (buttons.Length > 12)
             {
-                LSLError("No more than 12 buttons can be shown");
-                return;
+                ShoutError("button list too long, must be 12 or fewer entries");
             }
-            string[] buts = new string[buttons.Length];
-            for (int i = 0; i < buttons.Length; i++)
+            int length = buttons.Length;
+            if (length > 12)
+                length = 12;
+
+            string[] buts = new string[length];
+            for (int i = 0; i < length; i++)
             {
                 if (buttons.Data[i].ToString() == String.Empty)
                 {
-                    LSLError("button label cannot be blank");
+                    ShoutError("button label cannot be blank");
                     return;
                 }
                 if (buttons.Data[i].ToString().Length > 24)
                 {
-                    llWhisper(ScriptBaseClass.DEBUG_CHANNEL, "button label cannot be longer than 24 characters");
+                    ShoutError("button label cannot be longer than 24 characters");
                     return;
                 }
                 buts[i] = buttons.Data[i].ToString();
@@ -7843,7 +7845,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             physdata.PhysShapeType = (PhysShapeType)part.PhysicsShapeType;
             physdata.Density = part.Density;
             physdata.Friction = part.Friction;
-            physdata.Bounce = part.Bounciness;
+            physdata.Bounce = part.Restitution;
             physdata.GravitationModifier = part.GravityModifier;
 
             if ((material_bits & (int)ScriptBaseClass.DENSITY) != 0)
@@ -8236,7 +8238,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                             ExtraPhysicsData physdata = new ExtraPhysicsData();
                             physdata.Density = part.Density;
-                            physdata.Bounce = part.Bounciness;
+                            physdata.Bounce = part.Restitution;
                             physdata.GravitationModifier = part.GravityModifier;
                             physdata.PhysShapeType = (PhysShapeType)shape_type;
 

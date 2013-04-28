@@ -2654,7 +2654,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         byte physshapetype = part.PhysicsShapeType;
                         float density = part.Density;
                         float friction = part.Friction;
-                        float bounce = part.Bounciness;
+                        float bounce = part.Restitution;
                         float gravmod = part.GravityModifier;
 
                         eq.partPhysicsProperties(localid, physshapetype, density, friction, bounce, gravmod,AgentId);
@@ -3893,6 +3893,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             part.Shape.LightEntry = false;
                         }
                     }
+
+                    if (part.Shape != null && (part.Shape.SculptType == (byte)SculptType.Mesh))
+                    {
+                        // Ensure that mesh has at least 8 valid faces
+                        part.Shape.ProfileBegin = 12500;
+                        part.Shape.ProfileEnd = 0;
+                        part.Shape.ProfileHollow = 27500;
+                    }
                 }
 
                 ++updatesThisCall;
@@ -4952,6 +4960,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         position = part.OffsetPosition + presence.OffsetPosition * part.RotationOffset;
                         rotation = part.RotationOffset * presence.Rotation;
                     }
+                    angularVelocity = Vector3.Zero;
+                }
+                else
+                {
+                    angularVelocity = presence.AngularVelocity;
+                    rotation = presence.Rotation;
                 }
 
                 attachPoint = 0;
@@ -4963,9 +4977,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // in that direction, even though we don't model this on the server.  Implementing this in the future
                 // may improve movement smoothness.
 //                acceleration = new Vector3(1, 0, 0);
-
-                angularVelocity = Vector3.Zero;
-
+                
                 if (sendTexture)
                     textureEntry = presence.Appearance.Texture.GetBytes();
                 else
