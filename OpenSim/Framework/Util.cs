@@ -45,6 +45,7 @@ using System.Text.RegularExpressions;
 using System.Xml;
 using System.Threading;
 using log4net;
+using log4net.Appender;
 using Nini.Config;
 using Nwc.XmlRpc;
 using OpenMetaverse;
@@ -53,6 +54,21 @@ using Amib.Threading;
 
 namespace OpenSim.Framework
 {
+    [Flags]
+    public enum PermissionMask : uint
+    { 
+        None = 0,
+        Transfer = 1 << 13,
+        Modify = 1 << 14,
+        Copy = 1 << 15,
+        Export = 1 << 16,
+        Move = 1 << 19,
+        Damage = 1 << 20,
+        // All does not contain Export, which is special and must be
+        // explicitly given
+        All = (1 << 13) | (1 << 14) | (1 << 15) | (1 << 19)
+    } 
+
     /// <summary>
     /// The method used by Util.FireAndForget for asynchronously firing events
     /// </summary>
@@ -297,6 +313,25 @@ namespace OpenSim.Framework
             return x.CompareTo(max) > 0 ? max :
                 x.CompareTo(min) < 0 ? min :
                 x;
+        }
+
+        // Clamp the maximum magnitude of a vector
+        public static Vector3 ClampV(Vector3 x, float max)
+        {
+            float lenSq = x.LengthSquared();
+            if (lenSq > (max * max))
+            {
+                x = x / x.Length() * max;
+            }
+
+            return x;
+        }
+
+        // Inclusive, within range test (true if equal to the endpoints)
+        public static bool InRange<T>(T x, T min, T max)
+            where T : IComparable<T>
+        {
+            return x.CompareTo(max) <= 0 && x.CompareTo(min) >= 0;
         }
 
         public static uint GetNextXferID()
@@ -809,9 +844,22 @@ namespace OpenSim.Framework
             return ".";
         }
 
+        public static string logFile()
+        {
+            foreach (IAppender appender in LogManager.GetRepository().GetAppenders())
+            {
+                if (appender is FileAppender)
+                {
+                    return ((FileAppender)appender).File;
+                }
+            }
+
+            return "./OpenSim.log";
+        }
+
         public static string logDir()
         {
-            return ".";
+            return Path.GetDirectoryName(logFile());
         }
 
         // From: http://coercedcode.blogspot.com/2008/03/c-generate-unique-filenames-within.html
@@ -842,7 +890,7 @@ namespace OpenSim.Framework
             return FileName;
         }
 
-        // Nini (config) related Methods
+        #region Nini (config) related Methods
         public static IConfigSource ConvertDataRowToXMLConfig(DataRow row, string fileName)
         {
             if (!File.Exists(fileName))
@@ -864,6 +912,79 @@ namespace OpenSim.Framework
                 config.Configs[(string) row[0]].Set(row.Table.Columns[i].ColumnName, row[i]);
             }
         }
+
+        public static string GetConfigVarWithDefaultSection(IConfigSource config, string varname, string section)
+        {
+            // First, check the Startup section, the default section
+            IConfig cnf = config.Configs["Startup"];
+            if (cnf == null)
+                return string.Empty;
+            string val = cnf.GetString(varname, string.Empty);
+
+            // Then check for an overwrite of the default in the given section
+            if (!string.IsNullOrEmpty(section))
+            {
+                cnf = config.Configs[section];
+                if (cnf != null)
+                    val = cnf.GetString(varname, val);
+            }
+
+            return val;
+        }
+
+        /// <summary>
+        /// Gets the value of a configuration variable by looking into
+        /// multiple sections in order. The latter sections overwrite 
+        /// any values previously found.
+        /// </summary>
+        /// <typeparam name="T">Type of the variable</typeparam>
+        /// <param name="config">The configuration object</param>
+        /// <param name="varname">The configuration variable</param>
+        /// <param name="sections">Ordered sequence of sections to look at</param>
+        /// <returns></returns>
+        public static T GetConfigVarFromSections<T>(IConfigSource config, string varname, string[] sections)
+        {
+            return GetConfigVarFromSections<T>(config, varname, sections, default(T));
+        }
+
+        /// <summary>
+        /// Gets the value of a configuration variable by looking into
+        /// multiple sections in order. The latter sections overwrite 
+        /// any values previously found.
+        /// </summary>
+        /// <remarks>
+        /// If no value is found then the given default value is returned
+        /// </remarks>
+        /// <typeparam name="T">Type of the variable</typeparam>
+        /// <param name="config">The configuration object</param>
+        /// <param name="varname">The configuration variable</param>
+        /// <param name="sections">Ordered sequence of sections to look at</param>
+        /// <param name="val">Default value</param>
+        /// <returns></returns>
+        public static T GetConfigVarFromSections<T>(IConfigSource config, string varname, string[] sections, object val)
+        {
+            foreach (string section in sections)
+            {
+                IConfig cnf = config.Configs[section];
+                if (cnf == null)
+                    continue;
+
+                if (typeof(T) == typeof(String))
+                    val = cnf.GetString(varname, (string)val);
+                else if (typeof(T) == typeof(Boolean))
+                    val = cnf.GetBoolean(varname, (bool)val);
+                else if (typeof(T) == typeof(Int32))
+                    val = cnf.GetInt(varname, (int)val);
+                else if (typeof(T) == typeof(float))
+                    val = cnf.GetFloat(varname, (int)val);
+                else
+                    m_log.ErrorFormat("[UTIL]: Unhandled type {0}", typeof(T));
+            }
+
+            return (T)val;
+        }
+
+        #endregion
 
         public static float Clip(float x, float min, float max)
         {
@@ -1651,7 +1772,13 @@ namespace OpenSim.Framework
             if (m_ThreadPool != null)
                 throw new InvalidOperationException("SmartThreadPool is already initialized");
 
-            m_ThreadPool = new SmartThreadPool(2000, maxThreads, 2);
+            STPStartInfo startInfo = new STPStartInfo();
+            startInfo.ThreadPoolName = "Util";
+            startInfo.IdleTimeout = 2000;
+            startInfo.MaxWorkerThreads = maxThreads;
+            startInfo.MinWorkerThreads = 2;
+
+            m_ThreadPool = new SmartThreadPool(startInfo);
         }
 
         public static int FireAndForgetCount()
@@ -1724,7 +1851,7 @@ namespace OpenSim.Framework
                     break;
                 case FireAndForgetMethod.SmartThreadPool:
                     if (m_ThreadPool == null)
-                        m_ThreadPool = new SmartThreadPool(2000, 15, 2);
+                        InitThreadPool(15); 
                     m_ThreadPool.QueueWorkItem(SmartThreadPoolCallback, new object[] { realCallback, obj });
                     break;
                 case FireAndForgetMethod.Thread:
@@ -1753,12 +1880,16 @@ namespace OpenSim.Framework
             StringBuilder sb = new StringBuilder();
             if (FireAndForgetMethod == FireAndForgetMethod.SmartThreadPool)
             {
-                threadPoolUsed = "SmartThreadPool";
-                maxThreads = m_ThreadPool.MaxThreads;
-                minThreads = m_ThreadPool.MinThreads;
-                inUseThreads = m_ThreadPool.InUseThreads;
-                allocatedThreads = m_ThreadPool.ActiveThreads;
-                waitingCallbacks = m_ThreadPool.WaitingCallbacks;
+                // ROBUST currently leaves this the FireAndForgetMethod but never actually initializes the threadpool.
+                if (m_ThreadPool != null)
+                {
+                    threadPoolUsed = "SmartThreadPool";
+                    maxThreads = m_ThreadPool.MaxThreads;
+                    minThreads = m_ThreadPool.MinThreads;
+                    inUseThreads = m_ThreadPool.InUseThreads;
+                    allocatedThreads = m_ThreadPool.ActiveThreads;
+                    waitingCallbacks = m_ThreadPool.WaitingCallbacks;
+                }
             }
             else if (
                 FireAndForgetMethod == FireAndForgetMethod.UnsafeQueueUserWorkItem
@@ -1863,6 +1994,12 @@ namespace OpenSim.Framework
         /// </summary>
         public static void PrintCallStack()
         {
+            PrintCallStack(m_log.DebugFormat);
+        }
+
+        public delegate void DebugPrinter(string msg, params Object[] parm);
+        public static void PrintCallStack(DebugPrinter printer)
+        {
             StackTrace stackTrace = new StackTrace(true);           // get call stack
             StackFrame[] stackFrames = stackTrace.GetFrames();  // get method calls (frames)
 
@@ -1870,7 +2007,7 @@ namespace OpenSim.Framework
             foreach (StackFrame stackFrame in stackFrames)
             {
                 MethodBase mb = stackFrame.GetMethod();
-                m_log.DebugFormat("{0}.{1}:{2}", mb.DeclaringType, mb.Name, stackFrame.GetFileLineNumber()); // write method name
+                printer("{0}.{1}:{2}", mb.DeclaringType, mb.Name, stackFrame.GetFileLineNumber()); // write method name
             }
         }
 
@@ -2096,6 +2233,17 @@ namespace OpenSim.Framework
             return firstName + "." + lastName + " " + "@" + uri.Authority;
         }
         #endregion
+
+        /// <summary>
+        /// Escapes the special characters used in "LIKE".
+        /// </summary>
+        /// <remarks>
+        /// For example: EscapeForLike("foo_bar%baz") = "foo\_bar\%baz"
+        /// </remarks>
+        public static string EscapeForLike(string str)
+        {
+            return str.Replace("_", "\\_").Replace("%", "\\%");
+        }
     }
 
     public class DoubleQueue<T> where T:class

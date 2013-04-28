@@ -72,7 +72,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 // http://opensimulator.org/mantis/view.php?id=2750).
                 d.InitODE();
                 
-                m_scene = new OdeScene(sceneIdentifier);
+                m_scene = new OdeScene(GetName(), sceneIdentifier);
             }
 
             return m_scene;

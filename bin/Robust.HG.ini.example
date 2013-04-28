@@ -22,11 +22,24 @@
 ; *
 [Startup]
 
+	; Plugin Registry Location
+	; Set path to directory for plugin registry. Information
+	; about the registered repositories and installed plugins
+	; will be stored here
+	; The Robust.exe process must have R/W access to the location 
+	RegistryLocation = "."
+
+	; Modular configurations
+	; Set path to directory for modular ini files...
+	; The Robust.exe process must have R/W access to the location 
+	ConfigDirectory = "/home/opensim/etc/Configs"
+
 [ServiceList]
 
 AssetServiceConnector = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector"
 InventoryInConnector = "8003/OpenSim.Server.Handlers.dll:XInventoryInConnector"
-VoiceConnector = "8004/OpenSim.Server.Handlers.dll:FreeswitchServerConnector"
+;; Uncomment if you have set up Freeswitch (see [FreeswitchService] below)
+;VoiceConnector = "8004/OpenSim.Server.Handlers.dll:FreeswitchServerConnector"
 GridServiceConnector = "8003/OpenSim.Server.Handlers.dll:GridServiceConnector"
 GridInfoServerInConnector = "8002/OpenSim.Server.Handlers.dll:GridInfoServerInConnector"
 AuthenticationServiceConnector = "8003/OpenSim.Server.Handlers.dll:AuthenticationServiceConnector"
@@ -39,6 +52,10 @@ GridUserServiceConnector = "8003/OpenSim.Server.Handlers.dll:GridUserServiceConn
 FriendsServiceConnector = "8003/OpenSim.Server.Handlers.dll:FriendsServiceConnector"
 MapAddServiceConnector = "8003/OpenSim.Server.Handlers.dll:MapAddServiceConnector"
 MapGetServiceConnector = "8002/OpenSim.Server.Handlers.dll:MapGetServiceConnector"
+;; Uncomment this if you want offline IM to work
+; OfflineIMServiceConnector = "8003/OpenSim.Addons.OfflineIM.dll:OfflineIMServiceRobustConnector"
+;; Uncomment this if you want Groups V2 to work
+; GroupsServiceConnector = "8003/OpenSim.Addons.Groups.dll:GroupsServiceRobustConnector"
 
 ;; Additions for Hypergrid
 
@@ -49,10 +66,11 @@ HGFriendsServerConnector = "8002/OpenSim.Server.Handlers.dll:HGFriendsServerConn
 InstantMessageServerConnector = "8002/OpenSim.Server.Handlers.dll:InstantMessageServerConnector"
 HGInventoryServiceConnector = "HGInventoryService@8002/OpenSim.Server.Handlers.dll:XInventoryInConnector"
 HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:AssetServiceConnector"
+;; Uncomment this if you want Groups V2, HG to work
+; HGGroupsServiceConnector = "8002/OpenSim.Addons.Groups.dll:HGGroupsServiceRobustConnector"
 
 ;; Additions for other add-on modules. For example:
 ;; WifiServerConnector = "8002/Diva.Wifi.dll:WifiServerConnector"
-
 
 ; * This is common for all services, it's the network setup for the entire
 ; * server instance, if none is specified above
@@ -86,6 +104,21 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
 ;ConsoleUser = Test
 ;ConsolePass = secret
 ;ConsolePort = 0
+
+[Hypergrid]
+    ;# {HomeURI} {Hypergrid} {The Home URL of this world} {}
+	;; This is the address of the external robust server that
+	;; runs the UserAgentsService, possibly this server.
+	;; For example http://myworld.com:8002
+	;; This is a default that can be overwritten in some sections.
+	; HomeURI = "http://127.0.0.1:8002"
+
+    ;# {GatekeeperURI} {Hypergrid} {The URL of the gatekeeper of this world} {}
+	;; This is the address of the external robust server
+	;; that runs the Gatekeeper service, possibly this server.
+	;; For example http://myworld.com:8002
+	;; This is a default that can be overwritten in some sections.
+	; GatekeeperURI = "http://127.0.0.1:8002"
 
 [DatabaseService]
     StorageProvider = "OpenSim.Data.MySQL.dll"
@@ -138,7 +171,8 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
 	;; Allow Hyperlinks to be created at the console
     HypergridLinker = true
 
-	Gatekeeper = "http://127.0.0.1:8002"
+	;; If you have this set under [Hypergrid], no need to set it here, leave it commented
+	; GatekeeperURI = "http://127.0.0.1:8002"
 
 
 ; * This is the configuration for the freeswitch server in grid mode
@@ -292,8 +326,8 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
     ; HasProxy = false
     
     ; Defaults for the users, if none is specified in the useraccounts table entry (ServiceURLs)
-    ; CHANGE THIS
-	GatekeeperURI = "http://127.0.0.1:8002"
+	;; If you have GatekeeperURI set under [Hypergrid], no need to set it here, leave it commented
+	; GatekeeperURI = "http://127.0.0.1:8002"
 
     SRV_HomeURI = "http://127.0.0.1:8002"
     SRV_InventoryServerURI = "http://127.0.0.1:8002"
@@ -301,6 +335,7 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
     SRV_ProfileServerURI = "http://127.0.0.1:8002"
     SRV_FriendsServerURI = "http://127.0.0.1:8002"
     SRV_IMServerURI = "http://127.0.0.1:8002"
+    SRV_GroupsServerURI = "http://127.0.0.1:8002"
 
 	;; Regular expressions for controlling which client versions are accepted/denied.
 	;; An empty string means nothing is checked.
@@ -396,12 +431,13 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
     UserAccountService = "OpenSim.Services.UserAccountService.dll:UserAccountService"
     UserAgentService = "OpenSim.Services.HypergridService.dll:UserAgentService"
     PresenceService = "OpenSim.Services.PresenceService.dll:PresenceService"
+    GridUserService = "OpenSim.Services.UserAccountService.dll:GridUserService"
     GridService = "OpenSim.Services.GridService.dll:GridService"
     AuthenticationService = "OpenSim.Services.Connectors.dll:AuthenticationServicesConnector"
     SimulationService ="OpenSim.Services.Connectors.dll:SimulationServiceConnector"
     ; how does the outside world reach me? This acts as public key too.
-    ; CHANGE THIS
-    ExternalName = "http://127.0.0.1:8002"
+	;; If you have GatekeeperURI set under [Hypergrid], no need to set it here, leave it commented
+    ; ExternalName = "http://127.0.0.1:8002"
 
     ; Does this grid allow incoming links to any region in it? 
     ; If false, HG TPs happen only to the Default regions specified in [GridService] section
@@ -494,7 +530,9 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
 
 	UserAccountsService = "OpenSim.Services.UserAccountService.dll:UserAccountService"
 	AvatarService = "OpenSim.Services.AvatarService.dll:AvatarService"
-	HomeURI = "http://127.0.0.1:8002"
+
+	;; Can overwrite the default in [Hypergrid], but probably shouldn't
+	; HomeURI = "http://127.0.0.1:8002"
 
 ; * The interface that local users get when they are in other grids.
 ; * This restricts the access that the rest of the world has to
@@ -503,7 +541,9 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
 [HGAssetService]
     LocalServiceModule = "OpenSim.Services.HypergridService.dll:HGAssetService"
     UserAccountsService = "OpenSim.Services.UserAccountService.dll:UserAccountService"
-    HomeURI = "http://127.0.0.1:8002"
+
+	;; Can overwrite the default in [Hypergrid], but probably shouldn't
+	; HomeURI = "http://127.0.0.1:8002"
 
     ;; The asset types that this grid can export to / import from other grids.
 	;; Comma separated.
@@ -534,15 +574,16 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
     InGatekeeper = True
 
 [Messaging]
-    ; If you have an Offline IM server, set the vars in this section, so that
-    ; incomming IMs to local users from foreign grids can be saved
-    ;
-    ;# {OfflineMessageURL} {OfflineMessageModule:OfflineMessageModule} {URL of offline messaging service} {}
-    ;; URL of web service for offline message storage
-    ; OfflineMessageURL = http://yourserver/Offline.php
+    ; OfflineIM
+    OfflineIMService = "OpenSim.Addons.OfflineIM.dll:OfflineIMService"
 
-    ;; Control whether group messages are forwarded to offline users.
-    ;; Default is true.
-    ;; This applies to the core groups module (Flotsam) only.
-    ; ForwardOfflineGroupMessages = true
+[Groups]
+    ;; for the HG Groups service
+    OfflineIMService = "OpenSim.Addons.OfflineIM.dll:OfflineIMService"
+    UserAccountService = "OpenSim.Services.UserAccountService.dll:UserAccountService"
+
+    ;; What is the HomeURI of users associated with this grid?
+	;; Can overwrite the default in [Hypergrid], but probably shouldn't
+	; HomeURI = "http://127.0.0.1:8002"
+
 

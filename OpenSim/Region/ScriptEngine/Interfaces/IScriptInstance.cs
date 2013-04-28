@@ -28,9 +28,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
+using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.ScriptEngine.Shared;
 using OpenSim.Region.ScriptEngine.Interfaces;
 
@@ -50,7 +52,12 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
     {
         bool Cancel();
         void Abort();
-        bool Wait(TimeSpan t);
+
+        /// <summary>
+        /// Wait for the work item to complete.
+        /// </summary>
+        /// <param name='t'>The number of milliseconds to wait.  Must be >= -1 (Timeout.Infinite).</param>
+        bool Wait(int t);
     }
 
     /// <summary>
@@ -58,6 +65,18 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
     /// </summary>
     public interface IScriptInstance
     {
+        /// <summary>
+        /// Debug level for this script instance.
+        /// </summary>
+        /// <remarks>
+        /// Level == 0, no extra data is logged.
+        /// Level >= 1, state changes are logged.
+        /// Level >= 2, event firing is logged.
+        /// <value>
+        /// The debug level.
+        /// </value>
+        int DebugLevel { get; set; }
+
         /// <summary>
         /// Is the script currently running?
         /// </summary>
@@ -93,6 +112,11 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         /// </summary>
         long MeasurementPeriodExecutionTime { get; }
 
+        /// <summary>
+        /// Scene part in which this script instance is contained.
+        /// </summary>
+        SceneObjectPart Part { get; }
+
         IScriptEngine Engine { get; }
         UUID AppDomain { get; set; }
         string PrimName { get; }
@@ -112,7 +136,23 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
 
         uint LocalID { get; }
         UUID AssetID { get; }
+
+        /// <summary>
+        /// Inventory item containing the script used.
+        /// </summary>
+        TaskInventoryItem ScriptTask { get; }
+
         Queue EventQueue { get; }
+
+        /// <summary>
+        /// Number of events queued for processing.
+        /// </summary>
+        long EventsQueued { get; }
+
+        /// <summary>
+        /// Number of events processed by this script instance.
+        /// </summary>
+        long EventsProcessed { get; }
 
         void ClearQueue();
         int StartParam { get; set; }
@@ -125,7 +165,13 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         /// <summary>
         /// Stop the script instance.
         /// </summary>
+        /// <remarks>
+        /// This must not be called by a thread that is in the process of handling an event for this script.  Otherwise
+        /// there is a danger that it will self-abort and not complete the reset.
+        /// </remarks>
         /// <param name="timeout"></param>
+        /// How many milliseconds we will wait for an existing script event to finish before
+        /// forcibly aborting that event.
         /// <returns>true if the script was successfully stopped, false otherwise</returns>
         bool Stop(int timeout);
 
@@ -147,8 +193,31 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         object EventProcessor();
 
         int EventTime();
-        void ResetScript();
+
+        /// <summary>
+        /// Reset the script.
+        /// </summary>
+        /// <remarks>
+        /// This must not be called by a thread that is in the process of handling an event for this script.  Otherwise
+        /// there is a danger that it will self-abort and not complete the reset.  Such a thread must call
+        /// ApiResetScript() instead.
+        /// </remarks>
+        /// <param name='timeout'>
+        /// How many milliseconds we will wait for an existing script event to finish before
+        /// forcibly aborting that event prior to script reset.
+        /// </param>
+        void ResetScript(int timeout);
+
+        /// <summary>
+        /// Reset the script.
+        /// </summary>
+        /// <remarks>
+        /// This must not be called by any thread other than the one executing the scripts current event.  This is 
+        /// because there is no wait or abort logic if another thread is in the middle of processing a script event.
+        /// Such an external thread should use ResetScript() instead.
+        /// </remarks>
         void ApiResetScript();
+
         Dictionary<string, object> GetVars();
         void SetVars(Dictionary<string, object> vars);
         DetectParams GetDetectParams(int idx);

@@ -50,7 +50,7 @@ using OpenSim.Tests.Common.Mock;
 namespace OpenSim.Region.Framework.Tests
 {
     [TestFixture]
-    public class TaskInventoryTests
+    public class TaskInventoryTests : OpenSimTestCase
     {
         [Test]
         public void TestAddTaskInventoryItem()
@@ -130,10 +130,10 @@ namespace OpenSim.Region.Framework.Tests
             SceneObjectPart sop1 = sog1.RootPart;
             TaskInventoryItem sopItem1
                 = TaskInventoryHelpers.AddNotecard(
-                    scene, sop1, "ncItem", TestHelpers.ParseTail(0x800), TestHelpers.ParseTail(0x900));
+                    scene, sop1, "ncItem", TestHelpers.ParseTail(0x800), TestHelpers.ParseTail(0x900), "Hello World!");
 
             InventoryFolderBase folder 
-                = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, user1.PrincipalID, "Objects")[0];
+                = InventoryArchiveUtils.FindFoldersByPath(scene.InventoryService, user1.PrincipalID, "Objects")[0];
             
             // Perform test
             scene.MoveTaskInventoryItem(user1.PrincipalID, folder.ID, sop1, sopItem1.ItemID);
@@ -162,7 +162,7 @@ namespace OpenSim.Region.Framework.Tests
             SceneObjectPart sop1 = sog1.RootPart;
             TaskInventoryItem sopItem1
                 = TaskInventoryHelpers.AddNotecard(
-                    scene, sop1, "ncItem", TestHelpers.ParseTail(0x800), TestHelpers.ParseTail(0x900));
+                    scene, sop1, "ncItem", TestHelpers.ParseTail(0x800), TestHelpers.ParseTail(0x900), "Hello World!");
             
             // Perform test
             scene.MoveTaskInventoryItem(user1.PrincipalID, UUID.Zero, sop1, sopItem1.ItemID);

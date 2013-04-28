@@ -87,13 +87,24 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             return false;
         }
 
-        public bool Remove(UUID animID)
+        /// <summary>
+        /// Remove the specified animation
+        /// </summary>
+        /// <param name='animID'></param>
+        /// <param name='allowNoDefault'>
+        /// If true, then the default animation can be entirely removed. 
+        /// If false, then removing the default animation will reset it to the simulator default (currently STAND).
+        /// </param>
+        public bool Remove(UUID animID, bool allowNoDefault)
         {
             lock (m_animations)
             {
                 if (m_defaultAnimation.AnimID == animID)
                 {
-                    m_defaultAnimation = new OpenSim.Framework.Animation(UUID.Zero, 1, UUID.Zero);
+                    if (allowNoDefault)
+                        m_defaultAnimation = new OpenSim.Framework.Animation(UUID.Zero, 1, UUID.Zero);
+                    else
+                        ResetDefaultAnimation();
                 }
                 else if (HasAnimation(animID))
                 {

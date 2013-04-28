@@ -33,7 +33,7 @@ using OpenSim.Region.ScriptEngine.Shared;
 namespace OpenSim.Region.ScriptEngine.Shared.Tests
 {
     [TestFixture]
-    public class LSL_TypesTestLSLString
+    public class LSL_TypesTestLSLString : OpenSimTestCase
     {
         private Dictionary<double, string> m_doubleStringSet;
 

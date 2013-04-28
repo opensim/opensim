@@ -222,7 +222,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
                             {
                                 bool bakedTextureValid = scene.AvatarFactory.ValidateBakedTextureCache(sp);
                                 MainConsole.Instance.OutputFormat(
-                                    "{0} baked appearance texture is {1}", sp.Name, bakedTextureValid ? "OK" : "corrupt");
+                                    "{0} baked appearance texture is {1}", sp.Name, bakedTextureValid ? "OK" : "incomplete");
                             }
                         );
                     }

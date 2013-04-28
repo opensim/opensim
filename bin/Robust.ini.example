@@ -14,10 +14,24 @@
 ; *
 [Startup]
 
+	; Plugin Registry Location
+	; Set path to directory for plugin registry. Information
+	; about the registered repositories and installed plugins
+	; will be stored here
+	; The Robust.exe process must hvae R/W access to the location 
+	RegistryLocation = "."
+
+
+	; Modular configurations
+	; Set path to directory for modular ini files...
+	; The Robust.exe process must hvae R/W access to the location 
+	ConfigDirectory = "/home/opensim/etc/Configs"
+
 [ServiceList]
 AssetServiceConnector = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector"
 InventoryInConnector = "8003/OpenSim.Server.Handlers.dll:XInventoryInConnector"
-VoiceConnector = "8004/OpenSim.Server.Handlers.dll:FreeswitchServerConnector"
+;; Uncomment if you have set up Freeswitch (see [FreeswitchService] below)
+;VoiceConnector = "8004/OpenSim.Server.Handlers.dll:FreeswitchServerConnector"
 GridServiceConnector = "8003/OpenSim.Server.Handlers.dll:GridServiceConnector"
 GridInfoServerInConnector = "8002/OpenSim.Server.Handlers.dll:GridInfoServerInConnector"
 AuthenticationServiceConnector = "8003/OpenSim.Server.Handlers.dll:AuthenticationServiceConnector"
@@ -30,6 +44,11 @@ GridUserServiceConnector = "8003/OpenSim.Server.Handlers.dll:GridUserServiceConn
 FriendsServiceConnector = "8003/OpenSim.Server.Handlers.dll:FriendsServiceConnector"
 MapAddServiceConnector = "8003/OpenSim.Server.Handlers.dll:MapAddServiceConnector"
 MapGetServiceConnector = "8002/OpenSim.Server.Handlers.dll:MapGetServiceConnector"
+;; Uncomment this if you want offline IM to work
+;OfflineIMServiceConnector = "8003/OpenSim.Addons.OfflineIM.dll:OfflineIMServiceRobustConnector"
+;; Uncomment this if you want Groups V2 to work
+;GroupsServiceConnector = "8003/OpenSim.Addons.Groups.dll:GroupsServiceRobustConnector"
+
 
 ; * This is common for all services, it's the network setup for the entire
 ; * server instance, if none is specified above
@@ -243,7 +262,12 @@ MapGetServiceConnector = "8002/OpenSim.Server.Handlers.dll:MapGetServiceConnecto
     LibraryService = "OpenSim.Services.InventoryService.dll:LibraryService"
     FriendsService = "OpenSim.Services.FriendsService.dll:FriendsService"
 
-    ;; Ask co-operative viewers to use a different currency name
+    ; The minimum user level required for a user to be able to login.  0 by default
+    ; If you disable a particular user's account then you can set their login level below this number.
+    ; You can also change this level from the console though these changes will not be persisted.
+    ; MinLoginLevel = 0
+
+    ; Ask co-operative viewers to use a different currency name
     ;Currency = ""
 
     WelcomeMessage = "Welcome, Avatar!"
@@ -316,6 +340,9 @@ MapGetServiceConnector = "8002/OpenSim.Server.Handlers.dll:MapGetServiceConnecto
     ; HasProxy = false
 
 
+[Messaging]
+    ; OfflineIM
+    OfflineIMService = "OpenSim.Addons.OfflineIM.dll:OfflineIMService"
 
 [GridInfoService]
     ; These settings are used to return information on a get_grid_info call.
@@ -355,3 +382,5 @@ MapGetServiceConnector = "8002/OpenSim.Server.Handlers.dll:MapGetServiceConnecto
 
     ; password help: optional: page providing password assistance for users of your grid
     ;password = http://127.0.0.1/password
+
+

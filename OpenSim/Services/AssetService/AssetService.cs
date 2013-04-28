@@ -123,46 +123,32 @@ namespace OpenSim.Services.AssetService
         public virtual AssetMetadata GetMetadata(string id)
         {
 //            m_log.DebugFormat("[ASSET SERVICE]: Get asset metadata for {0}", id);
-            
-            UUID assetID;
 
-            if (!UUID.TryParse(id, out assetID))
-                return null;
+            AssetBase asset = Get(id);
 
-            AssetBase asset = m_Database.GetAsset(assetID);
             if (asset != null)
                 return asset.Metadata;
-
-            return null;
+            else
+                return null;
         }
 
         public virtual byte[] GetData(string id)
         {
 //            m_log.DebugFormat("[ASSET SERVICE]: Get asset data for {0}", id);
-            
-            UUID assetID;
 
-            if (!UUID.TryParse(id, out assetID))
+            AssetBase asset = Get(id);
+
+            if (asset != null)
+                return asset.Data;
+            else
                 return null;
-
-            AssetBase asset = m_Database.GetAsset(assetID);
-            return asset.Data;
         }
 
         public virtual bool Get(string id, Object sender, AssetRetrieved handler)
         {
             //m_log.DebugFormat("[AssetService]: Get asset async {0}", id);
-            
-            UUID assetID;
 
-            if (!UUID.TryParse(id, out assetID))
-                return false;
-
-            AssetBase asset = m_Database.GetAsset(assetID);
-
-            //m_log.DebugFormat("[AssetService]: Got asset {0}", asset);
-            
-            handler(id, sender, asset);
+            handler(id, sender, Get(id));
 
             return true;
         }

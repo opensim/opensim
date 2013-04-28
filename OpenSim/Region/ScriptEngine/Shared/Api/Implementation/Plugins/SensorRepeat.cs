@@ -42,6 +42,29 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        /// <summary>
+        /// Used by one-off and repeated sensors
+        /// </summary>
+        public class SensorInfo
+        {
+            public uint localID;
+            public UUID itemID;
+            public double interval;
+            public DateTime next;
+
+            public string name;
+            public UUID keyID;
+            public int type;
+            public double range;
+            public double arc;
+            public SceneObjectPart host;
+
+            public SensorInfo Clone()
+            {
+                return (SensorInfo)this.MemberwiseClone();
+            }
+        }
+
         public AsyncCommandManager m_CmdManager;
 
         /// <summary>
@@ -78,24 +101,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
         private int maximumToReturn = 16;
 
         //
-        // SenseRepeater and Sensors
-        //
-        private class SenseRepeatClass
-        {
-            public uint localID;
-            public UUID itemID;
-            public double interval;
-            public DateTime next;
-
-            public string name;
-            public UUID keyID;
-            public int type;
-            public double range;
-            public double arc;
-            public SceneObjectPart host;
-        }
-
-        //
         // Sensed entity
         //
         private class SensedEntity : IComparable
@@ -127,7 +132,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
         ///
         /// Always lock SenseRepeatListLock when updating this list.
         /// </remarks>
-        private List<SenseRepeatClass> SenseRepeaters = new List<SenseRepeatClass>();
+        private List<SensorInfo> SenseRepeaters = new List<SensorInfo>();
         private object SenseRepeatListLock = new object();
 
         public void SetSenseRepeatEvent(uint m_localID, UUID m_itemID,
@@ -141,7 +146,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                 return;
 
             // Add to timer
-            SenseRepeatClass ts = new SenseRepeatClass();
+            SensorInfo ts = new SensorInfo();
             ts.localID = m_localID;
             ts.itemID = m_itemID;
             ts.interval = sec;
@@ -160,11 +165,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             AddSenseRepeater(ts);
         }
 
-        private void AddSenseRepeater(SenseRepeatClass senseRepeater)
+        private void AddSenseRepeater(SensorInfo senseRepeater)
         {
             lock (SenseRepeatListLock)
             {
-                List<SenseRepeatClass> newSenseRepeaters = new List<SenseRepeatClass>(SenseRepeaters);
+                List<SensorInfo> newSenseRepeaters = new List<SensorInfo>(SenseRepeaters);
                 newSenseRepeaters.Add(senseRepeater);
                 SenseRepeaters = newSenseRepeaters;
             }
@@ -175,8 +180,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             // Remove from timer
             lock (SenseRepeatListLock)
             {
-                List<SenseRepeatClass> newSenseRepeaters = new List<SenseRepeatClass>();
-                foreach (SenseRepeatClass ts in SenseRepeaters)
+                List<SensorInfo> newSenseRepeaters = new List<SensorInfo>();
+                foreach (SensorInfo ts in SenseRepeaters)
                 {
                     if (ts.localID != m_localID || ts.itemID != m_itemID)
                     {
@@ -191,7 +196,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
         public void CheckSenseRepeaterEvents()
         {
             // Go through all timers
-            foreach (SenseRepeatClass ts in SenseRepeaters)
+            foreach (SensorInfo ts in SenseRepeaters)
             {
                 // Time has passed?
                 if (ts.next.ToUniversalTime() < DateTime.Now.ToUniversalTime())
@@ -208,7 +213,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                               double range, double arc, SceneObjectPart host)
         {
             // Add to timer
-            SenseRepeatClass ts = new SenseRepeatClass();
+            SensorInfo ts = new SensorInfo();
             ts.localID = m_localID;
             ts.itemID = m_itemID;
             ts.interval = 0;
@@ -224,7 +229,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             SensorSweep(ts);
         }
 
-        private void SensorSweep(SenseRepeatClass ts)
+        private void SensorSweep(SensorInfo ts)
         {
             if (ts.host == null)
             {
@@ -300,7 +305,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             }
         }
 
-        private List<SensedEntity> doObjectSensor(SenseRepeatClass ts)
+        private List<SensedEntity> doObjectSensor(SensorInfo ts)
         {
             List<EntityBase> Entities;
             List<SensedEntity> sensedEntities = new List<SensedEntity>();
@@ -451,7 +456,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             return sensedEntities;
         }
 
-        private List<SensedEntity> doAgentSensor(SenseRepeatClass ts)
+        private List<SensedEntity> doAgentSensor(SensorInfo ts)
         {
             List<SensedEntity> sensedEntities = new List<SensedEntity>();
 
@@ -630,7 +635,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
         {
             List<Object> data = new List<Object>();
 
-            foreach (SenseRepeatClass ts in SenseRepeaters)
+            foreach (SensorInfo ts in SenseRepeaters)
             {
                 if (ts.itemID == itemID)
                 {
@@ -660,7 +665,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 
             while (idx < data.Length)
             {
-                SenseRepeatClass ts = new SenseRepeatClass();
+                SensorInfo ts = new SensorInfo();
 
                 ts.localID = localID;
                 ts.itemID = itemID;
@@ -681,5 +686,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                 idx += 6;
             }
         }
+
+        public List<SensorInfo> GetSensorInfo()
+        {
+            List<SensorInfo> retList = new List<SensorInfo>();
+
+            lock (SenseRepeatListLock)
+            {
+                foreach (SensorInfo i in SenseRepeaters)
+                    retList.Add(i.Clone());
+            }
+
+            return retList;
+        }           
     }
 }

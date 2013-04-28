@@ -448,7 +448,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 else
                 {
                     repData.meshState = MeshState.needMesh;
-                    mesh = m_mesher.CreateMesh(actor.Name, pbs, size, clod, true, convex, true);
+                    mesh = m_mesher.CreateMesh(actor.Name, pbs, size, clod, true, false, convex, true);
                     if (mesh == null)
                     {
                         repData.meshState = MeshState.MeshFailed;
@@ -513,7 +513,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     clod = (int)LevelOfDetail.Low;
             }
 
-            mesh = m_mesher.CreateMesh(actor.Name, pbs, size, clod, true, convex, true);
+            mesh = m_mesher.CreateMesh(actor.Name, pbs, size, clod, true, false, convex, true);
    
             if (mesh == null)
             {

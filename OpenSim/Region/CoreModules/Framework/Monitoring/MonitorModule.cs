@@ -33,6 +33,7 @@ using log4net;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Framework.Monitoring;
 using OpenSim.Framework.Servers;
 using OpenSim.Region.CoreModules.Framework.Monitoring.Alerts;
 using OpenSim.Region.CoreModules.Framework.Monitoring.Monitors;
@@ -100,6 +101,7 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
                 "/monitorstats/" + Uri.EscapeDataString(m_scene.RegionInfo.RegionName), StatsPage);
 
             AddMonitors();
+            RegisterStatsManagerRegionStatistics();
         }
 
         public void RemoveRegion(Scene scene)
@@ -109,6 +111,9 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
 
             MainServer.Instance.RemoveHTTPHandler("GET", "/monitorstats/" + m_scene.RegionInfo.RegionID);
             MainServer.Instance.RemoveHTTPHandler("GET", "/monitorstats/" + Uri.EscapeDataString(m_scene.RegionInfo.RegionName));
+
+            UnRegisterStatsManagerRegionStatistics();
+
             m_scene = null;
         }
 
@@ -398,6 +403,45 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
         void OnTriggerAlert(System.Type reporter, string reason, bool fatal)
         {
             m_log.Error("[Monitor] " + reporter.Name + " for " + m_scene.RegionInfo.RegionName + " reports " + reason + " (Fatal: " + fatal + ")");
+        }
+
+        private List<Stat> registeredStats = new List<Stat>();
+        private void MakeStat(string pName, string pUnitName, Action<Stat> act)
+        {
+            Stat tempStat = new Stat(pName, pName, pName, pUnitName, "scene", m_scene.RegionInfo.RegionName, StatType.Pull, act, StatVerbosity.Info);
+            StatsManager.RegisterStat(tempStat);
+            registeredStats.Add(tempStat);
+        }
+        private void RegisterStatsManagerRegionStatistics()
+        {
+            MakeStat("RootAgents", "avatars", (s) => { s.Value = m_scene.SceneGraph.GetRootAgentCount(); });
+            MakeStat("ChildAgents", "avatars", (s) => { s.Value = m_scene.SceneGraph.GetChildAgentCount(); });
+            MakeStat("TotalPrims", "objects", (s) => { s.Value = m_scene.SceneGraph.GetTotalObjectsCount(); });
+            MakeStat("ActivePrims", "objects", (s) => { s.Value = m_scene.SceneGraph.GetActiveObjectsCount(); });
+            MakeStat("ActiveScripts", "scripts", (s) => { s.Value = m_scene.SceneGraph.GetActiveScriptsCount(); });
+
+            MakeStat("TimeDilation", "sec/sec", (s) => { s.Value = m_scene.StatsReporter.LastReportedSimStats[0]; });
+            MakeStat("SimFPS", "fps", (s) => { s.Value = m_scene.StatsReporter.LastReportedSimStats[1]; });
+            MakeStat("PhysicsFPS", "fps", (s) => { s.Value = m_scene.StatsReporter.LastReportedSimStats[2]; });
+            MakeStat("AgentUpdates", "updates/sec", (s) => { s.Value = m_scene.StatsReporter.LastReportedSimStats[3]; });
+            MakeStat("FrameTime", "ms/sec", (s) => { s.Value = m_scene.StatsReporter.LastReportedSimStats[8]; });
+            MakeStat("NetTime", "ms/sec", (s) => { s.Value = m_scene.StatsReporter.LastReportedSimStats[9]; });
+            MakeStat("OtherTime", "ms/sec", (s) => { s.Value = m_scene.StatsReporter.LastReportedSimStats[12]; });
+            MakeStat("PhysicsTime", "ms/sec", (s) => { s.Value = m_scene.StatsReporter.LastReportedSimStats[10]; });
+            MakeStat("AgentTime", "ms/sec", (s) => { s.Value = m_scene.StatsReporter.LastReportedSimStats[16]; });
+            MakeStat("ImageTime", "ms/sec", (s) => { s.Value = m_scene.StatsReporter.LastReportedSimStats[11]; });
+            MakeStat("ScriptLines", "lines/sec", (s) => { s.Value = m_scene.StatsReporter.LastReportedSimStats[20]; });
+            MakeStat("SimSpareMS", "ms/sec", (s) => { s.Value = m_scene.StatsReporter.LastReportedSimStats[21]; });
+        }
+        
+        private void UnRegisterStatsManagerRegionStatistics()
+        {
+            foreach (Stat stat in registeredStats)
+            {
+                StatsManager.DeregisterStat(stat);
+                stat.Dispose();
+            }
+            registeredStats.Clear();
         }
         
     }

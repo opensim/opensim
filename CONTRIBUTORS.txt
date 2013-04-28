@@ -65,6 +65,7 @@ what it is today.
 * A_Biondi
 * alex_carnell
 * Alan Webb (IBM)
+* Allen Kerensky
 * BigFootAg
 * BlueWall Slade
 * brianw/Sir_Ahzz
@@ -154,6 +155,7 @@ what it is today.
 * tglion
 * tlaukkan/Tommil (Tommi S. E. Laukkanen, Bubble Cloud)
 * tyre
+* Vegaslon <vegaslon@gmail.com>
 * VikingErik
 * Vytek
 * webmage (IBM)

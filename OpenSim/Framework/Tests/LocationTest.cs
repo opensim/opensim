@@ -26,11 +26,12 @@
  */
 
 using NUnit.Framework;
+using OpenSim.Tests.Common;
 
 namespace OpenSim.Framework.Tests
 {
     [TestFixture]
-    public class LocationTest
+    public class LocationTest : OpenSimTestCase
     {
         [Test]
         public void locationRegionHandleRegionHandle()

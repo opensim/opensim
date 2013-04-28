@@ -41,10 +41,9 @@ namespace OpenSim.Tests.Common.Mock
         public TestScene(
             RegionInfo regInfo, AgentCircuitManager authen,
             SceneCommunicationService sceneGridService, ISimulationDataService simDataService, IEstateDataService estateDataService,
-            bool dumpAssetsToFile,
             IConfigSource config, string simulatorVersion)
             : base(regInfo, authen, sceneGridService, simDataService, estateDataService,
-                   dumpAssetsToFile, config, simulatorVersion)
+                   config, simulatorVersion)
         {
         }
 

@@ -37,11 +37,13 @@ using System.Xml.Serialization;
 using log4net;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
+using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes.Scripting;
 using OpenSim.Region.Framework.Scenes.Serialization;
 using OpenSim.Region.Physics.Manager;
+using PermissionMask = OpenSim.Framework.PermissionMask;
 
 namespace OpenSim.Region.Framework.Scenes
 {
@@ -116,7 +118,7 @@ namespace OpenSim.Region.Framework.Scenes
 
     #endregion Enumerations
 
-    public class SceneObjectPart : IScriptHost, ISceneEntity
+    public class SceneObjectPart : ISceneEntity
     {
         /// <value>
         /// Denote all sides of the prim
@@ -136,6 +138,32 @@ namespace OpenSim.Region.Framework.Scenes
 
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        /// <summary>
+        /// Dynamic attributes can be created and deleted as required.
+        /// </summary>
+        public DAMap DynAttrs { get; set; }
+
+        private DOMap m_dynObjs;
+
+        /// <summary>
+        /// Dynamic objects that can be created and deleted as required.
+        /// </summary>
+        public DOMap DynObjs 
+        { 
+            get
+            {
+                if (m_dynObjs == null)
+                    m_dynObjs = new DOMap();
+
+                return m_dynObjs;
+            }
+
+            set
+            {
+                m_dynObjs = value;
+            }
+        }
+        
         /// <value>
         /// Is this a root part?
         /// </value>
@@ -386,6 +414,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_particleSystem = Utils.EmptyBytes;
             Rezzed = DateTime.UtcNow;
             Description = String.Empty;
+            DynAttrs = new DAMap();
 
             // Prims currently only contain a single folder (Contents).  From looking at the Second Life protocol,
             // this appears to have the same UUID (!) as the prim.  If this isn't the case, one can't drag items from
@@ -441,8 +470,8 @@ namespace OpenSim.Region.Framework.Scenes
         private uint _category;
         private Int32 _creationDate;
         private uint _parentID = 0;
-        private uint _baseMask = (uint)PermissionMask.All;
-        private uint _ownerMask = (uint)PermissionMask.All;
+        private uint _baseMask = (uint)(PermissionMask.All | PermissionMask.Export);
+        private uint _ownerMask = (uint)(PermissionMask.All | PermissionMask.Export);
         private uint _groupMask = (uint)PermissionMask.None;
         private uint _everyoneMask = (uint)PermissionMask.None;
         private uint _nextOwnerMask = (uint)(PermissionMask.Move | PermissionMask.Modify | PermissionMask.Transfer);
@@ -1342,7 +1371,7 @@ namespace OpenSim.Region.Framework.Scenes
         public UUID SitTargetAvatar { get; set; }
 
         /// <summary>
-        /// IDs of all avatars start on this object part.
+        /// IDs of all avatars sat on this part.
         /// </summary>
         /// <remarks>
         /// We need to track this so that we can stop sat upon prims from being attached.
@@ -2133,6 +2162,8 @@ namespace OpenSim.Region.Framework.Scenes
             // safeguard  actual copy is done in sog.copy
             dupe.KeyframeMotion = null;
 
+            dupe.DynAttrs.CopyFrom(DynAttrs);
+            
             if (userExposed)
             {
 /*
@@ -2446,11 +2477,11 @@ namespace OpenSim.Region.Framework.Scenes
         public int GetAxisRotation(int axis)
         {
             //Cannot use ScriptBaseClass constants as no referance to it currently.
-            if (axis == 2)//STATUS_ROTATE_X
+            if (axis == (int)SceneObjectGroup.axisSelect.STATUS_ROTATE_X)
                 return STATUS_ROTATE_X;
-            if (axis == 4)//STATUS_ROTATE_Y
+            if (axis == (int)SceneObjectGroup.axisSelect.STATUS_ROTATE_Y)
                 return STATUS_ROTATE_Y;
-            if (axis == 8)//STATUS_ROTATE_Z
+            if (axis == (int)SceneObjectGroup.axisSelect.STATUS_ROTATE_Z)
                 return STATUS_ROTATE_Z;
 
             return 0;
@@ -2485,18 +2516,6 @@ namespace OpenSim.Region.Framework.Scenes
                 return new Vector3(0, 0, 0);
 
             return ParentGroup.GetGeometricCenter();
-
-            /*
-                        PhysicsActor pa = PhysActor;
-
-                        if (pa != null)
-                        {
-                            Vector3 vtmp = pa.CenterOfMass;
-                            return vtmp;
-                        }
-                        else
-                            return new Vector3(0, 0, 0);
-             */
         }
 
         public float GetMass()
@@ -2910,11 +2929,14 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void PhysicsOutOfBounds(Vector3 pos)
         {
-            m_log.Error("[PHYSICS]: Physical Object went out of bounds.");
+            // Note: This is only being called on the root prim at this time.
+
+            m_log.ErrorFormat(
+                "[SCENE OBJECT PART]: Physical object {0}, localID {1} went out of bounds at {2} in {3}.  Stopping at {4} and making non-physical.", 
+                Name, LocalId, pos, ParentGroup.Scene.Name, AbsolutePosition);
             
             RemFlag(PrimFlags.Physics);
             DoPhysicsPropertyUpdate(false, true);
-            //ParentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
         }
 
         public void PhysicsRequestingTerseUpdate()
@@ -3337,13 +3359,13 @@ namespace OpenSim.Region.Framework.Scenes
             ParentGroup.SetAxisRotation(axis, rotate);
 
             //Cannot use ScriptBaseClass constants as no referance to it currently.
-            if (axis == 2)//STATUS_ROTATE_X
+            if ((axis & (int)SceneObjectGroup.axisSelect.STATUS_ROTATE_X) != 0)
                 STATUS_ROTATE_X = rotate;
 
-            if (axis == 4)//STATUS_ROTATE_Y
+            if ((axis & (int)SceneObjectGroup.axisSelect.STATUS_ROTATE_Y) != 0)
                 STATUS_ROTATE_Y = rotate;
 
-            if (axis == 8)//STATUS_ROTATE_Z
+            if ((axis & (int)SceneObjectGroup.axisSelect.STATUS_ROTATE_Z) != 0)
                 STATUS_ROTATE_Z = rotate;
         }
 
@@ -3721,6 +3743,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="events"></param>
         public void SetScriptEvents(UUID scriptid, int events)
         {
+//            m_log.DebugFormat(
+//                "[SCENE OBJECT PART]: Set script events for script with id {0} on {1}/{2} to {3} in {4}", 
+//                scriptid, Name, ParentGroup.Name, events, ParentGroup.Scene.Name);
+
             // scriptEvents oldparts;
             lock (m_scriptEvents)
             {
@@ -4250,6 +4276,7 @@ namespace OpenSim.Region.Framework.Scenes
                         result.distance = distance2;
                         result.HitTF = true;
                         result.ipoint = q;
+                        result.face = i;
                         //m_log.Info("[FACE]:" + i.ToString());
                         //m_log.Info("[POINT]: " + q.ToString());
                         //m_log.Info("[DIST]: " + distance2.ToString());
@@ -4296,10 +4323,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void TrimPermissions()
         {
-            BaseMask &= (uint)PermissionMask.All;
-            OwnerMask &= (uint)PermissionMask.All;
+            BaseMask &= (uint)(PermissionMask.All | PermissionMask.Export);
+            OwnerMask &= (uint)(PermissionMask.All | PermissionMask.Export);
             GroupMask &= (uint)PermissionMask.All;
-            EveryoneMask &= (uint)PermissionMask.All;
+            EveryoneMask &= (uint)(PermissionMask.All | PermissionMask.Export);
             NextOwnerMask &= (uint)PermissionMask.All;
         }
 
@@ -4402,10 +4429,22 @@ namespace OpenSim.Region.Framework.Scenes
                                 baseMask;
                         break;
                     case 8:
+                        // Trying to set export permissions - extra checks
+                        if (set && (mask & (uint)PermissionMask.Export) != 0)
+                        {
+                            if ((OwnerMask & (uint)PermissionMask.Export) == 0 || (BaseMask & (uint)PermissionMask.Export) == 0 || (NextOwnerMask & (uint)PermissionMask.All) != (uint)PermissionMask.All)
+                                mask &= ~(uint)PermissionMask.Export;
+                        }
                         EveryoneMask = ApplyMask(EveryoneMask, set, mask) &
                                 baseMask;
                         break;
                     case 16:
+                        // Force full perm if export
+                        if ((EveryoneMask & (uint)PermissionMask.Export) != 0)
+                        {
+                            NextOwnerMask = (uint)PermissionMask.All;
+                            break;
+                        }
                         NextOwnerMask = ApplyMask(NextOwnerMask, set, mask) &
                                 baseMask;
                         // Prevent the client from creating no copy, no transfer
@@ -4573,7 +4612,8 @@ namespace OpenSim.Region.Framework.Scenes
                 if (ParentGroup.RootPart == this)
                     AngularVelocity = new Vector3(0, 0, 0);
             }
-            else
+            
+            else 
             {
                 if (ParentGroup.Scene.CollidablePrims)
                 {
@@ -4619,9 +4659,31 @@ namespace OpenSim.Region.Framework.Scenes
                     UpdatePhysicsSubscribedEvents();
                 }
             }         
-
+            if (SetVD)
+            {
+                // If the above logic worked (this is urgent candidate to unit tests!)
+                // we now have a physicsactor.
+                // Defensive programming calls for a check here.
+                // Better would be throwing an exception that could be catched by a unit test as the internal 
+                // logic should make sure, this Physactor is always here.
+                if (pa != null)
+                {
+                    pa.SetVolumeDetect(1);
+                    AddFlag(PrimFlags.Phantom); // We set this flag also if VD is active
+                    VolumeDetectActive = true;
+                }
             //            m_log.Debug("Update:  PHY:" + UsePhysics.ToString() + ", T:" + IsTemporary.ToString() + ", PHA:" + IsPhantom.ToString() + " S:" + CastsShadows.ToString());
+            }
+            else if (SetVD != wasVD)
+            {
+                // Remove VolumeDetect in any case. Note, it's safe to call SetVolumeDetect as often as you like
+                // (mumbles, well, at least if you have infinte CPU powers :-))
+                if (pa != null)
+                    pa.SetVolumeDetect(0);
 
+                RemFlag(PrimFlags.Phantom);
+                VolumeDetectActive = false;
+            }
            // and last in case we have a new actor and not building
 
             if (ParentGroup != null)
@@ -4661,9 +4723,9 @@ namespace OpenSim.Region.Framework.Scenes
                                  PhysicsShapeType,
                                  m_localId);
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                m_log.ErrorFormat("[SCENE]: AddToPhysics object {0} failed: {1}", m_uuid, ex.Message);
+                m_log.ErrorFormat("[SCENE]: caught exception meshing object {0}. Object set to phantom. e={1}", m_uuid, e);
                 pa = null;
             }
           
@@ -4737,7 +4799,9 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             PhysActor = pa;
-    }
+
+            ParentGroup.Scene.EventManager.TriggerObjectAddedToPhysicalScene(this);
+        }
 
         /// <summary>
         /// This removes the part from the physics scene.
@@ -4756,6 +4820,8 @@ namespace OpenSim.Region.Framework.Scenes
                 pa.OnOutOfBounds -= PhysicsOutOfBounds;
 
                 ParentGroup.Scene.PhysicsScene.RemovePrim(pa);
+
+                ParentGroup.Scene.EventManager.TriggerObjectRemovedFromPhysicalScene(this);
             }
             PhysActor = null;
         }
@@ -4931,8 +4997,25 @@ namespace OpenSim.Region.Framework.Scenes
 
             Changed changeFlags = 0;
 
+            Primitive.TextureEntryFace fallbackNewFace = newTex.DefaultTexture;
+            Primitive.TextureEntryFace fallbackOldFace = oldTex.DefaultTexture;
+           
+            // On Incoming packets, sometimes newText.DefaultTexture is null.  The assumption is that all 
+            // other prim-sides are set, but apparently that's not always the case.  Lets assume packet/data corruption at this point.
+            if (fallbackNewFace == null)
+            {
+                fallbackNewFace = new Primitive.TextureEntry(Util.BLANK_TEXTURE_UUID).CreateFace(0);
+                newTex.DefaultTexture = fallbackNewFace;
+            }
+            if (fallbackOldFace == null)
+            {
+                fallbackOldFace = new Primitive.TextureEntry(Util.BLANK_TEXTURE_UUID).CreateFace(0);
+                oldTex.DefaultTexture = fallbackOldFace;
+            }
+
             for (int i = 0 ; i < GetNumberOfSides(); i++)
             {
+
                 Primitive.TextureEntryFace newFace = newTex.DefaultTexture;
                 Primitive.TextureEntryFace oldFace = oldTex.DefaultTexture;
 
@@ -5158,9 +5241,12 @@ namespace OpenSim.Region.Framework.Scenes
         
         public void ApplyNextOwnerPermissions()
         {
-            BaseMask &= NextOwnerMask;
+            // Export needs to be preserved in the base and everyone
+            // mask, but removed in the owner mask as a next owner
+            // can never change the export status
+            BaseMask &= NextOwnerMask | (uint)PermissionMask.Export;
             OwnerMask &= NextOwnerMask;
-            EveryoneMask &= NextOwnerMask;
+            EveryoneMask &= NextOwnerMask | (uint)PermissionMask.Export;
 
             Inventory.ApplyNextOwnerPermissions();
         }
@@ -5222,18 +5308,22 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name='avatarId'></param>
         protected internal bool AddSittingAvatar(UUID avatarId)
         {
-            if (IsSitTargetSet && SitTargetAvatar == UUID.Zero)
-                SitTargetAvatar = avatarId;
-
-            HashSet<UUID> sittingAvatars = m_sittingAvatars;
-
-            if (sittingAvatars == null)
-                sittingAvatars = new HashSet<UUID>();
-
-            lock (sittingAvatars)
+            lock (ParentGroup.m_sittingAvatars)
             {
-                m_sittingAvatars = sittingAvatars;
-                return m_sittingAvatars.Add(avatarId);
+                if (IsSitTargetSet && SitTargetAvatar == UUID.Zero)
+                    SitTargetAvatar = avatarId;
+
+                if (m_sittingAvatars == null)
+                    m_sittingAvatars = new HashSet<UUID>();
+
+                if (m_sittingAvatars.Add(avatarId))
+                {
+                    ParentGroup.m_sittingAvatars.Add(avatarId);
+
+                    return true;
+                }
+
+                return false;
             }
         }
 
@@ -5247,27 +5337,26 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name='avatarId'></param>
         protected internal bool RemoveSittingAvatar(UUID avatarId)
         {
-            if (SitTargetAvatar == avatarId)
-                SitTargetAvatar = UUID.Zero;
-
-            HashSet<UUID> sittingAvatars = m_sittingAvatars;
-
-            // This can occur under a race condition where another thread
-            if (sittingAvatars == null)
-                return false;
-
-            lock (sittingAvatars)
+            lock (ParentGroup.m_sittingAvatars)
             {
-                if (sittingAvatars.Remove(avatarId))
+                if (SitTargetAvatar == avatarId)
+                    SitTargetAvatar = UUID.Zero;
+
+                if (m_sittingAvatars == null)
+                    return false;
+
+                if (m_sittingAvatars.Remove(avatarId))
                 {
-                    if (sittingAvatars.Count == 0)
+                    if (m_sittingAvatars.Count == 0)
                         m_sittingAvatars = null;
+
+                    ParentGroup.m_sittingAvatars.Remove(avatarId);
 
                     return true;
                 }
-            }
 
-            return false;
+                return false;
+            }
         }
 
         /// <summary>
@@ -5277,16 +5366,12 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>A hashset of the sitting avatars.  Returns null if there are no sitting avatars.</returns>
         public HashSet<UUID> GetSittingAvatars()
         {
-            HashSet<UUID> sittingAvatars = m_sittingAvatars;
-
-            if (sittingAvatars == null)
+            lock (ParentGroup.m_sittingAvatars)
             {
-                return null;
-            }
-            else
-            {
-                lock (sittingAvatars)
-                    return new HashSet<UUID>(sittingAvatars);
+                if (m_sittingAvatars == null)
+                    return null;
+                else
+                    return new HashSet<UUID>(m_sittingAvatars);
             }
         }
 
@@ -5297,13 +5382,13 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns></returns>
         public int GetSittingAvatarsCount()
         {
-            HashSet<UUID> sittingAvatars = m_sittingAvatars;
-
-            if (sittingAvatars == null)
-                return 0;
-
-            lock (sittingAvatars)
-                return sittingAvatars.Count;
+            lock (ParentGroup.m_sittingAvatars)
+            {
+                if (m_sittingAvatars == null)
+                    return 0;
+                else
+                    return m_sittingAvatars.Count;
+            }
         }
     }
 }

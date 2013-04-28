@@ -34,6 +34,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
+using PermissionMask = OpenSim.Framework.PermissionMask;
 
 namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
 {
@@ -430,8 +431,8 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             item.AssetType = type;
             item.InvType = invType;
             item.Folder = InventFolder;
-            item.BasePermissions = 0x7fffffff;
-            item.CurrentPermissions = 0x7fffffff;
+            item.BasePermissions = (uint)(PermissionMask.All | PermissionMask.Export);
+            item.CurrentPermissions = item.BasePermissions;
             item.GroupPermissions=0;
             item.EveryOnePermissions=0;
             item.NextPermissions = nextPerm;

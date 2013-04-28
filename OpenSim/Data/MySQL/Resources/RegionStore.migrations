@@ -902,3 +902,23 @@ BEGIN;
 CREATE TABLE `regionextra` (`RegionID` char(36) not null, `Name` varchar(32) not null, `value` text, primary key(`RegionID`, `Name`));
 
 COMMIT;
+
+:VERSION 46       #---------------- Dynamic attributes
+
+BEGIN;
+
+ALTER TABLE prims ADD COLUMN DynAttrs TEXT;
+
+COMMIT;
+
+:VERSION 47       #---------------- Extra physics params
+
+BEGIN;
+
+ALTER TABLE prims ADD COLUMN `PhysicsShapeType` tinyint(4) NOT NULL default '0';
+ALTER TABLE prims ADD COLUMN `Density` double NOT NULL default '1000';
+ALTER TABLE prims ADD COLUMN `GravityModifier` double NOT NULL default '1';
+ALTER TABLE prims ADD COLUMN `Friction` double NOT NULL default '0.6';
+ALTER TABLE prims ADD COLUMN `Restitution` double NOT NULL default '0.5';
+
+COMMIT;

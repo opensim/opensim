@@ -1,0 +1,115 @@
+﻿:VERSION 1         # -------------------------- 
+
+BEGIN;
+
+CREATE TABLE `os_groups_groups` (
+  `GroupID` char(36) NOT NULL default '',
+  `Location` varchar(255) NOT NULL default '',
+  `Name` varchar(255) NOT NULL default '',
+  `Charter` text NOT NULL,
+  `InsigniaID` char(36) NOT NULL default '',
+  `FounderID` char(36) NOT NULL default '',
+  `MembershipFee` int(11) NOT NULL default '0',
+  `OpenEnrollment` varchar(255) NOT NULL default '',
+  `ShowInList` int(4) NOT NULL default '0',
+  `AllowPublish` int(4) NOT NULL default '0',
+  `MaturePublish` int(4) NOT NULL default '0',
+  `OwnerRoleID` char(36) NOT NULL default '',
+  PRIMARY KEY  (`GroupID`),
+  UNIQUE KEY `Name` (`Name`),
+  FULLTEXT KEY `Name_2` (`Name`)
+) ENGINE=MyISAM;
+
+
+CREATE TABLE `os_groups_membership` (
+  `GroupID`char(36) NOT NULL default '',
+  `PrincipalID` VARCHAR(255) NOT NULL default '',
+  `SelectedRoleID` char(36) NOT NULL default '',
+  `Contribution` int(11) NOT NULL default '0',
+  `ListInProfile` int(4) NOT NULL default '1',
+  `AcceptNotices` int(4) NOT NULL default '1',
+  `AccessToken` char(36) NOT NULL default '',
+  PRIMARY KEY  (`GroupID`,`PrincipalID`),
+  KEY `PrincipalID` (`PrincipalID`)
+) ENGINE=MyISAM;
+
+
+CREATE TABLE `os_groups_roles` (
+  `GroupID` char(36) NOT NULL default '',
+  `RoleID` char(36) NOT NULL default '',
+  `Name` varchar(255) NOT NULL default '',
+  `Description` varchar(255) NOT NULL default '',
+  `Title` varchar(255) NOT NULL default '',
+  `Powers` bigint(20) unsigned NOT NULL default '0',
+  PRIMARY KEY  (`GroupID`,`RoleID`),
+  KEY `GroupID` (`GroupID`)
+) ENGINE=MyISAM;
+
+
+CREATE TABLE `os_groups_rolemembership` (
+  `GroupID` char(36) NOT NULL default '',
+  `RoleID` char(36) NOT NULL default '',
+  `PrincipalID` VARCHAR(255) NOT NULL default '',
+  PRIMARY KEY  (`GroupID`,`RoleID`,`PrincipalID`),
+  KEY `PrincipalID` (`PrincipalID`)
+) ENGINE=MyISAM;
+
+
+CREATE TABLE `os_groups_invites` (
+  `InviteID` char(36) NOT NULL default '',
+  `GroupID` char(36) NOT NULL default '',
+  `RoleID` char(36) NOT NULL default '',
+  `PrincipalID` VARCHAR(255) NOT NULL default '',
+  `TMStamp` timestamp NOT NULL,
+  PRIMARY KEY  (`InviteID`),
+  UNIQUE KEY `PrincipalGroup` (`GroupID`,`PrincipalID`)
+) ENGINE=MyISAM;
+
+
+CREATE TABLE `os_groups_notices` (
+  `GroupID` char(36) NOT NULL default '',
+  `NoticeID` char(36) NOT NULL default '',
+  `TMStamp` int(10) unsigned NOT NULL default '0',
+  `FromName` varchar(255) NOT NULL default '',
+  `Subject` varchar(255) NOT NULL default '',
+  `Message` text NOT NULL,
+  `HasAttachment` int(4) NOT NULL default '0',
+  `AttachmentType` int(4) NOT NULL default '0',
+  `AttachmentName` varchar(128) NOT NULL default '',
+  `AttachmentItemID` char(36) NOT NULL default '',
+  `AttachmentOwnerID` varchar(255) NOT NULL default '',
+  PRIMARY KEY  (`NoticeID`),
+  KEY  `GroupID` (`GroupID`),
+  KEY `TMStamp` (`TMStamp`)
+) ENGINE=MyISAM;
+
+CREATE TABLE `os_groups_principals` (
+  `PrincipalID` VARCHAR(255) NOT NULL default '',
+  `ActiveGroupID` char(36) NOT NULL default '',
+  PRIMARY KEY  (`PrincipalID`)
+) ENGINE=MyISAM;
+
+COMMIT;
+
+:VERSION 2         # -------------------------- 
+
+BEGIN;
+
+INSERT INTO `os_groups_groups` SELECT * from `diva_groups_groups`;
+DROP TABLE `diva_groups_groups`;
+INSERT INTO `os_groups_membership` SELECT * from `diva_groups_membership`;
+DROP TABLE `diva_groups_membership`;
+INSERT INTO `os_groups_roles` SELECT * from `diva_groups_roles`;
+DROP TABLE `diva_groups_roles`;
+INSERT INTO `os_groups_rolemembership` SELECT * from `diva_groups_rolemembership`;
+DROP TABLE `diva_groups_rolemembership`;
+INSERT INTO `os_groups_invites` SELECT * from `diva_groups_invites`;
+DROP TABLE `diva_groups_invites`;
+INSERT INTO `os_groups_notices` SELECT * from `diva_groups_notices`;
+DROP TABLE `diva_groups_notices`;
+INSERT INTO `os_groups_principals` SELECT * from `diva_groups_principals`;
+DROP TABLE `diva_groups_principals`;
+
+DELETE FROM `migrations` WHERE name='diva_im_Store';
+
+COMMIT;

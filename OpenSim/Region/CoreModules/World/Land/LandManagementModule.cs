@@ -141,6 +141,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             m_scene.EventManager.OnValidateLandBuy += EventManagerOnValidateLandBuy;
             m_scene.EventManager.OnLandBuy += EventManagerOnLandBuy;
             m_scene.EventManager.OnNewClient += EventManagerOnNewClient;
+            m_scene.EventManager.OnMakeChildAgent += EventMakeChildAgent;
             m_scene.EventManager.OnSignificantClientMovement += EventManagerOnSignificantClientMovement;
             m_scene.EventManager.OnNoticeNoLandDataFromStorage += EventManagerOnNoLandDataFromStorage;
             m_scene.EventManager.OnIncomingLandDataFromStorage += EventManagerOnIncomingLandDataFromStorage;
@@ -221,6 +222,11 @@ namespace OpenSim.Region.CoreModules.World.Land
             }
         }
 
+        public void EventMakeChildAgent(ScenePresence avatar)
+        {
+            avatar.currentParcelUUID = UUID.Zero;
+        }
+
         void ClientOnPreAgentUpdate(IClientAPI remoteClient, AgentUpdateArgs agentData)
         {
         }
@@ -249,17 +255,15 @@ namespace OpenSim.Region.CoreModules.World.Land
             newData.LocalID = local_id;
             ILandObject landobj = null;        
 
+            ILandObject land;
             lock (m_landList)
             {
-                if (m_landList.ContainsKey(local_id))
-                {
-                    m_landList[local_id].LandData = newData;
-                    landobj = m_landList[local_id];
-//                    m_scene.EventManager.TriggerLandObjectUpdated((uint)local_id, m_landList[local_id]);
-                }
+                if (m_landList.TryGetValue(local_id, out land))
+                    land.LandData = newData;
             }
-            if(landobj != null)
-                m_scene.EventManager.TriggerLandObjectUpdated((uint)local_id, landobj);
+
+            if (land != null)
+                m_scene.EventManager.TriggerLandObjectUpdated((uint)local_id, land);
         }
 
         public bool AllowedForcefulBans
@@ -584,7 +588,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             // Only now can we add the prim counts to the land object - we rely on the global ID which is generated
             // as a random UUID inside LandData initialization
             if (m_primCountModule != null)
-                new_land.PrimCounts = m_primCountModule.GetPrimCounts(new_land.LandData.GlobalID);            
+                new_land.PrimCounts = m_primCountModule.GetPrimCounts(new_land.LandData.GlobalID);
 
             lock (m_landList)
             {
@@ -621,6 +625,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         /// <param name="local_id">Land.localID of the peice of land to remove.</param>
         public void removeLandObject(int local_id)
         {
+            ILandObject land;
             lock (m_landList)
             {
                 for (int x = 0; x < 64; x++)
@@ -637,9 +642,11 @@ namespace OpenSim.Region.CoreModules.World.Land
                     }
                 }
 
-                m_scene.EventManager.TriggerLandObjectRemoved(m_landList[local_id].LandData.GlobalID);
+                land = m_landList[local_id];
                 m_landList.Remove(local_id);
             }
+
+            m_scene.EventManager.TriggerLandObjectRemoved(land.LandData.GlobalID);
         }
         
         /// <summary>
@@ -1384,9 +1391,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             }
 
             for (int i = 0; i < data.Count; i++)
-            {
                 IncomingLandObjectFromStorage(data[i]);
-            }
         }
 
         public void IncomingLandObjectFromStorage(LandData data)
@@ -1401,25 +1406,72 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public void ReturnObjectsInParcel(int localID, uint returnType, UUID[] agentIDs, UUID[] taskIDs, IClientAPI remoteClient)
         {
-            ILandObject selectedParcel = null;
-            lock (m_landList)
+            if (localID != -1)
             {
-                m_landList.TryGetValue(localID, out selectedParcel);
+                ILandObject selectedParcel = null;
+                lock (m_landList)
+                {
+                    m_landList.TryGetValue(localID, out selectedParcel);
+                }
+
+                if (selectedParcel == null) 
+                    return;
+
+                selectedParcel.ReturnLandObjects(returnType, agentIDs, taskIDs, remoteClient);
             }
+            else
+            {
+                if (returnType != 1)
+                {
+                    m_log.WarnFormat("[LAND MANAGEMENT MODULE]: ReturnObjectsInParcel: unknown return type {0}", returnType);
+                    return;
+                }
 
-            if (selectedParcel == null) return;
+                // We get here when the user returns objects from the list of Top Colliders or Top Scripts.
+                // In that case we receive specific object UUID's, but no parcel ID.
 
-            selectedParcel.ReturnLandObjects(returnType, agentIDs, taskIDs, remoteClient);
+                Dictionary<UUID, HashSet<SceneObjectGroup>> returns = new Dictionary<UUID, HashSet<SceneObjectGroup>>();
+
+                foreach (UUID groupID in taskIDs)
+                {
+                    SceneObjectGroup obj = m_scene.GetSceneObjectGroup(groupID);
+                    if (obj != null)
+                    {
+                        if (!returns.ContainsKey(obj.OwnerID))
+                            returns[obj.OwnerID] = new HashSet<SceneObjectGroup>();
+                        returns[obj.OwnerID].Add(obj);
+                    }
+                    else
+                    {
+                        m_log.WarnFormat("[LAND MANAGEMENT MODULE]: ReturnObjectsInParcel: unknown object {0}", groupID);
+                    }
+                }
+
+                int num = 0;
+                foreach (HashSet<SceneObjectGroup> objs in returns.Values)
+                    num += objs.Count;
+                m_log.DebugFormat("[LAND MANAGEMENT MODULE]: Returning {0} specific object(s)", num);
+
+                foreach (HashSet<SceneObjectGroup> objs in returns.Values)
+                {
+                    List<SceneObjectGroup> objs2 = new List<SceneObjectGroup>(objs);
+                    if (m_scene.Permissions.CanReturnObjects(null, remoteClient.AgentId, objs2))
+                    {
+                        m_scene.returnObjects(objs2.ToArray(), remoteClient.AgentId);
+                    }
+                    else
+                    {
+                        m_log.WarnFormat("[LAND MANAGEMENT MODULE]: ReturnObjectsInParcel: not permitted to return {0} object(s) belonging to user {1}",
+                            objs2.Count, objs2[0].OwnerID);
+                    }
+                }
+            }
         }
 
         public void EventManagerOnNoLandDataFromStorage()
         {
-            // called methods already have locks
-//            lock (m_landList)
-            {
-                ResetSimLandObjects();
-                CreateDefaultParcel();
-            }
+            ResetSimLandObjects();
+            CreateDefaultParcel();
         }
 
         #endregion

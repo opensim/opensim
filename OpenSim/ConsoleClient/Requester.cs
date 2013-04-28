@@ -44,7 +44,6 @@ namespace OpenSim.ConsoleClient
                 ReplyDelegate action)
         {
             WebRequest request = WebRequest.Create(requestUrl);
-            WebResponse response = null;
 
             request.Method = "POST";
 
@@ -64,16 +63,18 @@ namespace OpenSim.ConsoleClient
                 {
                     string reply = String.Empty;
 
-                    response = request.EndGetResponse(ar);
-
-                    try
+                    using (WebResponse response = request.EndGetResponse(ar))
                     {
-                        StreamReader r = new StreamReader(response.GetResponseStream());
-                        reply = r.ReadToEnd();
+                        try
+                        {
+                            using (Stream s = response.GetResponseStream())
+                                using (StreamReader r = new StreamReader(s))
+                                    reply = r.ReadToEnd();
 
-                    }
-                    catch (System.InvalidOperationException)
-                    {
+                        }
+                        catch (System.InvalidOperationException)
+                        {
+                        }
                     }
 
                     action(requestUrl, data, reply);

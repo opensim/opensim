@@ -74,8 +74,8 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
         {
             m_config = source;
 
-            IConfig startupConfig = m_config.Configs["Startup"];
-            if (startupConfig.GetString("MapImageModule", "MapImageModule") != "Warp3DImageModule")
+            if (Util.GetConfigVarFromSections<string>(
+                m_config, "MapImageModule", new string[] { "Startup", "Map" }, "MapImageModule") != "Warp3DImageModule")
                 return;
 
             m_Enabled = true;
@@ -157,16 +157,12 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             bool drawPrimVolume = true;
             bool textureTerrain = true;
 
-            try
-            {
-                IConfig startupConfig = m_config.Configs["Startup"];
-                drawPrimVolume = startupConfig.GetBoolean("DrawPrimOnMapTile", drawPrimVolume);
-                textureTerrain = startupConfig.GetBoolean("TextureOnMapTile", textureTerrain);
-            }
-            catch
-            {
-                m_log.Warn("[WARP 3D IMAGE MODULE]: Failed to load StartupConfig");
-            }
+            string[] configSections = new string[] { "Map", "Startup" };
+
+            drawPrimVolume 
+                = Util.GetConfigVarFromSections<bool>(m_config, "DrawPrimOnMapTile", configSections, drawPrimVolume);
+            textureTerrain 
+                = Util.GetConfigVarFromSections<bool>(m_config, "TextureOnMapTile", configSections, textureTerrain);
 
             m_colors.Clear();
 

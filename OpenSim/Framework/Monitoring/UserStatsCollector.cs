@@ -27,6 +27,8 @@
 
 using System.Timers;
 
+using OpenMetaverse.StructuredData;
+
 namespace OpenSim.Framework.Monitoring
 {
     /// <summary>
@@ -87,6 +89,22 @@ namespace OpenSim.Framework.Monitoring
 @"Successful logins total : {0}, today : {1}, yesterday : {2}
           Logouts total : {3}",
                 SuccessfulLogins, SuccessfulLoginsToday, SuccessfulLoginsYesterday, Logouts);
+        }
+
+        public override string XReport(string uptime, string version)
+        {
+            return OSDParser.SerializeJsonString(OReport(uptime, version));
+        }
+
+        public override OSDMap OReport(string uptime, string version)
+        {
+            OSDMap ret = new OSDMap();
+            ret.Add("SuccessfulLogins", OSD.FromInteger(SuccessfulLogins));
+            ret.Add("SuccessfulLoginsToday", OSD.FromInteger(SuccessfulLoginsToday));
+            ret.Add("SuccessfulLoginsYesterday", OSD.FromInteger(SuccessfulLoginsYesterday));
+            ret.Add("Logouts", OSD.FromInteger(Logouts));
+
+            return ret;
         }
     }
 }

@@ -60,14 +60,14 @@ namespace OpenSim.Region.Physics.Manager
 
         // Set parameter on a specific or all instances.
         // Return 'false' if not able to set the parameter.
-        bool SetPhysicsParameter(string parm, float value, uint localID);
+        bool SetPhysicsParameter(string parm, string value, uint localID);
 
         // Get parameter.
         // Return 'false' if not able to get the parameter.
-        bool GetPhysicsParameter(string parm, out float value);
+        bool GetPhysicsParameter(string parm, out string value);
 
         // Get parameter from a particular object
         // TODO:
-        // bool GetPhysicsParameter(string parm, out float value, uint localID);
+        // bool GetPhysicsParameter(string parm, out string value, uint localID);
     }
 }

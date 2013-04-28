@@ -32,6 +32,15 @@ using OMV = OpenMetaverse;
 
 namespace OpenSim.Region.Physics.BulletSPlugin
 {
+
+// A BSPrim can get individual information about its linkedness attached
+//    to it through an instance of a subclass of LinksetInfo.
+// Each type of linkset will define the information needed for its type.
+public abstract class BSLinksetInfo
+{
+    public virtual void Clear() { }
+}
+
 public abstract class BSLinkset
 {
     // private static string LogHeader = "[BULLETSIM LINKSET]";
@@ -43,11 +52,11 @@ public abstract class BSLinkset
         Manual       = 2    // linkset tied together manually (code moves all the pieces)
     }
     // Create the correct type of linkset for this child
-    public static BSLinkset Factory(BSScene physScene, BSPhysObject parent)
+    public static BSLinkset Factory(BSScene physScene, BSPrimLinkable parent)
     {
         BSLinkset ret = null;
 
-        switch ((int)physScene.Params.linksetImplementation)
+        switch ((int)BSParam.LinksetImplementation)
         {
             case (int)LinksetImplementation.Constraint:
                 ret = new BSLinksetConstraints(physScene, parent);
@@ -62,10 +71,14 @@ public abstract class BSLinkset
                 ret = new BSLinksetCompound(physScene, parent);
                 break;
         }
+        if (ret == null)
+        {
+            physScene.Logger.ErrorFormat("[BULLETSIM LINKSET] Factory could not create linkset. Parent name={1}, ID={2}", parent.Name, parent.LocalID);
+        }
         return ret;
     }
 
-    public BSPhysObject LinksetRoot { get; protected set; }
+    public BSPrimLinkable LinksetRoot { get; protected set; }
 
     public BSScene PhysicsScene { get; private set; }
 
@@ -73,7 +86,7 @@ public abstract class BSLinkset
     public int LinksetID { get; private set; }
 
     // The children under the root in this linkset.
-    protected HashSet<BSPhysObject> m_children;
+    protected HashSet<BSPrimLinkable> m_children;
 
     // We lock the diddling of linkset classes to prevent any badness.
     // This locks the modification of the instances of this class. Changes
@@ -82,27 +95,13 @@ public abstract class BSLinkset
 
     // Some linksets have a preferred physical shape.
     // Returns SHAPE_UNKNOWN if there is no preference. Causes the correct shape to be selected.
-    public virtual BSPhysicsShapeType PreferredPhysicalShape(BSPhysObject requestor)
+    public virtual BSPhysicsShapeType PreferredPhysicalShape(BSPrimLinkable requestor)
     {
         return BSPhysicsShapeType.SHAPE_UNKNOWN;
     }
 
-    // Linksets move around the children so the linkset might need to compute the child position
-    public virtual OMV.Vector3 Position(BSPhysObject member)
-        { return member.RawPosition; }
-    public virtual OMV.Quaternion Orientation(BSPhysObject member)
-        { return member.RawOrientation; }
-    // TODO: does this need to be done for Velocity and RotationalVelocityy?
-    
     // We keep the prim's mass in the linkset structure since it could be dependent on other prims
-    protected float m_mass;
-    public float LinksetMass
-    {
-        get
-        {
-            return m_mass;
-        }
-    }
+    public float LinksetMass { get; protected set; }
 
     public virtual bool LinksetIsColliding { get { return false; } }
 
@@ -116,7 +115,7 @@ public abstract class BSLinkset
         get { return ComputeLinksetGeometricCenter(); }
     }
 
-    protected void Initialize(BSScene scene, BSPhysObject parent)
+    protected BSLinkset(BSScene scene, BSPrimLinkable parent)
     {
         // A simple linkset of one (no children)
         LinksetID = m_nextLinksetID++;
@@ -125,22 +124,25 @@ public abstract class BSLinkset
             m_nextLinksetID = 1;
         PhysicsScene = scene;
         LinksetRoot = parent;
-        m_children = new HashSet<BSPhysObject>();
-        m_mass = parent.RawMass;
+        m_children = new HashSet<BSPrimLinkable>();
+        LinksetMass = parent.RawMass;
+        Rebuilding = false;
+
+        parent.ClearDisplacement();
     }
 
     // Link to a linkset where the child knows the parent.
     // Parent changing should not happen so do some sanity checking.
     // We return the parent's linkset so the child can track its membership.
     // Called at runtime.
-    public BSLinkset AddMeToLinkset(BSPhysObject child)
+    public BSLinkset AddMeToLinkset(BSPrimLinkable child)
     {
         lock (m_linksetActivityLock)
         {
             // Don't add the root to its own linkset
             if (!IsRoot(child))
                 AddChildToLinkset(child);
-            m_mass = ComputeLinksetMass();
+            LinksetMass = ComputeLinksetMass();
         }
         return this;
     }
@@ -149,7 +151,7 @@ public abstract class BSLinkset
     // Returns a new linkset for the child which is a linkset of one (just the
     //    orphened child).
     // Called at runtime.
-    public BSLinkset RemoveMeFromLinkset(BSPhysObject child)
+    public BSLinkset RemoveMeFromLinkset(BSPrimLinkable child)
     {
         lock (m_linksetActivityLock)
         {
@@ -159,7 +161,7 @@ public abstract class BSLinkset
                 return this;
             }
             RemoveChildFromLinkset(child);
-            m_mass = ComputeLinksetMass();
+            LinksetMass = ComputeLinksetMass();
         }
 
         // The child is down to a linkset of just itself
@@ -167,7 +169,7 @@ public abstract class BSLinkset
     }
 
     // Return 'true' if the passed object is the root object of this linkset
-    public bool IsRoot(BSPhysObject requestor)
+    public bool IsRoot(BSPrimLinkable requestor)
     {
         return (requestor.LocalID == LinksetRoot.LocalID);
     }
@@ -178,14 +180,14 @@ public abstract class BSLinkset
     public bool HasAnyChildren { get { return (m_children.Count > 0); } }
 
     // Return 'true' if this child is in this linkset
-    public bool HasChild(BSPhysObject child)
+    public bool HasChild(BSPrimLinkable child)
     {
         bool ret = false;
         lock (m_linksetActivityLock)
         {
             ret = m_children.Contains(child);
             /* Safer version but the above should work
-            foreach (BSPhysObject bp in m_children)
+            foreach (BSPrimLinkable bp in m_children)
             {
                 if (child.LocalID == bp.LocalID)
                 {
@@ -200,14 +202,14 @@ public abstract class BSLinkset
 
     // Perform an action on each member of the linkset including root prim.
     // Depends on the action on whether this should be done at taint time.
-    public delegate bool ForEachMemberAction(BSPhysObject obj);
+    public delegate bool ForEachMemberAction(BSPrimLinkable obj);
     public virtual bool ForEachMember(ForEachMemberAction action)
     {
         bool ret = false;
         lock (m_linksetActivityLock)
         {
             action(LinksetRoot);
-            foreach (BSPhysObject po in m_children)
+            foreach (BSPrimLinkable po in m_children)
             {
                 if (action(po))
                     break;
@@ -218,16 +220,23 @@ public abstract class BSLinkset
 
     // I am the root of a linkset and a new child is being added
     // Called while LinkActivity is locked.
-    protected abstract void AddChildToLinkset(BSPhysObject child);
-
+    protected abstract void AddChildToLinkset(BSPrimLinkable child);
+    
     // I am the root of a linkset and one of my children is being removed.
     // Safe to call even if the child is not really in my linkset.
-    protected abstract void RemoveChildFromLinkset(BSPhysObject child);
+    protected abstract void RemoveChildFromLinkset(BSPrimLinkable child);
 
     // When physical properties are changed the linkset needs to recalculate
     //   its internal properties.
     // May be called at runtime or taint-time.
-    public abstract void Refresh(BSPhysObject requestor);
+    public virtual void Refresh(BSPrimLinkable requestor)
+    {
+        LinksetMass = ComputeLinksetMass();
+    }
+
+    // Flag denoting the linkset is in the process of being rebuilt.
+    // Used to know not the schedule a rebuild in the middle of a rebuild.
+    protected bool Rebuilding { get; set; }
 
     // The object is going dynamic (physical). Do any setup necessary
     //     for a dynamic linkset.
@@ -235,30 +244,26 @@ public abstract class BSLinkset
     //     has not yet been fully constructed.
     // Return 'true' if any properties updated on the passed object.
     // Called at taint-time!
-    public abstract bool MakeDynamic(BSPhysObject child);
+    public abstract bool MakeDynamic(BSPrimLinkable child);
 
     // The object is going static (non-physical). Do any setup necessary
     //     for a static linkset.
     // Return 'true' if any properties updated on the passed object.
     // Called at taint-time!
-    public abstract bool MakeStatic(BSPhysObject child);
+    public abstract bool MakeStatic(BSPrimLinkable child);
 
     // Called when a parameter update comes from the physics engine for any object
     //      of the linkset is received.
+    // Passed flag is update came from physics engine (true) or the user (false).
     // Called at taint-time!!
-    public abstract void UpdateProperties(BSPhysObject physObject);
+    public abstract void UpdateProperties(UpdatedProperties whichUpdated, BSPrimLinkable physObject);
 
     // Routine used when rebuilding the body of the root of the linkset
     // Destroy all the constraints have have been made to root.
     // This is called when the root body is changing.
     // Returns 'true' of something was actually removed and would need restoring
     // Called at taint-time!!
-    public abstract bool RemoveBodyDependencies(BSPrim child);
-
-    // Companion to RemoveBodyDependencies(). If RemoveBodyDependencies() returns 'true',
-    //     this routine will restore the removed constraints.
-    // Called at taint-time!!
-    public abstract void RestoreBodyDependencies(BSPrim child);
+    public abstract bool RemoveBodyDependencies(BSPrimLinkable child);
 
     // ================================================================
     protected virtual float ComputeLinksetMass()
@@ -268,7 +273,7 @@ public abstract class BSLinkset
         {
             lock (m_linksetActivityLock)
             {
-                foreach (BSPhysObject bp in m_children)
+                foreach (BSPrimLinkable bp in m_children)
                 {
                     mass += bp.RawMass;
                 }
@@ -277,6 +282,7 @@ public abstract class BSLinkset
         return mass;
     }
 
+    // Computes linkset's center of mass in world coordinates.
     protected virtual OMV.Vector3 ComputeLinksetCenterOfMass()
     {
         OMV.Vector3 com;
@@ -285,7 +291,7 @@ public abstract class BSLinkset
             com = LinksetRoot.Position * LinksetRoot.RawMass;
             float totalMass = LinksetRoot.RawMass;
 
-            foreach (BSPhysObject bp in m_children)
+            foreach (BSPrimLinkable bp in m_children)
             {
                 com += bp.Position * bp.RawMass;
                 totalMass += bp.RawMass;
@@ -304,9 +310,9 @@ public abstract class BSLinkset
         {
             com = LinksetRoot.Position;
 
-            foreach (BSPhysObject bp in m_children)
+            foreach (BSPrimLinkable bp in m_children)
             {
-                com += bp.Position * bp.RawMass;
+                com += bp.Position;
             }
             com /= (m_children.Count + 1);
         }

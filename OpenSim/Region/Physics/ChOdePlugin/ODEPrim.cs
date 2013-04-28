@@ -2190,7 +2190,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         convex = false;
                     try
                     {
-                        _mesh = _parent_scene.mesher.CreateMesh(m_primName, _pbs, _size, (int)LevelOfDetail.High, true,convex,false);
+                        _mesh = _parent_scene.mesher.CreateMesh(m_primName, _pbs, _size, (int)LevelOfDetail.High, true,false,convex,false);
                     }
                     catch
                     {
@@ -2557,7 +2557,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 try
                 {
-                    mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size, (int)LevelOfDetail.High, true, convex,false);
+                    mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size, (int)LevelOfDetail.High, true, false,convex,false);
                 }
                 catch
                 {

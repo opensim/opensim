@@ -315,7 +315,7 @@ namespace OpenSim.Services.Connectors.Simulation
 
             try
             {
-                OSDMap result = WebUtil.ServiceOSDRequest(uri, request, "QUERYACCESS", 10000, false);
+                OSDMap result = WebUtil.ServiceOSDRequest(uri, request, "QUERYACCESS", 30000, false);
                 bool success = result["success"].AsBoolean();
                 if (result.ContainsKey("_Result"))
                 {

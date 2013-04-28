@@ -154,6 +154,11 @@ namespace OpenSim.Framework.Serialization
             EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "trashfolder.txt"]          = (sbyte)AssetType.TrashFolder;
         }
 
+        public static string CreateOarLandDataPath(LandData ld)
+        {
+            return string.Format("{0}{1}.xml", ArchiveConstants.LANDDATA_PATH, ld.GlobalID);
+        }
+
         /// <summary>
         /// Create the filename used to store an object in an OpenSim Archive.
         /// </summary>

@@ -281,25 +281,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_shouldCollectStats = false;
             if (config != null)
             {
-               if (config.Contains("enabled") && config.GetBoolean("enabled"))
-               {
-                   if (config.Contains("collect_packet_headers"))
-                       m_shouldCollectStats = config.GetBoolean("collect_packet_headers");
-                   if (config.Contains("packet_headers_period_seconds"))
-                   {
-                       binStatsMaxFilesize = TimeSpan.FromSeconds(config.GetInt("region_stats_period_seconds"));
-                   }
-                   if (config.Contains("stats_dir"))
-                   {
-                       binStatsDir = config.GetString("stats_dir");
-                   }
-               }
-               else
-               {
-                   m_shouldCollectStats = false;
-               }
-           }
-           #endregion BinaryStats
+                m_shouldCollectStats = config.GetBoolean("Enabled", false);
+                binStatsMaxFilesize = TimeSpan.FromSeconds(config.GetInt("packet_headers_period_seconds", 300));
+                binStatsDir = config.GetString("stats_dir", ".");
+                m_aggregatedBWStats = config.GetBoolean("aggregatedBWStats", false);
+            }
+            #endregion BinaryStats
 
             m_throttle = new TokenBucket(null, sceneThrottleBps);
             ThrottleRates = new ThrottleRates(configSource);
@@ -1309,8 +1296,34 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         static object binStatsLogLock = new object();
         static string binStatsDir = "";
 
+        //for Aggregated In/Out BW logging
+        static bool m_aggregatedBWStats = false;
+        static long m_aggregatedBytesIn = 0;
+        static long m_aggregatedByestOut = 0;
+        static object aggBWStatsLock = new object();
+
+        public static long AggregatedLLUDPBytesIn
+        {
+            get { return m_aggregatedBytesIn; }
+        }
+        public static long AggregatedLLUDPBytesOut
+        {
+            get {return m_aggregatedByestOut;}
+        }
+
         public static void LogPacketHeader(bool incoming, uint circuit, byte flags, PacketType packetType, ushort size)
         {
+            if (m_aggregatedBWStats)
+            {
+                lock (aggBWStatsLock)
+                {
+                    if (incoming)
+                        m_aggregatedBytesIn += size;
+                    else
+                        m_aggregatedByestOut += size;
+                }
+            }
+
             if (!m_shouldCollectStats) return;
 
             // Binary logging format is TTTTTTTTCCCCFPPPSS, T=Time, C=Circuit, F=Flags, P=PacketType, S=size

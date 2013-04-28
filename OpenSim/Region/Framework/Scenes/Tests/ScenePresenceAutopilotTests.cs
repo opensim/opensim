@@ -42,7 +42,7 @@ using OpenSim.Tests.Common.Mock;
 namespace OpenSim.Region.Framework.Scenes.Tests
 {
     [TestFixture]
-    public class ScenePresenceAutopilotTests
+    public class ScenePresenceAutopilotTests : OpenSimTestCase
     {
         private TestScene m_scene;
 

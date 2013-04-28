@@ -1,0 +1,85 @@
+body {
+ font-family: Veranda,Arial,Helvetica,sans-serif;
+ font-size: 12px;
+ background: #4A5F6D;
+ color: #EEEAD6;
+ padding: 0px;
+ margin: 0px;
+}
+.footer {
+ font-family: Veranda,Arial,Helvetica,sans-serif;
+ font-size: 10px;
+}
+td {
+ font-family: Veranda,Arial,Helvetica,sans-serif;
+ font-size: 12px;
+ padding: 4px;
+ margin: 4px;
+}
+blockquote {
+ font-family: Veranda,Arial,Helvetica,sans-serif;
+ font-style: italic;
+ font-size: 12px;
+}
+pre {
+ padding: 5px;
+ background-color: #8080B0;
+ color: #000000;
+ margin-left: 20px;
+ font-size: 11px;
+}
+:link {
+ color: #ffffff;
+}
+:visited {
+ color: #d0d0d0;
+}
+.SimSectionHeader {
+    font-size: 120%;
+}
+div.SimSectionContainer {
+    padding: 10px 0px 0px 20px;
+}
+/* SimStats ===================================== */
+#SimSimStats div {
+    margin-left: 20px;
+    background: #3A4F5D;
+}
+#SimSimStats table td {
+    text-align: right;
+    padding: 0px 0px 0px 5px;
+    margin: 0px 0px 0px 0px;
+}
+/* Region Stats ===================================== */
+#SimRegionStats div {
+    margin-left: 20px;
+    background: #3A4F5D;
+}
+#SimRegionStats table {
+    border: 1px;
+    border-style: solid; 
+}
+#SimRegionStats table td {
+    text-align: right;
+    padding: 0px 0px 0px 5px;
+    margin: 0px 0px 0px 0px;
+}
+/* Session Stats ===================================== */
+#SimSessionStats div {
+    margin-left: 20px;
+    background: #3A4F5D;
+}
+#SimSessionStats table td {
+    text-align: right;
+    padding: 0px 0px 0px 5px;
+    margin: 0px 0px 0px 0px;
+}
+/* LogFile ===================================== */
+#SimLogFile div {
+    margin-left: 20px;
+}
+#SimLogFile table td {
+    text-align: right;
+    padding: 0px 0px 0px 5px;
+    margin: 0px 0px 0px 0px;
+}

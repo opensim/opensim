@@ -349,17 +349,20 @@ namespace OpenSim.Region.Physics.Manager
         }
 
         /// <summary>
-        /// Velocity of this actor.
+        /// The desired velocity of this actor.
         /// </summary>
         /// <remarks>
         /// Setting this provides a target velocity for physics scene updates.
-        /// Getting this returns the velocity calculated by physics scene updates, using factors such as target velocity,
-        /// time to accelerate and collisions.
+        /// Getting this returns the last set target. Fetch Velocity to get the current velocity.
         /// </remarks>
+        protected Vector3 m_targetVelocity;
         public virtual Vector3 TargetVelocity
         {
-            get { return Velocity; }
-            set { Velocity = value; }
+            get { return m_targetVelocity; }
+            set {
+                m_targetVelocity = value;
+                Velocity = m_targetVelocity;
+            }
         }
 
         public abstract Vector3 Velocity { get; set; }

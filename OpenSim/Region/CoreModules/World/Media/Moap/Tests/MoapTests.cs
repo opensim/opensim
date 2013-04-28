@@ -44,14 +44,16 @@ using OpenSim.Tests.Common.Mock;
 namespace OpenSim.Region.CoreModules.World.Media.Moap.Tests
 {
     [TestFixture]
-    public class MoapTests
+    public class MoapTests : OpenSimTestCase
     {
         protected TestScene m_scene;
         protected MoapModule m_module;
             
         [SetUp]
-        public void SetUp()
+        public override void SetUp()
         {
+            base.SetUp();
+
             m_module = new MoapModule();
             m_scene = new SceneHelpers().SetupScene();
             SceneHelpers.SetupSceneModules(m_scene, m_module);            

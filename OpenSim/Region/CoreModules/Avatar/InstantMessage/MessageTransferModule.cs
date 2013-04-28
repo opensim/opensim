@@ -153,7 +153,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                 if (sp != null && !sp.IsChildAgent)
                 {
                     // Local message
-                    m_log.DebugFormat("[INSTANT MESSAGE]: Delivering IM to root agent {0} {1}", sp.Name, toAgentID);
+//                    m_log.DebugFormat("[INSTANT MESSAGE]: Delivering IM to root agent {0} {1}", sp.Name, toAgentID);
 
                     sp.ControllingClient.SendInstantMessage(im);
 
@@ -166,14 +166,14 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             // try child avatar second
             foreach (Scene scene in m_Scenes)
             {
-                //m_log.DebugFormat(
-                //    "[INSTANT MESSAGE]: Looking for child of {0} in {1}", toAgentID, scene.RegionInfo.RegionName);
+//                m_log.DebugFormat(
+//                    "[INSTANT MESSAGE]: Looking for child of {0} in {1}", toAgentID, scene.RegionInfo.RegionName);
 
                 ScenePresence sp = scene.GetScenePresence(toAgentID);
                 if (sp != null)
                 {
                     // Local message
-                    m_log.DebugFormat("[INSTANT MESSAGE]: Delivering IM to child agent {0} {1}", sp.Name, toAgentID);
+//                    m_log.DebugFormat("[INSTANT MESSAGE]: Delivering IM to child agent {0} {1}", sp.Name, toAgentID);
 
                     sp.ControllingClient.SendInstantMessage(im);
 
@@ -183,7 +183,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                 }
             }
 
-            m_log.DebugFormat("[INSTANT MESSAGE]: Delivering IM to {0} via XMLRPC", im.toAgentID);
+//            m_log.DebugFormat("[INSTANT MESSAGE]: Delivering IM to {0} via XMLRPC", im.toAgentID);
 
             SendGridInstantMessageViaXMLRPC(im, result);
         }

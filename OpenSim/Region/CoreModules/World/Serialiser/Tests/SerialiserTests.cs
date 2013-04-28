@@ -35,11 +35,12 @@ using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Scenes.Serialization;
 using OpenSim.Tests.Common;
+using OpenMetaverse.StructuredData;
 
 namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
 {
     [TestFixture]
-    public class SerialiserTests
+    public class SerialiserTests : OpenSimTestCase
     {
         private string xml = @"
         <SceneObjectGroup>
@@ -143,6 +144,7 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
                     <Flags>None</Flags>
                     <CollisionSound><Guid>00000000-0000-0000-0000-000000000000</Guid></CollisionSound>
                     <CollisionSoundVolume>0</CollisionSoundVolume>
+                    <DynAttrs><llsd><map><key>MyStore</key><map><key>the answer</key><integer>42</integer></map></map></llsd></DynAttrs>
                 </SceneObjectPart>
             </RootPart>
             <OtherParts />
@@ -331,6 +333,7 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
                 <EveryoneMask>0</EveryoneMask>
                 <NextOwnerMask>2147483647</NextOwnerMask>
                 <Flags>None</Flags>
+                <DynAttrs><llsd><map><key>MyStore</key><map><key>last words</key><string>Rosebud</string></map></map></llsd></DynAttrs>
                 <SitTargetAvatar><UUID>00000000-0000-0000-0000-000000000000</UUID></SitTargetAvatar>
             </SceneObjectPart>
             <OtherParts />
@@ -359,6 +362,8 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
             Assert.That(rootPart.UUID, Is.EqualTo(new UUID("e6a5a05e-e8cc-4816-8701-04165e335790")));
             Assert.That(rootPart.CreatorID, Is.EqualTo(new UUID("a6dacf01-4636-4bb9-8a97-30609438af9d")));
             Assert.That(rootPart.Name, Is.EqualTo("PrimMyRide"));
+            OSDMap store = rootPart.DynAttrs["MyStore"];
+            Assert.AreEqual(42, store["the answer"].AsInteger());
 
             // TODO: Check other properties
         }
@@ -409,6 +414,14 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
             rp.CreatorID = rpCreatorId;
             rp.Shape = shape;
 
+            string daStoreName = "MyStore";
+            string daKey = "foo";
+            string daValue = "bar";
+            OSDMap myStore = new OSDMap();
+            myStore.Add(daKey, daValue);
+            rp.DynAttrs = new DAMap();
+            rp.DynAttrs[daStoreName] = myStore;
+
             SceneObjectGroup so = new SceneObjectGroup(rp);
 
             // Need to add the object to the scene so that the request to get script state succeeds
@@ -424,6 +437,7 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
             UUID uuid = UUID.Zero;
             string name = null;
             UUID creatorId = UUID.Zero;
+            DAMap daMap = null;
 
             while (xtr.Read() && xtr.Name != "SceneObjectPart")
             {
@@ -449,6 +463,10 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
                         creatorId = UUID.Parse(xtr.ReadElementString("UUID"));
                         xtr.ReadEndElement();
                         break;
+                    case "DynAttrs":
+                        daMap = new DAMap();
+                        daMap.ReadXml(xtr);
+                        break;
                 }
             }
 
@@ -462,6 +480,8 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
             Assert.That(uuid, Is.EqualTo(rpUuid));
             Assert.That(name, Is.EqualTo(rpName));
             Assert.That(creatorId, Is.EqualTo(rpCreatorId));
+            Assert.NotNull(daMap);
+            Assert.AreEqual(daValue, daMap[daStoreName][daKey].AsString());
         }
 
         [Test]
@@ -476,6 +496,8 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
             Assert.That(rootPart.UUID, Is.EqualTo(new UUID("9be68fdd-f740-4a0f-9675-dfbbb536b946")));
             Assert.That(rootPart.CreatorID, Is.EqualTo(new UUID("b46ef588-411e-4a8b-a284-d7dcfe8e74ef")));
             Assert.That(rootPart.Name, Is.EqualTo("PrimFun"));
+            OSDMap store = rootPart.DynAttrs["MyStore"];
+            Assert.AreEqual("Rosebud", store["last words"].AsString());
 
             // TODO: Check other properties
         }
@@ -500,6 +522,14 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
             rp.CreatorID = rpCreatorId;
             rp.Shape = shape;
 
+            string daStoreName = "MyStore";
+            string daKey = "foo";
+            string daValue = "bar";
+            OSDMap myStore = new OSDMap();
+            myStore.Add(daKey, daValue);
+            rp.DynAttrs = new DAMap();
+            rp.DynAttrs[daStoreName] = myStore;
+
             SceneObjectGroup so = new SceneObjectGroup(rp);
 
             // Need to add the object to the scene so that the request to get script state succeeds
@@ -516,6 +546,7 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
             UUID uuid = UUID.Zero;
             string name = null;
             UUID creatorId = UUID.Zero;
+            DAMap daMap = null;
 
             while (xtr.Read() && xtr.Name != "SceneObjectPart")
             {
@@ -537,6 +568,10 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
                         creatorId = UUID.Parse(xtr.ReadElementString("Guid"));
                         xtr.ReadEndElement();
                         break;
+                    case "DynAttrs":
+                        daMap = new DAMap();
+                        daMap.ReadXml(xtr);
+                        break;
                 }
             }
 
@@ -549,6 +584,8 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
             Assert.That(uuid, Is.EqualTo(rpUuid));
             Assert.That(name, Is.EqualTo(rpName));
             Assert.That(creatorId, Is.EqualTo(rpCreatorId));
+            Assert.NotNull(daMap);
+            Assert.AreEqual(daValue, daMap[daStoreName][daKey].AsString());
         }
     }
 }

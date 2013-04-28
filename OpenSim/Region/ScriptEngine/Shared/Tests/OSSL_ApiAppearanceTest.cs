@@ -41,6 +41,7 @@ using OpenSim.Region.OptionalModules.World.NPC;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.ScriptEngine.Shared;
 using OpenSim.Region.ScriptEngine.Shared.Api;
+using OpenSim.Region.ScriptEngine.Shared.Instance;
 using OpenSim.Services.Interfaces;
 using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Mock;
@@ -51,14 +52,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
     /// Tests for OSSL_Api
     /// </summary>
     [TestFixture]
-    public class OSSL_ApiAppearanceTest
+    public class OSSL_ApiAppearanceTest : OpenSimTestCase
     {
         protected Scene m_scene;
         protected XEngine.XEngine m_engine;
 
         [SetUp]
-        public void SetUp()
+        public override void SetUp()
         {
+            base.SetUp();
+
             IConfigSource initConfigSource = new IniConfigSource();
             IConfig config = initConfigSource.AddConfig("XEngine");
             config.Set("Enabled", "true");
@@ -91,7 +94,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             m_scene.AddSceneObject(so);
 
             OSSL_Api osslApi = new OSSL_Api();
-            osslApi.Initialize(m_engine, part, null);
+            osslApi.Initialize(m_engine, part, null, null);
 
             string notecardName = "appearanceNc";
 
@@ -132,7 +135,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             m_scene.AddSceneObject(so);
 
             OSSL_Api osslApi = new OSSL_Api();
-            osslApi.Initialize(m_engine, part, null);
+            osslApi.Initialize(m_engine, part, null, null);
 
             string notecardName = "appearanceNc";
 

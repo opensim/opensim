@@ -38,7 +38,7 @@ using OpenSim.Tests.Common.Mock;
 namespace OpenSim.Region.Framework.Scenes.Tests
 {
     [TestFixture]
-    public class UuidGathererTests
+    public class UuidGathererTests : OpenSimTestCase
     {
         protected IAssetService m_assetService;
         protected UuidGatherer m_uuidGatherer;

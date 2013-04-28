@@ -38,12 +38,14 @@ using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
+using PermissionMask = OpenSim.Framework.PermissionMask;
 
 namespace OpenSim.Services.Connectors.SimianGrid
 {
     /// <summary>
     /// Permissions bitflags
     /// </summary>
+    /*
     [Flags]
     public enum PermissionMask : uint
     {
@@ -55,6 +57,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
         Damage = 1 << 20,
         All = 0x7FFFFFFF
     }
+    */
 
     /// <summary>
     /// Connects avatar inventories to the SimianGrid backend

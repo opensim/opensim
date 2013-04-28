@@ -27,7 +27,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -99,34 +98,6 @@ namespace OpenSim.Framework.Servers
             m_console.Commands.AddCommand("General", false, "shutdown",
                     "shutdown",
                     "Quit the application", HandleQuit);
-
-            m_console.Commands.AddCommand("General", false, "show threads",
-                    "show threads",
-                    "Show thread status", HandleShow);
-
-            m_console.Commands.AddCommand("General", false, "show version",
-                    "show version",
-                    "Show server version", HandleShow);
-
-            m_console.Commands.AddCommand("General", false, "threads abort",
-                    "threads abort <thread-id>",
-                    "Abort a managed thread.  Use \"show threads\" to find possible threads.", HandleThreadsAbort);
-
-            m_console.Commands.AddCommand("General", false, "threads show",
-                    "threads show",
-                    "Show thread status.  Synonym for \"show threads\"",
-                    (string module, string[] args) => Notice(GetThreadsReport()));
-
-            m_console.Commands.AddCommand("General", false, "force gc",
-                    "force gc",
-                    "Manually invoke runtime garbage collection.  For debugging purposes",
-                    HandleForceGc);
-        }
-
-        private void HandleForceGc(string module, string[] args)
-        {
-            MainConsole.Instance.Output("Manually invoking runtime garbage collection");
-            GC.Collect();
         }
         
         /// <summary>
@@ -156,54 +127,6 @@ namespace OpenSim.Framework.Servers
             sb.Append(GetThreadsReport());
 
             m_log.Debug(sb);
-        }
-
-        /// <summary>
-        /// Get a report about the registered threads in this server.
-        /// </summary>
-        protected string GetThreadsReport()
-        {
-            // This should be a constant field.
-            string reportFormat = "{0,6}   {1,35}   {2,16}   {3,13}   {4,10}   {5,30}";
-
-            StringBuilder sb = new StringBuilder();
-            Watchdog.ThreadWatchdogInfo[] threads = Watchdog.GetThreadsInfo();
-
-            sb.Append(threads.Length + " threads are being tracked:" + Environment.NewLine);
-
-            int timeNow = Environment.TickCount & Int32.MaxValue;
-
-            sb.AppendFormat(reportFormat, "ID", "NAME", "LAST UPDATE (MS)", "LIFETIME (MS)", "PRIORITY", "STATE");
-            sb.Append(Environment.NewLine);
-
-            foreach (Watchdog.ThreadWatchdogInfo twi in threads)
-            {
-                Thread t = twi.Thread;
-                
-                sb.AppendFormat(
-                    reportFormat,
-                    t.ManagedThreadId,
-                    t.Name,
-                    timeNow - twi.LastTick,
-                    timeNow - twi.FirstTick,
-                    t.Priority,
-                    t.ThreadState);
-
-                sb.Append("\n");
-            }
-
-            sb.Append("\n");
-
-            // For some reason mono 2.6.7 returns an empty threads set!  Not going to confuse people by reporting
-            // zero active threads.
-            int totalThreads = Process.GetCurrentProcess().Threads.Count;
-            if (totalThreads > 0)
-                sb.AppendFormat("Total threads active: {0}\n\n", totalThreads);
-
-            sb.Append("Main threadpool (excluding script engine pools)\n");
-            sb.Append(Util.GetThreadPoolReport());
-
-            return sb.ToString();
         }
 
         /// <summary>
@@ -246,50 +169,7 @@ namespace OpenSim.Framework.Servers
         private void HandleQuit(string module, string[] args)
         {
             Shutdown();
-        }
-
-        public override void HandleShow(string module, string[] cmd)
-        {
-            base.HandleShow(module, cmd);
-
-            List<string> args = new List<string>(cmd);
-
-            args.RemoveAt(0);
-
-            string[] showParams = args.ToArray();
-
-            switch (showParams[0])
-            {
-                case "threads":
-                    Notice(GetThreadsReport());
-                    break;
-
-                case "version":
-                    Notice(GetVersionText());
-                    break;
-            }
-        }
-
-        public virtual void HandleThreadsAbort(string module, string[] cmd)
-        {
-            if (cmd.Length != 3)
-            {
-                MainConsole.Instance.Output("Usage: threads abort <thread-id>");
-                return;
-            }
-
-            int threadId;
-            if (!int.TryParse(cmd[2], out threadId))
-            {
-                MainConsole.Instance.Output("ERROR: Thread id must be an integer");
-                return;
-            }
-
-            if (Watchdog.AbortThread(threadId))
-                MainConsole.Instance.OutputFormat("Aborted thread with id {0}", threadId);
-            else
-                MainConsole.Instance.OutputFormat("ERROR - Thread with id {0} not found in managed threads", threadId);
-        }       
+        }      
         
         public string osSecret {
             // Secret uuid for the simulator

@@ -44,13 +44,15 @@ using OpenSim.Tests.Common.Mock;
 namespace OpenSim.Region.ClientStack.Linden.Tests
 {
     [TestFixture]
-    public class EventQueueTests
+    public class EventQueueTests : OpenSimTestCase
     {
         private TestScene m_scene;
 
         [SetUp]
-        public void SetUp()
+        public override void SetUp()
         {
+            base.SetUp();
+
             uint port = 9999;
             uint sslPort = 9998;
 

@@ -111,13 +111,15 @@ namespace OpenSim.Region.CoreModules.Scripting.XMLRPC
             m_rpcPending = new Dictionary<UUID, RPCRequestInfo>();
             m_rpcPendingResponses = new Dictionary<UUID, RPCRequestInfo>();
             m_pendingSRDResponses = new Dictionary<UUID, SendRemoteDataRequest>();
-
-            try
+            if (config.Configs["XMLRPC"] != null)
             {
-                m_remoteDataPort = config.Configs["XMLRPC"].GetInt("XmlRpcPort", m_remoteDataPort);
-            }
-            catch (Exception)
-            {
+                try
+                {
+                    m_remoteDataPort = config.Configs["XMLRPC"].GetInt("XmlRpcPort", m_remoteDataPort);
+                }
+                catch (Exception)
+                {
+                }
             }
         }
 

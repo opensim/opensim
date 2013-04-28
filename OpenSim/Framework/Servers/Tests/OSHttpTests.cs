@@ -35,11 +35,12 @@ using HttpServer;
 using HttpServer.FormDecoders;
 using NUnit.Framework;
 using OpenSim.Framework.Servers.HttpServer;
+using OpenSim.Tests.Common;
 
 namespace OpenSim.Framework.Servers.Tests
 {
     [TestFixture]
-    public class OSHttpTests
+    public class OSHttpTests : OpenSimTestCase
     {
         // we need an IHttpClientContext for our tests
         public class TestHttpClientContext: IHttpClientContext
@@ -68,6 +69,11 @@ namespace OpenSim.Framework.Servers.Tests
             public void Respond(string httpVersion, HttpStatusCode statusCode, string reason, string body, string contentType) {}
             public void Close() { }
             public bool EndWhenDone { get { return false;} set { return;}}
+
+            public HTTPNetworkContext GiveMeTheNetworkStreamIKnowWhatImDoing()
+            {
+                return new HTTPNetworkContext();
+            }
 
             public event EventHandler<DisconnectedEventArgs> Disconnected = delegate { };
             /// <summary>

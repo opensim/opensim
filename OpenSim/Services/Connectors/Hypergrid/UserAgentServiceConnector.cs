@@ -169,41 +169,45 @@ namespace OpenSim.Services.Connectors.Hypergrid
             // Let's wait for the response
             //m_log.Info("[USER AGENT CONNECTOR]: Waiting for a reply after DoCreateChildAgentCall");
 
-            WebResponse webResponse = null;
-            StreamReader sr = null;
             try
             {
-                webResponse = AgentCreateRequest.GetResponse();
-                if (webResponse == null)
+                using (WebResponse webResponse = AgentCreateRequest.GetResponse())
                 {
-                    m_log.Info("[USER AGENT CONNECTOR]: Null reply on DoCreateChildAgentCall post");
-                }
-                else
-                {
-
-                    sr = new StreamReader(webResponse.GetResponseStream());
-                    string response = sr.ReadToEnd().Trim();
-                    m_log.InfoFormat("[USER AGENT CONNECTOR]: DoCreateChildAgentCall reply was {0} ", response);
-
-                    if (!String.IsNullOrEmpty(response))
+                    if (webResponse == null)
                     {
-                        try
+                        m_log.Info("[USER AGENT CONNECTOR]: Null reply on DoCreateChildAgentCall post");
+                    }
+                    else
+                    {
+                        using (Stream s = webResponse.GetResponseStream())
                         {
-                            // we assume we got an OSDMap back
-                            OSDMap r = Util.GetOSDMap(response);
-                            bool success = r["success"].AsBoolean();
-                            reason = r["reason"].AsString();
-                            return success;
-                        }
-                        catch (NullReferenceException e)
-                        {
-                            m_log.InfoFormat("[USER AGENT CONNECTOR]: exception on reply of DoCreateChildAgentCall {0}", e.Message);
+                            using (StreamReader sr = new StreamReader(s))
+                            {
+                                string response = sr.ReadToEnd().Trim();
+                                m_log.InfoFormat("[USER AGENT CONNECTOR]: DoCreateChildAgentCall reply was {0} ", response);
 
-                            // check for old style response
-                            if (response.ToLower().StartsWith("true"))
-                                return true;
+                                if (!String.IsNullOrEmpty(response))
+                                {
+                                    try
+                                    {
+                                        // we assume we got an OSDMap back
+                                        OSDMap r = Util.GetOSDMap(response);
+                                        bool success = r["success"].AsBoolean();
+                                        reason = r["reason"].AsString();
+                                        return success;
+                                    }
+                                    catch (NullReferenceException e)
+                                    {
+                                        m_log.InfoFormat("[USER AGENT CONNECTOR]: exception on reply of DoCreateChildAgentCall {0}", e.Message);
 
-                            return false;
+                                        // check for old style response
+                                        if (response.ToLower().StartsWith("true"))
+                                            return true;
+
+                                        return false;
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -213,11 +217,6 @@ namespace OpenSim.Services.Connectors.Hypergrid
                 m_log.InfoFormat("[USER AGENT CONNECTOR]: exception on reply of DoCreateChildAgentCall {0}", ex.Message);
                 reason = "Destination did not reply";
                 return false;
-            }
-            finally
-            {
-                if (sr != null)
-                    sr.Close();
             }
 
             return true;

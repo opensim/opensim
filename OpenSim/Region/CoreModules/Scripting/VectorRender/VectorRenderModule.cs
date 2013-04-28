@@ -516,6 +516,9 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                 foreach (string line in GetLines(data, dataDelim))
                 {
                     string nextLine = line.Trim();
+
+//                    m_log.DebugFormat("[VECTOR RENDER MODULE]: Processing line '{0}'", nextLine);
+
                     //replace with switch, or even better, do some proper parsing
                     if (nextLine.StartsWith("MoveTo"))
                     {
@@ -829,6 +832,8 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                     float y = Convert.ToSingle(yVal, CultureInfo.InvariantCulture);
                     PointF point = new PointF(x, y);
                     points[i / 2] = point;
+
+//                    m_log.DebugFormat("[VECTOR RENDER MODULE]: Got point {0}", points[i / 2]);
                 }
             }
         }
@@ -838,13 +843,17 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
             try
             {
                 WebRequest request = HttpWebRequest.Create(url);
-//Ckrinke: Comment out for now as 'str' is unused. Bring it back into play later when it is used.
-//Ckrinke            Stream str = null;
-                HttpWebResponse response = (HttpWebResponse)(request).GetResponse();
-                if (response.StatusCode == HttpStatusCode.OK)
+
+                using (HttpWebResponse response = (HttpWebResponse)(request).GetResponse())
                 {
-                    Bitmap image = new Bitmap(response.GetResponseStream());
-                    return image;
+                    if (response.StatusCode == HttpStatusCode.OK)
+                    {
+                        using (Stream s = response.GetResponseStream())
+                        {
+                            Bitmap image = new Bitmap(s);
+                            return image;
+                        }
+                    }
                 }
             }
             catch { }

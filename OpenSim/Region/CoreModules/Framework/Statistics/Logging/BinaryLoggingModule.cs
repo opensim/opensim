@@ -57,7 +57,7 @@ namespace OpenSim.Region.CoreModules.Framework.Statistics.Logging
             try
             {
                 IConfig statConfig = source.Configs["Statistics.Binary"];
-                if (statConfig.Contains("enabled") && statConfig.GetBoolean("enabled"))
+                if (statConfig != null && statConfig.Contains("enabled") && statConfig.GetBoolean("enabled"))
                 {
                     if (statConfig.Contains("collect_region_stats"))
                     {

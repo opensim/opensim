@@ -145,6 +145,7 @@ namespace OpenSim.Framework
         public UUID RegionID = UUID.Zero;
         public string RemotingAddress;
         public UUID ScopeID = UUID.Zero;
+        private UUID m_maptileStaticUUID = UUID.Zero;
 
         private Dictionary<String, String> m_otherSettings = new Dictionary<string, string>();
 
@@ -340,6 +341,11 @@ namespace OpenSim.Framework
             get { return m_regionType; }
         }
 
+        public UUID MaptileStaticUUID
+        {
+            get { return m_maptileStaticUUID; }
+        }
+        
         /// <summary>
         /// The port by which http communication occurs with the region (most noticeably, CAPS communication)
         /// </summary>
@@ -643,7 +649,7 @@ namespace OpenSim.Framework
             m_regionType = config.GetString("RegionType", String.Empty);
             allKeys.Remove("RegionType");
 
-            #region Prim stuff
+            #region Prim and map stuff
 
             m_nonphysPrimMin = config.GetFloat("NonPhysicalPrimMin", 0);
             allKeys.Remove("NonPhysicalPrimMin");
@@ -665,6 +671,13 @@ namespace OpenSim.Framework
 
             m_linksetCapacity = config.GetInt("LinksetPrims", 0);
             allKeys.Remove("LinksetPrims");
+
+            allKeys.Remove("MaptileStaticUUID");
+            string mapTileStaticUUID = config.GetString("MaptileStaticUUID", UUID.Zero.ToString());
+            if (UUID.TryParse(mapTileStaticUUID.Trim(), out m_maptileStaticUUID))
+            {
+                config.Set("MaptileStaticUUID", m_maptileStaticUUID.ToString()); 
+            }
             
             #endregion
 
@@ -734,6 +747,9 @@ namespace OpenSim.Framework
 
             if (RegionType != String.Empty)
                 config.Set("RegionType", RegionType);
+
+            if (m_maptileStaticUUID != UUID.Zero)
+                config.Set("MaptileStaticUUID", m_maptileStaticUUID.ToString());
         }
 
         public bool ignoreIncomingConfiguration(string configuration_key, object configuration_result)
@@ -832,6 +848,9 @@ namespace OpenSim.Framework
 
             configMember.addConfigurationOption("region_type", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "Free form string describing the type of region", String.Empty, true);
+            
+            configMember.addConfigurationOption("region_static_maptile", ConfigurationOption.ConfigurationTypes.TYPE_UUID,
+                                                "UUID of a texture to use as the map for this region", m_maptileStaticUUID.ToString(), true);
         }
 
         public void loadConfigurationOptions()
@@ -885,6 +904,9 @@ namespace OpenSim.Framework
 
             configMember.addConfigurationOption("region_type", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "Region Type", String.Empty, true);
+
+            configMember.addConfigurationOption("region_static_maptile", ConfigurationOption.ConfigurationTypes.TYPE_UUID,
+                                                "UUID of a texture to use as the map for this region", String.Empty, true);
         }
 
         public bool handleIncomingConfiguration(string configuration_key, object configuration_result)
@@ -956,6 +978,9 @@ namespace OpenSim.Framework
                     break;
                 case "region_type":
                     m_regionType = (string)configuration_result;
+                    break;
+                case "region_static_maptile":
+                    m_maptileStaticUUID = (UUID)configuration_result;
                     break;
             }
 

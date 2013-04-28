@@ -39,7 +39,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests
     /// The generated C# code is compared against the expected C# code.
     /// </summary>
     [TestFixture]
-    public class CSCodeGeneratorTest
+    public class CSCodeGeneratorTest : OpenSimTestCase
     {
         [Test]
         public void TestDefaultState()

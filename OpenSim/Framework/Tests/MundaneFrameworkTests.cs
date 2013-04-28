@@ -32,11 +32,12 @@ using OpenMetaverse.StructuredData;
 using System;
 using System.Globalization;
 using System.Threading;
+using OpenSim.Tests.Common;
 
 namespace OpenSim.Framework.Tests
 {
     [TestFixture]
-    public class MundaneFrameworkTests
+    public class MundaneFrameworkTests : OpenSimTestCase
     {
         private bool m_RegionSettingsOnSaveEventFired;
         private bool m_RegionLightShareDataOnSaveEventFired;
@@ -302,10 +303,6 @@ namespace OpenSim.Framework.Tests
             Culture.SetCurrentCulture();
             Assert.That(Thread.CurrentThread.CurrentCulture.Name == ci.Name, "SetCurrentCulture failed to set thread culture to en-US");
 
-        }
-
-       
-
+        }     
     }
 }
-

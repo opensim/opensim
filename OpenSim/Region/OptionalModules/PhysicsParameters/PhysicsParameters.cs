@@ -146,7 +146,7 @@ namespace OpenSim.Region.OptionalModules.PhysicsParameters
                 {
                     foreach (PhysParameterEntry ppe in physScene.GetParameterList())
                     {
-                        float val = 0.0f;
+                        string val = string.Empty;
                         if (physScene.GetPhysicsParameter(ppe.name, out val))
                         {
                             WriteOut("  {0}/{1} = {2}", scene.RegionInfo.RegionName, ppe.name, val);
@@ -159,7 +159,7 @@ namespace OpenSim.Region.OptionalModules.PhysicsParameters
                 }
                 else
                 {
-                    float val = 0.0f;
+                    string val = string.Empty;
                     if (physScene.GetPhysicsParameter(parm, out val))
                     {
                         WriteOut("  {0}/{1} = {2}", scene.RegionInfo.RegionName, parm, val);
@@ -185,21 +185,12 @@ namespace OpenSim.Region.OptionalModules.PhysicsParameters
                 return;
             }
             string parm = "xxx";
-            float val = 0f;
+            string valparm = String.Empty;
             uint localID = (uint)PhysParameterEntry.APPLY_TO_NONE;  // set default value
             try
             {
                 parm = cmdparms[2];
-                string valparm = cmdparms[3].ToLower();
-                if (valparm == "true")
-                    val = PhysParameterEntry.NUMERIC_TRUE;
-                else
-                {
-                    if (valparm == "false")
-                        val = PhysParameterEntry.NUMERIC_FALSE;
-                    else
-                        val = float.Parse(valparm, Culture.NumberFormatInfo);
-                }
+                valparm = cmdparms[3].ToLower();
                 if (cmdparms.Length > 4)
                 {
                     if (cmdparms[4].ToLower() == "all")
@@ -224,7 +215,7 @@ namespace OpenSim.Region.OptionalModules.PhysicsParameters
             IPhysicsParameters physScene = scene.PhysicsScene as IPhysicsParameters;
             if (physScene != null)
             {
-                if (!physScene.SetPhysicsParameter(parm, val, localID))
+                if (!physScene.SetPhysicsParameter(parm, valparm, localID))
                 {
                     WriteError("Failed set of parameter '{0}' for region '{1}'", parm, scene.RegionInfo.RegionName);
                 }

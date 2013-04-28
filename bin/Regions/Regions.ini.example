@@ -1,0 +1,52 @@
+; * This is an example region config file.
+; * 
+; * If OpenSimulator is started up without any regions, it will ask you configuration questions to generate a Regions.ini file for you.
+; * So there is no need to change this file directly, it is only for reference.
+; * However, if you prefer you can also copy this file to Regions.ini and appropriately change the parameters below.
+; * Only files ending with .ini and .xml in this directly will be loaded by OpenSimulator.
+; *
+; * You can multiple regions into one file or make one file per region
+; * The section name is the region name
+; *
+
+[Default Region]
+
+; *
+; * You MUST change this! It will NOT be done for you!
+; *
+
+RegionUUID = "11111111-2222-3333-4444-555555555555"
+
+Location = "1000,1000"
+InternalAddress = "127.0.0.1"
+InternalPort = 9000
+AllowAlternatePorts = False
+ExternalHostName = "SYSTEMIP"
+
+; *
+; * Prim data
+; * This allows limiting the sizes of prims and the region prim count
+; *
+
+; NonphysicalPrimMax = 256
+; PhysicalPrimMax = 10
+; ClampPrimSize = False
+; MaxPrims = 15000
+; MaxAgents = 100
+
+; *
+; * Multi-Tenancy. Only set if needed
+; *
+
+; ScopeID = "00000000-0000-0000-0000-000000000000"
+
+; *
+; * Product name (used in search from viewer 1.23
+; *
+
+; RegionType = "Mainland"
+
+; *
+; * UUID of texture to use as a maptile for this region.
+; * Only set if you have disabled dynamic generation of the map tile from the region contents.
+; MaptileStaticUUID = "00000000-0000-0000-0000-000000000000"

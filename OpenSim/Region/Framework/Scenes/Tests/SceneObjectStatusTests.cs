@@ -42,7 +42,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
     /// Basic scene object status tests
     /// </summary>
     [TestFixture]
-    public class SceneObjectStatusTests
+    public class SceneObjectStatusTests : OpenSimTestCase
     {
         private TestScene m_scene;
         private UUID m_ownerId = TestHelpers.ParseTail(0x1);
@@ -78,6 +78,26 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         }
 
         [Test]
+        public void TestSetNonPhysicsVolumeDetectSinglePrim()
+        {
+            TestHelpers.InMethod();
+
+            m_scene.AddSceneObject(m_so1);
+
+            SceneObjectPart rootPart = m_so1.RootPart;
+            Assert.That(rootPart.Flags, Is.EqualTo(PrimFlags.None));
+
+            m_so1.ScriptSetVolumeDetect(true);
+
+//            Console.WriteLine("so.RootPart.Flags [{0}]", so.RootPart.Flags);
+            Assert.That(rootPart.Flags, Is.EqualTo(PrimFlags.Phantom));
+
+            m_so1.ScriptSetVolumeDetect(false);
+
+            Assert.That(rootPart.Flags, Is.EqualTo(PrimFlags.None));            
+        }
+
+        [Test]
         public void TestSetPhysicsSinglePrim()
         {
             TestHelpers.InMethod();
@@ -89,12 +109,31 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
             m_so1.ScriptSetPhysicsStatus(true);
 
-//            Console.WriteLine("so.RootPart.Flags [{0}]", so.RootPart.Flags);
             Assert.That(rootPart.Flags, Is.EqualTo(PrimFlags.Physics));
 
             m_so1.ScriptSetPhysicsStatus(false);
 
             Assert.That(rootPart.Flags, Is.EqualTo(PrimFlags.None));
+        }
+
+        [Test]
+        public void TestSetPhysicsVolumeDetectSinglePrim()
+        {
+            TestHelpers.InMethod();
+
+            m_scene.AddSceneObject(m_so1);
+
+            SceneObjectPart rootPart = m_so1.RootPart;
+            Assert.That(rootPart.Flags, Is.EqualTo(PrimFlags.None));
+
+            m_so1.ScriptSetPhysicsStatus(true);
+            m_so1.ScriptSetVolumeDetect(true);
+
+            Assert.That(rootPart.Flags, Is.EqualTo(PrimFlags.Phantom | PrimFlags.Physics));
+
+            m_so1.ScriptSetVolumeDetect(false);
+
+            Assert.That(rootPart.Flags, Is.EqualTo(PrimFlags.Physics));            
         }
         
         [Test]

@@ -43,6 +43,7 @@ using OpenMetaverse;
 using log4net;
 using Mono.Addins;
 using Nini.Config;
+using PermissionMask = OpenSim.Framework.PermissionMask;
 
 namespace OpenSim.Region.CoreModules.Framework.Library
 {

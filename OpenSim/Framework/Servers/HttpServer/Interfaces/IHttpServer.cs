@@ -97,6 +97,18 @@ namespace OpenSim.Framework.Servers.HttpServer
         bool AddXmlRPCHandler(string method, XmlRpcMethod handler);
         bool AddXmlRPCHandler(string method, XmlRpcMethod handler, bool keepAlive);
 
+        bool AddJsonRPCHandler(string method, JsonRPCMethod handler);
+        
+        /// <summary>
+        /// Websocket HTTP server handlers.
+        /// </summary>
+        /// <param name="servicepath"></param>
+        /// <param name="handler"></param>
+        void AddWebSocketHandler(string servicepath, BaseHttpServer.WebSocketRequestDelegate handler);
+
+
+        void RemoveWebSocketHandler(string servicepath);
+       
         /// <summary>
         /// Gets the XML RPC handler for given method name
         /// </summary>
@@ -128,6 +140,8 @@ namespace OpenSim.Framework.Servers.HttpServer
         void RemoveStreamHandler(string httpMethod, string path);
 
         void RemoveXmlRPCHandler(string method);
+
+        void RemoveJsonRPCHandler(string method);
         
         string GetHTTP404(string host);
 

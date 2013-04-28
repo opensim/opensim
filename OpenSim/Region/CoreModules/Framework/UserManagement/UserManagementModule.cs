@@ -181,6 +181,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
             m_log.DebugFormat("[USER MANAGEMENT MODULE]: HandleAvatarPickerRequest for {0}", query);
 
+            // searhc the user accounts service
             List<UserAccount> accs = m_Scenes[0].UserAccountService.GetUserAccounts(m_Scenes[0].RegionInfo.ScopeID, query);
 
             List<UserData> users = new List<UserData>();
@@ -195,6 +196,12 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                     users.Add(ud);
                 }
             }
+
+            // search the local cache
+            foreach (UserData data in m_UserCache.Values)
+                if (users.Find(delegate(UserData d) { return d.Id == data.Id; }) == null &&
+                    (data.FirstName.StartsWith(query) || data.LastName.StartsWith(query)))
+                    users.Add(data);
 
             AddAdditionalUsers(avatarID, query, users);
 
@@ -433,6 +440,9 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
         public void AddUser(UUID uuid, string first, string last, string homeURL)
         {
             //m_log.DebugFormat("[USER MANAGEMENT MODULE]: Adding user with id {0}, first {1}, last {2}, url {3}", uuid, first, last, homeURL);
+            if (homeURL == string.Empty)
+                return;
+
             AddUser(uuid, homeURL + ";" + first + " " + last);
         }
 

@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Threading;
 using System.Reflection;
 using System.Collections;
 using System.Collections.Generic;
@@ -62,7 +63,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         internal TaskInventoryItem m_item;
         internal bool m_CMFunctionsEnabled = false;
 
-        public void Initialize(IScriptEngine ScriptEngine, SceneObjectPart host, TaskInventoryItem item)
+        public void Initialize(IScriptEngine ScriptEngine, SceneObjectPart host, TaskInventoryItem item, WaitHandle coopSleepHandle)
         {
             m_ScriptEngine = ScriptEngine;
             m_host = host;

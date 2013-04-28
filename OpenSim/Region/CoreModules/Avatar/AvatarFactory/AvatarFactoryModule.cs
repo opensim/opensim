@@ -40,6 +40,7 @@ using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
 
 using Mono.Addins;
+using PermissionMask = OpenSim.Framework.PermissionMask;
 
 namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 {
@@ -322,6 +323,9 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
                 if (asset != null)
                 {
+                    // Replace an HG ID with the simple asset ID so that we can persist textures for foreign HG avatars
+                    asset.ID = asset.FullID.ToString();
+
                     asset.Temporary = false;
                     asset.Local = false;
                     m_scene.AssetService.Store(asset);
@@ -358,7 +362,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
         public void QueueAppearanceSave(UUID agentid)
         {
-            // m_log.WarnFormat("[AVFACTORY]: Queue appearance save for {0}", agentid);
+//            m_log.DebugFormat("[AVFACTORY]: Queueing appearance save for {0}", agentid);
 
             // 10000 ticks per millisecond, 1000 milliseconds per second
             long timestamp = DateTime.Now.Ticks + Convert.ToInt64(m_savetime * 1000 * 10000);
@@ -655,7 +659,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 return;
             }
 
-            // m_log.WarnFormat("[AVFACTORY] avatar {0} save appearance",agentid);
+//            m_log.DebugFormat("[AVFACTORY]: Saving appearance for avatar {0}", agentid);
 
             // This could take awhile since it needs to pull inventory
             // We need to do it at the point of save so that there is a sufficient delay for any upload of new body part/shape
@@ -663,6 +667,14 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             // I don't think we need to worry about doing this within m_setAppearanceLock since the queueing avoids
             // multiple save requests.
             SetAppearanceAssets(sp.UUID, sp.Appearance);
+
+//            List<AvatarAttachment> attachments = sp.Appearance.GetAttachments();
+//            foreach (AvatarAttachment att in attachments)
+//            {
+//                m_log.DebugFormat(
+//                    "[AVFACTORY]: For {0} saving attachment {1} at point {2}",
+//                    sp.Name, att.ItemID, att.AttachPoint);
+//            }
 
             m_scene.AvatarService.SetAppearance(agentid, sp.Appearance);
 
@@ -1087,7 +1099,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             }
 
             bool bakedTextureValid = m_scene.AvatarFactory.ValidateBakedTextureCache(sp);
-            outputAction("{0} baked appearance texture is {1}", sp.Name, bakedTextureValid ? "OK" : "corrupt");
+            outputAction("{0} baked appearance texture is {1}", sp.Name, bakedTextureValid ? "OK" : "incomplete");
         }
     }
 }

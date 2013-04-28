@@ -30,11 +30,12 @@ using System.Collections.Generic;
 using System.Text;
 using NUnit.Framework;
 using OpenMetaverse;
+using OpenSim.Tests.Common;
 
 namespace OpenSim.Framework.Tests
 {
     [TestFixture]
-    public class AssetBaseTest
+    public class AssetBaseTest : OpenSimTestCase
     {
         [Test]
         public void TestContainsReferences()

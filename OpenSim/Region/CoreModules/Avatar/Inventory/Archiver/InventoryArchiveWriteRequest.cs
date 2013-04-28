@@ -124,7 +124,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             SaveAssets = true;
         }
 
-        protected void ReceivedAllAssets(ICollection<UUID> assetsFoundUuids, ICollection<UUID> assetsNotFoundUuids)
+        protected void ReceivedAllAssets(ICollection<UUID> assetsFoundUuids, ICollection<UUID> assetsNotFoundUuids, bool timedOut)
         {
             Exception reportedException = null;
             bool succeeded = true;
@@ -141,6 +141,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             finally
             {
                 m_saveStream.Close();
+            }
+
+            if (timedOut)
+            {
+                succeeded = false;
+                reportedException = new Exception("Loading assets timed out");
             }
 
             m_module.TriggerInventoryArchiveSaved(
@@ -266,6 +272,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     saveFolderContentsOnly = true;
                     maxComponentIndex--;
                 }
+                else if (maxComponentIndex == -1)
+                {
+                    // If the user has just specified "/", then don't save the root "My Inventory" folder.  This is
+                    // more intuitive then requiring the user to specify "/*" for this.
+                    saveFolderContentsOnly = true;
+                }
 
                 m_invPath = String.Empty;
                 for (int i = 0; i <= maxComponentIndex; i++)
@@ -283,7 +295,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 {
                     m_invPath = m_invPath.Remove(m_invPath.LastIndexOf(InventoryFolderImpl.PATH_DELIMITER));
                     List<InventoryFolderBase> candidateFolders
-                        = InventoryArchiveUtils.FindFolderByPath(m_scene.InventoryService, rootFolder, m_invPath);
+                        = InventoryArchiveUtils.FindFoldersByPath(m_scene.InventoryService, rootFolder, m_invPath);
                     if (candidateFolders.Count > 0)
                         inventoryFolder = candidateFolders[0];
                 }
@@ -350,7 +362,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 {
                     m_log.DebugFormat("[INVENTORY ARCHIVER]: Not saving assets since --noassets was specified");
 
-                    ReceivedAllAssets(new List<UUID>(), new List<UUID>());
+                    ReceivedAllAssets(new List<UUID>(), new List<UUID>(), false);
                 }
             }
             catch (Exception)

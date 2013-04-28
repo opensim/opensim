@@ -170,14 +170,6 @@ namespace OpenSim.Server.Handlers.Grid
         public string JsonGetGridInfoMethod(string request, string path, string param,
                                             IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
-            string HomeURI = String.Empty;
-            IConfig cfg = m_Config.Configs["LoginService"];
-
-            if (null != cfg)
-            {
-                HomeURI = cfg.GetString("SRV_HomeURI", HomeURI);
-            }
-
             OSDMap map = new OSDMap();
 
             foreach (string k in _info.Keys)
@@ -185,9 +177,20 @@ namespace OpenSim.Server.Handlers.Grid
                 map[k] = OSD.FromString(_info[k].ToString());
             }
 
+            string HomeURI = Util.GetConfigVarFromSections<string>(m_Config, "HomeURI",
+                new string[] { "Startup", "Hypergrid" }, String.Empty);
+
             if (!String.IsNullOrEmpty(HomeURI))
+                map["home"] = OSD.FromString(HomeURI); 
+            else // Legacy. Remove soon!
             {
-                map["home"] = OSD.FromString(HomeURI);
+                IConfig cfg = m_Config.Configs["LoginService"];
+
+                if (null != cfg)
+                    HomeURI = cfg.GetString("SRV_HomeURI", HomeURI);
+
+                if (!String.IsNullOrEmpty(HomeURI))
+                    map["home"] = OSD.FromString(HomeURI);
             }
 
             return OSDParser.SerializeJsonString(map).ToString();

@@ -127,7 +127,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// within this object).
         /// </remarks>
         /// <param name="sceneObject">The scene object for which to gather assets</param>
-        /// <param name="assetUuids">The assets gathered</param>
+        /// <param name="assetUuids">
+        /// A dictionary which is populated with the asset UUIDs gathered and the type of that asset.
+        /// For assets where the type is not clear (e.g. UUIDs extracted from LSL and notecards), the type is Unknown.
+        /// </param>
         public void GatherAssetUuids(SceneObjectGroup sceneObject, IDictionary<UUID, AssetType> assetUuids)
         {
 //            m_log.DebugFormat(
@@ -257,8 +260,9 @@ namespace OpenSim.Region.Framework.Scenes
                     UUID uuid = new UUID(uuidMatch.Value);
 //                    m_log.DebugFormat("[ARCHIVER]: Recording {0} in text", uuid);
 
-                    // Assume AssetIDs embedded are textures.
-                    assetUuids[uuid] = AssetType.Texture;
+                    // Embedded asset references (if not false positives) could be for many types of asset, so we will
+                    // label these as unknown.
+                    assetUuids[uuid] = AssetType.Unknown;
                 }
             }
         }
