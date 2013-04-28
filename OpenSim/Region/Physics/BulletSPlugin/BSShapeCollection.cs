@@ -131,6 +131,17 @@ public sealed class BSShapeCollection : IDisposable
         bool nativeShapePossible = true;
         PrimitiveBaseShape pbs = prim.BaseShape;
 
+        // Kludge to create the capsule for the avatar.
+        BSCharacter theChar = prim as BSCharacter;
+        if (theChar != null)
+        {
+            DereferenceExistingShape(prim, shapeCallback);
+            prim.PhysShape = BSShapeNative.GetReference(m_physicsScene, prim,
+                                            BSPhysicsShapeType.SHAPE_CAPSULE, FixedShapeKey.KEY_CAPSULE);
+            ret = true;
+            haveShape = true;
+        }
+
         // If the prim attributes are simple, this could be a simple Bullet native shape
         // Native shapes work whether to object is static or physical.
         if (!haveShape
@@ -160,6 +171,7 @@ public sealed class BSShapeCollection : IDisposable
                     DereferenceExistingShape(prim, shapeCallback);
                     prim.PhysShape = BSShapeNative.GetReference(m_physicsScene, prim,
                                             BSPhysicsShapeType.SHAPE_SPHERE, FixedShapeKey.KEY_SPHERE);
+                    ret = true;
                 }
                 if (DDetail) DetailLog("{0},BSShapeCollection.CreateGeom,sphere,force={1},rebuilt={2},shape={3}",
                                         prim.LocalID, forceRebuild, ret, prim.PhysShape);
@@ -176,6 +188,7 @@ public sealed class BSShapeCollection : IDisposable
                     DereferenceExistingShape(prim, shapeCallback);
                     prim.PhysShape = BSShapeNative.GetReference(m_physicsScene, prim,
                                             BSPhysicsShapeType.SHAPE_BOX, FixedShapeKey.KEY_BOX);
+                    ret = true;
                 }
                 if (DDetail) DetailLog("{0},BSShapeCollection.CreateGeom,box,force={1},rebuilt={2},shape={3}",
                                         prim.LocalID, forceRebuild, ret, prim.PhysShape);
