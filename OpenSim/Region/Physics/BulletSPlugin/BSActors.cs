@@ -106,9 +106,9 @@ public class BSActorCollection
     {
         ForEachActor(a => a.Refresh());
     }
-    public void RemoveBodyDependencies()
+    public void RemoveDependencies()
     {
-        ForEachActor(a => a.RemoveBodyDependencies());
+        ForEachActor(a => a.RemoveDependencies());
     }
 }
 
@@ -154,7 +154,7 @@ public abstract class BSActor
     public abstract void Refresh();
     // The object's physical representation is being rebuilt so pick up any physical dependencies (constraints, ...).
     //     Register a prestep action to restore physical requirements before the next simulation step.
-    public abstract void RemoveBodyDependencies();
+    public abstract void RemoveDependencies();
 
 }
 }

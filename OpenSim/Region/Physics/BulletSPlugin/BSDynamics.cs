@@ -625,7 +625,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 // Vehicles report collision events so we know when it's on the ground
                 m_physicsScene.PE.AddToCollisionFlags(ControllingPrim.PhysBody, CollisionFlags.BS_VEHICLE_COLLISIONS);
 
-                ControllingPrim.Inertia = m_physicsScene.PE.CalculateLocalInertia(ControllingPrim.PhysShape, m_vehicleMass);
+                ControllingPrim.Inertia = m_physicsScene.PE.CalculateLocalInertia(ControllingPrim.PhysShape.physShapeInfo, m_vehicleMass);
                 m_physicsScene.PE.SetMassProps(ControllingPrim.PhysBody, m_vehicleMass, ControllingPrim.Inertia);
                 m_physicsScene.PE.UpdateInertiaTensor(ControllingPrim.PhysBody);
 
@@ -649,7 +649,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         }
 
         // BSActor.RemoveBodyDependencies
-        public override void RemoveBodyDependencies()
+        public override void RemoveDependencies()
         {
             Refresh();
         }

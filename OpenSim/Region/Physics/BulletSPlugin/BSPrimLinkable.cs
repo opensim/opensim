@@ -61,9 +61,6 @@ public class BSPrimLinkable : BSPrimDisplaced
         base.Destroy();
     }
 
-    public override BSPhysicsShapeType PreferredPhysicalShape
-        { get { return Linkset.PreferredPhysicalShape(this); } }
-
     public override void link(Manager.PhysicsActor obj)
     {
         BSPrimLinkable parent = obj as BSPrimLinkable;
@@ -149,10 +146,10 @@ public class BSPrimLinkable : BSPrimDisplaced
     }
 
     // Body is being taken apart. Remove physical dependencies and schedule a rebuild.
-    protected override void RemoveBodyDependencies()
+    protected override void RemoveDependencies()
     {
-        Linkset.RemoveBodyDependencies(this);
-        base.RemoveBodyDependencies();
+        Linkset.RemoveDependencies(this);
+        base.RemoveDependencies();
     }
 
     public override void UpdateProperties(EntityProperties entprop)

@@ -134,8 +134,8 @@ public class BSPrim : BSPhysObject
             // If there are physical body and shape, release my use of same.
             PhysicsScene.Shapes.DereferenceBody(PhysBody, null);
             PhysBody.Clear();
-            PhysicsScene.Shapes.DereferenceShape(PhysShape, null);
-            PhysShape.Clear();
+            PhysShape.Dereference(PhysicsScene);
+            PhysShape = new BSShapeNull();
         });
     }
 
@@ -161,25 +161,13 @@ public class BSPrim : BSPhysObject
             ForceBodyShapeRebuild(false);
         }
     }
-    // 'unknown' says to choose the best type
-    public override BSPhysicsShapeType PreferredPhysicalShape
-        { get { return BSPhysicsShapeType.SHAPE_UNKNOWN; } }
-
     public override bool ForceBodyShapeRebuild(bool inTaintTime)
     {
-        if (inTaintTime)
+        PhysicsScene.TaintedObject(inTaintTime, "BSPrim.ForceBodyShapeRebuild", delegate()
         {
             _mass = CalculateMass();   // changing the shape changes the mass
             CreateGeomAndObject(true);
-        }
-        else
-        {
-            PhysicsScene.TaintedObject("BSPrim.ForceBodyShapeRebuild", delegate()
-            {
-                _mass = CalculateMass();   // changing the shape changes the mass
-                CreateGeomAndObject(true);
-            });
-        }
+        });
         return true;
     }
     public override bool Grabbed {
@@ -462,7 +450,7 @@ public class BSPrim : BSPhysObject
                 Gravity = ComputeGravity(Buoyancy);
                 PhysicsScene.PE.SetGravity(PhysBody, Gravity);
 
-                Inertia = PhysicsScene.PE.CalculateLocalInertia(PhysShape, physMass);
+                Inertia = PhysicsScene.PE.CalculateLocalInertia(PhysShape.physShapeInfo, physMass);
                 PhysicsScene.PE.SetMassProps(PhysBody, physMass, Inertia);
                 PhysicsScene.PE.UpdateInertiaTensor(PhysBody);
 
@@ -805,7 +793,8 @@ public class BSPrim : BSPhysObject
         PhysicsScene.PE.UpdateSingleAabb(PhysicsScene.World, PhysBody);
 
         DetailLog("{0},BSPrim.UpdatePhysicalParameters,taintExit,static={1},solid={2},mass={3},collide={4},cf={5:X},cType={6},body={7},shape={8}",
-                        LocalID, IsStatic, IsSolid, Mass, SubscribedEvents(), CurrentCollisionFlags, PhysBody.collisionType, PhysBody, PhysShape);
+                                    LocalID, IsStatic, IsSolid, Mass, SubscribedEvents(),
+                                    CurrentCollisionFlags, PhysBody.collisionType, PhysBody, PhysShape);
     }
 
     // "Making dynamic" means changing to and from static.
@@ -1463,12 +1452,13 @@ public class BSPrim : BSPhysObject
         // Create the correct physical representation for this type of object.
         // Updates base.PhysBody and base.PhysShape with the new information.
         // Ignore 'forceRebuild'. 'GetBodyAndShape' makes the right choices and changes of necessary.
-        PhysicsScene.Shapes.GetBodyAndShape(false /*forceRebuild */, PhysicsScene.World, this, null, delegate(BulletBody dBody)
+        PhysicsScene.Shapes.GetBodyAndShape(false /*forceRebuild */, PhysicsScene.World, this, delegate(BulletBody pBody, BulletShape pShape)
         {
             // Called if the current prim body is about to be destroyed.
             // Remove all the physical dependencies on the old body.
             // (Maybe someday make the changing of BSShape an event to be subscribed to by BSLinkset, ...)
-            RemoveBodyDependencies();
+            // Note: this virtual function is overloaded by BSPrimLinkable to remove linkset constraints.
+            RemoveDependencies();
         });
 
         // Make sure the properties are set on the new object
@@ -1477,9 +1467,9 @@ public class BSPrim : BSPhysObject
     }
 
     // Called at taint-time
-    protected virtual void RemoveBodyDependencies()
+    protected virtual void RemoveDependencies()
     {
-        PhysicalActors.RemoveBodyDependencies();
+        PhysicalActors.RemoveDependencies();
     }
 
     // The physics engine says that properties have updated. Update same and inform

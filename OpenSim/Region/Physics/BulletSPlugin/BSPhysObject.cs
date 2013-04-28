@@ -88,7 +88,7 @@ public abstract class BSPhysObject : PhysicsActor
 
         // We don't have any physical representation yet.
         PhysBody = new BulletBody(localID);
-        PhysShape = new BulletShape();
+        PhysShape = new BSShapeNull();
 
         PrimAssetState = PrimAssetCondition.Unknown;
 
@@ -138,7 +138,7 @@ public abstract class BSPhysObject : PhysicsActor
     // Reference to the physical body (btCollisionObject) of this object
     public BulletBody PhysBody;
     // Reference to the physical shape (btCollisionShape) of this object
-    public BulletShape PhysShape;
+    public BSShape PhysShape;
 
     // The physical representation of the prim might require an asset fetch.
     // The asset state is first 'Unknown' then 'Waiting' then either 'Failed' or 'Fetched'.
@@ -150,13 +150,6 @@ public abstract class BSPhysObject : PhysicsActor
 
     // The objects base shape information. Null if not a prim type shape.
     public PrimitiveBaseShape BaseShape { get; protected set; }
-
-    // Some types of objects have preferred physical representations.
-    // Returns SHAPE_UNKNOWN if there is no preference.
-    public virtual BSPhysicsShapeType PreferredPhysicalShape
-    {
-        get { return BSPhysicsShapeType.SHAPE_UNKNOWN; }
-    }
 
     // When the physical properties are updated, an EntityProperty holds the update values.
     // Keep the current and last EntityProperties to enable computation of differences

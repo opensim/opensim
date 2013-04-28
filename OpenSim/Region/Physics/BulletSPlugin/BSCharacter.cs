@@ -123,8 +123,8 @@ public sealed class BSCharacter : BSPhysObject
         {
             PhysicsScene.Shapes.DereferenceBody(PhysBody, null /* bodyCallback */);
             PhysBody.Clear();
-            PhysicsScene.Shapes.DereferenceShape(PhysShape, null /* bodyCallback */);
-            PhysShape.Clear();
+            PhysShape.Dereference(PhysicsScene);
+            PhysShape = new BSShapeNull();
         });
     }
 
@@ -146,8 +146,8 @@ public sealed class BSCharacter : BSPhysObject
         Flying = _flying;
 
         PhysicsScene.PE.SetRestitution(PhysBody, BSParam.AvatarRestitution);
-        PhysicsScene.PE.SetMargin(PhysShape, PhysicsScene.Params.collisionMargin);
-        PhysicsScene.PE.SetLocalScaling(PhysShape, Scale);
+        PhysicsScene.PE.SetMargin(PhysShape.physShapeInfo, PhysicsScene.Params.collisionMargin);
+        PhysicsScene.PE.SetLocalScaling(PhysShape.physShapeInfo, Scale);
         PhysicsScene.PE.SetContactProcessingThreshold(PhysBody, BSParam.ContactProcessingThreshold);
         if (BSParam.CcdMotionThreshold > 0f)
         {
@@ -205,9 +205,9 @@ public sealed class BSCharacter : BSPhysObject
 
             PhysicsScene.TaintedObject("BSCharacter.setSize", delegate()
             {
-                if (PhysBody.HasPhysicalBody && PhysShape.HasPhysicalShape)
+                if (PhysBody.HasPhysicalBody && PhysShape.physShapeInfo.HasPhysicalShape)
                 {
-                    PhysicsScene.PE.SetLocalScaling(PhysShape, Scale);
+                    PhysicsScene.PE.SetLocalScaling(PhysShape.physShapeInfo, Scale);
                     UpdatePhysicalMassProperties(RawMass, true);
                     // Make sure this change appears as a property update event
                     PhysicsScene.PE.PushUpdate(PhysBody);
@@ -220,11 +220,6 @@ public sealed class BSCharacter : BSPhysObject
     public override PrimitiveBaseShape Shape
     {
         set { BaseShape = value; }
-    }
-    // I want the physics engine to make an avatar capsule
-    public override BSPhysicsShapeType PreferredPhysicalShape
-    {
-        get {return BSPhysicsShapeType.SHAPE_CAPSULE; }
     }
 
     public override bool Grabbed {
@@ -381,7 +376,7 @@ public sealed class BSCharacter : BSPhysObject
     }
     public override void UpdatePhysicalMassProperties(float physMass, bool inWorld)
     {
-        OMV.Vector3 localInertia = PhysicsScene.PE.CalculateLocalInertia(PhysShape, physMass);
+        OMV.Vector3 localInertia = PhysicsScene.PE.CalculateLocalInertia(PhysShape.physShapeInfo, physMass);
         PhysicsScene.PE.SetMassProps(PhysBody, physMass, localInertia);
     }
 

@@ -93,13 +93,6 @@ public abstract class BSLinkset
     //    to the physical representation is done via the tainting mechenism.
     protected object m_linksetActivityLock = new Object();
 
-    // Some linksets have a preferred physical shape.
-    // Returns SHAPE_UNKNOWN if there is no preference. Causes the correct shape to be selected.
-    public virtual BSPhysicsShapeType PreferredPhysicalShape(BSPrimLinkable requestor)
-    {
-        return BSPhysicsShapeType.SHAPE_UNKNOWN;
-    }
-
     // We keep the prim's mass in the linkset structure since it could be dependent on other prims
     public float LinksetMass { get; protected set; }
 
@@ -263,7 +256,7 @@ public abstract class BSLinkset
     // This is called when the root body is changing.
     // Returns 'true' of something was actually removed and would need restoring
     // Called at taint-time!!
-    public abstract bool RemoveBodyDependencies(BSPrimLinkable child);
+    public abstract bool RemoveDependencies(BSPrimLinkable child);
 
     // ================================================================
     protected virtual float ComputeLinksetMass()

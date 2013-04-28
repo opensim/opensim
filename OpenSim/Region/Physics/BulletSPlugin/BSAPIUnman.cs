@@ -79,7 +79,7 @@ private sealed class BulletShapeUnman : BulletShape
         : base()
     {
         ptr = xx;
-        type = typ;
+        shapeType = typ;
     }
     public override bool HasPhysicalShape
     {
@@ -91,7 +91,7 @@ private sealed class BulletShapeUnman : BulletShape
     }
     public override BulletShape Clone()
     {
-        return new BulletShapeUnman(ptr, type);
+        return new BulletShapeUnman(ptr, shapeType);
     }
     public override bool ReferenceSame(BulletShape other)
     {
@@ -375,7 +375,7 @@ public override BulletShape DuplicateCollisionShape(BulletWorld world, BulletSha
 {
     BulletWorldUnman worldu = world as BulletWorldUnman;
     BulletShapeUnman srcShapeu = srcShape as BulletShapeUnman;
-    return new BulletShapeUnman(BSAPICPP.DuplicateCollisionShape2(worldu.ptr, srcShapeu.ptr, id), srcShape.type);
+    return new BulletShapeUnman(BSAPICPP.DuplicateCollisionShape2(worldu.ptr, srcShapeu.ptr, id), srcShape.shapeType);
 }
 
 public override bool DeleteCollisionShape(BulletWorld world, BulletShape shape)

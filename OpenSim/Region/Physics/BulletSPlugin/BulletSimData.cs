@@ -104,11 +104,11 @@ public class BulletShape
 {
     public BulletShape()
     {
-        type = BSPhysicsShapeType.SHAPE_UNKNOWN;
+        shapeType = BSPhysicsShapeType.SHAPE_UNKNOWN;
         shapeKey = (System.UInt64)FixedShapeKey.KEY_NONE;
         isNativeShape = false;
     }
-    public BSPhysicsShapeType type;
+    public BSPhysicsShapeType shapeType;
     public System.UInt64 shapeKey;
     public bool isNativeShape;
 
@@ -133,7 +133,7 @@ public class BulletShape
         buff.Append("<p=");
         buff.Append(AddrString);
         buff.Append(",s=");
-        buff.Append(type.ToString());
+        buff.Append(shapeType.ToString());
         buff.Append(",k=");
         buff.Append(shapeKey.ToString("X"));
         buff.Append(",n=");

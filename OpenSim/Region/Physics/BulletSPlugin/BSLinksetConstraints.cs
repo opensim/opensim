@@ -93,11 +93,11 @@ public sealed class BSLinksetConstraints : BSLinkset
     //     up to rebuild the constraints before the next simulation step.
     // Returns 'true' of something was actually removed and would need restoring
     // Called at taint-time!!
-    public override bool RemoveBodyDependencies(BSPrimLinkable child)
+    public override bool RemoveDependencies(BSPrimLinkable child)
     {
         bool ret = false;
 
-        DetailLog("{0},BSLinksetConstraint.RemoveBodyDependencies,removeChildrenForRoot,rID={1},rBody={2}",
+        DetailLog("{0},BSLinksetConstraint.RemoveDependencies,removeChildrenForRoot,rID={1},rBody={2}",
                                     child.LocalID, LinksetRoot.LocalID, LinksetRoot.PhysBody.AddrString);
 
         lock (m_linksetActivityLock)

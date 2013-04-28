@@ -85,7 +85,7 @@ private sealed class BulletShapeXNA : BulletShape
         : base()
     {
         shape = xx;
-        type = typ;
+        shapeType = typ;
     }
     public override bool HasPhysicalShape
     {
@@ -97,7 +97,7 @@ private sealed class BulletShapeXNA : BulletShape
     }
     public override BulletShape Clone()
     {
-        return new BulletShapeXNA(shape, type);
+        return new BulletShapeXNA(shape, shapeType);
     }
     public override bool ReferenceSame(BulletShape other)
     {

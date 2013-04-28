@@ -39,6 +39,8 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 {
 public abstract class BSShape
 {
+    private static string LogHeader = "[BULLETSIM SHAPE]";
+
     public int referenceCount { get; set; }
     public DateTime lastReferenced { get; set; }
     public BulletShape physShapeInfo { get; set; }
@@ -54,49 +56,6 @@ public abstract class BSShape
         referenceCount = 0;
         lastReferenced = DateTime.Now;
         physShapeInfo = pShape;
-    }
-
-    // Get a reference to a physical shape. Create if it doesn't exist
-    public static BSShape GetShapeReference(BSScene physicsScene, bool forceRebuild, BSPhysObject prim)
-    {
-        BSShape ret = null;
-
-        if (prim.PreferredPhysicalShape == BSPhysicsShapeType.SHAPE_CAPSULE)
-        {
-            // an avatar capsule is close to a native shape (it is not shared)
-            ret = BSShapeNative.GetReference(physicsScene, prim, BSPhysicsShapeType.SHAPE_CAPSULE,
-                                        FixedShapeKey.KEY_CAPSULE);
-            physicsScene.DetailLog("{0},BSShape.GetShapeReference,avatarCapsule,shape={1}", prim.LocalID, ret);
-        }
-
-        // Compound shapes are handled special as they are rebuilt from scratch.
-        // This isn't too great a hardship since most of the child shapes will have already been created.
-        if (ret == null  && prim.PreferredPhysicalShape == BSPhysicsShapeType.SHAPE_COMPOUND)
-        {
-            // Getting a reference to a compound shape gets you the compound shape with the root prim shape added
-            ret = BSShapeCompound.GetReference(physicsScene, prim);
-            physicsScene.DetailLog("{0},BSShapeCollection.CreateGeom,compoundShape,shape={1}", prim.LocalID, ret);
-        }
-
-        // Avatars have their own unique shape
-        if (ret == null  && prim.PreferredPhysicalShape == BSPhysicsShapeType.SHAPE_AVATAR)
-        {
-            // Getting a reference to a compound shape gets you the compound shape with the root prim shape added
-            ret = BSShapeAvatar.GetReference(prim);
-            physicsScene.DetailLog("{0},BSShapeCollection.CreateGeom,avatarShape,shape={1}", prim.LocalID, ret);
-        }
-
-        if (ret == null)
-            ret = GetShapeReferenceNonSpecial(physicsScene, forceRebuild, prim);
-
-        return ret;
-    }
-    private static BSShape GetShapeReferenceNonSpecial(BSScene physicsScene, bool forceRebuild, BSPhysObject prim)
-    {
-        // TODO: work needed here!!
-        BSShapeMesh.GetReference(physicsScene, forceRebuild, prim);
-        BSShapeHull.GetReference(physicsScene, forceRebuild, prim);
-        return null;
     }
 
     // Called when this shape is being used again.
@@ -116,6 +75,27 @@ public abstract class BSShape
     // Release the use of a physical shape.
     public abstract void Dereference(BSScene physicsScene);
 
+    // Return 'true' if there is an allocated physics physical shape under this class instance.
+    public virtual bool HasPhysicalShape
+    {
+        get
+        {
+            if (physShapeInfo != null)
+                return physShapeInfo.HasPhysicalShape;
+            return false;
+        }
+    }
+    public virtual BSPhysicsShapeType ShapeType
+    {
+        get
+        {
+            BSPhysicsShapeType ret = BSPhysicsShapeType.SHAPE_UNKNOWN;
+            if (physShapeInfo != null && physShapeInfo.HasPhysicalShape)
+                ret = physShapeInfo.shapeType;
+            return ret;
+        }
+    }
+
     // Returns a string for debugging that uniquily identifies the memory used by this instance
     public virtual string AddrString
     {
@@ -132,6 +112,119 @@ public abstract class BSShape
         buff.Append(">");
         return buff.ToString();
     }
+
+    // Create a hash of all the shape parameters to be used as a key for this particular shape.
+    public static System.UInt64 ComputeShapeKey(OMV.Vector3 size, PrimitiveBaseShape pbs, out float retLod)
+    {
+        // level of detail based on size and type of the object
+        float lod = BSParam.MeshLOD;
+        if (pbs.SculptEntry)
+            lod = BSParam.SculptLOD;
+
+        // Mega prims usually get more detail because one can interact with shape approximations at this size.
+        float maxAxis = Math.Max(size.X, Math.Max(size.Y, size.Z));
+        if (maxAxis > BSParam.MeshMegaPrimThreshold)
+            lod = BSParam.MeshMegaPrimLOD;
+
+        retLod = lod;
+        return pbs.GetMeshKey(size, lod);
+    }
+
+    // The creation of a mesh or hull can fail if an underlying asset is not available.
+    // There are two cases: 1) the asset is not in the cache and it needs to be fetched;
+    //     and 2) the asset cannot be converted (like failed decompression of JPEG2000s).
+    //     The first case causes the asset to be fetched. The second case requires
+    //     us to not loop forever.
+    // Called after creating a physical mesh or hull. If the physical shape was created,
+    //     just return.
+    public static BulletShape VerifyMeshCreated(BSScene physicsScene, BulletShape newShape, BSPhysObject prim)
+    {
+        // If the shape was successfully created, nothing more to do
+        if (newShape.HasPhysicalShape)
+            return newShape;
+ 
+        // VerifyMeshCreated is called after trying to create the mesh. If we think the asset had been
+        //    fetched but we end up here again, the meshing of the asset must have failed.
+        // Prevent trying to keep fetching the mesh by declaring failure.
+        if (prim.PrimAssetState == BSPhysObject.PrimAssetCondition.Fetched)
+        {
+            prim.PrimAssetState = BSPhysObject.PrimAssetCondition.Failed;
+            physicsScene.Logger.WarnFormat("{0} Fetched asset would not mesh. {1}, texture={2}",
+                                            LogHeader, prim.PhysObjectName, prim.BaseShape.SculptTexture);
+        }
+        else
+        {
+            // If this mesh has an underlying asset and we have not failed getting it before, fetch the asset
+            if (prim.BaseShape.SculptEntry 
+                && prim.PrimAssetState != BSPhysObject.PrimAssetCondition.Failed
+                && prim.PrimAssetState != BSPhysObject.PrimAssetCondition.Waiting
+                && prim.BaseShape.SculptTexture != OMV.UUID.Zero
+                )
+            {
+                physicsScene.DetailLog("{0},BSShapeCollection.VerifyMeshCreated,fetchAsset", prim.LocalID);
+                // Multiple requestors will know we're waiting for this asset
+                prim.PrimAssetState = BSPhysObject.PrimAssetCondition.Waiting;
+ 
+                BSPhysObject xprim = prim;
+                Util.FireAndForget(delegate
+                    {
+                        RequestAssetDelegate assetProvider = physicsScene.RequestAssetMethod;
+                        if (assetProvider != null)
+                        {
+                            BSPhysObject yprim = xprim; // probably not necessary, but, just in case.
+                            assetProvider(yprim.BaseShape.SculptTexture, delegate(AssetBase asset)
+                            {
+                                bool assetFound = false;
+                                string mismatchIDs = String.Empty;  // DEBUG DEBUG
+                                if (asset != null && yprim.BaseShape.SculptEntry)
+                                {
+                                    if (yprim.BaseShape.SculptTexture.ToString() == asset.ID)
+                                    {
+                                        yprim.BaseShape.SculptData = asset.Data;
+                                        // This will cause the prim to see that the filler shape is not the right
+                                        //    one and try again to build the object.
+                                        // No race condition with the normal shape setting since the rebuild is at taint time.
+                                        yprim.ForceBodyShapeRebuild(false /* inTaintTime */);
+                                        assetFound = true;
+                                    }
+                                    else
+                                    {
+                                        mismatchIDs = yprim.BaseShape.SculptTexture.ToString() + "/" + asset.ID;
+                                    }
+                                }
+                                if (assetFound)
+                                    yprim.PrimAssetState = BSPhysObject.PrimAssetCondition.Fetched;
+                                else
+                                    yprim.PrimAssetState = BSPhysObject.PrimAssetCondition.Failed;
+                                physicsScene.DetailLog("{0},BSShapeCollection,fetchAssetCallback,found={1},isSculpt={2},ids={3}",
+                                            yprim.LocalID, assetFound, yprim.BaseShape.SculptEntry, mismatchIDs );
+                            });
+                        }
+                        else
+                        {
+                            xprim.PrimAssetState = BSPhysObject.PrimAssetCondition.Failed;
+                            physicsScene.Logger.ErrorFormat("{0} Physical object requires asset but no asset provider. Name={1}",
+                                                        LogHeader, physicsScene.Name);
+                        }
+                    });
+            }
+            else
+            {
+                if (prim.PrimAssetState == BSPhysObject.PrimAssetCondition.Failed)
+                {
+                    physicsScene.Logger.WarnFormat("{0} Mesh failed to fetch asset. obj={1}, texture={2}",
+                                                LogHeader, prim.PhysObjectName, prim.BaseShape.SculptTexture);
+                }
+            }
+         }
+
+        // While we wait for the mesh defining asset to be loaded, stick in a simple box for the object.
+        BSShape fillShape = BSShapeNative.GetReference(physicsScene, prim, BSPhysicsShapeType.SHAPE_BOX, FixedShapeKey.KEY_BOX);
+        physicsScene.DetailLog("{0},BSShapeCollection.VerifyMeshCreated,boxTempShape", prim.LocalID);
+
+        return fillShape.physShapeInfo;
+     }
+
 }
 
 // ============================================================================================================
@@ -199,7 +292,7 @@ public class BSShapeNative : BSShape
             physicsScene.Logger.ErrorFormat("{0} BuildPhysicalNativeShape failed. ID={1}, shape={2}",
                                     LogHeader, prim.LocalID, shapeType);
         }
-        newShape.type = shapeType;
+        newShape.shapeType = shapeType;
         newShape.isNativeShape = true;
         newShape.shapeKey = (UInt64)shapeKey;
         return newShape;
@@ -219,10 +312,11 @@ public class BSShapeMesh : BSShape
     public static BSShape GetReference(BSScene physicsScene, bool forceRebuild, BSPhysObject prim)
     {
         float lod;
-        System.UInt64 newMeshKey = BSShapeCollection.ComputeShapeKey(prim.Size, prim.BaseShape, out lod);
+        System.UInt64 newMeshKey = BSShape.ComputeShapeKey(prim.Size, prim.BaseShape, out lod);
 
         physicsScene.DetailLog("{0},BSShapeMesh,getReference,oldKey={1},newKey={2},size={3},lod={4}",
-                                prim.LocalID, prim.PhysShape.shapeKey.ToString("X"), newMeshKey.ToString("X"), prim.Size, lod);
+                                prim.LocalID, prim.PhysShape.physShapeInfo.shapeKey.ToString("X"),
+                                newMeshKey.ToString("X"), prim.Size, lod);
 
         BSShapeMesh retMesh = new BSShapeMesh(new BulletShape());
         lock (Meshes)
@@ -238,8 +332,8 @@ public class BSShapeMesh : BSShape
                 BulletShape newShape = retMesh.CreatePhysicalMesh(physicsScene, prim, newMeshKey, prim.BaseShape, prim.Size, lod);
 
                 // Check to see if mesh was created (might require an asset).
-                newShape = BSShapeCollection.VerifyMeshCreated(physicsScene, newShape, prim);
-                if (newShape.type == BSPhysicsShapeType.SHAPE_MESH)
+                newShape = VerifyMeshCreated(physicsScene, newShape, prim);
+                if (newShape.shapeType == BSPhysicsShapeType.SHAPE_MESH)
                 {
                     // If a mesh was what was created, remember the built shape for later sharing.
                     Meshes.Add(newMeshKey, retMesh);
@@ -360,10 +454,10 @@ public class BSShapeHull : BSShape
     public static BSShape GetReference(BSScene physicsScene, bool forceRebuild, BSPhysObject prim)
     {
         float lod;
-        System.UInt64 newHullKey = BSShapeCollection.ComputeShapeKey(prim.Size, prim.BaseShape, out lod);
+        System.UInt64 newHullKey = BSShape.ComputeShapeKey(prim.Size, prim.BaseShape, out lod);
 
         physicsScene.DetailLog("{0},BSShapeHull,getReference,oldKey={1},newKey={2},size={3},lod={4}",
-                                prim.LocalID, prim.PhysShape.shapeKey.ToString("X"), newHullKey.ToString("X"), prim.Size, lod);
+                                prim.LocalID, prim.PhysShape.physShapeInfo.shapeKey.ToString("X"), newHullKey.ToString("X"), prim.Size, lod);
 
         BSShapeHull retHull = new BSShapeHull(new BulletShape());
         lock (Hulls)
@@ -379,8 +473,8 @@ public class BSShapeHull : BSShape
                 BulletShape newShape = retHull.CreatePhysicalHull(physicsScene, prim, newHullKey, prim.BaseShape, prim.Size, lod);
 
                 // Check to see if mesh was created (might require an asset).
-                newShape = BSShapeCollection.VerifyMeshCreated(physicsScene, newShape, prim);
-                if (newShape.type == BSPhysicsShapeType.SHAPE_MESH)
+                newShape = VerifyMeshCreated(physicsScene, newShape, prim);
+                if (newShape.shapeType == BSPhysicsShapeType.SHAPE_MESH)
                 {
                     // If a mesh was what was created, remember the built shape for later sharing.
                     Hulls.Add(newHullKey, retHull);
@@ -569,7 +663,6 @@ public class BSShapeHull : BSShape
     }
 }
 
-
 // ============================================================================================================
 public class BSShapeCompound : BSShape
 {
@@ -589,9 +682,9 @@ public class BSShapeCompound : BSShape
         {
             // Failed the sanity check!!
             physicsScene.Logger.ErrorFormat("{0} Attempt to free a compound shape that is not compound!! type={1}, ptr={2}",
-                                        LogHeader, physShapeInfo.type, physShapeInfo.AddrString);
+                                        LogHeader, physShapeInfo.shapeType, physShapeInfo.AddrString);
             physicsScene.DetailLog("{0},BSShapeCollection.DereferenceCompound,notACompoundShape,type={1},ptr={2}",
-                                        BSScene.DetailLogZero, physShapeInfo.type, physShapeInfo.AddrString);
+                                        BSScene.DetailLogZero, physShapeInfo.shapeType, physShapeInfo.AddrString);
             return;
         }
 
