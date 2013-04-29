@@ -161,7 +161,7 @@ public abstract class BSShape
                 && prim.BaseShape.SculptTexture != OMV.UUID.Zero
                 )
             {
-                physicsScene.DetailLog("{0},BSShapeCollection.VerifyMeshCreated,fetchAsset", prim.LocalID);
+                physicsScene.DetailLog("{0},BSShape.VerifyMeshCreated,fetchAsset", prim.LocalID);
                 // Multiple requestors will know we're waiting for this asset
                 prim.PrimAssetState = BSPhysObject.PrimAssetCondition.Waiting;
  
@@ -196,7 +196,7 @@ public abstract class BSShape
                                     yprim.PrimAssetState = BSPhysObject.PrimAssetCondition.Fetched;
                                 else
                                     yprim.PrimAssetState = BSPhysObject.PrimAssetCondition.Failed;
-                                physicsScene.DetailLog("{0},BSShapeCollection,fetchAssetCallback,found={1},isSculpt={2},ids={3}",
+                                physicsScene.DetailLog("{0},BSShape,fetchAssetCallback,found={1},isSculpt={2},ids={3}",
                                             yprim.LocalID, assetFound, yprim.BaseShape.SculptEntry, mismatchIDs );
                             });
                         }
@@ -220,7 +220,7 @@ public abstract class BSShape
 
         // While we wait for the mesh defining asset to be loaded, stick in a simple box for the object.
         BSShape fillShape = BSShapeNative.GetReference(physicsScene, prim, BSPhysicsShapeType.SHAPE_BOX, FixedShapeKey.KEY_BOX);
-        physicsScene.DetailLog("{0},BSShapeCollection.VerifyMeshCreated,boxTempShape", prim.LocalID);
+        physicsScene.DetailLog("{0},BSShape.VerifyMeshCreated,boxTempShape", prim.LocalID);
 
         return fillShape.physShapeInfo;
      }
@@ -318,7 +318,7 @@ public class BSShapeMesh : BSShape
                                 prim.LocalID, prim.PhysShape.physShapeInfo.shapeKey.ToString("X"),
                                 newMeshKey.ToString("X"), prim.Size, lod);
 
-        BSShapeMesh retMesh = new BSShapeMesh(new BulletShape());
+        BSShapeMesh retMesh = null;
         lock (Meshes)
         {
             if (Meshes.TryGetValue(newMeshKey, out retMesh))
@@ -328,6 +328,7 @@ public class BSShapeMesh : BSShape
             }
             else
             {
+                retMesh = new BSShapeMesh(new BulletShape());
                 // An instance of this mesh has not been created. Build and remember same.
                 BulletShape newShape = retMesh.CreatePhysicalMesh(physicsScene, prim, newMeshKey, prim.BaseShape, prim.Size, lod);
 
@@ -422,7 +423,7 @@ public class BSShapeMesh : BSShape
                     }
                 }
             }
-            physicsScene.DetailLog("{0},BSShapeCollection.CreatePhysicalMesh,origTri={1},realTri={2},numVerts={3}",
+            physicsScene.DetailLog("{0},BSShapeMesh.CreatePhysicalMesh,origTri={1},realTri={2},numVerts={3}",
                         BSScene.DetailLogZero, indices.Length / 3, realIndicesIndex / 3, verticesAsFloats.Length / 3);
 
             if (realIndicesIndex != 0)
@@ -459,7 +460,7 @@ public class BSShapeHull : BSShape
         physicsScene.DetailLog("{0},BSShapeHull,getReference,oldKey={1},newKey={2},size={3},lod={4}",
                                 prim.LocalID, prim.PhysShape.physShapeInfo.shapeKey.ToString("X"), newHullKey.ToString("X"), prim.Size, lod);
 
-        BSShapeHull retHull = new BSShapeHull(new BulletShape());
+        BSShapeHull retHull = null;
         lock (Hulls)
         {
             if (Hulls.TryGetValue(newHullKey, out retHull))
@@ -469,18 +470,18 @@ public class BSShapeHull : BSShape
             }
             else
             {
+                retHull = new BSShapeHull(new BulletShape());
                 // An instance of this mesh has not been created. Build and remember same.
                 BulletShape newShape = retHull.CreatePhysicalHull(physicsScene, prim, newHullKey, prim.BaseShape, prim.Size, lod);
 
-                // Check to see if mesh was created (might require an asset).
+                // Check to see if hull was created (might require an asset).
                 newShape = VerifyMeshCreated(physicsScene, newShape, prim);
-                if (newShape.shapeType == BSPhysicsShapeType.SHAPE_MESH)
+                if (newShape.shapeType == BSPhysicsShapeType.SHAPE_HULL)
                 {
                     // If a mesh was what was created, remember the built shape for later sharing.
                     Hulls.Add(newHullKey, retHull);
                 }
 
-                retHull = new BSShapeHull(newShape);
                 retHull.physShapeInfo = newShape;
             }
         }
@@ -498,7 +499,7 @@ public class BSShapeHull : BSShape
 
         if (BSParam.ShouldUseBulletHACD)
         {
-            physicsScene.DetailLog("{0},BSShapeCollection.CreatePhysicalHull,shouldUseBulletHACD,entry", prim.LocalID);
+            physicsScene.DetailLog("{0},BSShapeHull.CreatePhysicalHull,shouldUseBulletHACD,entry", prim.LocalID);
             BSShape meshShape = BSShapeMesh.GetReference(physicsScene, true, prim);
 
             if (meshShape.physShapeInfo.HasPhysicalShape)
@@ -514,13 +515,13 @@ public class BSShapeHull : BSShape
                 parms.addFacesPoints = BSParam.NumericBool(BSParam.BHullAddFacesPoints);
                 parms.shouldAdjustCollisionMargin = BSParam.NumericBool(BSParam.BHullShouldAdjustCollisionMargin);
 
-                physicsScene.DetailLog("{0},BSShapeCollection.CreatePhysicalHull,hullFromMesh,beforeCall", prim.LocalID, newShape.HasPhysicalShape);
+                physicsScene.DetailLog("{0},BSShapeHull.CreatePhysicalHull,hullFromMesh,beforeCall", prim.LocalID, newShape.HasPhysicalShape);
                 newShape = physicsScene.PE.BuildHullShapeFromMesh(physicsScene.World, meshShape.physShapeInfo, parms);
-                physicsScene.DetailLog("{0},BSShapeCollection.CreatePhysicalHull,hullFromMesh,hasBody={1}", prim.LocalID, newShape.HasPhysicalShape);
+                physicsScene.DetailLog("{0},BSShapeHull.CreatePhysicalHull,hullFromMesh,hasBody={1}", prim.LocalID, newShape.HasPhysicalShape);
             }
             // Now done with the mesh shape.
             meshShape.DecrementReference();
-            physicsScene.DetailLog("{0},BSShapeCollection.CreatePhysicalHull,shouldUseBulletHACD,exit,hasBody={1}", prim.LocalID, newShape.HasPhysicalShape);
+            physicsScene.DetailLog("{0},BSShapeHull.CreatePhysicalHull,shouldUseBulletHACD,exit,hasBody={1}", prim.LocalID, newShape.HasPhysicalShape);
         }
         if (!newShape.HasPhysicalShape)
         {
