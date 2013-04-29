@@ -80,7 +80,7 @@ public abstract class BSLinkset
 
     public BSPrimLinkable LinksetRoot { get; protected set; }
 
-    public BSScene PhysicsScene { get; private set; }
+    protected BSScene m_physicsScene { get; private set; }
 
     static int m_nextLinksetID = 1;
     public int LinksetID { get; private set; }
@@ -115,7 +115,7 @@ public abstract class BSLinkset
         // We create LOTS of linksets.
         if (m_nextLinksetID <= 0)
             m_nextLinksetID = 1;
-        PhysicsScene = scene;
+        m_physicsScene = scene;
         LinksetRoot = parent;
         m_children = new HashSet<BSPrimLinkable>();
         LinksetMass = parent.RawMass;
@@ -158,7 +158,7 @@ public abstract class BSLinkset
         }
 
         // The child is down to a linkset of just itself
-        return BSLinkset.Factory(PhysicsScene, child);
+        return BSLinkset.Factory(m_physicsScene, child);
     }
 
     // Return 'true' if the passed object is the root object of this linkset
@@ -316,8 +316,8 @@ public abstract class BSLinkset
     // Invoke the detailed logger and output something if it's enabled.
     protected void DetailLog(string msg, params Object[] args)
     {
-        if (PhysicsScene.PhysicsLogging.Enabled)
-            PhysicsScene.DetailLog(msg, args);
+        if (m_physicsScene.PhysicsLogging.Enabled)
+            m_physicsScene.DetailLog(msg, args);
     }
 
 }

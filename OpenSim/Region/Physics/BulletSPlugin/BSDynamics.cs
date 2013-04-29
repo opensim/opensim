@@ -789,7 +789,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             if ((m_knownHas & m_knownChangedTerrainHeight) == 0 || pos != lastRememberedHeightPos)
             {
                 lastRememberedHeightPos = pos;
-                m_knownTerrainHeight = ControllingPrim.PhysicsScene.TerrainManager.GetTerrainHeightAtXYZ(pos);
+                m_knownTerrainHeight = ControllingPrim.PhysScene.TerrainManager.GetTerrainHeightAtXYZ(pos);
                 m_knownHas |= m_knownChangedTerrainHeight;
             }
             return m_knownTerrainHeight;
@@ -801,7 +801,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         {
             if ((m_knownHas & m_knownChangedWaterLevel) == 0)
             {
-                m_knownWaterLevel = ControllingPrim.PhysicsScene.TerrainManager.GetWaterLevelAtXYZ(pos);
+                m_knownWaterLevel = ControllingPrim.PhysScene.TerrainManager.GetWaterLevelAtXYZ(pos);
                 m_knownHas |= m_knownChangedWaterLevel;
             }
             return (float)m_knownWaterLevel;
@@ -1637,8 +1637,8 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         // Invoke the detailed logger and output something if it's enabled.
         private void VDetailLog(string msg, params Object[] args)
         {
-            if (ControllingPrim.PhysicsScene.VehicleLoggingEnabled)
-                ControllingPrim.PhysicsScene.DetailLog(msg, args);
+            if (ControllingPrim.PhysScene.VehicleLoggingEnabled)
+                ControllingPrim.PhysScene.DetailLog(msg, args);
         }
     }
 }

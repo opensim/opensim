@@ -72,14 +72,14 @@ public abstract class BSPhysObject : PhysicsActor
     }
     protected BSPhysObject(BSScene parentScene, uint localID, string name, string typeName)
     {
-        PhysicsScene = parentScene;
+        PhysScene = parentScene;
         LocalID = localID;
         PhysObjectName = name;
         Name = name;    // PhysicsActor also has the name of the object. Someday consolidate.
         TypeName = typeName;
 
         // The collection of things that push me around
-        PhysicalActors = new BSActorCollection(PhysicsScene);
+        PhysicalActors = new BSActorCollection(PhysScene);
 
         // Initialize variables kept in base.
         GravModifier = 1.0f;
@@ -112,13 +112,13 @@ public abstract class BSPhysObject : PhysicsActor
     public virtual void Destroy()
     {
         PhysicalActors.Enable(false);
-        PhysicsScene.TaintedObject("BSPhysObject.Destroy", delegate()
+        PhysScene.TaintedObject("BSPhysObject.Destroy", delegate()
         {
             PhysicalActors.Dispose();
         });
     }
 
-    public BSScene PhysicsScene { get; protected set; }
+    public BSScene PhysScene { get; protected set; }
     // public override uint LocalID { get; set; } // Use the LocalID definition in PhysicsActor
     public string PhysObjectName { get; protected set; }
     public string TypeName { get; protected set; }
@@ -270,7 +270,7 @@ public abstract class BSPhysObject : PhysicsActor
     public void ActivateIfPhysical(bool forceIt)
     {
         if (IsPhysical && PhysBody.HasPhysicalBody)
-            PhysicsScene.PE.Activate(PhysBody, forceIt);
+            PhysScene.PE.Activate(PhysBody, forceIt);
     }
 
     // 'actors' act on the physical object to change or constrain its motion. These can range from
@@ -333,29 +333,29 @@ public abstract class BSPhysObject : PhysicsActor
     protected long CollisionAccumulation { get; set; }
 
     public override bool IsColliding {
-        get { return (CollidingStep == PhysicsScene.SimulationStep); }
+        get { return (CollidingStep == PhysScene.SimulationStep); }
         set {
             if (value)
-                CollidingStep = PhysicsScene.SimulationStep;
+                CollidingStep = PhysScene.SimulationStep;
             else
                 CollidingStep = 0;
             }
     }
     public override bool CollidingGround {
-        get { return (CollidingGroundStep == PhysicsScene.SimulationStep); }
+        get { return (CollidingGroundStep == PhysScene.SimulationStep); }
         set
         {
             if (value)
-                CollidingGroundStep = PhysicsScene.SimulationStep;
+                CollidingGroundStep = PhysScene.SimulationStep;
             else
                 CollidingGroundStep = 0;
         }
     }
     public override bool CollidingObj {
-        get { return (CollidingObjectStep == PhysicsScene.SimulationStep); }
+        get { return (CollidingObjectStep == PhysScene.SimulationStep); }
         set { 
             if (value)
-                CollidingObjectStep = PhysicsScene.SimulationStep;
+                CollidingObjectStep = PhysScene.SimulationStep;
             else
                 CollidingObjectStep = 0;
         }
@@ -380,14 +380,14 @@ public abstract class BSPhysObject : PhysicsActor
         bool ret = false;
 
         // The following lines make IsColliding(), CollidingGround() and CollidingObj work
-        CollidingStep = PhysicsScene.SimulationStep;
-        if (collidingWith <= PhysicsScene.TerrainManager.HighestTerrainID)
+        CollidingStep = PhysScene.SimulationStep;
+        if (collidingWith <= PhysScene.TerrainManager.HighestTerrainID)
         {
-            CollidingGroundStep = PhysicsScene.SimulationStep;
+            CollidingGroundStep = PhysScene.SimulationStep;
         }
         else
         {
-            CollidingObjectStep = PhysicsScene.SimulationStep;
+            CollidingObjectStep = PhysScene.SimulationStep;
         }
 
         CollisionAccumulation++;
@@ -397,10 +397,10 @@ public abstract class BSPhysObject : PhysicsActor
 
         // Make a collection of the collisions that happened the last simulation tick.
         // This is different than the collection created for sending up to the simulator as it is cleared every tick.
-        if (CollisionsLastTickStep != PhysicsScene.SimulationStep)
+        if (CollisionsLastTickStep != PhysScene.SimulationStep)
         {
             CollisionsLastTick = new CollisionEventUpdate();
-            CollisionsLastTickStep = PhysicsScene.SimulationStep;
+            CollisionsLastTickStep = PhysScene.SimulationStep;
         }
         CollisionsLastTick.AddCollider(collidingWith, new ContactPoint(contactPoint, contactNormal, pentrationDepth));
 
@@ -427,9 +427,9 @@ public abstract class BSPhysObject : PhysicsActor
         bool force = (CollisionCollection.Count == 0 && CollisionsLastReported.Count != 0);
 
         // throttle the collisions to the number of milliseconds specified in the subscription
-        if (force || (PhysicsScene.SimulationNowTime >= NextCollisionOkTime))
+        if (force || (PhysScene.SimulationNowTime >= NextCollisionOkTime))
         {
-            NextCollisionOkTime = PhysicsScene.SimulationNowTime + SubscribedEventsMs;
+            NextCollisionOkTime = PhysScene.SimulationNowTime + SubscribedEventsMs;
 
             // We are called if we previously had collisions. If there are no collisions
             //   this time, send up one last empty event so OpenSim can sense collision end.
@@ -464,10 +464,10 @@ public abstract class BSPhysObject : PhysicsActor
             // make sure first collision happens
             NextCollisionOkTime = Util.EnvironmentTickCountSubtract(SubscribedEventsMs);
 
-            PhysicsScene.TaintedObject(TypeName+".SubscribeEvents", delegate()
+            PhysScene.TaintedObject(TypeName+".SubscribeEvents", delegate()
             {
                 if (PhysBody.HasPhysicalBody)
-                    CurrentCollisionFlags = PhysicsScene.PE.AddToCollisionFlags(PhysBody, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
+                    CurrentCollisionFlags = PhysScene.PE.AddToCollisionFlags(PhysBody, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
             });
         }
         else
@@ -479,11 +479,11 @@ public abstract class BSPhysObject : PhysicsActor
     public override void UnSubscribeEvents() {
         // DetailLog("{0},{1}.UnSubscribeEvents,unsubscribing", LocalID, TypeName);
         SubscribedEventsMs = 0;
-        PhysicsScene.TaintedObject(TypeName+".UnSubscribeEvents", delegate()
+        PhysScene.TaintedObject(TypeName+".UnSubscribeEvents", delegate()
         {
             // Make sure there is a body there because sometimes destruction happens in an un-ideal order.
             if (PhysBody.HasPhysicalBody)
-                CurrentCollisionFlags = PhysicsScene.PE.RemoveFromCollisionFlags(PhysBody, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
+                CurrentCollisionFlags = PhysScene.PE.RemoveFromCollisionFlags(PhysBody, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
         });
     }
     // Return 'true' if the simulator wants collision events
@@ -497,7 +497,7 @@ public abstract class BSPhysObject : PhysicsActor
     {
         // Scale the collision count by the time since the last collision.
         // The "+1" prevents dividing by zero.
-        long timeAgo = PhysicsScene.SimulationStep - CollidingStep + 1;
+        long timeAgo = PhysScene.SimulationStep - CollidingStep + 1;
         CollisionScore = CollisionAccumulation / timeAgo;
     }
     public override float CollisionScore { get; set; }
@@ -524,8 +524,8 @@ public abstract class BSPhysObject : PhysicsActor
     // High performance detailed logging routine used by the physical objects.
     protected void DetailLog(string msg, params Object[] args)
     {
-        if (PhysicsScene.PhysicsLogging.Enabled)
-            PhysicsScene.DetailLog(msg, args);
+        if (PhysScene.PhysicsLogging.Enabled)
+            PhysScene.DetailLog(msg, args);
     }
 
 }

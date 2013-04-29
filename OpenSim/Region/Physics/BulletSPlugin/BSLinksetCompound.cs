@@ -121,7 +121,7 @@ public sealed class BSLinksetCompound : BSLinkset
         //    If a linkset with just a root prim (simple non-linked prim) don't bother rebuilding.
         if (!Rebuilding && HasAnyChildren)
         {
-            PhysicsScene.PostTaintObject("BSLinksetCompound.ScheduleRebuild", LinksetRoot.LocalID, delegate()
+            m_physicsScene.PostTaintObject("BSLinksetCompound.ScheduleRebuild", LinksetRoot.LocalID, delegate()
             {
                 if (HasAnyChildren)
                     RecomputeLinksetCompound();
@@ -147,10 +147,10 @@ public sealed class BSLinksetCompound : BSLinkset
         {
             // The origional prims are removed from the world as the shape of the root compound
             //     shape takes over.
-            PhysicsScene.PE.AddToCollisionFlags(child.PhysBody, CollisionFlags.CF_NO_CONTACT_RESPONSE);
-            PhysicsScene.PE.ForceActivationState(child.PhysBody, ActivationState.DISABLE_SIMULATION);
+            m_physicsScene.PE.AddToCollisionFlags(child.PhysBody, CollisionFlags.CF_NO_CONTACT_RESPONSE);
+            m_physicsScene.PE.ForceActivationState(child.PhysBody, ActivationState.DISABLE_SIMULATION);
             // We don't want collisions from the old linkset children.
-            PhysicsScene.PE.RemoveFromCollisionFlags(child.PhysBody, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
+            m_physicsScene.PE.RemoveFromCollisionFlags(child.PhysBody, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
 
             child.PhysBody.collisionType = CollisionType.LinksetChild;
 
@@ -175,12 +175,12 @@ public sealed class BSLinksetCompound : BSLinkset
         else
         {
             // The non-physical children can come back to life.
-            PhysicsScene.PE.RemoveFromCollisionFlags(child.PhysBody, CollisionFlags.CF_NO_CONTACT_RESPONSE);
+            m_physicsScene.PE.RemoveFromCollisionFlags(child.PhysBody, CollisionFlags.CF_NO_CONTACT_RESPONSE);
 
             child.PhysBody.collisionType = CollisionType.LinksetChild;
 
             // Don't force activation so setting of DISABLE_SIMULATION can stay if used.
-            PhysicsScene.PE.Activate(child.PhysBody, false);
+            m_physicsScene.PE.Activate(child.PhysBody, false);
             ret = true;
         }
         return ret;
@@ -196,7 +196,7 @@ public sealed class BSLinksetCompound : BSLinkset
         //    but it also means all the child positions get updated.
         //    What would cause an unnecessary rebuild so we make sure the linkset is in a
         //    region before bothering to do a rebuild.
-        if (!IsRoot(updated) && PhysicsScene.TerrainManager.IsWithinKnownTerrain(LinksetRoot.RawPosition))
+        if (!IsRoot(updated) && m_physicsScene.TerrainManager.IsWithinKnownTerrain(LinksetRoot.RawPosition))
         {
             // If a child of the linkset is updating only the position or rotation, that can be done
             //    without rebuilding the linkset.
@@ -209,21 +209,21 @@ public sealed class BSLinksetCompound : BSLinkset
             if ((whichUpdated & ~(UpdatedProperties.Position | UpdatedProperties.Orientation)) == 0)
             {
                 // Find the physical instance of the child 
-                if (LinksetRoot.PhysShape.HasPhysicalShape && PhysicsScene.PE.IsCompound(LinksetRoot.PhysShape.physShapeInfo))
+                if (LinksetRoot.PhysShape.HasPhysicalShape && m_physicsScene.PE.IsCompound(LinksetRoot.PhysShape.physShapeInfo))
                 {
                     // It is possible that the linkset is still under construction and the child is not yet
                     //    inserted into the compound shape. A rebuild of the linkset in a pre-step action will
                     //    build the whole thing with the new position or rotation.
                     // The index must be checked because Bullet references the child array but does no validity
                     //    checking of the child index passed.
-                    int numLinksetChildren = PhysicsScene.PE.GetNumberOfCompoundChildren(LinksetRoot.PhysShape.physShapeInfo);
+                    int numLinksetChildren = m_physicsScene.PE.GetNumberOfCompoundChildren(LinksetRoot.PhysShape.physShapeInfo);
                     if (updated.LinksetChildIndex < numLinksetChildren)
                     {
-                        BulletShape linksetChildShape = PhysicsScene.PE.GetChildShapeFromCompoundShapeIndex(LinksetRoot.PhysShape.physShapeInfo, updated.LinksetChildIndex);
+                        BulletShape linksetChildShape = m_physicsScene.PE.GetChildShapeFromCompoundShapeIndex(LinksetRoot.PhysShape.physShapeInfo, updated.LinksetChildIndex);
                         if (linksetChildShape.HasPhysicalShape)
                         {
                             // Found the child shape within the compound shape
-                            PhysicsScene.PE.UpdateChildTransform(LinksetRoot.PhysShape.physShapeInfo, updated.LinksetChildIndex,
+                            m_physicsScene.PE.UpdateChildTransform(LinksetRoot.PhysShape.physShapeInfo, updated.LinksetChildIndex,
                                                                         updated.RawPosition - LinksetRoot.RawPosition,
                                                                         updated.RawOrientation * OMV.Quaternion.Inverse(LinksetRoot.RawOrientation),
                                                                         true /* shouldRecalculateLocalAabb */);
@@ -401,9 +401,9 @@ public sealed class BSLinksetCompound : BSLinkset
             // Here we build the compound shape made up of all the children.
 
             // Free up any shape we'd previously built.
-            LinksetShape.Dereference(PhysicsScene);
+            LinksetShape.Dereference(m_physicsScene);
 
-            LinksetShape = BSShapeCompound.GetReference(PhysicsScene, LinksetRoot);
+            LinksetShape = BSShapeCompound.GetReference(m_physicsScene, LinksetRoot);
 
             // The center of mass for the linkset is the geometric center of the group.
             // Compute a displacement for each component so it is relative to the center-of-mass.
@@ -435,7 +435,7 @@ public sealed class BSLinksetCompound : BSLinkset
                 childShape.IncrementReference();
                 OMV.Vector3 offsetPos = (cPrim.RawPosition - LinksetRoot.RawPosition) * invRootOrientation - centerDisplacement;
                 OMV.Quaternion offsetRot = cPrim.RawOrientation * invRootOrientation;
-                PhysicsScene.PE.AddChildShapeToCompoundShape(LinksetShape.physShapeInfo, childShape.physShapeInfo, offsetPos, offsetRot);
+                m_physicsScene.PE.AddChildShapeToCompoundShape(LinksetShape.physShapeInfo, childShape.physShapeInfo, offsetPos, offsetRot);
                 DetailLog("{0},BSLinksetCompound.RecomputeLinksetCompound,addChild,indx={1},rShape={2},cShape={3},offPos={4},offRot={5}",
                                     LinksetRoot.LocalID, memberIndex, LinksetRoot.PhysShape, cPrim.PhysShape, offsetPos, offsetRot);
 
@@ -446,14 +446,14 @@ public sealed class BSLinksetCompound : BSLinkset
 
             // Sneak the built compound shape in as the shape of the root prim.
             // Note this doesn't touch the root prim's PhysShape so be sure the manage the difference.
-            PhysicsScene.PE.SetCollisionShape(PhysicsScene.World, LinksetRoot.PhysBody, LinksetShape.physShapeInfo);
+            m_physicsScene.PE.SetCollisionShape(m_physicsScene.World, LinksetRoot.PhysBody, LinksetShape.physShapeInfo);
 
             // With all of the linkset packed into the root prim, it has the mass of everyone.
             LinksetMass = ComputeLinksetMass();
             LinksetRoot.UpdatePhysicalMassProperties(LinksetMass, true);
 
             // Enable the physical position updator to return the position and rotation of the root shape
-            PhysicsScene.PE.AddToCollisionFlags(LinksetRoot.PhysBody, CollisionFlags.BS_RETURN_ROOT_COMPOUND_SHAPE);
+            m_physicsScene.PE.AddToCollisionFlags(LinksetRoot.PhysBody, CollisionFlags.BS_RETURN_ROOT_COMPOUND_SHAPE);
         }
         finally
         {
@@ -461,7 +461,7 @@ public sealed class BSLinksetCompound : BSLinkset
         }
 
         // See that the Aabb surrounds the new shape
-        PhysicsScene.PE.RecalculateCompoundShapeLocalAabb(LinksetRoot.PhysShape.physShapeInfo);
+        m_physicsScene.PE.RecalculateCompoundShapeLocalAabb(LinksetRoot.PhysShape.physShapeInfo);
     }
 }
 }

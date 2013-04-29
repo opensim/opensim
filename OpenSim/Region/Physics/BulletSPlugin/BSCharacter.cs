@@ -95,18 +95,18 @@ public sealed class BSCharacter : BSPhysObject
         //    the avatar seeking to reach the motor's target speed.
         // This motor runs as a prestep action for the avatar so it will keep the avatar
         //    standing as well as moving. Destruction of the avatar will destroy the pre-step action.
-        m_moveActor = new BSActorAvatarMove(PhysicsScene, this, AvatarMoveActorName);
+        m_moveActor = new BSActorAvatarMove(PhysScene, this, AvatarMoveActorName);
         PhysicalActors.Add(AvatarMoveActorName, m_moveActor);
 
         DetailLog("{0},BSCharacter.create,call,size={1},scale={2},density={3},volume={4},mass={5}",
                             LocalID, _size, Scale, Density, _avatarVolume, RawMass);
 
         // do actual creation in taint time
-        PhysicsScene.TaintedObject("BSCharacter.create", delegate()
+        PhysScene.TaintedObject("BSCharacter.create", delegate()
         {
             DetailLog("{0},BSCharacter.create,taint", LocalID);
             // New body and shape into PhysBody and PhysShape
-            PhysicsScene.Shapes.GetBodyAndShape(true, PhysicsScene.World, this);
+            PhysScene.Shapes.GetBodyAndShape(true, PhysScene.World, this);
 
             SetPhysicalProperties();
         });
@@ -119,18 +119,18 @@ public sealed class BSCharacter : BSPhysObject
         base.Destroy();
 
         DetailLog("{0},BSCharacter.Destroy", LocalID);
-        PhysicsScene.TaintedObject("BSCharacter.destroy", delegate()
+        PhysScene.TaintedObject("BSCharacter.destroy", delegate()
         {
-            PhysicsScene.Shapes.DereferenceBody(PhysBody, null /* bodyCallback */);
+            PhysScene.Shapes.DereferenceBody(PhysBody, null /* bodyCallback */);
             PhysBody.Clear();
-            PhysShape.Dereference(PhysicsScene);
+            PhysShape.Dereference(PhysScene);
             PhysShape = new BSShapeNull();
         });
     }
 
     private void SetPhysicalProperties()
     {
-        PhysicsScene.PE.RemoveObjectFromWorld(PhysicsScene.World, PhysBody);
+        PhysScene.PE.RemoveObjectFromWorld(PhysScene.World, PhysBody);
 
         ZeroMotion(true);
         ForcePosition = _position;
@@ -145,35 +145,35 @@ public sealed class BSCharacter : BSPhysObject
         // Needs to be reset especially when an avatar is recreated after crossing a region boundry.
         Flying = _flying;
 
-        PhysicsScene.PE.SetRestitution(PhysBody, BSParam.AvatarRestitution);
-        PhysicsScene.PE.SetMargin(PhysShape.physShapeInfo, PhysicsScene.Params.collisionMargin);
-        PhysicsScene.PE.SetLocalScaling(PhysShape.physShapeInfo, Scale);
-        PhysicsScene.PE.SetContactProcessingThreshold(PhysBody, BSParam.ContactProcessingThreshold);
+        PhysScene.PE.SetRestitution(PhysBody, BSParam.AvatarRestitution);
+        PhysScene.PE.SetMargin(PhysShape.physShapeInfo, PhysScene.Params.collisionMargin);
+        PhysScene.PE.SetLocalScaling(PhysShape.physShapeInfo, Scale);
+        PhysScene.PE.SetContactProcessingThreshold(PhysBody, BSParam.ContactProcessingThreshold);
         if (BSParam.CcdMotionThreshold > 0f)
         {
-            PhysicsScene.PE.SetCcdMotionThreshold(PhysBody, BSParam.CcdMotionThreshold);
-            PhysicsScene.PE.SetCcdSweptSphereRadius(PhysBody, BSParam.CcdSweptSphereRadius);
+            PhysScene.PE.SetCcdMotionThreshold(PhysBody, BSParam.CcdMotionThreshold);
+            PhysScene.PE.SetCcdSweptSphereRadius(PhysBody, BSParam.CcdSweptSphereRadius);
         }
 
         UpdatePhysicalMassProperties(RawMass, false);
 
         // Make so capsule does not fall over
-        PhysicsScene.PE.SetAngularFactorV(PhysBody, OMV.Vector3.Zero);
+        PhysScene.PE.SetAngularFactorV(PhysBody, OMV.Vector3.Zero);
 
         // The avatar mover sets some parameters.
         PhysicalActors.Refresh();
 
-        PhysicsScene.PE.AddToCollisionFlags(PhysBody, CollisionFlags.CF_CHARACTER_OBJECT);
+        PhysScene.PE.AddToCollisionFlags(PhysBody, CollisionFlags.CF_CHARACTER_OBJECT);
 
-        PhysicsScene.PE.AddObjectToWorld(PhysicsScene.World, PhysBody);
+        PhysScene.PE.AddObjectToWorld(PhysScene.World, PhysBody);
 
         // PhysicsScene.PE.ForceActivationState(PhysBody, ActivationState.ACTIVE_TAG);
-        PhysicsScene.PE.ForceActivationState(PhysBody, ActivationState.DISABLE_DEACTIVATION);
-        PhysicsScene.PE.UpdateSingleAabb(PhysicsScene.World, PhysBody);
+        PhysScene.PE.ForceActivationState(PhysBody, ActivationState.DISABLE_DEACTIVATION);
+        PhysScene.PE.UpdateSingleAabb(PhysScene.World, PhysBody);
 
         // Do this after the object has been added to the world
         PhysBody.collisionType = CollisionType.Avatar;
-        PhysBody.ApplyCollisionMask(PhysicsScene);
+        PhysBody.ApplyCollisionMask(PhysScene);
     }
 
 
@@ -203,14 +203,14 @@ public sealed class BSCharacter : BSPhysObject
             DetailLog("{0},BSCharacter.setSize,call,size={1},scale={2},density={3},volume={4},mass={5}",
                             LocalID, _size, Scale, Density, _avatarVolume, RawMass);
 
-            PhysicsScene.TaintedObject("BSCharacter.setSize", delegate()
+            PhysScene.TaintedObject("BSCharacter.setSize", delegate()
             {
                 if (PhysBody.HasPhysicalBody && PhysShape.physShapeInfo.HasPhysicalShape)
                 {
-                    PhysicsScene.PE.SetLocalScaling(PhysShape.physShapeInfo, Scale);
+                    PhysScene.PE.SetLocalScaling(PhysShape.physShapeInfo, Scale);
                     UpdatePhysicalMassProperties(RawMass, true);
                     // Make sure this change appears as a property update event
-                    PhysicsScene.PE.PushUpdate(PhysBody);
+                    PhysScene.PE.PushUpdate(PhysBody);
                 }
             });
 
@@ -247,24 +247,24 @@ public sealed class BSCharacter : BSPhysObject
         _rotationalVelocity = OMV.Vector3.Zero;
 
         // Zero some other properties directly into the physics engine
-        PhysicsScene.TaintedObject(inTaintTime, "BSCharacter.ZeroMotion", delegate()
+        PhysScene.TaintedObject(inTaintTime, "BSCharacter.ZeroMotion", delegate()
         {
             if (PhysBody.HasPhysicalBody)
-                PhysicsScene.PE.ClearAllForces(PhysBody);
+                PhysScene.PE.ClearAllForces(PhysBody);
         });
     }
     public override void ZeroAngularMotion(bool inTaintTime)
     {
         _rotationalVelocity = OMV.Vector3.Zero;
 
-        PhysicsScene.TaintedObject(inTaintTime, "BSCharacter.ZeroMotion", delegate()
+        PhysScene.TaintedObject(inTaintTime, "BSCharacter.ZeroMotion", delegate()
         {
             if (PhysBody.HasPhysicalBody)
             {
-                PhysicsScene.PE.SetInterpolationAngularVelocity(PhysBody, OMV.Vector3.Zero);
-                PhysicsScene.PE.SetAngularVelocity(PhysBody, OMV.Vector3.Zero);
+                PhysScene.PE.SetInterpolationAngularVelocity(PhysBody, OMV.Vector3.Zero);
+                PhysScene.PE.SetAngularVelocity(PhysBody, OMV.Vector3.Zero);
                 // The next also get rid of applied linear force but the linear velocity is untouched.
-                PhysicsScene.PE.ClearForces(PhysBody);
+                PhysScene.PE.ClearForces(PhysBody);
             }
         });
     }
@@ -286,7 +286,7 @@ public sealed class BSCharacter : BSPhysObject
         set {
             _position = value;
 
-            PhysicsScene.TaintedObject("BSCharacter.setPosition", delegate()
+            PhysScene.TaintedObject("BSCharacter.setPosition", delegate()
             {
                 DetailLog("{0},BSCharacter.SetPosition,taint,pos={1},orient={2}", LocalID, _position, _orientation);
                 PositionSanityCheck();
@@ -296,14 +296,14 @@ public sealed class BSCharacter : BSPhysObject
     }
     public override OMV.Vector3 ForcePosition {
         get {
-            _position = PhysicsScene.PE.GetPosition(PhysBody);
+            _position = PhysScene.PE.GetPosition(PhysBody);
             return _position;
         }
         set {
             _position = value;
             if (PhysBody.HasPhysicalBody)
             {
-                PhysicsScene.PE.SetTranslation(PhysBody, _position, _orientation);
+                PhysScene.PE.SetTranslation(PhysBody, _position, _orientation);
             }
         }
     }
@@ -317,18 +317,18 @@ public sealed class BSCharacter : BSPhysObject
         bool ret = false;
 
         // TODO: check for out of bounds
-        if (!PhysicsScene.TerrainManager.IsWithinKnownTerrain(RawPosition))
+        if (!PhysScene.TerrainManager.IsWithinKnownTerrain(RawPosition))
         {
             // The character is out of the known/simulated area.
             // Force the avatar position to be within known. ScenePresence will use the position
             //    plus the velocity to decide if the avatar is moving out of the region.
-            RawPosition = PhysicsScene.TerrainManager.ClampPositionIntoKnownTerrain(RawPosition);
+            RawPosition = PhysScene.TerrainManager.ClampPositionIntoKnownTerrain(RawPosition);
             DetailLog("{0},BSCharacter.PositionSanityCheck,notWithinKnownTerrain,clampedPos={1}", LocalID, RawPosition);
             return true;
         }
 
         // If below the ground, move the avatar up
-        float terrainHeight = PhysicsScene.TerrainManager.GetTerrainHeightAtXYZ(RawPosition);
+        float terrainHeight = PhysScene.TerrainManager.GetTerrainHeightAtXYZ(RawPosition);
         if (Position.Z < terrainHeight)
         {
             DetailLog("{0},BSCharacter.PositionSanityCheck,adjustForUnderGround,pos={1},terrain={2}", LocalID, _position, terrainHeight);
@@ -337,7 +337,7 @@ public sealed class BSCharacter : BSPhysObject
         }
         if ((CurrentCollisionFlags & CollisionFlags.BS_FLOATS_ON_WATER) != 0)
         {
-            float waterHeight = PhysicsScene.TerrainManager.GetWaterLevelAtXYZ(_position);
+            float waterHeight = PhysScene.TerrainManager.GetWaterLevelAtXYZ(_position);
             if (Position.Z < waterHeight)
             {
                 _position.Z = waterHeight;
@@ -358,7 +358,7 @@ public sealed class BSCharacter : BSPhysObject
         {
             // The new position value must be pushed into the physics engine but we can't
             //    just assign to "Position" because of potential call loops.
-            PhysicsScene.TaintedObject(inTaintTime, "BSCharacter.PositionSanityCheck", delegate()
+            PhysScene.TaintedObject(inTaintTime, "BSCharacter.PositionSanityCheck", delegate()
             {
                 DetailLog("{0},BSCharacter.PositionSanityCheck,taint,pos={1},orient={2}", LocalID, _position, _orientation);
                 ForcePosition = _position;
@@ -376,8 +376,8 @@ public sealed class BSCharacter : BSPhysObject
     }
     public override void UpdatePhysicalMassProperties(float physMass, bool inWorld)
     {
-        OMV.Vector3 localInertia = PhysicsScene.PE.CalculateLocalInertia(PhysShape.physShapeInfo, physMass);
-        PhysicsScene.PE.SetMassProps(PhysBody, physMass, localInertia);
+        OMV.Vector3 localInertia = PhysScene.PE.CalculateLocalInertia(PhysShape.physShapeInfo, physMass);
+        PhysScene.PE.SetMassProps(PhysBody, physMass, localInertia);
     }
 
     public override OMV.Vector3 Force {
@@ -385,11 +385,11 @@ public sealed class BSCharacter : BSPhysObject
         set {
             RawForce = value;
             // m_log.DebugFormat("{0}: Force = {1}", LogHeader, _force);
-            PhysicsScene.TaintedObject("BSCharacter.SetForce", delegate()
+            PhysScene.TaintedObject("BSCharacter.SetForce", delegate()
             {
                 DetailLog("{0},BSCharacter.setForce,taint,force={1}", LocalID, RawForce);
                 if (PhysBody.HasPhysicalBody)
-                    PhysicsScene.PE.SetObjectForce(PhysBody, RawForce);
+                    PhysScene.PE.SetObjectForce(PhysBody, RawForce);
             });
         }
     }
@@ -432,7 +432,7 @@ public sealed class BSCharacter : BSPhysObject
         set {
             RawVelocity = value;
             // m_log.DebugFormat("{0}: set velocity = {1}", LogHeader, RawVelocity);
-            PhysicsScene.TaintedObject("BSCharacter.setVelocity", delegate()
+            PhysScene.TaintedObject("BSCharacter.setVelocity", delegate()
             {
                 if (m_moveActor != null)
                     m_moveActor.SetVelocityAndTarget(RawVelocity, RawVelocity, true /* inTaintTime */);
@@ -445,11 +445,11 @@ public sealed class BSCharacter : BSPhysObject
     public override OMV.Vector3 ForceVelocity {
         get { return RawVelocity; }
         set {
-            PhysicsScene.AssertInTaintTime("BSCharacter.ForceVelocity");
+            PhysScene.AssertInTaintTime("BSCharacter.ForceVelocity");
 
             RawVelocity = value;
-            PhysicsScene.PE.SetLinearVelocity(PhysBody, RawVelocity);
-            PhysicsScene.PE.Activate(PhysBody, true);
+            PhysScene.PE.SetLinearVelocity(PhysBody, RawVelocity);
+            PhysScene.PE.Activate(PhysBody, true);
         }
     }
     public override OMV.Vector3 Torque {
@@ -479,7 +479,7 @@ public sealed class BSCharacter : BSPhysObject
             if (_orientation != value)
             {
                 _orientation = value;
-                PhysicsScene.TaintedObject("BSCharacter.setOrientation", delegate()
+                PhysScene.TaintedObject("BSCharacter.setOrientation", delegate()
                 {
                     ForceOrientation = _orientation;
                 });
@@ -491,7 +491,7 @@ public sealed class BSCharacter : BSPhysObject
     {
         get
         {
-            _orientation = PhysicsScene.PE.GetOrientation(PhysBody);
+            _orientation = PhysScene.PE.GetOrientation(PhysBody);
             return _orientation;
         }
         set
@@ -500,7 +500,7 @@ public sealed class BSCharacter : BSPhysObject
             if (PhysBody.HasPhysicalBody)
             {
                 // _position = PhysicsScene.PE.GetPosition(BSBody);
-                PhysicsScene.PE.SetTranslation(PhysBody, _position, _orientation);
+                PhysScene.PE.SetTranslation(PhysBody, _position, _orientation);
             }
         }
     }
@@ -549,14 +549,14 @@ public sealed class BSCharacter : BSPhysObject
     public override bool FloatOnWater {
         set {
             _floatOnWater = value;
-            PhysicsScene.TaintedObject("BSCharacter.setFloatOnWater", delegate()
+            PhysScene.TaintedObject("BSCharacter.setFloatOnWater", delegate()
             {
                 if (PhysBody.HasPhysicalBody)
                 {
                     if (_floatOnWater)
-                        CurrentCollisionFlags = PhysicsScene.PE.AddToCollisionFlags(PhysBody, CollisionFlags.BS_FLOATS_ON_WATER);
+                        CurrentCollisionFlags = PhysScene.PE.AddToCollisionFlags(PhysBody, CollisionFlags.BS_FLOATS_ON_WATER);
                     else
-                        CurrentCollisionFlags = PhysicsScene.PE.RemoveFromCollisionFlags(PhysBody, CollisionFlags.BS_FLOATS_ON_WATER);
+                        CurrentCollisionFlags = PhysScene.PE.RemoveFromCollisionFlags(PhysBody, CollisionFlags.BS_FLOATS_ON_WATER);
                 }
             });
         }
@@ -577,7 +577,7 @@ public sealed class BSCharacter : BSPhysObject
     public override float Buoyancy {
         get { return _buoyancy; }
         set { _buoyancy = value;
-            PhysicsScene.TaintedObject("BSCharacter.setBuoyancy", delegate()
+            PhysScene.TaintedObject("BSCharacter.setBuoyancy", delegate()
             {
                 DetailLog("{0},BSCharacter.setBuoyancy,taint,buoy={1}", LocalID, _buoyancy);
                 ForceBuoyancy = _buoyancy;
@@ -587,7 +587,7 @@ public sealed class BSCharacter : BSPhysObject
     public override float ForceBuoyancy {
         get { return _buoyancy; }
         set { 
-            PhysicsScene.AssertInTaintTime("BSCharacter.ForceBuoyancy");
+            PhysScene.AssertInTaintTime("BSCharacter.ForceBuoyancy");
 
             _buoyancy = value;
             DetailLog("{0},BSCharacter.setForceBuoyancy,taint,buoy={1}", LocalID, _buoyancy);
@@ -595,7 +595,7 @@ public sealed class BSCharacter : BSPhysObject
             float  grav = BSParam.Gravity * (1f - _buoyancy);
             Gravity = new OMV.Vector3(0f, 0f, grav);
             if (PhysBody.HasPhysicalBody)
-                PhysicsScene.PE.SetGravity(PhysBody, Gravity);
+                PhysScene.PE.SetGravity(PhysBody, Gravity);
         }
     }
 
@@ -613,7 +613,7 @@ public sealed class BSCharacter : BSPhysObject
     public override void AddForce(OMV.Vector3 force, bool pushforce)
     {
         // Since this force is being applied in only one step, make this a force per second.
-        OMV.Vector3 addForce = force / PhysicsScene.LastTimeStep;
+        OMV.Vector3 addForce = force / PhysScene.LastTimeStep;
         AddForce(addForce, pushforce, false);
     }
     private void AddForce(OMV.Vector3 force, bool pushforce, bool inTaintTime) {
@@ -622,13 +622,13 @@ public sealed class BSCharacter : BSPhysObject
             OMV.Vector3 addForce = Util.ClampV(force, BSParam.MaxAddForceMagnitude);
             // DetailLog("{0},BSCharacter.addForce,call,force={1}", LocalID, addForce);
 
-            PhysicsScene.TaintedObject(inTaintTime, "BSCharacter.AddForce", delegate()
+            PhysScene.TaintedObject(inTaintTime, "BSCharacter.AddForce", delegate()
             {
                 // Bullet adds this central force to the total force for this tick
                 // DetailLog("{0},BSCharacter.addForce,taint,force={1}", LocalID, addForce);
                 if (PhysBody.HasPhysicalBody)
                 {
-                    PhysicsScene.PE.ApplyCentralForce(PhysBody, addForce);
+                    PhysScene.PE.ApplyCentralForce(PhysBody, addForce);
                 }
             });
         }

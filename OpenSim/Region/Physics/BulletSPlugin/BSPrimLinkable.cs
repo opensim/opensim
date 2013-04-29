@@ -47,9 +47,9 @@ public class BSPrimLinkable : BSPrimDisplaced
                        OMV.Quaternion rotation, PrimitiveBaseShape pbs, bool pisPhysical)
         : base(localID, primName, parent_scene, pos, size, rotation, pbs, pisPhysical)
     {
-        Linkset = BSLinkset.Factory(PhysicsScene, this);
+        Linkset = BSLinkset.Factory(PhysScene, this);
 
-        PhysicsScene.TaintedObject("BSPrimLinksetCompound.Refresh", delegate()
+        PhysScene.TaintedObject("BSPrimLinksetCompound.Refresh", delegate()
         {
             Linkset.Refresh(this);
         });
@@ -99,7 +99,7 @@ public class BSPrimLinkable : BSPrimDisplaced
         set
         {
             base.Position = value;
-            PhysicsScene.TaintedObject("BSPrimLinkset.setPosition", delegate()
+            PhysScene.TaintedObject("BSPrimLinkset.setPosition", delegate()
             {
                 Linkset.UpdateProperties(UpdatedProperties.Position, this);
             });
@@ -113,7 +113,7 @@ public class BSPrimLinkable : BSPrimDisplaced
         set
         {
             base.Orientation = value;
-            PhysicsScene.TaintedObject("BSPrimLinkset.setOrientation", delegate()
+            PhysScene.TaintedObject("BSPrimLinkset.setOrientation", delegate()
             {
                 Linkset.UpdateProperties(UpdatedProperties.Orientation, this);
             });
