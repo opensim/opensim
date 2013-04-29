@@ -252,5 +252,198 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer.Tests
 
             Assert.That(originalItemAfterDelete, Is.Not.Null);
         }  
+
+        [Test]
+        public void TestAcceptGivenFolder()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            UUID initialSessionId = TestHelpers.ParseTail(0x10);
+            UUID folderId = TestHelpers.ParseTail(0x100);
+
+            UserAccount ua1 
+                = UserAccountHelpers.CreateUserWithInventory(m_scene, "User", "One", TestHelpers.ParseTail(0x1), "pw");
+            UserAccount ua2 
+                = UserAccountHelpers.CreateUserWithInventory(m_scene, "User", "Two", TestHelpers.ParseTail(0x2), "pw");
+
+            ScenePresence giverSp = SceneHelpers.AddScenePresence(m_scene, ua1);
+            TestClient giverClient = (TestClient)giverSp.ControllingClient;
+
+            ScenePresence receiverSp = SceneHelpers.AddScenePresence(m_scene, ua2);
+            TestClient receiverClient = (TestClient)receiverSp.ControllingClient;
+
+            InventoryFolderBase originalFolder 
+                = UserInventoryHelpers.CreateInventoryFolder(
+                    m_scene.InventoryService, giverSp.UUID, folderId, "f1", true);
+
+            byte[] giveImBinaryBucket = new byte[17];
+            giveImBinaryBucket[0] = (byte)AssetType.Folder;
+            byte[] itemIdBytes = folderId.GetBytes();
+            Array.Copy(itemIdBytes, 0, giveImBinaryBucket, 1, itemIdBytes.Length);
+
+            GridInstantMessage giveIm 
+                = new GridInstantMessage(
+                    m_scene, 
+                    giverSp.UUID, 
+                    giverSp.Name, 
+                    receiverSp.UUID, 
+                    (byte)InstantMessageDialog.InventoryOffered,
+                    false,
+                    "inventory offered msg", 
+                    initialSessionId,
+                    false, 
+                    Vector3.Zero,
+                    giveImBinaryBucket,
+                    true);
+
+            giverClient.HandleImprovedInstantMessage(giveIm);
+
+            // These details might not all be correct.  
+            GridInstantMessage acceptIm 
+                = new GridInstantMessage(
+                    m_scene, 
+                    receiverSp.UUID, 
+                    receiverSp.Name, 
+                    giverSp.UUID, 
+                    (byte)InstantMessageDialog.InventoryAccepted, 
+                    false,
+                    "inventory accepted msg", 
+                    initialSessionId,
+                    false, 
+                    Vector3.Zero,
+                    null,
+                    true);
+
+            receiverClient.HandleImprovedInstantMessage(acceptIm);
+
+            // Test for item remaining in the giver's inventory (here we assume a copy item)
+            // TODO: Test no-copy items.
+            InventoryFolderBase originalFolderAfterGive
+                = UserInventoryHelpers.GetInventoryFolder(m_scene.InventoryService, giverSp.UUID, "f1");
+
+            Assert.That(originalFolderAfterGive, Is.Not.Null);
+            Assert.That(originalFolderAfterGive.ID, Is.EqualTo(originalFolder.ID));
+
+            // Test for item successfully making it into the receiver's inventory
+            InventoryFolderBase receivedFolder 
+                = UserInventoryHelpers.GetInventoryFolder(m_scene.InventoryService, receiverSp.UUID, "f1");
+
+            Assert.That(receivedFolder, Is.Not.Null);
+            Assert.That(receivedFolder.ID, Is.Not.EqualTo(originalFolder.ID));
+
+            // Test that on a delete, item still exists and is accessible for the giver.
+            m_scene.InventoryService.DeleteFolders(receiverSp.UUID, new List<UUID>() { receivedFolder.ID });
+
+            InventoryFolderBase originalFolderAfterDelete
+                = UserInventoryHelpers.GetInventoryFolder(m_scene.InventoryService, giverSp.UUID, "f1");
+
+            Assert.That(originalFolderAfterDelete, Is.Not.Null);
+
+            // TODO: Test scenario where giver deletes their item first.
+        }       
+
+        /// <summary>
+        /// Test user rejection of a given item.
+        /// </summary>
+        /// <remarks>
+        /// A rejected item still ends up in the user's trash folder.
+        /// </remarks>
+        [Test]
+        public void TestRejectGivenFolder()
+        {
+            TestHelpers.InMethod();
+//            TestHelpers.EnableLogging();
+
+            UUID initialSessionId = TestHelpers.ParseTail(0x10);
+            UUID folderId = TestHelpers.ParseTail(0x100);
+
+            UserAccount ua1 
+                = UserAccountHelpers.CreateUserWithInventory(m_scene, "User", "One", TestHelpers.ParseTail(0x1), "pw");
+            UserAccount ua2 
+                = UserAccountHelpers.CreateUserWithInventory(m_scene, "User", "Two", TestHelpers.ParseTail(0x2), "pw");
+
+            ScenePresence giverSp = SceneHelpers.AddScenePresence(m_scene, ua1);
+            TestClient giverClient = (TestClient)giverSp.ControllingClient;
+
+            ScenePresence receiverSp = SceneHelpers.AddScenePresence(m_scene, ua2);
+            TestClient receiverClient = (TestClient)receiverSp.ControllingClient;
+
+            // Create the folder to test give
+            InventoryFolderBase originalFolder 
+                = UserInventoryHelpers.CreateInventoryFolder(
+                    m_scene.InventoryService, giverSp.UUID, folderId, "f1", true);
+
+            GridInstantMessage receivedIm = null;
+            receiverClient.OnReceivedInstantMessage += im => receivedIm = im;
+
+            byte[] giveImBinaryBucket = new byte[17];
+            giveImBinaryBucket[0] = (byte)AssetType.Folder;
+            byte[] itemIdBytes = folderId.GetBytes();
+            Array.Copy(itemIdBytes, 0, giveImBinaryBucket, 1, itemIdBytes.Length);
+
+            GridInstantMessage giveIm 
+                = new GridInstantMessage(
+                    m_scene, 
+                    giverSp.UUID, 
+                    giverSp.Name, 
+                    receiverSp.UUID, 
+                    (byte)InstantMessageDialog.InventoryOffered,
+                    false,
+                    "inventory offered msg", 
+                    initialSessionId,
+                    false, 
+                    Vector3.Zero,
+                    giveImBinaryBucket,
+                    true);
+
+            giverClient.HandleImprovedInstantMessage(giveIm);
+
+            // These details might not all be correct.  
+            // Session ID is now the created item ID (!)
+            GridInstantMessage rejectIm 
+                = new GridInstantMessage(
+                    m_scene, 
+                    receiverSp.UUID, 
+                    receiverSp.Name, 
+                    giverSp.UUID, 
+                    (byte)InstantMessageDialog.InventoryDeclined, 
+                    false,
+                    "inventory declined msg", 
+                    new UUID(receivedIm.imSessionID),
+                    false, 
+                    Vector3.Zero,
+                    null,
+                    true);
+
+            receiverClient.HandleImprovedInstantMessage(rejectIm);
+
+            // Test for item remaining in the giver's inventory (here we assume a copy item)
+            // TODO: Test no-copy items.
+            InventoryFolderBase originalFolderAfterGive
+                = UserInventoryHelpers.GetInventoryFolder(m_scene.InventoryService, giverSp.UUID, "f1");
+
+            Assert.That(originalFolderAfterGive, Is.Not.Null);
+            Assert.That(originalFolderAfterGive.ID, Is.EqualTo(originalFolder.ID));
+
+            // Test for folder successfully making it into the receiver's inventory
+            InventoryFolderBase receivedFolder 
+                = UserInventoryHelpers.GetInventoryFolder(m_scene.InventoryService, receiverSp.UUID, "Trash/f1");
+
+            InventoryFolderBase trashFolder 
+                = m_scene.InventoryService.GetFolderForType(receiverSp.UUID, AssetType.TrashFolder);
+
+            Assert.That(receivedFolder, Is.Not.Null);
+            Assert.That(receivedFolder.ID, Is.Not.EqualTo(originalFolder.ID));
+            Assert.That(receivedFolder.ParentID, Is.EqualTo(trashFolder.ID));
+
+            // Test that on a delete, item still exists and is accessible for the giver.
+            m_scene.InventoryService.PurgeFolder(trashFolder);
+
+            InventoryFolderBase originalFolderAfterDelete
+                = UserInventoryHelpers.GetInventoryFolder(m_scene.InventoryService, giverSp.UUID, "f1");
+
+            Assert.That(originalFolderAfterDelete, Is.Not.Null);
+        }  
     }
 }

@@ -175,9 +175,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                 {
                     UUID folderID = new UUID(im.binaryBucket, 1);
                     
-                    m_log.DebugFormat("[INVENTORY TRANSFER]: Inserting original folder {0} "+
-                            "into agent {1}'s inventory",
-                            folderID, new UUID(im.toAgentID));
+                    m_log.DebugFormat(
+                        "[INVENTORY TRANSFER]: Inserting original folder {0} into agent {1}'s inventory",
+                        folderID, new UUID(im.toAgentID));
                     
                     InventoryFolderBase folderCopy 
                         = scene.GiveInventoryFolder(receipientID, client.AgentId, folderID, UUID.Zero);
@@ -200,7 +200,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                         user.ControllingClient.SendBulkUpdateInventory(folderCopy);
 
                     // HACK!!
-                    // Insert the ID of the copied item into the IM so that we know which item to move to trash if it
+                    // Insert the ID of the copied folder into the IM so that we know which item to move to trash if it
                     // is rejected.
                     // XXX: This is probably a misuse of the session ID slot.
                     im.imSessionID = copyID.Guid;
@@ -396,7 +396,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                 {
                     folder = new InventoryFolderBase(inventoryID, client.AgentId);
                     folder = invService.GetFolder(folder);
-                    
+
                     if (folder != null & trashFolder != null)
                     {
                         previousParentFolderID = folder.ParentID;
