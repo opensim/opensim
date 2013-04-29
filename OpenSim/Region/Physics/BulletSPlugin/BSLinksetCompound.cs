@@ -93,9 +93,12 @@ public sealed class BSLinksetCompound : BSLinkset
 {
     private static string LogHeader = "[BULLETSIM LINKSET COMPOUND]";
 
+    private BSShape LinksetShape;
+
     public BSLinksetCompound(BSScene scene, BSPrimLinkable parent)
         : base(scene, parent)
     {
+        LinksetShape = new BSShapeNull();
     }
 
     // When physical properties are changed the linkset needs to recalculate
@@ -391,22 +394,21 @@ public sealed class BSLinksetCompound : BSLinkset
     {
         try
         {
-            /*
-            // Suppress rebuilding while rebuilding. (We know rebuilding is on only one thread.)
-            Rebuilding = true;
+            // This replaces the physical shape of the root prim with a compound shape made up of the root
+            // shape and all the children.
 
-            // Cause the root shape to be rebuilt as a compound object with just the root in it
-            LinksetRoot.ForceBodyShapeRebuild(true /* inTaintTime );
+            // RootPrim.PhysShape is the shape of the root prim.
+            // Here we build the compound shape made up of all the children.
+
+            // Free up any shape we'd previously built.
+            LinksetShape.Dereference(PhysicsScene);
+
+            LinksetShape = BSShapeCompound.GetReference(PhysicsScene, LinksetRoot);
 
             // The center of mass for the linkset is the geometric center of the group.
             // Compute a displacement for each component so it is relative to the center-of-mass.
             // Bullet presumes an object's origin (relative <0,0,0>) is its center-of-mass
-            OMV.Vector3 centerOfMassW = LinksetRoot.RawPosition;
-            if (!disableCOM)                             // DEBUG DEBUG
-            {
-                // Compute a center-of-mass in world coordinates.
-                centerOfMassW = ComputeLinksetCenterOfMass();
-            }
+            OMV.Vector3 centerOfMassW = ComputeLinksetCenterOfMass();
 
             OMV.Quaternion invRootOrientation = OMV.Quaternion.Inverse(LinksetRoot.RawOrientation);
 
@@ -414,20 +416,7 @@ public sealed class BSLinksetCompound : BSLinkset
             OMV.Vector3 centerDisplacement = (centerOfMassW - LinksetRoot.RawPosition) * invRootOrientation;
             LinksetRoot.SetEffectiveCenterOfMassW(centerDisplacement);
 
-            // This causes the physical position of the root prim to be offset to accomodate for the displacements
-            LinksetRoot.ForcePosition = LinksetRoot.RawPosition;
-
-            // Update the local transform for the root child shape so it is offset from the <0,0,0> which is COM
-            PhysicsScene.PE.UpdateChildTransform(LinksetRoot.PhysShape.physShapeInfo, 0 /* childIndex ,
-                                                -centerDisplacement,
-                                                OMV.Quaternion.Identity, // LinksetRoot.RawOrientation,
-                                                false /* shouldRecalculateLocalAabb (is done later after linkset built) );
-
-            DetailLog("{0},BSLinksetCompound.RecomputeLinksetCompound,COM,com={1},rootPos={2},centerDisp={3}",
-                                    LinksetRoot.LocalID, centerOfMassW, LinksetRoot.RawPosition, centerDisplacement);
-
-            DetailLog("{0},BSLinksetCompound.RecomputeLinksetCompound,start,rBody={1},rShape={2},numChildren={3}",
-                            LinksetRoot.LocalID, LinksetRoot.PhysBody, LinksetRoot.PhysShape, NumberOfChildren);
+            // TODO: add phantom root shape to be the center-of-mass
 
             // Add a shape for each of the other children in the linkset
             int memberIndex = 1;
@@ -440,48 +429,24 @@ public sealed class BSLinksetCompound : BSLinkset
                 else
                 {
                     cPrim.LinksetChildIndex = memberIndex;
+                }
 
-                    if (cPrim.PhysShape.isNativeShape)
-                    {
-                        // A native shape is turned into a hull collision shape because native
-                        //    shapes are not shared so we have to hullify it so it will be tracked
-                        //    and freed at the correct time. This also solves the scaling problem
-                        //    (native shapes scale but hull/meshes are assumed to not be).
-                        // TODO: decide of the native shape can just be used in the compound shape.
-                        //    Use call to CreateGeomNonSpecial().
-                        BulletShape saveShape = cPrim.PhysShape;
-                        cPrim.PhysShape.Clear();        // Don't let the create free the child's shape
-                        PhysicsScene.Shapes.CreateGeomMeshOrHull(cPrim, null);
-                        BulletShape newShape = cPrim.PhysShape;
-                        cPrim.PhysShape = saveShape;
-
-                        OMV.Vector3 offsetPos = (cPrim.RawPosition - LinksetRoot.RawPosition) * invRootOrientation - centerDisplacement;
-                        OMV.Quaternion offsetRot = cPrim.RawOrientation * invRootOrientation;
-                        PhysicsScene.PE.AddChildShapeToCompoundShape(LinksetRoot.PhysShape, newShape, offsetPos, offsetRot);
-                        DetailLog("{0},BSLinksetCompound.RecomputeLinksetCompound,addNative,indx={1},rShape={2},cShape={3},offPos={4},offRot={5}",
-                                    LinksetRoot.LocalID, memberIndex, LinksetRoot.PhysShape, newShape, offsetPos, offsetRot);
-                    }
-                    else
-                    {
-                        // For the shared shapes (meshes and hulls), just use the shape in the child.
-                        // The reference count added here will be decremented when the compound shape
-                        //     is destroyed in BSShapeCollection (the child shapes are looped over and dereferenced).
-                        if (PhysicsScene.Shapes.ReferenceShape(cPrim.PhysShape))
-                        {
-                            PhysicsScene.Logger.ErrorFormat("{0} Rebuilt sharable shape when building linkset! Region={1}, primID={2}, shape={3}",
-                                                LogHeader, PhysicsScene.RegionName, cPrim.LocalID, cPrim.PhysShape);
-                        }
-                        OMV.Vector3 offsetPos = (cPrim.RawPosition - LinksetRoot.RawPosition) * invRootOrientation - centerDisplacement;
-                        OMV.Quaternion offsetRot = cPrim.RawOrientation * invRootOrientation;
-                        PhysicsScene.PE.AddChildShapeToCompoundShape(LinksetRoot.PhysShape, cPrim.PhysShape, offsetPos, offsetRot);
-                        DetailLog("{0},BSLinksetCompound.RecomputeLinksetCompound,addNonNative,indx={1},rShape={2},cShape={3},offPos={4},offRot={5}",
+                BSShape childShape = cPrim.PhysShape;
+                childShape.IncrementReference();
+                OMV.Vector3 offsetPos = (cPrim.RawPosition - LinksetRoot.RawPosition) * invRootOrientation - centerDisplacement;
+                OMV.Quaternion offsetRot = cPrim.RawOrientation * invRootOrientation;
+                PhysicsScene.PE.AddChildShapeToCompoundShape(LinksetShape.physShapeInfo, childShape.physShapeInfo, offsetPos, offsetRot);
+                DetailLog("{0},BSLinksetCompound.RecomputeLinksetCompound,addChild,indx={1},rShape={2},cShape={3},offPos={4},offRot={5}",
                                     LinksetRoot.LocalID, memberIndex, LinksetRoot.PhysShape, cPrim.PhysShape, offsetPos, offsetRot);
 
-                    }
-                    memberIndex++;
-                }
+                memberIndex++;
+
                 return false;   // 'false' says to move onto the next child in the list
             });
+
+            // Sneak the built compound shape in as the shape of the root prim.
+            // Note this doesn't touch the root prim's PhysShape so be sure the manage the difference.
+            PhysicsScene.PE.SetCollisionShape(PhysicsScene.World, LinksetRoot.PhysBody, LinksetShape.physShapeInfo);
 
             // With all of the linkset packed into the root prim, it has the mass of everyone.
             LinksetMass = ComputeLinksetMass();
@@ -489,7 +454,6 @@ public sealed class BSLinksetCompound : BSLinkset
 
             // Enable the physical position updator to return the position and rotation of the root shape
             PhysicsScene.PE.AddToCollisionFlags(LinksetRoot.PhysBody, CollisionFlags.BS_RETURN_ROOT_COMPOUND_SHAPE);
-            */
         }
         finally
         {
