@@ -482,6 +482,18 @@ namespace OpenSim.Tests.Common.Mock
             OnCompleteMovementToRegion(this, true);
         }
 
+        /// <summary>
+        /// Emulate sending an IM from the viewer to the simulator.
+        /// </summary>
+        /// <param name='im'></param>
+        public void HandleImprovedInstantMessage(GridInstantMessage im)
+        {
+            ImprovedInstantMessage handlerInstantMessage = OnInstantMessage;
+
+            if (handlerInstantMessage != null)
+                handlerInstantMessage(this, im);
+        }
+
         public virtual void ActivateGesture(UUID assetId, UUID gestureId)
         {
         }
