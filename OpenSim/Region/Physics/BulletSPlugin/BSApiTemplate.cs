@@ -298,7 +298,7 @@ public abstract class BSAPITemplate
 {
 // Returns the name of the underlying Bullet engine
 public abstract string BulletEngineName { get; }
-public abstract string BulletEngineVersion { get; protected set;} 
+public abstract string BulletEngineVersion { get; protected set;}
 
 // Initialization and simulation
 public abstract BulletWorld Initialize(Vector3 maxPosition, ConfigurationParameters parms,
@@ -373,7 +373,7 @@ public abstract void DestroyObject(BulletWorld sim, BulletBody obj);
 // =====================================================================================
 public abstract BulletShape CreateGroundPlaneShape(UInt32 id, float height, float collisionMargin);
 
-public abstract BulletShape CreateTerrainShape(UInt32 id, Vector3 size, float minHeight, float maxHeight, float[] heightMap, 
+public abstract BulletShape CreateTerrainShape(UInt32 id, Vector3 size, float minHeight, float maxHeight, float[] heightMap,
 								float scaleFactor, float collisionMargin);
 
 // =====================================================================================
@@ -388,7 +388,7 @@ public abstract BulletConstraint Create6DofConstraintToPoint(BulletWorld world, 
                     bool useLinearReferenceFrameA, bool disableCollisionsBetweenLinkedBodies);
 
 public abstract BulletConstraint Create6DofConstraintFixed(BulletWorld world, BulletBody obj1,
-                    Vector3 frameInBloc, Quaternion frameInBrot, 
+                    Vector3 frameInBloc, Quaternion frameInBrot,
                     bool useLinearReferenceFrameB, bool disableCollisionsBetweenLinkedBodies);
 
 public abstract BulletConstraint Create6DofSpringConstraint(BulletWorld world, BulletBody obj1, BulletBody obj2,

@@ -115,7 +115,7 @@ public class BSActorAvatarMove : BSActor
         if (m_velocityMotor == null)
         {
             // Infinite decay and timescale values so motor only changes current to target values.
-            m_velocityMotor = new BSVMotor("BSCharacter.Velocity", 
+            m_velocityMotor = new BSVMotor("BSCharacter.Velocity",
                                                 0.2f,                       // time scale
                                                 BSMotor.Infinite,           // decay time scale
                                                 BSMotor.InfiniteVector,     // friction timescale

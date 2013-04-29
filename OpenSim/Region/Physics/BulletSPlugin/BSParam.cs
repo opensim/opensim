@@ -37,7 +37,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 {
 public static class BSParam
 {
-    private static string LogHeader = "[BULLETSIM PARAMETERS]"; 
+    private static string LogHeader = "[BULLETSIM PARAMETERS]";
 
     // Tuning notes:
     // From: http://bulletphysics.org/Bullet/phpBB3/viewtopic.php?t=6575
@@ -51,7 +51,7 @@ public static class BSParam
     //    This is separate/independent from the collision margin. The collision margin increases the object a bit
     //    to improve collision detection performance and accuracy.
     // ===================
-    // From: 
+    // From:
 
     // Level of Detail values kept as float because that's what the Meshmerizer wants
     public static float MeshLOD { get; private set; }
@@ -636,7 +636,7 @@ public static class BSParam
 	    new ParameterDefn<bool>("ShouldDisableContactPoolDynamicAllocation", "Enable to allow large changes in object count",
             false,
             (s) => { return ShouldDisableContactPoolDynamicAllocation; },
-            (s,v) => { ShouldDisableContactPoolDynamicAllocation = v; 
+            (s,v) => { ShouldDisableContactPoolDynamicAllocation = v;
                         s.UnmanagedParams[0].shouldDisableContactPoolDynamicAllocation = NumericBool(v); } ),
 	    new ParameterDefn<bool>("ShouldForceUpdateAllAabbs", "Enable to recomputer AABBs every simulator step",
             false,

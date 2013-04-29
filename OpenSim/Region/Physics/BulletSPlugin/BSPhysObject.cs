@@ -38,7 +38,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
  * Class to wrap all objects.
  * The rest of BulletSim doesn't need to keep checking for avatars or prims
  *        unless the difference is significant.
- * 
+ *
  *  Variables in the physicsl objects are in three forms:
  *      VariableName: used by the simulator and performs taint operations, etc
  *      RawVariableName: direct reference to the BulletSim storage for the variable value
@@ -52,7 +52,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
  * SOP.ApplyImpulse     SOP.ApplyAngularImpulse     SOP.SetAngularImpulse   SOP.SetForce
  * SOG.ApplyImpulse     SOG.ApplyAngularImpulse     SOG.SetAngularImpulse
  * PA.AddForce          PA.AddAngularForce          PA.Torque = v           PA.Force = v
- * BS.ApplyCentralForce BS.ApplyTorque              
+ * BS.ApplyCentralForce BS.ApplyTorque
  */
 
 // Flags used to denote which properties updates when making UpdateProperties calls to linksets, etc.
@@ -353,7 +353,7 @@ public abstract class BSPhysObject : PhysicsActor
     }
     public override bool CollidingObj {
         get { return (CollidingObjectStep == PhysScene.SimulationStep); }
-        set { 
+        set {
             if (value)
                 CollidingObjectStep = PhysScene.SimulationStep;
             else
@@ -447,7 +447,7 @@ public abstract class BSPhysObject : PhysicsActor
 
             // The CollisionCollection instance is passed around in the simulator.
             // Make sure we don't have a handle to that one and that a new one is used for next time.
-            //    This fixes an interesting 'gotcha'. If we call CollisionCollection.Clear() here, 
+            //    This fixes an interesting 'gotcha'. If we call CollisionCollection.Clear() here,
             //    a race condition is created for the other users of this instance.
             CollisionCollection = new CollisionEventUpdate();
         }

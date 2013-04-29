@@ -117,7 +117,7 @@ public class BSActorCollection
 /// Each physical object can have 'actors' who are pushing the object around.
 /// This can be used for hover, locking axis, making vehicles, etc.
 /// Each physical object can have multiple actors acting on it.
-/// 
+///
 /// An actor usually registers itself with physics scene events (pre-step action)
 /// and modifies the parameters on the host physical object.
 /// </summary>

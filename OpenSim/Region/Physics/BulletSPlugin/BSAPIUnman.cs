@@ -75,7 +75,7 @@ private sealed class BulletBodyUnman : BulletBody
 private sealed class BulletShapeUnman : BulletShape
 {
     public IntPtr ptr;
-    public BulletShapeUnman(IntPtr xx, BSPhysicsShapeType typ) 
+    public BulletShapeUnman(IntPtr xx, BSPhysicsShapeType typ)
         : base()
     {
         ptr = xx;
@@ -255,7 +255,7 @@ public override BulletShape CreateHullShape(BulletWorld world, int hullCount, fl
 {
     BulletWorldUnman worldu = world as BulletWorldUnman;
     return new BulletShapeUnman(
-                    BSAPICPP.CreateHullShape2(worldu.ptr, hullCount, hulls), 
+                    BSAPICPP.CreateHullShape2(worldu.ptr, hullCount, hulls),
                     BSPhysicsShapeType.SHAPE_HULL);
 }
 
@@ -1503,7 +1503,7 @@ public static extern void DestroyObject2(IntPtr sim, IntPtr obj);
 public static extern IntPtr CreateGroundPlaneShape2(uint id, float height, float collisionMargin);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern IntPtr CreateTerrainShape2(uint id, Vector3 size, float minHeight, float maxHeight, 
+public static extern IntPtr CreateTerrainShape2(uint id, Vector3 size, float minHeight, float maxHeight,
                                             [MarshalAs(UnmanagedType.LPArray)] float[] heightMap,
                                             float scaleFactor, float collisionMargin);
 

@@ -51,7 +51,7 @@ public sealed class BSTerrainMesh : BSTerrainPhys
     BulletShape m_terrainShape;
     BulletBody m_terrainBody;
 
-    public BSTerrainMesh(BSScene physicsScene, Vector3 regionBase, uint id, Vector3 regionSize) 
+    public BSTerrainMesh(BSScene physicsScene, Vector3 regionBase, uint id, Vector3 regionSize)
         : base(physicsScene, regionBase, id)
     {
     }
@@ -62,7 +62,7 @@ public sealed class BSTerrainMesh : BSTerrainPhys
     }
 
     // Create terrain mesh from a heightmap.
-    public BSTerrainMesh(BSScene physicsScene, Vector3 regionBase, uint id, float[] initialMap, 
+    public BSTerrainMesh(BSScene physicsScene, Vector3 regionBase, uint id, float[] initialMap,
                                                     Vector3 minCoords, Vector3 maxCoords)
         : base(physicsScene, regionBase, id)
     {
@@ -104,7 +104,7 @@ public sealed class BSTerrainMesh : BSTerrainPhys
             return;
         }
 
-        m_physicsScene.DetailLog("{0},BSTerrainMesh.create,meshed,id={1},indices={2},indSz={3},vertices={4},vertSz={5}", 
+        m_physicsScene.DetailLog("{0},BSTerrainMesh.create,meshed,id={1},indices={2},indSz={3},vertices={4},vertSz={5}",
                                 BSScene.DetailLogZero, ID, indicesCount, indices.Length, verticesCount, vertices.Length);
 
         m_terrainShape = m_physicsScene.PE.CreateMeshShape(m_physicsScene.World, indicesCount, indices, verticesCount, vertices);

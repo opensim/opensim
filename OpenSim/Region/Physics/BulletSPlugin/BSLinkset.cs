@@ -214,7 +214,7 @@ public abstract class BSLinkset
     // I am the root of a linkset and a new child is being added
     // Called while LinkActivity is locked.
     protected abstract void AddChildToLinkset(BSPrimLinkable child);
-    
+
     // I am the root of a linkset and one of my children is being removed.
     // Safe to call even if the child is not really in my linkset.
     protected abstract void RemoveChildFromLinkset(BSPrimLinkable child);

@@ -68,7 +68,7 @@ public sealed class BSTerrainHeightmap : BSTerrainPhys
 
     // This minCoords and maxCoords passed in give the size of the terrain (min and max Z
     //         are the high and low points of the heightmap).
-    public BSTerrainHeightmap(BSScene physicsScene, Vector3 regionBase, uint id, float[] initialMap, 
+    public BSTerrainHeightmap(BSScene physicsScene, Vector3 regionBase, uint id, float[] initialMap,
                                                     Vector3 minCoords, Vector3 maxCoords)
         : base(physicsScene, regionBase, id)
     {
@@ -92,7 +92,7 @@ public sealed class BSTerrainHeightmap : BSTerrainPhys
     private void BuildHeightmapTerrain()
     {
         // Create the terrain shape from the mapInfo
-        m_mapInfo.terrainShape = m_physicsScene.PE.CreateTerrainShape( m_mapInfo.ID, 
+        m_mapInfo.terrainShape = m_physicsScene.PE.CreateTerrainShape( m_mapInfo.ID,
                                 new Vector3(m_mapInfo.sizeX, m_mapInfo.sizeY, 0), m_mapInfo.minZ, m_mapInfo.maxZ,
                                 m_mapInfo.heightMap, 1f, BSParam.TerrainCollisionMargin);
 
@@ -103,7 +103,7 @@ public sealed class BSTerrainHeightmap : BSTerrainPhys
         centerPos.Y = m_mapInfo.minCoords.Y + (m_mapInfo.sizeY / 2f);
         centerPos.Z = m_mapInfo.minZ + ((m_mapInfo.maxZ - m_mapInfo.minZ) / 2f);
 
-        m_mapInfo.terrainBody = m_physicsScene.PE.CreateBodyWithDefaultMotionState(m_mapInfo.terrainShape, 
+        m_mapInfo.terrainBody = m_physicsScene.PE.CreateBodyWithDefaultMotionState(m_mapInfo.terrainShape,
                                 m_mapInfo.ID, centerPos, Quaternion.Identity);
 
         // Set current terrain attributes

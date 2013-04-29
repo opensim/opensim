@@ -371,7 +371,7 @@ public sealed class BSCharacter : BSPhysObject
     public override float Mass { get { return _mass; } }
 
     // used when we only want this prim's mass and not the linkset thing
-    public override float RawMass { 
+    public override float RawMass {
         get {return _mass; }
     }
     public override void UpdatePhysicalMassProperties(float physMass, bool inWorld)
@@ -586,7 +586,7 @@ public sealed class BSCharacter : BSPhysObject
     }
     public override float ForceBuoyancy {
         get { return _buoyancy; }
-        set { 
+        set {
             PhysScene.AssertInTaintTime("BSCharacter.ForceBuoyancy");
 
             _buoyancy = value;
@@ -647,7 +647,7 @@ public sealed class BSCharacter : BSPhysObject
     private OMV.Vector3 ComputeAvatarScale(OMV.Vector3 size)
     {
         OMV.Vector3 newScale;
-        
+
         // Bullet's capsule total height is the "passed height + radius * 2";
         // The base capsule is 1 diameter and 2 height (passed radius=0.5, passed height = 1)
         // The number we pass in for 'scaling' is the multiplier to get that base

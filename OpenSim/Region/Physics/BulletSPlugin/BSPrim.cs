@@ -420,7 +420,7 @@ public class BSPrim : BSPhysObject
         get { return _mass; }
     }
     // used when we only want this prim's mass and not the linkset thing
-    public override float RawMass { 
+    public override float RawMass {
         get { return _mass; }
     }
     // Set the physical mass to the passed mass.

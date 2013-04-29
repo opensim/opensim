@@ -142,7 +142,7 @@ public abstract class BSShape
         // If the shape was successfully created, nothing more to do
         if (newShape.HasPhysicalShape)
             return newShape;
- 
+
         // VerifyMeshCreated is called after trying to create the mesh. If we think the asset had been
         //    fetched but we end up here again, the meshing of the asset must have failed.
         // Prevent trying to keep fetching the mesh by declaring failure.
@@ -155,7 +155,7 @@ public abstract class BSShape
         else
         {
             // If this mesh has an underlying asset and we have not failed getting it before, fetch the asset
-            if (prim.BaseShape.SculptEntry 
+            if (prim.BaseShape.SculptEntry
                 && prim.PrimAssetState != BSPhysObject.PrimAssetCondition.Failed
                 && prim.PrimAssetState != BSPhysObject.PrimAssetCondition.Waiting
                 && prim.BaseShape.SculptTexture != OMV.UUID.Zero
@@ -164,7 +164,7 @@ public abstract class BSShape
                 physicsScene.DetailLog("{0},BSShape.VerifyMeshCreated,fetchAsset", prim.LocalID);
                 // Multiple requestors will know we're waiting for this asset
                 prim.PrimAssetState = BSPhysObject.PrimAssetCondition.Waiting;
- 
+
                 BSPhysObject xprim = prim;
                 Util.FireAndForget(delegate
                     {
@@ -245,8 +245,8 @@ public class BSShapeNative : BSShape
     {
     }
 
-    public static BSShape GetReference(BSScene physicsScene, BSPhysObject prim, 
-                                            BSPhysicsShapeType shapeType, FixedShapeKey shapeKey) 
+    public static BSShape GetReference(BSScene physicsScene, BSPhysObject prim,
+                                            BSPhysicsShapeType shapeType, FixedShapeKey shapeKey)
     {
         // Native shapes are not shared and are always built anew.
         return new BSShapeNative(CreatePhysicalNativeShape(physicsScene, prim, shapeType, shapeKey));
@@ -379,7 +379,7 @@ public class BSShapeMesh : BSShape
     {
         BulletShape newShape = null;
 
-        IMesh meshData = physicsScene.mesher.CreateMesh(prim.PhysObjectName, pbs, size, lod, 
+        IMesh meshData = physicsScene.mesher.CreateMesh(prim.PhysObjectName, pbs, size, lod,
                                         false,  // say it is not physical so a bounding box is not built
                                         false   // do not cache the mesh and do not use previously built versions
                                         );
@@ -671,8 +671,8 @@ public class BSShapeCompound : BSShape
     public BSShapeCompound(BulletShape pShape) : base(pShape)
     {
     }
-    public static BSShape GetReference(BSScene physicsScene, BSPhysObject prim) 
-    { 
+    public static BSShape GetReference(BSScene physicsScene, BSPhysObject prim)
+    {
         // Compound shapes are not shared so a new one is created every time.
         return new BSShapeCompound(CreatePhysicalCompoundShape(physicsScene, prim));
     }
@@ -750,8 +750,8 @@ public class BSShapeAvatar : BSShape
     public BSShapeAvatar() : base()
     {
     }
-    public static BSShape GetReference(BSPhysObject prim) 
-    { 
+    public static BSShape GetReference(BSPhysObject prim)
+    {
         return new BSShapeNull();
     }
     public override void Dereference(BSScene physicsScene) { }

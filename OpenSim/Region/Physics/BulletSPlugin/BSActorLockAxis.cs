@@ -63,7 +63,7 @@ public class BSActorLockAxis : BSActor
     // BSActor.Refresh()
     public override void Refresh()
     {
-        m_physicsScene.DetailLog("{0},BSActorLockAxis,refresh,lockedAxis={1},enabled={2},pActive={3}", 
+        m_physicsScene.DetailLog("{0},BSActorLockAxis,refresh,lockedAxis={1},enabled={2},pActive={3}",
                                     m_controllingPrim.LocalID, m_controllingPrim.LockedAxis, Enabled, m_controllingPrim.IsPhysicallyActive);
         // If all the axis are free, we don't need to exist
         if (m_controllingPrim.LockedAxis == m_controllingPrim.LockedAxisFree)
