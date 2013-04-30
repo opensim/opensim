@@ -47,26 +47,31 @@ public abstract class BSShape
 
     public BSShape()
     {
-        referenceCount = 0;
+        referenceCount = 1;
         lastReferenced = DateTime.Now;
         physShapeInfo = new BulletShape();
     }
     public BSShape(BulletShape pShape)
     {
-        referenceCount = 0;
+        referenceCount = 1;
         lastReferenced = DateTime.Now;
         physShapeInfo = pShape;
     }
 
+    // Get another reference to this shape.
+    public abstract BSShape GetReference(BSScene pPhysicsScene, BSPhysObject pPrim);
+
     // Called when this shape is being used again.
-    public virtual void IncrementReference()
+    // Used internally. External callers should call instance.GetReference() to properly copy/reference
+    //       the shape.
+    protected virtual void IncrementReference()
     {
         referenceCount++;
         lastReferenced = DateTime.Now;
     }
 
     // Called when this shape is being used again.
-    public virtual void DecrementReference()
+    protected virtual void DecrementReference()
     {
         referenceCount--;
         lastReferenced = DateTime.Now;
@@ -99,12 +104,19 @@ public abstract class BSShape
     // Returns a string for debugging that uniquily identifies the memory used by this instance
     public virtual string AddrString
     {
-        get { return "unknown"; }
+        get
+        {
+            if (physShapeInfo != null)
+                return physShapeInfo.AddrString;
+            return "unknown";
+        }
     }
 
     public override string ToString()
     {
         StringBuilder buff = new StringBuilder();
+        buff.Append("<t=");
+        buff.Append(ShapeType.ToString());
         buff.Append("<p=");
         buff.Append(AddrString);
         buff.Append(",c=");
@@ -113,6 +125,7 @@ public abstract class BSShape
         return buff.ToString();
     }
 
+    #region Common shape routines
     // Create a hash of all the shape parameters to be used as a key for this particular shape.
     public static System.UInt64 ComputeShapeKey(OMV.Vector3 size, PrimitiveBaseShape pbs, out float retLod)
     {
@@ -225,6 +238,7 @@ public abstract class BSShape
         return fillShape.physShapeInfo;
      }
 
+    #endregion // Common shape routines
 }
 
 // ============================================================================================================
@@ -234,6 +248,7 @@ public class BSShapeNull : BSShape
     {
     }
     public static BSShape GetReference() { return new BSShapeNull();  }
+    public override BSShape GetReference(BSScene pPhysicsScene, BSPhysObject pPrim) { return new BSShapeNull();  }
     public override void Dereference(BSScene physicsScene) { /* The magic of garbage collection will make this go away */ }
 }
 
@@ -252,17 +267,27 @@ public class BSShapeNative : BSShape
         return new BSShapeNative(CreatePhysicalNativeShape(physicsScene, prim, shapeType, shapeKey));
     }
 
+    public override BSShape GetReference(BSScene pPhysicsScene, BSPhysObject pPrim)
+    {
+        // Native shapes are not shared so we return a new shape.
+        return new BSShapeNative(CreatePhysicalNativeShape(pPhysicsScene, pPrim,
+                                    physShapeInfo.shapeType, (FixedShapeKey)physShapeInfo.shapeKey) );
+    }
+
     // Make this reference to the physical shape go away since native shapes are not shared.
     public override void Dereference(BSScene physicsScene)
     {
         // Native shapes are not tracked and are released immediately
-        if (physShapeInfo.HasPhysicalShape)
+        lock (physShapeInfo)
         {
-            physicsScene.DetailLog("{0},BSShapeNative.DereferenceShape,deleteNativeShape,shape={1}", BSScene.DetailLogZero, this);
-            physicsScene.PE.DeleteCollisionShape(physicsScene.World, physShapeInfo);
+            if (physShapeInfo.HasPhysicalShape)
+            {
+                physicsScene.DetailLog("{0},BSShapeNative.DereferenceShape,deleteNativeShape,shape={1}", BSScene.DetailLogZero, this);
+                physicsScene.PE.DeleteCollisionShape(physicsScene.World, physShapeInfo);
+            }
+            physShapeInfo.Clear();
+            // Garbage collection will free up this instance.
         }
-        physShapeInfo.Clear();
-        // Garbage collection will free up this instance.
     }
 
     private static BulletShape CreatePhysicalNativeShape(BSScene physicsScene, BSPhysObject prim,
@@ -344,6 +369,12 @@ public class BSShapeMesh : BSShape
             }
         }
         return retMesh;
+    }
+    public override BSShape GetReference(BSScene pPhysicsScene, BSPhysObject pPrim)
+    {
+        // Another reference to this shape is just counted.
+        IncrementReference();
+        return this;
     }
     public override void Dereference(BSScene physicsScene)
     {
@@ -487,8 +518,19 @@ public class BSShapeHull : BSShape
         }
         return retHull;
     }
+    public override BSShape GetReference(BSScene pPhysicsScene, BSPhysObject pPrim)
+    {
+        // Another reference to this shape is just counted.
+        IncrementReference();
+        return this;
+    }
     public override void Dereference(BSScene physicsScene)
     {
+        lock (Hulls)
+        {
+            this.DecrementReference();
+            // TODO: schedule aging and destruction of unused meshes.
+        }
     }
     List<ConvexResult> m_hulls;
     private BulletShape CreatePhysicalHull(BSScene physicsScene, BSPhysObject prim, System.UInt64 newHullKey,
@@ -520,7 +562,7 @@ public class BSShapeHull : BSShape
                 physicsScene.DetailLog("{0},BSShapeHull.CreatePhysicalHull,hullFromMesh,hasBody={1}", prim.LocalID, newShape.HasPhysicalShape);
             }
             // Now done with the mesh shape.
-            meshShape.DecrementReference();
+            meshShape.Dereference(physicsScene);
             physicsScene.DetailLog("{0},BSShapeHull.CreatePhysicalHull,shouldUseBulletHACD,exit,hasBody={1}", prim.LocalID, newShape.HasPhysicalShape);
         }
         if (!newShape.HasPhysicalShape)
@@ -671,37 +713,52 @@ public class BSShapeCompound : BSShape
     public BSShapeCompound(BulletShape pShape) : base(pShape)
     {
     }
-    public static BSShape GetReference(BSScene physicsScene, BSPhysObject prim)
+    public static BSShape GetReference(BSScene physicsScene)
     {
-        // Compound shapes are not shared so a new one is created every time.
-        return new BSShapeCompound(CreatePhysicalCompoundShape(physicsScene, prim));
+        // Base compound shapes are not shared so this returns a raw shape.
+        // A built compound shape can be reused in linksets.
+        return new BSShapeCompound(CreatePhysicalCompoundShape(physicsScene));
+    }
+    public override BSShape GetReference(BSScene physicsScene, BSPhysObject prim)
+    {
+        // Calling this reference means we want another handle to an existing compound shape
+        //     (usually linksets) so return this copy.
+        IncrementReference();
+        return this;
     }
     // Dereferencing a compound shape releases the hold on all the child shapes.
     public override void Dereference(BSScene physicsScene)
     {
-        if (!physicsScene.PE.IsCompound(physShapeInfo))
+        lock (physShapeInfo)
         {
-            // Failed the sanity check!!
-            physicsScene.Logger.ErrorFormat("{0} Attempt to free a compound shape that is not compound!! type={1}, ptr={2}",
-                                        LogHeader, physShapeInfo.shapeType, physShapeInfo.AddrString);
-            physicsScene.DetailLog("{0},BSShapeCollection.DereferenceCompound,notACompoundShape,type={1},ptr={2}",
-                                        BSScene.DetailLogZero, physShapeInfo.shapeType, physShapeInfo.AddrString);
-            return;
-        }
+            Dereference(physicsScene);
+            if (referenceCount <= 0)
+            {
+                if (!physicsScene.PE.IsCompound(physShapeInfo))
+                {
+                    // Failed the sanity check!!
+                    physicsScene.Logger.ErrorFormat("{0} Attempt to free a compound shape that is not compound!! type={1}, ptr={2}",
+                                                LogHeader, physShapeInfo.shapeType, physShapeInfo.AddrString);
+                    physicsScene.DetailLog("{0},BSShapeCollection.DereferenceCompound,notACompoundShape,type={1},ptr={2}",
+                                                BSScene.DetailLogZero, physShapeInfo.shapeType, physShapeInfo.AddrString);
+                    return;
+                }
 
-        int numChildren = physicsScene.PE.GetNumberOfCompoundChildren(physShapeInfo);
-        physicsScene.DetailLog("{0},BSShapeCollection.DereferenceCompound,shape={1},children={2}",
-                                BSScene.DetailLogZero, physShapeInfo, numChildren);
+                int numChildren = physicsScene.PE.GetNumberOfCompoundChildren(physShapeInfo);
+                physicsScene.DetailLog("{0},BSShapeCollection.DereferenceCompound,shape={1},children={2}",
+                                        BSScene.DetailLogZero, physShapeInfo, numChildren);
 
-        // Loop through all the children dereferencing each.
-        for (int ii = numChildren - 1; ii >= 0; ii--)
-        {
-            BulletShape childShape = physicsScene.PE.RemoveChildShapeFromCompoundShapeIndex(physShapeInfo, ii);
-            DereferenceAnonCollisionShape(physicsScene, childShape);
+                // Loop through all the children dereferencing each.
+                for (int ii = numChildren - 1; ii >= 0; ii--)
+                {
+                    BulletShape childShape = physicsScene.PE.RemoveChildShapeFromCompoundShapeIndex(physShapeInfo, ii);
+                    DereferenceAnonCollisionShape(physicsScene, childShape);
+                }
+                physicsScene.PE.DeleteCollisionShape(physicsScene.World, physShapeInfo);
+            }
         }
-        physicsScene.PE.DeleteCollisionShape(physicsScene.World, physShapeInfo);
     }
-    private static BulletShape CreatePhysicalCompoundShape(BSScene physicsScene, BSPhysObject prim)
+    private static BulletShape CreatePhysicalCompoundShape(BSScene physicsScene)
     {
         BulletShape cShape = physicsScene.PE.CreateCompoundShape(physicsScene.World, false);
         return cShape;
@@ -751,6 +808,10 @@ public class BSShapeAvatar : BSShape
     {
     }
     public static BSShape GetReference(BSPhysObject prim)
+    {
+        return new BSShapeNull();
+    }
+    public override BSShape GetReference(BSScene pPhysicsScene, BSPhysObject pPrim)
     {
         return new BSShapeNull();
     }
