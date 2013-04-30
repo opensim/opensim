@@ -52,6 +52,9 @@ One sided meshes? Should terrain be built into a closed shape?
 
 VEHICLES TODO LIST:
 =================================================
+LINEAR_MOTOR_DIRECTION values should be clamped to reasonable numbers.
+	What are the limits in SL?
+	Same for other velocity settings.
 UBit improvements to remove rubber-banding of avatars sitting on vehicle child prims:
 	https://github.com/UbitUmarov/Ubit-opensim
 Border crossing with linked vehicle causes crash

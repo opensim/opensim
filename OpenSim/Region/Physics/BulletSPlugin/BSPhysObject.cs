@@ -259,7 +259,8 @@ public abstract class BSPhysObject : PhysicsActor
 
     // The user can optionally set the center of mass. The user's setting will override any
     //    computed center-of-mass (like in linksets).
-    public OMV.Vector3? UserSetCenterOfMass { get; set; }
+    // Note this is a displacement from the root's coordinates. Zero means use the root prim as center-of-mass.
+    public OMV.Vector3? UserSetCenterOfMassDisplacement { get; set; }
 
     public OMV.Vector3 LockedAxis { get; set; } // zero means locked. one means free.
     public readonly OMV.Vector3 LockedAxisFree = new OMV.Vector3(1f, 1f, 1f);  // All axis are free

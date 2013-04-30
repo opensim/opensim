@@ -117,7 +117,7 @@ public abstract class BSShape
         StringBuilder buff = new StringBuilder();
         buff.Append("<t=");
         buff.Append(ShapeType.ToString());
-        buff.Append("<p=");
+        buff.Append(",p=");
         buff.Append(AddrString);
         buff.Append(",c=");
         buff.Append(referenceCount.ToString());
