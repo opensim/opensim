@@ -47,10 +47,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
 
         /// <summary>
         private List<Scene> m_Scenelist = new List<Scene>();
-//        private Dictionary<UUID, Scene> m_AgentRegions =
-//                new Dictionary<UUID, Scene>();
 
-        private IMessageTransferModule m_TransferModule = null;
+        private IMessageTransferModule m_TransferModule;
         private bool m_Enabled = true;
 
         #region Region Module interface
@@ -81,9 +79,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
 //            scene.RegisterModuleInterface<IInventoryTransferModule>(this);
 
             scene.EventManager.OnNewClient += OnNewClient;
-//            scene.EventManager.OnClientClosed += ClientLoggedOut;
             scene.EventManager.OnIncomingInstantMessage += OnGridInstantMessage;
-//            scene.EventManager.OnSetRootAgentScene += OnSetRootAgentScene;
         }
 
         public void RegionLoaded(Scene scene)
@@ -96,11 +92,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                     m_log.Error("[INVENTORY TRANSFER]: No Message transfer module found, transfers will be local only");
                     m_Enabled = false;
 
-                    m_Scenelist.Clear();
-                    scene.EventManager.OnNewClient -= OnNewClient;
-//                    scene.EventManager.OnClientClosed -= ClientLoggedOut;
+//                    m_Scenelist.Clear();
+//                    scene.EventManager.OnNewClient -= OnNewClient;
                     scene.EventManager.OnIncomingInstantMessage -= OnGridInstantMessage;
-//                    scene.EventManager.OnSetRootAgentScene -= OnSetRootAgentScene;
                 }
             }
         }
@@ -108,9 +102,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
         public void RemoveRegion(Scene scene)
         {
             scene.EventManager.OnNewClient -= OnNewClient;
-//            scene.EventManager.OnClientClosed -= ClientLoggedOut;
             scene.EventManager.OnIncomingInstantMessage -= OnGridInstantMessage;
-//            scene.EventManager.OnSetRootAgentScene -= OnSetRootAgentScene;
             m_Scenelist.Remove(scene);
         }
 
@@ -139,11 +131,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
             // Inventory giving is conducted via instant message
             client.OnInstantMessage += OnInstantMessage;
         }
-        
-//        protected void OnSetRootAgentScene(UUID id, Scene scene)
-//        {
-//            m_AgentRegions[id] = scene;
-//        }
 
         private Scene FindClientScene(UUID agentId)
         {
@@ -188,9 +175,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                 {
                     UUID folderID = new UUID(im.binaryBucket, 1);
                     
-                    m_log.DebugFormat("[INVENTORY TRANSFER]: Inserting original folder {0} "+
-                            "into agent {1}'s inventory",
-                            folderID, new UUID(im.toAgentID));
+                    m_log.DebugFormat(
+                        "[INVENTORY TRANSFER]: Inserting original folder {0} into agent {1}'s inventory",
+                        folderID, new UUID(im.toAgentID));
                     
                     InventoryFolderBase folderCopy 
                         = scene.GiveInventoryFolder(recipientID, client.AgentId, folderID, UUID.Zero);
@@ -213,7 +200,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                         user.ControllingClient.SendBulkUpdateInventory(folderCopy);
 
                     // HACK!!
-                    im.imSessionID = folderID.Guid;
+                    // Insert the ID of the copied folder into the IM so that we know which item to move to trash if it
+                    // is rejected.
+                    // XXX: This is probably a misuse of the session ID slot.
+                    im.imSessionID = copyID.Guid;
                 }
                 else
                 {
@@ -243,7 +233,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                         user.ControllingClient.SendBulkUpdateInventory(itemCopy);
 
                     // HACK!!
-                    im.imSessionID = itemID.Guid;
+                    // Insert the ID of the copied item into the IM so that we know which item to move to trash if it
+                    // is rejected.
+                    // XXX: This is probably a misuse of the session ID slot.
+                    im.imSessionID = copyID.Guid;
                 }
 
                 im.offline = 0;
@@ -419,7 +412,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                 {
                     folder = new InventoryFolderBase(inventoryID, client.AgentId);
                     folder = invService.GetFolder(folder);
-                    
+
                     if (folder != null & trashFolder != null)
                     {
                         previousParentFolderID = folder.ParentID;
@@ -470,70 +463,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                 }
             }
         }
-
-//        public bool NeedSceneCacheClear(UUID agentID, Scene scene)
-//        {
-//            if (!m_AgentRegions.ContainsKey(agentID))
-//            {
-//                // Since we can get here two ways, we need to scan
-//                // the scenes here. This is somewhat more expensive
-//                // but helps avoid a nasty bug
-//                //
-//
-//                foreach (Scene s in m_Scenelist)
-//                {
-//                    ScenePresence presence;
-//
-//                    if (s.TryGetScenePresence(agentID, out presence))
-//                    {
-//                        // If the agent is in this scene, then we
-//                        // are being called twice in a single
-//                        // teleport. This is wasteful of cycles
-//                        // but harmless due to this 2nd level check
-//                        //
-//                        // If the agent is found in another scene
-//                        // then the list wasn't current
-//                        //
-//                        // If the agent is totally unknown, then what
-//                        // are we even doing here??
-//                        //
-//                        if (s == scene)
-//                        {
-//                            //m_log.Debug("[INVTRANSFERMOD]: s == scene. Returning true in " + scene.RegionInfo.RegionName);
-//                            return true;
-//                        }
-//                        else
-//                        {
-//                            //m_log.Debug("[INVTRANSFERMOD]: s != scene. Returning false in " + scene.RegionInfo.RegionName);
-//                            return false;
-//                        }
-//                    }
-//                }
-//                //m_log.Debug("[INVTRANSFERMOD]: agent not in scene. Returning true in " + scene.RegionInfo.RegionName);
-//                return true;
-//            }
-//
-//            // The agent is left in current Scene, so we must be
-//            // going to another instance
-//            //
-//            if (m_AgentRegions[agentID] == scene)
-//            {
-//                //m_log.Debug("[INVTRANSFERMOD]: m_AgentRegions[agentID] == scene. Returning true in " + scene.RegionInfo.RegionName);
-//                m_AgentRegions.Remove(agentID);
-//                return true;
-//            }
-//
-//            // Another region has claimed the agent
-//            //
-//            //m_log.Debug("[INVTRANSFERMOD]: last resort. Returning false in " + scene.RegionInfo.RegionName);
-//            return false;
-//        }
-//
-//        public void ClientLoggedOut(UUID agentID, Scene scene)
-//        {
-//            if (m_AgentRegions.ContainsKey(agentID))
-//                m_AgentRegions.Remove(agentID);
-//        }
 
         /// <summary>
         ///

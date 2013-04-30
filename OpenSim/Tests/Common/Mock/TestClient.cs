@@ -61,6 +61,7 @@ namespace OpenSim.Tests.Common.Mock
         // Test client specific events - for use by tests to implement some IClientAPI behaviour.
         public event Action<RegionInfo, Vector3, Vector3> OnReceivedMoveAgentIntoRegion;
         public event Action<ulong, IPEndPoint> OnTestClientInformClientOfNeighbour;
+        public event Action<GridInstantMessage> OnReceivedInstantMessage;
 
 // disable warning: public events, part of the public API
 #pragma warning disable 67
@@ -487,6 +488,18 @@ namespace OpenSim.Tests.Common.Mock
             OnCompleteMovementToRegion(this, true);
         }
 
+        /// <summary>
+        /// Emulate sending an IM from the viewer to the simulator.
+        /// </summary>
+        /// <param name='im'></param>
+        public void HandleImprovedInstantMessage(GridInstantMessage im)
+        {
+            ImprovedInstantMessage handlerInstantMessage = OnInstantMessage;
+
+            if (handlerInstantMessage != null)
+                handlerInstantMessage(this, im);
+        }
+
         public virtual void ActivateGesture(UUID assetId, UUID gestureId)
         {
         }
@@ -547,7 +560,8 @@ namespace OpenSim.Tests.Common.Mock
 
         public void SendInstantMessage(GridInstantMessage im)
         {
-
+            if (OnReceivedInstantMessage != null)
+                OnReceivedInstantMessage(im);
         }
 
         public void SendGenericMessage(string method, UUID invoice, List<string> message)
