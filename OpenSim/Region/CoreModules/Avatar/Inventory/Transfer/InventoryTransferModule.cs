@@ -213,7 +213,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                         user.ControllingClient.SendBulkUpdateInventory(folderCopy);
 
                     // HACK!!
-                    im.imSessionID = folderID.Guid;
+                    // Insert the ID of the copied item into the IM so that we know which item to move to trash if it
+                    // is rejected.
+                    // XXX: This is probably a misuse of the session ID slot.
+                    im.imSessionID = copyID.Guid;
                 }
                 else
                 {
@@ -243,7 +246,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                         user.ControllingClient.SendBulkUpdateInventory(itemCopy);
 
                     // HACK!!
-                    im.imSessionID = itemID.Guid;
+                    // Insert the ID of the copied item into the IM so that we know which item to move to trash if it
+                    // is rejected.
+                    // XXX: This is probably a misuse of the session ID slot.
+                    im.imSessionID = copyID.Guid;
                 }
 
                 im.offline = 0;
