@@ -158,7 +158,7 @@ namespace OpenSim.Framework.Capabilities
         /// capabilities and their handler details.
         /// </summary>
         /// <param name="excludeSeed">If true, then exclude the seed cap.</param>
-        public Hashtable GetCapsDetails(bool excludeSeed)
+        public Hashtable GetCapsDetails(bool excludeSeed, List<string> requestedCaps)
         {
             Hashtable caps = new Hashtable();
             string protocol = "http://";
@@ -173,6 +173,9 @@ namespace OpenSim.Framework.Capabilities
                 foreach (string capsName in m_capsHandlers.Keys)
                 {
                     if (excludeSeed && "SEED" == capsName)
+                        continue;
+
+                    if (requestedCaps != null && !requestedCaps.Contains(capsName))
                         continue;
 
                     caps[capsName] = baseUrl + m_capsHandlers[capsName].Path;
