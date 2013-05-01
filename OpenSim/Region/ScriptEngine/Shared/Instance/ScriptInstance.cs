@@ -628,8 +628,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                 }
             }
 
-            Console.WriteLine("Here9");
-
             lock (EventQueue)
             {
                 workItem = m_CurrentWorkItem;
