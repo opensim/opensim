@@ -1,4 +1,4 @@
-﻿#if !(_WINDOWS_CE)
+#if !(_WINDOWS_CE)
 
 using System;
 using System.Threading;
