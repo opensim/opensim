@@ -51,7 +51,7 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
     public interface IScriptWorkItem
     {
         bool Cancel();
-        void Abort();
+        bool Abort();
 
         /// <summary>
         /// Wait for the work item to complete.
