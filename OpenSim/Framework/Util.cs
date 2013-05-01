@@ -1852,7 +1852,7 @@ namespace OpenSim.Framework
                 case FireAndForgetMethod.SmartThreadPool:
                     if (m_ThreadPool == null)
                         InitThreadPool(15); 
-                    m_ThreadPool.QueueWorkItem(SmartThreadPoolCallback, new object[] { realCallback, obj });
+                    m_ThreadPool.QueueWorkItem((cb, o) => cb(o), realCallback, obj);
                     break;
                 case FireAndForgetMethod.Thread:
                     Thread thread = new Thread(delegate(object o) { realCallback(o); });
@@ -1922,15 +1922,15 @@ namespace OpenSim.Framework
             return sb.ToString();
         }
 
-        private static object SmartThreadPoolCallback(object o)
-        {
-            object[] array = (object[])o;
-            WaitCallback callback = (WaitCallback)array[0];
-            object obj = array[1];
-
-            callback(obj);
-            return null;
-        }
+//        private static object SmartThreadPoolCallback(object o)
+//        {
+//            object[] array = (object[])o;
+//            WaitCallback callback = (WaitCallback)array[0];
+//            object obj = array[1];
+//
+//            callback(obj);
+//            return null;
+//        }
 
         #endregion FireAndForget Threading Pattern
 

@@ -551,7 +551,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         /// <param name="instance"></param>
         /// <param name="keySelector">Basis on which to sort output.  Can be null if no sort needs to take place</param>
         private void HandleScriptsAction<TKey>(
-            string[] cmdparams, Action<IScriptInstance> action, Func<IScriptInstance, TKey> keySelector)
+            string[] cmdparams, Action<IScriptInstance> action, System.Func<IScriptInstance, TKey> keySelector)
         {
             if (!(MainConsole.Instance.ConsoleScene == null || MainConsole.Instance.ConsoleScene == m_Scene))
                 return;
@@ -1599,7 +1599,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             startInfo.MaxWorkerThreads = maxThreads;
             startInfo.MinWorkerThreads = minThreads;
             startInfo.ThreadPriority = threadPriority;;
-            startInfo.StackSize = stackSize;
+            startInfo.MaxStackSize = stackSize;
             startInfo.StartSuspended = true;
 
             m_ThreadPool = new SmartThreadPool(startInfo);

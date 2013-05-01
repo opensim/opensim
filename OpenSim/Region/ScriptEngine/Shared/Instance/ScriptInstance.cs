@@ -572,9 +572,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
         public bool Stop(int timeout)
         {
-//            m_log.DebugFormat(
-//                "[SCRIPT INSTANCE]: Stopping script {0} {1} in {2} {3} with timeout {4} {5} {6}",
-//                ScriptName, ItemID, PrimName, ObjectID, timeout, m_InSelfDelete, DateTime.Now.Ticks);
+            if (DebugLevel >= 1)
+                m_log.DebugFormat(
+                    "[SCRIPT INSTANCE]: Stopping script {0} {1} in {2} {3} with timeout {4} {5} {6}",
+                    ScriptName, ItemID, PrimName, ObjectID, timeout, m_InSelfDelete, DateTime.Now.Ticks);
 
             IScriptWorkItem workItem;
 
