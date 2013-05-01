@@ -218,12 +218,37 @@ namespace OpenSim.Tests.Common
         public static InventoryFolderBase CreateInventoryFolder(
             IInventoryService inventoryService, UUID userId, string path, bool useExistingFolders)
         {
+            return CreateInventoryFolder(inventoryService, userId, UUID.Random(), path, useExistingFolders);
+        }
+
+        /// <summary>
+        /// Create inventory folders starting from the user's root folder.
+        /// </summary>
+        /// <param name="inventoryService"></param>
+        /// <param name="userId"></param>
+        /// <param name="folderId"></param>
+        /// <param name="path">
+        /// The folders to create.  Multiple folders can be specified on a path delimited by the PATH_DELIMITER
+        /// </param>
+        /// <param name="useExistingFolders">
+        /// If true, then folders in the path which already the same name are
+        /// used.  This applies to the terminal folder as well.  
+        /// If false, then all folders in the path are created, even if there is already a folder at a particular
+        /// level with the same name.
+        /// </param>
+        /// <returns>
+        /// The folder created.  If the path contains multiple folders then the last one created is returned.
+        /// Will return null if the root folder could not be found.
+        /// </returns>
+        public static InventoryFolderBase CreateInventoryFolder(
+            IInventoryService inventoryService, UUID userId, UUID folderId, string path, bool useExistingFolders)
+        {
             InventoryFolderBase rootFolder = inventoryService.GetRootFolder(userId);
 
             if (null == rootFolder)
                 return null;
 
-            return CreateInventoryFolder(inventoryService, rootFolder, path, useExistingFolders);
+            return CreateInventoryFolder(inventoryService, folderId, rootFolder, path, useExistingFolders);
         }
 
         /// <summary>
@@ -235,6 +260,7 @@ namespace OpenSim.Tests.Common
         /// TODO: May need to make it an option to create duplicate folders.
         /// </remarks>
         /// <param name="inventoryService"></param>
+        /// <param name="folderId">ID of the folder to create</param>
         /// <param name="parentFolder"></param>
         /// <param name="path">
         /// The folder to create.
@@ -249,7 +275,7 @@ namespace OpenSim.Tests.Common
         /// The folder created.  If the path contains multiple folders then the last one created is returned.
         /// </returns>
         public static InventoryFolderBase CreateInventoryFolder(
-            IInventoryService inventoryService, InventoryFolderBase parentFolder, string path, bool useExistingFolders)
+            IInventoryService inventoryService, UUID folderId, InventoryFolderBase parentFolder, string path, bool useExistingFolders)
         {
             string[] components = path.Split(new string[] { PATH_DELIMITER }, 2, StringSplitOptions.None);
 
@@ -262,9 +288,16 @@ namespace OpenSim.Tests.Common
             {
 //                Console.WriteLine("Creating folder {0} at {1}", components[0], parentFolder.Name);
 
+                UUID folderIdForCreate;
+
+                if (components.Length > 1)
+                    folderIdForCreate = UUID.Random();
+                else
+                    folderIdForCreate = folderId;
+
                 folder 
                     = new InventoryFolderBase(
-                        UUID.Random(), components[0], parentFolder.Owner, (short)AssetType.Unknown, parentFolder.ID, 0);
+                        folderIdForCreate, components[0], parentFolder.Owner, (short)AssetType.Unknown, parentFolder.ID, 0);
                 
                 inventoryService.AddFolder(folder);
             }
@@ -274,7 +307,7 @@ namespace OpenSim.Tests.Common
 //            }
 
             if (components.Length > 1)
-                return CreateInventoryFolder(inventoryService, folder, components[1], useExistingFolders);
+                return CreateInventoryFolder(inventoryService, folderId, folder, components[1], useExistingFolders);
             else
                 return folder;
         }

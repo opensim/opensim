@@ -75,6 +75,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         [SetUp]
         public void SetUp()
         {
+            base.SetUp();
+
             UUID userId = TestHelpers.ParseTail(0x3);
 
             J2KDecoderModule j2kdm = new J2KDecoderModule();

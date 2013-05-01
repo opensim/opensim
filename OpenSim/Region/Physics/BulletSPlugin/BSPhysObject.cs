@@ -97,6 +97,9 @@ public abstract class BSPhysObject : PhysicsActor
 
         CollisionCollection = new CollisionEventUpdate();
         CollisionsLastReported = CollisionCollection;
+        CollisionsLastTick = new CollisionEventUpdate();
+        CollisionsLastTickStep = -1;
+
         SubscribedEventsMs = 0;
         CollidingStep = 0;
         CollidingGroundStep = 0;
