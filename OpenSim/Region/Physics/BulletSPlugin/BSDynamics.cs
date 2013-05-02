@@ -596,6 +596,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         public override void Refresh()
         {
             // If asking for a refresh, reset the physical parameters before the next simulation step.
+            // Called whether active or not since the active state may be updated before the next step.
             m_physicsScene.PostTaintObject("BSDynamics.Refresh", ControllingPrim.LocalID, delegate()
             {
                 SetPhysicalParameters();

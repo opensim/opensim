@@ -115,10 +115,15 @@ public abstract class BSShape
     public override string ToString()
     {
         StringBuilder buff = new StringBuilder();
-        buff.Append("<t=");
-        buff.Append(ShapeType.ToString());
-        buff.Append(",p=");
-        buff.Append(AddrString);
+        if (physShapeInfo == null)
+        {
+            buff.Append(",noPhys");
+        }
+        else
+        {
+            buff.Append(",phy=");
+            buff.Append(physShapeInfo.ToString());
+        }
         buff.Append(",c=");
         buff.Append(referenceCount.ToString());
         buff.Append(">");
@@ -184,21 +189,21 @@ public abstract class BSShape
                 BSPhysObject xprim = prim;
                 Util.FireAndForget(delegate
                     {
-                        physicsScene.DetailLog("{0},BSShape.VerifyMeshCreated,inFireAndForget", xprim.LocalID);
+                        // physicsScene.DetailLog("{0},BSShape.VerifyMeshCreated,inFireAndForget", xprim.LocalID);
                         RequestAssetDelegate assetProvider = physicsScene.RequestAssetMethod;
                         if (assetProvider != null)
                         {
                             BSPhysObject yprim = xprim; // probably not necessary, but, just in case.
                             assetProvider(yprim.BaseShape.SculptTexture, delegate(AssetBase asset)
                             {
-                                physicsScene.DetailLog("{0},BSShape.VerifyMeshCreated,assetProviderCallback", xprim.LocalID);
+                                // physicsScene.DetailLog("{0},BSShape.VerifyMeshCreated,assetProviderCallback", xprim.LocalID);
                                 bool assetFound = false;
                                 string mismatchIDs = String.Empty;  // DEBUG DEBUG
                                 if (asset != null && yprim.BaseShape.SculptEntry)
                                 {
                                     if (yprim.BaseShape.SculptTexture.ToString() == asset.ID)
                                     {
-                                        yprim.BaseShape.SculptData = (byte[])asset.Data.Clone();
+                                        yprim.BaseShape.SculptData = asset.Data;
                                         // This will cause the prim to see that the filler shape is not the right
                                         //    one and try again to build the object.
                                         // No race condition with the normal shape setting since the rebuild is at taint time.
@@ -290,7 +295,7 @@ public class BSShapeNative : BSShape
         {
             if (physShapeInfo.HasPhysicalShape)
             {
-                physicsScene.DetailLog("{0},BSShapeNative.DereferenceShape,deleteNativeShape,shape={1}", BSScene.DetailLogZero, this);
+                physicsScene.DetailLog("{0},BSShapeNative.Dereference,deleteNativeShape,shape={1}", BSScene.DetailLogZero, this);
                 physicsScene.PE.DeleteCollisionShape(physicsScene.World, physShapeInfo);
             }
             physShapeInfo.Clear();
@@ -347,9 +352,8 @@ public class BSShapeMesh : BSShape
         float lod;
         System.UInt64 newMeshKey = BSShape.ComputeShapeKey(prim.Size, prim.BaseShape, out lod);
 
-        physicsScene.DetailLog("{0},BSShapeMesh,getReference,oldKey={1},newKey={2},size={3},lod={4}",
-                                prim.LocalID, prim.PhysShape.physShapeInfo.shapeKey.ToString("X"),
-                                newMeshKey.ToString("X"), prim.Size, lod);
+        physicsScene.DetailLog("{0},BSShapeMesh,getReference,newKey={1},size={2},lod={3}",
+                                prim.LocalID, newMeshKey.ToString("X"), prim.Size, lod);
 
         BSShapeMesh retMesh = null;
         lock (Meshes)
@@ -389,6 +393,7 @@ public class BSShapeMesh : BSShape
         lock (Meshes)
         {
             this.DecrementReference();
+            physicsScene.DetailLog("{0},BSShapeMesh.Dereference,shape={1}", BSScene.DetailLogZero, this);
             // TODO: schedule aging and destruction of unused meshes.
         }
     }
@@ -425,6 +430,12 @@ public class BSShapeMesh : BSShape
 
         if (meshData != null)
         {
+            if (prim.PrimAssetState == BSPhysObject.PrimAssetCondition.Fetched)
+            {
+                // Release the fetched asset data once it has been used.
+                pbs.SculptData = new byte[0];
+                prim.PrimAssetState = BSPhysObject.PrimAssetCondition.Unknown;
+            }
 
             int[] indices = meshData.getIndexListAsInt();
             int realIndicesIndex = indices.Length;
@@ -462,8 +473,8 @@ public class BSShapeMesh : BSShape
                     }
                 }
             }
-            physicsScene.DetailLog("{0},BSShapeMesh.CreatePhysicalMesh,origTri={1},realTri={2},numVerts={3}",
-                        BSScene.DetailLogZero, indices.Length / 3, realIndicesIndex / 3, verticesAsFloats.Length / 3);
+            physicsScene.DetailLog("{0},BSShapeMesh.CreatePhysicalMesh,key={1},origTri={2},realTri={3},numVerts={4}",
+                        BSScene.DetailLogZero, newMeshKey.ToString("X"), indices.Length / 3, realIndicesIndex / 3, verticesAsFloats.Length / 3);
 
             if (realIndicesIndex != 0)
             {
@@ -496,8 +507,8 @@ public class BSShapeHull : BSShape
         float lod;
         System.UInt64 newHullKey = BSShape.ComputeShapeKey(prim.Size, prim.BaseShape, out lod);
 
-        physicsScene.DetailLog("{0},BSShapeHull,getReference,oldKey={1},newKey={2},size={3},lod={4}",
-                                prim.LocalID, prim.PhysShape.physShapeInfo.shapeKey.ToString("X"), newHullKey.ToString("X"), prim.Size, lod);
+        physicsScene.DetailLog("{0},BSShapeHull,getReference,newKey={1},size={2},lod={3}",
+                                prim.LocalID, newHullKey.ToString("X"), prim.Size, lod);
 
         BSShapeHull retHull = null;
         lock (Hulls)
@@ -537,6 +548,7 @@ public class BSShapeHull : BSShape
         lock (Hulls)
         {
             this.DecrementReference();
+            physicsScene.DetailLog("{0},BSShapeHull.Dereference,shape={1}", BSScene.DetailLogZero, this);
             // TODO: schedule aging and destruction of unused meshes.
         }
     }
@@ -549,6 +561,8 @@ public class BSShapeHull : BSShape
 
         if (BSParam.ShouldUseBulletHACD)
         {
+            // Build the hull shape from an existing mesh shape.
+            // The mesh should have already been created in Bullet.
             physicsScene.DetailLog("{0},BSShapeHull.CreatePhysicalHull,shouldUseBulletHACD,entry", prim.LocalID);
             BSShape meshShape = BSShapeMesh.GetReference(physicsScene, true, prim);
 
@@ -568,18 +582,26 @@ public class BSShapeHull : BSShape
                 physicsScene.DetailLog("{0},BSShapeHull.CreatePhysicalHull,hullFromMesh,beforeCall", prim.LocalID, newShape.HasPhysicalShape);
                 newShape = physicsScene.PE.BuildHullShapeFromMesh(physicsScene.World, meshShape.physShapeInfo, parms);
                 physicsScene.DetailLog("{0},BSShapeHull.CreatePhysicalHull,hullFromMesh,hasBody={1}", prim.LocalID, newShape.HasPhysicalShape);
+
+                // Now done with the mesh shape.
+                meshShape.Dereference(physicsScene);
             }
-            // Now done with the mesh shape.
-            meshShape.Dereference(physicsScene);
             physicsScene.DetailLog("{0},BSShapeHull.CreatePhysicalHull,shouldUseBulletHACD,exit,hasBody={1}", prim.LocalID, newShape.HasPhysicalShape);
         }
         if (!newShape.HasPhysicalShape)
         {
-            // Build a new hull in the physical world.
+            // Build a new hull in the physical world using the C# HACD algorigthm.
             // Pass true for physicalness as this prevents the creation of bounding box which is not needed
             IMesh meshData = physicsScene.mesher.CreateMesh(prim.PhysObjectName, pbs, size, lod, true /* isPhysical */, false /* shouldCache */);
             if (meshData != null)
             {
+                if (prim.PrimAssetState == BSPhysObject.PrimAssetCondition.Fetched)
+                {
+                    // Release the fetched asset data once it has been used.
+                    pbs.SculptData = new byte[0];
+                    prim.PrimAssetState = BSPhysObject.PrimAssetCondition.Unknown;
+                }
+
                 int[] indices = meshData.getIndexListAsInt();
                 List<OMV.Vector3> vertices = meshData.getVertexList();
 
@@ -740,6 +762,7 @@ public class BSShapeCompound : BSShape
         lock (physShapeInfo)
         {
             this.DecrementReference();
+            physicsScene.DetailLog("{0},BSShapeCompound.Dereference,shape={1}", BSScene.DetailLogZero, this);
             if (referenceCount <= 0)
             {
                 if (!physicsScene.PE.IsCompound(physShapeInfo))

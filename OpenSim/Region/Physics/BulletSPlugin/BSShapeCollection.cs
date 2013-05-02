@@ -227,16 +227,41 @@ public sealed class BSShapeCollection : IDisposable
         if (prim.IsPhysical && BSParam.ShouldUseHullsForPhysicalObjects)
         {
             // Update prim.BSShape to reference a hull of this shape.
-            DereferenceExistingShape(prim, shapeCallback);
-            prim.PhysShape = BSShapeMesh.GetReference(m_physicsScene, false /*forceRebuild*/, prim);
+            BSShape potentialHull = BSShapeHull.GetReference(m_physicsScene, false /*forceRebuild*/, prim);
+            // If the current shape is not what is on the prim at the moment, time to change.
+            if (!prim.PhysShape.HasPhysicalShape
+                        || potentialHull.ShapeType != prim.PhysShape.ShapeType
+                        || potentialHull.physShapeInfo.shapeKey != prim.PhysShape.physShapeInfo.shapeKey)
+            {
+                DereferenceExistingShape(prim, shapeCallback);
+                prim.PhysShape = potentialHull;
+                ret = true;
+            }
+            else
+            {
+                potentialHull.Dereference(m_physicsScene);
+            }
             if (DDetail) DetailLog("{0},BSShapeCollection.CreateGeom,hull,shape={1},key={2}",
                                     prim.LocalID, prim.PhysShape, prim.PhysShape.physShapeInfo.shapeKey.ToString("X"));
         }
         else
         {
             // Update prim.BSShape to reference a mesh of this shape.
-            DereferenceExistingShape(prim, shapeCallback);
-            prim.PhysShape = BSShapeHull.GetReference(m_physicsScene, false /*forceRebuild*/, prim);
+            BSShape potentialMesh = BSShapeMesh.GetReference(m_physicsScene, false /*forceRebuild*/, prim);
+            // If the current shape is not what is on the prim at the moment, time to change.
+            if (!prim.PhysShape.HasPhysicalShape
+                        || potentialMesh.ShapeType != prim.PhysShape.ShapeType
+                        || potentialMesh.physShapeInfo.shapeKey != prim.PhysShape.physShapeInfo.shapeKey)
+            {
+                DereferenceExistingShape(prim, shapeCallback);
+                prim.PhysShape = potentialMesh;
+                ret = true;
+            }
+            else
+            {
+                // We don't need this reference to the mesh that is already being using.
+                potentialMesh.Dereference(m_physicsScene);
+            }
             if (DDetail) DetailLog("{0},BSShapeCollection.CreateGeom,mesh,shape={1},key={2}",
                                     prim.LocalID, prim.PhysShape, prim.PhysShape.physShapeInfo.shapeKey.ToString("X"));
         }
@@ -320,7 +345,7 @@ public sealed class BSShapeCollection : IDisposable
             if (prim.IsSolid)
             {
                 aBody = m_physicsScene.PE.CreateBodyFromShape(sim, prim.PhysShape.physShapeInfo, prim.LocalID, prim.RawPosition, prim.RawOrientation);
-                if (DDetail) DetailLog("{0},BSShapeCollection.CreateBody,mesh,body={1}", prim.LocalID, aBody);
+                if (DDetail) DetailLog("{0},BSShapeCollection.CreateBody,rigid,body={1}", prim.LocalID, aBody);
             }
             else
             {

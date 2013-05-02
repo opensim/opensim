@@ -767,7 +767,7 @@ public class BSPrim : BSPhysObject
         if (!PhysBody.HasPhysicalBody)
         {
             // This would only happen if updates are called for during initialization when the body is not set up yet.
-            DetailLog("{0},BSPrim.UpdatePhysicalParameters,taint,calledWithNoPhysBody", LocalID);
+            // DetailLog("{0},BSPrim.UpdatePhysicalParameters,taint,calledWithNoPhysBody", LocalID);
             return;
         }
 
