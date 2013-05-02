@@ -832,6 +832,80 @@ public class BSShapeCompound : BSShape
 }
 
 // ============================================================================================================
+public class BSShapeConvexHull : BSShape
+{
+    private static string LogHeader = "[BULLETSIM SHAPE CONVEX HULL]";
+    public static Dictionary<System.UInt64, BSShapeConvexHull> ConvexHulls = new Dictionary<System.UInt64, BSShapeConvexHull>();
+
+    public BSShapeConvexHull(BulletShape pShape) : base(pShape)
+    {
+    }
+    public static BSShape GetReference(BSScene physicsScene, bool forceRebuild, BSPhysObject prim)
+    {
+        float lod;
+        System.UInt64 newMeshKey = BSShape.ComputeShapeKey(prim.Size, prim.BaseShape, out lod);
+
+        physicsScene.DetailLog("{0},BSShapeMesh,getReference,newKey={1},size={2},lod={3}",
+                                prim.LocalID, newMeshKey.ToString("X"), prim.Size, lod);
+
+        BSShapeConvexHull retConvexHull = null;
+        lock (ConvexHulls)
+        {
+            if (ConvexHulls.TryGetValue(newMeshKey, out retConvexHull))
+            {
+                // The mesh has already been created. Return a new reference to same.
+                retConvexHull.IncrementReference();
+            }
+            else
+            {
+                retConvexHull = new BSShapeConvexHull(new BulletShape());
+                BulletShape convexShape = null;
+
+                // Get a handle to a mesh to build the hull from
+                BSShape baseMesh = BSShapeMesh.GetReference(physicsScene, false /* forceRebuild */, prim);
+                if (baseMesh.physShapeInfo.isNativeShape)
+                {
+                    // We get here if the mesh was not creatable. Could be waiting for an asset from the disk.
+                    // In the short term, we return the native shape and a later ForceBodyShapeRebuild should
+                    //     get back to this code with a buildable mesh.
+                    // TODO: not sure the temp native shape is freed when the mesh is rebuilt. When does this get freed?
+                    convexShape = baseMesh.physShapeInfo;
+                }
+                else
+                {
+                    convexShape = physicsScene.PE.BuildConvexHullShapeFromMesh(physicsScene.World, baseMesh.physShapeInfo);
+                    convexShape.shapeKey = newMeshKey;
+                    ConvexHulls.Add(convexShape.shapeKey, retConvexHull);
+                }
+
+                // Done with the base mesh
+                baseMesh.Dereference(physicsScene);
+
+                retConvexHull.physShapeInfo = convexShape;
+            }
+        }
+        return retConvexHull;
+    }
+    public override BSShape GetReference(BSScene physicsScene, BSPhysObject prim)
+    {
+        // Calling this reference means we want another handle to an existing shape
+        //     (usually linksets) so return this copy.
+        IncrementReference();
+        return this;
+    }
+    // Dereferencing a compound shape releases the hold on all the child shapes.
+    public override void Dereference(BSScene physicsScene)
+    {
+        lock (ConvexHulls)
+        {
+            this.DecrementReference();
+            physicsScene.DetailLog("{0},BSShapeConvexHull.Dereference,shape={1}", BSScene.DetailLogZero, this);
+            // TODO: schedule aging and destruction of unused meshes.
+        }
+    }
+}
+
+// ============================================================================================================
 public class BSShapeAvatar : BSShape
 {
     private static string LogHeader = "[BULLETSIM SHAPE AVATAR]";

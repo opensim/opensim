@@ -226,8 +226,23 @@ public sealed class BSShapeCollection : IDisposable
         //     made. Native shapes work in either case.
         if (prim.IsPhysical && BSParam.ShouldUseHullsForPhysicalObjects)
         {
-            // Update prim.BSShape to reference a hull of this shape.
-            BSShape potentialHull = BSShapeHull.GetReference(m_physicsScene, false /*forceRebuild*/, prim);
+            // Use a simple, single mesh convex hull shape if the object is simple enough
+            BSShape potentialHull = null;
+
+            PrimitiveBaseShape pbs = prim.BaseShape;
+            if (BSParam.ShouldUseSingleConvexHullForPrims
+                && pbs != null
+                && !pbs.SculptEntry
+                && PrimHasNoCuts(pbs)
+                )
+            {
+                potentialHull = BSShapeConvexHull.GetReference(m_physicsScene, false /* forceRebuild */, prim);
+            }
+            else
+            {
+                potentialHull = BSShapeHull.GetReference(m_physicsScene, false /*forceRebuild*/, prim);
+            }
+
             // If the current shape is not what is on the prim at the moment, time to change.
             if (!prim.PhysShape.HasPhysicalShape
                         || potentialHull.ShapeType != prim.PhysShape.ShapeType
