@@ -27,7 +27,7 @@
   ; Modular configurations
   ; Set path to directory for modular ini files...
   ; The Robust.exe process must have R/W access to the location 
-  ConfigDirectory = "/home/opensim/etc/Configs"
+  ConfigDirectory = "."
 
 [ServiceList]
 AssetServiceConnector = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector"
