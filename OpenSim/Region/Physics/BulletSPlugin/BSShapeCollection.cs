@@ -132,6 +132,7 @@ public sealed class BSShapeCollection : IDisposable
         PrimitiveBaseShape pbs = prim.BaseShape;
 
         // Kludge to create the capsule for the avatar.
+        // TDOD: Remove/redo this when BSShapeAvatar is working!!
         BSCharacter theChar = prim as BSCharacter;
         if (theChar != null)
         {
