@@ -1,4 +1,4 @@
-﻿
+
 namespace Amib.Threading.Internal
 {
     /// <summary>
