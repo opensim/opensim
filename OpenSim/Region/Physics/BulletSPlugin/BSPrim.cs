@@ -256,9 +256,9 @@ public class BSPrim : BSPhysObject
         if (axis.X != 1) locking.X = 0f;
         if (axis.Y != 1) locking.Y = 0f;
         if (axis.Z != 1) locking.Z = 0f;
-        LockedAxis = locking;
+        LockedAngularAxis = locking;
 
-        EnableActor(LockedAxis != LockedAxisFree, LockedAxisActorName, delegate()
+        EnableActor(LockedAngularAxis != LockedAxisFree, LockedAxisActorName, delegate()
         {
             return new BSActorLockAxis(PhysScene, this, LockedAxisActorName);
         });

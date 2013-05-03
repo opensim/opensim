@@ -108,7 +108,8 @@ public abstract class BSPhysObject : PhysicsActor
         CollisionScore = 0;
 
         // All axis free.
-        LockedAxis = LockedAxisFree;
+        LockedLinearAxis = LockedAxisFree;
+        LockedAngularAxis = LockedAxisFree;
     }
 
     // Tell the object to clean up.
@@ -265,8 +266,10 @@ public abstract class BSPhysObject : PhysicsActor
     // Note this is a displacement from the root's coordinates. Zero means use the root prim as center-of-mass.
     public OMV.Vector3? UserSetCenterOfMassDisplacement { get; set; }
 
-    public OMV.Vector3 LockedAxis { get; set; } // zero means locked. one means free.
-    public readonly OMV.Vector3 LockedAxisFree = new OMV.Vector3(1f, 1f, 1f);  // All axis are free
+    public OMV.Vector3 LockedLinearAxis { get; set; } // zero means locked. one means free.
+    public OMV.Vector3 LockedAngularAxis { get; set; } // zero means locked. one means free.
+    public const float FreeAxis = 1f;
+    public readonly OMV.Vector3 LockedAxisFree = new OMV.Vector3(FreeAxis, FreeAxis, FreeAxis);  // All axis are free
 
     // Enable physical actions. Bullet will keep sleeping non-moving physical objects so
     //     they need waking up when parameters are changed.
