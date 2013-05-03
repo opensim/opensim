@@ -561,6 +561,10 @@ namespace OpenSim.Region.Framework.Scenes
             get { return false; }
         }
 
+        public virtual void Start()
+        {
+        }
+
         public void Restart()
         {
             // This has to be here to fire the event
