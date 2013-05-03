@@ -125,10 +125,17 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
             m_floaters[agentID].Add(dialogData.Channel, dialogData);
 
             string xml;
-            using (FileStream fs = File.Open(dialogData.XmlName + ".xml", FileMode.Open))
+            if (dialogData.XmlText != null && dialogData.XmlText != String.Empty)
             {
-                using (StreamReader sr = new StreamReader(fs))
-                    xml = sr.ReadToEnd().Replace("\n", "");
+                xml = dialogData.XmlText;
+            }
+            else
+            {
+                using (FileStream fs = File.Open(dialogData.XmlName + ".xml", FileMode.Open))
+                {
+                    using (StreamReader sr = new StreamReader(fs))
+                        xml = sr.ReadToEnd().Replace("\n", "");
+                }
             }
 
             List<string> xparts = new List<string>();
