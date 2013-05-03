@@ -136,5 +136,10 @@ namespace OpenSim.Framework
         ISceneObject DeserializeObject(string representation);
 
         bool CheckClient(UUID agentID, System.Net.IPEndPoint ep);
+
+        /// <summary>
+        /// Start the scene and associated scripts within it.
+        /// </summary>
+        void Start();
     }
 }
