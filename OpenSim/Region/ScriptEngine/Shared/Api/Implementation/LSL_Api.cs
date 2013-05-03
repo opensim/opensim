@@ -7851,6 +7851,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
+        public LSL_List llGetPhysicsMaterial()
+        {
+            LSL_List result = new LSL_List();
+
+            result.Add(new LSL_Float(m_host.GravityModifier));
+            result.Add(new LSL_Float(m_host.Restitution));
+            result.Add(new LSL_Float(m_host.Friction));
+            result.Add(new LSL_Float(m_host.Density));
+
+            return result;
+        }
+
         private void SetPhysicsMaterial(SceneObjectPart part, int material_bits,
                 float material_density, float material_friction,
                 float material_restitution, float material_gravity_modifier)
