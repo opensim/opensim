@@ -182,6 +182,10 @@ public class BSPrimLinkable : BSPrimDisplaced
         {
             return false;
         }
+
+        // TODO: handle collisions of other objects with with children of linkset.
+        //    This is a problem for LinksetCompound since the children are packed into the root.
+
         return base.Collide(collidingWith, collidee, contactPoint, contactNormal, pentrationDepth);
     }
 }

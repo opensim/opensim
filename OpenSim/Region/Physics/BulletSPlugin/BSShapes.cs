@@ -352,9 +352,6 @@ public class BSShapeMesh : BSShape
         float lod;
         System.UInt64 newMeshKey = BSShape.ComputeShapeKey(prim.Size, prim.BaseShape, out lod);
 
-        physicsScene.DetailLog("{0},BSShapeMesh,getReference,newKey={1},size={2},lod={3}",
-                                prim.LocalID, newMeshKey.ToString("X"), prim.Size, lod);
-
         BSShapeMesh retMesh = null;
         lock (Meshes)
         {
@@ -380,6 +377,7 @@ public class BSShapeMesh : BSShape
                 retMesh.physShapeInfo = newShape;
             }
         }
+        physicsScene.DetailLog("{0},BSShapeMesh,getReference,mesh={1},size={2},lod={3}", prim.LocalID, retMesh, prim.Size, lod);
         return retMesh;
     }
     public override BSShape GetReference(BSScene pPhysicsScene, BSPhysObject pPrim)
@@ -507,9 +505,6 @@ public class BSShapeHull : BSShape
         float lod;
         System.UInt64 newHullKey = BSShape.ComputeShapeKey(prim.Size, prim.BaseShape, out lod);
 
-        physicsScene.DetailLog("{0},BSShapeHull,getReference,newKey={1},size={2},lod={3}",
-                                prim.LocalID, newHullKey.ToString("X"), prim.Size, lod);
-
         BSShapeHull retHull = null;
         lock (Hulls)
         {
@@ -531,10 +526,10 @@ public class BSShapeHull : BSShape
                     // If a mesh was what was created, remember the built shape for later sharing.
                     Hulls.Add(newHullKey, retHull);
                 }
-
                 retHull.physShapeInfo = newShape;
             }
         }
+        physicsScene.DetailLog("{0},BSShapeHull,getReference,hull={1},size={2},lod={3}", prim.LocalID, retHull, prim.Size, lod);
         return retHull;
     }
     public override BSShape GetReference(BSScene pPhysicsScene, BSPhysObject pPrim)

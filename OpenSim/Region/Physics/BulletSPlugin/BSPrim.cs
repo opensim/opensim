@@ -511,7 +511,7 @@ public class BSPrim : BSPhysObject
 
             PhysScene.TaintedObject("setVehicleType", delegate()
             {
-                // Vehicle code changes the parameters for this vehicle type.
+                ZeroMotion(true /* inTaintTime */);
                 VehicleActor.ProcessTypeChange(type);
                 ActivateIfPhysical(false);
             });

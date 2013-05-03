@@ -246,7 +246,8 @@ public sealed class BSLinksetCompound : BSLinkset
     }
 
     // Routine called when rebuilding the body of some member of the linkset.
-    // Since we don't keep in world relationships, do nothing unless it's a child changing.
+    // If one of the bodies is being changed, the linkset needs rebuilding.
+    // For instance, a linkset is built and then a mesh asset is read in and the mesh is recreated.
     // Returns 'true' of something was actually removed and would need restoring
     // Called at taint-time!!
     public override bool RemoveDependencies(BSPrimLinkable child)
@@ -256,14 +257,7 @@ public sealed class BSLinksetCompound : BSLinkset
         DetailLog("{0},BSLinksetCompound.RemoveBodyDependencies,refreshIfChild,rID={1},rBody={2},isRoot={3}",
                         child.LocalID, LinksetRoot.LocalID, LinksetRoot.PhysBody, IsRoot(child));
 
-        if (!IsRoot(child))
-        {
-            child.LinksetInfo = null;
-        }
-
-        // Cannot schedule a refresh/rebuild here because this routine is called when
-        //     the linkset is being rebuilt.
-        // InternalRefresh(LinksetRoot);
+        ScheduleRebuild(child);
 
         return ret;
     }
@@ -322,7 +316,7 @@ public sealed class BSLinksetCompound : BSLinkset
     // Constraint linksets are rebuilt every time.
     // Note that this works for rebuilding just the root after a linkset is taken apart.
     // Called at taint time!!
-    private bool UseBulletSimRootOffsetHack = false;
+    private bool UseBulletSimRootOffsetHack = false;    // Attempt to have Bullet track the coords of root compound shape
     private bool disableCOM = true; // For basic linkset debugging, turn off the center-of-mass setting
     private void RecomputeLinksetCompound()
     {
@@ -382,7 +376,7 @@ public sealed class BSLinksetCompound : BSLinkset
                 OMV.Quaternion offsetRot = cPrim.RawOrientation * invRootOrientation;
                 m_physicsScene.PE.AddChildShapeToCompoundShape(linksetShape.physShapeInfo, childShape.physShapeInfo, offsetPos, offsetRot);
                 DetailLog("{0},BSLinksetCompound.RecomputeLinksetCompound,addChild,indx={1},cShape={2},offPos={3},offRot={4}",
-                                    LinksetRoot.LocalID, memberIndex, cPrim.PhysShape, offsetPos, offsetRot);
+                                    LinksetRoot.LocalID, memberIndex, childShape, offsetPos, offsetRot);
 
                 // Since we are borrowing the shape of the child, disable the origional child body
                 if (!IsRoot(cPrim))

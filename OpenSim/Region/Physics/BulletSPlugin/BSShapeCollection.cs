@@ -254,10 +254,10 @@ public sealed class BSShapeCollection : IDisposable
             }
             else
             {
+                // The current shape on the prim is the correct one. We don't need the potential reference.
                 potentialHull.Dereference(m_physicsScene);
             }
-            if (DDetail) DetailLog("{0},BSShapeCollection.CreateGeom,hull,shape={1},key={2}",
-                                    prim.LocalID, prim.PhysShape, prim.PhysShape.physShapeInfo.shapeKey.ToString("X"));
+            if (DDetail) DetailLog("{0},BSShapeCollection.CreateGeom,hull,shape={1}", prim.LocalID, prim.PhysShape);
         }
         else
         {
@@ -277,8 +277,7 @@ public sealed class BSShapeCollection : IDisposable
                 // We don't need this reference to the mesh that is already being using.
                 potentialMesh.Dereference(m_physicsScene);
             }
-            if (DDetail) DetailLog("{0},BSShapeCollection.CreateGeom,mesh,shape={1},key={2}",
-                                    prim.LocalID, prim.PhysShape, prim.PhysShape.physShapeInfo.shapeKey.ToString("X"));
+            if (DDetail) DetailLog("{0},BSShapeCollection.CreateGeom,mesh,shape={1}", prim.LocalID, prim.PhysShape);
         }
         return ret;
     }

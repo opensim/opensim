@@ -559,9 +559,6 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     break;
             }
 
-            // Update any physical parameters based on this type.
-            Refresh();
-
             m_linearMotor = new BSVMotor("LinearMotor", m_linearMotorTimescale,
                                 m_linearMotorDecayTimescale, m_linearFrictionTimescale,
                                 1f);
@@ -589,6 +586,9 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             {
                 RegisterForSceneEvents();
             }
+
+            // Update any physical parameters based on this type.
+            Refresh();
         }
         #endregion // Vehicle parameter setting
 
