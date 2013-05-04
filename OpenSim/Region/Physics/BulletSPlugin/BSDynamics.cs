@@ -146,7 +146,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             enableAngularVerticalAttraction = true;
             enableAngularDeflection = false;
             enableAngularBanking = true;
-            if (BSParam.VehicleDebuggingEnabled)
+            if (BSParam.VehicleDebuggingEnable)
             {
                 enableAngularVerticalAttraction = true;
                 enableAngularDeflection = false;
