@@ -702,6 +702,12 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                         InventoryFolderBase f = new InventoryFolderBase(so.FromFolderID, userID);
                         if (f != null)
                             folder = m_Scene.InventoryService.GetFolder(f);
+
+                        if(folder.Type == 14 || folder.Type == 16)
+                        {
+                            // folder.Type = 6;
+                            folder = m_Scene.InventoryService.GetFolderForType(userID, AssetType.Object);
+                        }
                     }
                 }
 

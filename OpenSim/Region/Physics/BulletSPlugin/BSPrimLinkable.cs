@@ -47,9 +47,9 @@ public class BSPrimLinkable : BSPrimDisplaced
                        OMV.Quaternion rotation, PrimitiveBaseShape pbs, bool pisPhysical)
         : base(localID, primName, parent_scene, pos, size, rotation, pbs, pisPhysical)
     {
-        Linkset = BSLinkset.Factory(PhysicsScene, this);
+        Linkset = BSLinkset.Factory(PhysScene, this);
 
-        PhysicsScene.TaintedObject("BSPrimLinksetCompound.Refresh", delegate()
+        PhysScene.TaintedObject("BSPrimLinksetCompound.Refresh", delegate()
         {
             Linkset.Refresh(this);
         });
@@ -60,9 +60,6 @@ public class BSPrimLinkable : BSPrimDisplaced
         Linkset = Linkset.RemoveMeFromLinkset(this);
         base.Destroy();
     }
-
-    public override BSPhysicsShapeType PreferredPhysicalShape
-        { get { return Linkset.PreferredPhysicalShape(this); } }
 
     public override void link(Manager.PhysicsActor obj)
     {
@@ -102,7 +99,7 @@ public class BSPrimLinkable : BSPrimDisplaced
         set
         {
             base.Position = value;
-            PhysicsScene.TaintedObject("BSPrimLinkset.setPosition", delegate()
+            PhysScene.TaintedObject("BSPrimLinkset.setPosition", delegate()
             {
                 Linkset.UpdateProperties(UpdatedProperties.Position, this);
             });
@@ -116,7 +113,7 @@ public class BSPrimLinkable : BSPrimDisplaced
         set
         {
             base.Orientation = value;
-            PhysicsScene.TaintedObject("BSPrimLinkset.setOrientation", delegate()
+            PhysScene.TaintedObject("BSPrimLinkset.setOrientation", delegate()
             {
                 Linkset.UpdateProperties(UpdatedProperties.Orientation, this);
             });
@@ -149,10 +146,10 @@ public class BSPrimLinkable : BSPrimDisplaced
     }
 
     // Body is being taken apart. Remove physical dependencies and schedule a rebuild.
-    protected override void RemoveBodyDependencies()
+    protected override void RemoveDependencies()
     {
-        Linkset.RemoveBodyDependencies(this);
-        base.RemoveBodyDependencies();
+        Linkset.RemoveDependencies(this);
+        base.RemoveDependencies();
     }
 
     public override void UpdateProperties(EntityProperties entprop)
@@ -185,6 +182,10 @@ public class BSPrimLinkable : BSPrimDisplaced
         {
             return false;
         }
+
+        // TODO: handle collisions of other objects with with children of linkset.
+        //    This is a problem for LinksetCompound since the children are packed into the root.
+
         return base.Collide(collidingWith, collidee, contactPoint, contactNormal, pentrationDepth);
     }
 }

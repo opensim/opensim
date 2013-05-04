@@ -106,9 +106,9 @@ public class BSActorCollection
     {
         ForEachActor(a => a.Refresh());
     }
-    public void RemoveBodyDependencies()
+    public void RemoveDependencies()
     {
-        ForEachActor(a => a.RemoveBodyDependencies());
+        ForEachActor(a => a.RemoveDependencies());
     }
 }
 
@@ -117,7 +117,7 @@ public class BSActorCollection
 /// Each physical object can have 'actors' who are pushing the object around.
 /// This can be used for hover, locking axis, making vehicles, etc.
 /// Each physical object can have multiple actors acting on it.
-/// 
+///
 /// An actor usually registers itself with physics scene events (pre-step action)
 /// and modifies the parameters on the host physical object.
 /// </summary>
@@ -154,7 +154,7 @@ public abstract class BSActor
     public abstract void Refresh();
     // The object's physical representation is being rebuilt so pick up any physical dependencies (constraints, ...).
     //     Register a prestep action to restore physical requirements before the next simulation step.
-    public abstract void RemoveBodyDependencies();
+    public abstract void RemoveDependencies();
 
 }
 }

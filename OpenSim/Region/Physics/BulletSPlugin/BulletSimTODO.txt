@@ -1,3 +1,12 @@
+PROBLEMS TO LOOK INTO
+=================================================
+Nebadon vehicle ride, get up, ride again. Second time vehicle does not act correctly.
+	Have to rez new vehicle and delete the old to fix situation.
+Hitting RESET on Nebadon's vehicle while riding causes vehicle to get into odd
+	position state where it will not settle onto ground properly, etc
+Two of Nebadon vehicles in a sim max the CPU. This is new.
+A sitting, active vehicle bobs up and down a small amount.
+
 CURRENT PRIORITIES
 =================================================
 Use the HACD convex hull routine in Bullet rather than the C# version.	
@@ -11,6 +20,8 @@ Deleting a linkset while standing on the root will leave the physical shape of t
 Linkset child rotations.
 	Nebadon spiral tube has middle sections which are rotated wrong.
 	Select linked spiral tube. Delink and note where the middle section ends up.
+Refarb compound linkset creation to create a pseudo-root for center-of-mass
+	Let children change their shape to physical indendently and just add shapes to compound
 Vehicle angular vertical attraction
 vehicle angular banking
 Center-of-gravity
@@ -27,14 +38,13 @@ llLookAt
 Avatars walking up stairs (HALF DONE)
 Avatar movement
 	flying into a wall doesn't stop avatar who keeps appearing to move through the obstacle (DONE)
-	walking up stairs is not calibrated correctly (stairs out of Kepler cabin)
+	walking up stairs is not calibrated correctly (stairs out of Kepler cabin) (DONE)
 	avatar capsule rotation completed (NOT DONE - Bullet's capsule shape is not the solution)
 Vehicle script tuning/debugging
 	Avanti speed script
 	Weapon shooter script
 Move material definitions (friction, ...) into simulator.
 Add material densities to the material types.
-Terrain detail: double terrain mesh detail
 One sided meshes? Should terrain be built into a closed shape?
 	When meshes get partially wedged into the terrain, they cannot push themselves out.
 	It is possible that Bullet processes collisions whether entering or leaving a mesh.
@@ -42,6 +52,9 @@ One sided meshes? Should terrain be built into a closed shape?
 
 VEHICLES TODO LIST:
 =================================================
+LINEAR_MOTOR_DIRECTION values should be clamped to reasonable numbers.
+	What are the limits in SL?
+	Same for other velocity settings.
 UBit improvements to remove rubber-banding of avatars sitting on vehicle child prims:
 	https://github.com/UbitUmarov/Ubit-opensim
 Border crossing with linked vehicle causes crash
@@ -347,4 +360,5 @@ Angular motion around Z moves the vehicle in world Z and not vehicle Z in ODE.
 	DONE 20130120: BulletSim properly applies force in vehicle relative coordinates.
 Nebadon vehicles turning funny in arena (DONE)
 Lock axis (DONE 20130401)
+Terrain detail: double terrain mesh detail (DONE)
 

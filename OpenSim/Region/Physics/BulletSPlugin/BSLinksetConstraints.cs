@@ -51,7 +51,7 @@ public sealed class BSLinksetConstraints : BSLinkset
         if (HasAnyChildren && IsRoot(requestor))
         {
             // Queue to happen after all the other taint processing
-            PhysicsScene.PostTaintObject("BSLinksetContraints.Refresh", requestor.LocalID, delegate()
+            m_physicsScene.PostTaintObject("BSLinksetContraints.Refresh", requestor.LocalID, delegate()
                 {
                     if (HasAnyChildren && IsRoot(requestor))
                         RecomputeLinksetConstraints();
@@ -93,11 +93,11 @@ public sealed class BSLinksetConstraints : BSLinkset
     //     up to rebuild the constraints before the next simulation step.
     // Returns 'true' of something was actually removed and would need restoring
     // Called at taint-time!!
-    public override bool RemoveBodyDependencies(BSPrimLinkable child)
+    public override bool RemoveDependencies(BSPrimLinkable child)
     {
         bool ret = false;
 
-        DetailLog("{0},BSLinksetConstraint.RemoveBodyDependencies,removeChildrenForRoot,rID={1},rBody={2}",
+        DetailLog("{0},BSLinksetConstraint.RemoveDependencies,removeChildrenForRoot,rID={1},rBody={2}",
                                     child.LocalID, LinksetRoot.LocalID, LinksetRoot.PhysBody.AddrString);
 
         lock (m_linksetActivityLock)
@@ -142,7 +142,7 @@ public sealed class BSLinksetConstraints : BSLinkset
                             rootx.LocalID, rootx.PhysBody.AddrString,
                             childx.LocalID, childx.PhysBody.AddrString);
 
-            PhysicsScene.TaintedObject("BSLinksetConstraints.RemoveChildFromLinkset", delegate()
+            m_physicsScene.TaintedObject("BSLinksetConstraints.RemoveChildFromLinkset", delegate()
             {
                 PhysicallyUnlinkAChildFromRoot(rootx, childx);
             });
@@ -187,7 +187,7 @@ public sealed class BSLinksetConstraints : BSLinkset
         // http://bulletphysics.org/Bullet/phpBB3/viewtopic.php?t=4818
 
         BSConstraint6Dof constrain = new BSConstraint6Dof(
-                            PhysicsScene.World, rootPrim.PhysBody, childPrim.PhysBody, midPoint, true, true );
+                            m_physicsScene.World, rootPrim.PhysBody, childPrim.PhysBody, midPoint, true, true );
                             // PhysicsScene.World, childPrim.BSBody, rootPrim.BSBody, midPoint, true, true );
 
         /* NOTE: below is an attempt to build constraint with full frame computation, etc.
@@ -216,7 +216,7 @@ public sealed class BSLinksetConstraints : BSLinkset
         // ==================================================================================
         */
 
-        PhysicsScene.Constraints.AddConstraint(constrain);
+        m_physicsScene.Constraints.AddConstraint(constrain);
 
         // zero linear and angular limits makes the objects unable to move in relation to each other
         constrain.SetLinearLimits(OMV.Vector3.Zero, OMV.Vector3.Zero);
@@ -248,10 +248,10 @@ public sealed class BSLinksetConstraints : BSLinkset
                             childPrim.LocalID, childPrim.PhysBody.AddrString);
 
         // Find the constraint for this link and get rid of it from the overall collection and from my list
-        if (PhysicsScene.Constraints.RemoveAndDestroyConstraint(rootPrim.PhysBody, childPrim.PhysBody))
+        if (m_physicsScene.Constraints.RemoveAndDestroyConstraint(rootPrim.PhysBody, childPrim.PhysBody))
         {
             // Make the child refresh its location
-            PhysicsScene.PE.PushUpdate(childPrim.PhysBody);
+            m_physicsScene.PE.PushUpdate(childPrim.PhysBody);
             ret = true;
         }
 
@@ -265,7 +265,7 @@ public sealed class BSLinksetConstraints : BSLinkset
     {
         DetailLog("{0},BSLinksetConstraint.PhysicallyUnlinkAllChildren,taint", rootPrim.LocalID);
 
-        return PhysicsScene.Constraints.RemoveAndDestroyConstraint(rootPrim.PhysBody);
+        return m_physicsScene.Constraints.RemoveAndDestroyConstraint(rootPrim.PhysBody);
     }
 
     // Call each of the constraints that make up this linkset and recompute the
@@ -289,7 +289,7 @@ public sealed class BSLinksetConstraints : BSLinkset
             child.UpdatePhysicalMassProperties(linksetMass, true);
 
             BSConstraint constrain;
-            if (!PhysicsScene.Constraints.TryGetConstraint(LinksetRoot.PhysBody, child.PhysBody, out constrain))
+            if (!m_physicsScene.Constraints.TryGetConstraint(LinksetRoot.PhysBody, child.PhysBody, out constrain))
             {
                 // If constraint doesn't exist yet, create it.
                 constrain = BuildConstraint(LinksetRoot, child);

@@ -621,7 +621,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
             {
                 if (!WorkItem.Cancel())
                 {
-                    WorkItem.Abort();
+                    WorkItem.Cancel(true);
                 }
             }
             catch (Exception)

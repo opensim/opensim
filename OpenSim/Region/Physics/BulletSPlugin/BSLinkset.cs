@@ -80,7 +80,7 @@ public abstract class BSLinkset
 
     public BSPrimLinkable LinksetRoot { get; protected set; }
 
-    public BSScene PhysicsScene { get; private set; }
+    protected BSScene m_physicsScene { get; private set; }
 
     static int m_nextLinksetID = 1;
     public int LinksetID { get; private set; }
@@ -92,13 +92,6 @@ public abstract class BSLinkset
     // This locks the modification of the instances of this class. Changes
     //    to the physical representation is done via the tainting mechenism.
     protected object m_linksetActivityLock = new Object();
-
-    // Some linksets have a preferred physical shape.
-    // Returns SHAPE_UNKNOWN if there is no preference. Causes the correct shape to be selected.
-    public virtual BSPhysicsShapeType PreferredPhysicalShape(BSPrimLinkable requestor)
-    {
-        return BSPhysicsShapeType.SHAPE_UNKNOWN;
-    }
 
     // We keep the prim's mass in the linkset structure since it could be dependent on other prims
     public float LinksetMass { get; protected set; }
@@ -122,7 +115,7 @@ public abstract class BSLinkset
         // We create LOTS of linksets.
         if (m_nextLinksetID <= 0)
             m_nextLinksetID = 1;
-        PhysicsScene = scene;
+        m_physicsScene = scene;
         LinksetRoot = parent;
         m_children = new HashSet<BSPrimLinkable>();
         LinksetMass = parent.RawMass;
@@ -165,7 +158,7 @@ public abstract class BSLinkset
         }
 
         // The child is down to a linkset of just itself
-        return BSLinkset.Factory(PhysicsScene, child);
+        return BSLinkset.Factory(m_physicsScene, child);
     }
 
     // Return 'true' if the passed object is the root object of this linkset
@@ -221,7 +214,7 @@ public abstract class BSLinkset
     // I am the root of a linkset and a new child is being added
     // Called while LinkActivity is locked.
     protected abstract void AddChildToLinkset(BSPrimLinkable child);
-    
+
     // I am the root of a linkset and one of my children is being removed.
     // Safe to call even if the child is not really in my linkset.
     protected abstract void RemoveChildFromLinkset(BSPrimLinkable child);
@@ -263,7 +256,7 @@ public abstract class BSLinkset
     // This is called when the root body is changing.
     // Returns 'true' of something was actually removed and would need restoring
     // Called at taint-time!!
-    public abstract bool RemoveBodyDependencies(BSPrimLinkable child);
+    public abstract bool RemoveDependencies(BSPrimLinkable child);
 
     // ================================================================
     protected virtual float ComputeLinksetMass()
@@ -323,8 +316,8 @@ public abstract class BSLinkset
     // Invoke the detailed logger and output something if it's enabled.
     protected void DetailLog(string msg, params Object[] args)
     {
-        if (PhysicsScene.PhysicsLogging.Enabled)
-            PhysicsScene.DetailLog(msg, args);
+        if (m_physicsScene.PhysicsLogging.Enabled)
+            m_physicsScene.DetailLog(msg, args);
     }
 
 }

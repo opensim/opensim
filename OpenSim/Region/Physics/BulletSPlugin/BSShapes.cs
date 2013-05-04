@@ -31,6 +31,7 @@ using System.Text;
 
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
+using OpenSim.Region.Physics.ConvexDecompositionDotNet;
 
 using OMV = OpenMetaverse;
 
@@ -38,74 +39,39 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 {
 public abstract class BSShape
 {
+    private static string LogHeader = "[BULLETSIM SHAPE]";
+
     public int referenceCount { get; set; }
     public DateTime lastReferenced { get; set; }
     public BulletShape physShapeInfo { get; set; }
 
     public BSShape()
     {
-        referenceCount = 0;
+        referenceCount = 1;
         lastReferenced = DateTime.Now;
         physShapeInfo = new BulletShape();
     }
     public BSShape(BulletShape pShape)
     {
-        referenceCount = 0;
+        referenceCount = 1;
         lastReferenced = DateTime.Now;
         physShapeInfo = pShape;
     }
 
-    // Get a reference to a physical shape. Create if it doesn't exist
-    public static BSShape GetShapeReference(BSScene physicsScene, bool forceRebuild, BSPhysObject prim)
-    {
-        BSShape ret = null;
-
-        if (prim.PreferredPhysicalShape == BSPhysicsShapeType.SHAPE_CAPSULE)
-        {
-            // an avatar capsule is close to a native shape (it is not shared)
-            ret = BSShapeNative.GetReference(physicsScene, prim, BSPhysicsShapeType.SHAPE_CAPSULE,
-                                        FixedShapeKey.KEY_CAPSULE);
-            physicsScene.DetailLog("{0},BSShape.GetShapeReference,avatarCapsule,shape={1}", prim.LocalID, ret);
-        }
-
-        // Compound shapes are handled special as they are rebuilt from scratch.
-        // This isn't too great a hardship since most of the child shapes will have already been created.
-        if (ret == null  && prim.PreferredPhysicalShape == BSPhysicsShapeType.SHAPE_COMPOUND)
-        {
-            // Getting a reference to a compound shape gets you the compound shape with the root prim shape added
-            ret = BSShapeCompound.GetReference(prim);
-            physicsScene.DetailLog("{0},BSShapeCollection.CreateGeom,compoundShape,shape={1}", prim.LocalID, ret);
-        }
-
-        // Avatars have their own unique shape
-        if (ret == null  && prim.PreferredPhysicalShape == BSPhysicsShapeType.SHAPE_AVATAR)
-        {
-            // Getting a reference to a compound shape gets you the compound shape with the root prim shape added
-            ret = BSShapeAvatar.GetReference(prim);
-            physicsScene.DetailLog("{0},BSShapeCollection.CreateGeom,avatarShape,shape={1}", prim.LocalID, ret);
-        }
-
-        if (ret == null)
-            ret = GetShapeReferenceNonSpecial(physicsScene, forceRebuild, prim);
-
-        return ret;
-    }
-    private static BSShape GetShapeReferenceNonSpecial(BSScene physicsScene, bool forceRebuild, BSPhysObject prim)
-    {
-        BSShapeMesh.GetReference(physicsScene, forceRebuild, prim);
-        BSShapeHull.GetReference(physicsScene, forceRebuild, prim);
-        return null;
-    }
+    // Get another reference to this shape.
+    public abstract BSShape GetReference(BSScene pPhysicsScene, BSPhysObject pPrim);
 
     // Called when this shape is being used again.
-    public virtual void IncrementReference()
+    // Used internally. External callers should call instance.GetReference() to properly copy/reference
+    //       the shape.
+    protected virtual void IncrementReference()
     {
         referenceCount++;
         lastReferenced = DateTime.Now;
     }
 
     // Called when this shape is being used again.
-    public virtual void DecrementReference()
+    protected virtual void DecrementReference()
     {
         referenceCount--;
         lastReferenced = DateTime.Now;
@@ -114,22 +80,178 @@ public abstract class BSShape
     // Release the use of a physical shape.
     public abstract void Dereference(BSScene physicsScene);
 
+    // Return 'true' if there is an allocated physics physical shape under this class instance.
+    public virtual bool HasPhysicalShape
+    {
+        get
+        {
+            if (physShapeInfo != null)
+                return physShapeInfo.HasPhysicalShape;
+            return false;
+        }
+    }
+    public virtual BSPhysicsShapeType ShapeType
+    {
+        get
+        {
+            BSPhysicsShapeType ret = BSPhysicsShapeType.SHAPE_UNKNOWN;
+            if (physShapeInfo != null && physShapeInfo.HasPhysicalShape)
+                ret = physShapeInfo.shapeType;
+            return ret;
+        }
+    }
+
     // Returns a string for debugging that uniquily identifies the memory used by this instance
     public virtual string AddrString
     {
-        get { return "unknown"; }
+        get
+        {
+            if (physShapeInfo != null)
+                return physShapeInfo.AddrString;
+            return "unknown";
+        }
     }
 
     public override string ToString()
     {
         StringBuilder buff = new StringBuilder();
-        buff.Append("<p=");
-        buff.Append(AddrString);
+        if (physShapeInfo == null)
+        {
+            buff.Append(",noPhys");
+        }
+        else
+        {
+            buff.Append(",phy=");
+            buff.Append(physShapeInfo.ToString());
+        }
         buff.Append(",c=");
         buff.Append(referenceCount.ToString());
         buff.Append(">");
         return buff.ToString();
     }
+
+    #region Common shape routines
+    // Create a hash of all the shape parameters to be used as a key for this particular shape.
+    public static System.UInt64 ComputeShapeKey(OMV.Vector3 size, PrimitiveBaseShape pbs, out float retLod)
+    {
+        // level of detail based on size and type of the object
+        float lod = BSParam.MeshLOD;
+        if (pbs.SculptEntry)
+            lod = BSParam.SculptLOD;
+
+        // Mega prims usually get more detail because one can interact with shape approximations at this size.
+        float maxAxis = Math.Max(size.X, Math.Max(size.Y, size.Z));
+        if (maxAxis > BSParam.MeshMegaPrimThreshold)
+            lod = BSParam.MeshMegaPrimLOD;
+
+        retLod = lod;
+        return pbs.GetMeshKey(size, lod);
+    }
+
+    // The creation of a mesh or hull can fail if an underlying asset is not available.
+    // There are two cases: 1) the asset is not in the cache and it needs to be fetched;
+    //     and 2) the asset cannot be converted (like failed decompression of JPEG2000s).
+    //     The first case causes the asset to be fetched. The second case requires
+    //     us to not loop forever.
+    // Called after creating a physical mesh or hull. If the physical shape was created,
+    //     just return.
+    public static BulletShape VerifyMeshCreated(BSScene physicsScene, BulletShape newShape, BSPhysObject prim)
+    {
+        // If the shape was successfully created, nothing more to do
+        if (newShape.HasPhysicalShape)
+            return newShape;
+
+        // VerifyMeshCreated is called after trying to create the mesh. If we think the asset had been
+        //    fetched but we end up here again, the meshing of the asset must have failed.
+        // Prevent trying to keep fetching the mesh by declaring failure.
+        if (prim.PrimAssetState == BSPhysObject.PrimAssetCondition.Fetched)
+        {
+            prim.PrimAssetState = BSPhysObject.PrimAssetCondition.Failed;
+            physicsScene.Logger.WarnFormat("{0} Fetched asset would not mesh. {1}, texture={2}",
+                                            LogHeader, prim.PhysObjectName, prim.BaseShape.SculptTexture);
+            physicsScene.DetailLog("{0},BSShape.VerifyMeshCreated,setFailed,objNam={1},tex={2}",
+                                            prim.LocalID, prim.PhysObjectName, prim.BaseShape.SculptTexture);
+        }
+        else
+        {
+            // If this mesh has an underlying asset and we have not failed getting it before, fetch the asset
+            if (prim.BaseShape.SculptEntry
+                && prim.PrimAssetState != BSPhysObject.PrimAssetCondition.Failed
+                && prim.PrimAssetState != BSPhysObject.PrimAssetCondition.Waiting
+                && prim.BaseShape.SculptTexture != OMV.UUID.Zero
+                )
+            {
+                physicsScene.DetailLog("{0},BSShape.VerifyMeshCreated,fetchAsset,objNam={1},tex={2}",
+                                            prim.LocalID, prim.PhysObjectName, prim.BaseShape.SculptTexture);
+                // Multiple requestors will know we're waiting for this asset
+                prim.PrimAssetState = BSPhysObject.PrimAssetCondition.Waiting;
+
+                BSPhysObject xprim = prim;
+                Util.FireAndForget(delegate
+                    {
+                        // physicsScene.DetailLog("{0},BSShape.VerifyMeshCreated,inFireAndForget", xprim.LocalID);
+                        RequestAssetDelegate assetProvider = physicsScene.RequestAssetMethod;
+                        if (assetProvider != null)
+                        {
+                            BSPhysObject yprim = xprim; // probably not necessary, but, just in case.
+                            assetProvider(yprim.BaseShape.SculptTexture, delegate(AssetBase asset)
+                            {
+                                // physicsScene.DetailLog("{0},BSShape.VerifyMeshCreated,assetProviderCallback", xprim.LocalID);
+                                bool assetFound = false;
+                                string mismatchIDs = String.Empty;  // DEBUG DEBUG
+                                if (asset != null && yprim.BaseShape.SculptEntry)
+                                {
+                                    if (yprim.BaseShape.SculptTexture.ToString() == asset.ID)
+                                    {
+                                        yprim.BaseShape.SculptData = asset.Data;
+                                        // This will cause the prim to see that the filler shape is not the right
+                                        //    one and try again to build the object.
+                                        // No race condition with the normal shape setting since the rebuild is at taint time.
+                                        yprim.PrimAssetState = BSPhysObject.PrimAssetCondition.Fetched;
+                                        yprim.ForceBodyShapeRebuild(false /* inTaintTime */);
+                                        assetFound = true;
+                                    }
+                                    else
+                                    {
+                                        mismatchIDs = yprim.BaseShape.SculptTexture.ToString() + "/" + asset.ID;
+                                    }
+                                }
+                                if (!assetFound)
+                                {
+                                    yprim.PrimAssetState = BSPhysObject.PrimAssetCondition.Failed;
+                                }
+                                physicsScene.DetailLog("{0},BSShape.VerifyMeshCreated,fetchAssetCallback,found={1},isSculpt={2},ids={3}",
+                                            yprim.LocalID, assetFound, yprim.BaseShape.SculptEntry, mismatchIDs );
+                            });
+                        }
+                        else
+                        {
+                            xprim.PrimAssetState = BSPhysObject.PrimAssetCondition.Failed;
+                            physicsScene.Logger.ErrorFormat("{0} Physical object requires asset but no asset provider. Name={1}",
+                                                        LogHeader, physicsScene.Name);
+                        }
+                    });
+            }
+            else
+            {
+                if (prim.PrimAssetState == BSPhysObject.PrimAssetCondition.Failed)
+                {
+                    physicsScene.Logger.WarnFormat("{0} Mesh failed to fetch asset. obj={1}, texture={2}",
+                                                LogHeader, prim.PhysObjectName, prim.BaseShape.SculptTexture);
+                    physicsScene.DetailLog("{0},BSShape.VerifyMeshCreated,wasFailed,objNam={1},tex={2}",
+                                                prim.LocalID, prim.PhysObjectName, prim.BaseShape.SculptTexture);
+                }
+            }
+         }
+
+        // While we wait for the mesh defining asset to be loaded, stick in a simple box for the object.
+        BSShape fillShape = BSShapeNative.GetReference(physicsScene, prim, BSPhysicsShapeType.SHAPE_BOX, FixedShapeKey.KEY_BOX);
+        physicsScene.DetailLog("{0},BSShape.VerifyMeshCreated,boxTempShape", prim.LocalID);
+
+        return fillShape.physShapeInfo;
+     }
+
+    #endregion // Common shape routines
 }
 
 // ============================================================================================================
@@ -139,6 +261,7 @@ public class BSShapeNull : BSShape
     {
     }
     public static BSShape GetReference() { return new BSShapeNull();  }
+    public override BSShape GetReference(BSScene pPhysicsScene, BSPhysObject pPrim) { return new BSShapeNull();  }
     public override void Dereference(BSScene physicsScene) { /* The magic of garbage collection will make this go away */ }
 }
 
@@ -150,24 +273,34 @@ public class BSShapeNative : BSShape
     {
     }
 
-    public static BSShape GetReference(BSScene physicsScene, BSPhysObject prim, 
-                                            BSPhysicsShapeType shapeType, FixedShapeKey shapeKey) 
+    public static BSShape GetReference(BSScene physicsScene, BSPhysObject prim,
+                                            BSPhysicsShapeType shapeType, FixedShapeKey shapeKey)
     {
         // Native shapes are not shared and are always built anew.
         return new BSShapeNative(CreatePhysicalNativeShape(physicsScene, prim, shapeType, shapeKey));
+    }
+
+    public override BSShape GetReference(BSScene pPhysicsScene, BSPhysObject pPrim)
+    {
+        // Native shapes are not shared so we return a new shape.
+        return new BSShapeNative(CreatePhysicalNativeShape(pPhysicsScene, pPrim,
+                                    physShapeInfo.shapeType, (FixedShapeKey)physShapeInfo.shapeKey) );
     }
 
     // Make this reference to the physical shape go away since native shapes are not shared.
     public override void Dereference(BSScene physicsScene)
     {
         // Native shapes are not tracked and are released immediately
-        if (physShapeInfo.HasPhysicalShape)
+        lock (physShapeInfo)
         {
-            physicsScene.DetailLog("{0},BSShapeNative.DereferenceShape,deleteNativeShape,shape={1}", BSScene.DetailLogZero, this);
-            physicsScene.PE.DeleteCollisionShape(physicsScene.World, physShapeInfo);
+            if (physShapeInfo.HasPhysicalShape)
+            {
+                physicsScene.DetailLog("{0},BSShapeNative.Dereference,deleteNativeShape,shape={1}", BSScene.DetailLogZero, this);
+                physicsScene.PE.DeleteCollisionShape(physicsScene.World, physShapeInfo);
+            }
+            physShapeInfo.Clear();
+            // Garbage collection will free up this instance.
         }
-        physShapeInfo.Clear();
-        // Garbage collection will free up this instance.
     }
 
     private static BulletShape CreatePhysicalNativeShape(BSScene physicsScene, BSPhysObject prim,
@@ -197,7 +330,7 @@ public class BSShapeNative : BSShape
             physicsScene.Logger.ErrorFormat("{0} BuildPhysicalNativeShape failed. ID={1}, shape={2}",
                                     LogHeader, prim.LocalID, shapeType);
         }
-        newShape.type = shapeType;
+        newShape.shapeType = shapeType;
         newShape.isNativeShape = true;
         newShape.shapeKey = (UInt64)shapeKey;
         return newShape;
@@ -209,7 +342,7 @@ public class BSShapeNative : BSShape
 public class BSShapeMesh : BSShape
 {
     private static string LogHeader = "[BULLETSIM SHAPE MESH]";
-    private static Dictionary<System.UInt64, BSShapeMesh> Meshes = new Dictionary<System.UInt64, BSShapeMesh>();
+    public static Dictionary<System.UInt64, BSShapeMesh> Meshes = new Dictionary<System.UInt64, BSShapeMesh>();
 
     public BSShapeMesh(BulletShape pShape) : base(pShape)
     {
@@ -217,12 +350,9 @@ public class BSShapeMesh : BSShape
     public static BSShape GetReference(BSScene physicsScene, bool forceRebuild, BSPhysObject prim)
     {
         float lod;
-        System.UInt64 newMeshKey = BSShapeCollection.ComputeShapeKey(prim.Size, prim.BaseShape, out lod);
+        System.UInt64 newMeshKey = BSShape.ComputeShapeKey(prim.Size, prim.BaseShape, out lod);
 
-        physicsScene.DetailLog("{0},BSShapeMesh,create,oldKey={1},newKey={2},size={3},lod={4}",
-                                prim.LocalID, prim.PhysShape.shapeKey.ToString("X"), newMeshKey.ToString("X"), prim.Size, lod);
-
-        BSShapeMesh retMesh;
+        BSShapeMesh retMesh = null;
         lock (Meshes)
         {
             if (Meshes.TryGetValue(newMeshKey, out retMesh))
@@ -232,39 +362,80 @@ public class BSShapeMesh : BSShape
             }
             else
             {
+                retMesh = new BSShapeMesh(new BulletShape());
                 // An instance of this mesh has not been created. Build and remember same.
-                BulletShape newShape = CreatePhysicalMesh(physicsScene, prim, newMeshKey, prim.BaseShape, prim.Size, lod);
-                // Take evasive action if the mesh was not constructed.
-                newShape = BSShapeCollection.VerifyMeshCreated(physicsScene, newShape, prim);
+                BulletShape newShape = retMesh.CreatePhysicalMesh(physicsScene, prim, newMeshKey, prim.BaseShape, prim.Size, lod);
 
-                retMesh = new BSShapeMesh(newShape);
+                // Check to see if mesh was created (might require an asset).
+                newShape = VerifyMeshCreated(physicsScene, newShape, prim);
+                if (!newShape.isNativeShape)
+                {
+                    // If a mesh was what was created, remember the built shape for later sharing.
+                    Meshes.Add(newMeshKey, retMesh);
+                }
 
-                Meshes.Add(newMeshKey, retMesh);
+                retMesh.physShapeInfo = newShape;
             }
         }
+        physicsScene.DetailLog("{0},BSShapeMesh,getReference,mesh={1},size={2},lod={3}", prim.LocalID, retMesh, prim.Size, lod);
         return retMesh;
+    }
+    public override BSShape GetReference(BSScene pPhysicsScene, BSPhysObject pPrim)
+    {
+        // Another reference to this shape is just counted.
+        IncrementReference();
+        return this;
     }
     public override void Dereference(BSScene physicsScene)
     {
         lock (Meshes)
         {
             this.DecrementReference();
+            physicsScene.DetailLog("{0},BSShapeMesh.Dereference,shape={1}", BSScene.DetailLogZero, this);
             // TODO: schedule aging and destruction of unused meshes.
         }
     }
+    // Loop through all the known meshes and return the description based on the physical address.
+    public static bool TryGetMeshByPtr(BulletShape pShape, out BSShapeMesh outMesh)
+    {
+        bool ret = false;
+        BSShapeMesh foundDesc = null;
+        lock (Meshes)
+        {
+            foreach (BSShapeMesh sm in Meshes.Values)
+            {
+                if (sm.physShapeInfo.ReferenceSame(pShape))
+                {
+                    foundDesc = sm;
+                    ret = true;
+                    break;
+                }
 
-    private static BulletShape CreatePhysicalMesh(BSScene physicsScene, BSPhysObject prim, System.UInt64 newMeshKey,
+            }
+        }
+        outMesh = foundDesc;
+        return ret;
+    }
+    private BulletShape CreatePhysicalMesh(BSScene physicsScene, BSPhysObject prim, System.UInt64 newMeshKey,
                                             PrimitiveBaseShape pbs, OMV.Vector3 size, float lod)
     {
-        BulletShape newShape = null;
+        BulletShape newShape = new BulletShape();
 
-        IMesh meshData = physicsScene.mesher.CreateMesh(prim.PhysObjectName, pbs, size, lod, 
+        IMesh meshData = physicsScene.mesher.CreateMesh(prim.PhysObjectName, pbs, size, lod,
                                         false,  // say it is not physical so a bounding box is not built
-                                        false   // do not cache the mesh and do not use previously built versions
+                                        false,  // do not cache the mesh and do not use previously built versions
+                                        false,
+                                        false
                                         );
 
         if (meshData != null)
         {
+            if (prim.PrimAssetState == BSPhysObject.PrimAssetCondition.Fetched)
+            {
+                // Release the fetched asset data once it has been used.
+                pbs.SculptData = new byte[0];
+                prim.PrimAssetState = BSPhysObject.PrimAssetCondition.Unknown;
+            }
 
             int[] indices = meshData.getIndexListAsInt();
             int realIndicesIndex = indices.Length;
@@ -302,8 +473,8 @@ public class BSShapeMesh : BSShape
                     }
                 }
             }
-            physicsScene.DetailLog("{0},BSShapeCollection.CreatePhysicalMesh,origTri={1},realTri={2},numVerts={3}",
-                        BSScene.DetailLogZero, indices.Length / 3, realIndicesIndex / 3, verticesAsFloats.Length / 3);
+            physicsScene.DetailLog("{0},BSShapeMesh.CreatePhysicalMesh,key={1},origTri={2},realTri={3},numVerts={4}",
+                        BSScene.DetailLogZero, newMeshKey.ToString("X"), indices.Length / 3, realIndicesIndex / 3, verticesAsFloats.Length / 3);
 
             if (realIndicesIndex != 0)
             {
@@ -326,17 +497,239 @@ public class BSShapeMesh : BSShape
 public class BSShapeHull : BSShape
 {
     private static string LogHeader = "[BULLETSIM SHAPE HULL]";
-    private static Dictionary<System.UInt64, BSShapeHull> Hulls = new Dictionary<System.UInt64, BSShapeHull>();
+    public static Dictionary<System.UInt64, BSShapeHull> Hulls = new Dictionary<System.UInt64, BSShapeHull>();
 
     public BSShapeHull(BulletShape pShape) : base(pShape)
     {
     }
     public static BSShape GetReference(BSScene physicsScene, bool forceRebuild, BSPhysObject prim)
     {
-        return new BSShapeNull();
+        float lod;
+        System.UInt64 newHullKey = BSShape.ComputeShapeKey(prim.Size, prim.BaseShape, out lod);
+
+        BSShapeHull retHull = null;
+        lock (Hulls)
+        {
+            if (Hulls.TryGetValue(newHullKey, out retHull))
+            {
+                // The mesh has already been created. Return a new reference to same.
+                retHull.IncrementReference();
+            }
+            else
+            {
+                retHull = new BSShapeHull(new BulletShape());
+                // An instance of this mesh has not been created. Build and remember same.
+                BulletShape newShape = retHull.CreatePhysicalHull(physicsScene, prim, newHullKey, prim.BaseShape, prim.Size, lod);
+
+                // Check to see if hull was created (might require an asset).
+                newShape = VerifyMeshCreated(physicsScene, newShape, prim);
+                if (!newShape.isNativeShape)
+                {
+                    // If a mesh was what was created, remember the built shape for later sharing.
+                    Hulls.Add(newHullKey, retHull);
+                }
+                retHull.physShapeInfo = newShape;
+            }
+        }
+        physicsScene.DetailLog("{0},BSShapeHull,getReference,hull={1},size={2},lod={3}", prim.LocalID, retHull, prim.Size, lod);
+        return retHull;
+    }
+    public override BSShape GetReference(BSScene pPhysicsScene, BSPhysObject pPrim)
+    {
+        // Another reference to this shape is just counted.
+        IncrementReference();
+        return this;
     }
     public override void Dereference(BSScene physicsScene)
     {
+        lock (Hulls)
+        {
+            this.DecrementReference();
+            physicsScene.DetailLog("{0},BSShapeHull.Dereference,shape={1}", BSScene.DetailLogZero, this);
+            // TODO: schedule aging and destruction of unused meshes.
+        }
+    }
+    List<ConvexResult> m_hulls;
+    private BulletShape CreatePhysicalHull(BSScene physicsScene, BSPhysObject prim, System.UInt64 newHullKey,
+                                            PrimitiveBaseShape pbs, OMV.Vector3 size, float lod)
+    {
+        BulletShape newShape = new BulletShape();
+        IntPtr hullPtr = IntPtr.Zero;
+
+        if (BSParam.ShouldUseBulletHACD)
+        {
+            // Build the hull shape from an existing mesh shape.
+            // The mesh should have already been created in Bullet.
+            physicsScene.DetailLog("{0},BSShapeHull.CreatePhysicalHull,shouldUseBulletHACD,entry", prim.LocalID);
+            BSShape meshShape = BSShapeMesh.GetReference(physicsScene, true, prim);
+
+            if (meshShape.physShapeInfo.HasPhysicalShape)
+            {
+                HACDParams parms;
+                parms.maxVerticesPerHull = BSParam.BHullMaxVerticesPerHull;
+                parms.minClusters = BSParam.BHullMinClusters;
+                parms.compacityWeight = BSParam.BHullCompacityWeight;
+                parms.volumeWeight = BSParam.BHullVolumeWeight;
+                parms.concavity = BSParam.BHullConcavity;
+                parms.addExtraDistPoints = BSParam.NumericBool(BSParam.BHullAddExtraDistPoints);
+                parms.addNeighboursDistPoints = BSParam.NumericBool(BSParam.BHullAddNeighboursDistPoints);
+                parms.addFacesPoints = BSParam.NumericBool(BSParam.BHullAddFacesPoints);
+                parms.shouldAdjustCollisionMargin = BSParam.NumericBool(BSParam.BHullShouldAdjustCollisionMargin);
+
+                physicsScene.DetailLog("{0},BSShapeHull.CreatePhysicalHull,hullFromMesh,beforeCall", prim.LocalID, newShape.HasPhysicalShape);
+                newShape = physicsScene.PE.BuildHullShapeFromMesh(physicsScene.World, meshShape.physShapeInfo, parms);
+                physicsScene.DetailLog("{0},BSShapeHull.CreatePhysicalHull,hullFromMesh,hasBody={1}", prim.LocalID, newShape.HasPhysicalShape);
+
+                // Now done with the mesh shape.
+                meshShape.Dereference(physicsScene);
+            }
+            physicsScene.DetailLog("{0},BSShapeHull.CreatePhysicalHull,shouldUseBulletHACD,exit,hasBody={1}", prim.LocalID, newShape.HasPhysicalShape);
+        }
+        if (!newShape.HasPhysicalShape)
+        {
+            // Build a new hull in the physical world using the C# HACD algorigthm.
+            // Pass true for physicalness as this prevents the creation of bounding box which is not needed
+            IMesh meshData = physicsScene.mesher.CreateMesh(prim.PhysObjectName, pbs, size, lod, true /* isPhysical */, false /* shouldCache */, false, false);
+            if (meshData != null)
+            {
+                if (prim.PrimAssetState == BSPhysObject.PrimAssetCondition.Fetched)
+                {
+                    // Release the fetched asset data once it has been used.
+                    pbs.SculptData = new byte[0];
+                    prim.PrimAssetState = BSPhysObject.PrimAssetCondition.Unknown;
+                }
+
+                int[] indices = meshData.getIndexListAsInt();
+                List<OMV.Vector3> vertices = meshData.getVertexList();
+
+                //format conversion from IMesh format to DecompDesc format
+                List<int> convIndices = new List<int>();
+                List<float3> convVertices = new List<float3>();
+                for (int ii = 0; ii < indices.GetLength(0); ii++)
+                {
+                    convIndices.Add(indices[ii]);
+                }
+                foreach (OMV.Vector3 vv in vertices)
+                {
+                    convVertices.Add(new float3(vv.X, vv.Y, vv.Z));
+                }
+
+                uint maxDepthSplit = (uint)BSParam.CSHullMaxDepthSplit;
+                if (BSParam.CSHullMaxDepthSplit != BSParam.CSHullMaxDepthSplitForSimpleShapes)
+                {
+                    // Simple primitive shapes we know are convex so they are better implemented with
+                    //    fewer hulls.
+                    // Check for simple shape (prim without cuts) and reduce split parameter if so.
+                    if (BSShapeCollection.PrimHasNoCuts(pbs))
+                    {
+                        maxDepthSplit = (uint)BSParam.CSHullMaxDepthSplitForSimpleShapes;
+                    }
+                }
+
+                // setup and do convex hull conversion
+                m_hulls = new List<ConvexResult>();
+                DecompDesc dcomp = new DecompDesc();
+                dcomp.mIndices = convIndices;
+                dcomp.mVertices = convVertices;
+                dcomp.mDepth = maxDepthSplit;
+                dcomp.mCpercent = BSParam.CSHullConcavityThresholdPercent;
+                dcomp.mPpercent = BSParam.CSHullVolumeConservationThresholdPercent;
+                dcomp.mMaxVertices = (uint)BSParam.CSHullMaxVertices;
+                dcomp.mSkinWidth = BSParam.CSHullMaxSkinWidth;
+                ConvexBuilder convexBuilder = new ConvexBuilder(HullReturn);
+                // create the hull into the _hulls variable
+                convexBuilder.process(dcomp);
+
+                physicsScene.DetailLog("{0},BSShapeCollection.CreatePhysicalHull,key={1},inVert={2},inInd={3},split={4},hulls={5}",
+                                    BSScene.DetailLogZero, newHullKey, indices.GetLength(0), vertices.Count, maxDepthSplit, m_hulls.Count);
+
+                // Convert the vertices and indices for passing to unmanaged.
+                // The hull information is passed as a large floating point array.
+                // The format is:
+                //  convHulls[0] = number of hulls
+                //  convHulls[1] = number of vertices in first hull
+                //  convHulls[2] = hull centroid X coordinate
+                //  convHulls[3] = hull centroid Y coordinate
+                //  convHulls[4] = hull centroid Z coordinate
+                //  convHulls[5] = first hull vertex X
+                //  convHulls[6] = first hull vertex Y
+                //  convHulls[7] = first hull vertex Z
+                //  convHulls[8] = second hull vertex X
+                //  ...
+                //  convHulls[n] = number of vertices in second hull
+                //  convHulls[n+1] = second hull centroid X coordinate
+                //  ...
+                //
+                // TODO: is is very inefficient. Someday change the convex hull generator to return
+                //   data structures that do not need to be converted in order to pass to Bullet.
+                //   And maybe put the values directly into pinned memory rather than marshaling.
+                int hullCount = m_hulls.Count;
+                int totalVertices = 1;          // include one for the count of the hulls
+                foreach (ConvexResult cr in m_hulls)
+                {
+                    totalVertices += 4;                         // add four for the vertex count and centroid
+                    totalVertices += cr.HullIndices.Count * 3;  // we pass just triangles
+                }
+                float[] convHulls = new float[totalVertices];
+
+                convHulls[0] = (float)hullCount;
+                int jj = 1;
+                foreach (ConvexResult cr in m_hulls)
+                {
+                    // copy vertices for index access
+                    float3[] verts = new float3[cr.HullVertices.Count];
+                    int kk = 0;
+                    foreach (float3 ff in cr.HullVertices)
+                    {
+                        verts[kk++] = ff;
+                    }
+
+                    // add to the array one hull's worth of data
+                    convHulls[jj++] = cr.HullIndices.Count;
+                    convHulls[jj++] = 0f;   // centroid x,y,z
+                    convHulls[jj++] = 0f;
+                    convHulls[jj++] = 0f;
+                    foreach (int ind in cr.HullIndices)
+                    {
+                        convHulls[jj++] = verts[ind].x;
+                        convHulls[jj++] = verts[ind].y;
+                        convHulls[jj++] = verts[ind].z;
+                    }
+                }
+                // create the hull data structure in Bullet
+                newShape = physicsScene.PE.CreateHullShape(physicsScene.World, hullCount, convHulls);
+            }
+            newShape.shapeKey = newHullKey;
+        }
+        return newShape;
+    }
+    // Callback from convex hull creater with a newly created hull.
+    // Just add it to our collection of hulls for this shape.
+    private void HullReturn(ConvexResult result)
+    {
+        m_hulls.Add(result);
+        return;
+    }
+    // Loop through all the known hulls and return the description based on the physical address.
+    public static bool TryGetHullByPtr(BulletShape pShape, out BSShapeHull outHull)
+    {
+        bool ret = false;
+        BSShapeHull foundDesc = null;
+        lock (Hulls)
+        {
+            foreach (BSShapeHull sh in Hulls.Values)
+            {
+                if (sh.physShapeInfo.ReferenceSame(pShape))
+                {
+                    foundDesc = sh;
+                    ret = true;
+                    break;
+                }
+
+            }
+        }
+        outHull = foundDesc;
+        return ret;
     }
 }
 
@@ -344,14 +737,169 @@ public class BSShapeHull : BSShape
 public class BSShapeCompound : BSShape
 {
     private static string LogHeader = "[BULLETSIM SHAPE COMPOUND]";
-    public BSShapeCompound() : base()
+    public BSShapeCompound(BulletShape pShape) : base(pShape)
     {
     }
-    public static BSShape GetReference(BSPhysObject prim) 
-    { 
-        return new BSShapeNull();
+    public static BSShape GetReference(BSScene physicsScene)
+    {
+        // Base compound shapes are not shared so this returns a raw shape.
+        // A built compound shape can be reused in linksets.
+        return new BSShapeCompound(CreatePhysicalCompoundShape(physicsScene));
     }
-    public override void Dereference(BSScene physicsScene) { }
+    public override BSShape GetReference(BSScene physicsScene, BSPhysObject prim)
+    {
+        // Calling this reference means we want another handle to an existing compound shape
+        //     (usually linksets) so return this copy.
+        IncrementReference();
+        return this;
+    }
+    // Dereferencing a compound shape releases the hold on all the child shapes.
+    public override void Dereference(BSScene physicsScene)
+    {
+        lock (physShapeInfo)
+        {
+            this.DecrementReference();
+            physicsScene.DetailLog("{0},BSShapeCompound.Dereference,shape={1}", BSScene.DetailLogZero, this);
+            if (referenceCount <= 0)
+            {
+                if (!physicsScene.PE.IsCompound(physShapeInfo))
+                {
+                    // Failed the sanity check!!
+                    physicsScene.Logger.ErrorFormat("{0} Attempt to free a compound shape that is not compound!! type={1}, ptr={2}",
+                                                LogHeader, physShapeInfo.shapeType, physShapeInfo.AddrString);
+                    physicsScene.DetailLog("{0},BSShapeCollection.DereferenceCompound,notACompoundShape,type={1},ptr={2}",
+                                                BSScene.DetailLogZero, physShapeInfo.shapeType, physShapeInfo.AddrString);
+                    return;
+                }
+
+                int numChildren = physicsScene.PE.GetNumberOfCompoundChildren(physShapeInfo);
+                physicsScene.DetailLog("{0},BSShapeCollection.DereferenceCompound,shape={1},children={2}",
+                                        BSScene.DetailLogZero, physShapeInfo, numChildren);
+
+                // Loop through all the children dereferencing each.
+                for (int ii = numChildren - 1; ii >= 0; ii--)
+                {
+                    BulletShape childShape = physicsScene.PE.RemoveChildShapeFromCompoundShapeIndex(physShapeInfo, ii);
+                    DereferenceAnonCollisionShape(physicsScene, childShape);
+                }
+                physicsScene.PE.DeleteCollisionShape(physicsScene.World, physShapeInfo);
+            }
+        }
+    }
+    private static BulletShape CreatePhysicalCompoundShape(BSScene physicsScene)
+    {
+        BulletShape cShape = physicsScene.PE.CreateCompoundShape(physicsScene.World, false);
+        return cShape;
+    }
+    // Sometimes we have a pointer to a collision shape but don't know what type it is.
+    // Figure out type and call the correct dereference routine.
+    // Called at taint-time.
+    private void DereferenceAnonCollisionShape(BSScene physicsScene, BulletShape pShape)
+    {
+        BSShapeMesh meshDesc;
+        if (BSShapeMesh.TryGetMeshByPtr(pShape, out meshDesc))
+        {
+            meshDesc.Dereference(physicsScene);
+        }
+        else
+        {
+            BSShapeHull hullDesc;
+            if (BSShapeHull.TryGetHullByPtr(pShape, out hullDesc))
+            {
+                hullDesc.Dereference(physicsScene);
+            }
+            else
+            {
+                if (physicsScene.PE.IsCompound(pShape))
+                {
+                    BSShapeCompound recursiveCompound = new BSShapeCompound(pShape);
+                    recursiveCompound.Dereference(physicsScene);
+                }
+                else
+                {
+                    if (physicsScene.PE.IsNativeShape(pShape))
+                    {
+                        BSShapeNative nativeShape = new BSShapeNative(pShape);
+                        nativeShape.Dereference(physicsScene);
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ============================================================================================================
+public class BSShapeConvexHull : BSShape
+{
+    private static string LogHeader = "[BULLETSIM SHAPE CONVEX HULL]";
+    public static Dictionary<System.UInt64, BSShapeConvexHull> ConvexHulls = new Dictionary<System.UInt64, BSShapeConvexHull>();
+
+    public BSShapeConvexHull(BulletShape pShape) : base(pShape)
+    {
+    }
+    public static BSShape GetReference(BSScene physicsScene, bool forceRebuild, BSPhysObject prim)
+    {
+        float lod;
+        System.UInt64 newMeshKey = BSShape.ComputeShapeKey(prim.Size, prim.BaseShape, out lod);
+
+        physicsScene.DetailLog("{0},BSShapeMesh,getReference,newKey={1},size={2},lod={3}",
+                                prim.LocalID, newMeshKey.ToString("X"), prim.Size, lod);
+
+        BSShapeConvexHull retConvexHull = null;
+        lock (ConvexHulls)
+        {
+            if (ConvexHulls.TryGetValue(newMeshKey, out retConvexHull))
+            {
+                // The mesh has already been created. Return a new reference to same.
+                retConvexHull.IncrementReference();
+            }
+            else
+            {
+                retConvexHull = new BSShapeConvexHull(new BulletShape());
+                BulletShape convexShape = null;
+
+                // Get a handle to a mesh to build the hull from
+                BSShape baseMesh = BSShapeMesh.GetReference(physicsScene, false /* forceRebuild */, prim);
+                if (baseMesh.physShapeInfo.isNativeShape)
+                {
+                    // We get here if the mesh was not creatable. Could be waiting for an asset from the disk.
+                    // In the short term, we return the native shape and a later ForceBodyShapeRebuild should
+                    //     get back to this code with a buildable mesh.
+                    // TODO: not sure the temp native shape is freed when the mesh is rebuilt. When does this get freed?
+                    convexShape = baseMesh.physShapeInfo;
+                }
+                else
+                {
+                    convexShape = physicsScene.PE.BuildConvexHullShapeFromMesh(physicsScene.World, baseMesh.physShapeInfo);
+                    convexShape.shapeKey = newMeshKey;
+                    ConvexHulls.Add(convexShape.shapeKey, retConvexHull);
+                }
+
+                // Done with the base mesh
+                baseMesh.Dereference(physicsScene);
+
+                retConvexHull.physShapeInfo = convexShape;
+            }
+        }
+        return retConvexHull;
+    }
+    public override BSShape GetReference(BSScene physicsScene, BSPhysObject prim)
+    {
+        // Calling this reference means we want another handle to an existing shape
+        //     (usually linksets) so return this copy.
+        IncrementReference();
+        return this;
+    }
+    // Dereferencing a compound shape releases the hold on all the child shapes.
+    public override void Dereference(BSScene physicsScene)
+    {
+        lock (ConvexHulls)
+        {
+            this.DecrementReference();
+            physicsScene.DetailLog("{0},BSShapeConvexHull.Dereference,shape={1}", BSScene.DetailLogZero, this);
+            // TODO: schedule aging and destruction of unused meshes.
+        }
+    }
 }
 
 // ============================================================================================================
@@ -361,8 +909,12 @@ public class BSShapeAvatar : BSShape
     public BSShapeAvatar() : base()
     {
     }
-    public static BSShape GetReference(BSPhysObject prim) 
-    { 
+    public static BSShape GetReference(BSPhysObject prim)
+    {
+        return new BSShapeNull();
+    }
+    public override BSShape GetReference(BSScene pPhysicsScene, BSPhysObject pPrim)
+    {
         return new BSShapeNull();
     }
     public override void Dereference(BSScene physicsScene) { }

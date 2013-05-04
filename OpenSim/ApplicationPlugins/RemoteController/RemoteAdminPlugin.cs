@@ -831,6 +831,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                 IScene newScene;
                 m_application.CreateRegion(region, out newScene);
+                newScene.Start();
 
                 // If an access specification was provided, use it.
                 // Otherwise accept the default.

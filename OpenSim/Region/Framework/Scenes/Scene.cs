@@ -396,10 +396,12 @@ namespace OpenSim.Region.Framework.Scenes
                 if (value)
                 {
                     if (!m_active)
-                        Start();
+                        Start(false);
                 }
                 else
                 {
+                    // This appears assymetric with Start() above but is not - setting m_active = false stops the loops
+                    // XXX: Possibly this should be in an explicit Stop() method for symmetry.
                     m_active = false;
                 }
             }
@@ -1361,10 +1363,18 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        public override void Start()
+        {
+            Start(true);
+        }
+
         /// <summary>
         /// Start the scene
         /// </summary>
-        public void Start()
+        /// <param name='startScripts'>
+        /// Start the scripts within the scene.
+        /// </param> 
+        public void Start(bool startScripts)
         {
             m_active = true;
 
@@ -1401,6 +1411,8 @@ namespace OpenSim.Region.Framework.Scenes
             m_heartbeatThread
                 = Watchdog.StartThread(
                     Heartbeat, string.Format("Heartbeat ({0})", RegionInfo.RegionName), ThreadPriority.Normal, false, false);
+
+            StartScripts();
         }
 
         /// <summary>

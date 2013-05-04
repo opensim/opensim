@@ -45,7 +45,7 @@ public sealed class BSConstraintHinge : BSConstraint
         m_body1 = obj1;
         m_body2 = obj2;
         m_constraint = PhysicsScene.PE.CreateHingeConstraint(world, obj1, obj2,
-                                pivotInA, pivotInB, axisInA, axisInB, 
+                                pivotInA, pivotInB, axisInA, axisInB,
                                 useLinearReferenceFrameA, disableCollisionsBetweenLinkedBodies);
         m_enabled = true;
     }
