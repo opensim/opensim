@@ -13386,6 +13386,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             return null;
         }
+
+        public void llSetContentType(LSL_Key id, LSL_Integer content_type)
+        {
+            if (m_UrlModule != null)
+            {
+                string type = "text.plain";
+                if (content_type == (int)ScriptBaseClass.CONTENT_TYPE_HTML)
+                    type = "text/html";
+
+                m_UrlModule.HttpContentType(new UUID(id),type);
+            }
+        }
     }
 
     public class NotecardCache

@@ -771,5 +771,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         /// process message parameter as regex
         /// </summary>
         public const int OS_LISTEN_REGEX_MESSAGE = 0x2;
+
+        public const int CONTENT_TYPE_TEXT = 0;
+        public const int CONTENT_TYPE_HTML = 1;
     }
 }

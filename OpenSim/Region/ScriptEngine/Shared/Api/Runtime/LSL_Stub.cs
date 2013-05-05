@@ -2014,5 +2014,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_LSL_Functions.llGetPhysicsMaterial();
         }
+
+        public void llSetContentType(LSL_Key id, LSL_Integer content_type)
+        {
+            m_LSL_Functions.llSetContentType(id, content_type);
+        }
     }
 }
