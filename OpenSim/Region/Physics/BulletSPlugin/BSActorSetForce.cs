@@ -101,7 +101,7 @@ public class BSActorSetForce : BSActor
         if (m_forceMotor == null)
         {
             // A fake motor that might be used someday
-            m_forceMotor = new BSFMotor("setForce", 1f, 1f, 1f, 1f);
+            m_forceMotor = new BSFMotor("setForce", 1f, 1f, 1f);
 
             m_physicsScene.BeforeStep += Mover;
         }

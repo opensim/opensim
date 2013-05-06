@@ -101,7 +101,7 @@ public class BSActorSetTorque : BSActor
         if (m_torqueMotor == null)
         {
             // A fake motor that might be used someday
-            m_torqueMotor = new BSFMotor("setTorque", 1f, 1f, 1f, 1f);
+            m_torqueMotor = new BSFMotor("setTorque", 1f, 1f, 1f);
 
             m_physicsScene.BeforeStep += Mover;
         }

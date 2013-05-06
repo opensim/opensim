@@ -118,7 +118,6 @@ public class BSActorAvatarMove : BSActor
             m_velocityMotor = new BSVMotor("BSCharacter.Velocity",
                                                 0.2f,                       // time scale
                                                 BSMotor.Infinite,           // decay time scale
-                                                BSMotor.InfiniteVector,     // friction timescale
                                                 1f                          // efficiency
             );
             // _velocityMotor.PhysicsScene = PhysicsScene; // DEBUG DEBUG so motor will output detail log messages.

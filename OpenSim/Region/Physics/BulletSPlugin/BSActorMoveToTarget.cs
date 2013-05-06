@@ -105,7 +105,6 @@ public class BSActorMoveToTarget : BSActor
             m_targetMotor = new BSVMotor("BSActorMoveToTargget.Activate",
                                         m_controllingPrim.MoveToTargetTau,                    // timeScale
                                         BSMotor.Infinite,           // decay time scale
-                                        BSMotor.InfiniteVector,     // friction timescale
                                         1f                          // efficiency
             );
             m_targetMotor.PhysicsScene = m_physicsScene; // DEBUG DEBUG so motor will output detail log messages.

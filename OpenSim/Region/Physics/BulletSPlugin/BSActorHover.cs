@@ -102,7 +102,6 @@ public class BSActorHover : BSActor
             m_hoverMotor = new BSFMotor("BSActorHover",
                                         m_controllingPrim.HoverTau,               // timeScale
                                         BSMotor.Infinite,           // decay time scale
-                                        BSMotor.Infinite,           // friction timescale
                                         1f                          // efficiency
             );
             m_hoverMotor.SetTarget(ComputeCurrentHoverHeight());
