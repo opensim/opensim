@@ -425,9 +425,6 @@ namespace OpenSim
 
             mscene = scene;
 
-            scene.Start();
-            scene.StartScripts();
-
             return clientServers;
         }
 
@@ -751,6 +748,7 @@ namespace OpenSim
             ShutdownClientServer(whichRegion);
             IScene scene;
             CreateRegion(whichRegion, true, out scene);
+            scene.Start();
         }
 
         # region Setup methods

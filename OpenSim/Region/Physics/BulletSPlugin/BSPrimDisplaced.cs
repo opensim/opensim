@@ -78,14 +78,16 @@ public class BSPrimDisplaced : BSPrim
     // Set this sets and computes the displacement from the passed prim to the center-of-mass.
     // A user set value for center-of-mass overrides whatever might be passed in here.
     // The displacement is in local coordinates (relative to root prim in linkset oriented coordinates).
-    public virtual void SetEffectiveCenterOfMassW(Vector3 centerOfMassDisplacement)
+    public virtual void SetEffectiveCenterOfMassDisplacement(Vector3 centerOfMassDisplacement)
     {
         Vector3 comDisp;
-        if (UserSetCenterOfMass.HasValue)
-            comDisp = (OMV.Vector3)UserSetCenterOfMass;
+        if (UserSetCenterOfMassDisplacement.HasValue)
+            comDisp = (OMV.Vector3)UserSetCenterOfMassDisplacement;
         else
             comDisp = centerOfMassDisplacement;
 
+        DetailLog("{0},BSPrimDisplaced.SetEffectiveCenterOfMassDisplacement,userSet={1},comDisp={2}",
+                                    LocalID, UserSetCenterOfMassDisplacement.HasValue, comDisp);
         if (comDisp == Vector3.Zero)
         {
             // If there is no diplacement. Things get reset.
@@ -107,9 +109,15 @@ public class BSPrimDisplaced : BSPrim
         set
         {
             if (PositionDisplacement != OMV.Vector3.Zero)
-                base.ForcePosition = value - (PositionDisplacement * RawOrientation);
+            {
+                OMV.Vector3 displacedPos = value - (PositionDisplacement * RawOrientation);
+                DetailLog("{0},BSPrimDisplaced.ForcePosition,val={1},disp={2},newPos={3}", LocalID, value, PositionDisplacement, displacedPos);
+                base.ForcePosition = displacedPos;
+            }
             else
+            {
                 base.ForcePosition = value;
+            }
         }
     }
 
@@ -118,6 +126,7 @@ public class BSPrimDisplaced : BSPrim
         get { return base.ForceOrientation; }
         set
         {
+            // TODO:
             base.ForceOrientation = value;
         }
     }
@@ -143,7 +152,10 @@ public class BSPrimDisplaced : BSPrim
         {
             // Correct for any rotation around the center-of-mass
             // TODO!!!
-            entprop.Position = entprop.Position + (PositionDisplacement * entprop.Rotation);
+            
+            OMV.Vector3 displacedPos = entprop.Position + (PositionDisplacement * entprop.Rotation);
+            DetailLog("{0},BSPrimDisplaced.ForcePosition,physPos={1},disp={2},newPos={3}", LocalID, entprop.Position, PositionDisplacement, displacedPos);
+            entprop.Position = displacedPos;
             // entprop.Rotation = something;
         }
 

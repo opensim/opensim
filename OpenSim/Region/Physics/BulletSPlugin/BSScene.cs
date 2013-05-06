@@ -316,7 +316,10 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
                 break;
             case "bulletxna":
                 ret = new BSAPIXNA(engineName, this);
+                // Disable some features that are not implemented in BulletXNA
+                m_log.InfoFormat("{0} Disabling some physics features not implemented by BulletXNA", LogHeader);
                 BSParam.ShouldUseBulletHACD = false;
+                BSParam.ShouldUseSingleConvexHullForPrims = false;
                 break;
         }
 

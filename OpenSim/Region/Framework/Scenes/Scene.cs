@@ -389,10 +389,12 @@ namespace OpenSim.Region.Framework.Scenes
                 if (value)
                 {
                     if (!m_active)
-                        Start();
+                        Start(false);
                 }
                 else
                 {
+                    // This appears assymetric with Start() above but is not - setting m_active = false stops the loops
+                    // XXX: Possibly this should be in an explicit Stop() method for symmetry.
                     m_active = false;
                 }
             }
@@ -1331,10 +1333,18 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        public override void Start()
+        {
+            Start(true);
+        }
+
         /// <summary>
         /// Start the scene
         /// </summary>
-        public void Start()
+        /// <param name='startScripts'>
+        /// Start the scripts within the scene.
+        /// </param> 
+        public void Start(bool startScripts)
         {
             m_active = true;
 
@@ -1353,6 +1363,8 @@ namespace OpenSim.Region.Framework.Scenes
             m_heartbeatThread
                 = Watchdog.StartThread(
                     Heartbeat, string.Format("Heartbeat ({0})", RegionInfo.RegionName), ThreadPriority.Normal, false, false);
+
+            StartScripts();
         }
 
         /// <summary>
@@ -3699,7 +3711,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // On login test land permisions
                 if (vialogin)
                 {
-                    if (land != null && !TestLandRestrictions(agent, land, out reason))
+                    if (land != null && !TestLandRestrictions(agent.AgentID, out reason, ref agent.startpos.X, ref agent.startpos.Y))
                     {
                         m_authenticateHandler.RemoveCircuit(agent.circuitcode);
                         return false;
@@ -3880,20 +3892,37 @@ namespace OpenSim.Region.Framework.Scenes
             return true;
         }
 
-        private bool TestLandRestrictions(AgentCircuitData agent, ILandObject land,  out string reason)
+        public bool TestLandRestrictions(UUID agentID, out string reason, ref float posX, ref float posY)
         {
-            bool banned = land.IsBannedFromLand(agent.AgentID);
-            bool restricted = land.IsRestrictedFromLand(agent.AgentID);
+            if (posX < 0)
+                posX = 0;
+            else if (posX >= 256)
+                posX = 255.999f;
+            if (posY < 0)
+                posY = 0;
+            else if (posY >= 256)
+                posY = 255.999f;
+
+            reason = String.Empty;
+            if (Permissions.IsGod(agentID))
+                return true;
+
+            ILandObject land = LandChannel.GetLandObject(posX, posY);
+            if (land == null)
+                return false;
+
+            bool banned = land.IsBannedFromLand(agentID);
+            bool restricted = land.IsRestrictedFromLand(agentID);
 
             if (banned || restricted)
             {
-                ILandObject nearestParcel = GetNearestAllowedParcel(agent.AgentID, agent.startpos.X, agent.startpos.Y);
+                ILandObject nearestParcel = GetNearestAllowedParcel(agentID, posX, posY);
                 if (nearestParcel != null)
                 {
                     //Move agent to nearest allowed
                     Vector3 newPosition = GetParcelCenterAtGround(nearestParcel);
-                    agent.startpos.X = newPosition.X;
-                    agent.startpos.Y = newPosition.Y;
+                    posX = newPosition.X;
+                    posY = newPosition.Y;
                 }
                 else
                 {
@@ -5478,6 +5507,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns></returns>
         public bool QueryAccess(UUID agentID, Vector3 position, out string reason)
         {
+            reason = "You are banned from the region";
+
             if (EntityTransferModule.IsInTransit(agentID))
             {
                 reason = "Agent is still in transit from this region";
@@ -5487,6 +5518,12 @@ namespace OpenSim.Region.Framework.Scenes
                     agentID, RegionInfo.RegionName);
 
                 return false;
+            }
+
+            if (Permissions.IsGod(agentID))
+            {
+                reason = String.Empty;
+                return true;
             }
 
             // FIXME: Root agent count is currently known to be inaccurate.  This forces a recount before we check.
@@ -5507,6 +5544,41 @@ namespace OpenSim.Region.Framework.Scenes
 
                     return false;
                 }
+            }
+
+            ScenePresence presence = GetScenePresence(agentID);
+            IClientAPI client = null;
+            AgentCircuitData aCircuit = null;
+
+            if (presence != null)
+            {
+                client = presence.ControllingClient;
+                if (client != null)
+                    aCircuit = client.RequestClientInfo();
+            }
+
+            // We may be called before there is a presence or a client.
+            // Fake AgentCircuitData to keep IAuthorizationModule smiling
+            if (client == null)
+            {
+                aCircuit = new AgentCircuitData();
+                aCircuit.AgentID = agentID;
+                aCircuit.firstname = String.Empty;
+                aCircuit.lastname = String.Empty;
+            }
+
+            try
+            {
+                if (!AuthorizeUser(aCircuit, out reason))
+                {
+                    // m_log.DebugFormat("[SCENE]: Denying access for {0}", agentID);
+                    return false;
+                }
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[SCENE]: Exception authorizing agent: {0} "+ e.StackTrace, e.Message);
+                return false;
             }
 
             if (position == Vector3.Zero) // Teleport
@@ -5542,6 +5614,27 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                     }
                 }
+
+                float posX = 128.0f;
+                float posY = 128.0f;
+
+                if (!TestLandRestrictions(agentID, out reason, ref posX, ref posY))
+                {
+                    // m_log.DebugFormat("[SCENE]: Denying {0} because they are banned on all parcels", agentID);
+                    return false;
+                }
+            }
+            else // Walking
+            {
+                ILandObject land = LandChannel.GetLandObject(position.X, position.Y);
+                if (land == null)
+                    return false;
+
+                bool banned = land.IsBannedFromLand(agentID);
+                bool restricted = land.IsRestrictedFromLand(agentID);
+
+                if (banned || restricted)
+                    return false;
             }
 
             reason = String.Empty;

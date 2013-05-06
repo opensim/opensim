@@ -559,9 +559,6 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     break;
             }
 
-            // Update any physical parameters based on this type.
-            Refresh();
-
             m_linearMotor = new BSVMotor("LinearMotor", m_linearMotorTimescale,
                                 m_linearMotorDecayTimescale, m_linearFrictionTimescale,
                                 1f);
@@ -589,6 +586,9 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             {
                 RegisterForSceneEvents();
             }
+
+            // Update any physical parameters based on this type.
+            Refresh();
         }
         #endregion // Vehicle parameter setting
 
@@ -596,6 +596,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         public override void Refresh()
         {
             // If asking for a refresh, reset the physical parameters before the next simulation step.
+            // Called whether active or not since the active state may be updated before the next step.
             m_physicsScene.PostTaintObject("BSDynamics.Refresh", ControllingPrim.LocalID, delegate()
             {
                 SetPhysicalParameters();
@@ -625,7 +626,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 // Vehicles report collision events so we know when it's on the ground
                 m_physicsScene.PE.AddToCollisionFlags(ControllingPrim.PhysBody, CollisionFlags.BS_VEHICLE_COLLISIONS);
 
-                ControllingPrim.Inertia = m_physicsScene.PE.CalculateLocalInertia(ControllingPrim.PhysShape, m_vehicleMass);
+                ControllingPrim.Inertia = m_physicsScene.PE.CalculateLocalInertia(ControllingPrim.PhysShape.physShapeInfo, m_vehicleMass);
                 m_physicsScene.PE.SetMassProps(ControllingPrim.PhysBody, m_vehicleMass, ControllingPrim.Inertia);
                 m_physicsScene.PE.UpdateInertiaTensor(ControllingPrim.PhysBody);
 
@@ -649,7 +650,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         }
 
         // BSActor.RemoveBodyDependencies
-        public override void RemoveBodyDependencies()
+        public override void RemoveDependencies()
         {
             Refresh();
         }
@@ -789,7 +790,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             if ((m_knownHas & m_knownChangedTerrainHeight) == 0 || pos != lastRememberedHeightPos)
             {
                 lastRememberedHeightPos = pos;
-                m_knownTerrainHeight = ControllingPrim.PhysicsScene.TerrainManager.GetTerrainHeightAtXYZ(pos);
+                m_knownTerrainHeight = ControllingPrim.PhysScene.TerrainManager.GetTerrainHeightAtXYZ(pos);
                 m_knownHas |= m_knownChangedTerrainHeight;
             }
             return m_knownTerrainHeight;
@@ -801,7 +802,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         {
             if ((m_knownHas & m_knownChangedWaterLevel) == 0)
             {
-                m_knownWaterLevel = ControllingPrim.PhysicsScene.TerrainManager.GetWaterLevelAtXYZ(pos);
+                m_knownWaterLevel = ControllingPrim.PhysScene.TerrainManager.GetWaterLevelAtXYZ(pos);
                 m_knownHas |= m_knownChangedWaterLevel;
             }
             return (float)m_knownWaterLevel;
@@ -1019,7 +1020,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 Vector3 origVelW = VehicleVelocity;         // DEBUG DEBUG
                 VehicleVelocity /= VehicleVelocity.Length();
                 VehicleVelocity *= BSParam.VehicleMaxLinearVelocity;
-                VDetailLog("{0},  MoveLinear,clampMax,origVelW={1},lenSq={2},maxVelSq={3},,newVelW={4}", 
+                VDetailLog("{0},  MoveLinear,clampMax,origVelW={1},lenSq={2},maxVelSq={3},,newVelW={4}",
                             ControllingPrim.LocalID, origVelW, newVelocityLengthSq, BSParam.VehicleMaxLinearVelocitySquared, VehicleVelocity);
             }
             else if (newVelocityLengthSq < 0.001f)
@@ -1094,7 +1095,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     if (VehiclePosition.Z > m_VhoverTargetHeight)
                         m_VhoverTargetHeight = VehiclePosition.Z;
                 }
-                
+
                 if ((m_flags & VehicleFlag.LOCK_HOVER_HEIGHT) != 0)
                 {
                     if (Math.Abs(VehiclePosition.Z - m_VhoverTargetHeight) > 0.2f)
@@ -1188,7 +1189,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         //    used with conjunction with banking: the strength of the banking will decay when the
         //    vehicle no longer experiences collisions. The decay timescale is the same as
         //    VEHICLE_BANKING_TIMESCALE. This is to help prevent ground vehicles from steering
-        //    when they are in mid jump. 
+        //    when they are in mid jump.
         // TODO: this code is wrong. Also, what should it do for boats (height from water)?
         //    This is just using the ground and a general collision check. Should really be using
         //    a downward raycast to find what is below.
@@ -1254,7 +1255,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 
             VehicleAddForce(appliedGravity);
 
-            VDetailLog("{0},  MoveLinear,applyGravity,vehGrav={1},collid={2},fudge={3},mass={4},appliedForce={3}", 
+            VDetailLog("{0},  MoveLinear,applyGravity,vehGrav={1},collid={2},fudge={3},mass={4},appliedForce={3}",
                             ControllingPrim.LocalID, m_VehicleGravity,
                             ControllingPrim.IsColliding, BSParam.VehicleGroundGravityFudge, m_vehicleMass, appliedGravity);
         }
@@ -1330,7 +1331,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             // From http://wiki.secondlife.com/wiki/LlSetVehicleFlags :
             //    This flag prevents linear deflection parallel to world z-axis. This is useful
             //    for preventing ground vehicles with large linear deflection, like bumper cars,
-            //    from climbing their linear deflection into the sky. 
+            //    from climbing their linear deflection into the sky.
             // That is, NO_DEFLECTION_UP says angular motion should not add any pitch or roll movement
             // TODO: This is here because this is where ODE put it but documentation says it
             //    is a linear effect. Where should this check go?
@@ -1463,7 +1464,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 VehicleRotationalVelocity += (vertContributionV * VehicleOrientation);
 
                 VDetailLog("{0},  MoveAngular,verticalAttraction,,origRotVW={1},vertError={2},unscaledV={3},eff={4},ts={5},vertContribV={6}",
-                                Prim.LocalID, origRotVelW, verticalError, unscaledContribVerticalErrorV, 
+                                Prim.LocalID, origRotVelW, verticalError, unscaledContribVerticalErrorV,
                                 m_verticalAttractionEfficiency, m_verticalAttractionTimescale, vertContributionV);
                 */
             }
@@ -1530,13 +1531,13 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         //      produce a angular velocity around the yaw-axis, causing the vehicle to turn. The magnitude
         //      of the yaw effect will be proportional to the
         //          VEHICLE_BANKING_EFFICIENCY, the angle of the roll rotation, and sometimes the vehicle's
-        //                 velocity along its preferred axis of motion. 
+        //                 velocity along its preferred axis of motion.
         //          The VEHICLE_BANKING_EFFICIENCY can vary between -1 and +1. When it is positive then any
         //                  positive rotation (by the right-hand rule) about the roll-axis will effect a
         //                  (negative) torque around the yaw-axis, making it turn to the right--that is the
         //                  vehicle will lean into the turn, which is how real airplanes and motorcycle's work.
         //                  Negating the banking coefficient will make it so that the vehicle leans to the
-        //                  outside of the turn (not very "physical" but might allow interesting vehicles so why not?). 
+        //                  outside of the turn (not very "physical" but might allow interesting vehicles so why not?).
         //           The VEHICLE_BANKING_MIX is a fake (i.e. non-physical) parameter that is useful for making
         //                  banking vehicles do what you want rather than what the laws of physics allow.
         //                  For example, consider a real motorcycle...it must be moving forward in order for
@@ -1548,11 +1549,11 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         //                  totally static (0.0) and totally dynamic (1.0). By "static" we mean that the
         //                  banking effect depends only on the vehicle's rotation about its roll-axis compared
         //                  to "dynamic" where the banking is also proportional to its velocity along its
-        //                  roll-axis. Finding the best value of the "mixture" will probably require trial and error. 
+        //                  roll-axis. Finding the best value of the "mixture" will probably require trial and error.
         //      The time it takes for the banking behavior to defeat a preexisting angular velocity about the
         //      world z-axis is determined by the VEHICLE_BANKING_TIMESCALE. So if you want the vehicle to
         //      bank quickly then give it a banking timescale of about a second or less, otherwise you can
-        //      make a sluggish vehicle by giving it a timescale of several seconds. 
+        //      make a sluggish vehicle by giving it a timescale of several seconds.
         public void ComputeAngularBanking()
         {
             if (enableAngularBanking && m_bankingEfficiency != 0 && m_verticalAttractionTimescale < m_verticalAttractionCutoff)
@@ -1581,7 +1582,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 
                 //VehicleRotationalVelocity += bankingContributionV * VehicleOrientation;
                 VehicleRotationalVelocity += bankingContributionV;
-                
+
 
                 VDetailLog("{0},  MoveAngular,Banking,rollComp={1},speed={2},rollComp={3},yAng={4},mYAng={5},ret={6}",
                             ControllingPrim.LocalID, rollComponents, VehicleForwardSpeed, rollComponents, yawAngle, mixedYawAngle, bankingContributionV);
@@ -1637,8 +1638,8 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         // Invoke the detailed logger and output something if it's enabled.
         private void VDetailLog(string msg, params Object[] args)
         {
-            if (ControllingPrim.PhysicsScene.VehicleLoggingEnabled)
-                ControllingPrim.PhysicsScene.DetailLog(msg, args);
+            if (ControllingPrim.PhysScene.VehicleLoggingEnabled)
+                ControllingPrim.PhysScene.DetailLog(msg, args);
         }
     }
 }

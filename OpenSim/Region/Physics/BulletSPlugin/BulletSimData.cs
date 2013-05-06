@@ -104,11 +104,11 @@ public class BulletShape
 {
     public BulletShape()
     {
-        type = BSPhysicsShapeType.SHAPE_UNKNOWN;
+        shapeType = BSPhysicsShapeType.SHAPE_UNKNOWN;
         shapeKey = (System.UInt64)FixedShapeKey.KEY_NONE;
         isNativeShape = false;
     }
-    public BSPhysicsShapeType type;
+    public BSPhysicsShapeType shapeType;
     public System.UInt64 shapeKey;
     public bool isNativeShape;
 
@@ -133,7 +133,7 @@ public class BulletShape
         buff.Append("<p=");
         buff.Append(AddrString);
         buff.Append(",s=");
-        buff.Append(type.ToString());
+        buff.Append(shapeType.ToString());
         buff.Append(",k=");
         buff.Append(shapeKey.ToString("X"));
         buff.Append(",n=");
@@ -224,42 +224,42 @@ public static class BulletSimData
 // As mentioned above, don't use the CollisionFilterGroups definitions directly in the code
 //     but, instead, use references to this dictionary. Finding and debugging
 //     collision flag problems will be made easier.
-public static Dictionary<CollisionType, CollisionTypeFilterGroup> CollisionTypeMasks 
+public static Dictionary<CollisionType, CollisionTypeFilterGroup> CollisionTypeMasks
             = new Dictionary<CollisionType, CollisionTypeFilterGroup>()
 {
-    { CollisionType.Avatar, 
-                new CollisionTypeFilterGroup(CollisionType.Avatar, 
-                                (uint)CollisionFilterGroups.BCharacterGroup, 
+    { CollisionType.Avatar,
+                new CollisionTypeFilterGroup(CollisionType.Avatar,
+                                (uint)CollisionFilterGroups.BCharacterGroup,
                                 (uint)CollisionFilterGroups.BAllGroup)
     },
-    { CollisionType.Groundplane, 
-                new CollisionTypeFilterGroup(CollisionType.Groundplane, 
-                                (uint)CollisionFilterGroups.BGroundPlaneGroup, 
+    { CollisionType.Groundplane,
+                new CollisionTypeFilterGroup(CollisionType.Groundplane,
+                                (uint)CollisionFilterGroups.BGroundPlaneGroup,
                                 (uint)CollisionFilterGroups.BAllGroup)
     },
-    { CollisionType.Terrain, 
-                new CollisionTypeFilterGroup(CollisionType.Terrain, 
-                                (uint)CollisionFilterGroups.BTerrainGroup, 
+    { CollisionType.Terrain,
+                new CollisionTypeFilterGroup(CollisionType.Terrain,
+                                (uint)CollisionFilterGroups.BTerrainGroup,
                                 (uint)(CollisionFilterGroups.BAllGroup & ~CollisionFilterGroups.BStaticGroup))
     },
-    { CollisionType.Static, 
-                new CollisionTypeFilterGroup(CollisionType.Static, 
-                                (uint)CollisionFilterGroups.BStaticGroup, 
+    { CollisionType.Static,
+                new CollisionTypeFilterGroup(CollisionType.Static,
+                                (uint)CollisionFilterGroups.BStaticGroup,
                                 (uint)(CollisionFilterGroups.BCharacterGroup | CollisionFilterGroups.BSolidGroup))
     },
-    { CollisionType.Dynamic, 
-                new CollisionTypeFilterGroup(CollisionType.Dynamic, 
-                                (uint)CollisionFilterGroups.BSolidGroup, 
+    { CollisionType.Dynamic,
+                new CollisionTypeFilterGroup(CollisionType.Dynamic,
+                                (uint)CollisionFilterGroups.BSolidGroup,
                                 (uint)(CollisionFilterGroups.BAllGroup))
     },
-    { CollisionType.VolumeDetect, 
-                new CollisionTypeFilterGroup(CollisionType.VolumeDetect, 
-                                (uint)CollisionFilterGroups.BSensorTrigger, 
+    { CollisionType.VolumeDetect,
+                new CollisionTypeFilterGroup(CollisionType.VolumeDetect,
+                                (uint)CollisionFilterGroups.BSensorTrigger,
                                 (uint)(~CollisionFilterGroups.BSensorTrigger))
     },
     { CollisionType.LinksetChild,
-                new CollisionTypeFilterGroup(CollisionType.LinksetChild, 
-                                (uint)CollisionFilterGroups.BLinksetChildGroup, 
+                new CollisionTypeFilterGroup(CollisionType.LinksetChild,
+                                (uint)CollisionFilterGroups.BLinksetChildGroup,
                                 (uint)(CollisionFilterGroups.BNoneGroup))
                                 // (uint)(CollisionFilterGroups.BCharacterGroup | CollisionFilterGroups.BSolidGroup))
     },

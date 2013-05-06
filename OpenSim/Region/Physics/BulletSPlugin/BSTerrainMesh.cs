@@ -51,7 +51,7 @@ public sealed class BSTerrainMesh : BSTerrainPhys
     BulletShape m_terrainShape;
     BulletBody m_terrainBody;
 
-    public BSTerrainMesh(BSScene physicsScene, Vector3 regionBase, uint id, Vector3 regionSize) 
+    public BSTerrainMesh(BSScene physicsScene, Vector3 regionBase, uint id, Vector3 regionSize)
         : base(physicsScene, regionBase, id)
     {
     }
@@ -62,7 +62,7 @@ public sealed class BSTerrainMesh : BSTerrainPhys
     }
 
     // Create terrain mesh from a heightmap.
-    public BSTerrainMesh(BSScene physicsScene, Vector3 regionBase, uint id, float[] initialMap, 
+    public BSTerrainMesh(BSScene physicsScene, Vector3 regionBase, uint id, float[] initialMap,
                                                     Vector3 minCoords, Vector3 maxCoords)
         : base(physicsScene, regionBase, id)
     {
@@ -80,7 +80,7 @@ public sealed class BSTerrainMesh : BSTerrainPhys
         if (BSParam.TerrainMeshMagnification == 1)
         {
             // If a magnification of one, use the old routine that is tried and true.
-            meshCreationSuccess = BSTerrainMesh.ConvertHeightmapToMesh(PhysicsScene,
+            meshCreationSuccess = BSTerrainMesh.ConvertHeightmapToMesh(m_physicsScene,
                                             initialMap, m_sizeX, m_sizeY,       // input size
                                             Vector3.Zero,                       // base for mesh
                                             out indicesCount, out indices, out verticesCount, out vertices);
@@ -88,7 +88,7 @@ public sealed class BSTerrainMesh : BSTerrainPhys
         else
         {
             // Other magnifications use the newer routine
-            meshCreationSuccess = BSTerrainMesh.ConvertHeightmapToMesh2(PhysicsScene,
+            meshCreationSuccess = BSTerrainMesh.ConvertHeightmapToMesh2(m_physicsScene,
                                             initialMap, m_sizeX, m_sizeY,       // input size
                                             BSParam.TerrainMeshMagnification,
                                             physicsScene.TerrainManager.DefaultRegionSize,
@@ -98,21 +98,21 @@ public sealed class BSTerrainMesh : BSTerrainPhys
         if (!meshCreationSuccess)
         {
             // DISASTER!!
-            PhysicsScene.DetailLog("{0},BSTerrainMesh.create,failedConversionOfHeightmap,id={1}", BSScene.DetailLogZero, ID);
-            PhysicsScene.Logger.ErrorFormat("{0} Failed conversion of heightmap to mesh! base={1}", LogHeader, TerrainBase);
+            m_physicsScene.DetailLog("{0},BSTerrainMesh.create,failedConversionOfHeightmap,id={1}", BSScene.DetailLogZero, ID);
+            m_physicsScene.Logger.ErrorFormat("{0} Failed conversion of heightmap to mesh! base={1}", LogHeader, TerrainBase);
             // Something is very messed up and a crash is in our future.
             return;
         }
 
-        PhysicsScene.DetailLog("{0},BSTerrainMesh.create,meshed,id={1},indices={2},indSz={3},vertices={4},vertSz={5}", 
+        m_physicsScene.DetailLog("{0},BSTerrainMesh.create,meshed,id={1},indices={2},indSz={3},vertices={4},vertSz={5}",
                                 BSScene.DetailLogZero, ID, indicesCount, indices.Length, verticesCount, vertices.Length);
 
-        m_terrainShape = PhysicsScene.PE.CreateMeshShape(PhysicsScene.World, indicesCount, indices, verticesCount, vertices);
+        m_terrainShape = m_physicsScene.PE.CreateMeshShape(m_physicsScene.World, indicesCount, indices, verticesCount, vertices);
         if (!m_terrainShape.HasPhysicalShape)
         {
             // DISASTER!!
-            PhysicsScene.DetailLog("{0},BSTerrainMesh.create,failedCreationOfShape,id={1}", BSScene.DetailLogZero, ID);
-            PhysicsScene.Logger.ErrorFormat("{0} Failed creation of terrain mesh! base={1}", LogHeader, TerrainBase);
+            m_physicsScene.DetailLog("{0},BSTerrainMesh.create,failedCreationOfShape,id={1}", BSScene.DetailLogZero, ID);
+            m_physicsScene.Logger.ErrorFormat("{0} Failed creation of terrain mesh! base={1}", LogHeader, TerrainBase);
             // Something is very messed up and a crash is in our future.
             return;
         }
@@ -120,52 +120,52 @@ public sealed class BSTerrainMesh : BSTerrainPhys
         Vector3 pos = regionBase;
         Quaternion rot = Quaternion.Identity;
 
-        m_terrainBody = PhysicsScene.PE.CreateBodyWithDefaultMotionState(m_terrainShape, ID, pos, rot);
+        m_terrainBody = m_physicsScene.PE.CreateBodyWithDefaultMotionState(m_terrainShape, ID, pos, rot);
         if (!m_terrainBody.HasPhysicalBody)
         {
             // DISASTER!!
-            PhysicsScene.Logger.ErrorFormat("{0} Failed creation of terrain body! base={1}", LogHeader, TerrainBase);
+            m_physicsScene.Logger.ErrorFormat("{0} Failed creation of terrain body! base={1}", LogHeader, TerrainBase);
             // Something is very messed up and a crash is in our future.
             return;
         }
         physicsScene.PE.SetShapeCollisionMargin(m_terrainShape, BSParam.TerrainCollisionMargin);
 
         // Set current terrain attributes
-        PhysicsScene.PE.SetFriction(m_terrainBody, BSParam.TerrainFriction);
-        PhysicsScene.PE.SetHitFraction(m_terrainBody, BSParam.TerrainHitFraction);
-        PhysicsScene.PE.SetRestitution(m_terrainBody, BSParam.TerrainRestitution);
-        PhysicsScene.PE.SetContactProcessingThreshold(m_terrainBody, BSParam.TerrainContactProcessingThreshold);
-        PhysicsScene.PE.SetCollisionFlags(m_terrainBody, CollisionFlags.CF_STATIC_OBJECT);
+        m_physicsScene.PE.SetFriction(m_terrainBody, BSParam.TerrainFriction);
+        m_physicsScene.PE.SetHitFraction(m_terrainBody, BSParam.TerrainHitFraction);
+        m_physicsScene.PE.SetRestitution(m_terrainBody, BSParam.TerrainRestitution);
+        m_physicsScene.PE.SetContactProcessingThreshold(m_terrainBody, BSParam.TerrainContactProcessingThreshold);
+        m_physicsScene.PE.SetCollisionFlags(m_terrainBody, CollisionFlags.CF_STATIC_OBJECT);
 
         // Static objects are not very massive.
-        PhysicsScene.PE.SetMassProps(m_terrainBody, 0f, Vector3.Zero);
+        m_physicsScene.PE.SetMassProps(m_terrainBody, 0f, Vector3.Zero);
 
         // Put the new terrain to the world of physical objects
-        PhysicsScene.PE.AddObjectToWorld(PhysicsScene.World, m_terrainBody);
+        m_physicsScene.PE.AddObjectToWorld(m_physicsScene.World, m_terrainBody);
 
         // Redo its bounding box now that it is in the world
-        PhysicsScene.PE.UpdateSingleAabb(PhysicsScene.World, m_terrainBody);
+        m_physicsScene.PE.UpdateSingleAabb(m_physicsScene.World, m_terrainBody);
 
         m_terrainBody.collisionType = CollisionType.Terrain;
-        m_terrainBody.ApplyCollisionMask(PhysicsScene);
+        m_terrainBody.ApplyCollisionMask(m_physicsScene);
 
         if (BSParam.UseSingleSidedMeshes)
         {
-            PhysicsScene.DetailLog("{0},BSTerrainMesh.settingCustomMaterial,id={1}", BSScene.DetailLogZero, id);
-            PhysicsScene.PE.AddToCollisionFlags(m_terrainBody, CollisionFlags.CF_CUSTOM_MATERIAL_CALLBACK);
+            m_physicsScene.DetailLog("{0},BSTerrainMesh.settingCustomMaterial,id={1}", BSScene.DetailLogZero, id);
+            m_physicsScene.PE.AddToCollisionFlags(m_terrainBody, CollisionFlags.CF_CUSTOM_MATERIAL_CALLBACK);
         }
 
         // Make it so the terrain will not move or be considered for movement.
-        PhysicsScene.PE.ForceActivationState(m_terrainBody, ActivationState.DISABLE_SIMULATION);
+        m_physicsScene.PE.ForceActivationState(m_terrainBody, ActivationState.DISABLE_SIMULATION);
     }
 
     public override void Dispose()
     {
         if (m_terrainBody.HasPhysicalBody)
         {
-            PhysicsScene.PE.RemoveObjectFromWorld(PhysicsScene.World, m_terrainBody);
+            m_physicsScene.PE.RemoveObjectFromWorld(m_physicsScene.World, m_terrainBody);
             // Frees both the body and the shape.
-            PhysicsScene.PE.DestroyObject(PhysicsScene.World, m_terrainBody);
+            m_physicsScene.PE.DestroyObject(m_physicsScene.World, m_terrainBody);
             m_terrainBody.Clear();
             m_terrainShape.Clear();
         }
@@ -185,7 +185,7 @@ public sealed class BSTerrainMesh : BSTerrainPhys
         catch
         {
             // Sometimes they give us wonky values of X and Y. Give a warning and return something.
-            PhysicsScene.Logger.WarnFormat("{0} Bad request for terrain height. terrainBase={1}, pos={2}",
+            m_physicsScene.Logger.WarnFormat("{0} Bad request for terrain height. terrainBase={1}, pos={2}",
                                                 LogHeader, TerrainBase, pos);
             ret = BSTerrainManager.HEIGHT_GETHEIGHT_RET;
         }
@@ -195,7 +195,7 @@ public sealed class BSTerrainMesh : BSTerrainPhys
     // The passed position is relative to the base of the region.
     public override float GetWaterLevelAtXYZ(Vector3 pos)
     {
-        return PhysicsScene.SimpleWaterLevel;
+        return m_physicsScene.SimpleWaterLevel;
     }
 
     // Convert the passed heightmap to mesh information suitable for CreateMeshShape2().

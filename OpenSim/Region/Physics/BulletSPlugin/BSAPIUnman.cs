@@ -75,11 +75,11 @@ private sealed class BulletBodyUnman : BulletBody
 private sealed class BulletShapeUnman : BulletShape
 {
     public IntPtr ptr;
-    public BulletShapeUnman(IntPtr xx, BSPhysicsShapeType typ) 
+    public BulletShapeUnman(IntPtr xx, BSPhysicsShapeType typ)
         : base()
     {
         ptr = xx;
-        type = typ;
+        shapeType = typ;
     }
     public override bool HasPhysicalShape
     {
@@ -91,7 +91,7 @@ private sealed class BulletShapeUnman : BulletShape
     }
     public override BulletShape Clone()
     {
-        return new BulletShapeUnman(ptr, type);
+        return new BulletShapeUnman(ptr, shapeType);
     }
     public override bool ReferenceSame(BulletShape other)
     {
@@ -255,7 +255,7 @@ public override BulletShape CreateHullShape(BulletWorld world, int hullCount, fl
 {
     BulletWorldUnman worldu = world as BulletWorldUnman;
     return new BulletShapeUnman(
-                    BSAPICPP.CreateHullShape2(worldu.ptr, hullCount, hulls), 
+                    BSAPICPP.CreateHullShape2(worldu.ptr, hullCount, hulls),
                     BSPhysicsShapeType.SHAPE_HULL);
 }
 
@@ -375,7 +375,7 @@ public override BulletShape DuplicateCollisionShape(BulletWorld world, BulletSha
 {
     BulletWorldUnman worldu = world as BulletWorldUnman;
     BulletShapeUnman srcShapeu = srcShape as BulletShapeUnman;
-    return new BulletShapeUnman(BSAPICPP.DuplicateCollisionShape2(worldu.ptr, srcShapeu.ptr, id), srcShape.type);
+    return new BulletShapeUnman(BSAPICPP.DuplicateCollisionShape2(worldu.ptr, srcShapeu.ptr, id), srcShape.shapeType);
 }
 
 public override bool DeleteCollisionShape(BulletWorld world, BulletShape shape)
@@ -1503,7 +1503,7 @@ public static extern void DestroyObject2(IntPtr sim, IntPtr obj);
 public static extern IntPtr CreateGroundPlaneShape2(uint id, float height, float collisionMargin);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern IntPtr CreateTerrainShape2(uint id, Vector3 size, float minHeight, float maxHeight, 
+public static extern IntPtr CreateTerrainShape2(uint id, Vector3 size, float minHeight, float maxHeight,
                                             [MarshalAs(UnmanagedType.LPArray)] float[] heightMap,
                                             float scaleFactor, float collisionMargin);
 

@@ -63,7 +63,7 @@ public class BSActorLockAxis : BSActor
     // BSActor.Refresh()
     public override void Refresh()
     {
-        m_physicsScene.DetailLog("{0},BSActorLockAxis,refresh,lockedAxis={1},enabled={2},pActive={3}", 
+        m_physicsScene.DetailLog("{0},BSActorLockAxis,refresh,lockedAxis={1},enabled={2},pActive={3}",
                                     m_controllingPrim.LocalID, m_controllingPrim.LockedAxis, Enabled, m_controllingPrim.IsPhysicallyActive);
         // If all the axis are free, we don't need to exist
         if (m_controllingPrim.LockedAxis == m_controllingPrim.LockedAxisFree)
@@ -85,8 +85,8 @@ public class BSActorLockAxis : BSActor
     // The object's physical representation is being rebuilt so pick up any physical dependencies (constraints, ...).
     //     Register a prestep action to restore physical requirements before the next simulation step.
     // Called at taint-time.
-    // BSActor.RemoveBodyDependencies()
-    public override void RemoveBodyDependencies()
+    // BSActor.RemoveDependencies()
+    public override void RemoveDependencies()
     {
         if (LockAxisConstraint != null)
         {

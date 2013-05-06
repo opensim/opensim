@@ -87,8 +87,8 @@ public class BSActorAvatarMove : BSActor
     // The object's physical representation is being rebuilt so pick up any physical dependencies (constraints, ...).
     //     Register a prestep action to restore physical requirements before the next simulation step.
     // Called at taint-time.
-    // BSActor.RemoveBodyDependencies()
-    public override void RemoveBodyDependencies()
+    // BSActor.RemoveDependencies()
+    public override void RemoveDependencies()
     {
         // Nothing to do for the hoverer since it is all software at pre-step action time.
     }
@@ -115,7 +115,7 @@ public class BSActorAvatarMove : BSActor
         if (m_velocityMotor == null)
         {
             // Infinite decay and timescale values so motor only changes current to target values.
-            m_velocityMotor = new BSVMotor("BSCharacter.Velocity", 
+            m_velocityMotor = new BSVMotor("BSCharacter.Velocity",
                                                 0.2f,                       // time scale
                                                 BSMotor.Infinite,           // decay time scale
                                                 BSMotor.InfiniteVector,     // friction timescale

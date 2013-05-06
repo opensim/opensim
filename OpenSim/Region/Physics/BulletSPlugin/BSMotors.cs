@@ -102,7 +102,7 @@ public class BSVMotor : BSMotor
         return ErrorIsZero(LastError);
     }
     public virtual bool ErrorIsZero(Vector3 err)
-    { 
+    {
         return (err == Vector3.Zero || err.ApproxEquals(Vector3.Zero, ErrorZeroThreshold));
     }
 
@@ -115,7 +115,7 @@ public class BSVMotor : BSMotor
         CurrentValue = TargetValue = Vector3.Zero;
         ErrorZeroThreshold = 0.001f;
     }
-    public BSVMotor(string useName, float timeScale, float decayTimeScale, Vector3 frictionTimeScale, float efficiency) 
+    public BSVMotor(string useName, float timeScale, float decayTimeScale, Vector3 frictionTimeScale, float efficiency)
         : this(useName)
     {
         TimeScale = timeScale;
@@ -237,7 +237,7 @@ public class BSVMotor : BSMotor
         MDetailLog("{0},BSVMotor.Test,{1},===================================== BEGIN Test Output", BSScene.DetailLogZero, UseName);
         MDetailLog("{0},BSVMotor.Test,{1},timeScale={2},targDlyTS={3},frictTS={4},eff={5},curr={6},tgt={7}",
                                 BSScene.DetailLogZero, UseName,
-                                TimeScale, TargetValueDecayTimeScale, FrictionTimescale, Efficiency, 
+                                TimeScale, TargetValueDecayTimeScale, FrictionTimescale, Efficiency,
                                 CurrentValue, TargetValue);
 
         LastError = BSMotor.InfiniteVector;
@@ -248,7 +248,7 @@ public class BSVMotor : BSMotor
                             BSScene.DetailLogZero, UseName, CurrentValue, TargetValue, LastError, lastStep);
         }
         MDetailLog("{0},BSVMotor.Test,{1},===================================== END Test Output", BSScene.DetailLogZero, UseName);
-        
+
 
     }
 
@@ -279,7 +279,7 @@ public class BSFMotor : BSMotor
         return ErrorIsZero(LastError);
     }
     public virtual bool ErrorIsZero(float err)
-    { 
+    {
         return (err >= -ErrorZeroThreshold && err <= ErrorZeroThreshold);
     }
 
@@ -410,7 +410,7 @@ public class BSPIDVMotor : BSVMotor
     // The factors are vectors for the three dimensions. This is the proportional of each
     //    that is applied. This could be multiplied through the actual factors but it
     //    is sometimes easier to manipulate the factors and their mix separately.
-    //      to 
+    //      to
     public Vector3 FactorMix;
 
     // Arbritrary factor range.

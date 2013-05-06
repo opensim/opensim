@@ -171,11 +171,6 @@ namespace OpenSim.Server.Base
 
             m_console = MainConsole.Instance;
 
-            // Configure the appenders for log4net
-            //
-            OpenSimAppender consoleAppender = null;
-            FileAppender fileAppender = null;
-
             if (logConfig != null)
             {
                 FileInfo cfg = new FileInfo(logConfig);

@@ -68,7 +68,7 @@ public sealed class BSTerrainHeightmap : BSTerrainPhys
 
     // This minCoords and maxCoords passed in give the size of the terrain (min and max Z
     //         are the high and low points of the heightmap).
-    public BSTerrainHeightmap(BSScene physicsScene, Vector3 regionBase, uint id, float[] initialMap, 
+    public BSTerrainHeightmap(BSScene physicsScene, Vector3 regionBase, uint id, float[] initialMap,
                                                     Vector3 minCoords, Vector3 maxCoords)
         : base(physicsScene, regionBase, id)
     {
@@ -92,7 +92,7 @@ public sealed class BSTerrainHeightmap : BSTerrainPhys
     private void BuildHeightmapTerrain()
     {
         // Create the terrain shape from the mapInfo
-        m_mapInfo.terrainShape = PhysicsScene.PE.CreateTerrainShape( m_mapInfo.ID, 
+        m_mapInfo.terrainShape = m_physicsScene.PE.CreateTerrainShape( m_mapInfo.ID,
                                 new Vector3(m_mapInfo.sizeX, m_mapInfo.sizeY, 0), m_mapInfo.minZ, m_mapInfo.maxZ,
                                 m_mapInfo.heightMap, 1f, BSParam.TerrainCollisionMargin);
 
@@ -103,26 +103,26 @@ public sealed class BSTerrainHeightmap : BSTerrainPhys
         centerPos.Y = m_mapInfo.minCoords.Y + (m_mapInfo.sizeY / 2f);
         centerPos.Z = m_mapInfo.minZ + ((m_mapInfo.maxZ - m_mapInfo.minZ) / 2f);
 
-        m_mapInfo.terrainBody = PhysicsScene.PE.CreateBodyWithDefaultMotionState(m_mapInfo.terrainShape, 
+        m_mapInfo.terrainBody = m_physicsScene.PE.CreateBodyWithDefaultMotionState(m_mapInfo.terrainShape,
                                 m_mapInfo.ID, centerPos, Quaternion.Identity);
 
         // Set current terrain attributes
-        PhysicsScene.PE.SetFriction(m_mapInfo.terrainBody, BSParam.TerrainFriction);
-        PhysicsScene.PE.SetHitFraction(m_mapInfo.terrainBody, BSParam.TerrainHitFraction);
-        PhysicsScene.PE.SetRestitution(m_mapInfo.terrainBody, BSParam.TerrainRestitution);
-        PhysicsScene.PE.SetCollisionFlags(m_mapInfo.terrainBody, CollisionFlags.CF_STATIC_OBJECT);
+        m_physicsScene.PE.SetFriction(m_mapInfo.terrainBody, BSParam.TerrainFriction);
+        m_physicsScene.PE.SetHitFraction(m_mapInfo.terrainBody, BSParam.TerrainHitFraction);
+        m_physicsScene.PE.SetRestitution(m_mapInfo.terrainBody, BSParam.TerrainRestitution);
+        m_physicsScene.PE.SetCollisionFlags(m_mapInfo.terrainBody, CollisionFlags.CF_STATIC_OBJECT);
 
         // Return the new terrain to the world of physical objects
-        PhysicsScene.PE.AddObjectToWorld(PhysicsScene.World, m_mapInfo.terrainBody);
+        m_physicsScene.PE.AddObjectToWorld(m_physicsScene.World, m_mapInfo.terrainBody);
 
         // redo its bounding box now that it is in the world
-        PhysicsScene.PE.UpdateSingleAabb(PhysicsScene.World, m_mapInfo.terrainBody);
+        m_physicsScene.PE.UpdateSingleAabb(m_physicsScene.World, m_mapInfo.terrainBody);
 
         m_mapInfo.terrainBody.collisionType = CollisionType.Terrain;
-        m_mapInfo.terrainBody.ApplyCollisionMask(PhysicsScene);
+        m_mapInfo.terrainBody.ApplyCollisionMask(m_physicsScene);
 
         // Make it so the terrain will not move or be considered for movement.
-        PhysicsScene.PE.ForceActivationState(m_mapInfo.terrainBody, ActivationState.DISABLE_SIMULATION);
+        m_physicsScene.PE.ForceActivationState(m_mapInfo.terrainBody, ActivationState.DISABLE_SIMULATION);
 
         return;
     }
@@ -134,9 +134,9 @@ public sealed class BSTerrainHeightmap : BSTerrainPhys
         {
             if (m_mapInfo.terrainBody.HasPhysicalBody)
             {
-                PhysicsScene.PE.RemoveObjectFromWorld(PhysicsScene.World, m_mapInfo.terrainBody);
+                m_physicsScene.PE.RemoveObjectFromWorld(m_physicsScene.World, m_mapInfo.terrainBody);
                 // Frees both the body and the shape.
-                PhysicsScene.PE.DestroyObject(PhysicsScene.World, m_mapInfo.terrainBody);
+                m_physicsScene.PE.DestroyObject(m_physicsScene.World, m_mapInfo.terrainBody);
             }
         }
         m_mapInfo = null;
@@ -155,7 +155,7 @@ public sealed class BSTerrainHeightmap : BSTerrainPhys
         catch
         {
             // Sometimes they give us wonky values of X and Y. Give a warning and return something.
-            PhysicsScene.Logger.WarnFormat("{0} Bad request for terrain height. terrainBase={1}, pos={2}",
+            m_physicsScene.Logger.WarnFormat("{0} Bad request for terrain height. terrainBase={1}, pos={2}",
                                 LogHeader, m_mapInfo.terrainRegionBase, pos);
             ret = BSTerrainManager.HEIGHT_GETHEIGHT_RET;
         }
@@ -165,7 +165,7 @@ public sealed class BSTerrainHeightmap : BSTerrainPhys
     // The passed position is relative to the base of the region.
     public override float GetWaterLevelAtXYZ(Vector3 pos)
     {
-        return PhysicsScene.SimpleWaterLevel;
+        return m_physicsScene.SimpleWaterLevel;
     }
 }
 }

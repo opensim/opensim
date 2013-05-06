@@ -53,6 +53,9 @@ namespace OpenSim.Tests.Common.Mock
 
         public XInventoryFolder[] GetFolders(string[] fields, string[] vals)
         {
+//            Console.WriteLine(
+//                "Requesting folders, fields {0}, vals {1}", string.Join(",", fields), string.Join(",", vals));
+
             List<XInventoryFolder> origFolders
                 = Get<XInventoryFolder>(fields, vals, m_allFolders.Values.ToList());
 
@@ -104,7 +107,30 @@ namespace OpenSim.Tests.Common.Mock
         }
 
         public bool MoveItem(string id, string newParent) { throw new NotImplementedException(); }
-        public bool MoveFolder(string id, string newParent) { throw new NotImplementedException(); }
+
+        public bool MoveFolder(string id, string newParent) 
+        { 
+            // Don't use GetFolders() here - it takes a clone!
+            XInventoryFolder folder = m_allFolders[new UUID(id)];
+
+            if (folder == null)
+                return false;
+
+            folder.parentFolderID = new UUID(newParent);
+
+            XInventoryFolder[] newParentFolders 
+                = GetFolders(new string[] { "folderID" }, new string[] { folder.parentFolderID.ToString() });
+
+//            Console.WriteLine(
+//                "Moved folder {0} {1}, to {2} {3}", 
+//                folder.folderName, folder.folderID, newParentFolders[0].folderName, folder.parentFolderID);
+
+            // TODO: Really need to implement folder version incrementing, though this should be common code anyway,
+            // not reimplemented in each db plugin.
+
+            return true;
+        }
+
         public XInventoryItem[] GetActiveGestures(UUID principalID) { throw new NotImplementedException(); }
         public int GetAssetPermissions(UUID principalID, UUID assetID) { throw new NotImplementedException(); }
     }
