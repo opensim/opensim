@@ -32,6 +32,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Security;
+using System.Timers;
 using log4net;
 using Mono.Addins;
 using Nini.Config;
@@ -48,6 +49,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        private Timer m_regionChangeTimer = new Timer();
         public Scene Scene { get; private set; }
         public IUserManagement UserManager { get; private set; }
         
@@ -64,6 +66,8 @@ namespace OpenSim.Region.CoreModules.World.Estate
         public event ChangeDelegate OnRegionInfoChange;
         public event ChangeDelegate OnEstateInfoChange;
         public event MessageDelegate OnEstateMessage;
+
+        private int m_delayCount = 0;
 
         #region Region Module interface
         
@@ -114,6 +118,12 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         #region Packet Data Responders
 
+        private void clientSendDetailedEstateData(IClientAPI remote_client, UUID invoice)
+        {
+            sendDetailedEstateData(remote_client, invoice);
+            sendEstateLists(remote_client, invoice);
+        }
+
         private void sendDetailedEstateData(IClientAPI remote_client, UUID invoice)
         {
             uint sun = 0;
@@ -136,7 +146,10 @@ namespace OpenSim.Region.CoreModules.World.Estate
                     (uint) Scene.RegionInfo.RegionSettings.CovenantChangedDateTime,
                     Scene.RegionInfo.EstateSettings.AbuseEmail,
                     estateOwner);
+        }
 
+        private void sendEstateLists(IClientAPI remote_client, UUID invoice)
+        {
             remote_client.SendEstateList(invoice,
                     (int)Constants.EstateAccessCodex.EstateManagers,
                     Scene.RegionInfo.EstateSettings.EstateManagers,
@@ -330,7 +343,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                         timeInSeconds -= 15;
                 }
 
-                restartModule.ScheduleRestart(UUID.Zero, "Region will restart in {0}", times.ToArray(), true);
+                restartModule.ScheduleRestart(UUID.Zero, "Region will restart in {0}", times.ToArray(), false);
 
                 m_log.InfoFormat(
                     "User {0} requested restart of region {1} in {2} seconds", 
@@ -546,7 +559,11 @@ namespace OpenSim.Region.CoreModules.World.Estate
                         {
                             if (!s.IsChildAgent)
                             {
-                                Scene.TeleportClientHome(user, s.ControllingClient);
+                                if (!Scene.TeleportClientHome(user, s.ControllingClient))
+                                {
+                                    s.ControllingClient.Kick("Your access to the region was revoked and TP home failed - you have been logged out.");
+                                    s.ControllingClient.Close();
+                                }
                             }
                         }
 
@@ -555,7 +572,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                     {
                         remote_client.SendAlertMessage("User is already on the region ban list");
                     }
-                    //m_scene.RegionInfo.regionBanlist.Add(Manager(user);
+                    //Scene.RegionInfo.regionBanlist.Add(Manager(user);
                     remote_client.SendBannedUserList(invoice, Scene.RegionInfo.EstateSettings.EstateBans, Scene.RegionInfo.EstateSettings.EstateID);
                 }
                 else
@@ -611,7 +628,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                         remote_client.SendAlertMessage("User is not on the region ban list");
                     }
                     
-                    //m_scene.RegionInfo.regionBanlist.Add(Manager(user);
+                    //Scene.RegionInfo.regionBanlist.Add(Manager(user);
                     remote_client.SendBannedUserList(invoice, Scene.RegionInfo.EstateSettings.EstateBans, Scene.RegionInfo.EstateSettings.EstateID);
                 }
                 else
@@ -777,7 +794,11 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 ScenePresence s = Scene.GetScenePresence(prey);
                 if (s != null)
                 {
-                    Scene.TeleportClientHome(prey, s.ControllingClient);
+                    if (!Scene.TeleportClientHome(prey, s.ControllingClient))
+                    {
+                        s.ControllingClient.Kick("You were teleported home by the region owner, but the TP failed - you have been logged out.");
+                        s.ControllingClient.Close();
+                    }
                 }
             }
         }
@@ -795,7 +816,13 @@ namespace OpenSim.Region.CoreModules.World.Estate
                     // Also make sure they are actually in the region
                     ScenePresence p;
                     if(Scene.TryGetScenePresence(client.AgentId, out p))
-                        Scene.TeleportClientHome(p.UUID, p.ControllingClient);
+                    {
+                        if (!Scene.TeleportClientHome(p.UUID, p.ControllingClient))
+                        {
+                            p.ControllingClient.Kick("You were teleported home by the region owner, but the TP failed - you have been logged out.");
+                            p.ControllingClient.Close();
+                        }
+                    }
                 }
             });
         }
@@ -1170,7 +1197,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         private void EventManager_OnNewClient(IClientAPI client)
         {
-            client.OnDetailedEstateDataRequest += sendDetailedEstateData;
+            client.OnDetailedEstateDataRequest += clientSendDetailedEstateData;
             client.OnSetEstateFlagsRequest += estateSetRegionInfoHandler;
 //            client.OnSetEstateTerrainBaseTexture += setEstateTerrainBaseTexture;
             client.OnSetEstateTerrainDetailTexture += setEstateTerrainBaseTexture;
@@ -1218,8 +1245,6 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 flags |= RegionFlags.NoFly;
             if (Scene.RegionInfo.RegionSettings.RestrictPushing)
                 flags |= RegionFlags.RestrictPushObject;
-            if (Scene.RegionInfo.RegionSettings.AllowLandJoinDivide)
-                flags |= RegionFlags.AllowParcelChanges;
             if (Scene.RegionInfo.RegionSettings.BlockShowInSearch)
                 flags |= RegionFlags.BlockParcelSearch;
 
@@ -1229,11 +1254,11 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 flags |= RegionFlags.Sandbox;
             if (Scene.RegionInfo.EstateSettings.AllowVoice)
                 flags |= RegionFlags.AllowVoice;
+            if (Scene.RegionInfo.EstateSettings.BlockDwell)
+                flags |= RegionFlags.BlockDwell;
+            if (Scene.RegionInfo.EstateSettings.ResetHomeOnTeleport)
+                flags |= RegionFlags.ResetHomeOnTeleport;
 
-            // Fudge these to always on, so the menu options activate
-            //
-            flags |= RegionFlags.AllowLandmark;
-            flags |= RegionFlags.AllowSetHome;
 
             // TODO: SkipUpdateInterestList
 
@@ -1293,6 +1318,12 @@ namespace OpenSim.Region.CoreModules.World.Estate
         }
 
         public void TriggerRegionInfoChange()
+        {
+            m_regionChangeTimer.Stop();
+            m_regionChangeTimer.Start();
+        }
+
+        protected void RaiseRegionInfoChange(object sender, ElapsedEventArgs e)
         {
             ChangeDelegate change = OnRegionInfoChange;
 

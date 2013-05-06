@@ -243,7 +243,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         protected virtual void OnNewClient(IClientAPI client)
         {
-            client.OnTeleportHomeRequest += TeleportHome;
+            client.OnTeleportHomeRequest += TriggerTeleportHome;
             client.OnTeleportLandmarkRequest += RequestTeleportLandmark;
 
             if (!DisableInterRegionTeleportCancellation)
@@ -1071,7 +1071,12 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         #region Teleport Home
 
-        public virtual void TeleportHome(UUID id, IClientAPI client)
+        public virtual void TriggerTeleportHome(UUID id, IClientAPI client)     
+        {                                                                       
+            TeleportHome(id, client);                                           
+        }                                                                       
+                          
+        public virtual bool TeleportHome(UUID id, IClientAPI client)
         {
             m_log.DebugFormat(
                 "[ENTITY TRANSFER MODULE]: Request to teleport {0} {1} home", client.Name, client.AgentId);
@@ -1086,7 +1091,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 {
                     // can't find the Home region: Tell viewer and abort
                     client.SendTeleportFailed("Your home region could not be found.");
-                    return;
+                    return false;
                 }
                 
                 m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Home region of {0} is {1} ({2}-{3})",
@@ -1096,6 +1101,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 ((Scene)(client.Scene)).RequestTeleportLocation(
                     client, regionInfo.RegionHandle, uinfo.HomePosition, uinfo.HomeLookAt,
                     (uint)(Constants.TeleportFlags.SetLastToTarget | Constants.TeleportFlags.ViaHome));
+                return true;
             }
             else
             {
@@ -1103,6 +1109,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     "[ENTITY TRANSFER MODULE]: No grid user information found for {0} {1}.  Cannot send home.",
                     client.Name, client.AgentId);
             }
+            return false;
         }
 
         #endregion

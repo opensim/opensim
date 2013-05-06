@@ -72,7 +72,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// </summary>
         /// <param name='id'></param>
         /// <param name='client'></param>
-        void TeleportHome(UUID id, IClientAPI client);
+        bool TeleportHome(UUID id, IClientAPI client);
 
         /// <summary>
         /// Show whether the given agent is being teleported.
