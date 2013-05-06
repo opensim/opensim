@@ -3885,7 +3885,13 @@ namespace OpenSim.Region.Framework.Scenes
 
             lock (agent)
             {
-                //On login test land permisions
+                // Optimistic: add or update the circuit data with the new agent circuit data and teleport flags.
+                // We need the circuit data here for some of the subsequent checks. (groups, for example)
+                // If the checks fail, we remove the circuit.
+                agent.teleportFlags = teleportFlags;
+                m_authenticateHandler.AddNewCircuit(agent.circuitcode, agent);
+
+                // On login test land permisions
                 if (vialogin)
                 {
                     IUserAccountCacheModule cache = RequestModuleInterface<IUserAccountCacheModule>();
@@ -3894,6 +3900,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (!TestLandRestrictions(agent.AgentID, out reason, ref agent.startpos.X, ref agent.startpos.Y))
                     {
                         m_log.DebugFormat("[CONNECTION BEGIN]: Denying access to {0} due to no land access", agent.AgentID.ToString());
+                        m_authenticateHandler.RemoveCircuit(agent.circuitcode);
                         return false;
                     }
                 }
@@ -3905,11 +3912,17 @@ namespace OpenSim.Region.Framework.Scenes
                         try
                         {
                             if (!VerifyUserPresence(agent, out reason))
+                            {
+                                m_authenticateHandler.RemoveCircuit(agent.circuitcode);
                                 return false;
-                        } catch (Exception e)
+                            }
+                        }
+                        catch (Exception e)
                         {
                             m_log.ErrorFormat(
                                 "[SCENE]: Exception verifying presence {0}{1}", e.Message, e.StackTrace);
+
+                            m_authenticateHandler.RemoveCircuit(agent.circuitcode);
                             return false;
                         }
                     }
@@ -3922,6 +3935,7 @@ namespace OpenSim.Region.Framework.Scenes
                         {
                             if (!AuthorizeUser(agent, out reason))
                             {
+                                m_authenticateHandler.RemoveCircuit(agent.circuitcode);
                                 return false;
                             }
                         }
@@ -3930,6 +3944,8 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         m_log.ErrorFormat(
                             "[SCENE]: Exception authorizing user {0}{1}", e.Message, e.StackTrace);
+
+                        m_authenticateHandler.RemoveCircuit(agent.circuitcode);
                         return false;
                     }
 
@@ -3959,9 +3975,6 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            // In all cases, add or update the circuit data with the new agent circuit data and teleport flags
-            agent.teleportFlags = teleportFlags;
-            m_authenticateHandler.AddNewCircuit(agent.circuitcode, agent);
 
             if (CapsModule != null)
             {
