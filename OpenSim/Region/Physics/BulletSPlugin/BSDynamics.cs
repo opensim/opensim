@@ -146,7 +146,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             enableAngularVerticalAttraction = true;
             enableAngularDeflection = false;
             enableAngularBanking = true;
-            if (BSParam.VehicleDebuggingEnabled)
+            if (BSParam.VehicleDebuggingEnable)
             {
                 enableAngularVerticalAttraction = true;
                 enableAngularDeflection = false;
@@ -235,7 +235,6 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 // set all of the components to the same value
                 case Vehicle.ANGULAR_FRICTION_TIMESCALE:
                     m_angularFrictionTimescale = new Vector3(pValue, pValue, pValue);
-                    m_angularMotor.FrictionTimescale = m_angularFrictionTimescale;
                     break;
                 case Vehicle.ANGULAR_MOTOR_DIRECTION:
                     m_angularMotorDirection = new Vector3(pValue, pValue, pValue);
@@ -244,7 +243,6 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     break;
                 case Vehicle.LINEAR_FRICTION_TIMESCALE:
                     m_linearFrictionTimescale = new Vector3(pValue, pValue, pValue);
-                    m_linearMotor.FrictionTimescale = m_linearFrictionTimescale;
                     break;
                 case Vehicle.LINEAR_MOTOR_DIRECTION:
                     m_linearMotorDirection = new Vector3(pValue, pValue, pValue);
@@ -265,7 +263,6 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             {
                 case Vehicle.ANGULAR_FRICTION_TIMESCALE:
                     m_angularFrictionTimescale = new Vector3(pValue.X, pValue.Y, pValue.Z);
-                    m_angularMotor.FrictionTimescale = m_angularFrictionTimescale;
                     break;
                 case Vehicle.ANGULAR_MOTOR_DIRECTION:
                     // Limit requested angular speed to 2 rps= 4 pi rads/sec
@@ -278,7 +275,6 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     break;
                 case Vehicle.LINEAR_FRICTION_TIMESCALE:
                     m_linearFrictionTimescale = new Vector3(pValue.X, pValue.Y, pValue.Z);
-                    m_linearMotor.FrictionTimescale = m_linearFrictionTimescale;
                     break;
                 case Vehicle.LINEAR_MOTOR_DIRECTION:
                     m_linearMotorDirection = new Vector3(pValue.X, pValue.Y, pValue.Z);
@@ -559,14 +555,10 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     break;
             }
 
-            m_linearMotor = new BSVMotor("LinearMotor", m_linearMotorTimescale,
-                                m_linearMotorDecayTimescale, m_linearFrictionTimescale,
-                                1f);
+            m_linearMotor = new BSVMotor("LinearMotor", m_linearMotorTimescale, m_linearMotorDecayTimescale, 1f);
             m_linearMotor.PhysicsScene = m_physicsScene;  // DEBUG DEBUG DEBUG (enables detail logging)
 
-            m_angularMotor = new BSVMotor("AngularMotor", m_angularMotorTimescale,
-                                m_angularMotorDecayTimescale, m_angularFrictionTimescale,
-                                1f);
+            m_angularMotor = new BSVMotor("AngularMotor", m_angularMotorTimescale, m_angularMotorDecayTimescale, 1f);
             m_angularMotor.PhysicsScene = m_physicsScene;  // DEBUG DEBUG DEBUG (enables detail logging)
 
             /*  Not implemented
@@ -574,7 +566,6 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                                 BSMotor.Infinite, BSMotor.InfiniteVector,
                                 m_verticalAttractionEfficiency);
             // Z goes away and we keep X and Y
-            m_verticalAttractionMotor.FrictionTimescale = new Vector3(BSMotor.Infinite, BSMotor.Infinite, 0.1f);
             m_verticalAttractionMotor.PhysicsScene = PhysicsScene;  // DEBUG DEBUG DEBUG (enables detail logging)
              */
 
@@ -1050,8 +1041,13 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             // Add this correction to the velocity to make it faster/slower.
             VehicleVelocity += linearMotorVelocityW;
 
-            VDetailLog("{0},  MoveLinear,velocity,origVelW={1},velV={2},correctV={3},correctW={4},newVelW={5}",
-                        ControllingPrim.LocalID, origVelW, currentVelV, linearMotorCorrectionV, linearMotorVelocityW, VehicleVelocity);
+            // Friction reduces vehicle motion
+            Vector3 frictionFactor = ComputeFrictionFactor(m_linearFrictionTimescale, pTimestep);
+            VehicleVelocity -= (VehicleVelocity * frictionFactor);
+
+            VDetailLog("{0},  MoveLinear,velocity,origVelW={1},velV={2},correctV={3},correctW={4},newVelW={5},fricFact={6}",
+                        ControllingPrim.LocalID, origVelW, currentVelV, linearMotorCorrectionV,
+                        linearMotorVelocityW, VehicleVelocity, frictionFactor);
         }
 
         public void ComputeLinearTerrainHeightCorrection(float pTimestep)
@@ -1342,6 +1338,11 @@ namespace OpenSim.Region.Physics.BulletSPlugin
           //  }
 
             VehicleRotationalVelocity += angularMotorContributionV * VehicleOrientation;
+
+            // Reduce any velocity by friction.
+            Vector3 frictionFactor = ComputeFrictionFactor(m_angularFrictionTimescale, pTimestep);
+            VehicleRotationalVelocity -= (VehicleRotationalVelocity * frictionFactor);
+
             VDetailLog("{0},  MoveAngular,angularTurning,angularMotorContrib={1}", ControllingPrim.LocalID, angularMotorContributionV);
         }
 
@@ -1627,6 +1628,23 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 VDetailLog("{0},  LimitRotation,done,orig={1},new={2}", ControllingPrim.LocalID, rotq, m_rot);
             }
 
+        }
+
+        // Given a friction vector (reduction in seconds) and a timestep, return the factor to reduce
+        //     some value by to apply this friction.
+        private Vector3 ComputeFrictionFactor(Vector3 friction, float pTimestep)
+        {
+            Vector3 frictionFactor = Vector3.Zero;
+            if (friction != BSMotor.InfiniteVector)
+            {
+                // frictionFactor = (Vector3.One / FrictionTimescale) * timeStep;
+                // Individual friction components can be 'infinite' so compute each separately.
+                frictionFactor.X = (friction.X == BSMotor.Infinite) ? 0f : (1f / friction.X);
+                frictionFactor.Y = (friction.Y == BSMotor.Infinite) ? 0f : (1f / friction.Y);
+                frictionFactor.Z = (friction.Z == BSMotor.Infinite) ? 0f : (1f / friction.Z);
+                frictionFactor *= pTimestep;
+            }
+            return frictionFactor;
         }
 
         private float ClampInRange(float low, float val, float high)

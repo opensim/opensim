@@ -161,6 +161,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     availableMethods["admin_acl_add"] = (req, ep) => InvokeXmlRpcMethod(req, ep, XmlRpcAccessListAdd);
                     availableMethods["admin_acl_remove"] = (req, ep) => InvokeXmlRpcMethod(req, ep, XmlRpcAccessListRemove);
                     availableMethods["admin_acl_list"] = (req, ep) => InvokeXmlRpcMethod(req, ep, XmlRpcAccessListList);
+                    availableMethods["admin_estate_reload"] = (req, ep) => InvokeXmlRpcMethod(req, ep, XmlRpcEstateReload);
 
                     // Misc
                     availableMethods["admin_refresh_search"] = (req, ep) => InvokeXmlRpcMethod(req, ep, XmlRpcRefreshSearch);
@@ -1901,6 +1902,22 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             responseData["success"] = true;
 
             m_log.Info("[RADMIN]: Access List List Request complete");
+        }
+
+        private void XmlRpcEstateReload(XmlRpcRequest request, XmlRpcResponse response, IPEndPoint remoteClient)
+        {
+            m_log.Info("[RADMIN]: Received Estate Reload Request");
+
+            Hashtable responseData = (Hashtable)response.Value;
+            Hashtable requestData = (Hashtable)request.Params[0];
+
+            m_application.SceneManager.ForEachScene(s => 
+                s.RegionInfo.EstateSettings = m_application.EstateDataService.LoadEstateSettings(s.RegionInfo.RegionID, false)                
+            );
+
+            responseData["success"] = true;
+
+            m_log.Info("[RADMIN]: Estate Reload Request complete");
         }
 
         private void XmlRpcGetAgentsMethod(XmlRpcRequest request, XmlRpcResponse response, IPEndPoint remoteClient)

@@ -64,9 +64,9 @@ public class BSActorLockAxis : BSActor
     public override void Refresh()
     {
         m_physicsScene.DetailLog("{0},BSActorLockAxis,refresh,lockedAxis={1},enabled={2},pActive={3}",
-                                    m_controllingPrim.LocalID, m_controllingPrim.LockedAxis, Enabled, m_controllingPrim.IsPhysicallyActive);
+                                    m_controllingPrim.LocalID, m_controllingPrim.LockedAngularAxis, Enabled, m_controllingPrim.IsPhysicallyActive);
         // If all the axis are free, we don't need to exist
-        if (m_controllingPrim.LockedAxis == m_controllingPrim.LockedAxisFree)
+        if (m_controllingPrim.LockedAngularAxis == m_controllingPrim.LockedAxisFree)
         {
             Enabled = false;
         }
@@ -123,23 +123,38 @@ public class BSActorLockAxis : BSActor
             // Free to move linearly in the region
             OMV.Vector3 linearLow = OMV.Vector3.Zero;
             OMV.Vector3 linearHigh = m_physicsScene.TerrainManager.DefaultRegionSize;
+            if (m_controllingPrim.LockedLinearAxis.X != BSPhysObject.FreeAxis)
+            {
+                linearLow.X = m_controllingPrim.RawPosition.X;
+                linearHigh.X = m_controllingPrim.RawPosition.X;
+            }
+            if (m_controllingPrim.LockedLinearAxis.Y != BSPhysObject.FreeAxis)
+            {
+                linearLow.Y = m_controllingPrim.RawPosition.Y;
+                linearHigh.Y = m_controllingPrim.RawPosition.Y;
+            }
+            if (m_controllingPrim.LockedLinearAxis.Z != BSPhysObject.FreeAxis)
+            {
+                linearLow.Z = m_controllingPrim.RawPosition.Z;
+                linearHigh.Z = m_controllingPrim.RawPosition.Z;
+            }
             axisConstrainer.SetLinearLimits(linearLow, linearHigh);
 
             // Angular with some axis locked
             float fPI = (float)Math.PI;
             OMV.Vector3 angularLow = new OMV.Vector3(-fPI, -fPI, -fPI);
             OMV.Vector3 angularHigh = new OMV.Vector3(fPI, fPI, fPI);
-            if (m_controllingPrim.LockedAxis.X != 1f)
+            if (m_controllingPrim.LockedAngularAxis.X != BSPhysObject.FreeAxis)
             {
                 angularLow.X = 0f;
                 angularHigh.X = 0f;
             }
-            if (m_controllingPrim.LockedAxis.Y != 1f)
+            if (m_controllingPrim.LockedAngularAxis.Y != BSPhysObject.FreeAxis)
             {
                 angularLow.Y = 0f;
                 angularHigh.Y = 0f;
             }
-            if (m_controllingPrim.LockedAxis.Z != 1f)
+            if (m_controllingPrim.LockedAngularAxis.Z != BSPhysObject.FreeAxis)
             {
                 angularLow.Z = 0f;
                 angularHigh.Z = 0f;
