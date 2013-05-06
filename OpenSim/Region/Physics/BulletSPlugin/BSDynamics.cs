@@ -1042,12 +1042,12 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             VehicleVelocity += linearMotorVelocityW;
 
             // Friction reduces vehicle motion
-            Vector3 frictionFactor = ComputeFrictionFactor(m_linearFrictionTimescale, pTimestep);
-            VehicleVelocity -= (VehicleVelocity * frictionFactor);
+            Vector3 frictionFactorW = ComputeFrictionFactor(m_linearFrictionTimescale, pTimestep) * VehicleOrientation;
+            VehicleVelocity -= (VehicleVelocity * frictionFactorW);
 
             VDetailLog("{0},  MoveLinear,velocity,origVelW={1},velV={2},correctV={3},correctW={4},newVelW={5},fricFact={6}",
                         ControllingPrim.LocalID, origVelW, currentVelV, linearMotorCorrectionV,
-                        linearMotorVelocityW, VehicleVelocity, frictionFactor);
+                        linearMotorVelocityW, VehicleVelocity, frictionFactorW);
         }
 
         public void ComputeLinearTerrainHeightCorrection(float pTimestep)
@@ -1340,10 +1340,10 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             VehicleRotationalVelocity += angularMotorContributionV * VehicleOrientation;
 
             // Reduce any velocity by friction.
-            Vector3 frictionFactor = ComputeFrictionFactor(m_angularFrictionTimescale, pTimestep);
-            VehicleRotationalVelocity -= (VehicleRotationalVelocity * frictionFactor);
+            Vector3 frictionFactorW = ComputeFrictionFactor(m_angularFrictionTimescale, pTimestep) * VehicleOrientation;
+            VehicleRotationalVelocity -= (VehicleRotationalVelocity * frictionFactorW);
 
-            VDetailLog("{0},  MoveAngular,angularTurning,angularMotorContrib={1}", ControllingPrim.LocalID, angularMotorContributionV);
+            VDetailLog("{0},  MoveAngular,angularTurning,angContribV={1}", ControllingPrim.LocalID, angularMotorContributionV);
         }
 
         // From http://wiki.secondlife.com/wiki/Linden_Vehicle_Tutorial:
