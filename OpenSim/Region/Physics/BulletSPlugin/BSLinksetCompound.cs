@@ -347,21 +347,21 @@ public sealed class BSLinksetCompound : BSLinkset
             // Bullet presumes an object's origin (relative <0,0,0>) is its center-of-mass
             OMV.Vector3 centerOfMassW = ComputeLinksetCenterOfMass();
 
-            OMV.Quaternion invRootOrientation = OMV.Quaternion.Inverse(LinksetRoot.RawOrientation);
+            OMV.Quaternion invRootOrientation = OMV.Quaternion.Normalize(OMV.Quaternion.Inverse(LinksetRoot.RawOrientation));
 
             // 'centerDisplacement' is the value to subtract from children to give physical offset position
-            OMV.Vector3 centerDisplacement = (centerOfMassW - LinksetRoot.RawPosition) * invRootOrientation;
+            OMV.Vector3 centerDisplacementV = (centerOfMassW - LinksetRoot.RawPosition) * invRootOrientation;
             if (UseBulletSimRootOffsetHack || disableCOM)
             {
-                centerDisplacement = OMV.Vector3.Zero;
+                centerDisplacementV = OMV.Vector3.Zero;
                 LinksetRoot.ClearDisplacement();
             }
             else
             {
-                LinksetRoot.SetEffectiveCenterOfMassDisplacement(centerDisplacement);
+                LinksetRoot.SetEffectiveCenterOfMassDisplacement(centerDisplacementV);
             }
             DetailLog("{0},BSLinksetCompound.RecomputeLinksetCompound,COM,rootPos={1},com={2},comDisp={3}",
-                                LinksetRoot.LocalID, LinksetRoot.RawPosition, centerOfMassW, centerDisplacement);
+                                LinksetRoot.LocalID, LinksetRoot.RawPosition, centerOfMassW, centerDisplacementV);
 
             // Add the shapes of all the components of the linkset
             int memberIndex = 1;
@@ -372,8 +372,8 @@ public sealed class BSLinksetCompound : BSLinkset
 
                 // Get a reference to the shape of the child and add that shape to the linkset compound shape
                 BSShape childShape = cPrim.PhysShape.GetReference(m_physicsScene, cPrim);
-                OMV.Vector3 offsetPos = (cPrim.RawPosition - LinksetRoot.RawPosition) * invRootOrientation - centerDisplacement;
-                OMV.Quaternion offsetRot = cPrim.RawOrientation * invRootOrientation;
+                OMV.Vector3 offsetPos = (cPrim.RawPosition - LinksetRoot.RawPosition) * invRootOrientation - centerDisplacementV;
+                OMV.Quaternion offsetRot = OMV.Quaternion.Normalize(cPrim.RawOrientation) * invRootOrientation;
                 m_physicsScene.PE.AddChildShapeToCompoundShape(linksetShape.physShapeInfo, childShape.physShapeInfo, offsetPos, offsetRot);
                 DetailLog("{0},BSLinksetCompound.RecomputeLinksetCompound,addChild,indx={1},cShape={2},offPos={3},offRot={4}",
                                     LinksetRoot.LocalID, memberIndex, childShape, offsetPos, offsetRot);
