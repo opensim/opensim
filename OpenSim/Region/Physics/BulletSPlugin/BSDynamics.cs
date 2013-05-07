@@ -1339,11 +1339,13 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             //    angularMotorContributionV.Y = 0f;
           //  }
 
+            // Reduce any velocity by friction.
+            Vector3 frictionFactorW = ComputeFrictionFactor(m_angularFrictionTimescale, pTimestep);
+            angularMotorContributionV -= (currentAngularV * frictionFactorW);
+
             VehicleRotationalVelocity += angularMotorContributionV * VehicleOrientation;
 
-            // Reduce any velocity by friction.
-            Vector3 frictionFactorW = ComputeFrictionFactor(m_angularFrictionTimescale, pTimestep) * VehicleOrientation;
-            VehicleRotationalVelocity -= (VehicleRotationalVelocity * frictionFactorW);
+
 
             VDetailLog("{0},  MoveAngular,angularTurning,angContribV={1}", ControllingPrim.LocalID, angularMotorContributionV);
         }
