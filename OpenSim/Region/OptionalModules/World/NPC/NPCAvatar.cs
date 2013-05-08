@@ -393,6 +393,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         public event EstateTeleportAllUsersHomeRequest OnEstateTeleportAllUsersHomeRequest;
         public event EstateChangeInfo OnEstateChangeInfo;
         public event EstateManageTelehub OnEstateManageTelehub;
+        public event CachedTextureRequest OnCachedTextureRequest;
         public event ScriptReset OnScriptReset;
         public event GetScriptRunning OnGetScriptRunning;
         public event SetScriptRunning OnSetScriptRunning;
@@ -571,6 +572,11 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 
         public virtual void SendAppearance(UUID agentID, byte[] visualParams, byte[] textureEntry)
         {
+        }
+
+        public void SendCachedTextureResponse(ISceneEntity avatar, int serial, List<CachedTextureResponseArg> cachedTextures)
+        {
+
         }
 
         public virtual void Kick(string message)

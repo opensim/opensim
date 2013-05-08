@@ -660,6 +660,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         public event BakeTerrain OnBakeTerrain;
         public event EstateChangeInfo OnEstateChangeInfo;
         public event EstateManageTelehub OnEstateManageTelehub;
+        public event CachedTextureRequest OnCachedTextureRequest;
         public event SetAppearance OnSetAppearance;
         public event AvatarNowWearing OnAvatarNowWearing;
         public event RezSingleAttachmentFromInv OnRezSingleAttachmentFromInv;
@@ -943,7 +944,12 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         {
             
         }
+        
+        public void SendCachedTextureResponse(ISceneEntity avatar, int serial, List<CachedTextureResponseArg> cachedTextures)
+        {
 
+        }
+        
         public void SendStartPingCheck(byte seq)
         {
             

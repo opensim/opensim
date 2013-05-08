@@ -198,6 +198,7 @@ namespace OpenSim.Tests.Common.Mock
         public event EstateCovenantRequest OnEstateCovenantRequest;
         public event EstateChangeInfo OnEstateChangeInfo;
         public event EstateManageTelehub OnEstateManageTelehub;
+        public event CachedTextureRequest OnCachedTextureRequest;
 
         public event ObjectDuplicateOnRay OnObjectDuplicateOnRay;
 
@@ -510,6 +511,11 @@ namespace OpenSim.Tests.Common.Mock
 
         public virtual void SendAppearance(UUID agentID, byte[] visualParams, byte[] textureEntry)
         {
+        }
+
+        public void SendCachedTextureResponse(ISceneEntity avatar, int serial, List<CachedTextureResponseArg> cachedTextures)
+        {
+
         }
 
         public virtual void Kick(string message)

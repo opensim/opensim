@@ -93,7 +93,8 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         public void AddRegion(Scene scene)
         {
-            m_Scenes.Add(scene);
+            lock (m_Scenes)
+                m_Scenes.Add(scene);
 
             scene.EventManager.OnNewClient += OnNewClient;
         }
@@ -111,7 +112,8 @@ namespace OpenSim.Region.CoreModules.World.Estate
         {
             scene.EventManager.OnNewClient -= OnNewClient;
 
-            m_Scenes.Remove(scene);
+            lock (m_Scenes)
+                m_Scenes.Remove(scene);
         }
 
         public string Name

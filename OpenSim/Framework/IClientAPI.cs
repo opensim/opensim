@@ -65,6 +65,7 @@ namespace OpenSim.Framework
     public delegate void NetworkStats(int inPackets, int outPackets, int unAckedBytes);
 
     public delegate void SetAppearance(IClientAPI remoteClient, Primitive.TextureEntry textureEntry, byte[] visualParams, Vector3 AvSize, WearableCacheItem[] CacheItems);
+    public delegate void CachedTextureRequest(IClientAPI remoteClient, int serial, List<CachedTextureRequestArg> cachedTextureRequest);
 
     public delegate void StartAnim(IClientAPI remoteClient, UUID animID);
 
@@ -789,6 +790,7 @@ namespace OpenSim.Framework
         event EstateChangeInfo OnEstateChangeInfo;
         event EstateManageTelehub OnEstateManageTelehub;
         // [Obsolete("LLClientView Specific.")]
+        event CachedTextureRequest OnCachedTextureRequest;
         event SetAppearance OnSetAppearance;
         // [Obsolete("LLClientView Specific - Replace and rename OnAvatarUpdate. Difference from SetAppearance?")]
         event AvatarNowWearing OnAvatarNowWearing;
@@ -1099,6 +1101,8 @@ namespace OpenSim.Framework
         /// <param name="visualParams"></param>
         /// <param name="textureEntry"></param>
         void SendAppearance(UUID agentID, byte[] visualParams, byte[] textureEntry);
+
+        void SendCachedTextureResponse(ISceneEntity avatar, int serial, List<CachedTextureResponseArg> cachedTextures);
 
         void SendStartPingCheck(byte seq);
 

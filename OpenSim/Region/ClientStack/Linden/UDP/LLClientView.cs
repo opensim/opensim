@@ -84,6 +84,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event ModifyTerrain OnModifyTerrain;
         public event Action<IClientAPI> OnRegionHandShakeReply;
         public event GenericCall1 OnRequestWearables;
+        public event CachedTextureRequest OnCachedTextureRequest;
         public event SetAppearance OnSetAppearance;
         public event AvatarNowWearing OnAvatarNowWearing;
         public event RezSingleAttachmentFromInv OnRezSingleAttachmentFromInv;
@@ -11707,8 +11708,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         /// <summary>
-        /// Send a response back to a client when it asks the asset server (via the region server) if it has
-        /// its appearance texture cached.
         /// </summary>
         /// <remarks>
         /// At the moment, we always reply that there is no cached texture.
@@ -11716,6 +11715,35 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="simclient"></param>
         /// <param name="packet"></param>
         /// <returns></returns>
+        // TODO: Convert old handler to use new method
+        /*protected bool HandleAgentTextureCached(IClientAPI simclient, Packet packet)
+        {
+            AgentCachedTexturePacket cachedtex = (AgentCachedTexturePacket)packet;
+
+            if (cachedtex.AgentData.SessionID != SessionId)
+                return false;
+            
+
+            List<CachedTextureRequestArg> requestArgs = new List<CachedTextureRequestArg>();
+
+            for (int i = 0; i < cachedtex.WearableData.Length; i++)
+            {
+                CachedTextureRequestArg arg = new CachedTextureRequestArg();
+                arg.BakedTextureIndex = cachedtex.WearableData[i].TextureIndex;
+                arg.WearableHashID = cachedtex.WearableData[i].ID;
+                
+                requestArgs.Add(arg);
+            }
+
+            CachedTextureRequest handlerCachedTextureRequest = OnCachedTextureRequest;
+            if (handlerCachedTextureRequest != null)
+            {
+                handlerCachedTextureRequest(simclient,cachedtex.AgentData.SerialNum,requestArgs);
+            }
+
+            return true;
+        }*/
+
         protected bool HandleAgentTextureCached(IClientAPI simclient, Packet packet)
         {
             //m_log.Debug("texture cached: " + packet.ToString());
@@ -11872,6 +11900,40 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(cachedresp, ThrottleOutPacketType.Task);
 
             return true;
+        }
+
+        /// <summary>
+        /// Send a response back to a client when it asks the asset server (via the region server) if it has
+        /// its appearance texture cached.
+        /// </summary>
+        /// <param name="avatar"></param>
+        /// <param name="serial"></param>
+        /// <param name="cachedTextures"></param>
+        /// <returns></returns>
+        public void SendCachedTextureResponse(ISceneEntity avatar, int serial, List<CachedTextureResponseArg> cachedTextures)
+        {
+            ScenePresence presence = avatar as ScenePresence;
+            if (presence == null)
+                return;
+
+            AgentCachedTextureResponsePacket cachedresp = (AgentCachedTextureResponsePacket)PacketPool.Instance.GetPacket(PacketType.AgentCachedTextureResponse);
+
+            // TODO: don't create new blocks if recycling an old packet
+            cachedresp.AgentData.AgentID = m_agentId;
+            cachedresp.AgentData.SessionID = m_sessionId;
+            cachedresp.AgentData.SerialNum = serial;
+            cachedresp.WearableData = new AgentCachedTextureResponsePacket.WearableDataBlock[cachedTextures.Count];
+
+            for (int i = 0; i < cachedTextures.Count; i++)
+            {
+                cachedresp.WearableData[i] = new AgentCachedTextureResponsePacket.WearableDataBlock();
+                cachedresp.WearableData[i].TextureIndex = (byte)cachedTextures[i].BakedTextureIndex;
+                cachedresp.WearableData[i].TextureID = cachedTextures[i].BakedTextureID;
+                cachedresp.WearableData[i].HostName = new byte[0];
+            }
+
+            cachedresp.Header.Zerocoded = true;
+            OutPacket(cachedresp, ThrottleOutPacketType.Task);
         }
 
         protected bool HandleMultipleObjUpdate(IClientAPI simClient, Packet packet)
