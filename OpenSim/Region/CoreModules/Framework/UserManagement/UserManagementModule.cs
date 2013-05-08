@@ -46,17 +46,8 @@ using Mono.Addins;
 
 namespace OpenSim.Region.CoreModules.Framework.UserManagement
 {
-    public class UserData
-    {
-        public UUID Id { get; set; }
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public string HomeURL { get; set; }
-        public Dictionary<string, object> ServerURLs { get; set; }
-    }
-
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "UserManagementModule")]
-    public class UserManagementModule : ISharedRegionModule, IUserManagement
+    public class UserManagementModule : ISharedRegionModule, IUserManagement, IPeople
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -101,6 +92,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                 m_Scenes.Add(scene);
 
                 scene.RegisterModuleInterface<IUserManagement>(this);
+                scene.RegisterModuleInterface<IPeople>(this);
                 scene.EventManager.OnNewClient += new EventManager.OnNewClientDelegate(EventManager_OnNewClient);
                 scene.EventManager.OnPrimsLoaded += new EventManager.PrimsLoaded(EventManager_OnPrimsLoaded);
             }
@@ -181,29 +173,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
             m_log.DebugFormat("[USER MANAGEMENT MODULE]: HandleAvatarPickerRequest for {0}", query);
 
-            // searhc the user accounts service
-            List<UserAccount> accs = m_Scenes[0].UserAccountService.GetUserAccounts(m_Scenes[0].RegionInfo.ScopeID, query);
-
-            List<UserData> users = new List<UserData>();
-            if (accs != null)
-            {
-                foreach (UserAccount acc in accs)
-                {
-                    UserData ud = new UserData();
-                    ud.FirstName = acc.FirstName;
-                    ud.LastName = acc.LastName;
-                    ud.Id = acc.PrincipalID;
-                    users.Add(ud);
-                }
-            }
-
-            // search the local cache
-            foreach (UserData data in m_UserCache.Values)
-                if (users.Find(delegate(UserData d) { return d.Id == data.Id; }) == null &&
-                    (data.FirstName.ToLower().StartsWith(query.ToLower()) || data.LastName.ToLower().StartsWith(query.ToLower())))
-                    users.Add(data);
-
-            AddAdditionalUsers(avatarID, query, users);
+            List<UserData> users = GetUserData(query, 500, 1);
 
             AvatarPickerReplyPacket replyPacket = (AvatarPickerReplyPacket)PacketPool.Instance.GetPacket(PacketType.AvatarPickerReply);
             // TODO: don't create new blocks if recycling an old packet
@@ -249,11 +219,45 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             client.SendAvatarPickerReply(agent_data, data_args);
         }
 
-        protected virtual void AddAdditionalUsers(UUID avatarID, string query, List<UserData> users)
+        protected virtual void AddAdditionalUsers(string query, List<UserData> users)
         {
         }
 
         #endregion Event Handlers
+
+        #region IPeople
+
+        public List<UserData> GetUserData(string query, int page_size, int page_number)
+        {
+            // search the user accounts service
+            List<UserAccount> accs = m_Scenes[0].UserAccountService.GetUserAccounts(m_Scenes[0].RegionInfo.ScopeID, query);
+
+            List<UserData> users = new List<UserData>();
+            if (accs != null)
+            {
+                foreach (UserAccount acc in accs)
+                {
+                    UserData ud = new UserData();
+                    ud.FirstName = acc.FirstName;
+                    ud.LastName = acc.LastName;
+                    ud.Id = acc.PrincipalID;
+                    users.Add(ud);
+                }
+            }
+
+            // search the local cache
+            foreach (UserData data in m_UserCache.Values)
+                if (users.Find(delegate(UserData d) { return d.Id == data.Id; }) == null &&
+                    (data.FirstName.ToLower().StartsWith(query.ToLower()) || data.LastName.ToLower().StartsWith(query.ToLower())))
+                    users.Add(data);
+
+            AddAdditionalUsers(query, users);
+
+            return users;
+
+        }
+
+        #endregion IPeople
 
         private void CacheCreators(SceneObjectGroup sog)
         {
