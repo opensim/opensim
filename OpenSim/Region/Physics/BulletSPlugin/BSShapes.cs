@@ -117,11 +117,11 @@ public abstract class BSShape
         StringBuilder buff = new StringBuilder();
         if (physShapeInfo == null)
         {
-            buff.Append(",noPhys");
+            buff.Append("<noPhys");
         }
         else
         {
-            buff.Append(",phy=");
+            buff.Append("<phy=");
             buff.Append(physShapeInfo.ToString());
         }
         buff.Append(",c=");
@@ -810,17 +810,25 @@ public class BSShapeCompound : BSShape
             }
             else
             {
-                if (physicsScene.PE.IsCompound(pShape))
+                BSShapeConvexHull chullDesc;
+                if (BSShapeConvexHull.TryGetHullByPtr(pShape, out chullDesc))
                 {
-                    BSShapeCompound recursiveCompound = new BSShapeCompound(pShape);
-                    recursiveCompound.Dereference(physicsScene);
+                    chullDesc.Dereference(physicsScene);
                 }
                 else
                 {
-                    if (physicsScene.PE.IsNativeShape(pShape))
+                    if (physicsScene.PE.IsCompound(pShape))
                     {
-                        BSShapeNative nativeShape = new BSShapeNative(pShape);
-                        nativeShape.Dereference(physicsScene);
+                        BSShapeCompound recursiveCompound = new BSShapeCompound(pShape);
+                        recursiveCompound.Dereference(physicsScene);
+                    }
+                    else
+                    {
+                        if (physicsScene.PE.IsNativeShape(pShape))
+                        {
+                            BSShapeNative nativeShape = new BSShapeNative(pShape);
+                            nativeShape.Dereference(physicsScene);
+                        }
                     }
                 }
             }
@@ -899,6 +907,27 @@ public class BSShapeConvexHull : BSShape
             physicsScene.DetailLog("{0},BSShapeConvexHull.Dereference,shape={1}", BSScene.DetailLogZero, this);
             // TODO: schedule aging and destruction of unused meshes.
         }
+    }
+    // Loop through all the known hulls and return the description based on the physical address.
+    public static bool TryGetHullByPtr(BulletShape pShape, out BSShapeConvexHull outHull)
+    {
+        bool ret = false;
+        BSShapeConvexHull foundDesc = null;
+        lock (ConvexHulls)
+        {
+            foreach (BSShapeConvexHull sh in ConvexHulls.Values)
+            {
+                if (sh.physShapeInfo.ReferenceSame(pShape))
+                {
+                    foundDesc = sh;
+                    ret = true;
+                    break;
+                }
+
+            }
+        }
+        outHull = foundDesc;
+        return ret;
     }
 }
 

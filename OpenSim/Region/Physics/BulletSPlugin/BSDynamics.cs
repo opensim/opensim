@@ -1028,6 +1028,10 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             Vector3 currentVelV = VehicleVelocity * Quaternion.Inverse(VehicleOrientation);
             Vector3 linearMotorCorrectionV = m_linearMotor.Step(pTimestep, currentVelV);
 
+            // Friction reduces vehicle motion
+            Vector3 frictionFactorW = ComputeFrictionFactor(m_linearFrictionTimescale, pTimestep);
+            linearMotorCorrectionV -= (currentVelV * frictionFactorW);
+
             // Motor is vehicle coordinates. Rotate it to world coordinates
             Vector3 linearMotorVelocityW = linearMotorCorrectionV * VehicleOrientation;
 
@@ -1041,9 +1045,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             // Add this correction to the velocity to make it faster/slower.
             VehicleVelocity += linearMotorVelocityW;
 
-            // Friction reduces vehicle motion
-            Vector3 frictionFactorW = ComputeFrictionFactor(m_linearFrictionTimescale, pTimestep) * VehicleOrientation;
-            VehicleVelocity -= (VehicleVelocity * frictionFactorW);
+
 
             VDetailLog("{0},  MoveLinear,velocity,origVelW={1},velV={2},correctV={3},correctW={4},newVelW={5},fricFact={6}",
                         ControllingPrim.LocalID, origVelW, currentVelV, linearMotorCorrectionV,
@@ -1337,11 +1339,13 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             //    angularMotorContributionV.Y = 0f;
           //  }
 
+            // Reduce any velocity by friction.
+            Vector3 frictionFactorW = ComputeFrictionFactor(m_angularFrictionTimescale, pTimestep);
+            angularMotorContributionV -= (currentAngularV * frictionFactorW);
+
             VehicleRotationalVelocity += angularMotorContributionV * VehicleOrientation;
 
-            // Reduce any velocity by friction.
-            Vector3 frictionFactorW = ComputeFrictionFactor(m_angularFrictionTimescale, pTimestep) * VehicleOrientation;
-            VehicleRotationalVelocity -= (VehicleRotationalVelocity * frictionFactorW);
+
 
             VDetailLog("{0},  MoveAngular,angularTurning,angContribV={1}", ControllingPrim.LocalID, angularMotorContributionV);
         }

@@ -503,8 +503,10 @@
     ;;   "<url>" -- capability enabled and served by some other server
     ;;
     ; These are enabled by default to localhost. Change if you see fit.
-      Cap_GetTexture = "localhost"
+    Cap_GetTexture = "localhost"
     Cap_GetMesh = "localhost"
+	Cap_AvatarPickerSearch = "localhost"
+
     ; This is disabled by default. Change if you see fit. Note that
     ; serving this cap from the simulators may lead to poor performace.
     Cap_WebFetchInventoryDescendents = ""

@@ -25,34 +25,23 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
+using System.Collections.Generic;
 using OpenMetaverse;
 
-namespace OpenSim.Region.Framework.Interfaces
+namespace OpenSim.Framework
 {
-    public delegate void ChangeDelegate(UUID regionID);
-    public delegate void MessageDelegate(UUID regionID, UUID fromID, string fromName, string message);
-
-    public interface IEstateModule
+    public class UserData
     {
-        event ChangeDelegate OnRegionInfoChange;
-        event ChangeDelegate OnEstateInfoChange;
-        event MessageDelegate OnEstateMessage;
+        public UUID Id { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string HomeURL { get; set; }
+        public Dictionary<string, object> ServerURLs { get; set; }
+    }
 
-        uint GetRegionFlags();
-        bool IsManager(UUID avatarID);
-
-        /// <summary>
-        /// Tell all clients about the current state of the region (terrain textures, water height, etc.).
-        /// </summary>
-        void sendRegionHandshakeToAll();
-        void TriggerEstateInfoChange();
-
-        /// <summary>
-        /// Fires the OnRegionInfoChange event.
-        /// </summary>
-        void TriggerRegionInfoChange();
-
-        void setEstateTerrainBaseTexture(int level, UUID texture);
-        void setEstateTerrainTextureHeights(int corner, float lowValue, float highValue);
+    public interface IPeople
+    {
+        List<UserData> GetUserData(string query, int page_size, int page_number);
     }
 }

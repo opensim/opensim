@@ -27,32 +27,25 @@
 
 using OpenMetaverse;
 
-namespace OpenSim.Region.Framework.Interfaces
+namespace OpenSim.Framework.Capabilities
 {
-    public delegate void ChangeDelegate(UUID regionID);
-    public delegate void MessageDelegate(UUID regionID, UUID fromID, string fromName, string message);
-
-    public interface IEstateModule
+    [OSDMap]
+    public class LLSDAvatarPicker
     {
-        event ChangeDelegate OnRegionInfoChange;
-        event ChangeDelegate OnEstateInfoChange;
-        event MessageDelegate OnEstateMessage;
+        public string next_page_url;
+        // an array of LLSDPerson
+        public OSDArray agents = new OSDArray();
+    }
 
-        uint GetRegionFlags();
-        bool IsManager(UUID avatarID);
-
-        /// <summary>
-        /// Tell all clients about the current state of the region (terrain textures, water height, etc.).
-        /// </summary>
-        void sendRegionHandshakeToAll();
-        void TriggerEstateInfoChange();
-
-        /// <summary>
-        /// Fires the OnRegionInfoChange event.
-        /// </summary>
-        void TriggerRegionInfoChange();
-
-        void setEstateTerrainBaseTexture(int level, UUID texture);
-        void setEstateTerrainTextureHeights(int corner, float lowValue, float highValue);
+    [OSDMap]
+    public class LLSDPerson
+    {
+        public string username;
+        public string display_name;
+        //'display_name_next_update':d"1970-01-01T00:00:00Z" 
+        public string legacy_first_name;
+        public string legacy_last_name;
+        public UUID id;
+        public bool is_display_name_default;
     }
 }

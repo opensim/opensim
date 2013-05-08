@@ -3392,7 +3392,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (EntityTransferModule != null)
             {
-                EntityTransferModule.TeleportHome(agentId, client);
+                return EntityTransferModule.TeleportHome(agentId, client);
             }
             else
             {
