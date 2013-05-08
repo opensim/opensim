@@ -75,11 +75,11 @@ private sealed class BulletBodyUnman : BulletBody
 private sealed class BulletShapeUnman : BulletShape
 {
     public IntPtr ptr;
-    public BulletShapeUnman(IntPtr xx, BSPhysicsShapeType typ) 
+    public BulletShapeUnman(IntPtr xx, BSPhysicsShapeType typ)
         : base()
     {
         ptr = xx;
-        type = typ;
+        shapeType = typ;
     }
     public override bool HasPhysicalShape
     {
@@ -91,7 +91,7 @@ private sealed class BulletShapeUnman : BulletShape
     }
     public override BulletShape Clone()
     {
-        return new BulletShapeUnman(ptr, type);
+        return new BulletShapeUnman(ptr, shapeType);
     }
     public override bool ReferenceSame(BulletShape other)
     {
@@ -166,7 +166,7 @@ public override BulletWorld Initialize(Vector3 maxPosition, ConfigurationParamet
 
     // If Debug logging level, enable logging from the unmanaged code
     m_DebugLogCallbackHandle = null;
-    if (BSScene.m_log.IsDebugEnabled || PhysicsScene.PhysicsLogging.Enabled)
+    if (BSScene.m_log.IsDebugEnabled && PhysicsScene.PhysicsLogging.Enabled)
     {
         BSScene.m_log.DebugFormat("{0}: Initialize: Setting debug callback for unmanaged code", BSScene.LogHeader);
         if (PhysicsScene.PhysicsLogging.Enabled)
@@ -202,7 +202,7 @@ private void BulletLoggerPhysLog(string msg)
 }
 
 public override int PhysicsStep(BulletWorld world, float timeStep, int maxSubSteps, float fixedTimeStep,
-                        out int updatedEntityCount, out int collidersCount)
+                                        out int updatedEntityCount, out int collidersCount)
 {
     BulletWorldUnman worldu = world as BulletWorldUnman;
     return BSAPICPP.PhysicsStep2(worldu.ptr, timeStep, maxSubSteps, fixedTimeStep, out updatedEntityCount, out collidersCount);
@@ -212,6 +212,19 @@ public override void Shutdown(BulletWorld world)
 {
     BulletWorldUnman worldu = world as BulletWorldUnman;
     BSAPICPP.Shutdown2(worldu.ptr);
+
+    if (m_paramsHandle.IsAllocated)
+    {
+        m_paramsHandle.Free();
+    }
+    if (m_collisionArrayPinnedHandle.IsAllocated)
+    {
+        m_collisionArrayPinnedHandle.Free();
+    }
+    if (m_updateArrayPinnedHandle.IsAllocated)
+    {
+        m_updateArrayPinnedHandle.Free();
+    }
 }
 
 public override bool PushUpdate(BulletBody obj)
@@ -242,17 +255,36 @@ public override BulletShape CreateHullShape(BulletWorld world, int hullCount, fl
 {
     BulletWorldUnman worldu = world as BulletWorldUnman;
     return new BulletShapeUnman(
-                    BSAPICPP.CreateHullShape2(worldu.ptr, hullCount, hulls), 
+                    BSAPICPP.CreateHullShape2(worldu.ptr, hullCount, hulls),
                     BSPhysicsShapeType.SHAPE_HULL);
 }
 
-public override BulletShape BuildHullShapeFromMesh(BulletWorld world, BulletShape meshShape)
+public override BulletShape BuildHullShapeFromMesh(BulletWorld world, BulletShape meshShape, HACDParams parms)
 {
     BulletWorldUnman worldu = world as BulletWorldUnman;
     BulletShapeUnman shapeu = meshShape as BulletShapeUnman;
     return new BulletShapeUnman(
-                    BSAPICPP.BuildHullShapeFromMesh2(worldu.ptr, shapeu.ptr),
+                    BSAPICPP.BuildHullShapeFromMesh2(worldu.ptr, shapeu.ptr, parms),
                     BSPhysicsShapeType.SHAPE_HULL);
+}
+
+public override BulletShape BuildConvexHullShapeFromMesh(BulletWorld world, BulletShape meshShape)
+{
+    BulletWorldUnman worldu = world as BulletWorldUnman;
+    BulletShapeUnman shapeu = meshShape as BulletShapeUnman;
+    return new BulletShapeUnman(
+                    BSAPICPP.BuildConvexHullShapeFromMesh2(worldu.ptr, shapeu.ptr),
+                    BSPhysicsShapeType.SHAPE_CONVEXHULL);
+}
+
+public override BulletShape CreateConvexHullShape(BulletWorld world,
+                int indicesCount, int[] indices,
+                int verticesCount, float[] vertices)
+{
+    BulletWorldUnman worldu = world as BulletWorldUnman;
+    return new BulletShapeUnman(
+                    BSAPICPP.CreateConvexHullShape2(worldu.ptr, indicesCount, indices, verticesCount, vertices),
+                    BSPhysicsShapeType.SHAPE_CONVEXHULL);
 }
 
 public override BulletShape BuildNativeShape(BulletWorld world, ShapeData shapeData)
@@ -273,7 +305,7 @@ public override void SetShapeCollisionMargin(BulletShape shape, float margin)
 {
     BulletShapeUnman shapeu = shape as BulletShapeUnman;
     if (shapeu != null && shapeu.HasPhysicalShape)
-        BSAPICPP.SetShapeCollisionMargin2(shapeu.ptr, margin);
+        BSAPICPP.SetShapeCollisionMargin(shapeu.ptr, margin);
 }
 
 public override BulletShape BuildCapsuleShape(BulletWorld world, float radius, float height, Vector3 scale)
@@ -327,6 +359,12 @@ public override void RemoveChildShapeFromCompoundShape(BulletShape shape, Bullet
     BSAPICPP.RemoveChildShapeFromCompoundShape2(shapeu.ptr, removeShapeu.ptr);
 }
 
+public override void UpdateChildTransform(BulletShape pShape, int childIndex, Vector3 pos, Quaternion rot, bool shouldRecalculateLocalAabb)
+{
+    BulletShapeUnman shapeu = pShape as BulletShapeUnman;
+    BSAPICPP.UpdateChildTransform2(shapeu.ptr, childIndex, pos, rot, shouldRecalculateLocalAabb);
+}
+
 public override void RecalculateCompoundShapeLocalAabb(BulletShape shape)
 {
     BulletShapeUnman shapeu = shape as BulletShapeUnman;
@@ -337,7 +375,7 @@ public override BulletShape DuplicateCollisionShape(BulletWorld world, BulletSha
 {
     BulletWorldUnman worldu = world as BulletWorldUnman;
     BulletShapeUnman srcShapeu = srcShape as BulletShapeUnman;
-    return new BulletShapeUnman(BSAPICPP.DuplicateCollisionShape2(worldu.ptr, srcShapeu.ptr, id), srcShape.type);
+    return new BulletShapeUnman(BSAPICPP.DuplicateCollisionShape2(worldu.ptr, srcShapeu.ptr, id), srcShape.shapeType);
 }
 
 public override bool DeleteCollisionShape(BulletWorld world, BulletShape shape)
@@ -419,6 +457,28 @@ public override BulletConstraint Create6DofConstraintToPoint(BulletWorld world, 
                     joinPoint, useLinearReferenceFrameA, disableCollisionsBetweenLinkedBodies));
 }
 
+public override BulletConstraint Create6DofConstraintFixed(BulletWorld world, BulletBody obj1,
+                    Vector3 frameInBloc, Quaternion frameInBrot,
+                    bool useLinearReferenceFrameB, bool disableCollisionsBetweenLinkedBodies)
+{
+    BulletWorldUnman worldu = world as BulletWorldUnman;
+    BulletBodyUnman bodyu1 = obj1 as BulletBodyUnman;
+    return new BulletConstraintUnman(BSAPICPP.Create6DofConstraintFixed2(worldu.ptr, bodyu1.ptr,
+                    frameInBloc, frameInBrot, useLinearReferenceFrameB, disableCollisionsBetweenLinkedBodies));
+}
+
+public override BulletConstraint Create6DofSpringConstraint(BulletWorld world, BulletBody obj1, BulletBody obj2,
+                    Vector3 frame1loc, Quaternion frame1rot,
+                    Vector3 frame2loc, Quaternion frame2rot,
+                    bool useLinearReferenceFrameA, bool disableCollisionsBetweenLinkedBodies)
+{
+    BulletWorldUnman worldu = world as BulletWorldUnman;
+    BulletBodyUnman bodyu1 = obj1 as BulletBodyUnman;
+    BulletBodyUnman bodyu2 = obj2 as BulletBodyUnman;
+    return new BulletConstraintUnman(BSAPICPP.Create6DofSpringConstraint2(worldu.ptr, bodyu1.ptr, bodyu2.ptr, frame1loc, frame1rot,
+                    frame2loc, frame2rot, useLinearReferenceFrameA, disableCollisionsBetweenLinkedBodies));
+}
+
 public override BulletConstraint CreateHingeConstraint(BulletWorld world, BulletBody obj1, BulletBody obj2,
                     Vector3 pivotinA, Vector3 pivotinB,
                     Vector3 axisInA, Vector3 axisInB,
@@ -429,6 +489,52 @@ public override BulletConstraint CreateHingeConstraint(BulletWorld world, Bullet
     BulletBodyUnman bodyu2 = obj2 as BulletBodyUnman;
     return new BulletConstraintUnman(BSAPICPP.CreateHingeConstraint2(worldu.ptr, bodyu1.ptr, bodyu2.ptr,
                     pivotinA, pivotinB, axisInA, axisInB, useLinearReferenceFrameA, disableCollisionsBetweenLinkedBodies));
+}
+
+public override BulletConstraint CreateSliderConstraint(BulletWorld world, BulletBody obj1, BulletBody obj2,
+                    Vector3 frame1loc, Quaternion frame1rot,
+                    Vector3 frame2loc, Quaternion frame2rot,
+                    bool useLinearReferenceFrameA, bool disableCollisionsBetweenLinkedBodies)
+{
+    BulletWorldUnman worldu = world as BulletWorldUnman;
+    BulletBodyUnman bodyu1 = obj1 as BulletBodyUnman;
+    BulletBodyUnman bodyu2 = obj2 as BulletBodyUnman;
+    return new BulletConstraintUnman(BSAPICPP.CreateSliderConstraint2(worldu.ptr, bodyu1.ptr, bodyu2.ptr, frame1loc, frame1rot,
+                    frame2loc, frame2rot, useLinearReferenceFrameA, disableCollisionsBetweenLinkedBodies));
+}
+
+public override BulletConstraint CreateConeTwistConstraint(BulletWorld world, BulletBody obj1, BulletBody obj2,
+                    Vector3 frame1loc, Quaternion frame1rot,
+                    Vector3 frame2loc, Quaternion frame2rot,
+                    bool disableCollisionsBetweenLinkedBodies)
+{
+    BulletWorldUnman worldu = world as BulletWorldUnman;
+    BulletBodyUnman bodyu1 = obj1 as BulletBodyUnman;
+    BulletBodyUnman bodyu2 = obj2 as BulletBodyUnman;
+    return new BulletConstraintUnman(BSAPICPP.CreateConeTwistConstraint2(worldu.ptr, bodyu1.ptr, bodyu2.ptr, frame1loc, frame1rot,
+                                        frame2loc, frame2rot, disableCollisionsBetweenLinkedBodies));
+}
+
+public override BulletConstraint CreateGearConstraint(BulletWorld world, BulletBody obj1, BulletBody obj2,
+                    Vector3 axisInA, Vector3 axisInB,
+                    float ratio, bool disableCollisionsBetweenLinkedBodies)
+{
+    BulletWorldUnman worldu = world as BulletWorldUnman;
+    BulletBodyUnman bodyu1 = obj1 as BulletBodyUnman;
+    BulletBodyUnman bodyu2 = obj2 as BulletBodyUnman;
+    return new BulletConstraintUnman(BSAPICPP.CreateGearConstraint2(worldu.ptr, bodyu1.ptr, bodyu2.ptr, axisInA, axisInB,
+                                        ratio, disableCollisionsBetweenLinkedBodies));
+}
+
+public override BulletConstraint CreatePoint2PointConstraint(BulletWorld world, BulletBody obj1, BulletBody obj2,
+                    Vector3 pivotInA, Vector3 pivotInB,
+                    bool disableCollisionsBetweenLinkedBodies)
+{
+    BulletWorldUnman worldu = world as BulletWorldUnman;
+    BulletBodyUnman bodyu1 = obj1 as BulletBodyUnman;
+    BulletBodyUnman bodyu2 = obj2 as BulletBodyUnman;
+    return new BulletConstraintUnman(BSAPICPP.CreatePoint2PointConstraint2(worldu.ptr, bodyu1.ptr, bodyu2.ptr, pivotInA, pivotInB,
+                                        disableCollisionsBetweenLinkedBodies));
 }
 
 public override void SetConstraintEnable(BulletConstraint constrain, float numericTrueFalse)
@@ -530,12 +636,12 @@ public override void SetForceUpdateAllAabbs(BulletWorld world, bool force)
 // btDynamicsWorld entries
 public override bool AddObjectToWorld(BulletWorld world, BulletBody obj)
 {
-    // Bullet resets several variables when an object is added to the world.
-    //   Gravity is reset to world default depending on the static/dynamic
-    //   type. Of course, the collision flags in the broadphase proxy are initialized to default.
     BulletWorldUnman worldu = world as BulletWorldUnman;
     BulletBodyUnman bodyu = obj as BulletBodyUnman;
 
+    // Bullet resets several variables when an object is added to the world.
+    //   Gravity is reset to world default depending on the static/dynamic
+    //   type. Of course, the collision flags in the broadphase proxy are initialized to default.
     Vector3 origGrav = BSAPICPP.GetGravity2(bodyu.ptr);
 
     bool ret = BSAPICPP.AddObjectToWorld2(worldu.ptr, bodyu.ptr);
@@ -921,6 +1027,7 @@ public override void SetCenterOfMassByPosRot(BulletBody obj, Vector3 pos, Quater
 }
 
 // Add a force to the object as if its mass is one.
+// Deep down in Bullet: m_totalForce += force*m_linearFactor;
 public override void ApplyCentralForce(BulletBody obj, Vector3 force)
 {
     BulletBodyUnman bodyu = obj as BulletBodyUnman;
@@ -964,6 +1071,7 @@ public override void SetSleepingThresholds(BulletBody obj, float lin_threshold, 
     BSAPICPP.SetSleepingThresholds2(bodyu.ptr, lin_threshold, ang_threshold);
 }
 
+// Deep down in Bullet: m_totalTorque += torque*m_angularFactor;
 public override void ApplyTorque(BulletBody obj, Vector3 torque)
 {
     BulletBodyUnman bodyu = obj as BulletBodyUnman;
@@ -971,6 +1079,8 @@ public override void ApplyTorque(BulletBody obj, Vector3 torque)
 }
 
 // Apply force at the given point. Will add torque to the object.
+// Deep down in Bullet: applyCentralForce(force);
+//              		applyTorque(rel_pos.cross(force*m_linearFactor));
 public override void ApplyForce(BulletBody obj, Vector3 force, Vector3 pos)
 {
     BulletBodyUnman bodyu = obj as BulletBodyUnman;
@@ -978,6 +1088,7 @@ public override void ApplyForce(BulletBody obj, Vector3 force, Vector3 pos)
 }
 
 // Apply impulse to the object. Same as "ApplycentralForce" but force scaled by object's mass.
+// Deep down in Bullet: m_linearVelocity += impulse *m_linearFactor * m_inverseMass;
 public override void ApplyCentralImpulse(BulletBody obj, Vector3 imp)
 {
     BulletBodyUnman bodyu = obj as BulletBodyUnman;
@@ -985,6 +1096,7 @@ public override void ApplyCentralImpulse(BulletBody obj, Vector3 imp)
 }
 
 // Apply impulse to the object's torque. Force is scaled by object's mass.
+// Deep down in Bullet: m_angularVelocity += m_invInertiaTensorWorld * torque * m_angularFactor;
 public override void ApplyTorqueImpulse(BulletBody obj, Vector3 imp)
 {
     BulletBodyUnman bodyu = obj as BulletBodyUnman;
@@ -992,6 +1104,8 @@ public override void ApplyTorqueImpulse(BulletBody obj, Vector3 imp)
 }
 
 // Apply impulse at the point given. For is scaled by object's mass and effects both linear and angular forces.
+// Deep down in Bullet: applyCentralImpulse(impulse);
+//          			applyTorqueImpulse(rel_pos.cross(impulse*m_linearFactor));
 public override void ApplyImpulse(BulletBody obj, Vector3 imp, Vector3 pos)
 {
     BulletBodyUnman bodyu = obj as BulletBodyUnman;
@@ -1259,6 +1373,16 @@ public override void DumpPhysicsStatistics(BulletWorld world)
     BulletWorldUnman worldu = world as BulletWorldUnman;
     BSAPICPP.DumpPhysicsStatistics2(worldu.ptr);
 }
+public override void ResetBroadphasePool(BulletWorld world)
+{
+    BulletWorldUnman worldu = world as BulletWorldUnman;
+    BSAPICPP.ResetBroadphasePool(worldu.ptr);
+}
+public override void ResetConstraintSolver(BulletWorld world)
+{
+    BulletWorldUnman worldu = world as BulletWorldUnman;
+    BSAPICPP.ResetConstraintSolver(worldu.ptr);
+}
 
 // =====================================================================================
 // =====================================================================================
@@ -1306,7 +1430,15 @@ public static extern IntPtr CreateHullShape2(IntPtr world,
                 int hullCount, [MarshalAs(UnmanagedType.LPArray)] float[] hulls);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern IntPtr BuildHullShapeFromMesh2(IntPtr world, IntPtr meshShape);
+public static extern IntPtr BuildHullShapeFromMesh2(IntPtr world, IntPtr meshShape, HACDParams parms);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern IntPtr BuildConvexHullShapeFromMesh2(IntPtr world, IntPtr meshShape);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern IntPtr CreateConvexHullShape2(IntPtr world,
+                int indicesCount, [MarshalAs(UnmanagedType.LPArray)] int[] indices,
+                int verticesCount, [MarshalAs(UnmanagedType.LPArray)] float[] vertices );
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern IntPtr BuildNativeShape2(IntPtr world, ShapeData shapeData);
@@ -1315,7 +1447,7 @@ public static extern IntPtr BuildNativeShape2(IntPtr world, ShapeData shapeData)
 public static extern bool IsNativeShape2(IntPtr shape);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern void SetShapeCollisionMargin2(IntPtr shape, float margin);
+public static extern void SetShapeCollisionMargin(IntPtr shape, float margin);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern IntPtr BuildCapsuleShape2(IntPtr world, float radius, float height, Vector3 scale);
@@ -1337,6 +1469,9 @@ public static extern IntPtr RemoveChildShapeFromCompoundShapeIndex2(IntPtr cShap
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern void RemoveChildShapeFromCompoundShape2(IntPtr cShape, IntPtr removeShape);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern void UpdateChildTransform2(IntPtr pShape, int childIndex, Vector3 pos, Quaternion rot, bool shouldRecalculateLocalAabb);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern void RecalculateCompoundShapeLocalAabb2(IntPtr cShape);
@@ -1368,7 +1503,7 @@ public static extern void DestroyObject2(IntPtr sim, IntPtr obj);
 public static extern IntPtr CreateGroundPlaneShape2(uint id, float height, float collisionMargin);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern IntPtr CreateTerrainShape2(uint id, Vector3 size, float minHeight, float maxHeight, 
+public static extern IntPtr CreateTerrainShape2(uint id, Vector3 size, float minHeight, float maxHeight,
                                             [MarshalAs(UnmanagedType.LPArray)] float[] heightMap,
                                             float scaleFactor, float collisionMargin);
 
@@ -1386,10 +1521,44 @@ public static extern IntPtr Create6DofConstraintToPoint2(IntPtr world, IntPtr ob
                     bool useLinearReferenceFrameA, bool disableCollisionsBetweenLinkedBodies);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern IntPtr Create6DofConstraintFixed2(IntPtr world, IntPtr obj1,
+                    Vector3 frameInBloc, Quaternion frameInBrot,
+                    bool useLinearReferenceFrameB, bool disableCollisionsBetweenLinkedBodies);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern IntPtr Create6DofSpringConstraint2(IntPtr world, IntPtr obj1, IntPtr obj2,
+                    Vector3 frame1loc, Quaternion frame1rot,
+                    Vector3 frame2loc, Quaternion frame2rot,
+                    bool useLinearReferenceFrameA, bool disableCollisionsBetweenLinkedBodies);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern IntPtr CreateHingeConstraint2(IntPtr world, IntPtr obj1, IntPtr obj2,
                     Vector3 pivotinA, Vector3 pivotinB,
                     Vector3 axisInA, Vector3 axisInB,
                     bool useLinearReferenceFrameA, bool disableCollisionsBetweenLinkedBodies);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern IntPtr CreateSliderConstraint2(IntPtr world, IntPtr obj1, IntPtr obj2,
+                    Vector3 frameInAloc, Quaternion frameInArot,
+                    Vector3 frameInBloc, Quaternion frameInBrot,
+                    bool useLinearReferenceFrameA, bool disableCollisionsBetweenLinkedBodies);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern IntPtr CreateConeTwistConstraint2(IntPtr world, IntPtr obj1, IntPtr obj2,
+                    Vector3 frameInAloc, Quaternion frameInArot,
+                    Vector3 frameInBloc, Quaternion frameInBrot,
+                    bool disableCollisionsBetweenLinkedBodies);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern IntPtr CreateGearConstraint2(IntPtr world, IntPtr obj1, IntPtr obj2,
+                    Vector3 axisInA, Vector3 axisInB,
+                    float ratio, bool disableCollisionsBetweenLinkedBodies);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern IntPtr CreatePoint2PointConstraint2(IntPtr world, IntPtr obj1, IntPtr obj2,
+                    Vector3 pivotInA, Vector3 pivotInB,
+                    bool disableCollisionsBetweenLinkedBodies);
+
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern void SetConstraintEnable2(IntPtr constrain, float numericTrueFalse);
@@ -1831,6 +2000,12 @@ public static extern void DumpAllInfo2(IntPtr sim);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern void DumpPhysicsStatistics2(IntPtr sim);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern void ResetBroadphasePool(IntPtr sim);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern void ResetConstraintSolver(IntPtr sim);
 
 }
 

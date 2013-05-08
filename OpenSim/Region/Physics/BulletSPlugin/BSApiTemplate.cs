@@ -6,7 +6,7 @@
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
  *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyrightD
+ *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
  *     * Neither the name of the OpenSimulator Project nor the
@@ -70,6 +70,7 @@ public enum BSPhysicsShapeType
 	SHAPE_COMPOUND  = 22,
 	SHAPE_HEIGHTMAP = 23,
     SHAPE_AVATAR    = 24,
+    SHAPE_CONVEXHULL= 25,
 };
 
 // The native shapes have predefined shape hash keys
@@ -87,7 +88,7 @@ public enum FixedShapeKey : ulong
 [StructLayout(LayoutKind.Sequential)]
 public struct ShapeData
 {
-    public uint ID;
+    public UInt32 ID;
     public BSPhysicsShapeType Type;
     public Vector3 Position;
     public Quaternion Rotation;
@@ -111,7 +112,7 @@ public struct ShapeData
 [StructLayout(LayoutKind.Sequential)]
 public struct SweepHit
 {
-    public uint ID;
+    public UInt32 ID;
     public float Fraction;
     public Vector3 Normal;
     public Vector3 Point;
@@ -119,27 +120,47 @@ public struct SweepHit
 [StructLayout(LayoutKind.Sequential)]
 public struct RaycastHit
 {
-    public uint ID;
+    public UInt32 ID;
     public float Fraction;
     public Vector3 Normal;
 }
 [StructLayout(LayoutKind.Sequential)]
 public struct CollisionDesc
 {
-    public uint aID;
-    public uint bID;
+    public UInt32 aID;
+    public UInt32 bID;
     public Vector3 point;
     public Vector3 normal;
+    public float penetration;
 }
 [StructLayout(LayoutKind.Sequential)]
 public struct EntityProperties
 {
-    public uint ID;
+    public UInt32 ID;
     public Vector3 Position;
     public Quaternion Rotation;
     public Vector3 Velocity;
     public Vector3 Acceleration;
     public Vector3 RotationalVelocity;
+
+    public override string ToString()
+    {
+        StringBuilder buff = new StringBuilder();
+        buff.Append("<i=");
+        buff.Append(ID.ToString());
+        buff.Append(",p=");
+        buff.Append(Position.ToString());
+        buff.Append(",r=");
+        buff.Append(Rotation.ToString());
+        buff.Append(",v=");
+        buff.Append(Velocity.ToString());
+        buff.Append(",a=");
+        buff.Append(Acceleration.ToString());
+        buff.Append(",rv=");
+        buff.Append(RotationalVelocity.ToString());
+        buff.Append(">");
+        return buff.ToString();
+    }
 }
 
 // Format of this structure must match the definition in the C++ code
@@ -154,32 +175,6 @@ public struct ConfigurationParameters
     public float collisionMargin;
     public float gravity;
 
-    public float XlinearDamping;
-    public float XangularDamping;
-    public float XdeactivationTime;
-    public float XlinearSleepingThreshold;
-    public float XangularSleepingThreshold;
-	public float XccdMotionThreshold;
-	public float XccdSweptSphereRadius;
-    public float XcontactProcessingThreshold;
-
-    public float XterrainImplementation;
-    public float XterrainFriction;
-    public float XterrainHitFraction;
-    public float XterrainRestitution;
-    public float XterrainCollisionMargin;
-
-    public float XavatarFriction;
-    public float XavatarStandingFriction;
-    public float XavatarDensity;
-    public float XavatarRestitution;
-    public float XavatarCapsuleWidth;
-    public float XavatarCapsuleDepth;
-    public float XavatarCapsuleHeight;
-	public float XavatarContactProcessingThreshold;
-
-    public float XvehicleAngularDamping;
-
 	public float maxPersistantManifoldPoolSize;
 	public float maxCollisionAlgorithmPoolSize;
 	public float shouldDisableContactPoolDynamicAllocation;
@@ -188,22 +183,30 @@ public struct ConfigurationParameters
 	public float shouldSplitSimulationIslands;
 	public float shouldEnableFrictionCaching;
 	public float numberOfSolverIterations;
+    public float useSingleSidedMeshes;
+	public float globalContactBreakingThreshold;
 
-    public float XlinksetImplementation;
-    public float XlinkConstraintUseFrameOffset;
-    public float XlinkConstraintEnableTransMotor;
-    public float XlinkConstraintTransMotorMaxVel;
-    public float XlinkConstraintTransMotorMaxForce;
-    public float XlinkConstraintERP;
-    public float XlinkConstraintCFM;
-    public float XlinkConstraintSolverIterations;
-
-    public float XphysicsLoggingFrames;
+    public float physicsLoggingFrames;
 
     public const float numericTrue = 1f;
     public const float numericFalse = 0f;
 }
 
+// Parameters passed for the conversion of a mesh to a hull using Bullet's HACD library.
+[StructLayout(LayoutKind.Sequential)]
+public struct HACDParams
+{
+                                            // usual default values
+	public float maxVerticesPerHull;		// 100
+	public float minClusters;				// 2
+	public float compacityWeight;			// 0.1
+	public float volumeWeight;				// 0.0
+	public float concavity;				    // 100
+	public float addExtraDistPoints;		// false
+	public float addNeighboursDistPoints;	// false
+	public float addFacesPoints;			// false
+	public float shouldAdjustCollisionMargin;	// false
+}
 
 // The states a bullet collision object can have
 public enum ActivationState : uint
@@ -238,9 +241,10 @@ public enum CollisionFlags : uint
     CF_DISABLE_VISUALIZE_OBJECT      = 1 << 5,
     CF_DISABLE_SPU_COLLISION_PROCESS = 1 << 6,
     // Following used by BulletSim to control collisions and updates
-    BS_SUBSCRIBE_COLLISION_EVENTS    = 1 << 10,
-    BS_FLOATS_ON_WATER               = 1 << 11,
-    BS_VEHICLE_COLLISIONS            = 1 << 12,
+    BS_SUBSCRIBE_COLLISION_EVENTS    = 1 << 10, // return collision events from unmanaged to managed
+    BS_FLOATS_ON_WATER               = 1 << 11, // the object should float at water level
+    BS_VEHICLE_COLLISIONS            = 1 << 12, // return collisions for vehicle ground checking
+    BS_RETURN_ROOT_COMPOUND_SHAPE    = 1 << 13, // return the pos/rot of the root shape in a compound shape
     BS_NONE                          = 0,
     BS_ALL                           = 0xFFFFFFFF
 };
@@ -294,7 +298,7 @@ public abstract class BSAPITemplate
 {
 // Returns the name of the underlying Bullet engine
 public abstract string BulletEngineName { get; }
-public abstract string BulletEngineVersion { get; protected set;} 
+public abstract string BulletEngineVersion { get; protected set;}
 
 // Initialization and simulation
 public abstract BulletWorld Initialize(Vector3 maxPosition, ConfigurationParameters parms,
@@ -305,7 +309,7 @@ public abstract BulletWorld Initialize(Vector3 maxPosition, ConfigurationParamet
 public abstract int PhysicsStep(BulletWorld world, float timeStep, int maxSubSteps, float fixedTimeStep,
                         out int updatedEntityCount, out int collidersCount);
 
-public abstract bool UpdateParameter(BulletWorld world, uint localID, String parm, float value);
+public abstract bool UpdateParameter(BulletWorld world, UInt32 localID, String parm, float value);
 
 public abstract void Shutdown(BulletWorld sim);
 
@@ -320,7 +324,13 @@ public abstract BulletShape CreateMeshShape(BulletWorld world,
 public abstract BulletShape CreateHullShape(BulletWorld world,
                 int hullCount, float[] hulls);
 
-public abstract BulletShape BuildHullShapeFromMesh(BulletWorld world, BulletShape meshShape);
+public abstract BulletShape BuildHullShapeFromMesh(BulletWorld world, BulletShape meshShape, HACDParams parms);
+
+public abstract BulletShape BuildConvexHullShapeFromMesh(BulletWorld world, BulletShape meshShape);
+
+public abstract BulletShape CreateConvexHullShape(BulletWorld world,
+                int indicesCount, int[] indices,
+                int verticesCount, float[] vertices );
 
 public abstract BulletShape BuildNativeShape(BulletWorld world, ShapeData shapeData);
 
@@ -342,26 +352,28 @@ public abstract BulletShape RemoveChildShapeFromCompoundShapeIndex(BulletShape c
 
 public abstract void RemoveChildShapeFromCompoundShape(BulletShape cShape, BulletShape removeShape);
 
+public abstract void UpdateChildTransform(BulletShape pShape, int childIndex, Vector3 pos, Quaternion rot, bool shouldRecalculateLocalAabb);
+
 public abstract void RecalculateCompoundShapeLocalAabb(BulletShape cShape);
 
-public abstract BulletShape DuplicateCollisionShape(BulletWorld sim, BulletShape srcShape, uint id);
+public abstract BulletShape DuplicateCollisionShape(BulletWorld sim, BulletShape srcShape, UInt32 id);
 
 public abstract bool DeleteCollisionShape(BulletWorld world, BulletShape shape);
 
 public abstract CollisionObjectTypes GetBodyType(BulletBody obj);
 
-public abstract BulletBody CreateBodyFromShape(BulletWorld sim, BulletShape shape, uint id, Vector3 pos, Quaternion rot);
+public abstract BulletBody CreateBodyFromShape(BulletWorld sim, BulletShape shape, UInt32 id, Vector3 pos, Quaternion rot);
 
-public abstract BulletBody CreateBodyWithDefaultMotionState(BulletShape shape, uint id, Vector3 pos, Quaternion rot);
+public abstract BulletBody CreateBodyWithDefaultMotionState(BulletShape shape, UInt32 id, Vector3 pos, Quaternion rot);
 
-public abstract BulletBody CreateGhostFromShape(BulletWorld sim, BulletShape shape, uint id, Vector3 pos, Quaternion rot);
+public abstract BulletBody CreateGhostFromShape(BulletWorld sim, BulletShape shape, UInt32 id, Vector3 pos, Quaternion rot);
 
 public abstract void DestroyObject(BulletWorld sim, BulletBody obj);
 
 // =====================================================================================
-public abstract BulletShape CreateGroundPlaneShape(uint id, float height, float collisionMargin);
+public abstract BulletShape CreateGroundPlaneShape(UInt32 id, float height, float collisionMargin);
 
-public abstract BulletShape CreateTerrainShape(uint id, Vector3 size, float minHeight, float maxHeight, float[] heightMap, 
+public abstract BulletShape CreateTerrainShape(UInt32 id, Vector3 size, float minHeight, float maxHeight, float[] heightMap,
 								float scaleFactor, float collisionMargin);
 
 // =====================================================================================
@@ -375,10 +387,37 @@ public abstract BulletConstraint Create6DofConstraintToPoint(BulletWorld world, 
                     Vector3 joinPoint,
                     bool useLinearReferenceFrameA, bool disableCollisionsBetweenLinkedBodies);
 
+public abstract BulletConstraint Create6DofConstraintFixed(BulletWorld world, BulletBody obj1,
+                    Vector3 frameInBloc, Quaternion frameInBrot,
+                    bool useLinearReferenceFrameB, bool disableCollisionsBetweenLinkedBodies);
+
+public abstract BulletConstraint Create6DofSpringConstraint(BulletWorld world, BulletBody obj1, BulletBody obj2,
+                    Vector3 frame1loc, Quaternion frame1rot,
+                    Vector3 frame2loc, Quaternion frame2rot,
+                    bool useLinearReferenceFrameA, bool disableCollisionsBetweenLinkedBodies);
+
 public abstract BulletConstraint CreateHingeConstraint(BulletWorld world, BulletBody obj1, BulletBody obj2,
                     Vector3 pivotinA, Vector3 pivotinB,
                     Vector3 axisInA, Vector3 axisInB,
                     bool useLinearReferenceFrameA, bool disableCollisionsBetweenLinkedBodies);
+
+public abstract BulletConstraint CreateSliderConstraint(BulletWorld world, BulletBody obj1, BulletBody obj2,
+                    Vector3 frameInAloc, Quaternion frameInArot,
+                    Vector3 frameInBloc, Quaternion frameInBrot,
+                    bool useLinearReferenceFrameA, bool disableCollisionsBetweenLinkedBodies);
+
+public abstract BulletConstraint CreateConeTwistConstraint(BulletWorld world, BulletBody obj1, BulletBody obj2,
+                    Vector3 frameInAloc, Quaternion frameInArot,
+                    Vector3 frameInBloc, Quaternion frameInBrot,
+                    bool disableCollisionsBetweenLinkedBodies);
+
+public abstract BulletConstraint CreateGearConstraint(BulletWorld world, BulletBody obj1, BulletBody obj2,
+                    Vector3 axisInA, Vector3 axisInB,
+                    float ratio, bool disableCollisionsBetweenLinkedBodies);
+
+public abstract BulletConstraint CreatePoint2PointConstraint(BulletWorld world, BulletBody obj1, BulletBody obj2,
+                    Vector3 pivotInA, Vector3 pivotInB,
+                    bool disableCollisionsBetweenLinkedBodies);
 
 public abstract void SetConstraintEnable(BulletConstraint constrain, float numericTrueFalse);
 
@@ -607,7 +646,7 @@ public abstract BulletConstraint GetConstraintRef(BulletBody obj, int index);
 
 public abstract int GetNumConstraintRefs(BulletBody obj);
 
-public abstract bool SetCollisionGroupMask(BulletBody body, uint filter, uint mask);
+public abstract bool SetCollisionGroupMask(BulletBody body, UInt32 filter, UInt32 mask);
 
 // =====================================================================================
 // btCollisionShape entries
@@ -646,17 +685,21 @@ public abstract float GetMargin(BulletShape shape);
 
 // =====================================================================================
 // Debugging
-public abstract void DumpRigidBody(BulletWorld sim, BulletBody collisionObject);
+public virtual void DumpRigidBody(BulletWorld sim, BulletBody collisionObject) { }
 
-public abstract void DumpCollisionShape(BulletWorld sim, BulletShape collisionShape);
+public virtual void DumpCollisionShape(BulletWorld sim, BulletShape collisionShape) { }
 
-public abstract void DumpConstraint(BulletWorld sim, BulletConstraint constrain);
+public virtual void DumpConstraint(BulletWorld sim, BulletConstraint constrain) { }
 
-public abstract void DumpActivationInfo(BulletWorld sim);
+public virtual void DumpActivationInfo(BulletWorld sim) { }
 
-public abstract void DumpAllInfo(BulletWorld sim);
+public virtual void DumpAllInfo(BulletWorld sim) { }
 
-public abstract void DumpPhysicsStatistics(BulletWorld sim);
+public virtual void DumpPhysicsStatistics(BulletWorld sim) { }
+
+public virtual void ResetBroadphasePool(BulletWorld sim) { }
+
+public virtual void ResetConstraintSolver(BulletWorld sim) { }
 
 };
 }
