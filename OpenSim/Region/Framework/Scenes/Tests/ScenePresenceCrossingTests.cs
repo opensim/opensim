@@ -95,11 +95,11 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             SceneHelpers.SetupSceneModules(sceneB, config, new CapabilitiesModule(), etmB);
 
             AgentCircuitData acd = SceneHelpers.GenerateAgentData(userId);
-            TestClient tc = new TestClient(acd, sceneA, sh.SceneManager);
+            TestClient tc = new TestClient(acd, sceneA);
             List<TestClient> destinationTestClients = new List<TestClient>();
             EntityTransferHelpers.SetUpInformClientOfNeighbour(tc, destinationTestClients);
 
-            ScenePresence originalSp = SceneHelpers.AddScenePresence(sceneA, tc, acd, sh.SceneManager);
+            ScenePresence originalSp = SceneHelpers.AddScenePresence(sceneA, tc, acd);
             originalSp.AbsolutePosition = new Vector3(128, 32, 10);
 
 //            originalSp.Flying = true;
