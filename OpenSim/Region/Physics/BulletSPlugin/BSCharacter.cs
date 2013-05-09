@@ -419,7 +419,7 @@ public sealed class BSCharacter : BSPhysObject
             DetailLog("{0},BSCharacter.setTargetVelocity,call,vel={1}", LocalID, value);
             m_targetVelocity = value;
             OMV.Vector3 targetVel = value;
-            if (_setAlwaysRun)
+            if (_setAlwaysRun && !_flying)
                 targetVel *= new OMV.Vector3(BSParam.AvatarAlwaysRunFactor, BSParam.AvatarAlwaysRunFactor, 0f);
 
             if (m_moveActor != null)
@@ -481,7 +481,10 @@ public sealed class BSCharacter : BSPhysObject
                 _orientation = value;
                 PhysScene.TaintedObject("BSCharacter.setOrientation", delegate()
                 {
-                    ForceOrientation = _orientation;
+                    // Bullet assumes we know what we are doing when forcing orientation
+                    //    so it lets us go against all the rules and just compensates for them later.
+                    //    This keeps us from flipping the capsule over which the veiwer does not understand.
+                    ForceOrientation = new OMV.Quaternion(0, 0, _orientation.Z,0);
                 });
             }
         }
