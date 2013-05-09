@@ -517,10 +517,9 @@ namespace OpenSim.Tests.Common.Mock
 
         public virtual void SendAgentDataUpdate(UUID agentid, UUID activegroupid, string firstname, string lastname, ulong grouppowers, string groupname, string grouptitle)
         {
-
         }
 
-        public virtual void SendKillObject(ulong regionHandle, List<uint> localID)
+        public virtual void SendKillObject(List<uint> localID)
         {
             ReceivedKills.AddRange(localID);
         }
@@ -533,7 +532,6 @@ namespace OpenSim.Tests.Common.Mock
         {
             return new byte[0];
         }
-
 
         public virtual void SendAnimations(UUID[] animations, int[] seqs, UUID sourceAgentId, UUID[] objectIDs)
         {

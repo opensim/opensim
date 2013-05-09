@@ -1247,7 +1247,7 @@ namespace OpenSim.Region.Framework.Scenes
                             if (!IsAttachment
                                 || AttachedAvatar == sp.UUID
                                 || !HasPrivateAttachmentPoint)
-                                sp.ControllingClient.SendKillObject(m_regionHandle, new List<uint> { part.LocalId });
+                                sp.ControllingClient.SendKillObject(new List<uint> { part.LocalId });
                         }
                     }
                 });
