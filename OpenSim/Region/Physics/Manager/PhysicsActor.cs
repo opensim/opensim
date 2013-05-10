@@ -147,6 +147,8 @@ namespace OpenSim.Region.Physics.Manager
 
         public abstract Vector3 Size { get; set; }
 
+        public virtual byte PhysicsShapeType { get; set; }
+
         public abstract PrimitiveBaseShape Shape { set; }
 
         uint m_baseLocalID;
@@ -218,9 +220,11 @@ namespace OpenSim.Region.Physics.Manager
                 handler(e);
         }
 
-        public virtual void SetMaterial (int material)
-        {
-        }
+        public virtual void SetMaterial (int material) { }
+        public virtual float Density { get; set; }
+        public virtual float GravModifier { get; set; }
+        public virtual float Friction { get; set; }
+        public virtual float Restitution { get; set; }
 
         /// <summary>
         /// Position of this actor.
