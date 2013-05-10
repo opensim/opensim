@@ -314,6 +314,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             case "bulletunmanaged":
                 ret = new BSAPIUnman(engineName, this);
                 break;
+                /*
             case "bulletxna":
                 ret = new BSAPIXNA(engineName, this);
                 // Disable some features that are not implemented in BulletXNA
@@ -321,6 +322,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
                 BSParam.ShouldUseBulletHACD = false;
                 BSParam.ShouldUseSingleConvexHullForPrims = false;
                 break;
+                 */
         }
 
         if (ret == null)
