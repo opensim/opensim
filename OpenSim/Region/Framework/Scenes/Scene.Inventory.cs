@@ -485,7 +485,10 @@ namespace OpenSim.Region.Framework.Scenes
                     item.SaleType = itemUpd.SaleType;
 
                     InventoryService.UpdateItem(item);
-                    remoteClient.SendBulkUpdateInventory(item);
+
+                    // We cannot send out a bulk update here, since this will cause editing of clothing to start 
+                    // failing frequently.  Possibly this is a race with a separate transaction that uploads the asset.
+//                    remoteClient.SendBulkUpdateInventory(item);
                 }
 
                 if (UUID.Zero != transactionID)

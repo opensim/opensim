@@ -841,7 +841,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     m_scene.ForEachClient(
                         client =>
                             { if (client.AgentId != so.AttachedAvatar)
-                                client.SendKillObject(m_scene.RegionInfo.RegionHandle, new List<uint>() { so.LocalId });
+                                client.SendKillObject(new List<uint>() { so.LocalId });
                             });
                 }
 

@@ -1857,11 +1857,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Delete this group from its scene.
         /// </summary>
-        /// 
+        /// <remarks>
         /// This only handles the in-world consequences of deletion (e.g. any avatars sitting on it are forcibly stood
         /// up and all avatars receive notification of its removal.  Removal of the scene object from database backup
         /// must be handled by the caller.
-        /// 
+        /// </remarks>
         /// <param name="silent">If true then deletion is not broadcast to clients</param>
         public void DeleteGroupFromScene(bool silent)
         {
@@ -1875,10 +1875,10 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 SceneObjectPart part = parts[i];
 
-                Scene.ForEachRootScenePresence(delegate(ScenePresence avatar)
+                Scene.ForEachScenePresence(sp =>
                 {
-                    if (avatar.ParentID == LocalId)
-                        avatar.StandUp();
+                    if (!sp.IsChildAgent && sp.ParentID == LocalId)
+                        sp.StandUp();
 
                     if (!silent)
                     {
@@ -1886,9 +1886,9 @@ namespace OpenSim.Region.Framework.Scenes
                         if (part == m_rootPart)
                         {
                             if (!IsAttachment
-                                || AttachedAvatar == avatar.ControllingClient.AgentId
+                                || AttachedAvatar == sp.UUID
                                 || !HasPrivateAttachmentPoint)
-                                avatar.ControllingClient.SendKillObject(m_regionHandle, new List<uint> { part.LocalId });
+                                sp.ControllingClient.SendKillObject(new List<uint> { part.LocalId });
                         }
                     }
                 });

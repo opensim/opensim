@@ -430,6 +430,5 @@ namespace OpenSim.Framework
         {
             return l_EstateGroups.Contains(groupID);
         }
-
     }
 }

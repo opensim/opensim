@@ -118,8 +118,8 @@ namespace OpenSim.Tests.Common.Mock
 
             folder.parentFolderID = new UUID(newParent);
 
-            XInventoryFolder[] newParentFolders 
-                = GetFolders(new string[] { "folderID" }, new string[] { folder.parentFolderID.ToString() });
+//            XInventoryFolder[] newParentFolders 
+//                = GetFolders(new string[] { "folderID" }, new string[] { folder.parentFolderID.ToString() });
 
 //            Console.WriteLine(
 //                "Moved folder {0} {1}, to {2} {3}", 

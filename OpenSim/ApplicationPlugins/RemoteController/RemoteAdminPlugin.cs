@@ -1909,7 +1909,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             m_log.Info("[RADMIN]: Received Estate Reload Request");
 
             Hashtable responseData = (Hashtable)response.Value;
-            Hashtable requestData = (Hashtable)request.Params[0];
+//            Hashtable requestData = (Hashtable)request.Params[0];
 
             m_application.SceneManager.ForEachScene(s => 
                 s.RegionInfo.EstateSettings = m_application.EstateDataService.LoadEstateSettings(s.RegionInfo.RegionID, false)                

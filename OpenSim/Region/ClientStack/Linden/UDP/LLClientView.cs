@@ -1580,7 +1580,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(pc, ThrottleOutPacketType.Unknown);
         }
 
-        public void SendKillObject(ulong regionHandle, List<uint> localIDs)
+        public void SendKillObject(List<uint> localIDs)
         {
 //            foreach (uint id in localIDs)
 //                m_log.DebugFormat("[CLIENT]: Sending KillObjectPacket to {0} for {1} in {2}", Name, id, regionHandle);
@@ -11961,8 +11961,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (part == null)
                     {
                         // It's a ghost! tell the client to delete it from view.
-                        simClient.SendKillObject(Scene.RegionInfo.RegionHandle,
-                                                 new List<uint> { localId });
+                        simClient.SendKillObject(new List<uint> { localId });
                     }
                     else
                     {

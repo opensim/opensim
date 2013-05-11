@@ -3648,7 +3648,7 @@ namespace OpenSim.Region.Framework.Scenes
                             delegate(IClientAPI client)
                             {
                                 //We can safely ignore null reference exceptions.  It means the avatar is dead and cleaned up anyway
-                                try { client.SendKillObject(avatar.RegionHandle, new List<uint> { avatar.LocalId }); }
+                                try { client.SendKillObject(new List<uint> { avatar.LocalId }); }
                                 catch (NullReferenceException) { }
                             });
                     }
@@ -3729,7 +3729,8 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 deleteIDs.Add(localID);
             }
-            ForEachClient(delegate(IClientAPI client) { client.SendKillObject(m_regionHandle, deleteIDs); });
+
+            ForEachClient(c => c.SendKillObject(deleteIDs));
         }
 
         #endregion
@@ -4381,8 +4382,6 @@ namespace OpenSim.Region.Framework.Scenes
         {
             m_log.DebugFormat(
                 "[SCENE]: Incoming child agent update for {0} in {1}", cAgentData.AgentID, RegionInfo.RegionName);
-
-            // XPTO: if this agent is not allowed here as root, always return false
 
             // We have to wait until the viewer contacts this region after receiving EAC.
             // That calls AddNewClient, which finally creates the ScenePresence

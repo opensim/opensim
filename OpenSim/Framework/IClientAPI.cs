@@ -1109,9 +1109,8 @@ namespace OpenSim.Framework
         /// <summary>
         /// Tell the client that an object has been deleted
         /// </summary>
-        /// <param name="regionHandle"></param>
         /// <param name="localID"></param>
-        void SendKillObject(ulong regionHandle, List<uint> localID);
+        void SendKillObject(List<uint> localID);
 
         void SendAnimations(UUID[] animID, int[] seqs, UUID sourceAgentId, UUID[] objectIDs);
         void SendRegionHandshake(RegionInfo regionInfo, RegionHandshakeArgs args);

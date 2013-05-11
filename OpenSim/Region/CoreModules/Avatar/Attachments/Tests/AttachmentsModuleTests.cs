@@ -833,11 +833,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             UserAccount ua1 = UserAccountHelpers.CreateUserWithInventory(sceneA, 0x1);
 
             AgentCircuitData acd = SceneHelpers.GenerateAgentData(ua1.PrincipalID);
-            TestClient tc = new TestClient(acd, sceneA, sh.SceneManager);
+            TestClient tc = new TestClient(acd, sceneA);
             List<TestClient> destinationTestClients = new List<TestClient>();
             EntityTransferHelpers.SetUpInformClientOfNeighbour(tc, destinationTestClients);
 
-            ScenePresence beforeTeleportSp = SceneHelpers.AddScenePresence(sceneA, tc, acd, sh.SceneManager);
+            ScenePresence beforeTeleportSp = SceneHelpers.AddScenePresence(sceneA, tc, acd);
             beforeTeleportSp.AbsolutePosition = new Vector3(30, 31, 32);
 
             InventoryItemBase attItem = CreateAttachmentItem(sceneA, ua1.PrincipalID, "att", 0x10, 0x20);

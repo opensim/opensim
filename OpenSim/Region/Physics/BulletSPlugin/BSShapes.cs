@@ -368,9 +368,10 @@ public class BSShapeMesh : BSShape
 
                 // Check to see if mesh was created (might require an asset).
                 newShape = VerifyMeshCreated(physicsScene, newShape, prim);
-                if (!newShape.isNativeShape)
+                if (!newShape.isNativeShape || prim.PrimAssetState == BSPhysObject.PrimAssetCondition.Failed)
                 {
                     // If a mesh was what was created, remember the built shape for later sharing.
+                    // Also note that if meshing failed we put it in the mesh list as there is nothing else to do about the mesh.
                     Meshes.Add(newMeshKey, retMesh);
                 }
 
@@ -483,8 +484,11 @@ public class BSShapeMesh : BSShape
             }
             else
             {
+                // Force the asset condition to 'failed' so we won't try to keep fetching and processing this mesh.
+                prim.PrimAssetState = BSPhysObject.PrimAssetCondition.Failed;
                 physicsScene.Logger.DebugFormat("{0} All mesh triangles degenerate. Prim {1} at {2} in {3}",
                                     LogHeader, prim.PhysObjectName, prim.RawPosition, physicsScene.Name);
+                physicsScene.DetailLog("{0},BSShapeMesh.CreatePhysicalMesh,allDegenerate,key={1}", prim.LocalID, newMeshKey);
             }
         }
         newShape.shapeKey = newMeshKey;
@@ -523,7 +527,7 @@ public class BSShapeHull : BSShape
 
                 // Check to see if hull was created (might require an asset).
                 newShape = VerifyMeshCreated(physicsScene, newShape, prim);
-                if (!newShape.isNativeShape)
+                if (!newShape.isNativeShape || prim.PrimAssetState == BSPhysObject.PrimAssetCondition.Failed)
                 {
                     // If a mesh was what was created, remember the built shape for later sharing.
                     Hulls.Add(newHullKey, retHull);

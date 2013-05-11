@@ -325,6 +325,12 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
     ; For V2/V3 webapp authentication SSO
     ; OpenIDServerURL = "http://127.0.0.1/openid/openidserver/"
 
+    ; For V3 destination guide
+    ; DestinationGuide = "http://127.0.0.1/guide"
+
+    ; For V3 avatar picker (( work in progress ))
+    ; AvatarPicker = "http://127.0.0.1/avatars"
+
     ; If you run this login server behind a proxy, set this to true
     ; HasProxy = false
     

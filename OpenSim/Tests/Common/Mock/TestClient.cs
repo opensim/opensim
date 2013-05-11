@@ -47,9 +47,9 @@ namespace OpenSim.Tests.Common.Mock
         EventWaitHandle wh = new EventWaitHandle (false, EventResetMode.AutoReset, "Crossing");
 
         private Scene m_scene;
-        private SceneManager m_sceneManager;
 
         // Properties so that we can get at received data for test purposes
+        public List<uint> ReceivedKills { get; private set; }
         public List<UUID> ReceivedOfflineNotifications { get; private set; }
         public List<UUID> ReceivedOnlineNotifications { get; private set; }
         public List<UUID> ReceivedFriendshipTerminations { get; private set; }
@@ -437,33 +437,21 @@ namespace OpenSim.Tests.Common.Mock
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <remarks>
-        /// Can be used for a test where there is only one region or where there are multiple regions that are not
-        /// neighbours and where no teleporting takes place.  In other situations, the constructor that takes in a
-        /// scene manager should be used.
-        /// </remarks>
-        /// <param name="agentData"></param>
-        /// <param name="scene"></param>
-        public TestClient(AgentCircuitData agentData, Scene scene) : this(agentData, scene, null) {}
-
-        /// <summary>
-        /// Constructor
-        /// </summary>
         /// <param name="agentData"></param>
         /// <param name="scene"></param>
         /// <param name="sceneManager"></param>
-        public TestClient(AgentCircuitData agentData, Scene scene, SceneManager sceneManager)
+        public TestClient(AgentCircuitData agentData, Scene scene)
         {
             m_agentId = agentData.AgentID;
             m_firstName = agentData.firstname;
             m_lastName = agentData.lastname;
             m_circuitCode = agentData.circuitcode;
             m_scene = scene;
-            m_sceneManager = sceneManager;
             SessionId = agentData.SessionID;
             SecureSessionId = agentData.SecureSessionID;
             CapsSeedUrl = agentData.CapsPath;
 
+            ReceivedKills = new List<uint>();
             ReceivedOfflineNotifications = new List<UUID>();
             ReceivedOnlineNotifications = new List<UUID>();
             ReceivedFriendshipTerminations = new List<UUID>();
@@ -532,11 +520,11 @@ namespace OpenSim.Tests.Common.Mock
 
         public virtual void SendAgentDataUpdate(UUID agentid, UUID activegroupid, string firstname, string lastname, ulong grouppowers, string groupname, string grouptitle)
         {
-
         }
 
-        public virtual void SendKillObject(ulong regionHandle, List<uint> localID)
+        public virtual void SendKillObject(List<uint> localID)
         {
+            ReceivedKills.AddRange(localID);
         }
 
         public virtual void SetChildAgentThrottle(byte[] throttle)
@@ -545,14 +533,12 @@ namespace OpenSim.Tests.Common.Mock
 
         public void SetAgentThrottleSilent(int throttle, int setting)
         {
-
-
         }
+
         public byte[] GetThrottlesPacked(float multiplier)
         {
             return new byte[0];
         }
-
 
         public virtual void SendAnimations(UUID[] animations, int[] seqs, UUID sourceAgentId, UUID[] objectIDs)
         {
