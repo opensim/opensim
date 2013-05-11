@@ -86,3 +86,12 @@ begin;
 alter table estate_settings add column DenyMinors tinyint not null default 0;
 
 commit;
+
+:VERSION 9
+
+begin;
+alter table estate_settings add column AllowLandmark tinyint not null default '1';
+alter table estate_settings add column AllowParcelChanges tinyint not null default '1';
+alter table estate_settings add column AllowSetHome tinyint not null default '1';
+commit;
+

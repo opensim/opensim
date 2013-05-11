@@ -1245,6 +1245,8 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 flags |= RegionFlags.NoFly;
             if (Scene.RegionInfo.RegionSettings.RestrictPushing)
                 flags |= RegionFlags.RestrictPushObject;
+            if (Scene.RegionInfo.RegionSettings.AllowLandJoinDivide)
+                flags |= RegionFlags.AllowParcelChanges;
             if (Scene.RegionInfo.RegionSettings.BlockShowInSearch)
                 flags |= RegionFlags.BlockParcelSearch;
 
@@ -1254,6 +1256,10 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 flags |= RegionFlags.Sandbox;
             if (Scene.RegionInfo.EstateSettings.AllowVoice)
                 flags |= RegionFlags.AllowVoice;
+            if (Scene.RegionInfo.EstateSettings.AllowLandmark)
+                flags |= RegionFlags.AllowLandmark;
+            if (Scene.RegionInfo.EstateSettings.AllowSetHome)
+                flags |= RegionFlags.AllowSetHome;
             if (Scene.RegionInfo.EstateSettings.BlockDwell)
                 flags |= RegionFlags.BlockDwell;
             if (Scene.RegionInfo.EstateSettings.ResetHomeOnTeleport)
@@ -1299,6 +1305,12 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 flags |= RegionFlags.ResetHomeOnTeleport;
             if (Scene.RegionInfo.EstateSettings.TaxFree)
                 flags |= RegionFlags.TaxFree;
+            if (Scene.RegionInfo.EstateSettings.AllowLandmark)
+                flags |= RegionFlags.AllowLandmark;
+            if (Scene.RegionInfo.EstateSettings.AllowParcelChanges)
+                flags |= RegionFlags.AllowParcelChanges;
+            if (Scene.RegionInfo.EstateSettings.AllowSetHome)
+                flags |= RegionFlags.AllowSetHome;
             if (Scene.RegionInfo.EstateSettings.DenyMinors)
                 flags |= (RegionFlags)(1 << 30);
 
