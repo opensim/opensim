@@ -4188,8 +4188,6 @@ namespace OpenSim.Region.Framework.Scenes
             m_log.DebugFormat(
                 "[SCENE]: Incoming child agent update for {0} in {1}", cAgentData.AgentID, RegionInfo.RegionName);
 
-            // XPTO: if this agent is not allowed here as root, always return false
-
             // TODO: This check should probably be in QueryAccess().
             ILandObject nearestParcel = GetNearestAllowedParcel(cAgentData.AgentID, Constants.RegionSize / 2, Constants.RegionSize / 2);
             if (nearestParcel == null)
