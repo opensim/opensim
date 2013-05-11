@@ -74,6 +74,8 @@ namespace OpenSim.Region.CoreModules.World.Land
         
         protected IUserManagement m_userManager;
         protected IPrimCountModule m_primCountModule;
+        protected IDialogModule m_Dialog;
+        protected IGroupsModule m_Groups;
 
         // Minimum for parcels to work is 64m even if we don't actually use them.
         #pragma warning disable 0429
@@ -153,6 +155,8 @@ namespace OpenSim.Region.CoreModules.World.Land
         {
              m_userManager = m_scene.RequestModuleInterface<IUserManagement>();         
              m_primCountModule = m_scene.RequestModuleInterface<IPrimCountModule>();
+             m_Dialog = m_scene.RequestModuleInterface<IDialogModule>();
+             m_Groups = m_scene.RequestModuleInterface<IGroupsModule>();
         }
 
         public void RemoveRegion(Scene scene)
@@ -212,6 +216,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             client.OnPreAgentUpdate += ClientOnPreAgentUpdate;
             client.OnParcelEjectUser += ClientOnParcelEjectUser;
             client.OnParcelFreezeUser += ClientOnParcelFreezeUser;
+            client.OnSetStartLocationRequest += ClientOnSetHome;
 
 
             EntityBase presenceEntity;
@@ -1822,6 +1827,60 @@ namespace OpenSim.Region.CoreModules.World.Land
                 land.LandData.ParcelAccessList.Add(entry);
             }
         }
+
+        /// <summary>
+        /// Sets the Home Point.   The LoginService uses this to know where to put a user when they log-in
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="regionHandle"></param>
+        /// <param name="position"></param>
+        /// <param name="lookAt"></param>
+        /// <param name="flags"></param>
+        public virtual void ClientOnSetHome(IClientAPI remoteClient, ulong regionHandle, Vector3 position, Vector3 lookAt, uint flags)
+        {
+            m_log.DebugFormat("[XXX]: SetHome");
+            // Let's find the parcel in question
+            ILandObject land = landChannel.GetLandObject(position);
+            if (land == null || m_scene.GridUserService == null)
+            {
+                m_Dialog.SendAlertToUser(remoteClient, "Set Home request Failed.");
+                return;
+            }
+
+            // Can the user set home here?
+            bool canSetHome = false;
+            // (a) land owners can set home
+            if (remoteClient.AgentId == land.LandData.OwnerID)
+                canSetHome = true;
+            // (b) members of land-owned group in roles that can set home
+            if (land.LandData.IsGroupOwned && m_Groups != null)
+            {
+                ulong gpowers = remoteClient.GetGroupPowers(land.LandData.GroupID);
+                m_log.DebugFormat("[XXX]: GroupPowers 0x{0:x16}", gpowers);
+                if ((gpowers & (ulong)GroupPowers.AllowSetHome) == 1)
+                    canSetHome = true;
+            }
+            // (c) parcels with telehubs can be the home of anyone
+            if (m_scene.RegionInfo.RegionSettings.TelehubObject != UUID.Zero)
+            {
+                // If the telehub in this parcel?
+                SceneObjectGroup telehub = m_scene.GetSceneObjectGroup(m_scene.RegionInfo.RegionSettings.TelehubObject);
+                if (telehub != null && land.ContainsPoint((int)telehub.AbsolutePosition.X, (int)telehub.AbsolutePosition.Y))
+                    canSetHome = true;
+            }
+
+            if (canSetHome)
+            {
+                if (m_scene.GridUserService != null && m_scene.GridUserService.SetHome(remoteClient.AgentId.ToString(), land.RegionUUID, position, lookAt))
+                    // FUBAR ALERT: this needs to be "Home position set." so the viewer saves a home-screenshot.
+                    m_Dialog.SendAlertToUser(remoteClient, "Home position set.");
+                else
+                    m_Dialog.SendAlertToUser(remoteClient, "Set Home request Failed.");
+            }
+            else
+                m_Dialog.SendAlertToUser(remoteClient, "You are not allowed to set your home location in this parcel.");
+        }
+
 
         protected void InstallInterfaces()
         {
