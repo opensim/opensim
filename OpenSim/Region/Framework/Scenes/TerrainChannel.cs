@@ -131,7 +131,15 @@ namespace OpenSim.Region.Framework.Scenes
 
         public double this[int x, int y]
         {
-            get { return map[x, y]; }
+            get
+            {
+                if (x < 0) x = 0;
+                if (y < 0) y = 0;
+                if (x >= (int)Constants.RegionSize) x = (int)Constants.RegionSize - 1;
+                if (y >= (int)Constants.RegionSize) y = (int)Constants.RegionSize - 1;
+
+                return map[x, y];
+            }
             set
             {
                 // Will "fix" terrain hole problems. Although not fantastically.
