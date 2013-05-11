@@ -75,7 +75,6 @@ namespace OpenSim.Region.CoreModules.World.Land
         protected IUserManagement m_userManager;
         protected IPrimCountModule m_primCountModule;
         protected IDialogModule m_Dialog;
-        protected IGroupsModule m_Groups;
 
         // Minimum for parcels to work is 64m even if we don't actually use them.
         #pragma warning disable 0429
@@ -156,7 +155,6 @@ namespace OpenSim.Region.CoreModules.World.Land
              m_userManager = m_scene.RequestModuleInterface<IUserManagement>();         
              m_primCountModule = m_scene.RequestModuleInterface<IPrimCountModule>();
              m_Dialog = m_scene.RequestModuleInterface<IDialogModule>();
-             m_Groups = m_scene.RequestModuleInterface<IGroupsModule>();
         }
 
         public void RemoveRegion(Scene scene)
@@ -1838,44 +1836,37 @@ namespace OpenSim.Region.CoreModules.World.Land
         /// <param name="flags"></param>
         public virtual void ClientOnSetHome(IClientAPI remoteClient, ulong regionHandle, Vector3 position, Vector3 lookAt, uint flags)
         {
-            m_log.DebugFormat("[XXX]: SetHome");
             // Let's find the parcel in question
             ILandObject land = landChannel.GetLandObject(position);
             if (land == null || m_scene.GridUserService == null)
             {
-                m_Dialog.SendAlertToUser(remoteClient, "Set Home request Failed.");
+                m_Dialog.SendAlertToUser(remoteClient, "Set Home request failed.");
                 return;
             }
 
-            // Can the user set home here?
-            bool canSetHome = false;
-            // (a) land owners can set home
-            if (remoteClient.AgentId == land.LandData.OwnerID)
-                canSetHome = true;
-            // (b) members of land-owned group in roles that can set home
-            if (land.LandData.IsGroupOwned && m_Groups != null)
-            {
-                ulong gpowers = remoteClient.GetGroupPowers(land.LandData.GroupID);
-                m_log.DebugFormat("[XXX]: GroupPowers 0x{0:x16}", gpowers);
-                if ((gpowers & (ulong)GroupPowers.AllowSetHome) == 1)
-                    canSetHome = true;
-            }
-            // (c) parcels with telehubs can be the home of anyone
+            // Gather some data
+            ulong gpowers = remoteClient.GetGroupPowers(land.LandData.GroupID);
+            SceneObjectGroup telehub = null;
             if (m_scene.RegionInfo.RegionSettings.TelehubObject != UUID.Zero)
-            {
-                // If the telehub in this parcel?
-                SceneObjectGroup telehub = m_scene.GetSceneObjectGroup(m_scene.RegionInfo.RegionSettings.TelehubObject);
-                if (telehub != null && land.ContainsPoint((int)telehub.AbsolutePosition.X, (int)telehub.AbsolutePosition.Y))
-                    canSetHome = true;
-            }
+                // Does the telehub exist in the scene?
+                telehub = m_scene.GetSceneObjectGroup(m_scene.RegionInfo.RegionSettings.TelehubObject);
 
-            if (canSetHome)
+            // Can the user set home here?
+            if (// (a) gods and land managers can set home
+                m_scene.Permissions.IsAdministrator(remoteClient.AgentId) || 
+                m_scene.Permissions.IsGod(remoteClient.AgentId) ||
+                // (b) land owners can set home
+                remoteClient.AgentId == land.LandData.OwnerID ||
+                // (c) members of the land-associated group in roles that can set home
+                ((gpowers & (ulong)GroupPowers.AllowSetHome) == (ulong)GroupPowers.AllowSetHome) ||
+                // (d) parcels with telehubs can be the home of anyone
+                (telehub != null && land.ContainsPoint((int)telehub.AbsolutePosition.X, (int)telehub.AbsolutePosition.Y)))
             {
-                if (m_scene.GridUserService != null && m_scene.GridUserService.SetHome(remoteClient.AgentId.ToString(), land.RegionUUID, position, lookAt))
+                if (m_scene.GridUserService.SetHome(remoteClient.AgentId.ToString(), land.RegionUUID, position, lookAt))
                     // FUBAR ALERT: this needs to be "Home position set." so the viewer saves a home-screenshot.
                     m_Dialog.SendAlertToUser(remoteClient, "Home position set.");
                 else
-                    m_Dialog.SendAlertToUser(remoteClient, "Set Home request Failed.");
+                    m_Dialog.SendAlertToUser(remoteClient, "Set Home request failed.");
             }
             else
                 m_Dialog.SendAlertToUser(remoteClient, "You are not allowed to set your home location in this parcel.");
