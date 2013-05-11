@@ -1114,14 +1114,14 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 ((Scene)(client.Scene)).RequestTeleportLocation(
                     client, regionInfo.RegionHandle, uinfo.HomePosition, uinfo.HomeLookAt,
                     (uint)(Constants.TeleportFlags.SetLastToTarget | Constants.TeleportFlags.ViaHome));
+                return true;
             }
             else
             {
                 // can't find the Home region: Tell viewer and abort
                 client.SendTeleportFailed("Your home region could not be found.");
-                return false;
             }
-            return true;
+            return false;
         }
 
         #endregion
