@@ -426,6 +426,21 @@ namespace OpenSim.Framework.Console
                             System.Console.Write("{0}", prompt);
 
                         break;
+                    case ConsoleKey.Delete:
+                        if (m_cursorXPosition == m_commandLine.Length)
+                            break;
+
+                        m_commandLine.Remove(m_cursorXPosition, 1);
+
+                        SetCursorLeft(0);
+                        m_cursorYPosition = SetCursorTop(m_cursorYPosition);
+
+                        if (m_echo)
+                            System.Console.Write("{0}{1} ", prompt, m_commandLine);
+                        else
+                            System.Console.Write("{0}", prompt);
+
+                        break;
                     case ConsoleKey.End:
                         m_cursorXPosition = m_commandLine.Length;
                         break;

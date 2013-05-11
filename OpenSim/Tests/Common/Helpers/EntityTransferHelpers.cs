@@ -82,7 +82,7 @@ namespace OpenSim.Tests.Common
                 Scene neighbourScene;
                 SceneManager.Instance.TryGetScene(x, y, out neighbourScene);
 
-                TestClient neighbourTc = new TestClient(newAgent, neighbourScene, SceneManager.Instance);
+                TestClient neighbourTc = new TestClient(newAgent, neighbourScene);
                 neighbourTcs.Add(neighbourTc);
                 neighbourScene.AddNewClient(neighbourTc, PresenceType.User);
             };

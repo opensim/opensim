@@ -139,7 +139,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Vector3 teleportPosition = new Vector3(10, 11, 12);
             Vector3 teleportLookAt = new Vector3(20, 21, 22);
 
-            ScenePresence sp = SceneHelpers.AddScenePresence(sceneA, userId, sh.SceneManager);
+            ScenePresence sp = SceneHelpers.AddScenePresence(sceneA, userId);
             sp.AbsolutePosition = new Vector3(30, 31, 32);
 
             List<TestClient> destinationTestClients = new List<TestClient>();
@@ -224,7 +224,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Vector3 teleportPosition = new Vector3(10, 11, 12);
             Vector3 teleportLookAt = new Vector3(20, 21, 22);
 
-            ScenePresence sp = SceneHelpers.AddScenePresence(sceneA, userId, sh.SceneManager);
+            ScenePresence sp = SceneHelpers.AddScenePresence(sceneA, userId);
             sp.AbsolutePosition = preTeleportPosition;
 
             // Make sceneB return false on query access
@@ -300,7 +300,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Vector3 teleportPosition = new Vector3(10, 11, 12);
             Vector3 teleportLookAt = new Vector3(20, 21, 22);
 
-            ScenePresence sp = SceneHelpers.AddScenePresence(sceneA, userId, sh.SceneManager);
+            ScenePresence sp = SceneHelpers.AddScenePresence(sceneA, userId);
             sp.AbsolutePosition = preTeleportPosition;
 
             // Make sceneB refuse CreateAgent
@@ -389,7 +389,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Vector3 teleportPosition = new Vector3(10, 11, 12);
             Vector3 teleportLookAt = new Vector3(20, 21, 22);
 
-            ScenePresence sp = SceneHelpers.AddScenePresence(sceneA, userId, sh.SceneManager);
+            ScenePresence sp = SceneHelpers.AddScenePresence(sceneA, userId);
             sp.AbsolutePosition = preTeleportPosition;
 
             sceneA.RequestTeleportLocation(
@@ -428,7 +428,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         public void TestSameSimulatorNeighbouringRegions()
         {
             TestHelpers.InMethod();
-            TestHelpers.EnableLogging();
+//            TestHelpers.EnableLogging();
 
             UUID userId = TestHelpers.ParseTail(0x1);
 
@@ -458,11 +458,11 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Vector3 teleportLookAt = new Vector3(20, 21, 22);
 
             AgentCircuitData acd = SceneHelpers.GenerateAgentData(userId);
-            TestClient tc = new TestClient(acd, sceneA, sh.SceneManager);
+            TestClient tc = new TestClient(acd, sceneA);
             List<TestClient> destinationTestClients = new List<TestClient>();
             EntityTransferHelpers.SetUpInformClientOfNeighbour(tc, destinationTestClients);
 
-            ScenePresence beforeSceneASp = SceneHelpers.AddScenePresence(sceneA, tc, acd, sh.SceneManager);
+            ScenePresence beforeSceneASp = SceneHelpers.AddScenePresence(sceneA, tc, acd);
             beforeSceneASp.AbsolutePosition = new Vector3(30, 31, 32);
 
             Assert.That(beforeSceneASp, Is.Not.Null);

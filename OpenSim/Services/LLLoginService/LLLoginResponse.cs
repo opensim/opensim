@@ -227,7 +227,7 @@ namespace OpenSim.Services.LLLoginService
             GridRegion destination, List<InventoryFolderBase> invSkel, FriendInfo[] friendsList, ILibraryService libService,
             string where, string startlocation, Vector3 position, Vector3 lookAt, List<InventoryItemBase> gestures, string message,
             GridRegion home, IPEndPoint clientIP, string mapTileURL, string profileURL, string openIDURL, string searchURL, string currency,
-            string DSTZone)
+            string DSTZone, string destinationsURL, string avatarsURL)
             : this()
         {
             FillOutInventoryData(invSkel, libService);
@@ -246,6 +246,8 @@ namespace OpenSim.Services.LLLoginService
             MapTileURL = mapTileURL;
             ProfileURL = profileURL;
             OpenIDURL = openIDURL;
+            DestinationsURL = destinationsURL;
+            AvatarsURL = avatarsURL;
 
             SearchURL = searchURL;
             Currency = currency;
@@ -532,6 +534,12 @@ namespace OpenSim.Services.LLLoginService
 
                 if (profileURL != String.Empty)
                     responseData["profile-server-url"] = profileURL;
+
+                if (DestinationsURL != String.Empty)
+                    responseData["destination_guide_url"] = DestinationsURL;
+
+                if (AvatarsURL != String.Empty)
+                    responseData["avatar_picker_url"] = AvatarsURL;
 
                 // We need to send an openid_token back in the response too
                 if (openIDURL != String.Empty)
@@ -1054,6 +1062,16 @@ namespace OpenSim.Services.LLLoginService
         {
             get { return currency; }
             set { currency = value; }
+        }
+
+        public string DestinationsURL
+        {
+            get; set;
+        }
+
+        public string AvatarsURL
+        {
+            get; set;
         }
 
         #endregion
