@@ -74,6 +74,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         
         protected IUserManagement m_userManager;
         protected IPrimCountModule m_primCountModule;
+        protected IDialogModule m_Dialog;
 
         // Minimum for parcels to work is 64m even if we don't actually use them.
         #pragma warning disable 0429
@@ -161,6 +162,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         {
              m_userManager = m_scene.RequestModuleInterface<IUserManagement>();         
              m_primCountModule = m_scene.RequestModuleInterface<IPrimCountModule>();
+             m_Dialog = m_scene.RequestModuleInterface<IDialogModule>();
         }
 
         public void RemoveRegion(Scene scene)
@@ -213,6 +215,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             client.OnPreAgentUpdate += ClientOnPreAgentUpdate;
             client.OnParcelEjectUser += ClientOnParcelEjectUser;
             client.OnParcelFreezeUser += ClientOnParcelFreezeUser;
+            client.OnSetStartLocationRequest += ClientOnSetHome;
 
             EntityBase presenceEntity;
             if (m_scene.Entities.TryGetValue(client.AgentId, out presenceEntity) && presenceEntity is ScenePresence)
@@ -1894,7 +1897,53 @@ namespace OpenSim.Region.CoreModules.World.Land
                 land.LandData.ParcelAccessList.Add(entry);
             }
         }
-        
+
+        /// <summary>
+        /// Sets the Home Point.   The LoginService uses this to know where to put a user when they log-in
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="regionHandle"></param>
+        /// <param name="position"></param>
+        /// <param name="lookAt"></param>
+        /// <param name="flags"></param>
+        public virtual void ClientOnSetHome(IClientAPI remoteClient, ulong regionHandle, Vector3 position, Vector3 lookAt, uint flags)
+        {
+            // Let's find the parcel in question
+            ILandObject land = landChannel.GetLandObject(position);
+            if (land == null || m_scene.GridUserService == null)
+            {
+                m_Dialog.SendAlertToUser(remoteClient, "Set Home request failed.");
+                return;
+            }
+
+            // Gather some data
+            ulong gpowers = remoteClient.GetGroupPowers(land.LandData.GroupID);
+            SceneObjectGroup telehub = null;
+            if (m_scene.RegionInfo.RegionSettings.TelehubObject != UUID.Zero)
+                // Does the telehub exist in the scene?
+                telehub = m_scene.GetSceneObjectGroup(m_scene.RegionInfo.RegionSettings.TelehubObject);
+
+            // Can the user set home here?
+            if (// (a) gods and land managers can set home
+                m_scene.Permissions.IsAdministrator(remoteClient.AgentId) || 
+                m_scene.Permissions.IsGod(remoteClient.AgentId) ||
+                // (b) land owners can set home
+                remoteClient.AgentId == land.LandData.OwnerID ||
+                // (c) members of the land-associated group in roles that can set home
+                ((gpowers & (ulong)GroupPowers.AllowSetHome) == (ulong)GroupPowers.AllowSetHome) ||
+                // (d) parcels with telehubs can be the home of anyone
+                (telehub != null && land.ContainsPoint((int)telehub.AbsolutePosition.X, (int)telehub.AbsolutePosition.Y)))
+            {
+                if (m_scene.GridUserService.SetHome(remoteClient.AgentId.ToString(), land.RegionUUID, position, lookAt))
+                    // FUBAR ALERT: this needs to be "Home position set." so the viewer saves a home-screenshot.
+                    m_Dialog.SendAlertToUser(remoteClient, "Home position set.");
+                else
+                    m_Dialog.SendAlertToUser(remoteClient, "Set Home request failed.");
+            }
+            else
+                m_Dialog.SendAlertToUser(remoteClient, "You are not allowed to set your home location in this parcel.");
+        }
+
         protected void InstallInterfaces()
         {
             Command clearCommand

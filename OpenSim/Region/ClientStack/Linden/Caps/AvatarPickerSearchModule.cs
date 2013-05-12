@@ -71,7 +71,6 @@ namespace OpenSim.Region.ClientStack.Linden
                 return;
 
             m_URL = config.GetString("Cap_AvatarPickerSearch", string.Empty);
-            m_log.DebugFormat("[XXX]: Cap_AvatarPickerSearch = {0}", m_URL);
             // Cap doesn't exist
             if (m_URL != string.Empty)
                 m_Enabled = true;

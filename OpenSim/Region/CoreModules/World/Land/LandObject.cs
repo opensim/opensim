@@ -249,13 +249,6 @@ namespace OpenSim.Region.CoreModules.World.Land
             if (estateModule != null)
                 regionFlags = estateModule.GetRegionFlags();
 
-            // In a perfect world, this would have worked.
-            //
-//            if ((landData.Flags & (uint)ParcelFlags.AllowLandmark) != 0)
-//                regionFlags |=  (uint)RegionFlags.AllowLandmark;
-//            if (landData.OwnerID == remote_client.AgentId)
-//                regionFlags |=  (uint)RegionFlags.AllowSetHome;
-
             int seq_id;
             if (snap_selection && (sequence_id == 0))
             {

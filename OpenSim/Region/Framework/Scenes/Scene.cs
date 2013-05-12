@@ -3246,7 +3246,6 @@ namespace OpenSim.Region.Framework.Scenes
         {
             //client.OnNameFromUUIDRequest += HandleUUIDNameRequest;
             client.OnMoneyTransferRequest += ProcessMoneyTransferRequest;
-            client.OnSetStartLocationRequest += SetHomeRezPoint;
             client.OnRegionHandleRequest += RegionHandleRequest;
         }
         
@@ -3373,7 +3372,6 @@ namespace OpenSim.Region.Framework.Scenes
         {
             //client.OnNameFromUUIDRequest -= HandleUUIDNameRequest;
             client.OnMoneyTransferRequest -= ProcessMoneyTransferRequest;
-            client.OnSetStartLocationRequest -= SetHomeRezPoint;
             client.OnRegionHandleRequest -= RegionHandleRequest;
         }
 
@@ -3497,33 +3495,6 @@ namespace OpenSim.Region.Framework.Scenes
                         EventManager.TriggerObjectAddedToScene(copy);
                 }
             }
-        }
-
-        /// <summary>
-        /// Sets the Home Point.   The LoginService uses this to know where to put a user when they log-in
-        /// </summary>
-        /// <param name="remoteClient"></param>
-        /// <param name="regionHandle"></param>
-        /// <param name="position"></param>
-        /// <param name="lookAt"></param>
-        /// <param name="flags"></param>
-        public virtual void SetHomeRezPoint(IClientAPI remoteClient, ulong regionHandle, Vector3 position, Vector3 lookAt, uint flags)
-        {
-            //Add half the avatar's height so that the user doesn't fall through prims
-            ScenePresence presence;
-            if (TryGetScenePresence(remoteClient.AgentId, out presence))
-            {
-                if (presence.Appearance != null)
-                {
-                    position.Z = position.Z + (presence.Appearance.AvatarHeight / 2);
-                }
-            }
-
-            if (GridUserService != null && GridUserService.SetHome(remoteClient.AgentId.ToString(), RegionInfo.RegionID, position, lookAt))
-                // FUBAR ALERT: this needs to be "Home position set." so the viewer saves a home-screenshot.
-                m_dialogModule.SendAlertToUser(remoteClient, "Home position set.");
-            else
-                m_dialogModule.SendAlertToUser(remoteClient, "Set Home request Failed.");
         }
 
         /// <summary>
