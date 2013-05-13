@@ -90,7 +90,7 @@ public static class BSParam
     public static bool ShouldUseBulletHACD { get; set; }
     public static bool ShouldUseSingleConvexHullForPrims { get; set; }
 
-    public static float TerrainImplementation { get; private set; }
+    public static float TerrainImplementation { get; set; }
     public static int TerrainMeshMagnification { get; private set; }
     public static float TerrainFriction { get; private set; }
     public static float TerrainHitFraction { get; private set; }
