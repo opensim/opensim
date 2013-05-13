@@ -60,8 +60,8 @@ namespace OpenSim.Server.Handlers.Login
             InitializeHandlers(server);
         }
 
-        public LLLoginServiceInConnector(IConfigSource config, IHttpServer server) :
-            base(config, server, String.Empty)
+        public LLLoginServiceInConnector(IConfigSource config, IHttpServer server, string configName) :
+            base(config, server, configName)
         {
             string loginService = ReadLocalServiceFromConfig(config);
 
@@ -70,6 +70,11 @@ namespace OpenSim.Server.Handlers.Login
             m_LoginService = ServerUtils.LoadPlugin<ILoginService>(loginService, args);
 
             InitializeHandlers(server);
+        }
+
+        public LLLoginServiceInConnector(IConfigSource config, IHttpServer server) :
+            this(config, server, String.Empty)
+        {
         }
 
         private string ReadLocalServiceFromConfig(IConfigSource config)
