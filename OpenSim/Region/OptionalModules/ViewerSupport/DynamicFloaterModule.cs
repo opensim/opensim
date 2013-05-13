@@ -122,6 +122,9 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
             if (!m_floaters.ContainsKey(agentID))
                 m_floaters[agentID] = new Dictionary<int, FloaterData>();
 
+            if (m_floaters[agentID].ContainsKey(dialogData.Channel))
+                return;
+
             m_floaters[agentID].Add(dialogData.Channel, dialogData);
 
             string xml;
@@ -218,7 +221,7 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
                 }
             }
 
-            if (data.Handler(client, data, parts))
+            if (data.Handler != null && data.Handler(client, data, parts))
             {
                 m_floaters[client.AgentId].Remove(data.Channel);
                 SendToClient(sp, String.Format("># floater {0} destroy", data.FloaterName));
