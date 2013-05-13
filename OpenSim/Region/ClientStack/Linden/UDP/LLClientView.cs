@@ -5124,6 +5124,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             data.CollisionPlane.ToBytes(objectData, 0);
             offsetPosition.ToBytes(objectData, 16);
+            Vector3 velocity = new Vector3(0, 0, 0);
+            Vector3 acceleration = new Vector3(0, 0, 0);
+            velocity.ToBytes(objectData, 28);
+            acceleration.ToBytes(objectData, 40);
 //            data.Velocity.ToBytes(objectData, 28);
 //            data.Acceleration.ToBytes(objectData, 40);
             rotation.ToBytes(objectData, 52);
