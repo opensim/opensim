@@ -90,7 +90,7 @@ public static class BSParam
     public static bool ShouldUseBulletHACD { get; set; }
     public static bool ShouldUseSingleConvexHullForPrims { get; set; }
 
-    public static float TerrainImplementation { get; private set; }
+    public static float TerrainImplementation { get; set; }
     public static int TerrainMeshMagnification { get; private set; }
     public static float TerrainFriction { get; private set; }
     public static float TerrainHitFraction { get; private set; }
@@ -125,6 +125,9 @@ public static class BSParam
     public static float AvatarCapsuleWidth { get; private set; }
     public static float AvatarCapsuleDepth { get; private set; }
     public static float AvatarCapsuleHeight { get; private set; }
+    public static float AvatarHeightLowFudge { get; private set; }
+    public static float AvatarHeightMidFudge { get; private set; }
+    public static float AvatarHeightHighFudge { get; private set; }
 	public static float AvatarContactProcessingThreshold { get; private set; }
 	public static float AvatarBelowGroundUpCorrectionMeters { get; private set; }
 	public static float AvatarStepHeight { get; private set; }
@@ -539,6 +542,12 @@ public static class BSParam
             0.45f ),
         new ParameterDefn<float>("AvatarCapsuleHeight", "Default height of space around avatar",
             1.5f ),
+        new ParameterDefn<float>("AvatarHeightLowFudge", "A fudge factor to make small avatars stand on the ground",
+            -0.2f ),
+        new ParameterDefn<float>("AvatarHeightMidFudge", "A fudge distance to adjust average sized avatars to be standing on ground",
+            0.1f ),
+        new ParameterDefn<float>("AvatarHeightHighFudge", "A fudge factor to make tall avatars stand on the ground",
+            0.1f ),
 	    new ParameterDefn<float>("AvatarContactProcessingThreshold", "Distance from capsule to check for collisions",
             0.1f ),
 	    new ParameterDefn<float>("AvatarBelowGroundUpCorrectionMeters", "Meters to move avatar up if it seems to be below ground",

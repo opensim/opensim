@@ -318,8 +318,12 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
                 ret = new BSAPIXNA(engineName, this);
                 // Disable some features that are not implemented in BulletXNA
                 m_log.InfoFormat("{0} Disabling some physics features not implemented by BulletXNA", LogHeader);
+                m_log.InfoFormat("{0}    Disabling ShouldUseBulletHACD", LogHeader);
                 BSParam.ShouldUseBulletHACD = false;
+                m_log.InfoFormat("{0}    Disabling ShouldUseSingleConvexHullForPrims", LogHeader);
                 BSParam.ShouldUseSingleConvexHullForPrims = false;
+                m_log.InfoFormat("{0}    Setting terrain implimentation to Heightmap", LogHeader);
+                BSParam.TerrainImplementation = (float)BSTerrainPhys.TerrainImplementation.Heightmap;
                 break;
         }
 
