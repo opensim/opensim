@@ -1371,6 +1371,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     // circuit code to the existing child agent.  This is not particularly obvious.
                     SendAckImmediate(endPoint, uccp.Header.Sequence);
             
+                    // We only want to send initial data to new clients, not ones which are being converted from child to root.
+                    if (client != null)
+                        client.SceneAgent.SendInitialDataToMe();
                 }
                 else
                 {
