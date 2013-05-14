@@ -1045,12 +1045,37 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (me == midbox)
             {
                 if (Math.Abs(contact.normal.Z) > 0.95f)
+                {
                     offset.Z = contact.pos.Z - _position.Z;
+                    offset.X = (float)Math.Abs(offset.X) * 0.5f + contact.depth;
+                    offset.Y = (float)Math.Abs(offset.Y) * 0.5f + contact.depth;
+                    offset.Z = (float)Math.Abs(offset.Z) * 0.5f + contact.depth;
+
+                    if (reverse)
+                    {
+                        offset.X *= -contact.normal.X;
+                        offset.Y *= -contact.normal.Y;
+                        offset.Z *= -contact.normal.Z;
+                    }
+                    else
+                    {
+                        offset.X *= contact.normal.X;
+                        offset.Y *= contact.normal.Y;
+                        offset.Z *= contact.normal.Z;
+                    }
+
+                    offset.X += contact.pos.X;
+                    offset.Y += contact.pos.Y;
+                    offset.Z += contact.pos.Z;
+                    _position = offset;
+                    return true;
+                }
                 else
                     offset.Z = contact.normal.Z;
 
                 offset.Normalize();
 
+                /*
                 if (reverse)
                 {
                     contact.normal.X = offset.X;
@@ -1063,7 +1088,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                     contact.normal.Y = -offset.Y;
                     contact.normal.Z = -offset.Z;
                 }
-
+                */
+                //_position.Z = offset.Z;
                 return true;
             }
 
