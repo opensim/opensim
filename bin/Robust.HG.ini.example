@@ -71,9 +71,11 @@ HGInventoryServiceConnector = "HGInventoryService@8002/OpenSim.Server.Handlers.d
 HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:AssetServiceConnector"
 ;; Uncomment this if you want Groups V2, HG to work
 ; HGGroupsServiceConnector = "8002/OpenSim.Addons.Groups.dll:HGGroupsServiceRobustConnector"
-
 ;; Additions for other add-on modules. For example:
 ;; WifiServerConnector = "8002/Diva.Wifi.dll:WifiServerConnector"
+
+;; Uncomment for UserProfiles see [UserProfilesService] to configure...
+; UserProfilesServiceConnector = "8002/OpenSim.Server.Handlers.dll:UserProfilesConnector"
 
 ; * This is common for all services, it's the network setup for the entire
 ; * server instance, if none is specified above
@@ -595,4 +597,12 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
 	;; Can overwrite the default in [Hypergrid], but probably shouldn't
 	; HomeURI = "http://127.0.0.1:8002"
 
+[UserProfilesService]
+    LocalServiceModule = "OpenSim.Services.UserProfilesService.dll:UserProfilesService"
+    Enabled = false
+    ;; Configure this for separate profiles database
+    ;; ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=*****;Old Guids=true;"
+    ;; Realm = UserProfiles
+    UserAccountService = OpenSim.Services.UserAccountService.dll:UserAccountService
+    AuthenticationServiceModule = "OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService"
 
