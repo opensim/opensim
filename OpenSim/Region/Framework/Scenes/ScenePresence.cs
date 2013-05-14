@@ -1348,6 +1348,8 @@ namespace OpenSim.Region.Framework.Scenes
             // Create child agents in neighbouring regions
             if (openChildAgents && !IsChildAgent)
             {
+                SendInitialDataToMe();
+
                 IEntityTransferModule m_agentTransfer = m_scene.RequestModuleInterface<IEntityTransferModule>();
                 if (m_agentTransfer != null)
                     Util.FireAndForget(delegate { m_agentTransfer.EnableChildAgents(this); });
@@ -1355,6 +1357,7 @@ namespace OpenSim.Region.Framework.Scenes
                 IFriendsModule friendsModule = m_scene.RequestModuleInterface<IFriendsModule>();
                 if (friendsModule != null)
                     friendsModule.SendFriendsOnlineIfNeeded(ControllingClient);
+
             }
 
             // XXX: If we force an update here, then multiple attachments do appear correctly on a destination region
