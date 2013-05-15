@@ -1097,8 +1097,20 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 float h = contact.pos.Z - _position.Z;
 
+                // Only do this if the normal is sufficiently pointing in the 'up' direction
                 if (Math.Abs(contact.normal.Z) > 0.95f)
                 {
+                    // We Only want to do this if we're sunk into the object a bit and we're stuck and we're trying to move and feetcollision is false
+                    if ((contact.depth > 0.0010f && _velocity.X == 0f && _velocity.Y == 0 && _velocity.Z == 0)
+                        && (_target_velocity.X > 0 || _target_velocity.Y > 0 || _target_velocity.Z > 0) 
+                        &&  (!feetcollision) )
+                    {
+                        m_collisionException = true; // Stop looping, do this only once not X times Contacts
+                        _position.Z += contact.depth + 0.01f; // Move us Up the amount that we sank in, and add 0.01 meters to gently lift avatar up.
+                       
+                        return true;
+                    }
+
                     if (contact.normal.Z > 0)
                         contact.normal.Z = 1.0f;
                     else
