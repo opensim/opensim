@@ -170,11 +170,16 @@ namespace OpenSim.Groups
 
                 }
 
-                grec = m_GroupsService.GetGroupRecord(RequestingAgentID, grec.GroupID);
-                if (grec == null)
-                    NullResult(result, "Internal Error");
+                if (grec.GroupID != UUID.Zero)
+                {
+                    grec = m_GroupsService.GetGroupRecord(RequestingAgentID, grec.GroupID);
+                    if (grec == null)
+                        NullResult(result, "Internal Error");
+                    else
+                        result["RESULT"] = GroupsDataUtils.GroupRecord(grec);
+                }
                 else
-                    result["RESULT"] = GroupsDataUtils.GroupRecord(grec);
+                    NullResult(result, reason);
             }
 
             string xmlString = ServerUtils.BuildXmlResponse(result);

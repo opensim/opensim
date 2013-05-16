@@ -241,7 +241,7 @@ namespace OpenSim.Server.Handlers.Simulation
             if (action.Equals("release"))
                 ReleaseAgent(regionID, id);
             else
-                m_SimulationService.CloseAgent(destination, id);
+                Util.FireAndForget(delegate { m_SimulationService.CloseAgent(destination, id); });
 
             responsedata["int_response_code"] = HttpStatusCode.OK;
             responsedata["str_response_string"] = "OpenSim agent " + id.ToString();

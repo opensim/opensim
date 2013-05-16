@@ -1550,6 +1550,7 @@ namespace OpenSim.Region.Framework.Scenes
             // Create child agents in neighbouring regions
             if (openChildAgents && !IsChildAgent)
             {
+                SendInitialDataToMe();
 
                 IEntityTransferModule m_agentTransfer = m_scene.RequestModuleInterface<IEntityTransferModule>();
                 if (m_agentTransfer != null)
@@ -3347,10 +3348,8 @@ namespace OpenSim.Region.Framework.Scenes
             if (byebyeRegions.Count > 0)
             {
                 m_log.Debug("[SCENE PRESENCE]: Closing " + byebyeRegions.Count + " child agents");
-                Util.FireAndForget(delegate 
-                { 
-                    m_scene.SceneGridService.SendCloseChildAgentConnections(ControllingClient.AgentId, byebyeRegions); 
-                });
+
+                m_scene.SceneGridService.SendCloseChildAgentConnections(ControllingClient.AgentId, byebyeRegions); 
             }
             
             foreach (ulong handle in byebyeRegions)

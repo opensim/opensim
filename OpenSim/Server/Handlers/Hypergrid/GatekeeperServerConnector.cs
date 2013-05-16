@@ -76,10 +76,14 @@ namespace OpenSim.Server.Handlers.Hypergrid
             server.AddStreamHandler(new GatekeeperAgentHandler(m_GatekeeperService, m_Proxy));
         }
 
-        public GatekeeperServiceInConnector(IConfigSource config, IHttpServer server)
-            : this(config, server, null)
+        public GatekeeperServiceInConnector(IConfigSource config, IHttpServer server, string configName)
+            : this(config, server, (ISimulationService)null)
         {
         }
 
+        public GatekeeperServiceInConnector(IConfigSource config, IHttpServer server)
+            : this(config, server, String.Empty)
+        {
+        }
     }
 }

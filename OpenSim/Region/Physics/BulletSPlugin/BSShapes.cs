@@ -283,8 +283,13 @@ public class BSShapeNative : BSShape
     public override BSShape GetReference(BSScene pPhysicsScene, BSPhysObject pPrim)
     {
         // Native shapes are not shared so we return a new shape.
-        return new BSShapeNative(CreatePhysicalNativeShape(pPhysicsScene, pPrim,
-                                    physShapeInfo.shapeType, (FixedShapeKey)physShapeInfo.shapeKey) );
+        BSShape ret = null;
+        lock (physShapeInfo)
+        {
+            ret = new BSShapeNative(CreatePhysicalNativeShape(pPhysicsScene, pPrim,
+                                        physShapeInfo.shapeType, (FixedShapeKey)physShapeInfo.shapeKey));
+        }
+        return ret;
     }
 
     // Make this reference to the physical shape go away since native shapes are not shared.

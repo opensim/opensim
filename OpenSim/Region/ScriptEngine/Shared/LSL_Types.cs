@@ -546,21 +546,33 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
                 set {m_data = value; }
             }
-        // Function to obtain LSL type from an index. This is needed
-        // because LSL lists allow for multiple types, and safely
-        // iterating in them requires a type check.
+
+            /// <summary>
+            /// Obtain LSL type from an index.
+            /// </summary>
+            /// <remarks>
+            /// This is needed because LSL lists allow for multiple types, and safely
+            /// iterating in them requires a type check.
+            /// </remarks>
+            /// <returns></returns>
+            /// <param name='itemIndex'></param>
             public Type GetLSLListItemType(int itemIndex)
             {
                 return m_data[itemIndex].GetType();
             }
 
-        // Member functions to obtain item as specific types.
-        // For cases where implicit conversions would apply if items
-        // were not in a list (e.g. integer to float, but not float
-        // to integer) functions check for alternate types so as to
-        // down-cast from Object to the correct type.
-        // Note: no checks for item index being valid are performed
-
+            /// <summary>
+            /// Obtain float from an index.
+            /// </summary>
+            /// <remarks>
+            /// For cases where implicit conversions would apply if items
+            /// were not in a list (e.g. integer to float, but not float
+            /// to integer) functions check for alternate types so as to
+            /// down-cast from Object to the correct type.
+            /// Note: no checks for item index being valid are performed
+            /// </remarks>
+            /// <returns></returns>
+            /// <param name='itemIndex'></param>
             public LSL_Types.LSLFloat GetLSLFloatItem(int itemIndex)
             {
                 if (m_data[itemIndex] is LSL_Types.LSLInteger)
@@ -591,26 +603,14 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public LSL_Types.LSLString GetLSLStringItem(int itemIndex)
             {
-              if (m_data[itemIndex] is LSL_Types.key)
-              {
-                return (LSL_Types.key)m_data[itemIndex];
-              }
-              else if (m_data[itemIndex] is String)
-              {
-                return new LSL_Types.LSLString((string)m_data[itemIndex]);
-              }
-              else if (m_data[itemIndex] is LSL_Types.LSLFloat)
-              {
-                  return new LSL_Types.LSLString((LSLFloat)m_data[itemIndex]);
-              }
-              else if (m_data[itemIndex] is LSL_Types.LSLInteger)
-              {
-                  return new LSL_Types.LSLString((LSLInteger)m_data[itemIndex]);
-              }
-              else
-              {
-                  return (LSL_Types.LSLString)m_data[itemIndex];
-              }
+                if (m_data[itemIndex] is LSL_Types.key)
+                {
+                    return (LSL_Types.key)m_data[itemIndex];
+                }
+                else
+                {
+                    return new LSL_Types.LSLString(m_data[itemIndex].ToString());
+                }
             }
 
             public LSL_Types.LSLInteger GetLSLIntegerItem(int itemIndex)

@@ -130,6 +130,13 @@ namespace OpenSim.Groups
         {
             reason = string.Empty;
 
+            // Check if the group already exists
+            if (m_Database.RetrieveGroup(name) != null)
+            {
+                reason = "A group with that name already exists";
+                return UUID.Zero;
+            }
+
             // Create the group
             GroupData data = new GroupData();
             data.GroupID = UUID.Random();

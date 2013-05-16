@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -419,7 +419,7 @@ public sealed class BSCharacter : BSPhysObject
             DetailLog("{0},BSCharacter.setTargetVelocity,call,vel={1}", LocalID, value);
             m_targetVelocity = value;
             OMV.Vector3 targetVel = value;
-            if (_setAlwaysRun)
+            if (_setAlwaysRun && !_flying)
                 targetVel *= new OMV.Vector3(BSParam.AvatarAlwaysRunFactor, BSParam.AvatarAlwaysRunFactor, 0f);
 
             if (m_moveActor != null)
@@ -481,7 +481,10 @@ public sealed class BSCharacter : BSPhysObject
                 _orientation = value;
                 PhysScene.TaintedObject("BSCharacter.setOrientation", delegate()
                 {
-                    ForceOrientation = _orientation;
+                    // Bullet assumes we know what we are doing when forcing orientation
+                    //    so it lets us go against all the rules and just compensates for them later.
+                    //    This keeps us from flipping the capsule over which the veiwer does not understand.
+                    ForceOrientation = new OMV.Quaternion(0, 0, _orientation.Z,0);
                 });
             }
         }
@@ -649,12 +652,12 @@ public sealed class BSCharacter : BSPhysObject
         OMV.Vector3 newScale;
 
         // Bullet's capsule total height is the "passed height + radius * 2";
-        // The base capsule is 1 diameter and 2 height (passed radius=0.5, passed height = 1)
+        // The base capsule is 1 unit in diameter and 2 units in height (passed radius=0.5, passed height = 1)
         // The number we pass in for 'scaling' is the multiplier to get that base
         //     shape to be the size desired.
         // So, when creating the scale for the avatar height, we take the passed height
         //     (size.Z) and remove the caps.
-        // Another oddity of the Bullet capsule implementation is that it presumes the Y
+        // An oddity of the Bullet capsule implementation is that it presumes the Y
         //     dimension is the radius of the capsule. Even though some of the code allows
         //     for a asymmetrical capsule, other parts of the code presume it is cylindrical.
 
@@ -662,8 +665,27 @@ public sealed class BSCharacter : BSPhysObject
         newScale.X = size.X / 2f;
         newScale.Y = size.Y / 2f;
 
+        float heightAdjust = BSParam.AvatarHeightMidFudge;
+        if (BSParam.AvatarHeightLowFudge != 0f || BSParam.AvatarHeightHighFudge != 0f)
+        {
+            // An avatar is between 1.61 and 2.12 meters. Midpoint is 1.87m.
+            // The "times 4" relies on the fact that the difference from the midpoint to the extremes is exactly 0.25
+            float midHeightOffset = size.Z - 1.87f;
+            if (midHeightOffset < 0f)
+            {
+                // Small avatar. Add the adjustment based on the distance from midheight
+                heightAdjust += -1f * midHeightOffset * 4f * BSParam.AvatarHeightLowFudge;
+            }
+            else
+            {
+                // Large avatar. Add the adjustment based on the distance from midheight
+                heightAdjust += midHeightOffset * 4f * BSParam.AvatarHeightHighFudge;
+            }
+        }
         // The total scale height is the central cylindar plus the caps on the two ends.
-        newScale.Z = (size.Z + (Math.Min(size.X, size.Y) * 2)) / 2f;
+        newScale.Z = (size.Z + (Math.Min(size.X, size.Y) * 2) + heightAdjust) / 2f;
+        // m_log.DebugFormat("{0} ComputeAvatarScale: size={1},adj={2},scale={3}", LogHeader, size, heightAdjust, newScale);
+
         // If smaller than the endcaps, just fake like we're almost that small
         if (newScale.Z < 0)
             newScale.Z = 0.1f;

@@ -1416,7 +1416,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             
                     // We only want to send initial data to new clients, not ones which are being converted from child to root.
                     if (client != null)
-                        client.SceneAgent.SendInitialDataToMe();
+                    {
+                        AgentCircuitData aCircuit = m_scene.AuthenticateHandler.GetAgentCircuitData(uccp.CircuitCode.Code);
+                        bool tp = (aCircuit.teleportFlags > 0);
+                        if (!tp)
+                            client.SceneAgent.SendInitialDataToMe();
+                    }
 
                     // Now we know we can handle more data
                     Thread.Sleep(200);

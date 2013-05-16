@@ -358,6 +358,10 @@ namespace OpenSim.Region.Physics.Meshing
                     physicsParms = (OSDMap)map["physics_shape"]; // old asset format
                 else if (map.ContainsKey("physics_mesh"))
                     physicsParms = (OSDMap)map["physics_mesh"]; // new asset format
+                else if (map.ContainsKey("medium_lod"))
+                    physicsParms = (OSDMap)map["medium_lod"]; // if no physics mesh, try to fall back to medium LOD display mesh
+                else if (map.ContainsKey("high_lod"))
+                    physicsParms = (OSDMap)map["high_lod"]; // if all else fails, use highest LOD display mesh and hope it works :)
 
                 if (physicsParms == null)
                 {

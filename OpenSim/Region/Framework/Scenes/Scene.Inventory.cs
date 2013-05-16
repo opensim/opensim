@@ -417,13 +417,13 @@ namespace OpenSim.Region.Framework.Scenes
                     // is not allowed to change the export flag.
                     bool denyExportChange = false;
 
-                    m_log.InfoFormat("[XXX]: B: {0} O: {1} E: {2}", itemUpd.BasePermissions, itemUpd.CurrentPermissions, itemUpd.EveryOnePermissions);
+//                    m_log.DebugFormat("[XXX]: B: {0} O: {1} E: {2}", itemUpd.BasePermissions, itemUpd.CurrentPermissions, itemUpd.EveryOnePermissions);
 
                     // If the user is not the creator or doesn't have "E" in both "B" and "O", deny setting export
                     if ((item.BasePermissions & (uint)(PermissionMask.All | PermissionMask.Export)) != (uint)(PermissionMask.All | PermissionMask.Export) || (item.CurrentPermissions & (uint)PermissionMask.Export) == 0 || item.CreatorIdAsUuid != item.Owner)
                         denyExportChange = true;
 
-                    m_log.InfoFormat("[XXX]: Deny Export Update {0}", denyExportChange);
+//                    m_log.DebugFormat("[XXX]: Deny Export Update {0}", denyExportChange);
 
                     // If it is already set, force it set and also force full perm
                     // else prevent setting it. It can and should never be set unless
@@ -447,7 +447,7 @@ namespace OpenSim.Region.Framework.Scenes
                         // If the new state is exportable, force full perm
                         if ((itemUpd.EveryOnePermissions & (uint)PermissionMask.Export) != 0)
                         {
-                            m_log.InfoFormat("[XXX]: Force full perm");
+//                            m_log.DebugFormat("[XXX]: Force full perm");
                             itemUpd.NextPermissions = (uint)(PermissionMask.All);
                         }
                     }

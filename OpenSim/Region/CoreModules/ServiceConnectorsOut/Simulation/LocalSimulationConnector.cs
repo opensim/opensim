@@ -322,7 +322,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
 //                        "[LOCAL SIMULATION CONNECTOR]: Found region {0} {1} to send AgentUpdate",
 //                        s.RegionInfo.RegionName, destination.RegionHandle);
 
-                Util.FireAndForget(delegate { m_scenes[destination.RegionID].IncomingCloseAgent(id, false); });
+                m_scenes[destination.RegionID].IncomingCloseAgent(id, false);
                 return true;
             }
             //m_log.Debug("[LOCAL COMMS]: region not found in SendCloseAgent");
