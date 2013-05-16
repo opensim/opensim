@@ -3435,16 +3435,13 @@ namespace OpenSim.Region.Framework.Scenes
                     if (closeChildAgents && CapsModule != null)
                         CapsModule.RemoveCaps(agentID);
     
-//                    // REFACTORING PROBLEM -- well not really a problem, but just to point out that whatever
-//                    // this method is doing is HORRIBLE!!!
-                    // Commented pending deletion since this method no longer appears to do anything at all
-//                    avatar.Scene.NeedSceneCacheClear(avatar.UUID);
-    
                     if (closeChildAgents && !isChildAgent)
                     {
                         List<ulong> regions = avatar.KnownRegionHandles;
                         regions.Remove(RegionInfo.RegionHandle);
-                        m_sceneGridService.SendCloseChildAgentConnections(agentID, regions);
+
+                        // We must do this asynchronously so that a logout isn't held up where there are many present but unresponsive neighbours.
+                        Util.FireAndForget(delegate { m_sceneGridService.SendCloseChildAgentConnections(agentID, regions); });
                     }
     
                     m_eventManager.TriggerClientClosed(agentID, this);
