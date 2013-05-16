@@ -3440,8 +3440,8 @@ namespace OpenSim.Region.Framework.Scenes
                         List<ulong> regions = avatar.KnownRegionHandles;
                         regions.Remove(RegionInfo.RegionHandle);
 
-                        // We must do this asynchronously so that a logout isn't held up where there are many present but unresponsive neighbours.
-                        Util.FireAndForget(delegate { m_sceneGridService.SendCloseChildAgentConnections(agentID, regions); });
+                        // This ends up being done asynchronously so that a logout isn't held up where there are many present but unresponsive neighbours.
+                        m_sceneGridService.SendCloseChildAgentConnections(agentID, regions);
                     }
     
                     m_eventManager.TriggerClientClosed(agentID, this);
