@@ -1482,9 +1482,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     return agent;
                 }
 
-                //AgentCircuitData circuitdata = m_controllingClient.RequestClientInfo();
-                agent.ControllingClient.RequestClientInfo();
-
                 //m_log.Debug("BEFORE CROSS");
                 //Scene.DumpChildrenSeeds(UUID);
                 //DumpKnownRegions();
