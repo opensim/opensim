@@ -937,6 +937,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             EnableChildAgents(sp);
 
             // Finally, kill the agent we just created at the destination.
+            // XXX: Possibly this should be done asynchronously.
             Scene.SimulationService.CloseAgent(finalDestination, sp.UUID);
         }
 
