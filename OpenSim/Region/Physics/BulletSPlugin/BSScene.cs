@@ -268,6 +268,12 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
                 // Do any replacements in the parameters
                 m_physicsLoggingPrefix = m_physicsLoggingPrefix.Replace("%REGIONNAME%", RegionName);
             }
+            else
+            {
+                BulletEngineName = "BulletUnmanaged";
+                m_physicsLoggingEnabled = false;
+                VehicleLoggingEnabled = false;
+            }
 
             // The material characteristics.
             BSMaterials.InitializeFromDefaults(Params);
