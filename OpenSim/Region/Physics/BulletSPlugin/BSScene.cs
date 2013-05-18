@@ -328,6 +328,8 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
                 BSParam.ShouldUseBulletHACD = false;
                 m_log.InfoFormat("{0}    Disabling ShouldUseSingleConvexHullForPrims", LogHeader);
                 BSParam.ShouldUseSingleConvexHullForPrims = false;
+                m_log.InfoFormat("{0}    Disabling ShouldUseGImpactShapeForPrims", LogHeader);
+                BSParam.ShouldUseGImpactShapeForPrims = false;
                 m_log.InfoFormat("{0}    Setting terrain implimentation to Heightmap", LogHeader);
                 BSParam.TerrainImplementation = (float)BSTerrainPhys.TerrainImplementation.Heightmap;
                 break;
