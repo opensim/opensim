@@ -396,9 +396,9 @@ namespace OpenSim.Region.Physics.Meshing
                                     ushort uZ = Utils.BytesToUInt16(posBytes, posNdx); posNdx += 2;
 
                                     Vector3 pos = new Vector3(
-                                        Utils.UInt16ToFloat(uX, min.X, max.X) * size.X,
-                                        Utils.UInt16ToFloat(uY, min.Y, max.Y) * size.Y,
-                                        Utils.UInt16ToFloat(uZ, min.Z, max.Z) * size.Z
+                                        Utils.UInt16ToFloat(uX, min.X, max.X),
+                                        Utils.UInt16ToFloat(uY, min.Y, max.Y),
+                                        Utils.UInt16ToFloat(uZ, min.Z, max.Z)
                                     );
 
                                     hull.Add(pos);
