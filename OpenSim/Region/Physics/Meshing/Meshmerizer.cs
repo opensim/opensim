@@ -389,7 +389,7 @@ namespace OpenSim.Region.Physics.Meshing
                                 int count = cnt == 0 ? 256 : cnt;
                                 List<Vector3> hull = new List<Vector3>();
                                 
-                                for (int i = 0; i < cnt; i++)
+                                for (int i = 0; i < count; i++)
                                 {
                                     ushort uX = Utils.BytesToUInt16(posBytes, posNdx); posNdx += 2;
                                     ushort uY = Utils.BytesToUInt16(posBytes, posNdx); posNdx += 2;
