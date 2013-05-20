@@ -222,9 +222,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void SendCloseChildAgentConnections(UUID agentID, List<ulong> regionslst)
         {
             foreach (ulong handle in regionslst)
-            {
-                SendCloseChildAgent(agentID, handle);
-            }
+                Util.FireAndForget(delegate { SendCloseChildAgent(agentID, handle); });
         }
        
         public List<GridRegion> RequestNamedRegions(string name, int maxNumber)

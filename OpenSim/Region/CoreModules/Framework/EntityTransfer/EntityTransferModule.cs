@@ -937,6 +937,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             EnableChildAgents(sp);
 
             // Finally, kill the agent we just created at the destination.
+            // XXX: Possibly this should be done asynchronously.
             Scene.SimulationService.CloseAgent(finalDestination, sp.UUID);
         }
 
@@ -1481,9 +1482,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     return agent;
                 }
 
-                //AgentCircuitData circuitdata = m_controllingClient.RequestClientInfo();
-                agent.ControllingClient.RequestClientInfo();
-
                 //m_log.Debug("BEFORE CROSS");
                 //Scene.DumpChildrenSeeds(UUID);
                 //DumpKnownRegions();
@@ -1543,15 +1541,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 agent.CloseChildAgents(neighbourx, neighboury);
 
                 AgentHasMovedAway(agent, false);
-
-//                // the user may change their profile information in other region,
-//                // so the userinfo in UserProfileCache is not reliable any more, delete it
-//                // REFACTORING PROBLEM. Well, not a problem, but this method is HORRIBLE!
-//                if (agent.Scene.NeedSceneCacheClear(agent.UUID))
-//                {
-//                    m_log.DebugFormat(
-//                        "[ENTITY TRANSFER MODULE]: User {0} is going to another region", agent.UUID);
-//                }
     
                 //m_log.Debug("AFTER CROSS");
                 //Scene.DumpChildrenSeeds(UUID);
