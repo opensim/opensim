@@ -79,6 +79,8 @@ namespace OpenSim.Region.Physics.Meshing
 
         private float minSizeForComplexMesh = 0.2f; // prims with all dimensions smaller than this will have a bounding box mesh
 
+        private List<List<Vector3>> mConvexHulls = null;
+
         private Dictionary<ulong, Mesh> m_uniqueMeshes = new Dictionary<ulong, Mesh>();
 
         public Meshmerizer(IConfigSource config)
@@ -363,6 +365,57 @@ namespace OpenSim.Region.Physics.Meshing
                 else if (map.ContainsKey("high_lod"))
                     physicsParms = (OSDMap)map["high_lod"]; // if all else fails, use highest LOD display mesh and hope it works :)
 
+                if (map.ContainsKey("physics_convex"))
+                { // pull this out also in case physics engine can use it
+                    try
+                    {
+                        OSDMap convexBlock = (OSDMap)map["physics_convex"];
+                        if (convexBlock.ContainsKey("HullList"))
+                        {
+                            byte[] hullList = convexBlock["HullList"].AsBinary();
+                            Vector3 min = new Vector3(-0.5f, -0.5f, -0.5f);
+                            if (convexBlock.ContainsKey("Min")) min = convexBlock["Min"].AsVector3();
+                            Vector3 max = new Vector3(0.5f, 0.5f, 0.5f);
+                            if (convexBlock.ContainsKey("Max")) max = convexBlock["Max"].AsVector3();
+
+                            // decompress and decode hull points
+                            byte[] posBytes = DecompressOsd(convexBlock["Positions"].AsBinary()).AsBinary();
+                            
+                            List<List<Vector3>> hulls = new List<List<Vector3>>();
+                            int posNdx = 0;
+
+                            foreach (byte cnt in hullList)
+                            {
+                                int count = cnt == 0 ? 256 : cnt;
+                                List<Vector3> hull = new List<Vector3>();
+                                
+                                for (int i = 0; i < count; i++)
+                                {
+                                    ushort uX = Utils.BytesToUInt16(posBytes, posNdx); posNdx += 2;
+                                    ushort uY = Utils.BytesToUInt16(posBytes, posNdx); posNdx += 2;
+                                    ushort uZ = Utils.BytesToUInt16(posBytes, posNdx); posNdx += 2;
+
+                                    Vector3 pos = new Vector3(
+                                        Utils.UInt16ToFloat(uX, min.X, max.X),
+                                        Utils.UInt16ToFloat(uY, min.Y, max.Y),
+                                        Utils.UInt16ToFloat(uZ, min.Z, max.Z)
+                                    );
+
+                                    hull.Add(pos);
+                                }
+
+                                hulls.Add(hull);
+                            }
+
+                            mConvexHulls = hulls;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.WarnFormat("[MESH]: exception decoding convex block: {0}", e.Message);
+                    }
+                }
+
                 if (physicsParms == null)
                 {
                     m_log.WarnFormat("[MESH]: No recognized physics mesh found in mesh asset for {0}", primName);
@@ -381,27 +434,7 @@ namespace OpenSim.Region.Physics.Meshing
 //                        byte[] decompressed = new byte[physSize * 5];
                 try
                 {
-                    using (MemoryStream inMs = new MemoryStream(meshBytes))
-                    {
-                        using (MemoryStream outMs = new MemoryStream())
-                        {
-                            using (ZOutputStream zOut = new ZOutputStream(outMs))
-                            {
-                                byte[] readBuffer = new byte[2048];
-                                int readLen = 0;
-                                while ((readLen = inMs.Read(readBuffer, 0, readBuffer.Length)) > 0)
-                                {
-                                    zOut.Write(readBuffer, 0, readLen);
-                                }
-                                zOut.Flush();
-                                outMs.Seek(0, SeekOrigin.Begin);
-
-                                byte[] decompressedBuf = outMs.GetBuffer();
-
-                                decodedMeshOsd = OSDParser.DeserializeLLSDBinary(decompressedBuf);
-                            }
-                        }
-                    }
+                    decodedMeshOsd = DecompressOsd(meshBytes);
                 }
                 catch (Exception e)
                 {
@@ -426,6 +459,41 @@ namespace OpenSim.Region.Physics.Meshing
             }
 
             return true;
+        }
+
+
+        /// <summary>
+        /// decompresses a gzipped OSD object
+        /// </summary>
+        /// <param name="decodedOsd"></param> the OSD object
+        /// <param name="meshBytes"></param>
+        /// <returns></returns>
+        private static OSD DecompressOsd(byte[] meshBytes)
+        {
+            OSD decodedOsd = null;
+
+            using (MemoryStream inMs = new MemoryStream(meshBytes))
+            {
+                using (MemoryStream outMs = new MemoryStream())
+                {
+                    using (ZOutputStream zOut = new ZOutputStream(outMs))
+                    {
+                        byte[] readBuffer = new byte[2048];
+                        int readLen = 0;
+                        while ((readLen = inMs.Read(readBuffer, 0, readBuffer.Length)) > 0)
+                        {
+                            zOut.Write(readBuffer, 0, readLen);
+                        }
+                        zOut.Flush();
+                        outMs.Seek(0, SeekOrigin.Begin);
+
+                        byte[] decompressedBuf = outMs.GetBuffer();
+
+                        decodedOsd = OSDParser.DeserializeLLSDBinary(decompressedBuf);
+                    }
+                }
+            }
+            return decodedOsd;
         }
 
         /// <summary>
@@ -702,6 +770,27 @@ namespace OpenSim.Region.Physics.Meshing
             faces = primMesh.faces;
 
             return true;
+        }
+
+        /// <summary>
+        /// temporary prototype code - please do not use until the interface has been finalized!
+        /// </summary>
+        /// <param name="size">value to scale the hull points by</param>
+        /// <returns>a list of hulls if they exist and have been successfully decoded, otherwise null</returns>
+        public List<List<Vector3>> GetConvexHulls(Vector3 size)
+        {
+            if (mConvexHulls == null)
+                return null;
+
+            List<List<Vector3>> hulls = new List<List<Vector3>>();
+            foreach (var hull in mConvexHulls)
+            {
+                List<Vector3> verts = new List<Vector3>();
+                foreach (var vert in hull)
+                    verts.Add(vert * size);
+            }
+
+            return hulls;
         }
 
         public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod)
