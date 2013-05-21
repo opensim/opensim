@@ -157,13 +157,16 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             }
             else
             {
-                string[] names = GetUserNames(uuid);
+                string[] names;
+                bool foundRealName = TryGetUserNames(uuid, out names);
+
                 if (names.Length == 2)
                 {
-                    //m_log.DebugFormat("[XXX] HandleUUIDNameRequest {0} is {1} {2}", uuid, names[0], names[1]);
+                    if (!foundRealName)
+                        m_log.DebugFormat("[USER MANAGEMENT MODULE]: Sending {0} {1} for {2} to {3} since no bound name found", names[0], names[1], uuid, remote_client.Name);
+
                     remote_client.SendNameReply(uuid, names[0], names[1]);
                 }
-
             }
         }
 
@@ -277,17 +280,24 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             }
         }
 
-        private string[] GetUserNames(UUID uuid)
+        /// <summary>
+        /// Try to get the names bound to the given uuid.
+        /// </summary>
+        /// <returns>True if the name was found, false if not.</returns>
+        /// <param name='uuid'></param>
+        /// <param name='names'>The array of names if found.  If not found, then names[0] = "Unknown" and names[1] = "User"</param>
+        private bool TryGetUserNames(UUID uuid, out string[] names)
         {
-            string[] returnstring = new string[2];
+            names = new string[2];
 
             lock (m_UserCache)
             {
                 if (m_UserCache.ContainsKey(uuid))
                 {
-                    returnstring[0] = m_UserCache[uuid].FirstName;
-                    returnstring[1] = m_UserCache[uuid].LastName;
-                    return returnstring;
+                    names[0] = m_UserCache[uuid].FirstName;
+                    names[1] = m_UserCache[uuid].LastName;
+
+                    return true;
                 }
             }
 
@@ -295,8 +305,8 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
             if (account != null)
             {
-                returnstring[0] = account.FirstName;
-                returnstring[1] = account.LastName;
+                names[0] = account.FirstName;
+                names[1] = account.LastName;
 
                 UserData user = new UserData();
                 user.FirstName = account.FirstName;
@@ -304,14 +314,16 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
                 lock (m_UserCache)
                     m_UserCache[uuid] = user;
+
+                return true;
             }
             else
             {
-                returnstring[0] = "Unknown";
-                returnstring[1] = "User";
-            }
+                names[0] = "Unknown";
+                names[1] = "User";
 
-            return returnstring;
+                return false;
+            }
         }
 
         #region IUserManagement
@@ -347,15 +359,17 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
         public string GetUserName(UUID uuid)
         {
-            string[] names = GetUserNames(uuid);
+            string[] names;
+            TryGetUserNames(uuid, out names);
+
             if (names.Length == 2)
             {
                 string firstname = names[0];
                 string lastname = names[1];
 
                 return firstname + " " + lastname;
-
             }
+
             return "(hippos)";
         }
 
@@ -471,12 +485,13 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                         //ignore updates without creator data
                         return;
                     }
+
                     //try update unknown users
                     //and creator's home URL's
                     if ((oldUser.FirstName == "Unknown" && !creatorData.Contains ("Unknown")) || (oldUser.HomeURL != null && !creatorData.StartsWith (oldUser.HomeURL)))
                     {
                         m_UserCache.Remove (id);
-//                      m_log.DebugFormat("[USER MANAGEMENT MODULE]: Re-adding user with id {0}, creatorData [{1}] and old HomeURL {2}", id, creatorData,oldUser.HomeURL);
+                        m_log.DebugFormat("[USER MANAGEMENT MODULE]: Re-adding user with id {0}, creatorData [{1}] and old HomeURL {2}", id, creatorData, oldUser.HomeURL);
                     }
                     else
                     {
