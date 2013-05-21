@@ -568,11 +568,45 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
         protected void RegisterConsoleCmds()
         {
             MainConsole.Instance.Commands.AddCommand("Users", true,
+                "show name",
+                "show name <uuid>",
+                "Show the bindings between a single user UUID and a user name",
+                String.Empty,
+                HandleShowUser);
+
+            MainConsole.Instance.Commands.AddCommand("Users", true,
                 "show names",
                 "show names",
                 "Show the bindings between user UUIDs and user names",
                 String.Empty,
                 HandleShowUsers);
+        }
+
+        private void HandleShowUser(string module, string[] cmd)
+        {
+            if (cmd.Length < 3)
+            {
+                MainConsole.Instance.OutputFormat("Usage: show name <uuid>");
+                return;
+            }
+
+            UUID userId;
+            if (!ConsoleUtil.TryParseConsoleUuid(MainConsole.Instance, cmd[2], out userId))
+                return;
+
+            string[] names;
+            if (!TryGetUserNames(userId, out names))
+            {
+                MainConsole.Instance.OutputFormat("No name known for user with id {0}", userId);
+                return;
+            }
+
+            ConsoleDisplayTable cdt = new ConsoleDisplayTable();
+            cdt.AddColumn("UUID", 36);
+            cdt.AddColumn("Name", 60);
+            cdt.AddRow(userId, string.Join(" ", names));
+
+            MainConsole.Instance.Output(cdt.ToString());
         }
 
         private void HandleShowUsers(string module, string[] cmd)
