@@ -603,7 +603,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
             ConsoleDisplayTable cdt = new ConsoleDisplayTable();
             cdt.AddColumn("UUID", 36);
-            cdt.AddColumn("Name", 60);
+            cdt.AddColumn("Name", 30);
             cdt.AddRow(userId, string.Join(" ", names));
 
             MainConsole.Instance.Output(cdt.ToString());
@@ -611,24 +611,18 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
         private void HandleShowUsers(string module, string[] cmd)
         {
+            ConsoleDisplayTable cdt = new ConsoleDisplayTable();
+            cdt.AddColumn("UUID", 36);
+            cdt.AddColumn("Name", 30);
+            cdt.AddColumn("HomeURL", 40);
+
             lock (m_UserCache)
             {
-                if (m_UserCache.Count == 0)
-                {
-                    MainConsole.Instance.Output("No users found");
-                    return;
-                }
-    
-                MainConsole.Instance.Output("UUID                                 User Name");
-                MainConsole.Instance.Output("-----------------------------------------------------------------------------");
                 foreach (KeyValuePair<UUID, UserData> kvp in m_UserCache)
-                {
-                    MainConsole.Instance.Output(String.Format("{0} {1} {2} ({3})",
-                           kvp.Key, kvp.Value.FirstName, kvp.Value.LastName, kvp.Value.HomeURL));
-                }
-    
-                return;
+                    cdt.AddRow(kvp.Key, string.Format("{0} {1}", kvp.Value.FirstName, kvp.Value.LastName), kvp.Value.HomeURL);
             }
+
+            MainConsole.Instance.Output(cdt.ToString());
         }
     }
 }
