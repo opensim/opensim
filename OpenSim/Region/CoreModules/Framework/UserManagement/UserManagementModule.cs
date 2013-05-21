@@ -611,7 +611,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             cdt.AddColumn("UUID", 36);
             cdt.AddColumn("Name", 30);
             cdt.AddColumn("HomeURL", 40);
-            cdt.AddRow(userId, string.Join(" ", ud.FirstName, ud.LastName), ud.HomeURL);
+            cdt.AddRow(userId, string.Format("{0} {1}", ud.FirstName, ud.LastName), ud.HomeURL);
 
             MainConsole.Instance.Output(cdt.ToString());
         }
