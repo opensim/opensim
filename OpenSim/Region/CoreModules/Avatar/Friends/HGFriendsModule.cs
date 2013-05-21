@@ -293,7 +293,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         protected override bool GetAgentInfo(UUID scopeID, string fid, out UUID agentID, out string first, out string last)
         {
-            first = "Unknown"; last = "User";
+            first = "Unknown"; last = "UserHGGAI";
             if (base.GetAgentInfo(scopeID, fid, out agentID, out first, out last))
                 return true;
 
