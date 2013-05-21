@@ -595,16 +595,23 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                 return;
 
             string[] names;
-            if (!TryGetUserNames(userId, out names))
+
+            UserData ud;
+
+            lock (m_UserCache)
             {
-                MainConsole.Instance.OutputFormat("No name known for user with id {0}", userId);
-                return;
+                if (!m_UserCache.TryGetValue(userId, out ud))
+                {
+                    MainConsole.Instance.OutputFormat("No name known for user with id {0}", userId);
+                    return;
+                }
             }
 
             ConsoleDisplayTable cdt = new ConsoleDisplayTable();
             cdt.AddColumn("UUID", 36);
             cdt.AddColumn("Name", 30);
-            cdt.AddRow(userId, string.Join(" ", names));
+            cdt.AddColumn("HomeURL", 40);
+            cdt.AddRow(userId, string.Join(" ", ud.FirstName, ud.LastName), ud.HomeURL);
 
             MainConsole.Instance.Output(cdt.ToString());
         }
