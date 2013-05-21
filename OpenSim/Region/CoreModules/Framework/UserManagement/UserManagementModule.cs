@@ -246,10 +246,15 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             }
 
             // search the local cache
-            foreach (UserData data in m_UserCache.Values)
-                if (users.Find(delegate(UserData d) { return d.Id == data.Id; }) == null &&
-                    (data.FirstName.ToLower().StartsWith(query.ToLower()) || data.LastName.ToLower().StartsWith(query.ToLower())))
-                    users.Add(data);
+            lock (m_UserCache)
+            {
+                foreach (UserData data in m_UserCache.Values)
+                {
+                    if (users.Find(delegate(UserData d) { return d.Id == data.Id; }) == null &&
+                        (data.FirstName.ToLower().StartsWith(query.ToLower()) || data.LastName.ToLower().StartsWith(query.ToLower())))
+                        users.Add(data);
+                }
+            }
 
             AddAdditionalUsers(query, users);
 
