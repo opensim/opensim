@@ -219,6 +219,14 @@ namespace OpenSim.Region.Framework.Scenes
 
         public double SoundRadius;
 
+        /// <summary>
+        /// Should sounds played from this prim be queued?
+        /// </summary>
+        /// <remarks>
+        /// This should only be changed by sound modules.  It is up to sound modules as to how they interpret this setting.
+        /// </remarks>
+        public bool SoundQueueing { get; set; }
+
         public uint TimeStampFull;
 
         public uint TimeStampLastActivity; // Will be used for AutoReturn
@@ -2429,7 +2437,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (soundModule != null)
                 {
                     soundModule.SendSound(UUID, CollisionSound,
-                            CollisionSoundVolume, true, (byte)0, 0, false,
+                            CollisionSoundVolume, true, 0, 0, false,
                             false);
                 }
             }
