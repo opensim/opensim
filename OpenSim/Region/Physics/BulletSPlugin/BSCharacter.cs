@@ -483,8 +483,15 @@ public sealed class BSCharacter : BSPhysObject
                 {
                     // Bullet assumes we know what we are doing when forcing orientation
                     //    so it lets us go against all the rules and just compensates for them later.
-                    //    This keeps us from flipping the capsule over which the veiwer does not understand.
-                    ForceOrientation = new OMV.Quaternion(0, 0, _orientation.Z,0);
+                    // This forces rotation to be only around the Z axis and doesn't change any of the other axis.
+                    // This keeps us from flipping the capsule over which the veiwer does not understand.
+                    float oRoll, oPitch, oYaw;
+                    _orientation.GetEulerAngles(out oRoll, out oPitch, out oYaw);
+                    OMV.Quaternion trimmedOrientation = OMV.Quaternion.CreateFromEulers(0f, 0f, oYaw);
+                    // DetailLog("{0},BSCharacter.setOrientation,taint,val={1},valDir={2},conv={3},convDir={4}",
+                    //                 LocalID, _orientation, OMV.Vector3.UnitX * _orientation,
+                    //                 trimmedOrientation, OMV.Vector3.UnitX * trimmedOrientation);
+                    ForceOrientation = trimmedOrientation;
                 });
             }
         }
