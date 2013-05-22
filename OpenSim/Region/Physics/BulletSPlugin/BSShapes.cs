@@ -31,7 +31,6 @@ using System.Text;
 
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
-using OpenSim.Region.Physics.Meshing;
 using OpenSim.Region.Physics.ConvexDecompositionDotNet;
 
 using OMV = OpenMetaverse;
@@ -574,56 +573,9 @@ public class BSShapeHull : BSShape
                                             PrimitiveBaseShape pbs, OMV.Vector3 size, float lod)
     {
         BulletShape newShape = new BulletShape();
-        newShape.shapeKey = newHullKey;
+        IntPtr hullPtr = IntPtr.Zero;
 
-        // Pass true for physicalness as this prevents the creation of bounding box which is not needed
-        IMesh meshData = physicsScene.mesher.CreateMesh(prim.PhysObjectName, pbs, size, lod, true /* isPhysical */, false /* shouldCache */);
-
-        // If there is hull data in the mesh asset, build the hull from that
-        if (meshData != null && BSParam.ShouldUseAssetHulls)
-        {
-            Meshmerizer realMesher = physicsScene.mesher as Meshmerizer;
-            if (realMesher != null)
-            {
-                List<List<OMV.Vector3>> allHulls = realMesher.GetConvexHulls(size);
-                if (allHulls != null)
-                {
-                    int hullCount = allHulls.Count;
-                    int totalVertices = 1;      // include one for the count of the hulls
-                    // Using the structure described for HACD hulls, create the memory sturcture
-                    //     to pass the hull data to the creater.
-                    foreach (List<OMV.Vector3> hullVerts in allHulls)
-                    {
-                        totalVertices += 4;                     // add four for the vertex count and centroid
-                        totalVertices += hullVerts.Count * 3;   // one vertex is three dimensions
-                    }
-                    float[] convHulls = new float[totalVertices];
-
-                    convHulls[0] = (float)hullCount;
-                    int jj = 1;
-                    foreach (List<OMV.Vector3> hullVerts in allHulls)
-                    {
-                        convHulls[jj + 0] = hullVerts.Count;
-                        convHulls[jj + 1] = 0f;   // centroid x,y,z
-                        convHulls[jj + 2] = 0f;
-                        convHulls[jj + 3] = 0f;
-                        jj += 4;
-                        foreach (OMV.Vector3 oneVert in hullVerts)
-                        {
-                            convHulls[jj + 0] = oneVert.X;
-                            convHulls[jj + 1] = oneVert.Y;
-                            convHulls[jj + 2] = oneVert.Z;
-                            jj += 3;
-                        }
-                    }
-
-                    // create the hull data structure in Bullet
-                    newShape = physicsScene.PE.CreateHullShape(physicsScene.World, hullCount, convHulls);
-                }
-            }
-        }
-        // If no hull specified in the asset and we should use Bullet's HACD approximation...
-        if (!newShape.HasPhysicalShape && BSParam.ShouldUseBulletHACD)
+        if (BSParam.ShouldUseBulletHACD)
         {
             // Build the hull shape from an existing mesh shape.
             // The mesh should have already been created in Bullet.
@@ -652,10 +604,11 @@ public class BSShapeHull : BSShape
             }
             physicsScene.DetailLog("{0},BSShapeHull.CreatePhysicalHull,shouldUseBulletHACD,exit,hasBody={1}", prim.LocalID, newShape.HasPhysicalShape);
         }
-        // If no hull specified, use our HACD hull approximation.
         if (!newShape.HasPhysicalShape)
         {
             // Build a new hull in the physical world using the C# HACD algorigthm.
+            // Pass true for physicalness as this prevents the creation of bounding box which is not needed
+            IMesh meshData = physicsScene.mesher.CreateMesh(prim.PhysObjectName, pbs, size, lod, true /* isPhysical */, false /* shouldCache */);
             if (meshData != null)
             {
                 if (prim.PrimAssetState == BSPhysObject.PrimAssetCondition.Fetched)
