@@ -2161,6 +2161,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             // safeguard  actual copy is done in sog.copy
             dupe.KeyframeMotion = null;
+            dupe.PayPrice = (int[])PayPrice.Clone();
 
             dupe.DynAttrs.CopyFrom(DynAttrs);
             
