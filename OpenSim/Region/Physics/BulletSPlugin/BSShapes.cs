@@ -619,6 +619,9 @@ public class BSShapeHull : BSShape
 
                     // create the hull data structure in Bullet
                     newShape = physicsScene.PE.CreateHullShape(physicsScene.World, hullCount, convHulls);
+
+                    physicsScene.DetailLog("{0},BSShapeHull.CreatePhysicalHull,assetHulls,hulls={1},totVert={2},shape={3}",
+                                                prim.LocalID, hullCount, totalVertices, newShape);
                 }
             }
         }
@@ -627,7 +630,7 @@ public class BSShapeHull : BSShape
         {
             // Build the hull shape from an existing mesh shape.
             // The mesh should have already been created in Bullet.
-            physicsScene.DetailLog("{0},BSShapeHull.CreatePhysicalHull,shouldUseBulletHACD,entry", prim.LocalID);
+            physicsScene.DetailLog("{0},BSShapeHull.CreatePhysicalHull,bulletHACD,entry", prim.LocalID);
             BSShape meshShape = BSShapeMesh.GetReference(physicsScene, true, prim);
 
             if (meshShape.physShapeInfo.HasPhysicalShape)
@@ -645,12 +648,12 @@ public class BSShapeHull : BSShape
 
                 physicsScene.DetailLog("{0},BSShapeHull.CreatePhysicalHull,hullFromMesh,beforeCall", prim.LocalID, newShape.HasPhysicalShape);
                 newShape = physicsScene.PE.BuildHullShapeFromMesh(physicsScene.World, meshShape.physShapeInfo, parms);
-                physicsScene.DetailLog("{0},BSShapeHull.CreatePhysicalHull,hullFromMesh,hasBody={1}", prim.LocalID, newShape.HasPhysicalShape);
+                physicsScene.DetailLog("{0},BSShapeHull.CreatePhysicalHull,hullFromMesh,shape={1}", prim.LocalID, newShape);
 
                 // Now done with the mesh shape.
                 meshShape.Dereference(physicsScene);
             }
-            physicsScene.DetailLog("{0},BSShapeHull.CreatePhysicalHull,shouldUseBulletHACD,exit,hasBody={1}", prim.LocalID, newShape.HasPhysicalShape);
+            physicsScene.DetailLog("{0},BSShapeHull.CreatePhysicalHull,bulletHACD,exit,hasBody={1}", prim.LocalID, newShape.HasPhysicalShape);
         }
         // If no hull specified, use our HACD hull approximation.
         if (!newShape.HasPhysicalShape)

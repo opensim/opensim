@@ -373,7 +373,7 @@ public static class BSParam
             true ),
         new ParameterDefn<bool>("ShouldUseGImpactShapeForPrims", "If true, use a GImpact shape for prims with cuts and twists",
             false ),
-        new ParameterDefn<bool>("UseAssetHulls", "If true, use hull if specified in the mesh asset info",
+        new ParameterDefn<bool>("ShouldUseAssetHulls", "If true, use hull if specified in the mesh asset info",
             false ),
 
         new ParameterDefn<int>("CrossingFailuresBeforeOutOfBounds", "How forgiving we are about getting into adjactent regions",
