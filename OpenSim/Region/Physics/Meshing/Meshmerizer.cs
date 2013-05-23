@@ -64,6 +64,7 @@ namespace OpenSim.Region.Physics.Meshing
     public class Meshmerizer : IMesher
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static string LogHeader = "[MESH]";
 
         // Setting baseDir to a path will enable the dumping of raw files
         // raw files can be imported by blender so a visual inspection of the results can be done
@@ -72,6 +73,8 @@ namespace OpenSim.Region.Physics.Meshing
 #else
         private const string baseDir = null; //"rawFiles";
 #endif
+        // If 'true', lots of DEBUG logging of asset parsing details
+        private bool debugDetail = true;
 
         private bool cacheSculptMaps = true;
         private string decodedSculptMapPath = null;
@@ -357,13 +360,25 @@ namespace OpenSim.Region.Physics.Meshing
                 OSDMap physicsParms = null;
                 OSDMap map = (OSDMap)meshOsd;
                 if (map.ContainsKey("physics_shape"))
+                {
                     physicsParms = (OSDMap)map["physics_shape"]; // old asset format
+                    if (debugDetail) m_log.DebugFormat("{0} prim='{1}': using 'physics_shape' mesh data", LogHeader, primName);
+                }
                 else if (map.ContainsKey("physics_mesh"))
+                {
                     physicsParms = (OSDMap)map["physics_mesh"]; // new asset format
+                    if (debugDetail) m_log.DebugFormat("{0} prim='{1}':using 'physics_mesh' mesh data", LogHeader, primName);
+                }
                 else if (map.ContainsKey("medium_lod"))
+                {
                     physicsParms = (OSDMap)map["medium_lod"]; // if no physics mesh, try to fall back to medium LOD display mesh
+                    if (debugDetail) m_log.DebugFormat("{0} prim='{1}':using 'medium_lod' mesh data", LogHeader, primName);
+                }
                 else if (map.ContainsKey("high_lod"))
+                {
                     physicsParms = (OSDMap)map["high_lod"]; // if all else fails, use highest LOD display mesh and hope it works :)
+                    if (debugDetail) m_log.DebugFormat("{0} prim='{1}':using 'high_lod' mesh data", LogHeader, primName);
+                }
 
                 if (map.ContainsKey("physics_convex"))
                 { // pull this out also in case physics engine can use it
@@ -408,11 +423,16 @@ namespace OpenSim.Region.Physics.Meshing
                             }
 
                             mConvexHulls = hulls;
+                            if (debugDetail) m_log.DebugFormat("{0} prim='{1}': parsed hulls. nHulls={2}", LogHeader, primName, mConvexHulls.Count);
+                        }
+                        else
+                        {
+                            if (debugDetail) m_log.DebugFormat("{0} prim='{1}' has physics_convex but no HullList", LogHeader, primName);
                         }
                     }
                     catch (Exception e)
                     {
-                        m_log.WarnFormat("[MESH]: exception decoding convex block: {0}", e.Message);
+                        m_log.WarnFormat("{0} exception decoding convex block: {1}", LogHeader, e);
                     }
                 }
 
@@ -438,7 +458,7 @@ namespace OpenSim.Region.Physics.Meshing
                 }
                 catch (Exception e)
                 {
-                    m_log.Error("[MESH]: exception decoding physical mesh: " + e.ToString());
+                    m_log.ErrorFormat("{0} prim='{1}': exception decoding physical mesh: {2}", LogHeader, primName, e);
                     return false;
                 }
 
@@ -455,6 +475,9 @@ namespace OpenSim.Region.Physics.Meshing
                         if (subMeshOsd is OSDMap)
                             AddSubMesh(subMeshOsd as OSDMap, size, coords, faces);
                     }
+                    if (debugDetail)
+                        m_log.DebugFormat("{0} {1}: mesh decoded. offset={2}, size={3}, nCoords={4}, nFaces={5}",
+                                            LogHeader, primName, physOffset, physSize, coords.Count, faces.Count);
                 }
             }
 
