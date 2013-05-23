@@ -83,6 +83,7 @@ namespace OpenSim.Region.Physics.Meshing
         private float minSizeForComplexMesh = 0.2f; // prims with all dimensions smaller than this will have a bounding box mesh
 
         private List<List<Vector3>> mConvexHulls = null;
+        private List<Vector3> mBoundingHull = null;
 
         private Dictionary<ulong, Mesh> m_uniqueMeshes = new Dictionary<ulong, Mesh>();
 
@@ -324,6 +325,9 @@ namespace OpenSim.Region.Physics.Meshing
             faces = new List<Face>();
             OSD meshOsd = null;
 
+            mConvexHulls = null;
+            mBoundingHull = null;
+
             if (primShape.SculptData.Length <= 0)
             {
                 // XXX: At the moment we can not log here since ODEPrim, for instance, ends up triggering this
@@ -385,13 +389,41 @@ namespace OpenSim.Region.Physics.Meshing
                     try
                     {
                         OSDMap convexBlock = (OSDMap)map["physics_convex"];
+
+                        Vector3 min = new Vector3(-0.5f, -0.5f, -0.5f);
+                        if (convexBlock.ContainsKey("Min")) min = convexBlock["Min"].AsVector3();
+                        Vector3 max = new Vector3(0.5f, 0.5f, 0.5f);
+                        if (convexBlock.ContainsKey("Max")) max = convexBlock["Max"].AsVector3();
+
+                        List<Vector3> boundingHull = null;
+
+                        if (convexBlock.ContainsKey("BoundingVerts"))
+                        {
+                            // decompress and decode bounding hull points
+                            byte[] boundingVertsBytes = DecompressOsd(convexBlock["BoundingVerts"].AsBinary()).AsBinary();
+                            boundingHull = new List<Vector3>();
+                            for (int i = 0; i < boundingVertsBytes.Length;)
+                            {
+                                ushort uX = Utils.BytesToUInt16(boundingVertsBytes, i); i += 2;
+                                ushort uY = Utils.BytesToUInt16(boundingVertsBytes, i); i += 2;
+                                ushort uZ = Utils.BytesToUInt16(boundingVertsBytes, i); i += 2;
+
+                                Vector3 pos = new Vector3(
+                                    Utils.UInt16ToFloat(uX, min.X, max.X),
+                                    Utils.UInt16ToFloat(uY, min.Y, max.Y),
+                                    Utils.UInt16ToFloat(uZ, min.Z, max.Z)
+                                );
+
+                                boundingHull.Add(pos);
+                            }
+
+                            mBoundingHull = boundingHull;
+                            if (debugDetail) m_log.DebugFormat("{0} prim='{1}': parsed bounding hull. nHulls={2}", LogHeader, primName, mBoundingHull.Count);
+                        }
+
                         if (convexBlock.ContainsKey("HullList"))
                         {
                             byte[] hullList = convexBlock["HullList"].AsBinary();
-                            Vector3 min = new Vector3(-0.5f, -0.5f, -0.5f);
-                            if (convexBlock.ContainsKey("Min")) min = convexBlock["Min"].AsVector3();
-                            Vector3 max = new Vector3(0.5f, 0.5f, 0.5f);
-                            if (convexBlock.ContainsKey("Max")) max = convexBlock["Max"].AsVector3();
 
                             // decompress and decode hull points
                             byte[] posBytes = DecompressOsd(convexBlock["Positions"].AsBinary()).AsBinary();
@@ -793,6 +825,23 @@ namespace OpenSim.Region.Physics.Meshing
             faces = primMesh.faces;
 
             return true;
+        }
+
+        /// <summary>
+        /// temporary prototype code - please do not use until the interface has been finalized!
+        /// </summary>
+        /// <param name="size">value to scale the hull points by</param>
+        /// <returns>a list of vertices in the bounding hull if it exists and has been successfully decoded, otherwise null</returns>
+        public List<Vector3> GetBoundingHull(Vector3 size)
+        {
+            if (mBoundingHull == null)
+                return null;
+
+            List<Vector3> verts = new List<Vector3>();
+            foreach (var vert in mBoundingHull)
+                verts.Add(vert * size);
+
+            return verts;
         }
 
         /// <summary>
