@@ -31,6 +31,7 @@ using System.Text;
 
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
+using OpenSim.Region.Physics.Meshing;
 using OpenSim.Region.Physics.ConvexDecompositionDotNet;
 
 using OMV = OpenMetaverse;
@@ -422,8 +423,21 @@ public class BSShapeMesh : BSShape
         outMesh = foundDesc;
         return ret;
     }
+
+    public delegate BulletShape CreateShapeCall(BulletWorld world, int indicesCount, int[] indices, int verticesCount, float[] vertices );
     private BulletShape CreatePhysicalMesh(BSScene physicsScene, BSPhysObject prim, System.UInt64 newMeshKey,
                                             PrimitiveBaseShape pbs, OMV.Vector3 size, float lod)
+    {
+        return BSShapeMesh.CreatePhysicalMeshShape(physicsScene, prim, newMeshKey, pbs, size, lod,
+                            (w, iC, i, vC, v) => physicsScene.PE.CreateMeshShape(w, iC, i, vC, v) );
+    }
+
+    // Code that uses the mesher to create the index/vertices info for a trimesh shape.
+    // This is used by the passed 'makeShape' call to create the Bullet mesh shape.
+    // The actual build call is passed so this logic can be used by several of the shapes that use a
+    //     simple mesh as their base shape.
+    public static BulletShape CreatePhysicalMeshShape(BSScene physicsScene, BSPhysObject prim, System.UInt64 newMeshKey,
+                                            PrimitiveBaseShape pbs, OMV.Vector3 size, float lod, CreateShapeCall makeShape)
     {
         BulletShape newShape = new BulletShape();
 
@@ -484,8 +498,7 @@ public class BSShapeMesh : BSShape
 
             if (realIndicesIndex != 0)
             {
-                newShape = physicsScene.PE.CreateMeshShape(physicsScene.World,
-                                    realIndicesIndex, indices, verticesAsFloats.Length / 3, verticesAsFloats);
+                newShape = makeShape(physicsScene.World, realIndicesIndex, indices, verticesAsFloats.Length / 3, verticesAsFloats);
             }
             else
             {
@@ -563,9 +576,56 @@ public class BSShapeHull : BSShape
                                             PrimitiveBaseShape pbs, OMV.Vector3 size, float lod)
     {
         BulletShape newShape = new BulletShape();
-        IntPtr hullPtr = IntPtr.Zero;
+        newShape.shapeKey = newHullKey;
 
-        if (BSParam.ShouldUseBulletHACD)
+        // Pass true for physicalness as this prevents the creation of bounding box which is not needed
+        IMesh meshData = physicsScene.mesher.CreateMesh(prim.PhysObjectName, pbs, size, lod, true /* isPhysical */, false /* shouldCache */, false, false);
+
+        // If there is hull data in the mesh asset, build the hull from that
+        if (meshData != null && BSParam.ShouldUseAssetHulls)
+        {
+            Meshmerizer realMesher = physicsScene.mesher as Meshmerizer;
+            if (realMesher != null)
+            {
+                List<List<OMV.Vector3>> allHulls = realMesher.GetConvexHulls(size);
+                if (allHulls != null)
+                {
+                    int hullCount = allHulls.Count;
+                    int totalVertices = 1;      // include one for the count of the hulls
+                    // Using the structure described for HACD hulls, create the memory sturcture
+                    //     to pass the hull data to the creater.
+                    foreach (List<OMV.Vector3> hullVerts in allHulls)
+                    {
+                        totalVertices += 4;                     // add four for the vertex count and centroid
+                        totalVertices += hullVerts.Count * 3;   // one vertex is three dimensions
+                    }
+                    float[] convHulls = new float[totalVertices];
+
+                    convHulls[0] = (float)hullCount;
+                    int jj = 1;
+                    foreach (List<OMV.Vector3> hullVerts in allHulls)
+                    {
+                        convHulls[jj + 0] = hullVerts.Count;
+                        convHulls[jj + 1] = 0f;   // centroid x,y,z
+                        convHulls[jj + 2] = 0f;
+                        convHulls[jj + 3] = 0f;
+                        jj += 4;
+                        foreach (OMV.Vector3 oneVert in hullVerts)
+                        {
+                            convHulls[jj + 0] = oneVert.X;
+                            convHulls[jj + 1] = oneVert.Y;
+                            convHulls[jj + 2] = oneVert.Z;
+                            jj += 3;
+                        }
+                    }
+
+                    // create the hull data structure in Bullet
+                    newShape = physicsScene.PE.CreateHullShape(physicsScene.World, hullCount, convHulls);
+                }
+            }
+        }
+        // If no hull specified in the asset and we should use Bullet's HACD approximation...
+        if (!newShape.HasPhysicalShape && BSParam.ShouldUseBulletHACD)
         {
             // Build the hull shape from an existing mesh shape.
             // The mesh should have already been created in Bullet.
@@ -594,11 +654,10 @@ public class BSShapeHull : BSShape
             }
             physicsScene.DetailLog("{0},BSShapeHull.CreatePhysicalHull,shouldUseBulletHACD,exit,hasBody={1}", prim.LocalID, newShape.HasPhysicalShape);
         }
+        // If no hull specified, use our HACD hull approximation.
         if (!newShape.HasPhysicalShape)
         {
             // Build a new hull in the physical world using the C# HACD algorigthm.
-            // Pass true for physicalness as this prevents the creation of bounding box which is not needed
-            IMesh meshData = physicsScene.mesher.CreateMesh(prim.PhysObjectName, pbs, size, lod, true /* isPhysical */, false /* shouldCache */, false, false);
             if (meshData != null)
             {
                 if (prim.PrimAssetState == BSPhysObject.PrimAssetCondition.Fetched)
@@ -805,6 +864,7 @@ public class BSShapeCompound : BSShape
     // Called at taint-time.
     private void DereferenceAnonCollisionShape(BSScene physicsScene, BulletShape pShape)
     {
+        // TODO: figure a better way to go through all the shape types and find a possible instance.
         BSShapeMesh meshDesc;
         if (BSShapeMesh.TryGetMeshByPtr(pShape, out meshDesc))
         {
@@ -826,17 +886,25 @@ public class BSShapeCompound : BSShape
                 }
                 else
                 {
-                    if (physicsScene.PE.IsCompound(pShape))
+                    BSShapeGImpact gImpactDesc;
+                    if (BSShapeGImpact.TryGetGImpactByPtr(pShape, out gImpactDesc))
                     {
-                        BSShapeCompound recursiveCompound = new BSShapeCompound(pShape);
-                        recursiveCompound.Dereference(physicsScene);
+                        gImpactDesc.Dereference(physicsScene);
                     }
                     else
                     {
-                        if (physicsScene.PE.IsNativeShape(pShape))
+                        if (physicsScene.PE.IsCompound(pShape))
                         {
-                            BSShapeNative nativeShape = new BSShapeNative(pShape);
-                            nativeShape.Dereference(physicsScene);
+                            BSShapeCompound recursiveCompound = new BSShapeCompound(pShape);
+                            recursiveCompound.Dereference(physicsScene);
+                        }
+                        else
+                        {
+                            if (physicsScene.PE.IsNativeShape(pShape))
+                            {
+                                BSShapeNative nativeShape = new BSShapeNative(pShape);
+                                nativeShape.Dereference(physicsScene);
+                            }
                         }
                     }
                 }
@@ -859,7 +927,7 @@ public class BSShapeConvexHull : BSShape
         float lod;
         System.UInt64 newMeshKey = BSShape.ComputeShapeKey(prim.Size, prim.BaseShape, out lod);
 
-        physicsScene.DetailLog("{0},BSShapeMesh,getReference,newKey={1},size={2},lod={3}",
+        physicsScene.DetailLog("{0},BSShapeConvexHull,getReference,newKey={1},size={2},lod={3}",
                                 prim.LocalID, newMeshKey.ToString("X"), prim.Size, lod);
 
         BSShapeConvexHull retConvexHull = null;
@@ -925,6 +993,97 @@ public class BSShapeConvexHull : BSShape
         lock (ConvexHulls)
         {
             foreach (BSShapeConvexHull sh in ConvexHulls.Values)
+            {
+                if (sh.physShapeInfo.ReferenceSame(pShape))
+                {
+                    foundDesc = sh;
+                    ret = true;
+                    break;
+                }
+
+            }
+        }
+        outHull = foundDesc;
+        return ret;
+    }
+}
+// ============================================================================================================
+public class BSShapeGImpact : BSShape
+{
+    private static string LogHeader = "[BULLETSIM SHAPE GIMPACT]";
+    public static Dictionary<System.UInt64, BSShapeGImpact> GImpacts = new Dictionary<System.UInt64, BSShapeGImpact>();
+
+    public BSShapeGImpact(BulletShape pShape) : base(pShape)
+    {
+    }
+    public static BSShape GetReference(BSScene physicsScene, bool forceRebuild, BSPhysObject prim)
+    {
+        float lod;
+        System.UInt64 newMeshKey = BSShape.ComputeShapeKey(prim.Size, prim.BaseShape, out lod);
+
+        physicsScene.DetailLog("{0},BSShapeGImpact,getReference,newKey={1},size={2},lod={3}",
+                                prim.LocalID, newMeshKey.ToString("X"), prim.Size, lod);
+
+        BSShapeGImpact retGImpact = null;
+        lock (GImpacts)
+        {
+            if (GImpacts.TryGetValue(newMeshKey, out retGImpact))
+            {
+                // The mesh has already been created. Return a new reference to same.
+                retGImpact.IncrementReference();
+            }
+            else
+            {
+                retGImpact = new BSShapeGImpact(new BulletShape());
+                BulletShape newShape = retGImpact.CreatePhysicalGImpact(physicsScene, prim, newMeshKey, prim.BaseShape, prim.Size, lod);
+
+                // Check to see if mesh was created (might require an asset).
+                newShape = VerifyMeshCreated(physicsScene, newShape, prim);
+                if (!newShape.isNativeShape || prim.PrimAssetState == BSPhysObject.PrimAssetCondition.Failed)
+                {
+                    // If a mesh was what was created, remember the built shape for later sharing.
+                    // Also note that if meshing failed we put it in the mesh list as there is nothing else to do about the mesh.
+                    GImpacts.Add(newMeshKey, retGImpact);
+                }
+
+                retGImpact.physShapeInfo = newShape;
+            }
+        }
+        return retGImpact;
+    }
+
+    private BulletShape CreatePhysicalGImpact(BSScene physicsScene, BSPhysObject prim, System.UInt64 newMeshKey,
+                                            PrimitiveBaseShape pbs, OMV.Vector3 size, float lod)
+    {
+        return BSShapeMesh.CreatePhysicalMeshShape(physicsScene, prim, newMeshKey, pbs, size, lod,
+                            (w, iC, i, vC, v) => physicsScene.PE.CreateGImpactShape(w, iC, i, vC, v) );
+    }
+
+    public override BSShape GetReference(BSScene physicsScene, BSPhysObject prim)
+    {
+        // Calling this reference means we want another handle to an existing shape
+        //     (usually linksets) so return this copy.
+        IncrementReference();
+        return this;
+    }
+    // Dereferencing a compound shape releases the hold on all the child shapes.
+    public override void Dereference(BSScene physicsScene)
+    {
+        lock (GImpacts)
+        {
+            this.DecrementReference();
+            physicsScene.DetailLog("{0},BSShapeGImpact.Dereference,shape={1}", BSScene.DetailLogZero, this);
+            // TODO: schedule aging and destruction of unused meshes.
+        }
+    }
+    // Loop through all the known hulls and return the description based on the physical address.
+    public static bool TryGetGImpactByPtr(BulletShape pShape, out BSShapeGImpact outHull)
+    {
+        bool ret = false;
+        BSShapeGImpact foundDesc = null;
+        lock (GImpacts)
+        {
+            foreach (BSShapeGImpact sh in GImpacts.Values)
             {
                 if (sh.physShapeInfo.ReferenceSame(pShape))
                 {

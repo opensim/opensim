@@ -230,6 +230,7 @@ public sealed class BSShapeCollection : IDisposable
             BSShape potentialHull = null;
 
             PrimitiveBaseShape pbs = prim.BaseShape;
+            // Use a simple, one section convex shape for prims that are probably convex (no cuts or twists)
             if (BSParam.ShouldUseSingleConvexHullForPrims
                 && pbs != null
                 && !pbs.SculptEntry
@@ -238,7 +239,17 @@ public sealed class BSShapeCollection : IDisposable
             {
                 potentialHull = BSShapeConvexHull.GetReference(m_physicsScene, false /* forceRebuild */, prim);
             }
-            else
+            // Use the GImpact shape if it is a prim that has some concaveness
+            if (potentialHull == null
+                && BSParam.ShouldUseGImpactShapeForPrims
+                && pbs != null
+                && !pbs.SculptEntry
+                )
+            {
+                    potentialHull = BSShapeGImpact.GetReference(m_physicsScene, false /* forceRebuild */, prim);
+            }
+            // If not any of the simple cases, just make a hull
+            if (potentialHull == null)
             {
                 potentialHull = BSShapeHull.GetReference(m_physicsScene, false /*forceRebuild*/, prim);
             }
@@ -261,7 +272,7 @@ public sealed class BSShapeCollection : IDisposable
         }
         else
         {
-            // Update prim.BSShape to reference a mesh of this shape.
+            // Non-physical objects should be just meshes.
             BSShape potentialMesh = BSShapeMesh.GetReference(m_physicsScene, false /*forceRebuild*/, prim);
             // If the current shape is not what is on the prim at the moment, time to change.
             if (!prim.PhysShape.HasPhysicalShape

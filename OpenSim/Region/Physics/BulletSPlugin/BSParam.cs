@@ -89,6 +89,8 @@ public static class BSParam
     public static bool ShouldRemoveZeroWidthTriangles { get; private set; }
     public static bool ShouldUseBulletHACD { get; set; }
     public static bool ShouldUseSingleConvexHullForPrims { get; set; }
+    public static bool ShouldUseGImpactShapeForPrims { get; set; }
+    public static bool ShouldUseAssetHulls { get; set; }
 
     public static float TerrainImplementation { get; set; }
     public static int TerrainMeshMagnification { get; private set; }
@@ -369,6 +371,10 @@ public static class BSParam
             false ),
         new ParameterDefn<bool>("ShouldUseSingleConvexHullForPrims", "If true, use a single convex hull shape for physical prims",
             true ),
+        new ParameterDefn<bool>("ShouldUseGImpactShapeForPrims", "If true, use a GImpact shape for prims with cuts and twists",
+            false ),
+        new ParameterDefn<bool>("UseAssetHulls", "If true, use hull if specified in the mesh asset info",
+            false ),
 
         new ParameterDefn<int>("CrossingFailuresBeforeOutOfBounds", "How forgiving we are about getting into adjactent regions",
             5 ),

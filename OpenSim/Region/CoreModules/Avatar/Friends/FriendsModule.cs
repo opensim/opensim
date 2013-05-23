@@ -371,7 +371,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             foreach (string fid in outstanding)
             {
                 UUID fromAgentID;
-                string firstname = "Unknown", lastname = "User";
+                string firstname = "Unknown", lastname = "UserFMSFOIN";
                 if (!GetAgentInfo(client.Scene.RegionInfo.ScopeID, fid, out fromAgentID, out firstname, out lastname))
                 {
                     m_log.DebugFormat("[FRIENDS MODULE]: skipping malformed friend {0}", fid);
@@ -397,7 +397,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         protected virtual bool GetAgentInfo(UUID scopeID, string fid, out UUID agentID, out string first, out string last)
         {
-            first = "Unknown"; last = "User";
+            first = "Unknown"; last = "UserFMGAI";
             if (!UUID.TryParse(fid, out agentID))
                 return false;
 

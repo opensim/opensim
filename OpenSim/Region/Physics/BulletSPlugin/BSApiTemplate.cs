@@ -71,6 +71,7 @@ public enum BSPhysicsShapeType
 	SHAPE_HEIGHTMAP = 23,
     SHAPE_AVATAR    = 24,
     SHAPE_CONVEXHULL= 25,
+    SHAPE_GIMPACT   = 26,
 };
 
 // The native shapes have predefined shape hash keys
@@ -318,6 +319,10 @@ public abstract bool PushUpdate(BulletBody obj);
 // =====================================================================================
 // Mesh, hull, shape and body creation helper routines
 public abstract BulletShape CreateMeshShape(BulletWorld world,
+                int indicesCount, int[] indices,
+                int verticesCount, float[] vertices );
+
+public abstract BulletShape CreateGImpactShape(BulletWorld world,
                 int indicesCount, int[] indices,
                 int verticesCount, float[] vertices );
 

@@ -2772,9 +2772,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // send the sound, once, to all clients in range
             if (m_SoundModule != null)
             {
-                m_SoundModule.SendSound(m_host.UUID,
-                        ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, sound, AssetType.Sound), volume, false, 0,
-                        0, false, false);
+                m_SoundModule.SendSound(
+                    m_host.UUID,
+                    ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, sound, AssetType.Sound), 
+                    volume, false, m_host.SoundQueueing ? (byte)SoundFlags.Queue : (byte)SoundFlags.None,
+                    0, false, false);
             }
         }
 
@@ -12644,6 +12646,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llSetSoundQueueing(int queue)
         {
             m_host.AddScriptLPS(1);
+
+            if (m_SoundModule != null)
+                m_SoundModule.SetSoundQueueing(m_host.UUID, queue == ScriptBaseClass.TRUE.value);
         }
 
         public void llCollisionSprite(string impact_sprite)
