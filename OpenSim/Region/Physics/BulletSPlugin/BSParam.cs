@@ -148,6 +148,7 @@ public static class BSParam
     public static float VehicleRestitution { get; private set; }
     public static Vector3 VehicleLinearFactor { get; private set; }
     public static Vector3 VehicleAngularFactor { get; private set; }
+    public static Vector3 VehicleInertiaFactor { get; private set; }
     public static float VehicleGroundGravityFudge { get; private set; }
     public static float VehicleAngularBankingTimescaleFudge { get; private set; }
     public static bool VehicleDebuggingEnable { get; private set; }
@@ -582,6 +583,8 @@ public static class BSParam
         new ParameterDefn<Vector3>("VehicleLinearFactor", "Fraction of physical linear changes applied to vehicle (<0,0,0> to <1,1,1>)",
             new Vector3(1f, 1f, 1f) ),
         new ParameterDefn<Vector3>("VehicleAngularFactor", "Fraction of physical angular changes applied to vehicle (<0,0,0> to <1,1,1>)",
+            new Vector3(1f, 1f, 1f) ),
+        new ParameterDefn<Vector3>("VehicleInertiaFactor", "Fraction of physical inertia applied (<0,0,0> to <1,1,1>)",
             new Vector3(1f, 1f, 1f) ),
         new ParameterDefn<float>("VehicleFriction", "Friction of vehicle on the ground (0.0 - 1.0)",
             0.0f ),
