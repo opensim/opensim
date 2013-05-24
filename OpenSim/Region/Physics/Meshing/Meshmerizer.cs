@@ -418,7 +418,7 @@ namespace OpenSim.Region.Physics.Meshing
                                 string keys = "[MESH]: keys found in convexBlock: ";
                                 foreach (KeyValuePair<string, OSD> kvp in convexBlock)
                                     keys += "'" + kvp.Key + "' ";
-                                m_log.Info(keys);
+                                m_log.Debug(keys);
                             }
 
                             Vector3 min = new Vector3(-0.5f, -0.5f, -0.5f);
