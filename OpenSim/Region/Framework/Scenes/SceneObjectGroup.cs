@@ -1499,7 +1499,6 @@ namespace OpenSim.Region.Framework.Scenes
             if (!userExposed)
                 dupe.IsAttachment = true;
 
-            dupe.AbsolutePosition = new Vector3(AbsolutePosition.X, AbsolutePosition.Y, AbsolutePosition.Z);
             dupe.m_sittingAvatars = new List<UUID>();
 
             if (!userExposed)
