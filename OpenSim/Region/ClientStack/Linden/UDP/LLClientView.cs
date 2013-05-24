@@ -354,7 +354,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
 //        protected HashSet<uint> m_attachmentsSent;
 
-        private int m_moneyBalance;
         private bool m_deliverPackets = true;
         private int m_animationSequenceNumber = 1;
         private bool m_SendLogoutPacketWhenClosing = true;
@@ -438,7 +437,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public string Name { get { return FirstName + " " + LastName; } }
 
         public uint CircuitCode { get { return m_circuitCode; } }
-        public int MoneyBalance { get { return m_moneyBalance; } }
         public int NextAnimationSequenceNumber { get { return m_animationSequenceNumber++; } }
 
         /// <summary>
@@ -502,7 +500,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_firstName = sessionInfo.LoginInfo.First;
             m_lastName = sessionInfo.LoginInfo.Last;
             m_startpos = sessionInfo.LoginInfo.StartPos;
-            m_moneyBalance = 1000;
 
             m_udpServer = udpServer;
             m_udpClient = udpClient;
@@ -1526,7 +1523,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(tpProgress, ThrottleOutPacketType.Unknown);
         }
 
-        public void SendMoneyBalance(UUID transaction, bool success, byte[] description, int balance)
+        public void SendMoneyBalance(UUID transaction, bool success, byte[] description, int balance, int transactionType, UUID sourceID, bool sourceIsGroup, UUID destID, bool destIsGroup, int amount, string item)
         {
             MoneyBalanceReplyPacket money = (MoneyBalanceReplyPacket)PacketPool.Instance.GetPacket(PacketType.MoneyBalanceReply);
             money.MoneyData.AgentID = AgentId;
@@ -1534,7 +1531,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             money.MoneyData.TransactionSuccess = success;
             money.MoneyData.Description = description;
             money.MoneyData.MoneyBalance = balance;
-            money.TransactionInfo.ItemDescription = Util.StringToBytes256("NONE");
+            money.TransactionInfo.TransactionType = transactionType;
+            money.TransactionInfo.SourceID = sourceID;
+            money.TransactionInfo.IsSourceGroup = sourceIsGroup;
+            money.TransactionInfo.DestID = destID;
+            money.TransactionInfo.IsDestGroup = destIsGroup;
+            money.TransactionInfo.Amount = amount;
+            money.TransactionInfo.ItemDescription = Util.StringToBytes256(item);
+
             OutPacket(money, ThrottleOutPacketType.Task);
         }
 
@@ -2278,6 +2282,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <returns></returns>
         public AgentAlertMessagePacket BuildAgentAlertPacket(string message, bool modal)
         {
+            // Prepend a slash to make the message come up in the top right
+            // again.
+            // Allow special formats to be sent from aware modules.
+            if (!modal && !message.StartsWith("ALERT: ") && !message.StartsWith("NOTIFY: ") && message != "Home position set." && message != "You died and have been teleported to your home location")
+                message = "/" + message;
             AgentAlertMessagePacket alertPack = (AgentAlertMessagePacket)PacketPool.Instance.GetPacket(PacketType.AgentAlertMessage);
             alertPack.AgentData.AgentID = AgentId;
             alertPack.AlertData.Message = Util.StringToBytes256(message);
@@ -12215,17 +12224,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             
             m_udpServer.SendPacket(m_udpClient, packet, throttlePacketType, doAutomaticSplitting, method);
-        }
-
-        public bool AddMoney(int debit)
-        {
-            if (m_moneyBalance + debit >= 0)
-            {
-                m_moneyBalance += debit;
-                SendMoneyBalance(UUID.Zero, true, Util.StringToBytes256("Poof Poof!"), m_moneyBalance);
-                return true;
-            }
-            return false;
         }
 
         protected void HandleAutopilot(Object sender, string method, List<String> args)
