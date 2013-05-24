@@ -6214,7 +6214,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (appear.ObjectData.TextureEntry.Length > 1)
                         te = new Primitive.TextureEntry(appear.ObjectData.TextureEntry, 0, appear.ObjectData.TextureEntry.Length);
 
-                    handlerSetAppearance(sender, te, visualparams);
+                    List<CachedTextureRequestArg> hashes = new List<CachedTextureRequestArg>();
+                    for (int i = 0; i < appear.WearableData.Length; i++)
+                    {
+                        CachedTextureRequestArg arg = new CachedTextureRequestArg();
+                        arg.BakedTextureIndex = appear.WearableData[i].TextureIndex;
+                        arg.WearableHashID = appear.WearableData[i].CacheID;
+                        hashes.Add(arg);
+                    }
+
+                    handlerSetAppearance(sender, te, visualparams, hashes);
                 }
                 catch (Exception e)
                 {
@@ -11487,12 +11496,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 requestArgs.Add(arg);
             }
 
-            CachedTextureRequest handlerCachedTextureRequest = OnCachedTextureRequest;
-            if (handlerCachedTextureRequest != null)
+            try
             {
-                handlerCachedTextureRequest(simclient,cachedtex.AgentData.SerialNum,requestArgs);
+                CachedTextureRequest handlerCachedTextureRequest = OnCachedTextureRequest;
+                if (handlerCachedTextureRequest != null)
+                {
+                    handlerCachedTextureRequest(simclient,cachedtex.AgentData.SerialNum,requestArgs);
+                }
             }
-
+            catch (Exception e)
+            {
+                m_log.ErrorFormat("[CLIENT VIEW]: AgentTextureCached packet handler threw an exception, {0}", e);
+                return false;
+            }
+            
             return true;
         }
         

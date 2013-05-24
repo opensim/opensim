@@ -53,6 +53,7 @@ namespace OpenSim.Framework
         protected AvatarWearable[] m_wearables;
         protected Dictionary<int, List<AvatarAttachment>> m_attachments;
         protected float m_avatarHeight = 0;
+        protected UUID[] m_texturehashes;
 
         public virtual int Serial
         {
@@ -98,6 +99,8 @@ namespace OpenSim.Framework
             SetDefaultParams();
             SetHeight();
             m_attachments = new Dictionary<int, List<AvatarAttachment>>();
+
+            ResetTextureHashes();
         }
 
         public AvatarAppearance(OSDMap map)
@@ -106,32 +109,6 @@ namespace OpenSim.Framework
 
             Unpack(map);
             SetHeight();
-        }
-
-        public AvatarAppearance(AvatarWearable[] wearables, Primitive.TextureEntry textureEntry, byte[] visualParams)
-        {
-//            m_log.WarnFormat("[AVATAR APPEARANCE] create initialized appearance");
-
-            m_serial = 0;
-
-            if (wearables != null)
-                m_wearables = wearables;
-            else
-                SetDefaultWearables();
-
-            if (textureEntry != null)
-                m_texture = textureEntry;
-            else
-                SetDefaultTexture();
-
-            if (visualParams != null)
-                m_visualparams = visualParams;
-            else
-                SetDefaultParams();
-
-            SetHeight();
-
-            m_attachments = new Dictionary<int, List<AvatarAttachment>>();
         }
 
         public AvatarAppearance(AvatarAppearance appearance) : this(appearance, true)
@@ -151,6 +128,8 @@ namespace OpenSim.Framework
                 SetHeight();
                 m_attachments = new Dictionary<int, List<AvatarAttachment>>();
 
+                ResetTextureHashes();
+                
                 return;
             }
 
@@ -165,6 +144,10 @@ namespace OpenSim.Framework
                 for (int i = 0; i < AvatarWearable.MAX_WEARABLES; i++)
                     SetWearable(i,appearance.Wearables[i]);
             }
+
+            m_texturehashes = new UUID[AvatarAppearance.TEXTURE_COUNT];
+            for (int i = 0; i < AvatarAppearance.TEXTURE_COUNT; i++)
+                m_texturehashes[i] = new UUID(appearance.m_texturehashes[i]);
 
             m_texture = null;
             if (appearance.Texture != null)
@@ -200,6 +183,37 @@ namespace OpenSim.Framework
             }
         }
 
+        public void ResetTextureHashes()
+        {
+            m_texturehashes = new UUID[AvatarAppearance.TEXTURE_COUNT];
+            for (uint i = 0; i < AvatarAppearance.TEXTURE_COUNT; i++)
+                m_texturehashes[i] = UUID.Zero;
+        }
+                
+        public UUID GetTextureHash(int textureIndex)
+        {
+            return m_texturehashes[NormalizeBakedTextureIndex(textureIndex)];
+        }
+        
+        public void SetTextureHash(int textureIndex, UUID textureHash)
+        {
+            m_texturehashes[NormalizeBakedTextureIndex(textureIndex)] = new UUID(textureHash);
+        }
+        
+        /// <summary>
+        /// Normalizes the texture index to the actual bake index, this is done to
+        /// accommodate older viewers that send the BAKE_INDICES index rather than
+        /// the actual texture index
+        /// </summary>
+        private int NormalizeBakedTextureIndex(int textureIndex)
+        {
+            // Earlier viewer send the index into the baked index array, just trying to be careful here
+            if (textureIndex < BAKE_INDICES.Length)
+                return BAKE_INDICES[textureIndex];
+            
+            return textureIndex;
+        }
+        
         public void ClearWearables()
         {
             m_wearables = new AvatarWearable[AvatarWearable.MAX_WEARABLES];
@@ -223,12 +237,7 @@ namespace OpenSim.Framework
             m_serial = 0;
 
             SetDefaultTexture();
-            
-            //for (int i = 0; i < BAKE_INDICES.Length; i++)
-            // {
-            //     int idx = BAKE_INDICES[i];
-            //     m_texture.FaceTextures[idx].TextureID = UUID.Zero;
-            // }
+            ResetTextureHashes();
         }
         
         protected virtual void SetDefaultParams()
@@ -598,6 +607,12 @@ namespace OpenSim.Framework
             data["serial"] = OSD.FromInteger(m_serial);
             data["height"] = OSD.FromReal(m_avatarHeight);
 
+            // Hashes
+            OSDArray hashes = new OSDArray(AvatarAppearance.TEXTURE_COUNT);
+            for (uint i = 0; i < AvatarAppearance.TEXTURE_COUNT; i++)
+                hashes.Add(OSD.FromUUID(m_texturehashes[i]));
+            data["hashes"] = hashes;
+
             // Wearables
             OSDArray wears = new OSDArray(AvatarWearable.MAX_WEARABLES);
             for (int i = 0; i < AvatarWearable.MAX_WEARABLES; i++)
@@ -642,6 +657,25 @@ namespace OpenSim.Framework
 
             try
             {
+                // Hashes
+                m_texturehashes = new UUID[AvatarAppearance.TEXTURE_COUNT];
+                if ((data != null) && (data["hashes"] != null) && (data["hashes"]).Type == OSDType.Array)
+                {
+                    OSDArray hashes = (OSDArray)(data["hashes"]);
+                    for (int i = 0; i < AvatarAppearance.TEXTURE_COUNT; i++)
+                    {
+                        UUID hashID = UUID.Zero;
+                        if (i < hashes.Count && hashes[i] != null)
+                            hashID = hashes[i].AsUUID();
+                        m_texturehashes[i] = hashID;
+                    }
+                }
+                else
+                {
+                    for (uint i = 0; i < AvatarAppearance.TEXTURE_COUNT; i++)
+                        m_texturehashes[i] = UUID.Zero;
+                }
+                
                 // Wearables
                 SetDefaultWearables();
                 if ((data != null) && (data["wearables"] != null) && (data["wearables"]).Type == OSDType.Array)
