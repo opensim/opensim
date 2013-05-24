@@ -578,7 +578,6 @@ public class BSShapeHull : BSShape
                                             PrimitiveBaseShape pbs, OMV.Vector3 size, float lod)
     {
         BulletShape newShape = new BulletShape();
-        newShape.shapeKey = newHullKey;
 
         IMesh meshData = null;
         List<List<OMV.Vector3>> allHulls = null;
@@ -782,6 +781,7 @@ public class BSShapeHull : BSShape
             // create the hull data structure in Bullet
             newShape = physicsScene.PE.CreateHullShape(physicsScene.World, hullCount, convHulls);
         }
+        newShape.shapeKey = newHullKey;
         return newShape;
     }
     // Callback from convex hull creater with a newly created hull.
@@ -906,6 +906,7 @@ public class BSShapeCompound : BSShape
                     }
                     else
                     {
+                        // Didn't find it in the lists of specific types. It could be compound.
                         if (physicsScene.PE.IsCompound(pShape))
                         {
                             BSShapeCompound recursiveCompound = new BSShapeCompound(pShape);
@@ -913,6 +914,7 @@ public class BSShapeCompound : BSShape
                         }
                         else
                         {
+                            // If none of the above, maybe it is a simple native shape.
                             if (physicsScene.PE.IsNativeShape(pShape))
                             {
                                 BSShapeNative nativeShape = new BSShapeNative(pShape);
@@ -1052,6 +1054,7 @@ public class BSShapeGImpact : BSShape
 
                 // Check to see if mesh was created (might require an asset).
                 newShape = VerifyMeshCreated(physicsScene, newShape, prim);
+                newShape.shapeKey = newMeshKey;
                 if (!newShape.isNativeShape || prim.PrimAssetState == BSPhysObject.PrimAssetCondition.Failed)
                 {
                     // If a mesh was what was created, remember the built shape for later sharing.
