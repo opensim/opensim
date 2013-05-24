@@ -214,8 +214,11 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
                     // Save the wearble hashes in the appearance
                     sp.Appearance.ResetTextureHashes();
-                    foreach (CachedTextureRequestArg arg in hashes)
-                        sp.Appearance.SetTextureHash(arg.BakedTextureIndex,arg.WearableHashID);
+                    if (m_reusetextures)
+                    {
+                        foreach (CachedTextureRequestArg arg in hashes)
+                            sp.Appearance.SetTextureHash(arg.BakedTextureIndex,arg.WearableHashID);
+                    }
                         
                     // This appears to be set only in the final stage of the appearance
                     // update transaction. In theory, we should be able to do an immediate
