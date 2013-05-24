@@ -64,6 +64,7 @@ namespace OpenSim.Region.Physics.Meshing
     public class Meshmerizer : IMesher
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static string LogHeader = "[MESH]";
 
         // Setting baseDir to a path will enable the dumping of raw files
         // raw files can be imported by blender so a visual inspection of the results can be done
@@ -72,6 +73,8 @@ namespace OpenSim.Region.Physics.Meshing
 #else
         private const string baseDir = null; //"rawFiles";
 #endif
+        // If 'true', lots of DEBUG logging of asset parsing details
+        private bool debugDetail = true;
 
         private bool cacheSculptMaps = true;
         private string decodedSculptMapPath = null;
@@ -80,6 +83,7 @@ namespace OpenSim.Region.Physics.Meshing
         private float minSizeForComplexMesh = 0.2f; // prims with all dimensions smaller than this will have a bounding box mesh
 
         private List<List<Vector3>> mConvexHulls = null;
+        private List<Vector3> mBoundingHull = null;
 
         private Dictionary<ulong, Mesh> m_uniqueMeshes = new Dictionary<ulong, Mesh>();
 
@@ -321,6 +325,9 @@ namespace OpenSim.Region.Physics.Meshing
             faces = new List<Face>();
             OSD meshOsd = null;
 
+            mConvexHulls = null;
+            mBoundingHull = null;
+
             if (primShape.SculptData.Length <= 0)
             {
                 // XXX: At the moment we can not log here since ODEPrim, for instance, ends up triggering this
@@ -357,26 +364,66 @@ namespace OpenSim.Region.Physics.Meshing
                 OSDMap physicsParms = null;
                 OSDMap map = (OSDMap)meshOsd;
                 if (map.ContainsKey("physics_shape"))
+                {
                     physicsParms = (OSDMap)map["physics_shape"]; // old asset format
+                    if (debugDetail) m_log.DebugFormat("{0} prim='{1}': using 'physics_shape' mesh data", LogHeader, primName);
+                }
                 else if (map.ContainsKey("physics_mesh"))
+                {
                     physicsParms = (OSDMap)map["physics_mesh"]; // new asset format
+                    if (debugDetail) m_log.DebugFormat("{0} prim='{1}':using 'physics_mesh' mesh data", LogHeader, primName);
+                }
                 else if (map.ContainsKey("medium_lod"))
+                {
                     physicsParms = (OSDMap)map["medium_lod"]; // if no physics mesh, try to fall back to medium LOD display mesh
+                    if (debugDetail) m_log.DebugFormat("{0} prim='{1}':using 'medium_lod' mesh data", LogHeader, primName);
+                }
                 else if (map.ContainsKey("high_lod"))
+                {
                     physicsParms = (OSDMap)map["high_lod"]; // if all else fails, use highest LOD display mesh and hope it works :)
+                    if (debugDetail) m_log.DebugFormat("{0} prim='{1}':using 'high_lod' mesh data", LogHeader, primName);
+                }
 
                 if (map.ContainsKey("physics_convex"))
                 { // pull this out also in case physics engine can use it
                     try
                     {
                         OSDMap convexBlock = (OSDMap)map["physics_convex"];
+
+                        Vector3 min = new Vector3(-0.5f, -0.5f, -0.5f);
+                        if (convexBlock.ContainsKey("Min")) min = convexBlock["Min"].AsVector3();
+                        Vector3 max = new Vector3(0.5f, 0.5f, 0.5f);
+                        if (convexBlock.ContainsKey("Max")) max = convexBlock["Max"].AsVector3();
+
+                        List<Vector3> boundingHull = null;
+
+                        if (convexBlock.ContainsKey("BoundingVerts"))
+                        {
+                            // decompress and decode bounding hull points
+                            byte[] boundingVertsBytes = DecompressOsd(convexBlock["BoundingVerts"].AsBinary()).AsBinary();
+                            boundingHull = new List<Vector3>();
+                            for (int i = 0; i < boundingVertsBytes.Length;)
+                            {
+                                ushort uX = Utils.BytesToUInt16(boundingVertsBytes, i); i += 2;
+                                ushort uY = Utils.BytesToUInt16(boundingVertsBytes, i); i += 2;
+                                ushort uZ = Utils.BytesToUInt16(boundingVertsBytes, i); i += 2;
+
+                                Vector3 pos = new Vector3(
+                                    Utils.UInt16ToFloat(uX, min.X, max.X),
+                                    Utils.UInt16ToFloat(uY, min.Y, max.Y),
+                                    Utils.UInt16ToFloat(uZ, min.Z, max.Z)
+                                );
+
+                                boundingHull.Add(pos);
+                            }
+
+                            mBoundingHull = boundingHull;
+                            if (debugDetail) m_log.DebugFormat("{0} prim='{1}': parsed bounding hull. nHulls={2}", LogHeader, primName, mBoundingHull.Count);
+                        }
+
                         if (convexBlock.ContainsKey("HullList"))
                         {
                             byte[] hullList = convexBlock["HullList"].AsBinary();
-                            Vector3 min = new Vector3(-0.5f, -0.5f, -0.5f);
-                            if (convexBlock.ContainsKey("Min")) min = convexBlock["Min"].AsVector3();
-                            Vector3 max = new Vector3(0.5f, 0.5f, 0.5f);
-                            if (convexBlock.ContainsKey("Max")) max = convexBlock["Max"].AsVector3();
 
                             // decompress and decode hull points
                             byte[] posBytes = DecompressOsd(convexBlock["Positions"].AsBinary()).AsBinary();
@@ -408,11 +455,16 @@ namespace OpenSim.Region.Physics.Meshing
                             }
 
                             mConvexHulls = hulls;
+                            if (debugDetail) m_log.DebugFormat("{0} prim='{1}': parsed hulls. nHulls={2}", LogHeader, primName, mConvexHulls.Count);
+                        }
+                        else
+                        {
+                            if (debugDetail) m_log.DebugFormat("{0} prim='{1}' has physics_convex but no HullList", LogHeader, primName);
                         }
                     }
                     catch (Exception e)
                     {
-                        m_log.WarnFormat("[MESH]: exception decoding convex block: {0}", e.Message);
+                        m_log.WarnFormat("{0} exception decoding convex block: {1}", LogHeader, e);
                     }
                 }
 
@@ -438,7 +490,7 @@ namespace OpenSim.Region.Physics.Meshing
                 }
                 catch (Exception e)
                 {
-                    m_log.Error("[MESH]: exception decoding physical mesh: " + e.ToString());
+                    m_log.ErrorFormat("{0} prim='{1}': exception decoding physical mesh: {2}", LogHeader, primName, e);
                     return false;
                 }
 
@@ -455,6 +507,9 @@ namespace OpenSim.Region.Physics.Meshing
                         if (subMeshOsd is OSDMap)
                             AddSubMesh(subMeshOsd as OSDMap, size, coords, faces);
                     }
+                    if (debugDetail)
+                        m_log.DebugFormat("{0} {1}: mesh decoded. offset={2}, size={3}, nCoords={4}, nFaces={5}",
+                                            LogHeader, primName, physOffset, physSize, coords.Count, faces.Count);
                 }
             }
 
@@ -770,6 +825,23 @@ namespace OpenSim.Region.Physics.Meshing
             faces = primMesh.faces;
 
             return true;
+        }
+
+        /// <summary>
+        /// temporary prototype code - please do not use until the interface has been finalized!
+        /// </summary>
+        /// <param name="size">value to scale the hull points by</param>
+        /// <returns>a list of vertices in the bounding hull if it exists and has been successfully decoded, otherwise null</returns>
+        public List<Vector3> GetBoundingHull(Vector3 size)
+        {
+            if (mBoundingHull == null)
+                return null;
+
+            List<Vector3> verts = new List<Vector3>();
+            foreach (var vert in mBoundingHull)
+                verts.Add(vert * size);
+
+            return verts;
         }
 
         /// <summary>
