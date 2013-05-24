@@ -893,6 +893,7 @@ namespace OpenSim.Region.Physics.Meshing
                 List<Vector3> verts = new List<Vector3>();
                 foreach (var vert in hull)
                     verts.Add(vert * size);
+                hulls.Add(verts);
             }
 
             return hulls;
