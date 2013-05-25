@@ -74,7 +74,7 @@ namespace OpenSim.Region.Physics.Meshing
         private const string baseDir = null; //"rawFiles";
 #endif
         // If 'true', lots of DEBUG logging of asset parsing details
-        private bool debugDetail = true;
+        private bool debugDetail = false;
 
         private bool cacheSculptMaps = true;
         private string decodedSculptMapPath = null;
@@ -94,8 +94,11 @@ namespace OpenSim.Region.Physics.Meshing
 
             decodedSculptMapPath = start_config.GetString("DecodedSculptMapPath","j2kDecodeCache");
             cacheSculptMaps = start_config.GetBoolean("CacheSculptMaps", cacheSculptMaps);
-            if(mesh_config != null)
+            if (mesh_config != null)
+            {
                 useMeshiesPhysicsMesh = mesh_config.GetBoolean("UseMeshiesPhysicsMesh", useMeshiesPhysicsMesh);
+                debugDetail = mesh_config.GetBoolean("LogMeshDetails", debugDetail);
+            }
 
             try
             {
@@ -415,7 +418,7 @@ namespace OpenSim.Region.Physics.Meshing
 
                             if (debugDetail)
                             {
-                                string keys = "[MESH]: keys found in convexBlock: ";
+                                string keys = LogHeader + " keys found in convexBlock: ";
                                 foreach (KeyValuePair<string, OSD> kvp in convexBlock)
                                     keys += "'" + kvp.Key + "' ";
                                 m_log.Debug(keys);
@@ -890,6 +893,7 @@ namespace OpenSim.Region.Physics.Meshing
                 List<Vector3> verts = new List<Vector3>();
                 foreach (var vert in hull)
                     verts.Add(vert * size);
+                hulls.Add(verts);
             }
 
             return hulls;
