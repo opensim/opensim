@@ -386,61 +386,57 @@ namespace OpenSim.Region.Physics.Meshing
 
                 if (map.ContainsKey("physics_convex"))
                 { // pull this out also in case physics engine can use it
+                    OSD convexBlockOsd = null;
                     try
                     {
                         OSDMap convexBlock = (OSDMap)map["physics_convex"];
-
-                        Vector3 min = new Vector3(-0.5f, -0.5f, -0.5f);
-                        if (convexBlock.ContainsKey("Min")) min = convexBlock["Min"].AsVector3();
-                        Vector3 max = new Vector3(0.5f, 0.5f, 0.5f);
-                        if (convexBlock.ContainsKey("Max")) max = convexBlock["Max"].AsVector3();
-
-                        List<Vector3> boundingHull = null;
-
-                        if (convexBlock.ContainsKey("BoundingVerts"))
                         {
-                            // decompress and decode bounding hull points
-                            byte[] boundingVertsBytes = DecompressOsd(convexBlock["BoundingVerts"].AsBinary()).AsBinary();
-                            boundingHull = new List<Vector3>();
-                            for (int i = 0; i < boundingVertsBytes.Length;)
+                            int convexOffset = convexBlock["offset"].AsInteger() + (int)start;
+                            int convexSize = convexBlock["size"].AsInteger();
+
+                            byte[] convexBytes = new byte[convexSize];
+                            
+                            System.Buffer.BlockCopy(primShape.SculptData, convexOffset, convexBytes, 0, convexSize);
+                            
+                            try
                             {
-                                ushort uX = Utils.BytesToUInt16(boundingVertsBytes, i); i += 2;
-                                ushort uY = Utils.BytesToUInt16(boundingVertsBytes, i); i += 2;
-                                ushort uZ = Utils.BytesToUInt16(boundingVertsBytes, i); i += 2;
+                                convexBlockOsd = DecompressOsd(convexBytes);
+                            }
+                            catch (Exception e)
+                            {
+                                m_log.ErrorFormat("{0} prim='{1}': exception decoding convex block: {2}", LogHeader, primName, e);
+                                //return false;
+                            }
+                        }
+                        
+                        if (convexBlockOsd != null && convexBlockOsd is OSDMap)
+                        {
+                            convexBlock = convexBlockOsd as OSDMap;
 
-                                Vector3 pos = new Vector3(
-                                    Utils.UInt16ToFloat(uX, min.X, max.X),
-                                    Utils.UInt16ToFloat(uY, min.Y, max.Y),
-                                    Utils.UInt16ToFloat(uZ, min.Z, max.Z)
-                                );
-
-                                boundingHull.Add(pos);
+                            if (debugDetail)
+                            {
+                                string keys = "[MESH]: keys found in convexBlock: ";
+                                foreach (KeyValuePair<string, OSD> kvp in convexBlock)
+                                    keys += "'" + kvp.Key + "' ";
+                                m_log.Debug(keys);
                             }
 
-                            mBoundingHull = boundingHull;
-                            if (debugDetail) m_log.DebugFormat("{0} prim='{1}': parsed bounding hull. nHulls={2}", LogHeader, primName, mBoundingHull.Count);
-                        }
+                            Vector3 min = new Vector3(-0.5f, -0.5f, -0.5f);
+                            if (convexBlock.ContainsKey("Min")) min = convexBlock["Min"].AsVector3();
+                            Vector3 max = new Vector3(0.5f, 0.5f, 0.5f);
+                            if (convexBlock.ContainsKey("Max")) max = convexBlock["Max"].AsVector3();
 
-                        if (convexBlock.ContainsKey("HullList"))
-                        {
-                            byte[] hullList = convexBlock["HullList"].AsBinary();
+                            List<Vector3> boundingHull = null;
 
-                            // decompress and decode hull points
-                            byte[] posBytes = DecompressOsd(convexBlock["Positions"].AsBinary()).AsBinary();
-                            
-                            List<List<Vector3>> hulls = new List<List<Vector3>>();
-                            int posNdx = 0;
-
-                            foreach (byte cnt in hullList)
+                            if (convexBlock.ContainsKey("BoundingVerts"))
                             {
-                                int count = cnt == 0 ? 256 : cnt;
-                                List<Vector3> hull = new List<Vector3>();
-                                
-                                for (int i = 0; i < count; i++)
+                                byte[] boundingVertsBytes = convexBlock["BoundingVerts"].AsBinary();
+                                boundingHull = new List<Vector3>();
+                                for (int i = 0; i < boundingVertsBytes.Length; )
                                 {
-                                    ushort uX = Utils.BytesToUInt16(posBytes, posNdx); posNdx += 2;
-                                    ushort uY = Utils.BytesToUInt16(posBytes, posNdx); posNdx += 2;
-                                    ushort uZ = Utils.BytesToUInt16(posBytes, posNdx); posNdx += 2;
+                                    ushort uX = Utils.BytesToUInt16(boundingVertsBytes, i); i += 2;
+                                    ushort uY = Utils.BytesToUInt16(boundingVertsBytes, i); i += 2;
+                                    ushort uZ = Utils.BytesToUInt16(boundingVertsBytes, i); i += 2;
 
                                     Vector3 pos = new Vector3(
                                         Utils.UInt16ToFloat(uX, min.X, max.X),
@@ -448,18 +444,52 @@ namespace OpenSim.Region.Physics.Meshing
                                         Utils.UInt16ToFloat(uZ, min.Z, max.Z)
                                     );
 
-                                    hull.Add(pos);
+                                    boundingHull.Add(pos);
                                 }
 
-                                hulls.Add(hull);
+                                mBoundingHull = boundingHull;
+                                if (debugDetail) m_log.DebugFormat("{0} prim='{1}': parsed bounding hull. nVerts={2}", LogHeader, primName, mBoundingHull.Count);
                             }
 
-                            mConvexHulls = hulls;
-                            if (debugDetail) m_log.DebugFormat("{0} prim='{1}': parsed hulls. nHulls={2}", LogHeader, primName, mConvexHulls.Count);
-                        }
-                        else
-                        {
-                            if (debugDetail) m_log.DebugFormat("{0} prim='{1}' has physics_convex but no HullList", LogHeader, primName);
+                            if (convexBlock.ContainsKey("HullList"))
+                            {
+                                byte[] hullList = convexBlock["HullList"].AsBinary();
+
+                                byte[] posBytes = convexBlock["Positions"].AsBinary();
+
+                                List<List<Vector3>> hulls = new List<List<Vector3>>();
+                                int posNdx = 0;
+
+                                foreach (byte cnt in hullList)
+                                {
+                                    int count = cnt == 0 ? 256 : cnt;
+                                    List<Vector3> hull = new List<Vector3>();
+
+                                    for (int i = 0; i < count; i++)
+                                    {
+                                        ushort uX = Utils.BytesToUInt16(posBytes, posNdx); posNdx += 2;
+                                        ushort uY = Utils.BytesToUInt16(posBytes, posNdx); posNdx += 2;
+                                        ushort uZ = Utils.BytesToUInt16(posBytes, posNdx); posNdx += 2;
+
+                                        Vector3 pos = new Vector3(
+                                            Utils.UInt16ToFloat(uX, min.X, max.X),
+                                            Utils.UInt16ToFloat(uY, min.Y, max.Y),
+                                            Utils.UInt16ToFloat(uZ, min.Z, max.Z)
+                                        );
+
+                                        hull.Add(pos);
+                                    }
+
+                                    hulls.Add(hull);
+                                }
+
+                                mConvexHulls = hulls;
+                                if (debugDetail) m_log.DebugFormat("{0} prim='{1}': parsed hulls. nHulls={2}", LogHeader, primName, mConvexHulls.Count);
+                            }
+                            else
+                            {
+                                if (debugDetail) m_log.DebugFormat("{0} prim='{1}' has physics_convex but no HullList", LogHeader, primName);
+                            }
                         }
                     }
                     catch (Exception e)
@@ -483,7 +513,7 @@ namespace OpenSim.Region.Physics.Meshing
                 OSD decodedMeshOsd = new OSD();
                 byte[] meshBytes = new byte[physSize];
                 System.Buffer.BlockCopy(primShape.SculptData, physOffset, meshBytes, 0, physSize);
-//                        byte[] decompressed = new byte[physSize * 5];
+                //                        byte[] decompressed = new byte[physSize * 5];
                 try
                 {
                     decodedMeshOsd = DecompressOsd(meshBytes);
@@ -499,7 +529,7 @@ namespace OpenSim.Region.Physics.Meshing
                 // physics_shape is an array of OSDMaps, one for each submesh
                 if (decodedMeshOsd is OSDArray)
                 {
-//                            Console.WriteLine("decodedMeshOsd for {0} - {1}", primName, Util.GetFormattedXml(decodedMeshOsd));
+                    //                            Console.WriteLine("decodedMeshOsd for {0} - {1}", primName, Util.GetFormattedXml(decodedMeshOsd));
 
                     decodedMeshOsdArray = (OSDArray)decodedMeshOsd;
                     foreach (OSD subMeshOsd in decodedMeshOsdArray)
