@@ -272,6 +272,11 @@ namespace OpenSim.Region.Framework.Scenes
         {
             AttachmentPoint = 0;
 
+            // Don't zap trees
+            if (RootPart.Shape.PCode == (byte)PCode.Tree ||
+                RootPart.Shape.PCode == (byte)PCode.NewTree)
+                return;
+
             // Even though we don't use child part state parameters for attachments any more, we still need to set
             // these to zero since having them non-zero in rezzed scene objects will crash some clients.  Even if
             // we store them correctly, scene objects that we receive from elsewhere might not.

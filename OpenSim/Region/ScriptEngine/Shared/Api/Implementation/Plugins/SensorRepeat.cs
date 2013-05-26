@@ -398,7 +398,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                     objtype = 0;
 
                     part = ((SceneObjectGroup)ent).RootPart;
-                    if (part.ParentGroup.AttachmentPoint != 0) // Attached so ignore
+                    if (part.ParentGroup.RootPart.Shape.PCode != (byte)PCode.Tree &&
+                        part.ParentGroup.RootPart.Shape.PCode != (byte)PCode.NewTree &&
+                        part.ParentGroup.AttachmentPoint != 0) // Attached so ignore
                         continue;
 
                     if (part.Inventory.ContainsScripts())
