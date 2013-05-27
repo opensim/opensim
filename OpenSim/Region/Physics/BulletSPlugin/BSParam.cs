@@ -373,9 +373,9 @@ public static class BSParam
         new ParameterDefn<bool>("ShouldUseSingleConvexHullForPrims", "If true, use a single convex hull shape for physical prims",
             true ),
         new ParameterDefn<bool>("ShouldUseGImpactShapeForPrims", "If true, use a GImpact shape for prims with cuts and twists",
-            true ),
-        new ParameterDefn<bool>("ShouldUseAssetHulls", "If true, use hull if specified in the mesh asset info",
             false ),
+        new ParameterDefn<bool>("ShouldUseAssetHulls", "If true, use hull if specified in the mesh asset info",
+            true ),
 
         new ParameterDefn<int>("CrossingFailuresBeforeOutOfBounds", "How forgiving we are about getting into adjactent regions",
             5 ),
