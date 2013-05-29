@@ -175,10 +175,10 @@ namespace OpenSim.Region.Physics.OdePlugin
 
 //        const d.ContactFlags comumContactFlags = d.ContactFlags.SoftERP | d.ContactFlags.SoftCFM |d.ContactFlags.Approx1 | d.ContactFlags.Bounce;
 
-        const d.ContactFlags comumContactFlags = d.ContactFlags.Bounce | d.ContactFlags.Approx1;
+        const d.ContactFlags comumContactFlags = d.ContactFlags.Bounce | d.ContactFlags.Approx1 | d.ContactFlags.Slip1 | d.ContactFlags.Slip2;
         const float comumContactERP = 0.7f;
         const float comumContactCFM = 0.0001f;
-        const float comumContactSLIP = 0.000001f;
+        const float comumContactSLIP = 0f;
         
         float frictionMovementMult = 0.8f;
 
@@ -411,7 +411,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.GeomSetCategoryBits(GroundSpace, (uint)(CollisionCategories.Land));
                 d.GeomSetCollideBits(GroundSpace, 0);
 
-                contactgroup = d.JointGroupCreate(0);
+                contactgroup = d.JointGroupCreate(maxContactsbeforedeath + 1);
                 //contactgroup
 
                 d.WorldSetAutoDisableFlag(world, false);
