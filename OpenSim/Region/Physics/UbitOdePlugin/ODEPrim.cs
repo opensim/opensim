@@ -117,7 +117,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         public int bodydisablecontrol;
         private float m_gravmod = 1.0f;
 
-
         // Default we're a Geometry
         private CollisionCategories m_collisionCategories = (CollisionCategories.Geom);
         // Default colide nonphysical don't try to colide with anything
