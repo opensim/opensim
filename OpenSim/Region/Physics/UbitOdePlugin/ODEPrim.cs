@@ -3534,9 +3534,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                         (Math.Abs(_position.X - lpos.X) < 0.005f)
                         && (Math.Abs(_position.Y - lpos.Y) < 0.005f)
                         && (Math.Abs(_position.Z - lpos.Z) < 0.005f)
-                        && (Math.Abs(_orientation.X - ori.X) < 0.001f)
-                        && (Math.Abs(_orientation.Y - ori.Y) < 0.001f)
-                        && (Math.Abs(_orientation.Z - ori.Z) < 0.001f)  // ignore W
+                        && (Math.Abs(_orientation.X - ori.X) < 0.0005f)
+                        && (Math.Abs(_orientation.Y - ori.Y) < 0.0005f)
+                        && (Math.Abs(_orientation.Z - ori.Z) < 0.0005f)  // ignore W
                         )
                     {
                         _zeroFlag = true;
