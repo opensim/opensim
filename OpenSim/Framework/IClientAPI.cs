@@ -66,7 +66,7 @@ namespace OpenSim.Framework
 
     public delegate void CachedTextureRequest(IClientAPI remoteClient, int serial, List<CachedTextureRequestArg> cachedTextureRequest);
 
-    public delegate void SetAppearance(IClientAPI remoteClient, Primitive.TextureEntry textureEntry, byte[] visualParams);
+    public delegate void SetAppearance(IClientAPI remoteClient, Primitive.TextureEntry textureEntry, byte[] visualParams, List<CachedTextureRequestArg> cachedTextureData);
 
     public delegate void StartAnim(IClientAPI remoteClient, UUID animID);
 
@@ -1159,7 +1159,8 @@ namespace OpenSim.Framework
         void SendTeleportStart(uint flags);
         void SendTeleportProgress(uint flags, string message);
 
-        void SendMoneyBalance(UUID transaction, bool success, byte[] description, int balance);
+        void SendMoneyBalance(UUID transaction, bool success, byte[] description, int balance, int transactionType, UUID sourceID, bool sourceIsGroup, UUID destID, bool destIsGroup, int amount, string item);
+
         void SendPayPrice(UUID objectID, int[] payPrice);
 
         void SendCoarseLocationUpdate(List<UUID> users, List<Vector3> CoarseLocations);
@@ -1253,8 +1254,6 @@ namespace OpenSim.Framework
         /// <param name="buttonlabels"></param>
         void SendDialog(string objectname, UUID objectID, UUID ownerID, string ownerFirstName, string ownerLastName, string msg, UUID textureID, int ch,
                         string[] buttonlabels);
-
-        bool AddMoney(int debit);
 
         /// <summary>
         /// Update the client as to where the sun is currently located.

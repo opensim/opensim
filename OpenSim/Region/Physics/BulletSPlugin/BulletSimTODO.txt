@@ -1,16 +1,12 @@
-PROBLEMS TO LOOK INTO
+CURRENT PROBLEMS TO FIX AND/OR LOOK AT
 =================================================
-Nebadon vehicle ride, get up, ride again. Second time vehicle does not act correctly.
+Script changing rotation of child prim while vehicle moving (eg turning wheel) causes
+	the wheel to appear to jump back. Looks like sending position from previous update.
+Vehicle ride, get up, ride again. Second time vehicle does not act correctly.
 	Have to rez new vehicle and delete the old to fix situation.
 Hitting RESET on Nebadon's vehicle while riding causes vehicle to get into odd
 	position state where it will not settle onto ground properly, etc
 Two of Nebadon vehicles in a sim max the CPU. This is new.
-A sitting, active vehicle bobs up and down a small amount.
-
-CURRENT PRIORITIES
-=================================================
-Use the HACD convex hull routine in Bullet rather than the C# version.	
-	Speed up hullifying large meshes.
 Enable vehicle border crossings (at least as poorly as ODE)
 	Terrain skirts
 	Avatar created in previous region and not new region when crossing border
@@ -361,4 +357,6 @@ Angular motion around Z moves the vehicle in world Z and not vehicle Z in ODE.
 Nebadon vehicles turning funny in arena (DONE)
 Lock axis (DONE 20130401)
 Terrain detail: double terrain mesh detail (DONE)
+Use the HACD convex hull routine in Bullet rather than the C# version.	
+	Speed up hullifying large meshes. (DONE)
 

@@ -268,6 +268,12 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
                 // Do any replacements in the parameters
                 m_physicsLoggingPrefix = m_physicsLoggingPrefix.Replace("%REGIONNAME%", RegionName);
             }
+            else
+            {
+                BulletEngineName = "BulletUnmanaged";
+                m_physicsLoggingEnabled = false;
+                VehicleLoggingEnabled = false;
+            }
 
             // The material characteristics.
             BSMaterials.InitializeFromDefaults(Params);
@@ -322,6 +328,8 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
                 BSParam.ShouldUseBulletHACD = false;
                 m_log.InfoFormat("{0}    Disabling ShouldUseSingleConvexHullForPrims", LogHeader);
                 BSParam.ShouldUseSingleConvexHullForPrims = false;
+                m_log.InfoFormat("{0}    Disabling ShouldUseGImpactShapeForPrims", LogHeader);
+                BSParam.ShouldUseGImpactShapeForPrims = false;
                 m_log.InfoFormat("{0}    Setting terrain implimentation to Heightmap", LogHeader);
                 BSParam.TerrainImplementation = (float)BSTerrainPhys.TerrainImplementation.Heightmap;
                 break;

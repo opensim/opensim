@@ -251,6 +251,16 @@ public override BulletShape CreateMeshShape(BulletWorld world,
                     BSPhysicsShapeType.SHAPE_MESH);
 }
 
+public override BulletShape CreateGImpactShape(BulletWorld world,
+                int indicesCount, int[] indices,
+                int verticesCount, float[] vertices)
+{
+    BulletWorldUnman worldu = world as BulletWorldUnman;
+    return new BulletShapeUnman(
+                    BSAPICPP.CreateGImpactShape2(worldu.ptr, indicesCount, indices, verticesCount, vertices),
+                    BSPhysicsShapeType.SHAPE_GIMPACT);
+}
+
 public override BulletShape CreateHullShape(BulletWorld world, int hullCount, float[] hulls)
 {
     BulletWorldUnman worldu = world as BulletWorldUnman;
@@ -1422,6 +1432,11 @@ public static extern bool UpdateParameter2(IntPtr world, uint localID, String pa
 // Mesh, hull, shape and body creation helper routines
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern IntPtr CreateMeshShape2(IntPtr world,
+                int indicesCount, [MarshalAs(UnmanagedType.LPArray)] int[] indices,
+                int verticesCount, [MarshalAs(UnmanagedType.LPArray)] float[] vertices );
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern IntPtr CreateGImpactShape2(IntPtr world,
                 int indicesCount, [MarshalAs(UnmanagedType.LPArray)] int[] indices,
                 int verticesCount, [MarshalAs(UnmanagedType.LPArray)] float[] vertices );
 

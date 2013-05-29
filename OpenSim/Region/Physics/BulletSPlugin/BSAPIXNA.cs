@@ -1475,7 +1475,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
                 ret =  BSPhysicsShapeType.SHAPE_UNKNOWN;
                 break;
             case BroadphaseNativeTypes.CONVEX_TRIANGLEMESH_SHAPE_PROXYTYPE:
-                ret =  BSPhysicsShapeType.SHAPE_MESH;
+                ret =  BSPhysicsShapeType.SHAPE_CONVEXHULL;
                 break;
             case BroadphaseNativeTypes.CONVEX_HULL_SHAPE_PROXYTYPE:
                 ret =  BSPhysicsShapeType.SHAPE_HULL;
@@ -1503,7 +1503,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
                 ret =  BSPhysicsShapeType.SHAPE_CONE;
                 break;
             case BroadphaseNativeTypes.CONVEX_SHAPE_PROXYTYPE:
-                ret =  BSPhysicsShapeType.SHAPE_UNKNOWN;
+                ret =  BSPhysicsShapeType.SHAPE_CONVEXHULL;
                 break;
             case BroadphaseNativeTypes.CYLINDER_SHAPE_PROXYTYPE:
                 ret =  BSPhysicsShapeType.SHAPE_CYLINDER;
@@ -1547,7 +1547,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
                 break;
             ///Used for GIMPACT Trimesh integration
             case BroadphaseNativeTypes.GIMPACT_SHAPE_PROXYTYPE:
-                ret =  BSPhysicsShapeType.SHAPE_MESH;
+                ret =  BSPhysicsShapeType.SHAPE_GIMPACT;
                 break;
             ///Multimaterial mesh
             case BroadphaseNativeTypes.MULTIMATERIAL_TRIANGLE_MESH_PROXYTYPE:
@@ -1819,6 +1819,11 @@ private sealed class BulletConstraintXNA : BulletConstraint
        // world.UpdateSingleAabb(meshShape);
         return new BulletShapeXNA(meshShape, BSPhysicsShapeType.SHAPE_MESH);
 
+    }
+    public override BulletShape CreateGImpactShape(BulletWorld pWorld, int pIndicesCount, int[] indices, int pVerticesCount, float[] verticesAsFloats)
+    {
+        // TODO:
+        return null;
     }
     public static void DumpRaw(ObjectArray<int>indices, ObjectArray<float> vertices, int pIndicesCount,int pVerticesCount )
     {
