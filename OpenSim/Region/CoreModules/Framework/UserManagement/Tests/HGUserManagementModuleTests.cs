@@ -46,7 +46,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement.Tests
         public void TestCachedUserNameForNewAgent()
         {
             TestHelpers.InMethod();
-            TestHelpers.EnableLogging();
+//            TestHelpers.EnableLogging();
 
             HGUserManagementModule hgumm = new HGUserManagementModule();
             UUID userId = TestHelpers.ParseStem("11");

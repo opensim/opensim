@@ -2847,7 +2847,9 @@ namespace OpenSim.Region.Framework.Scenes
                 // client is for a root or child agent.
                 client.SceneAgent = sp;
 
-                // Cache the user's name
+                // This is currently also being done earlier in NewUserConnection for real users to see if this 
+                // resolves problems where HG agents are occasionally seen by others as "Unknown user" in chat and other
+                // places.  However, we still need to do it here for NPCs.
                 CacheUserName(sp, aCircuit);
     
                 EventManager.TriggerOnNewClient(client);
@@ -2871,7 +2873,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 string first = aCircuit.firstname, last = aCircuit.lastname;
 
-                if (sp.PresenceType == PresenceType.Npc)
+                if (sp != null && sp.PresenceType == PresenceType.Npc)
                 {
                     UserManagementModule.AddUser(aCircuit.AgentID, first, last);
                 }
@@ -3766,8 +3768,12 @@ namespace OpenSim.Region.Framework.Scenes
                             CapsModule.SetAgentCapsSeeds(agent);
                     }
                 }
-            }
 
+                // Try caching an incoming user name much earlier on to see if this helps with an issue
+                // where HG users are occasionally seen by others as "Unknown User" because their UUIDName
+                // request for the HG avatar appears to trigger before the user name is cached.
+                CacheUserName(null, agent);
+            }
 
             if (vialogin)
             {
