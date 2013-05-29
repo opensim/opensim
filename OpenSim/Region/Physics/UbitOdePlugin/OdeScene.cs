@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+// Revision 2011/12/13 by Ubit Umarov
 //#define SPAM
 
 using System;
@@ -43,25 +44,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.Physics.OdePlugin
 {
-    public enum StatusIndicators : int
-    {
-        Generic = 0,
-        Start = 1,
-        End = 2
-    }
-
-    public struct sCollisionData
-    {
-        public uint ColliderLocalId;
-        public uint CollidedWithLocalId;
-        public int NumberOfCollisions;
-        public int CollisionType;
-        public int StatusIndicator;
-        public int lastframe;
-    }
-
-
-    // colision flags of things others can colide with
+     // colision flags of things others can colide with
     // rays, sensors, probes removed since can't  be colided with
     // The top space where things are placed provided further selection
     // ie physical are in active space nonphysical in static
@@ -188,12 +171,14 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public bool OdeUbitLib = false;
 //        private int threadid = 0;
-        private Random fluidRandomizer = new Random(Environment.TickCount);
+//        private Random fluidRandomizer = new Random(Environment.TickCount);
 
-        const d.ContactFlags comumContactFlags = d.ContactFlags.SoftERP | d.ContactFlags.SoftCFM |d.ContactFlags.Approx1 | d.ContactFlags.Bounce;
-        const float MaxERP = 0.8f;
-        const float minERP = 0.1f;
+//        const d.ContactFlags comumContactFlags = d.ContactFlags.SoftERP | d.ContactFlags.SoftCFM |d.ContactFlags.Approx1 | d.ContactFlags.Bounce;
+
+        const d.ContactFlags comumContactFlags = d.ContactFlags.Bounce | d.ContactFlags.Approx1;
+        const float comumContactERP = 0.7f;
         const float comumContactCFM = 0.0001f;
+        const float comumContactSLIP = 0.000001f;
         
         float frictionMovementMult = 0.8f;
 
@@ -236,8 +221,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public float geomDefaultDensity = 10.000006836f;
 
-        public int geomContactPointsStartthrottle = 3;
-        public int geomUpdatesPerThrottledUpdate = 15;
+//        public int geomContactPointsStartthrottle = 3;
+//        public int geomUpdatesPerThrottledUpdate = 15;
 
         public float bodyPIDD = 35f;
         public float bodyPIDG = 25;
@@ -245,7 +230,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 //        public int geomCrossingFailuresBeforeOutofbounds = 6;
 
         public int bodyFramesAutoDisable = 5;
-
 
         private d.NearCallback nearCallback;
 
@@ -266,11 +250,12 @@ namespace OpenSim.Region.Physics.OdePlugin
 //        public Dictionary<IntPtr, String> geom_name_map = new Dictionary<IntPtr, String>();
         public Dictionary<IntPtr, PhysicsActor> actor_name_map = new Dictionary<IntPtr, PhysicsActor>();
 
-        private float contactsurfacelayer = 0.002f;
+        private float contactsurfacelayer = 0.001f;
 
         private int contactsPerCollision = 80;
         internal IntPtr ContactgeomsArray = IntPtr.Zero;
         private IntPtr GlobalContactsArray = IntPtr.Zero;
+        private d.Contact SharedTmpcontact = new d.Contact();
 
         const int maxContactsbeforedeath = 4000;
         private volatile int m_global_contactcount = 0;
@@ -283,7 +268,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private Dictionary<IntPtr, float[]> TerrainHeightFieldHeights = new Dictionary<IntPtr, float[]>();
         private Dictionary<IntPtr, GCHandle> TerrainHeightFieldHeightsHandlers = new Dictionary<IntPtr, GCHandle>();
        
-        private int m_physicsiterations = 10;
+        private int m_physicsiterations = 15;
         private const float m_SkipFramesAtms = 0.40f; // Drop frames gracefully at a 400 ms lag
 //        private PhysicsActor PANull = new NullPhysicsActor();
         private float step_time = 0.0f;
@@ -302,8 +287,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         public IntPtr CharsSpace; // space for active prims
         public IntPtr StaticSpace; // space for the static things around
         public IntPtr GroundSpace; // space for ground
-
-        public IntPtr SharedRay;
 
         // some speedup variables
         private int spaceGridMaxX;
@@ -431,8 +414,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                 contactgroup = d.JointGroupCreate(0);
                 //contactgroup
 
-                SharedRay = d.CreateRay(TopSpace, 1.0f);
-
                 d.WorldSetAutoDisableFlag(world, false);
             }
         }
@@ -481,10 +462,10 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                     metersInSpace = physicsconfig.GetFloat("meters_in_small_space", metersInSpace);
 
-                    contactsurfacelayer = physicsconfig.GetFloat("world_contact_surface_layer", contactsurfacelayer);
+//                    contactsurfacelayer = physicsconfig.GetFloat("world_contact_surface_layer", contactsurfacelayer);
 
                     ODE_STEPSIZE = physicsconfig.GetFloat("world_stepsize", ODE_STEPSIZE);
-                    m_physicsiterations = physicsconfig.GetInt("world_internal_steps_without_collisions", m_physicsiterations);
+//                    m_physicsiterations = physicsconfig.GetInt("world_internal_steps_without_collisions", m_physicsiterations);
 
                     avDensity = physicsconfig.GetFloat("av_density", avDensity);
                     avMovementDivisorWalk = physicsconfig.GetFloat("av_movement_divisor_walk", avMovementDivisorWalk);
@@ -492,8 +473,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                     contactsPerCollision = physicsconfig.GetInt("contacts_per_collision", contactsPerCollision);
 
-                    geomContactPointsStartthrottle = physicsconfig.GetInt("geom_contactpoints_start_throttling", 3);
-                    geomUpdatesPerThrottledUpdate = physicsconfig.GetInt("geom_updates_before_throttled_update", 15);
+//                    geomContactPointsStartthrottle = physicsconfig.GetInt("geom_contactpoints_start_throttling", 3);
+//                    geomUpdatesPerThrottledUpdate = physicsconfig.GetInt("geom_updates_before_throttled_update", 15);
 //                    geomCrossingFailuresBeforeOutofbounds = physicsconfig.GetInt("geom_crossing_failures_before_outofbounds", 5);
 
                     geomDefaultDensity = physicsconfig.GetFloat("geometry_default_density", geomDefaultDensity);
@@ -508,6 +489,23 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
             }
 
+
+            d.WorldSetCFM(world, comumContactCFM);
+            d.WorldSetERP(world, comumContactERP);
+
+            d.WorldSetGravity(world, gravityx, gravityy, gravityz);
+
+            d.WorldSetLinearDamping(world, 0.002f);
+            d.WorldSetAngularDamping(world, 0.002f);
+            d.WorldSetAngularDampingThreshold(world, 0f);
+            d.WorldSetLinearDampingThreshold(world, 0f);
+            d.WorldSetMaxAngularSpeed(world, 100f);
+
+            d.WorldSetQuickStepNumIterations(world, m_physicsiterations);
+
+            d.WorldSetContactSurfaceLayer(world, contactsurfacelayer);
+            d.WorldSetContactMaxCorrectingVel(world, 60.0f);
+
             m_meshWorker = new ODEMeshWorker(this, m_log, meshmerizer, physicsconfig);
 
             HalfOdeStep = ODE_STEPSIZE * 0.5f;
@@ -515,6 +513,20 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             ContactgeomsArray = Marshal.AllocHGlobal(contactsPerCollision * d.ContactGeom.unmanagedSizeOf);
             GlobalContactsArray = Marshal.AllocHGlobal(maxContactsbeforedeath * d.Contact.unmanagedSizeOf);
+
+            SharedTmpcontact.geom.g1 = IntPtr.Zero;
+            SharedTmpcontact.geom.g2 = IntPtr.Zero;
+
+            SharedTmpcontact.geom.side1 = -1;
+            SharedTmpcontact.geom.side2 = -1;
+
+            SharedTmpcontact.surface.mode = comumContactFlags;
+            SharedTmpcontact.surface.mu = 0;
+            SharedTmpcontact.surface.bounce = 0;
+            SharedTmpcontact.surface.soft_cfm = comumContactCFM;
+            SharedTmpcontact.surface.soft_erp = comumContactERP;
+            SharedTmpcontact.surface.slip1 = comumContactSLIP;
+            SharedTmpcontact.surface.slip2 = comumContactSLIP;
 
             m_materialContactsData[(int)Material.Stone].mu = 0.8f;
             m_materialContactsData[(int)Material.Stone].bounce = 0.4f;
@@ -540,27 +552,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_materialContactsData[(int)Material.light].mu = 0.0f;
             m_materialContactsData[(int)Material.light].bounce = 0.0f;
 
-            // Set the gravity,, don't disable things automatically (we set it explicitly on some things)
-
-            d.WorldSetGravity(world, gravityx, gravityy, gravityz);
-            d.WorldSetContactSurfaceLayer(world, contactsurfacelayer);
-
-            d.WorldSetLinearDamping(world, 0.002f);
-            d.WorldSetAngularDamping(world, 0.002f);
-            d.WorldSetAngularDampingThreshold(world, 0f);
-            d.WorldSetLinearDampingThreshold(world, 0f);
-            d.WorldSetMaxAngularSpeed(world, 100f);
-
-            d.WorldSetCFM(world,1e-6f); // a bit harder than default
-            //d.WorldSetCFM(world, 1e-4f); // a bit harder than default
-            d.WorldSetERP(world, 0.6f); // higher than original
-
-            // Set how many steps we go without running collision testing
-            // This is in addition to the step size.
-            // Essentially Steps * m_physicsiterations
-            d.WorldSetQuickStepNumIterations(world, m_physicsiterations);
-
-            d.WorldSetContactMaxCorrectingVel(world, 60.0f);
 
             spacesPerMeter = 1 / metersInSpace;
             spaceGridMaxX = (int)(WorldExtents.X * spacesPerMeter);
@@ -631,40 +622,21 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         // sets a global contact for a joint for contactgeom , and base contact description)
 
-        private IntPtr CreateContacJoint(ref d.ContactGeom contactGeom, float mu, float bounce, float cfm, float erpscale, float dscale)
+        
+
+        private IntPtr CreateContacJoint(ref d.ContactGeom contactGeom)
         {
-            if (GlobalContactsArray == IntPtr.Zero || m_global_contactcount >= maxContactsbeforedeath)
+            if (m_global_contactcount >= maxContactsbeforedeath)
                 return IntPtr.Zero;
 
-            float erp = contactGeom.depth;
-            erp *= erpscale;
-            if (erp < minERP)
-                erp = minERP;
-            else if (erp > MaxERP)
-                erp = MaxERP;
+            m_global_contactcount++;
 
-            float depth = contactGeom.depth * dscale;
-            if (depth > 0.5f)
-                depth = 0.5f;
-
-            d.Contact newcontact = new d.Contact();
-            newcontact.geom.depth = depth;
-            newcontact.geom.g1 = contactGeom.g1;
-            newcontact.geom.g2 = contactGeom.g2;
-            newcontact.geom.pos = contactGeom.pos;
-            newcontact.geom.normal = contactGeom.normal;
-            newcontact.geom.side1 = contactGeom.side1;
-            newcontact.geom.side2 = contactGeom.side2;
-
-            // this needs bounce also
-            newcontact.surface.mode = comumContactFlags;
-            newcontact.surface.mu = mu;
-            newcontact.surface.bounce = bounce;
-            newcontact.surface.soft_cfm = cfm;
-            newcontact.surface.soft_erp = erp;
+            SharedTmpcontact.geom.depth = contactGeom.depth;
+            SharedTmpcontact.geom.pos = contactGeom.pos;
+            SharedTmpcontact.geom.normal = contactGeom.normal;
 
             IntPtr contact = new IntPtr(GlobalContactsArray.ToInt64() + (Int64)(m_global_contactcount * d.Contact.unmanagedSizeOf));
-            Marshal.StructureToPtr(newcontact, contact, true);
+            Marshal.StructureToPtr(SharedTmpcontact, contact, true);
             return d.JointCreateContactPtr(world, contactgroup, contact);
         }
 
@@ -825,10 +797,12 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (!GetCurContactGeom(0, ref curContact))
                 return;
 
+            ContactPoint maxDepthContact = new ContactPoint();
+
             // do volume detection case
             if ((p1.IsVolumeDtc || p2.IsVolumeDtc))
             {
-                ContactPoint maxDepthContact = new ContactPoint(
+                maxDepthContact = new ContactPoint(
                     new Vector3(curContact.pos.X, curContact.pos.Y, curContact.pos.Z),
                     new Vector3(curContact.normal.X, curContact.normal.Y, curContact.normal.Z),
                     curContact.depth, false
@@ -842,10 +816,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             float mu = 0;
             float bounce = 0;
-            float cfm = 0.0001f;
-            float erpscale = 1.0f;
-            float dscale = 1.0f;
-            bool IgnoreNegSides = false;
+//            bool IgnoreNegSides = false;
 
             ContactData contactdata1 = new ContactData(0, 0, false);
             ContactData contactdata2 = new ContactData(0, 0, false);
@@ -890,7 +861,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                             break;
 
                         case (int)ActorTypes.Prim:
-                            if ((p1.Velocity - p2.Velocity).LengthSquared() > 0.0f)
+                            Vector3 relV = p1.Velocity - p2.Velocity;
+                            float relVlenSQ = relV.LengthSquared();
+                            if (relVlenSQ > 0.0001f)
                             {
                                 p1.CollidingObj = true;
                                 p2.CollidingObj = true;
@@ -900,21 +873,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             bounce = contactdata1.bounce * contactdata2.bounce;
                             mu = (float)Math.Sqrt(contactdata1.mu * contactdata2.mu);
 
-                            cfm = p1.Mass;
-                            if (cfm > p2.Mass)
-                                cfm = p2.Mass;
-                            dscale = 10 / cfm;
-                            dscale = (float)Math.Sqrt(dscale);
-                            if (dscale > 1.0f)
-                                dscale = 1.0f;
-                            erpscale = cfm * 0.01f;
-                            cfm = 0.0001f / cfm;
-                            if (cfm > 0.01f)
-                                cfm = 0.01f;
-                            else if (cfm < 0.00001f)
-                                cfm = 0.00001f;
-
-                            if ((Math.Abs(p2.Velocity.X - p1.Velocity.X) > 0.1f || Math.Abs(p2.Velocity.Y - p1.Velocity.Y) > 0.1f))
+                            if (relVlenSQ > 0.01f)
                                 mu *= frictionMovementMult;
 
                             break;
@@ -923,27 +882,17 @@ namespace OpenSim.Region.Physics.OdePlugin
                             p1.getContactData(ref contactdata1);
                             bounce = contactdata1.bounce * TerrainBounce;
                             mu = (float)Math.Sqrt(contactdata1.mu * TerrainFriction);
+
                             if (Math.Abs(p1.Velocity.X) > 0.1f || Math.Abs(p1.Velocity.Y) > 0.1f)
                                 mu *= frictionMovementMult;
                             p1.CollidingGround = true;
-
-                            cfm = p1.Mass;
-                            dscale = 10 / cfm;
-                            dscale = (float)Math.Sqrt(dscale);
-                            if (dscale > 1.0f)
-                                dscale = 1.0f;
-                            erpscale = cfm * 0.01f;
-                            cfm = 0.0001f / cfm;
-                            if (cfm > 0.01f)
-                                cfm = 0.01f;
-                            else if (cfm < 0.00001f)
-                                cfm = 0.00001f;
-
+/*
                             if (d.GeomGetClass(g1) == d.GeomClassID.TriMeshClass)
                             {
                                 if (curContact.side1 > 0)
                                     IgnoreNegSides = true;
                             }
+ */
                             break;
 
                         case (int)ActorTypes.Water:
@@ -961,22 +910,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                         bounce = contactdata2.bounce * TerrainBounce;
                         mu = (float)Math.Sqrt(contactdata2.mu * TerrainFriction);
 
-                        cfm = p2.Mass;
-                        dscale = 10 / cfm;
-                        dscale = (float)Math.Sqrt(dscale);
-
-                        if (dscale > 1.0f)
-                            dscale = 1.0f;
-
-                        erpscale = cfm * 0.01f;
-                        cfm = 0.0001f / cfm;
-                        if (cfm > 0.01f)
-                            cfm = 0.01f;
-                        else if (cfm < 0.00001f)
-                            cfm = 0.00001f;
-
-                        if (curContact.side1 > 0) // should be 2 ?
-                            IgnoreNegSides = true;
+//                        if (curContact.side1 > 0) // should be 2 ?
+//                            IgnoreNegSides = true;
 
                         if (Math.Abs(p2.Velocity.X) > 0.1f || Math.Abs(p2.Velocity.Y) > 0.1f)
                             mu *= frictionMovementMult;
@@ -993,26 +928,24 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (ignore)
                 return;
 
-
-            d.ContactGeom maxContact = curContact;
-            //            if (IgnoreNegSides && curContact.side1 < 0)
-            //                maxContact.depth = float.MinValue;
-
-            d.ContactGeom minContact = curContact;
-            //            if (IgnoreNegSides && curContact.side1 < 0)
-            //                minContact.depth = float.MaxValue;
-
             IntPtr Joint;
             bool FeetCollision = false;
             int ncontacts = 0;
 
-
             int i = 0;
+
+            maxDepthContact = new ContactPoint();
+            maxDepthContact.PenetrationDepth = float.MinValue;
+            ContactPoint minDepthContact = new ContactPoint();
+            minDepthContact.PenetrationDepth = float.MaxValue;
+
+            SharedTmpcontact.geom.depth = 0;
+            SharedTmpcontact.surface.mu = mu;
+            SharedTmpcontact.surface.bounce = bounce;
 
             while (true)
             {
-
-//                    if (!(IgnoreNegSides && curContact.side1 < 0))
+//                if (!(IgnoreNegSides && curContact.side1 < 0))
                 {
                     bool noskip = true;
                     if (dop1ava)
@@ -1029,26 +962,32 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                     if (noskip)
                     {
-                        m_global_contactcount++;
-                        if (m_global_contactcount >= maxContactsbeforedeath)
-                            break;
-
-                        ncontacts++;
-
-                        Joint = CreateContacJoint(ref curContact, mu, bounce, cfm, erpscale, dscale);
+                        Joint = CreateContacJoint(ref curContact);
                         if (Joint == IntPtr.Zero)
                             break;
 
                         d.JointAttach(Joint, b1, b2);
 
-                        if (curContact.depth > maxContact.depth)
-                            maxContact = curContact;
+                        ncontacts++;
 
-                        if (curContact.depth < minContact.depth)
-                            minContact = curContact;
+                        if (curContact.depth > maxDepthContact.PenetrationDepth)
+                        {
+                            maxDepthContact.Position.X = curContact.pos.X;
+                            maxDepthContact.Position.Y = curContact.pos.Y;
+                            maxDepthContact.Position.Z = curContact.pos.Z;
+                            maxDepthContact.PenetrationDepth = curContact.depth;
+                            maxDepthContact.CharacterFeet = FeetCollision;
+                        }
+
+                        if (curContact.depth < minDepthContact.PenetrationDepth)
+                        {
+                            minDepthContact.PenetrationDepth = curContact.depth;
+                            minDepthContact.SurfaceNormal.X = curContact.normal.X;
+                            minDepthContact.SurfaceNormal.Y = curContact.normal.Y;
+                            minDepthContact.SurfaceNormal.Z = curContact.normal.Z;
+                        }
                     }
                 }
-
                 if (++i >= count)
                     break;
 
@@ -1058,11 +997,10 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             if (ncontacts > 0)
             {
-                ContactPoint maxDepthContact = new ContactPoint(
-                            new Vector3(maxContact.pos.X, maxContact.pos.Y, maxContact.pos.Z),
-                            new Vector3(minContact.normal.X, minContact.normal.Y, minContact.normal.Z),
-                            maxContact.depth, FeetCollision
-                            );
+                maxDepthContact.SurfaceNormal.X = minDepthContact.SurfaceNormal.X;
+                maxDepthContact.SurfaceNormal.Y = minDepthContact.SurfaceNormal.Y;
+                maxDepthContact.SurfaceNormal.Z = minDepthContact.SurfaceNormal.Z;
+
                 collision_accounting_events(p1, p2, maxDepthContact);
             }
         }
@@ -1629,16 +1567,15 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (framecount < 0)
                 framecount = 0;
 
-
             framecount++;
 
-            int curphysiteractions;
+//            int curphysiteractions;
 
             // if in trouble reduce step resolution
-            if (step_time >= m_SkipFramesAtms)
-                curphysiteractions = m_physicsiterations / 2;
-            else
-                curphysiteractions = m_physicsiterations;
+//            if (step_time >= m_SkipFramesAtms)
+//                curphysiteractions = m_physicsiterations / 2;
+//            else
+//                curphysiteractions = m_physicsiterations;
 
 //            checkThread();
             int nodeframes = 0;
@@ -1653,14 +1590,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
 
                 ODEchangeitem item;
-
-
                 
-                d.WorldSetQuickStepNumIterations(world, curphysiteractions);
+//                d.WorldSetQuickStepNumIterations(world, curphysiteractions);
 
                 int loopstartMS = Util.EnvironmentTickCount();
                 int looptimeMS = 0;
-                
+             
 
                 while (step_time > HalfOdeStep)
                 {
@@ -1763,6 +1698,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                         // do a ode simulation step
                         d.WorldQuickStep(world, ODE_STEPSIZE);
+//                        d.WorldStep(world, ODE_STEPSIZE);
                         d.JointGroupEmpty(contactgroup);
 
                         // update managed ideia of physical data and do updates to core
@@ -1789,7 +1725,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 {
                                     if (actor.IsPhysical)
                                     {
-                                        actor.UpdatePositionAndVelocity();
+                                        actor.UpdatePositionAndVelocity(framecount);
                                     }
                                 }
                             }

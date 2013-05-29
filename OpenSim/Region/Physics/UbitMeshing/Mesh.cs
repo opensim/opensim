@@ -205,34 +205,21 @@ namespace OpenSim.Region.Physics.Meshing
 
         }
 
-        private float fRound(float f)
-        {
-            int i;
-            if (f == 0f)
-                return f;
-            else if (f > 0f)
-                i = (int)(1e5f * f + 0.5f);
-            else
-                i = (int)(1e5f * f - 0.5f);
-
-            return ((float)i * 1e-5f);
-        }
-
         public void Add(Triangle triangle)
         {
             if (m_indicesPtr != IntPtr.Zero || m_verticesPtr != IntPtr.Zero)
                 throw new NotSupportedException("Attempt to Add to a pinned Mesh");
 
-            // round down
-            triangle.v1.X = fRound(triangle.v1.X);
-            triangle.v1.Y = fRound(triangle.v1.Y);
-            triangle.v1.Z = fRound(triangle.v1.Z);
-            triangle.v2.X = fRound(triangle.v2.X);
-            triangle.v2.Y = fRound(triangle.v2.Y);
-            triangle.v2.Z = fRound(triangle.v2.Z);
-            triangle.v3.X = fRound(triangle.v3.X);
-            triangle.v3.Y = fRound(triangle.v3.Y);
-            triangle.v3.Z = fRound(triangle.v3.Z);
+
+            triangle.v1.X = (float)Math.Round(triangle.v1.X, 6);
+            triangle.v1.Y = (float)Math.Round(triangle.v1.Y, 6);
+            triangle.v1.Z = (float)Math.Round(triangle.v1.Z, 6);
+            triangle.v2.X = (float)Math.Round(triangle.v2.X, 6);
+            triangle.v2.Y = (float)Math.Round(triangle.v2.Y, 6);
+            triangle.v2.Z = (float)Math.Round(triangle.v2.Z, 6);
+            triangle.v3.X = (float)Math.Round(triangle.v3.X, 6);
+            triangle.v3.Y = (float)Math.Round(triangle.v3.Y, 6);
+            triangle.v3.Z = (float)Math.Round(triangle.v3.Z, 6);
 
             if ((triangle.v1.X == triangle.v2.X && triangle.v1.Y == triangle.v2.Y && triangle.v1.Z == triangle.v2.Z)
                 || (triangle.v1.X == triangle.v3.X && triangle.v1.Y == triangle.v3.Y && triangle.v1.Z == triangle.v3.Z)

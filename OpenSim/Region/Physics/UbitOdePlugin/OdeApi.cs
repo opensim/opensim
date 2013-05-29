@@ -1869,7 +1869,7 @@ namespace OdeAPI
 		[DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dSpaceSetCleanup"), SuppressUnmanagedCodeSecurity]
 		public static extern void SpaceSetCleanup(IntPtr space, bool mode);
 
-        [DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dSpaceSetSublevel"), SuppressUnmanagedCodeSecurity]
+        [DllImport("ode.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dSpaceSetSublevel"), SuppressUnmanagedCodeSecurity]
         public static extern void SpaceSetSublevel(IntPtr space, int sublevel);
 
         [DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dSweepAndPruneSpaceCreate"), SuppressUnmanagedCodeSecurity]

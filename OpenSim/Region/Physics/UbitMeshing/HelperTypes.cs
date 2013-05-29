@@ -256,9 +256,9 @@ public class Vertex : IComparable<Vertex>
         // settings your machine works with. Unusable for a machine readable file format :-(
         NumberFormatInfo nfi = new NumberFormatInfo();
         nfi.NumberDecimalSeparator = ".";
-        nfi.NumberDecimalDigits = 3;
+        nfi.NumberDecimalDigits = 6;
 
-        String s1 = X.ToString("N2", nfi) + " " + Y.ToString("N2", nfi) + " " + Z.ToString("N2", nfi);
+        String s1 = X.ToString(nfi) + " " + Y.ToString(nfi) + " " + Z.ToString(nfi);
 
         return s1;
     }
