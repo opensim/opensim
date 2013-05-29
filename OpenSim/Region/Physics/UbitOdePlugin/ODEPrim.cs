@@ -115,6 +115,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private int body_autodisable_frames;
         public int bodydisablecontrol;
+        private float m_gravmod = 1.0f;
 
 
         // Default we're a Geometry
@@ -912,6 +913,55 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_material = pMaterial;
             mu = _parent_scene.m_materialContactsData[pMaterial].mu;
             bounce = _parent_scene.m_materialContactsData[pMaterial].bounce;
+        }
+
+        public override float Density
+        {
+            get
+            {
+                return m_density * 100f;
+            }
+            set
+            {
+                m_density = value / 100f;
+                // for not prim mass is not updated since this implies full rebuild of body inertia TODO
+            }
+        }
+        public override float GravModifier
+        {
+            get
+            {
+                return m_gravmod;
+            }
+            set
+            {
+                m_gravmod = value;
+                if (m_vehicle != null)
+                    m_vehicle.GravMod = m_gravmod;
+            }
+        }
+        public override float Friction
+        {
+            get
+            {
+                return mu;
+            }
+            set
+            {
+                mu = value;
+            }
+        }
+
+        public override float Restitution
+        {
+            get
+            {
+                return bounce;
+            }
+            set
+            {
+                bounce = value;
+            }
         }
 
         public void setPrimForRemoval()
@@ -3336,7 +3386,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 else
                 {
-                    float b = (1.0f - m_buoyancy);
+                    float b = (1.0f - m_buoyancy) * m_gravmod;
                     fx = _parent_scene.gravityx * b;
                     fy = _parent_scene.gravityy * b;
                     fz = _parent_scene.gravityz * b;

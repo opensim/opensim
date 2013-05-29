@@ -137,12 +137,21 @@ namespace OpenSim.Region.Physics.OdePlugin
         float m_amdampY;
         float m_amdampZ;
 
+        float m_gravmod;
 
         public float FrictionFactor
         {
             get
             {
                 return m_ffactor;
+            }
+        }
+
+        public float GravMod
+        {
+            set
+            {
+                m_gravmod = value;
             }
         }
 
@@ -153,6 +162,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             _pParentScene = rootPrim._parent_scene;
             m_timestep = _pParentScene.ODE_STEPSIZE;
             m_invtimestep = 1.0f / m_timestep;
+            m_gravmod = rootPrim.GravModifier;
         }
 
         public void DoSetVehicle(VehicleData vd)
@@ -816,7 +826,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 m_lmEfect = 0;
                 m_ffactor = 1f;
             }
-
+           
             // hover
             if (m_VhoverTimescale < 300 && rootPrim.prim_geom != IntPtr.Zero)
             {
@@ -862,7 +872,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     force.Z += perr;
                     ldampZ *= -curVel.Z;
 
-                    force.Z += _pParentScene.gravityz * (1f - m_VehicleBuoyancy);
+                    force.Z += _pParentScene.gravityz * m_gravmod * (1f - m_VehicleBuoyancy);
                 }
                 else // no buoyancy
                     force.Z += _pParentScene.gravityz;
@@ -870,7 +880,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             else
             {
                 // default gravity and Buoyancy
-                force.Z += _pParentScene.gravityz * (1f - m_VehicleBuoyancy);
+                force.Z += _pParentScene.gravityz * m_gravmod * (1f - m_VehicleBuoyancy);
             }
 
             // linear deflection
@@ -1063,8 +1073,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 torque.Y -= curLocalAngVel.Y * m_amdampY;
                 torque.Z -= curLocalAngVel.Z * m_amdampZ;
             }
-
-            
+          
 
             if (force.X != 0 || force.Y != 0 || force.Z != 0)
             {
