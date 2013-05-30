@@ -47,7 +47,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
     /// </summary>
     public class AsyncCommandManager
     {
-//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private static Thread cmdHandlerThread;
         private static int cmdHandlerThreadCycleSleepms;
@@ -183,17 +183,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 try
                 {
-                    while (true)
-                    {
-                        Thread.Sleep(cmdHandlerThreadCycleSleepms);
+                    Thread.Sleep(cmdHandlerThreadCycleSleepms);
 
-                        DoOneCmdHandlerPass();
+                    DoOneCmdHandlerPass();
 
-                        Watchdog.UpdateThread();
-                    }
+                    Watchdog.UpdateThread();
                 }
-                catch
+                catch (Exception e)
                 {
+                    m_log.Error("[ASYNC COMMAND MANAGER]: Exception in command handler pass: ", e);
                 }
             }
         }
