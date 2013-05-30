@@ -2138,9 +2138,9 @@ namespace OpenSim.Region.Framework.Scenes
                 forceMouselook = part.GetForceMouselook();
 
                 ControllingClient.SendSitResponse(
-                    targetID, offset, sitOrientation, false, cameraAtOffset, cameraEyeOffset, forceMouselook);
+                    part.UUID, offset, sitOrientation, false, cameraAtOffset, cameraEyeOffset, forceMouselook);
 
-                m_requestedSitTargetUUID = targetID;
+                m_requestedSitTargetUUID = part.UUID;
 
                 HandleAgentSit(ControllingClient, UUID);
 
@@ -2165,7 +2165,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (part != null)
             {
                 m_requestedSitTargetID = part.LocalId;
-                m_requestedSitTargetUUID = targetID;
+                m_requestedSitTargetUUID = part.UUID;
 
 //                m_log.DebugFormat("[SIT]: Client requested Sit Position: {0}", offset);
 
