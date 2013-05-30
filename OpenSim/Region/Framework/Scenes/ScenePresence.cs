@@ -1550,6 +1550,7 @@ namespace OpenSim.Region.Framework.Scenes
             // Create child agents in neighbouring regions
             if (openChildAgents && !IsChildAgent)
             {
+                // Remember in HandleUseCircuitCode, we delayed this to here
                 SendInitialDataToMe();
 
                 IEntityTransferModule m_agentTransfer = m_scene.RequestModuleInterface<IEntityTransferModule>();

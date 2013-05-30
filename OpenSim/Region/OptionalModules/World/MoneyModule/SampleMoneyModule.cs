@@ -191,9 +191,14 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
         // Please do not refactor these to be just one method
         // Existing implementations need the distinction
         //
-        public void ApplyCharge(UUID agentID, int amount, string text)
+        public void ApplyCharge(UUID agentID, int amount, MoneyTransactionType type, string extraData)
         {
         }
+
+        public void ApplyCharge(UUID agentID, int amount, MoneyTransactionType type)
+        {
+        }
+
         public void ApplyUploadCharge(UUID agentID, int amount, string text)
         {
         }
@@ -322,7 +327,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
                     client.SendAlertMessage(e.Message + " ");
                 }
 
-                client.SendMoneyBalance(TransactionID, true, new byte[0], returnfunds);
+                client.SendMoneyBalance(TransactionID, true, new byte[0], returnfunds, 0, UUID.Zero, false, UUID.Zero, false, 0, String.Empty);
             }
             else
             {
@@ -385,12 +390,12 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
             {
                 if (sender != null)
                 {
-                    sender.SendMoneyBalance(UUID.Random(), transactionresult, Utils.StringToBytes(description), GetFundsForAgentID(senderID));
+                    sender.SendMoneyBalance(UUID.Random(), transactionresult, Utils.StringToBytes(description), GetFundsForAgentID(senderID), 0, UUID.Zero, false, UUID.Zero, false, 0, String.Empty);
                 }
 
                 if (receiver != null)
                 {
-                    receiver.SendMoneyBalance(UUID.Random(), transactionresult, Utils.StringToBytes(description), GetFundsForAgentID(receiverID));
+                    receiver.SendMoneyBalance(UUID.Random(), transactionresult, Utils.StringToBytes(description), GetFundsForAgentID(receiverID), 0, UUID.Zero, false, UUID.Zero, false, 0, String.Empty);
                 }
             }
         }

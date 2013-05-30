@@ -766,7 +766,7 @@ namespace OpenSim.Groups
                     remoteClient.SendCreateGroupReply(UUID.Zero, false, "Insufficient funds to create a group.");
                     return UUID.Zero;
                 }
-                money.ApplyCharge(remoteClient.AgentId, money.GroupCreationCharge, "Group Creation");
+                money.ApplyCharge(remoteClient.AgentId, money.GroupCreationCharge, MoneyTransactionType.GroupCreate);
             }
             string reason = string.Empty;
             UUID groupID = m_groupData.CreateGroup(remoteClient.AgentId, name, charter, showInList, insigniaID, membershipFee, openEnrollment, 

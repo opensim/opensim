@@ -117,6 +117,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
         
         private IConfig m_config;
 
+        private object m_Lock;
+
         public void Initialise(IConfigSource config)
         {
 
@@ -127,6 +129,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
 
             if (!m_config.GetBoolean("enabled", false))
                 return;
+
+            m_Lock = new object();
 
             try
             {
@@ -1118,25 +1122,32 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
 
             doc = new XmlDocument();
 
-            try
+            // Let's serialize all calls to Vivox. Most of these are driven by
+            // the clients (CAPs), when the user arrives at the region. We don't 
+            // want to issue many simultaneous http requests to Vivox, because mono
+            // doesn't like that
+            lock (m_Lock)
             {
-                // Otherwise prepare the request
-//                m_log.DebugFormat("[VivoxVoice] Sending request <{0}>", requrl);
+                try
+                {
+                    // Otherwise prepare the request
+                    //m_log.DebugFormat("[VivoxVoice] Sending request <{0}>", requrl);
 
-                HttpWebRequest req = (HttpWebRequest)WebRequest.Create(requrl);
+                    HttpWebRequest req = (HttpWebRequest)WebRequest.Create(requrl);
 
-                // We are sending just parameters, no content
-                req.ContentLength = 0;
+                    // We are sending just parameters, no content
+                    req.ContentLength = 0;
 
-                // Send request and retrieve the response
-                using (HttpWebResponse rsp = (HttpWebResponse)req.GetResponse())
+                    // Send request and retrieve the response
+                    using (HttpWebResponse rsp = (HttpWebResponse)req.GetResponse())
                     using (Stream s = rsp.GetResponseStream())
-                        using (XmlTextReader rdr = new XmlTextReader(s))
-                            doc.Load(rdr);
-            }
-            catch (Exception e)
-            {
-                m_log.ErrorFormat("[VivoxVoice] Error in admin call : {0}", e.Message);
+                    using (XmlTextReader rdr = new XmlTextReader(s))
+                        doc.Load(rdr);
+                }
+                catch (Exception e)
+                {
+                    m_log.ErrorFormat("[VivoxVoice] Error in admin call : {0}", e.Message);
+                }
             }
 
             // If we're debugging server responses, dump the whole
