@@ -377,23 +377,5 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
             }
         }
-
-        #region Check llRemoteData channels
-
-        #endregion
-
-        #region Check llListeners
-
-        #endregion
-
-        /// <summary>
-        /// If set to true then threads and stuff should try to make a graceful exit
-        /// </summary>
-        public bool PleaseShutdown
-        {
-            get { return _PleaseShutdown; }
-            set { _PleaseShutdown = value; }
-        }
-        private bool _PleaseShutdown = false;
     }
 }
