@@ -2039,6 +2039,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             Animator.TrySetMovementAnimation("STAND");
+            TriggerScenePresenceUpdated();
         }
 
         private SceneObjectPart FindNextAvailableSitTarget(UUID targetID)
@@ -2432,6 +2433,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 Animator.TrySetMovementAnimation(sitAnimation);
                 SendAvatarDataToAllAgents();
+                TriggerScenePresenceUpdated();
             }
         }
 
@@ -2440,6 +2442,7 @@ namespace OpenSim.Region.Framework.Scenes
 //            m_updateCount = 0;  // Kill animation update burst so that the SIT_G.. will stick..
             m_AngularVelocity = Vector3.Zero;
             Animator.TrySetMovementAnimation("SIT_GROUND_CONSTRAINED");
+            TriggerScenePresenceUpdated();
             SitGround = true;
             RemoveFromPhysicalScene();
         }
@@ -2456,11 +2459,13 @@ namespace OpenSim.Region.Framework.Scenes
         public void HandleStartAnim(IClientAPI remoteClient, UUID animID)
         {
             Animator.AddAnimation(animID, UUID.Zero);
+            TriggerScenePresenceUpdated();
         }
 
         public void HandleStopAnim(IClientAPI remoteClient, UUID animID)
         {
             Animator.RemoveAnimation(animID, false);
+            TriggerScenePresenceUpdated();
         }
 
         /// <summary>
@@ -3465,7 +3470,8 @@ namespace OpenSim.Region.Framework.Scenes
 
 //                if (m_updateCount > 0)
 //                {
-            Animator.UpdateMovementAnimations();
+            if (Animator.UpdateMovementAnimations())
+                TriggerScenePresenceUpdated();
 //                    m_updateCount--;
 //                }
 
