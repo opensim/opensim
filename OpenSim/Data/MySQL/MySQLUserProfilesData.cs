@@ -622,7 +622,7 @@ namespace OpenSim.Data.MySQL
                             {
                                 m_log.DebugFormat("[PROFILES_DATA]" +
                                                  ": No data for {0}", props.UserId);
-                                
+                               
                                 props.WebUrl = string.Empty;
                                 props.ImageId = UUID.Zero;
                                 props.AboutText = string.Empty;
@@ -634,8 +634,38 @@ namespace OpenSim.Data.MySQL
                                 props.SkillsMask = 0;
                                 props.SkillsText = string.Empty;
                                 props.Language = string.Empty;
+                                props.PublishProfile = false;
+                                props.PublishMature = false;
 
-                                query = "INSERT INTO userprofile (`useruuid`) VALUES (?userId)";
+                                query = "INSERT INTO userprofile (";
+                                query += "useruuid, ";
+                                query += "profilePartner, ";
+                                query += "profileAllowPublish, ";
+                                query += "profileMaturePublish, ";
+                                query += "profileURL, ";
+                                query += "profileWantToMask, ";
+                                query += "profileWantToText, ";
+                                query += "profileSkillsMask, ";
+                                query += "profileSkillsText, ";
+                                query += "profileLanguages, ";
+                                query += "profileImage, ";
+                                query += "profileAboutText, ";
+                                query += "profileFirstImage, ";
+                                query += "profileFirstText) VALUES (";
+                                query += "?userId, ";
+                                query += "?profilePartner, ";
+                                query += "?profileAllowPublish, ";
+                                query += "?profileMaturePublish, ";
+                                query += "?profileURL, ";
+                                query += "?profileWantToMask, ";
+                                query += "?profileWantToText, ";
+                                query += "?profileSkillsMask, ";
+                                query += "?profileSkillsText, ";
+                                query += "?profileLanguages, ";
+                                query += "?profileImage, ";
+                                query += "?profileAboutText, ";
+                                query += "?profileFirstImage, ";
+                                query += "?profileFirstText)";
 
                                 dbcon.Close();
                                 dbcon.Open();
@@ -643,6 +673,20 @@ namespace OpenSim.Data.MySQL
                                 using (MySqlCommand put = new MySqlCommand(query, dbcon))
                                 {
                                     put.Parameters.AddWithValue("?userId", props.UserId.ToString());
+                                    put.Parameters.AddWithValue("?profilePartner", props.PartnerId.ToString());
+                                    put.Parameters.AddWithValue("?profileAllowPublish", props.PublishProfile);
+                                    put.Parameters.AddWithValue("?profileMaturePublish", props.PublishMature);
+                                    put.Parameters.AddWithValue("?profileURL", props.WebUrl);
+                                    put.Parameters.AddWithValue("?profileWantToMask", props.WantToMask);
+                                    put.Parameters.AddWithValue("?profileWantToText", props.WantToText);
+                                    put.Parameters.AddWithValue("?profileSkillsMask", props.SkillsMask);
+                                    put.Parameters.AddWithValue("?profileSkillsText", props.SkillsText);
+                                    put.Parameters.AddWithValue("?profileLanguages", props.Language);
+                                    put.Parameters.AddWithValue("?profileImage", props.ImageId.ToString());
+                                    put.Parameters.AddWithValue("?profileAboutText", props.AboutText);
+                                    put.Parameters.AddWithValue("?profileFirstImage", props.FirstLifeImageId.ToString());
+                                    put.Parameters.AddWithValue("?profileFirstText", props.FirstLifeText);
+
                                     put.ExecuteNonQuery();
                                 }
                             }
@@ -665,6 +709,7 @@ namespace OpenSim.Data.MySQL
             string query = string.Empty;
             
             query += "UPDATE userprofile SET ";
+            query += "profilePartner=?profilePartner, ";
             query += "profileURL=?profileURL, ";
             query += "profileImage=?image, ";
             query += "profileAboutText=?abouttext,";
@@ -680,6 +725,7 @@ namespace OpenSim.Data.MySQL
                     using (MySqlCommand cmd = new MySqlCommand(query, dbcon))
                     {
                         cmd.Parameters.AddWithValue("?profileURL", props.WebUrl);
+                        cmd.Parameters.AddWithValue("?profilePartner", props.PartnerId.ToString());
                         cmd.Parameters.AddWithValue("?image", props.ImageId.ToString());
                         cmd.Parameters.AddWithValue("?abouttext", props.AboutText);
                         cmd.Parameters.AddWithValue("?firstlifeimage", props.FirstLifeImageId.ToString());
