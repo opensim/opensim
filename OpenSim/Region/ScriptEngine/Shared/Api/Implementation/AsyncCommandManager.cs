@@ -61,12 +61,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// </remarks>
         private static object staticLock = new object();
 
-        private static List<IScene> m_Scenes = new List<IScene>();
         private static List<IScriptEngine> m_ScriptEngines =
                 new List<IScriptEngine>();
 
         public IScriptEngine m_ScriptEngine;
-        private IScene m_Scene;
 
         private static Dictionary<IScriptEngine, Dataserver> m_Dataserver =
                 new Dictionary<IScriptEngine, Dataserver>();
@@ -147,7 +145,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public AsyncCommandManager(IScriptEngine _ScriptEngine)
         {
             m_ScriptEngine = _ScriptEngine;
-            m_Scene = m_ScriptEngine.World;
 
             // If there is more than one scene in the simulator or multiple script engines are used on the same region
             // then more than one thread could arrive at this block of code simultaneously.  However, it cannot be
@@ -155,11 +152,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // race conditions such as the later check of cmdHandlerThread == null.
             lock (staticLock)
             {
-                if (m_Scenes.Count == 0)
+                if (m_ScriptEngines.Count == 0)
                     ReadConfig();
 
-                if (!m_Scenes.Contains(m_Scene))
-                    m_Scenes.Add(m_Scene);
                 if (!m_ScriptEngines.Contains(m_ScriptEngine))
                     m_ScriptEngines.Add(m_ScriptEngine);
 
