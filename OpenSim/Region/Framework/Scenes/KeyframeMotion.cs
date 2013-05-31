@@ -645,7 +645,7 @@ namespace OpenSim.Region.Framework.Scenes
                     m_nextPosition = m_group.AbsolutePosition + motionThisFrame;
                     m_group.AbsolutePosition = m_nextPosition;
 
-                    m_group.RootPart.Velocity = v;
+                    //m_group.RootPart.Velocity = v;
                     update = true;
                 }
 
