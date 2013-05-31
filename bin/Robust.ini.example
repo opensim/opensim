@@ -51,6 +51,8 @@ MapGetServiceConnector = "8002/OpenSim.Server.Handlers.dll:MapGetServiceConnecto
 ;; Uncomment this if you want Groups V2 to work
 ;GroupsServiceConnector = "8003/OpenSim.Addons.Groups.dll:GroupsServiceRobustConnector"
 
+;; Uncomment for UserProfiles see [UserProfilesService] to configure...
+; UserProfilesServiceConnector = "8002/OpenSim.Server.Handlers.dll:UserProfilesConnector"
 
 ; * This is common for all services, it's the network setup for the entire
 ; * server instance, if none is specified above
@@ -390,5 +392,14 @@ MapGetServiceConnector = "8002/OpenSim.Server.Handlers.dll:MapGetServiceConnecto
 
     ; password help: optional: page providing password assistance for users of your grid
     ;password = http://127.0.0.1/password
+
+[UserProfilesService]
+    LocalServiceModule = "OpenSim.Services.UserProfilesService.dll:UserProfilesService"
+    Enabled = false
+    ;; Configure this for separate profiles database
+    ;; ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=*****;Old Guids=true;"
+    ;; Realm = UserProfiles
+    UserAccountService = OpenSim.Services.UserAccountService.dll:UserAccountService
+    AuthenticationServiceModule = "OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService"
 
 

@@ -56,6 +56,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         public LocalGridServicesConnector()
         {
+            m_log.Debug("[LOCAL GRID SERVICE CONNECTOR]: LocalGridServicesConnector no parms.");
         }
 
         public LocalGridServicesConnector(IConfigSource source)
