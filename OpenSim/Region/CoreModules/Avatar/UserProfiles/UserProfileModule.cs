@@ -124,8 +124,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
         public void Initialise(IConfigSource source)
         {
             Config = source;
+            ReplaceableInterface = typeof(IProfileModule);
 
-            IConfig profileConfig = Config.Configs["Profile"];
+            IConfig profileConfig = Config.Configs["UserProfiles"];
 
             if (profileConfig == null)
             {
@@ -135,18 +136,16 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
 
             // If we find ProfileURL then we configure for FULL support
             // else we setup for BASIC support
-            ProfileServerUri = profileConfig.GetString("ProfileURL", "");
+            ProfileServerUri = profileConfig.GetString("ProfileServiceURL", "");
             if (ProfileServerUri == "")
             {
-                m_log.Info("[PROFILES] UserProfiles module is activated in BASIC mode");
                 Enabled = false;
                 return;
             }
-            else
-            {
-                m_log.Info("[PROFILES] UserProfiles module is activated in FULL mode");
-                Enabled = true;
-            }
+                
+            m_log.Debug("[PROFILES]: Full Profiles Enabled");
+            ReplaceableInterface = null;
+            Enabled = true;
         }
 
         /// <summary>
@@ -157,6 +156,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
         /// </param>
         public void AddRegion(Scene scene)
         {
+            if(!Enabled)
+                return;
+
             Scene = scene;
             Scene.RegisterModuleInterface<IProfileModule>(this);
             Scene.EventManager.OnNewClient += OnNewClient;
@@ -178,6 +180,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
         /// </param>
         public void RemoveRegion(Scene scene)
         {
+            if(!Enabled)
+                return;
         }
 
         /// <summary>
@@ -191,6 +195,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
         /// </param>
         public void RegionLoaded(Scene scene)
         {
+            if(!Enabled)
+                return;
         }
 
         /// <summary>
@@ -206,7 +212,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
         /// </value>
         public Type ReplaceableInterface
         {
-            get { return typeof(IProfileModule); }
+            get; private set;
         }
 
         /// <summary>
@@ -237,13 +243,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
         /// </param>
         void OnNewClient(IClientAPI client)
         {
-            // Basic or Full module?
-            if(!Enabled)
-            {
-                client.OnRequestAvatarProperties += BasicRequestProperties;
-                return;
-            }
-
             //Profile
             client.OnRequestAvatarProperties += RequestAvatarProperties;
             client.OnUpdateAvatarProperties += AvatarPropertiesUpdate;
@@ -839,63 +838,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
             }
         }
 
-        public void BasicRequestProperties(IClientAPI remoteClient, UUID avatarID)
-        {
-            IScene s = remoteClient.Scene;
-            if (!(s is Scene))
-                return;
-
-            string profileUrl = String.Empty;
-            string aboutText = String.Empty;
-            string firstLifeAboutText = String.Empty;
-            UUID image = UUID.Zero;
-            UUID firstLifeImage = UUID.Zero;
-            UUID partner = UUID.Zero;
-            uint wantMask = 0;
-            string wantText = String.Empty;
-            uint skillsMask = 0;
-            string skillsText = String.Empty;
-            string languages = String.Empty;
-            
-            UserAccount account = Scene.UserAccountService.GetUserAccount(Scene.RegionInfo.ScopeID, avatarID);
-            
-            string name = "Avatar";
-            int created = 0;
-            if (account != null)
-            {
-                name = account.FirstName + " " + account.LastName;
-                created = account.Created;
-            }
-            Byte[] charterMember = Utils.StringToBytes(name);
-            
-            profileUrl = "No profile data";
-            aboutText = string.Empty;
-            firstLifeAboutText = string.Empty;
-            image = UUID.Zero;
-            firstLifeImage = UUID.Zero;
-            partner = UUID.Zero;
-            
-            remoteClient.SendAvatarProperties(avatarID, aboutText,
-                                              Util.ToDateTime(created).ToString(
-                "M/d/yyyy", CultureInfo.InvariantCulture),
-                                              charterMember, firstLifeAboutText,
-                                              (uint)(0 & 0xff),
-                                              firstLifeImage, image, profileUrl, partner);
-            
-            //Viewer expects interest data when it asks for properties.
-            remoteClient.SendAvatarInterestsReply(avatarID, wantMask, wantText,
-                                                  skillsMask, skillsText, languages);
-        }
-
-        /// <summary>
-        /// Requests the avatar properties.
-        /// </summary>
-        /// <param name='remoteClient'>
-        /// Remote client.
-        /// </param>
-        /// <param name='avatarID'>
-        /// Avatar I.
-        /// </param>
         public void RequestAvatarProperties(IClientAPI remoteClient, UUID avatarID)
         {
             if ( String.IsNullOrEmpty(avatarID.ToString()) || String.IsNullOrEmpty(remoteClient.AgentId.ToString()))
