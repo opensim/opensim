@@ -352,3 +352,19 @@
 	;; If appearance is restricted, which accounts' appearances are allowed to be exported?
 	;; Comma-separated list of account names
     AccountForAppearance = "Test User, Astronaut Smith"
+
+;; UserProfiles Service
+;;
+;; To use, set Enabled to true then configure for your site...
+[UserProfilesService]
+    LocalServiceModule = "OpenSim.Services.UserProfilesService.dll:UserProfilesService"
+    Enabled = false
+
+    ;; Configure this for separate databse
+    ; ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=***;Old Guids=true;"
+    ; Realm = UserProfiles
+
+    UserAccountService = OpenSim.Services.UserAccountService.dll:UserAccountService
+    AuthenticationServiceModule = "OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService"
+
+
