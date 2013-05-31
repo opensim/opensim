@@ -1737,7 +1737,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             newBlock.CreationDate = item.CreationDate;
             newBlock.SalePrice = item.SalePrice;
             newBlock.SaleType = item.SaleType;
-            newBlock.Flags = item.Flags;
+            newBlock.Flags = item.Flags & 0xff;
 
             newBlock.CRC =
                 Helpers.InventoryCRC(newBlock.CreationDate, newBlock.SaleType,
@@ -1991,7 +1991,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             itemBlock.GroupID = item.GroupID;
             itemBlock.GroupOwned = item.GroupOwned;
             itemBlock.GroupMask = item.GroupPermissions;
-            itemBlock.Flags = item.Flags;
+            itemBlock.Flags = item.Flags & 0xff;
             itemBlock.SalePrice = item.SalePrice;
             itemBlock.SaleType = item.SaleType;
             itemBlock.CreationDate = item.CreationDate;
@@ -2058,7 +2058,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             bulkUpdate.ItemData[0].GroupID = item.GroupID;
             bulkUpdate.ItemData[0].GroupOwned = item.GroupOwned;
             bulkUpdate.ItemData[0].GroupMask = item.GroupPermissions;
-            bulkUpdate.ItemData[0].Flags = item.Flags;
+            bulkUpdate.ItemData[0].Flags = item.Flags & 0xff;
             bulkUpdate.ItemData[0].SalePrice = item.SalePrice;
             bulkUpdate.ItemData[0].SaleType = item.SaleType;
 
@@ -2112,7 +2112,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             InventoryReply.InventoryData[0].GroupID = Item.GroupID;
             InventoryReply.InventoryData[0].GroupOwned = Item.GroupOwned;
             InventoryReply.InventoryData[0].GroupMask = Item.GroupPermissions;
-            InventoryReply.InventoryData[0].Flags = Item.Flags;
+            InventoryReply.InventoryData[0].Flags = Item.Flags & 0xff;
             InventoryReply.InventoryData[0].SalePrice = Item.SalePrice;
             InventoryReply.InventoryData[0].SaleType = Item.SaleType;
             InventoryReply.InventoryData[0].CreationDate = Item.CreationDate;
