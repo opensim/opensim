@@ -56,12 +56,23 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     public string BulletEngineName { get; private set; }
     public BSAPITemplate PE;
 
+    // If the physics engine is running on a separate thread
+    public Thread m_physicsThread;
+
     public Dictionary<uint, BSPhysObject> PhysObjects;
     public BSShapeCollection Shapes;
 
     // Keeping track of the objects with collisions so we can report begin and end of a collision
     public HashSet<BSPhysObject> ObjectsWithCollisions = new HashSet<BSPhysObject>();
     public HashSet<BSPhysObject> ObjectsWithNoMoreCollisions = new HashSet<BSPhysObject>();
+
+    // All the collision processing is protected with this lock object
+    public Object CollisionLock = new Object();
+
+    // Properties are updated here
+    public Object UpdateLock = new Object();
+    public HashSet<BSPhysObject> ObjectsWithUpdates = new HashSet<BSPhysObject>();
+
     // Keep track of all the avatars so we can send them a collision event
     //    every tick so OpenSim will update its animation.
     private HashSet<BSPhysObject> m_avatars = new HashSet<BSPhysObject>();
@@ -77,12 +88,19 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     public BSConstraintCollection Constraints { get; private set; }
 
     // Simulation parameters
+    internal float m_physicsStepTime;   // if running independently, the interval simulated by default
+
     internal int m_maxSubSteps;
     internal float m_fixedTimeStep;
-    internal long m_simulationStep = 0;
-    internal float NominalFrameRate { get; set; }
+
+    internal float m_simulatedTime;     // the time simulated previously. Used for physics framerate calc.
+
+    internal long m_simulationStep = 0; // The current simulation step.
     public long SimulationStep { get { return m_simulationStep; } }
-    internal float LastTimeStep { get; private set; }
+
+    internal float LastTimeStep { get; private set; }   // The simulation time from the last invocation of Simulate()
+
+    internal float NominalFrameRate { get; set; }       // Parameterized ideal frame rate that simulation is scaled to
 
     // Physical objects can register for prestep or poststep events
     public delegate void PreStepAction(float timeStep);
@@ -90,7 +108,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     public event PreStepAction BeforeStep;
     public event PostStepAction AfterStep;
 
-    // A value of the time now so all the collision and update routines do not have to get their own
+    // A value of the time 'now' so all the collision and update routines do not have to get their own
     // Set to 'now' just before all the prims and actors are called for collisions and updates
     public int SimulationNowTime { get; private set; }
 
@@ -188,6 +206,9 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         PhysObjects = new Dictionary<uint, BSPhysObject>();
         Shapes = new BSShapeCollection(this);
 
+        m_simulatedTime = 0f;
+        LastTimeStep = 0.1f;
+
         // Allocate pinned memory to pass parameters.
         UnmanagedParams = new ConfigurationParameters[1];
 
@@ -227,10 +248,20 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         TerrainManager = new BSTerrainManager(this);
         TerrainManager.CreateInitialGroundPlaneAndTerrain();
 
+        // Put some informational messages into the log file.
         m_log.WarnFormat("{0} Linksets implemented with {1}", LogHeader, (BSLinkset.LinksetImplementation)BSParam.LinksetImplementation);
 
         InTaintTime = false;
         m_initialized = true;
+
+        // If the physics engine runs on its own thread, start same.
+        if (BSParam.UseSeparatePhysicsThread)
+        {
+            // The physics simulation should happen independently of the heartbeat loop
+            m_physicsThread = new Thread(BulletSPluginPhysicsThread);
+            m_physicsThread.Name = BulletEngineName;
+            m_physicsThread.Start();
+        }
     }
 
     // All default parameter values are set here. There should be no values set in the
@@ -270,6 +301,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             }
             else
             {
+                // Nothing in the configuration INI file so assume unmanaged and other defaults.
                 BulletEngineName = "BulletUnmanaged";
                 m_physicsLoggingEnabled = false;
                 VehicleLoggingEnabled = false;
@@ -317,6 +349,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
         switch (selectionName)
         {
+            case "bullet":
             case "bulletunmanaged":
                 ret = new BSAPIUnman(engineName, this);
                 break;
@@ -494,25 +527,41 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     #endregion // Prim and Avatar addition and removal
 
     #region Simulation
-    // Simulate one timestep
+
+    // Call from the simulator to send physics information to the simulator objects.
+    // This pushes all the collision and property update events into the objects in
+    //    the simulator and, since it is on the heartbeat thread, there is an implicit
+    //    locking of those data structures from other heartbeat events.
+    // If the physics engine is running on a separate thread, the update information
+    //    will be in the ObjectsWithCollions and ObjectsWithUpdates structures.
     public override float Simulate(float timeStep)
     {
+        if (!BSParam.UseSeparatePhysicsThread)
+        {
+            DoPhysicsStep(timeStep);
+        }
+        return SendUpdatesToSimulator(timeStep);
+    }
+
+    // Call the physics engine to do one 'timeStep' and collect collisions and updates
+    //    into ObjectsWithCollisions and ObjectsWithUpdates data structures.
+    private void DoPhysicsStep(float timeStep)
+    {
         // prevent simulation until we've been initialized
-        if (!m_initialized) return 5.0f;
+        if (!m_initialized) return;
 
         LastTimeStep = timeStep;
 
         int updatedEntityCount = 0;
         int collidersCount = 0;
 
-        int beforeTime = 0;
+        int beforeTime = Util.EnvironmentTickCount();
         int simTime = 0;
 
-        // update the prim states while we know the physics engine is not busy
         int numTaints = _taintOperations.Count;
-
         InTaintTime = true; // Only used for debugging so locking is not necessary.
 
+        // update the prim states while we know the physics engine is not busy
         ProcessTaints();
 
         // Some of the physical objects requre individual, pre-step calls
@@ -535,18 +584,8 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         int numSubSteps = 0;
         try
         {
-            if (PhysicsLogging.Enabled)
-                beforeTime = Util.EnvironmentTickCount();
-
             numSubSteps = PE.PhysicsStep(World, timeStep, m_maxSubSteps, m_fixedTimeStep, out updatedEntityCount, out collidersCount);
 
-            if (PhysicsLogging.Enabled)
-            {
-                simTime = Util.EnvironmentTickCountSubtract(beforeTime);
-                DetailLog("{0},Simulate,call, frame={1}, nTaints={2}, simTime={3}, substeps={4}, updates={5}, colliders={6}, objWColl={7}",
-                                        DetailLogZero, m_simulationStep, numTaints, simTime, numSubSteps,
-                                        updatedEntityCount, collidersCount, ObjectsWithCollisions.Count);
-            }
         }
         catch (Exception e)
         {
@@ -558,76 +597,61 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             collidersCount = 0;
         }
 
+        // Make the physics engine dump useful statistics periodically
         if (PhysicsMetricDumpFrames != 0 && ((m_simulationStep % PhysicsMetricDumpFrames) == 0))
             PE.DumpPhysicsStatistics(World);
 
         // Get a value for 'now' so all the collision and update routines don't have to get their own.
         SimulationNowTime = Util.EnvironmentTickCount();
 
-        // If there were collisions, process them by sending the event to the prim.
-        // Collisions must be processed before updates.
-        if (collidersCount > 0)
+        // Send collision information to the colliding objects. The objects decide if the collision
+        //     is 'real' (like linksets don't collide with themselves) and the individual objects
+        //     know if the simulator has subscribed to collisions.
+        lock (CollisionLock)
         {
-            for (int ii = 0; ii < collidersCount; ii++)
+            if (collidersCount > 0)
             {
-                uint cA = m_collisionArray[ii].aID;
-                uint cB = m_collisionArray[ii].bID;
-                Vector3 point = m_collisionArray[ii].point;
-                Vector3 normal = m_collisionArray[ii].normal;
-                float penetration = m_collisionArray[ii].penetration;
-                SendCollision(cA, cB, point, normal, penetration);
-                SendCollision(cB, cA, point, -normal, penetration);
-            }
-        }
-
-        // The above SendCollision's batch up the collisions on the objects.
-        //      Now push the collisions into the simulator.
-        if (ObjectsWithCollisions.Count > 0)
-        {
-            foreach (BSPhysObject bsp in ObjectsWithCollisions)
-                if (!bsp.SendCollisions())
+                for (int ii = 0; ii < collidersCount; ii++)
                 {
-                    // If the object is done colliding, see that it's removed from the colliding list
-                    ObjectsWithNoMoreCollisions.Add(bsp);
-                }
-        }
-
-        // This is a kludge to get avatar movement updates.
-        // The simulator expects collisions for avatars even if there are have been no collisions.
-        //    The event updates avatar animations and stuff.
-        // If you fix avatar animation updates, remove this overhead and let normal collision processing happen.
-        foreach (BSPhysObject bsp in m_avatars)
-            if (!ObjectsWithCollisions.Contains(bsp))   // don't call avatars twice
-                bsp.SendCollisions();
-
-        // Objects that are done colliding are removed from the ObjectsWithCollisions list.
-        // Not done above because it is inside an iteration of ObjectWithCollisions.
-        // This complex collision processing is required to create an empty collision
-        //     event call after all real collisions have happened on an object. This enables
-        //     the simulator to generate the 'collision end' event.
-        if (ObjectsWithNoMoreCollisions.Count > 0)
-        {
-            foreach (BSPhysObject po in ObjectsWithNoMoreCollisions)
-                ObjectsWithCollisions.Remove(po);
-            ObjectsWithNoMoreCollisions.Clear();
-        }
-        // Done with collisions.
-
-        // If any of the objects had updated properties, tell the object it has been changed by the physics engine
-        if (updatedEntityCount > 0)
-        {
-            for (int ii = 0; ii < updatedEntityCount; ii++)
-            {
-                EntityProperties entprop = m_updateArray[ii];
-                BSPhysObject pobj;
-                if (PhysObjects.TryGetValue(entprop.ID, out pobj))
-                {
-                    pobj.UpdateProperties(entprop);
+                    uint cA = m_collisionArray[ii].aID;
+                    uint cB = m_collisionArray[ii].bID;
+                    Vector3 point = m_collisionArray[ii].point;
+                    Vector3 normal = m_collisionArray[ii].normal;
+                    float penetration = m_collisionArray[ii].penetration;
+                    SendCollision(cA, cB, point, normal, penetration);
+                    SendCollision(cB, cA, point, -normal, penetration);
                 }
             }
         }
 
+        // If any of the objects had updated properties, tell the managed objects about the update
+        //     and remember that there was a change so it will be passed to the simulator.
+        lock (UpdateLock)
+        {
+            if (updatedEntityCount > 0)
+            {
+                for (int ii = 0; ii < updatedEntityCount; ii++)
+                {
+                    EntityProperties entprop = m_updateArray[ii];
+                    BSPhysObject pobj;
+                    if (PhysObjects.TryGetValue(entprop.ID, out pobj))
+                    {
+                        pobj.UpdateProperties(entprop);
+                    }
+                }
+            }
+        }
+
+        // Some actors want to know when the simulation step is complete.
         TriggerPostStepEvent(timeStep);
+
+        simTime = Util.EnvironmentTickCountSubtract(beforeTime);
+        if (PhysicsLogging.Enabled)
+        {
+            DetailLog("{0},DoPhysicsStep,call, frame={1}, nTaints={2}, simTime={3}, substeps={4}, updates={5}, colliders={6}, objWColl={7}",
+                                    DetailLogZero, m_simulationStep, numTaints, simTime, numSubSteps,
+                                    updatedEntityCount, collidersCount, ObjectsWithCollisions.Count);
+        }
 
         // The following causes the unmanaged code to output ALL the values found in ALL the objects in the world.
         // Only enable this in a limited test world with few objects.
@@ -637,7 +661,84 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         // The physics engine returns the number of milliseconds it simulated this call.
         // These are summed and normalized to one second and divided by 1000 to give the reported physics FPS.
         // Multiply by a fixed nominal frame rate to give a rate similar to the simulator (usually 55).
-        return (float)numSubSteps * m_fixedTimeStep * 1000f * NominalFrameRate;
+        m_simulatedTime +=  (float)numSubSteps * m_fixedTimeStep * 1000f * NominalFrameRate;
+    }
+
+    // Called by a BSPhysObject to note that it has changed properties and this information
+    //    should be passed up to the simulator at the proper time.
+    // Note: this is called by the BSPhysObject from invocation via DoPhysicsStep() above so
+    //    this is is under UpdateLock.
+    public void PostUpdate(BSPhysObject updatee)
+    {
+        ObjectsWithUpdates.Add(updatee);
+    }
+
+    // The simulator thinks it is physics time so return all the collisions and position
+    //     updates that were collected in actual physics simulation.
+    private float SendUpdatesToSimulator(float timeStep)
+    {
+        if (!m_initialized) return 5.0f;
+
+        DetailLog("{0},SendUpdatesToSimulator,collisions={1},updates={2},simedTime={3}",
+            BSScene.DetailLogZero, ObjectsWithCollisions.Count, ObjectsWithUpdates.Count, m_simulatedTime);
+        // Push the collisions into the simulator.
+        lock (CollisionLock)
+        {
+            if (ObjectsWithCollisions.Count > 0)
+            {
+                foreach (BSPhysObject bsp in ObjectsWithCollisions)
+                    if (!bsp.SendCollisions())
+                    {
+                        // If the object is done colliding, see that it's removed from the colliding list
+                        ObjectsWithNoMoreCollisions.Add(bsp);
+                    }
+            }
+
+            // This is a kludge to get avatar movement updates.
+            // The simulator expects collisions for avatars even if there are have been no collisions.
+            //    The event updates avatar animations and stuff.
+            // If you fix avatar animation updates, remove this overhead and let normal collision processing happen.
+            foreach (BSPhysObject bsp in m_avatars)
+                if (!ObjectsWithCollisions.Contains(bsp))   // don't call avatars twice
+                    bsp.SendCollisions();
+
+            // Objects that are done colliding are removed from the ObjectsWithCollisions list.
+            // Not done above because it is inside an iteration of ObjectWithCollisions.
+            // This complex collision processing is required to create an empty collision
+            //     event call after all real collisions have happened on an object. This allows
+            //     the simulator to generate the 'collision end' event.
+            if (ObjectsWithNoMoreCollisions.Count > 0)
+            {
+                foreach (BSPhysObject po in ObjectsWithNoMoreCollisions)
+                    ObjectsWithCollisions.Remove(po);
+                ObjectsWithNoMoreCollisions.Clear();
+            }
+        }
+
+        // Call the simulator for each object that has physics property updates.
+        HashSet<BSPhysObject> updatedObjects = null;
+        lock (UpdateLock)
+        {
+            if (ObjectsWithUpdates.Count > 0)
+            {
+                updatedObjects = ObjectsWithUpdates;
+                ObjectsWithUpdates = new HashSet<BSPhysObject>();
+            }
+        }
+        if (updatedObjects != null)
+        {
+            foreach (BSPhysObject obj in updatedObjects)
+            {
+                obj.RequestPhysicsterseUpdate();
+            }
+            updatedObjects.Clear();
+        }
+
+        // Return the framerate simulated to give the above returned results.
+        // (Race condition here but this is just bookkeeping so rare mistakes do not merit a lock).
+        float simTime = m_simulatedTime;
+        m_simulatedTime = 0f;
+        return simTime;
     }
 
     // Something has collided
@@ -656,7 +757,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             return;
         }
 
-        // The terrain is not in the physical object list so 'collidee' can be null when Collide() is called.
+        // Note: the terrain is not in the physical object list so 'collidee' can be null when Collide() is called.
         BSPhysObject collidee = null;
         PhysObjects.TryGetValue(collidingWith, out collidee);
 
@@ -664,11 +765,37 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
         if (collider.Collide(collidingWith, collidee, collidePoint, collideNormal, penetration))
         {
-            // If a collision was posted, remember to send it to the simulator
+            // If a collision was 'good', remember to send it to the simulator
             ObjectsWithCollisions.Add(collider);
         }
 
         return;
+    }
+
+    public void BulletSPluginPhysicsThread()
+    {
+        while (m_initialized)
+        {
+            int beginSimulationRealtimeMS = Util.EnvironmentTickCount();
+            DoPhysicsStep(BSParam.PhysicsTimeStep);
+            int simulationRealtimeMS = Util.EnvironmentTickCountSubtract(beginSimulationRealtimeMS);
+            int simulationTimeVsRealtimeDifferenceMS = ((int)(BSParam.PhysicsTimeStep*1000f)) - simulationRealtimeMS;
+
+            if (simulationTimeVsRealtimeDifferenceMS > 0)
+            {
+                // The simulation of the time interval took less than realtime.
+                // Do a sleep for the rest of realtime.
+                DetailLog("{0},BulletSPluginPhysicsThread,sleeping={1}", BSScene.DetailLogZero, simulationTimeVsRealtimeDifferenceMS);
+                Thread.Sleep(simulationTimeVsRealtimeDifferenceMS);
+            }
+            else
+            {
+                // The simulation took longer than realtime.
+                // Do some scaling of simulation time.
+                // TODO.
+                DetailLog("{0},BulletSPluginPhysicsThread,longerThanRealtime={1}", BSScene.DetailLogZero, simulationTimeVsRealtimeDifferenceMS);
+            }
+        }
     }
 
     #endregion // Simulation

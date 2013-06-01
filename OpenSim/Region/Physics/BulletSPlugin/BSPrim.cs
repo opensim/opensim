@@ -1513,7 +1513,8 @@ public class BSPrim : BSPhysObject
         CurrentEntityProperties = entprop;
 
         // Note that BSPrim can be overloaded by BSPrimLinkable which controls updates from root and children prims.
-        base.RequestPhysicsterseUpdate();
+        
+        PhysScene.PostUpdate(this);
     }
 }
 }
