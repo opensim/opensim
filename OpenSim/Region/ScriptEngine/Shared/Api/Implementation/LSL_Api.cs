@@ -4641,20 +4641,31 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 ScenePresence presence = World.GetScenePresence(agentId);
                 if (presence != null && presence.PresenceType != PresenceType.Npc)
                 {
-                    // agent must not be a god
-                    if (presence.GodLevel >= 200) return;
-
                     if (destination == String.Empty)
                         destination = World.RegionInfo.RegionName;
 
-                    // agent must be over the owners land
-                    if (m_host.OwnerID == World.LandChannel.GetLandObject(presence.AbsolutePosition).LandData.OwnerID)
+                    if (m_item.PermsGranter == agentId)
+                    {
+                        if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_TELEPORT) != 0)
+                        {
+                            DoLLTeleport(presence, destination, targetPos, targetLookAt);
+                        }
+                    }
+
+                    // agent must be wearing the object
+                    if (m_host.ParentGroup.AttachmentPoint != 0 && m_host.OwnerID == presence.UUID)
                     {
                         DoLLTeleport(presence, destination, targetPos, targetLookAt);
                     }
-                    else // or must be wearing the prim
+                    else
                     {
-                        if (m_host.ParentGroup.AttachmentPoint != 0 && m_host.OwnerID == presence.UUID)
+                        // agent must not be a god
+                        if (presence.GodLevel >= 200) return;
+
+                        // agent must be over the owners land
+                        ILandObject agentLand = World.LandChannel.GetLandObject(presence.AbsolutePosition);
+                        ILandObject objectLand = World.LandChannel.GetLandObject(m_host.AbsolutePosition);
+                        if (m_host.OwnerID == objectLand.LandData.OwnerID && m_host.OwnerID == agentLand.LandData.OwnerID)
                         {
                             DoLLTeleport(presence, destination, targetPos, targetLookAt);
                         }
