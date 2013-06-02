@@ -315,7 +315,6 @@ public sealed class BSLinksetCompound : BSLinkset
     // Note that this works for rebuilding just the root after a linkset is taken apart.
     // Called at taint time!!
     private bool UseBulletSimRootOffsetHack = false;    // Attempt to have Bullet track the coords of root compound shape
-    private bool disableCOM = true; // For basic linkset debugging, turn off the center-of-mass setting
     private void RecomputeLinksetCompound()
     {
         try
@@ -331,9 +330,7 @@ public sealed class BSLinksetCompound : BSLinkset
             // There is no reason to build all this physical stuff for a non-physical linkset.
             if (!LinksetRoot.IsPhysicallyActive)
             {
-                // Clean up any old linkset shape and make sure the root shape is set to the root object.
                 DetailLog("{0},BSLinksetCompound.RecomputeLinksetCompound,notPhysical", LinksetRoot.LocalID);
-
                 return; // Note the 'finally' clause at the botton which will get executed.
             }
 
@@ -347,9 +344,9 @@ public sealed class BSLinksetCompound : BSLinkset
 
             OMV.Quaternion invRootOrientation = OMV.Quaternion.Normalize(OMV.Quaternion.Inverse(LinksetRoot.RawOrientation));
 
-            // 'centerDisplacement' is the value to subtract from children to give physical offset position
+            // 'centerDisplacementV' is the value to subtract from children to give physical offset position
             OMV.Vector3 centerDisplacementV = (centerOfMassW - LinksetRoot.RawPosition) * invRootOrientation;
-            if (UseBulletSimRootOffsetHack || disableCOM)
+            if (UseBulletSimRootOffsetHack || !BSParam.LinksetOffsetCenterOfMass)
             {
                 centerDisplacementV = OMV.Vector3.Zero;
                 LinksetRoot.ClearDisplacement();
@@ -357,6 +354,8 @@ public sealed class BSLinksetCompound : BSLinkset
             else
             {
                 LinksetRoot.SetEffectiveCenterOfMassDisplacement(centerDisplacementV);
+                // The actual center-of-mass could have been set by the user.
+                centerDisplacementV = LinksetRoot.PositionDisplacement;
             }
             DetailLog("{0},BSLinksetCompound.RecomputeLinksetCompound,COM,rootPos={1},com={2},comDisp={3}",
                                 LinksetRoot.LocalID, LinksetRoot.RawPosition, centerOfMassW, centerDisplacementV);
@@ -409,7 +408,7 @@ public sealed class BSLinksetCompound : BSLinkset
             {
                 // Enable the physical position updator to return the position and rotation of the root shape.
                 // This enables a feature in the C++ code to return the world coordinates of the first shape in the
-                //     compound shape. This eleviates the need to offset the returned physical position by the
+                //     compound shape. This aleviates the need to offset the returned physical position by the
                 //     center-of-mass offset.
                 m_physicsScene.PE.AddToCollisionFlags(LinksetRoot.PhysBody, CollisionFlags.BS_RETURN_ROOT_COMPOUND_SHAPE);
             }

@@ -44,12 +44,12 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 {
 public class BSPrimDisplaced : BSPrim
 {
-    // The purpose of this module is to do any mapping between what the simulator thinks
+    // The purpose of this subclass is to do any mapping between what the simulator thinks
     //    the prim position and orientation is and what the physical position/orientation.
     //    This difference happens because Bullet assumes the center-of-mass is the <0,0,0>
-    //    of the prim/linkset. The simulator tracks the location of the prim/linkset by
-    //    the location of the root prim. So, if center-of-mass is anywhere but the origin
-    //    of the root prim, the physical origin is displaced from the simulator origin.
+    //    of the prim/linkset. The simulator, on the other hand, tracks the location of
+    //    the prim/linkset by the location of the root prim. So, if center-of-mass is anywhere
+    //    but the origin of the root prim, the physical origin is displaced from the simulator origin.
     //
     // This routine works by capturing the Force* setting of position/orientation/... and
     //    adjusting the simulator values (being set) into the physical values.
@@ -61,6 +61,7 @@ public class BSPrimDisplaced : BSPrim
 
     public virtual OMV.Vector3 PositionDisplacement { get; set; }
     public virtual OMV.Quaternion OrientationDisplacement { get; set; }
+    public virtual OMV.Quaternion OrientationDisplacementOrigInv { get; set; }
 
     public BSPrimDisplaced(uint localID, String primName, BSScene parent_scene, OMV.Vector3 pos, OMV.Vector3 size,
                        OMV.Quaternion rotation, PrimitiveBaseShape pbs, bool pisPhysical)
@@ -99,7 +100,8 @@ public class BSPrimDisplaced : BSPrim
             // Remember the displacement from root as well as the origional rotation of the
             //    new center-of-mass.
             PositionDisplacement = comDisp;
-            OrientationDisplacement = OMV.Quaternion.Identity;
+            OrientationDisplacement = Quaternion.Normalize(RawOrientation);
+            OrientationDisplacementOrigInv = Quaternion.Inverse(OrientationDisplacement);
         }
     }
 
@@ -110,7 +112,7 @@ public class BSPrimDisplaced : BSPrim
         {
             if (PositionDisplacement != OMV.Vector3.Zero)
             {
-                OMV.Vector3 displacedPos = value - (PositionDisplacement * RawOrientation);
+                OMV.Vector3 displacedPos = value - (PositionDisplacement * (OrientationDisplacementOrigInv * RawOrientation));
                 DetailLog("{0},BSPrimDisplaced.ForcePosition,val={1},disp={2},newPos={3}", LocalID, value, PositionDisplacement, displacedPos);
                 base.ForcePosition = displacedPos;
             }
@@ -126,7 +128,8 @@ public class BSPrimDisplaced : BSPrim
         get { return base.ForceOrientation; }
         set
         {
-            // TODO:
+            // Changing orientation also changes the position of the center-of-mass since
+            //    the orientation passed is for a rotation around the root prim's center.
             base.ForceOrientation = value;
         }
     }
@@ -150,10 +153,13 @@ public class BSPrimDisplaced : BSPrim
         // Undo any center-of-mass displacement that might have been done.
         if (PositionDisplacement != OMV.Vector3.Zero || OrientationDisplacement != OMV.Quaternion.Identity)
         {
-            // Correct for any rotation around the center-of-mass
-            // TODO!!!
+            // The origional shape was offset from 'zero' by PositionDisplacement and rotated by OrientationDisplacement.
+            // These physical locations and rotation must be back converted to be centered around the displaced
+            //     root shape.
+
+            // The root position is the reported position displaced by the rotated displacement.
+            OMV.Vector3 displacedPos = entprop.Position + (PositionDisplacement * (entprop.Rotation * OrientationDisplacementOrigInv));
             
-            OMV.Vector3 displacedPos = entprop.Position + (PositionDisplacement * entprop.Rotation);
             DetailLog("{0},BSPrimDisplaced.ForcePosition,physPos={1},disp={2},newPos={3}", LocalID, entprop.Position, PositionDisplacement, displacedPos);
             entprop.Position = displacedPos;
             // entprop.Rotation = something;

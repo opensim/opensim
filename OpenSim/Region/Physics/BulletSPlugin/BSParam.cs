@@ -176,6 +176,7 @@ public static class BSParam
 
     // Linkset implementation parameters
     public static float LinksetImplementation { get; private set; }
+    public static bool LinksetOffsetCenterOfMass { get; private set; }
     public static bool LinkConstraintUseFrameOffset { get; private set; }
     public static bool LinkConstraintEnableTransMotor { get; private set; }
     public static float LinkConstraintTransMotorMaxVel { get; private set; }
@@ -684,6 +685,8 @@ public static class BSParam
 
 	    new ParameterDefn<float>("LinksetImplementation", "Type of linkset implementation (0=Constraint, 1=Compound, 2=Manual)",
             (float)BSLinkset.LinksetImplementation.Compound ),
+	    new ParameterDefn<bool>("LinksetOffsetCenterOfMass", "If 'true', compute linkset center-of-mass and offset linkset position to account for same",
+            false ),
 	    new ParameterDefn<bool>("LinkConstraintUseFrameOffset", "For linksets built with constraints, enable frame offsetFor linksets built with constraints, enable frame offset.",
             false ),
 	    new ParameterDefn<bool>("LinkConstraintEnableTransMotor", "Whether to enable translational motor on linkset constraints",
