@@ -28,8 +28,11 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Text;
 using log4net;
 using OpenMetaverse;
+using OpenMetaverse.StructuredData;
+
 using OpenSim.Framework;
 
 using Animation = OpenSim.Framework.Animation;
@@ -58,6 +61,12 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         public AnimationSet()
         {
             ResetDefaultAnimation();
+        }
+
+        public AnimationSet(OSDArray pArray)
+        {
+            ResetDefaultAnimation();
+            FromOSDArray(pArray);
         }
 
         public bool HasAnimation(UUID animID)
@@ -217,6 +226,107 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         {
             foreach (OpenSim.Framework.Animation anim in theArray)
                 m_animations.Add(anim);
+        }
+
+        // Create representation of this AnimationSet as an OSDArray.
+        // First two entries in the array are the default and implicitDefault animations
+        //    followed by the other animations.
+        public OSDArray ToOSDArray()
+        {
+            OSDArray ret = new OSDArray();
+            ret.Add(DefaultAnimation.PackUpdateMessage());
+            ret.Add(ImplicitDefaultAnimation.PackUpdateMessage());
+
+            foreach (OpenSim.Framework.Animation anim in m_animations)
+                ret.Add(anim.PackUpdateMessage());
+
+            return ret;
+        }
+
+        public void FromOSDArray(OSDArray pArray)
+        {
+            this.Clear();
+
+            if (pArray.Count >= 1)
+            {
+                m_defaultAnimation = new OpenSim.Framework.Animation((OSDMap)pArray[0]);
+            }
+            if (pArray.Count >= 2)
+            {
+                m_implicitDefaultAnimation = new OpenSim.Framework.Animation((OSDMap)pArray[1]);
+            }
+            for (int ii = 2; ii < pArray.Count; ii++)
+            {
+                m_animations.Add(new OpenSim.Framework.Animation((OSDMap)pArray[ii]));
+            }
+        }
+
+        // Compare two AnimationSets and return 'true' if the default animations are the same
+        //     and all of the animations in the list are equal.
+        public override bool Equals(object obj)
+        {
+            AnimationSet other = obj as AnimationSet;
+            if (other != null)
+            {
+                if (this.DefaultAnimation.Equals(other.DefaultAnimation)
+                    && this.ImplicitDefaultAnimation.Equals(other.ImplicitDefaultAnimation))
+                {
+                    // The defaults are the same. Is the list of animations the same?
+                    OpenSim.Framework.Animation[] thisAnims = this.ToArray();
+                    OpenSim.Framework.Animation[] otherAnims = other.ToArray();
+                    if (thisAnims.Length == 0 && otherAnims.Length == 0)
+                        return true;    // the common case
+                    if (thisAnims.Length == otherAnims.Length)
+                    {
+                        // Do this the hard way but since the list is usually short this won't take long.
+                        foreach (OpenSim.Framework.Animation thisAnim in thisAnims)
+                        {
+                            bool found = false;
+                            foreach (OpenSim.Framework.Animation otherAnim in otherAnims)
+                            {
+                                if (thisAnim.Equals(otherAnim))
+                                {
+                                    found = true;
+                                    break;
+                                }
+                            }
+                            if (!found)
+                            {
+                                // If anything is not in the other list, these are not equal
+                                return false;
+                            }
+                        }
+                        // Found everything in the other list. Since lists are equal length, they must be equal.
+                        return true;
+                    }
+                }
+                return false;
+            }
+            // Don't know what was passed, but the base system will figure it out for me.
+            return base.Equals(obj);
+        }
+
+        public override string ToString()
+        {
+            StringBuilder buff = new StringBuilder();
+            buff.Append("dflt=");
+            buff.Append(DefaultAnimation.ToString());
+            buff.Append(",iDflt=");
+            if (DefaultAnimation == ImplicitDefaultAnimation)
+                buff.Append("same");
+            else
+                buff.Append(ImplicitDefaultAnimation.ToString());
+            if (m_animations.Count > 0)
+            {
+                buff.Append(",anims=");
+                foreach (OpenSim.Framework.Animation anim in m_animations)
+                {
+                    buff.Append("<");
+                    buff.Append(anim.ToString());
+                    buff.Append(">,");
+                }
+            }
+            return buff.ToString();
         }
     }
 }

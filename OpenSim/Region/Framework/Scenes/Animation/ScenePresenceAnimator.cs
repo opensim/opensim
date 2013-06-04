@@ -93,7 +93,9 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                     GetAnimName(animID), animID, m_scenePresence.Name);
 
             if (m_animations.Add(animID, m_scenePresence.ControllingClient.NextAnimationSequenceNumber, objectID))
+            {
                 SendAnimPack();
+            }
         }
 
         // Called from scripts
@@ -132,7 +134,9 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                     GetAnimName(animID), animID, m_scenePresence.Name);
 
             if (m_animations.Remove(animID, allowNoDefault))
+            {
                 SendAnimPack();
+            }
         }
 
         public void avnChangeAnim(UUID animID, bool addRemove, bool sendPack)
@@ -180,8 +184,10 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         /// The movement animation is reserved for "main" animations
         /// that are mutually exclusive, e.g. flying and sitting.
         /// </summary>
-        public void TrySetMovementAnimation(string anim)
+        /// <returns>'true' if the animation was updated</returns>
+        public bool TrySetMovementAnimation(string anim)
         {
+            bool ret = false;
             if (!m_scenePresence.IsChildAgent)
             {
 //                m_log.DebugFormat(
@@ -198,6 +204,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                     // 16384 is CHANGED_ANIMATION
                     m_scenePresence.SendScriptEventToAttachments("changed", new Object[] { (int)Changed.ANIMATION});
                     SendAnimPack();
+                    ret = true;
                 }
             }
             else
@@ -206,6 +213,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                     "[SCENE PRESENCE ANIMATOR]: Tried to set movement animation {0} on child presence {1}",
                     anim, m_scenePresence.Name);
             }
+            return ret;
         }
 
         /// <summary>
@@ -439,8 +447,10 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         /// <summary>
         /// Update the movement animation of this avatar according to its current state
         /// </summary>
-        public void UpdateMovementAnimations()
+        /// <returns>'true' if the animation was changed</returns>
+        public bool UpdateMovementAnimations()
         {
+            bool ret = false;
             lock (m_animations)
             {
                 string newMovementAnimation = DetermineMovementAnimation();
@@ -454,9 +464,10 @@ namespace OpenSim.Region.Framework.Scenes.Animation
 
                     // Only set it if it's actually changed, give a script
                     // a chance to stop a default animation
-                    TrySetMovementAnimation(CurrentMovementAnimation);
+                    ret = TrySetMovementAnimation(CurrentMovementAnimation);
                 }
             }
+            return ret;
         }
 
         public UUID[] GetAnimationArray()

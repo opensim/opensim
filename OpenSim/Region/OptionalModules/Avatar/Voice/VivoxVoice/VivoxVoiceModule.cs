@@ -841,7 +841,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
             requrl = String.Format("{0}&chan_roll_off={1}",          requrl, m_vivoxChannelRollOff);
             requrl = String.Format("{0}&chan_dist_model={1}",        requrl, m_vivoxChannelDistanceModel);
             requrl = String.Format("{0}&chan_max_range={1}",         requrl, m_vivoxChannelMaximumRange);
-            requrl = String.Format("{0}&chan_ckamping_distance={1}", requrl, m_vivoxChannelClampingDistance);
+            requrl = String.Format("{0}&chan_clamping_distance={1}", requrl, m_vivoxChannelClampingDistance);
             
             XmlElement resp = VivoxCall(requrl, true);
             if (XmlFind(resp, "response.level0.body.chan_uri", out channelUri))

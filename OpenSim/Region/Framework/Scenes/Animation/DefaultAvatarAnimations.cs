@@ -104,5 +104,31 @@ namespace OpenSim.Region.Framework.Scenes.Animation
 
             return UUID.Zero;
         }
+
+        /// <summary>
+        /// Get the name of the animation given a UUID. If there is no matching animation
+        ///    return the UUID as a string.
+        /// </summary>
+        public static string GetDefaultAnimationName(UUID uuid)
+        {
+            string ret = "unknown";
+            if (AnimsUUID.ContainsValue(uuid))
+            {
+                foreach (KeyValuePair<string, UUID> kvp in AnimsUUID)
+                {
+                    if (kvp.Value == uuid)
+                    {
+                        ret = kvp.Key;
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                ret = uuid.ToString();
+            }
+
+            return ret;
+        }
     }
 }

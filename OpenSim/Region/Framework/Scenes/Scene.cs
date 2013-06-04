@@ -1569,6 +1569,8 @@ namespace OpenSim.Region.Framework.Scenes
 
                 try
                 {
+                    EventManager.TriggerRegionHeartbeatStart(this);
+
                     // Apply taints in terrain module to terrain in physics scene
                     if (Frame % m_update_terrain == 0)
                     {
