@@ -62,6 +62,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
         // count. The entries are removed when the interest count reaches 0.
         Dictionary<UUID,UUID> classifiedCache = new Dictionary<UUID, UUID>();
         Dictionary<UUID,int> classifiedInterest = new Dictionary<UUID, int>();
+        Object classifiedLock;
 
         public Scene Scene
         {
@@ -326,14 +327,17 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
                 string name = m["name"].AsString();
 
                 classifieds[cid] = name;
-                
+
                 if(!classifiedCache.ContainsKey(cid))
                 {
-                    classifiedCache.Add(cid,creatorId);
-                    classifiedInterest.Add(cid, 0);
+                    lock(classifiedCache)
+                        classifiedCache.Add(cid,creatorId);
+                    lock(classifiedInterest)
+                        classifiedInterest.Add(cid, 0);
                 }
 
-                classifiedInterest[cid] ++;
+                lock(classifiedInterest)
+                    classifiedInterest[cid] ++;
             }
 
             remoteClient.SendAvatarClassifiedReply(new UUID(args[0]), classifieds);
@@ -346,22 +350,20 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
             ad.ClassifiedId = queryClassifiedID;
 
             if(classifiedCache.ContainsKey(queryClassifiedID))
-            {
+            {   
                 target = classifiedCache[queryClassifiedID];
 
-                if(classifiedInterest[queryClassifiedID] -- == 0)
-                {
-                    lock(classifiedCache)
-                    {
-                        lock(classifiedInterest)
-                        {
-                            classifiedInterest.Remove(queryClassifiedID);
-                        }
-                        classifiedCache.Remove(queryClassifiedID);
-                    }
-                }
-            }            
+                lock(classifiedInterest)
+                    classifiedInterest[queryClassifiedID] --;
 
+                if(classifiedInterest[queryClassifiedID] == 0)
+                {
+                    lock(classifiedInterest)
+                        classifiedInterest.Remove(queryClassifiedID);
+                    lock(classifiedCache)
+                        classifiedCache.Remove(queryClassifiedID);
+                }
+            }
             
             string serverURI = string.Empty;
             bool foreign = GetUserProfileServerURI(target, out serverURI);
