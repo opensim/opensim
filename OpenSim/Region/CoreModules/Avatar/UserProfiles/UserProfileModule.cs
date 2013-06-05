@@ -62,7 +62,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
         // count. The entries are removed when the interest count reaches 0.
         Dictionary<UUID,UUID> classifiedCache = new Dictionary<UUID, UUID>();
         Dictionary<UUID,int> classifiedInterest = new Dictionary<UUID, int>();
-        Object classifiedLock;
 
         public Scene Scene
         {
@@ -170,6 +169,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
 
         void HandleOnMakeRootAgent (ScenePresence obj)
         {
+            if(obj.PresenceType == PresenceType.Npc)
+                return;
+
             GetImageAssets(((IScenePresence)obj).UUID);
         }
 
