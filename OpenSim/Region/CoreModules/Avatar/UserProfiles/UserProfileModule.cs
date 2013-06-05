@@ -330,13 +330,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
 
                 if(!classifiedCache.ContainsKey(cid))
                 {
-//                    lock(classifiedLock)
-//                    {
                     lock(classifiedCache)
                         classifiedCache.Add(cid,creatorId);
                     lock(classifiedInterest)
                         classifiedInterest.Add(cid, 0);
-//                    }
                 }
 
                 lock(classifiedInterest)
