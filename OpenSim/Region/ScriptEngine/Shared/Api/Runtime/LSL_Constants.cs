@@ -80,6 +80,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int PERMISSION_CHANGE_PERMISSIONS = 512;
         public const int PERMISSION_TRACK_CAMERA = 1024;
         public const int PERMISSION_CONTROL_CAMERA = 2048;
+        public const int PERMISSION_TELEPORT = 4096;
 
         public const int AGENT_FLYING = 1;
         public const int AGENT_ATTACHMENTS = 2;
