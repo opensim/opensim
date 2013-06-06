@@ -1135,7 +1135,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if (!udpClient.IsConnected)
             {
-//                m_log.Debug("[LLUDPSERVER]: Received a " + packet.Type + " packet for a unConnected client in " + m_scene.RegionInfo.RegionName);
+                m_log.Debug("[LLUDPSERVER]: Received a " + packet.Type + " packet for a unConnected client in " + m_scene.RegionInfo.RegionName);
                 return;
             }
 

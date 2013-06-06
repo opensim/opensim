@@ -211,8 +211,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 {
                     if (regionInfos.Count == 0)
                         remoteClient.SendAgentAlertMessage("No regions found with that name.", true);
-                    else if (regionInfos.Count == 1)
-                        remoteClient.SendAgentAlertMessage("Region found!", false);
+//                    else if (regionInfos.Count == 1)
+//                        remoteClient.SendAgentAlertMessage("Region found!", false);
                 }
             });
         }

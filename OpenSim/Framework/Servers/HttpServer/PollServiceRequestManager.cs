@@ -345,7 +345,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                             if (responsedata == null)
                                 continue;
 
-                            if (req.PollServiceArgs.Type == PollServiceEventArgs.EventType.Normal)
+                            if (req.PollServiceArgs.Type == PollServiceEventArgs.EventType.Normal) // This is the event queue
                             {
                                 try
                                 {

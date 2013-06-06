@@ -65,9 +65,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
         protected Scene m_scene;
         protected IDialogModule m_dialogModule;
 
-        protected Dictionary<UUID, string> m_capsDict =
-                new Dictionary<UUID, string>();
-        
         protected IDialogModule DialogModule
         {
             get
@@ -89,7 +86,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
             m_scene.RegisterModuleInterface<IGodsModule>(this);
             m_scene.EventManager.OnNewClient += SubscribeToClientEvents;
             m_scene.EventManager.OnRegisterCaps += OnRegisterCaps;
-            m_scene.EventManager.OnClientClosed += OnClientClosed;
             scene.EventManager.OnIncomingInstantMessage +=
                     OnIncomingInstantMessage;
         }
@@ -125,15 +121,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
             client.OnRequestGodlikePowers -= RequestGodlikePowers;
         }
         
-        private void OnClientClosed(UUID agentID, Scene scene)
-        {
-            m_capsDict.Remove(agentID);
-        }
-
         private void OnRegisterCaps(UUID agentID, Caps caps)
         {
             string uri = "/CAPS/" + UUID.Random();
-            m_capsDict[agentID] = uri;
 
             caps.RegisterHandler("UntrustedSimulatorMessage",
                     new RestStreamHandler("POST", uri,

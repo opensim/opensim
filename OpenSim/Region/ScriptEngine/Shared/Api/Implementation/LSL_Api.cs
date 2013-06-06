@@ -4643,20 +4643,31 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 ScenePresence presence = World.GetScenePresence(agentId);
                 if (presence != null && presence.PresenceType != PresenceType.Npc)
                 {
-                    // agent must not be a god
-                    if (presence.GodLevel >= 200) return;
-
                     if (destination == String.Empty)
                         destination = World.RegionInfo.RegionName;
 
-                    // agent must be over the owners land
-                    if (m_host.OwnerID == World.LandChannel.GetLandObject(presence.AbsolutePosition).LandData.OwnerID)
+                    if (m_item.PermsGranter == agentId)
+                    {
+                        if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_TELEPORT) != 0)
+                        {
+                            DoLLTeleport(presence, destination, targetPos, targetLookAt);
+                        }
+                    }
+
+                    // agent must be wearing the object
+                    if (m_host.ParentGroup.AttachmentPoint != 0 && m_host.OwnerID == presence.UUID)
                     {
                         DoLLTeleport(presence, destination, targetPos, targetLookAt);
                     }
-                    else // or must be wearing the prim
+                    else
                     {
-                        if (m_host.ParentGroup.AttachmentPoint != 0 && m_host.OwnerID == presence.UUID)
+                        // agent must not be a god
+                        if (presence.GodLevel >= 200) return;
+
+                        // agent must be over the owners land
+                        ILandObject agentLand = World.LandChannel.GetLandObject(presence.AbsolutePosition);
+                        ILandObject objectLand = World.LandChannel.GetLandObject(m_host.AbsolutePosition);
+                        if (m_host.OwnerID == objectLand.LandData.OwnerID && m_host.OwnerID == agentLand.LandData.OwnerID)
                         {
                             DoLLTeleport(presence, destination, targetPos, targetLookAt);
                         }
@@ -4670,24 +4681,29 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             UUID agentId = new UUID();
 
-            ulong regionHandle = Utils.UIntsToLong((uint)global_coords.x, (uint)global_coords.y);
+            ulong regionHandle = Utils.UIntsToLong((uint)(global_coords.x / 256) * 256, (uint)(global_coords.y / 256) * 256);
 
             if (UUID.TryParse(agent, out agentId))
             {
+                // This function is owner only!
+                if (m_host.OwnerID != agentId)
+                    return;
+
                 ScenePresence presence = World.GetScenePresence(agentId);
+
+                // Can't TP sitting avatars
+                if (presence.ParentID != 0) // Sitting
+                    return;
+
                 if (presence != null && presence.PresenceType != PresenceType.Npc)
                 {
-                    // agent must not be a god
-                    if (presence.GodLevel >= 200) return;
+                    if (m_item.PermsGranter == agentId)
+                    {
+                        // If attached using llAttachToAvatarTemp, cowardly refuse
+                        if (m_host.ParentGroup.AttachmentPoint != 0 && m_host.ParentGroup.FromItemID == UUID.Zero)
+                            return;
 
-                    // agent must be over the owners land
-                    if (m_host.OwnerID == World.LandChannel.GetLandObject(presence.AbsolutePosition).LandData.OwnerID)
-                    {
-                        World.RequestTeleportLocation(presence.ControllingClient, regionHandle, targetPos, targetLookAt, (uint)TeleportFlags.ViaLocation);
-                    }
-                    else // or must be wearing the prim
-                    {
-                        if (m_host.ParentGroup.AttachmentPoint != 0 && m_host.OwnerID == presence.UUID)
+                        if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_TELEPORT) != 0)
                         {
                             World.RequestTeleportLocation(presence.ControllingClient, regionHandle, targetPos, targetLookAt, (uint)TeleportFlags.ViaLocation);
                         }
@@ -7851,6 +7867,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     }
                 }
             }
+        }
+
+        public LSL_List llGetPhysicsMaterial()
+        {
+            LSL_List result = new LSL_List();
+
+            result.Add(new LSL_Float(m_host.GravityModifier));
+            result.Add(new LSL_Float(m_host.Restitution));
+            result.Add(new LSL_Float(m_host.Friction));
+            result.Add(new LSL_Float(m_host.Density));
+
+            return result;
         }
 
         private void SetPhysicsMaterial(SceneObjectPart part, int material_bits,
@@ -13378,6 +13406,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             return null;
+        }
+
+        public void llSetContentType(LSL_Key id, LSL_Integer content_type)
+        {
+            if (m_UrlModule != null)
+            {
+                string type = "text.plain";
+                if (content_type == (int)ScriptBaseClass.CONTENT_TYPE_HTML)
+                    type = "text/html";
+
+                m_UrlModule.HttpContentType(new UUID(id),type);
+            }
         }
     }
 

@@ -376,7 +376,7 @@ namespace OpenSim.Region.ClientStack.Linden
             // TODO: Add EventQueueGet name/description for diagnostics
             MainServer.Instance.AddPollServiceHTTPHandler(
                 eventQueueGetPath,
-                new PollServiceEventArgs(null, HasEvents, GetEvents, NoEvents, agentID, 1000));
+                new PollServiceEventArgs(null, HasEvents, GetEvents, NoEvents, agentID, 40000));
 
 //            m_log.DebugFormat(
 //                "[EVENT QUEUE GET MODULE]: Registered EQG handler {0} for {1} in {2}",

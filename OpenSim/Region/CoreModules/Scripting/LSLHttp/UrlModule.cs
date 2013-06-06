@@ -51,6 +51,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
         public UUID urlcode;
         public Dictionary<UUID, RequestData> requests;
         public bool isSsl;
+        public Scene scene;
     }
 
     public class RequestData
@@ -66,6 +67,9 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
         public int startTime;
         public bool responseSent;
         public string uri;
+        public bool allowResponseType = false;
+        public UUID hostID;
+        public Scene scene;
     }
 
     /// <summary>
@@ -171,6 +175,17 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
 
         public void RemoveRegion(Scene scene)
         {
+            // Drop references to that scene
+            foreach (KeyValuePair<string, UrlData> kvp in m_UrlMap)
+            {
+                if (kvp.Value.scene == scene)
+                    kvp.Value.scene = null;
+            }
+            foreach (KeyValuePair<UUID, UrlData> kvp in m_RequestMap)
+            {
+                if (kvp.Value.scene == scene)
+                    kvp.Value.scene = null;
+            }
         }
 
         public void Close()
@@ -198,6 +213,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                 urlData.urlcode = urlcode;
                 urlData.isSsl = false;
                 urlData.requests = new Dictionary<UUID, RequestData>();
+                urlData.scene = host.ParentGroup.Scene;
 
                 m_UrlMap[url] = urlData;
                 
@@ -316,6 +332,11 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                     if (!urlData.requests[request].responseSent)
                     {
                         string responseBody = body;
+
+                        // If we have no OpenID from built-in browser, disable this
+                        if (!urlData.requests[request].allowResponseType)
+                            urlData.requests[request].responseType = "text/plain";
+
                         if (urlData.requests[request].responseType.Equals("text/plain"))
                         {
                             string value;
@@ -532,7 +553,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
             //put response
             response["int_response_code"] = requestData.responseCode;
             response["str_response_string"] = requestData.responseBody;
-            response["content_type"] = "text/plain";
+            response["content_type"] = requestData.responseType;
             response["keepalive"] = false;
             response["reusecontext"] = false;
             
@@ -600,6 +621,8 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                     requestData.requestDone = false;
                     requestData.startTime = System.Environment.TickCount;
                     requestData.uri = uri;
+                    requestData.hostID = url.hostID;
+                    requestData.scene = url.scene;
                     if (requestData.headers == null)
                         requestData.headers = new Dictionary<string, string>();
 
@@ -608,6 +631,32 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                         string key = (string)header.Key;
                         string value = (string)header.Value;
                         requestData.headers.Add(key, value);
+                        if (key == "cookie")
+                        {
+                            string[] parts = value.Split(new char[] {'='});
+                            if (parts[0] == "agni_sl_session_id" && parts.Length > 1)
+                            {
+                                string cookie = Uri.UnescapeDataString(parts[1]);
+                                string[] crumbs = cookie.Split(new char[] {':'});
+                                UUID owner;
+                                if (crumbs.Length == 2 && UUID.TryParse(crumbs[0], out owner))
+                                {
+                                    if (crumbs[1].Length == 32)
+                                    {
+                                        Scene scene = requestData.scene;
+                                        if (scene != null)
+                                        {
+                                            SceneObjectPart host = scene.GetSceneObjectPart(requestData.hostID);
+                                            if (host != null)
+                                            {
+                                                if (host.OwnerID == owner)
+                                                    requestData.allowResponseType = true;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                     foreach (DictionaryEntry de in request)
                     {

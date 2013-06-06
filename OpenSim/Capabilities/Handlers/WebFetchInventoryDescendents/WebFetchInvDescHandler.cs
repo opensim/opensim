@@ -411,7 +411,7 @@ namespace OpenSim.Capabilities.Handlers
             llsdItem.asset_id = invItem.AssetID;
             llsdItem.created_at = invItem.CreationDate;
             llsdItem.desc = invItem.Description;
-            llsdItem.flags = (int)invItem.Flags;
+            llsdItem.flags = ((int)invItem.Flags) & 0xff;
             llsdItem.item_id = invItem.ID;
             llsdItem.name = invItem.Name;
             llsdItem.parent_id = invItem.Folder;

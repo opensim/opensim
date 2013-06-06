@@ -28,31 +28,25 @@
 using System.Collections.Generic;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.Framework.Interfaces
 {
-    public enum InsertLocation : int
+    public delegate bool HandlerDelegate(IClientAPI client, FloaterData data, string[] msg);
+
+    public abstract class FloaterData
     {
-        Agent = 1,
-        World = 2,
-        Tools = 3,
-        Advanced = 4,
-        Admin = 5
+        public abstract int Channel { get; } 
+        public abstract string FloaterName { get; set; }
+        public virtual string XmlName { get; set; }
+        public virtual string XmlText { get; set; }
+        public virtual HandlerDelegate Handler { get; set; }
     }
 
-    public enum UserMode : int
-    {
-        Normal = 0,
-        RegionManager = 2,
-        God = 3
-    }
 
-    public delegate void CustomMenuHandler(string action, UUID agentID, List<uint> selection);
-
-    public interface IDynamicMenuModule
+    public interface IDynamicFloaterModule
     {
-        void AddMenuItem(UUID agentID, string title, InsertLocation location, UserMode mode, CustomMenuHandler handler);
-        void AddMenuItem(string title, InsertLocation location, UserMode mode, CustomMenuHandler handler);
-        void RemoveMenuItem(string action);
+        void DoUserFloater(UUID agentID, FloaterData dialogData, string configuration);
+        void FloaterControl(ScenePresence sp, FloaterData d, string msg);
     }
 }

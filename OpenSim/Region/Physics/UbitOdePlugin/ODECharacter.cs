@@ -1045,12 +1045,37 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (me == midbox)
             {
                 if (Math.Abs(contact.normal.Z) > 0.95f)
+                {
                     offset.Z = contact.pos.Z - _position.Z;
+                    offset.X = (float)Math.Abs(offset.X) * 0.5f + contact.depth;
+                    offset.Y = (float)Math.Abs(offset.Y) * 0.5f + contact.depth;
+                    offset.Z = (float)Math.Abs(offset.Z) * 0.5f + contact.depth;
+
+                    if (reverse)
+                    {
+                        offset.X *= -contact.normal.X;
+                        offset.Y *= -contact.normal.Y;
+                        offset.Z *= -contact.normal.Z;
+                    }
+                    else
+                    {
+                        offset.X *= contact.normal.X;
+                        offset.Y *= contact.normal.Y;
+                        offset.Z *= contact.normal.Z;
+                    }
+
+                    offset.X += contact.pos.X;
+                    offset.Y += contact.pos.Y;
+                    offset.Z += contact.pos.Z;
+                    _position = offset;
+                    return true;
+                }
                 else
                     offset.Z = contact.normal.Z;
 
                 offset.Normalize();
 
+                /*
                 if (reverse)
                 {
                     contact.normal.X = offset.X;
@@ -1063,7 +1088,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                     contact.normal.Y = -offset.Y;
                     contact.normal.Z = -offset.Z;
                 }
-
+                */
+                //_position.Z = offset.Z;
                 return true;
             }
 
@@ -1071,8 +1097,20 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 float h = contact.pos.Z - _position.Z;
 
+                // Only do this if the normal is sufficiently pointing in the 'up' direction
                 if (Math.Abs(contact.normal.Z) > 0.95f)
                 {
+                    // We Only want to do this if we're sunk into the object a bit and we're stuck and we're trying to move and feetcollision is false
+                    if ((contact.depth > 0.0010f && _velocity.X == 0f && _velocity.Y == 0 && _velocity.Z == 0)
+                        && (_target_velocity.X > 0 || _target_velocity.Y > 0 || _target_velocity.Z > 0) 
+                        &&  (!feetcollision) )
+                    {
+                        m_collisionException = true; // Stop looping, do this only once not X times Contacts
+                        _position.Z += contact.depth + 0.01f; // Move us Up the amount that we sank in, and add 0.01 meters to gently lift avatar up.
+                       
+                        return true;
+                    }
+
                     if (contact.normal.Z > 0)
                         contact.normal.Z = 1.0f;
                     else

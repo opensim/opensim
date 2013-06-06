@@ -56,6 +56,7 @@ namespace OpenSim.Region.ClientStack.Linden
             public PollServiceTextureEventArgs thepoll;
             public UUID reqID;
             public Hashtable request;
+            public bool send503;
         }
 
         public class aPollResponse
@@ -244,7 +245,19 @@ namespace OpenSim.Region.ClientStack.Linden
                     reqinfo.thepoll = this;
                     reqinfo.reqID = x;
                     reqinfo.request = y;
+                    reqinfo.send503 = false;
                     
+                    lock (responses)
+                    {
+                        if (responses.Count > 0)
+                        {
+                            if (m_queue.Count >= 4)
+                            {
+                                // Never allow more than 4 fetches to wait
+                                reqinfo.send503 = true;
+                            }
+                        }
+                    }
                     m_queue.Enqueue(reqinfo);
                 };
 
@@ -275,6 +288,22 @@ namespace OpenSim.Region.ClientStack.Linden
                 Hashtable response;
 
                 UUID requestID = requestinfo.reqID;
+
+                if (requestinfo.send503)
+                {
+                    response = new Hashtable();
+
+                    response["int_response_code"] = 503;
+                    response["str_response_string"] = "Throttled";
+                    response["content_type"] = "text/plain";
+                    response["keepalive"] = false;
+                    response["reusecontext"] = false;
+                    
+                    lock (responses)
+                        responses[requestID] = new aPollResponse() {bytes = 0, response = response};
+
+                    return;
+                }
 
                 // If the avatar is gone, don't bother to get the texture
                 if (m_scene.GetScenePresence(Id) == null)
@@ -385,6 +414,9 @@ namespace OpenSim.Region.ClientStack.Linden
                 GetTextureModule.aPollResponse response;
                 if (responses.TryGetValue(key, out response))
                 {
+                    // This is any error response
+                    if (response.bytes == 0)
+                        return true;
 
                     // Normal
                     if (BytesSent + response.bytes <= ThrottleBytes)
@@ -411,11 +443,11 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 return haskey;
             }
+
             public void ProcessTime()
             {
                 PassTime();
             }
-
 
             private void PassTime()
             {

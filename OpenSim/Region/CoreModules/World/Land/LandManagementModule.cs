@@ -940,6 +940,8 @@ namespace OpenSim.Region.CoreModules.World.Land
             newLand.LandData.Name = newLand.LandData.Name;
             newLand.LandData.GlobalID = UUID.Random();
             newLand.LandData.Dwell = 0;
+            // Clear "Show in search" on the cut out parcel to prevent double-charging
+            newLand.LandData.Flags &= ~(uint)ParcelFlags.ShowDirectory;
 
             newLand.SetLandBitmap(newLand.GetSquareLandBitmap(start_x, start_y, end_x, end_y));
 

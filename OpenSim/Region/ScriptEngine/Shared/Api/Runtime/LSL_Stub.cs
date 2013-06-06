@@ -2009,5 +2009,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             m_LSL_Functions.llSetPhysicsMaterial(material_bits, material_gravity_modifier, material_restitution, material_friction, material_density);
         }
+
+        public LSL_List llGetPhysicsMaterial()
+        {
+            return m_LSL_Functions.llGetPhysicsMaterial();
+        }
+
+        public void llSetContentType(LSL_Key id, LSL_Integer content_type)
+        {
+            m_LSL_Functions.llSetContentType(id, content_type);
+        }
     }
 }
