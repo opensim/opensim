@@ -360,7 +360,7 @@ public static class BSParam
         new ParameterDefn<bool>("UseSeparatePhysicsThread", "If 'true', the physics engine runs independent from the simulator heartbeat",
             false ),
         new ParameterDefn<float>("PhysicsTimeStep", "If separate thread, seconds to simulate each interval",
-            0.1f ),
+            0.089f ),
 
         new ParameterDefn<bool>("MeshSculptedPrim", "Whether to create meshes for sculpties",
             true,

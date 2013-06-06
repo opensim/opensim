@@ -389,9 +389,21 @@ public class BSShapeMesh : BSShape
     }
     public override BSShape GetReference(BSScene pPhysicsScene, BSPhysObject pPrim)
     {
-        // Another reference to this shape is just counted.
-        IncrementReference();
-        return this;
+        BSShape ret = null;
+        // If the underlying shape is native, the actual shape has not been build (waiting for asset)
+        //     and we must create a copy of the native shape since they are never shared.
+        if (physShapeInfo.HasPhysicalShape && physShapeInfo.isNativeShape)
+        {
+            // TODO: decide when the native shapes should be freed. Check in Dereference?
+            ret = BSShapeNative.GetReference(pPhysicsScene, pPrim, BSPhysicsShapeType.SHAPE_BOX, FixedShapeKey.KEY_BOX);
+        }
+        else
+        {
+            // Another reference to this shape is just counted.
+            IncrementReference();
+            ret = this;
+        }
+        return ret;
     }
     public override void Dereference(BSScene physicsScene)
     {
@@ -562,9 +574,21 @@ public class BSShapeHull : BSShape
     }
     public override BSShape GetReference(BSScene pPhysicsScene, BSPhysObject pPrim)
     {
-        // Another reference to this shape is just counted.
-        IncrementReference();
-        return this;
+        BSShape ret = null;
+        // If the underlying shape is native, the actual shape has not been build (waiting for asset)
+        //     and we must create a copy of the native shape since they are never shared.
+        if (physShapeInfo.HasPhysicalShape && physShapeInfo.isNativeShape)
+        {
+            // TODO: decide when the native shapes should be freed. Check in Dereference?
+            ret = BSShapeNative.GetReference(pPhysicsScene, pPrim, BSPhysicsShapeType.SHAPE_BOX, FixedShapeKey.KEY_BOX);
+        }
+        else
+        {
+            // Another reference to this shape is just counted.
+            IncrementReference();
+            ret = this;
+        }
+        return ret;
     }
     public override void Dereference(BSScene physicsScene)
     {
@@ -1077,12 +1101,23 @@ public class BSShapeGImpact : BSShape
                             (w, iC, i, vC, v) => physicsScene.PE.CreateGImpactShape(w, iC, i, vC, v) );
     }
 
-    public override BSShape GetReference(BSScene physicsScene, BSPhysObject prim)
+    public override BSShape GetReference(BSScene pPhysicsScene, BSPhysObject pPrim)
     {
-        // Calling this reference means we want another handle to an existing shape
-        //     (usually linksets) so return this copy.
-        IncrementReference();
-        return this;
+        BSShape ret = null;
+        // If the underlying shape is native, the actual shape has not been build (waiting for asset)
+        //     and we must create a copy of the native shape since they are never shared.
+        if (physShapeInfo.HasPhysicalShape && physShapeInfo.isNativeShape)
+        {
+            // TODO: decide when the native shapes should be freed. Check in Dereference?
+            ret = BSShapeNative.GetReference(pPhysicsScene, pPrim, BSPhysicsShapeType.SHAPE_BOX, FixedShapeKey.KEY_BOX);
+        }
+        else
+        {
+            // Another reference to this shape is just counted.
+            IncrementReference();
+            ret = this;
+        }
+        return ret;
     }
     // Dereferencing a compound shape releases the hold on all the child shapes.
     public override void Dereference(BSScene physicsScene)
