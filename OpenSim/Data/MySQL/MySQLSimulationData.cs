@@ -173,9 +173,9 @@ namespace OpenSim.Data.MySQL
                                     "ParticleSystem, ClickAction, Material, " +
                                     "CollisionSound, CollisionSoundVolume, " +
                                     "PassTouches, " +
-                                    "LinkNumber, MediaURL, DynAttrs, " +
+                                    "LinkNumber, MediaURL, KeyframeMotion, " +
                                     "PhysicsShapeType, Density, GravityModifier, " +
-                                    "Friction, Restitution " +
+                                    "Friction, Restitution, DynAttrs " +
                                     ") values (" + "?UUID, " +
                                     "?CreationDate, ?Name, ?Text, " +
                                     "?Description, ?SitName, ?TouchName, " +
@@ -208,9 +208,9 @@ namespace OpenSim.Data.MySQL
                                     "?ColorB, ?ColorA, ?ParticleSystem, " +
                                     "?ClickAction, ?Material, ?CollisionSound, " +
                                     "?CollisionSoundVolume, ?PassTouches, " +
-                                    "?LinkNumber, ?MediaURL, ?DynAttrs, " +
+                                    "?LinkNumber, ?MediaURL, ?KeyframeMotion, " +
                                     "?PhysicsShapeType, ?Density, ?GravityModifier, " +
-                                    "?Friction, ?Restitution)";
+                                    "?Friction, ?Restitution, ?DynAttrs)";
 
                             FillPrimCommand(cmd, prim, obj.UUID, regionUUID);
 
@@ -455,7 +455,11 @@ namespace OpenSim.Data.MySQL
             foreach (SceneObjectPart prim in prims.Values)
             {
                 if (prim.ParentUUID == UUID.Zero)
+                {
                     objects[prim.UUID] = new SceneObjectGroup(prim);
+                    if (prim.KeyframeMotion != null)
+                        prim.KeyframeMotion.UpdateSceneObject(objects[prim.UUID]);
+                }
             }
 
             // Add all of the children objects to the SOGs
@@ -1307,6 +1311,19 @@ namespace OpenSim.Data.MySQL
             else
                 prim.DynAttrs = new DAMap();        
 
+            if (!(row["KeyframeMotion"] is DBNull))
+            {
+                Byte[] data = (byte[])row["KeyframeMotion"];
+                if (data.Length > 0)
+                    prim.KeyframeMotion = KeyframeMotion.FromData(null, data);
+                else
+                    prim.KeyframeMotion = null;
+            }
+            else
+            {
+                prim.KeyframeMotion = null;
+            }
+
             prim.PhysicsShapeType = (byte)Convert.ToInt32(row["PhysicsShapeType"].ToString());
             prim.Density = (float)(double)row["Density"];
             prim.GravityModifier = (float)(double)row["GravityModifier"];
@@ -1659,6 +1676,10 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("LinkNumber", prim.LinkNum);
             cmd.Parameters.AddWithValue("MediaURL", prim.MediaUrl);
 
+            if (prim.KeyframeMotion != null)
+                cmd.Parameters.AddWithValue("KeyframeMotion", prim.KeyframeMotion.Serialize());
+            else
+                cmd.Parameters.AddWithValue("KeyframeMotion", new Byte[0]);
 
             if (prim.DynAttrs.Count > 0)
                 cmd.Parameters.AddWithValue("DynAttrs", prim.DynAttrs.ToXml());
