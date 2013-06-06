@@ -427,6 +427,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
               void print(string str);
 
               void SetPrimitiveParamsEx(LSL_Key prim, LSL_List rules, string originFunc);
+              void llSetKeyframedMotion(LSL_List frames, LSL_List options);
           LSL_List GetPrimitiveParamsEx(LSL_Key prim, LSL_List rules);
     }
 }

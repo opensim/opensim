@@ -7296,6 +7296,146 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
+        public void llSetKeyframedMotion(LSL_List frames, LSL_List options)
+        {
+            SceneObjectGroup group = m_host.ParentGroup;
+
+            if (group.RootPart.PhysActor != null && group.RootPart.PhysActor.IsPhysical)
+                return;
+            if (group.IsAttachment)
+                return;
+
+            if (frames.Data.Length > 0) // We are getting a new motion
+            {
+                if (group.RootPart.KeyframeMotion != null)
+                    group.RootPart.KeyframeMotion.Delete();
+                group.RootPart.KeyframeMotion = null;
+
+                int idx = 0;
+
+                KeyframeMotion.PlayMode mode = KeyframeMotion.PlayMode.Forward;
+                KeyframeMotion.DataFormat data = KeyframeMotion.DataFormat.Translation | KeyframeMotion.DataFormat.Rotation;
+
+                while (idx < options.Data.Length)
+                {
+                    int option = (int)options.GetLSLIntegerItem(idx++);
+                    int remain = options.Data.Length - idx;
+
+                    switch (option)
+                    {
+                        case ScriptBaseClass.KFM_MODE:
+                            if (remain < 1)
+                                break;
+                            int modeval = (int)options.GetLSLIntegerItem(idx++);
+                            switch(modeval)
+                            {
+                                case ScriptBaseClass.KFM_FORWARD:
+                                    mode = KeyframeMotion.PlayMode.Forward;
+                                    break;
+                                case ScriptBaseClass.KFM_REVERSE:
+                                    mode = KeyframeMotion.PlayMode.Reverse;
+                                    break;
+                                case ScriptBaseClass.KFM_LOOP:
+                                    mode = KeyframeMotion.PlayMode.Loop;
+                                    break;
+                                case ScriptBaseClass.KFM_PING_PONG:
+                                    mode = KeyframeMotion.PlayMode.PingPong;
+                                    break;
+                            }
+                            break;
+                        case ScriptBaseClass.KFM_DATA:
+                            if (remain < 1)
+                                break;
+                            int dataval = (int)options.GetLSLIntegerItem(idx++);
+                            data = (KeyframeMotion.DataFormat)dataval;
+                            break;
+                    }
+                }
+
+                group.RootPart.KeyframeMotion = new KeyframeMotion(group, mode, data);
+
+                idx = 0;
+
+                int elemLength = 2;
+                if (data == (KeyframeMotion.DataFormat.Translation | KeyframeMotion.DataFormat.Rotation))
+                    elemLength = 3;
+
+                List<KeyframeMotion.Keyframe> keyframes = new List<KeyframeMotion.Keyframe>();
+                while (idx < frames.Data.Length)
+                {
+                    int remain = frames.Data.Length - idx;
+
+                    if (remain < elemLength)
+                        break;
+
+                    KeyframeMotion.Keyframe frame = new KeyframeMotion.Keyframe();
+                    frame.Position = null;
+                    frame.Rotation = null;
+
+                    if ((data & KeyframeMotion.DataFormat.Translation) != 0)
+                    {
+                        LSL_Types.Vector3 tempv = frames.GetVector3Item(idx++);
+                        frame.Position = new Vector3((float)tempv.x, (float)tempv.y, (float)tempv.z);
+                    }
+                    if ((data & KeyframeMotion.DataFormat.Rotation) != 0)
+                    {
+                        LSL_Types.Quaternion tempq = frames.GetQuaternionItem(idx++);
+                        Quaternion q = new Quaternion((float)tempq.x, (float)tempq.y, (float)tempq.z, (float)tempq.s);
+                        q.Normalize();
+                        frame.Rotation = q;
+                    }
+
+                    float tempf = (float)frames.GetLSLFloatItem(idx++);
+                    frame.TimeMS = (int)(tempf * 1000.0f);
+
+                    keyframes.Add(frame);
+                }
+
+                group.RootPart.KeyframeMotion.SetKeyframes(keyframes.ToArray());
+                group.RootPart.KeyframeMotion.Start();
+            }
+            else
+            {
+                if (group.RootPart.KeyframeMotion == null)
+                    return;
+
+                if (options.Data.Length == 0)
+                {
+                    group.RootPart.KeyframeMotion.Stop();
+                    return;
+                }
+
+                int code = (int)options.GetLSLIntegerItem(0);
+
+                int idx = 0;
+
+                while (idx < options.Data.Length)
+                {
+                    int option = (int)options.GetLSLIntegerItem(idx++);
+                    int remain = options.Data.Length - idx;
+
+                    switch (option)
+                    {
+                        case ScriptBaseClass.KFM_COMMAND:
+                            int cmd = (int)options.GetLSLIntegerItem(idx++);
+                            switch (cmd)
+                            {
+                                case ScriptBaseClass.KFM_CMD_PLAY:
+                                    group.RootPart.KeyframeMotion.Start();
+                                    break;
+                                case ScriptBaseClass.KFM_CMD_STOP:
+                                    group.RootPart.KeyframeMotion.Stop();
+                                    break;
+                                case ScriptBaseClass.KFM_CMD_PAUSE:
+                                    group.RootPart.KeyframeMotion.Pause();
+                                    break;
+                            }
+                            break;
+                    }
+                }
+            }
+        }
+
         protected LSL_List SetPrimParams(SceneObjectPart part, LSL_List rules, string originFunc, ref uint rulesParsed)
         {
             int idx = 0;
