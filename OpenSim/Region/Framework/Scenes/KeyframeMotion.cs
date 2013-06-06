@@ -245,14 +245,17 @@ namespace OpenSim.Region.Framework.Scenes
 
         private void StartTimer()
         {
-            KeyframeTimer.Add(this);
-            m_timerStopped = false;
+            lock (m_frames)
+            {
+                KeyframeTimer.Add(this);
+                m_timerStopped = false;
+            }
         }
 
         private void StopTimer()
         {
-            m_timerStopped = true;
-            KeyframeTimer.Remove(this);
+            lock (m_frames)
+                m_timerStopped = true;
         }
 
         public static KeyframeMotion FromData(SceneObjectGroup grp, Byte[] data)
@@ -407,18 +410,17 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else
             {
-                m_running = false;
                 StopTimer();
+                m_running = false;
             }
         }
 
         public void Stop()
         {
+            StopTimer();
             m_running = false;
             m_isCrossing = false;
             m_waitingCrossing = false;
-
-            StopTimer();
 
             m_basePosition = m_group.AbsolutePosition;
             m_baseRotation = m_group.GroupRotation;
@@ -432,14 +434,34 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void Pause()
         {
-            m_running = false;
             StopTimer();
+            m_running = false;
 
             m_group.RootPart.Velocity = Vector3.Zero;
             m_group.RootPart.AngularVelocity = Vector3.Zero;
             m_group.SendGroupRootTerseUpdate();
 //            m_group.RootPart.ScheduleTerseUpdate();
+        }
 
+        public void Suspend()
+        {
+            lock (m_frames)
+            {
+                if (m_timerStopped)
+                    return;
+                m_timerStopped = true;
+            }
+        }
+
+        public void Resume()
+        {
+            lock (m_frames)
+            {
+                if (!m_timerStopped)
+                    return;
+                if (m_running && !m_waitingCrossing)
+                    StartTimer();
+            }
         }
 
         private void GetNextList()
@@ -529,6 +551,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                     pos = (Vector3)k.Position;
                     rot = (Quaternion)k.Rotation;
+
                 }
 
                 m_basePosition = pos;
@@ -540,14 +563,41 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void OnTimer(double tickDuration)
         {
+            if (!Monitor.TryEnter(m_frames))
+                return;
+            if (m_timerStopped)
+                KeyframeTimer.Remove(this);
+            else
+                DoOnTimer(tickDuration);
+            Monitor.Exit(m_frames);
+        }
+
+        private void Done()
+        {
+            KeyframeTimer.Remove(this);
+            m_timerStopped = true;
+            m_running = false;
+            m_isCrossing = false;
+            m_waitingCrossing = false;
+
+            m_basePosition = m_group.AbsolutePosition;
+            m_baseRotation = m_group.GroupRotation;
+
+            m_group.RootPart.Velocity = Vector3.Zero;
+            m_group.RootPart.AngularVelocity = Vector3.Zero;
+            m_group.SendGroupRootTerseUpdate();
+            //            m_group.RootPart.ScheduleTerseUpdate();
+            m_frames.Clear();
+        }
+
+        private void DoOnTimer(double tickDuration)
+        {
             if (m_skipLoops > 0)
             {
                 m_skipLoops--;
                 return;
             }
 
-            if (m_timerStopped) // trap events still in air even after a timer.stop
-                return;
 
             if (m_group == null)
                 return;
@@ -587,7 +637,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (m_frames.Count == 0)
                 {
-                    Stop();
+                    Done();
                     Scene scene = m_group.Scene;
 
                     IScriptModule[] scriptModules = scene.RequestModuleInterfaces<IScriptModule>();
@@ -686,11 +736,10 @@ namespace OpenSim.Region.Framework.Scenes
 
                     if (angle > 0.01f)
 */
-                    if(Math.Abs(step.X - current.X) > 0.001f 
-                        || Math.Abs(step.Y - current.Y) > 0.001f 
+                    if (Math.Abs(step.X - current.X) > 0.001f
+                        || Math.Abs(step.Y - current.Y) > 0.001f
                         || Math.Abs(step.Z - current.Z) > 0.001f)
-                        // assuming w is a dependente var
-
+                    // assuming w is a dependente var
                     {
 //                                m_group.UpdateGroupRotationR(step);
                         m_group.RootPart.RotationOffset = step;
