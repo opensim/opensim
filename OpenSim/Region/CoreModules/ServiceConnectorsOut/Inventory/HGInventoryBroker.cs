@@ -233,6 +233,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                     if (sp != null)
                     {
                         AgentCircuitData aCircuit = scene.AuthenticateHandler.GetAgentCircuitData(sp.ControllingClient.CircuitCode);
+                        if (aCircuit == null)
+                            return;
+                        if (aCircuit.ServiceURLs == null)
+                            return;
+
                         if (aCircuit.ServiceURLs.ContainsKey("InventoryServerURI"))
                         {
                             inventoryURL = aCircuit.ServiceURLs["InventoryServerURI"].ToString();
