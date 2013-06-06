@@ -354,6 +354,13 @@ namespace OpenSim.Region.Framework.Scenes
         private UUID m_collisionSound;
         private float m_collisionSoundVolume;
 
+        private KeyframeMotion m_keyframeMotion = null;
+
+        public KeyframeMotion KeyframeMotion
+        {
+            get; set;
+        }
+
         #endregion Fields
 
 //        ~SceneObjectPart()
@@ -1799,6 +1806,8 @@ namespace OpenSim.Region.Framework.Scenes
             Array.Copy(Shape.ExtraParams, extraP, extraP.Length);
             dupe.Shape.ExtraParams = extraP;
 
+            // safeguard  actual copy is done in sog.copy
+            dupe.KeyframeMotion = null;
             dupe.PayPrice = (int[])PayPrice.Clone();
 
             dupe.DynAttrs.CopyFrom(DynAttrs);
@@ -2001,6 +2010,9 @@ namespace OpenSim.Region.Framework.Scenes
                         {
                             if (UsePhysics)
                             {
+                                if (ParentGroup.RootPart.KeyframeMotion != null)
+                                    ParentGroup.RootPart.KeyframeMotion.Stop();
+                                ParentGroup.RootPart.KeyframeMotion = null;
                                 ParentGroup.Scene.AddPhysicalPrim(1);
 
                                 pa.OnRequestTerseUpdate += PhysicsRequestingTerseUpdate;
@@ -4327,6 +4339,9 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (isPhysical)
                 {
+                    if (ParentGroup.RootPart.KeyframeMotion != null)
+                        ParentGroup.RootPart.KeyframeMotion.Stop();
+                    ParentGroup.RootPart.KeyframeMotion = null;
                     ParentGroup.Scene.AddPhysicalPrim(1);
 
                     pa.OnRequestTerseUpdate += PhysicsRequestingTerseUpdate;

@@ -1645,6 +1645,12 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="childPrims"></param>
         protected internal void LinkObjects(SceneObjectPart root, List<SceneObjectPart> children)
         {
+            if (root.KeyframeMotion != null)
+            {
+                root.KeyframeMotion.Stop();
+                root.KeyframeMotion = null;
+            }
+
             SceneObjectGroup parentGroup = root.ParentGroup;
             if (parentGroup == null) return;
 
@@ -1722,6 +1728,11 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     if (part != null)
                     {
+                        if (part.KeyframeMotion != null)
+                        {
+                            part.KeyframeMotion.Stop();
+                            part.KeyframeMotion = null;
+                        }
                         if (part.ParentGroup.PrimCount != 1) // Skip single
                         {
                             if (part.LinkNum < 2) // Root

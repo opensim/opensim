@@ -2247,6 +2247,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 // move out of the region creating an infinite loop of failed attempts to cross
                 grp.UpdatePrimFlags(grp.RootPart.LocalId,false,grp.IsTemporary,grp.IsPhantom,false);
 
+                if (grp.RootPart.KeyframeMotion != null)
+                    grp.RootPart.KeyframeMotion.CrossingFailure();
+
                 grp.ScheduleGroupForFullUpdate();
             }
         }

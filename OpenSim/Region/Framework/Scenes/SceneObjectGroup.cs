@@ -455,6 +455,9 @@ namespace OpenSim.Region.Framework.Scenes
                             || Scene.TestBorderCross(val, Cardinals.S))
                         && !IsAttachmentCheckFull() && (!Scene.LoadingPrims))
                     {
+                        if (m_rootPart.KeyframeMotion != null)
+                            m_rootPart.KeyframeMotion.StartCrossingCheck();
+
                         m_scene.CrossPrimGroupIntoNewRegion(val, this, true);
                     }
                 }
@@ -578,6 +581,8 @@ namespace OpenSim.Region.Framework.Scenes
                             childPa.Selected = value;
                     }
                 }
+                if (RootPart.KeyframeMotion != null)
+                    RootPart.KeyframeMotion.Selected = value;
             }
         }
 
@@ -1551,6 +1556,8 @@ namespace OpenSim.Region.Framework.Scenes
     
                     newPart.DoPhysicsPropertyUpdate(originalPartPa.IsPhysical, true);
                 }
+                if (part.KeyframeMotion != null)
+                    newPart.KeyframeMotion = part.KeyframeMotion.Copy(dupe);
             }
             
             if (userExposed)
@@ -1578,6 +1585,12 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void ScriptSetPhysicsStatus(bool usePhysics)
         {
+            if (usePhysics)
+            {
+                if (RootPart.KeyframeMotion != null)
+                    RootPart.KeyframeMotion.Stop();
+                RootPart.KeyframeMotion = null;
+            }
             UpdatePrimFlags(RootPart.LocalId, usePhysics, IsTemporary, IsPhantom, IsVolumeDetect);
         }
 

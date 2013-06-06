@@ -357,6 +357,9 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
             foreach (SceneObjectGroup objectGroup in objlist)
             {
+                if (objectGroup.RootPart.KeyframeMotion != null)
+                    objectGroup.RootPart.KeyframeMotion.Stop();
+                objectGroup.RootPart.KeyframeMotion = null;
 //                Vector3 inventoryStoredPosition = new Vector3
 //                            (((objectGroup.AbsolutePosition.X > (int)Constants.RegionSize)
 //                                  ? 250
