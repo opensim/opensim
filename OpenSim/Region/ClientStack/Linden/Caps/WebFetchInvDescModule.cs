@@ -156,12 +156,12 @@ namespace OpenSim.Region.ClientStack.Linden
             private Scene m_scene;
 
             public PollServiceInventoryEventArgs(Scene scene, UUID pId) :
-                    base(null, null, null, null, pId)
+                    base(null, null, null, null, pId, int.MaxValue)
             {
                 m_scene = scene;
 
                 HasEvents = (x, y) => { lock (responses) return responses.ContainsKey(x); };
-                GetEvents = (x, y, z) =>
+                GetEvents = (x, y) =>
                 {
                     lock (responses)
                     {
