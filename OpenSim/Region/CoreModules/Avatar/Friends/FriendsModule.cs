@@ -685,7 +685,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             //
 
             // Try local
-            if (LocalFriendshipTerminated(exfriendID))
+            if (LocalFriendshipTerminated(client.AgentId, exfriendID))
                 return;
 
             PresenceInfo[] friendSessions = PresenceService.GetAgents(new string[] { exfriendID.ToString() });
@@ -827,13 +827,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             return false;
         }
 
-        public bool LocalFriendshipTerminated(UUID exfriendID)
+        public bool LocalFriendshipTerminated(UUID userID, UUID exfriendID)
         {
             IClientAPI friendClient = LocateClientObject(exfriendID);
             if (friendClient != null)
             {
                 // the friend in this sim as root agent
-                friendClient.SendTerminateFriend(exfriendID);
+                friendClient.SendTerminateFriend(userID);
                 // update local cache
                 RecacheFriends(friendClient);
                 // we're done

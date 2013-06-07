@@ -222,8 +222,9 @@ namespace OpenSim.Region.Framework.Scenes
         {
             foreach (ulong handle in regionslst)
             {
+                ulong handleCopy = handle;
                 SendCloseChildAgentDelegate d = SendCloseChildAgentAsync;
-                d.BeginInvoke(agentID, handle,
+                d.BeginInvoke(agentID, handleCopy,
                               SendCloseChildAgentCompleted,
                               d);
             }

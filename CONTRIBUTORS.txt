@@ -75,11 +75,12 @@ what it is today.
 * controlbreak
 * coyled
 * Daedius
-* Dong Jun Lan (IBM)
-* DoranZemlja
 * daTwitch 
 * devalnor-#708
 * dmiles (Daxtron Labs)
+* Dong Jun Lan (IBM)
+* DoranZemlja
+* dr0b3rts
 * dslake (Intel)
 * FredoChaplin
 * Garmin Kawaguichi
