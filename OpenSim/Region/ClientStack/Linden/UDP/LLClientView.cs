@@ -4866,7 +4866,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendForceClientSelectObjects(List<uint> ObjectIDs)
         {
-            m_log.WarnFormat("[LLCLIENTVIEW] sending select with {0} objects", ObjectIDs.Count);
+//            m_log.DebugFormat("[LLCLIENTVIEW] sending select with {0} objects", ObjectIDs.Count);
             
             bool firstCall = true;
             const int MAX_OBJECTS_PER_PACKET = 251;

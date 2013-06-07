@@ -71,6 +71,11 @@ namespace OpenSim.Region.ClientStack.Linden
         private IInventoryService m_InventoryService;
         private ILibraryService m_LibraryService;
 
+        private bool m_Enabled;
+
+        private string m_fetchInventoryDescendents2Url;
+        private string m_webFetchInventoryDescendentsUrl;
+
         private static WebFetchInvDescHandler m_webFetchHandler;
 
         private Dictionary<UUID, string> m_capsDict = new Dictionary<UUID, string>();
@@ -83,15 +88,32 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public void Initialise(IConfigSource source)
         {
+            IConfig config = source.Configs["ClientStack.LindenCaps"];
+            if (config == null)
+                return;
+
+            m_fetchInventoryDescendents2Url = config.GetString("Cap_FetchInventoryDescendents2", string.Empty);
+            m_webFetchInventoryDescendentsUrl = config.GetString("Cap_WebFetchInventoryDescendents", string.Empty);
+
+            if (m_fetchInventoryDescendents2Url != string.Empty || m_webFetchInventoryDescendentsUrl != string.Empty)
+            {
+                m_Enabled = true;
+            }
         }
 
         public void AddRegion(Scene s)
         {
+            if (!m_Enabled)
+                return;
+
             m_scene = s;
         }
 
         public void RemoveRegion(Scene s)
         {
+            if (!m_Enabled)
+                return;
+
             m_scene.EventManager.OnRegisterCaps -= RegisterCaps;
             m_scene.EventManager.OnDeregisterCaps -= DeregisterCaps;
             m_scene = null;
@@ -99,6 +121,9 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public void RegionLoaded(Scene s)
         {
+            if (!m_Enabled)
+                return;
+
             m_InventoryService = m_scene.InventoryService;
             m_LibraryService = m_scene.LibraryService;
 
@@ -284,6 +309,9 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private void RegisterCaps(UUID agentID, Caps caps)
         {
+            if (m_fetchInventoryDescendents2Url == "")
+                return;
+
             string capUrl = "/CAPS/" + UUID.Random() + "/";
 
             // Register this as a poll service          
@@ -302,6 +330,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 port = MainServer.Instance.SSLPort;
                 protocol = "https";
             }
+
             caps.RegisterHandler("FetchInventoryDescendents2", String.Format("{0}://{1}:{2}{3}", protocol, hostName, port, capUrl));
 
             m_capsDict[agentID] = capUrl;
