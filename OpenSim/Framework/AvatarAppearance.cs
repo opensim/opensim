@@ -1626,7 +1626,12 @@ namespace OpenSim.Framework
             BREAST_PHYSICS_LEFTRIGHT_MAX_EFFECT = 247,
             BREAST_PHYSICS_LEFTRIGHT_SPRING= 248,
             BREAST_PHYSICS_LEFTRIGHT_GAIN = 249,
-            BREAST_PHYSICS_LEFTRIGHT_DAMPING = 250
+            BREAST_PHYSICS_LEFTRIGHT_DAMPING = 250,
+
+            // Ubit: 07/96/2013 new parameters 
+            _APPEARANCEMESSAGE_VERSION = 251,    //ID 11000
+
+            SHAPE_HOVER = 252,    //ID 11001
         }
         #endregion
     }
