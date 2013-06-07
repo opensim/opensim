@@ -347,7 +347,7 @@ namespace OpenSim.Groups
         {
             if (m_debugEnabled) m_log.DebugFormat("[Groups]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
 
-            m_log.DebugFormat("[Groups]: IM From {0} to {1} msg {2} type {3}", im.fromAgentID, im.toAgentID, im.message, (InstantMessageDialog)im.dialog);
+            //m_log.DebugFormat("[Groups]: IM From {0} to {1} msg {2} type {3}", im.fromAgentID, im.toAgentID, im.message, (InstantMessageDialog)im.dialog);
             // Group invitations
             if ((im.dialog == (byte)InstantMessageDialog.GroupInvitationAccept) || (im.dialog == (byte)InstantMessageDialog.GroupInvitationDecline))
             {
