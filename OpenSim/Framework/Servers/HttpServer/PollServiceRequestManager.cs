@@ -34,143 +34,6 @@ using HttpServer;
 using OpenSim.Framework;
 using OpenSim.Framework.Monitoring;
 using Amib.Threading;
-
-
-/*
-namespace OpenSim.Framework.Servers.HttpServer
-{
-
-    public class PollServiceRequestManager
-    {
-//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
-        private readonly BaseHttpServer m_server;
-        private static Queue m_requests = Queue.Synchronized(new Queue());
-        private static ManualResetEvent m_ev = new ManualResetEvent(false);
-        private uint m_WorkerThreadCount = 0;
-        private Thread[] m_workerThreads;
-        private PollServiceWorkerThread[] m_PollServiceWorkerThreads;
-        private volatile bool m_running = true;
-        private int m_pollTimeout;
-
-        public PollServiceRequestManager(BaseHttpServer pSrv, uint pWorkerThreadCount, int pTimeout)
-        {
-            m_server = pSrv;
-            m_WorkerThreadCount = pWorkerThreadCount;
-            m_pollTimeout = pTimeout;
-        }
-
-        public void Start()
-        {
-            m_running = true;
-            m_workerThreads = new Thread[m_WorkerThreadCount];
-            m_PollServiceWorkerThreads = new PollServiceWorkerThread[m_WorkerThreadCount];
-
-            //startup worker threads
-            for (uint i = 0; i < m_WorkerThreadCount; i++)
-            {
-                m_PollServiceWorkerThreads[i] = new PollServiceWorkerThread(m_server, m_pollTimeout);
-                m_PollServiceWorkerThreads[i].ReQueue += ReQueueEvent;
-
-                m_workerThreads[i]
-                    = Watchdog.StartThread(
-                        m_PollServiceWorkerThreads[i].ThreadStart,
-                        String.Format("PollServiceWorkerThread{0}", i),
-                        ThreadPriority.Normal,
-                        false,
-                        true,
-                        int.MaxValue);
-            }
-
-            Watchdog.StartThread(
-                this.ThreadStart,
-                "PollServiceWatcherThread",
-                ThreadPriority.Normal,
-                false,
-                true,
-                1000 * 60 * 10);
-        }
-
-        internal void ReQueueEvent(PollServiceHttpRequest req)
-        {
-            // Do accounting stuff here
-            Enqueue(req);
-        }
-
-        public void Enqueue(PollServiceHttpRequest req)
-        {
-            lock (m_requests)
-                m_requests.Enqueue(req);
-            m_ev.Set();
-        }
-
-        public void ThreadStart()
-        {
-            while (m_running)
-            {
-                m_ev.WaitOne(1000);
-                m_ev.Reset();
-                Watchdog.UpdateThread();
-                ProcessQueuedRequests();
-            }
-        }
-
-        private void ProcessQueuedRequests()
-        {
-            lock (m_requests)
-            {
-                if (m_requests.Count == 0)
-                    return;
-
-//                m_log.DebugFormat("[POLL SERVICE REQUEST MANAGER]: Processing {0} requests", m_requests.Count);
-
-                int reqperthread = (int) (m_requests.Count/m_WorkerThreadCount) + 1;
-
-                // For Each WorkerThread
-                for (int tc = 0; tc < m_WorkerThreadCount && m_requests.Count > 0; tc++)
-                {
-                    //Loop over number of requests each thread handles.
-                    for (int i = 0; i < reqperthread && m_requests.Count > 0; i++)
-                    {
-                        try
-                        {
-                            m_PollServiceWorkerThreads[tc].Enqueue((PollServiceHttpRequest)m_requests.Dequeue());
-                        }
-                        catch (InvalidOperationException)
-                        {
-                            // The queue is empty, we did our calculations wrong!
-                            return;
-                        }
-                        
-                    }
-                }
-            }
-            
-        }
-
-        public void Stop()
-        {
-            m_running = false;
-
-            foreach (object o in m_requests)
-            {
-                PollServiceHttpRequest req = (PollServiceHttpRequest) o;
-                m_server.DoHTTPGruntWork(
-                    req.PollServiceArgs.NoEvents(req.RequestID, req.PollServiceArgs.Id),
-                    new OSHttpResponse(new HttpResponse(req.HttpContext, req.Request), req.HttpContext));
-            }
-
-            m_requests.Clear();
-
-            foreach (Thread t in m_workerThreads)
-            {
-                t.Abort();
-            }
-        }
-    }
-}
- */
-
 using System.IO;
 using System.Text;
 using System.Collections.Generic;
@@ -195,8 +58,6 @@ namespace OpenSim.Framework.Servers.HttpServer
         private int slowCount = 0;
 
         private SmartThreadPool m_threadPool = new SmartThreadPool(20000, 12, 2);
-
-//        private int m_timeout = 1000;   //  increase timeout 250; now use the event one
 
         public PollServiceRequestManager(BaseHttpServer pSrv, uint pWorkerThreadCount, int pTimeout)
         {
@@ -282,7 +143,6 @@ namespace OpenSim.Framework.Servers.HttpServer
         ~PollServiceRequestManager()
         {
             m_running = false;
-//            m_timeout = -10000; // cause all to expire
             Thread.Sleep(1000); // let the world move
 
             foreach (Thread t in m_workerThreads)
@@ -418,14 +278,10 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
             finally
             {
-                //response.OutputStream.Close();
                 try
                 {
                     response.OutputStream.Flush();
                     response.Send();
-
-                    //if (!response.KeepAlive && response.ReuseContext)
-                    //    response.FreeContext();
                 }
                 catch (Exception e)
                 {
