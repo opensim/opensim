@@ -34,7 +34,7 @@ namespace OpenSim.Framework.Servers.HttpServer
     public delegate void RequestMethod(UUID requestID, Hashtable request);
     public delegate bool HasEventsMethod(UUID requestID, UUID pId);
 
-    public delegate Hashtable GetEventsMethod(UUID requestID, UUID pId, string request);
+    public delegate Hashtable GetEventsMethod(UUID requestID, UUID pId);
 
     public delegate Hashtable NoEventsMethod(UUID requestID, UUID pId);
 
@@ -45,17 +45,28 @@ namespace OpenSim.Framework.Servers.HttpServer
         public NoEventsMethod NoEvents;
         public RequestMethod Request;
         public UUID Id;
+        public int TimeOutms;
+        public EventType Type;    
+
+        public enum EventType : int
+        {
+            Normal = 0,
+            LslHttp = 1,
+            Inventory = 2
+        }
 
         public PollServiceEventArgs(
             RequestMethod pRequest,
             HasEventsMethod pHasEvents, GetEventsMethod pGetEvents, NoEventsMethod pNoEvents,
-            UUID pId)
+            UUID pId, int pTimeOutms)
         {
             Request = pRequest;
             HasEvents = pHasEvents;
             GetEvents = pGetEvents;
             NoEvents = pNoEvents;
             Id = pId;
+            TimeOutms = pTimeOutms;
+            Type = EventType.Normal;
         }
     }
 }
