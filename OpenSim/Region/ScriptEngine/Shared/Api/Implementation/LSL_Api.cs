@@ -4651,6 +4651,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             s = Math.Cos(angle * 0.5);
             t = Math.Sin(angle * 0.5); // temp value to avoid 2 more sin() calcs
+            axis =  LSL_Vector.Norm(axis);
             x = axis.x * t;
             y = axis.y * t;
             z = axis.z * t;
