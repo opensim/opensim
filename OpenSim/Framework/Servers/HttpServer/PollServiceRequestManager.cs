@@ -66,7 +66,10 @@ namespace OpenSim.Framework.Servers.HttpServer
             m_server = pSrv;
             m_WorkerThreadCount = pWorkerThreadCount;
             m_workerThreads = new Thread[m_WorkerThreadCount];
+        }
 
+        public void Start()
+        {
             //startup worker threads
             for (uint i = 0; i < m_WorkerThreadCount; i++)
             {
@@ -90,7 +93,6 @@ namespace OpenSim.Framework.Servers.HttpServer
                 null,
                 1000 * 60 * 10);
         }
-
 
         private void ReQueueEvent(PollServiceHttpRequest req)
         {
@@ -142,14 +144,14 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
         }
 
-        ~PollServiceRequestManager()
+        public void Stop()
         {
             m_running = false;
 //            m_timeout = -10000; // cause all to expire
             Thread.Sleep(1000); // let the world move
 
             foreach (Thread t in m_workerThreads)
-                    Watchdog.AbortThread(t.ManagedThreadId);
+                Watchdog.AbortThread(t.ManagedThreadId);
 
             try
             {
