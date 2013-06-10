@@ -51,7 +51,7 @@ public class BSPrimDisplaced : BSPrim
     //    the prim/linkset by the location of the root prim. So, if center-of-mass is anywhere
     //    but the origin of the root prim, the physical origin is displaced from the simulator origin.
     //
-    // This routine works by capturing the Force* setting of position/orientation/... and
+    // This routine works by capturing ForcePosition and
     //    adjusting the simulator values (being set) into the physical values.
     //    The conversion is also done in the opposite direction (physical origin -> simulator origin).
     //
@@ -60,8 +60,6 @@ public class BSPrimDisplaced : BSPrim
     //    class.
 
     public virtual OMV.Vector3 PositionDisplacement { get; set; }
-    public virtual OMV.Quaternion OrientationDisplacement { get; set; }
-    public virtual OMV.Quaternion OrientationDisplacementOrigInv { get; set; }
 
     public BSPrimDisplaced(uint localID, String primName, BSScene parent_scene, OMV.Vector3 pos, OMV.Vector3 size,
                        OMV.Quaternion rotation, PrimitiveBaseShape pbs, bool pisPhysical)
@@ -70,15 +68,17 @@ public class BSPrimDisplaced : BSPrim
         ClearDisplacement();
     }
 
+    // Clears any center-of-mass displacement introduced by linksets, etc.
+    // Does not clear the displacement set by the user.
     public void ClearDisplacement()
     {
-        PositionDisplacement = OMV.Vector3.Zero;
-        OrientationDisplacement = OMV.Quaternion.Identity;
+        SetEffectiveCenterOfMassDisplacement(OMV.Vector3.Zero);
     }
 
     // Set this sets and computes the displacement from the passed prim to the center-of-mass.
     // A user set value for center-of-mass overrides whatever might be passed in here.
     // The displacement is in local coordinates (relative to root prim in linkset oriented coordinates).
+    // Called at taint time.
     public virtual void SetEffectiveCenterOfMassDisplacement(Vector3 centerOfMassDisplacement)
     {
         Vector3 comDisp;
@@ -87,21 +87,17 @@ public class BSPrimDisplaced : BSPrim
         else
             comDisp = centerOfMassDisplacement;
 
+        if (comDisp.ApproxEquals(Vector3.Zero, 0.01f) )
+            comDisp = Vector3.Zero;
+
         DetailLog("{0},BSPrimDisplaced.SetEffectiveCenterOfMassDisplacement,userSet={1},comDisp={2}",
                                     LocalID, UserSetCenterOfMassDisplacement.HasValue, comDisp);
-        if (comDisp == Vector3.Zero)
+        if ( comDisp != PositionDisplacement )
         {
-            // If there is no diplacement. Things get reset.
-            PositionDisplacement = OMV.Vector3.Zero;
-            OrientationDisplacement = OMV.Quaternion.Identity;
-        }
-        else
-        {
-            // Remember the displacement from root as well as the origional rotation of the
-            //    new center-of-mass.
+            // Displacement setting is changing.
+            // The relationship between the physical object and simulated object must be aligned.
             PositionDisplacement = comDisp;
-            OrientationDisplacement = Quaternion.Normalize(RawOrientation);
-            OrientationDisplacementOrigInv = Quaternion.Inverse(OrientationDisplacement);
+            this.ForcePosition = RawPosition;
         }
     }
 
@@ -112,7 +108,11 @@ public class BSPrimDisplaced : BSPrim
         {
             if (PositionDisplacement != OMV.Vector3.Zero)
             {
-                OMV.Vector3 displacedPos = value - (PositionDisplacement * (OrientationDisplacementOrigInv * RawOrientation));
+                // The displacement is always relative to the vehicle so, when setting position,
+                //    the caller means to set the position of the root prim.
+                // This offsets the setting value to the center-of-mass and sends that to the
+                //    physics engine.
+                OMV.Vector3 displacedPos = value - (PositionDisplacement * RawOrientation);
                 DetailLog("{0},BSPrimDisplaced.ForcePosition,val={1},disp={2},newPos={3}", LocalID, value, PositionDisplacement, displacedPos);
                 base.ForcePosition = displacedPos;
             }
@@ -123,26 +123,12 @@ public class BSPrimDisplaced : BSPrim
         }
     }
 
-    public override Quaternion ForceOrientation
-    {
-        get { return base.ForceOrientation; }
-        set
-        {
-            // Changing orientation also changes the position of the center-of-mass since
-            //    the orientation passed is for a rotation around the root prim's center.
-            base.ForceOrientation = value;
-        }
-    }
-
-    // TODO: decide if this is the right place for these variables.
-    //     Somehow incorporate the optional settability by the user.
-    // Is this used?
+    // These are also overridden by BSPrimLinkable if the prim can be part of a linkset
     public override OMV.Vector3 CenterOfMass
     {
         get { return RawPosition; }
     }
 
-    // Is this used?
     public override OMV.Vector3 GeometricCenter
     {
         get { return RawPosition; }
@@ -151,18 +137,17 @@ public class BSPrimDisplaced : BSPrim
     public override void UpdateProperties(EntityProperties entprop)
     {
         // Undo any center-of-mass displacement that might have been done.
-        if (PositionDisplacement != OMV.Vector3.Zero || OrientationDisplacement != OMV.Quaternion.Identity)
+        if (PositionDisplacement != OMV.Vector3.Zero)
         {
-            // The origional shape was offset from 'zero' by PositionDisplacement and rotated by OrientationDisplacement.
-            // These physical locations and rotation must be back converted to be centered around the displaced
+            // The origional shape was offset from 'zero' by PositionDisplacement.
+            // These physical location must be back converted to be centered around the displaced
             //     root shape.
 
             // The root position is the reported position displaced by the rotated displacement.
-            OMV.Vector3 displacedPos = entprop.Position + (PositionDisplacement * (entprop.Rotation * OrientationDisplacementOrigInv));
-            
-            DetailLog("{0},BSPrimDisplaced.ForcePosition,physPos={1},disp={2},newPos={3}", LocalID, entprop.Position, PositionDisplacement, displacedPos);
+            OMV.Vector3 displacedPos = entprop.Position + (PositionDisplacement * entprop.Rotation);
+            DetailLog("{0},BSPrimDisplaced.UpdateProperties,physPos={1},disp={2},newPos={3}",
+                                    LocalID, entprop.Position, PositionDisplacement, displacedPos);
             entprop.Position = displacedPos;
-            // entprop.Rotation = something;
         }
 
         base.UpdateProperties(entprop);

@@ -35,62 +35,6 @@ using OMV = OpenMetaverse;
 namespace OpenSim.Region.Physics.BulletSPlugin
 {
 
-    /*
-// When a child is linked, the relationship position of the child to the parent
-//    is remembered so the child's world position can be recomputed when it is
-//    removed from the linkset.
-sealed class BSLinksetCompoundInfo : BSLinksetInfo
-{
-    public int Index;
-    public OMV.Vector3 OffsetFromRoot;
-    public OMV.Vector3 OffsetFromCenterOfMass;
-    public OMV.Quaternion OffsetRot;
-    public BSLinksetCompoundInfo(int indx, OMV.Vector3 p, OMV.Quaternion r)
-    {
-        Index = indx;
-        OffsetFromRoot = p;
-        OffsetFromCenterOfMass = p;
-        OffsetRot = r;
-    }
-    // 'centerDisplacement' is the distance from the root the the center-of-mass (Bullet 'zero' of the shape)
-    public BSLinksetCompoundInfo(int indx, BSPrimLinkable root, BSPrimLinkable child, OMV.Vector3 centerDisplacement)
-    {
-        // Each child position and rotation is given relative to the center-of-mass.
-        OMV.Quaternion invRootOrientation = OMV.Quaternion.Inverse(root.RawOrientation);
-        OMV.Vector3 displacementFromRoot = (child.RawPosition - root.RawPosition) * invRootOrientation;
-        OMV.Vector3 displacementFromCOM = displacementFromRoot - centerDisplacement;
-        OMV.Quaternion displacementRot = child.RawOrientation * invRootOrientation;
-
-        // Save relative position for recomputing child's world position after moving linkset.
-        Index = indx;
-        OffsetFromRoot = displacementFromRoot;
-        OffsetFromCenterOfMass = displacementFromCOM;
-        OffsetRot = displacementRot;
-    }
-    public override void Clear()
-    {
-        Index = 0;
-        OffsetFromRoot = OMV.Vector3.Zero;
-        OffsetFromCenterOfMass = OMV.Vector3.Zero;
-        OffsetRot = OMV.Quaternion.Identity;
-    }
-    public override string ToString()
-    {
-        StringBuilder buff = new StringBuilder();
-        buff.Append("<i=");
-        buff.Append(Index.ToString());
-        buff.Append(",p=");
-        buff.Append(OffsetFromRoot.ToString());
-        buff.Append(",m=");
-        buff.Append(OffsetFromCenterOfMass.ToString());
-        buff.Append(",r=");
-        buff.Append(OffsetRot.ToString());
-        buff.Append(">");
-        return buff.ToString();
-    }
-};
-     */
-
 public sealed class BSLinksetCompound : BSLinkset
 {
     private static string LogHeader = "[BULLETSIM LINKSET COMPOUND]";
@@ -151,7 +95,9 @@ public sealed class BSLinksetCompound : BSLinkset
     public override bool MakeStatic(BSPrimLinkable child)
     {
         bool ret = false;
+
         DetailLog("{0},BSLinksetCompound.MakeStatic,call,IsRoot={1}", child.LocalID, IsRoot(child));
+        child.ClearDisplacement();
         if (IsRoot(child))
         {
             // Schedule a rebuild to verify that the root shape is set to the real shape.
@@ -364,16 +310,28 @@ public sealed class BSLinksetCompound : BSLinkset
             int memberIndex = 1;
             ForEachMember(delegate(BSPrimLinkable cPrim)
             {
-                // Root shape is always index zero.
-                cPrim.LinksetChildIndex = IsRoot(cPrim) ? 0 : memberIndex;
+                if (IsRoot(cPrim))
+                {
+                    // Root shape is always index zero.
+                    cPrim.LinksetChildIndex = 0;
+                }
+                else
+                {
+                    cPrim.LinksetChildIndex = memberIndex;
+                    memberIndex++;
+                }
 
                 // Get a reference to the shape of the child and add that shape to the linkset compound shape
                 BSShape childShape = cPrim.PhysShape.GetReference(m_physicsScene, cPrim);
+
+                // Offset the child shape from the center-of-mass and rotate it to vehicle relative
                 OMV.Vector3 offsetPos = (cPrim.RawPosition - LinksetRoot.RawPosition) * invRootOrientation - centerDisplacementV;
                 OMV.Quaternion offsetRot = OMV.Quaternion.Normalize(cPrim.RawOrientation) * invRootOrientation;
+
+                // Add the child shape to the compound shape being built
                 m_physicsScene.PE.AddChildShapeToCompoundShape(linksetShape.physShapeInfo, childShape.physShapeInfo, offsetPos, offsetRot);
                 DetailLog("{0},BSLinksetCompound.RecomputeLinksetCompound,addChild,indx={1},cShape={2},offPos={3},offRot={4}",
-                                    LinksetRoot.LocalID, memberIndex, childShape, offsetPos, offsetRot);
+                                    LinksetRoot.LocalID, cPrim.LinksetChildIndex, childShape, offsetPos, offsetRot);
 
                 // Since we are borrowing the shape of the child, disable the origional child body
                 if (!IsRoot(cPrim))
@@ -384,8 +342,6 @@ public sealed class BSLinksetCompound : BSLinkset
                     m_physicsScene.PE.RemoveFromCollisionFlags(cPrim.PhysBody, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
                     cPrim.PhysBody.collisionType = CollisionType.LinksetChild;
                 }
-
-                memberIndex++;
 
                 return false;   // 'false' says to move onto the next child in the list
             });

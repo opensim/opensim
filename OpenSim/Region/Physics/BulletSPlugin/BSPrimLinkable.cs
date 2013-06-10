@@ -134,6 +134,16 @@ public class BSPrimLinkable : BSPrimDisplaced
         get { return Linkset.LinksetMass; }
     }
 
+    public override OMV.Vector3 CenterOfMass
+    {
+        get { return Linkset.CenterOfMass; }
+    }
+
+    public override OMV.Vector3 GeometricCenter
+    {
+        get { return Linkset.GeometricCenter; }
+    }
+
     // Refresh the linkset structure and parameters when the prim's physical parameters are changed.
     public override void UpdatePhysicalParameters()
     {
