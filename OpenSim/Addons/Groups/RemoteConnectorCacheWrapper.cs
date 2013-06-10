@@ -209,13 +209,10 @@ namespace OpenSim.Groups
         public void SetAgentActiveGroup(string AgentID, GroupMembershipDelegate d)
         {
             GroupMembershipData activeGroup = d();
-            if (activeGroup != null)
-            {
-                string cacheKey = "active-" + AgentID.ToString();
-                lock (m_Cache)
-                    if (m_Cache.Contains(cacheKey))
-                        m_Cache.AddOrUpdate(cacheKey, activeGroup, GROUPS_CACHE_TIMEOUT);
-            }
+            string cacheKey = "active-" + AgentID.ToString();
+            lock (m_Cache)
+                if (m_Cache.Contains(cacheKey))
+                    m_Cache.AddOrUpdate(cacheKey, activeGroup, GROUPS_CACHE_TIMEOUT);
         }
 
         public ExtendedGroupMembershipData GetAgentActiveMembership(string AgentID, GroupMembershipDelegate d)
