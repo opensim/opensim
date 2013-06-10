@@ -182,7 +182,10 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                         "POST", m_RestURL + "/RetrieveMessages/", client.AgentId);
 
                 if (msglist == null)
+                {
                     m_log.WarnFormat("[OFFLINE MESSAGING]: WARNING null message list.");
+                    return;
+                }
 
                 foreach (GridInstantMessage im in msglist)
                 {
