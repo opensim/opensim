@@ -2,11 +2,6 @@ CURRENT PROBLEMS TO FIX AND/OR LOOK AT
 =================================================
 Script changing rotation of child prim while vehicle moving (eg turning wheel) causes
 	the wheel to appear to jump back. Looks like sending position from previous update.
-Vehicle ride, get up, ride again. Second time vehicle does not act correctly.
-	Have to rez new vehicle and delete the old to fix situation.
-Hitting RESET on Nebadon's vehicle while riding causes vehicle to get into odd
-	position state where it will not settle onto ground properly, etc
-Two of Nebadon vehicles in a sim max the CPU. This is new.
 Enable vehicle border crossings (at least as poorly as ODE)
 	Terrain skirts
 	Avatar created in previous region and not new region when crossing border
@@ -23,24 +18,17 @@ vehicle angular banking
 Center-of-gravity
 Vehicle angular deflection
 	Preferred orientation angular correction fix
-when should angular and linear motor targets be zeroed? when selected?
-	Need a vehicle.clear()? Or an 'else' in prestep if not physical.
 Teravus llMoveToTarget script debug
 	Mixing of hover, buoyancy/gravity, moveToTarget, into one force
 	Setting hover height to zero disables hover even if hover flags are on (from SL wiki)
 limitMotorUp calibration (more down?)
 llRotLookAt
 llLookAt
-Avatars walking up stairs (HALF DONE)
-Avatar movement
-	flying into a wall doesn't stop avatar who keeps appearing to move through the obstacle (DONE)
-	walking up stairs is not calibrated correctly (stairs out of Kepler cabin) (DONE)
-	avatar capsule rotation completed (NOT DONE - Bullet's capsule shape is not the solution)
+Convert to avatar mesh capsule. Include rotation of capsule.
 Vehicle script tuning/debugging
 	Avanti speed script
 	Weapon shooter script
 Move material definitions (friction, ...) into simulator.
-Add material densities to the material types.
 One sided meshes? Should terrain be built into a closed shape?
 	When meshes get partially wedged into the terrain, they cannot push themselves out.
 	It is possible that Bullet processes collisions whether entering or leaving a mesh.
@@ -53,12 +41,8 @@ LINEAR_MOTOR_DIRECTION values should be clamped to reasonable numbers.
 	Same for other velocity settings.
 UBit improvements to remove rubber-banding of avatars sitting on vehicle child prims:
 	https://github.com/UbitUmarov/Ubit-opensim
-Border crossing with linked vehicle causes crash
-	20121129.1411: editting/moving phys object across region boundries causes crash
-	    getPos-> btRigidBody::upcast -> getBodyType -> BOOM
 Vehicles (Move smoothly)
 Some vehicles should not be able to turn if no speed or off ground.
-What to do if vehicle and prim buoyancy differ?
 Cannot edit/move a vehicle being ridden: it jumps back to the origional position.
 Neb car jiggling left and right
 	Happens on terrain and any other mesh object. Flat cubes are much smoother.
@@ -68,8 +52,6 @@ For limitMotorUp, use raycast down to find if vehicle is in the air.
 Verify llGetVel() is returning a smooth and good value for vehicle movement.
 llGetVel() should return the root's velocity if requested in a child prim.
 Implement function efficiency for lineaar and angular motion.
-After getting off a vehicle, the root prim is phantom (can be walked through)
-    Need to force a position update for the root prim after compound shape destruction
 Linkset explosion after three "rides" on Nebadon lite vehicle (LinksetConstraint)
 Remove vehicle angular velocity zeroing in BSPrim.UpdateProperties().
 	A kludge that isn't fixing the real problem of Bullet adding extra motion.
@@ -78,11 +60,10 @@ Incorporate inter-relationship of angular corrections. For instance, angularDefl
 	creates over-correction and over-shoot and wabbling.
 Vehicle attributes are not restored when a vehicle is rezzed on region creation
 	Create vehicle, setup vehicle properties, restart region, vehicle is not reinitialized.
+What to do if vehicle and prim buoyancy differ?
 
 GENERAL TODO LIST:
 =================================================
-Explore btGImpactMeshShape as alternative to convex hulls for simplified physical objects.
-	Regular triangle meshes don't do physical collisions.
 Resitution of a prim works on another prim but not on terrain.
 	The dropped prim doesn't bounce properly on the terrain.
 Add a sanity check for PIDTarget location.
@@ -359,4 +340,25 @@ Lock axis (DONE 20130401)
 Terrain detail: double terrain mesh detail (DONE)
 Use the HACD convex hull routine in Bullet rather than the C# version.	
 	Speed up hullifying large meshes. (DONE)
+Vehicle ride, get up, ride again. Second time vehicle does not act correctly.
+	Have to rez new vehicle and delete the old to fix situation.
+	(DONE 20130520: normalize rotations)
+Hitting RESET on Nebadon's vehicle while riding causes vehicle to get into odd
+	position state where it will not settle onto ground properly, etc
+	(DONE 20130520: normalize rotations)
+Two of Nebadon vehicles in a sim max the CPU. This is new.
+	(DONE 20130520: two problems: if asset failed to mesh, constantly refetched
+	asset; vehicle was sending too many messages to all linkset members)
+Add material densities to the material types. (WILL NOT BE DONE: not how it is done)
+Avatars walking up stairs (DONE)
+Avatar movement
+	flying into a wall doesn't stop avatar who keeps appearing to move through the obstacle (DONE)
+	walking up stairs is not calibrated correctly (stairs out of Kepler cabin) (DONE)
+	avatar capsule rotation completed (NOT DONE - Bullet's capsule shape is not the solution)
+After getting off a vehicle, the root prim is phantom (can be walked through)
+    Need to force a position update for the root prim after compound shape destruction
+	(DONE)
+Explore btGImpactMeshShape as alternative to convex hulls for simplified physical objects.
+	Regular triangle meshes don't do physical collisions.
+	(DONE: discovered GImpact is VERY CPU intensive)
 

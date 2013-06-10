@@ -249,7 +249,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         TerrainManager.CreateInitialGroundPlaneAndTerrain();
 
         // Put some informational messages into the log file.
-        m_log.WarnFormat("{0} Linksets implemented with {1}", LogHeader, (BSLinkset.LinksetImplementation)BSParam.LinksetImplementation);
+        m_log.InfoFormat("{0} Linksets implemented with {1}", LogHeader, (BSLinkset.LinksetImplementation)BSParam.LinksetImplementation);
 
         InTaintTime = false;
         m_initialized = true;
@@ -374,7 +374,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         }
         else
         {
-            m_log.WarnFormat("{0} Selected bullet engine {1} -> {2}/{3}", LogHeader, engineName, ret.BulletEngineName, ret.BulletEngineVersion);
+            m_log.InfoFormat("{0} Selected bullet engine {1} -> {2}/{3}", LogHeader, engineName, ret.BulletEngineName, ret.BulletEngineVersion);
         }
 
         return ret;
