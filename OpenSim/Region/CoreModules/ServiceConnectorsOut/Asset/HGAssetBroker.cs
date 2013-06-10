@@ -322,7 +322,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
                 // a copy of the local asset.
                 m_Cache.Cache(asset);
 
-            if (asset.Temporary || asset.Local)
+            if (asset.Local)
             {
                 if (m_Cache != null)
                     m_Cache.Cache(asset);
