@@ -1480,6 +1480,73 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.SetFaceColorAlpha(face, color, null);
         }
 
+        public void llSetContentType(LSL_Key id, LSL_Integer type)
+        {
+            m_host.AddScriptLPS(1);
+
+            if (m_UrlModule == null)
+                return;
+
+            // Make sure the content type is text/plain to start with
+            m_UrlModule.HttpContentType(new UUID(id), "text/plain");
+
+            // Is the object owner online and in the region
+            ScenePresence agent = World.GetScenePresence(m_host.ParentGroup.OwnerID);
+            if (agent == null || agent.IsChildAgent)
+                return;  // Fail if the owner is not in the same region
+
+            // Is it the embeded browser?
+            string userAgent = m_UrlModule.GetHttpHeader(new UUID(id), "user-agent");
+            if (userAgent.IndexOf("SecondLife") < 0)
+                return; // Not the embedded browser. Is this check good enough?
+
+            // Use the IP address of the client and check against the request
+            // seperate logins from the same IP will allow all of them to get non-text/plain as long
+            // as the owner is in the region. Same as SL!
+            string logonFromIPAddress = agent.ControllingClient.RemoteEndPoint.Address.ToString();
+            string requestFromIPAddress = m_UrlModule.GetHttpHeader(new UUID(id), "remote_addr");
+            //m_log.Debug("IP from header='" + requestFromIPAddress + "' IP from endpoint='" + logonFromIPAddress + "'");
+            if (requestFromIPAddress == null || requestFromIPAddress.Trim() == "")
+                return;
+            if (logonFromIPAddress == null || logonFromIPAddress.Trim() == "")
+                return;
+
+            // If the request isnt from the same IP address then the request cannot be from the owner
+            if (!requestFromIPAddress.Trim().Equals(logonFromIPAddress.Trim()))
+                return;
+
+            switch (type)
+            {
+                case ScriptBaseClass.CONTENT_TYPE_HTML:
+                    m_UrlModule.HttpContentType(new UUID(id), "text/html");
+                    break;
+                case ScriptBaseClass.CONTENT_TYPE_XML:
+                    m_UrlModule.HttpContentType(new UUID(id), "application/xml");
+                    break;
+                case ScriptBaseClass.CONTENT_TYPE_XHTML:
+                    m_UrlModule.HttpContentType(new UUID(id), "application/xhtml+xml");
+                    break;
+                case ScriptBaseClass.CONTENT_TYPE_ATOM:
+                    m_UrlModule.HttpContentType(new UUID(id), "application/atom+xml");
+                    break;
+                case ScriptBaseClass.CONTENT_TYPE_JSON:
+                    m_UrlModule.HttpContentType(new UUID(id), "application/json");
+                    break;
+                case ScriptBaseClass.CONTENT_TYPE_LLSD:
+                    m_UrlModule.HttpContentType(new UUID(id), "application/llsd+xml");
+                    break;
+                case ScriptBaseClass.CONTENT_TYPE_FORM:
+                    m_UrlModule.HttpContentType(new UUID(id), "application/x-www-form-urlencoded");
+                    break;
+                case ScriptBaseClass.CONTENT_TYPE_RSS:
+                    m_UrlModule.HttpContentType(new UUID(id), "application/rss+xml");
+                    break;
+                default:
+                    m_UrlModule.HttpContentType(new UUID(id), "text/plain");
+                    break;
+            }
+        }
+
         public void SetTexGen(SceneObjectPart part, int face,int style)
         {
             Primitive.TextureEntry tex = part.Shape.Textures;

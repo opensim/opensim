@@ -1528,6 +1528,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_LSL_Functions.llSetColor(color, face);
         }
 
+        public void llSetContentType(LSL_Key id, LSL_Integer type)
+        {
+            m_LSL_Functions.llSetContentType(id, type);
+        }
+
         public void llSetDamage(double damage)
         {
             m_LSL_Functions.llSetDamage(damage);
