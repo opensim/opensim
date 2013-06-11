@@ -1147,7 +1147,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 AttachmentPt &= 0x7f;
 
                 // Calls attach with a Zero position
-                if (AttachObject(sp, part.ParentGroup, AttachmentPt, false, false, false, append))
+                if (AttachObject(sp, part.ParentGroup, AttachmentPt, false, false, true, append))
                 {
                     if (DebugLevel > 0)
                         m_log.Debug(

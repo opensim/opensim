@@ -990,13 +990,20 @@ namespace OpenSim.Region.ClientStack.Linden
                         else
                             prim.Name = assetName + "#" + i.ToString();
 
+                        prim.EveryoneMask = 0;
+                        prim.GroupMask = 0;
+
                         if (restrictPerms)
                         {
                             prim.BaseMask = (uint)(PermissionMask.Move | PermissionMask.Modify);
-                            prim.EveryoneMask = 0;
-                            prim.GroupMask = 0;
-                            prim.NextOwnerMask = 0;
                             prim.OwnerMask = (uint)(PermissionMask.Move | PermissionMask.Modify);
+                            prim.NextOwnerMask = 0;
+                        }
+                        else
+                        {
+                            prim.BaseMask = (uint)PermissionMask.All | (uint)PermissionMask.Export;
+                            prim.OwnerMask = (uint)PermissionMask.All | (uint)PermissionMask.Export;
+                            prim.NextOwnerMask = (uint)PermissionMask.Transfer;
                         }
 
                         if(istest)
@@ -1099,21 +1106,17 @@ namespace OpenSim.Region.ClientStack.Linden
 
             if (restrictPerms)
             {
-                item.CurrentPermissions
-                    = (uint)(PermissionMask.Move | PermissionMask.Modify);
-
                 item.BasePermissions = (uint)(PermissionMask.Move | PermissionMask.Modify);
+                item.CurrentPermissions = (uint)(PermissionMask.Move | PermissionMask.Modify);
                 item.EveryOnePermissions = 0;
                 item.NextPermissions = 0;
             }
             else
             {
-                item.CurrentPermissions
-                    = (uint)(PermissionMask.Move | PermissionMask.Copy | PermissionMask.Modify | PermissionMask.Transfer | PermissionMask.Export);
-
                 item.BasePermissions = (uint)PermissionMask.All | (uint)PermissionMask.Export;
+                item.CurrentPermissions = (uint)PermissionMask.All | (uint)PermissionMask.Export;
                 item.EveryOnePermissions = 0;
-                item.NextPermissions = (uint)PermissionMask.All;
+                item.NextPermissions = (uint)PermissionMask.Transfer;
             }
 
             item.CreationDate = Util.UnixTimeSinceEpoch();
