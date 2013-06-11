@@ -822,7 +822,8 @@ namespace OpenSim.Region.Framework.Scenes
                         }
 
                         // Tell the physics engines that this prim changed.
-                        ParentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(actor);
+                        if (ParentGroup != null && ParentGroup.Scene != null && ParentGroup.Scene.PhysicsScene != null)
+                            ParentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(actor);
                     }
                     catch (Exception e)
                     {
@@ -940,7 +941,7 @@ namespace OpenSim.Region.Framework.Scenes
                             //m_log.Info("[PART]: RO2:" + actor.Orientation.ToString());
                         }
 
-                        if (ParentGroup != null)
+                        if (ParentGroup != null && ParentGroup.Scene != null && ParentGroup.Scene.PhysicsScene != null)
                             ParentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(actor);
                         //}
                     }

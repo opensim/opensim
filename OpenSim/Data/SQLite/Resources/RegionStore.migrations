@@ -592,3 +592,11 @@ ALTER TABLE prims ADD COLUMN `Friction` double NOT NULL default '0.6';
 ALTER TABLE prims ADD COLUMN `Restitution` double NOT NULL default '0.5';
 
 COMMIT;
+
+:VERSION 29       #---------------- Keyframes
+
+BEGIN;
+
+ALTER TABLE prims ADD COLUMN `KeyframeMotion` blob;
+
+COMMIT;

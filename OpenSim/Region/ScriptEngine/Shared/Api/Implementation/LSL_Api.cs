@@ -5136,6 +5136,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             else
             {
                 double invS = 1.0 / s;
+                if (rot.s < 0) invS = -invS;
                 return new LSL_Vector(rot.x * invS, rot.y * invS, rot.z * invS);
             }
         }
@@ -5146,19 +5147,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            if (rot.s > 1) // normalization needed
-            {
-                double length = Math.Sqrt(rot.x * rot.x + rot.y * rot.y +
-                        rot.z * rot.z + rot.s * rot.s);
-
-                rot.x /= length;
-                rot.y /= length;
-                rot.z /= length;
-                rot.s /= length;
-            }
+            if (Math.Abs(rot.s) > 1) // normalization needed
+                rot.Normalize();
 
             double angle = 2 * Math.Acos(rot.s);
-            if ((double.IsNaN(angle)) || double.IsInfinity(angle)) angle = 0;
+            if (angle > Math.PI) 
+                angle = 2 * Math.PI - angle;
+
             return angle;
         }
 
