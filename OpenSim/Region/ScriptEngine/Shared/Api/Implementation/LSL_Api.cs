@@ -4688,19 +4688,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            if (rot.s > 1) // normalization needed
-            {
-                double length = Math.Sqrt(rot.x * rot.x + rot.y * rot.y +
-                        rot.z * rot.z + rot.s * rot.s);
-
-                rot.x /= length;
-                rot.y /= length;
-                rot.z /= length;
-                rot.s /= length;
-            }
+            if (Math.Abs(rot.s) > 1) // normalization needed
+                rot.Normalize();
 
             double angle = 2 * Math.Acos(rot.s);
-            if ((double.IsNaN(angle)) || double.IsInfinity(angle)) angle = 0;
+
             return angle;
         }
 
