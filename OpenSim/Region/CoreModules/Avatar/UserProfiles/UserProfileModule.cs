@@ -130,6 +130,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
 
             if (profileConfig == null)
             {
+                m_log.Debug("[PROFILES]: UserProfiles disabled, no configuration");
                 Enabled = false;
                 return;
             }
@@ -1316,7 +1317,16 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
             Stream rstream = webResponse.GetResponseStream();
 
             OSDMap response = new OSDMap();
-            response = (OSDMap)OSDParser.DeserializeJson(rstream);
+            try
+            {
+                response = (OSDMap)OSDParser.DeserializeJson(rstream);
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[PROFILES]: JsonRpcRequest Error {0} - remote user with legacy profiles?", e.Message);
+                return false;
+            }
+
             if(response.ContainsKey("error"))
             {
                 data = response["error"];

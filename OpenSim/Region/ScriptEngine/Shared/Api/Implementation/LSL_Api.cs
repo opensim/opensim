@@ -5109,6 +5109,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             s = Math.Cos(angle * 0.5);
             t = Math.Sin(angle * 0.5); // temp value to avoid 2 more sin() calcs
+            axis =  LSL_Vector.Norm(axis);
             x = axis.x * t;
             y = axis.y * t;
             z = axis.z * t;
@@ -5149,7 +5150,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 y = rot.y / s;
                 z = rot.z / s;
             }
-
+            if ((double.IsNaN(x)) || double.IsInfinity(x)) x = 0;
+            if ((double.IsNaN(y)) || double.IsInfinity(y)) y = 0;
+            if ((double.IsNaN(z)) || double.IsInfinity(z)) z = 0;
             return new LSL_Vector(x,y,z);
         }
 
@@ -5171,7 +5174,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             double angle = 2 * Math.Acos(rot.s);
-
+            if ((double.IsNaN(angle)) || double.IsInfinity(angle)) angle = 0;
             return angle;
         }
 

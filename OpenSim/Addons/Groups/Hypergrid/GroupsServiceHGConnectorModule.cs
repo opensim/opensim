@@ -684,6 +684,9 @@ namespace OpenSim.Groups
         {
             serviceLocation = string.Empty;
             name = string.Empty;
+            if (groupID.Equals(UUID.Zero))
+                return true;
+
             ExtendedGroupRecord group = m_LocalGroupsConnector.GetGroupRecord(UUID.Zero.ToString(), groupID, string.Empty);
             if (group == null)
             {

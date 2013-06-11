@@ -167,7 +167,7 @@ public abstract class BSShape
         // Prevent trying to keep fetching the mesh by declaring failure.
         if (prim.PrimAssetState == BSPhysObject.PrimAssetCondition.Fetched)
         {
-            prim.PrimAssetState = BSPhysObject.PrimAssetCondition.Failed;
+            prim.PrimAssetState = BSPhysObject.PrimAssetCondition.FailedMeshing;
             physicsScene.Logger.WarnFormat("{0} Fetched asset would not mesh. {1}, texture={2}",
                                             LogHeader, prim.PhysObjectName, prim.BaseShape.SculptTexture);
             physicsScene.DetailLog("{0},BSShape.VerifyMeshCreated,setFailed,objNam={1},tex={2}",
@@ -177,7 +177,8 @@ public abstract class BSShape
         {
             // If this mesh has an underlying asset and we have not failed getting it before, fetch the asset
             if (prim.BaseShape.SculptEntry
-                && prim.PrimAssetState != BSPhysObject.PrimAssetCondition.Failed
+                && prim.PrimAssetState != BSPhysObject.PrimAssetCondition.FailedAssetFetch
+                && prim.PrimAssetState != BSPhysObject.PrimAssetCondition.FailedMeshing
                 && prim.PrimAssetState != BSPhysObject.PrimAssetCondition.Waiting
                 && prim.BaseShape.SculptTexture != OMV.UUID.Zero
                 )
@@ -219,7 +220,7 @@ public abstract class BSShape
                                 }
                                 if (!assetFound)
                                 {
-                                    yprim.PrimAssetState = BSPhysObject.PrimAssetCondition.Failed;
+                                    yprim.PrimAssetState = BSPhysObject.PrimAssetCondition.FailedAssetFetch;
                                 }
                                 physicsScene.DetailLog("{0},BSShape.VerifyMeshCreated,fetchAssetCallback,found={1},isSculpt={2},ids={3}",
                                             yprim.LocalID, assetFound, yprim.BaseShape.SculptEntry, mismatchIDs );
@@ -227,7 +228,7 @@ public abstract class BSShape
                         }
                         else
                         {
-                            xprim.PrimAssetState = BSPhysObject.PrimAssetCondition.Failed;
+                            xprim.PrimAssetState = BSPhysObject.PrimAssetCondition.FailedAssetFetch;
                             physicsScene.Logger.ErrorFormat("{0} Physical object requires asset but no asset provider. Name={1}",
                                                         LogHeader, physicsScene.Name);
                         }
@@ -235,11 +236,18 @@ public abstract class BSShape
             }
             else
             {
-                if (prim.PrimAssetState == BSPhysObject.PrimAssetCondition.Failed)
+                if (prim.PrimAssetState == BSPhysObject.PrimAssetCondition.FailedAssetFetch)
                 {
                     physicsScene.Logger.WarnFormat("{0} Mesh failed to fetch asset. obj={1}, texture={2}",
                                                 LogHeader, prim.PhysObjectName, prim.BaseShape.SculptTexture);
                     physicsScene.DetailLog("{0},BSShape.VerifyMeshCreated,wasFailed,objNam={1},tex={2}",
+                                                prim.LocalID, prim.PhysObjectName, prim.BaseShape.SculptTexture);
+                }
+                if (prim.PrimAssetState == BSPhysObject.PrimAssetCondition.FailedMeshing)
+                {
+                    physicsScene.Logger.WarnFormat("{0} Mesh asset would not mesh. obj={1}, texture={2}",
+                                                LogHeader, prim.PhysObjectName, prim.BaseShape.SculptTexture);
+                    physicsScene.DetailLog("{0},BSShape.VerifyMeshCreated,wasFailedMeshing,objNam={1},tex={2}",
                                                 prim.LocalID, prim.PhysObjectName, prim.BaseShape.SculptTexture);
                 }
             }
@@ -374,7 +382,9 @@ public class BSShapeMesh : BSShape
 
                 // Check to see if mesh was created (might require an asset).
                 newShape = VerifyMeshCreated(physicsScene, newShape, prim);
-                if (!newShape.isNativeShape || prim.PrimAssetState == BSPhysObject.PrimAssetCondition.Failed)
+                if (!newShape.isNativeShape
+                            || prim.PrimAssetState == BSPhysObject.PrimAssetCondition.FailedMeshing
+                            || prim.PrimAssetState == BSPhysObject.PrimAssetCondition.FailedAssetFetch)
                 {
                     // If a mesh was what was created, remember the built shape for later sharing.
                     // Also note that if meshing failed we put it in the mesh list as there is nothing else to do about the mesh.
@@ -519,7 +529,7 @@ public class BSShapeMesh : BSShape
             else
             {
                 // Force the asset condition to 'failed' so we won't try to keep fetching and processing this mesh.
-                prim.PrimAssetState = BSPhysObject.PrimAssetCondition.Failed;
+                prim.PrimAssetState = BSPhysObject.PrimAssetCondition.FailedMeshing;
                 physicsScene.Logger.DebugFormat("{0} All mesh triangles degenerate. Prim {1} at {2} in {3}",
                                     LogHeader, prim.PhysObjectName, prim.RawPosition, physicsScene.Name);
                 physicsScene.DetailLog("{0},BSShapeMesh.CreatePhysicalMesh,allDegenerate,key={1}", prim.LocalID, newMeshKey);
@@ -561,7 +571,9 @@ public class BSShapeHull : BSShape
 
                 // Check to see if hull was created (might require an asset).
                 newShape = VerifyMeshCreated(physicsScene, newShape, prim);
-                if (!newShape.isNativeShape || prim.PrimAssetState == BSPhysObject.PrimAssetCondition.Failed)
+                if (!newShape.isNativeShape
+                            || prim.PrimAssetState == BSPhysObject.PrimAssetCondition.FailedMeshing
+                            || prim.PrimAssetState == BSPhysObject.PrimAssetCondition.FailedAssetFetch)
                 {
                     // If a mesh was what was created, remember the built shape for later sharing.
                     Hulls.Add(newHullKey, retHull);
@@ -1081,10 +1093,13 @@ public class BSShapeGImpact : BSShape
                 // Check to see if mesh was created (might require an asset).
                 newShape = VerifyMeshCreated(physicsScene, newShape, prim);
                 newShape.shapeKey = newMeshKey;
-                if (!newShape.isNativeShape || prim.PrimAssetState == BSPhysObject.PrimAssetCondition.Failed)
+                if (!newShape.isNativeShape 
+                            || prim.PrimAssetState == BSPhysObject.PrimAssetCondition.FailedMeshing
+                            || prim.PrimAssetState == BSPhysObject.PrimAssetCondition.FailedAssetFetch)
                 {
                     // If a mesh was what was created, remember the built shape for later sharing.
-                    // Also note that if meshing failed we put it in the mesh list as there is nothing else to do about the mesh.
+                    // Also note that if meshing failed we put it in the mesh list as there is nothing
+                    //         else to do about the mesh.
                     GImpacts.Add(newMeshKey, retGImpact);
                 }
 

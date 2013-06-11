@@ -371,6 +371,31 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             #endregion
 
+            #region Methods
+            public Quaternion Normalize()
+            {
+                double length = Math.Sqrt(x * x + y * y + z * z + s * s);
+                if (length < float.Epsilon)
+                {
+                    x = 1;
+                    y = 0;
+                    z = 0;
+                    s = 0;
+                }
+                else
+                {
+
+                    double invLength = 1.0 / length;
+                    x *= invLength;
+                    y *= invLength;
+                    z *= invLength;
+                    s *= invLength;
+                }
+
+                return this;
+            }
+            #endregion
+
             #region Overriders
 
             public override int GetHashCode()

@@ -148,7 +148,7 @@ public abstract class BSPhysObject : PhysicsActor
     // The asset state is first 'Unknown' then 'Waiting' then either 'Failed' or 'Fetched'.
     public enum PrimAssetCondition
     {
-        Unknown, Waiting, Failed, Fetched
+        Unknown, Waiting, FailedAssetFetch, FailedMeshing, Fetched
     }
     public PrimAssetCondition PrimAssetState { get; set; }
 

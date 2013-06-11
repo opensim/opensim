@@ -93,7 +93,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset.Tests
             LocalAssetServicesConnector lasc = new LocalAssetServicesConnector();
             lasc.Initialise(config);
 
+            // If it is local, it should not be stored
             AssetBase a1 = AssetHelpers.CreateNotecardAsset();
+            a1.Local = true;
             a1.Temporary = true;
 
             lasc.Store(a1);
@@ -101,6 +103,24 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset.Tests
             Assert.That(lasc.Get(a1.ID), Is.Null);
             Assert.That(lasc.GetData(a1.ID), Is.Null);
             Assert.That(lasc.GetMetadata(a1.ID), Is.Null);
+
+            // If it is remote, it should be stored
+            // AssetBase a2 = AssetHelpers.CreateNotecardAsset();
+            // a2.Local = false;
+            // a2.Temporary = true;
+
+            // lasc.Store(a2);
+
+            // AssetBase retreivedA2 = lasc.Get(a2.ID);
+            // Assert.That(retreivedA2.ID, Is.EqualTo(a2.ID));
+            // Assert.That(retreivedA2.Metadata.ID, Is.EqualTo(a2.Metadata.ID));
+            // Assert.That(retreivedA2.Data.Length, Is.EqualTo(a2.Data.Length));
+
+            // AssetMetadata retrievedA2Metadata = lasc.GetMetadata(a2.ID);
+            // Assert.That(retrievedA2Metadata.ID, Is.EqualTo(a2.ID));
+
+            // byte[] retrievedA2Data = lasc.GetData(a2.ID);
+            // Assert.That(retrievedA2Data.Length, Is.EqualTo(a2.Data.Length));
 
             // TODO: Add cache and check that this does receive a copy of the asset
         }
