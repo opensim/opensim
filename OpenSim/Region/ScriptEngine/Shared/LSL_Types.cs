@@ -377,10 +377,10 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 double length = Math.Sqrt(x * x + y * y + z * z + s * s);
                 if (length < float.Epsilon)
                 {
-                    x = 1;
+                    x = 0;
                     y = 0;
                     z = 0;
-                    s = 0;
+                    s = 1;
                 }
                 else
                 {
