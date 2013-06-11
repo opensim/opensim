@@ -5123,37 +5123,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Vector llRot2Axis(LSL_Rotation rot)
         {
             m_host.AddScriptLPS(1);
-            double x,y,z;
+            double x, y, z;
 
-            if (rot.s > 1) // normalization needed
-            {
-                double length = Math.Sqrt(rot.x * rot.x + rot.y * rot.y +
-                        rot.z * rot.z + rot.s * rot.s);
+            if (Math.Abs(rot.s) > 1) // normalization needed
+                rot.Normalize();
 
-                rot.x /= length;
-                rot.y /= length;
-                rot.z /= length;
-                rot.s /= length;
-
-            }
-
-            // double angle = 2 * Math.Acos(rot.s);
             double s = Math.Sqrt(1 - rot.s * rot.s);
             if (s < 0.001)
             {
-                x = 1;
-                y = z = 0;
+                return new LSL_Vector(1, 0, 0);
             }
             else
             {
-                x = rot.x / s; // normalise axis
-                y = rot.y / s;
-                z = rot.z / s;
+                double invS = 1.0 / s;
+                return new LSL_Vector(rot.x * invS, rot.y * invS, rot.z * invS);
             }
-            if ((double.IsNaN(x)) || double.IsInfinity(x)) x = 0;
-            if ((double.IsNaN(y)) || double.IsInfinity(y)) y = 0;
-            if ((double.IsNaN(z)) || double.IsInfinity(z)) z = 0;
-            return new LSL_Vector(x,y,z);
         }
 
 
