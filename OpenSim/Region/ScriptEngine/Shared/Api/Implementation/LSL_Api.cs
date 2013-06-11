@@ -4665,35 +4665,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Vector llRot2Axis(LSL_Rotation rot)
         {
             m_host.AddScriptLPS(1);
-            double x,y,z;
+            double x, y, z;
 
-            if (rot.s > 1) // normalization needed
-            {
-                double length = Math.Sqrt(rot.x * rot.x + rot.y * rot.y +
-                        rot.z * rot.z + rot.s * rot.s);
+            if (Math.Abs(rot.s) > 1) // normalization needed
+                rot.Normalize();
 
-                rot.x /= length;
-                rot.y /= length;
-                rot.z /= length;
-                rot.s /= length;
-
-            }
-
-            // double angle = 2 * Math.Acos(rot.s);
             double s = Math.Sqrt(1 - rot.s * rot.s);
             if (s < 0.001)
             {
-                x = 1;
-                y = z = 0;
+                return new LSL_Vector(1, 0, 0);
             }
             else
             {
-                x = rot.x / s; // normalise axis
-                y = rot.y / s;
-                z = rot.z / s;
+                double invS = 1.0 / s;
+                if (rot.s < 0) invS = -invS;
+                return new LSL_Vector(rot.x * invS, rot.y * invS, rot.z * invS);
             }
-
-            return new LSL_Vector(x,y,z);
         }
 
 
@@ -4702,18 +4689,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            if (rot.s > 1) // normalization needed
-            {
-                double length = Math.Sqrt(rot.x * rot.x + rot.y * rot.y +
-                        rot.z * rot.z + rot.s * rot.s);
-
-                rot.x /= length;
-                rot.y /= length;
-                rot.z /= length;
-                rot.s /= length;
-            }
+            if (Math.Abs(rot.s) > 1) // normalization needed
+                rot.Normalize();
 
             double angle = 2 * Math.Acos(rot.s);
+            if (angle > Math.PI) 
+                angle = 2 * Math.PI - angle;
 
             return angle;
         }

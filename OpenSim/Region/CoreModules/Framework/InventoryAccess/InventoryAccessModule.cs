@@ -260,7 +260,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                         return UUID.Zero;
                     }
 
-                    remoteClient.SendAgentAlertMessage("Notecard saved", false);
+                    remoteClient.SendAlertMessage("Notecard saved");
                 }
                 else if ((InventoryType)item.InvType == InventoryType.LSL)
                 {
@@ -270,7 +270,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                         return UUID.Zero;
                     }
 
-                    remoteClient.SendAgentAlertMessage("Script saved", false);
+                    remoteClient.SendAlertMessage("Script saved");
                 }
 
                 AssetBase asset =
