@@ -125,11 +125,10 @@ namespace OpenSim.Framework
             Animation other = obj as Animation;
             if (other != null)
             {
-                return (other.AnimID == this.AnimID
+                return (other.AnimID.Equals(this.AnimID)
                         && other.SequenceNum == this.SequenceNum
-                        && other.ObjectID == this.ObjectID);
+                        && other.ObjectID.Equals(this.ObjectID) );
             }
-
             return base.Equals(obj);
         }
 
