@@ -274,6 +274,9 @@ MapGetServiceConnector = "8002/OpenSim.Server.Handlers.dll:MapGetServiceConnecto
     ; Ask co-operative viewers to use a different currency name
     ;Currency = ""
 
+    ;; Minimum fee for creation of classified 
+    ; ClassifiedFee = 0
+
     WelcomeMessage = "Welcome, Avatar!"
     AllowRemoteSetLoginLevel = "false"
 
@@ -392,6 +395,9 @@ MapGetServiceConnector = "8002/OpenSim.Server.Handlers.dll:MapGetServiceConnecto
 
     ; password help: optional: page providing password assistance for users of your grid
     ;password = http://127.0.0.1/password
+
+    ;; Minimum fee to publish classified add
+    ;  ClassifiedFee = 0
 
 [UserProfilesService]
     LocalServiceModule = "OpenSim.Services.UserProfilesService.dll:UserProfilesService"
