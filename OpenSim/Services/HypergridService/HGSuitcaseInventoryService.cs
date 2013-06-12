@@ -115,6 +115,12 @@ namespace OpenSim.Services.HypergridService
         {
             XInventoryFolder suitcase = GetSuitcaseXFolder(principalID);
 
+            if (suitcase == null)
+            {
+                m_log.WarnFormat("[HG SUITCASE INVENTORY SERVICE]: Found no suitcase folder for user {0} when looking for inventory skeleton", principalID);
+                return null;
+            }
+
             List<XInventoryFolder> tree = GetFolderTree(principalID, suitcase.folderID);
             if (tree == null || (tree != null && tree.Count == 0))
                 return null;
@@ -134,12 +140,19 @@ namespace OpenSim.Services.HypergridService
         public override InventoryCollection GetUserInventory(UUID userID)
         {
             m_log.DebugFormat("[HG SUITCASE INVENTORY SERVICE]: Get Suitcase inventory for user {0}", userID);
+
             InventoryCollection userInventory = new InventoryCollection();
             userInventory.UserID = userID;
             userInventory.Folders = new List<InventoryFolderBase>();
             userInventory.Items = new List<InventoryItemBase>();
 
             XInventoryFolder suitcase = GetSuitcaseXFolder(userID);
+
+            if (suitcase == null)
+            {
+                m_log.WarnFormat("[HG SUITCASE INVENTORY SERVICE]: Found no suitcase folder for user {0} when looking for user inventory", userID);
+                return null;
+            }
 
             List<XInventoryFolder> tree = GetFolderTree(userID, suitcase.folderID);
             if (tree == null || (tree != null && tree.Count == 0))
@@ -182,7 +195,8 @@ namespace OpenSim.Services.HypergridService
             m_log.DebugFormat("[HG SUITCASE INVENTORY SERVICE]: GetRootFolder for {0}", principalID);
 
             // Let's find out the local root folder
-            XInventoryFolder root = GetRootXFolder(principalID); ;
+            XInventoryFolder root = GetRootXFolder(principalID);
+
             if (root == null)
             {
                 m_log.WarnFormat("[HG SUITCASE INVENTORY SERVICE]: Unable to retrieve local root folder for user {0}", principalID);
@@ -255,6 +269,13 @@ namespace OpenSim.Services.HypergridService
         {
             //m_log.DebugFormat("[HG INVENTORY SERVICE]: GetFolderForType for {0} {0}", principalID, type);
             XInventoryFolder suitcase = GetSuitcaseXFolder(principalID);
+
+            if (suitcase == null)
+            {
+                m_log.WarnFormat("[HG SUITCASE INVENTORY SERVICE]: Found no suitcase folder for user {0} when looking for child type folder {1}", principalID, type);
+                return null;
+            }
+
             XInventoryFolder[] folders = m_Database.GetFolders(
                     new string[] { "agentID", "type", "parentFolderID" },
                     new string[] { principalID.ToString(), ((int)type).ToString(), suitcase.folderID.ToString() });
@@ -546,6 +567,7 @@ namespace OpenSim.Services.HypergridService
         private bool IsWithinSuitcaseTree(UUID principalID, UUID folderID)
         {
             XInventoryFolder suitcase = GetSuitcaseXFolder(principalID);
+
             if (suitcase == null)
             {
                 m_log.WarnFormat("[HG SUITCASE INVENTORY SERVICE]: User {0} does not have a Suitcase folder", principalID);
