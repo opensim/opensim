@@ -222,9 +222,6 @@
     ; this is the entry point for all user-related HG services
     ; uas = http://127.0.0.1:9000/
 
-    ;; Minimum fee to publish classified add
-    ;  ClassifiedFee = 0
-
 [MapImageService]
 	; Set this if you want to change the default
 	; TilesStoragePath = "maptiles"

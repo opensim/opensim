@@ -1,4 +1,4 @@
-i * Run
+; * Run
 ; * $ Robust.exe -inifile Robust.HG.ini
 ; *
 
@@ -311,9 +311,6 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
     ;; Ask co-operative viewers to use a different currency name
     ;Currency = ""
 
-    ;; Minimum fee for creation of classified 
-    ; ClassifiedFee = 0
-
     WelcomeMessage = "Welcome, Avatar!"
     AllowRemoteSetLoginLevel = "false"
 
@@ -438,9 +435,6 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
     ; HG user domain, if you have one
     ; this is the entry point for all user-related HG services
     ; uas = http://127.0.0.1:8002/
-
-    ;; Minimum fee to publish classified add
-    ;  ClassifiedFee = 0
 
 [GatekeeperService]
     LocalServiceModule = "OpenSim.Services.HypergridService.dll:GatekeeperService"
