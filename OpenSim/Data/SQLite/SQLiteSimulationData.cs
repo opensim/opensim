@@ -732,11 +732,12 @@ namespace OpenSim.Data.SQLite
                             }
 
                             SceneObjectGroup group = new SceneObjectGroup(prim);
-                            if (prim.KeyframeMotion != null)
-                                prim.KeyframeMotion.UpdateSceneObject(group);
+                            
                             createdObjects.Add(group.UUID, group);
                             retvals.Add(group);
                             LoadItems(prim);
+
+                           
                         }
                     }
                     catch (Exception e)
