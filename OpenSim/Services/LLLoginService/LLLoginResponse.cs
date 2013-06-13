@@ -190,6 +190,7 @@ namespace OpenSim.Services.LLLoginService
         private BuddyList m_buddyList = null;
 
         private string currency;
+        private string classifiedFee;
 
         static LLLoginResponse()
         {
@@ -227,7 +228,7 @@ namespace OpenSim.Services.LLLoginService
             GridRegion destination, List<InventoryFolderBase> invSkel, FriendInfo[] friendsList, ILibraryService libService,
             string where, string startlocation, Vector3 position, Vector3 lookAt, List<InventoryItemBase> gestures, string message,
             GridRegion home, IPEndPoint clientIP, string mapTileURL, string profileURL, string openIDURL, string searchURL, string currency,
-            string DSTZone, string destinationsURL, string avatarsURL)
+            string DSTZone, string destinationsURL, string avatarsURL, string classifiedFee)
             : this()
         {
             FillOutInventoryData(invSkel, libService);
@@ -251,6 +252,8 @@ namespace OpenSim.Services.LLLoginService
 
             SearchURL = searchURL;
             Currency = currency;
+            ClassifiedFee = classifiedFee;
+
 
             FillOutHomeData(pinfo, home);
             LookAt = String.Format("[r{0},r{1},r{2}]", lookAt.X, lookAt.Y, lookAt.Z);
@@ -463,6 +466,7 @@ namespace OpenSim.Services.LLLoginService
             searchURL = String.Empty;
 
             currency = String.Empty;
+            ClassifiedFee = "0";
         }
 
 
@@ -555,6 +559,9 @@ namespace OpenSim.Services.LLLoginService
                     // responseData["real_currency"] = currency;
                     responseData["currency"] = currency;
                 }
+                
+                if (ClassifiedFee != String.Empty)
+                    responseData["classified_fee"] = ClassifiedFee;
 
                 responseData["login"] = "true";
 
@@ -658,6 +665,9 @@ namespace OpenSim.Services.LLLoginService
 
                 if (searchURL != String.Empty)
                     map["search"] = OSD.FromString(searchURL);
+
+                if (ClassifiedFee != String.Empty)
+                    map["classified_fee"] = OSD.FromString(ClassifiedFee);
 
                 if (m_buddyList != null)
                 {
@@ -1062,6 +1072,12 @@ namespace OpenSim.Services.LLLoginService
         {
             get { return currency; }
             set { currency = value; }
+        }
+
+        public string ClassifiedFee
+        {
+            get { return classifiedFee; }
+            set { classifiedFee = value; }
         }
 
         public string DestinationsURL
