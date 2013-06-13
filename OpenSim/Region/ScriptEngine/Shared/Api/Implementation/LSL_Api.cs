@@ -12795,7 +12795,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         return;
                     }
 
-                    replydata = "LINDENDOLLAR_INSUFFICIENTFUNDS";
+                    replydata = reason;
                 }
                 finally
                 {
