@@ -7725,7 +7725,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                  return null;
 
                              string ph = rules.Data[idx++].ToString();
-                             m_host.ParentGroup.ScriptSetPhantomStatus(ph.Equals("1"));
+                             part.ParentGroup.ScriptSetPhantomStatus(ph.Equals("1"));
 
                              break;
 
@@ -7764,7 +7764,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 return null;
                             string temp = rules.Data[idx++].ToString();
 
-                            m_host.ParentGroup.ScriptSetTemporaryStatus(temp.Equals("1"));
+                            part.ParentGroup.ScriptSetTemporaryStatus(temp.Equals("1"));
 
                             break;
 
