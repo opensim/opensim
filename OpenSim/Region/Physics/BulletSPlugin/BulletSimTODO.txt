@@ -1,5 +1,9 @@
 CURRENT PROBLEMS TO FIX AND/OR LOOK AT
 =================================================
+Vehicle buoyancy. Computed correctly? Possibly creating very large effective mass.
+    Interaction of llSetBuoyancy and vehicle buoyancy. Should be additive?
+    Negative buoyancy computed correctly
+Computation of mesh mass. How done? How should it be done?
 Script changing rotation of child prim while vehicle moving (eg turning wheel) causes
 	the wheel to appear to jump back. Looks like sending position from previous update.
 Enable vehicle border crossings (at least as poorly as ODE)

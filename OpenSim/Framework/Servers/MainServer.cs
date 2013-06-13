@@ -121,12 +121,14 @@ namespace OpenSim.Framework.Servers
                     + "  level >= 2 then long warnings are logged when receiving bad input data.\n"
                     + "  level >= 3 then short notices about all incoming non-poll HTTP requests are logged.\n"
                     + "  level >= 4 then the time taken to fulfill the request is logged.\n"
-                    + "  level >= 5 then a sample from the beginning of the incoming data is logged.\n"
-                    + "  level >= 6 then the entire incoming data is logged.\n"
+                    + "  level >= 5 then a sample from the beginning of the data is logged.\n"
+                    + "  level >= 6 then the entire data is logged.\n"
                     + "  no level is specified then the current level is returned.\n\n"
                     + "If out or all and\n"
                     + "  level >= 3 then short notices about all outgoing requests going through WebUtil are logged.\n"
-                    + "  level >= 4 then the time taken to fulfill the request is logged.\n",
+                    + "  level >= 4 then the time taken to fulfill the request is logged.\n"
+                    + "  level >= 5 then a sample from the beginning of the data is logged.\n"
+                    + "  level >= 6 then the entire data is logged.\n",
                 HandleDebugHttpCommand);
         }
 
