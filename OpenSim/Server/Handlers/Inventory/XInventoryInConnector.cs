@@ -155,7 +155,7 @@ namespace OpenSim.Server.Handlers.Asset
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[XINVENTORY HANDLER]: Exception {0}", e.StackTrace);
+                m_log.ErrorFormat("[XINVENTORY HANDLER]: Exception {0}", e.StackTrace);
             }
 
             return FailureResult();

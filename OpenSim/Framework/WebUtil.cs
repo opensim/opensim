@@ -151,6 +151,39 @@ namespace OpenSim.Framework
             }
         }
 
+        public static void LogOutgoingDetail(Stream outputStream)
+        {
+            using (StreamReader reader = new StreamReader(Util.Copy(outputStream), Encoding.UTF8))
+            {
+                string output;
+
+                if (DebugLevel == 5)
+                {
+                    const int sampleLength = 80;
+                    char[] sampleChars = new char[sampleLength];
+                    reader.Read(sampleChars, 0, sampleLength);
+                    output = new string(sampleChars);
+                }
+                else
+                {
+                    output = reader.ReadToEnd();
+                }
+
+                LogOutgoingDetail(output);
+            }
+        }
+
+        public static void LogOutgoingDetail(string output)
+        {
+            if (DebugLevel == 5)
+            {
+                output = output.Substring(0, 80);
+                output = output + "...";
+            }
+
+            m_log.DebugFormat("[WEB UTIL]: {0}", output.Replace("\n", @"\n"));
+        }
+
         private static OSDMap ServiceOSDRequestWorker(string url, OSDMap data, string method, int timeout, bool compressed)
         {
             int reqnum = RequestNumber++;
@@ -178,7 +211,11 @@ namespace OpenSim.Framework
                 // If there is some input, write it into the request
                 if (data != null)
                 {
-                    strBuffer =  OSDParser.SerializeJsonString(data);
+                    strBuffer = OSDParser.SerializeJsonString(data);
+
+                    if (DebugLevel >= 5)
+                        LogOutgoingDetail(strBuffer);
+
                     byte[] buffer = System.Text.Encoding.UTF8.GetBytes(strBuffer);
 
                     if (compressed)
@@ -358,6 +395,10 @@ namespace OpenSim.Framework
                 if (data != null)
                 {
                     queryString = BuildQueryString(data);
+
+                    if (DebugLevel >= 5)
+                        LogOutgoingDetail(queryString);
+
                     byte[] buffer = System.Text.Encoding.UTF8.GetBytes(queryString);
                     
                     request.ContentLength = buffer.Length;
@@ -769,6 +810,9 @@ namespace OpenSim.Framework
                 int length = (int)buffer.Length;
                 request.ContentLength = length;
 
+                if (WebUtil.DebugLevel >= 5)
+                    WebUtil.LogOutgoingDetail(buffer);
+
                 request.BeginGetRequestStream(delegate(IAsyncResult res)
                 {
                     Stream requestStream = request.EndGetRequestStream(res);
@@ -966,6 +1010,9 @@ namespace OpenSim.Framework
                     length = (int)obj.Length;
                     request.ContentLength = length;
 
+                    if (WebUtil.DebugLevel >= 5)
+                        WebUtil.LogOutgoingDetail(buffer);
+
                     Stream requestStream = null;
                     try
                     {
@@ -1110,6 +1157,9 @@ namespace OpenSim.Framework
 
                 int length = (int)buffer.Length;
                 request.ContentLength = length;
+
+                if (WebUtil.DebugLevel >= 5)
+                    WebUtil.LogOutgoingDetail(buffer);
 
                 Stream requestStream = null;
                 try

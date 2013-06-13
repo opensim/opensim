@@ -312,18 +312,22 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             buff.Append("dflt=");
             buff.Append(DefaultAnimation.ToString());
             buff.Append(",iDflt=");
-            if (DefaultAnimation == ImplicitDefaultAnimation)
+            if (DefaultAnimation.Equals(ImplicitDefaultAnimation))
                 buff.Append("same");
             else
                 buff.Append(ImplicitDefaultAnimation.ToString());
             if (m_animations.Count > 0)
             {
                 buff.Append(",anims=");
+                bool firstTime = true;
                 foreach (OpenSim.Framework.Animation anim in m_animations)
                 {
+                    if (!firstTime)
+                        buff.Append(",");
                     buff.Append("<");
                     buff.Append(anim.ToString());
-                    buff.Append(">,");
+                    buff.Append(">");
+                    firstTime = false;
                 }
             }
             return buff.ToString();

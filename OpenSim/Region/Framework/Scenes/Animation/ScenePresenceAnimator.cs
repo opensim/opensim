@@ -95,6 +95,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             if (m_animations.Add(animID, m_scenePresence.ControllingClient.NextAnimationSequenceNumber, objectID))
             {
                 SendAnimPack();
+                m_scenePresence.TriggerScenePresenceUpdated();
             }
         }
 
@@ -136,6 +137,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             if (m_animations.Remove(animID, allowNoDefault))
             {
                 SendAnimPack();
+                m_scenePresence.TriggerScenePresenceUpdated();
             }
         }
 

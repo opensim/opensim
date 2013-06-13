@@ -1072,6 +1072,11 @@ namespace OpenSim.Region.Framework.Scenes
             for (int i = 0; i < parts.Length; i++)
             {
                 SceneObjectPart part = parts[i];
+                if (part.KeyframeMotion != null)
+                {
+                    part.KeyframeMotion.UpdateSceneObject(this);
+                }
+
                 if (Object.ReferenceEquals(part, m_rootPart))
                     continue;
 

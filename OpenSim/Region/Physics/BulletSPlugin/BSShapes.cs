@@ -168,10 +168,10 @@ public abstract class BSShape
         if (prim.PrimAssetState == BSPhysObject.PrimAssetCondition.Fetched)
         {
             prim.PrimAssetState = BSPhysObject.PrimAssetCondition.FailedMeshing;
-            physicsScene.Logger.WarnFormat("{0} Fetched asset would not mesh. {1}, texture={2}",
-                                            LogHeader, prim.PhysObjectName, prim.BaseShape.SculptTexture);
-            physicsScene.DetailLog("{0},BSShape.VerifyMeshCreated,setFailed,objNam={1},tex={2}",
-                                            prim.LocalID, prim.PhysObjectName, prim.BaseShape.SculptTexture);
+            physicsScene.Logger.WarnFormat("{0} Fetched asset would not mesh. prim={1}, texture={2}",
+                                            LogHeader, UsefulPrimInfo(physicsScene, prim), prim.BaseShape.SculptTexture);
+            physicsScene.DetailLog("{0},BSShape.VerifyMeshCreated,setFailed,prim={1},tex={2}",
+                                            prim.LocalID, UsefulPrimInfo(physicsScene, prim), prim.BaseShape.SculptTexture);
         }
         else
         {
@@ -238,17 +238,17 @@ public abstract class BSShape
             {
                 if (prim.PrimAssetState == BSPhysObject.PrimAssetCondition.FailedAssetFetch)
                 {
-                    physicsScene.Logger.WarnFormat("{0} Mesh failed to fetch asset. obj={1}, texture={2}",
-                                                LogHeader, prim.PhysObjectName, prim.BaseShape.SculptTexture);
-                    physicsScene.DetailLog("{0},BSShape.VerifyMeshCreated,wasFailed,objNam={1},tex={2}",
-                                                prim.LocalID, prim.PhysObjectName, prim.BaseShape.SculptTexture);
+                    physicsScene.Logger.WarnFormat("{0} Mesh failed to fetch asset. prim={1}, texture={2}",
+                                                LogHeader, UsefulPrimInfo(physicsScene, prim), prim.BaseShape.SculptTexture);
+                    physicsScene.DetailLog("{0},BSShape.VerifyMeshCreated,wasFailed,prim={1},tex={2}",
+                                                prim.LocalID, UsefulPrimInfo(physicsScene, prim), prim.BaseShape.SculptTexture);
                 }
                 if (prim.PrimAssetState == BSPhysObject.PrimAssetCondition.FailedMeshing)
                 {
-                    physicsScene.Logger.WarnFormat("{0} Mesh asset would not mesh. obj={1}, texture={2}",
-                                                LogHeader, prim.PhysObjectName, prim.BaseShape.SculptTexture);
-                    physicsScene.DetailLog("{0},BSShape.VerifyMeshCreated,wasFailedMeshing,objNam={1},tex={2}",
-                                                prim.LocalID, prim.PhysObjectName, prim.BaseShape.SculptTexture);
+                    physicsScene.Logger.WarnFormat("{0} Mesh asset would not mesh. prim={1}, texture={2}",
+                                                LogHeader, UsefulPrimInfo(physicsScene, prim), prim.BaseShape.SculptTexture);
+                    physicsScene.DetailLog("{0},BSShape.VerifyMeshCreated,wasFailedMeshing,prim={1},tex={2}",
+                                                prim.LocalID, UsefulPrimInfo(physicsScene, prim), prim.BaseShape.SculptTexture);
                 }
             }
          }
@@ -259,6 +259,19 @@ public abstract class BSShape
 
         return fillShape.physShapeInfo;
      }
+
+    public static String UsefulPrimInfo(BSScene pScene, BSPhysObject prim)
+    {
+        StringBuilder buff = new StringBuilder(prim.PhysObjectName);
+        buff.Append("/pos=");
+        buff.Append(prim.RawPosition.ToString());
+        if (pScene != null)
+        {
+            buff.Append("/rgn=");
+            buff.Append(pScene.Name);
+        }
+        return buff.ToString();
+    }
 
     #endregion // Common shape routines
 }
@@ -530,8 +543,7 @@ public class BSShapeMesh : BSShape
             {
                 // Force the asset condition to 'failed' so we won't try to keep fetching and processing this mesh.
                 prim.PrimAssetState = BSPhysObject.PrimAssetCondition.FailedMeshing;
-                physicsScene.Logger.DebugFormat("{0} All mesh triangles degenerate. Prim {1} at {2} in {3}",
-                                    LogHeader, prim.PhysObjectName, prim.RawPosition, physicsScene.Name);
+                physicsScene.Logger.DebugFormat("{0} All mesh triangles degenerate. Prim={1}", LogHeader, UsefulPrimInfo(physicsScene, prim) );
                 physicsScene.DetailLog("{0},BSShapeMesh.CreatePhysicalMesh,allDegenerate,key={1}", prim.LocalID, newMeshKey);
             }
         }
