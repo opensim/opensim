@@ -331,17 +331,16 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
 
                 classifieds[cid] = name;
 
-                if (!m_classifiedCache.ContainsKey(cid))
+                lock (m_classifiedCache)
                 {
-                    lock(m_classifiedCache)
+                    if (!m_classifiedCache.ContainsKey(cid))
+                    {
                         m_classifiedCache.Add(cid,creatorId);
-
-                    lock(m_classifiedInterest)
                         m_classifiedInterest.Add(cid, 0);
-                }
+                    }
 
-                lock(m_classifiedInterest)
                     m_classifiedInterest[cid]++;
+                }
             }
 
             remoteClient.SendAvatarClassifiedReply(new UUID(args[0]), classifieds);
@@ -353,19 +352,19 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
             UserClassifiedAdd ad = new UserClassifiedAdd();
             ad.ClassifiedId = queryClassifiedID;
 
-            if (m_classifiedCache.ContainsKey(queryClassifiedID))
-            {   
-                target = m_classifiedCache[queryClassifiedID];
+            lock (m_classifiedCache)
+            {
+                if (m_classifiedCache.ContainsKey(queryClassifiedID))
+                {   
+                    target = m_classifiedCache[queryClassifiedID];
 
-                lock(m_classifiedInterest)
                     m_classifiedInterest[queryClassifiedID] --;
 
-                if(m_classifiedInterest[queryClassifiedID] == 0)
-                {
-                    lock(m_classifiedInterest)
+                    if (m_classifiedInterest[queryClassifiedID] == 0)
+                    {
                         m_classifiedInterest.Remove(queryClassifiedID);
-                    lock(m_classifiedCache)
                         m_classifiedCache.Remove(queryClassifiedID);
+                    }
                 }
             }
             
