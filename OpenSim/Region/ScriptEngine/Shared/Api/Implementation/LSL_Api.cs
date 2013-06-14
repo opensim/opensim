@@ -4726,13 +4726,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return new LSL_Rotation(x,y,z,s);
         }
 
-
-        // Xantor 29/apr/2008
-        // converts a Quaternion to X,Y,Z axis rotations
+        /// <summary>
+        /// Converts a Quaternion to X,Y,Z axis rotations
+        /// </summary>
+        /// <returns></returns>
+        /// <param name='rot'></param>
         public LSL_Vector llRot2Axis(LSL_Rotation rot)
         {
             m_host.AddScriptLPS(1);
-            double x, y, z;
 
             if (Math.Abs(rot.s) > 1) // normalization needed
                 rot.Normalize();
@@ -7454,14 +7455,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return;
                 }
 
-                int code = (int)options.GetLSLIntegerItem(0);
-
                 int idx = 0;
 
                 while (idx < options.Data.Length)
                 {
                     int option = (int)options.GetLSLIntegerItem(idx++);
-                    int remain = options.Data.Length - idx;
 
                     switch (option)
                     {
