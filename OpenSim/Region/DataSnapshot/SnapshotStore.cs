@@ -120,7 +120,7 @@ namespace OpenSim.Region.DataSnapshot
                 provider.Stale = false;
                 m_scenes[provider.GetParentScene] = true;
 
-                m_log.Info("[DATASNAPSHOT]: Generated fragment response for provider type " + provider.Name);
+                m_log.Debug("[DATASNAPSHOT]: Generated fragment response for provider type " + provider.Name);
             }
             else
             {
@@ -134,7 +134,7 @@ namespace OpenSim.Region.DataSnapshot
                     data = factory.ImportNode(node, true);
                 }
 
-                m_log.Info("[DATASNAPSHOT]: Retrieved fragment response for provider type " + provider.Name);
+                m_log.Debug("[DATASNAPSHOT]: Retrieved fragment response for provider type " + provider.Name);
             }
 
             return data;
@@ -154,7 +154,7 @@ namespace OpenSim.Region.DataSnapshot
 
             if (!m_scenes[scene])
             {
-                m_log.Info("[DATASNAPSHOT]: Attempting to retrieve snapshot from cache.");
+                m_log.Debug("[DATASNAPSHOT]: Attempting to retrieve snapshot from cache.");
                 //get snapshot from cache
                 String path = DataFileNameScene(scene);
 
@@ -168,11 +168,11 @@ namespace OpenSim.Region.DataSnapshot
                     regionElement = factory.ImportNode(node, true);
                 }
 
-                m_log.Info("[DATASNAPSHOT]: Obtained snapshot from cache for " + scene.RegionInfo.RegionName);
+                m_log.Debug("[DATASNAPSHOT]: Obtained snapshot from cache for " + scene.RegionInfo.RegionName);
             }
             else
             {
-                m_log.Info("[DATASNAPSHOT]: Attempting to generate snapshot.");
+                m_log.Debug("[DATASNAPSHOT]: Attempting to generate snapshot.");
                 //make snapshot
                 regionElement = MakeRegionNode(scene, factory);
 
@@ -211,7 +211,7 @@ namespace OpenSim.Region.DataSnapshot
 
                 m_scenes[scene] = false;
 
-                m_log.Info("[DATASNAPSHOT]: Generated new snapshot for " + scene.RegionInfo.RegionName);
+                m_log.Debug("[DATASNAPSHOT]: Generated new snapshot for " + scene.RegionInfo.RegionName);
             }
 
             return regionElement;

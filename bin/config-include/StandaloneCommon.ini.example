@@ -115,6 +115,9 @@
     ;; Ask co-operative viewers to use a different currency name
     ;Currency = ""
 
+    ;; Set minimum fee to publish classified
+    ; ClassifiedFee = 0
+
     ;; Regular expressions for controlling which client versions are accepted/denied.
     ;; An empty string means nothing is checked.
     ;;
