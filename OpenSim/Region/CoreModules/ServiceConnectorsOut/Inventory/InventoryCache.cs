@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-
+using System.Threading;
 using OpenSim.Framework;
 using OpenMetaverse;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 {
+    /// <summary>
+    /// Cache root and system inventory folders to reduce number of potentially remote inventory calls and associated holdups.
+    /// </summary>
     public class InventoryCache
     {
         private const double CACHE_EXPIRATION_SECONDS = 3600.0; // 1 hour
@@ -16,8 +19,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         public void Cache(UUID userID, InventoryFolderBase root)
         {
-            lock (m_RootFolders)
-                m_RootFolders.AddOrUpdate(userID, root, CACHE_EXPIRATION_SECONDS);
+            m_RootFolders.AddOrUpdate(userID, root, CACHE_EXPIRATION_SECONDS);
         }
 
         public InventoryFolderBase GetRootFolder(UUID userID)
@@ -31,14 +33,18 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         public void Cache(UUID userID, AssetType type, InventoryFolderBase folder)
         {
-            lock (m_FolderTypes)
+            Dictionary<AssetType, InventoryFolderBase> ff = null;
+            if (!m_FolderTypes.TryGetValue(userID, out ff))
             {
-                Dictionary<AssetType, InventoryFolderBase> ff = null;
-                if (!m_FolderTypes.TryGetValue(userID, out ff))
-                {
-                    ff = new Dictionary<AssetType, InventoryFolderBase>();
-                    m_FolderTypes.Add(userID, ff, CACHE_EXPIRATION_SECONDS);
-                }
+                ff = new Dictionary<AssetType, InventoryFolderBase>();
+                m_FolderTypes.Add(userID, ff, CACHE_EXPIRATION_SECONDS);
+            }
+
+            // We need to lock here since two threads could potentially retrieve the same dictionary
+            // and try to add a folder for that type simultaneously.  Dictionary<>.Add() is not described as thread-safe in the SDK
+            // even if the folders are identical.
+            lock (ff)
+            {
                 if (!ff.ContainsKey(type))
                     ff.Add(type, folder);
             }
@@ -50,8 +56,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             if (m_FolderTypes.TryGetValue(userID, out ff))
             {
                 InventoryFolderBase f = null;
-                if (ff.TryGetValue(type, out f))
-                    return f;
+
+                lock (ff)
+                {
+                    if (ff.TryGetValue(type, out f))
+                        return f;
+                }
             }
 
             return null;
@@ -59,8 +69,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         public void Cache(UUID userID, InventoryCollection inv)
         {
-            lock (m_Inventories)
-                m_Inventories.AddOrUpdate(userID, inv, 120);
+            m_Inventories.AddOrUpdate(userID, inv, 120);
         }
 
         public InventoryCollection GetUserInventory(UUID userID)
