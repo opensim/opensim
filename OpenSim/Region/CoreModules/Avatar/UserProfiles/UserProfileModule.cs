@@ -60,8 +60,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
         // The pair of Dictionaries are used to handle the switching of classified ads
         // by maintaining a cache of classified id to creator id mappings and an interest
         // count. The entries are removed when the interest count reaches 0.
-        Dictionary<UUID,UUID> m_classifiedCache = new Dictionary<UUID, UUID>();
-        Dictionary<UUID,int> m_classifiedInterest = new Dictionary<UUID, int>();
+        Dictionary<UUID, UUID> m_classifiedCache = new Dictionary<UUID, UUID>();
+        Dictionary<UUID, int> m_classifiedInterest = new Dictionary<UUID, int>();
 
         public Scene Scene
         {
@@ -102,7 +102,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
 
         /// <summary>
         /// Gets or sets a value indicating whether this
-        /// <see cref="BlueWall.SlipStream.ProfileModule.UserProfileModule"/> is enabled.
+        /// <see cref="OpenSim.Region.Coremodules.UserProfiles.UserProfileModule"/> is enabled.
         /// </summary>
         /// <value>
         /// <c>true</c> if enabled; otherwise, <c>false</c>.
@@ -331,15 +331,13 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
 
                 classifieds[cid] = name;
 
-                lock(m_classifiedCache)
+                if (!m_classifiedCache.ContainsKey(cid))
                 {
-                    if (!m_classifiedCache.ContainsKey(cid))
-                    {
+                    lock(m_classifiedCache)
                         m_classifiedCache.Add(cid,creatorId);
 
-                        lock(m_classifiedInterest)
-                            m_classifiedInterest.Add(cid, 0);
-                    }
+                    lock(m_classifiedInterest)
+                        m_classifiedInterest.Add(cid, 0);
                 }
 
                 lock(m_classifiedInterest)
@@ -355,7 +353,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
             UserClassifiedAdd ad = new UserClassifiedAdd();
             ad.ClassifiedId = queryClassifiedID;
 
-            lock (classifie
             if (m_classifiedCache.ContainsKey(queryClassifiedID))
             {   
                 target = m_classifiedCache[queryClassifiedID];
