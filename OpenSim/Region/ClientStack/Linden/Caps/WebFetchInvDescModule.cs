@@ -116,6 +116,10 @@ namespace OpenSim.Region.ClientStack.Linden
 
             m_scene.EventManager.OnRegisterCaps -= RegisterCaps;
             m_scene.EventManager.OnDeregisterCaps -= DeregisterCaps;
+
+            foreach (Thread t in m_workerThreads)
+                Watchdog.AbortThread(t.ManagedThreadId); 
+
             m_scene = null;
         }
 
@@ -164,12 +168,6 @@ namespace OpenSim.Region.ClientStack.Linden
         }
 
         #endregion
-
-        ~WebFetchInvDescModule()
-        {
-            foreach (Thread t in m_workerThreads)
-                Watchdog.AbortThread(t.ManagedThreadId);               
-        }
 
         private class PollServiceInventoryEventArgs : PollServiceEventArgs
         {
