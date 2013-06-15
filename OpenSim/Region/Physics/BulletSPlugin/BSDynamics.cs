@@ -209,7 +209,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                     m_VhoverTimescale = Math.Max(pValue, 0.01f);
                     break;
                 case Vehicle.LINEAR_DEFLECTION_EFFICIENCY:
-                    m_linearDeflectionEfficiency = Math.Max(pValue, 0.01f);
+                    m_linearDeflectionEfficiency = ClampInRange(0f, pValue, 1f);
                     break;
                 case Vehicle.LINEAR_DEFLECTION_TIMESCALE:
                     m_linearDeflectionTimescale = Math.Max(pValue, 0.01f);
@@ -1029,9 +1029,13 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             Vector3 currentVelV = VehicleVelocity * Quaternion.Inverse(VehicleOrientation);
             Vector3 linearMotorCorrectionV = m_linearMotor.Step(pTimestep, currentVelV);
 
+            //Compute Linear deflection.
+            Vector3 linearDeflectionFactorV = ComputeLinearDeflection(m_linearDeflectionEfficiency, currentVelV, pTimestep);
+            linearMotorCorrectionV += linearDeflectionFactorV;
+
             // Friction reduces vehicle motion
-            Vector3 frictionFactorW = ComputeFrictionFactor(m_linearFrictionTimescale, pTimestep);
-            linearMotorCorrectionV -= (currentVelV * frictionFactorW);
+            Vector3 frictionFactorV = ComputeFrictionFactor(m_linearFrictionTimescale, pTimestep);
+            linearMotorCorrectionV -= (currentVelV * frictionFactorV);
 
             // Motor is vehicle coordinates. Rotate it to world coordinates
             Vector3 linearMotorVelocityW = linearMotorCorrectionV * VehicleOrientation;
@@ -1048,9 +1052,9 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 
 
 
-            VDetailLog("{0},  MoveLinear,velocity,origVelW={1},velV={2},correctV={3},correctW={4},newVelW={5},fricFact={6}",
+            VDetailLog("{0},  MoveLinear,velocity,origVelW={1},velV={2},correctV={3},correctW={4},newVelW={5},fricFact={6},LinearDeflec={7}",
                         ControllingPrim.LocalID, origVelW, currentVelV, linearMotorCorrectionV,
-                        linearMotorVelocityW, VehicleVelocity, frictionFactorW);
+                        linearMotorVelocityW, VehicleVelocity, frictionFactorV, linearDeflectionFactorV);
         }
 
         public void ComputeLinearTerrainHeightCorrection(float pTimestep)
@@ -1650,6 +1654,30 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 frictionFactor *= pTimestep;
             }
             return frictionFactor;
+        }
+        //Given a Deflection Effiency and a Velocity, Returns a Velocity that is Partially Deflected onto the X Axis
+          //Clamped so that a DeflectionTimescale of less then 1 does not increase force over original velocity
+        private Vector3 ComputeLinearDeflection(float DeflectionEfficiency,Vector3 Velocity,float pTimestep)
+        {
+            Vector3 LinearDeflection = Vector3.Zero;
+            LinearDeflection.Y = SortedClampInRange(0, (Velocity.Y * DeflectionEfficiency) / m_linearDeflectionTimescale, Velocity.Y);
+            LinearDeflection.Z = SortedClampInRange(0, (Velocity.Z * DeflectionEfficiency) / m_linearDeflectionTimescale, Velocity.Z);
+            LinearDeflection.X += Math.Abs(LinearDeflection.Y);
+            LinearDeflection.X += Math.Abs(LinearDeflection.Z);
+            LinearDeflection *= pTimestep;
+                return LinearDeflection*=new Vector3(1,-1,-1);
+
+        }
+        private float SortedClampInRange(float clampa, float val, float clampb)
+        {
+            if (clampa > clampb)
+            {
+                float temp = clampa;
+                clampa = clampb;
+                clampb = temp;
+            }
+           return ClampInRange(clampa, val, clampb);
+
         }
 
         private float ClampInRange(float low, float val, float high)
