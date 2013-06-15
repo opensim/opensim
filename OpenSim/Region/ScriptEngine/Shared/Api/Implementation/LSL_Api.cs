@@ -4727,7 +4727,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         }
 
         /// <summary>
-        /// Converts a Quaternion to X,Y,Z axis rotations
+        /// Returns the axis of rotation for a quaternion
         /// </summary>
         /// <returns></returns>
         /// <param name='rot'></param>
