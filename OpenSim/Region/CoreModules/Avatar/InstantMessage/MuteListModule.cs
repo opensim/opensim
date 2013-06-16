@@ -58,7 +58,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                 return;
             }
 
-            if (cnf != null && cnf.GetString("MuteListModule", "None") !=
+            if (cnf != null && cnf.GetString("MuteListModule", "MuteListModule") !=
                     "MuteListModule")
             {
                 enabled = false;
