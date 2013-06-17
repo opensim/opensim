@@ -49,6 +49,7 @@ namespace OpenSim.Framework.Monitoring
 
         public readonly string CategoryServer = "server";
 
+        public readonly string ContainerThreadpool = "threadpool";
         public readonly string ContainerProcessor = "processor";
         public readonly string ContainerMemory = "memory";
         public readonly string ContainerNetwork = "network";
@@ -157,7 +158,7 @@ namespace OpenSim.Framework.Monitoring
                 m_log.ErrorFormat("{0} Exception creating 'Process': {1}", LogHeader, e);
             }
 
-            MakeStat("BuiltinThreadpoolWorkerThreadsAvailable", null, "threads", ContainerProcessor, 
+            MakeStat("BuiltinThreadpoolWorkerThreadsAvailable", null, "threads", ContainerThreadpool, 
                 s => 
                 { 
                     int workerThreads, iocpThreads; 
@@ -165,13 +166,23 @@ namespace OpenSim.Framework.Monitoring
                     s.Value = workerThreads;
                 });
 
-            MakeStat("BuiltinThreadpoolIOCPThreadsAvailable", null, "threads", ContainerProcessor, 
+            MakeStat("BuiltinThreadpoolIOCPThreadsAvailable", null, "threads", ContainerThreadpool, 
                 s => 
                 { 
                     int workerThreads, iocpThreads; 
                     ThreadPool.GetAvailableThreads(out workerThreads, out iocpThreads); 
                     s.Value = iocpThreads;
                 });
+
+            if (Util.FireAndForgetMethod != null && Util.GetSmartThreadPoolInfo() != null)
+            {
+                MakeStat("STPMaxThreads", null, "threads", ContainerThreadpool, s => s.Value = Util.GetSmartThreadPoolInfo().MaxThreads);
+                MakeStat("STPMinThreads", null, "threads", ContainerThreadpool, s => s.Value = Util.GetSmartThreadPoolInfo().MinThreads);
+                MakeStat("STPConcurrency", null, "threads", ContainerThreadpool, s => s.Value = Util.GetSmartThreadPoolInfo().MaxConcurrentWorkItems);
+                MakeStat("STPActiveThreads", null, "threads", ContainerThreadpool, s => s.Value = Util.GetSmartThreadPoolInfo().ActiveThreads);
+                MakeStat("STPInUseThreads", null, "threads", ContainerThreadpool, s => s.Value = Util.GetSmartThreadPoolInfo().InUseThreads);
+                MakeStat("STPWorkItemsWaiting", null, "threads", ContainerThreadpool, s => s.Value = Util.GetSmartThreadPoolInfo().WaitingCallbacks);
+            }
 
             try
             {
