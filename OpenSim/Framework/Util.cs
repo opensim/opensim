@@ -1880,7 +1880,7 @@ namespace OpenSim.Framework
                 }
             }
             else if (
-                FireAndForgetMethod == FireAndForgetMethod.UnsafeQueueUserWorkItem
+                FireAndForgetMethod == FireAndForgetMethod.QueueUserWorkItem
                     || FireAndForgetMethod == FireAndForgetMethod.UnsafeQueueUserWorkItem)
             {
                 threadPoolUsed = "BuiltInThreadPool";
