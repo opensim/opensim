@@ -124,6 +124,7 @@ namespace OpenSim
                 workerThreads = workerThreadsMax;
                 m_log.InfoFormat("[OPENSIM MAIN]: Limiting worker threads to {0}",workerThreads);
             }
+
 			// Increase the number of IOCP threads available.
 			// Mono defaults to a tragically low number (24 on 6-core / 8GB Fedora 17)
 			if (iocpThreads < iocpThreadsMin)

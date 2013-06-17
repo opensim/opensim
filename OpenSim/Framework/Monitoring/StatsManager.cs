@@ -54,13 +54,13 @@ namespace OpenSim.Framework.Monitoring
         public static SortedDictionary<string, SortedDictionary<string, SortedDictionary<string, Stat>>> RegisteredStats
             = new SortedDictionary<string, SortedDictionary<string, SortedDictionary<string, Stat>>>();
 
-        private static AssetStatsCollector assetStats;
-        private static UserStatsCollector userStats;
-        private static SimExtraStatsCollector simExtraStats = new SimExtraStatsCollector();
+//        private static AssetStatsCollector assetStats;
+//        private static UserStatsCollector userStats;
+//        private static SimExtraStatsCollector simExtraStats = new SimExtraStatsCollector();
 
-        public static AssetStatsCollector AssetStats { get { return assetStats; } }
-        public static UserStatsCollector UserStats { get { return userStats; } }
-        public static SimExtraStatsCollector SimExtraStats { get { return simExtraStats; } }
+//        public static AssetStatsCollector AssetStats { get { return assetStats; } }
+//        public static UserStatsCollector UserStats { get { return userStats; } }
+        public static SimExtraStatsCollector SimExtraStats { get; set; }
 
         public static void RegisterConsoleCommands(ICommandConsole console)
         {
@@ -89,10 +89,7 @@ namespace OpenSim.Framework.Monitoring
 
                 if (categoryName == AllSubCommand)
                 {
-                    foreach (var category in RegisteredStats.Values)
-                    {
-                        OutputCategoryStatsToConsole(con, category);
-                    }
+                    OutputAllStatsToConsole(con);
                 }
                 else if (categoryName == ListSubCommand)
                 {
@@ -129,7 +126,18 @@ namespace OpenSim.Framework.Monitoring
             else
             {
                 // Legacy
-                con.Output(SimExtraStats.Report());
+                if (SimExtraStats != null)
+                    con.Output(SimExtraStats.Report());
+                else
+                    OutputAllStatsToConsole(con);
+            }
+        }
+
+        private static void OutputAllStatsToConsole(ICommandConsole con)
+        {
+            foreach (var category in RegisteredStats.Values)
+            {
+                OutputCategoryStatsToConsole(con, category);
             }
         }
 
@@ -150,27 +158,27 @@ namespace OpenSim.Framework.Monitoring
             }
         }
 
-        /// <summary>
-        /// Start collecting statistics related to assets.
-        /// Should only be called once.
-        /// </summary>
-        public static AssetStatsCollector StartCollectingAssetStats()
-        {
-            assetStats = new AssetStatsCollector();
-
-            return assetStats;
-        }
-
-        /// <summary>
-        /// Start collecting statistics related to users.
-        /// Should only be called once.
-        /// </summary>
-        public static UserStatsCollector StartCollectingUserStats()
-        {
-            userStats = new UserStatsCollector();
-
-            return userStats;
-        }
+//        /// <summary>
+//        /// Start collecting statistics related to assets.
+//        /// Should only be called once.
+//        /// </summary>
+//        public static AssetStatsCollector StartCollectingAssetStats()
+//        {
+//            assetStats = new AssetStatsCollector();
+//
+//            return assetStats;
+//        }
+//
+//        /// <summary>
+//        /// Start collecting statistics related to users.
+//        /// Should only be called once.
+//        /// </summary>
+//        public static UserStatsCollector StartCollectingUserStats()
+//        {
+//            userStats = new UserStatsCollector();
+//
+//            return userStats;
+//        }
 
         /// <summary>
         /// Registers a statistic.

@@ -62,6 +62,8 @@ namespace OpenSim.Framework.Servers
 
         protected string m_pidFile = String.Empty;
 
+        protected ServerStatsCollector m_serverStatsCollector;
+
         /// <summary>
         /// Server version information.  Usually VersionInfo + information about git commit, operating system, etc.
         /// </summary>
@@ -259,6 +261,25 @@ namespace OpenSim.Framework.Servers
                 "force gc",
                 "Manually invoke runtime garbage collection.  For debugging purposes",
                 HandleForceGc);
+
+            m_console.Commands.AddCommand(
+                "General", false, "quit",
+                "quit",
+                "Quit the application", (mod, args) => Shutdown());
+
+            m_console.Commands.AddCommand(
+                "General", false, "shutdown",
+                "shutdown",
+                "Quit the application", (mod, args) => Shutdown());
+
+            StatsManager.RegisterConsoleCommands(m_console);
+        }
+
+        public void RegisterCommonComponents(IConfigSource configSource)
+        {
+            m_serverStatsCollector = new ServerStatsCollector();
+            m_serverStatsCollector.Initialise(configSource);
+            m_serverStatsCollector.Start();
         }
 
         private void HandleForceGc(string module, string[] args)
@@ -698,5 +719,16 @@ namespace OpenSim.Framework.Servers
             if (m_console != null)
                 m_console.OutputFormat(format, components);
         }
+
+        public virtual void Shutdown()
+        {
+            m_serverStatsCollector.Close();
+            ShutdownSpecific();
+        }
+
+        /// <summary>
+        /// Should be overriden and referenced by descendents if they need to perform extra shutdown processing
+        /// </summary>
+        protected virtual void ShutdownSpecific() {}
     }
 }

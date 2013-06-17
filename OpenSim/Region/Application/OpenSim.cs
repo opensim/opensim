@@ -372,7 +372,7 @@ namespace OpenSim
                                           "Unload a module", HandleModules);
         }
 
-        public override void ShutdownSpecific()
+        protected override void ShutdownSpecific()
         {
             if (m_shutdownCommandsFile != String.Empty)
             {
