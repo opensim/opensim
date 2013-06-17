@@ -157,6 +157,22 @@ namespace OpenSim.Framework.Monitoring
                 m_log.ErrorFormat("{0} Exception creating 'Process': {1}", LogHeader, e);
             }
 
+            MakeStat("BuiltinThreadpoolWorkerThreadsAvailable", null, "threads", ContainerProcessor, 
+                s => 
+                { 
+                    int workerThreads, iocpThreads; 
+                    ThreadPool.GetAvailableThreads(out workerThreads, out iocpThreads); 
+                    s.Value = workerThreads;
+                });
+
+            MakeStat("BuiltinThreadpoolIOCPThreadsAvailable", null, "threads", ContainerProcessor, 
+                s => 
+                { 
+                    int workerThreads, iocpThreads; 
+                    ThreadPool.GetAvailableThreads(out workerThreads, out iocpThreads); 
+                    s.Value = iocpThreads;
+                });
+
             try
             {
                 List<string> okInterfaceTypes = new List<string>(NetworkInterfaceTypes.Split(','));
