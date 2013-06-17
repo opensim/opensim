@@ -116,7 +116,7 @@ namespace OpenSim.Framework.Monitoring
             string desc = pDesc;
             if (desc == null)
                 desc = pName;
-            Stat stat = new Stat(pName, pName, desc, pUnit, CategoryServer, pContainer, StatType.Pull, act, StatVerbosity.Info);
+            Stat stat = new Stat(pName, pName, desc, pUnit, CategoryServer, pContainer, StatType.Pull, act, StatVerbosity.Debug);
             StatsManager.RegisterStat(stat);
             RegisteredStats.Add(pName, stat);
         }
