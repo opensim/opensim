@@ -95,7 +95,7 @@ namespace OpenSim.Framework.Monitoring
         /// <remarks>
         /// Will be null if no measures of interest require samples.
         /// </remarks>
-        private static Queue<double> m_samples;
+        private Queue<double> m_samples;
 
         /// <summary>
         /// Maximum number of statistical samples.
