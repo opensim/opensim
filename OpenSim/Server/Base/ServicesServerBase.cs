@@ -34,6 +34,7 @@ using System.Text;
 using System.Xml;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
+using OpenSim.Framework.Monitoring;
 using OpenSim.Framework.Servers;
 using log4net;
 using log4net.Config;
@@ -205,6 +206,9 @@ namespace OpenSim.Server.Base
 
         public virtual int Run()
         {
+            Watchdog.Enabled = true;
+            MemoryWatchdog.Enabled = true;
+
             while (m_Running)
             {
                 try
