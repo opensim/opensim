@@ -311,6 +311,9 @@ HGAssetServiceConnector = "HGAssetService@8002/OpenSim.Server.Handlers.dll:Asset
     ;; Ask co-operative viewers to use a different currency name
     ;Currency = ""
 
+    ;; Set minimum fee to publish classified
+    ; ClassifiedFee = 0
+
     WelcomeMessage = "Welcome, Avatar!"
     AllowRemoteSetLoginLevel = "false"
 

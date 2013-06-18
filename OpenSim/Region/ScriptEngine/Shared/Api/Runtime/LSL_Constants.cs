@@ -361,6 +361,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int HTTP_CUSTOM_HEADER = 5;
         public const int HTTP_PRAGMA_NO_CACHE = 6;
 
+        // llSetContentType
+        public const int CONTENT_TYPE_TEXT = 0; //text/plain
+        public const int CONTENT_TYPE_HTML = 1; //text/html
+        public const int CONTENT_TYPE_XML = 2; //application/xml
+        public const int CONTENT_TYPE_XHTML = 3; //application/xhtml+xml
+        public const int CONTENT_TYPE_ATOM = 4; //application/atom+xml
+        public const int CONTENT_TYPE_JSON = 5; //application/json
+        public const int CONTENT_TYPE_LLSD = 6; //application/llsd+xml
+        public const int CONTENT_TYPE_FORM = 7; //application/x-www-form-urlencoded
+        public const int CONTENT_TYPE_RSS = 8; //application/rss+xml
+
         public const int PRIM_MATERIAL = 2;
         public const int PRIM_PHYSICS = 3;
         public const int PRIM_TEMP_ON_REZ = 4;
@@ -772,8 +783,5 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         /// process message parameter as regex
         /// </summary>
         public const int OS_LISTEN_REGEX_MESSAGE = 0x2;
-
-        public const int CONTENT_TYPE_TEXT = 0;
-        public const int CONTENT_TYPE_HTML = 1;
     }
 }

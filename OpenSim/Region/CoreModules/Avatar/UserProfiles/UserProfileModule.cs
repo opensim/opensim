@@ -60,8 +60,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
         // The pair of Dictionaries are used to handle the switching of classified ads
         // by maintaining a cache of classified id to creator id mappings and an interest
         // count. The entries are removed when the interest count reaches 0.
-        Dictionary<UUID,UUID> classifiedCache = new Dictionary<UUID, UUID>();
-        Dictionary<UUID,int> classifiedInterest = new Dictionary<UUID, int>();
+        Dictionary<UUID, UUID> m_classifiedCache = new Dictionary<UUID, UUID>();
+        Dictionary<UUID, int> m_classifiedInterest = new Dictionary<UUID, int>();
 
         public Scene Scene
         {
@@ -102,7 +102,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
 
         /// <summary>
         /// Gets or sets a value indicating whether this
-        /// <see cref="BlueWall.SlipStream.ProfileModule.UserProfileModule"/> is enabled.
+        /// <see cref="OpenSim.Region.Coremodules.UserProfiles.UserProfileModule"/> is enabled.
         /// </summary>
         /// <value>
         /// <c>true</c> if enabled; otherwise, <c>false</c>.
@@ -331,16 +331,16 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
 
                 classifieds[cid] = name;
 
-                if(!classifiedCache.ContainsKey(cid))
+                lock (m_classifiedCache)
                 {
-                    lock(classifiedCache)
-                        classifiedCache.Add(cid,creatorId);
-                    lock(classifiedInterest)
-                        classifiedInterest.Add(cid, 0);
-                }
+                    if (!m_classifiedCache.ContainsKey(cid))
+                    {
+                        m_classifiedCache.Add(cid,creatorId);
+                        m_classifiedInterest.Add(cid, 0);
+                    }
 
-                lock(classifiedInterest)
-                    classifiedInterest[cid] ++;
+                    m_classifiedInterest[cid]++;
+                }
             }
 
             remoteClient.SendAvatarClassifiedReply(new UUID(args[0]), classifieds);
@@ -352,19 +352,19 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
             UserClassifiedAdd ad = new UserClassifiedAdd();
             ad.ClassifiedId = queryClassifiedID;
 
-            if(classifiedCache.ContainsKey(queryClassifiedID))
-            {   
-                target = classifiedCache[queryClassifiedID];
+            lock (m_classifiedCache)
+            {
+                if (m_classifiedCache.ContainsKey(queryClassifiedID))
+                {   
+                    target = m_classifiedCache[queryClassifiedID];
 
-                lock(classifiedInterest)
-                    classifiedInterest[queryClassifiedID] --;
+                    m_classifiedInterest[queryClassifiedID] --;
 
-                if(classifiedInterest[queryClassifiedID] == 0)
-                {
-                    lock(classifiedInterest)
-                        classifiedInterest.Remove(queryClassifiedID);
-                    lock(classifiedCache)
-                        classifiedCache.Remove(queryClassifiedID);
+                    if (m_classifiedInterest[queryClassifiedID] == 0)
+                    {
+                        m_classifiedInterest.Remove(queryClassifiedID);
+                        m_classifiedCache.Remove(queryClassifiedID);
+                    }
                 }
             }
             
