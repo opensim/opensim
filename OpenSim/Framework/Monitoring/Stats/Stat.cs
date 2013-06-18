@@ -258,7 +258,7 @@ namespace OpenSim.Framework.Monitoring
 
                 int divisor = m_samples.Count <= 1 ? 1 : m_samples.Count - 1;
 
-                sb.AppendFormat(", {0:0.##}{1}/s", totalChange / divisor / (Watchdog.WATCHDOG_INTERVAL_MS / 1000), UnitName);
+                sb.AppendFormat(", {0:0.##} {1}/s", totalChange / divisor / (Watchdog.WATCHDOG_INTERVAL_MS / 1000), UnitName);
             }
         }
     }
