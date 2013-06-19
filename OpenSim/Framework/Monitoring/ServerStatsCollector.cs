@@ -242,10 +242,10 @@ namespace OpenSim.Framework.Monitoring
                                 (s) => { s.Value = Process.GetCurrentProcess().WorkingSet64 / 1024d / 1024d; });
             MakeStat("ObjectMemory", null, "MB", ContainerMemory,
                                 (s) => { s.Value = GC.GetTotalMemory(false) / 1024d / 1024d; });
-            MakeStat("LastMemoryChurn", null, "MB/sec", ContainerMemory,
-                                (s) => { s.Value = Math.Round(MemoryWatchdog.LastMemoryChurn * 1000d / 1024d / 1024d, 3); });
-            MakeStat("AverageMemoryChurn", null, "MB/sec", ContainerMemory,
-                                (s) => { s.Value = Math.Round(MemoryWatchdog.AverageMemoryChurn * 1000d / 1024d / 1024d, 3); });
+            MakeStat("LastHeapAllocationRate", null, "MB/sec", ContainerMemory,
+                                (s) => { s.Value = Math.Round(MemoryWatchdog.LastHeapAllocationRate * 1000d / 1024d / 1024d, 3); });
+            MakeStat("AverageHeapAllocationRate", null, "MB/sec", ContainerMemory,
+                                (s) => { s.Value = Math.Round(MemoryWatchdog.AverageHeapAllocationRate * 1000d / 1024d / 1024d, 3); });
         }
 
         // Notes on performance counters: 
