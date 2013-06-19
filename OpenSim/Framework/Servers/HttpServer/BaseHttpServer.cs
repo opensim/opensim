@@ -1829,7 +1829,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             m_requestsProcessedStat 
                 = new Stat(
-                    "IncomingHTTPRequestsProcessed",
+                    "HTTPRequestsServed",
                     "Number of inbound HTTP requests processed",
                     "",
                     "requests",

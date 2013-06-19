@@ -114,10 +114,15 @@ namespace OpenSim.Framework.Monitoring
 
         private void MakeStat(string pName, string pDesc, string pUnit, string pContainer, Action<Stat> act)
         {
+            MakeStat(pName, pDesc, pUnit, pContainer, act, MeasuresOfInterest.None);
+        }
+
+        private void MakeStat(string pName, string pDesc, string pUnit, string pContainer, Action<Stat> act, MeasuresOfInterest moi)
+        {
             string desc = pDesc;
             if (desc == null)
                 desc = pName;
-            Stat stat = new Stat(pName, pName, desc, pUnit, CategoryServer, pContainer, StatType.Pull, act, StatVerbosity.Debug);
+            Stat stat = new Stat(pName, pName, desc, pUnit, CategoryServer, pContainer, StatType.Pull, moi, act, StatVerbosity.Debug);
             StatsManager.RegisterStat(stat);
             RegisteredStats.Add(pName, stat);
         }
@@ -141,7 +146,7 @@ namespace OpenSim.Framework.Monitoring
                 StatsManager.RegisterStat(tempStat);
                 RegisteredStats.Add(tempName, tempStat);
 
-                MakeStat("TotalProcessorTime", null, "sec", ContainerProcessor, 
+                MakeStat("TotalProcessorTime", null, "sec", ContainerProcessor,
                                     (s) => { s.Value = Process.GetCurrentProcess().TotalProcessorTime.TotalSeconds; });
 
                 MakeStat("UserProcessorTime", null, "sec", ContainerProcessor,
@@ -158,7 +163,7 @@ namespace OpenSim.Framework.Monitoring
                 m_log.ErrorFormat("{0} Exception creating 'Process': {1}", LogHeader, e);
             }
 
-            MakeStat("BuiltinThreadpoolWorkerThreadsAvailable", null, "threads", ContainerThreadpool, 
+            MakeStat("BuiltinThreadpoolWorkerThreadsAvailable", null, "threads", ContainerThreadpool,
                 s => 
                 { 
                     int workerThreads, iocpThreads; 
@@ -166,7 +171,7 @@ namespace OpenSim.Framework.Monitoring
                     s.Value = workerThreads;
                 });
 
-            MakeStat("BuiltinThreadpoolIOCPThreadsAvailable", null, "threads", ContainerThreadpool, 
+            MakeStat("BuiltinThreadpoolIOCPThreadsAvailable", null, "threads", ContainerThreadpool,
                 s => 
                 { 
                     int workerThreads, iocpThreads; 
@@ -183,6 +188,14 @@ namespace OpenSim.Framework.Monitoring
                 MakeStat("STPInUseThreads", null, "threads", ContainerThreadpool, s => s.Value = Util.GetSmartThreadPoolInfo().InUseThreads);
                 MakeStat("STPWorkItemsWaiting", null, "threads", ContainerThreadpool, s => s.Value = Util.GetSmartThreadPoolInfo().WaitingCallbacks);
             }
+
+            MakeStat(
+                "HTTPRequestsMade", 
+                "Number of outbound HTTP requests made", 
+                "requests", 
+                ContainerNetwork, 
+                s => s.Value = WebUtil.RequestNumber,
+                MeasuresOfInterest.AverageChangeOverTime);
 
             try
             {
