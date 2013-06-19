@@ -42,6 +42,8 @@ namespace OpenSim.Framework.Monitoring
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        public static readonly char[] DisallowedShortNameCharacters = { '.' };
+
         /// <summary>
         /// Category of this stat (e.g. cache, scene, etc).
         /// </summary>
@@ -165,6 +167,12 @@ namespace OpenSim.Framework.Monitoring
             if (StatsManager.SubCommands.Contains(category))
                 throw new Exception(
                     string.Format("Stat cannot be in category '{0}' since this is reserved for a subcommand", category));
+
+            foreach (char c in DisallowedShortNameCharacters)
+            {
+                if (shortName.IndexOf(c) != -1)
+                    throw new Exception(string.Format("Stat name {0} cannot contain character {1}", shortName, c));
+            }
 
             ShortName = shortName;
             Name = name;

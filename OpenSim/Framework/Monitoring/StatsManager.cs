@@ -68,12 +68,13 @@ namespace OpenSim.Framework.Monitoring
                 "General",
                 false,
                 "show stats",
-                "show stats [list|all|<category>]",
+                "show stats [list|all|<category>[.<container>]",
                 "Show statistical information for this server",
                 "If no final argument is specified then legacy statistics information is currently shown.\n"
                     + "If list is specified then statistic categories are shown.\n"
                     + "If all is specified then all registered statistics are shown.\n"
                     + "If a category name is specified then only statistics from that category are shown.\n"
+                    + "If a category container is also specified then only statistics from that category in that container are shown.\n"
                     + "THIS STATS FACILITY IS EXPERIMENTAL AND DOES NOT YET CONTAIN ALL STATS",
                 HandleShowStatsCommand);
         }
@@ -84,8 +85,11 @@ namespace OpenSim.Framework.Monitoring
 
             if (cmd.Length > 2)
             {
-                var categoryName = cmd[2];
-                var containerName = cmd.Length > 3 ? cmd[3] : String.Empty;
+                string name = cmd[2];
+                string[] components = name.Split('.');
+
+                string categoryName = components[0];
+                string containerName = components.Length > 1 ? components[1] : null;
 
                 if (categoryName == AllSubCommand)
                 {
@@ -107,7 +111,9 @@ namespace OpenSim.Framework.Monitoring
                     else
                     {
                         if (String.IsNullOrEmpty(containerName))
+                        {
                             OutputCategoryStatsToConsole(con, category);
+                        }
                         else
                         {
                             SortedDictionary<string, Stat> container;
