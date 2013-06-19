@@ -179,7 +179,7 @@ namespace OpenSim.Framework.Monitoring
                     s.Value = iocpThreads;
                 });
 
-            if (Util.FireAndForgetMethod != null && Util.GetSmartThreadPoolInfo() != null)
+            if (Util.FireAndForgetMethod == FireAndForgetMethod.SmartThreadPool && Util.GetSmartThreadPoolInfo() != null)
             {
                 MakeStat("STPMaxThreads", null, "threads", ContainerThreadpool, s => s.Value = Util.GetSmartThreadPoolInfo().MaxThreads);
                 MakeStat("STPMinThreads", null, "threads", ContainerThreadpool, s => s.Value = Util.GetSmartThreadPoolInfo().MinThreads);
