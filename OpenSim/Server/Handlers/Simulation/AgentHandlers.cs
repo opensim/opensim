@@ -576,7 +576,6 @@ namespace OpenSim.Server.Handlers.Simulation
                 //agent.Dump();
                 // This is one of the meanings of PUT agent
                 result = UpdateAgent(destination, agent);
-
             }
             else if ("AgentPosition".Equals(messageType))
             {
