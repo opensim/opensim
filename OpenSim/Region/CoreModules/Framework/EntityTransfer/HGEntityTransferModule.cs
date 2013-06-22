@@ -273,7 +273,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 {
                     string userAgentDriver = agentCircuit.ServiceURLs["HomeURI"].ToString();
                     IUserAgentService connector = new UserAgentServiceConnector(userAgentDriver);
-                    bool success = connector.LoginAgentToGrid(agentCircuit, reg, finalDestination, out reason);
+                    bool success = connector.LoginAgentToGrid(agentCircuit, reg, finalDestination, false, out reason);
                     logout = success; // flag for later logout from this grid; this is an HG TP
 
                     if (success)
