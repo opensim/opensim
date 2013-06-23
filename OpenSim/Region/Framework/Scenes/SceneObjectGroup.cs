@@ -3488,8 +3488,8 @@ namespace OpenSim.Region.Framework.Scenes
                     part.ClonePermissions(RootPart);
             });
 
-            uint lockMask = ~(uint)PermissionMask.Move;
-            uint lockBit = RootPart.OwnerMask & (uint)PermissionMask.Move;
+            uint lockMask = ~(uint)(PermissionMask.Move | PermissionMask.Modify);
+            uint lockBit = RootPart.OwnerMask & (uint)(PermissionMask.Move | PermissionMask.Modify);
             RootPart.OwnerMask = (RootPart.OwnerMask & lockBit) | ((newOwnerMask | foldedPerms) & lockMask);
             RootPart.ScheduleFullUpdate();
         }
