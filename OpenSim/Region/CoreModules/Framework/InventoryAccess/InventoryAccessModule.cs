@@ -794,6 +794,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             XmlDocument doc = new XmlDocument();
             doc.LoadXml(xmlData);
             XmlElement e = (XmlElement)doc.SelectSingleNode("/CoalescedObject");
+            Vector3 rez_pos;
             if (e == null || attachment) // Single
             {
                 SceneObjectGroup g = SceneObjectSerializer.FromOriginalXmlFormat(xmlData);
@@ -815,6 +816,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     RayStart, RayEnd, RayTargetID, Quaternion.Identity,
                     BypassRayCast, bRayEndIsIntersection, true, g.GetAxisAlignedBoundingBox(out offsetHeight), false);
                 pos.Z += offsetHeight;
+                rez_pos = pos;
             }
             else
             {
@@ -828,6 +830,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                         RayTargetID, Quaternion.Identity,
                         BypassRayCast, bRayEndIsIntersection, true,
                         bbox, false);
+
+                rez_pos = pos;
 
                 pos -= bbox / 2;
 
@@ -865,7 +869,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 primcount += g.PrimCount;
 
             if (!m_Scene.Permissions.CanRezObject(
-                primcount, remoteClient.AgentId, pos)
+                primcount, remoteClient.AgentId, rez_pos)
                 && !attachment)
             {
                 // The client operates in no fail mode. It will
@@ -882,7 +886,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 return null;
             }
 
-            if (item != null && !DoPreRezWhenFromItem(remoteClient, item, objlist, pos, veclist, attachment))
+            if (item != null && !DoPreRezWhenFromItem(remoteClient, item, objlist, rez_pos, veclist, attachment))
                 return null;
 
             for (int i = 0; i < objlist.Count; i++)
