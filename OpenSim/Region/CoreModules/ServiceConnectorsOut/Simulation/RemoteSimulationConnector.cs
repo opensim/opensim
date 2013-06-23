@@ -194,7 +194,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
                 return false;
 
             // Try local first
-            if (m_localBackend.IsLocalRegion(destination.RegionHandle))
+            if (m_localBackend.IsLocalRegion(destination.RegionID))
                 return m_localBackend.UpdateAgent(destination, cAgentData);
 
             return m_remoteConnector.UpdateAgent(destination, cAgentData);
@@ -206,7 +206,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
                 return false;
 
             // Try local first
-            if (m_localBackend.IsLocalRegion(destination.RegionHandle))
+            if (m_localBackend.IsLocalRegion(destination.RegionID))
                 return m_localBackend.UpdateAgent(destination, cAgentData);
 
             return m_remoteConnector.UpdateAgent(destination, cAgentData);
@@ -224,7 +224,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
                 return true;
 
             // else do the remote thing
-            if (!m_localBackend.IsLocalRegion(destination.RegionHandle))
+            if (!m_localBackend.IsLocalRegion(destination.RegionID))
                 return m_remoteConnector.RetrieveAgent(destination, id, out agent);
 
             return false;
@@ -288,7 +288,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
                 return true;
 
             // else do the remote thing
-            if (!m_localBackend.IsLocalRegion(destination.RegionHandle))
+            if (!m_localBackend.IsLocalRegion(destination.RegionID))
                 return m_remoteConnector.CloseAgent(destination, id);
             
             return false;
@@ -311,7 +311,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
             }
 
             // else do the remote thing
-            if (!m_localBackend.IsLocalRegion(destination.RegionHandle))
+            if (!m_localBackend.IsLocalRegion(destination.RegionID))
                 return m_remoteConnector.CreateObject(destination, newPosition, sog, isLocalCall);
 
             return false;

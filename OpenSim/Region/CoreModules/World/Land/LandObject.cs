@@ -82,14 +82,14 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             set { m_landData = value; }
         }
-        
+
         public IPrimCounts PrimCounts { get; set; }
 
         public UUID RegionUUID
         {
             get { return m_scene.RegionInfo.RegionID; }
         }
-        
+
         public Vector3 StartPoint
         {
             get
@@ -102,11 +102,11 @@ namespace OpenSim.Region.CoreModules.World.Land
                             return new Vector3(x * 4, y * 4, 0);
                     }
                 }
-                
+
                 return new Vector3(-1, -1, -1);
             }
-        }        
-        
+        }
+
         public Vector3 EndPoint
         {
             get
@@ -117,15 +117,15 @@ namespace OpenSim.Region.CoreModules.World.Land
                     {
                         if (LandBitmap[x, y])
                         {
-                            return new Vector3(x * 4, y * 4, 0);
-                        }                        
+                            return new Vector3(x * 4 + 4, y * 4 + 4, 0);
+                        }
                     }
-                }   
-                
+                }
+
                 return new Vector3(-1, -1, -1);
             }
         }
-                
+
         #region Constructors
 
         public LandObject(UUID owner_id, bool is_group_owned, Scene scene)

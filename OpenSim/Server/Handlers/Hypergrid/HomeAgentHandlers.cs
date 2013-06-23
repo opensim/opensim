@@ -49,191 +49,87 @@ using log4net;
 
 namespace OpenSim.Server.Handlers.Hypergrid
 {
-    public class HomeAgentHandler 
+    public class HomeAgentHandler : AgentPostHandler
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private IUserAgentService m_UserAgentService;
 
         private string m_LoginServerIP;
-        private bool m_Proxy = false;
 
-        public HomeAgentHandler(IUserAgentService userAgentService, string loginServerIP, bool proxy)
+        public HomeAgentHandler(IUserAgentService userAgentService, string loginServerIP, bool proxy) :
+            base("/homeagent")
         {
             m_UserAgentService = userAgentService;
             m_LoginServerIP = loginServerIP;
             m_Proxy = proxy;
         }
 
-        public Hashtable Handler(Hashtable request)
+        protected override AgentDestinationData CreateAgentDestinationData()
         {
-//            m_log.Debug("[CONNECTION DEBUGGING]: HomeAgentHandler Called");
-//
-//            m_log.Debug("---------------------------");
-//            m_log.Debug(" >> uri=" + request["uri"]);
-//            m_log.Debug(" >> content-type=" + request["content-type"]);
-//            m_log.Debug(" >> http-method=" + request["http-method"]);
-//            m_log.Debug("---------------------------\n");
-
-            Hashtable responsedata = new Hashtable();
-            responsedata["content_type"] = "text/html";
-            responsedata["keepalive"] = false;
-
-
-            UUID agentID;
-            UUID regionID;
-            string action;
-            if (!Utils.GetParams((string)request["uri"], out agentID, out regionID, out action))
-            {
-                m_log.InfoFormat("[HOME AGENT HANDLER]: Invalid parameters for agent message {0}", request["uri"]);
-                responsedata["int_response_code"] = 404;
-                responsedata["str_response_string"] = "false";
-
-                return responsedata;
-            }
-
-            // Next, let's parse the verb
-            string method = (string)request["http-method"];
-            if (method.Equals("POST"))
-            {
-                DoAgentPost(request, responsedata, agentID);
-                return responsedata;
-            }
-            else
-            {
-                m_log.InfoFormat("[HOME AGENT HANDLER]: method {0} not supported in agent message", method);
-                responsedata["int_response_code"] = HttpStatusCode.MethodNotAllowed;
-                responsedata["str_response_string"] = "Method not allowed";
-
-                return responsedata;
-            }
-
+            return new ExtendedAgentDestinationData();
         }
-
-        protected void DoAgentPost(Hashtable request, Hashtable responsedata, UUID id)
+        protected override void UnpackData(OSDMap args, AgentDestinationData d, Hashtable request)
         {
-            OSDMap args = Utils.GetOSDMap((string)request["body"]);
-            if (args == null)
-            {
-                responsedata["int_response_code"] = HttpStatusCode.BadRequest;
-                responsedata["str_response_string"] = "Bad request";
-                return;
-            }
-
-            // retrieve the input arguments
-            int x = 0, y = 0;
-            UUID uuid = UUID.Zero;
-            string regionname = string.Empty;
-            string gatekeeper_host = string.Empty;
-            string gatekeeper_serveruri = string.Empty;
-            string destination_serveruri = string.Empty;
-            int gatekeeper_port = 0;
-            IPEndPoint client_ipaddress = null;
-
-            if (args.ContainsKey("gatekeeper_host") && args["gatekeeper_host"] != null)
-                gatekeeper_host = args["gatekeeper_host"].AsString();
-            if (args.ContainsKey("gatekeeper_port") && args["gatekeeper_port"] != null)
-                Int32.TryParse(args["gatekeeper_port"].AsString(), out gatekeeper_port);
-            if (args.ContainsKey("gatekeeper_serveruri") && args["gatekeeper_serveruri"] !=null)
-                gatekeeper_serveruri = args["gatekeeper_serveruri"];
-            if (args.ContainsKey("destination_serveruri") && args["destination_serveruri"] !=null)
-                destination_serveruri = args["destination_serveruri"];
-
-            GridRegion gatekeeper = new GridRegion();
-            gatekeeper.ServerURI = gatekeeper_serveruri;
-            gatekeeper.ExternalHostName = gatekeeper_host;
-            gatekeeper.HttpPort = (uint)gatekeeper_port;
-            gatekeeper.InternalEndPoint = new IPEndPoint(IPAddress.Parse("0.0.0.0"), 0);
-
-            if (args.ContainsKey("destination_x") && args["destination_x"] != null)
-                Int32.TryParse(args["destination_x"].AsString(), out x);
-            else
-                m_log.WarnFormat("  -- request didn't have destination_x");
-            if (args.ContainsKey("destination_y") && args["destination_y"] != null)
-                Int32.TryParse(args["destination_y"].AsString(), out y);
-            else
-                m_log.WarnFormat("  -- request didn't have destination_y");
-            if (args.ContainsKey("destination_uuid") && args["destination_uuid"] != null)
-                UUID.TryParse(args["destination_uuid"].AsString(), out uuid);
-            if (args.ContainsKey("destination_name") && args["destination_name"] != null)
-                regionname = args["destination_name"].ToString();
-
-            if (args.ContainsKey("client_ip") && args["client_ip"] != null)
-            {
-                string ip_str = args["client_ip"].ToString();
-                try
-                {
-                    string callerIP = GetCallerIP(request);
-                    // Verify if this caller has authority to send the client IP
-                    if (callerIP == m_LoginServerIP)
-                        client_ipaddress = new IPEndPoint(IPAddress.Parse(ip_str), 0);
-                    else // leaving this for now, but this warning should be removed
-                        m_log.WarnFormat("[HOME AGENT HANDLER]: Unauthorized machine {0} tried to set client ip to {1}", callerIP, ip_str);
-                }
-                catch
-                {
-                    m_log.DebugFormat("[HOME AGENT HANDLER]: Exception parsing client ip address from {0}", ip_str);
-                }
-            }
-
-            GridRegion destination = new GridRegion();
-            destination.RegionID = uuid;
-            destination.RegionLocX = x;
-            destination.RegionLocY = y;
-            destination.RegionName = regionname;
-            destination.ServerURI = destination_serveruri;
-            
-            AgentCircuitData aCircuit = new AgentCircuitData();
+            base.UnpackData(args, d, request);
+            ExtendedAgentDestinationData data = (ExtendedAgentDestinationData)d;
             try
             {
-                aCircuit.UnpackAgentCircuitData(args);
+                if (args.ContainsKey("gatekeeper_host") && args["gatekeeper_host"] != null)
+                    data.host = args["gatekeeper_host"].AsString();
+                if (args.ContainsKey("gatekeeper_port") && args["gatekeeper_port"] != null)
+                    Int32.TryParse(args["gatekeeper_port"].AsString(), out data.port);
+                if (args.ContainsKey("gatekeeper_serveruri") && args["gatekeeper_serveruri"] != null)
+                    data.gatekeeperServerURI = args["gatekeeper_serveruri"];
+                if (args.ContainsKey("destination_serveruri") && args["destination_serveruri"] != null)
+                    data.destinationServerURI = args["destination_serveruri"];
+
             }
-            catch (Exception ex)
+            catch (InvalidCastException e)
             {
-                m_log.InfoFormat("[HOME AGENT HANDLER]: exception on unpacking ChildCreate message {0}", ex.Message);
-                responsedata["int_response_code"] = HttpStatusCode.BadRequest;
-                responsedata["str_response_string"] = "Bad request";
-                return;
+                m_log.ErrorFormat("[HOME AGENT HANDLER]: Bad cast in UnpackData");
             }
 
-            OSDMap resp = new OSDMap(2);
-            string reason = String.Empty;
+            string callerIP = GetCallerIP(request);
+            // Verify if this call came from the login server
+            if (callerIP == m_LoginServerIP)
+                data.fromLogin = true;
 
-            bool result = m_UserAgentService.LoginAgentToGrid(aCircuit, gatekeeper, destination, client_ipaddress, out reason);
-
-            resp["reason"] = OSD.FromString(reason);
-            resp["success"] = OSD.FromBoolean(result);
-
-            // TODO: add reason if not String.Empty?
-            responsedata["int_response_code"] = HttpStatusCode.OK;
-            responsedata["str_response_string"] = OSDParser.SerializeJsonString(resp);
         }
 
-        private string GetCallerIP(Hashtable request)
+        protected override GridRegion ExtractGatekeeper(AgentDestinationData d)
         {
-            if (!m_Proxy)
-                return Util.GetCallerIP(request);
-
-            // We're behind a proxy
-            Hashtable headers = (Hashtable)request["headers"];
-            string xff = "X-Forwarded-For";
-            if (headers.ContainsKey(xff.ToLower()))
-                xff = xff.ToLower();
-
-            if (!headers.ContainsKey(xff) || headers[xff] == null)
+            if (d is ExtendedAgentDestinationData)
             {
-                m_log.WarnFormat("[AGENT HANDLER]: No XFF header");
-                return Util.GetCallerIP(request);
+                ExtendedAgentDestinationData data = (ExtendedAgentDestinationData)d;
+                GridRegion gatekeeper = new GridRegion();
+                gatekeeper.ServerURI = data.gatekeeperServerURI;
+                gatekeeper.ExternalHostName = data.host;
+                gatekeeper.HttpPort = (uint)data.port;
+                gatekeeper.InternalEndPoint = new IPEndPoint(IPAddress.Parse("0.0.0.0"), 0);
+
+                return gatekeeper;
             }
+            else
+                m_log.WarnFormat("[HOME AGENT HANDLER]: Wrong data type");
 
-            m_log.DebugFormat("[AGENT HANDLER]: XFF is {0}", headers[xff]);
-
-            IPEndPoint ep = Util.GetClientIPFromXFF((string)headers[xff]);
-            if (ep != null)
-                return ep.Address.ToString();
-
-            // Oops
-            return Util.GetCallerIP(request);
+            return null;
         }
+
+
+        protected override bool CreateAgent(GridRegion gatekeeper, GridRegion destination, AgentCircuitData aCircuit, uint teleportFlags, bool fromLogin, out string reason)
+        {
+            return m_UserAgentService.LoginAgentToGrid(aCircuit, gatekeeper, destination, fromLogin, out reason);
+        }
+
+    }
+
+    public class ExtendedAgentDestinationData : AgentDestinationData
+    {
+        public string host;
+        public int port;
+        public string gatekeeperServerURI;
+        public string destinationServerURI;
+
     }
 
 }

@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -44,16 +44,16 @@ namespace OpenSim.Framework.Monitoring
             sb.Append("MEMORY STATISTICS");
             sb.Append(Environment.NewLine);
             sb.AppendFormat(
-                    "Allocated to OpenSim objects: {0} MB\n",
-                    Math.Round(GC.GetTotalMemory(false) / 1024.0 / 1024.0));
+                "Heap allocated to OpenSim   : {0} MB\n",
+                Math.Round(GC.GetTotalMemory(false) / 1024.0 / 1024.0));
 
             sb.AppendFormat(
-                "OpenSim last object memory churn    : {0} MB/s\n",
-                Math.Round((MemoryWatchdog.LastMemoryChurn * 1000) / 1024.0 / 1024, 3));
+                "Last heap allocation rate   : {0} MB/s\n",
+                Math.Round((MemoryWatchdog.LastHeapAllocationRate * 1000) / 1024.0 / 1024, 3));
 
             sb.AppendFormat(
-                "OpenSim average object memory churn : {0} MB/s\n",
-                Math.Round((MemoryWatchdog.AverageMemoryChurn * 1000) / 1024.0 / 1024, 3));
+                "Average heap allocation rate: {0} MB/s\n",
+                Math.Round((MemoryWatchdog.AverageHeapAllocationRate * 1000) / 1024.0 / 1024, 3));
 
             Process myprocess = Process.GetCurrentProcess();
             if (!myprocess.HasExited)

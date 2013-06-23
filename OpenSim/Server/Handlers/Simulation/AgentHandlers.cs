@@ -351,31 +351,16 @@ namespace OpenSim.Server.Handlers.Simulation
                 return;
             }
 
-            // retrieve the input arguments
-            int x = 0, y = 0;
-            UUID uuid = UUID.Zero;
-            string regionname = string.Empty;
-            uint teleportFlags = 0;
-            if (args.ContainsKey("destination_x") && args["destination_x"] != null)
-                Int32.TryParse(args["destination_x"].AsString(), out x);
-            else
-                m_log.WarnFormat("  -- request didn't have destination_x");
-            if (args.ContainsKey("destination_y") && args["destination_y"] != null)
-                Int32.TryParse(args["destination_y"].AsString(), out y);
-            else
-                m_log.WarnFormat("  -- request didn't have destination_y");
-            if (args.ContainsKey("destination_uuid") && args["destination_uuid"] != null)
-                UUID.TryParse(args["destination_uuid"].AsString(), out uuid);
-            if (args.ContainsKey("destination_name") && args["destination_name"] != null)
-                regionname = args["destination_name"].ToString();
-            if (args.ContainsKey("teleport_flags") && args["teleport_flags"] != null)
-                teleportFlags = args["teleport_flags"].AsUInteger();
+            AgentDestinationData data = CreateAgentDestinationData();
+            UnpackData(args, data, request);
 
             GridRegion destination = new GridRegion();
-            destination.RegionID = uuid;
-            destination.RegionLocX = x;
-            destination.RegionLocY = y;
-            destination.RegionName = regionname;
+            destination.RegionID = data.uuid;
+            destination.RegionLocX = data.x;
+            destination.RegionLocY = data.y;
+            destination.RegionName = data.name;
+
+            GridRegion gatekeeper = ExtractGatekeeper(data);
 
             AgentCircuitData aCircuit = new AgentCircuitData();
             try
@@ -396,7 +381,7 @@ namespace OpenSim.Server.Handlers.Simulation
             // This is the meaning of POST agent
             //m_regionClient.AdjustUserInformation(aCircuit);
             //bool result = m_SimulationService.CreateAgent(destination, aCircuit, teleportFlags, out reason);
-            bool result = CreateAgent(destination, aCircuit, teleportFlags, out reason);
+            bool result = CreateAgent(gatekeeper, destination, aCircuit, data.flags, data.fromLogin, out reason);
 
             resp["reason"] = OSD.FromString(reason);
             resp["success"] = OSD.FromBoolean(result);
@@ -408,7 +393,36 @@ namespace OpenSim.Server.Handlers.Simulation
             responsedata["str_response_string"] = OSDParser.SerializeJsonString(resp);
         }
 
-        private string GetCallerIP(Hashtable request)
+        protected virtual AgentDestinationData CreateAgentDestinationData()
+        {
+            return new AgentDestinationData();
+        }
+
+        protected virtual void UnpackData(OSDMap args, AgentDestinationData data, Hashtable request)
+        {
+            // retrieve the input arguments
+            if (args.ContainsKey("destination_x") && args["destination_x"] != null)
+                Int32.TryParse(args["destination_x"].AsString(), out data.x);
+            else
+                m_log.WarnFormat("  -- request didn't have destination_x");
+            if (args.ContainsKey("destination_y") && args["destination_y"] != null)
+                Int32.TryParse(args["destination_y"].AsString(), out data.y);
+            else
+                m_log.WarnFormat("  -- request didn't have destination_y");
+            if (args.ContainsKey("destination_uuid") && args["destination_uuid"] != null)
+                UUID.TryParse(args["destination_uuid"].AsString(), out data.uuid);
+            if (args.ContainsKey("destination_name") && args["destination_name"] != null)
+                data.name = args["destination_name"].ToString();
+            if (args.ContainsKey("teleport_flags") && args["teleport_flags"] != null)
+                data.flags = args["teleport_flags"].AsUInteger();
+        }
+
+        protected virtual GridRegion ExtractGatekeeper(AgentDestinationData data)
+        {
+            return null;
+        }
+
+        protected string GetCallerIP(Hashtable request)
         {
             if (!m_Proxy)
                 return Util.GetCallerIP(request);
@@ -441,7 +455,7 @@ namespace OpenSim.Server.Handlers.Simulation
         }
 
         // subclasses can override this
-        protected virtual bool CreateAgent(GridRegion destination, AgentCircuitData aCircuit, uint teleportFlags, out string reason)
+        protected virtual bool CreateAgent(GridRegion gatekeeper, GridRegion destination, AgentCircuitData aCircuit, uint teleportFlags, bool fromLogin, out string reason)
         {
             reason = String.Empty;
             
@@ -593,7 +607,6 @@ namespace OpenSim.Server.Handlers.Simulation
                 //agent.Dump();
                 // This is one of the meanings of PUT agent
                 result = UpdateAgent(destination, agent);
-
             }
             else if ("AgentPosition".Equals(messageType))
             {
@@ -623,5 +636,15 @@ namespace OpenSim.Server.Handlers.Simulation
         {
             return m_SimulationService.UpdateAgent(destination, agent);
         }
+    }
+
+    public class AgentDestinationData
+    {
+        public int x;
+        public int y;
+        public string name;
+        public UUID uuid;
+        public uint flags;
+        public bool fromLogin;
     }
 }

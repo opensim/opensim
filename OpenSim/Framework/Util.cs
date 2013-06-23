@@ -89,9 +89,30 @@ namespace OpenSim.Framework
     }
 
     /// <summary>
+    /// Class for delivering SmartThreadPool statistical information
+    /// </summary>
+    /// <remarks>
+    /// We do it this way so that we do not directly expose STP.
+    /// </remarks>
+    public class STPInfo
+    {
+        public string Name { get; set; }
+        public STPStartInfo STPStartInfo { get; set; }
+        public WIGStartInfo WIGStartInfo { get; set; }
+        public bool IsIdle { get; set; }
+        public bool IsShuttingDown { get; set; }       
+        public int MaxThreads { get; set; }
+        public int MinThreads { get; set; }
+        public int InUseThreads { get; set; }
+        public int ActiveThreads { get; set; }
+        public int WaitingCallbacks { get; set; }
+        public int MaxConcurrentWorkItems { get; set; }
+    }
+
+    /// <summary>
     /// Miscellaneous utility functions
     /// </summary>
-    public class Util
+    public static class Util
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -1864,73 +1885,30 @@ namespace OpenSim.Framework
         }
 
         /// <summary>
-        /// Get a thread pool report.
+        /// Get information about the current state of the smart thread pool.
         /// </summary>
-        /// <returns></returns>
-        public static string GetThreadPoolReport()
+        /// <returns>
+        /// null if this isn't the pool being used for non-scriptengine threads.
+        /// </returns>
+        public static STPInfo GetSmartThreadPoolInfo()
         {
-            string threadPoolUsed = null;
-            int maxThreads = 0;
-            int minThreads = 0;
-            int allocatedThreads = 0;
-            int inUseThreads = 0;
-            int waitingCallbacks = 0;
-            int completionPortThreads = 0;
+            if (m_ThreadPool == null)
+                return null;
 
-            StringBuilder sb = new StringBuilder();
-            if (FireAndForgetMethod == FireAndForgetMethod.SmartThreadPool)
-            {
-                // ROBUST currently leaves this the FireAndForgetMethod but never actually initializes the threadpool.
-                if (m_ThreadPool != null)
-                {
-                    threadPoolUsed = "SmartThreadPool";
-                    maxThreads = m_ThreadPool.MaxThreads;
-                    minThreads = m_ThreadPool.MinThreads;
-                    inUseThreads = m_ThreadPool.InUseThreads;
-                    allocatedThreads = m_ThreadPool.ActiveThreads;
-                    waitingCallbacks = m_ThreadPool.WaitingCallbacks;
-                }
-            }
-            else if (
-                FireAndForgetMethod == FireAndForgetMethod.UnsafeQueueUserWorkItem
-                    || FireAndForgetMethod == FireAndForgetMethod.UnsafeQueueUserWorkItem)
-            {
-                threadPoolUsed = "BuiltInThreadPool";
-                ThreadPool.GetMaxThreads(out maxThreads, out completionPortThreads);
-                ThreadPool.GetMinThreads(out minThreads, out completionPortThreads);
-                int availableThreads;
-                ThreadPool.GetAvailableThreads(out availableThreads, out completionPortThreads);
-                inUseThreads = maxThreads - availableThreads;
-                allocatedThreads = -1;
-                waitingCallbacks = -1;
-            }
+            STPInfo stpi = new STPInfo();
+            stpi.Name = m_ThreadPool.Name;
+            stpi.STPStartInfo = m_ThreadPool.STPStartInfo;
+            stpi.IsIdle = m_ThreadPool.IsIdle;
+            stpi.IsShuttingDown = m_ThreadPool.IsShuttingdown;
+            stpi.MaxThreads = m_ThreadPool.MaxThreads;
+            stpi.MinThreads = m_ThreadPool.MinThreads;
+            stpi.InUseThreads = m_ThreadPool.InUseThreads;
+            stpi.ActiveThreads = m_ThreadPool.ActiveThreads;
+            stpi.WaitingCallbacks = m_ThreadPool.WaitingCallbacks;
+            stpi.MaxConcurrentWorkItems = m_ThreadPool.Concurrency;
 
-            if (threadPoolUsed != null)
-            {
-                sb.AppendFormat("Thread pool used           : {0}\n", threadPoolUsed);
-                sb.AppendFormat("Max threads                : {0}\n", maxThreads);
-                sb.AppendFormat("Min threads                : {0}\n", minThreads);
-                sb.AppendFormat("Allocated threads          : {0}\n", allocatedThreads < 0 ? "not applicable" : allocatedThreads.ToString());
-                sb.AppendFormat("In use threads             : {0}\n", inUseThreads);
-                sb.AppendFormat("Work items waiting         : {0}\n", waitingCallbacks < 0 ? "not available" : waitingCallbacks.ToString());
-            }
-            else
-            {
-                sb.AppendFormat("Thread pool not used\n");
-            }
-
-            return sb.ToString();
+            return stpi;
         }
-
-//        private static object SmartThreadPoolCallback(object o)
-//        {
-//            object[] array = (object[])o;
-//            WaitCallback callback = (WaitCallback)array[0];
-//            object obj = array[1];
-//
-//            callback(obj);
-//            return null;
-//        }
 
         #endregion FireAndForget Threading Pattern
 

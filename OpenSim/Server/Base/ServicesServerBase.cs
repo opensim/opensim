@@ -34,6 +34,7 @@ using System.Text;
 using System.Xml;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
+using OpenSim.Framework.Monitoring;
 using OpenSim.Framework.Servers;
 using log4net;
 using log4net.Config;
@@ -190,16 +191,7 @@ namespace OpenSim.Server.Base
             }
 
             RegisterCommonCommands();
-
-            // Register the quit command
-            //
-            MainConsole.Instance.Commands.AddCommand("General", false, "quit",
-                    "quit",
-                    "Quit the application", HandleQuit);
-
-            MainConsole.Instance.Commands.AddCommand("General", false, "shutdown",
-                    "shutdown",
-                    "Quit the application", HandleQuit);
+            RegisterCommonComponents(Config);
 
             // Allow derived classes to perform initialization that
             // needs to be done after the console has opened
@@ -214,6 +206,9 @@ namespace OpenSim.Server.Base
 
         public virtual int Run()
         {
+            Watchdog.Enabled = true;
+            MemoryWatchdog.Enabled = true;
+
             while (m_Running)
             {
                 try
@@ -231,11 +226,12 @@ namespace OpenSim.Server.Base
             return 0;
         }
 
-        protected virtual void HandleQuit(string module, string[] args)
+        protected override void ShutdownSpecific()
         {
             m_Running = false;
             m_log.Info("[CONSOLE] Quitting");
 
+            base.ShutdownSpecific();
         }
 
         protected virtual void ReadConfig()

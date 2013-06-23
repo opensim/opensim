@@ -44,13 +44,14 @@ using Nini.Config;
 
 namespace OpenSim.Services.Connectors.Hypergrid
 {
-    public class UserAgentServiceConnector : IUserAgentService
+    public class UserAgentServiceConnector : SimulationServiceConnector, IUserAgentService
     {
         private static readonly ILog m_log =
             LogManager.GetLogger(
             MethodBase.GetCurrentMethod().DeclaringType);
 
-        string m_ServerURL;
+        private string m_ServerURL;
+        private GridRegion m_Gatekeeper;
 
         public UserAgentServiceConnector(string url) : this(url, true)
         {
@@ -102,9 +103,15 @@ namespace OpenSim.Services.Connectors.Hypergrid
             m_log.DebugFormat("[USER AGENT CONNECTOR]: UserAgentServiceConnector started for {0}", m_ServerURL);
         }
 
+        protected override string AgentPath()
+        {
+            return "homeagent/";
+        }
 
-        // The Login service calls this interface with a non-null [client] ipaddress 
-        public bool LoginAgentToGrid(AgentCircuitData aCircuit, GridRegion gatekeeper, GridRegion destination, IPEndPoint ipaddress, out string reason)
+        // The Login service calls this interface with fromLogin=true 
+        // Sims call it with fromLogin=false
+        // Either way, this is verified by the handler
+        public bool LoginAgentToGrid(AgentCircuitData aCircuit, GridRegion gatekeeper, GridRegion destination, bool fromLogin, out string reason)
         {
             reason = String.Empty;
 
@@ -115,119 +122,34 @@ namespace OpenSim.Services.Connectors.Hypergrid
                 return false;
             }
 
-            string uri = m_ServerURL + "homeagent/" + aCircuit.AgentID + "/";
+            GridRegion home = new GridRegion();
+            home.ServerURI = m_ServerURL;
+            home.RegionID = destination.RegionID;
+            home.RegionLocX = destination.RegionLocX;
+            home.RegionLocY = destination.RegionLocY;
 
-            Console.WriteLine("   >>> LoginAgentToGrid <<< " + uri);
+            m_Gatekeeper = gatekeeper;
 
-            HttpWebRequest AgentCreateRequest = (HttpWebRequest)WebRequest.Create(uri);
-            AgentCreateRequest.Method = "POST";
-            AgentCreateRequest.ContentType = "application/json";
-            AgentCreateRequest.Timeout = 10000;
-            //AgentCreateRequest.KeepAlive = false;
-            //AgentCreateRequest.Headers.Add("Authorization", authKey);
+            Console.WriteLine("   >>> LoginAgentToGrid <<< " + home.ServerURI);
 
-            // Fill it in
-            OSDMap args = PackCreateAgentArguments(aCircuit, gatekeeper, destination, ipaddress);
-
-            string strBuffer = "";
-            byte[] buffer = new byte[1];
-            try
-            {
-                strBuffer = OSDParser.SerializeJsonString(args);
-                Encoding str = Util.UTF8;
-                buffer = str.GetBytes(strBuffer);
-
-            }
-            catch (Exception e)
-            {
-                m_log.WarnFormat("[USER AGENT CONNECTOR]: Exception thrown on serialization of ChildCreate: {0}", e.Message);
-                // ignore. buffer will be empty, caller should check.
-            }
-
-            Stream os = null;
-            try
-            { // send the Post
-                AgentCreateRequest.ContentLength = buffer.Length;   //Count bytes to send
-                os = AgentCreateRequest.GetRequestStream();
-                os.Write(buffer, 0, strBuffer.Length);         //Send it
-                m_log.InfoFormat("[USER AGENT CONNECTOR]: Posted CreateAgent request to remote sim {0}, region {1}, x={2} y={3}",
-                    uri, destination.RegionName, destination.RegionLocX, destination.RegionLocY);
-            }
-            //catch (WebException ex)
-            catch
-            {
-                //m_log.InfoFormat("[USER AGENT CONNECTOR]: Bad send on ChildAgentUpdate {0}", ex.Message);
-                reason = "cannot contact remote region";
-                return false;
-            }
-            finally
-            {
-                if (os != null)
-                    os.Close();
-            }
-
-            // Let's wait for the response
-            //m_log.Info("[USER AGENT CONNECTOR]: Waiting for a reply after DoCreateChildAgentCall");
-
-            try
-            {
-                using (WebResponse webResponse = AgentCreateRequest.GetResponse())
-                {
-                    if (webResponse == null)
-                    {
-                        m_log.Info("[USER AGENT CONNECTOR]: Null reply on DoCreateChildAgentCall post");
-                    }
-                    else
-                    {
-                        using (Stream s = webResponse.GetResponseStream())
-                        {
-                            using (StreamReader sr = new StreamReader(s))
-                            {
-                                string response = sr.ReadToEnd().Trim();
-                                m_log.InfoFormat("[USER AGENT CONNECTOR]: DoCreateChildAgentCall reply was {0} ", response);
-
-                                if (!String.IsNullOrEmpty(response))
-                                {
-                                    try
-                                    {
-                                        // we assume we got an OSDMap back
-                                        OSDMap r = Util.GetOSDMap(response);
-                                        bool success = r["success"].AsBoolean();
-                                        reason = r["reason"].AsString();
-                                        return success;
-                                    }
-                                    catch (NullReferenceException e)
-                                    {
-                                        m_log.InfoFormat("[USER AGENT CONNECTOR]: exception on reply of DoCreateChildAgentCall {0}", e.Message);
-
-                                        // check for old style response
-                                        if (response.ToLower().StartsWith("true"))
-                                            return true;
-
-                                        return false;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            catch (WebException ex)
-            {
-                m_log.InfoFormat("[USER AGENT CONNECTOR]: exception on reply of DoCreateChildAgentCall {0}", ex.Message);
-                reason = "Destination did not reply";
-                return false;
-            }
-
-            return true;
-
+            uint flags = fromLogin ? (uint)TeleportFlags.ViaLogin : (uint)TeleportFlags.ViaHome;
+            return CreateAgent(home, aCircuit, flags, out reason);
         }
 
 
         // The simulators call this interface
         public bool LoginAgentToGrid(AgentCircuitData aCircuit, GridRegion gatekeeper, GridRegion destination, out string reason)
         {
-            return LoginAgentToGrid(aCircuit, gatekeeper, destination, null, out reason);
+            return LoginAgentToGrid(aCircuit, gatekeeper, destination, false, out reason);
+        }
+
+        protected override void PackData(OSDMap args, AgentCircuitData aCircuit, GridRegion destination, uint flags)
+        {
+            base.PackData(args, aCircuit, destination, flags);
+            args["gatekeeper_serveruri"] = OSD.FromString(m_Gatekeeper.ServerURI);
+            args["gatekeeper_host"] = OSD.FromString(m_Gatekeeper.ExternalHostName);
+            args["gatekeeper_port"] = OSD.FromString(m_Gatekeeper.HttpPort.ToString());
+            args["destination_serveruri"] = OSD.FromString(destination.ServerURI);
         }
 
         protected OSDMap PackCreateAgentArguments(AgentCircuitData aCircuit, GridRegion gatekeeper, GridRegion destination, IPEndPoint ipaddress)

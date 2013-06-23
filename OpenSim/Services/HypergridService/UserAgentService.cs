@@ -210,10 +210,10 @@ namespace OpenSim.Services.HypergridService
             return home;
         }
 
-        public bool LoginAgentToGrid(AgentCircuitData agentCircuit, GridRegion gatekeeper, GridRegion finalDestination, IPEndPoint clientIP, out string reason)
+        public bool LoginAgentToGrid(AgentCircuitData agentCircuit, GridRegion gatekeeper, GridRegion finalDestination, bool fromLogin, out string reason)
         {
             m_log.DebugFormat("[USER AGENT SERVICE]: Request to login user {0} {1} (@{2}) to grid {3}", 
-                agentCircuit.firstname, agentCircuit.lastname, ((clientIP == null) ? "stored IP" : clientIP.Address.ToString()), gatekeeper.ServerURI);
+                agentCircuit.firstname, agentCircuit.lastname, (fromLogin ? agentCircuit.IPAddress : "stored IP"), gatekeeper.ServerURI);
 
             string gridName = gatekeeper.ServerURI;
 
@@ -265,7 +265,7 @@ namespace OpenSim.Services.HypergridService
             bool success = false;
             string myExternalIP = string.Empty;
 
-            m_log.DebugFormat("[USER AGENT SERVICE]: this grid: {0}, desired grid: {1}", m_GridName, gridName);
+            m_log.DebugFormat("[USER AGENT SERVICE]: this grid: {0}, desired grid: {1}, desired region: {2}", m_GridName, gridName, region.RegionID);
 
             if (m_GridName == gridName)
                 success = m_GatekeeperService.LoginAgent(agentCircuit, finalDestination, out reason);
@@ -296,8 +296,8 @@ namespace OpenSim.Services.HypergridService
 
             m_log.DebugFormat("[USER AGENT SERVICE]: Gatekeeper sees me as {0}", myExternalIP);
             // else set the IP addresses associated with this client
-            if (clientIP != null)
-                m_TravelingAgents[agentCircuit.SessionID].ClientIPAddress = clientIP.Address.ToString();
+            if (fromLogin)
+                m_TravelingAgents[agentCircuit.SessionID].ClientIPAddress = agentCircuit.IPAddress;
             m_TravelingAgents[agentCircuit.SessionID].MyIpAddress = myExternalIP;
 
             return true;
@@ -306,7 +306,7 @@ namespace OpenSim.Services.HypergridService
         public bool LoginAgentToGrid(AgentCircuitData agentCircuit, GridRegion gatekeeper, GridRegion finalDestination, out string reason)
         {
             reason = string.Empty;
-            return LoginAgentToGrid(agentCircuit, gatekeeper, finalDestination, null, out reason);
+            return LoginAgentToGrid(agentCircuit, gatekeeper, finalDestination, false, out reason);
         }
 
         private void SetClientIP(UUID sessionID, string ip)

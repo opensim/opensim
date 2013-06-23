@@ -53,7 +53,8 @@ namespace OpenSim.Services.Connectors.Hypergrid
 
         private IAssetService m_AssetService;
 
-        public GatekeeperServiceConnector() : base()
+        public GatekeeperServiceConnector()
+            : base()
         {
         }
 
@@ -123,11 +124,13 @@ namespace OpenSim.Services.Connectors.Hypergrid
                         realHandle = Convert.ToUInt64((string)hash["handle"]);
                         //m_log.Debug(">> HERE, realHandle: " + realHandle);
                     }
-                    if (hash["region_image"] != null) {
+                    if (hash["region_image"] != null)
+                    {
                         imageURL = (string)hash["region_image"];
                         //m_log.Debug(">> HERE, imageURL: " + imageURL);
                     }
-                    if (hash["external_name"] != null) {
+                    if (hash["external_name"] != null)
+                    {
                         externalName = (string)hash["external_name"];
                         //m_log.Debug(">> HERE, externalName: " + externalName);
                     }
@@ -179,7 +182,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
                     //m_log.Debug("Size: " + m.PhysicalDimension.Height + "-" + m.PhysicalDimension.Width);
                     imageData = OpenJPEG.EncodeFromImage(bitmap, true);
                 }
-                
+
                 AssetBase ass = new AssetBase(UUID.Random(), "region " + name, (sbyte)AssetType.Texture, regionID.ToString());
 
                 // !!! for now
@@ -257,7 +260,8 @@ namespace OpenSim.Services.Connectors.Hypergrid
                         region.RegionName = (string)hash["region_name"];
                         //m_log.Debug(">> HERE, region_name: " + region.RegionName);
                     }
-                    if (hash["hostname"] != null) {
+                    if (hash["hostname"] != null)
+                    {
                         region.ExternalHostName = (string)hash["hostname"];
                         //m_log.Debug(">> HERE, hostname: " + region.ExternalHostName);
                     }
@@ -275,10 +279,10 @@ namespace OpenSim.Services.Connectors.Hypergrid
                         region.InternalEndPoint = new IPEndPoint(IPAddress.Parse("0.0.0.0"), p);
                         //m_log.Debug(">> HERE, internal_port: " + region.InternalEndPoint);
                     }
-                    
+
                     if (hash["server_uri"] != null)
                     {
-                        region.ServerURI = (string) hash["server_uri"];
+                        region.ServerURI = (string)hash["server_uri"];
                         //m_log.Debug(">> HERE, server_uri: " + region.ServerURI);
                     }
 
@@ -294,56 +298,6 @@ namespace OpenSim.Services.Connectors.Hypergrid
             }
 
             return null;
-        }
-
-        public bool CreateAgent(GridRegion destination, AgentCircuitData aCircuit, uint flags, out string myipaddress, out string reason)
-        {
-            // m_log.DebugFormat("[GATEKEEPER SERVICE CONNECTOR]: CreateAgent start");
-
-            myipaddress = String.Empty;
-            reason = String.Empty;
-
-            if (destination == null)
-            {
-                m_log.Debug("[GATEKEEPER SERVICE CONNECTOR]: Given destination is null");
-                return false;
-            }
-
-            string uri = destination.ServerURI + AgentPath() + aCircuit.AgentID + "/";
-
-            try
-            {
-                OSDMap args = aCircuit.PackAgentCircuitData();
-
-                args["destination_x"] = OSD.FromString(destination.RegionLocX.ToString());
-                args["destination_y"] = OSD.FromString(destination.RegionLocY.ToString());
-                args["destination_name"] = OSD.FromString(destination.RegionName);
-                args["destination_uuid"] = OSD.FromString(destination.RegionID.ToString());
-                args["teleport_flags"] = OSD.FromString(flags.ToString());
-
-                OSDMap result = WebUtil.PostToService(uri, args, 80000);
-                if (result["Success"].AsBoolean())
-                {
-                    OSDMap unpacked = (OSDMap)result["_Result"];
-
-                    if (unpacked != null)
-                    {
-                        reason = unpacked["reason"].AsString();
-                        myipaddress = unpacked["your_ip"].AsString();
-                        return unpacked["success"].AsBoolean();
-                    }
-                }
-                
-                reason = result["Message"] != null ? result["Message"].AsString() : "error";
-                return false;
-            }
-            catch (Exception e)
-            {
-                m_log.Warn("[REMOTE SIMULATION CONNECTOR]: CreateAgent failed with exception: " + e.ToString());
-                reason = e.Message;
-            }
-
-            return false;
         }
     }
 }

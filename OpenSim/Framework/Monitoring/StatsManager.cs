@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace OpenSim.Framework.Monitoring
@@ -54,13 +55,13 @@ namespace OpenSim.Framework.Monitoring
         public static SortedDictionary<string, SortedDictionary<string, SortedDictionary<string, Stat>>> RegisteredStats
             = new SortedDictionary<string, SortedDictionary<string, SortedDictionary<string, Stat>>>();
 
-        private static AssetStatsCollector assetStats;
-        private static UserStatsCollector userStats;
-        private static SimExtraStatsCollector simExtraStats = new SimExtraStatsCollector();
+//        private static AssetStatsCollector assetStats;
+//        private static UserStatsCollector userStats;
+//        private static SimExtraStatsCollector simExtraStats = new SimExtraStatsCollector();
 
-        public static AssetStatsCollector AssetStats { get { return assetStats; } }
-        public static UserStatsCollector UserStats { get { return userStats; } }
-        public static SimExtraStatsCollector SimExtraStats { get { return simExtraStats; } }
+//        public static AssetStatsCollector AssetStats { get { return assetStats; } }
+//        public static UserStatsCollector UserStats { get { return userStats; } }
+        public static SimExtraStatsCollector SimExtraStats { get; set; }
 
         public static void RegisterConsoleCommands(ICommandConsole console)
         {
@@ -68,12 +69,14 @@ namespace OpenSim.Framework.Monitoring
                 "General",
                 false,
                 "show stats",
-                "show stats [list|all|<category>]",
+                "show stats [list|all|(<category>[.<container>])+",
                 "Show statistical information for this server",
                 "If no final argument is specified then legacy statistics information is currently shown.\n"
-                    + "If list is specified then statistic categories are shown.\n"
-                    + "If all is specified then all registered statistics are shown.\n"
-                    + "If a category name is specified then only statistics from that category are shown.\n"
+                    + "'list' argument will show statistic categories.\n"
+                    + "'all' will show all statistics.\n"
+                    + "A <category> name will show statistics from that category.\n"
+                    + "A <category>.<container> name will show statistics from that category in that container.\n"
+                    + "More than one name can be given separated by spaces.\n"
                     + "THIS STATS FACILITY IS EXPERIMENTAL AND DOES NOT YET CONTAIN ALL STATS",
                 HandleShowStatsCommand);
         }
@@ -84,43 +87,47 @@ namespace OpenSim.Framework.Monitoring
 
             if (cmd.Length > 2)
             {
-                var categoryName = cmd[2];
-                var containerName = cmd.Length > 3 ? cmd[3] : String.Empty;
+                foreach (string name in cmd.Skip(2))
+                {
+                    string[] components = name.Split('.');
 
-                if (categoryName == AllSubCommand)
-                {
-                    foreach (var category in RegisteredStats.Values)
+                    string categoryName = components[0];
+                    string containerName = components.Length > 1 ? components[1] : null;
+
+                    if (categoryName == AllSubCommand)
                     {
-                        OutputCategoryStatsToConsole(con, category);
+                        OutputAllStatsToConsole(con);
                     }
-                }
-                else if (categoryName == ListSubCommand)
-                {
-                    con.Output("Statistic categories available are:");
-                    foreach (string category in RegisteredStats.Keys)
-                        con.OutputFormat("  {0}", category);
-                }
-                else
-                {
-                    SortedDictionary<string, SortedDictionary<string, Stat>> category;
-                    if (!RegisteredStats.TryGetValue(categoryName, out category))
+                    else if (categoryName == ListSubCommand)
                     {
-                        con.OutputFormat("No such category as {0}", categoryName);
+                        con.Output("Statistic categories available are:");
+                        foreach (string category in RegisteredStats.Keys)
+                            con.OutputFormat("  {0}", category);
                     }
                     else
                     {
-                        if (String.IsNullOrEmpty(containerName))
-                            OutputCategoryStatsToConsole(con, category);
+                        SortedDictionary<string, SortedDictionary<string, Stat>> category;
+                        if (!RegisteredStats.TryGetValue(categoryName, out category))
+                        {
+                            con.OutputFormat("No such category as {0}", categoryName);
+                        }
                         else
                         {
-                            SortedDictionary<string, Stat> container;
-                            if (category.TryGetValue(containerName, out container))
+                            if (String.IsNullOrEmpty(containerName))
                             {
-                                OutputContainerStatsToConsole(con, container);
+                                OutputCategoryStatsToConsole(con, category);
                             }
                             else
                             {
-                                con.OutputFormat("No such container {0} in category {1}", containerName, categoryName);
+                                SortedDictionary<string, Stat> container;
+                                if (category.TryGetValue(containerName, out container))
+                                {
+                                    OutputContainerStatsToConsole(con, container);
+                                }
+                                else
+                                {
+                                    con.OutputFormat("No such container {0} in category {1}", containerName, categoryName);
+                                }
                             }
                         }
                     }
@@ -129,7 +136,18 @@ namespace OpenSim.Framework.Monitoring
             else
             {
                 // Legacy
-                con.Output(SimExtraStats.Report());
+                if (SimExtraStats != null)
+                    con.Output(SimExtraStats.Report());
+                else
+                    OutputAllStatsToConsole(con);
+            }
+        }
+
+        private static void OutputAllStatsToConsole(ICommandConsole con)
+        {
+            foreach (var category in RegisteredStats.Values)
+            {
+                OutputCategoryStatsToConsole(con, category);
             }
         }
 
@@ -150,27 +168,27 @@ namespace OpenSim.Framework.Monitoring
             }
         }
 
-        /// <summary>
-        /// Start collecting statistics related to assets.
-        /// Should only be called once.
-        /// </summary>
-        public static AssetStatsCollector StartCollectingAssetStats()
-        {
-            assetStats = new AssetStatsCollector();
-
-            return assetStats;
-        }
-
-        /// <summary>
-        /// Start collecting statistics related to users.
-        /// Should only be called once.
-        /// </summary>
-        public static UserStatsCollector StartCollectingUserStats()
-        {
-            userStats = new UserStatsCollector();
-
-            return userStats;
-        }
+//        /// <summary>
+//        /// Start collecting statistics related to assets.
+//        /// Should only be called once.
+//        /// </summary>
+//        public static AssetStatsCollector StartCollectingAssetStats()
+//        {
+//            assetStats = new AssetStatsCollector();
+//
+//            return assetStats;
+//        }
+//
+//        /// <summary>
+//        /// Start collecting statistics related to users.
+//        /// Should only be called once.
+//        /// </summary>
+//        public static UserStatsCollector StartCollectingUserStats()
+//        {
+//            userStats = new UserStatsCollector();
+//
+//            return userStats;
+//        }
 
         /// <summary>
         /// Registers a statistic.

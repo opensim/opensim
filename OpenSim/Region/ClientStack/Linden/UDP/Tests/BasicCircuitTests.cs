@@ -33,6 +33,7 @@ using NUnit.Framework;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
 using OpenSim.Framework;
+using OpenSim.Framework.Monitoring;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Mock;
@@ -69,6 +70,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         {
             base.SetUp();
             m_scene = new SceneHelpers().SetupScene();
+            StatsManager.SimExtraStats = new SimExtraStatsCollector();
         }
         
         /// <summary>
@@ -210,8 +212,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
 
             ScenePresence spAfterAckTimeout = m_scene.GetScenePresence(sp.UUID);
             Assert.That(spAfterAckTimeout, Is.Null);
-
-//            TestHelpers.DisableLogging();
         }
 
 //        /// <summary>
