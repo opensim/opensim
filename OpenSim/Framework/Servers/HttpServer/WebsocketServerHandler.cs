@@ -75,7 +75,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// <summary>
         /// This is a regular HTTP Request...    This may be removed in the future.   
         /// </summary>
-        public event RegularHttpRequestDelegate OnRegularHttpRequest;
+//        public event RegularHttpRequestDelegate OnRegularHttpRequest;
 
         /// <summary>
         /// When the upgrade from a HTTP request to a Websocket is completed, this will be fired
@@ -304,15 +304,14 @@ namespace OpenSim.Framework.Servers.HttpServer
                 if (d != null)
                     d(this, new UpgradeCompletedEventArgs());
             }
-            catch (IOException fail)
+            catch (IOException)
             {
                 Close(string.Empty);
             }
-            catch (ObjectDisposedException fail)
+            catch (ObjectDisposedException)
             {
                 Close(string.Empty);
-            }
-            
+            }           
         }
 
         /// <summary>
@@ -414,8 +413,6 @@ namespace OpenSim.Framework.Servers.HttpServer
                                 _socketState.Header = pheader;
                             }
 
-
-
                             if (_socketState.FrameComplete)
                             {
                                 ProcessFrame(_socketState);
@@ -424,7 +421,6 @@ namespace OpenSim.Framework.Servers.HttpServer
                                 _socketState.ExpectedBytes = 0;
 
                             }
-
                         }
                     }
                     else
@@ -457,8 +453,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                             _socketState.ReceivedBytes.Clear();
                             _socketState.ExpectedBytes = 0;
                             // do some processing
-                        }
-
+                        }                       
                     }
                 }
                 if (offset > 0)
@@ -477,13 +472,12 @@ namespace OpenSim.Framework.Servers.HttpServer
                 {
                     // We can't read the stream anymore...  
                 }
-
             }
-            catch (IOException fail)
+            catch (IOException)
             {
                 Close(string.Empty);
             }
-            catch (ObjectDisposedException fail)
+            catch (ObjectDisposedException)
             {
                 Close(string.Empty);
             }

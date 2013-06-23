@@ -53,8 +53,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private int m_levelHGTeleport = 0;
+        private string m_ThisHomeURI;
 
         private GatekeeperServiceConnector m_GatekeeperConnector;
+        private IUserAgentService m_UAS;
 
         protected bool m_RestrictAppearanceAbroad;
         protected string m_AccountName;
@@ -143,6 +145,14 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: {0} enabled.", Name);
                 }
             }
+
+            moduleConfig = source.Configs["Hypergrid"];
+            if (moduleConfig != null)
+            {
+                m_ThisHomeURI = moduleConfig.GetString("HomeURI", string.Empty);
+                if (m_ThisHomeURI != string.Empty && !m_ThisHomeURI.EndsWith("/"))
+                    m_ThisHomeURI += '/';
+            }
         }
 
         public override void AddRegion(Scene scene)
@@ -194,7 +204,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             base.RegionLoaded(scene);
 
             if (m_Enabled)
+            {
                 m_GatekeeperConnector = new GatekeeperServiceConnector(scene.AssetService);
+                m_UAS = scene.RequestModuleInterface<IUserAgentService>();
+            }
         }
 
         public override void RemoveRegion(Scene scene)
@@ -272,8 +285,14 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 if (agentCircuit.ServiceURLs.ContainsKey("HomeURI"))
                 {
                     string userAgentDriver = agentCircuit.ServiceURLs["HomeURI"].ToString();
-                    IUserAgentService connector = new UserAgentServiceConnector(userAgentDriver);
-                    bool success = connector.LoginAgentToGrid(agentCircuit, reg, finalDestination, out reason);
+                    IUserAgentService connector;
+
+                    if (userAgentDriver.Equals(m_ThisHomeURI) && m_UAS != null)
+                        connector = m_UAS;
+                    else
+                        connector = new UserAgentServiceConnector(userAgentDriver);
+
+                    bool success = connector.LoginAgentToGrid(agentCircuit, reg, finalDestination, false, out reason);
                     logout = success; // flag for later logout from this grid; this is an HG TP
 
                     if (success)

@@ -34,6 +34,7 @@ using log4net;
 using Nini.Config;
 using Mono.Addins;
 using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Framework.Monitoring;
 using OpenSim.Framework.Servers;
@@ -44,8 +45,6 @@ using OpenSim.Framework.Capabilities;
 using OpenSim.Services.Interfaces;
 using Caps = OpenSim.Framework.Capabilities.Caps;
 using OpenSim.Capabilities.Handlers;
-using OpenMetaverse;
-using OpenMetaverse.StructuredData;
 
 namespace OpenSim.Region.ClientStack.Linden
 {
@@ -64,7 +63,7 @@ namespace OpenSim.Region.ClientStack.Linden
             public List<UUID> folders;
         }
 
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private Scene m_scene;
 

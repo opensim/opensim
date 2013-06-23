@@ -62,6 +62,8 @@ namespace OpenSim.Framework.Servers
 
         protected string m_pidFile = String.Empty;
 
+        protected ServerStatsCollector m_serverStatsCollector;
+
         /// <summary>
         /// Server version information.  Usually VersionInfo + information about git commit, operating system, etc.
         /// </summary>
@@ -259,6 +261,25 @@ namespace OpenSim.Framework.Servers
                 "force gc",
                 "Manually invoke runtime garbage collection.  For debugging purposes",
                 HandleForceGc);
+
+            m_console.Commands.AddCommand(
+                "General", false, "quit",
+                "quit",
+                "Quit the application", (mod, args) => Shutdown());
+
+            m_console.Commands.AddCommand(
+                "General", false, "shutdown",
+                "shutdown",
+                "Quit the application", (mod, args) => Shutdown());
+
+            StatsManager.RegisterConsoleCommands(m_console);
+        }
+
+        public void RegisterCommonComponents(IConfigSource configSource)
+        {
+            m_serverStatsCollector = new ServerStatsCollector();
+            m_serverStatsCollector.Initialise(configSource);
+            m_serverStatsCollector.Start();
         }
 
         private void HandleForceGc(string module, string[] args)
@@ -646,7 +667,68 @@ namespace OpenSim.Framework.Servers
                 sb.AppendFormat("Total threads active: {0}\n\n", totalThreads);
 
             sb.Append("Main threadpool (excluding script engine pools)\n");
-            sb.Append(Util.GetThreadPoolReport());
+            sb.Append(GetThreadPoolReport());
+
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// Get a thread pool report.
+        /// </summary>
+        /// <returns></returns>
+        public static string GetThreadPoolReport()
+        {
+            string threadPoolUsed = null;
+            int maxThreads = 0;
+            int minThreads = 0;
+            int allocatedThreads = 0;
+            int inUseThreads = 0;
+            int waitingCallbacks = 0;
+            int completionPortThreads = 0;
+
+            StringBuilder sb = new StringBuilder();
+            if (Util.FireAndForgetMethod == FireAndForgetMethod.SmartThreadPool)
+            {
+                STPInfo stpi = Util.GetSmartThreadPoolInfo();
+
+                // ROBUST currently leaves this the FireAndForgetMethod but never actually initializes the threadpool.
+                if (stpi != null)
+                {
+                    threadPoolUsed = "SmartThreadPool";
+                    maxThreads = stpi.MaxThreads;
+                    minThreads = stpi.MinThreads;
+                    inUseThreads = stpi.InUseThreads;
+                    allocatedThreads = stpi.ActiveThreads;
+                    waitingCallbacks = stpi.WaitingCallbacks;
+                }
+            }
+            else if (
+                Util.FireAndForgetMethod == FireAndForgetMethod.QueueUserWorkItem
+                    || Util.FireAndForgetMethod == FireAndForgetMethod.UnsafeQueueUserWorkItem)
+            {
+                threadPoolUsed = "BuiltInThreadPool";
+                ThreadPool.GetMaxThreads(out maxThreads, out completionPortThreads);
+                ThreadPool.GetMinThreads(out minThreads, out completionPortThreads);
+                int availableThreads;
+                ThreadPool.GetAvailableThreads(out availableThreads, out completionPortThreads);
+                inUseThreads = maxThreads - availableThreads;
+                allocatedThreads = -1;
+                waitingCallbacks = -1;
+            }
+
+            if (threadPoolUsed != null)
+            {
+                sb.AppendFormat("Thread pool used           : {0}\n", threadPoolUsed);
+                sb.AppendFormat("Max threads                : {0}\n", maxThreads);
+                sb.AppendFormat("Min threads                : {0}\n", minThreads);
+                sb.AppendFormat("Allocated threads          : {0}\n", allocatedThreads < 0 ? "not applicable" : allocatedThreads.ToString());
+                sb.AppendFormat("In use threads             : {0}\n", inUseThreads);
+                sb.AppendFormat("Work items waiting         : {0}\n", waitingCallbacks < 0 ? "not available" : waitingCallbacks.ToString());
+            }
+            else
+            {
+                sb.AppendFormat("Thread pool not used\n");
+            }
 
             return sb.ToString();
         }
@@ -698,5 +780,16 @@ namespace OpenSim.Framework.Servers
             if (m_console != null)
                 m_console.OutputFormat(format, components);
         }
+
+        public virtual void Shutdown()
+        {
+            m_serverStatsCollector.Close();
+            ShutdownSpecific();
+        }
+
+        /// <summary>
+        /// Should be overriden and referenced by descendents if they need to perform extra shutdown processing
+        /// </summary>
+        protected virtual void ShutdownSpecific() {}
     }
 }

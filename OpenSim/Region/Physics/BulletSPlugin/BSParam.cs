@@ -134,6 +134,7 @@ public static class BSParam
     public static float AvatarHeightMidFudge { get; private set; }
     public static float AvatarHeightHighFudge { get; private set; }
 	public static float AvatarContactProcessingThreshold { get; private set; }
+	public static int AvatarJumpFrames { get; private set; }
 	public static float AvatarBelowGroundUpCorrectionMeters { get; private set; }
 	public static float AvatarStepHeight { get; private set; }
 	public static float AvatarStepApproachFactor { get; private set; }
@@ -567,6 +568,8 @@ public static class BSParam
             0.1f ),
 	    new ParameterDefn<float>("AvatarBelowGroundUpCorrectionMeters", "Meters to move avatar up if it seems to be below ground",
             1.0f ),
+	    new ParameterDefn<int>("AvatarJumpFrames", "Number of frames to allow jump forces. Changes jump height.",
+            4 ),
 	    new ParameterDefn<float>("AvatarStepHeight", "Height of a step obstacle to consider step correction",
             0.6f ) ,
 	    new ParameterDefn<float>("AvatarStepApproachFactor", "Factor to control angle of approach to step (0=straight on)",

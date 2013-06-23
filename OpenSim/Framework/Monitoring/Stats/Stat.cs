@@ -27,8 +27,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using System.Text;
-
+using log4net;
 using OpenMetaverse.StructuredData;
 
 namespace OpenSim.Framework.Monitoring
@@ -38,6 +40,10 @@ namespace OpenSim.Framework.Monitoring
     /// </summary>
     public class Stat : IDisposable
     {
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        public static readonly char[] DisallowedShortNameCharacters = { '.' };
+
         /// <summary>
         /// Category of this stat (e.g. cache, scene, etc).
         /// </summary>
@@ -95,7 +101,7 @@ namespace OpenSim.Framework.Monitoring
         /// <remarks>
         /// Will be null if no measures of interest require samples.
         /// </remarks>
-        private static Queue<double> m_samples;
+        private Queue<double> m_samples;
 
         /// <summary>
         /// Maximum number of statistical samples.
@@ -162,6 +168,12 @@ namespace OpenSim.Framework.Monitoring
                 throw new Exception(
                     string.Format("Stat cannot be in category '{0}' since this is reserved for a subcommand", category));
 
+            foreach (char c in DisallowedShortNameCharacters)
+            {
+                if (shortName.IndexOf(c) != -1)
+                    throw new Exception(string.Format("Stat name {0} cannot contain character {1}", shortName, c));
+            }
+
             ShortName = shortName;
             Name = name;
             Description = description;
@@ -204,6 +216,8 @@ namespace OpenSim.Framework.Monitoring
                 if (m_samples.Count >= m_maxSamples)
                     m_samples.Dequeue();
 
+//                m_log.DebugFormat("[STAT]: Recording value {0} for {1}", newValue, Name);
+
                 m_samples.Enqueue(newValue);
             }
         }
@@ -242,6 +256,10 @@ namespace OpenSim.Framework.Monitoring
 
                 lock (m_samples)
                 {
+//                    m_log.DebugFormat(
+//                        "[STAT]: Samples for {0} are {1}", 
+//                        Name, string.Join(",", m_samples.Select(s => s.ToString()).ToArray()));
+
                     foreach (double s in m_samples)
                     {
                         if (lastSample != null)
@@ -253,7 +271,7 @@ namespace OpenSim.Framework.Monitoring
 
                 int divisor = m_samples.Count <= 1 ? 1 : m_samples.Count - 1;
 
-                sb.AppendFormat(", {0:0.##}{1}/s", totalChange / divisor / (Watchdog.WATCHDOG_INTERVAL_MS / 1000), UnitName);
+                sb.AppendFormat(", {0:0.##} {1}/s", totalChange / divisor / (Watchdog.WATCHDOG_INTERVAL_MS / 1000), UnitName);
             }
         }
     }
