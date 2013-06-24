@@ -3028,8 +3028,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Update just the root prim position in a linkset
         /// </summary>
-        /// <param name="pos"></param>
-        public void UpdateRootPosition(Vector3 pos)
+        /// <param name="newPos"></param>
+        public void UpdateRootPosition(Vector3 newPos)
         {
 //            m_log.DebugFormat(
 //                "[SCENE OBJECT GROUP]: Updating root position of {0} {1} to {2}", Name, LocalId, pos);
@@ -3038,16 +3038,10 @@ namespace OpenSim.Region.Framework.Scenes
 //            for (int i = 0; i < parts.Length; i++)
 //                parts[i].StoreUndoState();
 
-            Vector3 newPos = new Vector3(pos.X, pos.Y, pos.Z);
-            Vector3 oldPos =
-                new Vector3(AbsolutePosition.X + m_rootPart.OffsetPosition.X,
-                              AbsolutePosition.Y + m_rootPart.OffsetPosition.Y,
-                              AbsolutePosition.Z + m_rootPart.OffsetPosition.Z);
+            Vector3 oldPos = AbsolutePosition + RootPart.OffsetPosition;
             Vector3 diff = oldPos - newPos;
-            Vector3 axDiff = new Vector3(diff.X, diff.Y, diff.Z);
             Quaternion partRotation = m_rootPart.RotationOffset;
-            axDiff *= Quaternion.Inverse(partRotation);
-            diff = axDiff;
+            diff *= Quaternion.Inverse(partRotation);
 
             SceneObjectPart[] parts = m_parts.GetArray();
             for (int i = 0; i < parts.Length; i++)
