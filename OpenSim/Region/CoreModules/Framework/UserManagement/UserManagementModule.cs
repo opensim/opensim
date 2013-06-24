@@ -320,7 +320,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             else
             {
                 names[0] = "Unknown";
-                names[1] = "UserUMMTGUN2";
+                names[1] = "UserUMMTGUN3";
 
                 return false;
             }
