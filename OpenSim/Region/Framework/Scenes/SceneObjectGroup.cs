@@ -3038,7 +3038,16 @@ namespace OpenSim.Region.Framework.Scenes
 //            for (int i = 0; i < parts.Length; i++)
 //                parts[i].StoreUndoState();
 
-            Vector3 oldPos = AbsolutePosition + RootPart.OffsetPosition;
+            Vector3 oldPos;
+
+            // FIXME: This improves the situation where editing just the root prim of an attached object would send
+            // all the other parts to oblivion after detach/reattach.  However, a problem remains since the root prim
+            // still ends up in the wrong position on reattach.
+            if (IsAttachment)
+                oldPos = RootPart.OffsetPosition;
+            else
+                oldPos = AbsolutePosition + RootPart.OffsetPosition;
+
             Vector3 diff = oldPos - newPos;
             Quaternion partRotation = m_rootPart.RotationOffset;
             diff *= Quaternion.Inverse(partRotation);
