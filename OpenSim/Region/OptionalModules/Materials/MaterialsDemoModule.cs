@@ -121,9 +121,11 @@ namespace OpenSim.Region.OptionalModules.MaterialsDemoModule
                 return;
 
             m_log.DebugFormat("[MaterialsDemoModule]: REGION {0} ADDED", scene.RegionInfo.RegionName);
+
             m_scene = scene;
-            m_scene.EventManager.OnRegisterCaps += new EventManager.RegisterCapsEvent(OnRegisterCaps);
-            m_scene.EventManager.OnObjectAddedToScene += new Action<SceneObjectGroup>(EventManager_OnObjectAddedToScene);
+            m_scene.EventManager.OnRegisterCaps += OnRegisterCaps;
+            m_scene.EventManager.OnObjectAddedToScene += EventManager_OnObjectAddedToScene;
+            m_scene.EventManager.OnGatherUuids += GatherMaterialsUuids;           
         }
 
         void EventManager_OnObjectAddedToScene(SceneObjectGroup obj)
@@ -156,6 +158,10 @@ namespace OpenSim.Region.OptionalModules.MaterialsDemoModule
         {
             if (!m_enabled)
                 return;
+
+            m_scene.EventManager.OnRegisterCaps -= OnRegisterCaps;
+            m_scene.EventManager.OnObjectAddedToScene -= EventManager_OnObjectAddedToScene;
+            m_scene.EventManager.OnGatherUuids -= GatherMaterialsUuids; 
 
             m_log.DebugFormat("[MaterialsDemoModule]: REGION {0} REMOVED", scene.RegionInfo.RegionName);
         }        
@@ -569,5 +575,67 @@ namespace OpenSim.Region.OptionalModules.MaterialsDemoModule
             output.Flush();
         }
 
+        /// <summary>
+        /// Gather all of the texture asset UUIDs used to reference "Materials" such as normal and specular maps
+        /// </summary>
+        /// <param name="part"></param>
+        /// <param name="assetUuids"></param>
+        private void GatherMaterialsUuids(SceneObjectPart part, IDictionary<UUID, AssetType> assetUuids)
+        {
+            // scan thru the dynAttrs map of this part for any textures used as materials
+            OSD osdMaterials = null;
+
+            lock (part.DynAttrs)
+            {
+                if (part.DynAttrs.ContainsStore("OpenSim", "Materials"))
+                {
+                    OSDMap materialsStore = part.DynAttrs.GetStore("OpenSim", "Materials");
+                    materialsStore.TryGetValue("Materials", out osdMaterials);
+                }
+
+                if (osdMaterials != null)
+                {
+                    //m_log.Info("[UUID Gatherer]: found Materials: " + OSDParser.SerializeJsonString(osd));
+
+                    if (osdMaterials is OSDArray)
+                    {
+                        OSDArray matsArr = osdMaterials as OSDArray;
+                        foreach (OSDMap matMap in matsArr)
+                        {
+                            try
+                            {
+                                if (matMap.ContainsKey("Material"))
+                                {
+                                    OSDMap mat = matMap["Material"] as OSDMap;
+                                    if (mat.ContainsKey("NormMap"))
+                                    {
+                                        UUID normalMapId = mat["NormMap"].AsUUID();
+                                        if (normalMapId != UUID.Zero)
+                                        {
+                                            assetUuids[normalMapId] = AssetType.Texture;
+                                            //m_log.Info("[UUID Gatherer]: found normal map ID: " + normalMapId.ToString());
+                                        }
+                                    }
+                                    if (mat.ContainsKey("SpecMap"))
+                                    {
+                                        UUID specularMapId = mat["SpecMap"].AsUUID();
+                                        if (specularMapId != UUID.Zero)
+                                        {
+                                            assetUuids[specularMapId] = AssetType.Texture;
+                                            //m_log.Info("[UUID Gatherer]: found specular map ID: " + specularMapId.ToString());
+                                        }
+                                    }
+                                }
+
+                            }
+                            catch (Exception e)
+                            {
+                                m_log.Warn("[MaterialsDemoModule]: exception getting materials: " + e.Message);
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }
