@@ -212,7 +212,6 @@ namespace OpenSim.Region.Framework.Scenes
 //            }
 //        }
 
-
         /// <summary>
         /// Gather all of the texture asset UUIDs used to reference "Materials" such as normal and specular maps
         /// </summary>
@@ -221,20 +220,23 @@ namespace OpenSim.Region.Framework.Scenes
         public void GatherMaterialsUuids(SceneObjectPart part, IDictionary<UUID, AssetType> assetUuids)
         {
             // scan thru the dynAttrs map of this part for any textures used as materials
-            OSDMap OSMaterials = null;
+            OSD osdMaterials = null;
 
             lock (part.DynAttrs)
             {
-                if (part.DynAttrs.ContainsKey("OS:Materials"))
-                    OSMaterials = part.DynAttrs["OS:Materials"];
-                if (OSMaterials != null && OSMaterials.ContainsKey("Materials"))
+                if (part.DynAttrs.ContainsStore("OpenSim", "Materials"))
                 {
-                    OSD osd = OSMaterials["Materials"];
+                    OSDMap materialsStore = part.DynAttrs.GetStore("OpenSim", "Materials");
+                    materialsStore.TryGetValue("Materials", out osdMaterials);
+                }
+
+                if (osdMaterials != null)
+                {
                     //m_log.Info("[UUID Gatherer]: found Materials: " + OSDParser.SerializeJsonString(osd));
 
-                    if (osd is OSDArray)
+                    if (osdMaterials is OSDArray)
                     {
-                        OSDArray matsArr = osd as OSDArray;
+                        OSDArray matsArr = osdMaterials as OSDArray;
                         foreach (OSDMap matMap in matsArr)
                         {
                             try

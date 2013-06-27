@@ -2176,7 +2176,7 @@ namespace OpenSim.Data.SQLite
 
             row["MediaURL"] = prim.MediaUrl;
 
-            if (prim.DynAttrs.Count > 0)
+            if (prim.DynAttrs.CountNamespaces > 0)
                 row["DynAttrs"] = prim.DynAttrs.ToXml();
             else
                 row["DynAttrs"] = null;

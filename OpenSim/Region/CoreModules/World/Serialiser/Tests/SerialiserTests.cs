@@ -144,7 +144,20 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
                     <Flags>None</Flags>
                     <CollisionSound><Guid>00000000-0000-0000-0000-000000000000</Guid></CollisionSound>
                     <CollisionSoundVolume>0</CollisionSoundVolume>
-                    <DynAttrs><llsd><map><key>MyStore</key><map><key>the answer</key><integer>42</integer></map></map></llsd></DynAttrs>
+                    <DynAttrs>
+                        <llsd>
+                            <map>
+                                <key>MyNamespace</key>
+                                <map>                                
+                                    <key>MyStore</key>
+                                    <map>   
+                                        <key>the answer</key>
+                                        <integer>42</integer>
+                                    </map>
+                                </map>
+                            </map>
+                        </llsd>
+                    </DynAttrs>
                 </SceneObjectPart>
             </RootPart>
             <OtherParts />
@@ -333,7 +346,20 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
                 <EveryoneMask>0</EveryoneMask>
                 <NextOwnerMask>2147483647</NextOwnerMask>
                 <Flags>None</Flags>
-                <DynAttrs><llsd><map><key>MyStore</key><map><key>last words</key><string>Rosebud</string></map></map></llsd></DynAttrs>
+                <DynAttrs>
+                    <llsd>
+                        <map>
+                            <key>MyNamespace</key>
+                            <map>                                
+                                <key>MyStore</key>
+                                <map>   
+                                    <key>last words</key>
+                                    <string>Rosebud</string>
+                                </map>
+                            </map>
+                        </map>
+                    </llsd>
+                </DynAttrs>
                 <SitTargetAvatar><UUID>00000000-0000-0000-0000-000000000000</UUID></SitTargetAvatar>
             </SceneObjectPart>
             <OtherParts />
@@ -362,7 +388,7 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
             Assert.That(rootPart.UUID, Is.EqualTo(new UUID("e6a5a05e-e8cc-4816-8701-04165e335790")));
             Assert.That(rootPart.CreatorID, Is.EqualTo(new UUID("a6dacf01-4636-4bb9-8a97-30609438af9d")));
             Assert.That(rootPart.Name, Is.EqualTo("PrimMyRide"));
-            OSDMap store = rootPart.DynAttrs["MyStore"];
+            OSDMap store = rootPart.DynAttrs.GetStore("MyNamespace", "MyStore");
             Assert.AreEqual(42, store["the answer"].AsInteger());
 
             // TODO: Check other properties
@@ -414,13 +440,14 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
             rp.CreatorID = rpCreatorId;
             rp.Shape = shape;
 
+            string daNamespace = "MyNamespace";
             string daStoreName = "MyStore";
             string daKey = "foo";
             string daValue = "bar";
             OSDMap myStore = new OSDMap();
             myStore.Add(daKey, daValue);
             rp.DynAttrs = new DAMap();
-            rp.DynAttrs[daStoreName] = myStore;
+            rp.DynAttrs.SetStore(daNamespace, daStoreName, myStore);
 
             SceneObjectGroup so = new SceneObjectGroup(rp);
 
@@ -481,7 +508,7 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
             Assert.That(name, Is.EqualTo(rpName));
             Assert.That(creatorId, Is.EqualTo(rpCreatorId));
             Assert.NotNull(daMap);
-            Assert.AreEqual(daValue, daMap[daStoreName][daKey].AsString());
+            Assert.AreEqual(daValue, daMap.GetStore(daNamespace, daStoreName)[daKey].AsString());
         }
 
         [Test]
@@ -496,7 +523,7 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
             Assert.That(rootPart.UUID, Is.EqualTo(new UUID("9be68fdd-f740-4a0f-9675-dfbbb536b946")));
             Assert.That(rootPart.CreatorID, Is.EqualTo(new UUID("b46ef588-411e-4a8b-a284-d7dcfe8e74ef")));
             Assert.That(rootPart.Name, Is.EqualTo("PrimFun"));
-            OSDMap store = rootPart.DynAttrs["MyStore"];
+            OSDMap store = rootPart.DynAttrs.GetStore("MyNamespace", "MyStore");
             Assert.AreEqual("Rosebud", store["last words"].AsString());
 
             // TODO: Check other properties
@@ -522,13 +549,14 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
             rp.CreatorID = rpCreatorId;
             rp.Shape = shape;
 
+            string daNamespace = "MyNamespace";
             string daStoreName = "MyStore";
             string daKey = "foo";
             string daValue = "bar";
             OSDMap myStore = new OSDMap();
             myStore.Add(daKey, daValue);
             rp.DynAttrs = new DAMap();
-            rp.DynAttrs[daStoreName] = myStore;
+            rp.DynAttrs.SetStore(daNamespace, daStoreName, myStore);
 
             SceneObjectGroup so = new SceneObjectGroup(rp);
 
@@ -585,7 +613,7 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
             Assert.That(name, Is.EqualTo(rpName));
             Assert.That(creatorId, Is.EqualTo(rpCreatorId));
             Assert.NotNull(daMap);
-            Assert.AreEqual(daValue, daMap[daStoreName][daKey].AsString());
+            Assert.AreEqual(daValue, daMap.GetStore(daNamespace, daStoreName)[daKey].AsString());
         }
     }
 }

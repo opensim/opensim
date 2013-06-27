@@ -178,7 +178,7 @@ namespace OpenSim.Region.OptionalModules.MaterialsDemoModule
 
         void GetStoredMaterialsForPart(SceneObjectPart part)
         { 
-            OSDMap OSMaterials = null;
+            OSD OSMaterials = null;
             OSDArray matsArr = null;
 
             if (part.DynAttrs == null)
@@ -188,22 +188,19 @@ namespace OpenSim.Region.OptionalModules.MaterialsDemoModule
 
             lock (part.DynAttrs)
             {
-                if (part.DynAttrs.ContainsKey("OS:Materials"))
-                    OSMaterials = part.DynAttrs["OS:Materials"];
-                if (OSMaterials != null && OSMaterials.ContainsKey("Materials"))
+                if (part.DynAttrs.ContainsStore("OpenSim", "Materials"))
                 {
-
-                    OSD osd = OSMaterials["Materials"];
-                    if (osd is OSDArray)
-                        matsArr = osd as OSDArray;
+                    OSDMap materialsStore = part.DynAttrs.GetStore("OpenSim", "Materials");
+                    materialsStore.TryGetValue("Materials", out OSMaterials);
                 }
+
+                if (OSMaterials != null && OSMaterials is OSDArray)
+                    matsArr = OSMaterials as OSDArray;
+                else
+                    return;
             }
 
-            if (OSMaterials == null)
-                return;
-
             m_log.Info("[MaterialsDemoModule]: OSMaterials: " + OSDParser.SerializeJsonString(OSMaterials));
-
 
             if (matsArr == null)
             {
@@ -215,7 +212,6 @@ namespace OpenSim.Region.OptionalModules.MaterialsDemoModule
             {
                 if (elemOsd != null && elemOsd is OSDMap)
                 {
-
                     OSDMap matMap = elemOsd as OSDMap;
                     if (matMap.ContainsKey("ID") && matMap.ContainsKey("Material"))
                     {
@@ -232,7 +228,6 @@ namespace OpenSim.Region.OptionalModules.MaterialsDemoModule
             }
         }
 
-        
         void StoreMaterialsForPart(SceneObjectPart part)
         {
             try
@@ -277,14 +272,13 @@ namespace OpenSim.Region.OptionalModules.MaterialsDemoModule
                 OSMaterials["Materials"] = matsArr;
 
                 lock (part.DynAttrs)
-                    part.DynAttrs["OS:Materials"] = OSMaterials;
+                    part.DynAttrs.SetStore("OpenSim", "Materials", OSMaterials);
             }
             catch (Exception e)
             {
                 m_log.Warn("[MaterialsDemoModule]: exception in StoreMaterialsForPart(): " + e.ToString());
             }
         }
-
 
         public string RenderMaterialsPostCap(string request, string path,
                 string param, IOSHttpRequest httpRequest,
