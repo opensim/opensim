@@ -58,7 +58,7 @@ where we are today.
 
 
 = Additional OpenSim Contributors =
-These folks have contributed code patches to OpenSim to help make it
+These folks have contributed code patches or content to OpenSimulator to help make it
 what it is today.  
 
 * aduffy70
@@ -163,6 +163,7 @@ what it is today.
 * webmage (IBM)
 * Xantor
 * Y. Nitta
+* YoshikoFazuku
 * YZh
 * Zackary Geers aka Kunnis Basiat
 * Zha Ewry
@@ -215,5 +216,3 @@ In addition, we would like to thank:
 * The Mono Project
 * The NANT Developers
 * Microsoft (.NET, MSSQL-Adapters)
-*x
-  

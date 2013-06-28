@@ -746,4 +746,16 @@
      <Key Name="assetType" Value="0" />
      <Key Name="fileName" Value="735198cf-6ea0-2550-e222-21d3c6a341ae.j2c" />
   </Section>
+
+  <!-- 
+    Texture expected by viewers for properly displaying stars in the night sky
+    Name derives from label in viewer code
+  -->
+  <Section Name="IMG_BLOOM1 Texture">
+    <Key Name="assetID" Value="3c59f7fe-9dc8-47f9-8aaf-a9dd1fbc3bef"/>
+    <Key Name="name" Value="IMG_BLOOM1 Texture"/>
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="IMG_BLOOM1.jp2" />
+  </Section>
+
 </Nini>
