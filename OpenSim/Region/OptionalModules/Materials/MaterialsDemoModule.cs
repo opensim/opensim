@@ -590,6 +590,9 @@ namespace OpenSim.Region.OptionalModules.MaterialsDemoModule
                 if (part.DynAttrs.ContainsStore("OpenSim", "Materials"))
                 {
                     OSDMap materialsStore = part.DynAttrs.GetStore("OpenSim", "Materials");
+                    if (materialsStore == null)
+                        return;
+                        
                     materialsStore.TryGetValue("Materials", out osdMaterials);
                 }
 
