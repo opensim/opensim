@@ -216,6 +216,12 @@ namespace OpenSim.Framework
             }
         }
 
+        /// <summary>
+        /// Retrieve a Dynamic Attribute store
+        /// </summary>
+        /// <param name="ns">namespace for the store - use "OpenSim" for in-core modules</param>
+        /// <param name="storeName">name of the store within the namespace</param>
+        /// <returns>an OSDMap representing the stored data, or null if not found</returns>
         public OSDMap GetStore(string ns, string storeName)
         {
             OSD namespaceOsd;
@@ -234,6 +240,12 @@ namespace OpenSim.Framework
             return null;
         }
 
+        /// <summary>
+        /// Saves a Dynamic attribute store
+        /// </summary>
+        /// <param name="ns">namespace for the store - use "OpenSim" for in-core modules</param>
+        /// <param name="storeName">name of the store within the namespace</param>
+        /// <param name="store">an OSDMap representing the data to store</param>
         public void SetStore(string ns, string storeName, OSDMap store)
         {
             ValidateNamespace(ns);
