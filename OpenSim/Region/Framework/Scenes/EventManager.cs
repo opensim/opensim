@@ -1021,15 +1021,15 @@ namespace OpenSim.Region.Framework.Scenes
         /// </remarks>
         public event TeleportFail OnTeleportFail;
 
-        public delegate void GatherUuids(SceneObjectPart sop, IDictionary<UUID, AssetType> assetUuids);
-
-        /// <summary>
-        /// Triggered when UUIDs referenced by a scene object are being gathered for archiving, hg transfer, etc.
-        /// </summary>
-        /// <remarks>
-        /// The listener should add references to the IDictionary<UUID, AssetType> as appropriate.
-        /// </remarks>
-        public event GatherUuids OnGatherUuids;
+//        public delegate void GatherUuids(SceneObjectPart sop, IDictionary<UUID, AssetType> assetUuids);
+//
+//        /// <summary>
+//        /// Triggered when UUIDs referenced by a scene object are being gathered for archiving, hg transfer, etc.
+//        /// </summary>
+//        /// <remarks>
+//        /// The listener should add references to the IDictionary<UUID, AssetType> as appropriate.
+//        /// </remarks>
+//        public event GatherUuids OnGatherUuids;
 
         public class MoneyTransferArgs : EventArgs
         {
@@ -3248,25 +3248,25 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void TriggerGatherUuids(SceneObjectPart sop, IDictionary<UUID, AssetType> assetUuids)
-        {
-            GatherUuids handler = OnGatherUuids;
-
-            if (handler != null)
-            {
-                foreach (GatherUuids d in handler.GetInvocationList())
-                {
-                    try
-                    {
-                        d(sop, assetUuids);
-                    }
-                    catch (Exception e)
-                    {
-                        m_log.ErrorFormat("[EVENT MANAGER]: Delegate for TriggerUuidGather failed - continuing {0} - {1}",
-                            e.Message, e.StackTrace);
-                    }
-                }
-            }
-        }
+//        public void TriggerGatherUuids(SceneObjectPart sop, IDictionary<UUID, AssetType> assetUuids)
+//        {
+//            GatherUuids handler = OnGatherUuids;
+//
+//            if (handler != null)
+//            {
+//                foreach (GatherUuids d in handler.GetInvocationList())
+//                {
+//                    try
+//                    {
+//                        d(sop, assetUuids);
+//                    }
+//                    catch (Exception e)
+//                    {
+//                        m_log.ErrorFormat("[EVENT MANAGER]: Delegate for TriggerUuidGather failed - continuing {0} - {1}",
+//                            e.Message, e.StackTrace);
+//                    }
+//                }
+//            }
+//        }
     }
 }

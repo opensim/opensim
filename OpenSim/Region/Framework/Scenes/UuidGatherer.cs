@@ -186,7 +186,13 @@ namespace OpenSim.Region.Framework.Scenes
                             GatherAssetUuids(tii.AssetID, (AssetType)tii.Type, assetUuids);
                     }
 
-                    part.ParentGroup.Scene.EventManager.TriggerGatherUuids(part, assetUuids);
+                    // FIXME: We need to make gathering modular but we cannot yet, since gatherers are not guaranteed
+                    // to be called with scene objects that are in a scene (e.g. in the case of hg asset mapping and
+                    // inventory transfer.  There needs to be a way for a module to register a method without assuming a 
+                    // Scene.EventManager is present.
+//                    part.ParentGroup.Scene.EventManager.TriggerGatherUuids(part, assetUuids);
+
+                    GatherMaterialsUuids(part, assetUuids);
                 }
                 catch (Exception e)
                 {
@@ -210,6 +216,69 @@ namespace OpenSim.Region.Framework.Scenes
 //                Monitor.Pulse(this);
 //            }
 //        }
+
+        /// <summary>
+        /// Gather all of the texture asset UUIDs used to reference "Materials" such as normal and specular maps
+        /// </summary>
+        /// <param name="part"></param>
+        /// <param name="assetUuids"></param>
+        public void GatherMaterialsUuids(SceneObjectPart part, IDictionary<UUID, AssetType> assetUuids)
+        {
+            // scan thru the dynAttrs map of this part for any textures used as materials
+            OSD osdMaterials = null;
+
+            lock (part.DynAttrs)
+            {
+                if (part.DynAttrs.ContainsStore("OpenSim", "Materials"))
+                {
+                    OSDMap materialsStore = part.DynAttrs.GetStore("OpenSim", "Materials");
+                    materialsStore.TryGetValue("Materials", out osdMaterials);
+                }
+
+                if (osdMaterials != null)
+                {
+                    //m_log.Info("[UUID Gatherer]: found Materials: " + OSDParser.SerializeJsonString(osd));
+
+                    if (osdMaterials is OSDArray)
+                    {
+                        OSDArray matsArr = osdMaterials as OSDArray;
+                        foreach (OSDMap matMap in matsArr)
+                        {
+                            try
+                            {
+                                if (matMap.ContainsKey("Material"))
+                                {
+                                    OSDMap mat = matMap["Material"] as OSDMap;
+                                    if (mat.ContainsKey("NormMap"))
+                                    {
+                                        UUID normalMapId = mat["NormMap"].AsUUID();
+                                        if (normalMapId != UUID.Zero)
+                                        {
+                                            assetUuids[normalMapId] = AssetType.Texture;
+                                            //m_log.Info("[UUID Gatherer]: found normal map ID: " + normalMapId.ToString());
+                                        }
+                                    }
+                                    if (mat.ContainsKey("SpecMap"))
+                                    {
+                                        UUID specularMapId = mat["SpecMap"].AsUUID();
+                                        if (specularMapId != UUID.Zero)
+                                        {
+                                            assetUuids[specularMapId] = AssetType.Texture;
+                                            //m_log.Info("[UUID Gatherer]: found specular map ID: " + specularMapId.ToString());
+                                        }
+                                    }
+                                }
+
+                            }
+                            catch (Exception e)
+                            {
+                                m_log.Warn("[UUID Gatherer]: exception getting materials: " + e.Message);
+                            }
+                        }
+                    }
+                }
+            }
+        }
        
         /// <summary>
         /// Get an asset synchronously, potentially using an asynchronous callback.  If the
