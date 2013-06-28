@@ -173,11 +173,14 @@ namespace OpenSim.Region.OptionalModules.MaterialsDemoModule
         OSDMap GetMaterial(UUID id)
         {
             OSDMap map = null;
-            if (m_knownMaterials.ContainsKey(id))
+            lock (m_knownMaterials)
             {
-                map = new OSDMap();
-                map["ID"] = OSD.FromBinary(id.GetBytes());
-                map["Material"] = m_knownMaterials[id];
+                if (m_knownMaterials.ContainsKey(id))
+                {
+                    map = new OSDMap();
+                    map["ID"] = OSD.FromBinary(id.GetBytes());
+                    map["Material"] = m_knownMaterials[id];
+                }
             }
             return map;
         }
@@ -227,7 +230,8 @@ namespace OpenSim.Region.OptionalModules.MaterialsDemoModule
                     {
                         try
                         {
-                            m_knownMaterials[matMap["ID"].AsUUID()] = (OSDMap)matMap["Material"];
+                            lock (m_knownMaterials)
+                                m_knownMaterials[matMap["ID"].AsUUID()] = (OSDMap)matMap["Material"];
                         }
                         catch (Exception e)
                         {
@@ -251,8 +255,11 @@ namespace OpenSim.Region.OptionalModules.MaterialsDemoModule
 
                 if (te.DefaultTexture != null)
                 {
-                    if (m_knownMaterials.ContainsKey(te.DefaultTexture.MaterialID))
-                        mats[te.DefaultTexture.MaterialID] = m_knownMaterials[te.DefaultTexture.MaterialID];
+                    lock (m_knownMaterials)
+                    {
+                        if (m_knownMaterials.ContainsKey(te.DefaultTexture.MaterialID))
+                            mats[te.DefaultTexture.MaterialID] = m_knownMaterials[te.DefaultTexture.MaterialID];
+                    }
                 }
 
                 if (te.FaceTextures != null)
@@ -261,8 +268,11 @@ namespace OpenSim.Region.OptionalModules.MaterialsDemoModule
                     {
                         if (face != null)
                         {
-                            if (m_knownMaterials.ContainsKey(face.MaterialID))
-                                mats[face.MaterialID] = m_knownMaterials[face.MaterialID];
+                            lock (m_knownMaterials)
+                            {
+                                if (m_knownMaterials.ContainsKey(face.MaterialID))
+                                    mats[face.MaterialID] = m_knownMaterials[face.MaterialID];
+                            }
                         }
                     }
                 }
@@ -323,18 +333,21 @@ namespace OpenSim.Region.OptionalModules.MaterialsDemoModule
                                 try
                                 {
                                     UUID id = new UUID(elem.AsBinary(), 0);
-                                    
-                                    if (m_knownMaterials.ContainsKey(id))
-                                    {
-                                        m_log.Info("[MaterialsDemoModule]: request for known material ID: " + id.ToString());
-                                        OSDMap matMap = new OSDMap();
-                                        matMap["ID"] = OSD.FromBinary(id.GetBytes());
 
-                                        matMap["Material"] = m_knownMaterials[id];
-                                        respArr.Add(matMap);
+                                    lock (m_knownMaterials)
+                                    {
+                                        if (m_knownMaterials.ContainsKey(id))
+                                        {
+                                            m_log.Info("[MaterialsDemoModule]: request for known material ID: " + id.ToString());
+                                            OSDMap matMap = new OSDMap();
+                                            matMap["ID"] = OSD.FromBinary(id.GetBytes());
+
+                                            matMap["Material"] = m_knownMaterials[id];
+                                            respArr.Add(matMap);
+                                        }
+                                        else
+                                            m_log.Info("[MaterialsDemoModule]: request for UNKNOWN material ID: " + id.ToString());
                                     }
-                                    else
-                                        m_log.Info("[MaterialsDemoModule]: request for UNKNOWN material ID: " + id.ToString());
                                 }
                                 catch (Exception e)
                                 {
@@ -372,7 +385,8 @@ namespace OpenSim.Region.OptionalModules.MaterialsDemoModule
                                             m_log.Debug("[MaterialsDemoModule]: mat: " + OSDParser.SerializeJsonString(mat));
                                         
                                             UUID id = HashOsd(mat);
-                                            m_knownMaterials[id] = mat;
+                                            lock (m_knownMaterials)
+                                                m_knownMaterials[id] = mat;
                                         
 
                                             var sop = m_scene.GetSceneObjectPart(matLocalID);
@@ -480,23 +494,21 @@ namespace OpenSim.Region.OptionalModules.MaterialsDemoModule
             m_log.Debug("[MaterialsDemoModule]: GET cap handler");
 
             OSDMap resp = new OSDMap();
-
- 
             int matsCount = 0;
-
             OSDArray allOsd = new OSDArray();
 
-            foreach (KeyValuePair<UUID, OSDMap> kvp in m_knownMaterials)
+            lock (m_knownMaterials)
             {
-                OSDMap matMap = new OSDMap();
+                foreach (KeyValuePair<UUID, OSDMap> kvp in m_knownMaterials)
+                {
+                    OSDMap matMap = new OSDMap();
 
-                matMap["ID"] = OSD.FromBinary(kvp.Key.GetBytes());
-
-                matMap["Material"] = kvp.Value;
-                allOsd.Add(matMap);
-                matsCount++;
+                    matMap["ID"] = OSD.FromBinary(kvp.Key.GetBytes());
+                    matMap["Material"] = kvp.Value;
+                    allOsd.Add(matMap);
+                    matsCount++;
+                }
             }
-
 
             resp["Zipped"] = ZCompressOSD(allOsd, false);
             m_log.Debug("[MaterialsDemoModule]: matsCount: " + matsCount.ToString());
