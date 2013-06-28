@@ -148,10 +148,6 @@ namespace OpenSim.Framework
 
                     keysToRemove.Add(key);
                 }
-                else if (key == "OS:Materials")
-                {
-                    osMaterialsMigrationRequired = true;
-                }
             }
 
             if (keysToRemove != null)
@@ -162,11 +158,6 @@ namespace OpenSim.Framework
                     namespacesMap.Remove(key);
                 }
             }
-
-            // Hard-coded special case that needs to be removed in the future.  Normally, modules themselves should
-            // handle reading data from old locations
-            if (osMaterialsMigrationRequired)
-                daMap.SetStore("OpenSim", "Materials", (OSDMap)namespacesMap["OS:Materials"]);
 
             foreach (OSD nsOsd in namespacesMap.Values)
             {
