@@ -205,15 +205,16 @@ namespace OpenSim.Services.AssetService
             if (!UUID.TryParse(id, out assetID))
                 return false;
 
-            // Don't bother deleting from a chained asset service.  This isn't a big deal since deleting happens
-            // very rarely.
+            if (HasChainedAssetService)
+                m_ChainedAssetService.Delete(id);
 
             return m_Database.Delete(id);
         }
 
         private void MigrateFromChainedService(AssetBase asset)
         {
-            Util.FireAndForget(o => { Store(asset); m_ChainedAssetService.Delete(asset.ID); });
+            Store(asset); 
+            m_ChainedAssetService.Delete(asset.ID);
         }
     }
 }
