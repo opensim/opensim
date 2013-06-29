@@ -706,7 +706,7 @@ public static class BSParam
         new ParameterDefn<float>("ResetBroadphasePool", "Setting this is any value resets the broadphase collision pool",
             0f,
             (s) => { return 0f; },
-            (s,v) => { BSParam.ResetBroadphasePoolTainted(s, v); } ),
+            (s,v) => { BSParam.ResetBroadphasePoolTainted(s, v, false /* inTaintTime */); } ),
         new ParameterDefn<float>("ResetConstraintSolver", "Setting this is any value resets the constraint solver",
             0f,
             (s) => { return 0f; },
@@ -792,10 +792,10 @@ public static class BSParam
     // =====================================================================
     // There are parameters that, when set, cause things to happen in the physics engine.
     // This causes the broadphase collision cache to be cleared.
-    private static void ResetBroadphasePoolTainted(BSScene pPhysScene, float v)
+    private static void ResetBroadphasePoolTainted(BSScene pPhysScene, float v, bool inTaintTime)
     {
         BSScene physScene = pPhysScene;
-        physScene.TaintedObject("BSParam.ResetBroadphasePoolTainted", delegate()
+        physScene.TaintedObject(inTaintTime, "BSParam.ResetBroadphasePoolTainted", delegate()
         {
             physScene.PE.ResetBroadphasePool(physScene.World);
         });
