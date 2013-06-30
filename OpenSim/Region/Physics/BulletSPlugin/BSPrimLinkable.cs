@@ -41,12 +41,15 @@ public class BSPrimLinkable : BSPrimDisplaced
     // The index of this child prim.
     public int LinksetChildIndex { get; set; }
 
-    public BSLinksetInfo LinksetInfo { get; set; }
+    public BSLinkset.LinksetImplementation LinksetType { get; set; }
 
     public BSPrimLinkable(uint localID, String primName, BSScene parent_scene, OMV.Vector3 pos, OMV.Vector3 size,
                        OMV.Quaternion rotation, PrimitiveBaseShape pbs, bool pisPhysical)
         : base(localID, primName, parent_scene, pos, size, rotation, pbs, pisPhysical)
     {
+        // Default linkset implementation for this prim
+        LinksetType = (BSLinkset.LinksetImplementation)BSParam.LinksetImplementation;
+
         Linkset = BSLinkset.Factory(PhysScene, this);
 
         PhysScene.TaintedObject("BSPrimLinksetCompound.Refresh", delegate()

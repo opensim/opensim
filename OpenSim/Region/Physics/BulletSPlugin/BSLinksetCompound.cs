@@ -238,7 +238,6 @@ public sealed class BSLinksetCompound : BSLinkset
                     //    there will already be a rebuild scheduled.
                     DetailLog("{0},BSLinksetCompound.UpdateProperties,couldNotUpdateChild.schedulingRebuild,whichUpdated={1}",
                                                                     updated.LocalID, whichUpdated);
-                    updated.LinksetInfo = null; // setting to 'null' causes relative position to be recomputed.
                     ScheduleRebuild(updated);
                 }
             }
@@ -294,7 +293,6 @@ public sealed class BSLinksetCompound : BSLinkset
                             child.LocalID, child.PhysBody.AddrString);
 
             // Cause the child's body to be rebuilt and thus restored to normal operation
-            child.LinksetInfo = null;
             child.ForceBodyShapeRebuild(false);
 
             if (!HasAnyChildren)
