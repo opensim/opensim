@@ -626,7 +626,7 @@ public sealed class BSCharacter : BSPhysObject
         OMV.Vector3 addForce = force / PhysScene.LastTimeStep;
         AddForce(addForce, pushforce, false);
     }
-    private void AddForce(OMV.Vector3 force, bool pushforce, bool inTaintTime) {
+    public override void AddForce(OMV.Vector3 force, bool pushforce, bool inTaintTime) {
         if (force.IsFinite())
         {
             OMV.Vector3 addForce = Util.ClampV(force, BSParam.MaxAddForceMagnitude);

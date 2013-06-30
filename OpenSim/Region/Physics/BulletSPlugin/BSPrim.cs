@@ -450,6 +450,9 @@ public class BSPrim : BSPhysObject
                 Gravity = ComputeGravity(Buoyancy);
                 PhysScene.PE.SetGravity(PhysBody, Gravity);
 
+                OMV.Vector3 currentScale = PhysScene.PE.GetLocalScaling(PhysShape.physShapeInfo);   // DEBUG DEBUG
+                DetailLog("{0},BSPrim.UpdateMassProperties,currentScale{1},shape={2}", LocalID, currentScale, PhysShape.physShapeInfo);   // DEBUG DEBUG
+
                 Inertia = PhysScene.PE.CalculateLocalInertia(PhysShape.physShapeInfo, physMass);
                 PhysScene.PE.SetMassProps(PhysBody, physMass, Inertia);
                 PhysScene.PE.UpdateInertiaTensor(PhysBody);
@@ -1040,6 +1043,20 @@ public class BSPrim : BSPhysObject
         }
     }
 
+    public override OMV.Vector3 PIDTarget
+    {
+        set
+        {
+            base.PIDTarget = value;
+            BSActor actor;
+            if (PhysicalActors.TryGetActor(MoveToTargetActorName, out actor))
+            {
+                // if the actor exists, tell it to refresh its values.
+                actor.Refresh();
+            }
+            
+        }
+    }
     // Used for llSetHoverHeight and maybe vehicle height
     // Hover Height will override MoveTo target's Z
     public override bool PIDHoverActive {
@@ -1063,7 +1080,7 @@ public class BSPrim : BSPhysObject
 
     // Applying a force just adds this to the total force on the object.
     // This added force will only last the next simulation tick.
-    public void AddForce(OMV.Vector3 force, bool pushforce, bool inTaintTime) {
+    public override void AddForce(OMV.Vector3 force, bool pushforce, bool inTaintTime) {
         // for an object, doesn't matter if force is a pushforce or not
         if (IsPhysicallyActive)
         {
