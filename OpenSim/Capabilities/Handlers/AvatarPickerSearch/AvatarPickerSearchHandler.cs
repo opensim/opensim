@@ -103,6 +103,9 @@ namespace OpenSim.Capabilities.Handlers
                 p.username = user.FirstName.ToLower() + "." + user.LastName.ToLower();
             p.id = user.Id;
             p.is_display_name_default = false;
+
+            if (user.FirstName.StartsWith("Unknown") && user.LastName.StartsWith("User"))
+                m_log.DebugFormat("[AVATAR PICKER SEARCH]: Sending {0} {1}", user.FirstName, user.LastName);
             return p;
         }
 
