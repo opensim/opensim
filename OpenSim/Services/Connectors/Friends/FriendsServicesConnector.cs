@@ -112,7 +112,6 @@ namespace OpenSim.Services.Connectors.Friends
 
             try
             {
-                m_log.DebugFormat("[FRIENDS SERVICE CONNECTOR]: Calling {0}", uri);
                 string reply = SynchronousRestFormsRequester.MakeRequest("POST", uri, reqString);
                 if (reply != string.Empty)
                 {
