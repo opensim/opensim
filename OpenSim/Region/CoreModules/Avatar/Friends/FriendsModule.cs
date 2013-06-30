@@ -292,7 +292,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                     friendsData = new UserFriendData();
                     friendsData.PrincipalID = agentID;
                     friendsData.Friends = GetFriendsFromService(client);
-                    m_log.DebugFormat("[FRIENDS MODULE]: User has {0} friends", friendsData.Friends.Length);
                     friendsData.Refcount = 1;
 
                     m_Friends[agentID] = friendsData;
