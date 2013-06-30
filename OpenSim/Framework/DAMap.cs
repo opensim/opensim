@@ -29,10 +29,12 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
+using log4net;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 
@@ -48,13 +50,20 @@ namespace OpenSim.Framework
     /// within their data store. However, avoid storing large amounts of data because that
     /// would slow down database access.
     /// </remarks>
-    public class DAMap : IDictionary<string, OSDMap>, IXmlSerializable
+    public class DAMap : IXmlSerializable
     {
-        private static readonly int MIN_STORE_NAME_LENGTH = 4;
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected OSDMap m_map;
-        
-        public DAMap() { m_map = new OSDMap(); }
+        private static readonly int MIN_NAMESPACE_LENGTH = 4;
+
+        private OSDMap m_map = new OSDMap();
+
+        // WARNING: this is temporary for experimentation only, it will be removed!!!!
+        public OSDMap TopLevelMap
+        {
+            get { return m_map; }
+            set { m_map = value; }
+        }        
         
         public XmlSchema GetSchema() { return null; } 
 
@@ -64,39 +73,34 @@ namespace OpenSim.Framework
             map.ReadXml(rawXml);
             return map;
         }
-        
+       
+        public void ReadXml(XmlReader reader)
+        { 
+            ReadXml(reader.ReadInnerXml());            
+        }
+
         public void ReadXml(string rawXml)
         {            
             // System.Console.WriteLine("Trying to deserialize [{0}]", rawXml);
             
             lock (this)
+            {
                 m_map = (OSDMap)OSDParser.DeserializeLLSDXml(rawXml);         
-        }
-        
-        // WARNING: this is temporary for experimentation only, it will be removed!!!!
-        public OSDMap TopLevelMap
-        {
-            get { return m_map; }
-            set { m_map = value; }
-        }
-        
-
-        public void ReadXml(XmlReader reader)
-        { 
-            ReadXml(reader.ReadInnerXml());            
-        }
-        
-        public string ToXml()
-        {
-            lock (this)
-                return OSDParser.SerializeLLSDXmlString(m_map);
+                SanitiseMap(this);
+            }
         }
 
         public void WriteXml(XmlWriter writer)
         {
             writer.WriteRaw(ToXml());
         }
-        
+
+        public string ToXml()
+        {
+            lock (this)
+                return OSDParser.SerializeLLSDXmlString(m_map);
+        }
+
         public void CopyFrom(DAMap other)
         {
             // Deep copy
@@ -104,7 +108,7 @@ namespace OpenSim.Framework
             string data = null;
             lock (other)
             {
-                if (other.Count > 0)
+                if (other.CountNamespaces > 0)
                 {
                     data = OSDParser.SerializeLLSDXmlString(other.m_map);
                 }
@@ -120,59 +124,136 @@ namespace OpenSim.Framework
         }
 
         /// <summary>
-        /// Returns the number of data stores.
+        /// Sanitise the map to remove any namespaces or stores that are not OSDMap.
         /// </summary>
-        public int Count { get { lock (this) { return m_map.Count; } } }
-        
-        public bool IsReadOnly { get { return false; } }
-        
-        /// <summary>
-        /// Returns the names of the data stores.
-        /// </summary>
-        public ICollection<string> Keys { get { lock (this) { return m_map.Keys; } } }
-
-        /// <summary>
-        /// Returns all the data stores.
-        /// </summary>
-        public ICollection<OSDMap> Values
+        /// <param name='map'>
+        /// </param>
+        public static void SanitiseMap(DAMap daMap)
         {
-            get
+            List<string> keysToRemove = null;
+
+            // Hard-coded special case that needs to be removed in the future.  Normally, modules themselves should
+            // handle reading data from old locations
+            bool osMaterialsMigrationRequired = false;
+
+            OSDMap namespacesMap = daMap.m_map;
+
+            foreach (string key in namespacesMap.Keys)
             {
-                lock (this)
+//                Console.WriteLine("Processing ns {0}", key);
+                if (!(namespacesMap[key] is OSDMap))
                 {
-                    List<OSDMap> stores = new List<OSDMap>(m_map.Count);
-                    foreach (OSD llsd in m_map.Values)
-                        stores.Add((OSDMap)llsd);
-                    return stores;
+                    if (keysToRemove == null)
+                        keysToRemove = new List<string>();
+
+                    keysToRemove.Add(key);
                 }
             }
+
+            if (keysToRemove != null)
+            {
+                foreach (string key in keysToRemove)
+                {
+//                    Console.WriteLine ("Removing bad ns {0}", key);
+                    namespacesMap.Remove(key);
+                }
+            }
+
+            foreach (OSD nsOsd in namespacesMap.Values)
+            {
+                OSDMap nsOsdMap = (OSDMap)nsOsd;
+                keysToRemove = null;
+
+                foreach (string key in nsOsdMap.Keys)
+                {
+                    if (!(nsOsdMap[key] is OSDMap))
+                    {
+                        if (keysToRemove == null)
+                            keysToRemove = new List<string>();
+
+                        keysToRemove.Add(key);
+                    }
+                }
+
+                if (keysToRemove != null)
+                    foreach (string key in keysToRemove)
+                        nsOsdMap.Remove(key);
+            }
         }
-        
+
         /// <summary>
-        /// Gets or sets one data store.
+        /// Get the number of namespaces
         /// </summary>
-        /// <param name="key">Store name</param>
-        /// <returns></returns>
-        public OSDMap this[string key] 
-        {    
-            get  
-            {                    
-                OSD llsd;
-                
+        public int CountNamespaces { get { lock (this) { return m_map.Count; } } }
+
+        /// <summary>
+        /// Get the number of stores.
+        /// </summary>
+        public int CountStores 
+        {
+            get 
+            {
+                int count = 0;
+
                 lock (this)
                 {
-                    if (m_map.TryGetValue(key, out llsd))
-                        return (OSDMap)llsd;
-                    else 
-                        return null;
+                    foreach (OSD osdNamespace in m_map)
+                    {
+                        count += ((OSDMap)osdNamespace).Count;
+                    }
                 }
-            }    
-            
-            set
+
+                return count;
+            }
+        }
+
+        /// <summary>
+        /// Retrieve a Dynamic Attribute store
+        /// </summary>
+        /// <param name="ns">namespace for the store - use "OpenSim" for in-core modules</param>
+        /// <param name="storeName">name of the store within the namespace</param>
+        /// <returns>an OSDMap representing the stored data, or null if not found</returns>
+        public OSDMap GetStore(string ns, string storeName)
+        {
+            OSD namespaceOsd;
+
+            lock (this)
             {
-                ValidateKey(key);
-                lock (this)
-                    m_map[key] = value;
+                if (m_map.TryGetValue(ns, out namespaceOsd))
+                {
+                    OSD store;
+
+                    if (((OSDMap)namespaceOsd).TryGetValue(storeName, out store))
+                        return (OSDMap)store;
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Saves a Dynamic attribute store
+        /// </summary>
+        /// <param name="ns">namespace for the store - use "OpenSim" for in-core modules</param>
+        /// <param name="storeName">name of the store within the namespace</param>
+        /// <param name="store">an OSDMap representing the data to store</param>
+        public void SetStore(string ns, string storeName, OSDMap store)
+        {
+            ValidateNamespace(ns);
+            OSDMap nsMap;
+
+            lock (this)
+            {
+                if (!m_map.ContainsKey(ns))
+                {
+                    nsMap = new OSDMap();
+                    m_map[ns] = nsMap;
+                }
+
+                nsMap = (OSDMap)m_map[ns];
+
+//                m_log.DebugFormat("[DA MAP]: Setting store to {0}:{1}", ns, storeName);
+                nsMap[storeName] = store;
             }
         }
 
@@ -180,54 +261,46 @@ namespace OpenSim.Framework
         /// Validate the key used for storing separate data stores.
         /// </summary>
         /// <param name='key'></param>
-        public static void ValidateKey(string key)
+        public static void ValidateNamespace(string ns)
         {
-            if (key.Length < MIN_STORE_NAME_LENGTH)
-                throw new Exception("Minimum store name length is " + MIN_STORE_NAME_LENGTH);
+            if (ns.Length < MIN_NAMESPACE_LENGTH)
+                throw new Exception("Minimum namespace length is " + MIN_NAMESPACE_LENGTH);
         }
 
-        public bool ContainsKey(string key) 
+        public bool ContainsStore(string ns, string storeName) 
         {    
-            lock (this)
-                return m_map.ContainsKey(key);
-        }    
+            OSD namespaceOsd;
 
-        public void Add(string key, OSDMap store)
-        {
-            ValidateKey(key);
-            lock (this)
-                m_map.Add(key, store);
-        }    
-
-        public void Add(KeyValuePair<string, OSDMap> kvp) 
-        {   
-            ValidateKey(kvp.Key);
-            lock (this)
-                m_map.Add(kvp.Key, kvp.Value);
-        }    
-
-        public bool Remove(string key) 
-        {    
-            lock (this)
-                return m_map.Remove(key);
-        }    
-
-        public bool TryGetValue(string key, out OSDMap store)
-        {
             lock (this)
             {
-                OSD llsd;
-                if (m_map.TryGetValue(key, out llsd))
+                if (m_map.TryGetValue(ns, out namespaceOsd))
                 {
-                    store = (OSDMap)llsd;
-                    return true;
-                }
-                else
-                {
-                    store = null;
-                    return false;
+                    return ((OSDMap)namespaceOsd).ContainsKey(storeName);
                 }
             }
+
+            return false;
+        }     
+
+        public bool TryGetStore(string ns, string storeName, out OSDMap store)
+        {
+            OSD namespaceOsd;
+
+            lock (this)
+            {
+                if (m_map.TryGetValue(ns, out namespaceOsd))
+                {
+                    OSD storeOsd;
+
+                    bool result = ((OSDMap)namespaceOsd).TryGetValue(storeName, out storeOsd);
+                    store = (OSDMap)storeOsd;
+
+                    return result;
+                }
+            }
+
+            store = null;
+            return false;
         }    
 
         public void Clear()
@@ -235,39 +308,25 @@ namespace OpenSim.Framework
             lock (this)
                 m_map.Clear();
         }  
-        
-        public bool Contains(KeyValuePair<string, OSDMap> kvp)
+
+        public bool RemoveStore(string ns, string storeName)
         {
+            OSD namespaceOsd; 
+
             lock (this)
-                return m_map.ContainsKey(kvp.Key);
-        }
+            {
+                if (m_map.TryGetValue(ns, out namespaceOsd))
+                {
+                    OSDMap namespaceOsdMap = (OSDMap)namespaceOsd;
+                    namespaceOsdMap.Remove(storeName);
 
-        public void CopyTo(KeyValuePair<string, OSDMap>[] array, int index)
-        {
-            throw new NotImplementedException();
-        }
+                    // Don't keep empty namespaces around
+                    if (namespaceOsdMap.Count <= 0)
+                        m_map.Remove(ns);
+                }
+            }
 
-        public bool Remove(KeyValuePair<string, OSDMap> kvp)
-        {
-            lock (this)
-                return m_map.Remove(kvp.Key);
-        }
-
-        public System.Collections.IDictionaryEnumerator GetEnumerator()
-        {
-            lock (this)
-                return m_map.GetEnumerator();
-        }
-
-        IEnumerator<KeyValuePair<string, OSDMap>> IEnumerable<KeyValuePair<string, OSDMap>>.GetEnumerator()
-        {
-            return null;
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            lock (this)
-                return m_map.GetEnumerator();
-        }        
+            return false;
+        }     
     }
 }

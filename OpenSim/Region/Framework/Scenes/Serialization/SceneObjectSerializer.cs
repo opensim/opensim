@@ -1346,7 +1346,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             if (sop.MediaUrl != null)
                 writer.WriteElementString("MediaUrl", sop.MediaUrl.ToString());
             
-            if (sop.DynAttrs.Count > 0)
+            if (sop.DynAttrs.CountNamespaces > 0)
             {
                 writer.WriteStartElement("DynAttrs");
                 sop.DynAttrs.WriteXml(writer);

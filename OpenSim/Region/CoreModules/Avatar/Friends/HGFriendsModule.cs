@@ -183,6 +183,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                                 if (Util.ParseUniversalUserIdentifier(finfo.Friend, out id, out url, out first, out last, out tmp))
                                 {
                                     IUserManagement uMan = m_Scenes[0].RequestModuleInterface<IUserManagement>();
+                                    m_log.DebugFormat("[HGFRIENDS MODULE]: caching {0}", finfo.Friend);
                                     uMan.AddUser(id, url + ";" + first + " " + last);
                                 }
                             }
@@ -347,31 +348,31 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             return null;
         }
 
-        public override FriendInfo[] GetFriendsFromService(IClientAPI client)
-        {
-//            m_log.DebugFormat("[HGFRIENDS MODULE]: Entering GetFriendsFromService for {0}", client.Name);
-            Boolean agentIsLocal = true;
-            if (UserManagementModule != null)
-                agentIsLocal = UserManagementModule.IsLocalGridUser(client.AgentId);
+//        public override FriendInfo[] GetFriendsFromService(IClientAPI client)
+//        {
+////            m_log.DebugFormat("[HGFRIENDS MODULE]: Entering GetFriendsFromService for {0}", client.Name);
+//            Boolean agentIsLocal = true;
+//            if (UserManagementModule != null)
+//                agentIsLocal = UserManagementModule.IsLocalGridUser(client.AgentId);
 
-            if (agentIsLocal)
-                return base.GetFriendsFromService(client);
+//            if (agentIsLocal)
+//                return base.GetFriendsFromService(client);
 
-            FriendInfo[] finfos = new FriendInfo[0];
-            // Foreigner
-            AgentCircuitData agentClientCircuit = ((Scene)(client.Scene)).AuthenticateHandler.GetAgentCircuitData(client.CircuitCode);
-            if (agentClientCircuit != null)
-            {
-                //[XXX] string agentUUI = Util.ProduceUserUniversalIdentifier(agentClientCircuit);
+//            FriendInfo[] finfos = new FriendInfo[0];
+//            // Foreigner
+//            AgentCircuitData agentClientCircuit = ((Scene)(client.Scene)).AuthenticateHandler.GetAgentCircuitData(client.CircuitCode);
+//            if (agentClientCircuit != null)
+//            {
+//                //[XXX] string agentUUI = Util.ProduceUserUniversalIdentifier(agentClientCircuit);
 
-                finfos = FriendsService.GetFriends(client.AgentId.ToString());
-                m_log.DebugFormat("[HGFRIENDS MODULE]: Fetched {0} local friends for visitor {1}", finfos.Length, client.AgentId.ToString());
-            }
+//                finfos = FriendsService.GetFriends(client.AgentId.ToString());
+//                m_log.DebugFormat("[HGFRIENDS MODULE]: Fetched {0} local friends for visitor {1}", finfos.Length, client.AgentId.ToString());
+//            }
 
-//            m_log.DebugFormat("[HGFRIENDS MODULE]: Exiting GetFriendsFromService for {0}", client.Name);
+////            m_log.DebugFormat("[HGFRIENDS MODULE]: Exiting GetFriendsFromService for {0}", client.Name);
 
-            return finfos;
-        }
+//            return finfos;
+//        }
 
         protected override bool StoreRights(UUID agentID, UUID friendID, int rights)
         {

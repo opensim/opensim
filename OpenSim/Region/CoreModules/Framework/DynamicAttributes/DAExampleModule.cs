@@ -44,11 +44,12 @@ namespace OpenSim.Region.CoreModules.Framework.DynamicAttributes.DAExampleModule
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "DAExampleModule")]
     public class DAExampleModule : INonSharedRegionModule
     {
-//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private static readonly bool ENABLED = false;   // enable for testing
+        private readonly bool ENABLED = false;   // enable for testing
 
-        public const string DANamespace = "DAExample Module";
+        public const string Namespace = "Example";
+        public const string StoreName = "DA";
 
         protected Scene m_scene;
         protected IDialogModule m_dialogMod;
@@ -65,6 +66,8 @@ namespace OpenSim.Region.CoreModules.Framework.DynamicAttributes.DAExampleModule
                 m_scene = scene;
                 m_scene.EventManager.OnSceneGroupMove += OnSceneGroupMove;
                 m_dialogMod = m_scene.RequestModuleInterface<IDialogModule>();
+
+                m_log.DebugFormat("[DA EXAMPLE MODULE]: Added region {0}", m_scene.Name);
             }
         }
         
@@ -91,7 +94,7 @@ namespace OpenSim.Region.CoreModules.Framework.DynamicAttributes.DAExampleModule
             if (sop == null)
                 return true;
 
-            if (!sop.DynAttrs.TryGetValue(DANamespace, out attrs))
+            if (!sop.DynAttrs.TryGetStore(Namespace, StoreName, out attrs))
                 attrs = new OSDMap();
             
             OSDInteger newValue;
@@ -106,12 +109,14 @@ namespace OpenSim.Region.CoreModules.Framework.DynamicAttributes.DAExampleModule
                         
                 attrs["moves"] = newValue;
 
-                sop.DynAttrs[DANamespace] = attrs;
+                sop.DynAttrs.SetStore(Namespace, StoreName, attrs);
             }
 
             sop.ParentGroup.HasGroupChanged = true;
     
-            m_dialogMod.SendGeneralAlert(string.Format("{0} {1} moved {2} times", sop.Name, sop.UUID, newValue));
+            string msg = string.Format("{0} {1} moved {2} times", sop.Name, sop.UUID, newValue);
+            m_log.DebugFormat("[DA EXAMPLE MODULE]: {0}", msg);
+            m_dialogMod.SendGeneralAlert(msg);
             
             return true;
         }

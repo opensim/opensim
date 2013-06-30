@@ -972,11 +972,12 @@ namespace OpenSim.Framework
         /// <param name="verb"></param>
         /// <param name="requestUrl"></param>
         /// <param name="obj"> </param>
+        /// <param name="timeoutsecs"> </param>
         /// <returns></returns>
         ///
         /// <exception cref="System.Net.WebException">Thrown if we encounter a network issue while posting
         /// the request.  You'll want to make sure you deal with this as they're not uncommon</exception>
-        public static string MakeRequest(string verb, string requestUrl, string obj)
+        public static string MakeRequest(string verb, string requestUrl, string obj, int timeoutsecs)
         {
             int reqnum = WebUtil.RequestNumber++;
 
@@ -990,6 +991,8 @@ namespace OpenSim.Framework
 
             WebRequest request = WebRequest.Create(requestUrl);
             request.Method = verb;
+            if (timeoutsecs > 0)
+                request.Timeout = timeoutsecs * 1000;
             string respstring = String.Empty;
 
             int tickset = Util.EnvironmentTickCountSubtract(tickstart);
@@ -1085,6 +1088,11 @@ namespace OpenSim.Framework
                     reqnum, tickdiff, tickdata);
 
             return respstring;
+        }
+
+        public static string MakeRequest(string verb, string requestUrl, string obj)
+        {
+            return MakeRequest(verb, requestUrl, obj, -1);
         }
     }
 

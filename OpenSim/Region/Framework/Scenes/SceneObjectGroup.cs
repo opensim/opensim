@@ -3810,20 +3810,23 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Update just the root prim position in a linkset
         /// </summary>
-        /// <param name="pos"></param>
-        public void UpdateRootPosition(Vector3 pos)
+        /// <param name="newPos"></param>
+        public void UpdateRootPosition(Vector3 newPos)
         {
             // needs to be called with phys building true
-            Vector3 newPos = new Vector3(pos.X, pos.Y, pos.Z);
-            Vector3 oldPos =
-                new Vector3(AbsolutePosition.X + m_rootPart.OffsetPosition.X,
-                              AbsolutePosition.Y + m_rootPart.OffsetPosition.Y,
-                              AbsolutePosition.Z + m_rootPart.OffsetPosition.Z);
+            Vector3 oldPos;
+
+            // FIXME: This improves the situation where editing just the root prim of an attached object would send
+            // all the other parts to oblivion after detach/reattach.  However, a problem remains since the root prim
+            // still ends up in the wrong position on reattach.
+            if (IsAttachment)
+                oldPos = RootPart.OffsetPosition;
+            else
+                oldPos = AbsolutePosition + RootPart.OffsetPosition;
+
             Vector3 diff = oldPos - newPos;
-            Vector3 axDiff = new Vector3(diff.X, diff.Y, diff.Z);
             Quaternion partRotation = m_rootPart.RotationOffset;
-            axDiff *= Quaternion.Inverse(partRotation);
-            diff = axDiff;
+            diff *= Quaternion.Inverse(partRotation);
 
             SceneObjectPart[] parts = m_parts.GetArray();
             for (int i = 0; i < parts.Length; i++)

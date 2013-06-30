@@ -182,7 +182,12 @@ namespace OpenSim.Region.Framework.Scenes
                             GatherAssetUuids(tii.AssetID, (AssetType)tii.Type, assetUuids);
                     }
 
-                    // get any texture UUIDs used for materials such as normal and specular maps
+                    // FIXME: We need to make gathering modular but we cannot yet, since gatherers are not guaranteed
+                    // to be called with scene objects that are in a scene (e.g. in the case of hg asset mapping and
+                    // inventory transfer.  There needs to be a way for a module to register a method without assuming a 
+                    // Scene.EventManager is present.
+//                    part.ParentGroup.Scene.EventManager.TriggerGatherUuids(part, assetUuids);
+
                     GatherMaterialsUuids(part, assetUuids);
                 }
                 catch (Exception e)
@@ -208,7 +213,6 @@ namespace OpenSim.Region.Framework.Scenes
 //            }
 //        }
 
-
         /// <summary>
         /// Gather all of the texture asset UUIDs used to reference "Materials" such as normal and specular maps
         /// </summary>
@@ -217,20 +221,27 @@ namespace OpenSim.Region.Framework.Scenes
         public void GatherMaterialsUuids(SceneObjectPart part, IDictionary<UUID, AssetType> assetUuids)
         {
             // scan thru the dynAttrs map of this part for any textures used as materials
-            OSDMap OSMaterials = null;
+            OSD osdMaterials = null;
 
             lock (part.DynAttrs)
             {
-                if (part.DynAttrs.ContainsKey("OS:Materials"))
-                    OSMaterials = part.DynAttrs["OS:Materials"];
-                if (OSMaterials != null && OSMaterials.ContainsKey("Materials"))
+                if (part.DynAttrs.ContainsStore("OpenSim", "Materials"))
                 {
-                    OSD osd = OSMaterials["Materials"];
+                    OSDMap materialsStore = part.DynAttrs.GetStore("OpenSim", "Materials");
+
+                    if (materialsStore == null)
+                        return;
+
+                    materialsStore.TryGetValue("Materials", out osdMaterials);
+                }
+
+                if (osdMaterials != null)
+                {
                     //m_log.Info("[UUID Gatherer]: found Materials: " + OSDParser.SerializeJsonString(osd));
 
-                    if (osd is OSDArray)
+                    if (osdMaterials is OSDArray)
                     {
-                        OSDArray matsArr = osd as OSDArray;
+                        OSDArray matsArr = osdMaterials as OSDArray;
                         foreach (OSDMap matMap in matsArr)
                         {
                             try
@@ -268,8 +279,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
         }
-
-
+       
         /// <summary>
         /// Get an asset synchronously, potentially using an asynchronous callback.  If the
         /// asynchronous callback is used, we will wait for it to complete.

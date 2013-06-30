@@ -1730,7 +1730,7 @@ namespace OpenSim.Data.MySQL
             else
                 cmd.Parameters.AddWithValue("Vehicle", String.Empty);
 
-            if (prim.DynAttrs.Count > 0)
+            if (prim.DynAttrs.CountNamespaces > 0)
                 cmd.Parameters.AddWithValue("DynAttrs", prim.DynAttrs.ToXml());
             else
                 cmd.Parameters.AddWithValue("DynAttrs", null);
