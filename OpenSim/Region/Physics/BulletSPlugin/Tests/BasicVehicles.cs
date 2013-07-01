@@ -114,21 +114,25 @@ public class BasicVehicles : OpenSimTestCase
         //    Instead the appropriate values are set and calls are made just the parts of the
         //    controller we want to exercise. Stepping the physics engine then applies
         //    the actions of that one feature.
-        TestVehicle.VehicleActor.ProcessFloatVehicleParam(Vehicle.VERTICAL_ATTRACTION_EFFICIENCY, efficiency);
-        TestVehicle.VehicleActor.ProcessFloatVehicleParam(Vehicle.VERTICAL_ATTRACTION_TIMESCALE, timeScale);
-        TestVehicle.VehicleActor.enableAngularVerticalAttraction = true;
-
-        TestVehicle.IsPhysical = true;
-        PhysicsScene.ProcessTaints();
-
-        // Step the simulator a bunch of times and vertical attraction should orient the vehicle up
-        for (int ii = 0; ii < simSteps; ii++)
+        BSDynamics vehicleActor = TestVehicle.GetVehicleActor();
+        if (vehicleActor != null)
         {
-            TestVehicle.VehicleActor.ForgetKnownVehicleProperties();
-            TestVehicle.VehicleActor.ComputeAngularVerticalAttraction();
-            TestVehicle.VehicleActor.PushKnownChanged();
+            vehicleActor.ProcessFloatVehicleParam(Vehicle.VERTICAL_ATTRACTION_EFFICIENCY, efficiency);
+            vehicleActor.ProcessFloatVehicleParam(Vehicle.VERTICAL_ATTRACTION_TIMESCALE, timeScale);
+            vehicleActor.enableAngularVerticalAttraction = true;
 
-            PhysicsScene.Simulate(simulationTimeStep);
+            TestVehicle.IsPhysical = true;
+            PhysicsScene.ProcessTaints();
+
+            // Step the simulator a bunch of times and vertical attraction should orient the vehicle up
+            for (int ii = 0; ii < simSteps; ii++)
+            {
+                vehicleActor.ForgetKnownVehicleProperties();
+                vehicleActor.ComputeAngularVerticalAttraction();
+                vehicleActor.PushKnownChanged();
+
+                PhysicsScene.Simulate(simulationTimeStep);
+            }
         }
 
         TestVehicle.IsPhysical = false;
