@@ -1276,7 +1276,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 
             VehicleAddForce(appliedGravity);
 
-            VDetailLog("{0},  MoveLinear,applyGravity,vehGrav={1},collid={2},fudge={3},mass={4},appliedForce={3}",
+            VDetailLog("{0},  MoveLinear,applyGravity,vehGrav={1},collid={2},fudge={3},mass={4},appliedForce={5}",
                             ControllingPrim.LocalID, m_VehicleGravity,
                             ControllingPrim.IsColliding, BSParam.VehicleGroundGravityFudge, m_vehicleMass, appliedGravity);
         }
