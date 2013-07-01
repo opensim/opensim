@@ -320,7 +320,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             else
             {
                 names[0] = "Unknown";
-                names[1] = "UserUMMTGUN3";
+                names[1] = "UserUMMTGUN4";
 
                 return false;
             }
@@ -537,7 +537,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                 else
                 {
                     user.FirstName = "Unknown";
-                    user.LastName = "UserUMMAU";
+                    user.LastName = "UserUMMAU2";
                 }
 
                 AddUserInternal(user);
