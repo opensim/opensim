@@ -297,7 +297,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 if (m_Scene.TryGetScenePresence(userID, out sp))
                 {
                     AgentCircuitData aCircuit = m_Scene.AuthenticateHandler.GetAgentCircuitData(sp.ControllingClient.CircuitCode);
-                    if (aCircuit.ServiceURLs.ContainsKey("AssetServerURI"))
+                    if (aCircuit != null && aCircuit.ServiceURLs != null && aCircuit.ServiceURLs.ContainsKey("AssetServerURI"))
                     {
                         assetServerURL = aCircuit.ServiceURLs["AssetServerURI"].ToString();
                         assetServerURL = assetServerURL.Trim(new char[] { '/' }); 
