@@ -546,7 +546,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
         {
             ConsoleDisplayList cdl = new ConsoleDisplayList();
             cdl.AddRow("Name", so.Name);
-            cdl.AddRow("Descrition", so.Description);
+            cdl.AddRow("Description", so.Description);
             cdl.AddRow("Local ID", so.LocalId);
             cdl.AddRow("UUID", so.UUID);
             cdl.AddRow("Location", string.Format("{0} @ {1}", so.AbsolutePosition, so.Scene.Name));
