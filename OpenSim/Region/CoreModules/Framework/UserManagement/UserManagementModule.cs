@@ -319,8 +319,25 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             }
             else
             {
+                // Let's try the GridUser service
+                GridUserInfo uInfo = m_Scenes[0].GridUserService.GetGridUserInfo(uuid.ToString());
+                if (uInfo != null)
+                {
+                    string url, first, last, tmp;
+                    UUID u;
+                    if (Util.ParseUniversalUserIdentifier(uInfo.UserID, out u, out url, out first, out last, out tmp))
+                    {
+                        AddUser(uuid, first, last, url);
+
+                        names[0] = m_UserCache[uuid].FirstName;
+                        names[1] = m_UserCache[uuid].LastName;
+
+                        return true;
+                    }
+                }
+
                 names[0] = "Unknown";
-                names[1] = "UserUMMTGUN4";
+                names[1] = "UserUMMTGUN5";
 
                 return false;
             }
@@ -474,7 +491,6 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             //m_log.DebugFormat("[USER MANAGEMENT MODULE]: Adding user with id {0}, creatorData {1}", id, creatorData);
 
             UserData oldUser;
-            //lock the whole block - prevent concurrent update
             lock (m_UserCache)
                 m_UserCache.TryGetValue(id, out oldUser);
 

@@ -51,7 +51,22 @@ namespace OpenSim.Services.UserAccountService
 
         public virtual GridUserInfo GetGridUserInfo(string userID)
         {
-            GridUserData d = m_Database.Get(userID);
+            GridUserData d = null;
+            if (userID.Length > 36) // it's a UUI
+                d = m_Database.Get(userID);
+            else // it's a UUID
+            {
+                GridUserData[] ds = m_Database.GetAll(userID);
+                if (ds == null)
+                    return null;
+                if (ds.Length > 0)
+                {
+                    d = ds[0];
+                    foreach (GridUserData dd in ds)
+                        if (dd.UserID.Length > d.UserID.Length) // find the longest
+                            d = dd;
+                }
+            }
 
             if (d == null)
                 return null;
