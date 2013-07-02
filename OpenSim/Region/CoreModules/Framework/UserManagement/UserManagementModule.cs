@@ -323,7 +323,6 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                 GridUserInfo uInfo = m_Scenes[0].GridUserService.GetGridUserInfo(uuid.ToString());
                 if (uInfo != null)
                 {
-                    m_log.DebugFormat("[USER MANAGEMENT MODULE]: Found grid user {0}", uInfo.UserID);
                     string url, first, last, tmp;
                     UUID u;
                     if (Util.ParseUniversalUserIdentifier(uInfo.UserID, out u, out url, out first, out last, out tmp))
@@ -336,10 +335,10 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                         return true;
                     }
                     else
-                        m_log.DebugFormat("[USER MANAGEMENT MODULE]: Unable to parse UUI");
+                        m_log.DebugFormat("[USER MANAGEMENT MODULE]: Unable to parse UUI {0}", uInfo.UserID);
                 }
                 else
-                    m_log.DebugFormat("[USER MANAGEMENT MODULE]: No grid user found");
+                    m_log.DebugFormat("[USER MANAGEMENT MODULE]: No grid user found {0}", uuid);
 
                 names[0] = "Unknown";
                 names[1] = "UserUMMTGUN6";
