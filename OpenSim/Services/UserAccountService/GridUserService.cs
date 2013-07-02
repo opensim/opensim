@@ -46,7 +46,7 @@ namespace OpenSim.Services.UserAccountService
 
         public GridUserService(IConfigSource config) : base(config) 
         {
-            m_log.Debug("[USER GRID SERVICE]: Starting user grid service");
+            m_log.Debug("[GRID USER SERVICE]: Starting user grid service");
         }
 
         public virtual GridUserInfo GetGridUserInfo(string userID)
@@ -58,13 +58,17 @@ namespace OpenSim.Services.UserAccountService
             {
                 GridUserData[] ds = m_Database.GetAll(userID);
                 if (ds == null)
+                {
+                    m_log.DebugFormat("[GRID USER SERVICE]: user not found {0}", userID);
                     return null;
+                }
                 if (ds.Length > 0)
                 {
                     d = ds[0];
                     foreach (GridUserData dd in ds)
                         if (dd.UserID.Length > d.UserID.Length) // find the longest
                             d = dd;
+                    m_log.DebugFormat("[GRID USER SERVICE]: Found user {0}", d.UserID);
                 }
             }
 
