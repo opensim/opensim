@@ -532,7 +532,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                 UserData user = new UserData();
                 user.Id = id;
 
-                if (creatorData != null && creatorData != string.Empty)
+                if (!string.IsNullOrEmpty(creatorData))
                 {
                     //creatorData = <endpoint>;<name>
 
@@ -553,14 +553,12 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                     }
                     if (parts.Length >= 2)
                         user.FirstName = parts[1].Replace(' ', '.');
-                }
-                else
-                {
-                    user.FirstName = "Unknown";
-                    user.LastName = "UserUMMAU2";
-                }
 
-                AddUserInternal(user);
+                    AddUserInternal(user);
+
+                }
+                // else don't add the user to the cache, period.
+
             }
         }
 
