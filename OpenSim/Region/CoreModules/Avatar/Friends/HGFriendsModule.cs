@@ -546,7 +546,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 FriendsService.StoreFriend(agentID.ToString(), theFriendUUID, 1);
                 // and also the converse
                 FriendsService.StoreFriend(theFriendUUID, agentID.ToString(), 1);
-                m_log.DebugFormat("[HGFRIENDS MODULE]: Stored {0} {01}", agentID, theFriendUUID);
 
                 //if (!confirming)
                 //{
