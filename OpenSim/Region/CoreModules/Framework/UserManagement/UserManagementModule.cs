@@ -332,10 +332,13 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                     {
                         AddUser(uuid, first, last, url);
 
-                        names[0] = m_UserCache[uuid].FirstName;
-                        names[1] = m_UserCache[uuid].LastName;
+                        if (m_UserCache.ContainsKey(uuid))
+                        {
+                            names[0] = m_UserCache[uuid].FirstName;
+                            names[1] = m_UserCache[uuid].LastName;
 
-                        return true;
+                            return true;
+                        }
                     }
                     else
                         m_log.DebugFormat("[USER MANAGEMENT MODULE]: Unable to parse UUI {0}", uInfo.UserID);
