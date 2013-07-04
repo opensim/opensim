@@ -29,6 +29,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using OpenSim.Services.Interfaces;
 using OpenSim.Data;
 using Nini.Config;
@@ -39,7 +40,12 @@ namespace OpenSim.Services.Friends
 {
     public class FriendsService : FriendsServiceBase, IFriendsService
     {
-        public FriendsService(IConfigSource config) : base(config)
+        private static readonly ILog m_log =
+                LogManager.GetLogger(
+                MethodBase.GetCurrentMethod().DeclaringType);
+
+        public FriendsService(IConfigSource config)
+            : base(config)
         {
         }
 
@@ -98,6 +104,7 @@ namespace OpenSim.Services.Friends
             d.Data = new Dictionary<string, string>();
             d.Data["Flags"] = flags.ToString();
 
+            m_log.DebugFormat("[FRIENDS]: Storing {0} {1}", PrincipalID, Friend);
             return m_Database.Store(d);
         }
 
