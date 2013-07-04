@@ -1125,7 +1125,9 @@ public class BSPrim : BSPhysObject
                 OMV.Vector3 addForce = force;
                 PhysScene.TaintedObject(inTaintTime, "BSPrim.AddForce", delegate()
                 {
-                    // Bullet adds this central force to the total force for this tick
+                    // Bullet adds this central force to the total force for this tick.
+                    // Deep down in Bullet:
+                    //      linearVelocity += totalForce / mass * timeStep;
                     DetailLog("{0},BSPrim.addForce,taint,force={1}", LocalID, addForce);
                     if (PhysBody.HasPhysicalBody)
                     {
@@ -1493,6 +1495,8 @@ public class BSPrim : BSPhysObject
 
         returnMass = Util.Clamp(returnMass, BSParam.MinimumObjectMass, BSParam.MaximumObjectMass);
         // DetailLog("{0},BSPrim.CalculateMass,den={1},vol={2},mass={3}", LocalID, Density, volume, returnMass);
+        DetailLog("{0},BSPrim.CalculateMass,den={1},vol={2},mass={3},pathB={4},pathE={5},profB={6},profE={7},siz={8}",
+                            LocalID, Density, volume, returnMass, pathBegin, pathEnd, profileBegin, profileEnd, _size);
 
         return returnMass;
     }// end CalculateMass
