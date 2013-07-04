@@ -244,7 +244,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                                                    UUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection,
                                                    bool RezSelected, bool RemoveItem, UUID fromTaskID, bool attachment)
         {
-            m_log.DebugFormat("[HGScene] RezObject itemID={0} fromTaskID={1}", itemID, fromTaskID);
+            m_log.DebugFormat("[HGScene]: RezObject itemID={0} fromTaskID={1}", itemID, fromTaskID);
 
             //if (fromTaskID.Equals(UUID.Zero))
             //{
