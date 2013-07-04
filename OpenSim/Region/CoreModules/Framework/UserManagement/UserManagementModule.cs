@@ -135,7 +135,6 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             s.ForEachSOG(delegate(SceneObjectGroup sog) { CacheCreators(sog); });
         }
 
-
         void EventManager_OnNewClient(IClientAPI client)
         {
             client.OnConnectionClosed += new Action<IClientAPI>(HandleConnectionClosed);
@@ -151,6 +150,10 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
         void HandleUUIDNameRequest(UUID uuid, IClientAPI remote_client)
         {
+//            m_log.DebugFormat(
+//                "[USER MANAGEMENT MODULE]: Handling request for name binding of UUID {0} from {1}", 
+//                uuid, remote_client.Name);
+
             if (m_Scenes[0].LibraryService != null && (m_Scenes[0].LibraryService.LibraryRootFolder.Owner == uuid))
             {
                 remote_client.SendNameReply(uuid, "Mr", "OpenSim");
@@ -338,10 +341,12 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                         m_log.DebugFormat("[USER MANAGEMENT MODULE]: Unable to parse UUI {0}", uInfo.UserID);
                 }
                 else
-                    m_log.DebugFormat("[USER MANAGEMENT MODULE]: No grid user found {0}", uuid);
+                {
+                    m_log.DebugFormat("[USER MANAGEMENT MODULE]: No grid user found for {0}", uuid);
+                }
 
                 names[0] = "Unknown";
-                names[1] = "UserUMMTGUN6";
+                names[1] = "UserUMMTGUN7";
 
                 return false;
             }
@@ -553,12 +558,18 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                     }
                     if (parts.Length >= 2)
                         user.FirstName = parts[1].Replace(' ', '.');
-
-                    AddUserInternal(user);
-
                 }
-                // else don't add the user to the cache, period.
+                else
+                {
+                    // Temporarily add unknown user entries of this type into the cache so that we can distinguish
+                    // this source from other recent (hopefully resolved) bugs that fail to retrieve a user name binding
+                    // TODO: Can be removed when GUN* unknown users have definitely dropped significantly or
+                    // disappeared.
+                    user.FirstName = "Unknown";
+                    user.LastName = "UserUMMAU3";
+                }
 
+                AddUserInternal(user);
             }
         }
 
