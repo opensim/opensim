@@ -498,6 +498,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         protected virtual void StatusNotify(List<FriendInfo> friendList, UUID userID, bool online)
         {
+            m_log.DebugFormat("[FRIENDS]: Entering StatusNotify for {0}", userID);
+
             List<string> friendStringIds = friendList.ConvertAll<string>(friend => friend.Friend);
             List<string> remoteFriendStringIds = new List<string>();
             foreach (string friendStringId in friendStringIds)
