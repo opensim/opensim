@@ -34,6 +34,7 @@ using System.Net.Sockets;
 using System.Reflection;
 using System.Threading;
 using log4net;
+using NDesk.Options;
 using Nini.Config;
 using OpenMetaverse.Packets;
 using OpenSim.Framework;
@@ -102,10 +103,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     /// </summary>
     public class LLUDPServer : OpenSimUDPBase
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         /// <summary>Maximum transmission unit, or UDP packet size, for the LLUDP protocol</summary>
         public const int MTU = 1400;
 
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        /// <summary>
+        /// Default packet debug level given to new clients
+        /// </summary>
+        public int DefaultClientPacketDebugLevel { get; set; }
 
         /// <summary>The measured resolution of Environment.TickCount</summary>
         public readonly float TickCountResolution;
@@ -514,7 +520,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             MainConsole.Instance.Commands.AddCommand(
                 "Debug", false, "debug lludp packet",
-                 "debug lludp packet <level> [<avatar-first-name> <avatar-last-name>]",
+                 "debug lludp packet [--default] <level> [<avatar-first-name> <avatar-last-name>]",
                  "Turn on packet debugging",
                    "If level >  255 then all incoming and outgoing packets are logged.\n"
                  + "If level <= 255 then incoming AgentUpdate and outgoing SimStats and SimulatorViewerTimeMessage packets are not logged.\n"
@@ -522,7 +528,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                  + "If level <= 100 then incoming ViewerEffect and AgentAnimation and outgoing ViewerEffect and AvatarAnimation packets are not logged.\n"
                  + "If level <=  50 then outgoing ImprovedTerseObjectUpdate packets are not logged.\n"
                  + "If level <= 0 then no packets are logged.\n"
-                 + "If an avatar name is given then only packets from that avatar are logged",
+                 + "If --default is specified then the level becomes the default logging level for all subsequent agents.\n"
+                 + "In this case, you cannot also specify an avatar name.\n"
+                 + "If an avatar name is given then only packets from that avatar are logged.",
                  HandlePacketCommand);
 
             MainConsole.Instance.Commands.AddCommand(
@@ -571,31 +579,54 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (SceneManager.Instance.CurrentScene != null && SceneManager.Instance.CurrentScene != m_scene)
                 return;
 
+            bool setAsDefaultLevel = false;
+            OptionSet optionSet = new OptionSet().Add("default", o => setAsDefaultLevel = o != null);
+            List<string> filteredArgs = optionSet.Parse(args);
+
             string name = null;
 
-            if (args.Length == 6)
-                name = string.Format("{0} {1}", args[4], args[5]);
-
-            if (args.Length > 3)
+            if (filteredArgs.Count == 6)
             {
-                int newDebug;
-                if (int.TryParse(args[3], out newDebug))
+                if (!setAsDefaultLevel)
                 {
-                    m_scene.ForEachScenePresence(sp =>
-                    {
-                        if (name == null || sp.Name == name)
-                        {
-                            m_log.DebugFormat(
-                                "Packet debug for {0} ({1}) set to {2} in {3}",
-                                sp.Name, sp.IsChildAgent ? "child" : "root", newDebug, m_scene.Name);
-
-                            sp.ControllingClient.DebugPacketLevel = newDebug;
-                        }
-                    });
+                    name = string.Format("{0} {1}", filteredArgs[4], filteredArgs[5]);
                 }
                 else
                 {
-                    MainConsole.Instance.Output("Usage: debug lludp packet 0..255 [<first-name> <last-name>]");
+                    MainConsole.Instance.OutputFormat("ERROR: Cannot specify a user name when setting default logging level");
+                    return;
+                }
+            }
+
+            if (filteredArgs.Count > 3)
+            {
+                int newDebug;
+                if (int.TryParse(filteredArgs[3], out newDebug))
+                {
+                    if (setAsDefaultLevel)
+                    {
+                        DefaultClientPacketDebugLevel = newDebug;
+                        MainConsole.Instance.OutputFormat(
+                            "Debug packet debug for new clients set to {0}", DefaultClientPacketDebugLevel);
+                    }
+                    else
+                    {
+                        m_scene.ForEachScenePresence(sp =>
+                        {
+                            if (name == null || sp.Name == name)
+                            {
+                                MainConsole.Instance.OutputFormat(
+                                    "Packet debug for {0} ({1}) set to {2} in {3}",
+                                    sp.Name, sp.IsChildAgent ? "child" : "root", newDebug, m_scene.Name);
+
+                                sp.ControllingClient.DebugPacketLevel = newDebug;
+                            }
+                        });
+                    }
+                }
+                else
+                {
+                    MainConsole.Instance.Output("Usage: debug lludp packet [--default] 0..255 [<first-name> <last-name>]");
                 }
             }
         }
@@ -687,6 +718,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 "OUT LLUDP packet processing for {0} is {1}", m_scene.Name, IsRunningOutbound ? "enabled" : "disabled");
 
             MainConsole.Instance.OutputFormat("LLUDP pools in {0} are {1}", m_scene.Name, UsePools ? "on" : "off");
+
+            MainConsole.Instance.OutputFormat(
+                "Packet debug level for new clients is {0}", DefaultClientPacketDebugLevel);
         }
 
         public bool HandlesRegion(Location x)
@@ -1533,6 +1567,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     
                     client = new LLClientView(m_scene, this, udpClient, sessionInfo, agentID, sessionID, circuitCode);
                     client.OnLogout += LogoutHandler;
+                    client.DebugPacketLevel = DefaultClientPacketDebugLevel;
     
                     ((LLClientView)client).DisableFacelights = m_disableFacelights;
     
