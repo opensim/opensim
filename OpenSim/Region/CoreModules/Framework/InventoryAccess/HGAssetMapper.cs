@@ -73,6 +73,9 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
         private AssetMetadata FetchMetadata(string url, UUID assetID)
         {
+            if (string.IsNullOrEmpty(url))
+                return null;
+
             if (!url.EndsWith("/") && !url.EndsWith("="))
                 url = url + "/";
 
@@ -92,6 +95,9 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             AssetBase asset = m_scene.AssetService.Get(assetID.ToString());
             if (asset == null)
             {
+                if (string.IsNullOrEmpty(url))
+                    return null;
+
                 if (!url.EndsWith("/") && !url.EndsWith("="))
                     url = url + "/";
 
@@ -109,6 +115,9 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
         public bool PostAsset(string url, AssetBase asset)
         {
+            if (string.IsNullOrEmpty(url))
+                return false;
+
             if (asset != null)
             {
                 if (!url.EndsWith("/") && !url.EndsWith("="))

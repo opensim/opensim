@@ -135,7 +135,6 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             s.ForEachSOG(delegate(SceneObjectGroup sog) { CacheCreators(sog); });
         }
 
-
         void EventManager_OnNewClient(IClientAPI client)
         {
             client.OnConnectionClosed += new Action<IClientAPI>(HandleConnectionClosed);
@@ -151,6 +150,10 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
         void HandleUUIDNameRequest(UUID uuid, IClientAPI remote_client)
         {
+//            m_log.DebugFormat(
+//                "[USER MANAGEMENT MODULE]: Handling request for name binding of UUID {0} from {1}", 
+//                uuid, remote_client.Name);
+
             if (m_Scenes[0].LibraryService != null && (m_Scenes[0].LibraryService.LibraryRootFolder.Owner == uuid))
             {
                 remote_client.SendNameReply(uuid, "Mr", "OpenSim");
@@ -319,8 +322,34 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             }
             else
             {
+                // Let's try the GridUser service
+                GridUserInfo uInfo = m_Scenes[0].GridUserService.GetGridUserInfo(uuid.ToString());
+                if (uInfo != null)
+                {
+                    string url, first, last, tmp;
+                    UUID u;
+                    if (Util.ParseUniversalUserIdentifier(uInfo.UserID, out u, out url, out first, out last, out tmp))
+                    {
+                        AddUser(uuid, first, last, url);
+
+                        if (m_UserCache.ContainsKey(uuid))
+                        {
+                            names[0] = m_UserCache[uuid].FirstName;
+                            names[1] = m_UserCache[uuid].LastName;
+
+                            return true;
+                        }
+                    }
+                    else
+                        m_log.DebugFormat("[USER MANAGEMENT MODULE]: Unable to parse UUI {0}", uInfo.UserID);
+                }
+                else
+                {
+                    m_log.DebugFormat("[USER MANAGEMENT MODULE]: No grid user found for {0}", uuid);
+                }
+
                 names[0] = "Unknown";
-                names[1] = "UserUMMTGUN3";
+                names[1] = "UserUMMTGUN7";
 
                 return false;
             }
@@ -474,7 +503,6 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             //m_log.DebugFormat("[USER MANAGEMENT MODULE]: Adding user with id {0}, creatorData {1}", id, creatorData);
 
             UserData oldUser;
-            //lock the whole block - prevent concurrent update
             lock (m_UserCache)
                 m_UserCache.TryGetValue(id, out oldUser);
 
@@ -512,7 +540,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                 UserData user = new UserData();
                 user.Id = id;
 
-                if (creatorData != null && creatorData != string.Empty)
+                if (!string.IsNullOrEmpty(creatorData))
                 {
                     //creatorData = <endpoint>;<name>
 
@@ -536,8 +564,12 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                 }
                 else
                 {
+                    // Temporarily add unknown user entries of this type into the cache so that we can distinguish
+                    // this source from other recent (hopefully resolved) bugs that fail to retrieve a user name binding
+                    // TODO: Can be removed when GUN* unknown users have definitely dropped significantly or
+                    // disappeared.
                     user.FirstName = "Unknown";
-                    user.LastName = "UserUMMAU";
+                    user.LastName = "UserUMMAU3";
                 }
 
                 AddUserInternal(user);

@@ -223,8 +223,8 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         //     can be left in and every call doesn't have to check for null.
         if (m_physicsLoggingEnabled)
         {
-            PhysicsLogging = new Logging.LogWriter(m_physicsLoggingDir, m_physicsLoggingPrefix, m_physicsLoggingFileMinutes);
-            PhysicsLogging.ErrorLogger = m_log; // for DEBUG. Let's the logger output error messages.
+            PhysicsLogging = new Logging.LogWriter(m_physicsLoggingDir, m_physicsLoggingPrefix, m_physicsLoggingFileMinutes, m_physicsLoggingDoFlush);
+            PhysicsLogging.ErrorLogger = m_log; // for DEBUG. Let's the logger output its own error messages.
         }
         else
         {
@@ -1106,8 +1106,6 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
     public void DetailLog(string msg, params Object[] args)
     {
         PhysicsLogging.Write(msg, args);
-        // Add the Flush() if debugging crashes. Gets all the messages written out.
-        if (m_physicsLoggingDoFlush) PhysicsLogging.Flush();
     }
     // Used to fill in the LocalID when there isn't one. It's the correct number of characters.
     public const string DetailLogZero = "0000000000";

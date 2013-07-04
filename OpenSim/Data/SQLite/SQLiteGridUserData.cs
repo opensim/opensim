@@ -56,6 +56,10 @@ namespace OpenSim.Data.SQLite
             return ret[0];
         }
 
+        public GridUserData[] GetAll(string userID)
+        {
+            return base.Get(String.Format("UserID LIKE '{0}%'", userID));
+        }
 
     }
 }

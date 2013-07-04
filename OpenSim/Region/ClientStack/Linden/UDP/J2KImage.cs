@@ -424,7 +424,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // foreign user is visiting, we need to try again after the first fail to the local
                 // asset service.
                 string assetServerURL = string.Empty;
-                if (InventoryAccessModule.IsForeignUser(AgentID, out assetServerURL))
+                if (InventoryAccessModule.IsForeignUser(AgentID, out assetServerURL) && !string.IsNullOrEmpty(assetServerURL))
                 {
                     if (!assetServerURL.EndsWith("/") && !assetServerURL.EndsWith("="))
                         assetServerURL = assetServerURL + "/";

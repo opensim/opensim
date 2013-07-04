@@ -420,29 +420,6 @@ namespace OpenSim.Region.Framework.Scenes
             return false;
         }
 
-        /// <summary>
-        /// Set the debug packet level on each current scene.  This level governs which packets are printed out to the
-        /// console.
-        /// </summary>
-        /// <param name="newDebug"></param>
-        /// <param name="name">Name of avatar to debug</param>
-        public void SetDebugPacketLevelOnCurrentScene(int newDebug, string name)
-        {
-            ForEachSelectedScene(scene =>
-                scene.ForEachScenePresence(sp =>
-                {
-                    if (name == null || sp.Name == name)
-                    {
-                        m_log.DebugFormat(
-                            "Packet debug for {0} ({1}) set to {2}",
-                            sp.Name, sp.IsChildAgent ? "child" : "root", newDebug);
-
-                        sp.ControllingClient.DebugPacketLevel = newDebug;
-                    }
-                })
-            );
-        }
-
         public List<ScenePresence> GetCurrentSceneAvatars()
         {
             List<ScenePresence> avatars = new List<ScenePresence>();

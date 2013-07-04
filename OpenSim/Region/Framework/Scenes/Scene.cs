@@ -5091,6 +5091,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void RegionHandleRequest(IClientAPI client, UUID regionID)
         {
+            m_log.DebugFormat("[SCENE]: RegionHandleRequest {0}", regionID);
             ulong handle = 0;
             if (regionID == RegionInfo.RegionID)
                 handle = RegionInfo.RegionHandle;

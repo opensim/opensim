@@ -33,14 +33,6 @@ using OMV = OpenMetaverse;
 namespace OpenSim.Region.Physics.BulletSPlugin
 {
 
-// A BSPrim can get individual information about its linkedness attached
-//    to it through an instance of a subclass of LinksetInfo.
-// Each type of linkset will define the information needed for its type.
-public abstract class BSLinksetInfo
-{
-    public virtual void Clear() { }
-}
-
 public abstract class BSLinkset
 {
     // private static string LogHeader = "[BULLETSIM LINKSET]";
@@ -56,15 +48,15 @@ public abstract class BSLinkset
     {
         BSLinkset ret = null;
 
-        switch ((int)BSParam.LinksetImplementation)
+        switch (parent.LinksetType)
         {
-            case (int)LinksetImplementation.Constraint:
+            case LinksetImplementation.Constraint:
                 ret = new BSLinksetConstraints(physScene, parent);
                 break;
-            case (int)LinksetImplementation.Compound:
+            case LinksetImplementation.Compound:
                 ret = new BSLinksetCompound(physScene, parent);
                 break;
-            case (int)LinksetImplementation.Manual:
+            case LinksetImplementation.Manual:
                 // ret = new BSLinksetManual(physScene, parent);
                 break;
             default:

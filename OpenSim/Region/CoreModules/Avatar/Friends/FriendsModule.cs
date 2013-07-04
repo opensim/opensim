@@ -498,6 +498,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         protected virtual void StatusNotify(List<FriendInfo> friendList, UUID userID, bool online)
         {
+            m_log.DebugFormat("[FRIENDS]: Entering StatusNotify for {0}", userID);
+
             List<string> friendStringIds = friendList.ConvertAll<string>(friend => friend.Friend);
             List<string> remoteFriendStringIds = new List<string>();
             foreach (string friendStringId in friendStringIds)
@@ -523,12 +525,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             foreach (PresenceInfo friendSession in friendSessions)
             {
                 // let's guard against sessions-gone-bad
-                if (friendSession.RegionID != UUID.Zero)
+                if (friendSession != null && friendSession.RegionID != UUID.Zero)
                 {
+                    m_log.DebugFormat("[FRIENDS]: Get region {0}", friendSession.RegionID);
                     GridRegion region = GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID, friendSession.RegionID);
-                    //m_log.DebugFormat("[FRIENDS]: Remote Notify to region {0}", region.RegionName);
-                    m_FriendsSimConnector.StatusNotify(region, userID, friendSession.UserID, online);
+                    if (region != null)
+                    {
+                        m_FriendsSimConnector.StatusNotify(region, userID, friendSession.UserID, online);
+                    }
                 }
+                else
+                    m_log.DebugFormat("[FRIENDS]: friend session is null or the region is UUID.Zero");
             }
         }
 

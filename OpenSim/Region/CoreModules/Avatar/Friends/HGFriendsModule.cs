@@ -252,7 +252,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         protected override void StatusNotify(List<FriendInfo> friendList, UUID userID, bool online)
         {
-//            m_log.DebugFormat("[HGFRIENDS MODULE]: Entering StatusNotify for {0}", userID);
+            m_log.DebugFormat("[HGFRIENDS MODULE]: Entering StatusNotify for {0}", userID);
 
             // First, let's divide the friends on a per-domain basis
             Dictionary<string, List<FriendInfo>> friendsPerDomain = new Dictionary<string, List<FriendInfo>>();
@@ -348,31 +348,30 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             return null;
         }
 
-//        public override FriendInfo[] GetFriendsFromService(IClientAPI client)
-//        {
-////            m_log.DebugFormat("[HGFRIENDS MODULE]: Entering GetFriendsFromService for {0}", client.Name);
-//            Boolean agentIsLocal = true;
-//            if (UserManagementModule != null)
-//                agentIsLocal = UserManagementModule.IsLocalGridUser(client.AgentId);
+        public override FriendInfo[] GetFriendsFromService(IClientAPI client)
+        {
+            //            m_log.DebugFormat("[HGFRIENDS MODULE]: Entering GetFriendsFromService for {0}", client.Name);
+            Boolean agentIsLocal = true;
+            if (UserManagementModule != null)
+                agentIsLocal = UserManagementModule.IsLocalGridUser(client.AgentId);
 
-//            if (agentIsLocal)
-//                return base.GetFriendsFromService(client);
+            if (agentIsLocal)
+                return base.GetFriendsFromService(client);
 
-//            FriendInfo[] finfos = new FriendInfo[0];
-//            // Foreigner
-//            AgentCircuitData agentClientCircuit = ((Scene)(client.Scene)).AuthenticateHandler.GetAgentCircuitData(client.CircuitCode);
-//            if (agentClientCircuit != null)
-//            {
-//                //[XXX] string agentUUI = Util.ProduceUserUniversalIdentifier(agentClientCircuit);
+            FriendInfo[] finfos = new FriendInfo[0];
+            // Foreigner
+            AgentCircuitData agentClientCircuit = ((Scene)(client.Scene)).AuthenticateHandler.GetAgentCircuitData(client.CircuitCode);
+            if (agentClientCircuit != null)
+            {
+                // Note that this is calling a different interface than base; this one calls with a string param!
+                finfos = FriendsService.GetFriends(client.AgentId.ToString());
+                m_log.DebugFormat("[HGFRIENDS MODULE]: Fetched {0} local friends for visitor {1}", finfos.Length, client.AgentId.ToString());
+            }
 
-//                finfos = FriendsService.GetFriends(client.AgentId.ToString());
-//                m_log.DebugFormat("[HGFRIENDS MODULE]: Fetched {0} local friends for visitor {1}", finfos.Length, client.AgentId.ToString());
-//            }
+            //            m_log.DebugFormat("[HGFRIENDS MODULE]: Exiting GetFriendsFromService for {0}", client.Name);
 
-////            m_log.DebugFormat("[HGFRIENDS MODULE]: Exiting GetFriendsFromService for {0}", client.Name);
-
-//            return finfos;
-//        }
+            return finfos;
+        }
 
         protected override bool StoreRights(UUID agentID, UUID friendID, int rights)
         {
