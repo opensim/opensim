@@ -130,6 +130,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         private void SendToEstate(uint EstateID, Dictionary<string, object> sendData)
         {
+            m_log.DebugFormat("[XESTATE CONNECTOR]: SendToEstate");
             List<UUID> regions = m_EstateModule.Scenes[0].GetEstateRegions((int)EstateID);
 
             UUID ScopeID = UUID.Zero;
