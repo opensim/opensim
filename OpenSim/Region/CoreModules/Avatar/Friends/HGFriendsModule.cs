@@ -252,7 +252,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         protected override void StatusNotify(List<FriendInfo> friendList, UUID userID, bool online)
         {
-            m_log.DebugFormat("[HGFRIENDS MODULE]: Entering StatusNotify for {0}", userID);
+            //m_log.DebugFormat("[HGFRIENDS MODULE]: Entering StatusNotify for {0}", userID);
 
             // First, let's divide the friends on a per-domain basis
             Dictionary<string, List<FriendInfo>> friendsPerDomain = new Dictionary<string, List<FriendInfo>>();

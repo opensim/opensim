@@ -108,7 +108,7 @@ namespace OpenSim.Region.CoreModules.Framework
 
         public void OnRegionHandleRequest(IClientAPI client, UUID regionID)
         {
-            m_log.DebugFormat("[GRIDSERVICE THROTTLE]: RegionHandleRequest {0}", regionID);
+            //m_log.DebugFormat("[GRIDSERVICE THROTTLE]: RegionHandleRequest {0}", regionID);
             ulong handle = 0;
             if (IsLocalRegionHandle(regionID, out handle))
             {
