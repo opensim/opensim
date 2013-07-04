@@ -1061,6 +1061,7 @@ namespace OpenSim.Framework
 
             int tickdiff = Util.EnvironmentTickCountSubtract(tickstart);
             if (tickdiff > WebUtil.LongCallTime)
+            {
                 m_log.InfoFormat(
                     "[FORMS]: Slow request {0} {1} {2} took {3}ms, {4}ms writing, {5}",
                     reqnum,
@@ -1069,6 +1070,9 @@ namespace OpenSim.Framework
                     tickdiff,
                     tickdata,
                     obj.Length > WebUtil.MaxRequestDiagLength ? obj.Remove(WebUtil.MaxRequestDiagLength) : obj);
+                Util.PrintCallStack();
+
+            }
             else if (WebUtil.DebugLevel >= 4)
                 m_log.DebugFormat(
                     "[WEB UTIL]: HTTP OUT {0} took {1}ms, {2}ms writing",
