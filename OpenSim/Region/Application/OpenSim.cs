@@ -226,18 +226,6 @@ namespace OpenSim
                                           "Force the update of all objects on clients",
                                           HandleForceUpdate);
 
-            m_console.Commands.AddCommand("Debug", false, "debug packet",
-                                          "debug packet <level> [<avatar-first-name> <avatar-last-name>]",
-                                          "Turn on packet debugging",
-                                            "If level >  255 then all incoming and outgoing packets are logged.\n"
-                                          + "If level <= 255 then incoming AgentUpdate and outgoing SimStats and SimulatorViewerTimeMessage packets are not logged.\n"
-                                          + "If level <= 200 then incoming RequestImage and outgoing ImagePacket, ImageData, LayerData and CoarseLocationUpdate packets are not logged.\n"
-                                          + "If level <= 100 then incoming ViewerEffect and AgentAnimation and outgoing ViewerEffect and AvatarAnimation packets are not logged.\n"
-                                          + "If level <=  50 then outgoing ImprovedTerseObjectUpdate packets are not logged.\n"
-                                          + "If level <= 0 then no packets are logged.\n"
-                                          + "If an avatar name is given then only packets from that avatar are logged",
-                                          Debug);
-
             m_console.Commands.AddCommand("General", false, "change region",
                                           "change region <region name>",
                                           "Change current console region", ChangeSelectedRegion);
@@ -699,45 +687,6 @@ namespace OpenSim
                 SceneManager.TrySetCurrentScene(whichRegion.RegionName);
 
             RefreshPrompt();
-        }
-
-        /// <summary>
-        /// Turn on some debugging values for OpenSim.
-        /// </summary>
-        /// <param name="args"></param>
-        protected void Debug(string module, string[] args)
-        {
-            if (args.Length == 1)
-                return;
-
-            switch (args[1])
-            {
-                case "packet":
-                    string name = null;
-                    if (args.Length == 5)
-                        name = string.Format("{0} {1}", args[3], args[4]);
-
-                    if (args.Length > 2)
-                    {
-                        int newDebug;
-                        if (int.TryParse(args[2], out newDebug))
-                        {
-                            SceneManager.SetDebugPacketLevelOnCurrentScene(newDebug, name);
-                            // We provide user information elsewhere if any clients had their debug level set.
-//                            MainConsole.Instance.OutputFormat("Debug packet level set to {0}", newDebug);
-                        }
-                        else
-                        {
-                            MainConsole.Instance.Output("Usage: debug packet 0..255");
-                        }
-                    }
-
-                    break;
-
-                default:
-                    MainConsole.Instance.Output("Unknown debug command");
-                    break;
-            }
         }
 
         // see BaseOpenSimServer

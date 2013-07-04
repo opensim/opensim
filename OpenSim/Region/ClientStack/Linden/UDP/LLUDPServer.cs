@@ -513,6 +513,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 EnablePoolStats();
 
             MainConsole.Instance.Commands.AddCommand(
+                "Debug", false, "debug lludp packet",
+                 "debug lludp packet <level> [<avatar-first-name> <avatar-last-name>]",
+                 "Turn on packet debugging",
+                   "If level >  255 then all incoming and outgoing packets are logged.\n"
+                 + "If level <= 255 then incoming AgentUpdate and outgoing SimStats and SimulatorViewerTimeMessage packets are not logged.\n"
+                 + "If level <= 200 then incoming RequestImage and outgoing ImagePacket, ImageData, LayerData and CoarseLocationUpdate packets are not logged.\n"
+                 + "If level <= 100 then incoming ViewerEffect and AgentAnimation and outgoing ViewerEffect and AvatarAnimation packets are not logged.\n"
+                 + "If level <=  50 then outgoing ImprovedTerseObjectUpdate packets are not logged.\n"
+                 + "If level <= 0 then no packets are logged.\n"
+                 + "If an avatar name is given then only packets from that avatar are logged",
+                 HandlePacketCommand);
+
+            MainConsole.Instance.Commands.AddCommand(
                 "Debug",
                 false,
                 "debug lludp start",
@@ -553,8 +566,45 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 HandleStatusCommand);
         }
 
+        private void HandlePacketCommand(string module, string[] args)
+        {
+            if (SceneManager.Instance.CurrentScene != null && SceneManager.Instance.CurrentScene != m_scene)
+                return;
+
+            string name = null;
+
+            if (args.Length == 6)
+                name = string.Format("{0} {1}", args[4], args[5]);
+
+            if (args.Length > 3)
+            {
+                int newDebug;
+                if (int.TryParse(args[3], out newDebug))
+                {
+                    m_scene.ForEachScenePresence(sp =>
+                    {
+                        if (name == null || sp.Name == name)
+                        {
+                            m_log.DebugFormat(
+                                "Packet debug for {0} ({1}) set to {2} in {3}",
+                                sp.Name, sp.IsChildAgent ? "child" : "root", newDebug, m_scene.Name);
+
+                            sp.ControllingClient.DebugPacketLevel = newDebug;
+                        }
+                    });
+                }
+                else
+                {
+                    MainConsole.Instance.Output("Usage: debug lludp packet 0..255 [<first-name> <last-name>]");
+                }
+            }
+        }
+
         private void HandleStartCommand(string module, string[] args)
         {
+            if (SceneManager.Instance.CurrentScene != null && SceneManager.Instance.CurrentScene != m_scene)
+                return;
+
             if (args.Length != 4)
             {
                 MainConsole.Instance.Output("Usage: debug lludp start <in|out|all>");
@@ -572,6 +622,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private void HandleStopCommand(string module, string[] args)
         {
+            if (SceneManager.Instance.CurrentScene != null && SceneManager.Instance.CurrentScene != m_scene)
+                return;
+
             if (args.Length != 4)
             {
                 MainConsole.Instance.Output("Usage: debug lludp stop <in|out|all>");
@@ -589,6 +642,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private void HandlePoolCommand(string module, string[] args)
         {
+            if (SceneManager.Instance.CurrentScene != null && SceneManager.Instance.CurrentScene != m_scene)
+                return;
+
             if (args.Length != 4)
             {
                 MainConsole.Instance.Output("Usage: debug lludp pool <on|off>");
@@ -621,6 +677,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private void HandleStatusCommand(string module, string[] args)
         {
+            if (SceneManager.Instance.CurrentScene != null && SceneManager.Instance.CurrentScene != m_scene)
+                return;
+
             MainConsole.Instance.OutputFormat(
                 "IN  LLUDP packet processing for {0} is {1}", m_scene.Name, IsRunningInbound ? "enabled" : "disabled");
 
