@@ -526,9 +526,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 if (friendSession.RegionID != UUID.Zero)
                 {
                     GridRegion region = GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID, friendSession.RegionID);
+                    m_log.DebugFormat("[FRIENDS]: Remote Notify to region {0}", (region == null ? "null" : region.RegionName));
                     if (region != null)
                     {
-                        m_log.DebugFormat("[FRIENDS]: Remote Notify to region {0}", region.RegionName);
                         m_FriendsSimConnector.StatusNotify(region, userID, friendSession.UserID, online);
                     }
                 }
