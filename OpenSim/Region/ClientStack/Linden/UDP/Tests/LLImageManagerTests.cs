@@ -73,7 +73,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         }
 
         [SetUp]
-        public void SetUp()
+        public override void SetUp()
         {
             base.SetUp();
 
