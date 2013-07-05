@@ -2965,6 +2965,7 @@
       <Reference name="OpenMetaverseTypes" path="../../../bin/"/>
       <Reference name="OpenMetaverse.StructuredData" path="../../../bin/"/>
       <Reference name="XMLRPC" path="../../../bin/"/>
+      <Reference name="OpenSim.Capabilities"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Servers.HttpServer"/>
