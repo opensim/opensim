@@ -58,7 +58,7 @@ namespace OpenSim.Region.CoreModules.Framework
                 "GridServiceRequestThread",
                 ThreadPriority.BelowNormal,
                 true,
-                true);
+                false);
         }
 
         public void AddRegion(Scene scene)
@@ -137,6 +137,8 @@ namespace OpenSim.Region.CoreModules.Framework
         {
             while (true)
             {
+                Watchdog.UpdateThread();
+
                 GridRegionRequest request = m_RequestQueue.Dequeue();
                 GridRegion r = m_scenes[0].GridService.GetRegionByUUID(UUID.Zero, request.regionID);
 
