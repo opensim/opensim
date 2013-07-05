@@ -347,6 +347,8 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             while (true)
             {
+                Watchdog.UpdateThread();
+
                 aPollRequest poolreq = m_queue.Dequeue();
 
                 poolreq.thepoll.Process(poolreq);
