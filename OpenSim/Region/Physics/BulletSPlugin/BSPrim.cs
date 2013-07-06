@@ -802,6 +802,7 @@ public class BSPrim : BSPhysObject
     //     isSolid: other objects bounce off of this object
     //     isVolumeDetect: other objects pass through but can generate collisions
     //     collisionEvents: whether this object returns collision events
+    // NOTE: overloaded by BSPrimLinkable to also update linkset physical parameters.
     public virtual void UpdatePhysicalParameters()
     {
         if (!PhysBody.HasPhysicalBody)
@@ -1532,6 +1533,8 @@ public class BSPrim : BSPhysObject
 
     // The physics engine says that properties have updated. Update same and inform
     // the world that things have changed.
+    // NOTE: BSPrim.UpdateProperties is overloaded by BSPrimLinkable which modifies updates from root and children prims.
+    // NOTE: BSPrim.UpdateProperties is overloaded by BSPrimDisplaced which handles mapping physical position to simulator position.
     public override void UpdateProperties(EntityProperties entprop)
     {
         // Let anyone (like the actors) modify the updated properties before they are pushed into the object and the simulator.
@@ -1567,8 +1570,6 @@ public class BSPrim : BSPhysObject
         LastEntityProperties = CurrentEntityProperties;
         CurrentEntityProperties = entprop;
 
-        // Note that BSPrim can be overloaded by BSPrimLinkable which controls updates from root and children prims.
-        
         PhysScene.PostUpdate(this);
     }
 }

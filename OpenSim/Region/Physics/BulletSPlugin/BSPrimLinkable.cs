@@ -160,10 +160,13 @@ public class BSPrimLinkable : BSPrimDisplaced
     protected override void MakeDynamic(bool makeStatic)
     {
         base.MakeDynamic(makeStatic);
-        if (makeStatic)
-            Linkset.MakeStatic(this);
-        else
-            Linkset.MakeDynamic(this);
+        if (Linkset != null)    // null can happen during initialization
+        {
+            if (makeStatic)
+                Linkset.MakeStatic(this);
+            else
+                Linkset.MakeDynamic(this);
+        }
     }
 
     // Body is being taken apart. Remove physical dependencies and schedule a rebuild.
