@@ -65,7 +65,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
         public void PostInitialise() { }
         public void Close() { }
 
-        public SimianPresenceServiceConnector() { m_activityDetector = new SimianActivityDetector(this); }
+        public SimianPresenceServiceConnector() { }
         public string Name { get { return "SimianPresenceServiceConnector"; } }
         public void AddRegion(Scene scene)
         {
@@ -121,6 +121,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                     if (!serviceUrl.EndsWith("/") && !serviceUrl.EndsWith("="))
                         serviceUrl = serviceUrl + '/';
                     m_serverUrl = serviceUrl;
+                    m_activityDetector = new SimianActivityDetector(this); 
                     m_Enabled = true;
                 }
             }
