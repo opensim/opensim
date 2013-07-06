@@ -2382,6 +2382,32 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return force;
         }
 
+        public void llSetVelocity(LSL_Vector velocity, int local)
+        {
+            m_host.AddScriptLPS(1);
+
+            if (!m_host.ParentGroup.IsDeleted)
+            {
+                if (local != 0)
+                    velocity *= llGetRot();
+
+                m_host.ParentGroup.RootPart.Velocity = velocity;
+            }
+        }
+
+        public void llSetAngularVelocity(LSL_Vector angularVelocity, int local)
+        {
+            m_host.AddScriptLPS(1);
+
+            if (!m_host.ParentGroup.IsDeleted)
+            {
+                if (local != 0)
+                    angularVelocity *= llGetRot();
+
+                m_host.ParentGroup.RootPart.AngularVelocity = angularVelocity;
+            }
+        }
+
         public LSL_Integer llTarget(LSL_Vector position, double range)
         {
             m_host.AddScriptLPS(1);

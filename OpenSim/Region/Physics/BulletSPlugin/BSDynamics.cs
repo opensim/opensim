@@ -774,7 +774,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 
         // Since the computation of terrain height can be a little involved, this routine
         //    is used to fetch the height only once for each vehicle simulation step.
-        Vector3 lastRememberedHeightPos;
+        Vector3 lastRememberedHeightPos = new Vector3(-1, -1, -1);
         private float GetTerrainHeight(Vector3 pos)
         {
             if ((m_knownHas & m_knownChangedTerrainHeight) == 0 || pos != lastRememberedHeightPos)
@@ -788,14 +788,16 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 
         // Since the computation of water level can be a little involved, this routine
         //    is used ot fetch the level only once for each vehicle simulation step.
+        Vector3 lastRememberedWaterHeightPos = new Vector3(-1, -1, -1);
         private float GetWaterLevel(Vector3 pos)
         {
-            if ((m_knownHas & m_knownChangedWaterLevel) == 0)
+            if ((m_knownHas & m_knownChangedWaterLevel) == 0 || pos != lastRememberedWaterHeightPos)
             {
+                lastRememberedWaterHeightPos = pos;
                 m_knownWaterLevel = ControllingPrim.PhysScene.TerrainManager.GetWaterLevelAtXYZ(pos);
                 m_knownHas |= m_knownChangedWaterLevel;
             }
-            return (float)m_knownWaterLevel;
+            return m_knownWaterLevel;
         }
 
         private Vector3 VehiclePosition
@@ -991,11 +993,17 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             {
                 Vector3 vel = VehicleVelocity;
                 if ((m_flags & (VehicleFlag.NO_X)) != 0)
+                {
                     vel.X = 0;
+                }
                 if ((m_flags & (VehicleFlag.NO_Y)) != 0)
+                {
                     vel.Y = 0;
+                }
                 if ((m_flags & (VehicleFlag.NO_Z)) != 0)
+                {
                     vel.Z = 0;
+                }
                 VehicleVelocity = vel;
             }
 
