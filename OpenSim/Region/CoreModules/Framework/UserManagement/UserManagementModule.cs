@@ -521,6 +521,8 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                     lock (m_UserCache)
                         m_UserCache.Remove(id);
                     m_log.DebugFormat("[USER MANAGEMENT MODULE]: Re-adding user with id {0}, creatorData [{1}] and old HomeURL {2}", id, creatorData, oldUser.HomeURL);
+                    Util.PrintCallStack();
+
                 }
                 else
                 {
@@ -555,7 +557,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                         }
                         catch (UriFormatException)
                         {
-                            m_log.DebugFormat("[SCENE]: Unable to parse Uri {0}", parts[0]);
+                            m_log.DebugFormat("[SCENE]: Unable to parse Uri {0} from {1}", parts[0], creatorData);
                             user.LastName = "@unknown";
                         }
                     }
