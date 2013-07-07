@@ -201,12 +201,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                 List<InventoryItemBase> items = new List<InventoryItemBase>(invCol.Items);
 
                 if (items != null && items.Count > 0)
-                    Util.FireAndForget(delegate
-                    {
+                    //Util.FireAndForget(delegate
+                    //{
                         foreach (InventoryItemBase item in items)
                             if (!string.IsNullOrEmpty(item.CreatorData))
                                 UserManager.AddUser(item.CreatorIdAsUuid, item.CreatorData);
-                    });
+                    //});
             }
 
             return invCol;
