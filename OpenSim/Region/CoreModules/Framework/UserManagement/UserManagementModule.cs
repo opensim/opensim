@@ -514,9 +514,8 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                     return;
                 }
 
-                //try update unknown users
-                //and creator's home URL's
-                if ((oldUser.FirstName == "Unknown" && !creatorData.Contains("Unknown")) || (oldUser.HomeURL != null && !creatorData.StartsWith(oldUser.HomeURL)))
+                //try update unknown users, but don't update anyone else
+                if (oldUser.FirstName == "Unknown" && !creatorData.Contains("Unknown")) 
                 {
                     lock (m_UserCache)
                         m_UserCache.Remove(id);
