@@ -23,11 +23,6 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * The quotations from http://wiki.secondlife.com/wiki/Linden_Vehicle_Tutorial
- * are Copyright (c) 2009 Linden Research, Inc and are used under their license
- * of Creative Commons Attribution-Share Alike 3.0
- * (http://creativecommons.org/licenses/by-sa/3.0/).
  */
 
 using System;
@@ -115,7 +110,7 @@ public class BSPrimDisplaced : BSPrim
     public override Vector3 ForcePosition
     {
         get {
-            OMV.Vector3 physPosition = base.ForcePosition;
+            OMV.Vector3 physPosition = PhysScene.PE.GetPosition(PhysBody);
             if (PositionDisplacement != OMV.Vector3.Zero)
             {
                 // If there is some displacement, return the physical position (center-of-mass)
@@ -125,6 +120,7 @@ public class BSPrimDisplaced : BSPrim
                                 LocalID, physPosition, displacement, physPosition - displacement);
                 physPosition -= displacement;
             }
+            RawPosition = physPosition;
             return physPosition;
         }
         set
