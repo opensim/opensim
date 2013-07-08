@@ -43,12 +43,10 @@ public sealed class BSCharacter : BSPhysObject
     private OMV.Vector3 _size;
     private bool _grabbed;
     private bool _selected;
-    private OMV.Vector3 _position;
     private float _mass;
     private float _avatarVolume;
     private float _collisionScore;
     private OMV.Vector3 _acceleration;
-    private OMV.Quaternion _orientation;
     private int _physicsActorType;
     private bool _isPhysical;
     private bool _flying;
@@ -70,10 +68,10 @@ public sealed class BSCharacter : BSPhysObject
             : base(parent_scene, localID, avName, "BSCharacter")
     {
         _physicsActorType = (int)ActorTypes.Agent;
-        _position = pos;
+        RawPosition = pos;
 
         _flying = isFlying;
-        _orientation = OMV.Quaternion.Identity;
+        RawOrientation = OMV.Quaternion.Identity;
         RawVelocity = OMV.Vector3.Zero;
         _buoyancy = ComputeBuoyancyFromFlying(isFlying);
         Friction = BSParam.AvatarStandingFriction;
@@ -133,7 +131,7 @@ public sealed class BSCharacter : BSPhysObject
         PhysScene.PE.RemoveObjectFromWorld(PhysScene.World, PhysBody);
 
         ZeroMotion(true);
-        ForcePosition = _position;
+        ForcePosition = RawPosition;
 
         // Set the velocity
         if (m_moveActor != null)
@@ -272,38 +270,33 @@ public sealed class BSCharacter : BSPhysObject
 
     public override void LockAngularMotion(OMV.Vector3 axis) { return; }
 
-    public override OMV.Vector3 RawPosition
-    {
-        get { return _position; }
-        set { _position = value; }
-    }
     public override OMV.Vector3 Position {
         get {
             // Don't refetch the position because this function is called a zillion times
-            // _position = PhysicsScene.PE.GetObjectPosition(Scene.World, LocalID);
-            return _position;
+            // RawPosition = PhysicsScene.PE.GetObjectPosition(Scene.World, LocalID);
+            return RawPosition;
         }
         set {
-            _position = value;
+            RawPosition = value;
 
             PhysScene.TaintedObject("BSCharacter.setPosition", delegate()
             {
-                DetailLog("{0},BSCharacter.SetPosition,taint,pos={1},orient={2}", LocalID, _position, _orientation);
+                DetailLog("{0},BSCharacter.SetPosition,taint,pos={1},orient={2}", LocalID, RawPosition, RawOrientation);
                 PositionSanityCheck();
-                ForcePosition = _position;
+                ForcePosition = RawPosition;
             });
         }
     }
     public override OMV.Vector3 ForcePosition {
         get {
-            _position = PhysScene.PE.GetPosition(PhysBody);
-            return _position;
+            RawPosition = PhysScene.PE.GetPosition(PhysBody);
+            return RawPosition;
         }
         set {
-            _position = value;
+            RawPosition = value;
             if (PhysBody.HasPhysicalBody)
             {
-                PhysScene.PE.SetTranslation(PhysBody, _position, _orientation);
+                PhysScene.PE.SetTranslation(PhysBody, RawPosition, RawOrientation);
             }
         }
     }
@@ -331,16 +324,16 @@ public sealed class BSCharacter : BSPhysObject
         float terrainHeight = PhysScene.TerrainManager.GetTerrainHeightAtXYZ(RawPosition);
         if (Position.Z < terrainHeight)
         {
-            DetailLog("{0},BSCharacter.PositionSanityCheck,adjustForUnderGround,pos={1},terrain={2}", LocalID, _position, terrainHeight);
-            _position.Z = terrainHeight + BSParam.AvatarBelowGroundUpCorrectionMeters;
+            DetailLog("{0},BSCharacter.PositionSanityCheck,adjustForUnderGround,pos={1},terrain={2}", LocalID, RawPosition, terrainHeight);
+            RawPosition = new OMV.Vector3(RawPosition.X, RawPosition.Y, terrainHeight + BSParam.AvatarBelowGroundUpCorrectionMeters);
             ret = true;
         }
         if ((CurrentCollisionFlags & CollisionFlags.BS_FLOATS_ON_WATER) != 0)
         {
-            float waterHeight = PhysScene.TerrainManager.GetWaterLevelAtXYZ(_position);
+            float waterHeight = PhysScene.TerrainManager.GetWaterLevelAtXYZ(RawPosition);
             if (Position.Z < waterHeight)
             {
-                _position.Z = waterHeight;
+                RawPosition = new OMV.Vector3(RawPosition.X, RawPosition.Y, waterHeight);
                 ret = true;
             }
         }
@@ -360,8 +353,8 @@ public sealed class BSCharacter : BSPhysObject
             //    just assign to "Position" because of potential call loops.
             PhysScene.TaintedObject(inTaintTime, "BSCharacter.PositionSanityCheck", delegate()
             {
-                DetailLog("{0},BSCharacter.PositionSanityCheck,taint,pos={1},orient={2}", LocalID, _position, _orientation);
-                ForcePosition = _position;
+                DetailLog("{0},BSCharacter.PositionSanityCheck,taint,pos={1},orient={2}", LocalID, RawPosition, RawOrientation);
+                ForcePosition = RawPosition;
             });
             ret = true;
         }
@@ -466,19 +459,14 @@ public sealed class BSCharacter : BSPhysObject
         get { return _acceleration; }
         set { _acceleration = value; }
     }
-    public override OMV.Quaternion RawOrientation
-    {
-        get { return _orientation; }
-        set { _orientation = value; }
-    }
     public override OMV.Quaternion Orientation {
-        get { return _orientation; }
+        get { return RawOrientation; }
         set {
             // Orientation is set zillions of times when an avatar is walking. It's like
             //      the viewer doesn't trust us.
-            if (_orientation != value)
+            if (RawOrientation != value)
             {
-                _orientation = value;
+                RawOrientation = value;
                 PhysScene.TaintedObject("BSCharacter.setOrientation", delegate()
                 {
                     // Bullet assumes we know what we are doing when forcing orientation
@@ -486,10 +474,10 @@ public sealed class BSCharacter : BSPhysObject
                     // This forces rotation to be only around the Z axis and doesn't change any of the other axis.
                     // This keeps us from flipping the capsule over which the veiwer does not understand.
                     float oRoll, oPitch, oYaw;
-                    _orientation.GetEulerAngles(out oRoll, out oPitch, out oYaw);
+                    RawOrientation.GetEulerAngles(out oRoll, out oPitch, out oYaw);
                     OMV.Quaternion trimmedOrientation = OMV.Quaternion.CreateFromEulers(0f, 0f, oYaw);
                     // DetailLog("{0},BSCharacter.setOrientation,taint,val={1},valDir={2},conv={3},convDir={4}",
-                    //                 LocalID, _orientation, OMV.Vector3.UnitX * _orientation,
+                    //                 LocalID, RawOrientation, OMV.Vector3.UnitX * RawOrientation,
                     //                 trimmedOrientation, OMV.Vector3.UnitX * trimmedOrientation);
                     ForceOrientation = trimmedOrientation;
                 });
@@ -501,16 +489,16 @@ public sealed class BSCharacter : BSPhysObject
     {
         get
         {
-            _orientation = PhysScene.PE.GetOrientation(PhysBody);
-            return _orientation;
+            RawOrientation = PhysScene.PE.GetOrientation(PhysBody);
+            return RawOrientation;
         }
         set
         {
-            _orientation = value;
+            RawOrientation = value;
             if (PhysBody.HasPhysicalBody)
             {
-                // _position = PhysicsScene.PE.GetPosition(BSBody);
-                PhysScene.PE.SetTranslation(PhysBody, _position, _orientation);
+                // RawPosition = PhysicsScene.PE.GetPosition(BSBody);
+                PhysScene.PE.SetTranslation(PhysBody, RawPosition, RawOrientation);
             }
         }
     }
@@ -723,9 +711,9 @@ public sealed class BSCharacter : BSPhysObject
     {
         // Don't change position if standing on a stationary object.
         if (!IsStationary)
-            _position = entprop.Position;
+            RawPosition = entprop.Position;
 
-        _orientation = entprop.Rotation;
+        RawOrientation = entprop.Rotation;
 
         // Smooth velocity. OpenSimulator is VERY sensitive to changes in velocity of the avatar
         //    and will send agent updates to the clients if velocity changes by more than
@@ -740,8 +728,8 @@ public sealed class BSCharacter : BSPhysObject
         // Do some sanity checking for the avatar. Make sure it's above ground and inbounds.
         if (PositionSanityCheck(true))
         {
-            DetailLog("{0},BSCharacter.UpdateProperties,updatePosForSanity,pos={1}", LocalID, _position);
-            entprop.Position = _position;
+            DetailLog("{0},BSCharacter.UpdateProperties,updatePosForSanity,pos={1}", LocalID, RawPosition);
+            entprop.Position = RawPosition;
         }
 
         // remember the current and last set values
@@ -755,7 +743,7 @@ public sealed class BSCharacter : BSPhysObject
         // base.RequestPhysicsterseUpdate();
 
         DetailLog("{0},BSCharacter.UpdateProperties,call,pos={1},orient={2},vel={3},accel={4},rotVel={5}",
-                LocalID, _position, _orientation, RawVelocity, _acceleration, _rotationalVelocity);
+                LocalID, RawPosition, RawOrientation, RawVelocity, _acceleration, _rotationalVelocity);
     }
 }
 }

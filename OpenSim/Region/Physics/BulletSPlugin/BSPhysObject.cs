@@ -197,10 +197,10 @@ public abstract class BSPhysObject : PhysicsActor
     // Update the physical location and motion of the object. Called with data from Bullet.
     public abstract void UpdateProperties(EntityProperties entprop);
 
-    public abstract OMV.Vector3 RawPosition { get; set; }
+    public virtual OMV.Vector3 RawPosition { get; set; }
     public abstract OMV.Vector3 ForcePosition { get; set; }
 
-    public abstract OMV.Quaternion RawOrientation { get; set; }
+    public virtual OMV.Quaternion RawOrientation { get; set; }
     public abstract OMV.Quaternion ForceOrientation { get; set; }
 
     public OMV.Vector3 RawVelocity { get; set; }

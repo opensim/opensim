@@ -144,7 +144,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         public void SetupVehicleDebugging()
         {
             enableAngularVerticalAttraction = true;
-            enableAngularDeflection = false;
+            enableAngularDeflection = true;
             enableAngularBanking = true;
             if (BSParam.VehicleDebuggingEnable)
             {
@@ -173,7 +173,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             switch (pParam)
             {
                 case Vehicle.ANGULAR_DEFLECTION_EFFICIENCY:
-                    m_angularDeflectionEfficiency = Math.Max(pValue, 0.01f);
+                    m_angularDeflectionEfficiency = ClampInRange(0f, pValue, 1f);
                     break;
                 case Vehicle.ANGULAR_DEFLECTION_TIMESCALE:
                     m_angularDeflectionTimescale = Math.Max(pValue, 0.01f);
@@ -1512,11 +1512,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
         //     in that direction.
         // TODO: implement reference frame.
         public void ComputeAngularDeflection()
-        {
-            // Since angularMotorUp and angularDeflection are computed independently, they will calculate
-            //     approximately the same X or Y correction. When added together (when contributions are combined)
-            //     this creates an over-correction and then wabbling as the target is overshot.
-            // TODO: rethink how the different correction computations inter-relate.
+        {   
 
             if (enableAngularDeflection && m_angularDeflectionEfficiency != 0 && VehicleForwardSpeed > 0.2)
             {
@@ -1531,10 +1527,14 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 
                 // The direction the vehicle is pointing
                 Vector3 pointingDirection = Vector3.UnitX * VehicleOrientation;
-                pointingDirection.Normalize();
+                //Predict where the Vehicle will be pointing after AngularVelocity change is applied. This will keep
+                //   from overshooting and allow this correction to merge with the Vertical Attraction peacefully.
+                Vector3 predictedPointingDirection = pointingDirection * Quaternion.CreateFromAxisAngle(VehicleRotationalVelocity, 0f);
+                predictedPointingDirection.Normalize();
 
                 // The difference between what is and what should be.
-                Vector3 deflectionError = movingDirection - pointingDirection;
+               // Vector3 deflectionError = movingDirection - predictedPointingDirection;
+                Vector3 deflectionError = Vector3.Cross(movingDirection, predictedPointingDirection);
 
                 // Don't try to correct very large errors (not our job)
                 // if (Math.Abs(deflectionError.X) > PIOverFour) deflectionError.X = PIOverTwo * Math.Sign(deflectionError.X);
@@ -1547,15 +1547,16 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 // ret = m_angularDeflectionCorrectionMotor(1f, deflectionError);
 
                 // Scale the correction by recovery timescale and efficiency
-                deflectContributionV = (-deflectionError) * m_angularDeflectionEfficiency;
-                deflectContributionV /= m_angularDeflectionTimescale;
+                //    Not modeling a spring so clamp the scale to no more then the arc
+                deflectContributionV = (-deflectionError) * ClampInRange(0, m_angularDeflectionEfficiency/m_angularDeflectionTimescale,1f);
+                //deflectContributionV /= m_angularDeflectionTimescale;
 
-                VehicleRotationalVelocity += deflectContributionV * VehicleOrientation;
-
+               // VehicleRotationalVelocity += deflectContributionV * VehicleOrientation;
+                VehicleRotationalVelocity += deflectContributionV;
                 VDetailLog("{0},  MoveAngular,Deflection,movingDir={1},pointingDir={2},deflectError={3},ret={4}",
                     ControllingPrim.LocalID, movingDirection, pointingDirection, deflectionError, deflectContributionV);
-                VDetailLog("{0},  MoveAngular,Deflection,fwdSpd={1},defEff={2},defTS={3}",
-                    ControllingPrim.LocalID, VehicleForwardSpeed, m_angularDeflectionEfficiency, m_angularDeflectionTimescale);
+                VDetailLog("{0},  MoveAngular,Deflection,fwdSpd={1},defEff={2},defTS={3},PredictedPointingDir={4}",
+                    ControllingPrim.LocalID, VehicleForwardSpeed, m_angularDeflectionEfficiency, m_angularDeflectionTimescale, predictedPointingDirection);
             }
         }
 
