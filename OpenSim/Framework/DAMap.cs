@@ -132,10 +132,6 @@ namespace OpenSim.Framework
         {
             List<string> keysToRemove = null;
 
-            // Hard-coded special case that needs to be removed in the future.  Normally, modules themselves should
-            // handle reading data from old locations
-            bool osMaterialsMigrationRequired = false;
-
             OSDMap namespacesMap = daMap.m_map;
 
             foreach (string key in namespacesMap.Keys)
