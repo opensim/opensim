@@ -485,7 +485,7 @@ namespace OpenSim.Groups
                     return;
 
                 //// 16 bytes are the UUID. Maybe.
-                UUID folderID = new UUID(im.binaryBucket, 0);
+//                UUID folderID = new UUID(im.binaryBucket, 0);
                 UUID noticeID = new UUID(im.imSessionID);
 
                 GroupNoticeInfo notice = m_groupData.GetGroupNotice(remoteClient.AgentId.ToString(), noticeID);
