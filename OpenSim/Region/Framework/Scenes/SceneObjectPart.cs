@@ -354,8 +354,6 @@ namespace OpenSim.Region.Framework.Scenes
         private UUID m_collisionSound;
         private float m_collisionSoundVolume;
 
-        private KeyframeMotion m_keyframeMotion = null;
-
         public KeyframeMotion KeyframeMotion
         {
             get; set;
