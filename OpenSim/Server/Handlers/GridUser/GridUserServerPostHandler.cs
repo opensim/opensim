@@ -56,7 +56,7 @@ namespace OpenSim.Server.Handlers.GridUser
             m_GridUserService = service;
         }
 
-        public override byte[] Handle(string path, Stream requestData,
+        protected override byte[] ProcessRequest(string path, Stream requestData,
                 IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             StreamReader sr = new StreamReader(requestData);

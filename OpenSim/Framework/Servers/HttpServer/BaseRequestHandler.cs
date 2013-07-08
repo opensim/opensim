@@ -31,6 +31,10 @@ namespace OpenSim.Framework.Servers.HttpServer
 {
     public abstract class BaseRequestHandler
     {
+        public int RequestsReceived { get; protected set; }
+
+        public int RequestsHandled { get; protected set; }
+
         public virtual string ContentType
         {
             get { return "application/xml"; }

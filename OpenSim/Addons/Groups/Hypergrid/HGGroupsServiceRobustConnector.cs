@@ -113,7 +113,7 @@ namespace OpenSim.Groups
             m_GroupsService = service;
         }
 
-        public override byte[] Handle(string path, Stream requestData,
+        protected override byte[] ProcessRequest(string path, Stream requestData,
                 IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             StreamReader sr = new StreamReader(requestData);

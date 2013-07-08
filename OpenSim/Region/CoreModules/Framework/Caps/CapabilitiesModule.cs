@@ -28,6 +28,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using log4net;
@@ -37,6 +38,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
+using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using Caps=OpenSim.Framework.Capabilities.Caps;
@@ -58,6 +60,7 @@ namespace OpenSim.Region.CoreModules.Framework
         protected Dictionary<UUID, Caps> m_capsObjects = new Dictionary<UUID, Caps>();
         
         protected Dictionary<UUID, string> m_capsPaths = new Dictionary<UUID, string>();
+
         protected Dictionary<UUID, Dictionary<ulong, string>> m_childrenSeeds 
             = new Dictionary<UUID, Dictionary<ulong, string>>();
         
@@ -70,9 +73,24 @@ namespace OpenSim.Region.CoreModules.Framework
             m_scene = scene;
             m_scene.RegisterModuleInterface<ICapabilitiesModule>(this);
 
-            MainConsole.Instance.Commands.AddCommand("Comms", false, "show caps",
-                "show caps",
-                "Shows all registered capabilities for users", HandleShowCapsCommand);
+            MainConsole.Instance.Commands.AddCommand(
+                "Comms", false, "show caps list",
+                "show caps list",
+                "Shows list of registered capabilities for users.", HandleShowCapsListCommand);
+
+            MainConsole.Instance.Commands.AddCommand(
+                "Comms", false, "show caps stats by user",
+                "show caps stats [<first-name> <last-name>]",
+                "Shows statistics on capabilities use by user.",
+                "If a user name is given, then prints a detailed breakdown of caps use ordered by number of requests received.",
+                HandleShowCapsStatsByUserCommand);
+
+            MainConsole.Instance.Commands.AddCommand(
+                "Comms", false, "show caps stats by cap",
+                "show caps stats by cap [<cap-name>]",
+                "Shows statistics on capabilities use by capability.",
+                "If a capability name is given, then prints a detailed breakdown of use by each user.",
+                HandleShowCapsStatsByCapCommand);
         }
 
         public void RegionLoaded(Scene scene)
@@ -262,8 +280,11 @@ namespace OpenSim.Region.CoreModules.Framework
             }
         }
 
-        private void HandleShowCapsCommand(string module, string[] cmdparams)
+        private void HandleShowCapsListCommand(string module, string[] cmdParams)
         {
+            if (SceneManager.Instance.CurrentScene != null && SceneManager.Instance.CurrentScene != m_scene)
+                return;
+
             StringBuilder caps = new StringBuilder();
             caps.AppendFormat("Region {0}:\n", m_scene.RegionInfo.RegionName);
 
@@ -285,6 +306,211 @@ namespace OpenSim.Region.CoreModules.Framework
             }
 
             MainConsole.Instance.Output(caps.ToString());
+        }
+
+        private void HandleShowCapsStatsByCapCommand(string module, string[] cmdParams)
+        {
+            if (SceneManager.Instance.CurrentScene != null && SceneManager.Instance.CurrentScene != m_scene)
+                return;
+
+            if (cmdParams.Length != 5 && cmdParams.Length != 6)
+            {
+                MainConsole.Instance.Output("Usage: show caps stats by cap [<cap-name>]");
+                return;
+            }
+
+            StringBuilder sb = new StringBuilder();
+            sb.AppendFormat("Region {0}:\n", m_scene.Name);
+
+            if (cmdParams.Length == 5)
+            {
+                BuildSummaryStatsByCapReport(sb);
+            }
+            else if (cmdParams.Length == 6)
+            {
+                BuildDetailedStatsByCapReport(sb, cmdParams[5]);
+            }
+
+            MainConsole.Instance.Output(sb.ToString());
+        }
+
+        private void BuildDetailedStatsByCapReport(StringBuilder sb, string capName)
+        {
+            sb.AppendFormat("Capability name {0}\n", capName);
+
+            ConsoleDisplayTable cdt = new ConsoleDisplayTable();
+            cdt.AddColumn("User Name", 34);
+            cdt.AddColumn("Req Received", 12);
+            cdt.AddColumn("Req Handled", 12);
+            cdt.Indent = 2;
+
+            Dictionary<string, int> receivedStats = new Dictionary<string, int>();
+            Dictionary<string, int> handledStats = new Dictionary<string, int>();
+
+            m_scene.ForEachScenePresence(
+                sp =>
+                {
+                    Caps caps = m_scene.CapsModule.GetCapsForUser(sp.UUID);
+
+                    if (caps == null)
+                        return;
+
+                    Dictionary<string, IRequestHandler> capsHandlers = caps.CapsHandlers.GetCapsHandlers();
+
+                    IRequestHandler reqHandler;
+                    if (capsHandlers.TryGetValue(capName, out reqHandler))
+                    {
+                        receivedStats[sp.Name] = reqHandler.RequestsReceived;
+                        handledStats[sp.Name] = reqHandler.RequestsHandled;
+                    }                   
+                }
+            );
+
+            foreach (KeyValuePair<string, int> kvp in receivedStats.OrderByDescending(kp => kp.Value))
+            {
+                cdt.AddRow(kvp.Key, kvp.Value, handledStats[kvp.Key]);
+            }
+
+            sb.Append(cdt.ToString());
+        }
+
+        private void BuildSummaryStatsByCapReport(StringBuilder sb)
+        {
+            ConsoleDisplayTable cdt = new ConsoleDisplayTable();
+            cdt.AddColumn("Name", 34);
+            cdt.AddColumn("Req Received", 12);
+            cdt.AddColumn("Req Handled", 12);
+            cdt.Indent = 2;
+
+            Dictionary<string, int> receivedStats = new Dictionary<string, int>();
+            Dictionary<string, int> handledStats = new Dictionary<string, int>();
+
+            m_scene.ForEachScenePresence(
+                sp =>
+                {
+                    Caps caps = m_scene.CapsModule.GetCapsForUser(sp.UUID);
+
+                    if (caps == null)
+                        return;
+
+                    Dictionary<string, IRequestHandler> capsHandlers = caps.CapsHandlers.GetCapsHandlers();
+
+                    foreach (IRequestHandler reqHandler in capsHandlers.Values)
+                    {
+                        string reqName = reqHandler.Name ?? "";
+
+                        if (!receivedStats.ContainsKey(reqName))
+                        {
+                            receivedStats[reqName] = reqHandler.RequestsReceived;
+                            handledStats[reqName] = reqHandler.RequestsHandled;
+                        }
+                        else
+                        {
+                            receivedStats[reqName] += reqHandler.RequestsReceived;
+                            handledStats[reqName] += reqHandler.RequestsHandled;
+                        }
+                    }
+                }
+            );
+                    
+            foreach (KeyValuePair<string, int> kvp in receivedStats.OrderByDescending(kp => kp.Value))
+                cdt.AddRow(kvp.Key, kvp.Value, handledStats[kvp.Key]);
+
+            sb.Append(cdt.ToString());
+        }
+
+        private void HandleShowCapsStatsByUserCommand(string module, string[] cmdParams)
+        {
+            if (SceneManager.Instance.CurrentScene != null && SceneManager.Instance.CurrentScene != m_scene)
+                return;
+
+            if (cmdParams.Length != 5 && cmdParams.Length != 7)
+            {
+                MainConsole.Instance.Output("Usage: show caps stats by user [<first-name> <last-name>]");
+                return;
+            }
+
+            StringBuilder sb = new StringBuilder();
+            sb.AppendFormat("Region {0}:\n", m_scene.Name);
+
+            if (cmdParams.Length == 5)
+            {
+                BuildSummaryStatsByUserReport(sb);
+            }
+            else if (cmdParams.Length == 7)
+            {
+                string firstName = cmdParams[5];
+                string lastName = cmdParams[6];
+
+                ScenePresence sp = m_scene.GetScenePresence(firstName, lastName);
+
+                if (sp == null)
+                    return;
+
+                BuildDetailedStatsByUserReport(sb, sp);
+            }
+
+            MainConsole.Instance.Output(sb.ToString());
+        }
+
+        private void BuildDetailedStatsByUserReport(StringBuilder sb, ScenePresence sp)
+        {
+            sb.AppendFormat("Avatar name {0}, type {1}\n", sp.Name, sp.IsChildAgent ? "child" : "root");
+
+            ConsoleDisplayTable cdt = new ConsoleDisplayTable();
+            cdt.AddColumn("Cap Name", 34);
+            cdt.AddColumn("Req Received", 12);
+            cdt.AddColumn("Req Handled", 12);
+            cdt.Indent = 2;
+
+            Caps caps = m_scene.CapsModule.GetCapsForUser(sp.UUID);
+
+            if (caps == null)
+                return;
+
+            Dictionary<string, IRequestHandler> capsHandlers = caps.CapsHandlers.GetCapsHandlers();
+
+            foreach (IRequestHandler reqHandler in capsHandlers.Values.OrderByDescending(rh => rh.RequestsReceived))
+            {
+                cdt.AddRow(reqHandler.Name, reqHandler.RequestsReceived, reqHandler.RequestsHandled);
+            }
+
+            sb.Append(cdt.ToString());
+        }
+
+        private void BuildSummaryStatsByUserReport(StringBuilder sb)
+        {
+            ConsoleDisplayTable cdt = new ConsoleDisplayTable();
+            cdt.AddColumn("Name", 32);
+            cdt.AddColumn("Type", 5);
+            cdt.AddColumn("Req Received", 12);
+            cdt.AddColumn("Req Handled", 12);
+            cdt.Indent = 2;
+
+            m_scene.ForEachScenePresence(
+                sp =>
+                {
+                    Caps caps = m_scene.CapsModule.GetCapsForUser(sp.UUID);
+
+                    if (caps == null)
+                        return;
+
+                    Dictionary<string, IRequestHandler> capsHandlers = caps.CapsHandlers.GetCapsHandlers();
+
+                    int totalRequestsReceived = 0;
+                    int totalRequestsHandled = 0;
+
+                    foreach (IRequestHandler reqHandler in capsHandlers.Values)
+                    {
+                        totalRequestsReceived += reqHandler.RequestsReceived;
+                        totalRequestsHandled += reqHandler.RequestsHandled;
+                    }
+                    
+                    cdt.AddRow(sp.Name, sp.IsChildAgent ? "child" : "root", totalRequestsReceived, totalRequestsHandled);
+                }
+            );
+
+            sb.Append(cdt.ToString());
         }
     }
 }

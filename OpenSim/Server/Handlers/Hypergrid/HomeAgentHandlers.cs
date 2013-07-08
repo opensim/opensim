@@ -68,6 +68,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
         {
             return new ExtendedAgentDestinationData();
         }
+
         protected override void UnpackData(OSDMap args, AgentDestinationData d, Hashtable request)
         {
             base.UnpackData(args, d, request);

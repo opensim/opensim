@@ -48,7 +48,7 @@ namespace OpenSim.Framework.Capabilities
             m_method = method;
         }
 
-        public override byte[] Handle(string path, Stream request,
+        protected override byte[] ProcessRequest(string path, Stream request,
                                       IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             //Encoding encoding = Util.UTF8;

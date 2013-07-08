@@ -29,14 +29,35 @@ using System.IO;
 
 namespace OpenSim.Framework.Servers.HttpServer
 {
+    /// <summary>
+    /// Base streamed request handler.
+    /// </summary>
+    /// <remarks>
+    /// Inheriting classes should override ProcessRequest() rather than Handle()
+    /// </remarks>
     public abstract class BaseStreamHandler : BaseRequestHandler, IStreamedRequestHandler
     {
-        public abstract byte[] Handle(string path, Stream request,
-                                      IOSHttpRequest httpRequest, IOSHttpResponse httpResponse);
-
         protected BaseStreamHandler(string httpMethod, string path) : this(httpMethod, path, null, null) {}
 
         protected BaseStreamHandler(string httpMethod, string path, string name, string description)
             : base(httpMethod, path, name, description) {}
+
+        public virtual byte[] Handle(
+            string path, Stream request, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+        {
+            RequestsReceived++;
+
+            byte[] result = ProcessRequest(path, request, httpRequest, httpResponse);
+
+            RequestsHandled++;
+
+            return result;
+        }
+
+        protected virtual byte[] ProcessRequest(
+            string path, Stream request, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+        {
+            return null;
+        }
     }
 }
