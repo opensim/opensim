@@ -107,7 +107,7 @@ namespace OpenSim.Server.Handlers.Simulation
             }
             else
             {
-                m_log.InfoFormat("[AGENT HANDLER]: method {0} not supported in agent message", method);
+                m_log.InfoFormat("[AGENT HANDLER]: method {0} not supported in agent message (caller is {1})", method, Util.GetCallerIP(request));
                 responsedata["int_response_code"] = HttpStatusCode.MethodNotAllowed;
                 responsedata["str_response_string"] = "Method not allowed";
 
