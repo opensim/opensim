@@ -155,7 +155,10 @@ public static class BSParam
     public static Vector3 VehicleInertiaFactor { get; private set; }
     public static float VehicleGroundGravityFudge { get; private set; }
     public static float VehicleAngularBankingTimescaleFudge { get; private set; }
-    public static bool VehicleDebuggingEnable { get; private set; }
+    public static bool VehicleEnableAngularVerticalAttraction { get; private set; }
+    public static int VehicleAngularVerticalAttractionAlgorithm { get; private set; }
+    public static bool VehicleEnableAngularDeflection { get; private set; }
+    public static bool VehicleEnableAngularBanking { get; private set; }
 
     // Convex Hulls
     public static int CSHullMaxDepthSplit { get; private set; }
@@ -606,8 +609,14 @@ public static class BSParam
             0.2f ),
         new ParameterDefn<float>("VehicleAngularBankingTimescaleFudge", "Factor to multiple angular banking timescale. Tune to increase realism.",
             60.0f ),
-        new ParameterDefn<bool>("VehicleDebuggingEnable", "Turn on/off vehicle debugging",
-            false ),
+        new ParameterDefn<bool>("VehicleEnableAngularVerticalAttraction", "Turn on/off vehicle angular vertical attraction effect",
+            true ),
+        new ParameterDefn<int>("VehicleAngularVerticalAttractionAlgorithm", "Select vertical attraction algo. You need to look at the source.",
+            1 ),
+        new ParameterDefn<bool>("VehicleEnableAngularDeflection", "Turn on/off vehicle angular deflection effect",
+            true ),
+        new ParameterDefn<bool>("VehicleEnableAngularBanking", "Turn on/off vehicle angular banking effect",
+            true ),
 
 	    new ParameterDefn<float>("MaxPersistantManifoldPoolSize", "Number of manifolds pooled (0 means default of 4096)",
             0f,

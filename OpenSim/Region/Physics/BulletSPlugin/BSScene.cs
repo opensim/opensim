@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -648,7 +648,7 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         simTime = Util.EnvironmentTickCountSubtract(beforeTime);
         if (PhysicsLogging.Enabled)
         {
-            DetailLog("{0},DoPhysicsStep,call, frame={1}, nTaints={2}, simTime={3}, substeps={4}, updates={5}, colliders={6}, objWColl={7}",
+            DetailLog("{0},DoPhysicsStep,complete,frame={1}, nTaints={2}, simTime={3}, substeps={4}, updates={5}, colliders={6}, objWColl={7}",
                                     DetailLogZero, m_simulationStep, numTaints, simTime, numSubSteps,
                                     updatedEntityCount, collidersCount, ObjectsWithCollisions.Count);
         }
