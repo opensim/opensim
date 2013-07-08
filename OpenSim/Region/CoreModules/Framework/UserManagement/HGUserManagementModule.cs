@@ -58,7 +58,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             if (umanmod == Name)
             {
                 m_Enabled = true;
-                RegisterConsoleCmds();
+                Init();
                 m_log.DebugFormat("[USER MANAGEMENT MODULE]: {0} is enabled", Name);
             }
         }

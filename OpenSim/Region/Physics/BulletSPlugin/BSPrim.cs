@@ -51,12 +51,8 @@ public class BSPrim : BSPhysObject
     private bool _isSelected;
     private bool _isVolumeDetect;
 
-    // _position is what the simulator thinks the positions of the prim is.
-    private OMV.Vector3 _position;
-
     private float _mass;    // the mass of this object
     private OMV.Vector3 _acceleration;
-    private OMV.Quaternion _orientation;
     private int _physicsActorType;
     private bool _isPhysical;
     private bool _flying;
@@ -88,10 +84,10 @@ public class BSPrim : BSPhysObject
     {
         // m_log.DebugFormat("{0}: BSPrim creation of {1}, id={2}", LogHeader, primName, localID);
         _physicsActorType = (int)ActorTypes.Prim;
-        _position = pos;
+        RawPosition = pos;
         _size = size;
         Scale = size;   // prims are the size the user wants them to be (different for BSCharactes).
-        _orientation = rotation;
+        RawOrientation = rotation;
         _buoyancy = 0f;
         RawVelocity = OMV.Vector3.Zero;
         _rotationalVelocity = OMV.Vector3.Zero;
@@ -270,46 +266,42 @@ public class BSPrim : BSPhysObject
         return;
     }
 
-    public override OMV.Vector3 RawPosition
-    {
-        get { return _position; }
-        set { _position = value; }
-    }
     public override OMV.Vector3 Position {
         get {
             // don't do the GetObjectPosition for root elements because this function is called a zillion times.
-            // _position = ForcePosition;
-            return _position;
+            // RawPosition = ForcePosition;
+            return RawPosition;
         }
         set {
             // If the position must be forced into the physics engine, use ForcePosition.
             // All positions are given in world positions.
-            if (_position == value)
+            if (RawPosition == value)
             {
-                DetailLog("{0},BSPrim.setPosition,call,positionNotChanging,pos={1},orient={2}", LocalID, _position, _orientation);
+                DetailLog("{0},BSPrim.setPosition,call,positionNotChanging,pos={1},orient={2}", LocalID, RawPosition, RawOrientation);
                 return;
             }
-            _position = value;
+            RawPosition = value;
             PositionSanityCheck(false);
 
             PhysScene.TaintedObject("BSPrim.setPosition", delegate()
             {
-                DetailLog("{0},BSPrim.SetPosition,taint,pos={1},orient={2}", LocalID, _position, _orientation);
-                ForcePosition = _position;
+                DetailLog("{0},BSPrim.SetPosition,taint,pos={1},orient={2}", LocalID, RawPosition, RawOrientation);
+                ForcePosition = RawPosition;
             });
         }
     }
 
+    // NOTE: overloaded by BSPrimDisplaced to handle offset for center-of-gravity.
     public override OMV.Vector3 ForcePosition {
         get {
-            _position = PhysScene.PE.GetPosition(PhysBody);
-            return _position;
+            RawPosition = PhysScene.PE.GetPosition(PhysBody);
+            return RawPosition;
         }
         set {
-            _position = value;
+            RawPosition = value;
             if (PhysBody.HasPhysicalBody)
             {
-                PhysScene.PE.SetTranslation(PhysBody, _position, _orientation);
+                PhysScene.PE.SetTranslation(PhysBody, RawPosition, RawOrientation);
                 ActivateIfPhysical(false);
             }
         }
@@ -343,10 +335,10 @@ public class BSPrim : BSPhysObject
             float targetHeight = terrainHeight + (Size.Z / 2f);
             // If the object is below ground it just has to be moved up because pushing will
             //     not get it through the terrain
-            _position.Z = targetHeight;
+            RawPosition = new OMV.Vector3(RawPosition.X, RawPosition.Y, targetHeight);
             if (inTaintTime)
             {
-                ForcePosition = _position;
+                ForcePosition = RawPosition;
             }
             // If we are throwing the object around, zero its other forces
             ZeroMotion(inTaintTime);
@@ -355,7 +347,7 @@ public class BSPrim : BSPhysObject
 
         if ((CurrentCollisionFlags & CollisionFlags.BS_FLOATS_ON_WATER) != 0)
         {
-            float waterHeight = PhysScene.TerrainManager.GetWaterLevelAtXYZ(_position);
+            float waterHeight = PhysScene.TerrainManager.GetWaterLevelAtXYZ(RawPosition);
             // TODO: a floating motor so object will bob in the water
             if (Math.Abs(RawPosition.Z - waterHeight) > 0.1f)
             {
@@ -364,7 +356,7 @@ public class BSPrim : BSPhysObject
 
                 // Apply upforce and overcome gravity.
                 OMV.Vector3 correctionForce = upForce - PhysScene.DefaultGravity;
-                DetailLog("{0},BSPrim.PositionSanityCheck,applyForce,pos={1},upForce={2},correctionForce={3}", LocalID, _position, upForce, correctionForce);
+                DetailLog("{0},BSPrim.PositionSanityCheck,applyForce,pos={1},upForce={2},correctionForce={3}", LocalID, RawPosition, upForce, correctionForce);
                 AddForce(correctionForce, false, inTaintTime);
                 ret = true;
             }
@@ -383,11 +375,11 @@ public class BSPrim : BSPhysObject
         uint wayOutThere = Constants.RegionSize * Constants.RegionSize;
         // There have been instances of objects getting thrown way out of bounds and crashing
         //    the border crossing code.
-        if (   _position.X < -Constants.RegionSize || _position.X > wayOutThere
-            || _position.Y < -Constants.RegionSize || _position.Y > wayOutThere
-            || _position.Z < -Constants.RegionSize || _position.Z > wayOutThere)
+        if (   RawPosition.X < -Constants.RegionSize || RawPosition.X > wayOutThere
+            || RawPosition.Y < -Constants.RegionSize || RawPosition.Y > wayOutThere
+            || RawPosition.Z < -Constants.RegionSize || RawPosition.Z > wayOutThere)
         {
-            _position = new OMV.Vector3(10, 10, 50);
+            RawPosition = new OMV.Vector3(10, 10, 50);
             ZeroMotion(inTaintTime);
             ret = true;
         }
@@ -713,23 +705,19 @@ public class BSPrim : BSPhysObject
         get { return _acceleration; }
         set { _acceleration = value; }
     }
-    public override OMV.Quaternion RawOrientation
-    {
-        get { return _orientation; }
-        set { _orientation = value; }
-    }
+
     public override OMV.Quaternion Orientation {
         get {
-            return _orientation;
+            return RawOrientation;
         }
         set {
-            if (_orientation == value)
+            if (RawOrientation == value)
                 return;
-            _orientation = value;
+            RawOrientation = value;
 
             PhysScene.TaintedObject("BSPrim.setOrientation", delegate()
             {
-                ForceOrientation = _orientation;
+                ForceOrientation = RawOrientation;
             });
         }
     }
@@ -738,14 +726,14 @@ public class BSPrim : BSPhysObject
     {
         get
         {
-            _orientation = PhysScene.PE.GetOrientation(PhysBody);
-            return _orientation;
+            RawOrientation = PhysScene.PE.GetOrientation(PhysBody);
+            return RawOrientation;
         }
         set
         {
-            _orientation = value;
+            RawOrientation = value;
             if (PhysBody.HasPhysicalBody)
-                PhysScene.PE.SetTranslation(PhysBody, _position, _orientation);
+                PhysScene.PE.SetTranslation(PhysBody, RawPosition, RawOrientation);
         }
     }
     public override int PhysicsActorType {
@@ -802,6 +790,7 @@ public class BSPrim : BSPhysObject
     //     isSolid: other objects bounce off of this object
     //     isVolumeDetect: other objects pass through but can generate collisions
     //     collisionEvents: whether this object returns collision events
+    // NOTE: overloaded by BSPrimLinkable to also update linkset physical parameters.
     public virtual void UpdatePhysicalParameters()
     {
         if (!PhysBody.HasPhysicalBody)
@@ -888,7 +877,7 @@ public class BSPrim : BSPhysObject
             // PhysicsScene.PE.ClearAllForces(BSBody);
 
             // For good measure, make sure the transform is set through to the motion state
-            ForcePosition = _position;
+            ForcePosition = RawPosition;
             ForceVelocity = RawVelocity;
             ForceRotationalVelocity = _rotationalVelocity;
 
@@ -1125,7 +1114,9 @@ public class BSPrim : BSPhysObject
                 OMV.Vector3 addForce = force;
                 PhysScene.TaintedObject(inTaintTime, "BSPrim.AddForce", delegate()
                 {
-                    // Bullet adds this central force to the total force for this tick
+                    // Bullet adds this central force to the total force for this tick.
+                    // Deep down in Bullet:
+                    //      linearVelocity += totalForce / mass * timeStep;
                     DetailLog("{0},BSPrim.addForce,taint,force={1}", LocalID, addForce);
                     if (PhysBody.HasPhysicalBody)
                     {
@@ -1493,6 +1484,8 @@ public class BSPrim : BSPhysObject
 
         returnMass = Util.Clamp(returnMass, BSParam.MinimumObjectMass, BSParam.MaximumObjectMass);
         // DetailLog("{0},BSPrim.CalculateMass,den={1},vol={2},mass={3}", LocalID, Density, volume, returnMass);
+        DetailLog("{0},BSPrim.CalculateMass,den={1},vol={2},mass={3},pathB={4},pathE={5},profB={6},profE={7},siz={8}",
+                            LocalID, Density, volume, returnMass, pathBegin, pathEnd, profileBegin, profileEnd, _size);
 
         return returnMass;
     }// end CalculateMass
@@ -1528,6 +1521,8 @@ public class BSPrim : BSPhysObject
 
     // The physics engine says that properties have updated. Update same and inform
     // the world that things have changed.
+    // NOTE: BSPrim.UpdateProperties is overloaded by BSPrimLinkable which modifies updates from root and children prims.
+    // NOTE: BSPrim.UpdateProperties is overloaded by BSPrimDisplaced which handles mapping physical position to simulator position.
     public override void UpdateProperties(EntityProperties entprop)
     {
         // Let anyone (like the actors) modify the updated properties before they are pushed into the object and the simulator.
@@ -1536,8 +1531,8 @@ public class BSPrim : BSPhysObject
         // DetailLog("{0},BSPrim.UpdateProperties,entry,entprop={1}", LocalID, entprop);   // DEBUG DEBUG
 
         // Assign directly to the local variables so the normal set actions do not happen
-        _position = entprop.Position;
-        _orientation = entprop.Rotation;
+        RawPosition = entprop.Position;
+        RawOrientation = entprop.Rotation;
         // DEBUG DEBUG DEBUG -- smooth velocity changes a bit. The simulator seems to be
         //    very sensitive to velocity changes.
         if (entprop.Velocity == OMV.Vector3.Zero || !entprop.Velocity.ApproxEquals(RawVelocity, BSParam.UpdateVelocityChangeThreshold))
@@ -1550,21 +1545,19 @@ public class BSPrim : BSPhysObject
         // The sanity check can change the velocity and/or position.
         if (PositionSanityCheck(true /* inTaintTime */ ))
         {
-            entprop.Position = _position;
+            entprop.Position = RawPosition;
             entprop.Velocity = RawVelocity;
             entprop.RotationalVelocity = _rotationalVelocity;
             entprop.Acceleration = _acceleration;
         }
 
-        OMV.Vector3 direction = OMV.Vector3.UnitX * _orientation;   // DEBUG DEBUG DEBUG
+        OMV.Vector3 direction = OMV.Vector3.UnitX * RawOrientation;   // DEBUG DEBUG DEBUG
         DetailLog("{0},BSPrim.UpdateProperties,call,entProp={1},dir={2}", LocalID, entprop, direction);
 
         // remember the current and last set values
         LastEntityProperties = CurrentEntityProperties;
         CurrentEntityProperties = entprop;
 
-        // Note that BSPrim can be overloaded by BSPrimLinkable which controls updates from root and children prims.
-        
         PhysScene.PostUpdate(this);
     }
 }

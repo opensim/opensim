@@ -785,7 +785,6 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
             {
                 // The simulation of the time interval took less than realtime.
                 // Do a sleep for the rest of realtime.
-                DetailLog("{0},BulletSPluginPhysicsThread,sleeping={1}", BSScene.DetailLogZero, simulationTimeVsRealtimeDifferenceMS);
                 Thread.Sleep(simulationTimeVsRealtimeDifferenceMS);
             }
             else
