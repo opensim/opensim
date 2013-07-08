@@ -144,7 +144,6 @@ namespace OpenSim.Framework.Capabilities
         public void RegisterHandler(string capName, IRequestHandler handler)
         {
             m_capsHandlers[capName] = handler;
-            //m_log.DebugFormat("[CAPS]: Registering handler for \"{0}\": path {1}", capName, handler.Path);
         }
 
         /// <summary>
