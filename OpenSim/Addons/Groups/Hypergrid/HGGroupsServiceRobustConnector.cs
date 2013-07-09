@@ -47,7 +47,6 @@ namespace OpenSim.Groups
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private HGGroupsService m_GroupsService;
-        private string m_HomeURI = string.Empty;
         private string m_ConfigName = "Groups";
 
         // Called by Robust shell
@@ -113,7 +112,7 @@ namespace OpenSim.Groups
             m_GroupsService = service;
         }
 
-        public override byte[] Handle(string path, Stream requestData,
+        protected override byte[] ProcessRequest(string path, Stream requestData,
                 IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             StreamReader sr = new StreamReader(requestData);
@@ -209,7 +208,6 @@ namespace OpenSim.Groups
                 UUID groupID = new UUID(request["GroupID"].ToString());
                 string agentID = request["AgentID"].ToString();
                 string token = request["AccessToken"].ToString();
-                string reason = string.Empty;
 
                 m_GroupsService.RemoveAgentFromGroup(agentID, agentID, groupID, token);
             }

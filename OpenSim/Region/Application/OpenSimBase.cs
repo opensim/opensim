@@ -766,7 +766,7 @@ namespace OpenSim
         {
             public SimStatusHandler() : base("GET", "/simstatus", "SimStatus", "Simulator Status") {}
 
-            public override byte[] Handle(string path, Stream request,
+            protected override byte[] ProcessRequest(string path, Stream request,
                                  IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
             {
                 return Util.UTF8.GetBytes("OK");
@@ -792,7 +792,7 @@ namespace OpenSim
                 m_opensim = sim;
             }
             
-            public override byte[] Handle(string path, Stream request,
+            protected override byte[] ProcessRequest(string path, Stream request,
                                  IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
             {
                 return Util.UTF8.GetBytes(m_opensim.StatReport(httpRequest));
@@ -810,7 +810,7 @@ namespace OpenSim
         /// If the request contains a key, "callback" the response will be wrappend in the 
         /// associated value for jsonp used with ajax/javascript
         /// </summary>
-        public class UXSimStatusHandler : BaseStreamHandler
+        protected class UXSimStatusHandler : BaseStreamHandler
         {
             OpenSimBase m_opensim;
         
@@ -820,7 +820,7 @@ namespace OpenSim
                 m_opensim = sim;                
             }
             
-            public override byte[] Handle(string path, Stream request,
+            protected override byte[] ProcessRequest(string path, Stream request,
                                  IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
             {
                 return Util.UTF8.GetBytes(m_opensim.StatReport(httpRequest));

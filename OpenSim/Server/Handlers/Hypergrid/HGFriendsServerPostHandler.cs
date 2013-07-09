@@ -68,7 +68,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
                 m_log.ErrorFormat("[HGFRIENDS HANDLER]: TheService is null!");
         }
 
-        public override byte[] Handle(string path, Stream requestData,
+        protected override byte[] ProcessRequest(string path, Stream requestData,
                 IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             StreamReader sr = new StreamReader(requestData);

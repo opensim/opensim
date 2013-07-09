@@ -304,7 +304,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
             }
 
             string serverURI = string.Empty;
-            bool foreign = GetUserProfileServerURI(targetID, out serverURI);
+//            bool foreign = GetUserProfileServerURI(targetID, out serverURI);
             UUID creatorId = UUID.Zero;
 
             OSDMap parameters= new OSDMap();
@@ -369,7 +369,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
             }
             
             string serverURI = string.Empty;
-            bool foreign = GetUserProfileServerURI(target, out serverURI);
+//            bool foreign = GetUserProfileServerURI(target, out serverURI);
 
             object Ad = (object)ad;
             if(!JsonRpcRequest(ref Ad, "classifieds_info_query", serverURI, UUID.Random().ToString()))
@@ -438,10 +438,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
             Vector3 pos = remoteClient.SceneAgent.AbsolutePosition;
             ILandObject land = s.LandChannel.GetLandObject(pos.X, pos.Y);
             ScenePresence p = FindPresence(remoteClient.AgentId);
-            Vector3 avaPos = p.AbsolutePosition;
             
             string serverURI = string.Empty;
-            bool foreign = GetUserProfileServerURI(remoteClient.AgentId, out serverURI);
+//            bool foreign = GetUserProfileServerURI(remoteClient.AgentId, out serverURI);
 
             if (land == null)
             {
@@ -488,7 +487,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
         public void ClassifiedDelete(UUID queryClassifiedID, IClientAPI remoteClient)
         {
             string serverURI = string.Empty;
-            bool foreign = GetUserProfileServerURI(remoteClient.AgentId, out serverURI);
+//            bool foreign = GetUserProfileServerURI(remoteClient.AgentId, out serverURI);
 
             UUID classifiedId;
             OSDMap parameters= new OSDMap();
@@ -538,7 +537,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
             }
 
             string serverURI = string.Empty;
-            bool foreign = GetUserProfileServerURI(targetId, out serverURI);
+//            bool foreign = GetUserProfileServerURI(targetId, out serverURI);
 
             OSDMap parameters= new OSDMap();
             parameters.Add("creatorId", OSD.FromUUID(targetId));
@@ -589,7 +588,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
             UUID targetID;
             UUID.TryParse(args[0], out targetID);
             string serverURI = string.Empty;
-            bool foreign = GetUserProfileServerURI(targetID, out serverURI);
+//            bool foreign = GetUserProfileServerURI(targetID, out serverURI);
             IClientAPI remoteClient = (IClientAPI)sender;
 
             UserProfilePick pick = new UserProfilePick();
@@ -657,7 +656,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
             m_log.DebugFormat("[PROFILES]: Start PickInfoUpdate Name: {0} PickId: {1} SnapshotId: {2}", name, pickID.ToString(), snapshotID.ToString());
             UserProfilePick pick = new UserProfilePick();
             string serverURI = string.Empty;
-            bool foreign = GetUserProfileServerURI(remoteClient.AgentId, out serverURI);
+//            bool foreign = GetUserProfileServerURI(remoteClient.AgentId, out serverURI);
             ScenePresence p = FindPresence(remoteClient.AgentId);
 
             Vector3 avaPos = p.AbsolutePosition;
@@ -717,7 +716,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
         public void PickDelete(IClientAPI remoteClient, UUID queryPickID)
         {
             string serverURI = string.Empty;
-            bool foreign = GetUserProfileServerURI(remoteClient.AgentId, out serverURI);
+//            bool foreign = GetUserProfileServerURI(remoteClient.AgentId, out serverURI);
 
             OSDMap parameters= new OSDMap();
             parameters.Add("pickId", OSD.FromUUID(queryPickID));
@@ -752,7 +751,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
 
             IClientAPI remoteClient = (IClientAPI)sender;
             string serverURI = string.Empty;
-            bool foreign = GetUserProfileServerURI(remoteClient.AgentId, out serverURI);
+//            bool foreign = GetUserProfileServerURI(remoteClient.AgentId, out serverURI);
             note.TargetId = remoteClient.AgentId;
             UUID.TryParse(args[0], out note.UserId);
 
@@ -788,7 +787,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
             note.Notes = queryNotes;
 
             string serverURI = string.Empty;
-            bool foreign = GetUserProfileServerURI(remoteClient.AgentId, out serverURI);
+//            bool foreign = GetUserProfileServerURI(remoteClient.AgentId, out serverURI);
 
             object Note = note;
             if(!JsonRpcRequest(ref Note, "avatar_notes_update", serverURI, UUID.Random().ToString()))
@@ -833,7 +832,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
             prop.Language = languages;
 
             string serverURI = string.Empty;
-            bool foreign = GetUserProfileServerURI(remoteClient.AgentId, out serverURI);
+//            bool foreign = GetUserProfileServerURI(remoteClient.AgentId, out serverURI);
 
             object Param = prop;
             if(!JsonRpcRequest(ref Param, "avatar_interests_update", serverURI, UUID.Random().ToString()))
@@ -955,7 +954,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
                 prop.FirstLifeText = newProfile.FirstLifeAboutText;
 
                 string serverURI = string.Empty;
-                bool foreign = GetUserProfileServerURI(remoteClient.AgentId, out serverURI);
+//                bool foreign = GetUserProfileServerURI(remoteClient.AgentId, out serverURI);
 
                 object Prop = prop;
 
@@ -994,7 +993,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
             }
 
             string serverURI = string.Empty;
-            bool foreign = GetUserProfileServerURI(properties.UserId, out serverURI);
+//            bool foreign = GetUserProfileServerURI(properties.UserId, out serverURI);
 
             // This is checking a friend on the home grid
             // Not HG friend
@@ -1247,7 +1246,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
                 return false;
             }
 
-            byte[] buf = new byte[8192];
             Stream rstream = webResponse.GetResponseStream();
             OSDMap mret = (OSDMap)OSDParser.DeserializeJson(rstream);
 
@@ -1313,7 +1311,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
                 return false;
             }
 
-            byte[] buf = new byte[8192];
             Stream rstream = webResponse.GetResponseStream();
 
             OSDMap response = new OSDMap();

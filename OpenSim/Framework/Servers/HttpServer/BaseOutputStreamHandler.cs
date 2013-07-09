@@ -26,40 +26,35 @@
  */
 
 using System.IO;
-using System.Text;
 
 namespace OpenSim.Framework.Servers.HttpServer
 {
-    public class RestStreamHandler : BaseStreamHandler
+    /// <summary>
+    /// Base handler for writing to an output stream
+    /// </summary>
+    /// <remarks>
+    /// Inheriting classes should override ProcessRequest() rather than Handle()
+    /// </remarks>
+    public abstract class BaseOutputStreamHandler : BaseRequestHandler, IRequestHandler
     {
-        private RestMethod m_restMethod;
+        protected BaseOutputStreamHandler(string httpMethod, string path) : this(httpMethod, path, null, null) {}
 
-        public RestMethod Method
+        protected BaseOutputStreamHandler(string httpMethod, string path, string name, string description)
+            : base(httpMethod, path, name, description) {}
+
+        public virtual void Handle(
+            string path, Stream request, Stream response, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
-            get { return m_restMethod; }
+            RequestsReceived++;
+
+            ProcessRequest(path, request, response, httpRequest, httpResponse);
+
+            RequestsHandled++;
         }
 
-        public RestStreamHandler(string httpMethod, string path, RestMethod restMethod)
-            : this(httpMethod, path, restMethod, null, null) {}
-
-        public RestStreamHandler(string httpMethod, string path, RestMethod restMethod, string name, string description)
-            : base(httpMethod, path, name, description)
+        protected virtual void ProcessRequest(
+            string path, Stream request, Stream response, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
-            m_restMethod = restMethod;
-        }
-
-        protected override byte[] ProcessRequest(string path, Stream request, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
-        {
-            Encoding encoding = Encoding.UTF8;
-            StreamReader streamReader = new StreamReader(request, encoding);
-
-            string requestBody = streamReader.ReadToEnd();
-            streamReader.Close();
-
-            string param = GetParam(path);
-            string responseString = m_restMethod(requestBody, path, param, httpRequest, httpResponse);
-
-            return Encoding.UTF8.GetBytes(responseString);
         }
     }
 }
