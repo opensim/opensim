@@ -397,7 +397,6 @@ namespace OpenSim.Region.OptionalModules.MaterialsDemoModule
                                                 m_log.Debug("[MaterialsDemoModule]: null SOP for localId: " + matLocalID.ToString());
                                             else
                                             {
-                                                //var te = sop.Shape.Textures;
                                                 var te = new Primitive.TextureEntry(sop.Shape.TextureEntry, 0, sop.Shape.TextureEntry.Length);
 
                                                 if (te == null)
