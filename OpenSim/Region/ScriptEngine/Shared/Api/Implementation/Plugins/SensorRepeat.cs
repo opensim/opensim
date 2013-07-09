@@ -353,6 +353,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                 // Position of a sensor in a child prim attached to an avatar
                 // will be still wrong. 
                 ScenePresence avatar = m_CmdManager.m_ScriptEngine.World.GetScenePresence(SensePoint.ParentGroup.AttachedAvatar);
+
+                // Don't proceed if the avatar for this attachment has since been removed from the scene.
+                if (avatar == null)
+                    return sensedEntities;
+
                 q = avatar.GetWorldRotation() * q;
             }
 
@@ -480,6 +485,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                 // Position of a sensor in a child prim attached to an avatar
                 // will be still wrong. 
                 ScenePresence avatar = m_CmdManager.m_ScriptEngine.World.GetScenePresence(SensePoint.ParentGroup.AttachedAvatar);
+
+                // Don't proceed if the avatar for this attachment has since been removed from the scene.
+                if (avatar == null)
+                    return sensedEntities;
+
                 q = avatar.GetWorldRotation() * q;
             }
 
