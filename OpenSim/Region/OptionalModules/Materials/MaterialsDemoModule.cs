@@ -416,14 +416,7 @@ namespace OpenSim.Region.OptionalModules.MaterialsDemoModule
                                                             if (te.DefaultTexture == null)
                                                                 m_log.Debug("[MaterialsDemoModule]: te.DefaultTexture is null");
                                                             else
-                                                            {
-                                                                if (te.DefaultTexture.MaterialID == null)
-                                                                    m_log.Debug("[MaterialsDemoModule]: te.DefaultTexture.MaterialID is null");
-                                                                else
-                                                                {
-                                                                    te.DefaultTexture.MaterialID = id;
-                                                                }
-                                                            }
+                                                                te.DefaultTexture.MaterialID = id;
                                                         }
                                                         else
                                                         {
