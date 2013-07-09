@@ -905,6 +905,7 @@ namespace OpenSim.Region.Physics.BulletSPlugin
                 return VehicleVelocity * Quaternion.Inverse(Quaternion.Normalize(VehicleOrientation));
             }
         }
+
         private float VehicleForwardSpeed
         {
             get
@@ -1040,26 +1041,37 @@ namespace OpenSim.Region.Physics.BulletSPlugin
             Vector3 linearDeflectionV = Vector3.Zero;
             Vector3 velocityV = VehicleForwardVelocity;
 
-            // Velocity in Y and Z dimensions is movement to the side or turning.
-            // Compute deflection factor from the to the side and rotational velocity
-            linearDeflectionV.Y = SortedClampInRange(0, (velocityV.Y * m_linearDeflectionEfficiency) / m_linearDeflectionTimescale, velocityV.Y);
-            linearDeflectionV.Z = SortedClampInRange(0, (velocityV.Z * m_linearDeflectionEfficiency) / m_linearDeflectionTimescale, velocityV.Z);
+            if (BSParam.VehicleEnableLinearDeflection)
+            {
+                // Velocity in Y and Z dimensions is movement to the side or turning.
+                // Compute deflection factor from the to the side and rotational velocity
+                linearDeflectionV.Y = SortedClampInRange(0, (velocityV.Y * m_linearDeflectionEfficiency) / m_linearDeflectionTimescale, velocityV.Y);
+                linearDeflectionV.Z = SortedClampInRange(0, (velocityV.Z * m_linearDeflectionEfficiency) / m_linearDeflectionTimescale, velocityV.Z);
 
-            // Velocity to the side and around is corrected and moved into the forward direction
-            linearDeflectionV.X += Math.Abs(linearDeflectionV.Y);
-            linearDeflectionV.X += Math.Abs(linearDeflectionV.Z);
+                // Velocity to the side and around is corrected and moved into the forward direction
+                linearDeflectionV.X += Math.Abs(linearDeflectionV.Y);
+                linearDeflectionV.X += Math.Abs(linearDeflectionV.Z);
 
-            // Scale the deflection to the fractional simulation time
-            linearDeflectionV *= pTimestep;
+                // Scale the deflection to the fractional simulation time
+                linearDeflectionV *= pTimestep;
 
-            // Subtract the sideways and rotational velocity deflection factors while adding the correction forward
-            linearDeflectionV *= new Vector3(1,-1,-1);
+                // Subtract the sideways and rotational velocity deflection factors while adding the correction forward
+                linearDeflectionV *= new Vector3(1, -1, -1);
 
-            // Correciont is vehicle relative. Convert to world coordinates and add to the velocity
-            VehicleVelocity += linearDeflectionV * VehicleOrientation;
+                // Correction is vehicle relative. Convert to world coordinates.
+                Vector3 linearDeflectionW = linearDeflectionV * VehicleOrientation;
 
-            VDetailLog("{0},  MoveLinear,LinearDeflection,linDefEff={1},linDefTS={2},linDeflectionV={3}",
-                        ControllingPrim.LocalID, m_linearDeflectionEfficiency, m_linearDeflectionTimescale, linearDeflectionV);
+                // Optionally, if not colliding, don't effect world downward velocity. Let falling things fall.
+                if (BSParam.VehicleLinearDeflectionNotCollidingNoZ && !m_controllingPrim.IsColliding)
+                {
+                    linearDeflectionW.Z = 0f;
+                }
+
+                VehicleVelocity += linearDeflectionW;
+
+                VDetailLog("{0},  MoveLinear,LinearDeflection,linDefEff={1},linDefTS={2},linDeflectionV={3}",
+                            ControllingPrim.LocalID, m_linearDeflectionEfficiency, m_linearDeflectionTimescale, linearDeflectionV);
+            }
         }
 
         public void ComputeLinearTerrainHeightCorrection(float pTimestep)
