@@ -678,12 +678,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 //there is a local handler for this packet type
                 if (pprocessor.Async)
                 {
+                    ClientInfo cinfo = UDPClient.GetClientInfo();
+                    if (!cinfo.AsyncRequests.ContainsKey(packet.Type.ToString()))
+                        cinfo.AsyncRequests[packet.Type.ToString()] = 0;
+                    cinfo.AsyncRequests[packet.Type.ToString()]++;
+
                     object obj = new AsyncPacketProcess(this, pprocessor.method, packet);
                     Util.FireAndForget(ProcessSpecificPacketAsync, obj);
                     result = true;
                 }
                 else
                 {
+                    ClientInfo cinfo = UDPClient.GetClientInfo();
+                    if (!cinfo.SyncRequests.ContainsKey(packet.Type.ToString()))
+                        cinfo.SyncRequests[packet.Type.ToString()] = 0;
+                    cinfo.SyncRequests[packet.Type.ToString()]++;
+
                     result = pprocessor.method(this, packet);
                 }
             }
@@ -698,6 +708,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
                 if (found)
                 {
+                    ClientInfo cinfo = UDPClient.GetClientInfo();
+                    if (!cinfo.GenericRequests.ContainsKey(packet.Type.ToString()))
+                        cinfo.GenericRequests[packet.Type.ToString()] = 0;
+                    cinfo.GenericRequests[packet.Type.ToString()]++;
+
                     result = method(this, packet);
                 }
             }
@@ -12030,7 +12045,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             ClientInfo info = m_udpClient.GetClientInfo();
 
             info.proxyEP = null;
-            info.agentcircuit = RequestClientInfo();
+            if (info.agentcircuit == null)
+                info.agentcircuit = RequestClientInfo();
 
             return info;
         }
