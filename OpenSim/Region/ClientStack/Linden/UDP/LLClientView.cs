@@ -5312,7 +5312,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AddLocalPacketHandler(PacketType.RezObject, HandlerRezObject);
             AddLocalPacketHandler(PacketType.DeRezObject, HandlerDeRezObject);
             AddLocalPacketHandler(PacketType.ModifyLand, HandlerModifyLand);
-            AddLocalPacketHandler(PacketType.RegionHandshakeReply, HandlerRegionHandshakeReply);
+            AddLocalPacketHandler(PacketType.RegionHandshakeReply, HandlerRegionHandshakeReply, false);
             AddLocalPacketHandler(PacketType.AgentWearablesRequest, HandlerAgentWearablesRequest);
             AddLocalPacketHandler(PacketType.AgentSetAppearance, HandlerAgentSetAppearance);
             AddLocalPacketHandler(PacketType.AgentIsNowWearing, HandlerAgentIsNowWearing);
