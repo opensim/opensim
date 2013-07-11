@@ -495,8 +495,8 @@ public class BSPrim : BSPhysObject
         }
     }
 
-        // Find and return a handle to the current vehicle actor.
-        // Return 'null' if there is no vehicle actor.
+    // Find and return a handle to the current vehicle actor.
+    // Return 'null' if there is no vehicle actor.
     public BSDynamics GetVehicleActor()
     {
         BSDynamics ret = null;
@@ -507,6 +507,7 @@ public class BSPrim : BSPhysObject
         }
         return ret;
     }
+
     public override int VehicleType {
         get {
             int ret = (int)Vehicle.TYPE_NONE;
