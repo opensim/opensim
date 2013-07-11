@@ -59,7 +59,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         public void TestChildAgentSingleRegionCapabilities()
         {
             TestHelpers.InMethod();
-            TestHelpers.EnableLogging();
+//            TestHelpers.EnableLogging();
 
             UUID spUuid = TestHelpers.ParseTail(0x1);
 

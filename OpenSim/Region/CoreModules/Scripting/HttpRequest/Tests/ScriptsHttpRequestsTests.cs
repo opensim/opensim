@@ -151,7 +151,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest.Tests
         public void Test404Response()
         {
             TestHelpers.InMethod();
-            TestHelpers.EnableLogging();
+//            TestHelpers.EnableLogging();
 
             if (!Util.IsPlatformMono)
                 Assert.Ignore("Ignoring test since can only currently run on Mono");           
