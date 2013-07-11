@@ -419,7 +419,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
             get { return _reqID; }
             set { _reqID = value; }
         }
-        public HttpWebRequest Request;
+        public WebRequest Request;
         public string ResponseBody;
         public List<string> ResponseMetadata;
         public Dictionary<string, string> ResponseHeaders;
@@ -431,18 +431,11 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
             SendRequest();
         }
 
-        /*
-         * TODO: More work on the response codes.  Right now
-         * returning 200 for success or 499 for exception
-         */
-
         public void SendRequest()
         {
-            HttpWebResponse response = null;
-
             try
             {
-                Request = (HttpWebRequest) WebRequest.Create(Url);
+                Request = WebRequest.Create(Url);
                 Request.Method = HttpMethod;
                 Request.ContentType = HttpMIMEType;
 
@@ -480,14 +473,17 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                     }
                 }
 
-                foreach (KeyValuePair<string, string> entry in ResponseHeaders)
-                    if (entry.Key.ToLower().Equals("user-agent"))
-                        Request.UserAgent = entry.Value;
-                    else
-                        Request.Headers[entry.Key] = entry.Value;
+                if (ResponseHeaders != null)
+                {
+                    foreach (KeyValuePair<string, string> entry in ResponseHeaders)
+                        if (entry.Key.ToLower().Equals("user-agent") && Request is HttpWebRequest)
+                            ((HttpWebRequest)Request).UserAgent = entry.Value;
+                        else
+                            Request.Headers[entry.Key] = entry.Value;
+                }
 
                 // Encode outbound data
-                if (OutboundBody.Length > 0)
+                if (OutboundBody != null && OutboundBody.Length > 0)
                 {
                     byte[] data = Util.UTF8.GetBytes(OutboundBody);
 
@@ -510,12 +506,19 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                     {
                         throw;
                     }
-                    response = (HttpWebResponse)e.Response;
+
+                    HttpWebResponse response = (HttpWebResponse)e.Response;
+
+                    Status = (int)response.StatusCode;
+                    ResponseBody = response.StatusDescription;
                     _finished = true;
                 }
             }
             catch (Exception e)
             {
+//                m_log.Debug(
+//                    string.Format("[SCRIPTS HTTP REQUESTS]: Exception on request to {0} for {1}  ", Url, ItemID), e);
+
                 Status = (int)OSHttpStatusCode.ClientErrorJoker;
                 ResponseBody = e.Message;
                 _finished = true;
@@ -528,33 +531,27 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
 
             try
             {
-                response = (HttpWebResponse)Request.EndGetResponse(ar);
+                try
+                {
+                    response = (HttpWebResponse)Request.EndGetResponse(ar);
+                }
+                catch (WebException e)
+                {
+                    if (e.Status != WebExceptionStatus.ProtocolError)
+                    {
+                        throw;
+                    }
+
+                    response = (HttpWebResponse)e.Response;
+                }
+
                 Status = (int)response.StatusCode;
 
-                Stream resStream = response.GetResponseStream();
-                StringBuilder sb = new StringBuilder();
-                byte[] buf = new byte[8192];
-                string tempString = null;
-                int count = 0;
-
-                do
+                using (Stream stream = response.GetResponseStream())
                 {
-                    // fill the buffer with data
-                    count = resStream.Read(buf, 0, buf.Length);
-
-                    // make sure we read some data
-                    if (count != 0)
-                    {
-                        // translate from bytes to ASCII text
-                        tempString = Util.UTF8.GetString(buf, 0, count);
-
-                        // continue building the string
-                        sb.Append(tempString);
-                    }
+                    StreamReader reader = new StreamReader(stream, Encoding.UTF8);
+                    ResponseBody = reader.ReadToEnd();
                 } 
-                while (count > 0); // any more data to read?
-
-                ResponseBody = sb.ToString();         
             }
             catch (Exception e)
             {
