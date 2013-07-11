@@ -173,7 +173,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
             if(obj.PresenceType == PresenceType.Npc)
                 return;
 
-            GetImageAssets(((IScenePresence)obj).UUID);
+            Util.FireAndForget(delegate
+            {
+                GetImageAssets(((IScenePresence)obj).UUID);
+            });
         }
 
         /// <summary>
@@ -1044,12 +1047,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
             {
                 OSDString assetId = (OSDString)asset;
 
-                Scene.AssetService.Get(string.Format("{0}/{1}",assetServerURI, assetId.AsString()), this, 
-                    delegate (string assetID, Object s, AssetBase a)
-                    {
-                        // m_log.DebugFormat("[PROFILES]: Getting Image Assets {0}", assetID); 
-                        return;
-                    });
+                Scene.AssetService.Get(string.Format("{0}/{1}",assetServerURI, assetId.AsString()));
             }
             return true;
         }
