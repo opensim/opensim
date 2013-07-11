@@ -191,9 +191,6 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest.Tests
             hr.Url = "test://something";
             hr.SendRequest();
 
-            while (!hr.Finished)
-                Thread.Sleep(100);
-
             Assert.That(hr.Status, Is.EqualTo((int)HttpStatusCode.NotFound));
             Assert.That(hr.ResponseBody, Is.EqualTo(rawResponse));
         }
