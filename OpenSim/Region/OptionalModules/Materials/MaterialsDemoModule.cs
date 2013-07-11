@@ -139,21 +139,18 @@ namespace OpenSim.Region.OptionalModules.MaterialsDemoModule
         {
             string capsBase = "/CAPS/" + caps.CapsObjectPath;
 
-            IRequestHandler renderMaterialsPostHandler 
-                = new RestStreamHandler("POST", capsBase + "/", RenderMaterialsPostCap, "RenderMaterialsPost", null);
-            caps.RegisterHandler("RenderMaterialsPost", renderMaterialsPostHandler);
+            IRequestHandler renderMaterialsPostHandler = new RestStreamHandler("POST", capsBase + "/", RenderMaterialsPostCap);
+            caps.RegisterHandler("RenderMaterials", renderMaterialsPostHandler);
 
             // OpenSimulator CAPs infrastructure seems to be somewhat hostile towards any CAP that requires both GET
             // and POST handlers, (at least at the time this was originally written), so we first set up a POST
             // handler normally and then add a GET handler via MainServer
 
-            IRequestHandler renderMaterialsGetHandler 
-                = new RestStreamHandler("GET", capsBase + "/", RenderMaterialsGetCap, "RenderMaterialsGet", null);
+            IRequestHandler renderMaterialsGetHandler = new RestStreamHandler("GET", capsBase + "/", RenderMaterialsGetCap);
             MainServer.Instance.AddStreamHandler(renderMaterialsGetHandler);
 
             // materials viewer seems to use either POST or PUT, so assign POST handler for PUT as well
-            IRequestHandler renderMaterialsPutHandler
-                = new RestStreamHandler("PUT", capsBase + "/", RenderMaterialsPostCap, "RenderMaterialsPut", null);
+            IRequestHandler renderMaterialsPutHandler = new RestStreamHandler("PUT", capsBase + "/", RenderMaterialsPostCap);
             MainServer.Instance.AddStreamHandler(renderMaterialsPutHandler);
         }
         
