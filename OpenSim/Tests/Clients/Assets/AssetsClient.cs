@@ -82,7 +82,16 @@ namespace OpenSim.Tests.Clients.AssetsClient
                 m_log.InfoFormat("[ASSET CLIENT]: [{0}] requested asset {1}", i, uuid);
             }
 
-            Thread.Sleep(20 * 1000);
+            for (int i = 0; i < 500; i++)
+            {
+                var x = i;
+                ThreadPool.QueueUserWorkItem(delegate
+                {
+                    Dummy(x);
+                });
+            }
+
+            Thread.Sleep(30 * 1000);
             m_log.InfoFormat("[ASSET CLIENT]: Received responses {0}", m_NReceived);
         }
 
@@ -92,8 +101,16 @@ namespace OpenSim.Tests.Clients.AssetsClient
                 m_MaxThreadID = Thread.CurrentThread.ManagedThreadId;
             int max1, max2;
             ThreadPool.GetAvailableThreads(out max1, out max2);
-            m_log.InfoFormat("[ASSET CLIENT]: Received asset {0} ({1}) ({2}-{3})", id, m_MaxThreadID, max1, max2);
+            m_log.InfoFormat("[ASSET CLIENT]: Received asset {0} ({1}) ({2}-{3}) {4}", id, m_MaxThreadID, max1, max2, DateTime.Now.ToString("hh:mm:ss"));
             m_NReceived++;
+        }
+
+        private static void Dummy(int i)
+        {
+            int max1, max2;
+            ThreadPool.GetAvailableThreads(out max1, out max2);
+            m_log.InfoFormat("[ASSET CLIENT]: ({0}) Hello! {1} - {2} {3}", i, max1, max2, DateTime.Now.ToString("hh:mm:ss"));
+            Thread.Sleep(2000);
         }
     }
 }

@@ -224,5 +224,26 @@ public class CounterStat : Stat
             }
         }
     }
+
+    // CounterStat is a basic stat plus histograms
+    public override OSDMap ToOSDMap()
+    {
+        // Get the foundational instance
+        OSDMap map = base.ToOSDMap();
+
+        map["StatType"] = "CounterStat";
+
+        // If there are any histograms, add a new field that is an array of histograms as OSDMaps
+        if (m_histograms.Count > 0)
+        {
+            OSDArray histos = new OSDArray();
+            foreach (EventHistogram histo in m_histograms.Values)
+            {
+                histos.Add(histo.GetHistogramAsOSDMap());
+            }
+            map.Add("Histograms", histos);
+        }
+        return map;
+    }
 }
 }

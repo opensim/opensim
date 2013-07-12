@@ -4703,10 +4703,14 @@ namespace OpenSim.Region.Framework.Scenes
 //            m_log.DebugFormat("[SCENE OBJECT PART]: Updated PrimFlags on {0} {1} to {2}", Name, LocalId, Flags);
         }
 
-        // Subscribe for physics collision events if needed for scripts and sounds
+        /// <summary>
+        /// Subscribe for physics collision events if needed for scripts and sounds
+        /// </summary>
         public void SubscribeForCollisionEvents()
         {
-            if (PhysActor != null)
+            PhysicsActor pa = PhysActor;
+
+            if (pa != null)
             {
                 if (
                     ((AggregateScriptEvents & scriptEvents.collision) != 0) ||
@@ -4724,20 +4728,20 @@ namespace OpenSim.Region.Framework.Scenes
                     (CollisionSound != UUID.Zero)
                     )
                 {
-                    if (!PhysActor.SubscribedEvents())
+                    if (!pa.SubscribedEvents())
                     {
                         // If not already subscribed for event, set up for a collision event.
-                        PhysActor.OnCollisionUpdate += PhysicsCollision;
-                        PhysActor.SubscribeEvents(1000);
+                        pa.OnCollisionUpdate += PhysicsCollision;
+                        pa.SubscribeEvents(1000);
                     }
                 }
                 else
                 {
                     // There is no need to be subscribed to collisions so, if subscribed, remove subscription
-                    if (PhysActor.SubscribedEvents())
+                    if (pa.SubscribedEvents())
                     {
-                        PhysActor.OnCollisionUpdate -= PhysicsCollision;
-                        PhysActor.UnSubscribeEvents();
+                        pa.OnCollisionUpdate -= PhysicsCollision;
+                        pa.UnSubscribeEvents();
                     }
                 }
             }
