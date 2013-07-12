@@ -390,8 +390,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         private SOPVehicle m_vehicleParams = null;
 
-        private KeyframeMotion m_keyframeMotion = null;
-
         public KeyframeMotion KeyframeMotion
         {
             get; set;
@@ -543,7 +541,11 @@ namespace OpenSim.Region.Framework.Scenes
                         CreatorID = uuid;
                     }
                     if (parts.Length >= 2)
+                    {
                         CreatorData = parts[1];
+                        if (!CreatorData.EndsWith("/"))
+                            CreatorData += "/";
+                    }
                     if (parts.Length >= 3)
                         name = parts[2];
 
@@ -4642,6 +4644,11 @@ namespace OpenSim.Region.Framework.Scenes
                             }
                         }
 */
+                        if (pa != null)
+                        {
+                            pa.SetMaterial(Material);
+                            DoPhysicsPropertyUpdate(UsePhysics, true);
+                        }
                     }
                     else // it already has a physical representation
                     {
@@ -4694,6 +4701,46 @@ namespace OpenSim.Region.Framework.Scenes
             }
             
 //            m_log.DebugFormat("[SCENE OBJECT PART]: Updated PrimFlags on {0} {1} to {2}", Name, LocalId, Flags);
+        }
+
+        // Subscribe for physics collision events if needed for scripts and sounds
+        public void SubscribeForCollisionEvents()
+        {
+            if (PhysActor != null)
+            {
+                if (
+                    ((AggregateScriptEvents & scriptEvents.collision) != 0) ||
+                    ((AggregateScriptEvents & scriptEvents.collision_end) != 0) ||
+                    ((AggregateScriptEvents & scriptEvents.collision_start) != 0) ||
+                    ((AggregateScriptEvents & scriptEvents.land_collision_start) != 0) ||
+                    ((AggregateScriptEvents & scriptEvents.land_collision) != 0) ||
+                    ((AggregateScriptEvents & scriptEvents.land_collision_end) != 0) ||
+                    ((ParentGroup.RootPart.AggregateScriptEvents & scriptEvents.collision) != 0) ||
+                    ((ParentGroup.RootPart.AggregateScriptEvents & scriptEvents.collision_end) != 0) ||
+                    ((ParentGroup.RootPart.AggregateScriptEvents & scriptEvents.collision_start) != 0) ||
+                    ((ParentGroup.RootPart.AggregateScriptEvents & scriptEvents.land_collision_start) != 0) ||
+                    ((ParentGroup.RootPart.AggregateScriptEvents & scriptEvents.land_collision) != 0) ||
+                    ((ParentGroup.RootPart.AggregateScriptEvents & scriptEvents.land_collision_end) != 0) ||
+                    (CollisionSound != UUID.Zero)
+                    )
+                {
+                    if (!PhysActor.SubscribedEvents())
+                    {
+                        // If not already subscribed for event, set up for a collision event.
+                        PhysActor.OnCollisionUpdate += PhysicsCollision;
+                        PhysActor.SubscribeEvents(1000);
+                    }
+                }
+                else
+                {
+                    // There is no need to be subscribed to collisions so, if subscribed, remove subscription
+                    if (PhysActor.SubscribedEvents())
+                    {
+                        PhysActor.OnCollisionUpdate -= PhysicsCollision;
+                        PhysActor.UnSubscribeEvents();
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -5154,31 +5201,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 objectflagupdate |= (uint) PrimFlags.AllowInventoryDrop;
             }
-/*
-            PhysicsActor pa = PhysActor;
-            if (pa != null)
-            {
-                if (
-//                    ((AggregateScriptEvents & scriptEvents.collision) != 0) ||
-//                    ((AggregateScriptEvents & scriptEvents.collision_end) != 0) ||
-//                    ((AggregateScriptEvents & scriptEvents.collision_start) != 0) ||
-//                    ((AggregateScriptEvents & scriptEvents.land_collision_start) != 0) ||
-//                    ((AggregateScriptEvents & scriptEvents.land_collision) != 0) ||
-//                    ((AggregateScriptEvents & scriptEvents.land_collision_end) != 0) ||
-                    ((AggregateScriptEvents & PhysicsNeededSubsEvents) != 0) || ((ParentGroup.RootPart.AggregateScriptEvents & PhysicsNeededSubsEvents) != 0) || (CollisionSound != UUID.Zero)
-                    )
-                {
-                    // subscribe to physics updates.
-                    pa.OnCollisionUpdate += PhysicsCollision;
-                    pa.SubscribeEvents(1000);
-                }
-                else
-                {
-                    pa.UnSubscribeEvents();
-                    pa.OnCollisionUpdate -= PhysicsCollision;
-                }
-            }
- */
+
             UpdatePhysicsSubscribedEvents();
 
             //if ((GetEffectiveObjectFlags() & (uint)PrimFlags.Scripted) != 0)

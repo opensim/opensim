@@ -155,7 +155,12 @@ public static class BSParam
     public static Vector3 VehicleInertiaFactor { get; private set; }
     public static float VehicleGroundGravityFudge { get; private set; }
     public static float VehicleAngularBankingTimescaleFudge { get; private set; }
-    public static bool VehicleDebuggingEnable { get; private set; }
+    public static bool VehicleEnableLinearDeflection { get; private set; }
+    public static bool VehicleLinearDeflectionNotCollidingNoZ { get; private set; }
+    public static bool VehicleEnableAngularVerticalAttraction { get; private set; }
+    public static int VehicleAngularVerticalAttractionAlgorithm { get; private set; }
+    public static bool VehicleEnableAngularDeflection { get; private set; }
+    public static bool VehicleEnableAngularBanking { get; private set; }
 
     // Convex Hulls
     public static int CSHullMaxDepthSplit { get; private set; }
@@ -176,6 +181,7 @@ public static class BSParam
 
     // Linkset implementation parameters
     public static float LinksetImplementation { get; private set; }
+    public static bool LinksetOffsetCenterOfMass { get; private set; }
     public static bool LinkConstraintUseFrameOffset { get; private set; }
     public static bool LinkConstraintEnableTransMotor { get; private set; }
     public static float LinkConstraintTransMotorMaxVel { get; private set; }
@@ -605,8 +611,18 @@ public static class BSParam
             0.2f ),
         new ParameterDefn<float>("VehicleAngularBankingTimescaleFudge", "Factor to multiple angular banking timescale. Tune to increase realism.",
             60.0f ),
-        new ParameterDefn<bool>("VehicleDebuggingEnable", "Turn on/off vehicle debugging",
-            false ),
+        new ParameterDefn<bool>("VehicleEnableLinearDeflection", "Turn on/off vehicle linear deflection effect",
+            true ),
+        new ParameterDefn<bool>("VehicleLinearDeflectionNotCollidingNoZ", "Turn on/off linear deflection Z effect on non-colliding vehicles",
+            true ),
+        new ParameterDefn<bool>("VehicleEnableAngularVerticalAttraction", "Turn on/off vehicle angular vertical attraction effect",
+            true ),
+        new ParameterDefn<int>("VehicleAngularVerticalAttractionAlgorithm", "Select vertical attraction algo. You need to look at the source.",
+            0 ),
+        new ParameterDefn<bool>("VehicleEnableAngularDeflection", "Turn on/off vehicle angular deflection effect",
+            true ),
+        new ParameterDefn<bool>("VehicleEnableAngularBanking", "Turn on/off vehicle angular banking effect",
+            true ),
 
 	    new ParameterDefn<float>("MaxPersistantManifoldPoolSize", "Number of manifolds pooled (0 means default of 4096)",
             0f,
@@ -684,6 +700,8 @@ public static class BSParam
 
 	    new ParameterDefn<float>("LinksetImplementation", "Type of linkset implementation (0=Constraint, 1=Compound, 2=Manual)",
             (float)BSLinkset.LinksetImplementation.Compound ),
+	    new ParameterDefn<bool>("LinksetOffsetCenterOfMass", "If 'true', compute linkset center-of-mass and offset linkset position to account for same",
+            false ),
 	    new ParameterDefn<bool>("LinkConstraintUseFrameOffset", "For linksets built with constraints, enable frame offsetFor linksets built with constraints, enable frame offset.",
             false ),
 	    new ParameterDefn<bool>("LinkConstraintEnableTransMotor", "Whether to enable translational motor on linkset constraints",

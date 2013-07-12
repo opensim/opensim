@@ -90,6 +90,8 @@ public abstract class BSPhysObject : PhysicsActor
         PhysBody = new BulletBody(localID);
         PhysShape = new BSShapeNull();
 
+        UserSetCenterOfMassDisplacement = null;
+
         PrimAssetState = PrimAssetCondition.Unknown;
 
         // Default material type. Also sets Friction, Restitution and Density.
@@ -180,6 +182,7 @@ public abstract class BSPhysObject : PhysicsActor
         Material = (MaterialAttributes.Material)material;
 
         // Setting the material sets the material attributes also.
+        // TODO: decide if this is necessary -- the simulator does this.
         MaterialAttributes matAttrib = BSMaterials.GetAttributes(Material, false);
         Friction = matAttrib.friction;
         Restitution = matAttrib.restitution;
@@ -194,10 +197,10 @@ public abstract class BSPhysObject : PhysicsActor
     // Update the physical location and motion of the object. Called with data from Bullet.
     public abstract void UpdateProperties(EntityProperties entprop);
 
-    public abstract OMV.Vector3 RawPosition { get; set; }
+    public virtual OMV.Vector3 RawPosition { get; set; }
     public abstract OMV.Vector3 ForcePosition { get; set; }
 
-    public abstract OMV.Quaternion RawOrientation { get; set; }
+    public virtual OMV.Quaternion RawOrientation { get; set; }
     public abstract OMV.Quaternion ForceOrientation { get; set; }
 
     public OMV.Vector3 RawVelocity { get; set; }

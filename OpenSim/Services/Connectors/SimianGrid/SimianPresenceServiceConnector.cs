@@ -65,7 +65,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
         public void PostInitialise() { }
         public void Close() { }
 
-        public SimianPresenceServiceConnector() { m_activityDetector = new SimianActivityDetector(this); }
+        public SimianPresenceServiceConnector() { }
         public string Name { get { return "SimianPresenceServiceConnector"; } }
         public void AddRegion(Scene scene)
         {
@@ -121,6 +121,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                     if (!serviceUrl.EndsWith("/") && !serviceUrl.EndsWith("="))
                         serviceUrl = serviceUrl + '/';
                     m_serverUrl = serviceUrl;
+                    m_activityDetector = new SimianActivityDetector(this); 
                     m_Enabled = true;
                 }
             }
@@ -314,11 +315,15 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
             UUID userID = new UUID(user);
             OSDMap userResponse = GetUserData(userID);
-            if (userResponse != null)
-                return ResponseToGridUserInfo(userResponse);
 
-            m_log.WarnFormat("[SIMIAN PRESENCE CONNECTOR]: Failed to retrieve user data for {0}: {1}",userID,userResponse["Message"].AsString());
-            return null;
+            if (userResponse == null)
+            {
+                m_log.WarnFormat("[SIMIAN PRESENCE CONNECTOR]: Failed to retrieve user data for {0}", userID);
+            }
+
+            // Note that ResponseToGridUserInfo properly checks for and returns a null if passed a null.
+            return ResponseToGridUserInfo(userResponse);
+
         }
 
         #endregion

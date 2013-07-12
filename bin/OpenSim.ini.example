@@ -264,7 +264,7 @@
     ; AllowedClients =
 
     ;# {BannedClients} {} {Bar (|) separated list of banned clients} {}
-    ;# Bar (|) separated list of viewers which may not gain access to the regions.
+    ;; Bar (|) separated list of viewers which may not gain access to the regions.
     ;; One can use a Substring of the viewer name to disable only certain
     ;; versions
     ;; Example: Agent uses the viewer "Imprudence 1.3.2.0"
@@ -283,7 +283,7 @@
     ;; both to set this to false and comment out the [Modules] MapImageServiceModule setting in config-include/
     ; GenerateMaptiles = true
 
-    ;# {MapImageModule} [] {The map image module to use} {MapImageModule Warp3DImageModule} MapImageModule
+    ;# {MapImageModule} {} {The map image module to use} {MapImageModule Warp3DImageModule} MapImageModule
     ;; The module to use in order to generate map images.
     ;; MapImageModule is the default.  Warp3DImageModule is an alternative experimental module that can 
     ;; generate better images.
@@ -470,7 +470,10 @@
     ;# {XmlRpcPort} {} {Port for incoming llRemoteData xmlrpc calls} {} 20800
     ;XmlRpcPort = 20800
 
-    ;# {XmlRpcHubURI} {XmlRpcRouterModule} {URI for external service used to register xmlrpc channels created in the simulator. This depends on XmlRpcRouterModule being set to XmlRpcGridRouterModule} http://example.com
+
+;;    {option} {depends on} {question to ask} {choices} default value
+
+    ;# {XmlRpcHubURI} {XmlRpcRouterModule} {URI for external service used to register xmlrpc channels created in the simulator. This depends on XmlRpcRouterModule being set to XmlRpcGridRouterModule} {} http://example.com
     ;; If XmlRpcRouterModule is set to XmlRpcGridRouterModule, the simulator
     ;; will use this address to register xmlrpc channels on the external
     ;; service 
@@ -534,7 +537,7 @@
     ;; Distance in meters that ordinary chat should travel.
     ; say_distance = 20
 
-    ;# {shout_distance} {Distance at which a shout is heard, in meters?} {} 100
+    ;# {shout_distance} {} {Distance at which a shout is heard, in meters?} {} 100
     ;; Distance in meters that shouts should travel.
     ; shout_distance = 100
 
@@ -609,7 +612,8 @@
     ;; the "password" parameter)
     ; access_password = ""
 
-    ;# List the IP addresses allowed to call RemoteAdmin
+    ;# {access_ip_addresses} {enabled:true} {List the IP addresses allowed to call RemoteAdmin?} {}
+    ;; List the IP addresses allowed to call RemoteAdmin
     ;; If access_ip_addresses isn't set, then all IP addresses can access RemoteAdmin.
     ;; access_ip_addresses = 0.0.0.0, 0.0.0.0 ...
     ; access_ip_addresses =
@@ -794,7 +798,7 @@
     ; ScriptStopStrategy = abort
     
 
-    ;# {DeleteScriptsOnStartup} {} {Delete previously compiled script DLLs on startup?} (true false) true
+    ;# {DeleteScriptsOnStartup} {} {Delete previously compiled script DLLs on startup?} {true false} true
     ;; Controls whether previously compiled scripts DLLs are deleted on sim restart. If you set this to false
     ;; then startup will be considerably faster since scripts won't need to be recompiled. However, then it becomes your responsibility to delete the
     ;; compiled scripts if you're recompiling OpenSim from source code and internal interfaces used

@@ -112,7 +112,7 @@ namespace OpenSim.Server.Handlers.Simulation
             }
             else
             {
-                m_log.InfoFormat("[AGENT HANDLER]: method {0} not supported in agent message", method);
+                m_log.InfoFormat("[AGENT HANDLER]: method {0} not supported in agent message (caller is {1})", method, Util.GetCallerIP(request));
                 responsedata["int_response_code"] = HttpStatusCode.MethodNotAllowed;
                 responsedata["str_response_string"] = "Method not allowed";
 
@@ -274,7 +274,7 @@ namespace OpenSim.Server.Handlers.Simulation
             m_SimulationService = null;
         }
 
-        public override byte[] Handle(string path, Stream request,
+        protected override byte[] ProcessRequest(string path, Stream request,
                 IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
 //            m_log.DebugFormat("[SIMULATION]: Stream handler called");
@@ -488,7 +488,7 @@ namespace OpenSim.Server.Handlers.Simulation
             m_SimulationService = null;
         }
 
-        public override byte[] Handle(string path, Stream request,
+        protected override byte[] ProcessRequest(string path, Stream request,
                 IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
 //            m_log.DebugFormat("[SIMULATION]: Stream handler called");

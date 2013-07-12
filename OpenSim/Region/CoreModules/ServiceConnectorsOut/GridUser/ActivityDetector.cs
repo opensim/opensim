@@ -81,6 +81,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.GridUser
 
         public void OnConnectionClose(IClientAPI client)
         {
+            if (client == null)
+                return;
+            if (client.SceneAgent == null)
+                return;
+
             if (client.SceneAgent.IsChildAgent)
                 return;
 

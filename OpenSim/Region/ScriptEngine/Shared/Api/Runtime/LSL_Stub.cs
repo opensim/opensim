@@ -1495,11 +1495,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_LSL_Functions.llSetAlpha(alpha, face);
         }
 
-        public void llSetAngularVelocity(LSL_Vector angvelocity, int local)
-        {
-            m_LSL_Functions.llSetAngularVelocity(angvelocity, local);
-        }
-
         public void llSetBuoyancy(double buoyancy)
         {
             m_LSL_Functions.llSetBuoyancy(buoyancy);
@@ -1553,6 +1548,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public void llSetForceAndTorque(LSL_Vector force, LSL_Vector torque, int local)
         {
             m_LSL_Functions.llSetForceAndTorque(force, torque, local);
+        }
+
+        public void llSetVelocity(LSL_Vector force, int local)
+        {
+            m_LSL_Functions.llSetVelocity(force, local);
+        }
+
+        public void llSetAngularVelocity(LSL_Vector force, int local)
+        {
+            m_LSL_Functions.llSetAngularVelocity(force, local);
         }
 
         public void llSetHoverHeight(double height, int water, double tau)
@@ -1743,11 +1748,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public void llSetVehicleVectorParam(int param, LSL_Vector vec)
         {
             m_LSL_Functions.llSetVehicleVectorParam(param, vec);
-        }
-
-        public void llSetVelocity(LSL_Vector velocity, int local)
-        {
-            m_LSL_Functions.llSetVelocity(velocity, local);
         }
 
         public void llShout(int channelID, string text)

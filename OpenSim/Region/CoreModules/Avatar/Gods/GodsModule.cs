@@ -125,9 +125,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
         {
             string uri = "/CAPS/" + UUID.Random();
 
-            caps.RegisterHandler("UntrustedSimulatorMessage",
-                    new RestStreamHandler("POST", uri,
-                    HandleUntrustedSimulatorMessage));
+            caps.RegisterHandler(
+                "UntrustedSimulatorMessage", 
+                new RestStreamHandler("POST", uri, HandleUntrustedSimulatorMessage, "UntrustedSimulatorMessage", null));
         }
 
         private string HandleUntrustedSimulatorMessage(string request,

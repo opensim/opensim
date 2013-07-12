@@ -3258,7 +3258,6 @@ namespace OpenSim.Region.Framework.Scenes
         {
             //client.OnNameFromUUIDRequest += HandleUUIDNameRequest;
             client.OnMoneyTransferRequest += ProcessMoneyTransferRequest;
-            client.OnRegionHandleRequest += RegionHandleRequest;
         }
         
         public virtual void SubscribeToClientNetworkEvents(IClientAPI client)
@@ -3384,7 +3383,6 @@ namespace OpenSim.Region.Framework.Scenes
         {
             //client.OnNameFromUUIDRequest -= HandleUUIDNameRequest;
             client.OnMoneyTransferRequest -= ProcessMoneyTransferRequest;
-            client.OnRegionHandleRequest -= RegionHandleRequest;
         }
 
         public virtual void UnSubscribeToClientNetworkEvents(IClientAPI client)
@@ -3859,7 +3857,10 @@ namespace OpenSim.Region.Framework.Scenes
                         "[SCENE]: Existing root scene presence detected for {0} {1} in {2} when connecting.  Removing existing presence.",
                         sp.Name, sp.UUID, RegionInfo.RegionName);
 
-                    sp.ControllingClient.Close(true, true);
+    
+                    if (sp.ControllingClient != null)
+                        sp.ControllingClient.Close(true, true);
+
                     sp = null;
                 }
             }
@@ -5089,22 +5090,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         #endregion
 
-        public void RegionHandleRequest(IClientAPI client, UUID regionID)
-        {
-            m_log.DebugFormat("[SCENE]: RegionHandleRequest {0}", regionID);
-            ulong handle = 0;
-            if (regionID == RegionInfo.RegionID)
-                handle = RegionInfo.RegionHandle;
-            else
-            {
-                GridRegion r = GridService.GetRegionByUUID(UUID.Zero, regionID);
-                if (r != null)
-                    handle = r.RegionHandle;
-            }
-
-            if (handle != 0)
-                client.SendRegionHandle(regionID, handle);
-        }
 
 // Commented pending deletion since this method no longer appears to do anything at all
 //        public bool NeedSceneCacheClear(UUID agentID)

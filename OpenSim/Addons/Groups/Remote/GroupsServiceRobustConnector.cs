@@ -75,7 +75,7 @@ namespace OpenSim.Groups
             m_GroupsService = service;
         }
 
-        public override byte[] Handle(string path, Stream requestData,
+        protected override byte[] ProcessRequest(string path, Stream requestData,
                 IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             StreamReader sr = new StreamReader(requestData);
@@ -269,7 +269,6 @@ namespace OpenSim.Groups
                 UUID groupID = new UUID(request["GroupID"].ToString());
                 string agentID = request["AgentID"].ToString();
                 string requestingAgentID = request["RequestingAgentID"].ToString();
-                string reason = string.Empty;
 
                 m_GroupsService.RemoveAgentFromGroup(requestingAgentID, agentID, groupID);
             }
@@ -500,7 +499,6 @@ namespace OpenSim.Groups
             else
             {
                 string op = request["OP"].ToString();
-                string reason = string.Empty;
 
                 bool success = false;
                 if (op == "ADD")
@@ -568,7 +566,6 @@ namespace OpenSim.Groups
             else
             {
                 string op = request["OP"].ToString();
-                string reason = string.Empty;
 
                 if (op == "GROUP")
                 {
@@ -631,7 +628,6 @@ namespace OpenSim.Groups
             else
             {
                 string op = request["OP"].ToString();
-                string reason = string.Empty;
 
                 if (op == "ADD" && request.ContainsKey("GroupID") && request.ContainsKey("RoleID") && request.ContainsKey("AgentID"))
                 {   

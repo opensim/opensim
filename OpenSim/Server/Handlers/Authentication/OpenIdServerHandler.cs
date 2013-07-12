@@ -147,7 +147,7 @@ namespace OpenSim.Server.Handlers.Authentication
         #endregion
     }
 
-    public class OpenIdStreamHandler : IStreamHandler
+    public class OpenIdStreamHandler : BaseOutputStreamHandler
     {
         #region HTML
 
@@ -191,42 +191,34 @@ For more information, see <a href='http://openid.net/'>http://openid.net/</a>.
 
         #endregion HTML
 
-        public string Name { get { return "OpenId"; } }
-        public string Description { get { return null; } }
-        public string ContentType { get { return m_contentType; } }
-        public string HttpMethod { get { return m_httpMethod; } }
-        public string Path { get { return m_path; } }
-
-        string m_contentType;
-        string m_httpMethod;
-        string m_path;
         IAuthenticationService m_authenticationService;
         IUserAccountService m_userAccountService;
         ProviderMemoryStore m_openidStore = new ProviderMemoryStore();
 
+        public override string ContentType { get { return "text/html"; } }
+
         /// <summary>
         /// Constructor
         /// </summary>
-        public OpenIdStreamHandler(string httpMethod, string path, IUserAccountService userService, IAuthenticationService authService)
+        public OpenIdStreamHandler(
+            string httpMethod, string path, IUserAccountService userService, IAuthenticationService authService)
+            : base(httpMethod, path, "OpenId", "OpenID stream handler")
         {
             m_authenticationService = authService;
             m_userAccountService = userService;
-            m_httpMethod = httpMethod;
-            m_path = path;
-
-            m_contentType = "text/html";
         }
 
         /// <summary>
         /// Handles all GET and POST requests for OpenID identifier pages and endpoint
         /// server communication
         /// </summary>
-        public void Handle(string path, Stream request, Stream response, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+        protected override void ProcessRequest(
+            string path, Stream request, Stream response, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             Uri providerEndpoint = new Uri(String.Format("{0}://{1}{2}", httpRequest.Url.Scheme, httpRequest.Url.Authority, httpRequest.Url.AbsolutePath));
 
             // Defult to returning HTML content
-            m_contentType = "text/html";
+            httpResponse.ContentType = ContentType;
 
             try
             {
@@ -276,7 +268,7 @@ For more information, see <a href='http://openid.net/'>http://openid.net/</a>.
 
                     string[] contentTypeValues = provider.Request.Response.Headers.GetValues("Content-Type");
                     if (contentTypeValues != null && contentTypeValues.Length == 1)
-                        m_contentType = contentTypeValues[0];
+                        httpResponse.ContentType = contentTypeValues[0];
 
                     // Set the response code and document body based on the OpenID result
                     httpResponse.StatusCode = (int)provider.Request.Response.Code;

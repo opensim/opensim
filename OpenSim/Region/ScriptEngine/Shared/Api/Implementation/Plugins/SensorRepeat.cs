@@ -355,6 +355,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                 ScenePresence avatar = m_CmdManager.m_ScriptEngine.World.GetScenePresence(SensePoint.ParentGroup.AttachedAvatar);
                 fromRegionPos = avatar.AbsolutePosition;
                 q = avatar.Rotation;
+
+                // Don't proceed if the avatar for this attachment has since been removed from the scene.
+                if (avatar == null)
+                    return sensedEntities;
             }
 
             LSL_Types.Quaternion r = new LSL_Types.Quaternion(q);

@@ -160,6 +160,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private int m_maxRTO = 60000;
         public bool m_deliverPackets = true;
 
+        private ClientInfo m_info = new ClientInfo();
+
         /// <summary>
         /// Default constructor
         /// </summary>
@@ -241,20 +243,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // TODO: This data structure is wrong in so many ways. Locking and copying the entire lists
             // of pending and needed ACKs for every client every time some method wants information about
             // this connection is a recipe for poor performance
-            ClientInfo info = new ClientInfo();
-            info.pendingAcks = new Dictionary<uint, uint>();
-            info.needAck = new Dictionary<uint, byte[]>();
 
-            info.resendThrottle = (int)m_throttleCategories[(int)ThrottleOutPacketType.Resend].DripRate;
-            info.landThrottle = (int)m_throttleCategories[(int)ThrottleOutPacketType.Land].DripRate;
-            info.windThrottle = (int)m_throttleCategories[(int)ThrottleOutPacketType.Wind].DripRate;
-            info.cloudThrottle = (int)m_throttleCategories[(int)ThrottleOutPacketType.Cloud].DripRate;
-            info.taskThrottle = (int)m_throttleCategories[(int)ThrottleOutPacketType.Task].DripRate;
-            info.assetThrottle = (int)m_throttleCategories[(int)ThrottleOutPacketType.Asset].DripRate;
-            info.textureThrottle = (int)m_throttleCategories[(int)ThrottleOutPacketType.Texture].DripRate;
-            info.totalThrottle = (int)m_throttleCategory.DripRate;
+            m_info.resendThrottle = (int)m_throttleCategories[(int)ThrottleOutPacketType.Resend].DripRate;
+            m_info.landThrottle = (int)m_throttleCategories[(int)ThrottleOutPacketType.Land].DripRate;
+            m_info.windThrottle = (int)m_throttleCategories[(int)ThrottleOutPacketType.Wind].DripRate;
+            m_info.cloudThrottle = (int)m_throttleCategories[(int)ThrottleOutPacketType.Cloud].DripRate;
+            m_info.taskThrottle = (int)m_throttleCategories[(int)ThrottleOutPacketType.Task].DripRate;
+            m_info.assetThrottle = (int)m_throttleCategories[(int)ThrottleOutPacketType.Asset].DripRate;
+            m_info.textureThrottle = (int)m_throttleCategories[(int)ThrottleOutPacketType.Texture].DripRate;
+            m_info.totalThrottle = (int)m_throttleCategory.DripRate;
 
-            return info;
+            return m_info;
         }
 
         /// <summary>

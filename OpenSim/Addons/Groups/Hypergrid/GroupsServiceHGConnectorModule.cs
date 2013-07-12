@@ -543,7 +543,6 @@ namespace OpenSim.Groups
                     List<string> urls = new List<string>();
                     foreach (GroupMembersData m in members)
                     {
-                        UUID userID = UUID.Zero;
                         if (!m_UserManagement.IsLocalGridUser(m.AgentID))
                         {
                             string gURL = m_UserManagement.GetUserServerURL(m.AgentID, "GroupsServerURI");

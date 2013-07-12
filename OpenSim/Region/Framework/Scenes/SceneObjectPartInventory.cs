@@ -696,7 +696,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// </param>
         public void StopScriptInstance(TaskInventoryItem item)
         {
-            m_part.ParentGroup.Scene.EventManager.TriggerStopScript(m_part.LocalId, item.ItemID);
+            if (m_part.ParentGroup.Scene != null)
+                m_part.ParentGroup.Scene.EventManager.TriggerStopScript(m_part.LocalId, item.ItemID);
 
             // At the moment, even stopped scripts are counted as active, which is probably wrong.
 //            m_part.ParentGroup.AddActiveScriptCount(-1);

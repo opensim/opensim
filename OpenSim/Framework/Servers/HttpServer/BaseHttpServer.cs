@@ -689,7 +689,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
                 if (buffer != null)
                 {
-                    if (!response.SendChunked)
+                    if (!response.SendChunked && response.ContentLength64 <= 0)
                         response.ContentLength64 = buffer.LongLength;
 
                     response.OutputStream.Write(buffer, 0, buffer.Length);
