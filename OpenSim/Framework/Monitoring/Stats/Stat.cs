@@ -242,6 +242,7 @@ namespace OpenSim.Framework.Monitoring
             ret.Add("Description", OSD.FromString(Description));
             ret.Add("UnitName", OSD.FromString(UnitName));
             ret.Add("Value", OSD.FromReal(Value));
+            ret.Add("StatType", "Stat");    // used by overloading classes to denote type of stat
 
             return ret;
         }

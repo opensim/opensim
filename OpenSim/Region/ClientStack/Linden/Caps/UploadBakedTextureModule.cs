@@ -63,9 +63,16 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private Scene m_scene;
         private bool m_persistBakedTextures;
+        private string m_URL;
 
         public void Initialise(IConfigSource source)
         {
+            IConfig config = source.Configs["ClientStack.LindenCaps"];
+            if (config == null)
+                return;
+
+            m_URL = config.GetString("Cap_UploadBakedTexture", string.Empty);
+
             IConfig appearanceConfig = source.Configs["Appearance"];
             if (appearanceConfig != null)
                 m_persistBakedTextures = appearanceConfig.GetBoolean("PersistBakedTextures", m_persistBakedTextures);
@@ -100,15 +107,27 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public void RegisterCaps(UUID agentID, Caps caps)
         {
-            caps.RegisterHandler(
-                "UploadBakedTexture",
-                new RestStreamHandler(
-                    "POST",
-                    "/CAPS/" + caps.CapsObjectPath + m_uploadBakedTexturePath,
-                    new UploadBakedTextureHandler(
-                        caps, m_scene.AssetService, m_persistBakedTextures).UploadBakedTexture,
+            UUID capID = UUID.Random();
+
+            //caps.RegisterHandler("GetTexture", new StreamHandler("GET", "/CAPS/" + capID, ProcessGetTexture));
+            if (m_URL == "localhost")
+            {
+                caps.RegisterHandler(
                     "UploadBakedTexture",
-                    agentID.ToString()));
+                    new RestStreamHandler(
+                        "POST",
+                        "/CAPS/" + caps.CapsObjectPath + m_uploadBakedTexturePath,
+                        new UploadBakedTextureHandler(
+                            caps, m_scene.AssetService, m_persistBakedTextures).UploadBakedTexture,
+                        "UploadBakedTexture",
+                        agentID.ToString()));
+                
+            }
+            else
+            {
+                caps.RegisterHandler("UploadBakedTexture", m_URL);
+            }
+
         }
     }
 }

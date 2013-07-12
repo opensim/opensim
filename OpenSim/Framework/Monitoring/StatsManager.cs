@@ -30,6 +30,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
+using OpenMetaverse.StructuredData;
+
 namespace OpenSim.Framework.Monitoring
 {
     /// <summary>
@@ -166,6 +168,70 @@ namespace OpenSim.Framework.Monitoring
             {
                 con.Output(stat.ToConsoleString());
             }
+        }
+
+        // Creates an OSDMap of the format:
+        // { categoryName: {
+        //         containerName: {
+        //               statName: {
+        //                     "Name": name,
+        //                     "ShortName": shortName,
+        //                     ...
+        //               },
+        //               statName: {
+        //                     "Name": name,
+        //                     "ShortName": shortName,
+        //                     ...
+        //               },
+        //               ...
+        //         },
+        //         containerName: {
+        //         ...
+        //         },
+        //         ...
+        //   },
+        //   categoryName: {
+        //   ...
+        //   },
+        //   ...
+        // }
+        // The passed in parameters will filter the categories, containers and stats returned. If any of the
+        //    parameters are either EmptyOrNull or the AllSubCommand value, all of that type will be returned.
+        // Case matters.
+        public static OSDMap GetStatsAsOSDMap(string pCategoryName, string pContainerName, string pStatName)
+        {
+            OSDMap map = new OSDMap();
+
+            foreach (string catName in RegisteredStats.Keys)
+            {
+                // Do this category if null spec, "all" subcommand or category name matches passed parameter.
+                // Skip category if none of the above.
+                if (!(String.IsNullOrEmpty(pCategoryName) || pCategoryName == AllSubCommand || pCategoryName == catName))
+                    continue;
+
+                OSDMap contMap = new OSDMap();
+                foreach (string contName in RegisteredStats[catName].Keys)
+                {
+                    if (!(string.IsNullOrEmpty(pContainerName) || pContainerName == AllSubCommand || pContainerName == contName))
+                        continue;
+                    
+                    OSDMap statMap = new OSDMap();
+
+                    SortedDictionary<string, Stat> theStats = RegisteredStats[catName][contName];
+                    foreach (string statName in theStats.Keys)
+                    {
+                        if (!(String.IsNullOrEmpty(pStatName) || pStatName == AllSubCommand || pStatName == statName))
+                            continue;
+
+                        statMap.Add(statName, theStats[statName].ToOSDMap());
+                    }
+
+                    contMap.Add(contName, statMap);
+                }
+                map.Add(catName, contMap);
+            }
+
+            return map;
         }
 
 //        /// <summary>
