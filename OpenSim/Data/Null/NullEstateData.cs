@@ -42,6 +42,22 @@ namespace OpenSim.Data.Null
 
 //        private string m_connectionString;
 
+        private Dictionary<uint, EstateSettings> m_knownEstates = new Dictionary<uint, EstateSettings>();
+        private EstateSettings m_estate = null;
+
+        private EstateSettings GetEstate()
+        {
+            if (m_estate == null)
+            {
+                // This fools the initialization caller into thinking an estate was fetched (a check in OpenSimBase).
+                // The estate info is pretty empty so don't try banning anyone.
+                m_estate = new EstateSettings();
+                m_estate.EstateID = 1;
+                m_estate.OnSave += StoreEstateSettings;
+            }
+            return m_estate;
+        }
+
         protected virtual Assembly Assembly
         {
             get { return GetType().Assembly; }
@@ -68,21 +84,18 @@ namespace OpenSim.Data.Null
 
         public EstateSettings LoadEstateSettings(UUID regionID, bool create)
         {
-            // This fools the initialization caller into thinking an estate was fetched (a check in OpenSimBase).
-            // The estate info is pretty empty so don't try banning anyone.
-            EstateSettings oneEstate = new EstateSettings();
-            oneEstate.EstateID = 1;
-            return oneEstate;
+            return GetEstate();
         }
 
         public void StoreEstateSettings(EstateSettings es)
         {
+            m_estate = es;
             return;
         }
 
         public EstateSettings LoadEstateSettings(int estateID)
         {
-            return new EstateSettings();
+            return GetEstate();
         }
 
         public EstateSettings CreateNewEstate()
@@ -93,13 +106,14 @@ namespace OpenSim.Data.Null
         public List<EstateSettings> LoadEstateSettingsAll()
         {
             List<EstateSettings> allEstateSettings = new List<EstateSettings>();
-            allEstateSettings.Add(new EstateSettings());
+            allEstateSettings.Add(GetEstate());
             return allEstateSettings;
         }
         
         public List<int> GetEstatesAll()
         {
             List<int> result = new List<int>();
+            result.Add((int)GetEstate().EstateID);
             return result;            
         }
 
