@@ -958,14 +958,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // Viewers which have a current outfit folder will actually rez their own attachments.  However,
                 // viewers without (e.g. v1 viewers) will not, so we still need to make this call.
                 if (Scene.AttachmentsModule != null)
-                    Util.FireAndForget(
-                        o => 
-                        { 
-//                            if (PresenceType != PresenceType.Npc && Util.FireAndForgetMethod != FireAndForgetMethod.None) 
-//                                System.Threading.Thread.Sleep(7000); 
-
-                            Scene.AttachmentsModule.RezAttachments(this); 
-                        });
+                    Scene.AttachmentsModule.RezAttachments(this); 
             }
             else
             {
@@ -1362,18 +1355,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             ValidateAndSendAppearanceAndAgentData();
 
-            // Create child agents in neighbouring regions
-            if (openChildAgents && !IsChildAgent)
-            {
-                IEntityTransferModule m_agentTransfer = m_scene.RequestModuleInterface<IEntityTransferModule>();
-                if (m_agentTransfer != null)
-                    Util.FireAndForget(delegate { m_agentTransfer.EnableChildAgents(this); });
-
-                IFriendsModule friendsModule = m_scene.RequestModuleInterface<IFriendsModule>();
-                if (friendsModule != null)
-                    friendsModule.SendFriendsOnlineIfNeeded(ControllingClient);
-            }
-
             // XXX: If we force an update here, then multiple attachments do appear correctly on a destination region
             // If we do it a little bit earlier (e.g. when converting the child to a root agent) then this does not work.
             // This may be due to viewer code or it may be something we're not doing properly simulator side.
@@ -1381,6 +1362,19 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 foreach (SceneObjectGroup sog in m_attachments)
                     sog.ScheduleGroupForFullUpdate();
+            }
+
+            // Create child agents in neighbouring regions
+            if (openChildAgents && !IsChildAgent)
+            {
+                IFriendsModule friendsModule = m_scene.RequestModuleInterface<IFriendsModule>();
+                if (friendsModule != null)
+                    friendsModule.SendFriendsOnlineIfNeeded(ControllingClient);
+
+                IEntityTransferModule m_agentTransfer = m_scene.RequestModuleInterface<IEntityTransferModule>();
+                if (m_agentTransfer != null)
+                    m_agentTransfer.EnableChildAgents(this); // this can take a while... several seconds
+
             }
 
 //            m_log.DebugFormat(
@@ -2689,22 +2683,20 @@ namespace OpenSim.Region.Framework.Scenes
         public void SendInitialDataToMe()
         {
             // Send all scene object to the new client
-            Util.FireAndForget(delegate
+
+            // we created a new ScenePresence (a new child agent) in a fresh region.
+            // Request info about all the (root) agents in this region
+            // Note: This won't send data *to* other clients in that region (children don't send)
+            SendOtherAgentsAvatarDataToMe();
+            SendOtherAgentsAppearanceToMe();
+
+            EntityBase[] entities = Scene.Entities.GetEntities();
+            foreach (EntityBase e in entities)
             {
-                // we created a new ScenePresence (a new child agent) in a fresh region.
-                // Request info about all the (root) agents in this region
-                // Note: This won't send data *to* other clients in that region (children don't send)
-                SendOtherAgentsAvatarDataToMe();
-                SendOtherAgentsAppearanceToMe();
+                if (e != null && e is SceneObjectGroup)
+                    ((SceneObjectGroup)e).SendFullUpdateToClient(ControllingClient);
+            }
 
-                EntityBase[] entities = Scene.Entities.GetEntities();
-                foreach (EntityBase e in entities)
-                {
-                    if (e != null && e is SceneObjectGroup)
-                        ((SceneObjectGroup)e).SendFullUpdateToClient(ControllingClient);
-                }
-
-            });
         }
 
         /// <summary>

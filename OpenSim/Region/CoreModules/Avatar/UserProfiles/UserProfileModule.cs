@@ -173,10 +173,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.UserProfiles
             if(obj.PresenceType == PresenceType.Npc)
                 return;
 
-            Util.FireAndForget(delegate
-            {
-                GetImageAssets(((IScenePresence)obj).UUID);
-            });
+            GetImageAssets(((IScenePresence)obj).UUID);
         }
 
         /// <summary>
