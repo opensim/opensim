@@ -1469,7 +1469,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         AgentCircuitData aCircuit = m_scene.AuthenticateHandler.GetAgentCircuitData(uccp.CircuitCode.Code);
                         bool tp = (aCircuit.teleportFlags > 0);
-                        // Let's delay this for TP agents, otherwise the viewer doesn't know where to get meshes from
+                        // Let's delay this for TP agents, otherwise the viewer doesn't know where to get resources from
                         if (!tp)
                             client.SceneAgent.SendInitialDataToMe();
                     }
