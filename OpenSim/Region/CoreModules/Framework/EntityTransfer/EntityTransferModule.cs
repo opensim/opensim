@@ -817,7 +817,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     "[ENTITY TRANSFER MODULE]: UpdateAgent failed on teleport of {0} to {1} from {2}.  Keeping avatar in source region.",
                     sp.Name, finalDestination.RegionName, sp.Scene.RegionInfo.RegionName);
                 
-                Fail(sp, finalDestination, logout, Util.Md5Hash(currentAgentCircuit.Id0), "Connection between viewer and destination region could not be established.");
+                Fail(sp, finalDestination, logout, currentAgentCircuit.SessionID.ToString(), "Connection between viewer and destination region could not be established.");
                 return;
             }
 
@@ -829,7 +829,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     "[ENTITY TRANSFER MODULE]: Cancelled teleport of {0} to {1} from {2} after UpdateAgent on client request", 
                     sp.Name, finalDestination.RegionName, sp.Scene.Name);
 
-                CleanupFailedInterRegionTeleport(sp, Util.Md5Hash(currentAgentCircuit.Id0), finalDestination);
+                CleanupFailedInterRegionTeleport(sp, currentAgentCircuit.SessionID.ToString(), finalDestination);
 
                 return;
             }
@@ -873,7 +873,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     "[ENTITY TRANSFER MODULE]: Teleport of {0} to {1} from {2} failed due to no callback from destination region.  Returning avatar to source region.",
                     sp.Name, finalDestination.RegionName, sp.Scene.RegionInfo.RegionName);
                 
-                Fail(sp, finalDestination, logout, Util.Md5Hash(currentAgentCircuit.Id0), "Destination region did not signal teleport completion.");
+                Fail(sp, finalDestination, logout, currentAgentCircuit.SessionID.ToString(), "Destination region did not signal teleport completion.");
 
                 return;
             }

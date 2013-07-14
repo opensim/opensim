@@ -3452,7 +3452,7 @@ namespace OpenSim.Region.Framework.Scenes
                         regions.Remove(RegionInfo.RegionHandle);
 
                         // This ends up being done asynchronously so that a logout isn't held up where there are many present but unresponsive neighbours.
-                        m_sceneGridService.SendCloseChildAgentConnections(agentID, acd.Id0 != null ? Util.Md5Hash(acd.Id0) : string.Empty, regions);
+                        m_sceneGridService.SendCloseChildAgentConnections(agentID, acd.SessionID.ToString(), regions);
                     }
     
                     m_eventManager.TriggerClientClosed(agentID, this);
@@ -4290,7 +4290,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             // Check that the auth_token is valid
             AgentCircuitData acd = AuthenticateHandler.GetAgentCircuitData(agentID);
-            if (acd != null && Util.Md5Hash(acd.Id0) == auth_token)
+            if (acd != null && acd.SessionID.ToString() == auth_token)
                 return IncomingCloseAgent(agentID, force);
             else
                 m_log.ErrorFormat("[SCENE]: Request to close agent {0} with invalid authorization token {1}", agentID, auth_token);

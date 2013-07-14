@@ -159,7 +159,10 @@ namespace OpenSim.Server.Handlers.Simulation
 
         protected void DoAgentDelete(Hashtable request, Hashtable responsedata, UUID id, string action, UUID regionID, string auth_token)
         {
-            m_log.DebugFormat("[AGENT HANDLER]: >>> DELETE action: {0}; RegionID: {1}; from: {2}; auth_code: {3}", action, regionID, Util.GetCallerIP(request), auth_token);
+            if (string.IsNullOrEmpty(action))
+                m_log.DebugFormat("[AGENT HANDLER]: >>> DELETE <<< RegionID: {0}; from: {1}; auth_code: {2}", regionID, Util.GetCallerIP(request), auth_token);
+            else
+                m_log.DebugFormat("[AGENT HANDLER]: Release {0} to RegionID: {1}", id, regionID);
 
             GridRegion destination = new GridRegion();
             destination.RegionID = regionID;

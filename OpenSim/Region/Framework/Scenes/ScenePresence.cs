@@ -3168,7 +3168,7 @@ namespace OpenSim.Region.Framework.Scenes
                 AgentCircuitData acd = Scene.AuthenticateHandler.GetAgentCircuitData(UUID);
                 string auth = string.Empty;
                 if (acd != null)
-                    auth = Util.Md5Hash(acd.Id0);
+                    auth = acd.SessionID.ToString();
                 m_scene.SceneGridService.SendCloseChildAgentConnections(ControllingClient.AgentId, auth, byebyeRegions); 
             }
             
