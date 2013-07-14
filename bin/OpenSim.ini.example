@@ -955,6 +955,10 @@
     ;; Enables the groups module
     ; Enabled = false
 
+    ;# {LevelGroupCreate} {Enabled:true} {User level for creating groups} {} 0
+    ;; Minimum user level required to create groups
+    ;LevelGroupCreate = 0
+
     ;# {Module} {Enabled:true} {Groups module to use? (Use GroupsModule to use Flotsam/Simian)} {Default "Groups Module V2"} Default
     ;; The default module can use a PHP XmlRpc server from the Flotsam project at
     ;; http://code.google.com/p/flotsam/
