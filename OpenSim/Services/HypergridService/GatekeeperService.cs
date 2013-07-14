@@ -419,6 +419,12 @@ namespace OpenSim.Services.HypergridService
             if (!CheckAddress(aCircuit.ServiceSessionID))
                 return false;
 
+            if (string.IsNullOrEmpty(aCircuit.IPAddress))
+            {
+                m_log.DebugFormat("[GATEKEEPER SERVICE]: Agent did not provide a client IP address.");
+                return false;
+            }
+
             string userURL = string.Empty;
             if (aCircuit.ServiceURLs.ContainsKey("HomeURI"))
                 userURL = aCircuit.ServiceURLs["HomeURI"].ToString();
