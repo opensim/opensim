@@ -2927,7 +2927,7 @@ namespace OpenSim.Region.Framework.Scenes
                 cadu.Velocity = Velocity;
 
                 AgentPosition agentpos = new AgentPosition();
-                agentpos.CopyFrom(cadu);
+                agentpos.CopyFrom(cadu, ControllingClient.SessionId);
 
                 // Let's get this out of the update loop
                 Util.FireAndForget(delegate { m_scene.SendOutChildAgentUpdates(agentpos, this); });
@@ -3266,6 +3266,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             cAgent.AgentID = UUID;
             cAgent.RegionID = Scene.RegionInfo.RegionID;
+            cAgent.SessionID = ControllingClient.SessionId;
 
             cAgent.Position = AbsolutePosition;
             cAgent.Velocity = m_velocity;

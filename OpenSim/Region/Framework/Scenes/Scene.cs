@@ -4202,10 +4202,18 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (childAgentUpdate != null)
             {
-                childAgentUpdate.ChildAgentDataUpdate(cAgentData);
-                return true;
+                if (cAgentData.SessionID == childAgentUpdate.ControllingClient.SessionId)
+                {
+                    childAgentUpdate.ChildAgentDataUpdate(cAgentData);
+                    return true;
+                }
+                else
+                {
+                    m_log.WarnFormat("[SCENE]: Attempt to update agent {0} with invalid session id {1}", childAgentUpdate.UUID, cAgentData.SessionID);
+                    Console.WriteLine(String.Format("[SCENE]: Attempt to update agent {0} ({1}) with invalid session id {2}", 
+                        childAgentUpdate.UUID, childAgentUpdate.ControllingClient.SessionId, cAgentData.SessionID));
+                }
             }
-
             return false;
         }
 
@@ -4221,20 +4229,24 @@ namespace OpenSim.Region.Framework.Scenes
             ScenePresence childAgentUpdate = GetScenePresence(cAgentData.AgentID);
             if (childAgentUpdate != null)
             {
-                // I can't imagine *yet* why we would get an update if the agent is a root agent..
-                // however to avoid a race condition crossing borders..
-                if (childAgentUpdate.IsChildAgent)
+                if (childAgentUpdate.ControllingClient.SessionId == cAgentData.SessionID)
                 {
-                    uint rRegionX = (uint)(cAgentData.RegionHandle >> 40);
-                    uint rRegionY = (((uint)(cAgentData.RegionHandle)) >> 8);
-                    uint tRegionX = RegionInfo.RegionLocX;
-                    uint tRegionY = RegionInfo.RegionLocY;
-                    //Send Data to ScenePresence
-                    childAgentUpdate.ChildAgentDataUpdate(cAgentData, tRegionX, tRegionY, rRegionX, rRegionY);
-                    // Not Implemented:
-                    //TODO: Do we need to pass the message on to one of our neighbors?
+                    // I can't imagine *yet* why we would get an update if the agent is a root agent..
+                    // however to avoid a race condition crossing borders..
+                    if (childAgentUpdate.IsChildAgent)
+                    {
+                        uint rRegionX = (uint)(cAgentData.RegionHandle >> 40);
+                        uint rRegionY = (((uint)(cAgentData.RegionHandle)) >> 8);
+                        uint tRegionX = RegionInfo.RegionLocX;
+                        uint tRegionY = RegionInfo.RegionLocY;
+                        //Send Data to ScenePresence
+                        childAgentUpdate.ChildAgentDataUpdate(cAgentData, tRegionX, tRegionY, rRegionX, rRegionY);
+                        // Not Implemented:
+                        //TODO: Do we need to pass the message on to one of our neighbors?
+                    }
                 }
-
+                else
+                    m_log.WarnFormat("[SCENE]: Attempt at updating position of agent {0} with invalid session id {1}", childAgentUpdate.UUID, cAgentData.SessionID);
                 return true;
             }
 
