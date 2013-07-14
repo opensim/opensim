@@ -66,5 +66,15 @@ namespace OpenSim.Data.MySQL
             return Delete("SessionID", sessionID.ToString());
         }
 
+        public void DeleteOld()
+        {
+            using (MySqlCommand cmd = new MySqlCommand())
+            {
+                cmd.CommandText = String.Format("delete from {0} where TMStamp < NOW() - INTERVAL 2 DAY", m_Realm);
+
+                ExecuteNonQuery(cmd);
+            }
+
+        }
     }
 }

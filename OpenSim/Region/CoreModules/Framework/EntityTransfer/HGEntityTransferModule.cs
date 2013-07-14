@@ -207,6 +207,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             {
                 m_GatekeeperConnector = new GatekeeperServiceConnector(scene.AssetService);
                 m_UAS = scene.RequestModuleInterface<IUserAgentService>();
+                if (m_UAS == null)
+                    m_UAS = new UserAgentServiceConnector(m_ThisHomeURI);
+
             }
         }
 
@@ -573,12 +576,12 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if (uMan != null && uMan.IsLocalGridUser(obj.AgentId))
             {
                 // local grid user
+                m_UAS.LogoutAgent(obj.AgentId, obj.SessionId);
                 return;
             }
 
             AgentCircuitData aCircuit = ((Scene)(obj.Scene)).AuthenticateHandler.GetAgentCircuitData(obj.CircuitCode);
-
-            if (aCircuit.ServiceURLs.ContainsKey("HomeURI"))
+            if (aCircuit != null && aCircuit.ServiceURLs != null && aCircuit.ServiceURLs.ContainsKey("HomeURI"))
             {
                 string url = aCircuit.ServiceURLs["HomeURI"].ToString();
                 IUserAgentService security = new UserAgentServiceConnector(url);

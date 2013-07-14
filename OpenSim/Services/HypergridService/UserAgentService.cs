@@ -148,6 +148,9 @@ namespace OpenSim.Services.HypergridService
                 if (!m_GridName.EndsWith("/"))
                     m_GridName = m_GridName + "/";
 
+                // Finally some cleanup
+                m_Database.DeleteOld();
+
             }
         }
 

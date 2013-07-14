@@ -54,5 +54,6 @@ namespace OpenSim.Data
         HGTravelingData[] GetSessions(UUID userID);
         bool Store(HGTravelingData data);
         bool Delete(UUID sessionID);
+        void DeleteOld();
     }
 }
