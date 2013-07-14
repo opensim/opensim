@@ -90,12 +90,7 @@ namespace OpenSim.Server.Handlers.Simulation
 
             // Next, let's parse the verb
             string method = (string)request["http-method"];
-            if (method.Equals("GET"))
-            {
-                DoAgentGet(request, responsedata, agentID, regionID);
-                return responsedata;
-            }
-            else if (method.Equals("DELETE"))
+            if (method.Equals("DELETE"))
             {
                 DoAgentDelete(request, responsedata, agentID, action, regionID);
                 return responsedata;
@@ -107,7 +102,7 @@ namespace OpenSim.Server.Handlers.Simulation
             }
             else
             {
-                m_log.InfoFormat("[AGENT HANDLER]: method {0} not supported in agent message (caller is {1})", method, Util.GetCallerIP(request));
+                m_log.ErrorFormat("[AGENT HANDLER]: method {0} not supported in agent message {1} (caller is {2})", method, (string)request["uri"], Util.GetCallerIP(request));
                 responsedata["int_response_code"] = HttpStatusCode.MethodNotAllowed;
                 responsedata["str_response_string"] = "Method not allowed";
 
@@ -154,58 +149,6 @@ namespace OpenSim.Server.Handlers.Simulation
             responsedata["str_response_string"] = OSDParser.SerializeJsonString(resp, true);
 
 //            Console.WriteLine("str_response_string [{0}]", responsedata["str_response_string"]);
-        }
-
-        protected virtual void DoAgentGet(Hashtable request, Hashtable responsedata, UUID id, UUID regionID)
-        {
-            if (m_SimulationService == null)
-            {
-                m_log.Debug("[AGENT HANDLER]: Agent GET called. Harmless but useless.");
-                responsedata["content_type"] = "application/json";
-                responsedata["int_response_code"] = HttpStatusCode.NotImplemented;
-                responsedata["str_response_string"] = string.Empty;
-
-                return;
-            }
-
-            GridRegion destination = new GridRegion();
-            destination.RegionID = regionID;
-
-            IAgentData agent = null;
-            bool result = m_SimulationService.RetrieveAgent(destination, id, out agent);
-            OSDMap map = null;
-            if (result)
-            {
-                if (agent != null) // just to make sure
-                {
-                    map = agent.Pack();
-                    string strBuffer = "";
-                    try
-                    {
-                        strBuffer = OSDParser.SerializeJsonString(map);
-                    }
-                    catch (Exception e)
-                    {
-                        m_log.WarnFormat("[AGENT HANDLER]: Exception thrown on serialization of DoAgentGet: {0}", e.Message);
-                        responsedata["int_response_code"] = HttpStatusCode.InternalServerError;
-                        // ignore. buffer will be empty, caller should check.
-                    }
-
-                    responsedata["content_type"] = "application/json";
-                    responsedata["int_response_code"] = HttpStatusCode.OK;
-                    responsedata["str_response_string"] = strBuffer;
-                }
-                else
-                {
-                    responsedata["int_response_code"] = HttpStatusCode.InternalServerError;
-                    responsedata["str_response_string"] = "Internal error";
-                }
-            }
-            else
-            {
-                responsedata["int_response_code"] = HttpStatusCode.NotFound;
-                responsedata["str_response_string"] = "Not Found";
-            }
         }
 
         protected void DoAgentDelete(Hashtable request, Hashtable responsedata, UUID id, string action, UUID regionID)

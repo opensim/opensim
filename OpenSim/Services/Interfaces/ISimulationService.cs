@@ -75,8 +75,6 @@ namespace OpenSim.Services.Interfaces
         /// <returns></returns>
         bool UpdateAgent(GridRegion destination, AgentPosition data);
 
-        bool RetrieveAgent(GridRegion destination, UUID id, out IAgentData agent);
-
         bool QueryAccess(GridRegion destination, UUID id, Vector3 position, out string version, out string reason);
 
         /// <summary>
