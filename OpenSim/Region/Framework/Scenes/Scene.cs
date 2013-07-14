@@ -3452,7 +3452,7 @@ namespace OpenSim.Region.Framework.Scenes
                         regions.Remove(RegionInfo.RegionHandle);
 
                         // This ends up being done asynchronously so that a logout isn't held up where there are many present but unresponsive neighbours.
-                        m_sceneGridService.SendCloseChildAgentConnections(agentID, Util.Md5Hash(acd.Id0), regions); 
+                        m_sceneGridService.SendCloseChildAgentConnections(agentID, acd.Id0 != null ? Util.Md5Hash(acd.Id0) : string.Empty, regions);
                     }
     
                     m_eventManager.TriggerClientClosed(agentID, this);
@@ -4308,7 +4308,6 @@ namespace OpenSim.Region.Framework.Scenes
         public bool IncomingCloseAgent(UUID agentID, bool force)
         {
             //m_log.DebugFormat("[SCENE]: Processing incoming close agent for {0}", agentID);
-
             ScenePresence presence = m_sceneGraph.GetScenePresence(agentID);
             if (presence != null)
             {
