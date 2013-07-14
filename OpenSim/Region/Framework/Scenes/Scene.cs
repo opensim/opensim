@@ -4311,7 +4311,10 @@ namespace OpenSim.Region.Framework.Scenes
 
             ScenePresence presence = m_sceneGraph.GetScenePresence(agentID);
             if (presence != null)
+            {
                 presence.ControllingClient.Close(force);
+                return true;
+            }
 
             // Agent not here 
             return false;
