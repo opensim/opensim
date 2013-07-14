@@ -245,18 +245,18 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
         }
 
 
-        public bool CloseAgent(GridRegion destination, UUID id)
+        public bool CloseAgent(GridRegion destination, UUID id, string auth_token)
         {
             if (destination == null)
                 return false;
 
             // Try local first
-            if (m_localBackend.CloseAgent(destination, id))
+            if (m_localBackend.CloseAgent(destination, id, auth_token))
                 return true;
 
             // else do the remote thing
             if (!m_localBackend.IsLocalRegion(destination.RegionID))
-                return m_remoteConnector.CloseAgent(destination, id);
+                return m_remoteConnector.CloseAgent(destination, id, auth_token);
             
             return false;
         }

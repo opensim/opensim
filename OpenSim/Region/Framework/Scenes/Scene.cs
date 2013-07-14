@@ -3452,7 +3452,7 @@ namespace OpenSim.Region.Framework.Scenes
                         regions.Remove(RegionInfo.RegionHandle);
 
                         // This ends up being done asynchronously so that a logout isn't held up where there are many present but unresponsive neighbours.
-                        m_sceneGridService.SendCloseChildAgentConnections(agentID, regions);
+                        m_sceneGridService.SendCloseChildAgentConnections(agentID, Util.Md5Hash(acd.Id0), regions); 
                     }
     
                     m_eventManager.TriggerClientClosed(agentID, this);
@@ -4277,6 +4277,25 @@ namespace OpenSim.Region.Framework.Scenes
 
             return false;
         }
+        /// <summary>
+        /// Authenticated close (via network)
+        /// </summary>
+        /// <param name="agentID"></param>
+        /// <param name="force"></param>
+        /// <param name="auth_token"></param>
+        /// <returns></returns>
+        public bool IncomingCloseAgent(UUID agentID, bool force, string auth_token)
+        {
+            //m_log.DebugFormat("[SCENE]: Processing incoming close agent {0} in region {1} with auth_token {2}", agentID, RegionInfo.RegionName, auth_token);
+
+            // Check that the auth_token is valid
+            AgentCircuitData acd = AuthenticateHandler.GetAgentCircuitData(agentID);
+            if (acd != null && Util.Md5Hash(acd.Id0) == auth_token)
+                return IncomingCloseAgent(agentID, force);
+            else
+                m_log.ErrorFormat("[SCENE]: Request to close agent {0} with invalid authorization token {1}", agentID, auth_token);
+            return false;
+        }
 
         /// <summary>
         /// Tell a single agent to disconnect from the region.
@@ -4292,12 +4311,9 @@ namespace OpenSim.Region.Framework.Scenes
 
             ScenePresence presence = m_sceneGraph.GetScenePresence(agentID);
             if (presence != null)
-            {
                 presence.ControllingClient.Close(force);
-                return true;
-            }
 
-            // Agent not here
+            // Agent not here 
             return false;
         }
 

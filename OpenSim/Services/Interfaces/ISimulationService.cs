@@ -93,7 +93,7 @@ namespace OpenSim.Services.Interfaces
         /// <param name="regionHandle"></param>
         /// <param name="id"></param>
         /// <returns></returns>
-        bool CloseAgent(GridRegion destination, UUID id);
+        bool CloseAgent(GridRegion destination, UUID id, string auth_token);
 
         #endregion Agents
 

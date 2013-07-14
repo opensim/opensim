@@ -286,7 +286,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
             return false;
         }
 
-        public bool CloseAgent(GridRegion destination, UUID id)
+        public bool CloseAgent(GridRegion destination, UUID id, string auth_token)
         {
             if (destination == null)
                 return false;
@@ -297,7 +297,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
 //                        "[LOCAL SIMULATION CONNECTOR]: Found region {0} {1} to send AgentUpdate",
 //                        s.RegionInfo.RegionName, destination.RegionHandle);
 
-                m_scenes[destination.RegionID].IncomingCloseAgent(id, false);
+                m_scenes[destination.RegionID].IncomingCloseAgent(id, false, auth_token);
                 return true;
             }
 

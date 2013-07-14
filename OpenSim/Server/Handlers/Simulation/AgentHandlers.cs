@@ -27,11 +27,13 @@
 
 using System;
 using System.Collections;
+using System.Collections.Specialized;
 using System.IO;
 using System.IO.Compression;
 using System.Reflection;
 using System.Net;
 using System.Text;
+using System.Web;
 
 using OpenSim.Server.Base;
 using OpenSim.Server.Handlers.Base;
@@ -92,7 +94,11 @@ namespace OpenSim.Server.Handlers.Simulation
             string method = (string)request["http-method"];
             if (method.Equals("DELETE"))
             {
-                DoAgentDelete(request, responsedata, agentID, action, regionID);
+                string auth_token = string.Empty;
+                if (request.ContainsKey("auth"))
+                    auth_token = request["auth"].ToString();
+
+                DoAgentDelete(request, responsedata, agentID, action, regionID, auth_token);
                 return responsedata;
             }
             else if (method.Equals("QUERYACCESS"))
@@ -151,9 +157,9 @@ namespace OpenSim.Server.Handlers.Simulation
 //            Console.WriteLine("str_response_string [{0}]", responsedata["str_response_string"]);
         }
 
-        protected void DoAgentDelete(Hashtable request, Hashtable responsedata, UUID id, string action, UUID regionID)
+        protected void DoAgentDelete(Hashtable request, Hashtable responsedata, UUID id, string action, UUID regionID, string auth_token)
         {
-            m_log.Debug(" >>> DoDelete action:" + action + "; RegionID:" + regionID);
+            m_log.DebugFormat("[AGENT HANDLER]: >>> DELETE action: {0}; RegionID: {1}; from: {2}; auth_code: {3}", action, regionID, Util.GetCallerIP(request), auth_token);
 
             GridRegion destination = new GridRegion();
             destination.RegionID = regionID;
@@ -161,12 +167,12 @@ namespace OpenSim.Server.Handlers.Simulation
             if (action.Equals("release"))
                 ReleaseAgent(regionID, id);
             else
-                Util.FireAndForget(delegate { m_SimulationService.CloseAgent(destination, id); });
+                Util.FireAndForget(delegate { m_SimulationService.CloseAgent(destination, id, auth_token); });
 
             responsedata["int_response_code"] = HttpStatusCode.OK;
             responsedata["str_response_string"] = "OpenSim agent " + id.ToString();
 
-            m_log.DebugFormat("[AGENT HANDLER]: Agent {0} Released/Deleted from region {1}", id, regionID);
+            //m_log.DebugFormat("[AGENT HANDLER]: Agent {0} Released/Deleted from region {1}", id, regionID);
         }
 
         protected virtual void ReleaseAgent(UUID regionID, UUID id)
