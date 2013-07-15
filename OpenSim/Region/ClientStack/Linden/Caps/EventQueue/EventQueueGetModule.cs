@@ -252,29 +252,32 @@ namespace OpenSim.Region.ClientStack.Linden
 
             List<UUID> removeitems = new List<UUID>();
             lock (m_AvatarQueueUUIDMapping)
-            {
-                foreach (UUID ky in m_AvatarQueueUUIDMapping.Keys)
-                {
-//                    m_log.DebugFormat("[EVENTQUEUE]: Found key {0} in m_AvatarQueueUUIDMapping while looking for {1}", ky, AgentID);
-                    if (ky == agentID)
-                    {
-                        removeitems.Add(ky);
-                    }
-                }
+                m_AvatarQueueUUIDMapping.Remove(agentID);
 
-                foreach (UUID ky in removeitems)
-                {
-                    UUID eventQueueGetUuid = m_AvatarQueueUUIDMapping[ky];
-                    m_AvatarQueueUUIDMapping.Remove(ky);
-
-                    string eqgPath = GenerateEqgCapPath(eventQueueGetUuid);
-                    MainServer.Instance.RemovePollServiceHTTPHandler("", eqgPath);
-
-//                    m_log.DebugFormat(
-//                        "[EVENT QUEUE GET MODULE]: Removed EQG handler {0} for {1} in {2}",
-//                        eqgPath, agentID, m_scene.RegionInfo.RegionName);
-                }
-            }
+//            lock (m_AvatarQueueUUIDMapping)
+//            {
+//                foreach (UUID ky in m_AvatarQueueUUIDMapping.Keys)
+//                {
+////                    m_log.DebugFormat("[EVENTQUEUE]: Found key {0} in m_AvatarQueueUUIDMapping while looking for {1}", ky, AgentID);
+//                    if (ky == agentID)
+//                    {
+//                        removeitems.Add(ky);
+//                    }
+//                }
+//
+//                foreach (UUID ky in removeitems)
+//                {
+//                    UUID eventQueueGetUuid = m_AvatarQueueUUIDMapping[ky];
+//                    m_AvatarQueueUUIDMapping.Remove(ky);
+//
+//                    string eqgPath = GenerateEqgCapPath(eventQueueGetUuid);
+//                    MainServer.Instance.RemovePollServiceHTTPHandler("", eqgPath);
+//
+////                    m_log.DebugFormat(
+////                        "[EVENT QUEUE GET MODULE]: Removed EQG handler {0} for {1} in {2}",
+////                        eqgPath, agentID, m_scene.RegionInfo.RegionName);
+//                }
+//            }
 
             UUID searchval = UUID.Zero;
 
@@ -359,29 +362,10 @@ namespace OpenSim.Region.ClientStack.Linden
                     m_AvatarQueueUUIDMapping.Add(agentID, eventQueueGetUUID);
             }
 
-            string eventQueueGetPath = GenerateEqgCapPath(eventQueueGetUUID);
-
-            // Register this as a caps handler
-            // FIXME: Confusingly, we need to register separate as a capability so that the client is told about
-            // EventQueueGet when it receive capability information, but then we replace the rest handler immediately
-            // afterwards with the poll service.  So for now, we'll pass a null instead to simplify code reading, but
-            // really it should be possible to directly register the poll handler as a capability.
-            caps.RegisterHandler(
-                "EventQueueGet", new RestHTTPHandler("POST", eventQueueGetPath, null, "EventQueueGet", null));
-//                                                       delegate(Hashtable m_dhttpMethod)
-//                                                       {
-//                                                           return ProcessQueue(m_dhttpMethod, agentID, caps);
-//                                                       }));
-
-            // This will persist this beyond the expiry of the caps handlers
-            // TODO: Add EventQueueGet name/description for diagnostics
-            MainServer.Instance.AddPollServiceHTTPHandler(
-                eventQueueGetPath,
-                new PollServiceEventArgs(null, eventQueueGetPath, HasEvents, GetEvents, NoEvents, agentID, 40000));
-
-//            m_log.DebugFormat(
-//                "[EVENT QUEUE GET MODULE]: Registered EQG handler {0} for {1} in {2}",
-//                eventQueueGetPath, agentID, m_scene.RegionInfo.RegionName);
+            caps.RegisterPollHandler(
+                "EventQueueGet", 
+                new PollServiceEventArgs(
+                    null, GenerateEqgCapPath(eventQueueGetUUID), HasEvents, GetEvents, NoEvents, agentID, 40000));
 
             Random rnd = new Random(Environment.TickCount);
             lock (m_ids)
