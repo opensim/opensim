@@ -5373,7 +5373,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AddLocalPacketHandler(PacketType.ScriptAnswerYes, HandleScriptAnswerYes, false);
             AddLocalPacketHandler(PacketType.ObjectClickAction, HandleObjectClickAction, false);
             AddLocalPacketHandler(PacketType.ObjectMaterial, HandleObjectMaterial, false);
-            AddLocalPacketHandler(PacketType.RequestImage, HandleRequestImage);
+            AddLocalPacketHandler(PacketType.RequestImage, HandleRequestImage, false);
             AddLocalPacketHandler(PacketType.TransferRequest, HandleTransferRequest, false);
             AddLocalPacketHandler(PacketType.AssetUploadRequest, HandleAssetUploadRequest);
             AddLocalPacketHandler(PacketType.RequestXfer, HandleRequestXfer);
