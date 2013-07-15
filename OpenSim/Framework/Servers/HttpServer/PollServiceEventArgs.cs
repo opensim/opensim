@@ -55,12 +55,26 @@ namespace OpenSim.Framework.Servers.HttpServer
             Inventory = 2
         }
 
+        public string Url { get; set; }
+
+        /// <summary>
+        /// Number of requests received for this poll service.
+        /// </summary>
+        public int RequestsReceived { get; set; }
+
+        /// <summary>
+        /// Number of requests handled by this poll service.
+        /// </summary>
+        public int RequestsHandled { get; set; }
+
         public PollServiceEventArgs(
             RequestMethod pRequest,
+            string pUrl,
             HasEventsMethod pHasEvents, GetEventsMethod pGetEvents, NoEventsMethod pNoEvents,
             UUID pId, int pTimeOutms)
         {
             Request = pRequest;
+            Url = pUrl;
             HasEvents = pHasEvents;
             GetEvents = pGetEvents;
             NoEvents = pNoEvents;

@@ -387,6 +387,8 @@ namespace OpenSim.Framework.Servers.HttpServer
 
                 if (TryGetPollServiceHTTPHandler(request.UriPath.ToString(), out psEvArgs))
                 {
+                    psEvArgs.RequestsReceived++;
+
                     PollServiceHttpRequest psreq = new PollServiceHttpRequest(psEvArgs, context, request);
 
                     if (psEvArgs.Request != null)
