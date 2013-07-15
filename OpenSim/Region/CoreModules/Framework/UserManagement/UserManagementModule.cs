@@ -681,17 +681,19 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                 Watchdog.UpdateThread();
 
                 NameRequest request = m_RequestQueue.Dequeue();
-                string[] names;
-                bool foundRealName = TryGetUserNames(request.uuid, out names);
-
-                if (names.Length == 2)
+                if (request != null)
                 {
-                    if (!foundRealName)
-                        m_log.DebugFormat("[USER MANAGEMENT MODULE]: Sending {0} {1} for {2} to {3} since no bound name found", names[0], names[1], request.uuid, request.client.Name);
+                    string[] names;
+                    bool foundRealName = TryGetUserNames(request.uuid, out names);
 
-                    request.client.SendNameReply(request.uuid, names[0], names[1]);
+                    if (names.Length == 2)
+                    {
+                        if (!foundRealName)
+                            m_log.DebugFormat("[USER MANAGEMENT MODULE]: Sending {0} {1} for {2} to {3} since no bound name found", names[0], names[1], request.uuid, request.client.Name);
+
+                        request.client.SendNameReply(request.uuid, names[0], names[1]);
+                    }
                 }
-
             }
         }
 

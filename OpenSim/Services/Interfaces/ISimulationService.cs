@@ -75,8 +75,6 @@ namespace OpenSim.Services.Interfaces
         /// <returns></returns>
         bool UpdateAgent(GridRegion destination, AgentPosition data);
 
-        bool RetrieveAgent(GridRegion destination, UUID id, out IAgentData agent);
-
         bool QueryAccess(GridRegion destination, UUID id, Vector3 position, out string version, out string reason);
 
         /// <summary>
@@ -95,7 +93,7 @@ namespace OpenSim.Services.Interfaces
         /// <param name="regionHandle"></param>
         /// <param name="id"></param>
         /// <returns></returns>
-        bool CloseAgent(GridRegion destination, UUID id);
+        bool CloseAgent(GridRegion destination, UUID id, string auth_token);
 
         #endregion Agents
 

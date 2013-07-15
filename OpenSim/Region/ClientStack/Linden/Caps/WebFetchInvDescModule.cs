@@ -347,7 +347,8 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 aPollRequest poolreq = m_queue.Dequeue();
 
-                poolreq.thepoll.Process(poolreq);
+                if (poolreq != null && poolreq.thepoll != null)
+                    poolreq.thepoll.Process(poolreq);
             }
         }
     }

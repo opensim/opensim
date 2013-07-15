@@ -2293,7 +2293,7 @@ namespace OpenSim.Framework
             {
                 if (m_highQueue.Count > 0)
                     res = m_highQueue.Dequeue();
-                else
+                else if (m_lowQueue.Count > 0)
                     res = m_lowQueue.Dequeue();
 
                 if (m_highQueue.Count == 0 && m_lowQueue.Count == 0)

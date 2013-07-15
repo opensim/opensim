@@ -171,9 +171,10 @@ namespace OpenSim.Framework
         /// Soon to be decommissioned
         /// </summary>
         /// <param name="cAgent"></param>
-        public void CopyFrom(ChildAgentDataUpdate cAgent)
+        public void CopyFrom(ChildAgentDataUpdate cAgent, UUID sid)
         {
             AgentID = new UUID(cAgent.AgentID);
+            SessionID = sid;
 
             // next: ???
             Size = new Vector3();

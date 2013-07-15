@@ -212,24 +212,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
             return m_remoteConnector.UpdateAgent(destination, cAgentData);
         }
 
-        public bool RetrieveAgent(GridRegion destination, UUID id, out IAgentData agent)
-        {
-            agent = null;
-
-            if (destination == null)
-                return false;
-
-            // Try local first
-            if (m_localBackend.RetrieveAgent(destination, id, out agent))
-                return true;
-
-            // else do the remote thing
-            if (!m_localBackend.IsLocalRegion(destination.RegionID))
-                return m_remoteConnector.RetrieveAgent(destination, id, out agent);
-
-            return false;
-        }
-
         public bool QueryAccess(GridRegion destination, UUID id, Vector3 position, out string version, out string reason)
         {
             reason = "Communications failure";
@@ -263,18 +245,18 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
         }
 
 
-        public bool CloseAgent(GridRegion destination, UUID id)
+        public bool CloseAgent(GridRegion destination, UUID id, string auth_token)
         {
             if (destination == null)
                 return false;
 
             // Try local first
-            if (m_localBackend.CloseAgent(destination, id))
+            if (m_localBackend.CloseAgent(destination, id, auth_token))
                 return true;
 
             // else do the remote thing
             if (!m_localBackend.IsLocalRegion(destination.RegionID))
-                return m_remoteConnector.CloseAgent(destination, id);
+                return m_remoteConnector.CloseAgent(destination, id, auth_token);
             
             return false;
         }

@@ -140,11 +140,13 @@ namespace OpenSim.Region.CoreModules.Framework
                 Watchdog.UpdateThread();
 
                 GridRegionRequest request = m_RequestQueue.Dequeue();
-                GridRegion r = m_scenes[0].GridService.GetRegionByUUID(UUID.Zero, request.regionID);
+                if (request != null)
+                {
+                    GridRegion r = m_scenes[0].GridService.GetRegionByUUID(UUID.Zero, request.regionID);
 
-                if (r != null && r.RegionHandle != 0)
-                    request.client.SendRegionHandle(request.regionID, r.RegionHandle);
-
+                    if (r != null && r.RegionHandle != 0)
+                        request.client.SendRegionHandle(request.regionID, r.RegionHandle);
+                }
             }
         }
     }
