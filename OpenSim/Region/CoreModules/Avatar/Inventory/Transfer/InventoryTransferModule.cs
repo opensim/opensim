@@ -148,9 +148,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
 
         private void OnInstantMessage(IClientAPI client, GridInstantMessage im)
         {
-//            m_log.DebugFormat(
-//                "[INVENTORY TRANSFER]: {0} IM type received from {1}", 
-//                (InstantMessageDialog)im.dialog, client.Name);
+            m_log.DebugFormat(
+                "[INVENTORY TRANSFER]: {0} IM type received from client {1}. From={2} ({3}), To={4}", 
+                (InstantMessageDialog)im.dialog, client.Name,
+                im.fromAgentID, im.fromAgentName, im.toAgentID);
           
             Scene scene = FindClientScene(client.AgentId);
 
@@ -450,23 +451,57 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
         /// <summary>
         ///
         /// </summary>
-        /// <param name="msg"></param>
-        private void OnGridInstantMessage(GridInstantMessage msg)
+        /// <param name="im"></param>
+        private void OnGridInstantMessage(GridInstantMessage im)
         {
+            // Check if it's a type of message that we should handle
+            if (!((im.dialog == (byte) InstantMessageDialog.InventoryOffered)
+                || (im.dialog == (byte) InstantMessageDialog.InventoryAccepted)
+                || (im.dialog == (byte) InstantMessageDialog.InventoryDeclined)
+                || (im.dialog == (byte) InstantMessageDialog.TaskInventoryDeclined)))
+                return;
+
+            m_log.DebugFormat(
+                "[INVENTORY TRANSFER]: {0} IM type received from grid. From={1} ({2}), To={3}",
+                (InstantMessageDialog)im.dialog, im.fromAgentID, im.fromAgentName, im.toAgentID);
+
             // Check if this is ours to handle
             //
-            Scene scene = FindClientScene(new UUID(msg.toAgentID));
+            Scene scene = FindClientScene(new UUID(im.toAgentID));
 
             if (scene == null)
                 return;
 
             // Find agent to deliver to
             //
-            ScenePresence user = scene.GetScenePresence(new UUID(msg.toAgentID));
+            ScenePresence user = scene.GetScenePresence(new UUID(im.toAgentID));
 
-            // Just forward to local handling
-            OnInstantMessage(user.ControllingClient, msg);
+            if (user != null)
+            {
+                user.ControllingClient.SendInstantMessage(im);
 
+                if (im.dialog == (byte)InstantMessageDialog.InventoryOffered)
+                {
+                    AssetType assetType = (AssetType)im.binaryBucket[0];
+                    UUID inventoryID = new UUID(im.binaryBucket, 1);
+                
+                    IInventoryService invService = scene.InventoryService;
+                    InventoryNodeBase node = null;
+                    if (AssetType.Folder == assetType)
+                    {
+                        InventoryFolderBase folder = new InventoryFolderBase(inventoryID, new UUID(im.toAgentID));
+                        node = invService.GetFolder(folder);
+                    }
+                    else
+                    {
+                        InventoryItemBase item = new InventoryItemBase(inventoryID, new UUID(im.toAgentID));
+                        node = invService.GetItem(item);
+                    }
+
+                    if (node != null)
+                        user.ControllingClient.SendBulkUpdateInventory(node);
+                }
+            }
         }
     }
 }
