@@ -48,18 +48,26 @@ namespace OpenSim.Region.CoreModules.Framework
                 MethodBase.GetCurrentMethod().DeclaringType);
 
         private readonly List<Scene> m_scenes = new List<Scene>();
+        private System.Timers.Timer m_timer = new System.Timers.Timer();
 
         //private OpenSim.Framework.BlockingQueue<GridRegionRequest> m_RequestQueue = new OpenSim.Framework.BlockingQueue<GridRegionRequest>();
-        private OpenSim.Framework.DoubleQueue<GridRegionRequest> m_RequestQueue = new OpenSim.Framework.DoubleQueue<GridRegionRequest>();
+        // private OpenSim.Framework.DoubleQueue<GridRegionRequest> m_RequestQueue = new OpenSim.Framework.DoubleQueue<GridRegionRequest>();
+        private Queue<GridRegionRequest> m_RequestQueue = new Queue<GridRegionRequest>();
 
         public void Initialise(IConfigSource config)
         {
-            Watchdog.StartThread(
-                ProcessQueue,
-                "GridServiceRequestThread",
-                ThreadPriority.BelowNormal,
-                true,
-                false);
+            m_timer = new System.Timers.Timer();
+            m_timer.AutoReset = false;
+            m_timer.Interval = 15000; // 15 secs at first
+            m_timer.Elapsed += ProcessQueue;
+            m_timer.Start();
+
+            //Watchdog.StartThread(
+            //    ProcessQueue,
+            //    "GridServiceRequestThread",
+            //    ThreadPriority.BelowNormal,
+            //    true,
+            //    false);
         }
 
         public void AddRegion(Scene scene)
@@ -88,6 +96,16 @@ namespace OpenSim.Region.CoreModules.Framework
         {
             client.OnRegionHandleRequest += OnRegionHandleRequest;
         }
+
+        //void OnMakeRootAgent(ScenePresence obj)
+        //{
+        //    lock (m_timer)
+        //    {
+        //        m_timer.Stop();
+        //        m_timer.Interval = 1000;
+        //        m_timer.Start();
+        //    }
+        //}
 
         public void PostInitialise()
         {
@@ -118,7 +136,8 @@ namespace OpenSim.Region.CoreModules.Framework
             }
 
             GridRegionRequest request = new GridRegionRequest(client, regionID);
-            m_RequestQueue.Enqueue(request);
+            lock (m_RequestQueue)
+                m_RequestQueue.Enqueue(request);
 
         }
 
@@ -132,6 +151,41 @@ namespace OpenSim.Region.CoreModules.Framework
                     return true;
                 }
             return false;
+        }
+
+        private bool AreThereRootAgents()
+        {
+            foreach (Scene s in m_scenes)
+            {
+                if (s.GetRootAgentCount() > 0)
+                    return true;
+            }
+
+            return false;
+        }
+
+        private void ProcessQueue(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            while (m_RequestQueue.Count > 0)
+            {
+                GridRegionRequest request = null;
+                lock (m_RequestQueue)
+                    request = m_RequestQueue.Dequeue();
+                if (request != null)
+                {
+                    GridRegion r = m_scenes[0].GridService.GetRegionByUUID(UUID.Zero, request.regionID);
+
+                    if (r != null && r.RegionHandle != 0)
+                        request.client.SendRegionHandle(request.regionID, r.RegionHandle);
+                }
+            }
+
+            if (AreThereRootAgents())
+                m_timer.Interval = 1000; // 1 sec
+            else
+                m_timer.Interval = 10000; // 10 secs
+
+            m_timer.Start();
         }
 
         private void ProcessQueue()
@@ -150,6 +204,7 @@ namespace OpenSim.Region.CoreModules.Framework
                 }
             }
         }
+
     }
 
     class GridRegionRequest
