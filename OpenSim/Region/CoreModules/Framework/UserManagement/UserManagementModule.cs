@@ -61,7 +61,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
         // Throttle the name requests
         //private OpenSim.Framework.BlockingQueue<NameRequest> m_RequestQueue = new OpenSim.Framework.BlockingQueue<NameRequest>();
-        private OpenSim.Framework.BlockingQueue<NameRequest> m_RequestQueue = new OpenSim.Framework.BlockingQueue<NameRequest>();
+        private OpenSim.Framework.DoubleQueue<NameRequest> m_RequestQueue = new OpenSim.Framework.DoubleQueue<NameRequest>();
 
 
         #region ISharedRegionModule
