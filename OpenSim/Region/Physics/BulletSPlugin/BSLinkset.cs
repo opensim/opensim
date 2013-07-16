@@ -309,17 +309,37 @@ public abstract class BSLinkset
             }
         );
     }
-    public virtual void ComputeLocalInertia()
+    public virtual void ComputeLocalInertia(OMV.Vector3 inertiaFactor)
     {
         ForEachMember((member) =>
             {
                 if (member.PhysBody.HasPhysicalBody)
                 {
                     OMV.Vector3 inertia = m_physicsScene.PE.CalculateLocalInertia(member.PhysShape.physShapeInfo, member.Mass);
-                    member.Inertia = inertia * BSParam.VehicleInertiaFactor;
+                    member.Inertia = inertia * inertiaFactor;
                     m_physicsScene.PE.SetMassProps(member.PhysBody, member.Mass, member.Inertia);
                     m_physicsScene.PE.UpdateInertiaTensor(member.PhysBody);
                 }
+                return false;   // 'false' says to continue looping
+            }
+        );
+    }
+    public virtual void SetPhysicalCollisionFlags(CollisionFlags collFlags)
+    {
+        ForEachMember((member) =>
+            {
+                if (member.PhysBody.HasPhysicalBody)
+                    m_physicsScene.PE.SetCollisionFlags(member.PhysBody, collFlags);
+                return false;   // 'false' says to continue looping
+            }
+        );
+    }
+    public virtual void RemoveFromPhysicalCollisionFlags(CollisionFlags collFlags)
+    {
+        ForEachMember((member) =>
+            {
+                if (member.PhysBody.HasPhysicalBody)
+                    m_physicsScene.PE.RemoveFromCollisionFlags(member.PhysBody, collFlags);
                 return false;   // 'false' says to continue looping
             }
         );

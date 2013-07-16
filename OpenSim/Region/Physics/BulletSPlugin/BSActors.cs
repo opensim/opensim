@@ -69,7 +69,7 @@ public class BSActorCollection
     {
         lock (m_actors)
         {
-            Release();
+            ForEachActor(a => a.Dispose());
             m_actors.Clear();
         }
     }
@@ -97,10 +97,6 @@ public class BSActorCollection
     public void Enable(bool enabl)
     {
         ForEachActor(a => a.SetEnabled(enabl));
-    }
-    public void Release()
-    {
-        ForEachActor(a => a.Dispose());
     }
     public void Refresh()
     {
