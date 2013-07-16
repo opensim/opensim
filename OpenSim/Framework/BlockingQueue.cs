@@ -58,7 +58,7 @@ namespace OpenSim.Framework
         {
             lock (m_queueSync)
             {
-                if (m_queue.Count < 1 && m_pqueue.Count < 1)
+                while (m_queue.Count < 1 && m_pqueue.Count < 1)
                 {
                     Monitor.Wait(m_queueSync);
                 }
@@ -91,6 +91,9 @@ namespace OpenSim.Framework
 
         public bool Contains(T item)
         {
+            if (m_queue.Count < 1 && m_pqueue.Count < 1)
+                return false;
+
             lock (m_queueSync)
             {
                 if (m_pqueue.Contains(item))
@@ -101,14 +104,14 @@ namespace OpenSim.Framework
 
         public int Count()
         {
-            lock (m_queueSync)
-            {
-                return m_queue.Count+m_pqueue.Count;
-            }
+            return m_queue.Count+m_pqueue.Count;
         }
 
         public T[] GetQueueArray()
         {
+            if (m_queue.Count < 1 && m_pqueue.Count < 1)
+                return new T[0];
+
             lock (m_queueSync)
             {
                 return m_queue.ToArray();
