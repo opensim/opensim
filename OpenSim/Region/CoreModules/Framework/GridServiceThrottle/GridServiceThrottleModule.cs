@@ -49,7 +49,8 @@ namespace OpenSim.Region.CoreModules.Framework
 
         private readonly List<Scene> m_scenes = new List<Scene>();
 
-        private OpenSim.Framework.BlockingQueue<GridRegionRequest> m_RequestQueue = new OpenSim.Framework.BlockingQueue<GridRegionRequest>();
+        //private OpenSim.Framework.BlockingQueue<GridRegionRequest> m_RequestQueue = new OpenSim.Framework.BlockingQueue<GridRegionRequest>();
+        private OpenSim.Framework.DoubleQueue<GridRegionRequest> m_RequestQueue = new OpenSim.Framework.DoubleQueue<GridRegionRequest>();
 
         public void Initialise(IConfigSource config)
         {
