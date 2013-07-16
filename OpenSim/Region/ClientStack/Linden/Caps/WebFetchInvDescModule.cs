@@ -254,10 +254,13 @@ namespace OpenSim.Region.ClientStack.Linden
                         }
                     }
 
-                    if (highPriority)
-                        m_queue.EnqueueHigh(reqinfo);
-                    else
-                        m_queue.EnqueueLow(reqinfo);
+                    lock (m_queue)
+                    {
+                        if (highPriority)
+                            m_queue.EnqueueHigh(reqinfo);
+                        else
+                            m_queue.EnqueueLow(reqinfo);
+                    }
                 };
 
                 NoEvents = (x, y) =>
@@ -345,7 +348,9 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 Watchdog.UpdateThread();
 
-                aPollRequest poolreq = m_queue.Dequeue();
+                aPollRequest poolreq = null;
+                lock (m_queue)
+                    poolreq = m_queue.Dequeue();
 
                 if (poolreq != null && poolreq.thepoll != null)
                     poolreq.thepoll.Process(poolreq);
