@@ -50,7 +50,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public enum EventType : int
         {
-            LongPoll = 0,
+            Normal = 0,
             LslHttp = 1,
             Inventory = 2
         }
@@ -80,7 +80,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             NoEvents = pNoEvents;
             Id = pId;
             TimeOutms = pTimeOutms;
-            Type = EventType.LongPoll;
+            Type = EventType.Normal;
         }
     }
 }

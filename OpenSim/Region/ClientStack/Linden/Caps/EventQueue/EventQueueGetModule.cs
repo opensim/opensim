@@ -364,7 +364,8 @@ namespace OpenSim.Region.ClientStack.Linden
 
             caps.RegisterPollHandler(
                 "EventQueueGet", 
-                new PollServiceEventArgs(null, GenerateEqgCapPath(eventQueueGetUUID), HasEvents, GetEvents, NoEvents, agentID, 40000));
+                new PollServiceEventArgs(
+                    null, GenerateEqgCapPath(eventQueueGetUUID), HasEvents, GetEvents, NoEvents, agentID, 40000));
 
             Random rnd = new Random(Environment.TickCount);
             lock (m_ids)
@@ -382,10 +383,7 @@ namespace OpenSim.Region.ClientStack.Linden
             Queue<OSD> queue = GetQueue(agentID);
             if (queue != null)
                 lock (queue)
-                {
-                    //m_log.WarnFormat("POLLED FOR EVENTS BY {0} in {1} -- {2}", agentID, m_scene.RegionInfo.RegionName, queue.Count);
                     return queue.Count > 0;
-                }
 
             return false;
         }
@@ -408,7 +406,7 @@ namespace OpenSim.Region.ClientStack.Linden
         public Hashtable GetEvents(UUID requestID, UUID pAgentId)
         {
             if (DebugLevel >= 2)
-                m_log.WarnFormat("POLLED FOR EQ MESSAGES BY {0} in {1}", pAgentId, m_scene.RegionInfo.RegionName);
+                m_log.DebugFormat("POLLED FOR EQ MESSAGES BY {0} in {1}", pAgentId, m_scene.RegionInfo.RegionName);
 
             Queue<OSD> queue = TryGetQueue(pAgentId);
             OSD element;
