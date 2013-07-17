@@ -46,7 +46,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         private readonly BaseHttpServer m_server;
 
-        private DoubleQueue<PollServiceHttpRequest> m_requests = new DoubleQueue<PollServiceHttpRequest>();
+        private BlockingQueue<PollServiceHttpRequest> m_requests = new BlockingQueue<PollServiceHttpRequest>();
         private static Queue<PollServiceHttpRequest> m_longPollRequests = new Queue<PollServiceHttpRequest>();
 
         private uint m_WorkerThreadCount = 0;
@@ -163,7 +163,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                     m_requests.Enqueue(m_longPollRequests.Dequeue());
             }
 
-            while (m_requests.Count > 0)
+            while (m_requests.Count() > 0)
             {
                 try
                 {
@@ -185,35 +185,33 @@ namespace OpenSim.Framework.Servers.HttpServer
         {
             while (m_running)
             {
-                PollServiceHttpRequest req = m_requests.Dequeue(5000);
-                //m_log.WarnFormat("[YYY]: Dequeued {0}", (req == null ? "null" : req.PollServiceArgs.Type.ToString()));
-
                 Watchdog.UpdateThread();
-                if (req != null)
+
+                PollServiceHttpRequest req = null;
+                lock (m_requests)
                 {
-                    try
+                    if (m_requests.Count() > 0)
+                        req = m_requests.Dequeue();
+                }
+                if (req == null)
+                    Thread.Sleep(100);
+                else
+                {
+                    //PollServiceHttpRequest req = m_requests.Dequeue(5000);
+                    //m_log.WarnFormat("[YYY]: Dequeued {0}", (req == null ? "null" : req.PollServiceArgs.Type.ToString()));
+
+                    if (req != null)
                     {
-                        if (req.PollServiceArgs.HasEvents(req.RequestID, req.PollServiceArgs.Id))
+                        try
                         {
-                            Hashtable responsedata = req.PollServiceArgs.GetEvents(req.RequestID, req.PollServiceArgs.Id);
-
-                            if (responsedata == null)
-                                continue;
-
-                            if (req.PollServiceArgs.Type == PollServiceEventArgs.EventType.LongPoll) // This is the event queue
+                            if (req.PollServiceArgs.HasEvents(req.RequestID, req.PollServiceArgs.Id))
                             {
-                                try
-                                {
-                                    req.DoHTTPGruntWork(m_server, responsedata);
-                                }
-                                catch (ObjectDisposedException) // Browser aborted before we could read body, server closed the stream
-                                {
-                                    // Ignore it, no need to reply
-                                }
-                            }
-                            else
-                            {
-                                m_threadPool.QueueWorkItem(x =>
+                                Hashtable responsedata = req.PollServiceArgs.GetEvents(req.RequestID, req.PollServiceArgs.Id);
+
+                                if (responsedata == null)
+                                    continue;
+
+                                if (req.PollServiceArgs.Type == PollServiceEventArgs.EventType.LongPoll) // This is the event queue
                                 {
                                     try
                                     {
@@ -223,27 +221,41 @@ namespace OpenSim.Framework.Servers.HttpServer
                                     {
                                         // Ignore it, no need to reply
                                     }
+                                }
+                                else
+                                {
+                                    m_threadPool.QueueWorkItem(x =>
+                                    {
+                                        try
+                                        {
+                                            req.DoHTTPGruntWork(m_server, responsedata);
+                                        }
+                                        catch (ObjectDisposedException) // Browser aborted before we could read body, server closed the stream
+                                        {
+                                            // Ignore it, no need to reply
+                                        }
 
-                                    return null;
-                                }, null);
-                            }
-                        }
-                        else
-                        {
-                            if ((Environment.TickCount - req.RequestTime) > req.PollServiceArgs.TimeOutms)
-                            {
-                                req.DoHTTPGruntWork(
-                                    m_server, req.PollServiceArgs.NoEvents(req.RequestID, req.PollServiceArgs.Id));
+                                        return null;
+                                    }, null);
+                                }
                             }
                             else
                             {
-                                ReQueueEvent(req);
+                                if ((Environment.TickCount - req.RequestTime) > req.PollServiceArgs.TimeOutms)
+                                {
+                                    req.DoHTTPGruntWork(
+                                        m_server, req.PollServiceArgs.NoEvents(req.RequestID, req.PollServiceArgs.Id));
+                                }
+                                else
+                                {
+                                    ReQueueEvent(req);
+                                }
                             }
                         }
-                    }
-                    catch (Exception e)
-                    {
-                        m_log.ErrorFormat("Exception in poll service thread: " + e.ToString());
+                        catch (Exception e)
+                        {
+                            m_log.ErrorFormat("Exception in poll service thread: " + e.ToString());
+                        }
                     }
                 }
             }
