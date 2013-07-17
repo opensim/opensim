@@ -42,7 +42,7 @@ using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 namespace OpenSim.Region.CoreModules.Framework
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "GridServiceThrottleModule")]
-    public class GridServiceThrottleModule : ISharedRegionModule
+    public class ServiceThrottleModule : ISharedRegionModule, IServiceThrottleModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
@@ -52,12 +52,16 @@ namespace OpenSim.Region.CoreModules.Framework
 
         //private OpenSim.Framework.BlockingQueue<GridRegionRequest> m_RequestQueue = new OpenSim.Framework.BlockingQueue<GridRegionRequest>();
         // private OpenSim.Framework.DoubleQueue<GridRegionRequest> m_RequestQueue = new OpenSim.Framework.DoubleQueue<GridRegionRequest>();
-        private Queue<GridRegionRequest> m_RequestQueue = new Queue<GridRegionRequest>();
+        //private Queue<GridRegionRequest> m_RequestQueue = new Queue<GridRegionRequest>();
+        private Queue<Action> m_RequestQueue = new Queue<Action>();
+
+        #region ISharedRegionModule
 
         public void Initialise(IConfigSource config)
         {
             m_timer = new System.Timers.Timer();
             m_timer.AutoReset = false;
+            m_timer.Enabled = true;
             m_timer.Interval = 15000; // 15 secs at first
             m_timer.Elapsed += ProcessQueue;
             m_timer.Start();
@@ -75,7 +79,9 @@ namespace OpenSim.Region.CoreModules.Framework
             lock (m_scenes)
             {
                 m_scenes.Add(scene);
+                scene.RegisterModuleInterface<IServiceThrottleModule>(this);
                 scene.EventManager.OnNewClient += OnNewClient;
+                scene.EventManager.OnMakeRootAgent += OnMakeRootAgent;
             }
         }
 
@@ -92,21 +98,6 @@ namespace OpenSim.Region.CoreModules.Framework
             }
         }
 
-        void OnNewClient(IClientAPI client)
-        {
-            client.OnRegionHandleRequest += OnRegionHandleRequest;
-        }
-
-        //void OnMakeRootAgent(ScenePresence obj)
-        //{
-        //    lock (m_timer)
-        //    {
-        //        m_timer.Stop();
-        //        m_timer.Interval = 1000;
-        //        m_timer.Start();
-        //    }
-        //}
-
         public void PostInitialise()
         {
         }
@@ -117,7 +108,7 @@ namespace OpenSim.Region.CoreModules.Framework
 
         public string Name
         {
-            get { return "GridServiceThrottleModule"; }
+            get { return "ServiceThrottleModule"; }
         }
 
         public Type ReplaceableInterface
@@ -125,9 +116,31 @@ namespace OpenSim.Region.CoreModules.Framework
             get { return null; }
         }
 
+        #endregion ISharedRegionMOdule
+
+        #region Events
+
+        void OnNewClient(IClientAPI client)
+        {
+            client.OnRegionHandleRequest += OnRegionHandleRequest;
+        }
+
+        void OnMakeRootAgent(ScenePresence obj)
+        {
+            lock (m_timer)
+            {
+                if (!m_timer.Enabled)
+                {
+                    m_timer.Interval = 1000;
+                    m_timer.Enabled = true;
+                    m_timer.Start();
+                }
+            }
+        }
+
         public void OnRegionHandleRequest(IClientAPI client, UUID regionID)
         {
-            //m_log.DebugFormat("[GRIDSERVICE THROTTLE]: RegionHandleRequest {0}", regionID);
+            //m_log.DebugFormat("[SERVICE THROTTLE]: RegionHandleRequest {0}", regionID);
             ulong handle = 0;
             if (IsLocalRegionHandle(regionID, out handle))
             {
@@ -135,11 +148,64 @@ namespace OpenSim.Region.CoreModules.Framework
                 return;
             }
 
-            GridRegionRequest request = new GridRegionRequest(client, regionID);
+            Action action = delegate
+            {
+                GridRegion r = m_scenes[0].GridService.GetRegionByUUID(UUID.Zero, regionID);
+
+                if (r != null && r.RegionHandle != 0)
+                    client.SendRegionHandle(regionID, r.RegionHandle);
+            };
+
             lock (m_RequestQueue)
-                m_RequestQueue.Enqueue(request);
+                m_RequestQueue.Enqueue(action);
 
         }
+
+        #endregion Events
+
+        #region IServiceThrottleModule
+
+        public void Enqueue(Action continuation)
+        {
+            m_RequestQueue.Enqueue(continuation);
+        }
+
+        #endregion IServiceThrottleModule
+
+        #region Process Continuation Queue
+
+        private void ProcessQueue(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            m_log.DebugFormat("[YYY]: Process queue with {0} continuations", m_RequestQueue.Count);
+
+            while (m_RequestQueue.Count > 0)
+            {
+                Action continuation = null;
+                lock (m_RequestQueue)
+                    continuation = m_RequestQueue.Dequeue();
+
+                if (continuation != null)
+                    continuation();
+            }
+
+            if (AreThereRootAgents())
+            {
+                lock (m_timer)
+                {
+                    m_timer.Interval = 1000; // 1 sec
+                    m_timer.Enabled = true;
+                    m_timer.Start();
+                }
+            }
+            else
+                lock (m_timer)
+                    m_timer.Enabled = false;
+
+        }
+
+        #endregion Process Continuation Queue
+
+        #region Misc
 
         private bool IsLocalRegionHandle(UUID regionID, out ulong regionHandle)
         {
@@ -157,65 +223,15 @@ namespace OpenSim.Region.CoreModules.Framework
         {
             foreach (Scene s in m_scenes)
             {
-                if (s.GetRootAgentCount() > 0)
-                    return true;
+                foreach (ScenePresence sp in s.GetScenePresences())
+                    if (!sp.IsChildAgent)
+                        return true;
             }
 
             return false;
         }
 
-        private void ProcessQueue(object sender, System.Timers.ElapsedEventArgs e)
-        {
-            while (m_RequestQueue.Count > 0)
-            {
-                GridRegionRequest request = null;
-                lock (m_RequestQueue)
-                    request = m_RequestQueue.Dequeue();
-                if (request != null)
-                {
-                    GridRegion r = m_scenes[0].GridService.GetRegionByUUID(UUID.Zero, request.regionID);
-
-                    if (r != null && r.RegionHandle != 0)
-                        request.client.SendRegionHandle(request.regionID, r.RegionHandle);
-                }
-            }
-
-            if (AreThereRootAgents())
-                m_timer.Interval = 1000; // 1 sec
-            else
-                m_timer.Interval = 10000; // 10 secs
-
-            m_timer.Start();
-        }
-
-        private void ProcessQueue()
-        {
-            while (true)
-            {
-                Watchdog.UpdateThread();
-
-                GridRegionRequest request = m_RequestQueue.Dequeue();
-                if (request != null)
-                {
-                    GridRegion r = m_scenes[0].GridService.GetRegionByUUID(UUID.Zero, request.regionID);
-
-                    if (r != null && r.RegionHandle != 0)
-                        request.client.SendRegionHandle(request.regionID, r.RegionHandle);
-                }
-            }
-        }
-
+        #endregion Misc
     }
 
-    class GridRegionRequest
-    {
-        public IClientAPI client;
-        public UUID regionID;
-
-        public GridRegionRequest(IClientAPI c, UUID r)
-        {
-            client = c;
-            regionID = r;
-        }
-    }
 }

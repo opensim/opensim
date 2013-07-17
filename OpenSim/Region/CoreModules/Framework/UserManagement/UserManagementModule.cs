@@ -56,15 +56,9 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
         protected bool m_Enabled;
         protected List<Scene> m_Scenes = new List<Scene>();
 
+        protected IServiceThrottleModule m_ServiceThrottle;
         // The cache
         protected Dictionary<UUID, UserData> m_UserCache = new Dictionary<UUID, UserData>();
-
-        // Throttle the name requests
-        //private OpenSim.Framework.BlockingQueue<NameRequest> m_RequestQueue = new OpenSim.Framework.BlockingQueue<NameRequest>();
-        //private OpenSim.Framework.DoubleQueue<NameRequest> m_RequestQueue = new OpenSim.Framework.DoubleQueue<NameRequest>();
-        private Queue<NameRequest> m_RequestQueue = new Queue<NameRequest>();
-
-        private System.Timers.Timer m_timer;
 
         #region ISharedRegionModule
 
@@ -118,6 +112,8 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
         public void RegionLoaded(Scene s)
         {
+            if (m_Enabled && m_ServiceThrottle == null)
+                m_ServiceThrottle = s.RequestModuleInterface<IServiceThrottleModule>();
         }
 
         public void PostInitialise()
@@ -157,7 +153,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             client.OnAvatarPickerRequest -= new AvatarPickerRequest(HandleAvatarPickerRequest);
         }
 
-        void HandleUUIDNameRequest(UUID uuid, IClientAPI remote_client)
+        void HandleUUIDNameRequest(UUID uuid, IClientAPI client)
         {
 //            m_log.DebugFormat(
 //                "[USER MANAGEMENT MODULE]: Handling request for name binding of UUID {0} from {1}", 
@@ -165,12 +161,33 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
             if (m_Scenes[0].LibraryService != null && (m_Scenes[0].LibraryService.LibraryRootFolder.Owner == uuid))
             {
-                remote_client.SendNameReply(uuid, "Mr", "OpenSim");
+                client.SendNameReply(uuid, "Mr", "OpenSim");
             }
             else
             {
-                NameRequest request = new NameRequest(remote_client, uuid);
-                m_RequestQueue.Enqueue(request);
+                string[] names = new string[2];
+                if (TryGetUserNamesFromCache(uuid, names))
+                {
+                    client.SendNameReply(uuid, names[0], names[1]);
+                    return;
+                }
+
+                // Not found in cache, get it from services
+                m_ServiceThrottle.Enqueue(delegate
+                {
+                    m_log.DebugFormat("[YYY]: Name request {0}", uuid);
+                    bool foundRealName = TryGetUserNamesFromServices(uuid, names);
+
+                    if (names.Length == 2)
+                    {
+                        if (!foundRealName)
+                            m_log.DebugFormat("[USER MANAGEMENT MODULE]: Sending {0} {1} for {2} to {3} since no bound name found", names[0], names[1], uuid, client.Name);
+                        else
+                            m_log.DebugFormat("[YYY]: Found user {0} {1} for uuid {2}", names[0], names[1], uuid);
+
+                        client.SendNameReply(uuid, names[0], names[1]);
+                    }
+                });
 
             }
         }
@@ -286,15 +303,27 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
         }
 
         /// <summary>
-        /// Try to get the names bound to the given uuid.
+        /// 
         /// </summary>
-        /// <returns>True if the name was found, false if not.</returns>
-        /// <param name='uuid'></param>
-        /// <param name='names'>The array of names if found.  If not found, then names[0] = "Unknown" and names[1] = "User"</param>
-        private bool TryGetUserNames(UUID uuid, out string[] names)
+        /// <param name="uuid"></param>
+        /// <param name="names">Caller please provide a properly instantiated array for names, string[2]</param>
+        /// <returns></returns>
+        private bool TryGetUserNames(UUID uuid, string[] names)
         {
-            names = new string[2];
+            if (names == null)
+                names = new string[2];
 
+            if (TryGetUserNamesFromCache(uuid, names))
+                return true;
+
+            if (TryGetUserNamesFromServices(uuid, names))
+                return true;
+
+            return false;
+        }
+
+        private bool TryGetUserNamesFromCache(UUID uuid, string[] names)
+        {
             lock (m_UserCache)
             {
                 if (m_UserCache.ContainsKey(uuid))
@@ -306,6 +335,17 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                 }
             }
 
+            return false;
+        }
+
+        /// <summary>
+        /// Try to get the names bound to the given uuid, from the services.
+        /// </summary>
+        /// <returns>True if the name was found, false if not.</returns>
+        /// <param name='uuid'></param>
+        /// <param name='names'>The array of names if found.  If not found, then names[0] = "Unknown" and names[1] = "User"</param>
+        private bool TryGetUserNamesFromServices(UUID uuid, string[] names)
+        {
             UserAccount account = m_Scenes[0].UserAccountService.GetUserAccount(UUID.Zero, uuid);
 
             if (account != null)
@@ -390,18 +430,11 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
         public string GetUserName(UUID uuid)
         {
-            string[] names;
-            TryGetUserNames(uuid, out names);
+            string[] names = new string[2];
+            TryGetUserNames(uuid, names);
 
-            if (names.Length == 2)
-            {
-                string firstname = names[0];
-                string lastname = names[1];
+            return names[0] + " " + names[1];
 
-                return firstname + " " + lastname;
-            }
-
-            return "(hippos)";
         }
 
         public string GetUserHomeURL(UUID userID)
@@ -601,19 +634,6 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
         protected void Init()
         {
             RegisterConsoleCmds();
-            //Watchdog.StartThread(
-            //    ProcessQueue,
-            //    "NameRequestThread",
-            //    ThreadPriority.BelowNormal,
-            //    true,
-            //    false);
-
-            m_timer = new System.Timers.Timer();
-            m_timer.AutoReset = false;
-            m_timer.Interval = 15000; // 15 secs at first
-            m_timer.Elapsed += ProcessQueue;
-            m_timer.Start();
-
         }
 
         protected void RegisterConsoleCmds()
@@ -683,83 +703,6 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             MainConsole.Instance.Output(cdt.ToString());
         }
 
-        private void ProcessQueue()
-        {
-            while (true)
-            {
-                Watchdog.UpdateThread();
-
-                NameRequest request = m_RequestQueue.Dequeue();
-                if (request != null)
-                {
-                    string[] names;
-                    bool foundRealName = TryGetUserNames(request.uuid, out names);
-
-                    if (names.Length == 2)
-                    {
-                        if (!foundRealName)
-                            m_log.DebugFormat("[USER MANAGEMENT MODULE]: Sending {0} {1} for {2} to {3} since no bound name found", names[0], names[1], request.uuid, request.client.Name);
-
-                        request.client.SendNameReply(request.uuid, names[0], names[1]);
-                    }
-                }
-            }
-        }
-
-        private bool AreThereRootAgents()
-        {
-            foreach (Scene s in m_Scenes)
-            {
-                if (s.GetRootAgentCount() > 0)
-                    return true;
-            }
-
-            return false;
-        }
-
-        private void ProcessQueue(object sender, System.Timers.ElapsedEventArgs e)
-        {
-            while (m_RequestQueue.Count > 0)
-            {
-                NameRequest request = null;
-                lock (m_RequestQueue)
-                    request = m_RequestQueue.Dequeue();
-
-                if (request != null)
-                {
-                    string[] names;
-                    bool foundRealName = TryGetUserNames(request.uuid, out names);
-
-                    if (names.Length == 2)
-                    {
-                        if (!foundRealName)
-                            m_log.DebugFormat("[USER MANAGEMENT MODULE]: Sending {0} {1} for {2} to {3} since no bound name found", names[0], names[1], request.uuid, request.client.Name);
-
-                        request.client.SendNameReply(request.uuid, names[0], names[1]);
-                    }
-                }
-            }
-
-            if (AreThereRootAgents())
-                m_timer.Interval = 1000; // 1 sec
-            else
-                m_timer.Interval = 10000; // 10 secs
-
-            m_timer.Start();
-
-        }
-    }
-
-    class NameRequest
-    {
-        public IClientAPI client;
-        public UUID uuid;
-
-        public NameRequest(IClientAPI c, UUID n)
-        {
-            client = c;
-            uuid = n;
-        }
     }
 
 }
