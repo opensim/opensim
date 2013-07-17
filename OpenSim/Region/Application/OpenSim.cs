@@ -423,8 +423,8 @@ namespace OpenSim
             {
                 RegionInfo regionInfo = presence.Scene.RegionInfo;
 
-                if (presence.Firstname.ToLower().Contains(mainParams[2].ToLower()) &&
-                    presence.Lastname.ToLower().Contains(mainParams[3].ToLower()))
+                if (presence.Firstname.ToLower().Equals(mainParams[2].ToLower()) &&
+                    presence.Lastname.ToLower().Equals(mainParams[3].ToLower()))
                 {
                     MainConsole.Instance.Output(
                         String.Format(
@@ -438,6 +438,7 @@ namespace OpenSim
                         presence.ControllingClient.Kick("\nThe OpenSim manager kicked you out.\n");
 
                     presence.Scene.IncomingCloseAgent(presence.UUID, force);
+                    break;
                 }
             }
 
