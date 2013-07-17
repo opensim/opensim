@@ -116,7 +116,8 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                     return false;
 
             // Delete existing npc attachments
-            scene.AttachmentsModule.DeleteAttachmentsFromScene(npc, false);
+            if(scene.AttachmentsModule != null)
+                scene.AttachmentsModule.DeleteAttachmentsFromScene(npc, false);
 
             // XXX: We can't just use IAvatarFactoryModule.SetAppearance() yet
             // since it doesn't transfer attachments
@@ -125,7 +126,8 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             npc.Appearance = npcAppearance;
 
             // Rez needed npc attachments
-            scene.AttachmentsModule.RezAttachments(npc);
+            if (scene.AttachmentsModule != null)
+                scene.AttachmentsModule.RezAttachments(npc);
 
             IAvatarFactoryModule module =
                     scene.RequestModuleInterface<IAvatarFactoryModule>();
