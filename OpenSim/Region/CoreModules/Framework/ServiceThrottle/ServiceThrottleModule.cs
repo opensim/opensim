@@ -54,11 +54,14 @@ namespace OpenSim.Region.CoreModules.Framework
         // private OpenSim.Framework.DoubleQueue<GridRegionRequest> m_RequestQueue = new OpenSim.Framework.DoubleQueue<GridRegionRequest>();
         //private Queue<GridRegionRequest> m_RequestQueue = new Queue<GridRegionRequest>();
         private Queue<Action> m_RequestQueue = new Queue<Action>();
+        private int m_Interval;
 
         #region ISharedRegionModule
 
         public void Initialise(IConfigSource config)
         {
+            m_Interval = Util.GetConfigVarFromSections<int>(config, "Interval", new string[] { "ServiceThrottle" }, 2000);
+
             m_timer = new System.Timers.Timer();
             m_timer.AutoReset = false;
             m_timer.Enabled = true;
@@ -131,7 +134,7 @@ namespace OpenSim.Region.CoreModules.Framework
             {
                 if (!m_timer.Enabled)
                 {
-                    m_timer.Interval = 1000;
+                    m_timer.Interval = m_Interval;
                     m_timer.Enabled = true;
                     m_timer.Start();
                 }
