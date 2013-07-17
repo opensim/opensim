@@ -126,22 +126,18 @@ namespace OpenSim.Framework.Servers.HttpServer
                 Thread.Sleep(1000); 
                 Watchdog.UpdateThread();
 
-                List<PollServiceHttpRequest> not_ready = new List<PollServiceHttpRequest>();
+                PollServiceHttpRequest req;
                 lock (m_longPollRequests)
                 {
                     while (m_longPollRequests.Count > 0 && m_running)
                     {
-                        PollServiceHttpRequest req = m_longPollRequests.Dequeue();
+                        req = m_longPollRequests.Dequeue();
                         if (req.PollServiceArgs.HasEvents(req.RequestID, req.PollServiceArgs.Id) || // there are events in this EQ
                             (Environment.TickCount - req.RequestTime) > req.PollServiceArgs.TimeOutms) // no events, but timeout
                             m_requests.Enqueue(req);
                         else
-                            not_ready.Add(req);
+                            m_longPollRequests.Enqueue(req);
                     }
-
-                    foreach (PollServiceHttpRequest req in not_ready)
-                        m_longPollRequests.Enqueue(req);
-
                 }
             }
         }
