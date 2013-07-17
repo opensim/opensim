@@ -172,11 +172,11 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                     return;
                 }
 
-                // Not found in cache, get it from services
+                // Not found in cache, queue continuation
                 m_ServiceThrottle.Enqueue(delegate
                 {
                     //m_log.DebugFormat("[YYY]: Name request {0}", uuid);
-                    bool foundRealName = TryGetUserNamesFromServices(uuid, names);
+                    bool foundRealName = TryGetUserNames(uuid, names);
 
                     if (names.Length == 2)
                     {
