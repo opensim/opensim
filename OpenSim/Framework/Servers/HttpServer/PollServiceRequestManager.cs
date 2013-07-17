@@ -47,12 +47,11 @@ namespace OpenSim.Framework.Servers.HttpServer
         private readonly BaseHttpServer m_server;
 
         private BlockingQueue<PollServiceHttpRequest> m_requests = new BlockingQueue<PollServiceHttpRequest>();
-        private static Queue<PollServiceHttpRequest> m_slowRequests = new Queue<PollServiceHttpRequest>();
-        private static Queue<PollServiceHttpRequest> m_retryRequests = new Queue<PollServiceHttpRequest>();
+        private static Queue<PollServiceHttpRequest> m_longPollRequests = new Queue<PollServiceHttpRequest>();
 
         private uint m_WorkerThreadCount = 0;
         private Thread[] m_workerThreads;
-        private Thread m_retrysThread;
+        private Thread m_longPollThread;
 
         private bool m_running = true;
         private int slowCount = 0;
@@ -84,9 +83,9 @@ namespace OpenSim.Framework.Servers.HttpServer
                         int.MaxValue);
             }
 
-            m_retrysThread = Watchdog.StartThread(
-                this.CheckRetries,
-                string.Format("PollServiceWatcherThread:{0}", m_server.Port),
+            m_longPollThread = Watchdog.StartThread(
+                this.CheckLongPollThreads,
+                string.Format("LongPollServiceWatcherThread:{0}", m_server.Port),
                 ThreadPriority.Normal,
                 false,
                 true,
@@ -97,49 +96,52 @@ namespace OpenSim.Framework.Servers.HttpServer
         private void ReQueueEvent(PollServiceHttpRequest req)
         {
             if (m_running)
-            {
-                lock (m_retryRequests)
-                    m_retryRequests.Enqueue(req);
-            }
+                m_requests.Enqueue(req);
         }
 
         public void Enqueue(PollServiceHttpRequest req)
         {
             if (m_running)
             {
-                if (req.PollServiceArgs.Type != PollServiceEventArgs.EventType.Normal)
+                if (req.PollServiceArgs.Type == PollServiceEventArgs.EventType.LongPoll)
                 {
-                    m_requests.Enqueue(req);
+                    lock (m_longPollRequests)
+                        m_longPollRequests.Enqueue(req);
                 }
                 else
-                {
-                    lock (m_slowRequests)
-                        m_slowRequests.Enqueue(req);
-                }
+                    m_requests.Enqueue(req);
             }
         }
 
-        private void CheckRetries()
+        private void CheckLongPollThreads()
         {
+            // The only purpose of this thread is to check the EQs for events.
+            // If there are events, that thread will be placed in the "ready-to-serve" queue, m_requests.
+            // If there are no events, that thread will be back to its "waiting" queue, m_longPollRequests.
+            // All other types of tasks (Inventory handlers) don't have the long-poll nature,
+            // so if they aren't ready to be served by a worker thread (no events), they are placed 
+            // directly back in the "ready-to-serve" queue by the worker thread.
             while (m_running)
             {
-                Thread.Sleep(100); // let the world move  .. back to faster rate
+                Thread.Sleep(1000); 
                 Watchdog.UpdateThread();
-                lock (m_retryRequests)
-                {
-                    while (m_retryRequests.Count > 0 && m_running)
-                        m_requests.Enqueue(m_retryRequests.Dequeue());
-                }
-                slowCount++;
-                if (slowCount >= 10)
-                {
-                    slowCount = 0;
 
-                    lock (m_slowRequests)
+                List<PollServiceHttpRequest> not_ready = new List<PollServiceHttpRequest>();
+                lock (m_longPollRequests)
+                {
+                    while (m_longPollRequests.Count > 0 && m_running)
                     {
-                        while (m_slowRequests.Count > 0 && m_running)
-                            m_requests.Enqueue(m_slowRequests.Dequeue());
+                        PollServiceHttpRequest req = m_longPollRequests.Dequeue();
+                        if (req.PollServiceArgs.HasEvents(req.RequestID, req.PollServiceArgs.Id) || // there are events in this EQ
+                            (Environment.TickCount - req.RequestTime) > req.PollServiceArgs.TimeOutms) // no events, but timeout
+                            m_requests.Enqueue(req);
+                        else
+                            not_ready.Add(req);
                     }
+
+                    foreach (PollServiceHttpRequest req in not_ready)
+                        m_longPollRequests.Enqueue(req);
+
                 }
             }
         }
@@ -153,24 +155,12 @@ namespace OpenSim.Framework.Servers.HttpServer
             foreach (Thread t in m_workerThreads)
                 Watchdog.AbortThread(t.ManagedThreadId);
 
-            try
-            {
-                foreach (PollServiceHttpRequest req in m_retryRequests)
-                {
-                   req.DoHTTPGruntWork(m_server, req.PollServiceArgs.NoEvents(req.RequestID, req.PollServiceArgs.Id));
-                }
-            }
-            catch
-            {
-            }
-
             PollServiceHttpRequest wreq;
-            m_retryRequests.Clear();
 
-            lock (m_slowRequests)
+            lock (m_longPollRequests)
             {
-                while (m_slowRequests.Count > 0 && m_running)
-                    m_requests.Enqueue(m_slowRequests.Dequeue());
+                while (m_longPollRequests.Count > 0 && m_running)
+                    m_requests.Enqueue(m_longPollRequests.Dequeue());
             }
 
             while (m_requests.Count() > 0)
@@ -195,34 +185,33 @@ namespace OpenSim.Framework.Servers.HttpServer
         {
             while (m_running)
             {
-                PollServiceHttpRequest req = m_requests.Dequeue(5000);
-
                 Watchdog.UpdateThread();
-                if (req != null)
+
+                PollServiceHttpRequest req = null;
+                lock (m_requests)
                 {
-                    try
+                    if (m_requests.Count() > 0)
+                        req = m_requests.Dequeue();
+                }
+                if (req == null)
+                    Thread.Sleep(100);
+                else
+                {
+                    //PollServiceHttpRequest req = m_requests.Dequeue(5000);
+                    //m_log.WarnFormat("[YYY]: Dequeued {0}", (req == null ? "null" : req.PollServiceArgs.Type.ToString()));
+
+                    if (req != null)
                     {
-                        if (req.PollServiceArgs.HasEvents(req.RequestID, req.PollServiceArgs.Id))
+                        try
                         {
-                            Hashtable responsedata = req.PollServiceArgs.GetEvents(req.RequestID, req.PollServiceArgs.Id);
-
-                            if (responsedata == null)
-                                continue;
-
-                            if (req.PollServiceArgs.Type == PollServiceEventArgs.EventType.Normal) // This is the event queue
+                            if (req.PollServiceArgs.HasEvents(req.RequestID, req.PollServiceArgs.Id))
                             {
-                                try
-                                {
-                                    req.DoHTTPGruntWork(m_server, responsedata);
-                                }
-                                catch (ObjectDisposedException) // Browser aborted before we could read body, server closed the stream
-                                {
-                                    // Ignore it, no need to reply
-                                }
-                            }
-                            else
-                            {
-                                m_threadPool.QueueWorkItem(x =>
+                                Hashtable responsedata = req.PollServiceArgs.GetEvents(req.RequestID, req.PollServiceArgs.Id);
+
+                                if (responsedata == null)
+                                    continue;
+
+                                if (req.PollServiceArgs.Type == PollServiceEventArgs.EventType.LongPoll) // This is the event queue
                                 {
                                     try
                                     {
@@ -232,27 +221,41 @@ namespace OpenSim.Framework.Servers.HttpServer
                                     {
                                         // Ignore it, no need to reply
                                     }
+                                }
+                                else
+                                {
+                                    m_threadPool.QueueWorkItem(x =>
+                                    {
+                                        try
+                                        {
+                                            req.DoHTTPGruntWork(m_server, responsedata);
+                                        }
+                                        catch (ObjectDisposedException) // Browser aborted before we could read body, server closed the stream
+                                        {
+                                            // Ignore it, no need to reply
+                                        }
 
-                                    return null;
-                                }, null);
-                            }
-                        }
-                        else
-                        {
-                            if ((Environment.TickCount - req.RequestTime) > req.PollServiceArgs.TimeOutms)
-                            {
-                                req.DoHTTPGruntWork(
-                                    m_server, req.PollServiceArgs.NoEvents(req.RequestID, req.PollServiceArgs.Id));
+                                        return null;
+                                    }, null);
+                                }
                             }
                             else
                             {
-                                ReQueueEvent(req);
+                                if ((Environment.TickCount - req.RequestTime) > req.PollServiceArgs.TimeOutms)
+                                {
+                                    req.DoHTTPGruntWork(
+                                        m_server, req.PollServiceArgs.NoEvents(req.RequestID, req.PollServiceArgs.Id));
+                                }
+                                else
+                                {
+                                    ReQueueEvent(req);
+                                }
                             }
                         }
-                    }
-                    catch (Exception e)
-                    {
-                        m_log.ErrorFormat("Exception in poll service thread: " + e.ToString());
+                        catch (Exception e)
+                        {
+                            m_log.ErrorFormat("Exception in poll service thread: " + e.ToString());
+                        }
                     }
                 }
             }

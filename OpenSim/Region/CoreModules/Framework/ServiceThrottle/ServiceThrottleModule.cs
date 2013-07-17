@@ -50,15 +50,16 @@ namespace OpenSim.Region.CoreModules.Framework
         private readonly List<Scene> m_scenes = new List<Scene>();
         private System.Timers.Timer m_timer = new System.Timers.Timer();
 
-        //private OpenSim.Framework.BlockingQueue<GridRegionRequest> m_RequestQueue = new OpenSim.Framework.BlockingQueue<GridRegionRequest>();
-        // private OpenSim.Framework.DoubleQueue<GridRegionRequest> m_RequestQueue = new OpenSim.Framework.DoubleQueue<GridRegionRequest>();
-        //private Queue<GridRegionRequest> m_RequestQueue = new Queue<GridRegionRequest>();
         private Queue<Action> m_RequestQueue = new Queue<Action>();
+        private Dictionary<string, List<string>> m_Pending = new Dictionary<string, List<string>>();
+        private int m_Interval;
 
         #region ISharedRegionModule
 
         public void Initialise(IConfigSource config)
         {
+            m_Interval = Util.GetConfigVarFromSections<int>(config, "Interval", new string[] { "ServiceThrottle" }, 5000);
+
             m_timer = new System.Timers.Timer();
             m_timer.AutoReset = false;
             m_timer.Enabled = true;
@@ -131,7 +132,7 @@ namespace OpenSim.Region.CoreModules.Framework
             {
                 if (!m_timer.Enabled)
                 {
-                    m_timer.Interval = 1000;
+                    m_timer.Interval = m_Interval;
                     m_timer.Enabled = true;
                     m_timer.Start();
                 }
@@ -156,18 +157,36 @@ namespace OpenSim.Region.CoreModules.Framework
                     client.SendRegionHandle(regionID, r.RegionHandle);
             };
 
-            lock (m_RequestQueue)
-                m_RequestQueue.Enqueue(action);
-
+            Enqueue("region", regionID.ToString(), action);
         }
 
         #endregion Events
 
         #region IServiceThrottleModule
 
-        public void Enqueue(Action continuation)
+        public void Enqueue(string category, string itemid, Action continuation)
         {
-            m_RequestQueue.Enqueue(continuation);
+            lock (m_RequestQueue)
+            {
+                if (m_Pending.ContainsKey(category))
+                {
+                    if (m_Pending[category].Contains(itemid))
+                        // Don't enqueue, it's already pending
+                        return;
+                }
+                else
+                    m_Pending.Add(category, new List<string>());
+
+                m_Pending[category].Add(itemid);
+
+                m_RequestQueue.Enqueue(delegate
+                {
+                    lock (m_RequestQueue)
+                        m_Pending[category].Remove(itemid);
+
+                    continuation();
+                });
+            }
         }
 
         #endregion IServiceThrottleModule

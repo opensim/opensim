@@ -97,6 +97,9 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
     internal long m_simulationStep = 0; // The current simulation step.
     public long SimulationStep { get { return m_simulationStep; } }
+    // A number to use for SimulationStep that is probably not any step value
+    // Used by the collision code (which remembers the step when a collision happens) to remember not any simulation step.
+    public static long NotASimulationStep = -1234;
 
     internal float LastTimeStep { get; private set; }   // The simulation time from the last invocation of Simulate()
 

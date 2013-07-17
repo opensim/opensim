@@ -81,6 +81,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         private List<UUID> m_rootAgents = new List<UUID>();
         private volatile bool threadrunning = false;
 
+        private IServiceThrottleModule m_ServiceThrottle;
+
         //private int CacheRegionsDistance = 256;
 
         #region INonSharedRegionModule Members
@@ -131,6 +133,10 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
         public virtual void RegionLoaded (Scene scene)
         {
+            if (!m_Enabled)
+                return;
+
+            m_ServiceThrottle = scene.RequestModuleInterface<IServiceThrottleModule>();
         }
 
 
@@ -170,13 +176,13 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             m_scene.EventManager.OnMakeRootAgent += MakeRootAgent;
             m_scene.EventManager.OnRegionUp += OnRegionUp;
 
-            StartThread(new object());
+//            StartThread(new object());
         }
 
         // this has to be called with a lock on m_scene
         protected virtual void RemoveHandlers()
         {
-            StopThread();
+//            StopThread();
 
             m_scene.EventManager.OnRegionUp -= OnRegionUp;
             m_scene.EventManager.OnMakeRootAgent -= MakeRootAgent;
@@ -526,7 +532,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         /// </summary>
         public void process()
         {
-            const int MAX_ASYNC_REQUESTS = 20;
+            //const int MAX_ASYNC_REQUESTS = 20;
             try
             {
                 while (true)
@@ -571,13 +577,44 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             Watchdog.RemoveThread();
         }
 
+        const int MAX_ASYNC_REQUESTS = 20;
+
         /// <summary>
-        /// Enqueues the map item request into the processing thread
+        /// Enqueues the map item request into the services throttle processing thread
         /// </summary>
         /// <param name="state"></param>
-        public void EnqueueMapItemRequest(MapRequestState state)
+        public void EnqueueMapItemRequest(MapRequestState st)
         {
-            requests.Enqueue(state);
+
+            m_ServiceThrottle.Enqueue("map-item", st.regionhandle.ToString() + st.agentID.ToString(), delegate
+            {
+                if (st.agentID != UUID.Zero)
+                {
+                    bool dorequest = true;
+                    lock (m_rootAgents)
+                    {
+                        if (!m_rootAgents.Contains(st.agentID))
+                            dorequest = false;
+                    }
+
+                    if (dorequest && !m_blacklistedregions.ContainsKey(st.regionhandle))
+                    {
+                        if (nAsyncRequests >= MAX_ASYNC_REQUESTS) // hit the break
+                        {
+                            // AH!!! Recursive !
+                            // Put this request back in the queue and return
+                            EnqueueMapItemRequest(st);
+                            return;
+                        }
+
+                        RequestMapItemsDelegate d = RequestMapItemsAsync;
+                        d.BeginInvoke(st.agentID, st.flags, st.EstateID, st.godlike, st.itemtype, st.regionhandle, RequestMapItemsCompleted, null);
+                        //OSDMap response = RequestMapItemsAsync(st.agentID, st.flags, st.EstateID, st.godlike, st.itemtype, st.regionhandle);
+                        //RequestMapItemsCompleted(response);
+                        Interlocked.Increment(ref nAsyncRequests);
+                    }
+                }
+            });
         }
 
         /// <summary>
