@@ -181,11 +181,10 @@ namespace OpenSim.Region.CoreModules.Framework
 
                 m_RequestQueue.Enqueue(delegate
                 {
-                    continuation();
                     lock (m_RequestQueue)
-                    {
                         m_Pending[category].Remove(itemid);
-                    }
+
+                    continuation();
                 });
             }
         }
