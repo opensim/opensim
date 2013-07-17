@@ -46,7 +46,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         private readonly BaseHttpServer m_server;
 
-        private DoubleQueue<PollServiceHttpRequest> m_requests = new DoubleQueue<PollServiceHttpRequest>();
+        private BlockingQueue<PollServiceHttpRequest> m_requests = new BlockingQueue<PollServiceHttpRequest>();
         private static Queue<PollServiceHttpRequest> m_longPollRequests = new Queue<PollServiceHttpRequest>();
 
         private uint m_WorkerThreadCount = 0;
@@ -163,7 +163,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                     m_requests.Enqueue(m_longPollRequests.Dequeue());
             }
 
-            while (m_requests.Count > 0)
+            while (m_requests.Count() > 0)
             {
                 try
                 {
