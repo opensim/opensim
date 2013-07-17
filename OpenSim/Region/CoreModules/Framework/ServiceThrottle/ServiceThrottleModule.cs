@@ -176,7 +176,7 @@ namespace OpenSim.Region.CoreModules.Framework
 
         private void ProcessQueue(object sender, System.Timers.ElapsedEventArgs e)
         {
-            m_log.DebugFormat("[YYY]: Process queue with {0} continuations", m_RequestQueue.Count);
+            //m_log.DebugFormat("[YYY]: Process queue with {0} continuations", m_RequestQueue.Count);
 
             while (m_RequestQueue.Count > 0)
             {

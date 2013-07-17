@@ -175,15 +175,13 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                 // Not found in cache, get it from services
                 m_ServiceThrottle.Enqueue(delegate
                 {
-                    m_log.DebugFormat("[YYY]: Name request {0}", uuid);
+                    //m_log.DebugFormat("[YYY]: Name request {0}", uuid);
                     bool foundRealName = TryGetUserNamesFromServices(uuid, names);
 
                     if (names.Length == 2)
                     {
                         if (!foundRealName)
                             m_log.DebugFormat("[USER MANAGEMENT MODULE]: Sending {0} {1} for {2} to {3} since no bound name found", names[0], names[1], uuid, client.Name);
-                        else
-                            m_log.DebugFormat("[YYY]: Found user {0} {1} for uuid {2}", names[0], names[1], uuid);
 
                         client.SendNameReply(uuid, names[0], names[1]);
                     }
