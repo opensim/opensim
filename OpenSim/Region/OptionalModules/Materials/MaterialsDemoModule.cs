@@ -139,18 +139,21 @@ namespace OpenSim.Region.OptionalModules.MaterialsDemoModule
         {
             string capsBase = "/CAPS/" + caps.CapsObjectPath;
 
-            IRequestHandler renderMaterialsPostHandler = new RestStreamHandler("POST", capsBase + "/", RenderMaterialsPostCap);
+            IRequestHandler renderMaterialsPostHandler 
+                = new RestStreamHandler("POST", capsBase + "/", RenderMaterialsPostCap, "RenderMaterials", null);
             caps.RegisterHandler("RenderMaterials", renderMaterialsPostHandler);
 
             // OpenSimulator CAPs infrastructure seems to be somewhat hostile towards any CAP that requires both GET
             // and POST handlers, (at least at the time this was originally written), so we first set up a POST
             // handler normally and then add a GET handler via MainServer
 
-            IRequestHandler renderMaterialsGetHandler = new RestStreamHandler("GET", capsBase + "/", RenderMaterialsGetCap);
+            IRequestHandler renderMaterialsGetHandler 
+                = new RestStreamHandler("GET", capsBase + "/", RenderMaterialsGetCap, "RenderMaterials", null);
             MainServer.Instance.AddStreamHandler(renderMaterialsGetHandler);
 
             // materials viewer seems to use either POST or PUT, so assign POST handler for PUT as well
-            IRequestHandler renderMaterialsPutHandler = new RestStreamHandler("PUT", capsBase + "/", RenderMaterialsPostCap);
+            IRequestHandler renderMaterialsPutHandler 
+                = new RestStreamHandler("PUT", capsBase + "/", RenderMaterialsPostCap, "RenderMaterials", null);
             MainServer.Instance.AddStreamHandler(renderMaterialsPutHandler);
         }
         
@@ -394,7 +397,6 @@ namespace OpenSim.Region.OptionalModules.MaterialsDemoModule
                                                 m_log.Debug("[MaterialsDemoModule]: null SOP for localId: " + matLocalID.ToString());
                                             else
                                             {
-                                                //var te = sop.Shape.Textures;
                                                 var te = new Primitive.TextureEntry(sop.Shape.TextureEntry, 0, sop.Shape.TextureEntry.Length);
 
                                                 if (te == null)
@@ -413,14 +415,7 @@ namespace OpenSim.Region.OptionalModules.MaterialsDemoModule
                                                             if (te.DefaultTexture == null)
                                                                 m_log.Debug("[MaterialsDemoModule]: te.DefaultTexture is null");
                                                             else
-                                                            {
-                                                                if (te.DefaultTexture.MaterialID == null)
-                                                                    m_log.Debug("[MaterialsDemoModule]: te.DefaultTexture.MaterialID is null");
-                                                                else
-                                                                {
-                                                                    te.DefaultTexture.MaterialID = id;
-                                                                }
-                                                            }
+                                                                te.DefaultTexture.MaterialID = id;
                                                         }
                                                         else
                                                         {

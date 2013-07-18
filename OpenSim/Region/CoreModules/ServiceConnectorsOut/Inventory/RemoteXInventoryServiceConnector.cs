@@ -195,19 +195,20 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         {
             InventoryCollection invCol = m_RemoteConnector.GetFolderContent(userID, folderID);
 
-            if (invCol != null && UserManager != null)
-            {
-                // Protect ourselves against the caller subsequently modifying the items list
-                List<InventoryItemBase> items = new List<InventoryItemBase>(invCol.Items);
+            // Commenting this for now, because it's causing more grief than good
+            //if (invCol != null && UserManager != null)
+            //{
+            //    // Protect ourselves against the caller subsequently modifying the items list
+            //    List<InventoryItemBase> items = new List<InventoryItemBase>(invCol.Items);
 
-                if (items != null && items.Count > 0)
-                    Util.FireAndForget(delegate
-                    {
-                        foreach (InventoryItemBase item in items)
-                            if (!string.IsNullOrEmpty(item.CreatorData))
-                                UserManager.AddUser(item.CreatorIdAsUuid, item.CreatorData);
-                    });
-            }
+            //    if (items != null && items.Count > 0)
+            //        //Util.FireAndForget(delegate
+            //        //{
+            //            foreach (InventoryItemBase item in items)
+            //                if (!string.IsNullOrEmpty(item.CreatorData))
+            //                    UserManager.AddUser(item.CreatorIdAsUuid, item.CreatorData);
+            //        //});
+            //}
 
             return invCol;
         }

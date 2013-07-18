@@ -543,7 +543,11 @@ namespace OpenSim.Region.Framework.Scenes
                         CreatorID = uuid;
                     }
                     if (parts.Length >= 2)
+                    {
                         CreatorData = parts[1];
+                        if (!CreatorData.EndsWith("/"))
+                            CreatorData += "/";
+                    }
                     if (parts.Length >= 3)
                         name = parts[2];
 

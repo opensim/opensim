@@ -135,7 +135,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 if (sp is ScenePresence)
                 {
                     AgentCircuitData aCircuit = ((ScenePresence)sp).Scene.AuthenticateHandler.GetAgentCircuitData(client.AgentId);
-                    if ((aCircuit.teleportFlags & (uint)Constants.TeleportFlags.ViaHGLogin) != 0)
+                    if (aCircuit != null &&  (aCircuit.teleportFlags & (uint)Constants.TeleportFlags.ViaHGLogin) != 0)
                     {
                         if (m_RestrictInventoryAccessAbroad)
                         {

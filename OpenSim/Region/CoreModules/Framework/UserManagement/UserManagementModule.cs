@@ -28,9 +28,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Threading;
 
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
+using OpenSim.Framework.Monitoring;
 using OpenSim.Region.ClientStack.LindenUDP;
 using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
@@ -57,6 +59,10 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
         // The cache
         protected Dictionary<UUID, UserData> m_UserCache = new Dictionary<UUID, UserData>();
 
+        // Throttle the name requests
+        private OpenSim.Framework.BlockingQueue<NameRequest> m_RequestQueue = new OpenSim.Framework.BlockingQueue<NameRequest>();
+
+
         #region ISharedRegionModule
 
         public void Initialise(IConfigSource config)
@@ -65,7 +71,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             if (umanmod == Name)
             {
                 m_Enabled = true;
-                RegisterConsoleCmds();
+                Init();
                 m_log.DebugFormat("[USER MANAGEMENT MODULE]: {0} is enabled", Name);
             }
         }
@@ -160,16 +166,9 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             }
             else
             {
-                string[] names;
-                bool foundRealName = TryGetUserNames(uuid, out names);
+                NameRequest request = new NameRequest(remote_client, uuid);
+                m_RequestQueue.Enqueue(request);
 
-                if (names.Length == 2)
-                {
-                    if (!foundRealName)
-                        m_log.DebugFormat("[USER MANAGEMENT MODULE]: Sending {0} {1} for {2} to {3} since no bound name found", names[0], names[1], uuid, remote_client.Name);
-
-                    remote_client.SendNameReply(uuid, names[0], names[1]);
-                }
             }
         }
 
@@ -514,9 +513,8 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                     return;
                 }
 
-                //try update unknown users
-                //and creator's home URL's
-                if ((oldUser.FirstName == "Unknown" && !creatorData.Contains("Unknown")) || (oldUser.HomeURL != null && !creatorData.StartsWith(oldUser.HomeURL)))
+                //try update unknown users, but don't update anyone else
+                if (oldUser.FirstName == "Unknown" && !creatorData.Contains("Unknown")) 
                 {
                     lock (m_UserCache)
                         m_UserCache.Remove(id);
@@ -597,6 +595,18 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
         #endregion IUserManagement
 
+        protected void Init()
+        {
+            RegisterConsoleCmds();
+            Watchdog.StartThread(
+                ProcessQueue,
+                "NameRequestThread",
+                ThreadPriority.BelowNormal,
+                true,
+                false);
+
+        }
+
         protected void RegisterConsoleCmds()
         {
             MainConsole.Instance.Commands.AddCommand("Users", true,
@@ -663,5 +673,40 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
             MainConsole.Instance.Output(cdt.ToString());
         }
+
+        private void ProcessQueue()
+        {
+            while (true)
+            {
+                Watchdog.UpdateThread();
+
+                NameRequest request = m_RequestQueue.Dequeue();
+                string[] names;
+                bool foundRealName = TryGetUserNames(request.uuid, out names);
+
+                if (names.Length == 2)
+                {
+                    if (!foundRealName)
+                        m_log.DebugFormat("[USER MANAGEMENT MODULE]: Sending {0} {1} for {2} to {3} since no bound name found", names[0], names[1], request.uuid, request.client.Name);
+
+                    request.client.SendNameReply(request.uuid, names[0], names[1]);
+                }
+
+            }
+        }
+
     }
+
+    class NameRequest
+    {
+        public IClientAPI client;
+        public UUID uuid;
+
+        public NameRequest(IClientAPI c, UUID n)
+        {
+            client = c;
+            uuid = n;
+        }
+    }
+
 }

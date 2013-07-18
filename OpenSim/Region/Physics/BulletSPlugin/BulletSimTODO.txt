@@ -3,25 +3,21 @@ CURRENT PROBLEMS TO FIX AND/OR LOOK AT
 Vehicle buoyancy. Computed correctly? Possibly creating very large effective mass.
     Interaction of llSetBuoyancy and vehicle buoyancy. Should be additive?
     Negative buoyancy computed correctly
+Center-of-gravity
 Computation of mesh mass. How done? How should it be done?
-Script changing rotation of child prim while vehicle moving (eg turning wheel) causes
-	the wheel to appear to jump back. Looks like sending position from previous update.
 Enable vehicle border crossings (at least as poorly as ODE)
 	Terrain skirts
 	Avatar created in previous region and not new region when crossing border
 	Vehicle recreated in new sim at small Z value (offset from root value?) (DONE)
+User settable terrain mesh
+	Allow specifying as convex or concave and use different getHeight functions depending
+Boats, when turning nose down into the water
+	Acts like rotation around Z is also effecting rotation around X and Y
 Deleting a linkset while standing on the root will leave the physical shape of the root behind.
 	Not sure if it is because standing on it. Done with large prim linksets.
 Linkset child rotations.
 	Nebadon spiral tube has middle sections which are rotated wrong.
 	Select linked spiral tube. Delink and note where the middle section ends up.
-Refarb compound linkset creation to create a pseudo-root for center-of-mass
-	Let children change their shape to physical indendently and just add shapes to compound
-Vehicle angular vertical attraction
-vehicle angular banking
-Center-of-gravity
-Vehicle angular deflection
-	Preferred orientation angular correction fix
 Teravus llMoveToTarget script debug
 	Mixing of hover, buoyancy/gravity, moveToTarget, into one force
 	Setting hover height to zero disables hover even if hover flags are on (from SL wiki)
@@ -33,10 +29,16 @@ Vehicle script tuning/debugging
 	Avanti speed script
 	Weapon shooter script
 Move material definitions (friction, ...) into simulator.
+osGetPhysicsEngineVerion() and create a version code for the C++ DLL
 One sided meshes? Should terrain be built into a closed shape?
 	When meshes get partially wedged into the terrain, they cannot push themselves out.
 	It is possible that Bullet processes collisions whether entering or leaving a mesh.
 	Ref: http://bulletphysics.org/Bullet/phpBB3/viewtopic.php?t=4869
+Small physical objects do not interact correctly
+    Create chain of .5x.5x.1 torui and make all but top physical so to hang.
+        The chain will fall apart and pairs will dance around on ground
+    Chains of 1x1x.2 will stay connected but will dance.
+    Chains above 2x2x.4 are more stable and get stablier as torui get larger.
 
 VEHICLES TODO LIST:
 =================================================
@@ -45,14 +47,12 @@ LINEAR_MOTOR_DIRECTION values should be clamped to reasonable numbers.
 	Same for other velocity settings.
 UBit improvements to remove rubber-banding of avatars sitting on vehicle child prims:
 	https://github.com/UbitUmarov/Ubit-opensim
-Vehicles (Move smoothly)
 Some vehicles should not be able to turn if no speed or off ground.
 Cannot edit/move a vehicle being ridden: it jumps back to the origional position.
 Neb car jiggling left and right
 	Happens on terrain and any other mesh object. Flat cubes are much smoother.
 	This has been reduced but not eliminated.
 Implement referenceFrame for all the motion routines.
-For limitMotorUp, use raycast down to find if vehicle is in the air.
 Verify llGetVel() is returning a smooth and good value for vehicle movement.
 llGetVel() should return the root's velocity if requested in a child prim.
 Implement function efficiency for lineaar and angular motion.
@@ -93,29 +93,15 @@ Revisit CollisionMargin. Builders notice the 0.04 spacing between prims.
 Duplicating a physical prim causes old prim to jump away
 	Dup a phys prim and the original become unselected and thus interacts w/ selected prim.
 Scenes with hundred of thousands of static objects take a lot of physics CPU time.
-BSPrim.Force should set a continious force on the prim. The force should be
-	applied each tick.  Some limits?
 Gun sending shooter flying.
 Collision margin (gap between physical objects lying on each other)
 Boundry checking (crashes related to crossing boundry)
     Add check for border edge position for avatars and objects.
     Verify the events are created for border crossings.
-Avatar rotation (check out changes to ScenePresence for physical rotation)
-Avatar running (what does phys engine need to do?)
-Small physical objects do not interact correctly
-    Create chain of .5x.5x.1 torui and make all but top physical so to hang.
-        The chain will fall apart and pairs will dance around on ground
-    Chains of 1x1x.2 will stay connected but will dance.
-    Chains above 2x2x.4 are more stable and get stablier as torui get larger.
-Add PID motor for avatar movement (slow to stop, ...)
-setForce should set a constant force. Different than AddImpulse.
-Implement raycast.
 Implement ShapeCollection.Dispose()
-Implement water as a plain so raycasting and collisions can happen with same.
+Implement water as a plain or mesh so raycasting and collisions can happen with same.
 Add collision penetration return
 	Add field passed back by BulletSim.dll and fill with info in ManifoldConstact.GetDistance()
-Add osGetPhysicsEngineName() so scripters can tell whether BulletSim or ODE
-	Also osGetPhysicsEngineVerion() maybe.
 Linkset.Position and Linkset.Orientation requre rewrite to properly return
 	child position. LinksetConstraint acts like it's at taint time!!
 Implement LockAngularMotion -- implements llSetStatus(ROTATE_AXIS_*, T/F)
@@ -127,9 +113,6 @@ Selecting and deselecting physical objects causes CPU processing time to jump
 Re-implement buoyancy as a separate force on the object rather than diddling gravity.
 	Register a pre-step event to add the force.
 More efficient memory usage when passing hull information from BSPrim to BulletSim
-Avatar movement motor check for zero or small movement. Somehow suppress small movements
-	when avatar has stopped and is just standing. Simple test for near zero has
-	the problem of preventing starting up (increase from zero) especially when falling.
 Physical and phantom will drop through the terrain
 
 
@@ -172,7 +155,6 @@ Do we need to do convex hulls all the time? Can complex meshes be left meshes?
 	There is some problem with meshes and collisions
 	Hulls are not as detailed as meshes. Hulled vehicles insides are different shape.
 Debounce avatar contact so legs don't keep folding up when standing.
-Implement LSL physics controls. Like STATUS_ROTATE_X.
 Add border extensions to terrain to help region crossings and objects leaving region.
 Use a different capsule shape for avatar when sitting
 	LL uses a pyrimidal shape scaled by the avatar's bounding box
@@ -205,8 +187,6 @@ Keep avatar scaling correct. http://pennycow.blogspot.fr/2011/07/matter-of-scale
 
 INTERNAL IMPROVEMENT/CLEANUP
 =================================================
-Can the 'inTaintTime' flag be cleaned up and used? For instance, a call to
-	BSScene.TaintedObject() could immediately execute the callback if already in taint time.
 Create the physical wrapper classes (BulletBody, BulletShape) by methods on
 	BSAPITemplate and make their actual implementation Bullet engine specific.
 	For the short term, just call the existing functions in ShapeCollection.
@@ -365,4 +345,35 @@ After getting off a vehicle, the root prim is phantom (can be walked through)
 Explore btGImpactMeshShape as alternative to convex hulls for simplified physical objects.
 	Regular triangle meshes don't do physical collisions.
 	(DONE: discovered GImpact is VERY CPU intensive)
+Script changing rotation of child prim while vehicle moving (eg turning wheel) causes
+	the wheel to appear to jump back. Looks like sending position from previous update.
+	(DONE: redo of compound linksets fixed problem)
+Refarb compound linkset creation to create a pseudo-root for center-of-mass
+	Let children change their shape to physical indendently and just add shapes to compound
+	(DONE: redo of compound linkset fixed problem)
+Vehicle angular vertical attraction	(DONE: vegaslon code)
+vehicle angular banking	(DONE: vegaslon code)
+Vehicle angular deflection	(DONE: vegaslon code)
+	Preferred orientation angular correction fix
+Vehicles (Move smoothly)
+For limitMotorUp, use raycast down to find if vehicle is in the air.
+	(WILL NOT BE DONE: gravity does the job well enough)
+BSPrim.Force should set a continious force on the prim. The force should be
+	applied each tick.  Some limits?
+	(DONE: added physical actors. Implemented SetForce, SetTorque, ...)
+Implement LSL physics controls. Like STATUS_ROTATE_X. (DONE)
+Add osGetPhysicsEngineName() so scripters can tell whether BulletSim or ODE
+Avatar rotation (check out changes to ScenePresence for physical rotation) (DONE)
+Avatar running (what does phys engine need to do?) (DONE: multiplies run factor by walking force)
+setForce should set a constant force. Different than AddImpulse. (DONE)
+Add PID motor for avatar movement (slow to stop, ...) (WNBD: current works ok)
+Avatar movement motor check for zero or small movement. Somehow suppress small movements
+	when avatar has stopped and is just standing. Simple test for near zero has
+	the problem of preventing starting up (increase from zero) especially when falling.
+	(DONE: avatar movement actor knows if standing on stationary object and zeros motion)
+Can the 'inTaintTime' flag be cleaned up and used? For instance, a call to
+	BSScene.TaintedObject() could immediately execute the callback if already in taint time.
+	(DONE)
+
+
 

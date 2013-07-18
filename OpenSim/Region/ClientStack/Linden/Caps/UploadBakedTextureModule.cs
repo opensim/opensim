@@ -64,11 +64,18 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private Scene m_scene;
         private bool m_persistBakedTextures;
+        private string m_URL;
 
         private IBakedTextureModule m_BakedTextureModule;
 
         public void Initialise(IConfigSource source)
         {
+            IConfig config = source.Configs["ClientStack.LindenCaps"];
+            if (config == null)
+                return;
+
+            m_URL = config.GetString("Cap_UploadBakedTexture", string.Empty);
+
             IConfig appearanceConfig = source.Configs["Appearance"];
             if (appearanceConfig != null)
                 m_persistBakedTextures = appearanceConfig.GetBoolean("PersistBakedTextures", m_persistBakedTextures);
@@ -283,19 +290,25 @@ namespace OpenSim.Region.ClientStack.Linden
             UploadBakedTextureHandler avatarhandler = new UploadBakedTextureHandler(
                 caps, m_scene.AssetService, m_persistBakedTextures);
 
-           
-            
-            caps.RegisterHandler(
-                "UploadBakedTexture",
-                new RestStreamHandler(
-                    "POST",
-                    "/CAPS/" + caps.CapsObjectPath + m_uploadBakedTexturePath,
-                    avatarhandler.UploadBakedTexture,
-                    "UploadBakedTexture",
-                    agentID.ToString()));
+            UUID capID = UUID.Random();
 
-           
-            
+            //caps.RegisterHandler("GetTexture", new StreamHandler("GET", "/CAPS/" + capID, ProcessGetTexture));
+            if (m_URL == "localhost")
+            {
+                caps.RegisterHandler(
+                    "UploadBakedTexture",
+                    new RestStreamHandler(
+                        "POST",
+                        "/CAPS/" + caps.CapsObjectPath + m_uploadBakedTexturePath,
+                        avatarhandler.UploadBakedTexture,
+                        "UploadBakedTexture",
+                        agentID.ToString()));
+                
+            }
+            else
+            {
+                caps.RegisterHandler("UploadBakedTexture", m_URL);
+            }
 
         }
     }

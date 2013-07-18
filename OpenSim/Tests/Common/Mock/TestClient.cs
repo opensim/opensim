@@ -591,7 +591,7 @@ namespace OpenSim.Tests.Common.Mock
         {
             AgentCircuitData agentData = new AgentCircuitData();
             agentData.AgentID = AgentId;
-            agentData.SessionID = UUID.Zero;
+            agentData.SessionID = SessionId; 
             agentData.SecureSessionID = UUID.Zero;
             agentData.circuitcode = m_circuitCode;
             agentData.child = false;

@@ -58,7 +58,7 @@ namespace OpenSim.Server.Handlers.Neighbour
             // TODO: unused: m_AuthenticationService = authentication;
         }
 
-        public override byte[] Handle(string path, Stream request,
+        protected override byte[] ProcessRequest(string path, Stream request,
                 IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             // Not implemented yet
@@ -83,7 +83,7 @@ namespace OpenSim.Server.Handlers.Neighbour
             // TODO: unused: m_AllowForeignGuests = foreignGuests;
         }
 
-        public override byte[] Handle(string path, Stream request,
+        protected override byte[] ProcessRequest(string path, Stream request,
                 IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             byte[] result = new byte[0];
@@ -176,7 +176,7 @@ namespace OpenSim.Server.Handlers.Neighbour
             // TODO: unused: m_AuthenticationService = authentication;
         }
 
-        public override byte[] Handle(string path, Stream request,
+        protected override byte[] ProcessRequest(string path, Stream request,
                 IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             // Not implemented yet
@@ -197,7 +197,7 @@ namespace OpenSim.Server.Handlers.Neighbour
             // TODO: unused: m_AuthenticationService = authentication;
         }
 
-        public override byte[] Handle(string path, Stream request,
+        protected override byte[] ProcessRequest(string path, Stream request,
                 IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             // Not implemented yet

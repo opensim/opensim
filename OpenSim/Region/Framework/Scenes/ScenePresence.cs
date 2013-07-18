@@ -1151,9 +1151,9 @@ namespace OpenSim.Region.Framework.Scenes
 
             MovementFlag = 0;
 
-            m_scene.EventManager.TriggerOnMakeRootAgent(this);
-
-            m_scene.EventManager.OnRegionHeartbeatEnd += RegionHeartbeatEnd;
+            // DIVA NOTE: I moved TriggerOnMakeRootAgent out of here and into the end of
+            // CompleteMovement. We don't want modules doing heavy computation before CompleteMovement
+            // is over.
         }
 
         public int GetStateSource()
@@ -1519,10 +1519,15 @@ namespace OpenSim.Region.Framework.Scenes
             bool flying = ((m_AgentControlFlags & AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0);
             MakeRootAgent(AbsolutePosition, flying);
             ControllingClient.MoveAgentIntoRegion(m_scene.RegionInfo, AbsolutePosition, look);
+            // Remember in HandleUseCircuitCode, we delayed this to here
+            // This will also send the initial data to clients when TP to a neighboring region. 
+            // Not ideal, but until we know we're TP-ing from a neighboring region, there's not much we can do
+            if (m_teleportFlags > 0)
+                SendInitialDataToMe();
 
 //            m_log.DebugFormat("[SCENE PRESENCE] Completed movement");
 
-            if ((m_callbackURI != null) && !m_callbackURI.Equals(""))
+            if (!string.IsNullOrEmpty(m_callbackURI))
             {
                 // We cannot sleep here since this would hold up the inbound packet processing thread, as
                 // CompleteMovement() is executed synchronously.  However, it might be better to delay the release
@@ -1550,9 +1555,6 @@ namespace OpenSim.Region.Framework.Scenes
             // Create child agents in neighbouring regions
             if (openChildAgents && !IsChildAgent)
             {
-                // Remember in HandleUseCircuitCode, we delayed this to here
-                SendInitialDataToMe();
-
                 IEntityTransferModule m_agentTransfer = m_scene.RequestModuleInterface<IEntityTransferModule>();
                 if (m_agentTransfer != null)
                     m_agentTransfer.EnableChildAgents(this);
@@ -1575,6 +1577,11 @@ namespace OpenSim.Region.Framework.Scenes
 //            m_log.DebugFormat(
 //                "[SCENE PRESENCE]: Completing movement of {0} into region {1} took {2}ms", 
 //                client.Name, Scene.RegionInfo.RegionName, (DateTime.Now - startTime).Milliseconds);
+
+            // DIVA NOTE: moved this here from MakeRoot. We don't want modules making heavy
+            // computations before CompleteMovement is over
+            m_scene.EventManager.TriggerOnMakeRootAgent(this);
+
         }
 
         /// <summary>
@@ -2886,11 +2893,12 @@ namespace OpenSim.Region.Framework.Scenes
                 SendOtherAgentsAppearanceToMe();
 
                 EntityBase[] entities = Scene.Entities.GetEntities();
-                foreach(EntityBase e in entities)
+                foreach (EntityBase e in entities)
                 {
                     if (e != null && e is SceneObjectGroup)
                         ((SceneObjectGroup)e).SendFullUpdateToClient(ControllingClient);
                 }
+
             });
         }
 
@@ -3116,7 +3124,7 @@ namespace OpenSim.Region.Framework.Scenes
                 cadu.Velocity = Velocity;
 
                 AgentPosition agentpos = new AgentPosition();
-                agentpos.CopyFrom(cadu);
+                agentpos.CopyFrom(cadu, ControllingClient.SessionId);
 
                 // Let's get this out of the update loop
                 Util.FireAndForget(delegate { m_scene.SendOutChildAgentUpdates(agentpos, this); });
@@ -3355,7 +3363,11 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_log.Debug("[SCENE PRESENCE]: Closing " + byebyeRegions.Count + " child agents");
 
-                m_scene.SceneGridService.SendCloseChildAgentConnections(ControllingClient.AgentId, byebyeRegions); 
+                AgentCircuitData acd = Scene.AuthenticateHandler.GetAgentCircuitData(UUID);
+                string auth = string.Empty;
+                if (acd != null)
+                    auth = acd.SessionID.ToString();
+                m_scene.SceneGridService.SendCloseChildAgentConnections(ControllingClient.AgentId, auth, byebyeRegions); 
             }
             
             foreach (ulong handle in byebyeRegions)
@@ -3456,6 +3468,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             cAgent.AgentID = UUID;
             cAgent.RegionID = Scene.RegionInfo.RegionID;
+            cAgent.SessionID = ControllingClient.SessionId;
 
             cAgent.Position = AbsolutePosition;
             cAgent.Velocity = m_velocity;

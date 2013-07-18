@@ -100,7 +100,7 @@ namespace OpenSim.Framework.Tests
             cadu.AVHeight = Size1.Z;
 
             AgentPosition position2 = new AgentPosition();
-            position2.CopyFrom(cadu);
+            position2.CopyFrom(cadu, position1.SessionID);
 
             Assert.IsTrue(
                 position2.AgentID == position1.AgentID

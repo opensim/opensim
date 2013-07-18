@@ -28,6 +28,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using log4net;
@@ -37,6 +38,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
+using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using Caps=OpenSim.Framework.Capabilities.Caps;
@@ -57,8 +59,9 @@ namespace OpenSim.Region.CoreModules.Framework
         /// </summary>
         protected Dictionary<uint, Caps> m_capsObjects = new Dictionary<uint, Caps>();
         
-        protected Dictionary<UUID, string> capsPaths = new Dictionary<UUID, string>();
-        protected Dictionary<UUID, Dictionary<ulong, string>> childrenSeeds 
+        protected Dictionary<UUID, string> m_capsPaths = new Dictionary<UUID, string>();
+
+        protected Dictionary<UUID, Dictionary<ulong, string>> m_childrenSeeds 
             = new Dictionary<UUID, Dictionary<ulong, string>>();
         
         public void Initialise(IConfigSource source)
@@ -70,9 +73,24 @@ namespace OpenSim.Region.CoreModules.Framework
             m_scene = scene;
             m_scene.RegisterModuleInterface<ICapabilitiesModule>(this);
 
-            MainConsole.Instance.Commands.AddCommand("Comms", false, "show caps",
-                "show caps",
-                "Shows all registered capabilities for users", HandleShowCapsCommand);
+            MainConsole.Instance.Commands.AddCommand(
+                "Comms", false, "show caps list",
+                "show caps list",
+                "Shows list of registered capabilities for users.", HandleShowCapsListCommand);
+
+            MainConsole.Instance.Commands.AddCommand(
+                "Comms", false, "show caps stats by user",
+                "show caps stats [<first-name> <last-name>]",
+                "Shows statistics on capabilities use by user.",
+                "If a user name is given, then prints a detailed breakdown of caps use ordered by number of requests received.",
+                HandleShowCapsStatsByUserCommand);
+
+            MainConsole.Instance.Commands.AddCommand(
+                "Comms", false, "show caps stats by cap",
+                "show caps stats by cap [<cap-name>]",
+                "Shows statistics on capabilities use by capability.",
+                "If a capability name is given, then prints a detailed breakdown of use by each user.",
+                HandleShowCapsStatsByCapCommand);
         }
 
         public void RegionLoaded(Scene scene)
@@ -106,35 +124,42 @@ namespace OpenSim.Region.CoreModules.Framework
             if (m_scene.RegionInfo.EstateSettings.IsBanned(agentId, flags))
                 return;
 
+            Caps caps;
             String capsObjectPath = GetCapsPath(agentId);
 
-            if (m_capsObjects.ContainsKey(circuitCode))
+            lock (m_capsObjects)
             {
-                Caps oldCaps = m_capsObjects[circuitCode];
-                
-                m_log.DebugFormat(
-                    "[CAPS]: Recreating caps for agent {0}.  Old caps path {1}, new caps path {2}. ", 
-                    agentId, oldCaps.CapsObjectPath, capsObjectPath);
-                // This should not happen. The caller code is confused. We need to fix that.
-                // CAPs can never be reregistered, or the client will be confused.
-                // Hence this return here.
-                //return;
+                if (m_capsObjects.ContainsKey(circuitCode))
+                {
+                    Caps oldCaps = m_capsObjects[circuitCode];
+                    
+                    m_log.DebugFormat(
+                        "[CAPS]: Recreating caps for agent {0}.  Old caps path {1}, new caps path {2}. ", 
+                        agentId, oldCaps.CapsObjectPath, capsObjectPath);
+                    // This should not happen. The caller code is confused. We need to fix that.
+                    // CAPs can never be reregistered, or the client will be confused.
+                    // Hence this return here.
+                    //return;
+                }
+
+                caps = new Caps(MainServer.Instance, m_scene.RegionInfo.ExternalHostName,
+                        (MainServer.Instance == null) ? 0: MainServer.Instance.Port,
+                        capsObjectPath, agentId, m_scene.RegionInfo.RegionName);
+
+                m_capsObjects[circuitCode] = caps;
             }
-
-            Caps caps = new Caps(MainServer.Instance, m_scene.RegionInfo.ExternalHostName,
-                    (MainServer.Instance == null) ? 0: MainServer.Instance.Port,
-                    capsObjectPath, agentId, m_scene.RegionInfo.RegionName);
-
-            m_capsObjects[circuitCode] = caps;
 
             m_scene.EventManager.TriggerOnRegisterCaps(agentId, caps);
         }
 
         public void RemoveCaps(UUID agentId, uint circuitCode)
         {
-            if (childrenSeeds.ContainsKey(agentId))
+            lock (m_childrenSeeds)
             {
-                childrenSeeds.Remove(agentId);
+                if (m_childrenSeeds.ContainsKey(agentId))
+                {
+                    m_childrenSeeds.Remove(agentId);
+                }
             }
 
             lock (m_capsObjects)
@@ -180,16 +205,22 @@ namespace OpenSim.Region.CoreModules.Framework
 
         public void SetAgentCapsSeeds(AgentCircuitData agent)
         {
-            capsPaths[agent.AgentID] = agent.CapsPath;
-            childrenSeeds[agent.AgentID] 
-                = ((agent.ChildrenCapSeeds == null) ? new Dictionary<ulong, string>() : agent.ChildrenCapSeeds);
+            lock (m_capsPaths)
+                m_capsPaths[agent.AgentID] = agent.CapsPath;
+
+            lock (m_childrenSeeds)
+                m_childrenSeeds[agent.AgentID] 
+                    = ((agent.ChildrenCapSeeds == null) ? new Dictionary<ulong, string>() : agent.ChildrenCapSeeds);
         }
         
         public string GetCapsPath(UUID agentId)
         {
-            if (capsPaths.ContainsKey(agentId))
+            lock (m_capsPaths)
             {
-                return capsPaths[agentId];
+                if (m_capsPaths.ContainsKey(agentId))
+                {
+                    return m_capsPaths[agentId];
+                }
             }
 
             return null;
@@ -198,17 +229,24 @@ namespace OpenSim.Region.CoreModules.Framework
         public Dictionary<ulong, string> GetChildrenSeeds(UUID agentID)
         {
             Dictionary<ulong, string> seeds = null;
-            if (childrenSeeds.TryGetValue(agentID, out seeds))
-                return seeds;
+
+            lock (m_childrenSeeds)
+                if (m_childrenSeeds.TryGetValue(agentID, out seeds))
+                    return seeds;
+
             return new Dictionary<ulong, string>();
         }
 
         public void DropChildSeed(UUID agentID, ulong handle)
         {
             Dictionary<ulong, string> seeds;
-            if (childrenSeeds.TryGetValue(agentID, out seeds))
+
+            lock (m_childrenSeeds)
             {
-                seeds.Remove(handle);
+                if (m_childrenSeeds.TryGetValue(agentID, out seeds))
+                {
+                    seeds.Remove(handle);
+                }
             }
         }
 
@@ -216,53 +254,285 @@ namespace OpenSim.Region.CoreModules.Framework
         {
             Dictionary<ulong, string> seeds;
             string returnval;
-            if (childrenSeeds.TryGetValue(agentID, out seeds))
+
+            lock (m_childrenSeeds)
             {
-                if (seeds.TryGetValue(handle, out returnval))
-                    return returnval;
+                if (m_childrenSeeds.TryGetValue(agentID, out seeds))
+                {
+                    if (seeds.TryGetValue(handle, out returnval))
+                        return returnval;
+                }
             }
+
             return null;
         }
 
         public void SetChildrenSeed(UUID agentID, Dictionary<ulong, string> seeds)
         {
             //m_log.DebugFormat(" !!! Setting child seeds in {0} to {1}", m_scene.RegionInfo.RegionName, seeds.Count);
-            childrenSeeds[agentID] = seeds;
+
+            lock (m_childrenSeeds)
+                m_childrenSeeds[agentID] = seeds;
         }
 
         public void DumpChildrenSeeds(UUID agentID)
         {
             m_log.Info("================ ChildrenSeed "+m_scene.RegionInfo.RegionName+" ================");
-            foreach (KeyValuePair<ulong, string> kvp in childrenSeeds[agentID])
+
+            lock (m_childrenSeeds)
             {
-                uint x, y;
-                Utils.LongToUInts(kvp.Key, out x, out y);
-                x = x / Constants.RegionSize;
-                y = y / Constants.RegionSize;
-                m_log.Info(" >> "+x+", "+y+": "+kvp.Value);
+                foreach (KeyValuePair<ulong, string> kvp in m_childrenSeeds[agentID])
+                {
+                    uint x, y;
+                    Utils.LongToUInts(kvp.Key, out x, out y);
+                    x = x / Constants.RegionSize;
+                    y = y / Constants.RegionSize;
+                    m_log.Info(" >> "+x+", "+y+": "+kvp.Value);
+                }
             }
         }
 
-        private void HandleShowCapsCommand(string module, string[] cmdparams)
+        private void HandleShowCapsListCommand(string module, string[] cmdParams)
         {
+            if (SceneManager.Instance.CurrentScene != null && SceneManager.Instance.CurrentScene != m_scene)
+                return;
+
             StringBuilder caps = new StringBuilder();
             caps.AppendFormat("Region {0}:\n", m_scene.RegionInfo.RegionName);
 
-            foreach (KeyValuePair<uint, Caps> kvp in m_capsObjects)
+            lock (m_capsObjects)
             {
-                caps.AppendFormat("** Circuit {0}:\n", kvp.Key);
-
-                for (IDictionaryEnumerator kvp2 = kvp.Value.CapsHandlers.GetCapsDetails(false, null).GetEnumerator(); kvp2.MoveNext(); )
+                foreach (KeyValuePair<uint, Caps> kvp in m_capsObjects)
                 {
-                    Uri uri = new Uri(kvp2.Value.ToString());
-                    caps.AppendFormat(m_showCapsCommandFormat, kvp2.Key, uri.PathAndQuery);
-                }
+                    caps.AppendFormat("** Circuit {0}:\n", kvp.Key);
 
-                foreach (KeyValuePair<string, string> kvp3 in kvp.Value.ExternalCapsHandlers)
-                    caps.AppendFormat(m_showCapsCommandFormat, kvp3.Key, kvp3.Value);
+                    for (IDictionaryEnumerator kvp2 = kvp.Value.CapsHandlers.GetCapsDetails(false, null).GetEnumerator(); kvp2.MoveNext(); )
+                    {
+                        Uri uri = new Uri(kvp2.Value.ToString());
+                        caps.AppendFormat(m_showCapsCommandFormat, kvp2.Key, uri.PathAndQuery);
+                    }
+
+                    foreach (KeyValuePair<string, string> kvp3 in kvp.Value.ExternalCapsHandlers)
+                        caps.AppendFormat(m_showCapsCommandFormat, kvp3.Key, kvp3.Value);
+                }
             }
 
             MainConsole.Instance.Output(caps.ToString());
+        }
+
+        private void HandleShowCapsStatsByCapCommand(string module, string[] cmdParams)
+        {
+            if (SceneManager.Instance.CurrentScene != null && SceneManager.Instance.CurrentScene != m_scene)
+                return;
+
+            if (cmdParams.Length != 5 && cmdParams.Length != 6)
+            {
+                MainConsole.Instance.Output("Usage: show caps stats by cap [<cap-name>]");
+                return;
+            }
+
+            StringBuilder sb = new StringBuilder();
+            sb.AppendFormat("Region {0}:\n", m_scene.Name);
+
+            if (cmdParams.Length == 5)
+            {
+                BuildSummaryStatsByCapReport(sb);
+            }
+            else if (cmdParams.Length == 6)
+            {
+                BuildDetailedStatsByCapReport(sb, cmdParams[5]);
+            }
+
+            MainConsole.Instance.Output(sb.ToString());
+        }
+
+        private void BuildDetailedStatsByCapReport(StringBuilder sb, string capName)
+        {
+            /*
+            sb.AppendFormat("Capability name {0}\n", capName);
+
+            ConsoleDisplayTable cdt = new ConsoleDisplayTable();
+            cdt.AddColumn("User Name", 34);
+            cdt.AddColumn("Req Received", 12);
+            cdt.AddColumn("Req Handled", 12);
+            cdt.Indent = 2;
+
+            Dictionary<string, int> receivedStats = new Dictionary<string, int>();
+            Dictionary<string, int> handledStats = new Dictionary<string, int>();
+
+            m_scene.ForEachScenePresence(
+                sp =>
+                {
+                    Caps caps = m_scene.CapsModule.GetCapsForUser(sp.UUID);
+
+                    if (caps == null)
+                        return;
+
+                    Dictionary<string, IRequestHandler> capsHandlers = caps.CapsHandlers.GetCapsHandlers();
+
+                    IRequestHandler reqHandler;
+                    if (capsHandlers.TryGetValue(capName, out reqHandler))
+                    {
+                        receivedStats[sp.Name] = reqHandler.RequestsReceived;
+                        handledStats[sp.Name] = reqHandler.RequestsHandled;
+                    }                   
+                }
+            );
+
+            foreach (KeyValuePair<string, int> kvp in receivedStats.OrderByDescending(kp => kp.Value))
+            {
+                cdt.AddRow(kvp.Key, kvp.Value, handledStats[kvp.Key]);
+            }
+
+            sb.Append(cdt.ToString());
+            */
+        }
+
+        private void BuildSummaryStatsByCapReport(StringBuilder sb)
+        {
+            /*
+            ConsoleDisplayTable cdt = new ConsoleDisplayTable();
+            cdt.AddColumn("Name", 34);
+            cdt.AddColumn("Req Received", 12);
+            cdt.AddColumn("Req Handled", 12);
+            cdt.Indent = 2;
+
+            Dictionary<string, int> receivedStats = new Dictionary<string, int>();
+            Dictionary<string, int> handledStats = new Dictionary<string, int>();
+
+            m_scene.ForEachScenePresence(
+                sp =>
+                {
+                    Caps caps = m_scene.CapsModule.GetCapsForUser(sp.UUID);
+
+                    if (caps == null)
+                        return;
+
+                    Dictionary<string, IRequestHandler> capsHandlers = caps.CapsHandlers.GetCapsHandlers();
+
+                    foreach (IRequestHandler reqHandler in capsHandlers.Values)
+                    {
+                        string reqName = reqHandler.Name ?? "";
+
+                        if (!receivedStats.ContainsKey(reqName))
+                        {
+                            receivedStats[reqName] = reqHandler.RequestsReceived;
+                            handledStats[reqName] = reqHandler.RequestsHandled;
+                        }
+                        else
+                        {
+                            receivedStats[reqName] += reqHandler.RequestsReceived;
+                            handledStats[reqName] += reqHandler.RequestsHandled;
+                        }
+                    }
+                }
+            );
+                    
+            foreach (KeyValuePair<string, int> kvp in receivedStats.OrderByDescending(kp => kp.Value))
+                cdt.AddRow(kvp.Key, kvp.Value, handledStats[kvp.Key]);
+
+            sb.Append(cdt.ToString());
+            */
+        }
+
+        private void HandleShowCapsStatsByUserCommand(string module, string[] cmdParams)
+        {
+            /*
+            if (SceneManager.Instance.CurrentScene != null && SceneManager.Instance.CurrentScene != m_scene)
+                return;
+
+            if (cmdParams.Length != 5 && cmdParams.Length != 7)
+            {
+                MainConsole.Instance.Output("Usage: show caps stats by user [<first-name> <last-name>]");
+                return;
+            }
+
+            StringBuilder sb = new StringBuilder();
+            sb.AppendFormat("Region {0}:\n", m_scene.Name);
+
+            if (cmdParams.Length == 5)
+            {
+                BuildSummaryStatsByUserReport(sb);
+            }
+            else if (cmdParams.Length == 7)
+            {
+                string firstName = cmdParams[5];
+                string lastName = cmdParams[6];
+
+                ScenePresence sp = m_scene.GetScenePresence(firstName, lastName);
+
+                if (sp == null)
+                    return;
+
+                BuildDetailedStatsByUserReport(sb, sp);
+            }
+
+            MainConsole.Instance.Output(sb.ToString());
+            */
+        }
+
+        private void BuildDetailedStatsByUserReport(StringBuilder sb, ScenePresence sp)
+        {
+            /*
+            sb.AppendFormat("Avatar name {0}, type {1}\n", sp.Name, sp.IsChildAgent ? "child" : "root");
+
+            ConsoleDisplayTable cdt = new ConsoleDisplayTable();
+            cdt.AddColumn("Cap Name", 34);
+            cdt.AddColumn("Req Received", 12);
+            cdt.AddColumn("Req Handled", 12);
+            cdt.Indent = 2;
+
+            Caps caps = m_scene.CapsModule.GetCapsForUser(sp.UUID);
+
+            if (caps == null)
+                return;
+
+            Dictionary<string, IRequestHandler> capsHandlers = caps.CapsHandlers.GetCapsHandlers();
+
+            foreach (IRequestHandler reqHandler in capsHandlers.Values.OrderByDescending(rh => rh.RequestsReceived))
+            {
+                cdt.AddRow(reqHandler.Name, reqHandler.RequestsReceived, reqHandler.RequestsHandled);
+            }
+
+            sb.Append(cdt.ToString());
+            */
+        }
+
+        private void BuildSummaryStatsByUserReport(StringBuilder sb)
+        {
+            /*
+            ConsoleDisplayTable cdt = new ConsoleDisplayTable();
+            cdt.AddColumn("Name", 32);
+            cdt.AddColumn("Type", 5);
+            cdt.AddColumn("Req Received", 12);
+            cdt.AddColumn("Req Handled", 12);
+            cdt.Indent = 2;
+
+            m_scene.ForEachScenePresence(
+                sp =>
+                {
+                    Caps caps = m_scene.CapsModule.GetCapsForUser(sp.UUID);
+
+                    if (caps == null)
+                        return;
+
+                    Dictionary<string, IRequestHandler> capsHandlers = caps.CapsHandlers.GetCapsHandlers();
+
+                    int totalRequestsReceived = 0;
+                    int totalRequestsHandled = 0;
+
+                    foreach (IRequestHandler reqHandler in capsHandlers.Values)
+                    {
+                        totalRequestsReceived += reqHandler.RequestsReceived;
+                        totalRequestsHandled += reqHandler.RequestsHandled;
+                    }
+                    
+                    cdt.AddRow(sp.Name, sp.IsChildAgent ? "child" : "root", totalRequestsReceived, totalRequestsHandled);
+                }
+            );
+
+            sb.Append(cdt.ToString());
+            */
         }
     }
 }

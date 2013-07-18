@@ -57,6 +57,8 @@ public class BasicVehicles : OpenSimTestCase
     public void Init()
     {
         Dictionary<string, string> engineParams = new Dictionary<string, string>();
+        engineParams.Add("VehicleEnableAngularVerticalAttraction", "true");
+        engineParams.Add("VehicleAngularVerticalAttractionAlgorithm", "1");
         PhysicsScene = BulletSimTestsUtil.CreateBasicPhysicsEngine(engineParams);
 
         PrimitiveBaseShape pbs = PrimitiveBaseShape.CreateSphere();
@@ -119,7 +121,7 @@ public class BasicVehicles : OpenSimTestCase
         {
             vehicleActor.ProcessFloatVehicleParam(Vehicle.VERTICAL_ATTRACTION_EFFICIENCY, efficiency);
             vehicleActor.ProcessFloatVehicleParam(Vehicle.VERTICAL_ATTRACTION_TIMESCALE, timeScale);
-            vehicleActor.enableAngularVerticalAttraction = true;
+            // vehicleActor.enableAngularVerticalAttraction = true;
 
             TestVehicle.IsPhysical = true;
             PhysicsScene.ProcessTaints();

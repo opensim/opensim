@@ -141,6 +141,11 @@ namespace OpenSim.Framework
         public static FireAndForgetMethod DefaultFireAndForgetMethod = FireAndForgetMethod.SmartThreadPool;
         public static FireAndForgetMethod FireAndForgetMethod = DefaultFireAndForgetMethod;
 
+        public static bool IsPlatformMono
+        {
+            get { return Type.GetType("Mono.Runtime") != null; }
+        }
+
         /// <summary>
         /// Gets the name of the directory where the current running executable
         /// is located
@@ -1338,7 +1343,7 @@ namespace OpenSim.Framework
                     ru = "OSX/Mono";
                 else
                 {
-                    if (Type.GetType("Mono.Runtime") != null)
+                    if (IsPlatformMono)
                         ru = "Win/Mono";
                     else
                         ru = "Win/.NET";

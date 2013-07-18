@@ -1,0 +1,18 @@
+﻿:VERSION 1         # -------------------------- 
+
+BEGIN;
+
+CREATE TABLE hg_traveling_data (
+    SessionID VARCHAR(36) NOT NULL,
+    UserID VARCHAR(36) NOT NULL,
+	GridExternalName VARCHAR(255) NOT NULL DEFAULT '',
+	ServiceToken VARCHAR(255) NOT NULL DEFAULT '',
+	ClientIPAddress VARCHAR(16) NOT NULL DEFAULT '',
+	MyIPAddress VARCHAR(16) NOT NULL DEFAULT '',
+    TMStamp timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY  (`SessionID`),
+	KEY (`UserID`)
+) ENGINE=InnoDB;
+
+COMMIT;
+

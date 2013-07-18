@@ -55,7 +55,6 @@ namespace OpenSim.Region.Framework.Scenes
         private object m_lockObject = new object();
         private object m_timerLock = new object();
         private const double m_tickDuration = 50.0;
-        private Scene m_scene;
 
         public double TickDuration
         {
@@ -68,8 +67,6 @@ namespace OpenSim.Region.Framework.Scenes
             m_timer.Interval = TickDuration;
             m_timer.AutoReset = true;
             m_timer.Elapsed += OnTimer;
-
-            m_scene = scene;
 
             m_timer.Start();
         }
@@ -94,13 +91,13 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         m.OnTimer(TickDuration);
                     }
-                    catch (Exception inner)
+                    catch (Exception)
                     {
                         // Don't stop processing
                     }
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 // Keep running no matter what
             }
@@ -157,7 +154,7 @@ namespace OpenSim.Region.Framework.Scenes
     [Serializable]
     public class KeyframeMotion
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public enum PlayMode : int
         {

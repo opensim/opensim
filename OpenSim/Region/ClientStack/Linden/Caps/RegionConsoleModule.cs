@@ -183,7 +183,7 @@ namespace OpenSim.Region.ClientStack.Linden
             m_isGod = m_scene.Permissions.IsGod(agentID);
         }
 
-        public override byte[] Handle(string path, Stream request, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+        protected override byte[] ProcessRequest(string path, Stream request, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             StreamReader reader = new StreamReader(request);
             string message = reader.ReadToEnd();

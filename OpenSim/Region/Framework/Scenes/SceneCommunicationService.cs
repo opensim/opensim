@@ -200,7 +200,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// This Closes child agents on neighboring regions
         /// Calls an asynchronous method to do so..  so it doesn't lag the sim.
         /// </summary>
-        protected void SendCloseChildAgentAsync(UUID agentID, ulong regionHandle)
+        protected void SendCloseChildAgent(UUID agentID, ulong regionHandle, string auth_token)
         {
             // let's do our best, but there's not much we can do if the neighbour doesn't accept.
 
@@ -209,24 +209,25 @@ namespace OpenSim.Region.Framework.Scenes
             Utils.LongToUInts(regionHandle, out x, out y);
 
             GridRegion destination = m_scene.GridService.GetRegionByPosition(m_regionInfo.ScopeID, (int)x, (int)y);
-            m_scene.SimulationService.CloseChildAgent(destination, agentID);
+
+            m_log.DebugFormat(
+                "[SCENE COMMUNICATION SERVICE]: Sending close agent ID {0} to {1}", agentID, destination.RegionName);
+
+            m_scene.SimulationService.CloseAgent(destination, agentID, auth_token);
         }
 
-        private void SendCloseChildAgentCompleted(IAsyncResult iar)
-        {
-            SendCloseChildAgentDelegate icon = (SendCloseChildAgentDelegate)iar.AsyncState;
-            icon.EndInvoke(iar);
-        }
-
-        public void SendCloseChildAgentConnections(UUID agentID, List<ulong> regionslst)
+        /// <summary>
+        /// Closes a child agents in a collection of regions. Does so asynchronously 
+        /// so that the caller doesn't wait.
+        /// </summary>
+        /// <param name="agentID"></param>
+        /// <param name="regionslst"></param>
+        public void SendCloseChildAgentConnections(UUID agentID, string auth_code, List<ulong> regionslst)
         {
             foreach (ulong handle in regionslst)
             {
                 ulong handleCopy = handle;
-                SendCloseChildAgentDelegate d = SendCloseChildAgentAsync;
-                d.BeginInvoke(agentID, handleCopy,
-                              SendCloseChildAgentCompleted,
-                              d);
+                Util.FireAndForget((o) => { SendCloseChildAgent(agentID, handleCopy, auth_code); });
             }
         }
 

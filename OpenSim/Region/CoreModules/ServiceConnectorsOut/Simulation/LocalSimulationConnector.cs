@@ -250,26 +250,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
             return true;
         }
 
-        public bool RetrieveAgent(GridRegion destination, UUID id, out IAgentData agent)
-        {
-            agent = null;
-            
-            if (destination == null)
-                return false;
-
-            if (m_scenes.ContainsKey(destination.RegionID))
-            {
-//                    m_log.DebugFormat(
-//                        "[LOCAL SIMULATION CONNECTOR]: Found region {0} {1} to send AgentUpdate",
-//                        s.RegionInfo.RegionName, destination.RegionHandle);
-
-                return m_scenes[destination.RegionID].IncomingRetrieveRootAgent(id, out agent);
-            }
-
-            //m_log.Debug("[LOCAL COMMS]: region not found for ChildAgentUpdate");
-            return false;
-        }
-
         public bool QueryAccess(GridRegion destination, UUID id, Vector3 position, out string version, out string reason)
         {
             reason = "Communications failure";
@@ -306,12 +286,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
             return false;
         }
 
-        public bool CloseChildAgent(GridRegion destination, UUID id)
-        {
-            return CloseAgent(destination, id);
-        }
-
-        public bool CloseAgent(GridRegion destination, UUID id)
+        public bool CloseAgent(GridRegion destination, UUID id, string auth_token)
         {
             if (destination == null)
                 return false;
@@ -322,7 +297,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
 //                        "[LOCAL SIMULATION CONNECTOR]: Found region {0} {1} to send AgentUpdate",
 //                        s.RegionInfo.RegionName, destination.RegionHandle);
 
-                m_scenes[destination.RegionID].IncomingCloseAgent(id, false);
+                m_scenes[destination.RegionID].IncomingCloseAgent(id, false, auth_token);
                 return true;
             }
             //m_log.Debug("[LOCAL COMMS]: region not found in SendCloseAgent");

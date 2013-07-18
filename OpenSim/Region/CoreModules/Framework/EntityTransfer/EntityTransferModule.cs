@@ -822,7 +822,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     "[ENTITY TRANSFER MODULE]: UpdateAgent failed on teleport of {0} to {1} from {2}.  Keeping avatar in source region.",
                     sp.Name, finalDestination.RegionName, sp.Scene.RegionInfo.RegionName);
                 
-                Fail(sp, finalDestination, logout, "Connection between viewer and destination region could not be established.");
+                Fail(sp, finalDestination, logout, currentAgentCircuit.SessionID.ToString(), "Connection between viewer and destination region could not be established.");
                 return;
             }
 
@@ -834,7 +834,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     "[ENTITY TRANSFER MODULE]: Cancelled teleport of {0} to {1} from {2} after UpdateAgent on client request", 
                     sp.Name, finalDestination.RegionName, sp.Scene.Name);
 
-                CleanupFailedInterRegionTeleport(sp, finalDestination);
+                CleanupFailedInterRegionTeleport(sp, currentAgentCircuit.SessionID.ToString(), finalDestination);
 
                 return;
             }
@@ -878,7 +878,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     "[ENTITY TRANSFER MODULE]: Teleport of {0} to {1} from {2} failed due to no callback from destination region.  Returning avatar to source region.",
                     sp.Name, finalDestination.RegionName, sp.Scene.RegionInfo.RegionName);
                 
-                Fail(sp, finalDestination, logout, "Destination region did not signal teleport completion.");
+                Fail(sp, finalDestination, logout, currentAgentCircuit.SessionID.ToString(), "Destination region did not signal teleport completion.");
 
                 return;
             }
@@ -932,7 +932,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         /// <remarks>
         /// <param name='sp'> </param>
         /// <param name='finalDestination'></param>
-        protected virtual void CleanupFailedInterRegionTeleport(ScenePresence sp, GridRegion finalDestination)
+        protected virtual void CleanupFailedInterRegionTeleport(ScenePresence sp, string auth_token, GridRegion finalDestination)
         {
             m_entityTransferStateMachine.UpdateInTransit(sp.UUID, AgentTransferState.CleaningUp);
 
@@ -943,7 +943,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             // Finally, kill the agent we just created at the destination.
             // XXX: Possibly this should be done asynchronously.
-            Scene.SimulationService.CloseAgent(finalDestination, sp.UUID);
+            Scene.SimulationService.CloseAgent(finalDestination, sp.UUID, auth_token);
         }
 
         /// <summary>
@@ -953,9 +953,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         /// <param name='finalDestination'></param>
         /// <param name='logout'></param>
         /// <param name='reason'>Human readable reason for teleport failure.  Will be sent to client.</param>
-        protected virtual void Fail(ScenePresence sp, GridRegion finalDestination, bool logout, string reason)
+        protected virtual void Fail(ScenePresence sp, GridRegion finalDestination, bool logout, string auth_code, string reason)
         {
-            CleanupFailedInterRegionTeleport(sp, finalDestination);
+            CleanupFailedInterRegionTeleport(sp, auth_code, finalDestination);
 
             m_interRegionTeleportFailures.Value++;
 

@@ -46,46 +46,32 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.Framework.Scenes
 {
-    public class RegionStatsHandler : IStreamedRequestHandler
+    public class RegionStatsHandler : BaseStreamHandler
     {
         //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private string osRXStatsURI = String.Empty;
         private string osXStatsURI = String.Empty;
         //private string osSecret = String.Empty;
         private OpenSim.Framework.RegionInfo regionInfo;
         public string localZone = TimeZone.CurrentTimeZone.StandardName;
         public TimeSpan utcOffset = TimeZone.CurrentTimeZone.GetUtcOffset(DateTime.Now);
 
-        public string Name { get { return "RegionStats"; } }
-        public string Description { get { return "Region Statistics"; } }
-
-        public RegionStatsHandler(RegionInfo region_info)
+        public RegionStatsHandler(RegionInfo region_info) 
+            : base("GET", "/" + Util.SHA1Hash(region_info.regionSecret), "RegionStats", "Region Statistics")
         {
             regionInfo = region_info;
-            osRXStatsURI = Util.SHA1Hash(regionInfo.regionSecret);
             osXStatsURI = Util.SHA1Hash(regionInfo.osSecret);
         }
                     
-        public byte[] Handle(string path, Stream request, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+        protected override byte[] ProcessRequest(
+            string path, Stream request, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             return Util.UTF8.GetBytes(Report());
         }
 
-        public string ContentType
+        public override string ContentType
         {
             get { return "text/plain"; }
-        }
-
-        public string HttpMethod
-        {
-            get { return "GET"; }
-        }
-
-        public string Path
-        {
-            // This is for the region and is the regionSecret hashed
-            get { return "/" + osRXStatsURI; }
         }
         
         private string Report()

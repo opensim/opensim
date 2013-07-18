@@ -112,6 +112,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             //moveArgs.BodyRotation = Quaternion.CreateFromEulers(Vector3.Zero);
             moveArgs.BodyRotation = Quaternion.CreateFromEulers(new Vector3(0, 0, (float)-(Math.PI / 2)));
             moveArgs.ControlFlags = (uint)AgentManager.ControlFlags.AGENT_CONTROL_AT_POS;
+            moveArgs.SessionID = acd.SessionID;
 
             originalSp.HandleAgentUpdate(originalSp.ControllingClient, moveArgs);
 

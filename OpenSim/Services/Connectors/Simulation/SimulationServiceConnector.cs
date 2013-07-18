@@ -272,41 +272,6 @@ namespace OpenSim.Services.Connectors.Simulation
             return false;
         }
 
-        /// <summary>
-        /// Not sure what sequence causes this function to be invoked. The only calling
-        /// path is through the GET method 
-        /// </summary>
-        public bool RetrieveAgent(GridRegion destination, UUID id, out IAgentData agent)
-        {
-            // m_log.DebugFormat("[REMOTE SIMULATION CONNECTOR]: RetrieveAgent start");
-
-            agent = null;
-
-            // Eventually, we want to use a caps url instead of the agentID
-            string uri = destination.ServerURI + AgentPath() + id + "/" + destination.RegionID.ToString() + "/";
-
-            try
-            {
-                OSDMap result = WebUtil.GetFromService(uri, 10000);
-                if (result["Success"].AsBoolean())
-                {
-                    // OSDMap args = Util.GetOSDMap(result["_RawResult"].AsString());
-                    OSDMap args = (OSDMap)result["_Result"];
-                    if (args != null)
-                    {
-                        agent = new CompleteAgentData();
-                        agent.Unpack(args, null);
-                        return true;
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                m_log.Warn("[REMOTE SIMULATION CONNECTOR]: UpdateAgent failed with exception: " + e.ToString());
-            }
-
-            return false;
-        }
 
         /// <summary>
         /// </summary>
@@ -405,33 +370,23 @@ namespace OpenSim.Services.Connectors.Simulation
             return true;
         }
 
-        private bool CloseAgent(GridRegion destination, UUID id, bool ChildOnly)
+        /// <summary>
+        /// </summary>
+        public bool CloseAgent(GridRegion destination, UUID id, string auth_code)
         {
-//            m_log.DebugFormat("[REMOTE SIMULATION CONNECTOR]: CloseAgent start");
-            Util.FireAndForget(x => {
-                string uri = destination.ServerURI + AgentPath() + id + "/" + destination.RegionID.ToString() + "/";
+            string uri = destination.ServerURI + AgentPath() + id + "/" + destination.RegionID.ToString() + "/?auth=" + auth_code;
+            m_log.DebugFormat("[REMOTE SIMULATION CONNECTOR]: CloseAgent {0}", uri);
 
-                try
-                {
-                    WebUtil.ServiceOSDRequest(uri, null, "DELETE", 10000, false);
-                }
-                catch (Exception e)
-                {
-                    m_log.WarnFormat("[REMOTE SIMULATION CONNECTOR] CloseAgent failed with exception; {0}",e.ToString());
-                }
-            });
+            try
+            {
+                WebUtil.ServiceOSDRequest(uri, null, "DELETE", 10000, false);
+            }
+            catch (Exception e)
+            {
+                m_log.WarnFormat("[REMOTE SIMULATION CONNECTOR] CloseAgent failed with exception; {0}",e.ToString());
+            }
 
             return true;
-        }
-
-        public bool CloseChildAgent(GridRegion destination, UUID id)
-        {
-            return CloseAgent(destination, id, true);
-        }
-
-        public bool CloseAgent(GridRegion destination, UUID id)
-        {
-            return CloseAgent(destination, id, false);
         }
 
         #endregion Agents

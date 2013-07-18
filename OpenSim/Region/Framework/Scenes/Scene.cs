@@ -3258,7 +3258,6 @@ namespace OpenSim.Region.Framework.Scenes
         {
             //client.OnNameFromUUIDRequest += HandleUUIDNameRequest;
             client.OnMoneyTransferRequest += ProcessMoneyTransferRequest;
-            client.OnRegionHandleRequest += RegionHandleRequest;
         }
         
         public virtual void SubscribeToClientNetworkEvents(IClientAPI client)
@@ -3384,7 +3383,6 @@ namespace OpenSim.Region.Framework.Scenes
         {
             //client.OnNameFromUUIDRequest -= HandleUUIDNameRequest;
             client.OnMoneyTransferRequest -= ProcessMoneyTransferRequest;
-            client.OnRegionHandleRequest -= RegionHandleRequest;
         }
 
         public virtual void UnSubscribeToClientNetworkEvents(IClientAPI client)
@@ -3611,7 +3609,7 @@ namespace OpenSim.Region.Framework.Scenes
                         regions.Remove(RegionInfo.RegionHandle);
 
                         // This ends up being done asynchronously so that a logout isn't held up where there are many present but unresponsive neighbours.
-                        m_sceneGridService.SendCloseChildAgentConnections(agentID, regions);
+                        m_sceneGridService.SendCloseChildAgentConnections(agentID, acd.SessionID.ToString(), regions);
                     }
     
                     m_eventManager.TriggerClientClosed(agentID, this);
@@ -3858,8 +3856,10 @@ namespace OpenSim.Region.Framework.Scenes
                     m_log.WarnFormat(
                         "[SCENE]: Existing root scene presence detected for {0} {1} in {2} when connecting.  Removing existing presence.",
                         sp.Name, sp.UUID, RegionInfo.RegionName);
+    
+                    if (sp.ControllingClient != null)
+                        sp.ControllingClient.Close(true, true);
 
-                    sp.ControllingClient.Close(true, true);
                     sp = null;
                 }
             }
@@ -4394,10 +4394,16 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (childAgentUpdate != null)
             {
+                if (cAgentData.SessionID != childAgentUpdate.ControllingClient.SessionId)
+                {
+                    m_log.WarnFormat("[SCENE]: Attempt to update agent {0} with invalid session id {1} (possibly from simulator in older version; tell them to update).", childAgentUpdate.UUID, cAgentData.SessionID);
+                    Console.WriteLine(String.Format("[SCENE]: Attempt to update agent {0} ({1}) with invalid session id {2}", 
+                        childAgentUpdate.UUID, childAgentUpdate.ControllingClient.SessionId, cAgentData.SessionID));
+                }
+
                 childAgentUpdate.ChildAgentDataUpdate(cAgentData);
                 return true;
             }
-
             return false;
         }
 
@@ -4413,20 +4419,24 @@ namespace OpenSim.Region.Framework.Scenes
             ScenePresence childAgentUpdate = GetScenePresence(cAgentData.AgentID);
             if (childAgentUpdate != null)
             {
-                // I can't imagine *yet* why we would get an update if the agent is a root agent..
-                // however to avoid a race condition crossing borders..
-                if (childAgentUpdate.IsChildAgent)
+                if (childAgentUpdate.ControllingClient.SessionId == cAgentData.SessionID)
                 {
-                    uint rRegionX = (uint)(cAgentData.RegionHandle >> 40);
-                    uint rRegionY = (((uint)(cAgentData.RegionHandle)) >> 8);
-                    uint tRegionX = RegionInfo.RegionLocX;
-                    uint tRegionY = RegionInfo.RegionLocY;
-                    //Send Data to ScenePresence
-                    childAgentUpdate.ChildAgentDataUpdate(cAgentData, tRegionX, tRegionY, rRegionX, rRegionY);
-                    // Not Implemented:
-                    //TODO: Do we need to pass the message on to one of our neighbors?
+                    // I can't imagine *yet* why we would get an update if the agent is a root agent..
+                    // however to avoid a race condition crossing borders..
+                    if (childAgentUpdate.IsChildAgent)
+                    {
+                        uint rRegionX = (uint)(cAgentData.RegionHandle >> 40);
+                        uint rRegionY = (((uint)(cAgentData.RegionHandle)) >> 8);
+                        uint tRegionX = RegionInfo.RegionLocX;
+                        uint tRegionY = RegionInfo.RegionLocY;
+                        //Send Data to ScenePresence
+                        childAgentUpdate.ChildAgentDataUpdate(cAgentData, tRegionX, tRegionY, rRegionX, rRegionY);
+                        // Not Implemented:
+                        //TODO: Do we need to pass the message on to one of our neighbors?
+                    }
                 }
-
+                else
+                    m_log.WarnFormat("[SCENE]: Attempt at updating position of agent {0} with invalid session id {1}", childAgentUpdate.UUID, cAgentData.SessionID);
                 return true;
             }
 
@@ -4469,6 +4479,25 @@ namespace OpenSim.Region.Framework.Scenes
 
             return false;
         }
+        /// <summary>
+        /// Authenticated close (via network)
+        /// </summary>
+        /// <param name="agentID"></param>
+        /// <param name="force"></param>
+        /// <param name="auth_token"></param>
+        /// <returns></returns>
+        public bool IncomingCloseAgent(UUID agentID, bool force, string auth_token)
+        {
+            //m_log.DebugFormat("[SCENE]: Processing incoming close agent {0} in region {1} with auth_token {2}", agentID, RegionInfo.RegionName, auth_token);
+
+            // Check that the auth_token is valid
+            AgentCircuitData acd = AuthenticateHandler.GetAgentCircuitData(agentID);
+            if (acd != null && acd.SessionID.ToString() == auth_token)
+                return IncomingCloseAgent(agentID, force);
+            else
+                m_log.ErrorFormat("[SCENE]: Request to close agent {0} with invalid authorization token {1}", agentID, auth_token);
+            return false;
+        }
 
         public bool IncomingCloseAgent(UUID agentID)
         {
@@ -4491,7 +4520,6 @@ namespace OpenSim.Region.Framework.Scenes
         public bool IncomingCloseAgent(UUID agentID, bool force)
         {
             //m_log.DebugFormat("[SCENE]: Processing incoming close agent for {0}", agentID);
-
             ScenePresence presence = m_sceneGraph.GetScenePresence(agentID);
             if (presence != null)
             {
@@ -4499,7 +4527,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return true;
             }
 
-            // Agent not here
+            // Agent not here 
             return false;
         }
 
@@ -5089,22 +5117,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         #endregion
 
-        public void RegionHandleRequest(IClientAPI client, UUID regionID)
-        {
-            m_log.DebugFormat("[SCENE]: RegionHandleRequest {0}", regionID);
-            ulong handle = 0;
-            if (regionID == RegionInfo.RegionID)
-                handle = RegionInfo.RegionHandle;
-            else
-            {
-                GridRegion r = GridService.GetRegionByUUID(UUID.Zero, regionID);
-                if (r != null)
-                    handle = r.RegionHandle;
-            }
-
-            if (handle != 0)
-                client.SendRegionHandle(regionID, handle);
-        }
 
 // Commented pending deletion since this method no longer appears to do anything at all
 //        public bool NeedSceneCacheClear(UUID agentID)

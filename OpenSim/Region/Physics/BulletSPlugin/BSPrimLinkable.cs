@@ -37,6 +37,12 @@ namespace OpenSim.Region.Physics.BulletSPlugin
 {
 public class BSPrimLinkable : BSPrimDisplaced
 {
+    // The purpose of this subclass is to add linkset functionality to the prim. This overrides
+    //    operations necessary for keeping the linkset created and, additionally, this
+    //    calls the linkset implementation for its creation and management.
+
+    // This adds the overrides for link() and delink() so the prim is linkable.
+
     public BSLinkset Linkset { get; set; }
     // The index of this child prim.
     public int LinksetChildIndex { get; set; }
@@ -69,8 +75,8 @@ public class BSPrimLinkable : BSPrimDisplaced
         BSPrimLinkable parent = obj as BSPrimLinkable;
         if (parent != null)
         {
-            BSPhysObject parentBefore = Linkset.LinksetRoot;
-            int childrenBefore = Linkset.NumberOfChildren;
+            BSPhysObject parentBefore = Linkset.LinksetRoot;    // DEBUG
+            int childrenBefore = Linkset.NumberOfChildren;      // DEBUG
 
             Linkset = parent.Linkset.AddMeToLinkset(this);
 
@@ -85,8 +91,8 @@ public class BSPrimLinkable : BSPrimDisplaced
         // TODO: decide if this parent checking needs to happen at taint time
         // Race condition here: if link() and delink() in same simulation tick, the delink will not happen
 
-        BSPhysObject parentBefore = Linkset.LinksetRoot;
-        int childrenBefore = Linkset.NumberOfChildren;
+        BSPhysObject parentBefore = Linkset.LinksetRoot;        // DEBUG
+        int childrenBefore = Linkset.NumberOfChildren;          // DEBUG
 
         Linkset = Linkset.RemoveMeFromLinkset(this);
 
@@ -128,6 +134,17 @@ public class BSPrimLinkable : BSPrimDisplaced
         get { return Linkset.LinksetMass; }
     }
 
+    public override OMV.Vector3 CenterOfMass
+    {
+        get { return Linkset.CenterOfMass; }
+    }
+
+    public override OMV.Vector3 GeometricCenter
+    {
+        get { return Linkset.GeometricCenter; }
+    }
+
+    // Refresh the linkset structure and parameters when the prim's physical parameters are changed.
     public override void UpdatePhysicalParameters()
     {
         base.UpdatePhysicalParameters();
@@ -139,13 +156,17 @@ public class BSPrimLinkable : BSPrimDisplaced
             Linkset.Refresh(this);
     }
 
+    // When the prim is made dynamic or static, the linkset needs to change.
     protected override void MakeDynamic(bool makeStatic)
     {
         base.MakeDynamic(makeStatic);
-        if (makeStatic)
-            Linkset.MakeStatic(this);
-        else
-            Linkset.MakeDynamic(this);
+        if (Linkset != null)    // null can happen during initialization
+        {
+            if (makeStatic)
+                Linkset.MakeStatic(this);
+            else
+                Linkset.MakeDynamic(this);
+        }
     }
 
     // Body is being taken apart. Remove physical dependencies and schedule a rebuild.
@@ -155,6 +176,8 @@ public class BSPrimLinkable : BSPrimDisplaced
         base.RemoveDependencies();
     }
 
+    // Called after a simulation step for the changes in physical object properties.
+    // Do any filtering/modification needed for linksets.
     public override void UpdateProperties(EntityProperties entprop)
     {
         if (Linkset.IsRoot(this))
@@ -176,6 +199,7 @@ public class BSPrimLinkable : BSPrimDisplaced
         Linkset.UpdateProperties(UpdatedProperties.EntPropUpdates, this);
     }
 
+    // Called after a simulation step to post a collision with this object.
     public override bool Collide(uint collidingWith, BSPhysObject collidee,
                     OMV.Vector3 contactPoint, OMV.Vector3 contactNormal, float pentrationDepth)
     {

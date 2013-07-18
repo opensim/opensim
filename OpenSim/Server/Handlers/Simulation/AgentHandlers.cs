@@ -27,11 +27,13 @@
 
 using System;
 using System.Collections;
+using System.Collections.Specialized;
 using System.IO;
 using System.IO.Compression;
 using System.Reflection;
 using System.Net;
 using System.Text;
+using System.Web;
 
 using OpenSim.Server.Base;
 using OpenSim.Server.Handlers.Base;
@@ -90,19 +92,13 @@ namespace OpenSim.Server.Handlers.Simulation
 
             // Next, let's parse the verb
             string method = (string)request["http-method"];
-            if (method.Equals("GET"))
+            if (method.Equals("DELETE"))
             {
-                DoAgentGet(request, responsedata, agentID, regionID);
-                return responsedata;
-            }
-            else if (method.Equals("DELETE"))
-            {
-                DoAgentDelete(request, responsedata, agentID, action, regionID);
-                return responsedata;
-            }
-            else if (method.Equals("DELETECHILD"))
-            {
-                DoChildAgentDelete(request, responsedata, agentID, action, regionID);
+                string auth_token = string.Empty;
+                if (request.ContainsKey("auth"))
+                    auth_token = request["auth"].ToString();
+
+                DoAgentDelete(request, responsedata, agentID, action, regionID, auth_token);
                 return responsedata;
             }
             else if (method.Equals("QUERYACCESS"))
@@ -112,7 +108,7 @@ namespace OpenSim.Server.Handlers.Simulation
             }
             else
             {
-                m_log.InfoFormat("[AGENT HANDLER]: method {0} not supported in agent message", method);
+                m_log.ErrorFormat("[AGENT HANDLER]: method {0} not supported in agent message {1} (caller is {2})", method, (string)request["uri"], Util.GetCallerIP(request));
                 responsedata["int_response_code"] = HttpStatusCode.MethodNotAllowed;
                 responsedata["str_response_string"] = "Method not allowed";
 
@@ -161,61 +157,12 @@ namespace OpenSim.Server.Handlers.Simulation
 //            Console.WriteLine("str_response_string [{0}]", responsedata["str_response_string"]);
         }
 
-        protected virtual void DoAgentGet(Hashtable request, Hashtable responsedata, UUID id, UUID regionID)
+        protected void DoAgentDelete(Hashtable request, Hashtable responsedata, UUID id, string action, UUID regionID, string auth_token)
         {
-            if (m_SimulationService == null)
-            {
-                m_log.Debug("[AGENT HANDLER]: Agent GET called. Harmless but useless.");
-                responsedata["content_type"] = "application/json";
-                responsedata["int_response_code"] = HttpStatusCode.NotImplemented;
-                responsedata["str_response_string"] = string.Empty;
-
-                return;
-            }
-
-            GridRegion destination = new GridRegion();
-            destination.RegionID = regionID;
-
-            IAgentData agent = null;
-            bool result = m_SimulationService.RetrieveAgent(destination, id, out agent);
-            OSDMap map = null;
-            if (result)
-            {
-                if (agent != null) // just to make sure
-                {
-                    map = agent.Pack();
-                    string strBuffer = "";
-                    try
-                    {
-                        strBuffer = OSDParser.SerializeJsonString(map);
-                    }
-                    catch (Exception e)
-                    {
-                        m_log.WarnFormat("[AGENT HANDLER]: Exception thrown on serialization of DoAgentGet: {0}", e.Message);
-                        responsedata["int_response_code"] = HttpStatusCode.InternalServerError;
-                        // ignore. buffer will be empty, caller should check.
-                    }
-
-                    responsedata["content_type"] = "application/json";
-                    responsedata["int_response_code"] = HttpStatusCode.OK;
-                    responsedata["str_response_string"] = strBuffer;
-                }
-                else
-                {
-                    responsedata["int_response_code"] = HttpStatusCode.InternalServerError;
-                    responsedata["str_response_string"] = "Internal error";
-                }
-            }
+            if (string.IsNullOrEmpty(action))
+                m_log.DebugFormat("[AGENT HANDLER]: >>> DELETE <<< RegionID: {0}; from: {1}; auth_code: {2}", regionID, Util.GetCallerIP(request), auth_token);
             else
-            {
-                responsedata["int_response_code"] = HttpStatusCode.NotFound;
-                responsedata["str_response_string"] = "Not Found";
-            }
-        }
-
-        protected void DoChildAgentDelete(Hashtable request, Hashtable responsedata, UUID id, string action, UUID regionID)
-        {
-            m_log.Debug(" >>> DoChildAgentDelete action:" + action + "; RegionID:" + regionID);
+                m_log.DebugFormat("[AGENT HANDLER]: Release {0} to RegionID: {1}", id, regionID);
 
             GridRegion destination = new GridRegion();
             destination.RegionID = regionID;
@@ -223,30 +170,12 @@ namespace OpenSim.Server.Handlers.Simulation
             if (action.Equals("release"))
                 ReleaseAgent(regionID, id);
             else
-                m_SimulationService.CloseChildAgent(destination, id);
+                Util.FireAndForget(delegate { m_SimulationService.CloseAgent(destination, id, auth_token); });
 
             responsedata["int_response_code"] = HttpStatusCode.OK;
             responsedata["str_response_string"] = "OpenSim agent " + id.ToString();
 
-            m_log.Debug("[AGENT HANDLER]: Child Agent Released/Deleted.");
-        }
-
-        protected void DoAgentDelete(Hashtable request, Hashtable responsedata, UUID id, string action, UUID regionID)
-        {
-            m_log.Debug(" >>> DoDelete action:" + action + "; RegionID:" + regionID);
-
-            GridRegion destination = new GridRegion();
-            destination.RegionID = regionID;
-
-            if (action.Equals("release"))
-                ReleaseAgent(regionID, id);
-            else
-                Util.FireAndForget(delegate { m_SimulationService.CloseAgent(destination, id); });
-
-            responsedata["int_response_code"] = HttpStatusCode.OK;
-            responsedata["str_response_string"] = "OpenSim agent " + id.ToString();
-
-            m_log.DebugFormat("[AGENT HANDLER]: Agent {0} Released/Deleted from region {1}", id, regionID);
+            //m_log.DebugFormat("[AGENT HANDLER]: Agent {0} Released/Deleted from region {1}", id, regionID);
         }
 
         protected virtual void ReleaseAgent(UUID regionID, UUID id)
@@ -274,7 +203,7 @@ namespace OpenSim.Server.Handlers.Simulation
             m_SimulationService = null;
         }
 
-        public override byte[] Handle(string path, Stream request,
+        protected override byte[] ProcessRequest(string path, Stream request,
                 IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
 //            m_log.DebugFormat("[SIMULATION]: Stream handler called");
@@ -488,7 +417,7 @@ namespace OpenSim.Server.Handlers.Simulation
             m_SimulationService = null;
         }
 
-        public override byte[] Handle(string path, Stream request,
+        protected override byte[] ProcessRequest(string path, Stream request,
                 IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
 //            m_log.DebugFormat("[SIMULATION]: Stream handler called");

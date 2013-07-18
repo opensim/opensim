@@ -87,7 +87,7 @@ namespace OpenSim.Server.Handlers.Asset
             m_InventoryService = service;
         }
 
-        public override byte[] Handle(string path, Stream requestData,
+        protected override byte[] ProcessRequest(string path, Stream requestData,
                 IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             StreamReader sr = new StreamReader(requestData);

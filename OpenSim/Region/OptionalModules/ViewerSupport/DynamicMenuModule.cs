@@ -263,7 +263,7 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
             m_module = module;
         }
 
-        public override byte[] Handle(string path, Stream request, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+        protected override byte[] ProcessRequest(string path, Stream request, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             StreamReader reader = new StreamReader(request);
             string requestBody = reader.ReadToEnd();
