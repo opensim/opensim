@@ -2253,7 +2253,7 @@ namespace OpenSim.Framework
         {
             lock (m_syncRoot)
             {
-                m_lowQueue.Enqueue(data);
+                q.Enqueue(data);
                 m_s.WaitOne(0);
                 m_s.Release();
             }
