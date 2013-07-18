@@ -5565,6 +5565,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         #region Packet Handlers
 
+        public int TotalSignificantAgentUpdates { get; private set; }
+
         #region Scene/Avatar
 
         private bool HandleAgentUpdate(IClientAPI sener, Packet packet)
@@ -5614,6 +5616,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (update)
                 {
 //                    m_log.DebugFormat("[LLCLIENTVIEW]: Triggered AgentUpdate for {0}", sener.Name);
+                    TotalSignificantAgentUpdates++;
 
                     m_lastAgentUpdateArgs.AgentID = x.AgentID;
                     m_lastAgentUpdateArgs.BodyRotation = x.BodyRotation;
