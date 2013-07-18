@@ -5574,40 +5574,30 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>
         /// This checks the update significance against the last update made.
         /// </summary>
-        /// <remarks>Can only be called by one thread at a time, and not at the same time as </remarks>
-        /// 
+        /// <remarks>Can only be called by one thread at a time</remarks>
         /// <returns>/returns>
         /// <param name='x'></param>
         public bool CheckAgentUpdateSignificance(AgentUpdatePacket.AgentDataBlock x)
         {
-            bool update = false;
+            // These should be ordered from most-likely to
+            // least likely to change. I've made an initial
+            // guess at that.
+            bool update =
+               (
+                (x.BodyRotation != m_lastAgentUpdateArgs.BodyRotation) ||
+                (x.CameraAtAxis != m_lastAgentUpdateArgs.CameraAtAxis) ||
+                (x.CameraCenter != m_lastAgentUpdateArgs.CameraCenter) ||
+                (x.CameraLeftAxis != m_lastAgentUpdateArgs.CameraLeftAxis) ||
+                (x.CameraUpAxis != m_lastAgentUpdateArgs.CameraUpAxis) ||
+                (x.ControlFlags != m_lastAgentUpdateArgs.ControlFlags) ||
+                (x.Far != m_lastAgentUpdateArgs.Far) ||
+                (x.Flags != m_lastAgentUpdateArgs.Flags) ||
+                (x.State != m_lastAgentUpdateArgs.State) ||
+                (x.HeadRotation != m_lastAgentUpdateArgs.HeadRotation) ||
+                (x.SessionID != m_lastAgentUpdateArgs.SessionID) ||
+                (x.AgentID != m_lastAgentUpdateArgs.AgentID)
+               );
 
-            if (m_lastAgentUpdateArgs != null)
-            {
-                // These should be ordered from most-likely to
-                // least likely to change. I've made an initial
-                // guess at that.
-                update =
-                   (
-                    (x.BodyRotation != m_lastAgentUpdateArgs.BodyRotation) ||
-                    (x.CameraAtAxis != m_lastAgentUpdateArgs.CameraAtAxis) ||
-                    (x.CameraCenter != m_lastAgentUpdateArgs.CameraCenter) ||
-                    (x.CameraLeftAxis != m_lastAgentUpdateArgs.CameraLeftAxis) ||
-                    (x.CameraUpAxis != m_lastAgentUpdateArgs.CameraUpAxis) ||
-                    (x.ControlFlags != m_lastAgentUpdateArgs.ControlFlags) ||
-                    (x.Far != m_lastAgentUpdateArgs.Far) ||
-                    (x.Flags != m_lastAgentUpdateArgs.Flags) ||
-                    (x.State != m_lastAgentUpdateArgs.State) ||
-                    (x.HeadRotation != m_lastAgentUpdateArgs.HeadRotation) ||
-                    (x.SessionID != m_lastAgentUpdateArgs.SessionID) ||
-                    (x.AgentID != m_lastAgentUpdateArgs.AgentID)
-                   );
-            }
-            else
-            {
-                m_lastAgentUpdateArgs = new AgentUpdateArgs();
-                update = true;
-            }
 
             if (update)
             {
