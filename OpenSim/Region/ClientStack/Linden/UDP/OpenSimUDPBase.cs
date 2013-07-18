@@ -111,6 +111,8 @@ namespace OpenMetaverse
 
             if (!IsRunningInbound)
             {
+                m_log.DebugFormat("[UDPBASE]: Starting inbound UDP loop");
+
                 const int SIO_UDP_CONNRESET = -1744830452;
 
                 IPEndPoint ipep = new IPEndPoint(m_localBindAddress, m_udpPort);
@@ -155,6 +157,8 @@ namespace OpenMetaverse
         /// </summary>
         public void StartOutbound()
         {
+            m_log.DebugFormat("[UDPBASE]: Starting outbound UDP loop");
+
             IsRunningOutbound = true;
         }
 
@@ -162,10 +166,8 @@ namespace OpenMetaverse
         {
             if (IsRunningInbound)
             {
-                // wait indefinitely for a writer lock.  Once this is called, the .NET runtime
-                // will deny any more reader locks, in effect blocking all other send/receive
-                // threads.  Once we have the lock, we set IsRunningInbound = false to inform the other
-                // threads that the socket is closed.
+                m_log.DebugFormat("[UDPBASE]: Stopping inbound UDP loop");
+
                 IsRunningInbound = false;
                 m_udpSocket.Close();
             }
@@ -173,6 +175,8 @@ namespace OpenMetaverse
 
         public void StopOutbound()
         {
+            m_log.DebugFormat("[UDPBASE]: Stopping outbound UDP loop");
+
             IsRunningOutbound = false;
         }
 
