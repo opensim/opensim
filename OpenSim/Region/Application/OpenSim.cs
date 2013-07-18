@@ -86,6 +86,7 @@ namespace OpenSim
             IConfig startupConfig = Config.Configs["Startup"];
             IConfig networkConfig = Config.Configs["Network"];
 
+            int stpMinThreads = 2;
             int stpMaxThreads = 15;
 
             if (startupConfig != null)
@@ -112,12 +113,13 @@ namespace OpenSim
                 if (!String.IsNullOrEmpty(asyncCallMethodStr) && Utils.EnumTryParse<FireAndForgetMethod>(asyncCallMethodStr, out asyncCallMethod))
                     Util.FireAndForgetMethod = asyncCallMethod;
 
+                stpMinThreads = startupConfig.GetInt("MinPoolThreads", 15);
                 stpMaxThreads = startupConfig.GetInt("MaxPoolThreads", 15);
                 m_consolePrompt = startupConfig.GetString("ConsolePrompt", @"Region (\R) ");
             }
 
             if (Util.FireAndForgetMethod == FireAndForgetMethod.SmartThreadPool)
-                Util.InitThreadPool(stpMaxThreads);
+                Util.InitThreadPool(stpMinThreads, stpMaxThreads);
 
             m_log.Info("[OPENSIM MAIN]: Using async_call_method " + Util.FireAndForgetMethod);
         }
