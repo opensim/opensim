@@ -65,6 +65,13 @@ namespace OpenSim.Region.ClientStack.Linden
         /// </value>
         public int DebugLevel { get; set; }
 
+        // Viewer post requests timeout in 60 secs
+        // https://bitbucket.org/lindenlab/viewer-release/src/421c20423df93d650cc305dc115922bb30040999/indra/llmessage/llhttpclient.cpp?at=default#cl-44
+        //
+        private const int VIEWER_TIMEOUT = 60 * 1000;
+        // Just to be safe, we work on a 10 sec shorter cycle
+        private const int SERVER_EQ_TIME_NO_EVENTS = VIEWER_TIMEOUT - (10 * 1000);
+
         protected Scene m_scene;
         
         private Dictionary<UUID, int> m_ids = new Dictionary<UUID, int>();
@@ -363,8 +370,8 @@ namespace OpenSim.Region.ClientStack.Linden
             }
 
             caps.RegisterPollHandler(
-                "EventQueueGet", 
-                new PollServiceEventArgs(null, GenerateEqgCapPath(eventQueueGetUUID), HasEvents, GetEvents, NoEvents, agentID, 40000));
+                "EventQueueGet",
+                new PollServiceEventArgs(null, GenerateEqgCapPath(eventQueueGetUUID), HasEvents, GetEvents, NoEvents, agentID, SERVER_EQ_TIME_NO_EVENTS));
 
             Random rnd = new Random(Environment.TickCount);
             lock (m_ids)

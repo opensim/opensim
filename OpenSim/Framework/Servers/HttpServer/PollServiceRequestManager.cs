@@ -118,7 +118,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             // The only purpose of this thread is to check the EQs for events.
             // If there are events, that thread will be placed in the "ready-to-serve" queue, m_requests.
             // If there are no events, that thread will be back to its "waiting" queue, m_longPollRequests.
-            // All other types of tasks (Inventory handlers) don't have the long-poll nature,
+            // All other types of tasks (Inventory handlers, http-in, etc) don't have the long-poll nature,
             // so if they aren't ready to be served by a worker thread (no events), they are placed 
             // directly back in the "ready-to-serve" queue by the worker thread.
             while (m_running)
