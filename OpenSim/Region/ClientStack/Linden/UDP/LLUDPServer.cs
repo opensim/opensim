@@ -1307,8 +1307,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             LogPacketHeader(true, udpClient.CircuitCode, 0, packet.Type, (ushort)packet.Length);
             #endregion BinaryStats
 
-            if (m_discardAgentUpdates && packet.Type == PacketType.AgentUpdate)
-                return;
+            if (packet.Type == PacketType.AgentUpdate)
+            {
+                if (m_discardAgentUpdates)
+                    return;
+
+                AgentUpdatePacket agentUpdate = (AgentUpdatePacket)packet;
+
+                if (agentUpdate.AgentData.SessionID != client.SessionId 
+                    || agentUpdate.AgentData.AgentID != client.AgentId
+                    || !((LLClientView)client).CheckAgentUpdateSignificance(agentUpdate.AgentData))
+                {
+                    PacketPool.Instance.ReturnPacket(packet);
+                    return;
+                }
+            }
 
             #region Ping Check Handling
 
