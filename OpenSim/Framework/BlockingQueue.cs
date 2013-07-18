@@ -76,7 +76,7 @@ namespace OpenSim.Framework
         {
             lock (m_queueSync)
             {
-                if (m_queue.Count < 1 && m_pqueue.Count < 1)
+                while (m_queue.Count < 1 && m_pqueue.Count < 1)
                 {
                     Monitor.Wait(m_queueSync, msTimeout);
                 }
