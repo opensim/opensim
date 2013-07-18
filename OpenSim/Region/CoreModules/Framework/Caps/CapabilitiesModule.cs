@@ -148,7 +148,6 @@ namespace OpenSim.Region.CoreModules.Framework
 
                 m_capsObjects[circuitCode] = caps;
             }
-
             m_scene.EventManager.TriggerOnRegisterCaps(agentId, caps);
         }
 

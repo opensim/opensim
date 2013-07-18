@@ -390,8 +390,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         private SOPVehicle m_vehicleParams = null;
 
-        private KeyframeMotion m_keyframeMotion = null;
-
         public KeyframeMotion KeyframeMotion
         {
             get; set;
@@ -4646,6 +4644,11 @@ namespace OpenSim.Region.Framework.Scenes
                             }
                         }
 */
+                        if (pa != null)
+                        {
+                            pa.SetMaterial(Material);
+                            DoPhysicsPropertyUpdate(UsePhysics, true);
+                        }
                     }
                     else // it already has a physical representation
                     {

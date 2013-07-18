@@ -1745,11 +1745,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_LSL_Functions.llSetVehicleVectorParam(param, vec);
         }
 
-        public void llSetVelocity(LSL_Vector velocity, int local)
-        {
-            m_LSL_Functions.llSetVelocity(velocity, local);
-        }
-
         public void llShout(int channelID, string text)
         {
             m_LSL_Functions.llShout(channelID, text);

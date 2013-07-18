@@ -384,7 +384,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
               void llSetVehicleRotationParam(int param, LSL_Rotation rot);
               void llSetVehicleType(int type);
               void llSetVehicleVectorParam(int param, LSL_Vector vec);
-              void llSetVelocity(LSL_Vector velocity, int local);
               void llShout(int channelID, string text);
          LSL_Float llSin(double f);
               void llSitTarget(LSL_Vector offset, LSL_Rotation rot);

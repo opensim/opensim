@@ -287,14 +287,14 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public void RegisterCaps(UUID agentID, Caps caps)
         {
-            UploadBakedTextureHandler avatarhandler = new UploadBakedTextureHandler(
-                caps, m_scene.AssetService, m_persistBakedTextures);
-
             UUID capID = UUID.Random();
 
             //caps.RegisterHandler("GetTexture", new StreamHandler("GET", "/CAPS/" + capID, ProcessGetTexture));
             if (m_URL == "localhost")
             {
+                UploadBakedTextureHandler avatarhandler = new UploadBakedTextureHandler(
+                    caps, m_scene.AssetService, m_persistBakedTextures);
+
                 caps.RegisterHandler(
                     "UploadBakedTexture",
                     new RestStreamHandler(
@@ -309,7 +309,6 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 caps.RegisterHandler("UploadBakedTexture", m_URL);
             }
-
         }
     }
 }
