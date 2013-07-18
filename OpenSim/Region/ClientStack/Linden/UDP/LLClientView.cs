@@ -485,6 +485,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_udpServer = udpServer;
             m_udpClient = udpClient;
             m_udpClient.OnQueueEmpty += HandleQueueEmpty;
+            m_udpClient.HasUpdates += HandleHasUpdates;
             m_udpClient.OnPacketStats += PopulateStats;
 
             m_prioritizer = new Prioritizer(m_scene);
@@ -4133,8 +4134,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         void HandleQueueEmpty(ThrottleOutPacketTypeFlags categories)
         {
+//            if (!m_udpServer.IsRunningOutbound)
+//                return;
+
             if ((categories & ThrottleOutPacketTypeFlags.Task) != 0)
             {
+//                if (!m_udpServer.IsRunningOutbound)
+//                    return;
+
                 if (m_maxUpdates == 0 || m_LastQueueFill == 0)
                 {
                     m_maxUpdates = m_udpServer.PrimUpdatesPerCallback;
@@ -4158,6 +4165,27 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if ((categories & ThrottleOutPacketTypeFlags.Texture) != 0)
                 ImageManager.ProcessImageQueue(m_udpServer.TextureSendLimit);
+        }
+
+        internal bool HandleHasUpdates(ThrottleOutPacketTypeFlags categories)
+        {
+            bool hasUpdates = false;
+
+            if ((categories & ThrottleOutPacketTypeFlags.Task) != 0)
+            {
+                if (m_entityUpdates.Count > 0)
+                    hasUpdates = true;
+                else if (m_entityProps.Count > 0)
+                    hasUpdates = true;                   
+            }
+
+            if ((categories & ThrottleOutPacketTypeFlags.Texture) != 0)
+            {
+                if (ImageManager.HasUpdates())
+                    hasUpdates = true;
+            }
+
+            return hasUpdates;
         }
 
         public void SendAssetUploadCompleteMessage(sbyte AssetType, bool Success, UUID AssetFullID)

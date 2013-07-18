@@ -1662,8 +1662,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Action generic every round
             Action<IClientAPI> clientPacketHandler = ClientOutgoingPacketHandler;
 
-//            while (true)
-            while (base.IsRunningOutbound)
+            while (true)
+//            while (base.IsRunningOutbound)
             {
                 try
                 {

@@ -308,8 +308,8 @@ namespace OpenMetaverse
 
         public void AsyncBeginSend(UDPPacketBuffer buf)
         {
-            if (IsRunningOutbound)
-            {
+//            if (IsRunningOutbound)
+//            {
                 try
                 {
                     m_udpSocket.BeginSendTo(
@@ -323,7 +323,7 @@ namespace OpenMetaverse
                 }
                 catch (SocketException) { }
                 catch (ObjectDisposedException) { }
-            }
+//            }
         }
 
         void AsyncEndSend(IAsyncResult result)
