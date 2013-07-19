@@ -148,7 +148,6 @@ namespace OpenSim.Framework.Servers.HttpServer
 
                         ready.ForEach(req =>
                             {
-                                m_log.DebugFormat("[YYY]: --> Enqueuing");
                                 m_requests.Enqueue(req);
                                 m_longPollRequests.Remove(req);
                             });
